@@ -244,8 +244,8 @@ public class FarmHelper implements Serializable
 
 
 
-             if(!uuidList.contains(mc.thePlayer.getGameProfile().getId().toString()))
-             {enabled = false;}
+           //  if(!uuidList.contains(mc.thePlayer.getGameProfile().getId().toString()))
+           //  {enabled = false;}
 
 
 
@@ -515,7 +515,7 @@ public class FarmHelper implements Serializable
         public void run() {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
             if(!error) {
-                ScheduleRunnable(afterRejoin2, 1, TimeUnit.SECONDS);
+                ScheduleRunnable(afterRejoin2, 2500, TimeUnit.MILLISECONDS);
             } else {
                 ScheduleRunnable(WarpHome, 5, TimeUnit.SECONDS);
                 error = false;
@@ -598,7 +598,7 @@ public class FarmHelper implements Serializable
             FMLClientHandler.instance().connectToServer(new GuiMainMenu(), sd);
         }
     };*/
-
+/*
     String[] uuid = new String[]
             {
                     "f47ae565-4843-450f-bb5e-08eea3524aa6",
@@ -616,10 +616,10 @@ public class FarmHelper implements Serializable
                     "21613d3c-859f-4c4f-bd6c-9b258a4d481d",
                     "83314de0-8724-47d4-b849-c36975cfa4d0",
                     "5cfaf73b-0dc4-4f16-b4b9-513ce462a39c"
-            };
+            };*/
 
 
-    List<String> uuidList = new ArrayList<String>(Arrays.asList(uuid));
+    //List<String> uuidList = new ArrayList<String>(Arrays.asList(uuid));
 
      void toggle(){
 

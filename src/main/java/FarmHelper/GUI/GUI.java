@@ -2,6 +2,7 @@ package FarmHelper.GUI;
 
 import FarmHelper.FarmHelper;
 import FarmHelper.GUI.buttons.GuiCustomButton;
+import FarmHelper.GUI.buttons.GuiCustomSwitchButton;
 import FarmHelper.Utils.Utils;
 import FarmHelper.config.Config;
 import net.minecraft.client.gui.GuiButton;
@@ -49,7 +50,8 @@ public class GUI extends GuiScreen implements Serializable {
         this.buttonList.add(new GuiButtonExt(6, this.width / 2 - buttonWidth / 2 - 180, this.height / 2 - buttonHeight / 2, buttonWidth, buttonHeight, "Change angle"));
 
         this.buttonList.add(new GuiButtonExt(7, this.width / 2 - buttonWidth / 2  + 180, this.height / 2 - buttonHeight / 2, buttonWidth, buttonHeight, "Change farm"));
-        this.buttonList.add(new GuiButtonExt(8, this.width / 2 - buttonWidth / 2  + 180, this.height / 2 - buttonHeight / 2 + 80, 160, 40, "Change angle after teleport"));
+        this.buttonList.add(new GuiButtonExt(8, this.width / 2 - buttonWidth / 2  + 180, this.height / 2 - buttonHeight / 2 + 80, 160, 40, "Rotate after teleport"));
+       // this.buttonList.add(new GuiCustomSwitchButton(9, this.width / 2 - buttonWidth / 2  + 220, this.height / 2 - buttonHeight / 2 - 80, 80, 20, "Rotate after teleport"));
 
         GuiCustomButton temp = (GuiCustomButton) this.buttonList.get(FarmHelper.config.CropType.ordinal());
         temp.select();
@@ -135,6 +137,15 @@ public class GUI extends GuiScreen implements Serializable {
 
             Utils.saveConfig(FarmHelper.config);
         }
+       /* if(button.id == 9){
+            System.out.println("pressed");
+            GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(8);
+            temp.switchSelect();
+
+            updateScreen();
+
+            Utils.saveConfig(FarmHelper.config);
+        }*/
 
 
 
