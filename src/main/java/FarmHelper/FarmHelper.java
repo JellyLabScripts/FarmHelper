@@ -2,7 +2,10 @@ package FarmHelper;
 
 import FarmHelper.GUI.GUI;
 import FarmHelper.Utils.Utils;
+import FarmHelper.config.AngleEnum;
 import FarmHelper.config.Config;
+import FarmHelper.config.CropEnum;
+import FarmHelper.config.FarmEnum;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -47,9 +50,6 @@ public class FarmHelper implements Serializable
 {
     Minecraft mc = Minecraft.getMinecraft();
 
-    public static Config config = null;
-
-
     public static final String MODID = "nwmath";
     public static final String NAME = "Farm Helper";
     public static final String VERSION = "1.0";
@@ -72,6 +72,8 @@ public class FarmHelper implements Serializable
     boolean setAntiStuck = false;
     boolean set = false; //whether HAS CHANGED motion (1&2)
     boolean set3 = false; //same but motion 3
+    boolean checkedPrice = false;
+
 
     double beforeX = 0;
     double beforeZ = 0;
@@ -92,10 +94,12 @@ public class FarmHelper implements Serializable
     public int keybindAttack = mc.gameSettings.keyBindAttack.getKeyCode();
 
 
-    int totalMnw = 0;
-    int totalEnw = 0;
-    int totalMoney = 0;
+    static volatile int totalMnw = 0;
+    static volatile int totalEnw = 0;
+    static volatile int totalMoney = 0;
+    static volatile int prevMoney = -999;
     int angleMode= 0 ;
+    static volatile int moneyper10sec = 0;
 
     MouseHelper mouseHelper = new MouseHelper();
 
@@ -124,12 +128,11 @@ public class FarmHelper implements Serializable
     @EventHandler
     public void init(FMLInitializationEvent event)
     {
-
-        config = Utils.readConfig();
-        if(config.CropType == null) {
+        if(Config.CropType == null) {
             System.out.print("not read");
-            config = new Config(Config.CROP.NETHERWART, Config.FARM.LAYERED, Config.ANGLE.AN90);
+            Config.setConfig(CropEnum.NETHERWART, FarmEnum.LAYERED, AngleEnum.AN90);
         }
+        ScheduleRunnable(checkPriceChange, 1, TimeUnit.SECONDS);
 
 
     }
@@ -147,56 +150,26 @@ public class FarmHelper implements Serializable
     public void onMessageReceived(ClientChatReceivedEvent event){
 
         if(event.message.getFormattedText().contains("You were spawned in Limbo") && !notInIsland && enabled) {
-            shdBePressingKey = false;
-
-            process1 = false;
-            process2 = false;
-            process3 = false;
-            process4 = false;
-
-            KeyBinding.setKeyBindState(keybindAttack, false);
+           activateFailsafe();
             ScheduledExecutorService executor1 = Executors.newScheduledThreadPool(1);
             executor1.schedule(LeaveSBIsand, 8, TimeUnit.SECONDS);
 
-            notInIsland = true;
         }
         if((event.message.getFormattedText().contains("Sending to server") && !notInIsland && enabled)){
-
-            shdBePressingKey = false;
-
-            process1 = false;
-            process2 = false;
-            process3 = false;
-            process4 = false;
-
-            KeyBinding.setKeyBindState(keybindAttack, false);
+            activateFailsafe();
             ScheduledExecutorService executor1 = Executors.newScheduledThreadPool(1);
             executor1.schedule(WarpHome, 10, TimeUnit.SECONDS);
-
-            notInIsland = true;
         }
-
         if((event.message.getFormattedText().contains("DYNAMIC") && notInIsland)){
             error = true;
         }
-
         if((event.message.getFormattedText().contains("SkyBlock Lobby") && !notInIsland && enabled)){
-
-            shdBePressingKey = false;
-
-            process1 = false;
-            process2 = false;
-            process3 = false;
-            process4 = false;
-
-            KeyBinding.setKeyBindState(keybindAttack, false);
+            activateFailsafe();
             ScheduledExecutorService executor1 = Executors.newScheduledThreadPool(1);
             executor1.schedule(LeaveSBIsand, 10, TimeUnit.SECONDS);
 
-            notInIsland = true;
         }
-
-        if((event.message.getFormattedText().contains("Warped from") && !notInIsland && enabled && GUI.changeAngleAfterCycle)){
+        if((event.message.getFormattedText().contains("Warped from") && !notInIsland && enabled && Config.rotateAfterTeleport)){
             angleMode = 1 - angleMode;
         }
 
@@ -208,22 +181,25 @@ public class FarmHelper implements Serializable
     {
 
         if (event.type == RenderGameOverlayEvent.ElementType.TEXT) {
-            mc.fontRendererObj.drawString(config.CropType + "", 4, 4, -1);
-            mc.fontRendererObj.drawString("Angle : " + angleToValue(config.Angle), 4, 16, -1);
-            mc.fontRendererObj.drawString(config.FarmType + " farm", 4, 28, -1);
-            mc.fontRendererObj.drawString( "Change angle after teleport : " + GUI.changeAngleAfterCycle, 4, 40, -1);
+            mc.fontRendererObj.drawString(Config.CropType + "", 4, 4, -1);
+            mc.fontRendererObj.drawString("Angle : " + angleToValue(Config.Angle), 4, 16, -1);
+            mc.fontRendererObj.drawString(Config.FarmType + " farm", 4, 28, -1);
+           // mc.fontRendererObj.drawString( "Change angle after teleport : " + Config.rotateAfterTeleport, 4, 40, -1);
 
-           /* if(config.CropType.equals(Config.CROP.NETHERWART)) {
+            if(Config.CropType.equals(CropEnum.NETHERWART) && Config.inventoryPriceCalculator) {
                 mc.getTextureManager().bindTexture(mutantNetherwartImage);
                 GuiScreen.drawModalRectWithCustomSizedTexture(4, 50, 1, 1, 12, 12, 12, 12);
                 mc.getTextureManager().bindTexture(enchantedNetherwartImage);
                 GuiScreen.drawModalRectWithCustomSizedTexture(4, 62, 1, 1, 12, 12, 12, 12);
+                Utils.drawString("x" + totalMnw, 20, 50, 0.8f, -1);
+                Utils.drawString("x" + totalEnw, 20, 62, 0.8f, -1);
+                Utils.drawString("$" + totalMoney, 6, 78, 0.95f, -1);
+            }
+            if(Config.CropType.equals(CropEnum.NETHERWART) && Config.profitCalculator) {
+                Utils.drawString("profit/min = " + moneyper10sec * 6, 6, 94, 0.8f, -1);
+                Utils.drawString("profit/h = " + moneyper10sec * 6 * 60, 6, 104, 0.8f, -1);
+            }
 
-
-                Utils.drawString("x" + Integer.toString(totalMnw), 20, 50, 0.8f, -1);
-                Utils.drawString("x" + Integer.toString(totalEnw), 20, 62, 0.8f, -1);
-                Utils.drawString("$" + Integer.toString(totalMoney), 6, 78, 0.95f, -1);
-            }*/
         }
 
     }
@@ -237,17 +213,29 @@ public class FarmHelper implements Serializable
 
         if (event.phase != TickEvent.Phase.START) return;
 
+        // profit calculator
+        if( mc.thePlayer != null && mc.theWorld != null){
 
+
+            int tempEnw = 0; int tempMnw = 0;
+            for (int i = 0; i < 35; i++) {
+                ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
+                if(stack != null) {
+                    if (stack.getDisplayName().contains("Enchanted Nether Wart"))//
+                        tempEnw = tempEnw + stack.stackSize;
+
+                    if (stack.getDisplayName().contains("Mutant Nether Wart"))
+                        tempMnw = tempMnw + stack.stackSize;
+                }
+
+            }
+            totalMnw = tempMnw; totalEnw = tempEnw;
+            totalMoney = totalMnw * 51504 + totalEnw * 320;
+
+        }
 
         //script code
         if (enabled && mc.thePlayer != null && mc.theWorld != null) {
-
-
-
-           //  if(!uuidList.contains(mc.thePlayer.getGameProfile().getId().toString()))
-           //  {enabled = false;}
-
-
 
             //always
             mc.gameSettings.pauseOnLostFocus = false;
@@ -255,19 +243,18 @@ public class FarmHelper implements Serializable
             mc.gameSettings.gammaSetting = 100;
 
 
+
             if(!emergency) {
-                net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindW, false);
-                net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindS, false);
+                KeyBinding.setKeyBindState(keybindW, false);
+                KeyBinding.setKeyBindState(keybindS, false);
             }
             if (!shdBePressingKey) {
-                net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindA, false);
-                net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindD, false);
+                KeyBinding.setKeyBindState(keybindA, false);
+                KeyBinding.setKeyBindState(keybindD, false);
             }
-
-
-
+            //angles
             if(!emergency) {
-                if (config.CropType.equals(Config.CROP.NETHERWART)) {
+                if (Config.CropType.equals(CropEnum.NETHERWART)) {
                     mc.thePlayer.rotationPitch = 0;
 
                 } else {
@@ -275,15 +262,15 @@ public class FarmHelper implements Serializable
                 }
 
                 if(angleMode == 0){
-                    mc.thePlayer.rotationYaw = mc.thePlayer.rotationYaw - mc.thePlayer.rotationYaw % 360 + angleToValue(config.Angle);
+                    mc.thePlayer.rotationYaw = mc.thePlayer.rotationYaw - mc.thePlayer.rotationYaw % 360 + angleToValue(Config.Angle);
                 } else {
-                    mc.thePlayer.rotationYaw = mc.thePlayer.rotationYaw - mc.thePlayer.rotationYaw % 360 + angleToValue(config.Angle) + 180;
+                    mc.thePlayer.rotationYaw = mc.thePlayer.rotationYaw - mc.thePlayer.rotationYaw % 360 + angleToValue(Config.Angle) + 180;
                 }
             }
             //INITIAL SETUP
             if (!locked) {
-                net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindA, false);
-                net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindD, false);
+                KeyBinding.setKeyBindState(keybindA, false);
+                KeyBinding.setKeyBindState(keybindD, false);
                 locked = true;
                 angleMode = 0;
                 initialize();
@@ -293,7 +280,7 @@ public class FarmHelper implements Serializable
                 ScheduleRunnable(checkChange, 3, TimeUnit.SECONDS);
             }
             //antistuck
-            if(!setAntiStuck && config.FarmType.equals(Config.FARM.LAYERED)){
+            if(!setAntiStuck && Config.FarmType.equals(FarmEnum.LAYERED)){
                 if (playerBlock() == Blocks.farmland || playerBlock() == Blocks.soul_sand){
 
                     mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
@@ -305,7 +292,7 @@ public class FarmHelper implements Serializable
                 }
 
             }
-            if(deltaX < 0.8d && deltaZ < 0.8d && !notInIsland && !emergency && !setAntiStuck && config.FarmType.equals(Config.FARM.LAYERED)){
+            if(deltaX < 0.8d && deltaZ < 0.8d && !notInIsland && !emergency && !setAntiStuck && Config.FarmType.equals(FarmEnum.LAYERED)){
 
                 mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
                         "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Detected stuck"));
@@ -313,7 +300,7 @@ public class FarmHelper implements Serializable
                 process4 = true;
                 ScheduleRunnable(stopAntistuck, 800, TimeUnit.MILLISECONDS);
 
-            }else if(deltaX < 0.1d && deltaZ < 0.1d && !notInIsland && !emergency && !setAntiStuck && config.FarmType.equals(Config.FARM.VERTICAL)){
+            }else if(deltaX < 0.1d && deltaZ < 0.1d && !notInIsland && !emergency && !setAntiStuck && Config.FarmType.equals(FarmEnum.VERTICAL)){
                  //tp pad fix
                 deltaX = 10000;
                 deltaZ = 10000;
@@ -342,7 +329,7 @@ public class FarmHelper implements Serializable
             double dy = mc.thePlayer.posY - mc.thePlayer.lastTickPosY;
 
             if (dx == 0 && dz == 0 && !notInIsland && !emergency ){
-                if(config.FarmType.equals(Config.FARM.VERTICAL)){
+                if(Config.FarmType.equals(FarmEnum.VERTICAL)){
 
                     if(dy != 0 && !set) {
                         set = true;
@@ -374,9 +361,9 @@ public class FarmHelper implements Serializable
                     KeyBinding.setKeyBindState(keybindS, false);
                     error = false;
 
-                    net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindD, true);
-                    net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindA, false);
-                    net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindW, false);
+                    KeyBinding.setKeyBindState(keybindD, true);
+                    KeyBinding.setKeyBindState(keybindA, false);
+                    KeyBinding.setKeyBindState(keybindW, false);
                     if(!setspawned){mc.thePlayer.sendChatMessage("/setspawn"); setspawned = true;}
 
                 }
@@ -389,16 +376,16 @@ public class FarmHelper implements Serializable
 
                     KeyBinding.setKeyBindState(keybindAttack, true);
                     KeyBinding.setKeyBindState(keybindS, false);
-                    net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindA, true);
-                    net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindD, false);
-                    net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindW, false);
+                    KeyBinding.setKeyBindState(keybindA, true);
+                    KeyBinding.setKeyBindState(keybindD, false);
+                    KeyBinding.setKeyBindState(keybindW, false);
 
                 }
 
             }
             if(process3 && !process4){
                 if (shdBePressingKey)
-                net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindW, true);
+                KeyBinding.setKeyBindState(keybindW, true);
             } else if(process4){
                 process3 = false;
                 if(shdBePressingKey) {
@@ -441,12 +428,9 @@ public class FarmHelper implements Serializable
     Runnable changeMotion = new Runnable() {
         @Override
         public void run() {
-
             if(!notInIsland && !emergency) {
-
                 process1 = !process1;
                 process2 = !process2;
-
                 set = false;
             }
         }
@@ -545,8 +529,19 @@ public class FarmHelper implements Serializable
             ScheduleRunnable(checkChange, 3, TimeUnit.SECONDS);
         }
     };
+    Runnable checkPriceChange = new Runnable() {
+        @Override
+        public void run() {
 
+            if(!(prevMoney == -999) && (totalMoney - prevMoney >= 0)) {
+                moneyper10sec = totalMoney - prevMoney;
+            }
 
+            prevMoney = totalMoney;
+
+            ScheduleRunnable(checkPriceChange, 10, TimeUnit.SECONDS);
+        }
+    };
 
     @SubscribeEvent
     public void OnKeyPress(InputEvent.KeyInputEvent event){
@@ -561,10 +556,6 @@ public class FarmHelper implements Serializable
 
 
     }
-
-
-
-
 
     Runnable EMERGENCY = new Runnable() {
         @Override
@@ -622,32 +613,30 @@ public class FarmHelper implements Serializable
     //List<String> uuidList = new ArrayList<String>(Arrays.asList(uuid));
 
      void toggle(){
-
         mc.thePlayer.closeScreen();
-
         if(enabled){
             mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
                     "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Stopped script"));
             stop();
         }
         enabled = !enabled;
-
         openedGUI = false;
     }
     void stop(){
-
-
-        int keybindS = mc.gameSettings.keyBindBack.getKeyCode();
-        int keybindA = mc.gameSettings.keyBindLeft.getKeyCode();
-        int keybindD = mc.gameSettings.keyBindRight.getKeyCode();
-        int keybindW = mc.gameSettings.keyBindForward.getKeyCode();
-        int keybindAttack = mc.gameSettings.keyBindAttack.getKeyCode();
-
         net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindA, false);
         net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindW, false);
         net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindD, false);
         net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindS, false);
         net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindAttack, false);
+    }
+    void activateFailsafe(){
+         shdBePressingKey = false;
+         notInIsland = true;
+         KeyBinding.setKeyBindState(keybindAttack, false);
+        process1 = false;
+        process2 = false;
+        process3 = false;
+        process4 = false;
 
     }
     Block playerBlock(){
@@ -674,14 +663,10 @@ public class FarmHelper implements Serializable
         beforeZ = mc.thePlayer.posZ;
         initialX = mc.thePlayer.posX;
         initialZ = mc.thePlayer.posZ;
-
-
         set = false;
         set3 = false;
-
-
     }
-    int angleToValue(Config.ANGLE c){
+    int angleToValue(AngleEnum c){
          return !c.toString().replace("A", "").contains("N") ?
                  Integer.parseInt(c.toString().replace("A", "")) :
                  Integer.parseInt(c.toString().replace("A", "").replace("N", "")) * -1;

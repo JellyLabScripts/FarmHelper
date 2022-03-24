@@ -3,6 +3,7 @@ package FarmHelper.Utils;
 import FarmHelper.config.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.opengl.GL11;
 import scala.sys.process.ProcessBuilderImpl;
 
@@ -11,10 +12,13 @@ import java.io.*;
 public class Utils {
 
     public static void drawString(String text, int x, int y, float size, int color) {
-        GL11.glScalef(size,size,size);
+        GlStateManager.scale(size,size,size);
+        //GL11.glScalef();
         float mSize = (float)Math.pow(size,-1);
         Minecraft.getMinecraft().fontRendererObj.drawString(text,Math.round(x / size),Math.round(y / size),color);
-        GL11.glScalef(mSize,mSize,mSize);
+        GlStateManager.scale(mSize,mSize,mSize);
+        //GL11.glScalef(mSize,mSize,mSize);
+
     }
 
     public static void saveConfig(Config c){

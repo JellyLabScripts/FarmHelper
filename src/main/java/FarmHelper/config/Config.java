@@ -6,34 +6,21 @@ import java.io.Serializable;
 public class Config implements Serializable {
 
 
-    public static CROP CropType;
-    public static ANGLE Angle;
-    public static FARM FarmType;
+    public static CropEnum CropType;
+    public static AngleEnum Angle;
+    public static FarmEnum FarmType;
+    public static boolean rotateAfterTeleport = false;
+    public static boolean inventoryPriceCalculator = false;
+    public static boolean profitCalculator = false;
 
-    public Config(CROP crop, FARM farm, ANGLE angle){
+
+
+    public static void setConfig(CropEnum crop, FarmEnum farm, AngleEnum angle){
         CropType = crop;
         FarmType = farm;
         Angle = angle;
     }
 
-
-    public enum CROP {
-        WHEAT,
-        NETHERWART,
-        POTATO,
-        CARROT
-    }
-    public enum FARM {
-        LAYERED,
-        VERTICAL
-    }
-
-    public enum ANGLE{
-        A0,
-        A90,
-        A180,
-        AN90,
-    }
 }
 
 

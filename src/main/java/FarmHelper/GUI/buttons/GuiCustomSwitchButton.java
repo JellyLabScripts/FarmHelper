@@ -8,15 +8,17 @@ import net.minecraft.util.ResourceLocation;
 
 public class GuiCustomSwitchButton extends GuiButton {
 
-    int x; int y; int widthln; int length; public boolean selected = false; String buttonText;
+    int x; int y; int widthln; int length; boolean selected = false; String buttonText; int distanceFromLeft;
 
-    public GuiCustomSwitchButton(int buttonId, int x, int y, int widthln, int length, String buttonText) {
+    public GuiCustomSwitchButton(int buttonId, int x, int y, int widthln, int length, int distanceFromLeft, String buttonText) {
         super(buttonId, x, y, widthln, length, buttonText);
         this.x = x;
         this.y = y;
         this.widthln = widthln;
         this.length = length;
         this.buttonText = buttonText;
+        this.distanceFromLeft = distanceFromLeft;
+
 
     }
 
@@ -32,7 +34,7 @@ public class GuiCustomSwitchButton extends GuiButton {
         else {
             Gui.drawRect(x, y, x + widthln / 2, y + length, 0x90000000);
         }
-        mc.fontRendererObj.drawString(buttonText, x - mc.fontRendererObj.getStringWidth(buttonText) - 4, y + length/2 - 4, 0x90000000);
+        mc.fontRendererObj.drawString(buttonText, distanceFromLeft, y + length/2 - 4, -1);
 
     }
     public void switchSelect(){selected = !selected;}
