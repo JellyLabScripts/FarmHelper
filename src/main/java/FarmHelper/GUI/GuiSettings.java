@@ -31,16 +31,17 @@ public class GuiSettings extends GuiScreen {
     @Override
     public void initGui() {
         super.initGui();
-        this.buttonList.add(new GuiCustomSwitchButton(0, this.width/2 + 100, this.height/2 - 50, 100, 30, 30, "Rotate after teleport"));
-        this.buttonList.add(new GuiCustomSwitchButton(1, this.width/2 + 100, this.height/2     , 100, 30, 30, "Inventory price calculator"));
-        this.buttonList.add(new GuiCustomSwitchButton(2, this.width/2 + 100, this.height/2 + 50, 100, 30, 30, "Profit calculator"));
+        this.buttonList.add(new GuiCustomSwitchButton(0, this.width/2 + 120, this.height/2 - 50, 40, 15, 30, "Rotate after teleport"));
+        this.buttonList.add(new GuiCustomSwitchButton(1, this.width/2 + 120, this.height/2 - 10, 40, 15, 30, "Inventory price calculator"));
+        this.buttonList.add(new GuiCustomSwitchButton(2, this.width/2 + 120, this.height/2 + 30, 40, 15, 30, "Profit calculator"));
+        this.buttonList.add(new GuiCustomSwitchButton(3, this.width/2 + 120, this.height/2 + 70, 40, 15, 30, "Auto resync"));
         initialSelect();
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         drawRect(0, 0, this.width, this.height, new Color(41, 41, 41, 255).getRGB());
-        Utils.drawString(title,this.width / 2 - mc.fontRendererObj.getStringWidth(title) / 2 * 2, 30, 2, -1); // multiply by the size smh works
+        Utils.drawString(title, this.width / 2 - mc.fontRendererObj.getStringWidth(title) / 2 * 2, 30, 2, -1); // multiply by the size smh works
         super.drawScreen(mouseX, mouseY, partialTicks);
 
     }
@@ -71,6 +72,13 @@ public class GuiSettings extends GuiScreen {
             Config.profitCalculator = !Config.profitCalculator;
             updateScreen();
         }
+        if(button.id == 3){
+            GuiCustomSwitchButton temp = (GuiCustomSwitchButton) button;
+            temp.switchSelect();
+            Config.resync = !Config.resync;
+            updateScreen();
+        }
+
 
     }
 
@@ -85,6 +93,10 @@ public class GuiSettings extends GuiScreen {
         }
         if(Config.profitCalculator) {
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(2);
+            temp.switchSelect();
+        }
+        if(Config.resync) {
+            GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(3);
             temp.switchSelect();
         }
     }

@@ -17,6 +17,7 @@ import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -72,7 +73,7 @@ public class FarmHelper implements Serializable
     boolean setAntiStuck = false;
     boolean set = false; //whether HAS CHANGED motion (1&2)
     boolean set3 = false; //same but motion 3
-    boolean checkedPrice = false;
+    boolean resyncing = false;
 
 
     double beforeX = 0;
@@ -93,12 +94,14 @@ public class FarmHelper implements Serializable
     public int keybindS = mc.gameSettings.keyBindBack.getKeyCode();
     public int keybindAttack = mc.gameSettings.keyBindAttack.getKeyCode();
 
+    static KeyBinding[] customKeyBinds = new KeyBinding[2];
 
     static volatile int totalMnw = 0;
     static volatile int totalEnw = 0;
     static volatile int totalMoney = 0;
     static volatile int prevMoney = -999;
-    int angleMode= 0 ;
+    int angleMode = 0 ;
+    int cycles = 0;
     static volatile int moneyper10sec = 0;
 
     MouseHelper mouseHelper = new MouseHelper();
@@ -133,8 +136,10 @@ public class FarmHelper implements Serializable
             Config.setConfig(CropEnum.NETHERWART, FarmEnum.LAYERED, AngleEnum.AN90);
         }
         ScheduleRunnable(checkPriceChange, 1, TimeUnit.SECONDS);
-
-
+        customKeyBinds[0] = new KeyBinding("Open GUI", Keyboard.KEY_RSHIFT, "FarmHelper");
+        customKeyBinds[1] = new KeyBinding("Toggle script", Keyboard.KEY_GRAVE, "FarmHelper");
+        ClientRegistry.registerKeyBinding(customKeyBinds[0]);
+        ClientRegistry.registerKeyBinding(customKeyBinds[1]);
     }
 
 
@@ -241,9 +246,6 @@ public class FarmHelper implements Serializable
             mc.gameSettings.pauseOnLostFocus = false;
             mc.thePlayer.inventory.currentItem = 0;
             mc.gameSettings.gammaSetting = 100;
-
-
-
             if(!emergency) {
                 KeyBinding.setKeyBindState(keybindW, false);
                 KeyBinding.setKeyBindState(keybindS, false);
@@ -353,8 +355,6 @@ public class FarmHelper implements Serializable
 
             // Processes //
             if (process1 && !process3 && !process4) {
-
-
                 if (shdBePressingKey) {
 
                     KeyBinding.setKeyBindState(keybindAttack, true);
@@ -364,13 +364,10 @@ public class FarmHelper implements Serializable
                     KeyBinding.setKeyBindState(keybindD, true);
                     KeyBinding.setKeyBindState(keybindA, false);
                     KeyBinding.setKeyBindState(keybindW, false);
-                    if(!setspawned){mc.thePlayer.sendChatMessage("/setspawn"); setspawned = true;}
-
+                    if(!setspawned){mc.thePlayer.sendChatMessage("/setspawn"); setspawned = true; cycles++;}
                 }
 
             } else if (process2 && !process3 && !process4) {
-
-
                 setspawned = false;
                 if (shdBePressingKey) {
 
@@ -395,6 +392,8 @@ public class FarmHelper implements Serializable
 
                 }
             }
+            if(cycles == 4 && Config.resync)
+                ExecuteRunnable(reSync);
 
         } else{
             locked = false;
@@ -407,6 +406,23 @@ public class FarmHelper implements Serializable
 
     //multi-threads
 
+    Runnable reSync = new Runnable() {
+        @Override
+        public void run() {
+            mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
+                    "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Resyncing.. disabling script (10s)"));
+            enabled = false;
+            stop();
+            try{
+                Thread.sleep(10000);
+            }catch(Exception e){
+              e.printStackTrace();
+            }
+            mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
+                    "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Resyncing.. enabling script now"));
+            enabled = true;
+        }
+    };
      Runnable checkChange = new Runnable() {
         @Override
         public void run() {
@@ -417,6 +433,7 @@ public class FarmHelper implements Serializable
 
                  beforeX = mc.thePlayer.posX;
                  beforeZ = mc.thePlayer.posZ;
+
                 ScheduleRunnable(checkChange, 3, TimeUnit.SECONDS);
 
             }
@@ -546,11 +563,11 @@ public class FarmHelper implements Serializable
     @SubscribeEvent
     public void OnKeyPress(InputEvent.KeyInputEvent event){
 
-        if(Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)){
+        if(customKeyBinds[0].isPressed()){
             openedGUI = true;
             mc.displayGuiScreen(new GUI());
         }
-        if(Keyboard.isKeyDown(Keyboard.KEY_GRAVE)){
+        if(customKeyBinds[1].isPressed()){
             toggle();
         }
 
@@ -648,6 +665,11 @@ public class FarmHelper implements Serializable
         eTemp.schedule(r, delay, tu);
         eTemp.shutdown();
     }
+    void ExecuteRunnable(Runnable r){
+        ScheduledExecutorService eTemp = Executors.newScheduledThreadPool(1);
+        eTemp.execute(r);
+        eTemp.shutdown();
+    }
     void initialize(){
         deltaX = 10000;
         deltaZ = 10000;
@@ -665,12 +687,11 @@ public class FarmHelper implements Serializable
         initialZ = mc.thePlayer.posZ;
         set = false;
         set3 = false;
+        cycles = 0;
     }
     int angleToValue(AngleEnum c){
          return !c.toString().replace("A", "").contains("N") ?
                  Integer.parseInt(c.toString().replace("A", "")) :
                  Integer.parseInt(c.toString().replace("A", "").replace("N", "")) * -1;
     }
-
-
 }

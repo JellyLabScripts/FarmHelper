@@ -1,5 +1,6 @@
 package FarmHelper.GUI.buttons;
 
+import FarmHelper.Utils.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
@@ -26,14 +27,24 @@ public class GuiCustomSwitchButton extends GuiButton {
     @Override
     public void drawButton(Minecraft mc, int mouseX, int mouseY) {
 
-        Gui.drawRect(x, y, x + widthln, y + length, 0x30000000);
+        int color = -1;
+
         if(this.selected)
         {
-            Gui.drawRect(x + widthln / 2, y, x + widthln, y + length, 0x9000FF00);
+            color = 0x9000FF00;
+            Gui.drawRect(x + widthln / 2, y, x + widthln, y + length, color);
         }
         else {
-            Gui.drawRect(x, y, x + widthln / 2, y + length, 0x90000000);
+            color = 0x90F2F2F2;
+            Gui.drawRect(x, y, x + widthln/2, y + length, color);
         }
+
+        Gui.drawRect(x, y, x + widthln, y + length, 0x30000000);
+        Utils.drawHorizontalLine(x - 1, x+widthln, y - 1, color);
+        Utils.drawHorizontalLine(x - 1, x+widthln, y + length, color);
+        Utils.drawVerticalLine(x - 1, y - 1, y + length,  color);
+        Utils.drawVerticalLine(x + widthln, y - 1, y + length, color);
+
         mc.fontRendererObj.drawString(buttonText, distanceFromLeft, y + length/2 - 4, -1);
 
     }

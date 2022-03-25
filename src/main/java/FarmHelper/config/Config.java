@@ -12,6 +12,7 @@ public class Config implements Serializable {
     public static boolean rotateAfterTeleport = false;
     public static boolean inventoryPriceCalculator = false;
     public static boolean profitCalculator = false;
+    public static boolean resync = false;
 
 
 
