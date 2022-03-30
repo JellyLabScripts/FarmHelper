@@ -13,6 +13,7 @@ public class Config implements Serializable {
     public static boolean inventoryPriceCalculator = false;
     public static boolean profitCalculator = false;
     public static boolean resync = false;
+    public static boolean fastbreak = false;
 
 
 

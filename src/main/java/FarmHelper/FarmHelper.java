@@ -8,6 +8,7 @@ import FarmHelper.config.CropEnum;
 import FarmHelper.config.FarmEnum;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
@@ -15,6 +16,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -27,6 +29,7 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -49,6 +52,10 @@ import java.util.concurrent.TimeUnit;
 @Mod(modid = FarmHelper.MODID, name = FarmHelper.NAME, version = FarmHelper.VERSION)
 public class FarmHelper implements Serializable
 {
+
+    /*
+    ** @author JellyLab
+     */
     Minecraft mc = Minecraft.getMinecraft();
 
     public static final String MODID = "nwmath";
@@ -73,7 +80,7 @@ public class FarmHelper implements Serializable
     boolean setAntiStuck = false;
     boolean set = false; //whether HAS CHANGED motion (1&2)
     boolean set3 = false; //same but motion 3
-    boolean resyncing = false;
+    boolean rotating = false;
 
 
     double beforeX = 0;
@@ -100,11 +107,11 @@ public class FarmHelper implements Serializable
     static volatile int totalEnw = 0;
     static volatile int totalMoney = 0;
     static volatile int prevMoney = -999;
-    int angleMode = 0 ;
     int cycles = 0;
     static volatile int moneyper10sec = 0;
 
     MouseHelper mouseHelper = new MouseHelper();
+    int playerYaw = 0;
 
 
 
@@ -143,12 +150,12 @@ public class FarmHelper implements Serializable
     }
 
 
-    /*@SubscribeEvent
-    public void onDisconnect(GuiDisconnected disconnected) throws RuntimeException{
-
-        ScheduledExecutorService executor1 = Executors.newScheduledThreadPool(1);
-        executor1.schedule(Reconnect, 3, TimeUnit.SECONDS);
-    }*/
+    @SubscribeEvent
+    public void onOpenGui(final GuiOpenEvent event) {
+        if (event.gui instanceof GuiDisconnected) {
+            enabled = false;
+        }
+    }
 
 
     @SubscribeEvent
@@ -175,7 +182,7 @@ public class FarmHelper implements Serializable
 
         }
         if((event.message.getFormattedText().contains("Warped from") && !notInIsland && enabled && Config.rotateAfterTeleport)){
-            angleMode = 1 - angleMode;
+            ExecuteRunnable(changeLayer);
         }
 
     }
@@ -189,7 +196,6 @@ public class FarmHelper implements Serializable
             mc.fontRendererObj.drawString(Config.CropType + "", 4, 4, -1);
             mc.fontRendererObj.drawString("Angle : " + angleToValue(Config.Angle), 4, 16, -1);
             mc.fontRendererObj.drawString(Config.FarmType + " farm", 4, 28, -1);
-           // mc.fontRendererObj.drawString( "Change angle after teleport : " + Config.rotateAfterTeleport, 4, 40, -1);
 
             if(Config.CropType.equals(CropEnum.NETHERWART) && Config.inventoryPriceCalculator) {
                 mc.getTextureManager().bindTexture(mutantNetherwartImage);
@@ -212,7 +218,7 @@ public class FarmHelper implements Serializable
 
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void OnTickPlayer(TickEvent.ClientTickEvent event) {
+    public void OnTickPlayer(TickEvent.ClientTickEvent event) { //Client -> player
 
 
 
@@ -220,6 +226,7 @@ public class FarmHelper implements Serializable
 
         // profit calculator
         if( mc.thePlayer != null && mc.theWorld != null){
+
 
 
             int tempEnw = 0; int tempMnw = 0;
@@ -254,31 +261,23 @@ public class FarmHelper implements Serializable
                 KeyBinding.setKeyBindState(keybindA, false);
                 KeyBinding.setKeyBindState(keybindD, false);
             }
-            //angles
-            if(!emergency) {
+            //angles (locked)
+            if(!emergency && !notInIsland) {
                 if (Config.CropType.equals(CropEnum.NETHERWART)) {
                     mc.thePlayer.rotationPitch = 0;
 
                 } else {
                     mc.thePlayer.rotationPitch = 6;
                 }
+                mc.thePlayer.rotationYaw = playerYaw;
 
-                if(angleMode == 0){
-                    mc.thePlayer.rotationYaw = mc.thePlayer.rotationYaw - mc.thePlayer.rotationYaw % 360 + angleToValue(Config.Angle);
-                } else {
-                    mc.thePlayer.rotationYaw = mc.thePlayer.rotationYaw - mc.thePlayer.rotationYaw % 360 + angleToValue(Config.Angle) + 180;
-                }
             }
-            //INITIAL SETUP
+            //INITIALIZE
             if (!locked) {
                 KeyBinding.setKeyBindState(keybindA, false);
                 KeyBinding.setKeyBindState(keybindD, false);
                 locked = true;
-                angleMode = 0;
                 initialize();
-                mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
-                                "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Starting script"));
-
                 ScheduleRunnable(checkChange, 3, TimeUnit.SECONDS);
             }
             //antistuck
@@ -309,12 +308,9 @@ public class FarmHelper implements Serializable
                 ScheduleRunnable(changeMotion, 800, TimeUnit.MILLISECONDS);
             }
 
-
-
             //bedrock failsafe
             Block blockStandingOn = mc.theWorld.getBlockState(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1, mc.thePlayer.posZ)).getBlock();
             if(blockStandingOn == Blocks.bedrock && !emergency) {
-
                 KeyBinding.setKeyBindState(keybindAttack, false);
                 process1 = false;
                 process2 = false;
@@ -326,27 +322,31 @@ public class FarmHelper implements Serializable
             }
 
             //change motion
-            double dx = mc.thePlayer.posX - mc.thePlayer.lastTickPosX;
-            double dz = mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ;
-            double dy = mc.thePlayer.posY - mc.thePlayer.lastTickPosY;
+            Block blockIn = mc.theWorld.getBlockState(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ)).getBlock();
 
-            if (dx == 0 && dz == 0 && !notInIsland && !emergency ){
+            double dx = Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX);
+            double dz = Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ);
+            double dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
+            boolean falling = blockIn == Blocks.air && dy != 0;
+            if ((float)dx == 0 && dz == 0 && !notInIsland && !emergency){// changed == 0 to < 0.1d
                 if(Config.FarmType.equals(FarmEnum.VERTICAL)){
-
                     if(dy != 0 && !set) {
                         set = true;
                         ScheduleRunnable(changeMotion, 1, TimeUnit.SECONDS);
                     }
-
                 } else {
+                    if(falling && !rotating){
+                        mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
+                                "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "New layer detected"));
+                        ExecuteRunnable(changeLayer);
+                        enabled = false;
 
-                    if(!set3 && (mc.thePlayer.posZ != initialZ || mc.thePlayer.posX != initialX)) {
-
-                            set3 = true;
-                            ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-                            executor.execute(Motion3);
-                            executor.shutdown();
                     }
+                    else if(!set3 && (mc.thePlayer.posZ != initialZ || mc.thePlayer.posX != initialX) && !rotating) {
+                            set3 = true;
+                            ExecuteRunnable(Motion3);
+                    }
+
                 }
 
 
@@ -441,6 +441,29 @@ public class FarmHelper implements Serializable
         }
     };
 
+    Runnable changeLayer = new Runnable() {
+        @Override
+        public void run() {
+            if(!notInIsland && !emergency) {
+                try {
+                    stop();
+                    rotating = true;
+                    enabled = false;
+                    Thread.sleep(500);
+                    if(mc.thePlayer.rotationYaw != angleToValue(Config.Angle))
+                       mc.thePlayer.rotationYaw = mc.thePlayer.rotationYaw + 180;
+                    else
+                        mc.thePlayer.rotationYaw = mc.thePlayer.rotationYaw - 180;
+                    Thread.sleep(500);
+                    rotating = false;
+                    playerYaw = (int)mc.thePlayer.rotationYaw;
+                    enabled = true;
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
+    };
 
     Runnable changeMotion = new Runnable() {
         @Override
@@ -563,12 +586,18 @@ public class FarmHelper implements Serializable
     @SubscribeEvent
     public void OnKeyPress(InputEvent.KeyInputEvent event){
 
-        if(customKeyBinds[0].isPressed()){
-            openedGUI = true;
-            mc.displayGuiScreen(new GUI());
-        }
-        if(customKeyBinds[1].isPressed()){
-            toggle();
+        if(!rotating) {
+            if (customKeyBinds[0].isPressed()) {
+                openedGUI = true;
+                mc.displayGuiScreen(new GUI());
+            }
+            if (customKeyBinds[1].isPressed()) {
+                if (!enabled)
+                    mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
+                            "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Starting script"));
+
+                toggle();
+            }
         }
 
 
@@ -584,6 +613,7 @@ public class FarmHelper implements Serializable
             KeyBinding.setKeyBindState(keybindD, false);
             KeyBinding.setKeyBindState(keybindS, false);
 
+           // mc.thePlayer.addChatMessage(ScreenShotHelper.saveScreenshot(mc.mcDataDir, mc.displayWidth, mc.displayHeight, mc.getFramebuffer()));
 
             ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
             executor.schedule(SHUTDOWN, 4123, TimeUnit.MILLISECONDS);
@@ -599,44 +629,17 @@ public class FarmHelper implements Serializable
         }
     };
 
-
-    /*Runnable Reconnect = new Runnable() {
-        @Override
-        public void run() {
-            FMLClientHandler.instance().connectToServer(new GuiMainMenu(), sd);
-        }
-    };*/
-/*
-    String[] uuid = new String[]
-            {
-                    "f47ae565-4843-450f-bb5e-08eea3524aa6",
-                    "6cc977b4-135c-4032-8b98-db933e61efdf",
-                    "7bbbc85c-56d3-47b3-9aac-c77751011377",
-                    "b049e1c7-4f5a-4579-a90a-fb5cc1fea4c9",
-                    "dd25b76f-a852-48d2-bbfd-2ad0b436b5f7",
-                    "dc313486-1e47-4792-843b-863b44b8a1bc",
-                    "b541f53d-99c8-401b-a364-b0f10cc24d8b",
-                    "3ec28f98-4758-43ce-8218-765c6b4d17c9",
-                    "b06db246-c073-4ce6-9398-8b500309ae3a",
-                    "26a011c6-ba0e-42be-8ca7-1b726420fa22",
-                    "f2ded78e-32de-4d09-87d6-4a8eae1ab890",
-                    "80859660-3452-40af-96d6-f82c1bc72bd2",
-                    "21613d3c-859f-4c4f-bd6c-9b258a4d481d",
-                    "83314de0-8724-47d4-b849-c36975cfa4d0",
-                    "5cfaf73b-0dc4-4f16-b4b9-513ce462a39c"
-            };*/
-
-
-    //List<String> uuidList = new ArrayList<String>(Arrays.asList(uuid));
-
      void toggle(){
         mc.thePlayer.closeScreen();
         if(enabled){
             mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
                     "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Stopped script"));
             stop();
+            enabled = !enabled;
+        } else {
+            playerYaw = angleToValue(Config.Angle);
+            enabled = !enabled;
         }
-        enabled = !enabled;
         openedGUI = false;
     }
     void stop(){
@@ -688,6 +691,7 @@ public class FarmHelper implements Serializable
         set = false;
         set3 = false;
         cycles = 0;
+        rotating = false;
     }
     int angleToValue(AngleEnum c){
          return !c.toString().replace("A", "").contains("N") ?
