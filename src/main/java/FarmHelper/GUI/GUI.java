@@ -88,6 +88,7 @@ public class GUI extends GuiScreen implements Serializable {
              temp.select();
              deactivateOthers(0);
              Config.CropType = CropEnum.WHEAT;
+            Config.writeConfig();
         }
         if(button.id == 2){
 
@@ -95,17 +96,20 @@ public class GUI extends GuiScreen implements Serializable {
             temp.select();
             deactivateOthers(1);
             Config.CropType = CropEnum.NETHERWART;
+            Config.writeConfig();
         }
         if(button.id == 3){
             GuiCustomButton temp = (GuiCustomButton) this.buttonList.get(2);
             temp.select();
             deactivateOthers(2);
             Config.CropType = CropEnum.POTATO;
+            Config.writeConfig();
         }if(button.id == 4){
             GuiCustomButton temp = (GuiCustomButton) this.buttonList.get(3);
             temp.select();
             deactivateOthers(3);
             Config.CropType = CropEnum.CARROT;
+            Config.writeConfig();
         }
 
 
@@ -120,12 +124,12 @@ public class GUI extends GuiScreen implements Serializable {
             } else{
                 Config.Angle = AngleEnum.A0;
             }
-
-
+            Config.writeConfig();
         }
         if(button.id == 7){
             Config.FarmType =
                     Config.FarmType.equals(FarmEnum.VERTICAL)? FarmEnum.LAYERED : FarmEnum.VERTICAL;
+            Config.writeConfig();
 
         }
 

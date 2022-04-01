@@ -140,7 +140,6 @@ public class FarmHelper implements Serializable
     public void init(FMLInitializationEvent event)
     {
         if(Config.CropType == null) {
-            System.out.print("not read");
             Config.setConfig(CropEnum.NETHERWART, FarmEnum.LAYERED, AngleEnum.AN90);
         }
         ScheduleRunnable(checkPriceChange, 1, TimeUnit.SECONDS);
@@ -148,6 +147,13 @@ public class FarmHelper implements Serializable
         customKeyBinds[1] = new KeyBinding("Toggle script", Keyboard.KEY_GRAVE, "FarmHelper");
         ClientRegistry.registerKeyBinding(customKeyBinds[0]);
         ClientRegistry.registerKeyBinding(customKeyBinds[1]);
+
+        try {
+            Config.readConfig();
+        } catch(Exception e){
+            Config.writeConfig();
+        }
+
     }
 
 
@@ -297,7 +303,7 @@ public class FarmHelper implements Serializable
                 process4 = true;
                 ScheduleRunnable(stopAntistuck, 800, TimeUnit.MILLISECONDS);
 
-            }else if(deltaX < 0.1d && deltaZ < 0.1d && !notInIsland && !emergency && !setAntiStuck && Config.FarmType.equals(FarmEnum.VERTICAL)){
+            }else if(deltaX < 0.0001d && deltaZ < 0.0001d && !notInIsland && !emergency && !setAntiStuck && Config.FarmType.equals(FarmEnum.VERTICAL)){
                  //tp pad fix
                 deltaX = 10000;
                 deltaZ = 10000;
@@ -626,6 +632,7 @@ public class FarmHelper implements Serializable
     };
 
      void toggle(){
+
         mc.thePlayer.closeScreen();
         if(enabled){
             mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +

@@ -1,6 +1,8 @@
 package FarmHelper.Utils;
 
+import FarmHelper.config.AngleEnum;
 import FarmHelper.config.Config;
+import FarmHelper.config.FarmEnum;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
@@ -24,41 +26,13 @@ public class Utils {
     }
 
     public static void saveConfig(Config c){
-        try {
-            FileOutputStream fileOut =
-                    new FileOutputStream("/tmp/config.ser");
-            ObjectOutputStream out = new ObjectOutputStream(fileOut);
-            out.writeObject(c);
-            out.close();
-            fileOut.close();
-            System.out.print("Serialized data is saved in /tmp/config.ser");
-        } catch (IOException i) {
-            System.out.print("Error");
-            i.printStackTrace();
-        }
+
+
     }
 
 
-    public static Config readConfig() {
-        try {
-            Config c = null;
 
-            FileInputStream fileIn = new FileInputStream("/tmp/config.ser");
-            ObjectInputStream in = new ObjectInputStream(fileIn);
-            c = (Config) in.readObject();
-            in.close();
-            fileIn.close();
 
-            return c;
-        } catch (IOException i) {
-            i.printStackTrace();
-            return null;
-        } catch (ClassNotFoundException c) {
-            System.out.println("class not found");
-            c.printStackTrace();
-            return null;
-        }
-    }
 
     public static void drawHorizontalLine(int startX, int endX, int y, int color)
     {
@@ -88,10 +62,17 @@ public class Utils {
                 (Minecraft.getMinecraft().thePlayer.rotationYaw % 360) :
                 (Minecraft.getMinecraft().thePlayer.rotationYaw < 360f ? 360 - (-Minecraft.getMinecraft().thePlayer.rotationYaw % 360)  :  360 + Minecraft.getMinecraft().thePlayer.rotationYaw);
     }
+    static int getOppositeAngle(int angle){
+        return (angle < 180) ? angle + 180 : angle - 180;
+    }
+    static boolean shouldRotateClockwise(int currentAngle, int boundAngle){
+       return false;
+    }
     public static void rotateTo(final int rotation360){
             new Thread(new Runnable() {
                 @Override
                 public void run() {
+                    boolean clockwise = shouldRotateClockwise((int) get360RotationYaw(), getOppositeAngle(rotation360));
                     while (get360RotationYaw() != rotation360) {
                         if(Math.abs(rotation360 - get360RotationYaw()) < 2) {
                             Minecraft.getMinecraft().thePlayer.rotationYaw = (int)(Minecraft.getMinecraft().thePlayer.rotationYaw + (rotation360 - get360RotationYaw()));
@@ -140,5 +121,6 @@ public class Utils {
         Random r = new Random();
         return r.nextInt(upperbound);
     }
+
 
 }

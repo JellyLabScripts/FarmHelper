@@ -61,24 +61,28 @@ public class GuiSettings extends GuiScreen {
             temp.switchSelect();
             Config.rotateAfterTeleport = !Config.rotateAfterTeleport;
             updateScreen();
+            Config.writeConfig();
         }
         if(button.id == 1){
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) button;
             temp.switchSelect();
             Config.inventoryPriceCalculator = !Config.inventoryPriceCalculator;
             updateScreen();
+            Config.writeConfig();
         }
         if(button.id == 2){
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) button;
             temp.switchSelect();
             Config.profitCalculator = !Config.profitCalculator;
             updateScreen();
+            Config.writeConfig();
         }
         if(button.id == 3){
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) button;
             temp.switchSelect();
             Config.resync = !Config.resync;
             updateScreen();
+            Config.writeConfig();
         }
         /*if(button.id == 4){
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) button;
