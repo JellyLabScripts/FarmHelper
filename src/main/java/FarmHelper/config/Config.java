@@ -14,8 +14,6 @@ public class Config{
     public static boolean inventoryPriceCalculator = false;
     public static boolean profitCalculator = false;
     public static boolean resync = false;
-    public static boolean fastbreak = false;
-
 
     public static void setConfig(CropEnum crop, FarmEnum farm, AngleEnum angle){
         CropType = crop;
