@@ -89,6 +89,8 @@ public class FarmHelper implements Serializable
     double deltaZ = 10000;
     double initialX = 0;
     double initialZ = 0;
+    double initialY = 0;
+
 
 
     boolean notInIsland = false;
@@ -220,15 +222,10 @@ public class FarmHelper implements Serializable
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void OnTickPlayer(TickEvent.ClientTickEvent event) { //Client -> player
 
-
-
         if (event.phase != TickEvent.Phase.START) return;
 
         // profit calculator
         if( mc.thePlayer != null && mc.theWorld != null){
-
-
-
             int tempEnw = 0; int tempMnw = 0;
             for (int i = 0; i < 35; i++) {
                 ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
@@ -301,11 +298,12 @@ public class FarmHelper implements Serializable
                 process4 = true;
                 ScheduleRunnable(stopAntistuck, 800, TimeUnit.MILLISECONDS);
 
-            }else if(deltaX < 0.1d && deltaZ < 0.1d && !notInIsland && !emergency && !setAntiStuck && Config.FarmType.equals(FarmEnum.VERTICAL)){
+            }else if(deltaX < 0.1d && deltaZ < 0.1d && !notInIsland && !emergency && !setAntiStuck && Config.FarmType.equals(FarmEnum.VERTICAL) && initialY != mc.thePlayer.posY){
                  //tp pad fix
+                initialY = mc.thePlayer.posY;
                 deltaX = 10000;
                 deltaZ = 10000;
-                ScheduleRunnable(changeMotion, 800, TimeUnit.MILLISECONDS);
+                ScheduleRunnable(changeMotion, 300, TimeUnit.MILLISECONDS);
             }
 
             //bedrock failsafe
@@ -635,12 +633,11 @@ public class FarmHelper implements Serializable
             mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
                     "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Stopped script"));
             stop();
-            enabled = !enabled;
         } else {
             playerYaw = angleToValue(Config.Angle);
-            enabled = !enabled;
         }
-        openedGUI = false;
+         enabled = !enabled;
+         openedGUI = false;
     }
     void stop(){
         net.minecraft.client.settings.KeyBinding.setKeyBindState(keybindA, false);
