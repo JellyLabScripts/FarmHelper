@@ -89,7 +89,6 @@ public class FarmHelper implements Serializable
     double deltaZ = 10000;
     double initialX = 0;
     double initialZ = 0;
-    double initialY = 0;
 
 
 
@@ -298,9 +297,8 @@ public class FarmHelper implements Serializable
                 process4 = true;
                 ScheduleRunnable(stopAntistuck, 800, TimeUnit.MILLISECONDS);
 
-            }else if(deltaX < 0.1d && deltaZ < 0.1d && !notInIsland && !emergency && !setAntiStuck && Config.FarmType.equals(FarmEnum.VERTICAL) && initialY != mc.thePlayer.posY){
+            }else if(deltaX < 0.1d && deltaZ < 0.1d && !notInIsland && !emergency && !setAntiStuck && Config.FarmType.equals(FarmEnum.VERTICAL)){
                  //tp pad fix
-                initialY = mc.thePlayer.posY;
                 deltaX = 10000;
                 deltaZ = 10000;
                 ScheduleRunnable(changeMotion, 300, TimeUnit.MILLISECONDS);
