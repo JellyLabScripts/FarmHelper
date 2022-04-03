@@ -50,7 +50,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Mod(modid = FarmHelper.MODID, name = FarmHelper.NAME, version = FarmHelper.VERSION)
-public class FarmHelper implements Serializable
+public class FarmHelper
 {
 
     /*
@@ -423,6 +423,7 @@ public class FarmHelper implements Serializable
             mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
                     "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Resyncing.. enabling script now"));
             enabled = true;
+
         }
     };
      Runnable checkChange = new Runnable() {
