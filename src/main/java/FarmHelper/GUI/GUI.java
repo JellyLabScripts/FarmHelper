@@ -48,9 +48,8 @@ public class GUI extends GuiScreen implements Serializable {
         this.buttonList.add(new GuiCustomButton(2, this.width/2,  this.height / 2 - 100, 100,100,  quarterII));
         this.buttonList.add(new GuiCustomButton(3, this.width/2 - 100 ,  this.height / 2, 100,100,  quarterIII));
         this.buttonList.add(new GuiCustomButton(4, this.width/2 ,  this.height / 2, 100,100,  quarterIV));
-        this.buttonList.add(new GuiBetterButton(6, this.width / 2 - buttonWidth / 2 - 180, this.height / 2 - buttonHeight / 2, buttonWidth, buttonHeight, "Change angle"));
-        this.buttonList.add(new GuiBetterButton(7, this.width / 2 - buttonWidth / 2  + 180, this.height / 2 - buttonHeight / 2, buttonWidth, buttonHeight, "Change farm"));
-        this.buttonList.add(new GuiBetterButton(8, this.width / 2 - buttonWidth / 2  + 180, this.height / 2 - buttonHeight / 2 + 100 , 80, 40, "More settings"));
+        this.buttonList.add(new GuiBetterButton(5, this.width / 2 - buttonWidth / 2  - 180, this.height / 2 - buttonHeight / 2, buttonWidth, buttonHeight, "Change farm"));
+        this.buttonList.add(new GuiBetterButton(6, this.width / 2 - buttonWidth / 2  + 180, this.height / 2 - buttonHeight / 2, buttonWidth, buttonHeight, "More settings"));
 
         GuiCustomButton temp = (GuiCustomButton) this.buttonList.get(Config.CropType.ordinal());
         temp.select();
@@ -111,29 +110,14 @@ public class GUI extends GuiScreen implements Serializable {
             Config.CropType = CropEnum.CARROT;
             Config.writeConfig();
         }
-
-
-
-        if(button.id == 6){
-            if(Config.Angle.equals(AngleEnum.A0)){
-                Config.Angle = AngleEnum.A90;
-            } else if(Config.Angle.equals(AngleEnum.A90)){
-                Config.Angle = AngleEnum.A180;
-            } else if(Config.Angle.equals(AngleEnum.A180)){
-                Config.Angle = AngleEnum.AN90;
-            } else{
-                Config.Angle = AngleEnum.A0;
-            }
-            Config.writeConfig();
-        }
-        if(button.id == 7){
+        if(button.id == 5){
             Config.FarmType =
                     Config.FarmType.equals(FarmEnum.VERTICAL)? FarmEnum.LAYERED : FarmEnum.VERTICAL;
             Config.writeConfig();
 
         }
 
-        if(button.id == 8){
+        if(button.id == 6){
             mc.thePlayer.closeScreen();
             mc.displayGuiScreen(new GuiSettings());
         }

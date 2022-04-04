@@ -53,14 +53,16 @@ import java.util.concurrent.TimeUnit;
 public class FarmHelper
 {
 
-    /*
-    ** @author JellyLab
-     */
-    Minecraft mc = Minecraft.getMinecraft();
-
     public static final String MODID = "nwmath";
     public static final String NAME = "Farm Helper";
     public static final String VERSION = "1.0";
+    /*
+    ** @author JellyLab
+    *  @contributor XHacer
+     */
+    Minecraft mc = Minecraft.getMinecraft();
+
+
 
     private static final ResourceLocation mutantNetherwartImage = new ResourceLocation(FarmHelper.MODID, "textures/gui/mnw.png");
     private static final ResourceLocation enchantedNetherwartImage = new ResourceLocation(FarmHelper.MODID, "textures/gui/enw.png");
@@ -111,6 +113,7 @@ public class FarmHelper
     int cycles = 0;
     static volatile int moneyper10sec = 0;
 
+
     MouseHelper mouseHelper = new MouseHelper();
     int playerYaw = 0;
 
@@ -139,9 +142,6 @@ public class FarmHelper
     @EventHandler
     public void init(FMLInitializationEvent event)
     {
-        if(Config.CropType == null) {
-            Config.setConfig(CropEnum.NETHERWART, FarmEnum.LAYERED, AngleEnum.AN90);
-        }
         ScheduleRunnable(checkPriceChange, 1, TimeUnit.SECONDS);
         customKeyBinds[0] = new KeyBinding("Open GUI", Keyboard.KEY_RSHIFT, "FarmHelper");
         customKeyBinds[1] = new KeyBinding("Toggle script", Keyboard.KEY_GRAVE, "FarmHelper");
@@ -170,23 +170,19 @@ public class FarmHelper
 
         if(event.message.getFormattedText().contains("You were spawned in Limbo") && !notInIsland && enabled) {
            activateFailsafe();
-            ScheduledExecutorService executor1 = Executors.newScheduledThreadPool(1);
-            executor1.schedule(LeaveSBIsand, 8, TimeUnit.SECONDS);
+            ScheduleRunnable(LeaveSBIsand, 8, TimeUnit.SECONDS);
 
         }
         if((event.message.getFormattedText().contains("Sending to server") && !notInIsland && enabled)){
             activateFailsafe();
-            ScheduledExecutorService executor1 = Executors.newScheduledThreadPool(1);
-            executor1.schedule(WarpHome, 10, TimeUnit.SECONDS);
+            ScheduleRunnable(WarpHome, 10, TimeUnit.SECONDS);
         }
         if((event.message.getFormattedText().contains("DYNAMIC") && notInIsland)){
             error = true;
         }
         if((event.message.getFormattedText().contains("SkyBlock Lobby") && !notInIsland && enabled)){
             activateFailsafe();
-            ScheduledExecutorService executor1 = Executors.newScheduledThreadPool(1);
-            executor1.schedule(LeaveSBIsand, 10, TimeUnit.SECONDS);
-
+            ScheduleRunnable(LeaveSBIsand, 10, TimeUnit.SECONDS);
         }
         if((event.message.getFormattedText().contains("Warped from") && !notInIsland && enabled && Config.rotateAfterTeleport)){
             ExecuteRunnable(changeLayer);
@@ -229,8 +225,11 @@ public class FarmHelper
 
         if (event.phase != TickEvent.Phase.START) return;
 
-        // profit calculator
+        // profit calculator && angle caculation
         if( mc.thePlayer != null && mc.theWorld != null){
+            if(!rotating)
+            Config.Angle = Math.round(Utils.get360RotationYaw()/90) < 4 ? AngleEnum.values()[Math.round(Utils.get360RotationYaw()/90)] : AngleEnum.A0;
+
             int tempEnw = 0; int tempMnw = 0;
             for (int i = 0; i < 35; i++) {
                 ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
@@ -272,6 +271,7 @@ public class FarmHelper
                     mc.thePlayer.rotationPitch = 6;
                 }
                 mc.thePlayer.rotationYaw = playerYaw;
+
 
             }
             //INITIALIZE
@@ -411,19 +411,11 @@ public class FarmHelper
     Runnable reSync = new Runnable() {
         @Override
         public void run() {
+            cycles = 0;
             mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
-                    "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Resyncing.. disabling script (10s)"));
-            enabled = false;
-            stop();
-            try{
-                Thread.sleep(10000);
-            }catch(Exception e){
-              e.printStackTrace();
-            }
-            mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
-                    "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Resyncing.. enabling script now"));
-            enabled = true;
-
+                    "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Resyncing.. "));
+            activateFailsafe();
+            ScheduleRunnable(WarpHub, 3, TimeUnit.SECONDS);
         }
     };
      Runnable checkChange = new Runnable() {
@@ -453,13 +445,12 @@ public class FarmHelper
                     rotating = true;
                     enabled = false;
                     Thread.sleep(500);
-                    if(mc.thePlayer.rotationYaw != angleToValue(Config.Angle))
-                       mc.thePlayer.rotationYaw = mc.thePlayer.rotationYaw + 180;
-                    else
-                        mc.thePlayer.rotationYaw = mc.thePlayer.rotationYaw - 180;
+                    Config.Angle = Config.Angle.ordinal() < 2 ? AngleEnum.values()[Config.Angle.ordinal() + 2] : AngleEnum.values()[Config.Angle.ordinal() - 2];
+                    playerYaw = angleToValue(Config.Angle);
+                    mc.thePlayer.rotationYaw = playerYaw;
                     Thread.sleep(500);
                     rotating = false;
-                    playerYaw = (int)mc.thePlayer.rotationYaw;
+
                     enabled = true;
                 }catch(Exception e){
                     e.printStackTrace();
@@ -515,7 +506,14 @@ public class FarmHelper
         @Override
         public void run() {
             mc.thePlayer.sendChatMessage("/l");
-            ScheduleRunnable(Rejoin, 8, TimeUnit.SECONDS);
+            ScheduleRunnable(Rejoin, 5, TimeUnit.SECONDS);
+        }
+    };
+    Runnable WarpHub = new Runnable() {
+        @Override
+        public void run() {
+            mc.thePlayer.sendChatMessage("/warp hub");
+            ScheduleRunnable(WarpHome, 3, TimeUnit.SECONDS);
         }
     };
 
@@ -523,7 +521,7 @@ public class FarmHelper
         @Override
         public void run() {
             mc.thePlayer.sendChatMessage("/play sb");
-            ScheduleRunnable(WarpHome, 8, TimeUnit.SECONDS);
+            ScheduleRunnable(WarpHome, 5, TimeUnit.SECONDS);
         }
     };
 
@@ -531,7 +529,7 @@ public class FarmHelper
         @Override
         public void run() {
             mc.thePlayer.sendChatMessage("/warp home");
-            ScheduleRunnable(afterRejoin1, 8, TimeUnit.SECONDS);
+            ScheduleRunnable(afterRejoin1, 3, TimeUnit.SECONDS);
         }
     };
 
@@ -542,7 +540,7 @@ public class FarmHelper
         public void run() {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
             if(!error) {
-                ScheduleRunnable(afterRejoin2, 2500, TimeUnit.MILLISECONDS);
+                ScheduleRunnable(afterRejoin2, 1, TimeUnit.SECONDS);
             } else {
                 ScheduleRunnable(WarpHome, 5, TimeUnit.SECONDS);
                 error = false;
@@ -656,10 +654,10 @@ public class FarmHelper
          shdBePressingKey = false;
          notInIsland = true;
          KeyBinding.setKeyBindState(keybindAttack, false);
-        process1 = false;
-        process2 = false;
-        process3 = false;
-        process4 = false;
+         process1 = false;
+         process2 = false;
+         process3 = false;
+         process4 = false;
 
     }
     Block playerBlock(){

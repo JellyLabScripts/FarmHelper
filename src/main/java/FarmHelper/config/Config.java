@@ -8,23 +8,18 @@ import java.util.List;
 public class Config{
 
     public static CropEnum CropType = CropEnum.NETHERWART;
-    public static AngleEnum Angle = AngleEnum.A0;
     public static FarmEnum FarmType = FarmEnum.LAYERED;
     public static boolean rotateAfterTeleport = false;
     public static boolean inventoryPriceCalculator = false;
     public static boolean profitCalculator = false;
     public static boolean resync = false;
 
-    public static void setConfig(CropEnum crop, FarmEnum farm, AngleEnum angle){
-        CropType = crop;
-        FarmType = farm;
-        Angle = angle;
-    }
-    public static void setConfig(CropEnum crop, FarmEnum farm, AngleEnum angle, boolean rotateAfterTeleport,
+    public static AngleEnum Angle = AngleEnum.A0;
+
+    public static void setConfig(CropEnum crop, FarmEnum farm, boolean rotateAfterTeleport,
                                  boolean inventoryPriceCalculator, boolean profitCalculator, boolean resync){
         CropType = crop;
         FarmType = farm;
-        Angle = angle;
         Config.rotateAfterTeleport = rotateAfterTeleport;
         Config.inventoryPriceCalculator = inventoryPriceCalculator;
         Config.profitCalculator = profitCalculator;
@@ -35,7 +30,6 @@ public class Config{
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("config.txt"));
             bufferedWriter.write("\n" + CropType.ordinal());
             bufferedWriter.write("\n" + FarmType.ordinal());
-            bufferedWriter.write("\n" + Angle.ordinal());
             bufferedWriter.write("\n" + rotateAfterTeleport);
             bufferedWriter.write("\n" + inventoryPriceCalculator);
             bufferedWriter.write("\n" + profitCalculator);
@@ -46,13 +40,12 @@ public class Config{
         }
 
     }
-    public static void readConfig(){
+    public static void readConfig () throws Exception {
         try{
             BufferedReader bufferedReader = new BufferedReader(new FileReader("config.txt"));
             bufferedReader.readLine();
             setConfig(CropEnum.values()[Integer.parseInt(bufferedReader.readLine())],
                     FarmEnum.values()[Integer.parseInt(bufferedReader.readLine())],
-                    AngleEnum.values()[Integer.parseInt(bufferedReader.readLine())],
                     Boolean.parseBoolean(bufferedReader.readLine()),
                     Boolean.parseBoolean(bufferedReader.readLine()),
                     Boolean.parseBoolean(bufferedReader.readLine()),
@@ -60,7 +53,7 @@ public class Config{
             bufferedReader.close();
 
         }catch(Exception e){
-            e.printStackTrace();
+            throw new Exception();
         }
     }
 
