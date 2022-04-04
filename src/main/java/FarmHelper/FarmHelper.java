@@ -270,7 +270,8 @@ public class FarmHelper
                 } else {
                     mc.thePlayer.rotationPitch = 6;
                 }
-                mc.thePlayer.rotationYaw = playerYaw;
+
+                Utils.hardRotate(playerYaw);
 
 
             }
@@ -447,7 +448,7 @@ public class FarmHelper
                     Thread.sleep(500);
                     Config.Angle = Config.Angle.ordinal() < 2 ? AngleEnum.values()[Config.Angle.ordinal() + 2] : AngleEnum.values()[Config.Angle.ordinal() - 2];
                     playerYaw = angleToValue(Config.Angle);
-                    mc.thePlayer.rotationYaw = playerYaw;
+                    Utils.hardRotate(playerYaw);
                     Thread.sleep(500);
                     rotating = false;
 
@@ -590,7 +591,8 @@ public class FarmHelper
         if(!rotating) {
             if (customKeyBinds[0].isPressed()) {
                 openedGUI = true;
-                mc.displayGuiScreen(new GUI());
+               mc.displayGuiScreen(new GUI());
+
             }
             if (customKeyBinds[1].isPressed()) {
                 if (!enabled)
@@ -640,6 +642,7 @@ public class FarmHelper
         } else {
             playerYaw = angleToValue(Config.Angle);
         }
+
          enabled = !enabled;
          openedGUI = false;
     }

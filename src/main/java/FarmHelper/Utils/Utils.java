@@ -24,10 +24,19 @@ public class Utils {
         //GL11.glScalef(mSize,mSize,mSize);
 
     }
+    public static void hardRotate(float yaw) {
+        Minecraft mc = Minecraft.getMinecraft();
+        if(Math.abs(mc.thePlayer.rotationYaw - yaw) < 0.2f) {
+            mc.thePlayer.rotationYaw = yaw;
+            return;
+        }
+        while(mc.thePlayer.rotationYaw > yaw) {
+            mc.thePlayer.rotationYaw -= 0.1f;
+        }
+        while(mc.thePlayer.rotationYaw < yaw) {
+            mc.thePlayer.rotationYaw += 0.1f;
 
-    public static void saveConfig(Config c){
-
-
+        }
     }
 
 
