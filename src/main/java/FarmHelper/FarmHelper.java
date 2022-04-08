@@ -10,8 +10,11 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
+import net.minecraft.inventory.ContainerChest;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.util.*;
@@ -83,12 +86,15 @@ public class FarmHelper
     boolean set = false; //whether HAS CHANGED motion (1&2)
     boolean set3 = false; //same but motion 3
     boolean rotating = false;
+    boolean full = false;
 
 
     double beforeX = 0;
     double beforeZ = 0;
+    double beforeY = 0;
     double deltaX = 10000;
     double deltaZ = 10000;
+    double deltaY = 0;
     double initialX = 0;
     double initialZ = 0;
 
@@ -103,6 +109,7 @@ public class FarmHelper
     public int keybindW = mc.gameSettings.keyBindForward.getKeyCode();
     public int keybindS = mc.gameSettings.keyBindBack.getKeyCode();
     public int keybindAttack = mc.gameSettings.keyBindAttack.getKeyCode();
+    public int keybindUseItem = mc.gameSettings.keyBindUseItem.getKeyCode();
 
     static KeyBinding[] customKeyBinds = new KeyBinding[2];
 
@@ -110,7 +117,7 @@ public class FarmHelper
     static volatile int totalEnw = 0;
     static volatile int totalMoney = 0;
     static volatile int prevMoney = -999;
-    int cycles = 0;
+    static int cycles = 0;
     static volatile int moneyper10sec = 0;
 
 
@@ -272,8 +279,6 @@ public class FarmHelper
                 }
 
                 Utils.hardRotate(playerYaw);
-
-
             }
             //INITIALIZE
             if (!locked) {
@@ -296,7 +301,7 @@ public class FarmHelper
                 }
 
             }
-            if(deltaX < 0.8d && deltaZ < 0.8d && !notInIsland && !emergency && !setAntiStuck && Config.FarmType.equals(FarmEnum.LAYERED)){
+            if(deltaX < 0.8d && deltaZ < 0.8d && deltaY < 0.0001d && !notInIsland && !emergency && !setAntiStuck && Config.FarmType.equals(FarmEnum.LAYERED)){
 
                 mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
                         "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Detected stuck"));
@@ -304,7 +309,7 @@ public class FarmHelper
                 process4 = true;
                 ScheduleRunnable(stopAntistuck, 800, TimeUnit.MILLISECONDS);
 
-            }else if(deltaX < 0.0001d && deltaZ < 0.0001d && !notInIsland && !emergency && !setAntiStuck && Config.FarmType.equals(FarmEnum.VERTICAL)){
+            }else if(deltaX < 0.0001d && deltaZ < 0.0001d && deltaY < 0.0001d && !notInIsland && !emergency && !setAntiStuck && Config.FarmType.equals(FarmEnum.VERTICAL)){
                  //tp pad fix
                 deltaX = 10000;
                 deltaZ = 10000;
@@ -367,7 +372,16 @@ public class FarmHelper
                     KeyBinding.setKeyBindState(keybindD, true);
                     KeyBinding.setKeyBindState(keybindA, false);
                     KeyBinding.setKeyBindState(keybindW, false);
-                    if(!setspawned){mc.thePlayer.sendChatMessage("/setspawn"); setspawned = true; cycles++;}
+                    if(!setspawned)
+                    {
+                        if(full && Config.autosell)
+                            ExecuteRunnable(clearInventory);
+                        else {
+                            mc.thePlayer.sendChatMessage("/setspawn");
+                            setspawned = true;
+                            cycles++;
+                        }
+                    }
                 }
 
             } else if (process2 && !process3 && !process4) {
@@ -395,8 +409,19 @@ public class FarmHelper
 
                 }
             }
-            if(cycles == 4 && Config.resync)
+
+            //resync
+            if(cycles == 4 && Config.resync && !full && !rotating)
                 ExecuteRunnable(reSync);
+            else if(cycles == 4 && Config.resync)
+                cycles = 0;
+
+
+            //autoSell
+            if(mc.thePlayer.inventory.getFirstEmptyStack() == -1 && !rotating)
+                full = true;
+
+
 
         } else{
             locked = false;
@@ -409,9 +434,59 @@ public class FarmHelper
 
     //multi-threads
 
+
+    Runnable clearInventory = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                stop();
+                enabled = false;
+                mc.thePlayer.inventory.currentItem = 8;
+                mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
+                        "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Activating autosell"));
+                Thread.sleep(500);
+                KeyBinding.onTick(keybindUseItem);
+                Thread.sleep(1000);
+                clickWindow(mc.thePlayer.openContainer.windowId, 22, 0, 0);
+                Thread.sleep(600);
+                if(mc.thePlayer.openContainer.getSlot(49).getStack().getItem() == Item.getItemFromBlock(Blocks.barrier)) {
+                    mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
+                            "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "You didn't eat cookie!"));
+                    Config.autosell = false;
+                    throw new Exception();
+                }
+                Thread.sleep(400);
+                while(Utils.hasEnchatedCarrotInInv()) {
+                    clickWindow(mc.thePlayer.openContainer.windowId, 45 + Utils.getFirstSlotWithEnchantedCarrot(), 0, 0);
+                    Thread.sleep(500 + Utils.nextInt(100));
+                }
+                Thread.sleep(400);
+                mc.thePlayer.closeScreen();
+                full = false;
+                Thread.sleep(800);
+                enabled = true;
+
+            }catch(Exception e) {
+                try {
+                    Thread.sleep(500);
+                    mc.thePlayer.closeScreen();
+                    Thread.sleep(800);
+                    enabled = true;
+                    full = false;
+                } catch(Exception e2){
+                    e2.printStackTrace();
+                }
+            }
+        }
+    };
     Runnable reSync = new Runnable() {
         @Override
         public void run() {
+            if(full||rotating) {
+                cycles = 0;
+                return;
+            }
+
             cycles = 0;
             mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
                     "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Resyncing.. "));
@@ -426,9 +501,11 @@ public class FarmHelper
             if(!notInIsland && !emergency && enabled) {
                  deltaX = Math.abs(mc.thePlayer.posX - beforeX);
                  deltaZ = Math.abs(mc.thePlayer.posZ - beforeZ);
+                 deltaY = Math.abs(mc.thePlayer.posY - beforeY);
 
                  beforeX = mc.thePlayer.posX;
                  beforeZ = mc.thePlayer.posZ;
+                 beforeY = mc.thePlayer.posY;
 
                 ScheduleRunnable(checkChange, 3, TimeUnit.SECONDS);
 
@@ -445,13 +522,12 @@ public class FarmHelper
                     stop();
                     rotating = true;
                     enabled = false;
-                    Thread.sleep(500);
+                    Thread.sleep(1000);
                     Config.Angle = Config.Angle.ordinal() < 2 ? AngleEnum.values()[Config.Angle.ordinal() + 2] : AngleEnum.values()[Config.Angle.ordinal() - 2];
                     playerYaw = angleToValue(Config.Angle);
-                    Utils.hardRotate(playerYaw);
-                    Thread.sleep(500);
+                    Utils.smoothRotateClockwise(180);
+                    Thread.sleep(2000);
                     rotating = false;
-
                     enabled = true;
                 }catch(Exception e){
                     e.printStackTrace();
@@ -677,15 +753,28 @@ public class FarmHelper
         eTemp.execute(r);
         eTemp.shutdown();
     }
+
+    void clickWindow(int windowID, int slotID, int mouseButtonClicked, int mode) throws Exception{
+        Minecraft mc = Minecraft.getMinecraft();
+        if(mc.thePlayer.openContainer instanceof ContainerChest || mc.currentScreen instanceof GuiInventory)
+            mc.playerController.windowClick(windowID, slotID, mouseButtonClicked, mode, mc.thePlayer);
+        else {
+            mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
+                    "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Didn't open window! Autosell failed"));
+            throw new Exception();
+        }
+    }
     void initialize(){
         deltaX = 10000;
         deltaZ = 10000;
+        deltaY = 0;
 
         process1 = true;
         process2 = false;
         process3 = false;
         process4 = false;
 
+        setspawned = false;
         shdBePressingKey = true;
         notInIsland = false;
         beforeX = mc.thePlayer.posX;
@@ -696,6 +785,7 @@ public class FarmHelper
         set3 = false;
         cycles = 0;
         rotating = false;
+        full = false;
     }
     int angleToValue(AngleEnum c){
          return !c.toString().replace("A", "").contains("N") ?

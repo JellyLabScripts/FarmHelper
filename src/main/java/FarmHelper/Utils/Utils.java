@@ -6,7 +6,15 @@ import FarmHelper.config.FarmEnum;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.init.Blocks;
+import net.minecraft.inventory.ContainerChest;
+import net.minecraft.inventory.Slot;
+import net.minecraft.item.Item;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import org.lwjgl.opengl.GL11;
 import scala.sys.process.ProcessBuilderImpl;
 
@@ -38,7 +46,39 @@ public class Utils {
 
         }
     }
+    public static boolean hasEnchatedCarrotInInv(){
 
+        for(Slot slot : Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots) {
+            if (slot != null) {
+                try {
+                    if (slot.getStack().getDisplayName().contains("Enchanted Carrot")) {
+                        return true;
+                    }
+                }catch(Exception e){
+
+                }
+            }
+        }
+        return false;
+    }
+
+    public static int getFirstSlotWithEnchantedCarrot() {
+        for (Slot slot : Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots) {
+            if (slot != null) {
+                if (slot.getStack() != null) {
+                    try {
+                        if (slot.getStack().getDisplayName().contains("Enchanted Carrot"))
+                            return slot.slotNumber;
+                    }catch(Exception e){
+
+                    }
+                }
+            }
+
+        }
+        return 0;
+
+    }
 
 
 
@@ -77,19 +117,19 @@ public class Utils {
     static boolean shouldRotateClockwise(int currentAngle, int boundAngle){
        return false;
     }
-    public static void rotateTo(final int rotation360){
+    public static void smoothRotateTo(final int rotation360){
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    boolean clockwise = shouldRotateClockwise((int) get360RotationYaw(), getOppositeAngle(rotation360));
+
                     while (get360RotationYaw() != rotation360) {
-                        if(Math.abs(rotation360 - get360RotationYaw()) < 2) {
-                            Minecraft.getMinecraft().thePlayer.rotationYaw = (int)(Minecraft.getMinecraft().thePlayer.rotationYaw + (rotation360 - get360RotationYaw()));
-                            break;
+                        if(Math.abs(get360RotationYaw() - rotation360) < 1f) {
+                            Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw + Math.abs(get360RotationYaw() - rotation360));
+                            return;
                         }
-                        Minecraft.getMinecraft().thePlayer.rotationYaw += 0.5f + nextInt(6)/10.0;
+                        Minecraft.getMinecraft().thePlayer.rotationYaw += 0.3f + nextInt(3)/10.0f;
                         try {
-                            Thread.sleep(2);
+                            Thread.sleep(1);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -98,20 +138,20 @@ public class Utils {
             }).start();
 
     }
-    public static void rotateClockwise(final int rotationClockwise){
+    public static void smoothRotateClockwise(final int rotationClockwise360){
         new Thread(new Runnable() {
             @Override
             public void run() {
-                int initialYaw = (int)Minecraft.getMinecraft().thePlayer.rotationYaw;
-                while (Minecraft.getMinecraft().thePlayer.rotationYaw != initialYaw + rotationClockwise) {
-                    if(Math.abs(Minecraft.getMinecraft().thePlayer.rotationYaw - initialYaw + rotationClockwise) < 2) {
-                        Minecraft.getMinecraft().thePlayer.rotationYaw = (int)(Minecraft.getMinecraft().thePlayer.rotationYaw + rotationClockwise);
-                        break;
-                    }
 
-                    Minecraft.getMinecraft().thePlayer.rotationYaw += 0.1f + nextInt(5)/5.0;
+                int targetYaw = (Math.round(get360RotationYaw()) + rotationClockwise360) % 360;
+                while (get360RotationYaw() != targetYaw) {
+                    if(Math.abs(get360RotationYaw() - targetYaw) < 1f) {
+                        Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw + Math.abs(get360RotationYaw() - targetYaw));
+                        return;
+                    }
+                    Minecraft.getMinecraft().thePlayer.rotationYaw += 0.3f + nextInt(3)/10.0f;
                     try {
-                        Thread.sleep(2);
+                        Thread.sleep(1);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

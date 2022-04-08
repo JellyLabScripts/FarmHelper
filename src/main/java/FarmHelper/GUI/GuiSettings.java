@@ -35,7 +35,7 @@ public class GuiSettings extends GuiScreen {
         this.buttonList.add(new GuiCustomSwitchButton(1, this.width/2 + 120, this.height/2 - 10, 40, 15, 30, "Inventory price calculator"));
         this.buttonList.add(new GuiCustomSwitchButton(2, this.width/2 + 120, this.height/2 + 30, 40, 15, 30, "Profit calculator"));
         this.buttonList.add(new GuiCustomSwitchButton(3, this.width/2 + 120, this.height/2 + 70, 40, 15, 30, "Auto resync"));
-        //this.buttonList.add(new GuiCustomSwitchButton(4, this.width/2 + 120, this.height/2 + 110, 40, 15, 30, "Fastbreak"));
+        this.buttonList.add(new GuiCustomSwitchButton(4, this.width/2 + 120, this.height/2 + 110, 40, 15, 30, "Autosell (make sure you have cookies on!!)"));
         initialSelect();
     }
 
@@ -84,12 +84,12 @@ public class GuiSettings extends GuiScreen {
             updateScreen();
             Config.writeConfig();
         }
-        /*if(button.id == 4){
+        if(button.id == 4){
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) button;
             temp.switchSelect();
-            Config.fastbreak = !Config.fastbreak;
+            Config.autosell = !Config.autosell;
             updateScreen();
-        }*/
+        }
 
 
     }
@@ -111,10 +111,10 @@ public class GuiSettings extends GuiScreen {
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(3);
             temp.switchSelect();
         }
-       /* if(Config.fastbreak) {
+        if(Config.autosell) {
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(4);
             temp.switchSelect();
-        }*/
+        }
     }
 
 

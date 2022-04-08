@@ -21,7 +21,7 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import java.io.IOException;
 import java.io.Serializable;
 
-public class GUI extends GuiScreen implements Serializable {
+public class GUI extends GuiScreen{
 
 
     int buttonWidth = 85;
