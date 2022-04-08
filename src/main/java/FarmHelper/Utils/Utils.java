@@ -46,13 +46,25 @@ public class Utils {
 
         }
     }
-    public static boolean hasEnchatedCarrotInInv(){
+    public static boolean hasSellItemInInventory(){
 
         for(Slot slot : Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots) {
             if (slot != null) {
                 try {
-                    if (slot.getStack().getDisplayName().contains("Enchanted Carrot")) {
-                        return true;
+                    switch(Config.CropType) {
+                        case WHEAT:
+                            if (slot.getStack().getDisplayName().contains("Tightly-Tied Hay Bale"))
+                                return true;
+                        case CARROT:
+                            if (slot.getStack().getDisplayName().contains("Enchanted Carrot"))
+                                return true;
+                        case POTATO:
+                            if(slot.getStack().getDisplayName().contains("Enchanted Baked Potato"))
+                                return true;
+                        case NETHERWART:
+                            if(slot.getStack().getDisplayName().contains("Mutant Nether Wart"))
+                                return true;
+
                     }
                 }catch(Exception e){
 
@@ -62,13 +74,25 @@ public class Utils {
         return false;
     }
 
-    public static int getFirstSlotWithEnchantedCarrot() {
+    public static int getFirstSlotWithSellItem() {
         for (Slot slot : Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots) {
             if (slot != null) {
                 if (slot.getStack() != null) {
                     try {
-                        if (slot.getStack().getDisplayName().contains("Enchanted Carrot"))
-                            return slot.slotNumber;
+                        switch(Config.CropType) {
+                            case WHEAT:
+                                if (slot.getStack().getDisplayName().contains("Tightly-Tied Hay Bale"))
+                                    return slot.slotNumber;
+                            case CARROT:
+                                if (slot.getStack().getDisplayName().contains("Enchanted Carrot"))
+                                    return slot.slotNumber;
+                            case POTATO:
+                                if (slot.getStack().getDisplayName().contains("Enchanted Baked Potato"))
+                                    return slot.slotNumber;
+                            case NETHERWART:
+                                if (slot.getStack().getDisplayName().contains("Mutant Nether Wart"))
+                                    return slot.slotNumber;
+                        }
                     }catch(Exception e){
 
                     }

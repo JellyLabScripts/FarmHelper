@@ -456,8 +456,8 @@ public class FarmHelper
                     throw new Exception();
                 }
                 Thread.sleep(400);
-                while(Utils.hasEnchatedCarrotInInv()) {
-                    clickWindow(mc.thePlayer.openContainer.windowId, 45 + Utils.getFirstSlotWithEnchantedCarrot(), 0, 0);
+                while(Utils.hasSellItemInInventory()) {
+                    clickWindow(mc.thePlayer.openContainer.windowId, 45 + Utils.getFirstSlotWithSellItem(), 0, 0);
                     Thread.sleep(500 + Utils.nextInt(100));
                 }
                 Thread.sleep(400);
@@ -465,7 +465,6 @@ public class FarmHelper
                 full = false;
                 Thread.sleep(800);
                 enabled = true;
-
             }catch(Exception e) {
                 try {
                     Thread.sleep(500);
