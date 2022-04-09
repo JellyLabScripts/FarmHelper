@@ -65,6 +65,7 @@ public class FarmHelper
     public static boolean enabled = false;
 
 
+
     boolean locked = false;
     boolean process1 = false;
     boolean process2 = false;
@@ -111,13 +112,8 @@ public class FarmHelper
     static int cycles = 0;
     static volatile int moneyper10sec = 0;
 
-
     MouseHelper mouseHelper = new MouseHelper();
     int playerYaw = 0;
-
-
-
-
     private static Logger logger;
 
 
@@ -225,10 +221,6 @@ public class FarmHelper
 
         // profit calculator && angle caculation
         if( mc.thePlayer != null && mc.theWorld != null){
-
-            System.out.println(Utils.getBackBlock());
-           // System.out.println(process1 + " " + process2 + " " + process3);
-
 
             if(!rotating)
             Config.Angle = Math.round(Utils.get360RotationYaw()/90) < 4 ? AngleEnum.values()[Math.round(Utils.get360RotationYaw()/90)] : AngleEnum.A0;

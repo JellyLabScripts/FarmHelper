@@ -121,11 +121,17 @@ public class Utils {
                 (Minecraft.getMinecraft().thePlayer.rotationYaw % 360) :
                 (Minecraft.getMinecraft().thePlayer.rotationYaw < 360f ? 360 - (-Minecraft.getMinecraft().thePlayer.rotationYaw % 360)  :  360 + Minecraft.getMinecraft().thePlayer.rotationYaw);
     }
+    public static float get360RotationYaw(int yaw){
+        return yaw > 0?
+                (yaw % 360) :
+                (yaw < 360f ? 360 - (-yaw % 360)  :  360 + yaw);
+    }
     static int getOppositeAngle(int angle){
         return (angle < 180) ? angle + 180 : angle - 180;
     }
-    static boolean shouldRotateClockwise(int currentAngle, int boundAngle){
-       return false;
+    static boolean shouldRotateClockwise(int targetYaw360, int initialYaw360){
+        return targetYaw360 - initialYaw360 > 0 ?
+                targetYaw360 - initialYaw360 <= 180 : targetYaw360 - initialYaw360 < -180;
     }
     public static void smoothRotateTo(final int rotation360){
             new Thread(new Runnable() {
@@ -175,6 +181,11 @@ public class Utils {
         return Minecraft.getMinecraft().thePlayer.rotationYaw > 0?
                 (Minecraft.getMinecraft().thePlayer.rotationYaw % 360 > 180 ? -(180 - (Minecraft.getMinecraft().thePlayer.rotationYaw % 360 - 180)) :  Minecraft.getMinecraft().thePlayer.rotationYaw % 360  ) :
                 (-Minecraft.getMinecraft().thePlayer.rotationYaw % 360 > 180 ? (180 - (-Minecraft.getMinecraft().thePlayer.rotationYaw % 360 - 180))  :  -(-Minecraft.getMinecraft().thePlayer.rotationYaw % 360));
+    }
+    public static float getActualRotationYaw(int yaw){ //f3
+        return yaw > 0?
+                (yaw % 360 > 180 ? -(180 - (yaw % 360 - 180)) :  yaw % 360  ) :
+                (-yaw% 360 > 180 ? (180 - (-yaw % 360 - 180))  :  -(-yaw % 360));
     }
     public static int nextInt(int upperbound){
         Random r = new Random();

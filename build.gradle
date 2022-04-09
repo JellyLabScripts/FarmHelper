@@ -1,5 +1,5 @@
 
-buildscript {
+/*buildscript {
     repositories {
         jcenter()
         maven {
@@ -68,4 +68,52 @@ jar {
             'MixinConfigs': 'mixins.pluginmixintest.json',
             'FMLCorePluginContainsFMLMod': 'true',
     )
+}*/
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+        maven { url 'https://repo.spongepowered.org/repository/maven-public/' } //mixin
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
+    }
 }
+apply plugin: 'net.minecraftforge.gradle.forge'
+
+
+version = "1.0"
+group= "com.yourname.modid" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = "modid"
+
+minecraft {
+    version = "1.8.9-11.15.1.2318-1.8.9"
+    runDir = "run"
+    mappings = "stable_20"
+
+}
+
+
+dependencies {
+
+}
+
+
+processResources
+        {
+            inputs.property "version", project.version
+            inputs.property "mcversion", project.minecraft.version
+
+            from(sourceSets.main.resources.srcDirs) {
+                include 'mcmod.info'
+
+                expand 'version':project.version, 'mcversion':project.minecraft.version
+            }
+
+            from(sourceSets.main.resources.srcDirs) {
+                exclude 'mcmod.info'
+            }
+        }
