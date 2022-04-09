@@ -14,12 +14,9 @@ public class Utils {
 
     public static void drawString(String text, int x, int y, float size, int color) {
         GlStateManager.scale(size,size,size);
-        //GL11.glScalef();
         float mSize = (float)Math.pow(size,-1);
         Minecraft.getMinecraft().fontRendererObj.drawString(text,Math.round(x / size),Math.round(y / size),color);
         GlStateManager.scale(mSize,mSize,mSize);
-        //GL11.glScalef(mSize,mSize,mSize);
-
     }
     public static void hardRotate(float yaw) {
         Minecraft mc = Minecraft.getMinecraft();
