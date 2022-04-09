@@ -1,8 +1,6 @@
-package FarmHelper.GUI.buttons;
+package FarmHelper.gui.buttons;
 
-import FarmHelper.FarmHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.GlStateManager;

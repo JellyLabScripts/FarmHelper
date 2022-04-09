@@ -1,18 +1,12 @@
-package FarmHelper.GUI;
+package FarmHelper.gui;
 
-import FarmHelper.FarmHelper;
-import FarmHelper.GUI.buttons.GuiBetterButton;
-import FarmHelper.GUI.buttons.GuiCustomButton;
-import FarmHelper.GUI.buttons.GuiCustomSwitchButton;
-import FarmHelper.Utils.Utils;
+import FarmHelper.gui.buttons.GuiCustomSwitchButton;
+import FarmHelper.utils.Utils;
 import FarmHelper.config.Config;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.io.IOException;
@@ -36,6 +30,7 @@ public class GuiSettings extends GuiScreen {
         this.buttonList.add(new GuiCustomSwitchButton(2, this.width/2 + 120, this.height/2 + 30, 40, 15, 30, "Profit calculator"));
         this.buttonList.add(new GuiCustomSwitchButton(3, this.width/2 + 120, this.height/2 + 70, 40, 15, 30, "Auto resync"));
         this.buttonList.add(new GuiCustomSwitchButton(4, this.width/2 + 120, this.height/2 + 110, 40, 15, 30, "Autosell (make sure you have cookies on!!)"));
+       // this.buttonList.add(new GuiCustomSwitchButton(5, this.width/2 + 120, this.height/2 + 140, 40, 15, 30, "Fastbreak"));
         initialSelect();
     }
 
@@ -90,6 +85,12 @@ public class GuiSettings extends GuiScreen {
             Config.autosell = !Config.autosell;
             updateScreen();
         }
+       /* if(button.id == 5){
+            GuiCustomSwitchButton temp = (GuiCustomSwitchButton) button;
+            temp.switchSelect();
+            Config.fastbreak = !Config.fastbreak;
+            updateScreen();
+        }*/
 
 
     }
@@ -115,6 +116,10 @@ public class GuiSettings extends GuiScreen {
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(4);
             temp.switchSelect();
         }
+       /* if(Config.fastbreak) {
+            GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(5);
+            temp.switchSelect();
+        }*/
     }
 
 

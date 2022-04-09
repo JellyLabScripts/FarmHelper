@@ -1,25 +1,18 @@
-package FarmHelper.GUI;
+package FarmHelper.gui;
 
 import FarmHelper.FarmHelper;
-import FarmHelper.GUI.buttons.GuiBetterButton;
-import FarmHelper.GUI.buttons.GuiCustomButton;
-import FarmHelper.GUI.buttons.GuiCustomSwitchButton;
-import FarmHelper.Utils.Utils;
-import FarmHelper.config.AngleEnum;
+import FarmHelper.gui.buttons.GuiBetterButton;
+import FarmHelper.gui.buttons.GuiCustomButton;
 import FarmHelper.config.Config;
 import FarmHelper.config.CropEnum;
 import FarmHelper.config.FarmEnum;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 
 import java.io.IOException;
-import java.io.Serializable;
 
 public class GUI extends GuiScreen{
 

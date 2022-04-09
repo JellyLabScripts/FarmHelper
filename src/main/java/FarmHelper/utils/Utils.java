@@ -1,24 +1,13 @@
-package FarmHelper.Utils;
+package FarmHelper.utils;
 
-import FarmHelper.config.AngleEnum;
 import FarmHelper.config.Config;
-import FarmHelper.config.FarmEnum;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.init.Blocks;
-import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.Item;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting;
-import org.lwjgl.opengl.GL11;
-import scala.sys.process.ProcessBuilderImpl;
+import net.minecraft.util.BlockPos;
 
-import java.io.*;
 import java.util.Random;
 
 public class Utils {
@@ -193,6 +182,18 @@ public class Utils {
     public static int nextInt(int upperbound){
         Random r = new Random();
         return r.nextInt(upperbound);
+    }
+    public static Block getFrontBlock(){
+        Minecraft mc = Minecraft.getMinecraft();
+        return (mc.theWorld.getBlockState(
+                new BlockPos(mc.thePlayer.getLookVec().xCoord + mc.thePlayer.posX, mc.thePlayer.posY,
+                        mc.thePlayer.getLookVec().zCoord + mc.thePlayer.posZ)).getBlock());
+    }
+    public static Block getBackBlock(){
+        Minecraft mc = Minecraft.getMinecraft();
+        return (mc.theWorld.getBlockState(
+                new BlockPos(mc.thePlayer.getLookVec().xCoord * -1 + mc.thePlayer.posX, mc.thePlayer.posY,
+                        mc.thePlayer.getLookVec().zCoord * -1 + mc.thePlayer.posZ)).getBlock());
     }
 
 

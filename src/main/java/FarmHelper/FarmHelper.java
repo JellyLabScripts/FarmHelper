@@ -1,7 +1,7 @@
 package FarmHelper;
 
-import FarmHelper.GUI.GUI;
-import FarmHelper.Utils.Utils;
+import FarmHelper.gui.GUI;
+import FarmHelper.utils.Utils;
 import FarmHelper.config.AngleEnum;
 import FarmHelper.config.Config;
 import FarmHelper.config.CropEnum;
@@ -16,7 +16,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.GuiOpenEvent;
@@ -32,7 +31,6 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -40,14 +38,7 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.input.Keyboard;
 import scala.tools.nsc.Global;
 
-import java.awt.*;
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -95,8 +86,8 @@ public class FarmHelper
     double deltaX = 10000;
     double deltaZ = 10000;
     double deltaY = 0;
-    double initialX = 0;
-    double initialZ = 0;
+    int initialX = 0;
+    int initialZ = 0;
 
 
 
@@ -234,6 +225,11 @@ public class FarmHelper
 
         // profit calculator && angle caculation
         if( mc.thePlayer != null && mc.theWorld != null){
+
+            System.out.println(Utils.getBackBlock());
+           // System.out.println(process1 + " " + process2 + " " + process3);
+
+
             if(!rotating)
             Config.Angle = Math.round(Utils.get360RotationYaw()/90) < 4 ? AngleEnum.values()[Math.round(Utils.get360RotationYaw()/90)] : AngleEnum.A0;
 
@@ -261,7 +257,7 @@ public class FarmHelper
             mc.gameSettings.pauseOnLostFocus = false;
             mc.thePlayer.inventory.currentItem = 0;
             mc.gameSettings.gammaSetting = 100;
-            if(!emergency) {
+            if(!emergency && !process4) {
                 KeyBinding.setKeyBindState(keybindW, false);
                 KeyBinding.setKeyBindState(keybindS, false);
             }
@@ -289,25 +285,45 @@ public class FarmHelper
                 ScheduleRunnable(checkChange, 3, TimeUnit.SECONDS);
             }
             //antistuck
-            if(!setAntiStuck && Config.FarmType.equals(FarmEnum.LAYERED)){
-                if (playerBlock() == Blocks.farmland || playerBlock() == Blocks.soul_sand){
-
-                    mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
-                            "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Detected stuck"));
-
-                    setAntiStuck = true;
-                    process4 = true;
-                    ScheduleRunnable(stopAntistuck, 800, TimeUnit.MILLISECONDS);
-                }
-
-            }
             if(deltaX < 0.8d && deltaZ < 0.8d && deltaY < 0.0001d && !notInIsland && !emergency && !setAntiStuck && Config.FarmType.equals(FarmEnum.LAYERED)){
-
                 mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
                         "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Detected stuck"));
                 setAntiStuck = true;
                 process4 = true;
-                ScheduleRunnable(stopAntistuck, 800, TimeUnit.MILLISECONDS);
+                stop();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try{
+
+                            process3 = false;
+                            initialX = (int)mc.thePlayer.posX;
+                            initialZ = (int)mc.thePlayer.posZ;
+
+                            Thread.sleep(100);
+                            KeyBinding.setKeyBindState(keybindS, true);
+                            Thread.sleep(300);
+                            KeyBinding.setKeyBindState(keybindS, false);
+                            KeyBinding.setKeyBindState(keybindA, true);
+                            Thread.sleep(300);
+                            KeyBinding.setKeyBindState(keybindA, false);
+                            KeyBinding.setKeyBindState(keybindD, true);
+                            Thread.sleep(300);
+                            KeyBinding.setKeyBindState(keybindD, false);
+                            if(Config.FarmType == FarmEnum.LAYERED){
+                                if( mc.theWorld.getBlockState(
+                                        new BlockPos(mc.thePlayer.getLookVec().xCoord + mc.thePlayer.posX, mc.thePlayer.posY,
+                                                mc.thePlayer.getLookVec().zCoord + mc.thePlayer.posZ)).getBlock() == Blocks.air) {
+                                    process3 = true;
+                                }
+                            }
+                            ScheduleRunnable(stopAntistuck, 800, TimeUnit.MILLISECONDS);
+
+                        }catch(Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
 
             }else if(deltaX < 0.0001d && deltaZ < 0.0001d && deltaY < 0.0001d && !notInIsland && !emergency && !setAntiStuck && Config.FarmType.equals(FarmEnum.VERTICAL)){
                  //tp pad fix
@@ -336,7 +352,7 @@ public class FarmHelper
             double dz = Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ);
             double dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
             boolean falling = blockIn == Blocks.air && dy != 0;
-            if ((float)dx == 0 && dz == 0 && !notInIsland && !emergency){// changed == 0 to < 0.1d
+            if ((float)dx == 0 && dz == 0 && !notInIsland && !emergency && !process4){// changed == 0 to < 0.1d
                 if(Config.FarmType.equals(FarmEnum.VERTICAL)){
                     if(dy != 0 && !set) {
                         set = true;
@@ -350,7 +366,8 @@ public class FarmHelper
                         enabled = false;
 
                     }
-                    else if(!set3 && (mc.thePlayer.posZ != initialZ || mc.thePlayer.posX != initialX) && !rotating) {
+                    else if(!set3 && ((int)mc.thePlayer.posZ != initialZ || (int)mc.thePlayer.posX != initialX) && !rotating &&
+                            (Utils.getFrontBlock() == Blocks.air || Utils.getBackBlock() == Blocks.air)){
                             set3 = true;
                             ExecuteRunnable(Motion3);
                     }
@@ -400,14 +417,6 @@ public class FarmHelper
             if(process3 && !process4){
                 if (shdBePressingKey)
                 KeyBinding.setKeyBindState(keybindW, true);
-            } else if(process4){
-                process3 = false;
-                if(shdBePressingKey) {
-
-                    KeyBinding.setKeyBindState(keybindW, false);
-                    KeyBinding.setKeyBindState(keybindS, true);
-
-                }
             }
 
             //resync
@@ -563,8 +572,8 @@ public class FarmHelper
             if(!notInIsland && !emergency) {
 
                 process3 = !process3;
-                initialX = mc.thePlayer.posX;
-                initialZ = mc.thePlayer.posZ;
+                initialX = (int)mc.thePlayer.posX;
+                initialZ = (int)mc.thePlayer.posZ;
 
 
                 if(!process3){
@@ -738,10 +747,6 @@ public class FarmHelper
          process4 = false;
 
     }
-    Block playerBlock(){
-         return mc.theWorld.getBlockState(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ)).getBlock();
-    }
-
     void ScheduleRunnable(Runnable r, int delay, TimeUnit tu){
         ScheduledExecutorService eTemp = Executors.newScheduledThreadPool(1);
         eTemp.schedule(r, delay, tu);
@@ -768,18 +773,25 @@ public class FarmHelper
         deltaZ = 10000;
         deltaY = 0;
 
+
         process1 = true;
         process2 = false;
         process3 = false;
         process4 = false;
+        if(Config.FarmType == FarmEnum.LAYERED){
+            if( Utils.getFrontBlock() == Blocks.air) {
+                process3 = true;
+            }
+        }
+
 
         setspawned = false;
         shdBePressingKey = true;
         notInIsland = false;
         beforeX = mc.thePlayer.posX;
         beforeZ = mc.thePlayer.posZ;
-        initialX = mc.thePlayer.posX;
-        initialZ = mc.thePlayer.posZ;
+        initialX = (int)mc.thePlayer.posX;
+        initialZ = (int)mc.thePlayer.posZ;
         set = false;
         set3 = false;
         cycles = 0;

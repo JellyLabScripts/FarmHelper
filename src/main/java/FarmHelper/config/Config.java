@@ -14,17 +14,19 @@ public class Config{
     public static boolean profitCalculator = false;
     public static boolean resync = false;
     public static boolean autosell = false;
+    public static boolean fastbreak = false;
 
     public static AngleEnum Angle = AngleEnum.A0;
 
     public static void setConfig(CropEnum crop, FarmEnum farm, boolean rotateAfterTeleport,
-                                 boolean inventoryPriceCalculator, boolean profitCalculator, boolean resync, boolean autosell){
+                                 boolean inventoryPriceCalculator, boolean profitCalculator, boolean resync, boolean autosell, boolean fastbreak){
         CropType = crop;
         FarmType = farm;
         Config.rotateAfterTeleport = rotateAfterTeleport;
         Config.inventoryPriceCalculator = inventoryPriceCalculator;
         Config.profitCalculator = profitCalculator;
         Config.resync = resync;
+        Config.fastbreak = fastbreak;
     }
     public static void writeConfig(){
         try {
@@ -36,6 +38,7 @@ public class Config{
             bufferedWriter.write("\n" + profitCalculator);
             bufferedWriter.write("\n" + resync);
             bufferedWriter.write("\n" + autosell);
+            bufferedWriter.write("\n" + fastbreak);
             bufferedWriter.close();
         }catch(Exception e){
             e.printStackTrace();
@@ -48,6 +51,7 @@ public class Config{
             bufferedReader.readLine();
             setConfig(CropEnum.values()[Integer.parseInt(bufferedReader.readLine())],
                     FarmEnum.values()[Integer.parseInt(bufferedReader.readLine())],
+                    Boolean.parseBoolean(bufferedReader.readLine()),
                     Boolean.parseBoolean(bufferedReader.readLine()),
                     Boolean.parseBoolean(bufferedReader.readLine()),
                     Boolean.parseBoolean(bufferedReader.readLine()),
