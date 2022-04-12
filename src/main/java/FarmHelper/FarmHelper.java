@@ -10,6 +10,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
@@ -117,6 +118,7 @@ public class FarmHelper
     private static Logger logger;
 
 
+
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
@@ -171,7 +173,7 @@ public class FarmHelper
             activateFailsafe();
             ScheduleRunnable(WarpHome, 10, TimeUnit.SECONDS);
         }
-        if((event.message.getFormattedText().contains("DYNAMIC") && notInIsland)){
+        if((event.message.getFormattedText().contains("DYNAMIC") || (event.message.getFormattedText().contains("Couldn't warp you")) && notInIsland)){
             error = true;
         }
         if((event.message.getFormattedText().contains("SkyBlock Lobby") && !notInIsland && enabled)){
@@ -207,6 +209,9 @@ public class FarmHelper
                 Utils.drawString("profit/min = " + moneyper10sec * 6, 6, 94, 0.8f, -1);
                 Utils.drawString("profit/h = " + moneyper10sec * 6 * 60, 6, 104, 0.8f, -1);
             }
+
+            mc.fontRendererObj.drawString(  Utils.getFrontBlock()+ " " + Utils.getBackBlock().toString(), 4, new ScaledResolution(mc).getScaledHeight() - 20, -1);
+
 
         }
 
@@ -289,8 +294,7 @@ public class FarmHelper
                         try{
 
                             process3 = false;
-                            initialX = (int)mc.thePlayer.posX;
-                            initialZ = (int)mc.thePlayer.posZ;
+
 
                             Thread.sleep(100);
                             KeyBinding.setKeyBindState(keybindS, true);
@@ -303,14 +307,15 @@ public class FarmHelper
                             Thread.sleep(300);
                             KeyBinding.setKeyBindState(keybindD, false);
                             if(Config.FarmType == FarmEnum.LAYERED){
-                                if( mc.theWorld.getBlockState(
-                                        new BlockPos(mc.thePlayer.getLookVec().xCoord + mc.thePlayer.posX, mc.thePlayer.posY,
-                                                mc.thePlayer.getLookVec().zCoord + mc.thePlayer.posZ)).getBlock() == Blocks.air) {
+                                if(Utils.getFrontBlock() == Blocks.air) {
+                                    initialX = (int)mc.thePlayer.posX;
+                                    initialZ = (int)mc.thePlayer.posZ;
                                     process3 = true;
                                 }
                             }
-                            ScheduleRunnable(stopAntistuck, 800, TimeUnit.MILLISECONDS);
+                            ExecuteRunnable(stopAntistuck);
 
+                            //exec
                         }catch(Exception e){
                             e.printStackTrace();
                         }
@@ -619,7 +624,7 @@ public class FarmHelper
             if(!error) {
                 ScheduleRunnable(afterRejoin2, 1, TimeUnit.SECONDS);
             } else {
-                ScheduleRunnable(WarpHome, 5, TimeUnit.SECONDS);
+                ScheduleRunnable(WarpHome, 20, TimeUnit.SECONDS);
                 error = false;
             }
 

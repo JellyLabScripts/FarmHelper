@@ -14,6 +14,9 @@ import java.io.IOException;
 public class GuiSettings extends GuiScreen {
 
     String title = "Settings";
+    int firstY = 80;
+    int gap = 30;
+
 
 
     @Mod.EventHandler
@@ -25,12 +28,15 @@ public class GuiSettings extends GuiScreen {
     @Override
     public void initGui() {
         super.initGui();
-        this.buttonList.add(new GuiCustomSwitchButton(0, this.width/2 + 120, this.height/2 - 50, 40, 15, 30, "Rotate after teleport"));
-        this.buttonList.add(new GuiCustomSwitchButton(1, this.width/2 + 120, this.height/2 - 10, 40, 15, 30, "Inventory price calculator"));
-        this.buttonList.add(new GuiCustomSwitchButton(2, this.width/2 + 120, this.height/2 + 30, 40, 15, 30, "Profit calculator"));
-        this.buttonList.add(new GuiCustomSwitchButton(3, this.width/2 + 120, this.height/2 + 70, 40, 15, 30, "Auto resync"));
-        this.buttonList.add(new GuiCustomSwitchButton(4, this.width/2 + 120, this.height/2 + 110, 40, 15, 30, "Autosell (make sure you have cookies on!!)"));
+
+       // System.out.println(this.width);
+        this.buttonList.add(new GuiCustomSwitchButton(0, this.width/2 + 120, firstY, this.width/2 - 150, firstY + 2, 40, 15,"Rotate after teleport"));
+        this.buttonList.add(new GuiCustomSwitchButton(1, this.width/2 + 120, firstY + gap,this.width/2 - 150, firstY + gap + 2, 40, 15, "Inventory price calculator"));
+        this.buttonList.add(new GuiCustomSwitchButton(2, this.width/2 + 120, firstY + gap * 2,this.width/2 - 150, firstY + gap * 2 + 2, 40, 15 , "Profit calculator"));
+        this.buttonList.add(new GuiCustomSwitchButton(3, this.width/2 + 120, firstY + gap * 3,this.width/2 - 150, firstY + gap * 3 + 2,40, 15 , "Auto resync"));
+        this.buttonList.add(new GuiCustomSwitchButton(4, this.width/2 + 120, firstY + gap * 4,this.width/2 - 150, firstY + gap * 4 + 2, 40, 15, "Autosell (make sure you have cookies on!!)"));
        // this.buttonList.add(new GuiCustomSwitchButton(5, this.width/2 + 120, this.height/2 + 140, 40, 15, 30, "Fastbreak"));
+
         initialSelect();
     }
 
@@ -84,6 +90,7 @@ public class GuiSettings extends GuiScreen {
             temp.switchSelect();
             Config.autosell = !Config.autosell;
             updateScreen();
+            Config.writeConfig();
         }
        /* if(button.id == 5){
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) button;
