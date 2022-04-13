@@ -1,11 +1,11 @@
 package FarmHelper;
 
-import FarmHelper.gui.GUI;
-import FarmHelper.utils.Utils;
 import FarmHelper.config.AngleEnum;
 import FarmHelper.config.Config;
 import FarmHelper.config.CropEnum;
 import FarmHelper.config.FarmEnum;
+import FarmHelper.gui.GUI;
+import FarmHelper.utils.Utils;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
@@ -37,7 +37,6 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.input.Keyboard;
-import scala.tools.nsc.Global;
 
 import java.lang.reflect.Field;
 import java.util.concurrent.Executors;
@@ -307,7 +306,7 @@ public class FarmHelper
                             Thread.sleep(300);
                             KeyBinding.setKeyBindState(keybindD, false);
                             if(Config.FarmType == FarmEnum.LAYERED){
-                                if(Utils.getFrontBlock() == Blocks.air) {
+                                if(isWalkable(Utils.getFrontBlock())) {
                                     initialX = (int)mc.thePlayer.posX;
                                     initialZ = (int)mc.thePlayer.posZ;
                                     process3 = true;
@@ -364,7 +363,7 @@ public class FarmHelper
 
                     }
                     else if(!set3 && ((int)mc.thePlayer.posZ != initialZ || (int)mc.thePlayer.posX != initialX) && !rotating &&
-                            (Utils.getFrontBlock() == Blocks.air || Utils.getBackBlock() == Blocks.air)){
+                            (isWalkable(Utils.getFrontBlock()) || isWalkable(Utils.getBackBlock()))){
                             set3 = true;
                             ExecuteRunnable(Motion3);
                     }
@@ -776,7 +775,7 @@ public class FarmHelper
         process3 = false;
         process4 = false;
         if(Config.FarmType == FarmEnum.LAYERED){
-            if( Utils.getFrontBlock() == Blocks.air) {
+            if( isWalkable(Utils.getFrontBlock())) {
                 process3 = true;
             }
         }
@@ -799,5 +798,9 @@ public class FarmHelper
          return !c.toString().replace("A", "").contains("N") ?
                  Integer.parseInt(c.toString().replace("A", "")) :
                  Integer.parseInt(c.toString().replace("A", "").replace("N", "")) * -1;
+    }
+
+    boolean isWalkable(Block block) {
+         return block == Blocks.air || block == Blocks.water || block == Blocks.flowing_water;
     }
 }
