@@ -286,45 +286,38 @@ public class FarmHelper
                 setAntiStuck = true;
                 process4 = true;
                 stop();
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try{
+                new Thread(() -> {
+                    try{
+                        process3 = false;
+                        Thread.sleep(100);
+                        KeyBinding.setKeyBindState(keybindS, true);
+                        Thread.sleep(300);
+                        KeyBinding.setKeyBindState(keybindS, false);
+                        KeyBinding.setKeyBindState(keybindA, true);
+                        Thread.sleep(300);
+                        KeyBinding.setKeyBindState(keybindA, false);
+                        KeyBinding.setKeyBindState(keybindD, true);
+                        Thread.sleep(300);
+                        KeyBinding.setKeyBindState(keybindD, false);
+                        Thread.sleep(300);
 
-                            process3 = false;
-
-
-                            Thread.sleep(100);
-                            KeyBinding.setKeyBindState(keybindS, true);
-                            Thread.sleep(300);
-                            KeyBinding.setKeyBindState(keybindS, false);
-                            KeyBinding.setKeyBindState(keybindA, true);
-                            Thread.sleep(300);
-                            KeyBinding.setKeyBindState(keybindA, false);
-                            KeyBinding.setKeyBindState(keybindD, true);
-                            Thread.sleep(300);
-                            KeyBinding.setKeyBindState(keybindD, false);
-                            Thread.sleep(300);
-
-                            if(Config.FarmType == FarmEnum.LAYERED){
-                                if(isWalkable(Utils.getFrontBlock())) {
-                                    initialX = (int)mc.thePlayer.posX;
-                                    initialZ = (int)mc.thePlayer.posZ;
-                                    process3 = true;
-                                }
-                                Utils.debugLog(mc.thePlayer, "Checking if stuck at start");
-                                if (!isWalkable(Utils.getFrontBlock()) && !isWalkable(Utils.getBackBlock()) && !isWalkable(Utils.getRightBlock()) && isWalkable(Utils.getLeftBlock())) {
-                                    Utils.debugLog(mc.thePlayer, "Stuck at start of farm, changing direction");
-                                    ExecuteRunnable(changeMotion);
-                                    Utils.debugLog(mc.thePlayer, "Changed direction");
-                                }
+                        if(Config.FarmType == FarmEnum.LAYERED){
+                            if(isWalkable(Utils.getFrontBlock())) {
+                                initialX = (int)mc.thePlayer.posX;
+                                initialZ = (int)mc.thePlayer.posZ;
+                                process3 = true;
                             }
-                            ExecuteRunnable(stopAntistuck);
-
-                            //exec
-                        }catch(Exception e){
-                            e.printStackTrace();
+                            Utils.debugLog(mc.thePlayer, "Checking if stuck at start");
+                            if (!isWalkable(Utils.getFrontBlock()) && !isWalkable(Utils.getBackBlock()) && !isWalkable(Utils.getRightBlock()) && isWalkable(Utils.getLeftBlock())) {
+                                Utils.debugLog(mc.thePlayer, "Stuck at start of farm, changing direction");
+                                ExecuteRunnable(changeMotion);
+                                Utils.debugLog(mc.thePlayer, "Changed direction");
+                            }
                         }
+                        ExecuteRunnable(stopAntistuck);
+                        //exec
+                    }catch(Exception e){
+                        e.printStackTrace();
                     }
                 }).start();
 
@@ -523,46 +516,40 @@ public class FarmHelper
     };
 
 
-    Runnable changeLayer = new Runnable() {
-        @Override
-        public void run() {
-            if(!notInIsland && !emergency) {
-                try {
-                    stop();
-                    rotating = true;
-                    enabled = false;
-                    Thread.sleep(1000);
-                    Config.Angle = Config.Angle.ordinal() < 2 ? AngleEnum.values()[Config.Angle.ordinal() + 2] : AngleEnum.values()[Config.Angle.ordinal() - 2];
-                    playerYaw = angleToValue(Config.Angle);
-                    Utils.smoothRotateClockwise(180);
-                    Thread.sleep(2000);
-                    rotating = false;
+    Runnable changeLayer = () -> {
+        if(!notInIsland && !emergency) {
+            try {
+                stop();
+                rotating = true;
+                enabled = false;
+                Thread.sleep(1000);
+                Config.Angle = Config.Angle.ordinal() < 2 ? AngleEnum.values()[Config.Angle.ordinal() + 2] : AngleEnum.values()[Config.Angle.ordinal() - 2];
+                playerYaw = angleToValue(Config.Angle);
+                Utils.smoothRotateClockwise(180);
+                Thread.sleep(2000);
+                rotating = false;
 
-                    // After 180 you are at back of trench, hold W for some time to go to front
-                    KeyBinding.setKeyBindState(keybindW, true);
-                    Thread.sleep(500);
-                    KeyBinding.setKeyBindState(keybindW, false);
+                // After 180 you are at back of trench, hold W for some time to go to front
+                KeyBinding.setKeyBindState(keybindW, true);
+                Thread.sleep(500);
+                KeyBinding.setKeyBindState(keybindW, false);
 
-                    enabled = true;
-                }catch(Exception e){
-                    e.printStackTrace();
-                }
-
+                enabled = true;
+            }catch(Exception e){
+                e.printStackTrace();
             }
+
         }
     };
 
-    Runnable changeMotion = new Runnable() {
-        @Override
-        public void run() {
-            Utils.debugLog(mc.thePlayer, "Trying to change motion");
-            if(!notInIsland && !emergency) {
-                process1 = !process1;
-                process2 = !process2;
-                Utils.debugLog(mc.thePlayer, "1:" + process1 + ", 2: " + process2 + ", 3: " + process3 + ", 4: " + process4);
-                Utils.debugLog(mc.thePlayer, "Motion function: changed");
-                set = false;
-            }
+    Runnable changeMotion = () -> {
+        Utils.debugLog(mc.thePlayer, "Trying to change motion");
+        if(!notInIsland && !emergency) {
+            process1 = !process1;
+            process2 = !process2;
+            Utils.debugLog(mc.thePlayer, "1:" + process1 + ", 2: " + process2 + ", 3: " + process3 + ", 4: " + process4);
+            Utils.debugLog(mc.thePlayer, "Motion function: changed");
+            set = false;
         }
     };
 
