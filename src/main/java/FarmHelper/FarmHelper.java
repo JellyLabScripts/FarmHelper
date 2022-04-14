@@ -287,37 +287,31 @@ public class FarmHelper
                 setAntiStuck = true;
                 process4 = true;
                 stop();
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try{
-
-                            process3 = false;
-
-
-                            Thread.sleep(100);
-                            KeyBinding.setKeyBindState(keybindS, true);
-                            Thread.sleep(300);
-                            KeyBinding.setKeyBindState(keybindS, false);
-                            KeyBinding.setKeyBindState(keybindA, true);
-                            Thread.sleep(300);
-                            KeyBinding.setKeyBindState(keybindA, false);
-                            KeyBinding.setKeyBindState(keybindD, true);
-                            Thread.sleep(300);
-                            KeyBinding.setKeyBindState(keybindD, false);
-                            if(Config.FarmType == FarmEnum.LAYERED){
-                                if(isWalkable(Utils.getFrontBlock())) {
-                                    initialX = (int)mc.thePlayer.posX;
-                                    initialZ = (int)mc.thePlayer.posZ;
-                                    process3 = true;
-                                }
+                new Thread(() -> {
+                    try{
+                        process3 = false;
+                        Thread.sleep(100);
+                        KeyBinding.setKeyBindState(keybindS, true);
+                        Thread.sleep(300);
+                        KeyBinding.setKeyBindState(keybindS, false);
+                        KeyBinding.setKeyBindState(keybindA, true);
+                        Thread.sleep(300);
+                        KeyBinding.setKeyBindState(keybindA, false);
+                        KeyBinding.setKeyBindState(keybindD, true);
+                        Thread.sleep(300);
+                        KeyBinding.setKeyBindState(keybindD, false);
+                        if(Config.FarmType == FarmEnum.LAYERED){
+                            if(isWalkable(Utils.getFrontBlock())) {
+                                initialX = (int)mc.thePlayer.posX;
+                                initialZ = (int)mc.thePlayer.posZ;
+                                process3 = true;
                             }
-                            ExecuteRunnable(stopAntistuck);
-
-                            //exec
-                        }catch(Exception e){
-                            e.printStackTrace();
                         }
+                        ExecuteRunnable(stopAntistuck);
+
+                        //exec
+                    }catch(Exception e){
+                        e.printStackTrace();
                     }
                 }).start();
 
@@ -440,46 +434,43 @@ public class FarmHelper
     //multi-threads
 
 
-    Runnable clearInventory = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                stop();
-                enabled = false;
-                mc.thePlayer.inventory.currentItem = 8;
+    Runnable clearInventory = () -> {
+        try {
+            stop();
+            enabled = false;
+            mc.thePlayer.inventory.currentItem = 8;
+            mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
+                    "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Activating autosell"));
+            Thread.sleep(500);
+            KeyBinding.onTick(keybindUseItem);
+            Thread.sleep(1000);
+            clickWindow(mc.thePlayer.openContainer.windowId, 22, 0, 0);
+            Thread.sleep(600);
+            if(mc.thePlayer.openContainer.getSlot(49).getStack().getItem() == Item.getItemFromBlock(Blocks.barrier)) {
                 mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
-                        "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "Activating autosell"));
+                        "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "You didn't eat cookie!"));
+                Config.autosell = false;
+                throw new Exception();
+            }
+            Thread.sleep(400);
+            while(Utils.hasSellItemInInventory()) {
+                clickWindow(mc.thePlayer.openContainer.windowId, 45 + Utils.getFirstSlotWithSellItem(), 0, 0);
+                Thread.sleep(500 + Utils.nextInt(100));
+            }
+            Thread.sleep(400);
+            mc.thePlayer.closeScreen();
+            full = false;
+            Thread.sleep(800);
+            enabled = true;
+        }catch(Exception e) {
+            try {
                 Thread.sleep(500);
-                KeyBinding.onTick(keybindUseItem);
-                Thread.sleep(1000);
-                clickWindow(mc.thePlayer.openContainer.windowId, 22, 0, 0);
-                Thread.sleep(600);
-                if(mc.thePlayer.openContainer.getSlot(49).getStack().getItem() == Item.getItemFromBlock(Blocks.barrier)) {
-                    mc.thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
-                            "[Farm Helper] : " + EnumChatFormatting.DARK_GREEN + "You didn't eat cookie!"));
-                    Config.autosell = false;
-                    throw new Exception();
-                }
-                Thread.sleep(400);
-                while(Utils.hasSellItemInInventory()) {
-                    clickWindow(mc.thePlayer.openContainer.windowId, 45 + Utils.getFirstSlotWithSellItem(), 0, 0);
-                    Thread.sleep(500 + Utils.nextInt(100));
-                }
-                Thread.sleep(400);
                 mc.thePlayer.closeScreen();
-                full = false;
                 Thread.sleep(800);
                 enabled = true;
-            }catch(Exception e) {
-                try {
-                    Thread.sleep(500);
-                    mc.thePlayer.closeScreen();
-                    Thread.sleep(800);
-                    enabled = true;
-                    full = false;
-                } catch(Exception e2){
-                    e2.printStackTrace();
-                }
+                full = false;
+            } catch(Exception e2){
+                e2.printStackTrace();
             }
         }
     };
@@ -518,67 +509,55 @@ public class FarmHelper
         }
     };
 
-    Runnable changeLayer = new Runnable() {
-        @Override
-        public void run() {
-            if(!notInIsland && !emergency) {
-                try {
-                    stop();
-                    rotating = true;
-                    enabled = false;
-                    Thread.sleep(1000);
-                    Config.Angle = Config.Angle.ordinal() < 2 ? AngleEnum.values()[Config.Angle.ordinal() + 2] : AngleEnum.values()[Config.Angle.ordinal() - 2];
-                    playerYaw = angleToValue(Config.Angle);
-                    Utils.smoothRotateClockwise(180);
-                    Thread.sleep(2000);
-                    rotating = false;
-                    enabled = true;
-                }catch(Exception e){
-                    e.printStackTrace();
-                }
+    Runnable changeLayer = () -> {
+        if(!notInIsland && !emergency) {
+            try {
+                stop();
+                rotating = true;
+                enabled = false;
+                Thread.sleep(1000);
+                Config.Angle = Config.Angle.ordinal() < 2 ? AngleEnum.values()[Config.Angle.ordinal() + 2] : AngleEnum.values()[Config.Angle.ordinal() - 2];
+                playerYaw = angleToValue(Config.Angle);
+                Utils.smoothRotateClockwise(180);
+                Thread.sleep(2000);
+                rotating = false;
+                enabled = true;
+            }catch(Exception e){
+                e.printStackTrace();
             }
         }
     };
 
-    Runnable changeMotion = new Runnable() {
-        @Override
-        public void run() {
-            if(!notInIsland && !emergency) {
-                process1 = !process1;
-                process2 = !process2;
-                set = false;
-            }
+    Runnable changeMotion = () -> {
+        if(!notInIsland && !emergency) {
+            process1 = !process1;
+            process2 = !process2;
+            set = false;
         }
     };
 
-    Runnable stopAntistuck = new Runnable() {
-        @Override
-        public void run() {
-            deltaX = 10000;
-            deltaZ = 10000;
-            process4 = false;
-            setAntiStuck = false;
-        }
+    Runnable stopAntistuck = () -> {
+        deltaX = 10000;
+        deltaZ = 10000;
+        process4 = false;
+        setAntiStuck = false;
     };
 
-    Runnable Motion3 = new Runnable() {
-        @Override
-        public void run() {
+    Runnable Motion3 = () -> {
 
-            if(!notInIsland && !emergency) {
+        if(!notInIsland && !emergency) {
 
-                process3 = !process3;
-                initialX = (int)mc.thePlayer.posX;
-                initialZ = (int)mc.thePlayer.posZ;
+            process3 = !process3;
+            initialX = (int)mc.thePlayer.posX;
+            initialZ = (int)mc.thePlayer.posZ;
 
 
-                if(!process3){
-                    ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-                    executor.execute(changeMotion);
-                }
-                set3 = false;
-
+            if(!process3){
+                ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+                executor.execute(changeMotion);
             }
+            set3 = false;
+
         }
     };
 
@@ -629,27 +608,24 @@ public class FarmHelper
 
         }
     };
-    Runnable afterRejoin2 = new Runnable() {
-        @Override
-        public void run() {
+    Runnable afterRejoin2 = () -> {
 
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
 
-            initialize();
+        initialize();
 
-            mc.inGameHasFocus = true;
-            mouseHelper.grabMouseCursor();
-            mc.displayGuiScreen((GuiScreen)null);
-            Field f = null;
-            f = FieldUtils.getDeclaredField(mc.getClass(), "leftClickCounter",true);
-            try {
-               f.set(mc, 10000);
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-
-            ScheduleRunnable(checkChange, 3, TimeUnit.SECONDS);
+        mc.inGameHasFocus = true;
+        mouseHelper.grabMouseCursor();
+        mc.displayGuiScreen((GuiScreen)null);
+        Field f = null;
+        f = FieldUtils.getDeclaredField(mc.getClass(), "leftClickCounter",true);
+        try {
+           f.set(mc, 10000);
+        }catch (Exception e){
+            e.printStackTrace();
         }
+
+        ScheduleRunnable(checkChange, 3, TimeUnit.SECONDS);
     };
     Runnable checkPriceChange = new Runnable() {
         @Override
@@ -705,12 +681,7 @@ public class FarmHelper
         }
     };
 
-    Runnable SHUTDOWN = new Runnable() {
-        @Override
-        public void run() {
-            mc.shutdown();
-        }
-    };
+    Runnable SHUTDOWN = () -> mc.shutdown();
 
      void toggle(){
 
