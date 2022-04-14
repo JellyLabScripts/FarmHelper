@@ -42,7 +42,6 @@ import java.lang.reflect.Field;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
 @Mod(modid = FarmHelper.MODID, name = FarmHelper.NAME, version = FarmHelper.VERSION)
 public class FarmHelper
 {
@@ -209,7 +208,7 @@ public class FarmHelper
                 Utils.drawString("profit/h = " + moneyper10sec * 6 * 60, 6, 104, 0.8f, -1);
             }
 
-            mc.fontRendererObj.drawString(  Utils.getFrontBlock()+ " " + Utils.getBackBlock().toString(), 4, new ScaledResolution(mc).getScaledHeight() - 20, -1);
+            mc.fontRendererObj.drawString(Utils.getFrontBlock() + " " + Utils.getBackBlock().toString() + " " + Utils.getRightBlock().toString() + " " + Utils.getLeftBlock().toString(), 4, new ScaledResolution(mc).getScaledHeight() - 20, -1);
 
 
         }
@@ -300,15 +299,22 @@ public class FarmHelper
                         KeyBinding.setKeyBindState(keybindD, true);
                         Thread.sleep(300);
                         KeyBinding.setKeyBindState(keybindD, false);
+                        Thread.sleep(300);
+
                         if(Config.FarmType == FarmEnum.LAYERED){
                             if(isWalkable(Utils.getFrontBlock())) {
                                 initialX = (int)mc.thePlayer.posX;
                                 initialZ = (int)mc.thePlayer.posZ;
                                 process3 = true;
                             }
+                            Utils.debugLog(mc.thePlayer, "Checking if stuck at start");
+                            if (!isWalkable(Utils.getFrontBlock()) && !isWalkable(Utils.getBackBlock()) && !isWalkable(Utils.getRightBlock()) && isWalkable(Utils.getLeftBlock())) {
+                                Utils.debugLog(mc.thePlayer, "Stuck at start of farm, changing direction");
+                                ExecuteRunnable(changeMotion);
+                                Utils.debugLog(mc.thePlayer, "Changed direction");
+                            }
                         }
                         ExecuteRunnable(stopAntistuck);
-
                         //exec
                     }catch(Exception e){
                         e.printStackTrace();
@@ -509,6 +515,7 @@ public class FarmHelper
         }
     };
 
+
     Runnable changeLayer = () -> {
         if(!notInIsland && !emergency) {
             try {
@@ -521,17 +528,27 @@ public class FarmHelper
                 Utils.smoothRotateClockwise(180);
                 Thread.sleep(2000);
                 rotating = false;
+
+                // After 180 you are at back of trench, hold W for some time to go to front
+                KeyBinding.setKeyBindState(keybindW, true);
+                Thread.sleep(500);
+                KeyBinding.setKeyBindState(keybindW, false);
+
                 enabled = true;
             }catch(Exception e){
                 e.printStackTrace();
             }
+
         }
     };
 
     Runnable changeMotion = () -> {
+        Utils.debugLog(mc.thePlayer, "Trying to change motion");
         if(!notInIsland && !emergency) {
             process1 = !process1;
             process2 = !process2;
+            Utils.debugLog(mc.thePlayer, "1:" + process1 + ", 2: " + process2 + ", 3: " + process3 + ", 4: " + process4);
+            Utils.debugLog(mc.thePlayer, "Motion function: changed");
             set = false;
         }
     };
@@ -736,13 +753,17 @@ public class FarmHelper
         }
     }
     void initialize(){
+         Utils.debugLog(mc.thePlayer, "Initializing");
         deltaX = 10000;
         deltaZ = 10000;
         deltaY = 0;
 
-
         process1 = true;
         process2 = false;
+        if (!isWalkable(Utils.getFrontBlock()) && !isWalkable(Utils.getBackBlock()) && !isWalkable(Utils.getRightBlock()) && isWalkable(Utils.getLeftBlock())) {
+            process1 = false;
+            process2 = true;
+        }
         process3 = false;
         process4 = false;
         if(Config.FarmType == FarmEnum.LAYERED){
@@ -750,7 +771,6 @@ public class FarmHelper
                 process3 = true;
             }
         }
-
 
         setspawned = false;
         shdBePressingKey = true;
