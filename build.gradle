@@ -58,4 +58,9 @@ processResources
         exclude 'mcmod.info'
     }
 }
+test {
+    systemProperty "file.encoding", "utf-8"
+}
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
