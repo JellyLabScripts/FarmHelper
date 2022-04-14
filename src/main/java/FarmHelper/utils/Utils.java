@@ -3,10 +3,13 @@ package FarmHelper.utils;
 import FarmHelper.config.Config;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.inventory.Slot;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 
 import java.util.Random;
 
@@ -203,6 +206,22 @@ public class Utils {
                 new BlockPos(mc.thePlayer.getLookVec().xCoord * -1 + mc.thePlayer.posX, mc.thePlayer.posY,
                         mc.thePlayer.getLookVec().zCoord * -1 + mc.thePlayer.posZ)).getBlock());
     }
-
-
+    public static Block getRightBlock(){
+        Minecraft mc = Minecraft.getMinecraft();
+        return (mc.theWorld.getBlockState(
+          new BlockPos(mc.thePlayer.getLookVec().zCoord * -1 + mc.thePlayer.posX, mc.thePlayer.posY,
+            mc.thePlayer.getLookVec().xCoord + mc.thePlayer.posZ)).getBlock());
+    }
+    public static Block getLeftBlock(){
+        Minecraft mc = Minecraft.getMinecraft();
+        return (mc.theWorld.getBlockState(
+          new BlockPos(mc.thePlayer.getLookVec().zCoord + mc.thePlayer.posX, mc.thePlayer.posY,
+            mc.thePlayer.getLookVec().xCoord * -1 + mc.thePlayer.posZ)).getBlock());
+    }
+    public static void debugLog(EntityPlayerSP player, String message) {
+        if (false) {
+            player.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
+              "[Debug]: " + EnumChatFormatting.DARK_GREEN + message));
+        }
+    }
 }
