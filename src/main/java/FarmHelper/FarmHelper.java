@@ -62,6 +62,7 @@ public class FarmHelper {
     public static boolean pushedOffFront;
     public static boolean teleporting;
     public static boolean newRow;
+    public static boolean stuck;
     public static location currentLocation;
     public static direction lastDirection;
 
@@ -76,6 +77,13 @@ public class FarmHelper {
     public int keyBindShift = mc.gameSettings.keyBindSneak.getKeyCode();
     static KeyBinding[] customKeyBinds = new KeyBinding[2];
 
+    public double deltaX;
+    public double deltaY;
+    public double deltaZ;
+    public double beforeX;
+    public double beforeY;
+    public double beforeZ;
+
     void initialize() {
         inTrenches = true;
         falling = false;
@@ -86,8 +94,18 @@ public class FarmHelper {
         pushedOffFront = false;
         teleporting = false;
         newRow = false;
+        stuck = false;
         lastDirection = direction.NONE;
         playerYaw = Utils.angleToValue(Config.Angle);
+
+        deltaX = 100;
+        deltaY = 100;
+        deltaZ = 100;
+        beforeX = mc.thePlayer.posX;
+        beforeY = mc.thePlayer.posY;
+        beforeZ = mc.thePlayer.posZ;
+
+        Utils.ScheduleRunnable(updateDeltaChange, 2, TimeUnit.SECONDS);
     }
 
     @Mod.EventHandler
@@ -157,6 +175,9 @@ public class FarmHelper {
             if (message.contains("You were spawned in Limbo")) {
                 Utils.debugLog("Spawned in limbo");
             }
+            if (message.contains("You are already playing")) {
+                teleporting = false;
+            }
 //            if (message.contains("Sending to server")) {
 //                Utils.debugLog("Sent to hub");
 //            }
@@ -218,8 +239,8 @@ public class FarmHelper {
                     // Stopped falling
                     if (dy == 0) {
                         Utils.debugLog("Changing layer - Landed - Doing 180 and switching back to trench state");
-                        updateKeys(false, false, false, false, false, false);
                         if (!rotating) {
+                            updateKeys(false, false, false, false, false, false);
                             rotating = true;
                             Utils.ExecuteRunnable(changeLayer);
                         }
@@ -252,7 +273,7 @@ public class FarmHelper {
                     if (Config.CropType.equals(CropEnum.NETHERWART)) {
                         mc.thePlayer.rotationPitch = 0;
                     } else {
-                        mc.thePlayer.rotationPitch = 6;
+                        mc.thePlayer.rotationPitch = 5;
                     }
                     Utils.hardRotate(playerYaw);
                     // Not falling
@@ -265,7 +286,15 @@ public class FarmHelper {
                                     newRow = false;
                                     mc.thePlayer.sendChatMessage("/setspawn");
                                 }
-                                if (isWalkable(Utils.getRightBlock()) && !isWalkable(Utils.getLeftBlock())) {
+                                if (deltaX < 1 && deltaZ < 1) {
+                                    Utils.debugLog("Start/Middle/End of row - Detected stuck");
+                                    if (!stuck) {
+                                        stuck = true;
+                                        updateKeys(false, false, false, false, false, false);
+                                        Utils.ExecuteRunnable(fixRowStuck);
+                                    }
+                                }
+                                else if (isWalkable(Utils.getRightBlock()) && !isWalkable(Utils.getLeftBlock())) {
                                     Utils.debugLog("Start of farm - Go right");
                                     updateKeys(false, false, false, true, true, false);
                                 } else if (isWalkable(Utils.getLeftBlock()) && !isWalkable(Utils.getRightBlock())) {
@@ -357,114 +386,114 @@ public class FarmHelper {
                             }
 
                             // Can go backwards but not forwards
-                            else if (isWalkable(Utils.getBackBlock()) && !isWalkable(Utils.getFrontBlock())) {
-                                distanceToTurn();
-                                if (isWalkable(Utils.getLeftBlock()) || isWalkable(Utils.getRightBlock())) {
-                                    if (mc.gameSettings.keyBindLeft.isKeyDown() || mc.gameSettings.keyBindRight.isKeyDown()) {
-                                        pushedOffFront = false;
-                                        if (isWalkable(Utils.getLeftBlock())) {
-                                            Utils.debugLog("End of row - End of col - Keep going left");
-                                            updateKeys(false, false, true, false, true, false);
-                                        } else if (isWalkable(Utils.getRightBlock())) {
-                                            Utils.debugLog("End of row - End of col - Keep going right");
-                                            updateKeys(false, false, false, true, true, false);
-                                        }
-                                    } else if (dx == 0 && dz == 0) {
-                                        if (isWalkable(Utils.getLeftBlock())) {
-                                            Utils.debugLog("End of row - End of col - Aligned - Go left");
-                                            updateKeys(false, false, true, false, true, false);
-                                        } else if (isWalkable(Utils.getRightBlock())) {
-                                            Utils.debugLog("End of row - End of col - Aligned - Go right");
-                                            updateKeys(false, false, false, true, true, false);
-                                        }
-                                    } else {
-                                        if (Utils.getUnitX() != 0) {
-                                            if (1.4 * dx >= distanceToTurn() || !mc.gameSettings.keyBindForward.isKeyDown()) {
-                                                Utils.debugLog("End of row - End of col - Close to turn, coasting");
-                                                updateKeys(false, false, false, false, false, false);
-                                            } else {
-                                                Utils.debugLog("End of row - End of col - Go forwards");
-                                                updateKeys(true, false, false, false, false, false);
-                                            }
-                                        } else {
-                                            if (1.4 * dz >= distanceToTurn() || !mc.gameSettings.keyBindForward.isKeyDown()) {
-                                                Utils.debugLog("End of row - End of col - Close to turn, coasting");
-                                                updateKeys(false, false, false, false, false, false);
-                                            } else {
-                                                Utils.debugLog("End of row - End of col - Go forwards");
-                                                updateKeys(true, false, false, false, false, false);
-                                            }
-                                        }
-                                    }
-                                }
-                                // Can't go anywhere, end of layer
-                                else if (Utils.getBelowBlock() == Blocks.end_portal_frame) {
-                                    Utils.debugLog("End of farm - Above entrance tp");
-                                    updateKeys(false, false, false, false, false, false);
-                                    teleportPad = true;
-                                } else if (Utils.getBelowBlock() == Blocks.air) {
-                                    Utils.debugLog("Changing layer - about to fall");
-                                    updateKeys(true, false, false, false, false, false);
-                                    falling = true;
-                                }
-                            }
-//                        else if (isWalkable(Utils.getBackBlock()) && !isWalkable(Utils.getFrontBlock())) {
-//                            distanceToTurn();
-//                            if (isWalkable(Utils.getLeftBlock()) || isWalkable(Utils.getRightBlock())) {
-//                                if (mc.gameSettings.keyBindLeft.isKeyDown() || mc.gameSettings.keyBindRight.isKeyDown()) {
-//                                    pushedOffFront = false;
-//                                    if (isWalkable(Utils.getLeftBlock())) {
-//                                        Utils.debugLog("End of row - End of col - Keep going left");
-//                                        updateKeys(false, false, true, false, true, false);
-//                                    }
-//                                    else if (isWalkable(Utils.getRightBlock())) {
-//                                        Utils.debugLog("End of row - End of col - Keep going right");
-//                                        updateKeys(false, false, false, true, true, false);
-//                                    }
-//                                }
-//                                else if (pushedOffFront) {
-//                                    if (dx == 0 && dz == 0) {
+//                            else if (isWalkable(Utils.getBackBlock()) && !isWalkable(Utils.getFrontBlock())) {
+//                                distanceToTurn();
+//                                if (isWalkable(Utils.getLeftBlock()) || isWalkable(Utils.getRightBlock())) {
+//                                    if (mc.gameSettings.keyBindLeft.isKeyDown() || mc.gameSettings.keyBindRight.isKeyDown()) {
+//                                        pushedOffFront = false;
 //                                        if (isWalkable(Utils.getLeftBlock())) {
-//                                            Utils.debugLog("End of row - End of col - Pushed - Go left");
+//                                            Utils.debugLog("End of row - End of col - Keep going left");
 //                                            updateKeys(false, false, true, false, true, false);
+//                                        } else if (isWalkable(Utils.getRightBlock())) {
+//                                            Utils.debugLog("End of row - End of col - Keep going right");
+//                                            updateKeys(false, false, false, true, true, false);
 //                                        }
-//                                        else if (isWalkable(Utils.getRightBlock())) {
-//                                            Utils.debugLog("End of row - End of col - Pushed - Go right");
+//                                    } else if (dx == 0 && dz == 0) {
+//                                        if (isWalkable(Utils.getLeftBlock())) {
+//                                            Utils.debugLog("End of row - End of col - Aligned - Go left");
+//                                            updateKeys(false, false, true, false, true, false);
+//                                        } else if (isWalkable(Utils.getRightBlock())) {
+//                                            Utils.debugLog("End of row - End of col - Aligned - Go right");
 //                                            updateKeys(false, false, false, true, true, false);
 //                                        }
 //                                    } else {
-//                                        Utils.debugLog("End of row - Start of col - Pushed off - Waiting till stop");
-//                                        Utils.debugLog(dx + ", " + dz);
-//                                        updateKeys(false, false, false, false, false, false);
+//                                        if (Utils.getUnitX() != 0) {
+//                                            if (1.4 * dx >= distanceToTurn() || !mc.gameSettings.keyBindForward.isKeyDown()) {
+//                                                Utils.debugLog("End of row - End of col - Close to turn, coasting");
+//                                                updateKeys(false, false, false, false, false, false);
+//                                            } else {
+//                                                Utils.debugLog("End of row - End of col - Go forwards");
+//                                                updateKeys(true, false, false, false, false, false);
+//                                            }
+//                                        } else {
+//                                            if (1.4 * dz >= distanceToTurn() || !mc.gameSettings.keyBindForward.isKeyDown()) {
+//                                                Utils.debugLog("End of row - End of col - Close to turn, coasting");
+//                                                updateKeys(false, false, false, false, false, false);
+//                                            } else {
+//                                                Utils.debugLog("End of row - End of col - Go forwards");
+//                                                updateKeys(true, false, false, false, false, false);
+//                                            }
+//                                        }
 //                                    }
 //                                }
-//                                else if (dx == 0 && dz == 0) {
-//                                    if (mc.gameSettings.keyBindForward.isKeyDown()) {
-//
-//                                        Utils.debugLog("End of row - End of col - Edge - Pushing off");
-//                                        pushedOffFront = true;
-//                                        Utils.debugLog(dx + ", " + dz);
-//                                        updateKeys(false, true, false, false, false, true);
-//                                    } else {
-//                                        Utils.debugLog("End of row - End of col - Maybe not edge - Going forwards");
-//                                        updateKeys(true, false, false, false, true, false);
-//                                    }
-//                                } else {
-//                                    Utils.debugLog("End of row - End of col - Not at edge - Going forwards");
-//                                    updateKeys(true, false, false, false, true, false);
+//                                // Can't go anywhere, end of layer
+//                                else if (Utils.getBelowBlock() == Blocks.end_portal_frame) {
+//                                    Utils.debugLog("End of farm - Above entrance tp");
+//                                    updateKeys(false, false, false, false, false, false);
+//                                    teleportPad = true;
+//                                } else if (Utils.getBelowBlock() == Blocks.air) {
+//                                    Utils.debugLog("Changing layer - about to fall");
+//                                    updateKeys(true, false, false, false, false, false);
+//                                    falling = true;
 //                                }
 //                            }
-//                            // Can't go anywhere, end of layer
-//                            else if (Utils.getBelowBlock() == Blocks.end_portal_frame) {
-//                                Utils.debugLog("End of farm - Above entrance tp");
-//                                updateKeys(false, false, false, false, false, false);
-//                                teleportPad = true;
-//                            } else if (Utils.getBelowBlock() == Blocks.air) {
-//                                Utils.debugLog("Changing layer - about to fall");
-//                                updateKeys(true, false, false, false, false, false);
-//                                falling = true;
-//                            }
-//                        }
+                        else if (isWalkable(Utils.getBackBlock()) && !isWalkable(Utils.getFrontBlock())) {
+                            distanceToTurn();
+                            if (isWalkable(Utils.getLeftBlock()) || isWalkable(Utils.getRightBlock())) {
+                                if (mc.gameSettings.keyBindLeft.isKeyDown() || mc.gameSettings.keyBindRight.isKeyDown()) {
+                                    pushedOffFront = false;
+                                    if (isWalkable(Utils.getLeftBlock())) {
+                                        Utils.debugLog("End of row - End of col - Keep going left");
+                                        updateKeys(false, false, true, false, true, false);
+                                    }
+                                    else if (isWalkable(Utils.getRightBlock())) {
+                                        Utils.debugLog("End of row - End of col - Keep going right");
+                                        updateKeys(false, false, false, true, true, false);
+                                    }
+                                }
+                                else if (pushedOffFront) {
+                                    if (dx == 0 && dz == 0) {
+                                        if (isWalkable(Utils.getLeftBlock())) {
+                                            Utils.debugLog("End of row - End of col - Pushed - Go left");
+                                            updateKeys(false, false, true, false, true, false);
+                                        }
+                                        else if (isWalkable(Utils.getRightBlock())) {
+                                            Utils.debugLog("End of row - End of col - Pushed - Go right");
+                                            updateKeys(false, false, false, true, true, false);
+                                        }
+                                    } else {
+                                        Utils.debugLog("End of row - Start of col - Pushed off - Waiting till stop");
+                                        Utils.debugLog(dx + ", " + dz);
+                                        updateKeys(false, false, false, false, false, true);
+                                    }
+                                }
+                                else if (dx == 0 && dz == 0) {
+                                    if (mc.gameSettings.keyBindForward.isKeyDown()) {
+
+                                        Utils.debugLog("End of row - End of col - Edge - Pushing off");
+                                        pushedOffFront = true;
+                                        Utils.debugLog(dx + ", " + dz);
+                                        updateKeys(false, true, false, false, false, true);
+                                    } else {
+                                        Utils.debugLog("End of row - End of col - Maybe not edge - Going forwards");
+                                        updateKeys(true, false, false, false, true, false);
+                                    }
+                                } else {
+                                    Utils.debugLog("End of row - End of col - Not at edge - Going forwards");
+                                    updateKeys(true, false, false, false, true, false);
+                                }
+                            }
+                            // Can't go anywhere, end of layer
+                            else if (Utils.getBelowBlock() == Blocks.end_portal_frame) {
+                                Utils.debugLog("End of farm - Above entrance tp");
+                                updateKeys(false, false, false, false, false, false);
+                                teleportPad = true;
+                            } else if (Utils.getBelowBlock() == Blocks.air) {
+                                Utils.debugLog("Changing layer - about to fall");
+                                updateKeys(true, false, false, false, false, false);
+                                falling = true;
+                            }
+                        }
                         }
                         // Standing on tp pad
                         else if ((mc.thePlayer.posY % 1) == 0.8125) {
@@ -501,6 +530,21 @@ public class FarmHelper {
     }
 
     // Runnables
+    Runnable updateDeltaChange = new Runnable() {
+        @Override
+        public void run() {
+            if (enabled) {
+                deltaX = Math.abs(mc.thePlayer.posX - beforeX);
+                deltaZ = Math.abs(mc.thePlayer.posZ - beforeZ);
+                deltaY = Math.abs(mc.thePlayer.posY - beforeY);
+                beforeX = mc.thePlayer.posX;
+                beforeZ = mc.thePlayer.posZ;
+                beforeY = mc.thePlayer.posY;
+                Utils.ScheduleRunnable(updateDeltaChange, 2, TimeUnit.SECONDS);
+            }
+        }
+    };
+
     Runnable fixTpStuck = () -> {
         try {
             KeyBinding.setKeyBindState(keyBindSpace, true);
@@ -513,13 +557,37 @@ public class FarmHelper {
         }
     };
 
+    Runnable fixRowStuck = () -> {
+        try {
+            Thread.sleep(20);
+            KeyBinding.setKeyBindState(keybindS, true);
+            Thread.sleep(1000);
+            KeyBinding.setKeyBindState(keybindS, false);
+            Thread.sleep(500);
+            KeyBinding.setKeyBindState(keybindW, true);
+            Thread.sleep(1000);
+            KeyBinding.setKeyBindState(keybindW, false);
+            Thread.sleep(500);
+            deltaX = 100;
+            deltaZ = 100;
+            stuck = false;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    };
+
     Runnable changeLayer = () -> {
         try {
-            Thread.sleep(1000);
+            Thread.sleep(250);
             Config.Angle = Config.Angle.ordinal() < 2 ? AngleEnum.values()[Config.Angle.ordinal() + 2] : AngleEnum.values()[Config.Angle.ordinal() - 2];
             playerYaw = Utils.angleToValue(Config.Angle);
             Utils.smoothRotateClockwise(180);
             Thread.sleep(2000);
+            KeyBinding.setKeyBindState(keybindW, true);
+            Thread.sleep(750);
+            KeyBinding.setKeyBindState(keybindW, false);
+            deltaX = 100;
+            deltaZ = 100;
             rotating = false;
             falling = false;
         } catch (InterruptedException e) {
@@ -588,23 +656,23 @@ public class FarmHelper {
     double distanceToTurn() {
         // Find end coord
         double distance = 1000;
-        for (int i = 1; i < 9; i++) {
-            if (!isWalkable(Utils.getFrontBlock(0, i))) {
-                if (Utils.getFrontBlock(-1, i - 1) == Blocks.air || Utils.getFrontBlock(-1, i - 1) == Blocks.end_portal_frame) {
-                    return 1000;
-                }
-                else if (Utils.getUnitX() != 0) {
-                    double midpoint = ((int) Math.floor(mc.thePlayer.posX)) + (Utils.getUnitX() * (i - 1)) + 0.5;
-                    distance = Math.abs(mc.thePlayer.posX - midpoint);
-
-                } else {
-                    double midpoint = ((int) Math.floor(mc.thePlayer.posZ)) + (Utils.getUnitZ() * (i - 1)) + 0.5;
-                    distance = Math.abs(mc.thePlayer.posZ - midpoint);
-                }
-                Utils.debugLog("Distance to stop: " + distance);
-                return distance;
-            }
-        }
+//        for (int i = 1; i < 9; i++) {
+//            if (!isWalkable(Utils.getFrontBlock(0, i))) {
+//                if (Utils.getFrontBlock(-1, i - 1) == Blocks.air || Utils.getFrontBlock(-1, i - 1) == Blocks.end_portal_frame) {
+//                    return 1000;
+//                }
+//                else if (Utils.getUnitX() != 0) {
+//                    double midpoint = ((int) Math.floor(mc.thePlayer.posX)) + (Utils.getUnitX() * (i - 1)) + 0.5;
+//                    distance = Math.abs(mc.thePlayer.posX - midpoint);
+//
+//                } else {
+//                    double midpoint = ((int) Math.floor(mc.thePlayer.posZ)) + (Utils.getUnitZ() * (i - 1)) + 0.5;
+//                    distance = Math.abs(mc.thePlayer.posZ - midpoint);
+//                }
+//                Utils.debugLog("Distance to stop: " + distance);
+//                return distance;
+//            }
+//        }
         return distance;
     }
 
