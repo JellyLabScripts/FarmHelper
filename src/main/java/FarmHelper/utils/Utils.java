@@ -1,17 +1,31 @@
 package FarmHelper.utils;
 
+import FarmHelper.config.AngleEnum;
 import FarmHelper.config.Config;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.inventory.Slot;
+import net.minecraft.scoreboard.Score;
+import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.scoreboard.ScorePlayerTeam;
+import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class Utils {
 
@@ -155,7 +169,6 @@ public class Utils {
                     }
                 }
             }).start();
-
     }
     public static void smoothRotateClockwise(final int rotationClockwise360){
         new Thread(new Runnable() {
@@ -178,7 +191,6 @@ public class Utils {
 
             }
         }).start();
-
     }
     public static float getActualRotationYaw(){ //f3
         return Minecraft.getMinecraft().thePlayer.rotationYaw > 0?
@@ -194,34 +206,257 @@ public class Utils {
         Random r = new Random();
         return r.nextInt(upperbound);
     }
+
+    public static int getUnitX() {
+        double modYaw = (Minecraft.getMinecraft().thePlayer.rotationYaw % 360 + 360) % 360;
+        if (modYaw < 45 || modYaw > 315) {
+            return 0;
+        }
+        else if (modYaw < 135) {
+            return -1;
+        }
+        else if (modYaw < 225) {
+            return 0;
+        }
+        else {
+            return 1;
+        }
+    }
+
+    public static int getUnitZ() {
+        double modYaw = (Minecraft.getMinecraft().thePlayer.rotationYaw % 360 + 360) % 360;
+        if (modYaw < 45 || modYaw > 315) {
+            return 1;
+        }
+        else if (modYaw < 135) {
+            return 0;
+        }
+        else if (modYaw < 225) {
+            return -1;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    // Base
+    public static Block getBelowBlock(){
+        Minecraft mc = Minecraft.getMinecraft();
+        return (mc.theWorld.getBlockState(
+          new BlockPos(
+            mc.thePlayer.posX,
+            mc.thePlayer.posY - 1,
+            mc.thePlayer.posZ
+          )).getBlock());
+    }
+
     public static Block getFrontBlock(){
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-                new BlockPos(mc.thePlayer.getLookVec().xCoord + mc.thePlayer.posX, mc.thePlayer.posY,
-                        mc.thePlayer.getLookVec().zCoord + mc.thePlayer.posZ)).getBlock());
+                new BlockPos(
+                  mc.thePlayer.posX + getUnitX(),
+                  mc.thePlayer.posY,
+                  mc.thePlayer.posZ + getUnitZ()
+                )).getBlock());
     }
     public static Block getBackBlock(){
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-                new BlockPos(mc.thePlayer.getLookVec().xCoord * -1 + mc.thePlayer.posX, mc.thePlayer.posY,
-                        mc.thePlayer.getLookVec().zCoord * -1 + mc.thePlayer.posZ)).getBlock());
+                new BlockPos(
+                  mc.thePlayer.posX + getUnitX() * -1,
+                  mc.thePlayer.posY,
+                  mc.thePlayer.posZ + getUnitZ() * -1
+                )).getBlock());
     }
     public static Block getRightBlock(){
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-          new BlockPos(mc.thePlayer.getLookVec().zCoord * -1 + mc.thePlayer.posX, mc.thePlayer.posY,
-            mc.thePlayer.getLookVec().xCoord + mc.thePlayer.posZ)).getBlock());
+          new BlockPos(
+            mc.thePlayer.posX + getUnitZ() * -1,
+            mc.thePlayer.posY,
+            mc.thePlayer.posZ + getUnitX()
+          )).getBlock());
     }
     public static Block getLeftBlock(){
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-          new BlockPos(mc.thePlayer.getLookVec().zCoord + mc.thePlayer.posX, mc.thePlayer.posY,
-            mc.thePlayer.getLookVec().xCoord * -1 + mc.thePlayer.posZ)).getBlock());
+          new BlockPos(
+            mc.thePlayer.posX + getUnitZ(),
+            mc.thePlayer.posY,
+            mc.thePlayer.posZ + getUnitX() * -1
+          )).getBlock());
     }
-    public static void debugLog(EntityPlayerSP player, String message) {
-        if (false) {
-            player.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
+
+    // yOffset param
+    public static Block getFrontBlock(double yOffset){
+        Minecraft mc = Minecraft.getMinecraft();
+        return (mc.theWorld.getBlockState(
+          new BlockPos(
+            mc.thePlayer.posX + getUnitX(),
+            mc.thePlayer.posY + yOffset,
+            mc.thePlayer.posZ + getUnitZ()
+          )).getBlock());
+    }
+    public static Block getBackBlock(double yOffset){
+        Minecraft mc = Minecraft.getMinecraft();
+        return (mc.theWorld.getBlockState(
+          new BlockPos(
+            mc.thePlayer.posX + (getUnitX() * -1),
+            mc.thePlayer.posY + yOffset,
+            mc.thePlayer.posZ + (getUnitZ() * -1)
+          )).getBlock());
+    }
+    public static Block getRightBlock(double yOffset){
+        Minecraft mc = Minecraft.getMinecraft();
+        return (mc.theWorld.getBlockState(
+          new BlockPos(
+            mc.thePlayer.posX + (getUnitZ() * -1),
+            mc.thePlayer.posY + yOffset,
+            mc.thePlayer.posZ + getUnitX()
+          )).getBlock());
+    }
+    public static Block getLeftBlock(double yOffset){
+        Minecraft mc = Minecraft.getMinecraft();
+        return (mc.theWorld.getBlockState(
+          new BlockPos(
+            mc.thePlayer.posX + getUnitZ(),
+            mc.thePlayer.posY + yOffset,
+            mc.thePlayer.posZ + (getUnitX() * -1)
+          )).getBlock());
+    }
+
+    // Multiple extension
+    public static Block getFrontBlock(double yOffset, int multiple){
+        Minecraft mc = Minecraft.getMinecraft();
+        return (mc.theWorld.getBlockState(
+            new BlockPos(
+                mc.thePlayer.posX + (getUnitX() * multiple),
+                mc.thePlayer.posY + yOffset,
+                mc.thePlayer.posZ + (getUnitZ() * multiple)
+            )).getBlock());
+    }
+
+    public static Block getRightBlock(double yOffset, int multiple) {
+        Minecraft mc = Minecraft.getMinecraft();
+        return (mc.theWorld.getBlockState(
+          new BlockPos(
+            mc.thePlayer.posX + (getUnitZ() * -1 * multiple),
+            mc.thePlayer.posY + yOffset,
+            mc.thePlayer.posZ + (getUnitX() * multiple)
+          )).getBlock());
+    }
+    public static Block getLeftBlock(double yOffset, int multiple){
+        Minecraft mc = Minecraft.getMinecraft();
+        return (mc.theWorld.getBlockState(
+          new BlockPos(
+            mc.thePlayer.posX + (getUnitZ() * multiple),
+            mc.thePlayer.posY + yOffset,
+            mc.thePlayer.posZ + (getUnitX() * -1 * multiple)
+          )).getBlock());
+    }
+
+    // Get block state of col block from right of row
+    public static Block getRightColBlock(int multiple) {
+        Minecraft mc = Minecraft.getMinecraft();
+        return (mc.theWorld.getBlockState(
+          new BlockPos(
+            mc.thePlayer.posX + (getUnitZ() * -1 * multiple) + getUnitX(),
+            mc.thePlayer.posY,
+            mc.thePlayer.posZ + (getUnitX() * multiple) + getUnitZ()
+          )).getBlock());
+    }
+
+    public static Block getLeftColBlock(int multiple){
+        Minecraft mc = Minecraft.getMinecraft();
+        return (mc.theWorld.getBlockState(
+          new BlockPos(
+            mc.thePlayer.posX + (getUnitZ() * multiple) + getUnitX(),
+            mc.thePlayer.posY,
+            mc.thePlayer.posZ + (getUnitX() * -1 * multiple) + getUnitZ()
+          )).getBlock());
+    }
+
+    public static void scriptLog(String message) {
+        if (true) {
+            Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
+              "[FarmHelper]: " + EnumChatFormatting.DARK_GREEN + message));
+        }
+    }
+
+    public static void debugLog(String message) {
+        if (true) {
+            Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
               "[Debug]: " + EnumChatFormatting.DARK_GREEN + message));
         }
+    }
+
+    public static int angleToValue(AngleEnum c){
+         return !c.toString().replace("A", "").contains("N") ?
+                 Integer.parseInt(c.toString().replace("A", "")) :
+                 Integer.parseInt(c.toString().replace("A", "").replace("N", "")) * -1;
+    }
+
+    public static String getScoreboardDisplayName(int line){
+        try {
+            Utils.debugLog(Minecraft.getMinecraft().theWorld.getScoreboard().getObjectiveInDisplaySlot(line).getDisplayName());
+            return Minecraft.getMinecraft().theWorld.getScoreboard().getObjectiveInDisplaySlot(line).getDisplayName();
+        } catch(Exception e){
+            Utils.debugLog("Error in getting scoreboard " + e);
+            return "";
+        }
+    }
+
+    public static List<String> getSidebarLines() {
+        List<String> lines = new ArrayList<>();
+        if (Minecraft.getMinecraft().theWorld == null) return lines;
+        Scoreboard scoreboard = Minecraft.getMinecraft().theWorld.getScoreboard();
+        if (scoreboard == null) return lines;
+
+        ScoreObjective objective = scoreboard.getObjectiveInDisplaySlot(1);
+        if (objective == null) return lines;
+
+        Collection<Score> scores = scoreboard.getSortedScores(objective);
+        List<Score> list = scores.stream()
+            .filter(input -> input != null && input.getPlayerName() != null && !input.getPlayerName()
+                .startsWith("#"))
+            .collect(Collectors.toList());
+
+        if (list.size() > 15) {
+            scores = Lists.newArrayList(Iterables.skip(list, scores.size() - 15));
+        } else {
+            scores = list;
+        }
+
+        for (Score score : scores) {
+            ScorePlayerTeam team = scoreboard.getPlayersTeam(score.getPlayerName());
+            lines.add(ScorePlayerTeam.formatPlayerName(team, score.getPlayerName()));
+        }
+
+        return lines;
+    }
+
+    public static String cleanSB(String scoreboard) {
+        char[] nvString = StringUtils.stripControlCodes(scoreboard).toCharArray();
+        StringBuilder cleaned = new StringBuilder();
+
+        for (char c : nvString) {
+            if ((int) c > 20 && (int) c < 127) {
+                cleaned.append(c);
+            }
+        }
+
+        return cleaned.toString();
+    }
+
+    public static void ScheduleRunnable(Runnable r, int delay, TimeUnit tu){
+        ScheduledExecutorService eTemp = Executors.newScheduledThreadPool(1);
+        eTemp.schedule(r, delay, tu);
+        eTemp.shutdown();
+    }
+
+    public static void ExecuteRunnable(Runnable r){
+        ScheduledExecutorService eTemp = Executors.newScheduledThreadPool(1);
+        eTemp.execute(r);
+        eTemp.shutdown();
     }
 }
