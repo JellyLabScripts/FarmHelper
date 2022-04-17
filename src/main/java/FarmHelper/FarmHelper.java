@@ -5,7 +5,9 @@ import FarmHelper.config.Config;
 import FarmHelper.config.CropEnum;
 import FarmHelper.gui.GUI;
 import FarmHelper.utils.Utils;
-import net.minecraft.block.Block;
+import net.minecraft.block.*;
+import net.minecraft.block.properties.PropertyInteger;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.gui.ScaledResolution;
@@ -28,6 +30,8 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Mod(modid = FarmHelper.MODID, name = FarmHelper.NAME, version = FarmHelper.VERSION)
@@ -63,8 +67,13 @@ public class FarmHelper {
     public static boolean teleporting;
     public static boolean newRow;
     public static boolean stuck;
+    public static boolean cached;
+    public static double cacheAverageAge;
+    public static BlockPos cachePos;
     public static location currentLocation;
     public static direction lastDirection;
+    public static Map<CropEnum, Block> cropBlockStates = new HashMap<>();
+    public static Map<CropEnum, PropertyInteger> cropAgeRefs = new HashMap<>();
 
     public int playerYaw;
     public int keybindA = mc.gameSettings.keyBindLeft.getKeyCode();
@@ -95,6 +104,9 @@ public class FarmHelper {
         teleporting = false;
         newRow = false;
         stuck = false;
+        cached = false;
+        cacheAverageAge = -1;
+        cachePos = null;
         lastDirection = direction.NONE;
         playerYaw = Utils.angleToValue(Config.Angle);
 
@@ -119,6 +131,17 @@ public class FarmHelper {
         } catch (Exception e) {
             Config.writeConfig();
         }
+
+        cropBlockStates.put(CropEnum.WHEAT, Blocks.wheat);
+        cropBlockStates.put(CropEnum.CARROT, Blocks.carrots);
+        cropBlockStates.put(CropEnum.NETHERWART, Blocks.nether_wart);
+        cropBlockStates.put(CropEnum.POTATO, Blocks.potatoes);
+
+        cropAgeRefs.put(CropEnum.WHEAT, BlockCrops.AGE);
+        cropAgeRefs.put(CropEnum.CARROT, BlockCarrot.AGE);
+        cropAgeRefs.put(CropEnum.NETHERWART, BlockNetherWart.AGE);
+        cropAgeRefs.put(CropEnum.POTATO, BlockPotato.AGE);
+
         enabled = false;
     }
 
@@ -176,17 +199,17 @@ public class FarmHelper {
                 Utils.debugLog("Spawned in limbo");
             }
             if (message.contains("You are already playing")) {
-                teleporting = false;
+                Utils.ScheduleRunnable(tpReset, 2, TimeUnit.SECONDS);
             }
-//            if (message.contains("Sending to server")) {
-//                Utils.debugLog("Sent to hub");
-//            }
             if (message.contains("Cannot join SkyBlock") || message.contains("Please don't spam the command!")) {
                 Utils.debugLog("Failed to teleport to SkyBlock");
                 Utils.ScheduleRunnable(tpReset, 4, TimeUnit.SECONDS);
             }
             if (message.contains("DYNAMIC") || message.contains("Couldn't warp you")) {
                 Utils.debugLog("Failed to teleport to island");
+                Utils.ScheduleRunnable(tpReset, 2, TimeUnit.SECONDS);
+            }
+            if (message.contains("You cannot join SkyBlock from here!")) {
                 teleporting = false;
             }
             if (message.contains("SkyBlock Lobby")) {
@@ -270,6 +293,7 @@ public class FarmHelper {
                 // In trenches walking along the layer
                 else if (inTrenches) {
                     Config.Angle = Math.round(Utils.get360RotationYaw() / 90) < 4 ? AngleEnum.values()[Math.round(Utils.get360RotationYaw() / 90)] : AngleEnum.A0;
+                    playerYaw = Utils.angleToValue(Config.Angle);
                     if (Config.CropType.equals(CropEnum.NETHERWART)) {
                         mc.thePlayer.rotationPitch = 0;
                     } else {
@@ -282,6 +306,7 @@ public class FarmHelper {
                         if ((mc.thePlayer.posY % 1) == 0) {
                             // Cannot move forwards or backwards
                             if (!isWalkable(Utils.getFrontBlock()) && !isWalkable(Utils.getBackBlock())) {
+                                cached = false;
                                 if (newRow) {
                                     newRow = false;
                                     mc.thePlayer.sendChatMessage("/setspawn");
@@ -326,6 +351,11 @@ public class FarmHelper {
                             // Can go forwards but not backwards
                             else if (isWalkable(Utils.getFrontBlock()) && !isWalkable(Utils.getBackBlock())) {
                                 newRow = true;
+                                  if (!cached) {
+                                    cached = true;
+                                    Utils.ExecuteRunnable(cacheRowAge);
+                                    Utils.ScheduleRunnable(checkDesync, 4, TimeUnit.SECONDS);
+                                }
                                 if (mc.gameSettings.keyBindForward.isKeyDown()) {
                                     Utils.debugLog("End of row - Start of col - Pushed off - Keep Going forwards");
                                     updateKeys(true, false, false, false, false, false);
@@ -595,6 +625,48 @@ public class FarmHelper {
         }
     };
 
+    Runnable cacheRowAge = () -> {
+        for (int i = 1; i < 10; i++) {
+            BlockPos pos = new BlockPos(
+                mc.thePlayer.posX + (i * Utils.getUnitX()),
+                mc.thePlayer.posY + 1,
+                mc.thePlayer.posZ + (i * Utils.getUnitZ())
+            );
+            Block checkBlock = mc.theWorld.getBlockState(pos).getBlock();
+            if (checkBlock == cropBlockStates.get(Config.CropType)) {
+                Utils.debugLog("cacheRowAge - Found row - Calculating age - Pos: " + pos);
+                cachePos = pos;
+                cacheAverageAge = getAverageAge(pos);
+                Utils.debugLog("cacheRowAge - Calculated age: " + cacheAverageAge);
+                return;
+            }
+        }
+        Utils.debugLog("cacheRowAge - No row found (Maybe changing layer?)");
+        cachePos = null;
+        cacheAverageAge = -1;
+    };
+
+    Runnable checkDesync = () -> {
+        Utils.debugLog("checkDesync - Enter");
+        if (cachePos == null || cacheAverageAge == -1) {
+            Utils.debugLog("checkDesync - No cache");
+        }
+        else if (cacheAverageAge >= 2) {
+            double newAvg = getAverageAge(cachePos);
+            Utils.debugLog("checkDesync - " + newAvg + " - " + cacheAverageAge);
+            if (Math.abs(newAvg - cacheAverageAge) < 0.5) {
+                Utils.debugLog("checkDesync - Desync detected, going to hub");
+                teleporting = false;
+                mc.thePlayer.sendChatMessage("/hub");
+            } else {
+                Utils.debugLog("checkDesync - No desync detected");
+            }
+        }
+        else {
+            Utils.debugLog("checkDesync - Average age too low");
+        }
+    };
+
     Runnable tpReset = () -> {
         teleporting = false;
     };
@@ -651,6 +723,23 @@ public class FarmHelper {
             }
         }
         return location.LOBBY;
+    }
+
+    double getAverageAge(BlockPos pos) {
+        Utils.debugLog("getAverageAge - enter");
+        IBlockState current;
+        double total = 0;
+        double count = 0;
+        do {
+            current = mc.theWorld.getBlockState(new BlockPos(pos.getX() + (count * Utils.getUnitX()), pos.getY(), pos.getZ() + (count * Utils.getUnitZ())));
+            if (current.getBlock() == cropBlockStates.get(Config.CropType)) {
+                Utils.debugLog("getAverageAge - current: " + current.getBlock());
+                Utils.debugLog("getAverageAge - age: " + current.getValue(cropAgeRefs.get(Config.CropType)));
+                total += current.getValue(cropAgeRefs.get(Config.CropType));
+                count += 1;
+            }
+        } while (current.getBlock() == cropBlockStates.get(Config.CropType));
+        return total/count;
     }
 
     double distanceToTurn() {
