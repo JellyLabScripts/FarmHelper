@@ -28,13 +28,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class Utils {
-
+    private static String lastDebug;
     public static void drawString(String text, int x, int y, float size, int color) {
         GlStateManager.scale(size,size,size);
         float mSize = (float)Math.pow(size,-1);
         Minecraft.getMinecraft().fontRendererObj.drawString(text,Math.round(x / size),Math.round(y / size),color);
         GlStateManager.scale(mSize,mSize,mSize);
     }
+
     public static void hardRotate(float yaw) {
         Minecraft mc = Minecraft.getMinecraft();
         if(Math.abs(mc.thePlayer.rotationYaw - yaw) < 0.2f) {
@@ -49,8 +50,8 @@ public class Utils {
 
         }
     }
-    public static boolean hasSellItemInInventory(){
 
+    public static boolean hasSellItemInInventory(){
         for(Slot slot : Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots) {
             if (slot != null) {
                 try {
@@ -67,7 +68,6 @@ public class Utils {
                         case NETHERWART:
                             if(slot.getStack().getDisplayName().contains("Mutant Nether Wart"))
                                 return true;
-
                     }
                 }catch(Exception e){
 
@@ -96,43 +96,34 @@ public class Utils {
                                 if (slot.getStack().getDisplayName().contains("Mutant Nether Wart"))
                                     return slot.slotNumber;
                         }
-                    }catch(Exception e){
+                    } catch(Exception e) {
 
                     }
                 }
             }
-
         }
         return 0;
-
     }
 
 
-
-
-    public static void drawHorizontalLine(int startX, int endX, int y, int color)
-    {
-        if (endX < startX)
-        {
+    public static void drawHorizontalLine(int startX, int endX, int y, int color) {
+        if (endX < startX) {
             int i = startX;
             startX = endX;
             endX = i;
         }
-
         Gui.drawRect(startX, y, endX + 1, y + 1, color);
     }
 
-    public static void drawVerticalLine(int x, int startY, int endY, int color)
-    {
-        if (endY < startY)
-        {
+    public static void drawVerticalLine(int x, int startY, int endY, int color) {
+        if (endY < startY) {
             int i = startY;
             startY = endY;
             endY = i;
         }
-
         Gui.drawRect(x, startY + 1, x + 1, endY, color);
     }
+
     public static float get360RotationYaw(){
         return Minecraft.getMinecraft().thePlayer.rotationYaw > 0?
                 (Minecraft.getMinecraft().thePlayer.rotationYaw % 360) :
@@ -376,17 +367,84 @@ public class Utils {
           )).getBlock());
     }
 
+    public static void sendLog(ChatComponentText chat) {
+        Minecraft.getMinecraft().thePlayer.addChatMessage(chat);
+    }
+
     public static void scriptLog(String message) {
-        if (true) {
-            Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
-              "[FarmHelper]: " + EnumChatFormatting.DARK_GREEN + message));
+        sendLog(new ChatComponentText(
+            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.RED + EnumChatFormatting.BOLD + message
+        ));
+    }
+
+    public static void scriptLog(String message, EnumChatFormatting color) {
+        sendLog(new ChatComponentText(
+            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + color + EnumChatFormatting.BOLD + message
+        ));
+    }
+
+    public static String getCropLog() {
+        switch (Config.CropType) {
+            case WHEAT:
+                return EnumChatFormatting.GOLD + "WHEAT";
+            case CARROT:
+                return EnumChatFormatting.DARK_GREEN + "CARROT";
+            case NETHERWART:
+                return EnumChatFormatting.DARK_RED + "NETHERWART";
+            case POTATO:
+                return EnumChatFormatting.YELLOW + "POTATO";
+            default:
+                return "UNKNOWN";
         }
     }
 
+    public static void configLog() {
+        sendLog(new ChatComponentText(
+            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.RED + "" + EnumChatFormatting.BOLD + "Configuration"
+        ));
+        sendLog(new ChatComponentText(
+            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Crop - " + getCropLog()
+        ));
+        sendLog(new ChatComponentText(
+            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Resync - " + (Config.resync ? EnumChatFormatting.GREEN + "ON" : EnumChatFormatting.RED + "OFF")
+        ));
+        sendLog(new ChatComponentText(
+            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Debug Mode - " + (Config.debug ? EnumChatFormatting.GREEN + "ON" : EnumChatFormatting.RED + "OFF")
+        ));
+        sendLog(new ChatComponentText(
+            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Compact Debug - " + (Config.compactDebug ? EnumChatFormatting.GREEN + "ON" : EnumChatFormatting.RED + "OFF")
+        ));
+    }
+
+//    public static void configLog() {
+//        sendLog(new ChatComponentText(
+//            EnumChatFormatting.BLUE + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.DARK_AQUA + "" + EnumChatFormatting.BOLD + "Configuration"
+//        ));
+//        sendLog(new ChatComponentText(
+//            EnumChatFormatting.BLUE + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Resync - " + (Config.resync ? EnumChatFormatting.GREEN + "" + EnumChatFormatting.BOLD + "ON" : EnumChatFormatting.RED + "" +  EnumChatFormatting.BOLD + "OFF")
+//        ));
+//        sendLog(new ChatComponentText(
+//            EnumChatFormatting.BLUE + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Debug Mode - " + (Config.debug ? EnumChatFormatting.GREEN + "" + EnumChatFormatting.BOLD + "ON" : EnumChatFormatting.RED + "" +  EnumChatFormatting.BOLD + "OFF")
+//        ));
+//        sendLog(new ChatComponentText(
+//            EnumChatFormatting.BLUE + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Compact Debug - " + (Config.compactDebug ? EnumChatFormatting.GREEN + "" + EnumChatFormatting.BOLD + "ON" : EnumChatFormatting.RED + "" +  EnumChatFormatting.BOLD + "OFF")
+//        ));
+//    }
+
     public static void debugLog(String message) {
-        if (true) {
-            Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN +
-              "[Debug]: " + EnumChatFormatting.DARK_GREEN + message));
+        if (Config.debug) {
+            if (!Config.compactDebug || lastDebug != message) {
+                sendLog(new ChatComponentText(
+                    EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Log " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + message
+                ));
+            }
+            lastDebug = message;
+        }
+    }
+
+    public static void debugFullLog(String message) {
+        if (!Config.compactDebug) {
+            debugLog(message);
         }
     }
 

@@ -1,70 +1,51 @@
 package FarmHelper.config;
 
-import javax.annotation.Nullable;
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
 
-public class Config{
-
+public class Config {
+    public static AngleEnum Angle = AngleEnum.A0;
     public static CropEnum CropType = CropEnum.NETHERWART;
     public static FarmEnum FarmType = FarmEnum.LAYERED;
-    public static boolean rotateAfterTeleport = false;
-    public static boolean inventoryPriceCalculator = false;
-    public static boolean profitCalculator = false;
     public static boolean resync = false;
-    public static boolean autosell = false;
-    public static boolean fastbreak = false;
+    public static boolean debug = false;
+    public static boolean compactDebug = false;
 
-    public static AngleEnum Angle = AngleEnum.A0;
-
-    public static void setConfig(CropEnum crop, FarmEnum farm, boolean rotateAfterTeleport,
-                                 boolean inventoryPriceCalculator, boolean profitCalculator, boolean resync, boolean autosell, boolean fastbreak){
+    public static void setConfig(CropEnum crop, FarmEnum farm, boolean resync, boolean debug, boolean compactDebug) {
         CropType = crop;
         FarmType = farm;
-        Config.rotateAfterTeleport = rotateAfterTeleport;
-        Config.inventoryPriceCalculator = inventoryPriceCalculator;
-        Config.profitCalculator = profitCalculator;
         Config.resync = resync;
-        Config.fastbreak = fastbreak;
+        Config.debug = debug;
+        Config.compactDebug = compactDebug;
     }
-    public static void writeConfig(){
+    public static void writeConfig() {
         try {
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("config.txt"));
             bufferedWriter.write("\n" + CropType.ordinal());
             bufferedWriter.write("\n" + FarmType.ordinal());
-            bufferedWriter.write("\n" + rotateAfterTeleport);
-            bufferedWriter.write("\n" + inventoryPriceCalculator);
-            bufferedWriter.write("\n" + profitCalculator);
             bufferedWriter.write("\n" + resync);
-            bufferedWriter.write("\n" + autosell);
-            bufferedWriter.write("\n" + fastbreak);
+            bufferedWriter.write("\n" + debug);
+            bufferedWriter.write("\n" + compactDebug);
             bufferedWriter.close();
-        }catch(Exception e){
+        } catch(Exception e) {
             e.printStackTrace();
         }
-
     }
-    public static void readConfig () throws Exception {
-        try{
+    public static void readConfig() throws Exception {
+        try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader("config.txt"));
             bufferedReader.readLine();
             setConfig(CropEnum.values()[Integer.parseInt(bufferedReader.readLine())],
                     FarmEnum.values()[Integer.parseInt(bufferedReader.readLine())],
                     Boolean.parseBoolean(bufferedReader.readLine()),
                     Boolean.parseBoolean(bufferedReader.readLine()),
-                    Boolean.parseBoolean(bufferedReader.readLine()),
-                    Boolean.parseBoolean(bufferedReader.readLine()),
-                    Boolean.parseBoolean(bufferedReader.readLine()),
                     Boolean.parseBoolean(bufferedReader.readLine()));
             bufferedReader.close();
 
-        }catch(Exception e){
+        } catch(Exception e) {
             throw new Exception();
         }
     }
-
 }
-
-
-
