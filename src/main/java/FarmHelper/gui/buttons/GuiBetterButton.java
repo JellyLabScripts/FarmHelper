@@ -7,10 +7,6 @@ import net.minecraft.client.renderer.GlStateManager;
 import java.awt.*;
 
 public class GuiBetterButton extends GuiButton {
-
-
-
-
     int x; int y; int widthln; int length; String buttonText;
 
     public GuiBetterButton(int buttonId, int x, int y, int widthln, int length, String buttonText) {

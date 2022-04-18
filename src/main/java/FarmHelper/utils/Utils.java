@@ -1,5 +1,6 @@
 package FarmHelper.utils;
 
+import FarmHelper.FarmHelper;
 import FarmHelper.config.AngleEnum;
 import FarmHelper.config.Config;
 import com.google.common.collect.Iterables;
@@ -18,6 +19,7 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
 
 public class Utils {
     private static String lastDebug;
+    private static String lastWebhook;
     public static void drawString(String text, int x, int y, float size, int color) {
         GlStateManager.scale(size,size,size);
         float mSize = (float)Math.pow(size,-1);
@@ -398,6 +401,14 @@ public class Utils {
         }
     }
 
+    public static String smallURL() {
+       if (Config.webhookUrl.length() > 10) {
+           return Config.webhookUrl.substring(Config.webhookUrl.length() - 10);
+       } else {
+           return Config.webhookUrl;
+       }
+    }
+
     public static void configLog() {
         sendLog(new ChatComponentText(
             EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.RED + "" + EnumChatFormatting.BOLD + "Configuration"
@@ -413,6 +424,12 @@ public class Utils {
         ));
         sendLog(new ChatComponentText(
             EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Compact Debug - " + (Config.compactDebug ? EnumChatFormatting.GREEN + "ON" : EnumChatFormatting.RED + "OFF")
+        ));
+        sendLog(new ChatComponentText(
+            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Webhook Logging - " + (Config.webhookLog ? EnumChatFormatting.GREEN + "ON" : EnumChatFormatting.RED + "OFF")
+        ));
+        sendLog(new ChatComponentText(
+            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Webhook URL - " + EnumChatFormatting.BLUE + smallURL()
         ));
     }
 
@@ -430,6 +447,19 @@ public class Utils {
 //            EnumChatFormatting.BLUE + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Compact Debug - " + (Config.compactDebug ? EnumChatFormatting.GREEN + "" + EnumChatFormatting.BOLD + "ON" : EnumChatFormatting.RED + "" +  EnumChatFormatting.BOLD + "OFF")
 //        ));
 //    }
+
+    public static void webhookLog(String message) {
+        if (lastWebhook != message && Config.webhookLog) {
+            // FarmHelper.webhook.setContent(message);
+            FarmHelper.webhook.addEmbed(new DiscordWebhook.EmbedObject().addField("Farm Helper", message, false));
+            try {
+                FarmHelper.webhook.execute();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        lastWebhook = message;
+    }
 
     public static void debugLog(String message) {
         if (Config.debug) {

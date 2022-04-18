@@ -4,6 +4,7 @@ import FarmHelper.config.AngleEnum;
 import FarmHelper.config.Config;
 import FarmHelper.config.CropEnum;
 import FarmHelper.gui.GUI;
+import FarmHelper.utils.DiscordWebhook;
 import FarmHelper.utils.Utils;
 import net.minecraft.block.*;
 import net.minecraft.block.properties.PropertyInteger;
@@ -76,6 +77,7 @@ public class FarmHelper {
     public static BlockPos cachePos;
     public static location currentLocation;
     public static direction lastDirection;
+    public static DiscordWebhook webhook;
     public static Map<CropEnum, Block> cropBlockStates = new HashMap<>();
     public static Map<CropEnum, PropertyInteger> cropAgeRefs = new HashMap<>();
 
@@ -112,6 +114,9 @@ public class FarmHelper {
         crouched = true;
         cacheAverageAge = -1;
         cachePos = null;
+        webhook = new DiscordWebhook(Config.webhookUrl);
+        webhook.setUsername("Jelly - Farm Helper");
+        webhook.setAvatarUrl("https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png?width=676&height=676");
         lastDirection = direction.NONE;
         playerYaw = Utils.angleToValue(Config.Angle);
 
@@ -254,6 +259,7 @@ public class FarmHelper {
                 Utils.debugFullLog("Detected limbo/afk");
                 if (!teleporting) {
                     Utils.debugLog("Detected Limbo or AFK");
+                    Utils.webhookLog("Detected Limbo or AFK");
                     Utils.debugLog("Attempting to teleport to lobby");
                     mc.thePlayer.sendChatMessage("/lobby");
                     teleporting = true;
@@ -265,6 +271,7 @@ public class FarmHelper {
                 updateKeys(false, false, false, false, false, false);
                 if (!teleporting) {
                     Utils.debugLog("Detected lobby");
+                    Utils.webhookLog("Detected lobby");
                     Utils.debugLog("Attempting to teleport to skyblock");
                     mc.thePlayer.sendChatMessage("/skyblock");
                     teleporting = true;
@@ -275,6 +282,7 @@ public class FarmHelper {
                 updateKeys(false, false, false, false, false, false);
                 if (!teleporting) {
                     Utils.debugLog("Detected hub");
+                    Utils.webhookLog("Detected hub");
                     Utils.debugLog("Attempting to teleport to island");
                     mc.thePlayer.sendChatMessage("/warp home");
                     teleporting = true;
@@ -282,6 +290,7 @@ public class FarmHelper {
             }
             else if (currentLocation == location.ISLAND && !crouched) {
                 Utils.debugLog("Back to island, holding shift");
+                Utils.webhookLog("Back to island, restarting");
                 updateKeys(false, false, false, false, false, true);
                 teleporting = false;
                 Utils.ScheduleRunnable(crouchReset, 500, TimeUnit.MILLISECONDS);
@@ -291,6 +300,7 @@ public class FarmHelper {
                     // Stopped falling
                     if (dy == 0) {
                         Utils.debugFullLog("Changing layer - Landed - Doing 180 and switching back to trench state");
+                        Utils.webhookLog("Changed layer - Dropped");
                         if (!rotating) {
                             updateKeys(false, false, false, false, false, false);
                             rotating = true;
@@ -305,6 +315,7 @@ public class FarmHelper {
                     if (dy == 0 && (mc.thePlayer.posY % 1) == 0.8125) {
                         if (isWalkable(Utils.getRightBlock(0.1875)) || isWalkable(Utils.getLeftBlock(0.1875))) {
                             Utils.debugFullLog("End of farm - At exit pad - Switch to trench state");
+                            Utils.webhookLog("Changed layer - TP Pad");
                             updateKeys(false, false, false, false, false, false);
                             teleportPad = false;
                         } else {
@@ -342,6 +353,7 @@ public class FarmHelper {
                                 }
                                 if (deltaX < 1 && deltaZ < 1) {
                                     Utils.debugLog("Start/Middle/End of row - Detected stuck");
+                                    Utils.webhookLog("Start/Middle/End of row - Detected stuck");
                                     if (!stuck) {
                                         stuck = true;
                                         updateKeys(false, false, false, false, false, false);
@@ -380,6 +392,7 @@ public class FarmHelper {
                             // Can go forwards but not backwards
                             else if (isWalkable(Utils.getFrontBlock()) && !isWalkable(Utils.getBackBlock())) {
                                 Utils.debugLog("End of row - Switching to next");
+                                Utils.webhookLog("End of row - Switching to next");
                                 newRow = true;
                                   if (!cached && Config.resync) {
                                     cached = true;
@@ -686,6 +699,7 @@ public class FarmHelper {
             Utils.debugLog("Desync - Old: " + newAvg + ", New: " + cacheAverageAge);
             if (Math.abs(newAvg - cacheAverageAge) < 0.5) {
                 Utils.debugLog("Desync detected, going to hub");
+                Utils.webhookLog("Desync detected, going to hub");
                 teleporting = false;
                 mc.thePlayer.sendChatMessage("/hub");
             } else {
