@@ -365,7 +365,7 @@ public class FarmHelper {
                                     Utils.debugFullLog("End of row - Start of col - Pushed off - Keep Going forwards");
                                     updateKeys(true, false, false, false, false, false);
                                 } else if (pushedOffSide) {
-                                    if (dx == 0 && dz == 0) {
+                                    if (dx < 0.001 && dz < 0.001) {
                                         Utils.debugFullLog("End of row - Start of col - Pushed off - Stopped - Going forwards");
                                         updateKeys(true, false, false, false, false, false);
                                     } else {
@@ -373,7 +373,7 @@ public class FarmHelper {
                                         updateKeys(false, false, false, false, false, false);
                                     }
                                 } else {
-                                    if (dx == 0 && dz == 0) {
+                                    if (dx < 0.001 && dz < 0.001) {
                                         if (mc.gameSettings.keyBindLeft.isKeyDown() || mc.gameSettings.keyBindRight.isKeyDown()) {
                                             pushedOffSide = true;
                                             if (!isWalkable(Utils.getRightBlock())) {
@@ -489,7 +489,7 @@ public class FarmHelper {
                                     }
                                 }
                                 else if (pushedOffFront) {
-                                    if (dx == 0 && dz == 0) {
+                                    if (dx < 0.001 && dz < 0.001) {
                                         if (isWalkable(Utils.getLeftBlock())) {
                                             Utils.debugLog("End of row - End of col - Pushed - Go left");
                                             updateKeys(false, false, true, false, true, false);
@@ -503,7 +503,7 @@ public class FarmHelper {
                                         updateKeys(false, false, false, false, false, true);
                                     }
                                 }
-                                else if (dx == 0 && dz == 0) {
+                                else if (dx < 0.001 && dz < 0.001) {
                                     if (mc.gameSettings.keyBindForward.isKeyDown()) {
 
                                         Utils.debugFullLog("End of row - End of col - Edge - Pushing off");
