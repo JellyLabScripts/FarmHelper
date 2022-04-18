@@ -52,7 +52,9 @@ public class FarmHelper {
     enum location {
         ISLAND,
         HUB,
-        LOBBY
+        LOBBY,
+        LIMBO,
+        AFK
     }
 
     public static boolean openedGUI = false;
@@ -69,6 +71,7 @@ public class FarmHelper {
     public static boolean newRow;
     public static boolean stuck;
     public static boolean cached;
+    public static boolean crouched;
     public static double cacheAverageAge;
     public static BlockPos cachePos;
     public static location currentLocation;
@@ -106,6 +109,7 @@ public class FarmHelper {
         newRow = false;
         stuck = false;
         cached = false;
+        crouched = true;
         cacheAverageAge = -1;
         cachePos = null;
         lastDirection = direction.NONE;
@@ -197,8 +201,17 @@ public class FarmHelper {
     public void onMessageReceived(ClientChatReceivedEvent event) {
         String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (enabled) {
+            if (message.contains("You are sending commands too fast!")) {
+                Utils.debugLog("Waiting 8 seconds");
+                Utils.ScheduleRunnable(tpReset, 8, TimeUnit.SECONDS);
+            }
             if (message.contains("You were spawned in Limbo")) {
+                teleporting = false;
                 Utils.debugLog("Spawned in limbo");
+            }
+            if (message.contains("You are AFK.")) {
+                teleporting = false;
+                Utils.debugLog("AFK lobby");
             }
             if (message.contains("You are already playing")) {
                 Utils.ScheduleRunnable(tpReset, 2, TimeUnit.SECONDS);
@@ -237,6 +250,16 @@ public class FarmHelper {
             double dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
             currentLocation = getLocation();
 
+            if (currentLocation == location.LIMBO) {
+                Utils.debugFullLog("Detected limbo/afk");
+                if (!teleporting) {
+                    Utils.debugLog("Detected Limbo or AFK");
+                    Utils.debugLog("Attempting to teleport to lobby");
+                    mc.thePlayer.sendChatMessage("/lobby");
+                    teleporting = true;
+                    Utils.ScheduleRunnable(tpReset, 20, TimeUnit.SECONDS);
+                }
+            }
             if (currentLocation == location.LOBBY) {
                 Utils.debugFullLog("Detected lobby");
                 updateKeys(false, false, false, false, false, false);
@@ -257,9 +280,11 @@ public class FarmHelper {
                     teleporting = true;
                 }
             }
-            else if (currentLocation == location.ISLAND && teleporting) {
+            else if (currentLocation == location.ISLAND && !crouched) {
                 Utils.debugLog("Back to island, holding shift");
                 updateKeys(false, false, false, false, false, true);
+                teleporting = false;
+                Utils.ScheduleRunnable(crouchReset, 500, TimeUnit.MILLISECONDS);
             }
             else if (currentLocation == location.ISLAND) {
                 if (falling) {
@@ -676,6 +701,10 @@ public class FarmHelper {
         teleporting = false;
     };
 
+    Runnable crouchReset = () -> {
+        crouched = true;
+    };
+
     void updateKeys(boolean wBool, boolean sBool, boolean aBool, boolean dBool, boolean atkBool, boolean shiftBool) {
         // Commented due to direction push back interfering with last direction
         // if (aBool) {
@@ -719,14 +748,23 @@ public class FarmHelper {
     }
 
     location getLocation() {
+        if (Utils.getSidebarLines().size() == 0) {
+            crouched = false;
+            return location.LIMBO;
+        }
+        if (currentLocation == location.LIMBO) {
+            Utils.ExecuteRunnable(tpReset);
+        }
         for (String line : Utils.getSidebarLines()) {
             String cleanedLine = Utils.cleanSB(line);
             if (cleanedLine.contains("Village")) {
+                crouched = false;
                 return location.HUB;
             } else if (cleanedLine.contains("Island")) {
                 return location.ISLAND;
             }
         }
+        crouched = false;
         return location.LOBBY;
     }
 
