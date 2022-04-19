@@ -14,8 +14,10 @@ import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
+import net.minecraft.inventory.ContainerChest;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.Vec3i;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -73,7 +75,14 @@ public class FarmHelper {
     public static boolean stuck;
     public static boolean cached;
     public static boolean crouched;
+    public static boolean caged;
+    public static boolean hubCaged;
+    public static boolean bazaarLag;
     public static double cacheAverageAge;
+    public static int stuckCount;
+    public static long lastStuck;
+    public static long stuckCooldown;
+    public static long startTime;
     public static BlockPos cachePos;
     public static location currentLocation;
     public static direction lastDirection;
@@ -114,9 +123,16 @@ public class FarmHelper {
         crouched = true;
         cacheAverageAge = -1;
         cachePos = null;
+        caged = false;
+        hubCaged = false;
+        bazaarLag = false;
+        startTime = System.currentTimeMillis();
+        stuckCount = 0;
+        lastStuck = 0;
+        stuckCooldown = System.currentTimeMillis();
         webhook = new DiscordWebhook(Config.webhookUrl);
         webhook.setUsername("Jelly - Farm Helper");
-        webhook.setAvatarUrl("https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png?width=676&height=676");
+        webhook.setAvatarUrl("https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png");
         lastDirection = direction.NONE;
         playerYaw = Utils.angleToValue(Config.Angle);
 
@@ -127,6 +143,7 @@ public class FarmHelper {
         beforeY = mc.thePlayer.posY;
         beforeZ = mc.thePlayer.posZ;
 
+        Utils.webhookLog("Started script");
         Utils.ScheduleRunnable(updateDeltaChange, 2, TimeUnit.SECONDS);
     }
 
@@ -175,8 +192,8 @@ public class FarmHelper {
             mc.fontRendererObj.drawString("dx: " + Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 96, -1);
             mc.fontRendererObj.drawString("dz: " + Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 84, -1);
 
-            mc.fontRendererObj.drawString("X Vector: " + Utils.getUnitX(), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 72, -1);
-            mc.fontRendererObj.drawString("Z Vector: " + Utils.getUnitZ(), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 60, -1);
+            mc.fontRendererObj.drawString("stuck cd " + stuckCooldown, 4, new ScaledResolution(mc).getScaledHeight() - 140 - 72, -1);
+            mc.fontRendererObj.drawString("current: " + System.currentTimeMillis(), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 60, -1);
 
             mc.fontRendererObj.drawString("KeyBindW: " + (mc.gameSettings.keyBindForward.isKeyDown() ? "Pressed" : "Not pressed"), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 48, -1);
             mc.fontRendererObj.drawString("KeyBindS: " + (mc.gameSettings.keyBindBack.isKeyDown() ? "Pressed" : "Not pressed"), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 36, -1);
@@ -206,6 +223,9 @@ public class FarmHelper {
     public void onMessageReceived(ClientChatReceivedEvent event) {
         String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (enabled) {
+            if (message.contains("This server is too laggy")) {
+                bazaarLag = true;
+            }
             if (message.contains("You are sending commands too fast!")) {
                 Utils.debugLog("Waiting 8 seconds");
                 Utils.ScheduleRunnable(tpReset, 8, TimeUnit.SECONDS);
@@ -255,6 +275,34 @@ public class FarmHelper {
             double dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
             currentLocation = getLocation();
 
+            if (caged) {
+                switch (currentLocation) {
+                    case ISLAND:
+                        Utils.debugFullLog("Bedrock cage - Still in island");
+                        if (hubCaged && bedrockCount() < 2) {
+                            Utils.scriptLog("Dodged bedrock cage");
+                            Utils.webhookLog("Dodged bedrock cage | Go buy a lottery ticket");
+                            caged = false;
+                            hubCaged = false;
+                        }
+                        break;
+                    case HUB:
+                        if (!hubCaged) {
+                            hubCaged = true;
+                            Utils.ExecuteRunnable(hubCage);
+                        }
+                        Utils.debugFullLog("Bedrock cage - At hub, going to buy from bazaar3");
+                        break;
+                    case LOBBY:
+                        Utils.debugFullLog("Bedrock cage - At lobby going to hub");
+                        break;
+                    default:
+                        Utils.debugFullLog("Bedrock cage - At Limbo/AFK going to lobby");
+                        break;
+                }
+                return;
+            }
+
             if (currentLocation == location.LIMBO) {
                 Utils.debugFullLog("Detected limbo/afk");
                 if (!teleporting) {
@@ -293,9 +341,19 @@ public class FarmHelper {
                 Utils.webhookLog("Back to island, restarting");
                 updateKeys(false, false, false, false, false, true);
                 teleporting = false;
+                deltaZ = 1000;
+                deltaX = 1000;
+                setStuckCooldown(3);
                 Utils.ScheduleRunnable(crouchReset, 500, TimeUnit.MILLISECONDS);
             }
             else if (currentLocation == location.ISLAND) {
+                if (!caged && bedrockCount() > 1) {
+                    Utils.scriptLog("Bedrock cage detected");
+                    Utils.webhookLog("Bedrock cage detected | RIPBOZO -1 acc");
+                    Utils.ExecuteRunnable(islandCage);
+                    caged = true;
+                    return;
+                }
                 if (falling) {
                     // Stopped falling
                     if (dy == 0) {
@@ -354,8 +412,9 @@ public class FarmHelper {
                                 if (deltaX < 1 && deltaZ < 1) {
                                     Utils.debugLog("Start/Middle/End of row - Detected stuck");
                                     Utils.webhookLog("Start/Middle/End of row - Detected stuck");
-                                    if (!stuck) {
+                                    if (!stuck && stuckCooldown < System.currentTimeMillis()) {
                                         stuck = true;
+                                        stuckFrequency();
                                         updateKeys(false, false, false, false, false, false);
                                         Utils.ExecuteRunnable(fixRowStuck);
                                     }
@@ -389,10 +448,21 @@ public class FarmHelper {
                                 }
                             }
 
+                            else if (deltaX < 1 && deltaZ < 1) {
+                                Utils.debugLog("Row switch - Detected stuck");
+                                Utils.webhookLog("Row switch - Detected stuck");
+                                if (!stuck && stuckCooldown < System.currentTimeMillis()) {
+                                    stuck = true;
+                                    stuckFrequency();
+                                    updateKeys(false, false, false, false, false, false);
+                                    Utils.ExecuteRunnable(fixSwitchStuck);
+                                }
+                            }
+
                             // Can go forwards but not backwards
                             else if (isWalkable(Utils.getFrontBlock()) && !isWalkable(Utils.getBackBlock())) {
                                 Utils.debugLog("End of row - Switching to next");
-                                Utils.webhookLog("End of row - Switching to next");
+                                Utils.webhookStatus();
                                 newRow = true;
                                   if (!cached && Config.resync) {
                                     cached = true;
@@ -439,25 +509,8 @@ public class FarmHelper {
                             // Can go forwards and backwards
                             else if (isWalkable(Utils.getFrontBlock()) && isWalkable(Utils.getBackBlock())) {
                                 pushedOffSide = false;
-                                if (Utils.getUnitX() != 0) {
-                                    // if (1.4 * dx >= distanceToTurn() || !mc.gameSettings.keyBindForward.isKeyDown()) {
-                                    if (false) {
-                                        Utils.debugFullLog("End of row - Middle of col - Close to turn, coasting");
-                                        updateKeys(false, false, false, false, false, false);
-                                    } else {
-                                        Utils.debugFullLog("End of row - Middle of col - Go forwards");
-                                        updateKeys(true, false, false, false, false, false);
-                                    }
-                                } else {
-                                    // if (1.4 * dz >= distanceToTurn() || !mc.gameSettings.keyBindForward.isKeyDown()) {
-                                    if (false) {
-                                        Utils.debugFullLog("End of row - Middle of col - Close to turn, coasting");
-                                        updateKeys(false, false, false, false, false, false);
-                                    } else {
-                                        Utils.debugFullLog("End of row - Middle of col - Go forwards");
-                                        updateKeys(true, false, false, false, false, false);
-                                    }
-                                }
+                                Utils.debugFullLog("End of row - Middle of col - Go forwards");
+                                updateKeys(true, false, false, false, false, false);
                             }
 
                             // Can go backwards but not forwards
@@ -588,9 +641,10 @@ public class FarmHelper {
                             }
                         }
                     } else if (blockIn == Blocks.air && dy > 0.3) {
-                        Utils.debugFullLog("Changing layer - falling, wait till land - dy:" + dy + ", y: " + mc.thePlayer.posY + ", prevY: " + mc.thePlayer.lastTickPosY);
-                        updateKeys(false, false, false, false, false, false);
-                        falling = true;
+                        // Utils.debugFullLog("Changing layer - falling, wait till land - dy:" + dy + ", y: " + mc.thePlayer.posY + ", prevY: " + mc.thePlayer.lastTickPosY);
+                        // updateKeys(false, false, false, false, false, false);
+                        // falling = true;
+                        Utils.debugLog("If you see this - DM Polycrylate#2205. Did this log when falling/layer switch? Were you meant to layer switch but it didn't? Or did this run randomly");
                     } else {
                         // Potentially make it send false all keys for this case
                         Utils.debugLog("Unknown case - id: 2");
@@ -621,9 +675,9 @@ public class FarmHelper {
     Runnable fixTpStuck = () -> {
         try {
             KeyBinding.setKeyBindState(keyBindSpace, true);
-            Thread.sleep(1500);
+            Thread.sleep(800);
             KeyBinding.setKeyBindState(keyBindSpace, false);
-            Thread.sleep(1500);
+            Thread.sleep(300);
             fixTpStuckFlag = false;
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -634,13 +688,32 @@ public class FarmHelper {
         try {
             Thread.sleep(20);
             KeyBinding.setKeyBindState(keybindS, true);
-            Thread.sleep(1000);
+            Thread.sleep(500);
             KeyBinding.setKeyBindState(keybindS, false);
-            Thread.sleep(500);
+            Thread.sleep(200);
             KeyBinding.setKeyBindState(keybindW, true);
-            Thread.sleep(1000);
-            KeyBinding.setKeyBindState(keybindW, false);
             Thread.sleep(500);
+            KeyBinding.setKeyBindState(keybindW, false);
+            Thread.sleep(200);
+            deltaX = 100;
+            deltaZ = 100;
+            stuck = false;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    };
+
+    Runnable fixSwitchStuck = () -> {
+        try {
+            Thread.sleep(20);
+            KeyBinding.setKeyBindState(keybindA, true);
+            Thread.sleep(500);
+            KeyBinding.setKeyBindState(keybindA, false);
+            Thread.sleep(200);
+            KeyBinding.setKeyBindState(keybindD, true);
+            Thread.sleep(500);
+            KeyBinding.setKeyBindState(keybindD, false);
+            Thread.sleep(200);
             deltaX = 100;
             deltaZ = 100;
             stuck = false;
@@ -655,10 +728,11 @@ public class FarmHelper {
             Config.Angle = Config.Angle.ordinal() < 2 ? AngleEnum.values()[Config.Angle.ordinal() + 2] : AngleEnum.values()[Config.Angle.ordinal() - 2];
             playerYaw = Utils.angleToValue(Config.Angle);
             Utils.smoothRotateClockwise(180);
-            Thread.sleep(2000);
+            Thread.sleep(1600);
             KeyBinding.setKeyBindState(keybindW, true);
-            Thread.sleep(750);
+            Thread.sleep(400);
             KeyBinding.setKeyBindState(keybindW, false);
+            setStuckCooldown(2);
             deltaX = 100;
             deltaZ = 100;
             rotating = false;
@@ -697,7 +771,7 @@ public class FarmHelper {
         else if (cacheAverageAge >= 2) {
             double newAvg = getAverageAge(cachePos);
             Utils.debugLog("Desync - Old: " + newAvg + ", New: " + cacheAverageAge);
-            if (Math.abs(newAvg - cacheAverageAge) < 0.5) {
+            if (Math.abs(newAvg - cacheAverageAge) < 0.5 && !stuck) {
                 Utils.debugLog("Desync detected, going to hub");
                 Utils.webhookLog("Desync detected, going to hub");
                 teleporting = false;
@@ -711,13 +785,101 @@ public class FarmHelper {
         }
     };
 
-    Runnable tpReset = () -> {
-        teleporting = false;
+    Runnable tpReset = () -> teleporting = false;
+
+    Runnable crouchReset = () -> crouched = true;
+
+    Runnable islandCage = () -> {
+        try {
+            Thread.sleep(400);
+            updateKeys(false, false, false, false, false, false);
+            Thread.sleep(800);
+            updateKeys(false, false, true, false, false, false);
+            Utils.sineRotateCW(45, 0.4);
+            Thread.sleep(100);
+            updateKeys(false, false, false, false, false, false);
+            Thread.sleep(1500);
+            Utils.sineRotateAWC(84, 0.5);
+            updateKeys(false, false, false, true, false, false);
+            Thread.sleep(100);
+            updateKeys(false, false, false, false, false, false);
+            Thread.sleep(500);
+            updateKeys(false, false, false, false, false, false);
+            mc.thePlayer.sendChatMessage("/hub");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     };
 
-    Runnable crouchReset = () -> {
-        crouched = true;
+    Runnable hubCage = () -> {
+        try {
+            Utils.debugFullLog("Waiting till rotate head");
+            Thread.sleep(4000);
+            Utils.smoothRotateAnticlockwise(77, 2);
+            Thread.sleep(1000);
+            updateKeys(true, false, false, false, false, false);
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), true);
+            while (Utils.getFrontBlock() != Blocks.spruce_stairs) {
+                Utils.debugFullLog("Not reached bazaar");
+                Thread.sleep(50);
+            }
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), false);
+            updateKeys(false, false, false, false, false, true);
+            Thread.sleep(300);
+            bazaarLag = false;
+            while (!(mc.thePlayer.openContainer instanceof ContainerChest) && !bazaarLag) {
+                Utils.debugFullLog("Attempting to open gui");
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), true);
+                Thread.sleep(600);
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
+                Thread.sleep(600);
+            }
+            if (mc.thePlayer.openContainer instanceof ContainerChest) {
+                clickWindow(mc.thePlayer.openContainer.windowId, 0);
+                Thread.sleep(1000);
+                clickWindow(mc.thePlayer.openContainer.windowId, 12);
+                Thread.sleep(1000);
+                clickWindow(mc.thePlayer.openContainer.windowId, 10);
+                Thread.sleep(1000);
+                clickWindow(mc.thePlayer.openContainer.windowId, 10);
+                Thread.sleep(1000);
+                clickWindow(mc.thePlayer.openContainer.windowId, 12);
+                Thread.sleep(1000);
+                mc.thePlayer.closeScreen();
+            }
+            bazaarLag = false;
+            Thread.sleep(3000);
+            while (currentLocation == location.HUB) {
+                mc.thePlayer.sendChatMessage("/is");
+                Thread.sleep(10000);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     };
+
+//    Runnable hubCage = () -> {
+//        try {
+//            Utils.hardRotate(-165);
+//            Thread.sleep(600);
+//            updateKeys(true, false, false, false, false, false);
+//            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), true);
+//            while (Utils.getBelowBlock() != Blocks.planks) {
+//                Utils.debugFullLog("Running to election house");
+//            }
+//            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), false);
+//            updateKeys(false, false, false, false, false, false);
+//            Utils.hardRotate(180);
+//            Thread.sleep(300);
+//            updateKeys(true, false, false, false, false, false);
+//            Thread.sleep(3000);
+//            updateKeys(false, false, false, false, false, false);
+//            Thread.sleep(3000);
+//            mc.thePlayer.sendChatMessage("/is");
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//    };
 
     void updateKeys(boolean wBool, boolean sBool, boolean aBool, boolean dBool, boolean atkBool, boolean shiftBool) {
         // Commented due to direction push back interfering with last direction
@@ -736,6 +898,11 @@ public class FarmHelper {
         KeyBinding.setKeyBindState(keybindD, dBool);
         KeyBinding.setKeyBindState(keybindAttack, atkBool);
         KeyBinding.setKeyBindState(keyBindShift, shiftBool);
+    }
+
+    void clickWindow(int windowID, int slotID) {
+        Minecraft mc = Minecraft.getMinecraft();
+        mc.playerController.windowClick(windowID, slotID, 0, 0, mc.thePlayer);
     }
 
     boolean isWalkable(Block block) {
@@ -799,6 +966,23 @@ public class FarmHelper {
         return total/count;
     }
 
+    void stuckFrequency() {
+        if (System.currentTimeMillis() - lastStuck < 30000) {
+            stuckCount++;
+        } else {
+            stuckCount = 1;
+        }
+        if (stuckCount >= 3) {
+            Utils.debugLog("Stuck 3 times in succession - Going to lobby");
+            Utils.webhookLog("Stuck 3 times in succession - Going to lobby");
+            stuckCount = 1;
+            teleporting = false;
+            stuck = false;
+            mc.thePlayer.sendChatMessage("/lobby");
+        }
+        lastStuck = System.currentTimeMillis();
+    }
+
     double distanceToTurn() {
         // Find end coord
         double distance = 1000;
@@ -822,7 +1006,29 @@ public class FarmHelper {
         return distance;
     }
 
-    void toggle(){
+    // Yoinked from Yung RIPBOZO
+    int bedrockCount() {
+        int r = 4;
+        int count = 0;
+        BlockPos playerPos = Minecraft.getMinecraft().thePlayer.getPosition();
+        playerPos.add(0, 1, 0);
+        Vec3i vec3i = new Vec3i(r, r, r);
+        Vec3i vec3i2 = new Vec3i(r, r, r);
+        for (BlockPos blockPos : BlockPos.getAllInBox(playerPos.add(vec3i), playerPos.subtract(vec3i2))) {
+            IBlockState blockState = Minecraft.getMinecraft().theWorld.getBlockState(blockPos);
+            if (blockState.getBlock() == Blocks.bedrock) {
+                count++;
+            }
+        }
+        Utils.debugFullLog("Counted bedrock: " + count);
+        return count;
+    }
+
+    void setStuckCooldown(int seconds) {
+        stuckCooldown = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(seconds);
+    }
+
+    void toggle() {
         mc.thePlayer.closeScreen();
         if (enabled) {
             Utils.scriptLog("Stopped script");

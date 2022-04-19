@@ -48,6 +48,7 @@ public class DiscordWebhook {
     }
 
     public void addEmbed(EmbedObject embed) {
+        this.embeds = new ArrayList<>();
         this.embeds.add(embed);
     }
 

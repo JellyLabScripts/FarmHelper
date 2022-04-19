@@ -10,12 +10,14 @@ public class Config {
     public static CropEnum CropType = CropEnum.NETHERWART;
     public static FarmEnum FarmType = FarmEnum.LAYERED;
     public static boolean resync = false;
-    public static boolean debug = false;
-    public static boolean compactDebug = false;
+    public static boolean debug = true;
+    public static boolean compactDebug = true;
     public static boolean webhookLog = false;
     public static String webhookUrl = "";
+    public static boolean webhookStatus = false;
+    public static Integer statusTime = 60;
 
-    public static void setConfig(CropEnum crop, FarmEnum farm, boolean resync, boolean debug, boolean compactDebug, boolean webhookLog, String webhookUrl) {
+    public static void setConfig(CropEnum crop, FarmEnum farm, boolean resync, boolean debug, boolean compactDebug, boolean webhookLog, String webhookUrl, Boolean webhookStatus, Integer statusTime) {
         CropType = crop;
         FarmType = farm;
         Config.resync = resync;
@@ -23,6 +25,8 @@ public class Config {
         Config.compactDebug = compactDebug;
         Config.webhookLog = webhookLog;
         Config.webhookUrl = webhookUrl;
+        Config.webhookStatus = webhookStatus;
+        Config.statusTime = statusTime;
     }
 
     public static void writeConfig() {
@@ -35,6 +39,8 @@ public class Config {
             bufferedWriter.write("\n" + compactDebug);
             bufferedWriter.write("\n" + webhookLog);
             bufferedWriter.write("\n" + webhookUrl);
+            bufferedWriter.write("\n" + webhookStatus);
+            bufferedWriter.write("\n" + statusTime);
             bufferedWriter.close();
         } catch(Exception e) {
             e.printStackTrace();
@@ -53,7 +59,9 @@ public class Config {
                 Boolean.parseBoolean(bufferedReader.readLine()),
                 Boolean.parseBoolean(bufferedReader.readLine()),
                 Boolean.parseBoolean(bufferedReader.readLine()),
-                (url = bufferedReader.readLine()) != null ? url : ""
+                (url = bufferedReader.readLine()) != null ? url : "",
+                Boolean.parseBoolean(bufferedReader.readLine()),
+                Integer.parseInt(bufferedReader.readLine())
             );
             bufferedReader.close();
         } catch(Exception e) {

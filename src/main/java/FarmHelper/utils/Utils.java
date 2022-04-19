@@ -19,6 +19,7 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 
+import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,6 +33,9 @@ import java.util.stream.Collectors;
 public class Utils {
     private static String lastDebug;
     private static String lastWebhook;
+    private static long logMsgTime = 1000;
+    private static long statusMsgTime = -1;
+
     public static void drawString(String text, int x, int y, float size, int color) {
         GlStateManager.scale(size,size,size);
         float mSize = (float)Math.pow(size,-1);
@@ -79,7 +83,6 @@ public class Utils {
         }
         return false;
     }
-
     public static int getFirstSlotWithSellItem() {
         for (Slot slot : Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots) {
             if (slot != null) {
@@ -117,7 +120,6 @@ public class Utils {
         }
         Gui.drawRect(startX, y, endX + 1, y + 1, color);
     }
-
     public static void drawVerticalLine(int x, int startY, int endY, int color) {
         if (endY < startY) {
             int i = startY;
@@ -132,8 +134,8 @@ public class Utils {
                 (Minecraft.getMinecraft().thePlayer.rotationYaw % 360) :
                 (Minecraft.getMinecraft().thePlayer.rotationYaw < 360f ? 360 - (-Minecraft.getMinecraft().thePlayer.rotationYaw % 360)  :  360 + Minecraft.getMinecraft().thePlayer.rotationYaw);
     }
-    public static float get360RotationYaw(int yaw){
-        return yaw > 0?
+    public static float get360RotationYaw(float yaw) {
+        return yaw > 0 ?
                 (yaw % 360) :
                 (yaw < 360f ? 360 - (-yaw % 360)  :  360 + yaw);
     }
@@ -148,7 +150,6 @@ public class Utils {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-
                     while (get360RotationYaw() != rotation360) {
                         if(Math.abs(get360RotationYaw() - rotation360) < 1f) {
                             Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw + Math.abs(get360RotationYaw() - rotation360));
@@ -165,28 +166,113 @@ public class Utils {
             }).start();
     }
     public static void smoothRotateClockwise(final int rotationClockwise360){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                int targetYaw = (Math.round(get360RotationYaw()) + rotationClockwise360) % 360;
-                while (get360RotationYaw() != targetYaw) {
-                    if(Math.abs(get360RotationYaw() - targetYaw) < 1f) {
-                        Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw + Math.abs(get360RotationYaw() - targetYaw));
-                        return;
-                    }
-                    Minecraft.getMinecraft().thePlayer.rotationYaw += 0.3f + nextInt(3)/10.0f;
-                    try {
-                        Thread.sleep(1);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+        new Thread(() -> {
+            int targetYaw = (Math.round(get360RotationYaw()) + rotationClockwise360) % 360;
+            while (get360RotationYaw() != targetYaw) {
+                if(Math.abs(get360RotationYaw() - targetYaw) < 1f) {
+                    Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw + Math.abs(get360RotationYaw() - targetYaw));
+                    return;
                 }
+                Minecraft.getMinecraft().thePlayer.rotationYaw += 0.3f + nextInt(3)/10.0f;
+                try {
+                    Thread.sleep(1);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
 
+        }).start();
+    }
+    public static void smoothRotateClockwise(final int rotationClockwise360, double speed){
+        new Thread(() -> {
+            int targetYaw = (Math.round(get360RotationYaw()) + rotationClockwise360) % 360;
+            while (get360RotationYaw() != targetYaw) {
+                if(Math.abs(get360RotationYaw() - targetYaw) < 1f*speed) {
+                    Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw + Math.abs(get360RotationYaw() - targetYaw));
+                    return;
+                }
+                Minecraft.getMinecraft().thePlayer.rotationYaw += (0.3f + nextInt(3)/10.0f) * speed;
+                try {
+                    Thread.sleep(1);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }).start();
+    }
+    public static void sineRotateCW(final int rotationClockwise360, double speed) {
+        new Thread(() -> {
+            int targetYaw = (Math.round(get360RotationYaw()) + rotationClockwise360) % 360;
+            while (get360RotationYaw() != targetYaw) {
+                float difference = Math.abs(get360RotationYaw() - targetYaw);
+                if (difference < 0.4f * speed) {
+                    Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw + difference);
+                    return;
+                }
+                Minecraft.getMinecraft().thePlayer.rotationYaw += speed * 0.3 * ((difference/rotationClockwise360)+(Math.PI/2));
+                try {
+                    Thread.sleep(1);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }).start();
+    }
+    public static void smoothRotateAnticlockwise(final int rotationAnticlockwise360){
+        new Thread(() -> {
+            int targetYaw = Math.round(get360RotationYaw(get360RotationYaw() - rotationAnticlockwise360));
+            while (get360RotationYaw() != targetYaw) {
+                if (Math.abs(get360RotationYaw() - targetYaw) < 1f) {
+                    Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw - Math.abs(get360RotationYaw() - targetYaw));
+                    return;
+                }
+                Minecraft.getMinecraft().thePlayer.rotationYaw -= 0.3f + nextInt(3)/10.0f;
+                try {
+                    Thread.sleep(1);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }).start();
     }
-    public static float getActualRotationYaw(){ //f3
+    public static void smoothRotateAnticlockwise(final int rotationAnticlockwise360, double speed){
+        new Thread(() -> {
+            int targetYaw = Math.round(get360RotationYaw(get360RotationYaw() - rotationAnticlockwise360));
+            while (get360RotationYaw() != targetYaw) {
+                if (Math.abs(get360RotationYaw() - targetYaw) < 1f*speed) {
+                    Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw - Math.abs(get360RotationYaw() - targetYaw));
+                    return;
+                }
+                Minecraft.getMinecraft().thePlayer.rotationYaw -= (0.3f + nextInt(3)/10.0f) * speed;
+                try {
+                    Thread.sleep(1);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+    public static void sineRotateAWC(final int rotationAnticlockwise360, double speed){
+        new Thread(() -> {
+            int targetYaw = Math.round(get360RotationYaw(get360RotationYaw() - rotationAnticlockwise360));
+            while (get360RotationYaw() != targetYaw) {
+                float difference = Math.abs(get360RotationYaw() - targetYaw);
+                if (difference < 0.4f * speed) {
+                    Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw - difference);
+                    return;
+                }
+                Minecraft.getMinecraft().thePlayer.rotationYaw -= 0.3f + nextInt(3)/10.0f;
+                try {
+                    Thread.sleep(1);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+    public static float getActualRotationYaw() { //f3
         return Minecraft.getMinecraft().thePlayer.rotationYaw > 0?
                 (Minecraft.getMinecraft().thePlayer.rotationYaw % 360 > 180 ? -(180 - (Minecraft.getMinecraft().thePlayer.rotationYaw % 360 - 180)) :  Minecraft.getMinecraft().thePlayer.rotationYaw % 360  ) :
                 (-Minecraft.getMinecraft().thePlayer.rotationYaw % 360 > 180 ? (180 - (-Minecraft.getMinecraft().thePlayer.rotationYaw % 360 - 180))  :  -(-Minecraft.getMinecraft().thePlayer.rotationYaw % 360));
@@ -196,6 +282,7 @@ public class Utils {
                 (yaw % 360 > 180 ? -(180 - (yaw % 360 - 180)) :  yaw % 360  ) :
                 (-yaw% 360 > 180 ? (180 - (-yaw % 360 - 180))  :  -(-yaw % 360));
     }
+
     public static int nextInt(int upperbound){
         Random r = new Random();
         return r.nextInt(upperbound);
@@ -216,7 +303,6 @@ public class Utils {
             return 1;
         }
     }
-
     public static int getUnitZ() {
         double modYaw = (Minecraft.getMinecraft().thePlayer.rotationYaw % 360 + 360) % 360;
         if (modYaw < 45 || modYaw > 315) {
@@ -243,7 +329,6 @@ public class Utils {
             mc.thePlayer.posZ
           )).getBlock());
     }
-
     public static Block getFrontBlock(){
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
@@ -329,7 +414,6 @@ public class Utils {
                 mc.thePlayer.posZ + (getUnitZ() * multiple)
             )).getBlock());
     }
-
     public static Block getRightBlock(double yOffset, int multiple) {
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
@@ -359,7 +443,6 @@ public class Utils {
             mc.thePlayer.posZ + (getUnitX() * multiple) + getUnitZ()
           )).getBlock());
     }
-
     public static Block getLeftColBlock(int multiple){
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
@@ -431,6 +514,12 @@ public class Utils {
         sendLog(new ChatComponentText(
             EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Webhook URL - " + EnumChatFormatting.BLUE + smallURL()
         ));
+        sendLog(new ChatComponentText(
+            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Status Logging - " + (Config.webhookStatus ? EnumChatFormatting.GREEN + "ON" : EnumChatFormatting.RED + "OFF")
+        ));
+        sendLog(new ChatComponentText(
+            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Status Frequency - " + EnumChatFormatting.GOLD + Config.statusTime + "s"
+        ));
     }
 
 //    public static void configLog() {
@@ -448,15 +537,58 @@ public class Utils {
 //        ));
 //    }
 
+    public static String getRuntimeFormat() {
+        long millis = System.currentTimeMillis() - FarmHelper.startTime;
+        return String.format("%d hr %d min",
+            TimeUnit.MILLISECONDS.toHours(millis),
+            TimeUnit.MILLISECONDS.toMinutes(millis) -
+                TimeUnit.MINUTES.toMinutes(TimeUnit.MILLISECONDS.toHours(millis))
+        );
+    }
+
+    public static void webhookStatus() {
+        if (statusMsgTime == -1) {
+            statusMsgTime = System.currentTimeMillis();
+        }
+        long timeDiff = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - statusMsgTime);
+        if (timeDiff > Config.statusTime && Config.webhookStatus) {
+            FarmHelper.webhook.addEmbed(new DiscordWebhook.EmbedObject()
+                .setTitle("Farm Helper")
+                .setDescription("```" + "I'm still alive!" + "```")
+                .setColor(Color.decode("#ff3b3b"))
+                .setFooter("Jelly", "")
+                .setThumbnail("https://crafatar.com/renders/head/" + Minecraft.getMinecraft().thePlayer.getUniqueID())
+                .addField("Username", Minecraft.getMinecraft().thePlayer.getName(), true)
+                .addField("Runtime", getRuntimeFormat(), true)
+            );
+            new Thread(() -> {
+                try {
+                    FarmHelper.webhook.execute();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+            statusMsgTime = System.currentTimeMillis();
+        }
+    }
+
     public static void webhookLog(String message) {
-        if (lastWebhook != message && Config.webhookLog) {
-            // FarmHelper.webhook.setContent(message);
-            FarmHelper.webhook.addEmbed(new DiscordWebhook.EmbedObject().addField("Farm Helper", message, false));
-            try {
-                FarmHelper.webhook.execute();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        long timeDiff = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - logMsgTime);
+        Utils.debugFullLog("Last webhook message: " + timeDiff);
+        if (Config.webhookLog && (timeDiff > 20 || lastWebhook != message)) {
+            FarmHelper.webhook.addEmbed(new DiscordWebhook.EmbedObject()
+                .setDescription("**Farm Helper Log** ```" + message + "```")
+                .setColor(Color.decode("#741010"))
+                .setFooter(Minecraft.getMinecraft().thePlayer.getName(), "")
+            );
+            new Thread(() -> {
+                try {
+                    FarmHelper.webhook.execute();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+            logMsgTime = System.currentTimeMillis();
         }
         lastWebhook = message;
     }
@@ -493,7 +625,6 @@ public class Utils {
             return "";
         }
     }
-
     public static List<String> getSidebarLines() {
         List<String> lines = new ArrayList<>();
         if (Minecraft.getMinecraft().theWorld == null) return lines;
@@ -522,7 +653,6 @@ public class Utils {
 
         return lines;
     }
-
     public static String cleanSB(String scoreboard) {
         char[] nvString = StringUtils.stripControlCodes(scoreboard).toCharArray();
         StringBuilder cleaned = new StringBuilder();
@@ -541,7 +671,6 @@ public class Utils {
         eTemp.schedule(r, delay, tu);
         eTemp.shutdown();
     }
-
     public static void ExecuteRunnable(Runnable r){
         ScheduledExecutorService eTemp = Executors.newScheduledThreadPool(1);
         eTemp.execute(r);
