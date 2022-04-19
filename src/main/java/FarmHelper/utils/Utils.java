@@ -14,10 +14,7 @@ import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.StringUtils;
+import net.minecraft.util.*;
 
 import java.awt.*;
 import java.io.IOException;
@@ -41,6 +38,23 @@ public class Utils {
         float mSize = (float)Math.pow(size,-1);
         Minecraft.getMinecraft().fontRendererObj.drawString(text,Math.round(x / size),Math.round(y / size),color);
         GlStateManager.scale(mSize,mSize,mSize);
+    }
+
+    public static void drawStringWithShadow(String text, int x, int y, float size, int color) {
+        GlStateManager.scale(size,size,size);
+        float mSize = (float)Math.pow(size,-1);
+        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(text,Math.round(x / size),Math.round(y / size),color);
+        GlStateManager.scale(mSize,mSize,mSize);
+    }
+
+    public static String formatNumber(int number) {
+        String s = Integer.toString(number);
+        return String.format("%,d", number);
+    }
+
+    public static String formatNumber(float number) {
+        String s = Integer.toString(Math.round(number));
+        return String.format("%,d", Math.round(number));
     }
 
     public static void hardRotate(float yaw) {
@@ -453,6 +467,11 @@ public class Utils {
           )).getBlock());
     }
 
+    public static void drawInfo(String title, String value, int y) {
+        Utils.drawStringWithShadow(
+            EnumChatFormatting.GRAY + "" + EnumChatFormatting.BOLD + title + EnumChatFormatting.DARK_GRAY +  " » " + EnumChatFormatting.RED + value, 4, y, 1.3f, -1);
+    }
+
     public static void sendLog(ChatComponentText chat) {
         Minecraft.getMinecraft().thePlayer.addChatMessage(chat);
     }
@@ -503,10 +522,10 @@ public class Utils {
             EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Resync - " + (Config.resync ? EnumChatFormatting.GREEN + "ON" : EnumChatFormatting.RED + "OFF")
         ));
         sendLog(new ChatComponentText(
-            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Debug Mode - " + (Config.debug ? EnumChatFormatting.GREEN + "ON" : EnumChatFormatting.RED + "OFF")
+            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Jacob Failsafe - " + (Config.jacobFailsafe ? EnumChatFormatting.GREEN + "ON" : EnumChatFormatting.RED + "OFF")
         ));
         sendLog(new ChatComponentText(
-            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Compact Debug - " + (Config.compactDebug ? EnumChatFormatting.GREEN + "ON" : EnumChatFormatting.RED + "OFF")
+            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Jacob Score Threshold - " + EnumChatFormatting.DARK_AQUA + Config.jacobThreshold
         ));
         sendLog(new ChatComponentText(
             EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Webhook Logging - " + (Config.webhookLog ? EnumChatFormatting.GREEN + "ON" : EnumChatFormatting.RED + "OFF")
@@ -515,10 +534,10 @@ public class Utils {
             EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Webhook URL - " + EnumChatFormatting.BLUE + smallURL()
         ));
         sendLog(new ChatComponentText(
-            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Status Logging - " + (Config.webhookStatus ? EnumChatFormatting.GREEN + "ON" : EnumChatFormatting.RED + "OFF")
+            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Status Cooldown - " + EnumChatFormatting.GOLD + Config.statusTime + "min"
         ));
         sendLog(new ChatComponentText(
-            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Status Frequency - " + EnumChatFormatting.GOLD + Config.statusTime + "s"
+            EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + "Debug Mode - " + (Config.debug ? EnumChatFormatting.GREEN + "ON" : EnumChatFormatting.RED + "OFF")
         ));
     }
 
@@ -538,11 +557,16 @@ public class Utils {
 //    }
 
     public static String getRuntimeFormat() {
+        if (FarmHelper.startTime == 0) {
+            return "0h 0m 0s";
+        }
         long millis = System.currentTimeMillis() - FarmHelper.startTime;
-        return String.format("%d hr %d min",
+        return String.format("%dh %dm %ds",
             TimeUnit.MILLISECONDS.toHours(millis),
             TimeUnit.MILLISECONDS.toMinutes(millis) -
-                TimeUnit.MINUTES.toMinutes(TimeUnit.MILLISECONDS.toHours(millis))
+                TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),
+            TimeUnit.MILLISECONDS.toSeconds(millis) -
+                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis))
         );
     }
 
@@ -550,8 +574,8 @@ public class Utils {
         if (statusMsgTime == -1) {
             statusMsgTime = System.currentTimeMillis();
         }
-        long timeDiff = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - statusMsgTime);
-        if (timeDiff > Config.statusTime && Config.webhookStatus) {
+        long timeDiff = TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - statusMsgTime);
+        if (timeDiff > Config.statusTime) {
             FarmHelper.webhook.addEmbed(new DiscordWebhook.EmbedObject()
                 .setTitle("Farm Helper")
                 .setDescription("```" + "I'm still alive!" + "```")
@@ -560,6 +584,12 @@ public class Utils {
                 .setThumbnail("https://crafatar.com/renders/head/" + Minecraft.getMinecraft().thePlayer.getUniqueID())
                 .addField("Username", Minecraft.getMinecraft().thePlayer.getName(), true)
                 .addField("Runtime", getRuntimeFormat(), true)
+                //.addField("", "", false)
+                .addField("Total Profit", FarmHelper.getProfit() != 0 ? "$" + formatNumber(FarmHelper.getProfit()) : "Not supported", false)
+                .addField("Profit / hr", "$" + formatNumber(FarmHelper.getHourProfit(FarmHelper.getProfit())), false)
+                //.addField("", "", false)
+                .addField(FarmHelper.getHighTierName(), formatNumber(FarmHelper.getHighTierCount()), true)
+                .addField("Counter", formatNumber(FarmHelper.currentCounter), true)
             );
             new Thread(() -> {
                 try {
@@ -594,18 +624,16 @@ public class Utils {
     }
 
     public static void debugLog(String message) {
-        if (Config.debug) {
-            if (!Config.compactDebug || lastDebug != message) {
-                sendLog(new ChatComponentText(
-                    EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Log " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + message
-                ));
-            }
-            lastDebug = message;
+        if (Config.debug || lastDebug != message) {
+            sendLog(new ChatComponentText(
+                EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Log " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + message
+            ));
         }
+        lastDebug = message;
     }
 
     public static void debugFullLog(String message) {
-        if (!Config.compactDebug) {
+        if (Config.debug) {
             debugLog(message);
         }
     }

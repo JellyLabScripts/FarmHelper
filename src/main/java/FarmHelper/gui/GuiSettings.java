@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 
@@ -14,14 +15,14 @@ import java.awt.*;
 import java.io.IOException;
 
 public class GuiSettings extends GuiScreen {
-    String title = "Settings";
-    int firstY = 80;
+    String title = "Farm Helper Settings";
     int gap = 30;
     int fieldWidth = 200;
-    int fieldHeight = 20;
+    int fieldHeight = 15;
 
     private GuiTextField urlTextBox;
     private GuiTextField statusTimeBox;
+    private GuiTextField jacobThresholdBox;
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) { }
@@ -29,30 +30,38 @@ public class GuiSettings extends GuiScreen {
     @Override
     public void initGui() {
         super.initGui();
+        int firstY = 30 + ((new ScaledResolution(mc).getScaledHeight() - (gap * 7)) / 2);
         this.buttonList.add(new GuiCustomSwitchButton(0, this.width/2 + 120, firstY, this.width/2 - 150, firstY + 2, 40, 15, "Auto ReSync"));
-        this.buttonList.add(new GuiCustomSwitchButton(1, this.width/2 + 120, firstY + gap, this.width/2 - 150, firstY + gap + 2, 40, 15, "Debug Mode"));
-        this.buttonList.add(new GuiCustomSwitchButton(2, this.width/2 + 120, firstY + gap * 2, this.width/2 - 150, firstY + gap * 2 + 2, 40, 15, "Compact Debug"));
-        this.buttonList.add(new GuiCustomSwitchButton(3, this.width/2 + 120, firstY + gap * 3, this.width/2 - 150, firstY + gap * 3 + 2, 40, 15, "Webhook Log"));
+        this.buttonList.add(new GuiCustomSwitchButton(1, this.width/2 + 120, firstY + gap, this.width/2 - 150, firstY + gap + 2, 40, 15, "Jacob Failsafe"));
+        jacobThresholdBox = new GuiTextField(1, Minecraft.getMinecraft().fontRendererObj, this.width/2 + 160 - 60, firstY + gap * 2, 60, fieldHeight);
+        jacobThresholdBox.setMaxStringLength(8);
+        jacobThresholdBox.setText(String.valueOf(Config.jacobThreshold));
+        jacobThresholdBox.setFocused(false);
+        this.buttonList.add(new GuiCustomSwitchButton(2, this.width/2 + 120, firstY + gap * 3, this.width/2 - 150, firstY + gap * 3 + 2, 40, 15, "Webhook Log"));
         urlTextBox = new GuiTextField(1, Minecraft.getMinecraft().fontRendererObj, this.width/2 + 160 - fieldWidth, firstY + gap * 4, fieldWidth, fieldHeight);
         urlTextBox.setMaxStringLength(256);
         urlTextBox.setText(Config.webhookUrl);
         urlTextBox.setFocused(false);
-        this.buttonList.add(new GuiCustomSwitchButton(4, this.width/2 + 120, firstY + gap * 5, this.width/2 - 150, firstY + gap * 5 + 2, 40, 15, "Webhook Status Log"));
-        statusTimeBox = new GuiTextField(1, Minecraft.getMinecraft().fontRendererObj, this.width/2 + 160 - 50, firstY + gap * 6, 50, fieldHeight);
+        statusTimeBox = new GuiTextField(1, Minecraft.getMinecraft().fontRendererObj, this.width/2 + 160 - 40, firstY + gap * 5, 40, fieldHeight);
         statusTimeBox.setMaxStringLength(5);
         statusTimeBox.setText(String.valueOf(Config.statusTime));
         statusTimeBox.setFocused(false);
+        this.buttonList.add(new GuiCustomSwitchButton(3, this.width/2 + 120, firstY + gap * 6, this.width/2 - 150, firstY + gap * 6 + 2, 40, 15, "Debug Mode"));
         initialSelect();
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        drawRect(0, 0, this.width, this.height, new Color(41, 41, 41, 255).getRGB());
-        Utils.drawString(title, this.width / 2 - mc.fontRendererObj.getStringWidth(title) / 2 * 2, 30, 2, -1); // multiply by the size smh works firstY + gap * 3,this.width/2 - 150
+        int firstY = 30 + ((new ScaledResolution(mc).getScaledHeight() - (gap * 7)) / 2);
+        // drawRect(0, 0, this.width, this.height, new Color(41, 41, 41, 255).getRGB());
+        drawRect(0, 0, this.width, this.height, new Color(0, 0, 0, 225).getRGB());
+        Utils.drawString(title, this.width / 2 - mc.fontRendererObj.getStringWidth(title) / 2 * 2, firstY - 50, 2, -1); // multiply by the size smh works firstY + gap * 3,this.width/2 - 150
+        mc.fontRendererObj.drawStringWithShadow("Jacob Score Threshold", this.width/2 - 150, firstY + gap * 2 + 2, -1);
         mc.fontRendererObj.drawStringWithShadow("Webhook URL", this.width/2 - 150, firstY + gap * 4 + 2, -1);
-        mc.fontRendererObj.drawStringWithShadow("Status Frequency (s)", this.width/2 - 150, firstY + gap * 6 + 2, -1);
+        mc.fontRendererObj.drawStringWithShadow("Status Cooldown (min)", this.width/2 - 150, firstY + gap * 5 + 2, -1);
         urlTextBox.drawTextBox();
         statusTimeBox.drawTextBox();
+        jacobThresholdBox.drawTextBox();
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
@@ -73,33 +82,21 @@ public class GuiSettings extends GuiScreen {
         else if (button.id == 1) {
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) button;
             temp.switchSelect();
-            if (Config.debug && Config.compactDebug) {
-                actionPerformed(buttonList.get(2));
-            }
-            Config.debug = !Config.debug;
+            Config.jacobFailsafe = !Config.jacobFailsafe;
             updateScreen();
             Config.writeConfig();
         }
         else if (button.id == 2) {
-            GuiCustomSwitchButton temp = (GuiCustomSwitchButton) button;
-            if (Config.debug) {
-                Config.compactDebug = !Config.compactDebug;
-                temp.switchSelect();
-            }
-            updateScreen();
-            Config.writeConfig();
-        }
-        else if (button.id == 3) {
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) button;
             temp.switchSelect();
             Config.webhookLog = !Config.webhookLog;
             updateScreen();
             Config.writeConfig();
         }
-        else if (button.id == 4) {
+        else if (button.id == 3) {
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) button;
             temp.switchSelect();
-            Config.webhookStatus = !Config.webhookStatus;
+            Config.debug = !Config.debug;
             updateScreen();
             Config.writeConfig();
         }
@@ -110,20 +107,16 @@ public class GuiSettings extends GuiScreen {
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(0);
             temp.switchSelect();
         }
-        if (Config.debug) {
+        if (Config.jacobFailsafe) {
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(1);
             temp.switchSelect();
         }
-        if (Config.compactDebug) {
+        if (Config.webhookLog) {
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(2);
             temp.switchSelect();
         }
-        if (Config.webhookLog) {
+        if (Config.debug) {
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(3);
-            temp.switchSelect();
-        }
-        if (Config.webhookStatus) {
-            GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(4);
             temp.switchSelect();
         }
     }
@@ -132,7 +125,10 @@ public class GuiSettings extends GuiScreen {
         try {
             super.keyTyped(par1, par2);
             urlTextBox.textboxKeyTyped(par1, par2);
-            statusTimeBox.textboxKeyTyped(par1, par2);
+            if (Character.isDigit(par1) || par2 == 14) {
+                statusTimeBox.textboxKeyTyped(par1, par2);
+                jacobThresholdBox.textboxKeyTyped(par1, par2);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -142,6 +138,7 @@ public class GuiSettings extends GuiScreen {
         super.updateScreen();
         urlTextBox.updateCursorCounter();
         statusTimeBox.updateCursorCounter();
+        jacobThresholdBox.updateCursorCounter();
     }
 
     protected void mouseClicked(int x, int y, int btn) {
@@ -149,6 +146,7 @@ public class GuiSettings extends GuiScreen {
             super.mouseClicked(x, y, btn);
             urlTextBox.mouseClicked(x, y, btn);
             statusTimeBox.mouseClicked(x, y, btn);
+            jacobThresholdBox.mouseClicked(x, y, btn);
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -158,6 +156,7 @@ public class GuiSettings extends GuiScreen {
     public void onGuiClosed() {
         Config.webhookUrl = urlTextBox.getText();
         Config.statusTime = Integer.parseInt(statusTimeBox.getText());
+        Config.jacobThreshold = Integer.parseInt(jacobThresholdBox.getText());
         Config.writeConfig();
     }
 }

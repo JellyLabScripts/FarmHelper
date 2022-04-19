@@ -16,7 +16,6 @@ public class GuiBetterButton extends GuiButton {
         this.widthln = widthln;
         this.length = length;
         this.buttonText = buttonText;
-
     }
 
 
@@ -25,7 +24,7 @@ public class GuiBetterButton extends GuiButton {
         if (this.visible) {
             GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
             this.hovered = (mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height);
-            drawRect(this.xPosition, this.yPosition, this.xPosition + this.width, this.yPosition + this.height, this.hovered ? new Color(60, 60, 60, 90).getRGB() : new Color(5, 5, 5, 95).getRGB());
+            drawRect(this.xPosition, this.yPosition, this.xPosition + this.width, this.yPosition + this.height, new Color(255, 80, 80, 255).getRGB());
             this.mouseDragged(mc, mouseX, mouseY);
             int color = 14737632;
             if (packedFGColour != 0)
@@ -34,11 +33,11 @@ public class GuiBetterButton extends GuiButton {
             }
             else if (!this.enabled)
             {
-                color = 10526880;
+                color = 0xffffff;
             }
             else if (this.hovered)
             {
-                color = 16777120;
+                color = 0xffffff;
             }
             this.drawCenteredString(mc.fontRendererObj, this.displayString, this.xPosition + this.width / 2, this.yPosition + (this.height - 8) / 2, color);
         }

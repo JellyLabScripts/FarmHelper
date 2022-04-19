@@ -15,6 +15,8 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerChest;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.Vec3i;
@@ -37,6 +39,8 @@ import org.lwjgl.input.Keyboard;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Mod(modid = FarmHelper.MODID, name = FarmHelper.NAME, version = FarmHelper.VERSION)
 public class FarmHelper {
@@ -80,6 +84,9 @@ public class FarmHelper {
     public static boolean bazaarLag;
     public static double cacheAverageAge;
     public static int stuckCount;
+    public static int startCounter;
+    public static int currentCounter;
+    public static long jacobEnd;
     public static long lastStuck;
     public static long stuckCooldown;
     public static long startTime;
@@ -126,6 +133,8 @@ public class FarmHelper {
         caged = false;
         hubCaged = false;
         bazaarLag = false;
+        jacobEnd = System.currentTimeMillis();
+        startCounter = getCounter();
         startTime = System.currentTimeMillis();
         stuckCount = 0;
         lastStuck = 0;
@@ -145,6 +154,7 @@ public class FarmHelper {
 
         Utils.webhookLog("Started script");
         Utils.ScheduleRunnable(updateDeltaChange, 2, TimeUnit.SECONDS);
+        Utils.ExecuteRunnable(updateCounters);
     }
 
     @Mod.EventHandler
@@ -188,7 +198,34 @@ public class FarmHelper {
     @SideOnly(Side.CLIENT)
     @SubscribeEvent
     public void render(RenderGameOverlayEvent event) {
-        if (event.type == RenderGameOverlayEvent.ElementType.TEXT && Config.debug && !Config.compactDebug) {
+        int gapY = 18;
+        int startY = (new ScaledResolution(mc).getScaledHeight() - gapY * 7) / 2;
+        if (event.type == RenderGameOverlayEvent.ElementType.TEXT) {
+            Utils.drawStringWithShadow(
+                EnumChatFormatting.DARK_RED + "« " + EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper" + EnumChatFormatting.DARK_RED + " »", 4, startY - 10, 1.8f, -1);
+            Utils.drawInfo("Total Profit", "$" + Utils.formatNumber(getProfit()), startY + gapY );
+            Utils.drawInfo("Profit / hr", "$" + Utils.formatNumber(getHourProfit(getProfit())), startY + gapY * 2);
+            switch (Config.CropType) {
+                case CARROT:
+                    Utils.drawInfo("Enchanted Carrots", Utils.formatNumber(getTier3() * 160 + getTier2()), startY + gapY * 3);
+                    Utils.drawInfo("Carrots", Utils.formatNumber(getTier1()), startY + gapY * 4);
+                    Utils.drawInfo("Counter", Utils.formatNumber(currentCounter), startY + gapY * 5);
+                    Utils.drawInfo("Runtime", Utils.getRuntimeFormat(), startY + gapY * 6);
+                    break;
+                case NETHERWART:
+                    Utils.drawInfo("Mutant Netherwart", Utils.formatNumber(getTier3()), startY + gapY * 3);
+                    Utils.drawInfo("Enchanted Netherwart", Utils.formatNumber(getTier2()), startY + gapY * 4);
+                    Utils.drawInfo("Counter", Utils.formatNumber(currentCounter), startY + gapY * 5);
+                    Utils.drawInfo("Runtime", Utils.getRuntimeFormat(), startY + gapY * 6);
+                    break;
+                default:
+                    Utils.drawInfo("Counter", Utils.formatNumber(currentCounter), startY + gapY * 3);
+                    Utils.drawInfo("Runtime", Utils.getRuntimeFormat(), startY + gapY * 4);
+            }
+
+        }
+
+        if (event.type == RenderGameOverlayEvent.ElementType.TEXT && Config.debug) {
             mc.fontRendererObj.drawString("dx: " + Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 96, -1);
             mc.fontRendererObj.drawString("dz: " + Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 84, -1);
 
@@ -305,9 +342,9 @@ public class FarmHelper {
 
             if (currentLocation == location.LIMBO) {
                 Utils.debugFullLog("Detected limbo/afk");
-                if (!teleporting) {
+                if (!teleporting && jacobEnd < System.currentTimeMillis()) {
                     Utils.debugLog("Detected Limbo or AFK");
-                    Utils.webhookLog("Detected Limbo or AFK");
+                    // Utils.webhookLog("Detected Limbo or AFK");
                     Utils.debugLog("Attempting to teleport to lobby");
                     mc.thePlayer.sendChatMessage("/lobby");
                     teleporting = true;
@@ -317,7 +354,7 @@ public class FarmHelper {
             if (currentLocation == location.LOBBY) {
                 Utils.debugFullLog("Detected lobby");
                 updateKeys(false, false, false, false, false, false);
-                if (!teleporting) {
+                if (!teleporting && jacobEnd < System.currentTimeMillis()) {
                     Utils.debugLog("Detected lobby");
                     Utils.webhookLog("Detected lobby");
                     Utils.debugLog("Attempting to teleport to skyblock");
@@ -352,6 +389,19 @@ public class FarmHelper {
                     Utils.webhookLog("Bedrock cage detected | RIPBOZO -1 acc");
                     Utils.ExecuteRunnable(islandCage);
                     caged = true;
+                    return;
+                }
+                if (Config.jacobFailsafe && getJacobCounter() > Config.jacobThreshold) {
+                    Utils.debugFullLog("In jacob failsafe, waiting for teleport");
+                    updateKeys(false, false, false, false, false, false);
+                    if (!teleporting) {
+                        Utils.debugLog("Jacob Failsafe - Exceeded threshold, going to Lobby");
+                        jacobEnd = getJacobEnd();
+                        mc.thePlayer.sendChatMessage("/setspawn");
+                        mc.thePlayer.sendChatMessage("/lobby");
+                        teleporting = true;
+                        Utils.ScheduleRunnable(tpReset, 20, TimeUnit.SECONDS);
+                    }
                     return;
                 }
                 if (falling) {
@@ -395,7 +445,7 @@ public class FarmHelper {
                     if (Config.CropType.equals(CropEnum.NETHERWART)) {
                         mc.thePlayer.rotationPitch = 0;
                     } else {
-                        mc.thePlayer.rotationPitch = 5;
+                        mc.thePlayer.rotationPitch = (float) 2.8;
                     }
                     Utils.hardRotate(playerYaw);
                     // Not falling
@@ -618,6 +668,7 @@ public class FarmHelper {
                                 Utils.debugLog("Changing layer - About to fall");
                                 updateKeys(true, false, false, false, false, false);
                                 falling = true;
+                                setStuckCooldown(5);
                             }
                         }
                         }
@@ -672,12 +723,27 @@ public class FarmHelper {
         }
     };
 
+    Runnable updateCounters = new Runnable() {
+        @Override
+        public void run() {
+            if (enabled) {
+                if (getCounter() != 0) {
+                    currentCounter = getCounter();
+                };
+                Utils.ScheduleRunnable(updateCounters, 1, TimeUnit.SECONDS);
+            }
+        }
+    };
+
     Runnable fixTpStuck = () -> {
         try {
             KeyBinding.setKeyBindState(keyBindSpace, true);
             Thread.sleep(800);
             KeyBinding.setKeyBindState(keyBindSpace, false);
             Thread.sleep(300);
+            deltaX = 100;
+            deltaY = 100;
+            setStuckCooldown(3);
             fixTpStuckFlag = false;
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -765,13 +831,18 @@ public class FarmHelper {
 
     Runnable checkDesync = () -> {
         Utils.debugFullLog("checkDesync - Enter");
+        double lowestAverage = 4;
+        double range = 0.25;
+        if (Config.CropType == CropEnum.NETHERWART) {
+            lowestAverage = 2.3;
+        }
         if (cachePos == null || cacheAverageAge == -1) {
             Utils.debugLog("Desync - No cache (Wrong crop selected?)");
         }
-        else if (cacheAverageAge >= 2) {
+        else if (cacheAverageAge >= lowestAverage) {
             double newAvg = getAverageAge(cachePos);
-            Utils.debugLog("Desync - Old: " + newAvg + ", New: " + cacheAverageAge);
-            if (Math.abs(newAvg - cacheAverageAge) < 0.5 && !stuck) {
+            Utils.debugLog("Desync - Old: " + cacheAverageAge + ", New: " + newAvg);
+            if (Math.abs(newAvg - cacheAverageAge) < range && !stuck) {
                 Utils.debugLog("Desync detected, going to hub");
                 Utils.webhookLog("Desync detected, going to hub");
                 teleporting = false;
@@ -906,7 +977,100 @@ public class FarmHelper {
     }
 
     boolean isWalkable(Block block) {
-        return block == Blocks.air || block == Blocks.water || block == Blocks.flowing_water || block == Blocks.dark_oak_fence_gate || block == Blocks.acacia_fence_gate || block == Blocks.birch_fence_gate || block == Blocks.oak_fence_gate || block == Blocks.jungle_fence_gate || block == Blocks.spruce_fence_gate;
+        return block == Blocks.air || block == Blocks.water || block == Blocks.flowing_water || block == Blocks.dark_oak_fence_gate || block == Blocks.acacia_fence_gate || block == Blocks.birch_fence_gate || block == Blocks.oak_fence_gate || block == Blocks.jungle_fence_gate || block == Blocks.spruce_fence_gate || block == Blocks.wall_sign;
+    }
+
+    int getCounter() {
+        final ItemStack stack = Minecraft.getMinecraft().thePlayer.getHeldItem();
+        if (stack != null && stack.hasTagCompound()) {
+            final NBTTagCompound tag = stack.getTagCompound();
+            if (tag.hasKey("ExtraAttributes", 10)) {
+                final NBTTagCompound ea = tag.getCompoundTag("ExtraAttributes");
+                if (ea.hasKey("mined_crops", 99)) {
+                    return ea.getInteger("mined_crops");
+                }
+                else if (ea.hasKey("farmed_cultivating", 99)) {
+                   return ea.getInteger("farmed_cultivating");
+                }
+            }
+        }
+        Utils.debugLog("Error: Cannot find counter on held item");
+        return 0;
+    }
+
+    public static float getHourProfit(int total) {
+        float runtime = ((float)System.currentTimeMillis() - startTime) / (1000 * 60 * 60);
+        if (runtime > 0) {
+            return (float)total / runtime;
+        }
+        return 0;
+    }
+
+    public static int getProfit() {
+        switch (Config.CropType) {
+            case NETHERWART:
+                return getNWProfit();
+            case CARROT:
+                return getCarrotProfit();
+            default:
+                return 0;
+        }
+    }
+
+    public static int getHighTierCount() {
+        switch (Config.CropType) {
+            case NETHERWART:
+                return getTier3();
+            case CARROT:
+                return getTier3() * 160 + getTier2();
+            default:
+                return 0;
+        }
+    }
+
+    public static String getHighTierName() {
+        switch (Config.CropType) {
+            case NETHERWART:
+                return "Mutant Netherwart";
+            case CARROT:
+                return "Enchanted Carrots";
+            case POTATO:
+                return "Enchanted Baked Potatoes";
+            case WHEAT:
+                return "Enchanted Hay Bales";
+            default:
+                return "Unknown";
+        }
+    }
+
+    static int getNWProfit() {
+        return getTier3() * 51200 + getTier2() * 320;
+    }
+
+    static int getCarrotProfit() {
+        return ((getTier3() * 160) + getTier2()) * 240 + getTier1() * 2;
+    }
+
+    static int getTier3() {
+        return (currentCounter - startCounter) / 25600;
+    }
+
+    static int getTier2() {
+        return ((currentCounter - startCounter) % 25600) / 160;
+    }
+
+    static int getTier1() {
+        return ((currentCounter - startCounter) % 25600) % 160;
+    }
+
+    int getJacobCounter() {
+        for (String line : Utils.getSidebarLines()) {
+            String cleanedLine = Utils.cleanSB(line);
+            if (cleanedLine.contains("with")) {
+                return Integer.parseInt(cleanedLine.substring(cleanedLine.lastIndexOf(" ") + 1).replace(",", ""));
+            }
+        }
+        return 0;
     }
 
     direction calculateDirection() {
@@ -915,12 +1079,14 @@ public class FarmHelper {
                 if (isWalkable(Utils.getRightColBlock(i - 1))) {
                     return direction.RIGHT;
                 } else {
+                    Utils.debugFullLog("Failed right - " + Utils.getRightColBlock(i - 1));
                     return direction.LEFT;
                 }
             } else if (!isWalkable(Utils.getLeftBlock(0, i))) {
                 if (isWalkable(Utils.getLeftColBlock(i - 1))) {
                     return direction.LEFT;
                 } else {
+                    Utils.debugFullLog("Failed left - " + Utils.getLeftColBlock(i - 1));
                     return direction.RIGHT;
                 }
             }
@@ -947,6 +1113,21 @@ public class FarmHelper {
         }
         crouched = false;
         return location.LOBBY;
+    }
+
+    long getJacobEnd() {
+        Pattern pattern = Pattern.compile("([0-9]|[1-2][0-9])m([0-9]|[1-5][0-9])s");
+        for (String line : Utils.getSidebarLines()) {
+            String cleanedLine = Utils.cleanSB(line);
+            Matcher matcher = pattern.matcher(cleanedLine);
+            if (matcher.find()) {
+                Utils.debugLog("Jacob remaining time: " + matcher.group(1) + "m" + matcher.group(2) + "s");
+                Utils.webhookLog("Reached jacob threshold - Resuming in " + matcher.group(1) + "m" + matcher.group(2) + "s");
+                return System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(Long.parseLong(matcher.group(1))) + TimeUnit.SECONDS.toMillis(Long.parseLong(matcher.group(2)));
+            }
+        }
+        Utils.debugLog("Failed to get Jacob remaining time");
+        return 0;
     }
 
     double getAverageAge(BlockPos pos) {
@@ -978,6 +1159,7 @@ public class FarmHelper {
             stuckCount = 1;
             teleporting = false;
             stuck = false;
+            setStuckCooldown(5);
             mc.thePlayer.sendChatMessage("/lobby");
         }
         lastStuck = System.currentTimeMillis();
@@ -1032,6 +1214,7 @@ public class FarmHelper {
         mc.thePlayer.closeScreen();
         if (enabled) {
             Utils.scriptLog("Stopped script");
+            Utils.webhookLog("Stopped script");
             updateKeys(false, false, false, false, false, false);
         } else {
             initialize();

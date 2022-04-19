@@ -31,7 +31,7 @@ public class GuiCustomButton extends GuiButton {
             Gui.drawModalRectWithCustomSizedTexture(x, y, 1, 1, widthln, height, widthln, height);
 
             if(this.selected)
-            GlStateManager.color(1.0F, 1.0F, 0.2F);
+            GlStateManager.color(1.0F, 0.2F, 0.2F);
             else
                 GlStateManager.color(1.0F, 1.0F, 1F);
 
