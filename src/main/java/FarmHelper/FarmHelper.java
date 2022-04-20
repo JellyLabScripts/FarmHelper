@@ -798,7 +798,6 @@ public class FarmHelper {
                 if (getCounter() != 0) {
                     currentCounter = getCounter();
                 }
-                ;
                 Utils.ScheduleRunnable(updateCounters, 1, TimeUnit.SECONDS);
             }
         }
@@ -1208,11 +1207,12 @@ public class FarmHelper {
                 return location.ISLAND;
             }
         }
+
         crouched = false;
         if (Utils.getScoreboardDisplayName(1).contains("SKYBLOCK")) {
-            return location.LOBBY;
-        } else {
             return location.TELEPORTING;
+        } else {
+            return location.LOBBY;
         }
         // }
         // return currentLocation;
