@@ -3,6 +3,7 @@ package FarmHelper.gui;
 import FarmHelper.FarmHelper;
 import FarmHelper.config.Config;
 import FarmHelper.config.CropEnum;
+import FarmHelper.config.FarmEnum;
 import FarmHelper.gui.buttons.GuiBetterButton;
 import FarmHelper.gui.buttons.GuiCustomButton;
 import net.minecraft.client.gui.GuiButton;
@@ -37,6 +38,7 @@ public class GUI extends GuiScreen{
         this.buttonList.add(new GuiCustomButton(4, this.width/2 ,  this.height / 2 - 40, 100,100,  quarterIV));
         this.buttonList.add(new GuiBetterButton(5, this.width / 2 - buttonWidth / 2, this.height / 2 - buttonHeight / 2 + 130, buttonWidth, buttonHeight, "Settings"));
         this.buttonList.add(new GuiBetterButton(6, this.width / 2 - buttonWidth / 2, this.height / 2 - buttonHeight / 2 + 180, buttonWidth, buttonHeight, "Toggle Profit GUI"));
+        this.buttonList.add(new GuiBetterButton(7, this.width / 2 - buttonWidth / 2, this.height / 2 - buttonHeight / 2 + 230, buttonWidth, buttonHeight, "Change farm"));
         GuiCustomButton temp = (GuiCustomButton) this.buttonList.get(Config.CropType.ordinal());
         temp.select();
     }
@@ -98,6 +100,9 @@ public class GUI extends GuiScreen{
         }
         if (button.id == 6) {
             FarmHelper.profitGUI = !FarmHelper.profitGUI;
+        }
+        if (button.id == 7) {
+            Config.FarmType = FarmEnum.values()[1 - Config.FarmType.ordinal()];
         }
     }
 }

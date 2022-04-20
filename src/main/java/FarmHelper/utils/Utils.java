@@ -704,4 +704,15 @@ public class Utils {
         eTemp.execute(r);
         eTemp.shutdown();
     }
+    public static Block getBlockAround(int rightOffset, int frontOffset, int upOffset){
+        Minecraft mc = Minecraft.getMinecraft();
+        double X = mc.thePlayer.posX;
+        double Y = mc.thePlayer.posY;
+        double Z = mc.thePlayer.posZ;
+
+        return (mc.theWorld.getBlockState(
+                new BlockPos(mc.thePlayer.getLookVec().zCoord * -1 * rightOffset + mc.thePlayer.getLookVec().xCoord * frontOffset + X, Y + upOffset,
+                        mc.thePlayer.getLookVec().xCoord * rightOffset + mc.thePlayer.getLookVec().zCoord * frontOffset + Z)).getBlock());
+
+    }
 }
