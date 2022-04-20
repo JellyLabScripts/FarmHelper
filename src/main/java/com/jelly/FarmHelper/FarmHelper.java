@@ -750,40 +750,45 @@ public class FarmHelper {
                                     }
                                 }
                             } else {
-                                Utils.hardRotate(playerYaw);
-                                if (isWalkable(Utils.getRightBlock()) && isWalkable(Utils.getLeftBlock())) {
-                                    if (lastDirection == direction.NONE) {
-                                        Utils.debugFullLog("Middle of row - No direction last tick, recalculating");
-                                        lastDirection = calculateDirection();
-                                    }
-                                    if (newRow) {
-                                        newRow = false;
-                                        mc.thePlayer.sendChatMessage("/setspawn");
-                                    }
-                                    if (lastDirection == direction.RIGHT) {
-                                        Utils.debugLog("Middle of row - Go right");
-                                        updateKeys(false, false, false, true, true, false);
-                                    } else if (lastDirection == direction.LEFT) {
-                                        Utils.debugLog("Middle of row - Go left");
-                                        updateKeys(false, false, true, false, true, false);
-                                    } else {
-                                        Utils.debugLog("Middle of row - Cannot calculate [Multiple > 180]");
-                                        updateKeys(false, false, false, false, false, false);
-                                    }
-                                } else if (!isWalkable(Utils.getLeftBlock()) && isWalkable(Utils.getRightBlock())) {
-                                    if (dx < 0.001 && dz < 0.001) {
-                                        newRow = true;
-                                        lastDirection = direction.RIGHT;
-                                        updateKeys(false, false, false, true, true, false);
-                                    }
-                                } else if (isWalkable(Utils.getLeftBlock()) && !isWalkable(Utils.getRightBlock())) {
-                                    if (dx < 0.001 && dz < 0.001) {
-                                        lastDirection = direction.LEFT;
-                                        updateKeys(false, false, true, false, true, false);
-                                    }
-                                }
-                            }
-
+                                 Utils.hardRotate(playerYaw);
+                                 if (isWalkable(Utils.getRightBlock()) && isWalkable(Utils.getLeftBlock())) {
+                                     if (lastDirection == direction.NONE) {
+                                         Utils.debugFullLog("Middle of row - No direction last tick, recalculating");
+                                         lastDirection = calculateDirection();
+                                     }
+                                     if (newRow) {
+                                         newRow = false;
+                                         mc.thePlayer.sendChatMessage("/setspawn");
+                                     }
+                                     if (lastDirection == direction.RIGHT) {
+                                         Utils.debugLog("Middle of row - Go right");
+                                         updateKeys(false, false, false, true, true, false);
+                                     } else if (lastDirection == direction.LEFT) {
+                                         Utils.debugLog("Middle of row - Go left");
+                                         updateKeys(false, false, true, false, true, false);
+                                     } else {
+                                         Utils.debugLog("Middle of row - Cannot calculate [Multiple > 180]");
+                                         updateKeys(false, false, false, false, false, false);
+                                     }
+                                 } else if (!isWalkable(Utils.getLeftBlock()) && isWalkable(Utils.getRightBlock())) {
+                                     if (!cached && Config.resync) {
+                                         cached = true;
+                                         Utils.ExecuteRunnable(cacheRowAge);
+                                         Utils.ScheduleRunnable(checkDesync, 4, TimeUnit.SECONDS);
+                                     }
+                                     if (dx < 0.001 && dz < 0.001) {
+                                         newRow = true;
+                                         lastDirection = direction.RIGHT;
+                                         updateKeys(false, false, false, true, true, false);
+                                     }
+                                 } else if (isWalkable(Utils.getLeftBlock()) && !isWalkable(Utils.getRightBlock())) {
+                                     cached = false;
+                                     if (dx < 0.001 && dz < 0.001) {
+                                         lastDirection = direction.LEFT;
+                                         updateKeys(false, false, true, false, true, false);
+                                     }
+                                 }
+                             }
                         }
                     }
                 } else {
@@ -1349,6 +1354,7 @@ public class FarmHelper {
         double count = 0;
         do {
             current = mc.theWorld.getBlockState(new BlockPos(pos.getX() + (count * Utils.getUnitX()), pos.getY(), pos.getZ() + (count * Utils.getUnitZ())));
+            Utils.debugFullLog(cropBlockStates.get(Config.CropType).toString() + " " + current.getBlock());
             if (current.getBlock().equals(cropBlockStates.get(Config.CropType))) {
                 Utils.debugFullLog("getAverageAge - current: " + current.getBlock());
                 Utils.debugFullLog("getAverageAge - age: " + current.getValue(cropAgeRefs.get(Config.CropType)));
