@@ -732,6 +732,7 @@ public class FarmHelper {
                                     }
                                 }
                             } else {
+
                                  Utils.hardRotate(playerYaw);
                                  if (isWalkable(Utils.getRightBlock()) && isWalkable(Utils.getLeftBlock())) {
                                      if (lastDirection == direction.NONE) {
@@ -743,7 +744,6 @@ public class FarmHelper {
                                          mc.thePlayer.sendChatMessage("/setspawn");
                                      }
                                      if (lastDirection == direction.RIGHT) {
-                                         newRow = true;
                                          Utils.debugLog("Middle of row - Go right");
                                          updateKeys(false, false, false, true, true, false);
                                      } else if (lastDirection == direction.LEFT) {
@@ -754,12 +754,18 @@ public class FarmHelper {
                                          updateKeys(false, false, false, false, false, false);
                                      }
                                  } else if (!isWalkable(Utils.getLeftBlock()) && isWalkable(Utils.getRightBlock())) {
+                                     if (!cached && Config.resync) {
+                                         cached = true;
+                                         Utils.ExecuteRunnable(cacheRowAge);
+                                         Utils.ScheduleRunnable(checkDesync, 4, TimeUnit.SECONDS);
+                                     }
                                      if (dx < 0.001 && dz < 0.001) {
                                          newRow = true;
                                          lastDirection = direction.RIGHT;
                                          updateKeys(false, false, false, true, true, false);
                                      }
                                  } else if (isWalkable(Utils.getLeftBlock()) && !isWalkable(Utils.getRightBlock())) {
+                                     cached = false;
                                      if (dx < 0.001 && dz < 0.001) {
                                          lastDirection = direction.LEFT;
                                          updateKeys(false, false, true, false, true, false);
@@ -1241,7 +1247,8 @@ public class FarmHelper {
         double count = 0;
         do {
             current = mc.theWorld.getBlockState(new BlockPos(pos.getX() + (count * Utils.getUnitX()), pos.getY(), pos.getZ() + (count * Utils.getUnitZ())));
-            if (current.getBlock() == cropBlockStates.get(Config.CropType)) {
+            Utils.debugFullLog(cropBlockStates.get(Config.CropType).toString() + " " + current.getBlock());
+            if (current.getBlock().equals(cropBlockStates.get(Config.CropType))) {
                 Utils.debugFullLog("getAverageAge - current: " + current.getBlock());
                 Utils.debugFullLog("getAverageAge - age: " + current.getValue(cropAgeRefs.get(Config.CropType)));
                 total += current.getValue(cropAgeRefs.get(Config.CropType));
@@ -1295,7 +1302,6 @@ public class FarmHelper {
     // Yoinked from Yung RIPBOZO
     int bedrockCount() {
         // if (System.currentTimeMillis() % 1000 < 20) {
-        Utils.debugFullLog(String.valueOf(System.currentTimeMillis()));
         int r = 4;
         int count = 0;
         BlockPos playerPos = Minecraft.getMinecraft().thePlayer.getPosition();
