@@ -1,4 +1,4 @@
-package FarmHelper.mixins;
+package com.jelly.FarmHelper.mixins;
 
 
 import net.minecraft.block.Block;

@@ -1,4 +1,4 @@
-package FarmHelper.gui.buttons;
+package com.jelly.FarmHelper.gui.buttons;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;

@@ -1,6 +1,6 @@
-package FarmHelper.mixins;
+package com.jelly.FarmHelper.mixins;
 
-import FarmHelper.config.Config;
+import com.jelly.FarmHelper.config.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiScreen;

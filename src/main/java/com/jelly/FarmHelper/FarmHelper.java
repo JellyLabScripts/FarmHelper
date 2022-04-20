@@ -1,13 +1,13 @@
-package FarmHelper;
+package com.jelly.FarmHelper;
 
-import FarmHelper.config.AngleEnum;
-import FarmHelper.config.Config;
-import FarmHelper.config.CropEnum;
-import FarmHelper.config.FarmEnum;
-import FarmHelper.gui.GUI;
-import FarmHelper.gui.GuiSettings;
-import FarmHelper.utils.DiscordWebhook;
-import FarmHelper.utils.Utils;
+import com.jelly.FarmHelper.config.AngleEnum;
+import com.jelly.FarmHelper.config.Config;
+import com.jelly.FarmHelper.config.CropEnum;
+import com.jelly.FarmHelper.config.FarmEnum;
+import com.jelly.FarmHelper.gui.GUI;
+import com.jelly.FarmHelper.gui.GuiSettings;
+import com.jelly.FarmHelper.utils.DiscordWebhook;
+import com.jelly.FarmHelper.utils.Utils;
 import net.minecraft.block.*;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.IBlockState;
@@ -20,11 +20,13 @@ import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerChest;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.util.Vec3i;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.GuiOpenEvent;
@@ -51,9 +53,9 @@ import java.util.regex.Pattern;
 
 @Mod(modid = FarmHelper.MODID, name = FarmHelper.NAME, version = FarmHelper.VERSION)
 public class FarmHelper {
-    public static final String MODID = "nwmath";
+    public static final String MODID = "farmhelper";
     public static final String NAME = "Farm Helper";
-    public static final String VERSION = "1.0";
+    public static final String VERSION = "3.0";
 
     Minecraft mc = Minecraft.getMinecraft();
 
@@ -98,6 +100,11 @@ public class FarmHelper {
     public static long lastStuck;
     public static long stuckCooldown;
     public static long startTime;
+    public static boolean godPot;
+    public static boolean cookie;
+    public static boolean dropping;
+    public static IChatComponent header;
+    public static IChatComponent footer;
     public static BlockPos cachePos;
     public static location currentLocation;
     public static direction lastDirection;
@@ -114,6 +121,7 @@ public class FarmHelper {
     public int keybindUseItem = mc.gameSettings.keyBindUseItem.getKeyCode();
     public int keyBindSpace = mc.gameSettings.keyBindJump.getKeyCode();
     public int keyBindShift = mc.gameSettings.keyBindSneak.getKeyCode();
+    public int dropStack = Keyboard.KEY_Z;
     static KeyBinding[] customKeyBinds = new KeyBinding[2];
 
     public double deltaX;
@@ -122,6 +130,9 @@ public class FarmHelper {
     public double beforeX;
     public double beforeY;
     public double beforeZ;
+
+    private static final Pattern PATTERN_ACTIVE_EFFECTS = Pattern.compile(
+        "\u00a7r\u00a7r\u00a77You have a \u00a7r\u00a7cGod Potion \u00a7r\u00a77active! \u00a7r\u00a7d([0-9]*?:?[0-9]*?:?[0-9]*)\u00a7r");
 
     void initialize() {
         inTrenches = true;
@@ -132,7 +143,7 @@ public class FarmHelper {
         pushedOffSide = false;
         pushedOffFront = false;
         teleporting = false;
-        newRow = false;
+        newRow = true;
         stuck = false;
         cached = false;
         crouched = true;
@@ -141,6 +152,8 @@ public class FarmHelper {
         caged = false;
         hubCaged = false;
         bazaarLag = false;
+        godPot = true;
+        cookie = true;
         jacobEnd = System.currentTimeMillis();
         startCounter = getCounter();
         startTime = System.currentTimeMillis();
@@ -215,8 +228,8 @@ public class FarmHelper {
 
             Utils.drawStringWithShadow(
                 EnumChatFormatting.DARK_RED + "« " + EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper" + EnumChatFormatting.DARK_RED + " »",
-                    5, startY, 1.2f, -1);
-            Utils.drawString(EnumChatFormatting.GRAY + Config.FarmType.name(),  120, (int)(startY) + 3, 0.8f, -1);
+                5, startY, 1.2f, -1);
+            Utils.drawString(EnumChatFormatting.GRAY + Config.FarmType.name(), 120, (int) (startY) + 3, 0.8f, -1);
             Utils.drawInfo("Total Profit", "$" + Utils.formatNumber(getProfit()), startY + gapY);
             Utils.drawInfo("Profit / hr", "$" + Utils.formatNumber((float) getHourProfit(getProfit())), startY + gapY * 2);
             switch (Config.CropType) {
@@ -386,6 +399,9 @@ public class FarmHelper {
                 setStuckCooldown(3);
                 Utils.ScheduleRunnable(crouchReset, 500, TimeUnit.MILLISECONDS);
             } else if (currentLocation == location.ISLAND) {
+                if (dropping) {
+                    return;
+                }
                 if (!caged && bedrockCount() > 1) {
                     Utils.scriptLog("Bedrock cage detected");
                     Utils.webhookLog("Bedrock cage detected | RIPBOZO -1 acc");
@@ -459,15 +475,17 @@ public class FarmHelper {
                         mc.thePlayer.rotationPitch = (float) 2.8;
                     }
                     // Not falling
-                    if(Config.FarmType == FarmEnum.LAYERED) {
+                    if (Config.FarmType == FarmEnum.LAYERED) {
                         if (dy == 0) {
                             // If on solid block
                             if ((mc.thePlayer.posY % 1) == 0) {
                                 Utils.hardRotate(playerYaw);
                                 // Cannot move forwards or backwards
                                 if (!isWalkable(Utils.getFrontBlock()) && !isWalkable(Utils.getBackBlock())) {
+                                    cached = false;
                                     if (newRow) {
                                         newRow = false;
+                                        Utils.ExecuteRunnable(checkFooter);
                                         mc.thePlayer.sendChatMessage("/setspawn");
                                     }
                                     if (deltaX < 1 && deltaZ < 1) {
@@ -656,10 +674,10 @@ public class FarmHelper {
                                             }
                                         } else if (dx < 0.001 && dz < 0.001) {
                                             if (mc.gameSettings.keyBindForward.isKeyDown()) {
-
                                                 Utils.debugFullLog("End of row - End of col - Edge - Pushing off");
                                                 pushedOffFront = true;
                                                 updateKeys(false, true, false, false, false, true);
+                                                Utils.ExecuteRunnable(stackSlot);
                                             } else {
                                                 Utils.debugFullLog("End of row - End of col - Maybe not edge - Going forwards");
                                                 updateKeys(true, false, false, false, true, false);
@@ -711,9 +729,9 @@ public class FarmHelper {
                             // Potentially make it send false all keys for this case
                             Utils.debugLog("Unknown case - id: 2");
                         }
-                    } else if(Config.FarmType == FarmEnum.VERTICAL){
-                        if(dy == 0){
-                             if ((mc.thePlayer.posY % 1) == 0.8125) {//standing on tp pad
+                    } else if (Config.FarmType == FarmEnum.VERTICAL) {
+                        if (dy == 0) {
+                            if ((mc.thePlayer.posY % 1) == 0.8125) {//standing on tp pad
                                 lastDirection = direction.NONE;
                                 if (!isWalkable(Utils.getFrontBlock(0.1875))) {
                                     // Cannot go left or right
@@ -732,39 +750,39 @@ public class FarmHelper {
                                     }
                                 }
                             } else {
-                                 Utils.hardRotate(playerYaw);
-                                 if (isWalkable(Utils.getRightBlock()) && isWalkable(Utils.getLeftBlock())) {
-                                     if (lastDirection == direction.NONE) {
-                                         Utils.debugFullLog("Middle of row - No direction last tick, recalculating");
-                                         lastDirection = calculateDirection();
-                                     }
-                                     if (newRow) {
-                                         newRow = false;
-                                         mc.thePlayer.sendChatMessage("/setspawn");
-                                     }
-                                     if (lastDirection == direction.RIGHT) {
-                                         Utils.debugLog("Middle of row - Go right");
-                                         updateKeys(false, false, false, true, true, false);
-                                     } else if (lastDirection == direction.LEFT) {
-                                         Utils.debugLog("Middle of row - Go left");
-                                         updateKeys(false, false, true, false, true, false);
-                                     } else {
-                                         Utils.debugLog("Middle of row - Cannot calculate [Multiple > 180]");
-                                         updateKeys(false, false, false, false, false, false);
-                                     }
-                                 } else if (!isWalkable(Utils.getLeftBlock()) && isWalkable(Utils.getRightBlock())) {
-                                     if (dx < 0.001 && dz < 0.001) {
-                                         newRow = true;
-                                         lastDirection = direction.RIGHT;
-                                         updateKeys(false, false, false, true, true, false);
-                                     }
-                                 } else if (isWalkable(Utils.getLeftBlock()) && !isWalkable(Utils.getRightBlock())) {
-                                     if (dx < 0.001 && dz < 0.001) {
-                                         lastDirection = direction.LEFT;
-                                         updateKeys(false, false, true, false, true, false);
-                                     }
-                                 }
-                             }
+                                Utils.hardRotate(playerYaw);
+                                if (isWalkable(Utils.getRightBlock()) && isWalkable(Utils.getLeftBlock())) {
+                                    if (lastDirection == direction.NONE) {
+                                        Utils.debugFullLog("Middle of row - No direction last tick, recalculating");
+                                        lastDirection = calculateDirection();
+                                    }
+                                    if (newRow) {
+                                        newRow = false;
+                                        mc.thePlayer.sendChatMessage("/setspawn");
+                                    }
+                                    if (lastDirection == direction.RIGHT) {
+                                        Utils.debugLog("Middle of row - Go right");
+                                        updateKeys(false, false, false, true, true, false);
+                                    } else if (lastDirection == direction.LEFT) {
+                                        Utils.debugLog("Middle of row - Go left");
+                                        updateKeys(false, false, true, false, true, false);
+                                    } else {
+                                        Utils.debugLog("Middle of row - Cannot calculate [Multiple > 180]");
+                                        updateKeys(false, false, false, false, false, false);
+                                    }
+                                } else if (!isWalkable(Utils.getLeftBlock()) && isWalkable(Utils.getRightBlock())) {
+                                    if (dx < 0.001 && dz < 0.001) {
+                                        newRow = true;
+                                        lastDirection = direction.RIGHT;
+                                        updateKeys(false, false, false, true, true, false);
+                                    }
+                                } else if (isWalkable(Utils.getLeftBlock()) && !isWalkable(Utils.getRightBlock())) {
+                                    if (dx < 0.001 && dz < 0.001) {
+                                        lastDirection = direction.LEFT;
+                                        updateKeys(false, false, true, false, true, false);
+                                    }
+                                }
+                            }
 
                         }
                     }
@@ -884,7 +902,8 @@ public class FarmHelper {
                 mc.thePlayer.posZ + (i * Utils.getUnitZ())
             );
             Block checkBlock = mc.theWorld.getBlockState(pos).getBlock();
-            if (checkBlock == cropBlockStates.get(Config.CropType)) {
+            Utils.debugLog("checking ------------ " + checkBlock);
+            if (checkBlock.equals(cropBlockStates.get(Config.CropType))) {
                 Utils.debugFullLog("cacheRowAge - Found row - Calculating age - Pos: " + pos);
                 cachePos = pos;
                 cacheAverageAge = getAverageAge(pos);
@@ -899,6 +918,19 @@ public class FarmHelper {
 
     Runnable checkDesync = () -> {
         Utils.debugFullLog("checkDesync - Enter");
+        while (dropping) {
+            Utils.debugLog("checkDesync - Still dropping items, waiting");
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         double lowestAverage = 4;
         double range = 0.25;
         if (Config.CropType == CropEnum.NETHERWART) {
@@ -995,40 +1027,123 @@ public class FarmHelper {
         }
     };
 
-//    Runnable hubCage = () -> {
-//        try {
-//            Utils.hardRotate(-165);
-//            Thread.sleep(600);
-//            updateKeys(true, false, false, false, false, false);
-//            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), true);
-//            while (Utils.getBelowBlock() != Blocks.planks) {
-//                Utils.debugFullLog("Running to election house");
-//            }
-//            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), false);
-//            updateKeys(false, false, false, false, false, false);
-//            Utils.hardRotate(180);
-//            Thread.sleep(300);
-//            updateKeys(true, false, false, false, false, false);
-//            Thread.sleep(3000);
-//            updateKeys(false, false, false, false, false, false);
-//            Thread.sleep(3000);
-//            mc.thePlayer.sendChatMessage("/is");
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//    };
+    Runnable checkFooter = () -> {
+        Utils.debugFullLog("Looking for godpot/cookie");
+        boolean foundGodPot = false;
+        boolean foundCookieText = false;
+        if (footer != null) {
+            String formatted = footer.getFormattedText();
+            for (String line : formatted.split("\n")) {
+                Matcher activeEffectsMatcher = PATTERN_ACTIVE_EFFECTS.matcher(line);
+                if (activeEffectsMatcher.matches()) {
+                    foundGodPot = true;
+                } else if (line.contains("\u00a7d\u00a7lCookie Buff")) {
+                    foundCookieText = true;
+                } else if (foundCookieText && line.contains("Not active! Obtain")) {
+                    Utils.debugLog("Cookie buff not active!");
+                    foundCookieText = false;
+                    cookie = false;
+                } else if (foundCookieText) {
+                    Utils.debugLog("Cookie active!");
+                    foundCookieText = false;
+                }
+            }
+            if (!foundGodPot) {
+                Utils.debugLog("God pot buff not active!");
+                godPot = false;
+            } else {
+                Utils.debugLog("God pot buff active!");
+            }
+        }
+    };
+
+    Runnable stackSlot = () -> {
+        dropping = true;
+        boolean right;
+        int hoeSlot = mc.thePlayer.inventory.currentItem;
+        try {
+            int slotID = -1;
+            Minecraft mc = Minecraft.getMinecraft();
+            mc.displayGuiScreen(new GuiInventory(mc.thePlayer));
+            Thread.sleep(200);
+            Utils.debugLog("waiting inv");
+            while (!(mc.currentScreen instanceof GuiInventory) && Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots != null) {
+                Thread.sleep(50);
+            }
+            Utils.debugLog("found inv");
+            Thread.sleep(500);
+            for (Slot slot : Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots) {
+                if (slot != null) {
+                    if (slot.getStack() != null) {
+                        try {
+                            if (slot.getStack().getDisplayName().contains("Stone") && slotID == -1) {
+                                Utils.debugLog("initial slot: " + slot.slotNumber);
+                                slotID = slot.slotNumber;
+                                break;
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+            }
+            Thread.sleep(500);
+            mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, slotID, 0, 0, mc.thePlayer);
+            Utils.debugLog("picked item");
+            Thread.sleep(400);
+            mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, slotID, 0, 6, mc.thePlayer);
+            Utils.debugLog("stacked item item");
+            Thread.sleep(400);
+            mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, 35 + 7, 0, 0, mc.thePlayer);
+            Utils.debugLog("put back item");
+            Thread.sleep(300);
+            if (isWalkable(Utils.getRightBlock())) {
+                right = true;
+                Utils.smoothRotateAnticlockwise(90, 2.5);
+            } else {
+                right = false;
+                Utils.smoothRotateClockwise(90, 2.5);
+            }
+            mc.thePlayer.closeScreen();
+            Thread.sleep(400);
+            mc.thePlayer.inventory.currentItem = -1 + 7;
+            Thread.sleep(400);
+            mc.thePlayer.dropOneItem(true);
+            Utils.debugLog("dropped");
+            Thread.sleep(300);
+            mc.thePlayer.inventory.currentItem = hoeSlot;
+            if (right) {
+                Utils.smoothRotateClockwise(90, 2.5);
+                Thread.sleep(200);
+                updateKeys(false, false, false, true, true, false);
+            } else {
+                Utils.smoothRotateAnticlockwise(90, 2.5);
+                Thread.sleep(200);
+                updateKeys(false, false, false, true, true, false);
+            }
+            deltaX = 1000;
+            deltaY = 1000;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        dropping = false;
+        setStuckCooldown(4);
+    };
+
+    public static void goToBlock(int x, int z) {
+        new Thread(() -> {
+            Minecraft mc = Minecraft.getMinecraft();
+            double yaw;
+            double xdiff = x - mc.thePlayer.posX - 0.5;
+            double zdiff = z - mc.thePlayer.posZ - 0.5;
+            double targetYaw = ((270 + Math.toDegrees(Math.atan2(zdiff, xdiff))) % 360);
+            Utils.debugLog("Calculated yaw: " + targetYaw);
+//            if (Math.abs())
+        }).start();
+    }
 
     void updateKeys(boolean wBool, boolean sBool, boolean aBool, boolean dBool, boolean atkBool, boolean shiftBool) {
-        // Commented due to direction push back interfering with last direction
-        // if (aBool) {
-        //     lastDirection = direction.LEFT;
-        // }
-        // else if (dBool) {
-        //     lastDirection = direction.RIGHT;
-        // }
-        // else {
-        //     lastDirection = direction.NONE;
-        // }
         KeyBinding.setKeyBindState(keybindW, wBool);
         KeyBinding.setKeyBindState(keybindS, sBool);
         KeyBinding.setKeyBindState(keybindA, aBool);
@@ -1064,12 +1179,6 @@ public class FarmHelper {
     }
 
     public static float getHourProfit(int total) {
-//        double runtime = ((float)System.currentTimeMillis() - (float)startTime) / (1000 * 60 * 60);
-//        if (runtime > 0) {
-//            return (double)total / runtime;
-//        }
-//        return 0;
-
         if (TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime) > 0) {
             return 3600f * total / TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime);
         }
@@ -1144,7 +1253,7 @@ public class FarmHelper {
     }
 
     direction calculateDirection() {
-        if(Config.FarmType == FarmEnum.LAYERED) {
+        if (Config.FarmType == FarmEnum.LAYERED) {
             for (int i = 1; i < 180; i++) {
                 if (!isWalkable(Utils.getRightBlock(0, i))) {
                     if (isWalkable(Utils.getRightColBlock(i - 1))) {
@@ -1168,7 +1277,7 @@ public class FarmHelper {
                 if (isWalkable(Utils.getBlockAround(i, 0, -1))) {
                     return direction.RIGHT;
                 }
-                if(!isWalkable(Utils.getBlockAround(i, 0, 0)))
+                if (!isWalkable(Utils.getBlockAround(i, 0, 0)))
                     break;
 
             }
@@ -1176,7 +1285,7 @@ public class FarmHelper {
                 if (isWalkable(Utils.getBlockAround(i, 0, -1))) {
                     return direction.LEFT;
                 }
-                if(!isWalkable(Utils.getBlockAround(i, 0, 0)))
+                if (!isWalkable(Utils.getBlockAround(i, 0, 0)))
                     break;
 
             }
@@ -1240,7 +1349,7 @@ public class FarmHelper {
         double count = 0;
         do {
             current = mc.theWorld.getBlockState(new BlockPos(pos.getX() + (count * Utils.getUnitX()), pos.getY(), pos.getZ() + (count * Utils.getUnitZ())));
-            if (current.getBlock() == cropBlockStates.get(Config.CropType)) {
+            if (current.getBlock().equals(cropBlockStates.get(Config.CropType))) {
                 Utils.debugFullLog("getAverageAge - current: " + current.getBlock());
                 Utils.debugFullLog("getAverageAge - age: " + current.getValue(cropAgeRefs.get(Config.CropType)));
                 total += current.getValue(cropAgeRefs.get(Config.CropType));
@@ -1294,7 +1403,6 @@ public class FarmHelper {
     // Yoinked from Yung RIPBOZO
     int bedrockCount() {
         // if (System.currentTimeMillis() % 1000 < 20) {
-        Utils.debugFullLog(String.valueOf(System.currentTimeMillis()));
         int r = 4;
         int count = 0;
         BlockPos playerPos = Minecraft.getMinecraft().thePlayer.getPosition();

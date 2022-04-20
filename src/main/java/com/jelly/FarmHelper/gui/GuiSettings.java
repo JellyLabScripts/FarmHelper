@@ -1,8 +1,8 @@
-package FarmHelper.gui;
+package com.jelly.FarmHelper.gui;
 
-import FarmHelper.config.Config;
-import FarmHelper.gui.buttons.GuiCustomSwitchButton;
-import FarmHelper.utils.Utils;
+import com.jelly.FarmHelper.config.Config;
+import com.jelly.FarmHelper.gui.buttons.GuiCustomSwitchButton;
+import com.jelly.FarmHelper.utils.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;

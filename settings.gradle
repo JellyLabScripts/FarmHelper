@@ -1,0 +1,14 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven {
+            name 'JitPack'
+            url 'https://jitpack.io'
+        }
+        maven {
+            name 'Minecraft Forge'
+            url 'https://maven.minecraftforge.net/'
+        }
+    }
+}
+rootProject.name = 'FarmHelper'

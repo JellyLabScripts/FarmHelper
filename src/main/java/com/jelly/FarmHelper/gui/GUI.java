@@ -1,11 +1,11 @@
-package FarmHelper.gui;
+package com.jelly.FarmHelper.gui;
 
-import FarmHelper.FarmHelper;
-import FarmHelper.config.Config;
-import FarmHelper.config.CropEnum;
-import FarmHelper.config.FarmEnum;
-import FarmHelper.gui.buttons.GuiBetterButton;
-import FarmHelper.gui.buttons.GuiCustomButton;
+import com.jelly.FarmHelper.FarmHelper;
+import com.jelly.FarmHelper.config.Config;
+import com.jelly.FarmHelper.config.CropEnum;
+import com.jelly.FarmHelper.config.FarmEnum;
+import com.jelly.FarmHelper.gui.buttons.GuiBetterButton;
+import com.jelly.FarmHelper.gui.buttons.GuiCustomButton;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
@@ -100,6 +100,7 @@ public class GUI extends GuiScreen{
         }
         if (button.id == 6) {
             FarmHelper.profitGUI = !FarmHelper.profitGUI;
+//            FarmHelper.goToBlock(4, -95);
         }
         if (button.id == 7) {
             Config.FarmType = FarmEnum.values()[1 - Config.FarmType.ordinal()];

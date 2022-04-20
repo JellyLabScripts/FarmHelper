@@ -1,4 +1,4 @@
-package FarmHelper.config;
+package com.jelly.FarmHelper.config;
 
 public enum AngleEnum {
     A0,

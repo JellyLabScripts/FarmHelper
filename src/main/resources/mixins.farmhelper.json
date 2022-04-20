@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "compatibilityLevel": "JAVA_8",
+  "package": "com.jelly.FarmHelper.mixins",
+  "refmap": "mixins.farmhelper.refmap.json",
+  "mixins": [
+    "MixinNetHandlerPlayClient"
+  ]
+}

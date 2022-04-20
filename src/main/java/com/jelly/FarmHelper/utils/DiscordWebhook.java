@@ -1,4 +1,4 @@
-package FarmHelper.utils;
+package com.jelly.FarmHelper.utils;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.awt.*;

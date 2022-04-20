@@ -1,7 +1,7 @@
-package FarmHelper.gui.buttons;
+package com.jelly.FarmHelper.gui.buttons;
 
-import FarmHelper.gui.GuiSettings;
-import FarmHelper.utils.Utils;
+import com.jelly.FarmHelper.gui.GuiSettings;
+import com.jelly.FarmHelper.utils.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;

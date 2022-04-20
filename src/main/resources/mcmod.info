@@ -1,14 +1,14 @@
 [
 {
-  "modid": "nwmath",
+  "modid": "farmhelper",
   "name": "Farm Helper",
-  "description": "Example placeholder mod.",
+  "description": "A mod that helps with stonks",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",
   "updateUrl": "",
-  "authorList": ["ExampleDude"],
-  "credits": "The Forge and FML guys, for making this example",
+  "authorList": ["Jelly", "Polycrylate"],
+  "credits": "",
   "logoFile": "",
   "screenshots": [],
   "dependencies": []

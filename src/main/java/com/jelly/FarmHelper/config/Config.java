@@ -1,4 +1,4 @@
-package FarmHelper.config;
+package com.jelly.FarmHelper.config;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

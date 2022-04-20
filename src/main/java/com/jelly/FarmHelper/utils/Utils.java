@@ -1,8 +1,8 @@
-package FarmHelper.utils;
+package com.jelly.FarmHelper.utils;
 
-import FarmHelper.FarmHelper;
-import FarmHelper.config.AngleEnum;
-import FarmHelper.config.Config;
+import com.jelly.FarmHelper.FarmHelper;
+import com.jelly.FarmHelper.config.AngleEnum;
+import com.jelly.FarmHelper.config.Config;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import net.minecraft.block.Block;
@@ -34,17 +34,17 @@ public class Utils {
     private static long statusMsgTime = -1;
 
     public static void drawString(String text, int x, int y, float size, int color) {
-        GlStateManager.scale(size,size,size);
-        float mSize = (float)Math.pow(size,-1);
-        Minecraft.getMinecraft().fontRendererObj.drawString(text,Math.round(x / size),Math.round(y / size),color);
-        GlStateManager.scale(mSize,mSize,mSize);
+        GlStateManager.scale(size, size, size);
+        float mSize = (float) Math.pow(size, -1);
+        Minecraft.getMinecraft().fontRendererObj.drawString(text, Math.round(x / size), Math.round(y / size), color);
+        GlStateManager.scale(mSize, mSize, mSize);
     }
 
     public static void drawStringWithShadow(String text, int x, int y, float size, int color) {
-        GlStateManager.scale(size,size,size);
-        float mSize = (float)Math.pow(size,-1);
-        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(text,Math.round(x / size),Math.round(y / size),color);
-        GlStateManager.scale(mSize,mSize,mSize);
+        GlStateManager.scale(size, size, size);
+        float mSize = (float) Math.pow(size, -1);
+        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(text, Math.round(x / size), Math.round(y / size), color);
+        GlStateManager.scale(mSize, mSize, mSize);
     }
 
     public static String formatNumber(int number) {
@@ -59,24 +59,24 @@ public class Utils {
 
     public static void hardRotate(float yaw) {
         Minecraft mc = Minecraft.getMinecraft();
-        if(Math.abs(mc.thePlayer.rotationYaw - yaw) < 0.2f) {
+        if (Math.abs(mc.thePlayer.rotationYaw - yaw) < 0.2f) {
             mc.thePlayer.rotationYaw = yaw;
             return;
         }
-        while(mc.thePlayer.rotationYaw > yaw) {
+        while (mc.thePlayer.rotationYaw > yaw) {
             mc.thePlayer.rotationYaw -= 0.1f;
         }
-        while(mc.thePlayer.rotationYaw < yaw) {
+        while (mc.thePlayer.rotationYaw < yaw) {
             mc.thePlayer.rotationYaw += 0.1f;
 
         }
     }
 
-    public static boolean hasSellItemInInventory(){
-        for(Slot slot : Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots) {
+    public static boolean hasSellItemInInventory() {
+        for (Slot slot : Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots) {
             if (slot != null) {
                 try {
-                    switch(Config.CropType) {
+                    switch (Config.CropType) {
                         case WHEAT:
                             if (slot.getStack().getDisplayName().contains("Tightly-Tied Hay Bale"))
                                 return true;
@@ -84,25 +84,26 @@ public class Utils {
                             if (slot.getStack().getDisplayName().contains("Enchanted Carrot"))
                                 return true;
                         case POTATO:
-                            if(slot.getStack().getDisplayName().contains("Enchanted Baked Potato"))
+                            if (slot.getStack().getDisplayName().contains("Enchanted Baked Potato"))
                                 return true;
                         case NETHERWART:
-                            if(slot.getStack().getDisplayName().contains("Mutant Nether Wart"))
+                            if (slot.getStack().getDisplayName().contains("Mutant Nether Wart"))
                                 return true;
                     }
-                }catch(Exception e){
+                } catch (Exception e) {
 
                 }
             }
         }
         return false;
     }
+
     public static int getFirstSlotWithSellItem() {
         for (Slot slot : Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots) {
             if (slot != null) {
                 if (slot.getStack() != null) {
                     try {
-                        switch(Config.CropType) {
+                        switch (Config.CropType) {
                             case WHEAT:
                                 if (slot.getStack().getDisplayName().contains("Tightly-Tied Hay Bale"))
                                     return slot.slotNumber;
@@ -116,7 +117,7 @@ public class Utils {
                                 if (slot.getStack().getDisplayName().contains("Mutant Nether Wart"))
                                     return slot.slotNumber;
                         }
-                    } catch(Exception e) {
+                    } catch (Exception e) {
 
                     }
                 }
@@ -124,8 +125,7 @@ public class Utils {
         }
         return 0;
     }
-
-
+    
     public static void drawHorizontalLine(int startX, int endX, int y, int color) {
         if (endX < startX) {
             int i = startX;
@@ -134,6 +134,7 @@ public class Utils {
         }
         Gui.drawRect(startX, y, endX + 1, y + 1, color);
     }
+
     public static void drawVerticalLine(int x, int startY, int endY, int color) {
         if (endY < startY) {
             int i = startY;
@@ -143,51 +144,56 @@ public class Utils {
         Gui.drawRect(x, startY + 1, x + 1, endY, color);
     }
 
-    public static float get360RotationYaw(){
-        return Minecraft.getMinecraft().thePlayer.rotationYaw > 0?
-                (Minecraft.getMinecraft().thePlayer.rotationYaw % 360) :
-                (Minecraft.getMinecraft().thePlayer.rotationYaw < 360f ? 360 - (-Minecraft.getMinecraft().thePlayer.rotationYaw % 360)  :  360 + Minecraft.getMinecraft().thePlayer.rotationYaw);
+    public static float get360RotationYaw() {
+        return Minecraft.getMinecraft().thePlayer.rotationYaw > 0 ?
+            (Minecraft.getMinecraft().thePlayer.rotationYaw % 360) :
+            (Minecraft.getMinecraft().thePlayer.rotationYaw < 360f ? 360 - (-Minecraft.getMinecraft().thePlayer.rotationYaw % 360) : 360 + Minecraft.getMinecraft().thePlayer.rotationYaw);
     }
+
     public static float get360RotationYaw(float yaw) {
         return yaw > 0 ?
-                (yaw % 360) :
-                (yaw < 360f ? 360 - (-yaw % 360)  :  360 + yaw);
+            (yaw % 360) :
+            (yaw < 360f ? 360 - (-yaw % 360) : 360 + yaw);
     }
-    static int getOppositeAngle(int angle){
+
+    static int getOppositeAngle(int angle) {
         return (angle < 180) ? angle + 180 : angle - 180;
     }
-    static boolean shouldRotateClockwise(int targetYaw360, int initialYaw360){
+
+    static boolean shouldRotateClockwise(int targetYaw360, int initialYaw360) {
         return targetYaw360 - initialYaw360 > 0 ?
-                targetYaw360 - initialYaw360 <= 180 : targetYaw360 - initialYaw360 < -180;
+            targetYaw360 - initialYaw360 <= 180 : targetYaw360 - initialYaw360 < -180;
     }
-    public static void smoothRotateTo(final int rotation360){
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (get360RotationYaw() != rotation360) {
-                        if(Math.abs(get360RotationYaw() - rotation360) < 1f) {
-                            Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw + Math.abs(get360RotationYaw() - rotation360));
-                            return;
-                        }
-                        Minecraft.getMinecraft().thePlayer.rotationYaw += 0.3f + nextInt(3)/10.0f;
-                        try {
-                            Thread.sleep(1);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+
+    public static void smoothRotateTo(final int rotation360) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (get360RotationYaw() != rotation360) {
+                    if (Math.abs(get360RotationYaw() - rotation360) < 1f) {
+                        Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw + Math.abs(get360RotationYaw() - rotation360));
+                        return;
+                    }
+                    Minecraft.getMinecraft().thePlayer.rotationYaw += 0.3f + nextInt(3) / 10.0f;
+                    try {
+                        Thread.sleep(1);
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
-            }).start();
+            }
+        }).start();
     }
-    public static void smoothRotateClockwise(final int rotationClockwise360){
+
+    public static void smoothRotateClockwise(final int rotationClockwise360) {
         new Thread(() -> {
             int targetYaw = (Math.round(get360RotationYaw()) + rotationClockwise360) % 360;
             while (get360RotationYaw() != targetYaw) {
-                if(Math.abs(get360RotationYaw() - targetYaw) < 1f) {
+                if (Math.abs(get360RotationYaw() - targetYaw) < 1f) {
                     Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw + Math.abs(get360RotationYaw() - targetYaw));
                     return;
                 }
-                Minecraft.getMinecraft().thePlayer.rotationYaw += 0.3f + nextInt(3)/10.0f;
+                Minecraft.getMinecraft().thePlayer.rotationYaw += 0.3f + nextInt(3) / 10.0f;
                 try {
                     Thread.sleep(1);
                 } catch (Exception e) {
@@ -197,15 +203,16 @@ public class Utils {
 
         }).start();
     }
-    public static void smoothRotateClockwise(final int rotationClockwise360, double speed){
+
+    public static void smoothRotateClockwise(final int rotationClockwise360, double speed) {
         new Thread(() -> {
             int targetYaw = (Math.round(get360RotationYaw()) + rotationClockwise360) % 360;
             while (get360RotationYaw() != targetYaw) {
-                if(Math.abs(get360RotationYaw() - targetYaw) < 1f*speed) {
+                if (Math.abs(get360RotationYaw() - targetYaw) < 1f * speed) {
                     Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw + Math.abs(get360RotationYaw() - targetYaw));
                     return;
                 }
-                Minecraft.getMinecraft().thePlayer.rotationYaw += (0.3f + nextInt(3)/10.0f) * speed;
+                Minecraft.getMinecraft().thePlayer.rotationYaw += (0.3f + nextInt(3) / 10.0f) * speed;
                 try {
                     Thread.sleep(1);
                 } catch (Exception e) {
@@ -215,6 +222,7 @@ public class Utils {
 
         }).start();
     }
+
     public static void sineRotateCW(final int rotationClockwise360, double speed) {
         new Thread(() -> {
             int targetYaw = (Math.round(get360RotationYaw()) + rotationClockwise360) % 360;
@@ -224,7 +232,7 @@ public class Utils {
                     Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw + difference);
                     return;
                 }
-                Minecraft.getMinecraft().thePlayer.rotationYaw += speed * 0.3 * ((difference/rotationClockwise360)+(Math.PI/2));
+                Minecraft.getMinecraft().thePlayer.rotationYaw += speed * 0.3 * ((difference / rotationClockwise360) + (Math.PI / 2));
                 try {
                     Thread.sleep(1);
                 } catch (Exception e) {
@@ -234,7 +242,8 @@ public class Utils {
 
         }).start();
     }
-    public static void smoothRotateAnticlockwise(final int rotationAnticlockwise360){
+
+    public static void smoothRotateAnticlockwise(final int rotationAnticlockwise360) {
         new Thread(() -> {
             int targetYaw = Math.round(get360RotationYaw(get360RotationYaw() - rotationAnticlockwise360));
             while (get360RotationYaw() != targetYaw) {
@@ -242,7 +251,7 @@ public class Utils {
                     Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw - Math.abs(get360RotationYaw() - targetYaw));
                     return;
                 }
-                Minecraft.getMinecraft().thePlayer.rotationYaw -= 0.3f + nextInt(3)/10.0f;
+                Minecraft.getMinecraft().thePlayer.rotationYaw -= 0.3f + nextInt(3) / 10.0f;
                 try {
                     Thread.sleep(1);
                 } catch (Exception e) {
@@ -251,15 +260,16 @@ public class Utils {
             }
         }).start();
     }
-    public static void smoothRotateAnticlockwise(final int rotationAnticlockwise360, double speed){
+
+    public static void smoothRotateAnticlockwise(final int rotationAnticlockwise360, double speed) {
         new Thread(() -> {
             int targetYaw = Math.round(get360RotationYaw(get360RotationYaw() - rotationAnticlockwise360));
             while (get360RotationYaw() != targetYaw) {
-                if (Math.abs(get360RotationYaw() - targetYaw) < 1f*speed) {
+                if (Math.abs(get360RotationYaw() - targetYaw) < 1f * speed) {
                     Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw - Math.abs(get360RotationYaw() - targetYaw));
                     return;
                 }
-                Minecraft.getMinecraft().thePlayer.rotationYaw -= (0.3f + nextInt(3)/10.0f) * speed;
+                Minecraft.getMinecraft().thePlayer.rotationYaw -= (0.3f + nextInt(3) / 10.0f) * speed;
                 try {
                     Thread.sleep(1);
                 } catch (Exception e) {
@@ -268,7 +278,8 @@ public class Utils {
             }
         }).start();
     }
-    public static void sineRotateAWC(final int rotationAnticlockwise360, double speed){
+
+    public static void sineRotateAWC(final int rotationAnticlockwise360, double speed) {
         new Thread(() -> {
             int targetYaw = Math.round(get360RotationYaw(get360RotationYaw() - rotationAnticlockwise360));
             while (get360RotationYaw() != targetYaw) {
@@ -277,7 +288,7 @@ public class Utils {
                     Minecraft.getMinecraft().thePlayer.rotationYaw = Math.round(Minecraft.getMinecraft().thePlayer.rotationYaw - difference);
                     return;
                 }
-                Minecraft.getMinecraft().thePlayer.rotationYaw -= 0.3f + nextInt(3)/10.0f;
+                Minecraft.getMinecraft().thePlayer.rotationYaw -= 0.3f + nextInt(3) / 10.0f;
                 try {
                     Thread.sleep(1);
                 } catch (Exception e) {
@@ -286,18 +297,20 @@ public class Utils {
             }
         }).start();
     }
+
     public static float getActualRotationYaw() { //f3
-        return Minecraft.getMinecraft().thePlayer.rotationYaw > 0?
-                (Minecraft.getMinecraft().thePlayer.rotationYaw % 360 > 180 ? -(180 - (Minecraft.getMinecraft().thePlayer.rotationYaw % 360 - 180)) :  Minecraft.getMinecraft().thePlayer.rotationYaw % 360  ) :
-                (-Minecraft.getMinecraft().thePlayer.rotationYaw % 360 > 180 ? (180 - (-Minecraft.getMinecraft().thePlayer.rotationYaw % 360 - 180))  :  -(-Minecraft.getMinecraft().thePlayer.rotationYaw % 360));
-    }
-    public static float getActualRotationYaw(int yaw){ //f3
-        return yaw > 0?
-                (yaw % 360 > 180 ? -(180 - (yaw % 360 - 180)) :  yaw % 360  ) :
-                (-yaw% 360 > 180 ? (180 - (-yaw % 360 - 180))  :  -(-yaw % 360));
+        return Minecraft.getMinecraft().thePlayer.rotationYaw > 0 ?
+            (Minecraft.getMinecraft().thePlayer.rotationYaw % 360 > 180 ? -(180 - (Minecraft.getMinecraft().thePlayer.rotationYaw % 360 - 180)) : Minecraft.getMinecraft().thePlayer.rotationYaw % 360) :
+            (-Minecraft.getMinecraft().thePlayer.rotationYaw % 360 > 180 ? (180 - (-Minecraft.getMinecraft().thePlayer.rotationYaw % 360 - 180)) : -(-Minecraft.getMinecraft().thePlayer.rotationYaw % 360));
     }
 
-    public static int nextInt(int upperbound){
+    public static float getActualRotationYaw(int yaw) { //f3
+        return yaw > 0 ?
+            (yaw % 360 > 180 ? -(180 - (yaw % 360 - 180)) : yaw % 360) :
+            (-yaw % 360 > 180 ? (180 - (-yaw % 360 - 180)) : -(-yaw % 360));
+    }
+
+    public static int nextInt(int upperbound) {
         Random r = new Random();
         return r.nextInt(upperbound);
     }
@@ -306,120 +319,122 @@ public class Utils {
         double modYaw = (Minecraft.getMinecraft().thePlayer.rotationYaw % 360 + 360) % 360;
         if (modYaw < 45 || modYaw > 315) {
             return 0;
-        }
-        else if (modYaw < 135) {
+        } else if (modYaw < 135) {
             return -1;
-        }
-        else if (modYaw < 225) {
+        } else if (modYaw < 225) {
             return 0;
-        }
-        else {
+        } else {
             return 1;
         }
     }
+
     public static int getUnitZ() {
         double modYaw = (Minecraft.getMinecraft().thePlayer.rotationYaw % 360 + 360) % 360;
         if (modYaw < 45 || modYaw > 315) {
             return 1;
-        }
-        else if (modYaw < 135) {
+        } else if (modYaw < 135) {
             return 0;
-        }
-        else if (modYaw < 225) {
+        } else if (modYaw < 225) {
             return -1;
-        }
-        else {
+        } else {
             return 0;
         }
     }
 
     // Base
-    public static Block getBelowBlock(){
+    public static Block getBelowBlock() {
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-          new BlockPos(
-            mc.thePlayer.posX,
-            mc.thePlayer.posY - 1,
-            mc.thePlayer.posZ
-          )).getBlock());
+            new BlockPos(
+                mc.thePlayer.posX,
+                mc.thePlayer.posY - 1,
+                mc.thePlayer.posZ
+            )).getBlock());
     }
-    public static Block getFrontBlock(){
+
+    public static Block getFrontBlock() {
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-                new BlockPos(
-                  mc.thePlayer.posX + getUnitX(),
-                  mc.thePlayer.posY,
-                  mc.thePlayer.posZ + getUnitZ()
-                )).getBlock());
+            new BlockPos(
+                mc.thePlayer.posX + getUnitX(),
+                mc.thePlayer.posY,
+                mc.thePlayer.posZ + getUnitZ()
+            )).getBlock());
     }
-    public static Block getBackBlock(){
+
+    public static Block getBackBlock() {
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-                new BlockPos(
-                  mc.thePlayer.posX + getUnitX() * -1,
-                  mc.thePlayer.posY,
-                  mc.thePlayer.posZ + getUnitZ() * -1
-                )).getBlock());
+            new BlockPos(
+                mc.thePlayer.posX + getUnitX() * -1,
+                mc.thePlayer.posY,
+                mc.thePlayer.posZ + getUnitZ() * -1
+            )).getBlock());
     }
-    public static Block getRightBlock(){
+
+    public static Block getRightBlock() {
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-          new BlockPos(
-            mc.thePlayer.posX + getUnitZ() * -1,
-            mc.thePlayer.posY,
-            mc.thePlayer.posZ + getUnitX()
-          )).getBlock());
+            new BlockPos(
+                mc.thePlayer.posX + getUnitZ() * -1,
+                mc.thePlayer.posY,
+                mc.thePlayer.posZ + getUnitX()
+            )).getBlock());
     }
-    public static Block getLeftBlock(){
+
+    public static Block getLeftBlock() {
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-          new BlockPos(
-            mc.thePlayer.posX + getUnitZ(),
-            mc.thePlayer.posY,
-            mc.thePlayer.posZ + getUnitX() * -1
-          )).getBlock());
+            new BlockPos(
+                mc.thePlayer.posX + getUnitZ(),
+                mc.thePlayer.posY,
+                mc.thePlayer.posZ + getUnitX() * -1
+            )).getBlock());
     }
 
     // yOffset param
-    public static Block getFrontBlock(double yOffset){
+    public static Block getFrontBlock(double yOffset) {
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-          new BlockPos(
-            mc.thePlayer.posX + getUnitX(),
-            mc.thePlayer.posY + yOffset,
-            mc.thePlayer.posZ + getUnitZ()
-          )).getBlock());
+            new BlockPos(
+                mc.thePlayer.posX + getUnitX(),
+                mc.thePlayer.posY + yOffset,
+                mc.thePlayer.posZ + getUnitZ()
+            )).getBlock());
     }
-    public static Block getBackBlock(double yOffset){
+
+    public static Block getBackBlock(double yOffset) {
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-          new BlockPos(
-            mc.thePlayer.posX + (getUnitX() * -1),
-            mc.thePlayer.posY + yOffset,
-            mc.thePlayer.posZ + (getUnitZ() * -1)
-          )).getBlock());
+            new BlockPos(
+                mc.thePlayer.posX + (getUnitX() * -1),
+                mc.thePlayer.posY + yOffset,
+                mc.thePlayer.posZ + (getUnitZ() * -1)
+            )).getBlock());
     }
-    public static Block getRightBlock(double yOffset){
+
+    public static Block getRightBlock(double yOffset) {
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-          new BlockPos(
-            mc.thePlayer.posX + (getUnitZ() * -1),
-            mc.thePlayer.posY + yOffset,
-            mc.thePlayer.posZ + getUnitX()
-          )).getBlock());
+            new BlockPos(
+                mc.thePlayer.posX + (getUnitZ() * -1),
+                mc.thePlayer.posY + yOffset,
+                mc.thePlayer.posZ + getUnitX()
+            )).getBlock());
     }
-    public static Block getLeftBlock(double yOffset){
+
+    public static Block getLeftBlock(double yOffset) {
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-          new BlockPos(
-            mc.thePlayer.posX + getUnitZ(),
-            mc.thePlayer.posY + yOffset,
-            mc.thePlayer.posZ + (getUnitX() * -1)
-          )).getBlock());
+            new BlockPos(
+                mc.thePlayer.posX + getUnitZ(),
+                mc.thePlayer.posY + yOffset,
+                mc.thePlayer.posZ + (getUnitX() * -1)
+            )).getBlock());
     }
 
     // Multiple extension
-    public static Block getFrontBlock(double yOffset, int multiple){
+    public static Block getFrontBlock(double yOffset, int multiple) {
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
             new BlockPos(
@@ -428,48 +443,51 @@ public class Utils {
                 mc.thePlayer.posZ + (getUnitZ() * multiple)
             )).getBlock());
     }
+
     public static Block getRightBlock(double yOffset, int multiple) {
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-          new BlockPos(
-            mc.thePlayer.posX + (getUnitZ() * -1 * multiple),
-            mc.thePlayer.posY + yOffset,
-            mc.thePlayer.posZ + (getUnitX() * multiple)
-          )).getBlock());
+            new BlockPos(
+                mc.thePlayer.posX + (getUnitZ() * -1 * multiple),
+                mc.thePlayer.posY + yOffset,
+                mc.thePlayer.posZ + (getUnitX() * multiple)
+            )).getBlock());
     }
-    public static Block getLeftBlock(double yOffset, int multiple){
+
+    public static Block getLeftBlock(double yOffset, int multiple) {
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-          new BlockPos(
-            mc.thePlayer.posX + (getUnitZ() * multiple),
-            mc.thePlayer.posY + yOffset,
-            mc.thePlayer.posZ + (getUnitX() * -1 * multiple)
-          )).getBlock());
+            new BlockPos(
+                mc.thePlayer.posX + (getUnitZ() * multiple),
+                mc.thePlayer.posY + yOffset,
+                mc.thePlayer.posZ + (getUnitX() * -1 * multiple)
+            )).getBlock());
     }
 
     // Get block state of col block from right of row
     public static Block getRightColBlock(int multiple) {
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-          new BlockPos(
-            mc.thePlayer.posX + (getUnitZ() * -1 * multiple) + getUnitX(),
-            mc.thePlayer.posY,
-            mc.thePlayer.posZ + (getUnitX() * multiple) + getUnitZ()
-          )).getBlock());
+            new BlockPos(
+                mc.thePlayer.posX + (getUnitZ() * -1 * multiple) + getUnitX(),
+                mc.thePlayer.posY,
+                mc.thePlayer.posZ + (getUnitX() * multiple) + getUnitZ()
+            )).getBlock());
     }
-    public static Block getLeftColBlock(int multiple){
+
+    public static Block getLeftColBlock(int multiple) {
         Minecraft mc = Minecraft.getMinecraft();
         return (mc.theWorld.getBlockState(
-          new BlockPos(
-            mc.thePlayer.posX + (getUnitZ() * multiple) + getUnitX(),
-            mc.thePlayer.posY,
-            mc.thePlayer.posZ + (getUnitX() * -1 * multiple) + getUnitZ()
-          )).getBlock());
+            new BlockPos(
+                mc.thePlayer.posX + (getUnitZ() * multiple) + getUnitX(),
+                mc.thePlayer.posY,
+                mc.thePlayer.posZ + (getUnitX() * -1 * multiple) + getUnitZ()
+            )).getBlock());
     }
 
     public static void drawInfo(String title, String value, int y) {
         Utils.drawStringWithShadow(
-            EnumChatFormatting.GRAY + "" + EnumChatFormatting.BOLD + title + EnumChatFormatting.DARK_GRAY +  " » " + EnumChatFormatting.RED + value, 5, y, 1.1f, -1);
+            EnumChatFormatting.GRAY + "" + EnumChatFormatting.BOLD + title + EnumChatFormatting.DARK_GRAY + " » " + EnumChatFormatting.RED + value, 5, y, 1.1f, -1);
     }
 
     public static void sendLog(ChatComponentText chat) {
@@ -504,11 +522,11 @@ public class Utils {
     }
 
     public static String smallURL() {
-       if (Config.webhookUrl.length() > 10) {
-           return Config.webhookUrl.substring(Config.webhookUrl.length() - 10);
-       } else {
-           return Config.webhookUrl;
-       }
+        if (Config.webhookUrl.length() > 10) {
+            return Config.webhookUrl.substring(Config.webhookUrl.length() - 10);
+        } else {
+            return Config.webhookUrl;
+        }
     }
 
     public static void configLog() {
@@ -638,21 +656,22 @@ public class Utils {
         }
     }
 
-    public static int angleToValue(AngleEnum c){
-         return !c.toString().replace("A", "").contains("N") ?
-                 Integer.parseInt(c.toString().replace("A", "")) :
-                 Integer.parseInt(c.toString().replace("A", "").replace("N", "")) * -1;
+    public static int angleToValue(AngleEnum c) {
+        return !c.toString().replace("A", "").contains("N") ?
+            Integer.parseInt(c.toString().replace("A", "")) :
+            Integer.parseInt(c.toString().replace("A", "").replace("N", "")) * -1;
     }
 
-    public static String getScoreboardDisplayName(int line){
+    public static String getScoreboardDisplayName(int line) {
         try {
             Utils.debugFullLog(Minecraft.getMinecraft().theWorld.getScoreboard().getObjectiveInDisplaySlot(line).getDisplayName());
             return Minecraft.getMinecraft().theWorld.getScoreboard().getObjectiveInDisplaySlot(line).getDisplayName();
-        } catch(Exception e){
+        } catch (Exception e) {
             Utils.debugLog("Error in getting scoreboard " + e);
             return "";
         }
     }
+
     public static List<String> getSidebarLines() {
         List<String> lines = new ArrayList<>();
         if (Minecraft.getMinecraft().theWorld == null) return lines;
@@ -681,6 +700,7 @@ public class Utils {
 
         return lines;
     }
+
     public static String cleanSB(String scoreboard) {
         char[] nvString = StringUtils.stripControlCodes(scoreboard).toCharArray();
         StringBuilder cleaned = new StringBuilder();
@@ -694,25 +714,27 @@ public class Utils {
         return cleaned.toString();
     }
 
-    public static void ScheduleRunnable(Runnable r, int delay, TimeUnit tu){
+    public static void ScheduleRunnable(Runnable r, int delay, TimeUnit tu) {
         ScheduledExecutorService eTemp = Executors.newScheduledThreadPool(1);
         eTemp.schedule(r, delay, tu);
         eTemp.shutdown();
     }
-    public static void ExecuteRunnable(Runnable r){
+
+    public static void ExecuteRunnable(Runnable r) {
         ScheduledExecutorService eTemp = Executors.newScheduledThreadPool(1);
         eTemp.execute(r);
         eTemp.shutdown();
     }
-    public static Block getBlockAround(int rightOffset, int frontOffset, int upOffset){
+
+    public static Block getBlockAround(int rightOffset, int frontOffset, int upOffset) {
         Minecraft mc = Minecraft.getMinecraft();
         double X = mc.thePlayer.posX;
         double Y = mc.thePlayer.posY;
         double Z = mc.thePlayer.posZ;
 
         return (mc.theWorld.getBlockState(
-                new BlockPos(mc.thePlayer.getLookVec().zCoord * -1 * rightOffset + mc.thePlayer.getLookVec().xCoord * frontOffset + X, Y + upOffset,
-                        mc.thePlayer.getLookVec().xCoord * rightOffset + mc.thePlayer.getLookVec().zCoord * frontOffset + Z)).getBlock());
+            new BlockPos(mc.thePlayer.getLookVec().zCoord * -1 * rightOffset + mc.thePlayer.getLookVec().xCoord * frontOffset + X, Y + upOffset,
+                mc.thePlayer.getLookVec().xCoord * rightOffset + mc.thePlayer.getLookVec().zCoord * frontOffset + Z)).getBlock());
 
     }
 }
