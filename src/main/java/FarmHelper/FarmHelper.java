@@ -1165,7 +1165,7 @@ public class FarmHelper {
             return direction.NONE;
         } else {
             for (int i = 0; i < 256; i++) {
-                if (isWalkable(Utils.getBlockAround(i, 0, -1)) || Utils.getBlockAround(i, 0, -1).equals(Blocks.end_portal_frame)) {
+                if (isWalkable(Utils.getBlockAround(i, 0, -1))) {
                     return direction.RIGHT;
                 }
                 if(!isWalkable(Utils.getBlockAround(i, 0, 0)))
@@ -1173,7 +1173,7 @@ public class FarmHelper {
 
             }
             for (int i = 0; i > -256; i--) {
-                if (isWalkable(Utils.getBlockAround(i, 0, -1))  || Utils.getBlockAround(i, 0, -1).equals(Blocks.end_portal_frame)) {
+                if (isWalkable(Utils.getBlockAround(i, 0, -1))) {
                     return direction.LEFT;
                 }
                 if(!isWalkable(Utils.getBlockAround(i, 0, 0)))
