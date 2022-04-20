@@ -743,6 +743,7 @@ public class FarmHelper {
                                          mc.thePlayer.sendChatMessage("/setspawn");
                                      }
                                      if (lastDirection == direction.RIGHT) {
+                                         newRow = true;
                                          Utils.debugLog("Middle of row - Go right");
                                          updateKeys(false, false, false, true, true, false);
                                      } else if (lastDirection == direction.LEFT) {
