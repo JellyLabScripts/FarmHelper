@@ -4,17 +4,22 @@ import FarmHelper.config.AngleEnum;
 import FarmHelper.config.Config;
 import FarmHelper.config.CropEnum;
 import FarmHelper.gui.GUI;
+import FarmHelper.gui.GuiSettings;
 import FarmHelper.utils.DiscordWebhook;
 import FarmHelper.utils.Utils;
 import net.minecraft.block.*;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiDisconnected;
+import net.minecraft.client.gui.GuiIngameMenu;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerChest;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.BlockPos;
@@ -36,6 +41,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 
+import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -61,7 +67,7 @@ public class FarmHelper {
         HUB,
         LOBBY,
         LIMBO,
-        AFK
+        TELEPORTING
     }
 
     public static boolean openedGUI = false;
@@ -82,6 +88,7 @@ public class FarmHelper {
     public static boolean caged;
     public static boolean hubCaged;
     public static boolean bazaarLag;
+    public static boolean profitGUI;
     public static double cacheAverageAge;
     public static int stuckCount;
     public static int startCounter;
@@ -169,6 +176,8 @@ public class FarmHelper {
             Config.writeConfig();
         }
 
+        profitGUI = false;
+
         cropBlockStates.put(CropEnum.WHEAT, Blocks.wheat);
         cropBlockStates.put(CropEnum.CARROT, Blocks.carrots);
         cropBlockStates.put(CropEnum.NETHERWART, Blocks.nether_wart);
@@ -198,13 +207,15 @@ public class FarmHelper {
     @SideOnly(Side.CLIENT)
     @SubscribeEvent
     public void render(RenderGameOverlayEvent event) {
-        int gapY = 18;
+        int gapY = 15;
         int startY = (new ScaledResolution(mc).getScaledHeight() - gapY * 7) / 2;
-        if (event.type == RenderGameOverlayEvent.ElementType.TEXT) {
+        if (event.type == RenderGameOverlayEvent.ElementType.TEXT && profitGUI) {
+            GUI.drawRect(0, startY - 5, 200, startY + gapY * 7 + 5, new Color(0, 0, 0, 100).getRGB());
+
             Utils.drawStringWithShadow(
-                EnumChatFormatting.DARK_RED + "« " + EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper" + EnumChatFormatting.DARK_RED + " »", 4, startY - 10, 1.8f, -1);
-            Utils.drawInfo("Total Profit", "$" + Utils.formatNumber(getProfit()), startY + gapY );
-            Utils.drawInfo("Profit / hr", "$" + Utils.formatNumber(getHourProfit(getProfit())), startY + gapY * 2);
+                EnumChatFormatting.DARK_RED + "« " + EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper" + EnumChatFormatting.DARK_RED + " »", 5, startY, 1.2f, -1);
+            Utils.drawInfo("Total Profit", "$" + Utils.formatNumber(getProfit()), startY + gapY);
+            Utils.drawInfo("Profit / hr", "$" + Utils.formatNumber((float) getHourProfit(getProfit())), startY + gapY * 2);
             switch (Config.CropType) {
                 case CARROT:
                     Utils.drawInfo("Enchanted Carrots", Utils.formatNumber(getTier3() * 160 + getTier2()), startY + gapY * 3);
@@ -227,7 +238,7 @@ public class FarmHelper {
 
         if (event.type == RenderGameOverlayEvent.ElementType.TEXT && Config.debug) {
             mc.fontRendererObj.drawString("dx: " + Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 96, -1);
-            mc.fontRendererObj.drawString("dz: " + Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 84, -1);
+            mc.fontRendererObj.drawString("dy: " + Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 84, -1);
 
             mc.fontRendererObj.drawString("stuck cd " + stuckCooldown, 4, new ScaledResolution(mc).getScaledHeight() - 140 - 72, -1);
             mc.fontRendererObj.drawString("current: " + System.currentTimeMillis(), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 60, -1);
@@ -242,7 +253,7 @@ public class FarmHelper {
     }
 
     @SubscribeEvent
-    public void OnKeyPress(InputEvent.KeyInputEvent event){
+    public void OnKeyPress(InputEvent.KeyInputEvent event) {
         if (customKeyBinds[0].isPressed()) {
             openedGUI = true;
             mc.displayGuiScreen(new GUI());
@@ -260,12 +271,12 @@ public class FarmHelper {
     public void onMessageReceived(ClientChatReceivedEvent event) {
         String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (enabled) {
+            if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing") || message.contains("You cannot join SkyBlock from here!")) {
+                Utils.debugLog("Failed teleport - waiting");
+                Utils.ScheduleRunnable(tpReset, 5, TimeUnit.SECONDS);
+            }
             if (message.contains("This server is too laggy")) {
                 bazaarLag = true;
-            }
-            if (message.contains("You are sending commands too fast!")) {
-                Utils.debugLog("Waiting 8 seconds");
-                Utils.ScheduleRunnable(tpReset, 8, TimeUnit.SECONDS);
             }
             if (message.contains("You were spawned in Limbo")) {
                 teleporting = false;
@@ -275,29 +286,15 @@ public class FarmHelper {
                 teleporting = false;
                 Utils.debugLog("AFK lobby");
             }
-            if (message.contains("You are already playing")) {
-                Utils.ScheduleRunnable(tpReset, 2, TimeUnit.SECONDS);
-            }
-            if (message.contains("Cannot join SkyBlock") || message.contains("Please don't spam the command!")) {
-                Utils.debugLog("Failed to teleport to SkyBlock");
-                Utils.ScheduleRunnable(tpReset, 4, TimeUnit.SECONDS);
-            }
-            if (message.contains("DYNAMIC") || message.contains("Couldn't warp you")) {
-                Utils.debugLog("Failed to teleport to island");
-                Utils.ScheduleRunnable(tpReset, 2, TimeUnit.SECONDS);
-            }
-            if (message.contains("You cannot join SkyBlock from here!")) {
-                teleporting = false;
-            }
             if (message.contains("SkyBlock Lobby")) {
                 Utils.debugLog("Island reset - Going to hub");
                 teleporting = false;
                 mc.thePlayer.sendChatMessage("/hub");
             }
-            if (message.contains("Warping you to your SkyBlock island...") || message.contains("Welcome to Hypixel SkyBlock!")) {
-                Utils.debugLog("Detected warp back to island");
-                Utils.ScheduleRunnable(tpReset, 2, TimeUnit.SECONDS);
-            }
+//            if (message.contains("Warping you to your SkyBlock island...") || message.contains("Welcome to Hypixel SkyBlock!")) {
+//                Utils.debugLog("Detected warp back to island");
+//                Utils.ScheduleRunnable(tpReset, 2, TimeUnit.SECONDS);
+//            }
         }
     }
 
@@ -334,17 +331,22 @@ public class FarmHelper {
                         Utils.debugFullLog("Bedrock cage - At lobby going to hub");
                         break;
                     default:
-                        Utils.debugFullLog("Bedrock cage - At Limbo/AFK going to lobby");
+                        Utils.debugFullLog("Bedrock cage - Teleporting somewhere");
                         break;
                 }
                 return;
             }
-
+            if (currentLocation == location.TELEPORTING) {
+                Utils.debugFullLog("Teleporting somewhere");
+                updateKeys(false, false, false, false, false, false);
+                teleporting = false;
+            }
             if (currentLocation == location.LIMBO) {
                 Utils.debugFullLog("Detected limbo/afk");
+                updateKeys(false, false, false, false, false, false);
                 if (!teleporting && jacobEnd < System.currentTimeMillis()) {
                     Utils.debugLog("Detected Limbo or AFK");
-                    // Utils.webhookLog("Detected Limbo or AFK");
+                    Utils.webhookLog("Detected Limbo or AFK");
                     Utils.debugLog("Attempting to teleport to lobby");
                     mc.thePlayer.sendChatMessage("/lobby");
                     teleporting = true;
@@ -361,19 +363,17 @@ public class FarmHelper {
                     mc.thePlayer.sendChatMessage("/skyblock");
                     teleporting = true;
                 }
-            }
-            else if (currentLocation == location.HUB) {
+            } else if (currentLocation == location.HUB) {
                 Utils.debugFullLog("Detected hub");
                 updateKeys(false, false, false, false, false, false);
-                if (!teleporting) {
+                if (!teleporting && jacobEnd < System.currentTimeMillis()) {
                     Utils.debugLog("Detected hub");
                     Utils.webhookLog("Detected hub");
                     Utils.debugLog("Attempting to teleport to island");
                     mc.thePlayer.sendChatMessage("/warp home");
                     teleporting = true;
                 }
-            }
-            else if (currentLocation == location.ISLAND && !crouched) {
+            } else if (currentLocation == location.ISLAND && !crouched) {
                 Utils.debugLog("Back to island, holding shift");
                 Utils.webhookLog("Back to island, restarting");
                 updateKeys(false, false, false, false, false, true);
@@ -382,8 +382,7 @@ public class FarmHelper {
                 deltaX = 1000;
                 setStuckCooldown(3);
                 Utils.ScheduleRunnable(crouchReset, 500, TimeUnit.MILLISECONDS);
-            }
-            else if (currentLocation == location.ISLAND) {
+            } else if (currentLocation == location.ISLAND) {
                 if (!caged && bedrockCount() > 1) {
                     Utils.scriptLog("Bedrock cage detected");
                     Utils.webhookLog("Bedrock cage detected | RIPBOZO -1 acc");
@@ -402,6 +401,13 @@ public class FarmHelper {
                         teleporting = true;
                         Utils.ScheduleRunnable(tpReset, 20, TimeUnit.SECONDS);
                     }
+                    return;
+                }
+                if (mc.currentScreen instanceof GuiInventory || mc.currentScreen instanceof GuiChat || mc.currentScreen instanceof GuiIngameMenu || mc.currentScreen instanceof GUI || mc.currentScreen instanceof GuiSettings) {
+                    Utils.debugFullLog("In inventory/chat/pause, pausing");
+                    updateKeys(false, false, false, false, false, false);
+                    deltaX = 1000;
+                    deltaZ = 1000;
                     return;
                 }
                 if (falling) {
@@ -431,7 +437,7 @@ public class FarmHelper {
                         }
                     }
                     // Glitching in exit pad
-                    else if (!fixTpStuckFlag) {
+                    else if (!fixTpStuckFlag && blockIn == Blocks.end_portal_frame && (mc.thePlayer.posY % 1) < 0.8120) {
                         Utils.debugLog("End of farm - Stuck in exit pad - Hold jump in separate thread");
                         updateKeys(false, false, false, false, false, false);
                         fixTpStuckFlag = true;
@@ -447,11 +453,11 @@ public class FarmHelper {
                     } else {
                         mc.thePlayer.rotationPitch = (float) 2.8;
                     }
-                    Utils.hardRotate(playerYaw);
                     // Not falling
                     if (dy == 0) {
                         // If on solid block
                         if ((mc.thePlayer.posY % 1) == 0) {
+                            Utils.hardRotate(playerYaw);
                             // Cannot move forwards or backwards
                             if (!isWalkable(Utils.getFrontBlock()) && !isWalkable(Utils.getBackBlock())) {
                                 cached = false;
@@ -468,19 +474,20 @@ public class FarmHelper {
                                         updateKeys(false, false, false, false, false, false);
                                         Utils.ExecuteRunnable(fixRowStuck);
                                     }
-                                }
-                                else if (isWalkable(Utils.getRightBlock()) && !isWalkable(Utils.getLeftBlock())) {
+                                } else if (isWalkable(Utils.getRightBlock()) && !isWalkable(Utils.getLeftBlock())) {
                                     Utils.debugLog("Start of farm - Go right");
+                                    lastDirection = direction.RIGHT;
                                     updateKeys(false, false, false, true, true, false);
                                 } else if (isWalkable(Utils.getLeftBlock()) && !isWalkable(Utils.getRightBlock())) {
                                     Utils.debugLog("Start of farm - Go left");
+                                    lastDirection = direction.LEFT;
                                     updateKeys(false, false, true, false, true, false);
                                 } else if (isWalkable(Utils.getRightBlock()) && isWalkable(Utils.getLeftBlock())) {
                                     // Utils.debugLog("Middle of row - Calculating which direction to go");
                                     // Calculate if not done in last tick
                                     // if (lastDirection == direction.NONE) {
-                                    if (true) {
-                                        // Utils.debugLog("Middle of row - No direction last tick, recalculating");
+                                    if (lastDirection == direction.NONE) {
+                                        Utils.debugFullLog("Middle of row - No direction last tick, recalculating");
                                         lastDirection = calculateDirection();
                                     }
                                     if (lastDirection == direction.RIGHT) {
@@ -496,9 +503,7 @@ public class FarmHelper {
                                 } else {
                                     Utils.debugLog("Unknown case - id: 4");
                                 }
-                            }
-
-                            else if (deltaX < 1 && deltaZ < 1) {
+                            } else if (deltaX < 1 && deltaZ < 1) {
                                 Utils.debugLog("Row switch - Detected stuck");
                                 Utils.webhookLog("Row switch - Detected stuck");
                                 if (!stuck && stuckCooldown < System.currentTimeMillis()) {
@@ -510,11 +515,13 @@ public class FarmHelper {
                             }
 
                             // Can go forwards but not backwards
+
                             else if (isWalkable(Utils.getFrontBlock()) && !isWalkable(Utils.getBackBlock())) {
+                                lastDirection = direction.NONE;
                                 Utils.debugLog("End of row - Switching to next");
                                 Utils.webhookStatus();
                                 newRow = true;
-                                  if (!cached && Config.resync) {
+                                if (!cached && Config.resync) {
                                     cached = true;
                                     Utils.ExecuteRunnable(cacheRowAge);
                                     Utils.ScheduleRunnable(checkDesync, 4, TimeUnit.SECONDS);
@@ -558,6 +565,7 @@ public class FarmHelper {
 
                             // Can go forwards and backwards
                             else if (isWalkable(Utils.getFrontBlock()) && isWalkable(Utils.getBackBlock())) {
+                                lastDirection = direction.NONE;
                                 pushedOffSide = false;
                                 Utils.debugFullLog("End of row - Middle of col - Go forwards");
                                 updateKeys(true, false, false, false, false, false);
@@ -615,65 +623,62 @@ public class FarmHelper {
 //                                    falling = true;
 //                                }
 //                            }
-                        else if (isWalkable(Utils.getBackBlock()) && !isWalkable(Utils.getFrontBlock())) {
-                            distanceToTurn();
-                            if (isWalkable(Utils.getLeftBlock()) || isWalkable(Utils.getRightBlock())) {
-                                if (mc.gameSettings.keyBindLeft.isKeyDown() || mc.gameSettings.keyBindRight.isKeyDown()) {
-                                    pushedOffFront = false;
-                                    if (isWalkable(Utils.getLeftBlock())) {
-                                        Utils.debugFullLog("End of row - End of col - Keep going left");
-                                        updateKeys(false, false, true, false, true, false);
-                                    }
-                                    else if (isWalkable(Utils.getRightBlock())) {
-                                        Utils.debugFullLog("End of row - End of col - Keep going right");
-                                        updateKeys(false, false, false, true, true, false);
-                                    }
-                                }
-                                else if (pushedOffFront) {
-                                    if (dx < 0.001 && dz < 0.001) {
+                            else if (isWalkable(Utils.getBackBlock()) && !isWalkable(Utils.getFrontBlock())) {
+                                lastDirection = direction.NONE;
+                                if (isWalkable(Utils.getLeftBlock()) || isWalkable(Utils.getRightBlock())) {
+                                    if (mc.gameSettings.keyBindLeft.isKeyDown() || mc.gameSettings.keyBindRight.isKeyDown()) {
+                                        pushedOffFront = false;
                                         if (isWalkable(Utils.getLeftBlock())) {
-                                            Utils.debugLog("End of row - End of col - Pushed - Go left");
+                                            Utils.debugFullLog("End of row - End of col - Keep going left");
                                             updateKeys(false, false, true, false, true, false);
-                                        }
-                                        else if (isWalkable(Utils.getRightBlock())) {
-                                            Utils.debugLog("End of row - End of col - Pushed - Go right");
+                                        } else if (isWalkable(Utils.getRightBlock())) {
+                                            Utils.debugFullLog("End of row - End of col - Keep going right");
                                             updateKeys(false, false, false, true, true, false);
                                         }
-                                    } else {
-                                        Utils.debugFullLog("End of row - Start of col - Pushed off - Waiting till stop");
-                                        updateKeys(false, false, false, false, false, true);
-                                    }
-                                }
-                                else if (dx < 0.001 && dz < 0.001) {
-                                    if (mc.gameSettings.keyBindForward.isKeyDown()) {
+                                    } else if (pushedOffFront) {
+                                        if (dx < 0.001 && dz < 0.001) {
+                                            if (isWalkable(Utils.getLeftBlock())) {
+                                                Utils.debugLog("End of row - End of col - Pushed - Go left");
+                                                updateKeys(false, false, true, false, true, false);
+                                            } else if (isWalkable(Utils.getRightBlock())) {
+                                                Utils.debugLog("End of row - End of col - Pushed - Go right");
+                                                updateKeys(false, false, false, true, true, false);
+                                            }
+                                        } else {
+                                            Utils.debugFullLog("End of row - Start of col - Pushed off - Waiting till stop");
+                                            updateKeys(false, false, false, false, false, true);
+                                        }
+                                    } else if (dx < 0.001 && dz < 0.001) {
+                                        if (mc.gameSettings.keyBindForward.isKeyDown()) {
 
-                                        Utils.debugFullLog("End of row - End of col - Edge - Pushing off");
-                                        pushedOffFront = true;
-                                        updateKeys(false, true, false, false, false, true);
+                                            Utils.debugFullLog("End of row - End of col - Edge - Pushing off");
+                                            pushedOffFront = true;
+                                            updateKeys(false, true, false, false, false, true);
+                                        } else {
+                                            Utils.debugFullLog("End of row - End of col - Maybe not edge - Going forwards");
+                                            updateKeys(true, false, false, false, true, false);
+                                        }
                                     } else {
-                                        Utils.debugFullLog("End of row - End of col - Maybe not edge - Going forwards");
+                                        Utils.debugFullLog("End of row - End of col - Not at edge - Going forwards");
                                         updateKeys(true, false, false, false, true, false);
                                     }
-                                } else {
-                                    Utils.debugFullLog("End of row - End of col - Not at edge - Going forwards");
-                                    updateKeys(true, false, false, false, true, false);
+                                }
+                                // Can't go anywhere, end of layer
+                                else if (Utils.getBelowBlock() == Blocks.end_portal_frame) {
+                                    Utils.debugLog("End of farm - Above entrance tp");
+                                    updateKeys(false, false, false, false, false, false);
+                                    teleportPad = true;
+                                } else if (Utils.getBelowBlock() == Blocks.air) {
+                                    Utils.debugLog("Changing layer - About to fall");
+                                    updateKeys(true, false, false, false, false, false);
+                                    falling = true;
+                                    setStuckCooldown(5);
                                 }
                             }
-                            // Can't go anywhere, end of layer
-                            else if (Utils.getBelowBlock() == Blocks.end_portal_frame) {
-                                Utils.debugLog("End of farm - Above entrance tp");
-                                updateKeys(false, false, false, false, false, false);
-                                teleportPad = true;
-                            } else if (Utils.getBelowBlock() == Blocks.air) {
-                                Utils.debugLog("Changing layer - About to fall");
-                                updateKeys(true, false, false, false, false, false);
-                                falling = true;
-                                setStuckCooldown(5);
-                            }
-                        }
                         }
                         // Standing on tp pad
                         else if ((mc.thePlayer.posY % 1) == 0.8125) {
+                            lastDirection = direction.NONE;
                             if (!isWalkable(Utils.getFrontBlock(0.1875))) {
                                 // Cannot go left or right
                                 if (!isWalkable(Utils.getLeftBlock(0.1875)) && !isWalkable(Utils.getRightBlock(0.1875))) {
@@ -691,10 +696,10 @@ public class FarmHelper {
                                 }
                             }
                         }
-                    } else if (blockIn == Blocks.air && dy > 0.3) {
+                    } else if (isWalkable(blockIn) && isWalkable(Utils.getBelowBlock()) && !isWalkable(Utils.getFrontBlock()) && (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) < -0.2 && (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) > -0.8) {
                         // Utils.debugFullLog("Changing layer - falling, wait till land - dy:" + dy + ", y: " + mc.thePlayer.posY + ", prevY: " + mc.thePlayer.lastTickPosY);
-                        // updateKeys(false, false, false, false, false, false);
-                        // falling = true;
+                        updateKeys(false, false, false, false, false, false);
+                        falling = true;
                         Utils.debugLog("If you see this - DM Polycrylate#2205. Did this log when falling/layer switch? Were you meant to layer switch but it didn't? Or did this run randomly");
                     } else {
                         // Potentially make it send false all keys for this case
@@ -729,7 +734,8 @@ public class FarmHelper {
             if (enabled) {
                 if (getCounter() != 0) {
                     currentCounter = getCounter();
-                };
+                }
+                ;
                 Utils.ScheduleRunnable(updateCounters, 1, TimeUnit.SECONDS);
             }
         }
@@ -793,8 +799,8 @@ public class FarmHelper {
             Thread.sleep(250);
             Config.Angle = Config.Angle.ordinal() < 2 ? AngleEnum.values()[Config.Angle.ordinal() + 2] : AngleEnum.values()[Config.Angle.ordinal() - 2];
             playerYaw = Utils.angleToValue(Config.Angle);
-            Utils.smoothRotateClockwise(180);
-            Thread.sleep(1600);
+            Utils.smoothRotateClockwise(180, 1.2);
+            Thread.sleep(1000);
             KeyBinding.setKeyBindState(keybindW, true);
             Thread.sleep(400);
             KeyBinding.setKeyBindState(keybindW, false);
@@ -838,8 +844,7 @@ public class FarmHelper {
         }
         if (cachePos == null || cacheAverageAge == -1) {
             Utils.debugLog("Desync - No cache (Wrong crop selected?)");
-        }
-        else if (cacheAverageAge >= lowestAverage) {
+        } else if (cacheAverageAge >= lowestAverage) {
             double newAvg = getAverageAge(cachePos);
             Utils.debugLog("Desync - Old: " + cacheAverageAge + ", New: " + newAvg);
             if (Math.abs(newAvg - cacheAverageAge) < range && !stuck) {
@@ -850,8 +855,7 @@ public class FarmHelper {
             } else {
                 Utils.debugLog("No desync detected");
             }
-        }
-        else {
+        } else {
             Utils.debugLog("Desync - Average age too low");
         }
     };
@@ -988,9 +992,8 @@ public class FarmHelper {
                 final NBTTagCompound ea = tag.getCompoundTag("ExtraAttributes");
                 if (ea.hasKey("mined_crops", 99)) {
                     return ea.getInteger("mined_crops");
-                }
-                else if (ea.hasKey("farmed_cultivating", 99)) {
-                   return ea.getInteger("farmed_cultivating");
+                } else if (ea.hasKey("farmed_cultivating", 99)) {
+                    return ea.getInteger("farmed_cultivating");
                 }
             }
         }
@@ -999,9 +1002,14 @@ public class FarmHelper {
     }
 
     public static float getHourProfit(int total) {
-        float runtime = ((float)System.currentTimeMillis() - startTime) / (1000 * 60 * 60);
-        if (runtime > 0) {
-            return (float)total / runtime;
+//        double runtime = ((float)System.currentTimeMillis() - (float)startTime) / (1000 * 60 * 60);
+//        if (runtime > 0) {
+//            return (double)total / runtime;
+//        }
+//        return 0;
+
+        if (TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime) > 0) {
+            return 3600f * total / TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime);
         }
         return 0;
     }
@@ -1095,13 +1103,19 @@ public class FarmHelper {
     }
 
     location getLocation() {
+        // if (System.currentTimeMillis() % 1000 < 20) {
         if (Utils.getSidebarLines().size() == 0) {
             crouched = false;
-            return location.LIMBO;
+            if (countCarpet() > 0) {
+                return location.LIMBO;
+            }
+            return location.TELEPORTING;
         }
         if (currentLocation == location.LIMBO) {
             Utils.ExecuteRunnable(tpReset);
         }
+        Utils.debugFullLog("OBJECTIVE NAME: " + Utils.getScoreboardDisplayName(1).contains("SKYBLOCK"));
+
         for (String line : Utils.getSidebarLines()) {
             String cleanedLine = Utils.cleanSB(line);
             if (cleanedLine.contains("Village")) {
@@ -1112,7 +1126,13 @@ public class FarmHelper {
             }
         }
         crouched = false;
-        return location.LOBBY;
+        if (Utils.getScoreboardDisplayName(1).contains("SKYBLOCK")) {
+            return location.LOBBY;
+        } else {
+            return location.TELEPORTING;
+        }
+        // }
+        // return currentLocation;
     }
 
     long getJacobEnd() {
@@ -1144,7 +1164,7 @@ public class FarmHelper {
                 count += 1;
             }
         } while (current.getBlock() == cropBlockStates.get(Config.CropType));
-        return total/count;
+        return total / count;
     }
 
     void stuckFrequency() {
@@ -1190,6 +1210,8 @@ public class FarmHelper {
 
     // Yoinked from Yung RIPBOZO
     int bedrockCount() {
+        // if (System.currentTimeMillis() % 1000 < 20) {
+        Utils.debugFullLog(String.valueOf(System.currentTimeMillis()));
         int r = 4;
         int count = 0;
         BlockPos playerPos = Minecraft.getMinecraft().thePlayer.getPosition();
@@ -1203,6 +1225,27 @@ public class FarmHelper {
             }
         }
         Utils.debugFullLog("Counted bedrock: " + count);
+        return count;
+        // }
+        // return 0;
+    }
+
+    int countCarpet() {
+        Utils.debugFullLog(String.valueOf(System.currentTimeMillis()));
+        int r = 2;
+        int count = 0;
+        BlockPos playerPos = Minecraft.getMinecraft().thePlayer.getPosition();
+        playerPos.add(0, 1, 0);
+        Vec3i vec3i = new Vec3i(r, r, r);
+        Vec3i vec3i2 = new Vec3i(r, r, r);
+        for (BlockPos blockPos : BlockPos.getAllInBox(playerPos.add(vec3i), playerPos.subtract(vec3i2))) {
+            IBlockState blockState = Minecraft.getMinecraft().theWorld.getBlockState(blockPos);
+            if (blockState.getBlock() == Blocks.carpet && blockState.getValue(BlockCarpet.COLOR) == EnumDyeColor.BROWN) {
+                Utils.debugFullLog("Carpet color: " + blockState.getValue(BlockCarpet.COLOR));
+                count++;
+            }
+        }
+        Utils.debugFullLog("Counted carpet: " + count);
         return count;
     }
 
@@ -1219,7 +1262,7 @@ public class FarmHelper {
         } else {
             initialize();
         }
-         enabled = !enabled;
-         openedGUI = false;
+        enabled = !enabled;
+        openedGUI = false;
     }
 }

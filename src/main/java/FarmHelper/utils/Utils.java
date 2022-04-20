@@ -469,7 +469,7 @@ public class Utils {
 
     public static void drawInfo(String title, String value, int y) {
         Utils.drawStringWithShadow(
-            EnumChatFormatting.GRAY + "" + EnumChatFormatting.BOLD + title + EnumChatFormatting.DARK_GRAY +  " » " + EnumChatFormatting.RED + value, 4, y, 1.3f, -1);
+            EnumChatFormatting.GRAY + "" + EnumChatFormatting.BOLD + title + EnumChatFormatting.DARK_GRAY +  " » " + EnumChatFormatting.RED + value, 5, y, 1.1f, -1);
     }
 
     public static void sendLog(ChatComponentText chat) {
@@ -586,7 +586,7 @@ public class Utils {
                 .addField("Runtime", getRuntimeFormat(), true)
                 //.addField("", "", false)
                 .addField("Total Profit", FarmHelper.getProfit() != 0 ? "$" + formatNumber(FarmHelper.getProfit()) : "Not supported", false)
-                .addField("Profit / hr", "$" + formatNumber(FarmHelper.getHourProfit(FarmHelper.getProfit())), false)
+                .addField("Profit / hr", "$" + formatNumber((float) FarmHelper.getHourProfit(FarmHelper.getProfit())), false)
                 //.addField("", "", false)
                 .addField(FarmHelper.getHighTierName(), formatNumber(FarmHelper.getHighTierCount()), true)
                 .addField("Counter", formatNumber(FarmHelper.currentCounter), true)
@@ -646,7 +646,7 @@ public class Utils {
 
     public static String getScoreboardDisplayName(int line){
         try {
-            Utils.debugLog(Minecraft.getMinecraft().theWorld.getScoreboard().getObjectiveInDisplaySlot(line).getDisplayName());
+            Utils.debugFullLog(Minecraft.getMinecraft().theWorld.getScoreboard().getObjectiveInDisplaySlot(line).getDisplayName());
             return Minecraft.getMinecraft().theWorld.getScoreboard().getObjectiveInDisplaySlot(line).getDisplayName();
         } catch(Exception e){
             Utils.debugLog("Error in getting scoreboard " + e);
