@@ -754,6 +754,7 @@ public class FarmHelper {
                                      }
                                  } else if (!isWalkable(Utils.getLeftBlock()) && isWalkable(Utils.getRightBlock())) {
                                      if (dx < 0.001 && dz < 0.001) {
+                                         newRow = true;
                                          lastDirection = direction.RIGHT;
                                          updateKeys(false, false, false, true, true, false);
                                      }
@@ -1164,7 +1165,7 @@ public class FarmHelper {
             }
             return direction.NONE;
         } else {
-            for (int i = 0; i < 256; i++) {
+            for (int i = 0; i < 180; i++) {
                 if (isWalkable(Utils.getBlockAround(i, 0, -1))) {
                     return direction.RIGHT;
                 }
@@ -1172,7 +1173,7 @@ public class FarmHelper {
                     break;
 
             }
-            for (int i = 0; i > -256; i--) {
+            for (int i = 0; i > -180; i--) {
                 if (isWalkable(Utils.getBlockAround(i, 0, -1))) {
                     return direction.LEFT;
                 }
