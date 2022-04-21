@@ -153,6 +153,7 @@ public class FarmHelper {
         newRow = true;
         stuck = false;
         selling = false;
+        checkFull = false;
         cached = false;
         crouched = true;
         cacheAverageAge = -1;
@@ -264,8 +265,8 @@ public class FarmHelper {
             mc.fontRendererObj.drawString("dx: " + Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 96, -1);
             mc.fontRendererObj.drawString("dy: " + Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 84, -1);
 
-            mc.fontRendererObj.drawString("stuck cd " + stuckCooldown, 4, new ScaledResolution(mc).getScaledHeight() - 140 - 72, -1);
-            mc.fontRendererObj.drawString("current: " + System.currentTimeMillis(), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 60, -1);
+            mc.fontRendererObj.drawString("checkFull " + checkFull, 4, new ScaledResolution(mc).getScaledHeight() - 140 - 72, -1);
+            mc.fontRendererObj.drawString("selling: " + selling, 4, new ScaledResolution(mc).getScaledHeight() - 140 - 60, -1);
 
             mc.fontRendererObj.drawString("KeyBindW: " + (mc.gameSettings.keyBindForward.isKeyDown() ? "Pressed" : "Not pressed"), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 48, -1);
             mc.fontRendererObj.drawString("KeyBindS: " + (mc.gameSettings.keyBindBack.isKeyDown() ? "Pressed" : "Not pressed"), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 36, -1);
@@ -1248,7 +1249,7 @@ public class FarmHelper {
                         Thread.sleep(1000);
                     }
                     // Sell off
-                    if (picked) {
+                    if (picked || i == 0) {
                         Utils.debugLog("Out of space or no more to collect - Selling");
                         mc.thePlayer.closeScreen();
                         Thread.sleep(300);
@@ -1262,7 +1263,7 @@ public class FarmHelper {
                             ItemStack sellStack = mc.thePlayer.inventory.getStackInSlot(j);
                             if (sellStack != null) {
                                 String name = sellStack.getDisplayName();
-                                if (name.contains("Enchanted Brown Mushroom") || name.contains("Enchanted Red Mushroom") || name.contains("Mutant Netherwart") || name.contains("Stone") || name.contains("Enchanted Sugar Cane")) {
+                                if (name.contains("Enchanted Brown Mushroom") || name.contains("Enchanted Red Mushroom") || name.contains("Mutant Netherwart") || name.contains("Stone") || name.contains("Enchanted Sugar Cane") || name.contains("Enchanted Red Mushroom Block")  || name.contains("Enchanted Brown Mushroom Block")) {
                                     Utils.debugLog("Found stack, selling");
                                     if (j < 9) {
                                         mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, 45 + 36 + j, 0, 0, mc.thePlayer);
@@ -1316,16 +1317,18 @@ public class FarmHelper {
         int count = 0;
         int total = 0;
         int elapsed = 0;
+        checkFull = true;
         try {
             while (elapsed < 2000) {
                 if (mc.thePlayer.inventory.getFirstEmptyStack() == -1) {
                     count++;
                 }
                 total++;
-                elapsed += 50;
+                elapsed += 10;
                 Thread.sleep(10);
             }
-            if (count/total > 0.35) {
+            if (((float) count/total) > 0.45 && !selling) {
+                selling = true;
                 Utils.webhookLog("Inventory full, Auto Selling!");
                 Utils.ExecuteRunnable(sellInventory);
             } else {
