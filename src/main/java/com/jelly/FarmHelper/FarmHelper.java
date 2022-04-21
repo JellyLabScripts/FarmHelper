@@ -8,6 +8,7 @@ import com.jelly.FarmHelper.gui.GUI;
 import com.jelly.FarmHelper.gui.GuiSettings;
 import com.jelly.FarmHelper.utils.DiscordWebhook;
 import com.jelly.FarmHelper.utils.Utils;
+import jdk.nashorn.internal.runtime.Debug;
 import net.minecraft.block.*;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.IBlockState;
@@ -16,6 +17,8 @@ import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.gui.GuiIngameMenu;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.gui.inventory.GuiChest;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
@@ -24,6 +27,7 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
@@ -46,6 +50,7 @@ import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -93,6 +98,7 @@ public class FarmHelper {
     public static boolean bazaarLag;
     public static boolean profitGUI;
     public static double cacheAverageAge;
+    public static boolean selling;
     public static int stuckCount;
     public static int startCounter;
     public static int currentCounter;
@@ -103,6 +109,7 @@ public class FarmHelper {
     public static boolean godPot;
     public static boolean cookie;
     public static boolean dropping;
+    public static boolean checkFull;
     public static IChatComponent header;
     public static IChatComponent footer;
     public static BlockPos cachePos;
@@ -145,6 +152,7 @@ public class FarmHelper {
         teleporting = false;
         newRow = true;
         stuck = false;
+        selling = false;
         cached = false;
         crouched = true;
         cacheAverageAge = -1;
@@ -379,7 +387,8 @@ public class FarmHelper {
                     mc.thePlayer.sendChatMessage("/skyblock");
                     teleporting = true;
                 }
-            } else if (currentLocation == location.HUB) {
+            }
+            if (currentLocation == location.HUB) {
                 Utils.debugFullLog("Detected hub");
                 updateKeys(false, false, false, false, false, false);
                 if (!teleporting && jacobEnd < System.currentTimeMillis()) {
@@ -389,7 +398,9 @@ public class FarmHelper {
                     mc.thePlayer.sendChatMessage("/warp home");
                     teleporting = true;
                 }
-            } else if (currentLocation == location.ISLAND && !crouched) {
+                return;
+            }
+            if (currentLocation == location.ISLAND && !crouched) {
                 Utils.debugLog("Back to island, holding shift");
                 Utils.webhookLog("Back to island, restarting");
                 updateKeys(false, false, false, false, false, true);
@@ -398,7 +409,9 @@ public class FarmHelper {
                 deltaX = 1000;
                 setStuckCooldown(3);
                 Utils.ScheduleRunnable(crouchReset, 500, TimeUnit.MILLISECONDS);
-            } else if (currentLocation == location.ISLAND) {
+                return;
+            }
+            if (currentLocation == location.ISLAND) {
                 if (dropping) {
                     updateKeys(false, false, false, false, false, false);
                     return;
@@ -423,14 +436,17 @@ public class FarmHelper {
                     }
                     return;
                 }
-                if (mc.currentScreen instanceof GuiInventory || mc.currentScreen instanceof GuiChat || mc.currentScreen instanceof GuiIngameMenu || mc.currentScreen instanceof GUI || mc.currentScreen instanceof GuiSettings) {
+                if (mc.currentScreen instanceof GuiContainer || mc.currentScreen instanceof GuiChat || mc.currentScreen instanceof GuiIngameMenu || mc.currentScreen instanceof GUI || mc.currentScreen instanceof GuiSettings) {
                     Utils.debugFullLog("In inventory/chat/pause, pausing");
                     updateKeys(false, false, false, false, false, false);
                     deltaX = 1000;
                     deltaZ = 1000;
                     return;
                 }
-                if (falling) {
+                if (selling && checkFull) {
+                    updateKeys(false, false, false, false, false, false);
+                    Utils.debugFullLog("Waiting for inventory sell");
+                } else if (falling) {
                     // Stopped falling
                     if (dy == 0) {
                         Utils.debugFullLog("Changing layer - Landed - Doing 180 and switching back to trench state");
@@ -485,6 +501,16 @@ public class FarmHelper {
                                 }
                                 // Cannot move forwards or backwards
                                 if (!isWalkable(Utils.getFrontBlock()) && !isWalkable(Utils.getBackBlock())) {
+                                    if (!checkFull && !selling && mc.thePlayer.inventory.getFirstEmptyStack() == -1) {
+                                        Utils.debugLog("Inventory possibly full");
+                                        checkFull = true;
+                                        Utils.ExecuteRunnable(fullInventory);
+                                    } else if (!checkFull && selling) {
+                                        selling = false;
+                                        setStuckCooldown(3);
+                                        deltaX = 100;
+                                        deltaZ = 100;
+                                    }
                                     cached = false;
                                     if (newRow) {
                                         newRow = false;
@@ -1037,7 +1063,7 @@ public class FarmHelper {
         }
     };
 
-    Runnable checkFooter = () -> {
+    public static Runnable checkFooter = () -> {
         Utils.debugFullLog("Looking for godpot/cookie");
         boolean foundGodPot = false;
         boolean foundCookieText = false;
@@ -1090,7 +1116,6 @@ public class FarmHelper {
                 if (slotID < 9) {
                     slotID = 36 + slotID;
                 }
-                Utils.debugLog("waiting inv");
 //                while (!(mc.currentScreen instanceof GuiInventory) || Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots == null) {
 //                    if (!this.mc.playerController.isInCreativeMode()) {
 //                        mc.displayGuiScreen(new GuiInventory(mc.thePlayer));
@@ -1104,16 +1129,12 @@ public class FarmHelper {
 //                    }
 //                    Thread.sleep(100);
 //                }
-                Utils.debugFullLog("found inv");
-                Thread.sleep(300);
+                // Thread.sleep(300);
                 mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, slotID, 0, 0, mc.thePlayer);
-                Utils.debugFullLog("picked item");
                 Thread.sleep(300);
                 mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, slotID, 0, 6, mc.thePlayer);
-                Utils.debugFullLog("stacked item item");
                 Thread.sleep(300);
                 mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, 35 + 7, 0, 0, mc.thePlayer);
-                Utils.debugFullLog("put back item");
                 Thread.sleep(300);
                 // mc.thePlayer.closeScreen();
                 if (isWalkable(Utils.getRightBlock())) {
@@ -1152,6 +1173,164 @@ public class FarmHelper {
             deltaY = 1000;
             setStuckCooldown(4);
             dropping = false;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    };
+
+    public static Runnable sellInventory = () -> {
+        try {
+            selling = true;
+            checkFull = true;
+            Minecraft mc = Minecraft.getMinecraft();
+            int keybindUseItem = mc.gameSettings.keyBindUseItem.getKeyCode();
+            int hoeSlot = mc.thePlayer.inventory.currentItem;
+            int sackSlot = -1;
+
+            Integer[] sellSlots = {11, 16, 21, 23};
+            Integer[] sellSlotCounts = {100, 100, 100, 100};
+
+            if (!cookie) {
+                Utils.debugLog("You need a cookie for auto sell!");
+                return;
+            }
+
+            // Find a sack
+            for (int j = 0; j < 36; j++) {
+                ItemStack sack = mc.thePlayer.inventory.getStackInSlot(j);
+                if (sack != null) {
+                    String name = sack.getDisplayName();
+                    if (name.contains("Large Enchanted Agronomy Sack") && sackSlot == -1) {
+                        if (j < 9) {
+                            sackSlot = j + 36;
+                        } else {
+                            sackSlot = j;
+                        }
+                        Utils.debugLog("Found sack, slot: " + sackSlot);
+                    }
+                }
+                Thread.sleep(20);
+            }
+
+            // Go through items
+            for (int i = 0; i < sellSlots.length; i++) {
+                while (sellSlotCounts[i] != 0 && sackSlot != -1) {
+                    mc.thePlayer.inventory.currentItem = 8;
+                    Thread.sleep(500);
+                    KeyBinding.onTick(keybindUseItem);
+                    Thread.sleep(500);
+                    mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, sackSlot + 45, 1, 0, mc.thePlayer);
+                    Thread.sleep(500);
+                    ItemStack stack = mc.thePlayer.openContainer.getSlot(sellSlots[i]).getStack();
+                    NBTTagList list = stack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8);
+                    Pattern pattern = Pattern.compile("^([a-zA-Z]+): ([0-9]+)(.*)");
+                    for (int j = 0; j < list.tagCount(); j++) {
+                        Matcher matcher = pattern.matcher(net.minecraft.util.StringUtils.stripControlCodes(list.getStringTagAt(j)));
+                        if (matcher.matches()) {
+                            Utils.debugLog("Stored: " + matcher.group(2));
+                            sellSlotCounts[i] = Integer.parseInt(matcher.group(2));
+                        }
+                    }
+                    boolean picked = false;
+                    while (sellSlotCounts[i] != 0 && mc.thePlayer.inventory.getFirstEmptyStack() != -1) {
+                        picked = true;
+                        mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, sellSlots[i], 0, 0, mc.thePlayer);
+                        Thread.sleep(500);
+                        stack = mc.thePlayer.openContainer.getSlot(sellSlots[i]).getStack();
+                        list = stack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8);
+                        for (int j = 0; j < list.tagCount(); j++) {
+                            Matcher matcher = pattern.matcher(net.minecraft.util.StringUtils.stripControlCodes(list.getStringTagAt(j)));
+                            if (matcher.matches()) {
+                                Utils.debugLog("New Count: " + matcher.group(2));
+                                sellSlotCounts[i] = Integer.parseInt(matcher.group(2));
+                            }
+                        }
+                        Thread.sleep(1000);
+                    }
+                    // Sell off
+                    if (picked) {
+                        Utils.debugLog("Out of space or no more to collect - Selling");
+                        mc.thePlayer.closeScreen();
+                        Thread.sleep(300);
+                        mc.thePlayer.inventory.currentItem = 8;
+                        Thread.sleep(500);
+                        KeyBinding.onTick(keybindUseItem);
+                        Thread.sleep(500);
+                        mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, 22, 0, 0, mc.thePlayer);
+                        Thread.sleep(500);
+                        for (int j = 0; j < 36; j++) {
+                            ItemStack sellStack = mc.thePlayer.inventory.getStackInSlot(j);
+                            if (sellStack != null) {
+                                String name = sellStack.getDisplayName();
+                                if (name.contains("Enchanted Brown Mushroom") || name.contains("Enchanted Red Mushroom") || name.contains("Mutant Netherwart") || name.contains("Stone") || name.contains("Enchanted Sugar Cane")) {
+                                    Utils.debugLog("Found stack, selling");
+                                    if (j < 9) {
+                                        mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, 45 + 36 + j, 0, 0, mc.thePlayer);
+                                    } else {
+                                        mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, 45 + j, 0, 0, mc.thePlayer);
+                                    }
+                                    Thread.sleep(200);
+                                }
+                            }
+                            Thread.sleep(20);
+                        }
+                    }
+                    mc.thePlayer.closeScreen();
+                }
+            }
+
+            // Sell remaining sack to bz
+            if (Config.CropType != CropEnum.NETHERWART) {
+                mc.thePlayer.sendChatMessage("/bz");
+                while (!(mc.currentScreen instanceof GuiContainer)) {
+                    Thread.sleep(50);
+                }
+                Thread.sleep(100);
+                ItemStack stack = mc.thePlayer.openContainer.getSlot(39).getStack();
+                if (stack.getDisplayName().contains("Sell Sacks Now")) {
+                    mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, 39, 1, 0, mc.thePlayer);
+                    stack = mc.thePlayer.openContainer.getSlot(11).getStack();
+                    while (!stack.getDisplayName().contains("Selling whole inventory")) {
+                        Thread.sleep(50);
+                        stack = mc.thePlayer.openContainer.getSlot(11).getStack();
+                    }
+                    Thread.sleep(100);
+                    while (stack.getDisplayName().contains("Selling whole inventory")) {
+                        mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, 11, 1, 0, mc.thePlayer);
+                        Thread.sleep(200);
+                        stack = mc.thePlayer.openContainer.getSlot(11).getStack();
+                    }
+                    Utils.debugLog("Sold sacks to bazaar!");
+                }
+            }
+            Thread.sleep(1000);
+            mc.thePlayer.closeScreen();
+            mc.thePlayer.inventory.currentItem = hoeSlot;
+            checkFull = false;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    };
+
+    Runnable fullInventory = () -> {
+        int count = 0;
+        int total = 0;
+        int elapsed = 0;
+        try {
+            while (elapsed < 2000) {
+                if (mc.thePlayer.inventory.getFirstEmptyStack() == -1) {
+                    count++;
+                }
+                total++;
+                elapsed += 50;
+                Thread.sleep(10);
+            }
+            if (count/total > 0.35) {
+                Utils.webhookLog("Inventory full, Auto Selling!");
+                Utils.ExecuteRunnable(sellInventory);
+            } else {
+                checkFull = false;
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

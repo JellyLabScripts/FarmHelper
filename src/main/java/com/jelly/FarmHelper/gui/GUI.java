@@ -6,6 +6,8 @@ import com.jelly.FarmHelper.config.CropEnum;
 import com.jelly.FarmHelper.config.FarmEnum;
 import com.jelly.FarmHelper.gui.buttons.GuiBetterButton;
 import com.jelly.FarmHelper.gui.buttons.GuiCustomButton;
+import com.jelly.FarmHelper.gui.buttons.GuiCustomSwitchButton;
+import com.jelly.FarmHelper.utils.Utils;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
@@ -14,6 +16,7 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class GUI extends GuiScreen{
     int buttonWidth = 115;
@@ -31,14 +34,16 @@ public class GUI extends GuiScreen{
     @Override
     public void initGui() {
         super.initGui();
-        this.buttonList.add(new GuiCustomButton(100, this.width/2,  this.height/2 - 40, 0,0,  quarterI));
-        this.buttonList.add(new GuiCustomButton(1, this.width/2 - 100 ,  this.height / 2 - 140, 100, 100, quarterI));
-        this.buttonList.add(new GuiCustomButton(2, this.width/2,  this.height / 2 - 140, 100,100,  quarterII));
-        this.buttonList.add(new GuiCustomButton(3, this.width/2 - 100 ,  this.height / 2 - 40, 100,100,  quarterIII));
-        this.buttonList.add(new GuiCustomButton(4, this.width/2 ,  this.height / 2 - 40, 100,100,  quarterIV));
-        this.buttonList.add(new GuiBetterButton(5, this.width / 2 - buttonWidth / 2, this.height / 2 - buttonHeight / 2 + 130, buttonWidth, buttonHeight, "Settings"));
-        this.buttonList.add(new GuiBetterButton(6, this.width / 2 - buttonWidth / 2, this.height / 2 - buttonHeight / 2 + 180, buttonWidth, buttonHeight, "Toggle Profit GUI"));
-        this.buttonList.add(new GuiBetterButton(7, this.width / 2 - buttonWidth / 2, this.height / 2 - buttonHeight / 2 + 230, buttonWidth, buttonHeight, "Change farm"));
+        this.buttonList.add(new GuiCustomButton(100, this.width/2,  this.height/2 - 100, 0,0,  quarterI));
+        this.buttonList.add(new GuiCustomButton(1, this.width/2 - 100 ,  this.height / 2 - 200, 100, 100, quarterI));
+        this.buttonList.add(new GuiCustomButton(2, this.width/2,  this.height / 2 - 200, 100,100,  quarterII));
+        this.buttonList.add(new GuiCustomButton(3, this.width/2 - 100 ,  this.height / 2 - 100, 100,100,  quarterIII));
+        this.buttonList.add(new GuiCustomButton(4, this.width/2 ,  this.height / 2 - 100, 100,100,  quarterIV));
+        this.buttonList.add(new GuiBetterButton(5, this.width / 2 - buttonWidth / 2, this.height / 2 - buttonHeight / 2 + 60, buttonWidth, buttonHeight, "Settings"));
+        this.buttonList.add(new GuiBetterButton(6, this.width / 2 - buttonWidth / 2, this.height / 2 - buttonHeight / 2 + 110, buttonWidth, buttonHeight, "Toggle Profit GUI"));
+        this.buttonList.add(new GuiBetterButton(7, this.width / 2 - buttonWidth / 2, this.height / 2 - buttonHeight / 2 + 160, buttonWidth, buttonHeight, Config.FarmType.name()));
+        this.buttonList.add(new GuiBetterButton(8, this.width / 2 - buttonWidth / 2, this.height / 2 - buttonHeight / 2 + 210, buttonWidth, buttonHeight, "Sell Inventory"));
+
         GuiCustomButton temp = (GuiCustomButton) this.buttonList.get(Config.CropType.ordinal());
         temp.select();
     }
@@ -100,10 +105,19 @@ public class GUI extends GuiScreen{
         }
         if (button.id == 6) {
             FarmHelper.profitGUI = !FarmHelper.profitGUI;
-//            FarmHelper.goToBlock(4, -95);
         }
         if (button.id == 7) {
             Config.FarmType = FarmEnum.values()[1 - Config.FarmType.ordinal()];
+            GuiBetterButton temp = (GuiBetterButton) button;
+            temp.displayString = Config.FarmType.name();
+            updateScreen();
+        }
+        if (button.id == 8) {
+            FarmHelper.openedGUI = false;
+            mc.thePlayer.closeScreen();
+            FarmHelper.cookie = true;
+            Utils.ExecuteRunnable(FarmHelper.checkFooter);
+            Utils.ScheduleRunnable(FarmHelper.sellInventory, 2, TimeUnit.SECONDS);
         }
     }
 }

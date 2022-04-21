@@ -18,7 +18,6 @@ public class GuiBetterButton extends GuiButton {
         this.buttonText = buttonText;
     }
 
-
     @Override
     public void drawButton(Minecraft mc, int mouseX, int mouseY) {
         if (this.visible) {
