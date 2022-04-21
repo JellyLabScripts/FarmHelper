@@ -1069,13 +1069,15 @@ public class FarmHelper {
         try {
             int slotID = -1;
             Minecraft mc = Minecraft.getMinecraft();
-            mc.displayGuiScreen(new GuiInventory(mc.thePlayer));
+            // mc.displayGuiScreen(new GuiInventory(mc.thePlayer));
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindInventory.getKeyCode(), true);
             Thread.sleep(200);
             Utils.debugLog("waiting inv");
             while (!(mc.currentScreen instanceof GuiInventory) && Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots != null) {
                 Thread.sleep(50);
             }
             Utils.debugLog("found inv");
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindInventory.getKeyCode(), false);
             Thread.sleep(500);
             for (Slot slot : Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots) {
                 if (slot != null) {
