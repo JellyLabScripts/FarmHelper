@@ -400,6 +400,7 @@ public class FarmHelper {
                 Utils.ScheduleRunnable(crouchReset, 500, TimeUnit.MILLISECONDS);
             } else if (currentLocation == location.ISLAND) {
                 if (dropping) {
+                    updateKeys(false, false, false, false, false, false);
                     return;
                 }
                 if (!caged && bedrockCount() > 1) {
@@ -479,7 +480,9 @@ public class FarmHelper {
                         if (dy == 0) {
                             // If on solid block
                             if ((mc.thePlayer.posY % 1) == 0) {
-                                Utils.hardRotate(playerYaw);
+                                if (!stuck && !dropping) {
+                                    Utils.hardRotate(playerYaw);
+                                }
                                 // Cannot move forwards or backwards
                                 if (!isWalkable(Utils.getFrontBlock()) && !isWalkable(Utils.getBackBlock())) {
                                     cached = false;
@@ -661,7 +664,11 @@ public class FarmHelper {
                                             }
                                         } else if (pushedOffFront) {
                                             if (dx < 0.001 && dz < 0.001) {
-                                                if (isWalkable(Utils.getLeftBlock())) {
+                                                if (!dropping && System.currentTimeMillis() > stuckCooldown) {
+                                                    dropping = true;
+                                                    Utils.ExecuteRunnable(stackSlot);
+                                                }
+                                                else if (isWalkable(Utils.getLeftBlock())) {
                                                     Utils.debugLog("End of row - End of col - Pushed - Go left");
                                                     updateKeys(false, false, true, false, true, false);
                                                 } else if (isWalkable(Utils.getRightBlock())) {
@@ -677,7 +684,6 @@ public class FarmHelper {
                                                 Utils.debugFullLog("End of row - End of col - Edge - Pushing off");
                                                 pushedOffFront = true;
                                                 updateKeys(false, true, false, false, false, true);
-                                                Utils.ExecuteRunnable(stackSlot);
                                             } else {
                                                 Utils.debugFullLog("End of row - End of col - Maybe not edge - Going forwards");
                                                 updateKeys(true, false, false, false, true, false);
@@ -907,7 +913,7 @@ public class FarmHelper {
                 mc.thePlayer.posZ + (i * Utils.getUnitZ())
             );
             Block checkBlock = mc.theWorld.getBlockState(pos).getBlock();
-            Utils.debugLog("checking ------------ " + checkBlock);
+            Utils.debugFullLog("checking ------------ " + checkBlock);
             if (checkBlock.equals(cropBlockStates.get(Config.CropType))) {
                 Utils.debugFullLog("cacheRowAge - Found row - Calculating age - Pos: " + pos);
                 cachePos = pos;
@@ -1069,22 +1075,29 @@ public class FarmHelper {
         try {
             int slotID = -1;
             Minecraft mc = Minecraft.getMinecraft();
-            // mc.displayGuiScreen(new GuiInventory(mc.thePlayer));
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindInventory.getKeyCode(), true);
-            Thread.sleep(200);
+
             Utils.debugLog("waiting inv");
-            while (!(mc.currentScreen instanceof GuiInventory) && Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots != null) {
-                Thread.sleep(50);
+            while (!(mc.currentScreen instanceof GuiInventory) || Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots == null) {
+                if (!this.mc.playerController.isInCreativeMode()) {
+                    mc.displayGuiScreen(new GuiInventory(mc.thePlayer));
+                } else {
+                    Utils.debugLog("IF SEEN - DN POLY");
+                    Utils.debugLog("IF SEEN - DN POLY");
+                    Utils.debugLog("IF SEEN - DN POLY");
+                    Utils.debugLog("IF SEEN - DN POLY");
+                    Utils.debugLog("IF SEEN - DN POLY");
+                    Utils.webhookLog("IF SEEN - DN POLY");
+                }
+                Thread.sleep(100);
             }
             Utils.debugLog("found inv");
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindInventory.getKeyCode(), false);
             Thread.sleep(500);
             for (Slot slot : Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots) {
                 if (slot != null) {
                     if (slot.getStack() != null) {
                         try {
                             if (slot.getStack().getDisplayName().contains("Stone") && slotID == -1) {
-                                Utils.debugLog("initial slot: " + slot.slotNumber);
+                                Utils.debugFullLog("initial slot: " + slot.slotNumber);
                                 slotID = slot.slotNumber;
                                 break;
                             }
@@ -1093,49 +1106,60 @@ public class FarmHelper {
                         }
                     }
                 }
-
             }
-            Thread.sleep(500);
-            mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, slotID, 0, 0, mc.thePlayer);
-            Utils.debugLog("picked item");
-            Thread.sleep(400);
-            mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, slotID, 0, 6, mc.thePlayer);
-            Utils.debugLog("stacked item item");
-            Thread.sleep(400);
-            mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, 35 + 7, 0, 0, mc.thePlayer);
-            Utils.debugLog("put back item");
-            Thread.sleep(300);
-            if (isWalkable(Utils.getRightBlock())) {
-                right = true;
-                Utils.smoothRotateAnticlockwise(90, 2.5);
+            if (slotID != -1) {
+                Thread.sleep(500);
+                mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, slotID, 0, 0, mc.thePlayer);
+                Utils.debugLog("picked item");
+                Thread.sleep(400);
+                mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, slotID, 0, 6, mc.thePlayer);
+                Utils.debugLog("stacked item item");
+                Thread.sleep(400);
+                mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, 35 + 7, 0, 0, mc.thePlayer);
+                Utils.debugLog("put back item");
+                Thread.sleep(300);
+                if (isWalkable(Utils.getRightBlock())) {
+                    right = true;
+                    Utils.smoothRotateAnticlockwise(90, 2.5);
+                } else {
+                    right = false;
+                    Utils.smoothRotateClockwise(90, 2.5);
+                }
+                mc.thePlayer.closeScreen();
+                Thread.sleep(400);
+                mc.thePlayer.inventory.currentItem = -1 + 7;
+                Thread.sleep(400);
+                mc.thePlayer.dropOneItem(true);
+                Utils.debugLog("dropped");
+                Thread.sleep(300);
+                mc.thePlayer.inventory.currentItem = hoeSlot;
+                if (right) {
+                    Utils.smoothRotateClockwise(90, 2.5);
+                    Thread.sleep(1000);
+                    updateKeys(false, false, false, true, true, false);
+                } else {
+                    Utils.smoothRotateAnticlockwise(90, 2.5);
+                    Thread.sleep(1000);
+                    updateKeys(false, false, true, false, true, false);
+                }
             } else {
-                right = false;
-                Utils.smoothRotateClockwise(90, 2.5);
-            }
-            mc.thePlayer.closeScreen();
-            Thread.sleep(400);
-            mc.thePlayer.inventory.currentItem = -1 + 7;
-            Thread.sleep(400);
-            mc.thePlayer.dropOneItem(true);
-            Utils.debugLog("dropped");
-            Thread.sleep(300);
-            mc.thePlayer.inventory.currentItem = hoeSlot;
-            if (right) {
-                Utils.smoothRotateClockwise(90, 2.5);
-                Thread.sleep(200);
-                updateKeys(false, false, false, true, true, false);
-            } else {
-                Utils.smoothRotateAnticlockwise(90, 2.5);
-                Thread.sleep(200);
-                updateKeys(false, false, false, true, true, false);
+                mc.thePlayer.closeScreen();
+                Thread.sleep(100);
+                if (isWalkable(Utils.getRightBlock())) {
+                    Thread.sleep(500);
+                    updateKeys(false, false, false, true, true, false);
+                } else {
+                    Thread.sleep(500);
+                    updateKeys(false, false, true, false, true, false);
+                }
             }
             deltaX = 1000;
             deltaY = 1000;
+            setStuckCooldown(4);
+            dropping = false;
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        dropping = false;
-        setStuckCooldown(4);
     };
 
     public static void goToBlock(int x, int z) {
