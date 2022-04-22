@@ -131,11 +131,11 @@ public class GuiSettings extends GuiScreen {
             temp.switchSelect();
         }
         if (Config.debug) {
-            GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(3);
+            GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(4);
             temp.switchSelect();
         }
         if (Config.autosell) {
-            GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(4);
+            GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(3);
             temp.switchSelect();
         }
     }
