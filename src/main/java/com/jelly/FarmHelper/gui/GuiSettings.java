@@ -23,6 +23,7 @@ public class GuiSettings extends GuiScreen {
     private GuiTextField urlTextBox;
     private GuiTextField statusTimeBox;
     private GuiTextField jacobThresholdBox;
+    private GuiTextField jacobMushroomBox;
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) { }
@@ -37,16 +38,21 @@ public class GuiSettings extends GuiScreen {
         jacobThresholdBox.setMaxStringLength(8);
         jacobThresholdBox.setText(String.valueOf(Config.jacobThreshold));
         jacobThresholdBox.setFocused(false);
-        this.buttonList.add(new GuiCustomSwitchButton(2, this.width/2 + 120, firstY + gap * 3, this.width/2 - 150, firstY + gap * 3 + 2, 40, 15, "Webhook Log"));
-        urlTextBox = new GuiTextField(1, Minecraft.getMinecraft().fontRendererObj, this.width/2 + 160 - fieldWidth, firstY + gap * 4, fieldWidth, fieldHeight);
+        jacobMushroomBox = new GuiTextField(1, Minecraft.getMinecraft().fontRendererObj, this.width/2 + 160 - 60, firstY + gap * 3, 60, fieldHeight);
+        jacobMushroomBox.setMaxStringLength(8);
+        jacobMushroomBox.setText(String.valueOf(Config.jacobMushroom));
+        jacobMushroomBox.setFocused(false);
+        this.buttonList.add(new GuiCustomSwitchButton(2, this.width/2 + 120, firstY + gap * 4, this.width/2 - 150, firstY + gap * 4 + 2, 40, 15, "Webhook Log"));
+        urlTextBox = new GuiTextField(1, Minecraft.getMinecraft().fontRendererObj, this.width/2 + 160 - fieldWidth, firstY + gap * 5, fieldWidth, fieldHeight);
         urlTextBox.setMaxStringLength(256);
         urlTextBox.setText(Config.webhookUrl);
         urlTextBox.setFocused(false);
-        statusTimeBox = new GuiTextField(1, Minecraft.getMinecraft().fontRendererObj, this.width/2 + 160 - 40, firstY + gap * 5, 40, fieldHeight);
+        statusTimeBox = new GuiTextField(1, Minecraft.getMinecraft().fontRendererObj, this.width/2 + 160 - 40, firstY + gap * 6, 40, fieldHeight);
         statusTimeBox.setMaxStringLength(5);
         statusTimeBox.setText(String.valueOf(Config.statusTime));
         statusTimeBox.setFocused(false);
-        this.buttonList.add(new GuiCustomSwitchButton(3, this.width/2 + 120, firstY + gap * 6, this.width/2 - 150, firstY + gap * 6 + 2, 40, 15, "Debug Mode"));
+        this.buttonList.add(new GuiCustomSwitchButton(4, this.width/2 + 120, firstY + gap * 7, this.width/2 - 150, firstY + gap * 7 + 2, 40, 15, "Auto Sell"));
+        this.buttonList.add(new GuiCustomSwitchButton(3, this.width/2 + 120, firstY + gap * 8, this.width/2 - 150, firstY + gap * 8 + 2, 40, 15, "Debug Mode"));
         initialSelect();
     }
 
@@ -57,11 +63,13 @@ public class GuiSettings extends GuiScreen {
         drawRect(0, 0, this.width, this.height, new Color(0, 0, 0, 225).getRGB());
         Utils.drawString(title, this.width / 2 - mc.fontRendererObj.getStringWidth(title) / 2 * 2, firstY - 50, 2, -1); // multiply by the size smh works firstY + gap * 3,this.width/2 - 150
         mc.fontRendererObj.drawStringWithShadow("Jacob Score Threshold", this.width/2 - 150, firstY + gap * 2 + 2, -1);
-        mc.fontRendererObj.drawStringWithShadow("Webhook URL", this.width/2 - 150, firstY + gap * 4 + 2, -1);
-        mc.fontRendererObj.drawStringWithShadow("Status Cooldown (min)", this.width/2 - 150, firstY + gap * 5 + 2, -1);
+        mc.fontRendererObj.drawStringWithShadow("Jacob Mushroom Score Threshold", this.width/2 - 150, firstY + gap * 3 + 2, -1);
+        mc.fontRendererObj.drawStringWithShadow("Webhook URL", this.width/2 - 150, firstY + gap * 5 + 2, -1);
+        mc.fontRendererObj.drawStringWithShadow("Status Cooldown (min)", this.width/2 - 150, firstY + gap * 6 + 2, -1);
         urlTextBox.drawTextBox();
         statusTimeBox.drawTextBox();
         jacobThresholdBox.drawTextBox();
+        jacobMushroomBox.drawTextBox();
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
@@ -100,6 +108,13 @@ public class GuiSettings extends GuiScreen {
             updateScreen();
             Config.writeConfig();
         }
+        else if (button.id == 4) {
+            GuiCustomSwitchButton temp = (GuiCustomSwitchButton) button;
+            temp.switchSelect();
+            Config.autosell = !Config.autosell;
+            updateScreen();
+            Config.writeConfig();
+        }
     }
 
     void initialSelect() {
@@ -119,6 +134,10 @@ public class GuiSettings extends GuiScreen {
             GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(3);
             temp.switchSelect();
         }
+        if (Config.autosell) {
+            GuiCustomSwitchButton temp = (GuiCustomSwitchButton) this.buttonList.get(4);
+            temp.switchSelect();
+        }
     }
 
     protected void keyTyped(char par1, int par2) {
@@ -128,6 +147,7 @@ public class GuiSettings extends GuiScreen {
             if (Character.isDigit(par1) || par2 == 14) {
                 statusTimeBox.textboxKeyTyped(par1, par2);
                 jacobThresholdBox.textboxKeyTyped(par1, par2);
+                jacobMushroomBox.textboxKeyTyped(par1, par2);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -139,6 +159,7 @@ public class GuiSettings extends GuiScreen {
         urlTextBox.updateCursorCounter();
         statusTimeBox.updateCursorCounter();
         jacobThresholdBox.updateCursorCounter();
+        jacobMushroomBox.updateCursorCounter();
     }
 
     protected void mouseClicked(int x, int y, int btn) {
@@ -147,6 +168,7 @@ public class GuiSettings extends GuiScreen {
             urlTextBox.mouseClicked(x, y, btn);
             statusTimeBox.mouseClicked(x, y, btn);
             jacobThresholdBox.mouseClicked(x, y, btn);
+            jacobMushroomBox.mouseClicked(x, y, btn);
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -157,6 +179,7 @@ public class GuiSettings extends GuiScreen {
         Config.webhookUrl = urlTextBox.getText();
         Config.statusTime = Integer.parseInt(statusTimeBox.getText());
         Config.jacobThreshold = Integer.parseInt(jacobThresholdBox.getText());
+        Config.jacobMushroom = Integer.parseInt(jacobMushroomBox.getText());
         Config.writeConfig();
     }
 }

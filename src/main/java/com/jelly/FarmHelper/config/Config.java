@@ -16,9 +16,11 @@ public class Config {
     public static String webhookUrl = "";
     public static Integer statusTime = 10;
     public static boolean debug = false;
+    public static boolean autosell = true;
+    public static Integer jacobMushroom = 100000;
 
 
-    public static void setConfig(CropEnum crop, FarmEnum farm, boolean resync, boolean jacobFailsafe, int jacobThreshold, boolean webhookLog, String webhookUrl, Integer statusTime, boolean debug) {
+    public static void setConfig(CropEnum crop, FarmEnum farm, boolean resync, boolean jacobFailsafe, int jacobThreshold, boolean webhookLog, String webhookUrl, Integer statusTime, boolean debug, boolean autosell, int jacobMushroom) {
         CropType = crop;
         FarmType = farm;
         Config.resync = resync;
@@ -28,6 +30,8 @@ public class Config {
         Config.webhookUrl = webhookUrl;
         Config.statusTime = statusTime;
         Config.debug = debug;
+        Config.autosell = autosell;
+        Config.jacobMushroom = jacobMushroom;
     }
 
     public static void writeConfig() {
@@ -42,6 +46,8 @@ public class Config {
             bufferedWriter.write("\n" + webhookUrl);
             bufferedWriter.write("\n" + statusTime);
             bufferedWriter.write("\n" + debug);
+            bufferedWriter.write("\n" + autosell);
+            bufferedWriter.write("\n" + jacobMushroom);
             bufferedWriter.close();
         } catch(Exception e) {
             e.printStackTrace();
@@ -62,7 +68,9 @@ public class Config {
                 Boolean.parseBoolean(bufferedReader.readLine()),
                 (url = bufferedReader.readLine()) != null ? url : "",
                 Integer.parseInt(bufferedReader.readLine()),
-                Boolean.parseBoolean(bufferedReader.readLine())
+                Boolean.parseBoolean(bufferedReader.readLine()),
+                Boolean.parseBoolean(bufferedReader.readLine()),
+                Integer.parseInt(bufferedReader.readLine())
             );
             bufferedReader.close();
         } catch(Exception e) {

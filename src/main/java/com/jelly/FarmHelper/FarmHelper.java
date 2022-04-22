@@ -22,16 +22,15 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.EnumDyeColor;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
-import net.minecraft.util.Vec3i;
+import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -49,6 +48,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
+import java.security.Key;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -62,7 +62,7 @@ public class FarmHelper {
     public static final String NAME = "Farm Helper";
     public static final String VERSION = "3.0";
 
-    Minecraft mc = Minecraft.getMinecraft();
+    public static final Minecraft mc = Minecraft.getMinecraft();
 
     enum direction {
         RIGHT,
@@ -119,24 +119,24 @@ public class FarmHelper {
     public static Map<CropEnum, Block> cropBlockStates = new HashMap<>();
     public static Map<CropEnum, PropertyInteger> cropAgeRefs = new HashMap<>();
 
-    public int playerYaw;
-    public int keybindA = mc.gameSettings.keyBindLeft.getKeyCode();
-    public int keybindD = mc.gameSettings.keyBindRight.getKeyCode();
-    public int keybindW = mc.gameSettings.keyBindForward.getKeyCode();
-    public int keybindS = mc.gameSettings.keyBindBack.getKeyCode();
-    public int keybindAttack = mc.gameSettings.keyBindAttack.getKeyCode();
-    public int keybindUseItem = mc.gameSettings.keyBindUseItem.getKeyCode();
-    public int keyBindSpace = mc.gameSettings.keyBindJump.getKeyCode();
-    public int keyBindShift = mc.gameSettings.keyBindSneak.getKeyCode();
-    public int dropStack = Keyboard.KEY_Z;
-    static KeyBinding[] customKeyBinds = new KeyBinding[2];
+    public static int playerYaw;
+    public static int keybindA = mc.gameSettings.keyBindLeft.getKeyCode();
+    public static int keybindD = mc.gameSettings.keyBindRight.getKeyCode();
+    public static int keybindW = mc.gameSettings.keyBindForward.getKeyCode();
+    public static int keybindS = mc.gameSettings.keyBindBack.getKeyCode();
+    public static int keybindAttack = mc.gameSettings.keyBindAttack.getKeyCode();
+    public static int keybindUseItem = mc.gameSettings.keyBindUseItem.getKeyCode();
+    public static int keyBindSpace = mc.gameSettings.keyBindJump.getKeyCode();
+    public static int keyBindShift = mc.gameSettings.keyBindSneak.getKeyCode();
+    public static int dropStack = Keyboard.KEY_Z;
+    public static KeyBinding[] customKeyBinds = new KeyBinding[2];
 
-    public double deltaX;
-    public double deltaY;
-    public double deltaZ;
-    public double beforeX;
-    public double beforeY;
-    public double beforeZ;
+    public static double deltaX;
+    public static double deltaY;
+    public static double deltaZ;
+    public static double beforeX;
+    public static double beforeY;
+    public static double beforeZ;
 
     private static final Pattern PATTERN_ACTIVE_EFFECTS = Pattern.compile(
         "\u00a7r\u00a7r\u00a77You have a \u00a7r\u00a7cGod Potion \u00a7r\u00a77active! \u00a7r\u00a7d([0-9]*?:?[0-9]*?:?[0-9]*)\u00a7r");
@@ -424,7 +424,7 @@ public class FarmHelper {
                     caged = true;
                     return;
                 }
-                if (Config.jacobFailsafe && getJacobCounter() > Config.jacobThreshold) {
+                if (Config.jacobFailsafe && ((getJacobCounter() > Config.jacobThreshold && !isMushroomContest()) || (getJacobCounter() > Config.jacobMushroom && isMushroomContest()))) {
                     Utils.debugFullLog("In jacob failsafe, waiting for teleport");
                     updateKeys(false, false, false, false, false, false);
                     if (!teleporting) {
@@ -1005,7 +1005,7 @@ public class FarmHelper {
             Thread.sleep(100);
             updateKeys(false, false, false, false, false, false);
             Thread.sleep(1500);
-            Utils.sineRotateAWC(84, 0.5);
+            Utils.sineRotateACW(84, 0.5);
             updateKeys(false, false, false, true, false, false);
             Thread.sleep(100);
             updateKeys(false, false, false, false, false, false);
@@ -1179,147 +1179,94 @@ public class FarmHelper {
         }
     };
 
-    public static Runnable sellInventory = () -> {
+    public static Runnable autoSell = () -> {
         try {
             selling = true;
             checkFull = true;
-            Minecraft mc = Minecraft.getMinecraft();
-            int keybindUseItem = mc.gameSettings.keyBindUseItem.getKeyCode();
             int hoeSlot = mc.thePlayer.inventory.currentItem;
-            int sackSlot = -1;
 
-            Integer[] sellSlots = {11, 16, 21, 23};
-            Integer[] sellSlotCounts = {100, 100, 100, 100};
+            Integer[] NPCSellSlots = {11, 16, 21, 23};
+            Integer[] NPCSellSlotCounts = {0, 0, 0, 0};
+
+            Integer[] BZSellSlots = {10, 13, 19};
+            Integer[] BZSellSlotCounts = {0, 0, 0};
 
             if (!cookie) {
                 Utils.debugLog("You need a cookie for auto sell!");
+                KeyBinding.onTick(keybindAttack);
+                Thread.sleep(100);
+                checkFull = false;
                 return;
             }
 
-            // Find a sack
-            for (int j = 0; j < 36; j++) {
-                ItemStack sack = mc.thePlayer.inventory.getStackInSlot(j);
-                if (sack != null) {
-                    String name = sack.getDisplayName();
-                    if (name.contains("Large Enchanted Agronomy Sack") && sackSlot == -1) {
-                        if (j < 9) {
-                            sackSlot = j + 36;
-                        } else {
-                            sackSlot = j;
-                        }
-                        Utils.debugLog("Found sack, slot: " + sackSlot);
-                    }
-                }
-                Thread.sleep(20);
-            }
+            sellInventory();
 
-            // Go through items
-            for (int i = 0; i < sellSlots.length; i++) {
-                while (sellSlotCounts[i] != 0 && sackSlot != -1) {
-                    mc.thePlayer.inventory.currentItem = 8;
-                    Thread.sleep(500);
-                    KeyBinding.onTick(keybindUseItem);
-                    Thread.sleep(500);
-                    mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, sackSlot + 45, 1, 0, mc.thePlayer);
-                    Thread.sleep(500);
-                    ItemStack stack = mc.thePlayer.openContainer.getSlot(sellSlots[i]).getStack();
-                    NBTTagList list = stack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8);
-                    Pattern pattern = Pattern.compile("^([a-zA-Z]+): ([0-9]+)(.*)");
-                    for (int j = 0; j < list.tagCount(); j++) {
-                        Matcher matcher = pattern.matcher(net.minecraft.util.StringUtils.stripControlCodes(list.getStringTagAt(j)));
-                        if (matcher.matches()) {
-                            Utils.debugLog("Stored: " + matcher.group(2));
-                            sellSlotCounts[i] = Integer.parseInt(matcher.group(2));
-                        }
-                    }
-                    boolean picked = false;
-                    while (sellSlotCounts[i] != 0 && mc.thePlayer.inventory.getFirstEmptyStack() != -1) {
-                        picked = true;
-                        mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, sellSlots[i], 0, 0, mc.thePlayer);
-                        Thread.sleep(500);
-                        stack = mc.thePlayer.openContainer.getSlot(sellSlots[i]).getStack();
-                        list = stack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8);
-                        for (int j = 0; j < list.tagCount(); j++) {
-                            Matcher matcher = pattern.matcher(net.minecraft.util.StringUtils.stripControlCodes(list.getStringTagAt(j)));
-                            if (matcher.matches()) {
-                                Utils.debugLog("New Count: " + matcher.group(2));
-                                sellSlotCounts[i] = Integer.parseInt(matcher.group(2));
-                            }
-                        }
-                        Thread.sleep(1000);
-                    }
-                    // Sell off
-                    if (picked || i == 0) {
-                        Utils.debugLog("Out of space or no more to collect - Selling");
-                        mc.thePlayer.closeScreen();
-                        Thread.sleep(300);
-                        mc.thePlayer.inventory.currentItem = 8;
-                        Thread.sleep(500);
-                        KeyBinding.onTick(keybindUseItem);
-                        Thread.sleep(500);
-                        mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, 22, 0, 0, mc.thePlayer);
-                        Thread.sleep(500);
-                        for (int j = 0; j < 36; j++) {
-                            ItemStack sellStack = mc.thePlayer.inventory.getStackInSlot(j);
-                            if (sellStack != null) {
-                                String name = sellStack.getDisplayName();
-                                if (name.contains("Enchanted Brown Mushroom") || name.contains("Enchanted Red Mushroom") || name.contains("Mutant Netherwart") || name.contains("Stone") || name.contains("Enchanted Sugar Cane") || name.contains("Enchanted Red Mushroom Block")  || name.contains("Enchanted Brown Mushroom Block")) {
-                                    Utils.debugLog("Found stack, selling");
-                                    if (j < 9) {
-                                        mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, 45 + 36 + j, 0, 0, mc.thePlayer);
-                                    } else {
-                                        mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, 45 + j, 0, 0, mc.thePlayer);
-                                    }
-                                    Thread.sleep(200);
-                                }
-                            }
-                            Thread.sleep(20);
-                        }
-                    }
-                    mc.thePlayer.closeScreen();
-                }
-            }
-
-            // Sell remaining sack to bz
-            if (Config.CropType != CropEnum.NETHERWART) {
-                mc.thePlayer.sendChatMessage("/bz");
-                while (!(mc.currentScreen instanceof GuiContainer)) {
-                    Thread.sleep(50);
-                }
+            if (findItemInventory("Large Enchanted Agronomy Sack") == -1) {
+                Utils.debugLog("No sack detected, resuming");
                 Thread.sleep(100);
-                ItemStack stack = mc.thePlayer.openContainer.getSlot(39).getStack();
-                if (stack.getDisplayName().contains("Sell Sacks Now")) {
-                    mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, 39, 1, 0, mc.thePlayer);
-                    stack = mc.thePlayer.openContainer.getSlot(11).getStack();
-                    while (!stack.getDisplayName().contains("Selling whole inventory")) {
-                        Thread.sleep(50);
-                        stack = mc.thePlayer.openContainer.getSlot(11).getStack();
+                mc.thePlayer.inventory.currentItem = hoeSlot;
+                Thread.sleep(100);
+                KeyBinding.onTick(keybindAttack);
+                Thread.sleep(100);
+                checkFull = false;
+                return;
+            }
+            openSack();
+
+            // Count all items in sack NPC
+            for (int i = 0; i < NPCSellSlots.length; i++) {
+                NPCSellSlotCounts[i] = countSack(NPCSellSlots[i]);
+            }
+
+            // Count all items in sack BZ
+            for (int i = 0; i < BZSellSlots.length; i++) {
+                BZSellSlotCounts[i] = countSack(BZSellSlots[i]);
+            }
+
+            // Claim items with counts
+            for (int i = 0; i < NPCSellSlots.length; i++) {
+                while (NPCSellSlotCounts[i] != 0) {
+                    if (!(mc.currentScreen instanceof GuiContainer)) {
+                        openSack();
                     }
-                    Thread.sleep(100);
-                    while (stack.getDisplayName().contains("Selling whole inventory")) {
-                        mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, 11, 1, 0, mc.thePlayer);
-                        Thread.sleep(200);
-                        stack = mc.thePlayer.openContainer.getSlot(11).getStack();
+                    while (mc.thePlayer.inventory.getFirstEmptyStack() != -1 && NPCSellSlotCounts[i] != 0) {
+                        Utils.debugLog("Collecting");
+                        clickWindow(mc.thePlayer.openContainer.windowId, NPCSellSlots[i]);
+                        waitForItem(NPCSellSlots[i], "");
+                        Thread.sleep(100);
+                        NPCSellSlotCounts[i] = countSack(NPCSellSlots[i]);
                     }
-                    Utils.debugLog("Sold sacks to bazaar!");
+                    sellInventory();
                 }
             }
-            Thread.sleep(1000);
+
+            // If any remaining in sack, sell to bazaar
+            for (int i = 0; i < BZSellSlots.length; i++) {
+                if (BZSellSlotCounts[i] != 0) {
+                    openBazaar();
+                    waitForItemClick(11, "Selling whole inventory", 39, "Sell Sacks Now");
+                    waitForItemClick(11, "Items sold!", 11, "Selling whole inventory");
+                }
+            }
+
             mc.thePlayer.closeScreen();
             mc.thePlayer.inventory.currentItem = hoeSlot;
+            Thread.sleep(100);
+            KeyBinding.onTick(keybindAttack);
+            Thread.sleep(100);
             checkFull = false;
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     };
 
-    Runnable fullInventory = () -> {
+    public static Runnable fullInventory = () -> {
         int count = 0;
         int total = 0;
         int elapsed = 0;
         checkFull = true;
         try {
-            while (elapsed < 2000) {
+            while (elapsed < 6000) {
                 if (mc.thePlayer.inventory.getFirstEmptyStack() == -1) {
                     count++;
                 }
@@ -1327,10 +1274,10 @@ public class FarmHelper {
                 elapsed += 10;
                 Thread.sleep(10);
             }
-            if (((float) count/total) > 0.45 && !selling) {
+            if (((float) count / total) > 0.60 && !selling && Config.autosell) {
                 selling = true;
                 Utils.webhookLog("Inventory full, Auto Selling!");
-                Utils.ExecuteRunnable(sellInventory);
+                Utils.ExecuteRunnable(autoSell);
             } else {
                 checkFull = false;
             }
@@ -1339,19 +1286,360 @@ public class FarmHelper {
         }
     };
 
-    public static void goToBlock(int x, int z) {
-        new Thread(() -> {
-            Minecraft mc = Minecraft.getMinecraft();
-            double yaw;
-            double xdiff = x - mc.thePlayer.posX - 0.5;
-            double zdiff = z - mc.thePlayer.posZ - 0.5;
-            double targetYaw = ((270 + Math.toDegrees(Math.atan2(zdiff, xdiff))) % 360);
-            Utils.debugLog("Calculated yaw: " + targetYaw);
-//            if (Math.abs())
-        }).start();
+    public static Runnable buyGodPot = () -> {
+        try {
+            goToBlock(4, -95);
+            goToBlock(3, -99);
+            goToBlock(2, -100);
+            Utils.smoothRotateTo(122.0);
+            Utils.debugLog(String.valueOf(mc.currentScreen instanceof GuiContainer));
+            KeyBinding.onTick(keybindUseItem);
+            while (!(mc.currentScreen instanceof GuiContainer)) {
+                Thread.sleep(100);
+            }
+            if (mc.thePlayer.inventory.getFirstEmptyStack() != -1) {
+                clickWindow(mc.thePlayer.openContainer.windowId, 4);
+                ItemStack stack = mc.thePlayer.openContainer.getSlot(19).getStack();
+                while (!stack.getDisplayName().contains("God Potion")) {
+                    Thread.sleep(100);
+                    Utils.debugLog(stack.getDisplayName());
+                }
+                Utils.debugLog("Buying god pot now");
+                Thread.sleep(1000);
+                clickWindow(mc.thePlayer.openContainer.windowId, 19);
+                Thread.sleep(100);
+                while (findItemInventory("Hyper") == -1) {
+                    if (mc.thePlayer.openContainer.getSlot(11).getStack().getDisplayName().contains("Confirm")) {
+                        // clickWindow(mc.thePlayer.openContainer.windowId, 11);
+                        clickWindow(mc.thePlayer.openContainer.windowId, 15);
+                    }
+                    Thread.sleep(100);
+                }
+                mc.thePlayer.closeScreen();
+                Thread.sleep(100);
+                clickWindow(mc.thePlayer.inventoryContainer.windowId, findItemInventory("Hyper"));
+                Thread.sleep(100);
+                clickWindow(mc.thePlayer.inventoryContainer.windowId, 42);
+                mc.thePlayer.inventory.currentItem = 6;
+            } else {
+                Utils.debugLog("Inventory full! Cannot buy God Pot");
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    };
+
+    public static Runnable buyCookie = () -> {
+        try {
+            goToBlock(-3, -77);
+            goToBlock(-31, -77);
+            KeyBinding.onTick(keybindUseItem);
+            while (!(mc.currentScreen instanceof GuiContainer)) {
+                Thread.sleep(100);
+            }
+            if (mc.thePlayer.inventory.getFirstEmptyStack() != -1) {
+                clickWindow(mc.thePlayer.openContainer.windowId, 36);
+                ItemStack stack = mc.thePlayer.openContainer.getSlot(11).getStack();
+                while (!stack.getDisplayName().contains("Booster Cookie")) {
+                    stack = mc.thePlayer.openContainer.getSlot(11).getStack();
+                    Thread.sleep(100);
+                }
+                Utils.debugLog("Clicked category");
+                Thread.sleep(500);
+                clickWindow(mc.thePlayer.openContainer.windowId, 11);
+                while (!stack.getDisplayName().contains("Buy Instantly")) {
+                    stack = mc.thePlayer.openContainer.getSlot(10).getStack();
+                    Thread.sleep(100);
+                }
+                Utils.debugLog("Clicked cookie");
+                Thread.sleep(500);
+                clickWindow(mc.thePlayer.openContainer.windowId, 10);
+                while (!stack.getDisplayName().contains("Buy only")) {
+                    stack = mc.thePlayer.openContainer.getSlot(10).getStack();
+                    Thread.sleep(100);
+                }
+                Utils.debugLog("Clicked buy instantly");
+            } else {
+                Utils.debugLog("Inventory full! Cannot buy Cookie");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    };
+
+    public static void sellInventory() {
+        try {
+            Utils.debugLog("Selling Inventory");
+            // Sell to NPC
+            openTrades();
+            Thread.sleep(500);
+            for (int j = 0; j < 36; j++) {
+                ItemStack sellStack = mc.thePlayer.inventory.getStackInSlot(j);
+                if (sellStack != null) {
+                    String name = sellStack.getDisplayName();
+                    if (name.contains("Brown Mushroom") || name.contains("Enchanted Brown Mushroom") || name.contains("Brown Mushroom Block") || name.contains("Brown Enchanted Mushroom Block") ||
+                        name.contains("Red Mushroom") || name.contains("Enchanted Red Mushroom") || name.contains("Red Mushroom Block") || name.contains("Red Enchanted Mushroom Block") ||
+                        name.contains("Nether Wart") || name.contains("Enchanted Nether Wart") || name.contains("Mutant Nether Wart") ||
+                        name.contains("Sugar Cane") || name.contains("Enchanted Sugar") || name.contains("Enchanted Sugar Cane") ||
+                        name.contains("Stone")
+                    ) {
+                        Utils.debugLog("Found stack, selling");
+                        clickWindow(mc.thePlayer.openContainer.windowId, (j < 9 ? j + 45 + 36 : j + 45));
+                        Thread.sleep(200);
+                    }
+                }
+                Thread.sleep(20);
+            }
+            mc.thePlayer.closeScreen();
+
+            // Sell to Bazaar
+            for (int j = 0; j < 36; j++) {
+                ItemStack sellStack = mc.thePlayer.inventory.getStackInSlot(j);
+                if (sellStack != null) {
+                    String name = sellStack.getDisplayName();
+                    if (name.contains("Carrot") && !name.contains("Hoe")) {
+                        Utils.debugLog("Found carrots, selling");
+                        openBazaar();
+                        waitForItemClick(12, "Carrot", 0, "Farming");
+                        waitForItemClick(29, "Sell Inventory Now", 12, "Carrot", "Enchanted");
+                        waitForItemClick(11, "Selling whole inventory", 29, "Sell Inventory Now");
+                        waitForItemClick(11, "Items sold!", 11, "Selling whole inventory");
+                        Utils.debugLog("Successfully sold all carrots");
+                    }
+                    if (name.contains("Potato") && !name.contains("Hoe")) {
+                        Utils.debugLog("Found potatoes, selling");
+                        openBazaar();
+                        waitForItemClick(13, "Potato", 0, "Farming");
+                        waitForItemClick(29, "Sell Inventory Now", 13, "Potato", "Enchanted");
+                        waitForItemClick(11, "Selling whole inventory", 29, "Sell Inventory Now");
+                        waitForItemClick(11, "Items sold!", 11, "Selling whole inventory");
+                        Utils.debugLog("Successfully sold all potatoes");
+                    }
+                    if ((name.contains("Wheat") || name.contains("Hay Bale") || name.contains("Bread")) && !name.contains("Hoe")) {
+                        Utils.debugLog("Found wheat, selling");
+                        openBazaar();
+                        waitForItemClick(11, "Wheat & Seeds", 0, "Farming");
+                        waitForItemClick(29, "Sell Inventory Now", 11, "Wheat & Seeds");
+                        waitForItemClick(11, "Selling whole inventory", 29, "Sell Inventory Now");
+                        waitForItemClick(11, "Items sold!", 11, "Selling whole inventory");
+                        Utils.debugLog("Successfully sold all wheat");
+                    }
+                }
+                Thread.sleep(20);
+            }
+            mc.thePlayer.closeScreen();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
-    void updateKeys(boolean wBool, boolean sBool, boolean aBool, boolean dBool, boolean atkBool, boolean shiftBool) {
+    public static int countSack(int slotID) {
+        ItemStack stack = mc.thePlayer.openContainer.getSlot(slotID).getStack();
+        NBTTagList list = stack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8);
+        Pattern pattern = Pattern.compile("^([a-zA-Z]+): ([0-9]+)(.*)");
+        for (int j = 0; j < list.tagCount(); j++) {
+            Matcher matcher = pattern.matcher(StringUtils.stripControlCodes(list.getStringTagAt(j)));
+            if (matcher.matches()) {
+                Utils.debugLog("Stored: " + matcher.group(2));
+                return Integer.parseInt(matcher.group(2));
+            }
+        }
+        return 0;
+    }
+
+    public static void openSBMenu() {
+        try {
+            mc.thePlayer.closeScreen();
+            mc.thePlayer.inventory.currentItem = 8;
+            Thread.sleep(500);
+            KeyBinding.onTick(keybindUseItem);
+            while (!(mc.currentScreen instanceof GuiContainer)) {
+                KeyBinding.onTick(keybindUseItem);
+                Thread.sleep(100);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void openSack() {
+        int sackSlot = findItemInventory("Large Enchanted Agronomy Sack");
+        openSBMenu();
+        try {
+            ItemStack stack = mc.thePlayer.openContainer.getSlot(31).getStack();
+            ItemStack clickStack = mc.thePlayer.openContainer.getSlot(sackSlot + 45).getStack();
+            while (stack == null || !stack.getDisplayName().contains("Close")) {
+                clickStack = mc.thePlayer.openContainer.getSlot(sackSlot + 45).getStack();
+                stack = mc.thePlayer.openContainer.getSlot(31).getStack();
+                if (clickStack != null && clickStack.getDisplayName().contains("Large Enchanted Agronomy Sack")) {
+                    clickWindow(mc.thePlayer.openContainer.windowId, sackSlot + 45, 1);
+                }
+                Thread.sleep(100);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static boolean openTrades() {
+        openSBMenu();
+        waitForItemClick(48, "Go Back", 22, "Trades");
+        return (mc.thePlayer.openContainer.getSlot(49).getStack().getItem() == Item.getItemFromBlock(Blocks.hopper));
+    }
+
+    public static boolean openBazaar() {
+        try {
+            mc.thePlayer.closeScreen();
+            Thread.sleep(100);
+            mc.thePlayer.sendChatMessage("/bz");
+            while (!(mc.currentScreen instanceof GuiContainer)) {
+                Thread.sleep(100);
+            }
+            return true;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static boolean checkItem(int slotID, Block item) {
+        ItemStack stack = mc.thePlayer.openContainer.getSlot(slotID).getStack();
+        return stack != null && stack.getItem() == Item.getItemFromBlock(item);
+    }
+
+    public static boolean checkItem(ItemStack stack, Block item) {
+        return stack != null && stack.getItem() == Item.getItemFromBlock(item);
+    }
+
+    public static boolean checkItem(int slotID, Item item) {
+        ItemStack stack = mc.thePlayer.openContainer.getSlot(slotID).getStack();
+        return stack != null && stack.getItem() == item;
+    }
+
+    public static boolean checkItem(ItemStack stack, Item item) {
+        return stack != null && stack.getItem() == item;
+    }
+
+    public static void waitForItem(int slotID, String displayName) {
+        try {
+            ItemStack stack = mc.thePlayer.openContainer.getSlot(slotID).getStack();
+            while (stack == null || !stack.getDisplayName().contains(displayName)) {
+                stack = mc.thePlayer.openContainer.getSlot(slotID).getStack();
+                Thread.sleep(100);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void waitForItemClick(int slotID, String displayName, int clickSlotID, String clickDisplayName) {
+        try {
+            ItemStack stack = mc.thePlayer.openContainer.getSlot(slotID).getStack();
+            ItemStack clickStack = mc.thePlayer.openContainer.getSlot(clickSlotID).getStack();
+            while (stack == null || !stack.getDisplayName().contains(displayName)) {
+                clickStack = mc.thePlayer.openContainer.getSlot(clickSlotID).getStack();
+                stack = mc.thePlayer.openContainer.getSlot(slotID).getStack();
+                if (clickStack != null && clickStack.getDisplayName().contains(clickDisplayName)) {
+                    clickWindow(mc.thePlayer.openContainer.windowId, clickSlotID);
+                }
+                Thread.sleep(100);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void waitForItemClick(int slotID, String displayName, int clickSlotID, String clickDisplayName, String exclude) {
+        try {
+            ItemStack stack = mc.thePlayer.openContainer.getSlot(slotID).getStack();
+            ItemStack clickStack = mc.thePlayer.openContainer.getSlot(clickSlotID).getStack();
+            while (stack == null || (!stack.getDisplayName().contains(displayName))) {
+                clickStack = mc.thePlayer.openContainer.getSlot(clickSlotID).getStack();
+                stack = mc.thePlayer.openContainer.getSlot(slotID).getStack();
+                if (clickStack != null && (clickStack.getDisplayName().contains(clickDisplayName) && !clickStack.getDisplayName().contains(exclude))) {
+                    clickWindow(mc.thePlayer.openContainer.windowId, clickSlotID);
+                }
+                Thread.sleep(100);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void waitForItemClick(int slotID, String displayName, int clickSlotID, Item item) {
+        try {
+            ItemStack stack = mc.thePlayer.openContainer.getSlot(slotID).getStack();
+            ItemStack clickStack = mc.thePlayer.openContainer.getSlot(clickSlotID).getStack();
+            while (stack == null || !stack.getDisplayName().contains(displayName)) {
+                clickStack = mc.thePlayer.openContainer.getSlot(clickSlotID).getStack();
+                stack = mc.thePlayer.openContainer.getSlot(slotID).getStack();
+                if (checkItem(clickStack, item)) {
+                    clickWindow(mc.thePlayer.openContainer.windowId, clickSlotID);
+                }
+                Thread.sleep(100);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static int findItemInventory(String name) {
+        for (int i = 0; i < 36; i++) {
+            ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
+            if (stack != null) {
+                if (stack.getDisplayName().contains(name)) {
+                    return i + (i < 9 ? 36 : 0);
+                }
+            }
+        }
+        return -1;
+    }
+
+    public static void goToBlock(int x, int z) {
+        try {
+            Minecraft mc = Minecraft.getMinecraft();
+            double yaw = Utils.get360RotationYaw();
+            double xdiff = x + 0.5 - mc.thePlayer.posX;
+            double zdiff = z + 0.5 - mc.thePlayer.posZ;
+            double distance = Math.sqrt(Math.pow(xdiff, 2) + Math.pow(zdiff, 2));
+            double speed = Math.sqrt((Math.pow(Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX), 2) + (Math.pow(Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ), 2))));
+            double targetYaw = Utils.get360RotationYaw((float) Math.toDegrees(Math.atan2(-xdiff, zdiff)));
+            Utils.debugLog("Calculated yaw: " + targetYaw);
+
+            if (yaw > targetYaw) {
+                if (yaw - targetYaw > 180) {
+                    Utils.sineRotateCW(Utils.get360RotationYaw((float) (targetYaw - yaw)), 2);
+                } else {
+                    Utils.sineRotateACW((float) (yaw - targetYaw), 2);
+                }
+            } else {
+                if (targetYaw - yaw < 180) {
+                    Utils.sineRotateCW((float) (targetYaw - yaw), 2);
+                } else {
+                    Utils.sineRotateACW(Utils.get360RotationYaw((float) (yaw - targetYaw)), 2);
+                }
+            }
+
+            Thread.sleep(100);
+
+            while (Math.abs(distance) > 0.2) {
+                xdiff = x + 0.5 - mc.thePlayer.posX;
+                zdiff = z + 0.5 - mc.thePlayer.posZ;
+                targetYaw = Utils.get360RotationYaw((float) Math.toDegrees(Math.atan2(-xdiff, zdiff)));
+                Utils.hardRotate((float) targetYaw);
+                updateKeys(true, false, false, false, false, 1.4 * speed >= distance);
+                distance = Math.sqrt(Math.pow((x + 0.5 - mc.thePlayer.posX), 2) + Math.pow((z + 0.5 - mc.thePlayer.posZ), 2));
+                speed = Math.sqrt((Math.pow(Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX), 2) + (Math.pow(Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ), 2))));
+                Thread.sleep(10);
+            }
+            updateKeys(false, false, false, false, false, false);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static void updateKeys(boolean wBool, boolean sBool, boolean aBool, boolean dBool, boolean atkBool, boolean shiftBool) {
         KeyBinding.setKeyBindState(keybindW, wBool);
         KeyBinding.setKeyBindState(keybindS, sBool);
         KeyBinding.setKeyBindState(keybindA, aBool);
@@ -1360,9 +1648,14 @@ public class FarmHelper {
         KeyBinding.setKeyBindState(keyBindShift, shiftBool);
     }
 
-    void clickWindow(int windowID, int slotID) {
+    public static void clickWindow(int windowID, int slotID) {
         Minecraft mc = Minecraft.getMinecraft();
         mc.playerController.windowClick(windowID, slotID, 0, 0, mc.thePlayer);
+    }
+
+    public static void clickWindow(int windowID, int slotID, int button) {
+        Minecraft mc = Minecraft.getMinecraft();
+        mc.playerController.windowClick(windowID, slotID, button, 0, mc.thePlayer);
     }
 
     boolean isWalkable(Block block) {
@@ -1448,6 +1741,16 @@ public class FarmHelper {
 
     static int getTier1() {
         return ((currentCounter - startCounter) % 25600) % 160;
+    }
+
+    public static boolean isMushroomContest() {
+        for (String line : Utils.getSidebarLines()) {
+            String cleanedLine = Utils.cleanSB(line);
+            if (cleanedLine.contains("Mushroom")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     int getJacobCounter() {
@@ -1586,30 +1889,6 @@ public class FarmHelper {
         lastStuck = System.currentTimeMillis();
     }
 
-    double distanceToTurn() {
-        // Find end coord
-        double distance = 1000;
-//        for (int i = 1; i < 9; i++) {
-//            if (!isWalkable(Utils.getFrontBlock(0, i))) {
-//                if (Utils.getFrontBlock(-1, i - 1) == Blocks.air || Utils.getFrontBlock(-1, i - 1) == Blocks.end_portal_frame) {
-//                    return 1000;
-//                }
-//                else if (Utils.getUnitX() != 0) {
-//                    double midpoint = ((int) Math.floor(mc.thePlayer.posX)) + (Utils.getUnitX() * (i - 1)) + 0.5;
-//                    distance = Math.abs(mc.thePlayer.posX - midpoint);
-//
-//                } else {
-//                    double midpoint = ((int) Math.floor(mc.thePlayer.posZ)) + (Utils.getUnitZ() * (i - 1)) + 0.5;
-//                    distance = Math.abs(mc.thePlayer.posZ - midpoint);
-//                }
-//                Utils.debugLog("Distance to stop: " + distance);
-//                return distance;
-//            }
-//        }
-        return distance;
-    }
-
-    // Yoinked from Yung RIPBOZO
     int bedrockCount() {
         // if (System.currentTimeMillis() % 1000 < 20) {
         int r = 4;

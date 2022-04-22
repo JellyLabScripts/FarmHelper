@@ -43,6 +43,7 @@ public class GUI extends GuiScreen{
         this.buttonList.add(new GuiBetterButton(6, this.width / 2 - buttonWidth / 2, this.height / 2 - buttonHeight / 2 + 110, buttonWidth, buttonHeight, "Toggle Profit GUI"));
         this.buttonList.add(new GuiBetterButton(7, this.width / 2 - buttonWidth / 2, this.height / 2 - buttonHeight / 2 + 160, buttonWidth, buttonHeight, Config.FarmType.name()));
         this.buttonList.add(new GuiBetterButton(8, this.width / 2 - buttonWidth / 2, this.height / 2 - buttonHeight / 2 + 210, buttonWidth, buttonHeight, "Sell Inventory"));
+        // this.buttonList.add(new GuiBetterButton(9, this.width / 2 - buttonWidth / 2 - 200, this.height / 2 - buttonHeight / 2 + 210, buttonWidth, buttonHeight, "Test Button"));
 
         GuiCustomButton temp = (GuiCustomButton) this.buttonList.get(Config.CropType.ordinal());
         temp.select();
@@ -117,7 +118,21 @@ public class GUI extends GuiScreen{
             mc.thePlayer.closeScreen();
             FarmHelper.cookie = true;
             Utils.ExecuteRunnable(FarmHelper.checkFooter);
-            Utils.ScheduleRunnable(FarmHelper.sellInventory, 2, TimeUnit.SECONDS);
+            if (FarmHelper.cookie) Utils.debugLog("Executing sell in 1 second");
+            Utils.ScheduleRunnable(FarmHelper.autoSell, 1, TimeUnit.SECONDS);
+        }
+        if (button.id == 9) {
+            FarmHelper.openedGUI = false;
+            mc.thePlayer.closeScreen();
+            new Thread(() -> {
+                try {
+                    Thread.sleep(500);
+                    FarmHelper.sellInventory();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+            // Utils.ScheduleRunnable(FarmHelper.buyCookie, 2, TimeUnit.SECONDS);
         }
     }
 }
