@@ -18,7 +18,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-public class GUI extends GuiScreen{
+public class GUI extends GuiScreen {
     int buttonWidth = 115;
     int buttonHeight = 40;
     private static final ResourceLocation quarterI = new ResourceLocation(FarmHelper.MODID, "textures/gui/a.png");

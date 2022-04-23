@@ -20,6 +20,7 @@ buildscript {
 
 plugins {
     id 'java'
+    id "com.github.johnrengelman.shadow" version "1.2.3"
 }
 
 apply plugin: 'net.minecraftforge.gradle.forge'
@@ -32,7 +33,7 @@ tasks.withType(JavaCompile) {
 }
 
 version = "3.0"
-group= "com.jelly"
+group = "com.jelly"
 archivesBaseName = "FarmHelper"
 
 minecraft {
@@ -47,12 +48,14 @@ repositories {
         name = 'spongepowered-repo'
         url = 'https://repo.spongepowered.org/repository/maven-public/'
     }
+    maven { url = "https://repo.essential.gg/repository/maven-public" }
     mavenCentral()
 }
 
 dependencies {
     compile('org.spongepowered:mixin:0.7.11-SNAPSHOT')
     annotationProcessor('org.spongepowered:mixin:0.7.11-SNAPSHOT')
+    implementation("gg.essential:elementa-1.8.9-forge:454+pull-57")
 }
 
 processResources
@@ -63,7 +66,7 @@ processResources
             from(sourceSets.main.resources.srcDirs) {
                 include 'mcmod.info'
 
-                expand 'version':project.version, 'mcversion':project.minecraft.version
+                expand 'version': project.version, 'mcversion': project.minecraft.version
             }
 
             from(sourceSets.main.resources.srcDirs) {
@@ -76,6 +79,9 @@ test {
 }
 
 shadowJar {
+    relocate("gg.essential.elementa", "com.jelly.elementa")
+    relocate("gg.essential.universalcraft", "com.jelly.universalcraft")
+
     dependencies {
         include(dependency('org.spongepowered:mixin'))
 
@@ -106,7 +112,7 @@ jar {
                 'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
                 'TweakOrder': 0,
                 'FMLCorePluginContainsFMLMod': 'true',
-                'FMLCorePlugin': 'com.jelly.FarmLoader.mixins.Transformer',
+                'FMLCorePlugin': 'com.jelly.FarmHelper.mixins.MixinLoader',
                 'ForceLoadAsMod': 'true',
                 'FMLAT': 'farmhelper.cfg'
         )
@@ -130,6 +136,6 @@ compileJava {
     ]
 }
 
-tasks.reobfJar.dependsOn(shadowJar)
+tasks.named("reobfJar").configure { dependsOn(tasks.named("shadowJar")) }
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

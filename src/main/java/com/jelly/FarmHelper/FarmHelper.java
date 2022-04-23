@@ -4,8 +4,10 @@ import com.jelly.FarmHelper.config.AngleEnum;
 import com.jelly.FarmHelper.config.Config;
 import com.jelly.FarmHelper.config.CropEnum;
 import com.jelly.FarmHelper.config.FarmEnum;
+import com.jelly.FarmHelper.gui.ExampleGUI;
 import com.jelly.FarmHelper.gui.GUI;
 import com.jelly.FarmHelper.gui.GuiSettings;
+import com.jelly.FarmHelper.gui.MenuGUI;
 import com.jelly.FarmHelper.utils.DiscordWebhook;
 import com.jelly.FarmHelper.utils.Utils;
 import jdk.nashorn.internal.runtime.Debug;
@@ -282,6 +284,7 @@ public class FarmHelper {
         if (customKeyBinds[0].isPressed()) {
             openedGUI = true;
             mc.displayGuiScreen(new GUI());
+            // mc.displayGuiScreen(new MenuGUI());
         }
         if (customKeyBinds[1].isPressed()) {
             if (!enabled) {
@@ -868,7 +871,7 @@ public class FarmHelper {
             deltaY = 100;
             setStuckCooldown(3);
             fixTpStuckFlag = false;
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     };
@@ -887,7 +890,7 @@ public class FarmHelper {
             deltaX = 100;
             deltaZ = 100;
             stuck = false;
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     };
@@ -906,7 +909,7 @@ public class FarmHelper {
             deltaX = 100;
             deltaZ = 100;
             stuck = false;
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     };
@@ -926,7 +929,7 @@ public class FarmHelper {
             deltaZ = 100;
             rotating = false;
             falling = false;
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     };
@@ -959,13 +962,13 @@ public class FarmHelper {
             Utils.debugLog("checkDesync - Still dropping items, waiting");
             try {
                 Thread.sleep(500);
-            } catch (InterruptedException e) {
+            } catch (Throwable e) {
                 e.printStackTrace();
             }
         }
         try {
             Thread.sleep(4000);
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
         double lowestAverage = 4;
@@ -1012,7 +1015,7 @@ public class FarmHelper {
             Thread.sleep(500);
             updateKeys(false, false, false, false, false, false);
             mc.thePlayer.sendChatMessage("/hub");
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     };
@@ -1059,7 +1062,7 @@ public class FarmHelper {
                 mc.thePlayer.sendChatMessage("/is");
                 Thread.sleep(10000);
             }
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     };
@@ -1174,7 +1177,7 @@ public class FarmHelper {
             deltaY = 1000;
             setStuckCooldown(4);
             dropping = false;
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     };
@@ -1215,11 +1218,13 @@ public class FarmHelper {
 
             // Count all items in sack NPC
             for (int i = 0; i < NPCSellSlots.length; i++) {
+                waitForItem(NPCSellSlots[i], "");
                 NPCSellSlotCounts[i] = countSack(NPCSellSlots[i]);
             }
 
             // Count all items in sack BZ
             for (int i = 0; i < BZSellSlots.length; i++) {
+                waitForItem(BZSellSlots[i], "");
                 BZSellSlotCounts[i] = countSack(BZSellSlots[i]);
             }
 
@@ -1255,7 +1260,7 @@ public class FarmHelper {
             KeyBinding.onTick(keybindAttack);
             Thread.sleep(100);
             checkFull = false;
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     };
@@ -1281,7 +1286,7 @@ public class FarmHelper {
             } else {
                 checkFull = false;
             }
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     };
@@ -1325,7 +1330,7 @@ public class FarmHelper {
                 Utils.debugLog("Inventory full! Cannot buy God Pot");
             }
 
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     };
@@ -1363,7 +1368,7 @@ public class FarmHelper {
             } else {
                 Utils.debugLog("Inventory full! Cannot buy Cookie");
             }
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     };
@@ -1378,11 +1383,11 @@ public class FarmHelper {
                 ItemStack sellStack = mc.thePlayer.inventory.getStackInSlot(j);
                 if (sellStack != null) {
                     String name = sellStack.getDisplayName();
-                    if (name.contains("Brown Mushroom") || name.contains("Enchanted Brown Mushroom") || name.contains("Brown Mushroom Block") || name.contains("Brown Enchanted Mushroom Block") ||
+                    if ((name.contains("Brown Mushroom") || name.contains("Enchanted Brown Mushroom") || name.contains("Brown Mushroom Block") || name.contains("Brown Enchanted Mushroom Block") ||
                         name.contains("Red Mushroom") || name.contains("Enchanted Red Mushroom") || name.contains("Red Mushroom Block") || name.contains("Red Enchanted Mushroom Block") ||
                         name.contains("Nether Wart") || name.contains("Enchanted Nether Wart") || name.contains("Mutant Nether Wart") ||
                         name.contains("Sugar Cane") || name.contains("Enchanted Sugar") || name.contains("Enchanted Sugar Cane") ||
-                        name.contains("Stone")
+                        name.contains("Stone")) && !name.contains("Hoe")
                     ) {
                         Utils.debugLog("Found stack, selling");
                         clickWindow(mc.thePlayer.openContainer.windowId, (j < 9 ? j + 45 + 36 : j + 45));
@@ -1429,7 +1434,7 @@ public class FarmHelper {
                 Thread.sleep(20);
             }
             mc.thePlayer.closeScreen();
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
@@ -1458,7 +1463,7 @@ public class FarmHelper {
                 KeyBinding.onTick(keybindUseItem);
                 Thread.sleep(100);
             }
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
@@ -1470,14 +1475,26 @@ public class FarmHelper {
             ItemStack stack = mc.thePlayer.openContainer.getSlot(31).getStack();
             ItemStack clickStack = mc.thePlayer.openContainer.getSlot(sackSlot + 45).getStack();
             while (stack == null || !stack.getDisplayName().contains("Close")) {
+                if (stack == null) {
+                    Utils.debugLog("stack null");
+                } else {
+                    Utils.debugLog("stack: " + stack.getDisplayName());
+                }
+                if (clickStack == null) {
+                    Utils.debugLog("click null");
+                } else {
+                    Utils.debugLog("click: " + clickStack.getDisplayName());
+                }
                 clickStack = mc.thePlayer.openContainer.getSlot(sackSlot + 45).getStack();
                 stack = mc.thePlayer.openContainer.getSlot(31).getStack();
                 if (clickStack != null && clickStack.getDisplayName().contains("Large Enchanted Agronomy Sack")) {
                     clickWindow(mc.thePlayer.openContainer.windowId, sackSlot + 45, 1);
                 }
-                Thread.sleep(100);
+                Thread.sleep(500);
             }
-        } catch (InterruptedException e) {
+            Utils.debugLog("Opened sack");
+            return;
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
@@ -1497,7 +1514,7 @@ public class FarmHelper {
                 Thread.sleep(100);
             }
             return true;
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
         return false;
@@ -1528,7 +1545,7 @@ public class FarmHelper {
                 stack = mc.thePlayer.openContainer.getSlot(slotID).getStack();
                 Thread.sleep(100);
             }
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
@@ -1545,7 +1562,7 @@ public class FarmHelper {
                 }
                 Thread.sleep(100);
             }
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
@@ -1562,7 +1579,7 @@ public class FarmHelper {
                 }
                 Thread.sleep(100);
             }
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
@@ -1579,7 +1596,7 @@ public class FarmHelper {
                 }
                 Thread.sleep(100);
             }
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
@@ -1634,7 +1651,7 @@ public class FarmHelper {
                 Thread.sleep(10);
             }
             updateKeys(false, false, false, false, false, false);
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
