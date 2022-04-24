@@ -1,4 +1,4 @@
-package com.jelly.FarmHelper.config;
+package com.jelly.FarmHelper.config.enums;
 
 public enum FarmEnum {
     LAYERED,
