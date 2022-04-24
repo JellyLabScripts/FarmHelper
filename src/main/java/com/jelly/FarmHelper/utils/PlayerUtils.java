@@ -56,7 +56,7 @@ public class PlayerUtils {
                 if (clickStack != null && clickStack.getDisplayName().contains("Large Enchanted Agronomy Sack")) {
                     InventoryUtils.clickWindow(mc.thePlayer.openContainer.windowId, sackSlot + 45, 1);
                 }
-                Thread.sleep(500);
+                Thread.sleep(1000);
             }
             LogUtils.debugLog("Opened sack");
             return;

@@ -53,6 +53,7 @@ public class AngleUtils {
         while (get360RotationYaw() != targetYaw) {
             if (Math.abs(get360RotationYaw() - targetYaw) < speed) {
                 mc.thePlayer.rotationYaw += Math.abs(get360RotationYaw() - targetYaw);
+                LogUtils.debugLog("Done rotating");
                 return;
             }
             mc.thePlayer.rotationYaw += (0.3f + Utils.nextInt(3) / 10.0f) * speed;

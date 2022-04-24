@@ -37,7 +37,6 @@ public class Utils {
 
     public static String getScoreboardDisplayName(int line) {
         try {
-            LogUtils.debugFullLog(mc.theWorld.getScoreboard().getObjectiveInDisplaySlot(line).getDisplayName());
             return mc.theWorld.getScoreboard().getObjectiveInDisplaySlot(line).getDisplayName();
         } catch (Exception e) {
             LogUtils.debugLog("Error in getting scoreboard " + e);

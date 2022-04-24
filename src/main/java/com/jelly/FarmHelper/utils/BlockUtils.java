@@ -48,7 +48,6 @@ public class BlockUtils {
                 count++;
             }
         }
-        LogUtils.debugFullLog("Counted bedrock: " + count);
         return count;
         // }
         // return 0;

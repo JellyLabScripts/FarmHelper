@@ -21,8 +21,9 @@ public class DefaultConfig {
         config.put("profitCalculator", false);
         config.put("totalProfit", true);
         config.put("profitHour", true);
-        config.put("highTierItem", true);
-        config.put("lowTierItem", true);
+        config.put("itemCount", true);
+        config.put("mushroomCount", true);
+        config.put("counter", true);
         config.put("runtime", true);
         config.put("resync", true);
         config.put("autoGodPot", false);
@@ -31,6 +32,8 @@ public class DefaultConfig {
         config.put("debugMode", false);
         config.put("cropType", 1);
         config.put("farmType", 0);
+        config.put("openGUIKeybind", 54L);
+        config.put("startScriptKeybind", 41L);
         return config;
     }
 }

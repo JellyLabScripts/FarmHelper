@@ -1,6 +1,7 @@
 package com.jelly.FarmHelper.gui.menus;
 
 import com.jelly.FarmHelper.FarmHelper;
+import com.jelly.FarmHelper.config.FarmHelperConfig;
 import com.jelly.FarmHelper.gui.components.Button;
 import com.jelly.FarmHelper.gui.components.Toggle;
 import com.jelly.FarmHelper.utils.LogUtils;
@@ -30,6 +31,11 @@ public class MiscMenu extends UIContainer {
             mc.thePlayer.closeScreen();
             Utils.ExecuteRunnable(FarmHelper.checkFooter);
             Utils.ScheduleRunnable(FarmHelper.buyGodPot, 1, TimeUnit.SECONDS);
+            return null;
+        });
+        ((Button) new Button("Save Keybinds").setChildOf(this)).setOnClick((component, uiClickEvent) -> {
+            FarmHelperConfig.set("openGUIKeybind", FarmHelper.customKeyBinds[0].getKeyCode());
+            FarmHelperConfig.set("startScriptKeybind", FarmHelper.customKeyBinds[1].getKeyCode());
             return null;
         });
     }

@@ -1,8 +1,6 @@
 package com.jelly.FarmHelper.gui.components;
 
 import com.jelly.FarmHelper.config.FarmHelperConfig;
-import com.jelly.FarmHelper.utils.LogUtils;
-import com.jelly.FarmHelper.utils.Utils;
 import gg.essential.elementa.UIComponent;
 import gg.essential.elementa.components.UIBlock;
 import gg.essential.elementa.components.UIText;
@@ -40,7 +38,7 @@ public class NumberBox extends UIBlock {
         inputWrapper = new UIBlock(new Color(30, 31, 32))
             .setX(new CenterConstraint())
             .setY(new AdditiveConstraint(new SiblingConstraint(), new PixelConstraint(5)))
-            .setHeight(new PixelConstraint(15))
+            .setHeight(new PixelConstraint(20))
             .setWidth(new SubtractiveConstraint(new RelativeConstraint(1f), new PixelConstraint(20)))
             .setChildOf(this)
             .onMouseClick((component, uiClickEvent) -> {
