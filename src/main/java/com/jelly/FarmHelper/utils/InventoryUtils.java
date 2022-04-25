@@ -104,9 +104,11 @@ public class InventoryUtils {
     public static void clickWindow(int windowID, int slotID, int button, int clickType) {
         mc.playerController.windowClick(windowID, slotID, button, clickType, mc.thePlayer);
     }
+
     public static void clickWindow(int windowID, int slotID, int button) {
         clickWindow(windowID, slotID, button, 0);
     }
+
     public static void clickWindow(int windowID, int slotID) {
         clickWindow(windowID, slotID, 0);
     }
@@ -130,6 +132,9 @@ public class InventoryUtils {
             ItemStack stack = mc.thePlayer.openContainer.getSlot(slotID).getStack();
             ItemStack clickStack;
             while (stack == null || (!stack.getDisplayName().contains(displayName))) {
+                System.out.println("Waiting for item: " + displayName);
+                System.out.println("waitForItemClick - status: " +Thread.currentThread().isInterrupted());
+                if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                 clickStack = mc.thePlayer.openContainer.getSlot(clickSlotID).getStack();
                 stack = mc.thePlayer.openContainer.getSlot(slotID).getStack();
                 if (clickStack != null && (clickStack.getDisplayName().contains(clickDisplayName) && !clickStack.getDisplayName().contains(exclude))) {
@@ -147,6 +152,7 @@ public class InventoryUtils {
             ItemStack stack = mc.thePlayer.openContainer.getSlot(slotID).getStack();
             ItemStack clickStack;
             while (stack == null || !stack.getDisplayName().contains(displayName)) {
+                if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                 clickStack = mc.thePlayer.openContainer.getSlot(clickSlotID).getStack();
                 stack = mc.thePlayer.openContainer.getSlot(slotID).getStack();
                 if (checkItem(clickStack, item)) {
@@ -227,111 +233,109 @@ public class InventoryUtils {
     }
 
     public static void getInventoryDifference(ItemStack[] currentInventory) {
-        while (FarmHelper.enabled) {
-            List<ItemStack> newInventory = copyInventory(currentInventory);
-            Map<String, Pair<Integer, NBTTagCompound>> previousInventoryMap = new HashMap<>();
-            Map<String, Pair<Integer, NBTTagCompound>> newInventoryMap = new HashMap<>();
+        List<ItemStack> newInventory = copyInventory(currentInventory);
+        Map<String, Pair<Integer, NBTTagCompound>> previousInventoryMap = new HashMap<>();
+        Map<String, Pair<Integer, NBTTagCompound>> newInventoryMap = new HashMap<>();
 
-            if (previousInventory != null) {
-                for (int i = 0; i < newInventory.size(); i++) {
-                    if (i == 8) { // Skip the SkyBlock Menu slot altogether (which includes the Quiver Arrow now)
-                        continue;
-                    }
-
-                    ItemStack previousItem = null;
-                    ItemStack newItem = null;
-
-                    try {
-                        previousItem = previousInventory.get(i);
-                        newItem = newInventory.get(i);
-
-                        if (previousItem != null) {
-                            int amount;
-                            if (previousInventoryMap.containsKey(previousItem.getDisplayName())) {
-                                amount = previousInventoryMap.get(previousItem.getDisplayName()).getKey() + previousItem.stackSize;
-                            } else {
-                                amount = previousItem.stackSize;
-                            }
-                            NBTTagCompound extraAttributes = getExtraAttributes(previousItem);
-                            if (extraAttributes != null) {
-                                extraAttributes = (NBTTagCompound) extraAttributes.copy();
-                            }
-                            previousInventoryMap.put(previousItem.getDisplayName(), new Pair<>(amount, extraAttributes));
-                        }
-
-                        if (newItem != null) {
-                            if (newItem.getDisplayName().contains(" " + EnumChatFormatting.DARK_GRAY + "x")) {
-                                String newName = newItem.getDisplayName().substring(0, newItem.getDisplayName().lastIndexOf(" "));
-                                newItem.setStackDisplayName(newName); // This is a workaround for merchants, it adds x64 or whatever to the end of the name.
-                            }
-                            int amount;
-                            if (newInventoryMap.containsKey(newItem.getDisplayName())) {
-                                amount = newInventoryMap.get(newItem.getDisplayName()).getKey() + newItem.stackSize;
-                            } else {
-                                amount = newItem.stackSize;
-                            }
-                            NBTTagCompound extraAttributes = getExtraAttributes(newItem);
-                            if (extraAttributes != null) {
-                                extraAttributes = (NBTTagCompound) extraAttributes.copy();
-                            }
-                            newInventoryMap.put(newItem.getDisplayName(), new Pair<>(amount, extraAttributes));
-                        }
-                    } catch (Throwable e) {
-                        e.printStackTrace();
-                    }
+        if (previousInventory != null) {
+            for (int i = 0; i < newInventory.size(); i++) {
+                if (i == 8) { // Skip the SkyBlock Menu slot altogether (which includes the Quiver Arrow now)
+                    continue;
                 }
 
-                List<ItemDiff> inventoryDifference = new LinkedList<>();
-                Set<String> keySet = new HashSet<>(previousInventoryMap.keySet());
-                keySet.addAll(newInventoryMap.keySet());
+                ItemStack previousItem = null;
+                ItemStack newItem = null;
 
-                keySet.forEach(key -> {
-                    int previousAmount = 0;
-                    if (previousInventoryMap.containsKey(key)) {
-                        previousAmount = previousInventoryMap.get(key).getKey();
-                    }
+                try {
+                    previousItem = previousInventory.get(i);
+                    newItem = newInventory.get(i);
 
-                    int newAmount = 0;
-                    if (newInventoryMap.containsKey(key)) {
-                        newAmount = newInventoryMap.get(key).getKey();
-                    }
-
-                    int diff = newAmount - previousAmount;
-                    if (diff != 0) { // Get the NBT tag from whichever map the name exists in
-                        inventoryDifference.add(new ItemDiff(key, diff, newInventoryMap.getOrDefault(key, previousInventoryMap.get(key)).getValue()));
-                    }
-                });
-
-                // Add changes to already logged changes of the same item, so it will increase/decrease the amount
-                // instead of displaying the same item twice
-                if (true) {
-                    for (ItemDiff diff : inventoryDifference) {
-                        Collection<ItemDiff> itemDiffs = itemPickupLog.get(diff.getDisplayName());
-                        if (itemDiffs.size() <= 0) {
-                            itemPickupLog.put(diff.getDisplayName(), diff);
-
+                    if (previousItem != null) {
+                        int amount;
+                        if (previousInventoryMap.containsKey(previousItem.getDisplayName())) {
+                            amount = previousInventoryMap.get(previousItem.getDisplayName()).getKey() + previousItem.stackSize;
                         } else {
-                            boolean added = false;
-                            for (ItemDiff loopDiff : itemDiffs) {
-                                if ((diff.getAmount() < 0 && loopDiff.getAmount() < 0) || (diff.getAmount() > 0 && loopDiff.getAmount() > 0)) {
-                                    loopDiff.add(diff.getAmount());
-                                    added = true;
-                                }
+                            amount = previousItem.stackSize;
+                        }
+                        NBTTagCompound extraAttributes = getExtraAttributes(previousItem);
+                        if (extraAttributes != null) {
+                            extraAttributes = (NBTTagCompound) extraAttributes.copy();
+                        }
+                        previousInventoryMap.put(previousItem.getDisplayName(), new Pair<>(amount, extraAttributes));
+                    }
+
+                    if (newItem != null) {
+                        if (newItem.getDisplayName().contains(" " + EnumChatFormatting.DARK_GRAY + "x")) {
+                            String newName = newItem.getDisplayName().substring(0, newItem.getDisplayName().lastIndexOf(" "));
+                            newItem.setStackDisplayName(newName); // This is a workaround for merchants, it adds x64 or whatever to the end of the name.
+                        }
+                        int amount;
+                        if (newInventoryMap.containsKey(newItem.getDisplayName())) {
+                            amount = newInventoryMap.get(newItem.getDisplayName()).getKey() + newItem.stackSize;
+                        } else {
+                            amount = newItem.stackSize;
+                        }
+                        NBTTagCompound extraAttributes = getExtraAttributes(newItem);
+                        if (extraAttributes != null) {
+                            extraAttributes = (NBTTagCompound) extraAttributes.copy();
+                        }
+                        newInventoryMap.put(newItem.getDisplayName(), new Pair<>(amount, extraAttributes));
+                    }
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }
+
+            List<ItemDiff> inventoryDifference = new LinkedList<>();
+            Set<String> keySet = new HashSet<>(previousInventoryMap.keySet());
+            keySet.addAll(newInventoryMap.keySet());
+
+            keySet.forEach(key -> {
+                int previousAmount = 0;
+                if (previousInventoryMap.containsKey(key)) {
+                    previousAmount = previousInventoryMap.get(key).getKey();
+                }
+
+                int newAmount = 0;
+                if (newInventoryMap.containsKey(key)) {
+                    newAmount = newInventoryMap.get(key).getKey();
+                }
+
+                int diff = newAmount - previousAmount;
+                if (diff != 0) { // Get the NBT tag from whichever map the name exists in
+                    inventoryDifference.add(new ItemDiff(key, diff, newInventoryMap.getOrDefault(key, previousInventoryMap.get(key)).getValue()));
+                }
+            });
+
+            // Add changes to already logged changes of the same item, so it will increase/decrease the amount
+            // instead of displaying the same item twice
+            if (true) {
+                for (ItemDiff diff : inventoryDifference) {
+                    Collection<ItemDiff> itemDiffs = itemPickupLog.get(diff.getDisplayName());
+                    if (itemDiffs.size() <= 0) {
+                        itemPickupLog.put(diff.getDisplayName(), diff);
+
+                    } else {
+                        boolean added = false;
+                        for (ItemDiff loopDiff : itemDiffs) {
+                            if ((diff.getAmount() < 0 && loopDiff.getAmount() < 0) || (diff.getAmount() > 0 && loopDiff.getAmount() > 0)) {
+                                loopDiff.add(diff.getAmount());
+                                added = true;
                             }
-                            if (!added) {
-                                itemPickupLog.put(diff.getDisplayName(), diff);
-                            }
+                        }
+                        if (!added) {
+                            itemPickupLog.put(diff.getDisplayName(), diff);
                         }
                     }
                 }
             }
+        }
 
-            previousInventory = newInventory;
-            try {
-                Thread.sleep(5);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        previousInventory = newInventory;
+        try {
+            Thread.sleep(5);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 

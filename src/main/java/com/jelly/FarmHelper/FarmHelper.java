@@ -17,11 +17,9 @@ import net.minecraft.block.*;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiChat;
-import net.minecraft.client.gui.GuiDisconnected;
-import net.minecraft.client.gui.GuiIngameMenu;
-import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerChest;
@@ -46,10 +44,11 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
+import org.omg.PortableServer.ThreadPolicy;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -105,6 +104,11 @@ public class FarmHelper {
     public static long lastStuck;
     public static long stuckCooldown;
     public static long startTime;
+    public static long timeoutStart;
+    public static long buyCooldown;
+    public static long sellCooldown;
+    public static int buyAttempts;
+    public static int sellAttempts;
     public static boolean godPot;
     public static boolean cookie;
     public static boolean dropping;
@@ -130,6 +134,8 @@ public class FarmHelper {
     public static double beforeX;
     public static double beforeY;
     public static double beforeZ;
+
+    public static ScheduledExecutorService executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
 
     private static final Pattern PATTERN_ACTIVE_EFFECTS = Pattern.compile(
         "\u00a7r\u00a7r\u00a77You have a \u00a7r\u00a7cGod Potion \u00a7r\u00a77active! \u00a7r\u00a7d([0-9]*?:?[0-9]*?:?[0-9]*)\u00a7r");
@@ -161,6 +167,7 @@ public class FarmHelper {
         godPot = true;
         cookie = true;
         jacobEnd = System.currentTimeMillis();
+        timeoutStart = System.currentTimeMillis();
         startCounter = InventoryUtils.getCounter();
         startTime = System.currentTimeMillis();
         stuckCount = 0;
@@ -172,6 +179,10 @@ public class FarmHelper {
         lastDirection = direction.NONE;
         angleEnum = AngleEnum.A0;
         playerYaw = AngleUtils.angleToValue(angleEnum);
+        buyCooldown = System.currentTimeMillis();
+        sellCooldown = System.currentTimeMillis();
+        buyAttempts = 0;
+        sellAttempts = 0;
 
         deltaX = 100;
         deltaY = 100;
@@ -180,8 +191,9 @@ public class FarmHelper {
         beforeY = mc.thePlayer.posY;
         beforeZ = mc.thePlayer.posZ;
 
+        Utils.resetExecutor();
+        mc.thePlayer.closeScreen();
         ProfitUtils.resetProfit();
-        new Thread(() -> InventoryUtils.getInventoryDifference(mc.thePlayer.inventory.mainInventory)).start();
         LogUtils.webhookLog("Started script");
         Utils.ScheduleRunnable(updateDeltaChange, 2, TimeUnit.SECONDS);
     }
@@ -204,6 +216,10 @@ public class FarmHelper {
         cropAgeRefs.put(CropEnum.NETHERWART, BlockNetherWart.AGE);
         cropAgeRefs.put(CropEnum.POTATO, BlockPotato.AGE);
 
+        webhook = new DiscordWebhook(WebhookConfig.webhookURL);
+        webhook.setUsername("Jelly - Farm Helper");
+        webhook.setAvatarUrl("https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png");
+
         enabled = false;
 
         window = new Window();
@@ -213,7 +229,7 @@ public class FarmHelper {
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         MinecraftForge.EVENT_BUS.register(new FarmHelper());
-        // MinecraftForge.EVENT_BUS.register(new MenuGUI());
+        MinecraftForge.EVENT_BUS.register(new MenuGUI());
     }
 
     @SubscribeEvent
@@ -227,9 +243,8 @@ public class FarmHelper {
     @SubscribeEvent
     public void render(RenderGameOverlayEvent event) {
         int gapY = 15;
-        int startY = (new ScaledResolution(mc).getScaledHeight() - gapY * 7) / 2;
 
-        if (mc.theWorld != null && mc.thePlayer != null && ProfitCalculatorConfig.profitCalculator) {
+        if (mc.theWorld != null && mc.thePlayer != null && ProfitCalculatorConfig.profitCalculator && event.type == RenderGameOverlayEvent.ElementType.TEXT) {
             ((ProfitGUI) profitGUI).stats.forEach(UIComponent::hide);
             if (ProfitCalculatorConfig.runtime) ((ProfitGUI) profitGUI).stats.get(9).unhide(true);
             if (ProfitCalculatorConfig.counter) ((ProfitGUI) profitGUI).stats.get(8).unhide(true);
@@ -256,16 +271,17 @@ public class FarmHelper {
             if (ProfitCalculatorConfig.profitHour) ((ProfitGUI) profitGUI).stats.get(1).unhide(true);
             if (ProfitCalculatorConfig.totalProfit) ((ProfitGUI) profitGUI).stats.get(0).unhide(true);
 
-            UGraphics.enableAlpha();
+            //UGraphics.enableAlpha();
             window.draw();
-            UGraphics.disableAlpha();
+            window.drawFloatingComponents();
+            //UGraphics.disableAlpha();
         }
 
         if (event.type == RenderGameOverlayEvent.ElementType.TEXT && MiscConfig.debugMode) {
             mc.fontRendererObj.drawString("dx: " + Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 96, -1);
             mc.fontRendererObj.drawString("dy: " + Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 84, -1);
 
-            mc.fontRendererObj.drawString("count " + (InventoryUtils.itemPickupLog.get("§fCarrot") != null ? InventoryUtils.itemPickupLog.get("§fCarrot").toString() : "N/A"), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 72, -1);
+            mc.fontRendererObj.drawString("count " + (System.currentTimeMillis() - timeoutStart), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 72, -1);
             mc.fontRendererObj.drawString("selling: " + selling, 4, new ScaledResolution(mc).getScaledHeight() - 140 - 60, -1);
 
             mc.fontRendererObj.drawString("KeyBindW: " + (mc.gameSettings.keyBindForward.isKeyDown() ? "Pressed" : "Not pressed"), 4, new ScaledResolution(mc).getScaledHeight() - 140 - 48, -1);
@@ -327,13 +343,60 @@ public class FarmHelper {
     public void OnTickPlayer(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
 
+        if (mc.currentScreen instanceof GuiIngameMenu) {
+            // LogUtils.debugLog("Detected esc menu, stopping all threads");
+            Utils.resetExecutor();
+        }
+
+        if (mc.currentScreen instanceof GuiInventory && buying) {
+            LogUtils.debugLog("Detected inventory, stopping all threads");
+            Utils.resetExecutor();
+            updateKeys(false, false, false, false, false, false);
+            buying = false;
+            cookie = true;
+            godPot = true;
+        }
+
+        if (buying && (System.currentTimeMillis() - timeoutStart) > 20000) {
+            Utils.resetExecutor();
+            LogUtils.debugLog("Failed to buy cookie or god pot for 20s, stopping");
+            LogUtils.webhookLog("Failed to buy cookie or god pot for 20s, stopping");
+            buying = false;
+            cookie = true;
+            godPot = true;
+            KeyBinding.onTick(PlayerUtils.keybindAttack);
+            buyCooldown = System.currentTimeMillis() + 60000;
+            buyAttempts++;
+            if (buyAttempts >= 3) {
+                MiscConfig.autoCookie = false;
+                MiscConfig.autoGodPot = false;
+                LogUtils.debugLog("Failed to buy 3 times, turning off auto cookie/pot");
+                LogUtils.webhookLog("Failed to buy 3 times, turning off auto cookie/pot");
+            }
+        }
+
+        if (selling && checkFull && (System.currentTimeMillis() - timeoutStart) > 20000) {
+            Utils.resetExecutor();
+            LogUtils.debugLog("Failed to sell inventory, stopping");
+            LogUtils.webhookLog("Failed to sell inventory, stopping");
+            KeyBinding.onTick(PlayerUtils.keybindAttack);
+            selling = false;
+            sellCooldown = System.currentTimeMillis() + 60000;
+            sellAttempts++;
+            if (sellAttempts >= 3) {
+                AutoSellConfig.autoSell = false;
+                LogUtils.debugLog("Failed to sell 3 times, turning off auto sell");
+                LogUtils.webhookLog("Failed to sell 3 times, turning off auto sell");
+            }
+        }
+
         if (mc.theWorld != null && mc.thePlayer != null && enabled) {
             Block blockIn = mc.theWorld.getBlockState(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ)).getBlock();
             double dx = Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX);
             double dz = Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ);
             double dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
             currentLocation = getLocation();
-            ProfitUtils.updateProfitState();
+            Utils.ExecuteRunnable(updateCounters);
 
             if (caged) {
                 switch (currentLocation) {
@@ -392,6 +455,10 @@ public class FarmHelper {
             }
             if (currentLocation == location.HUB) {
                 LogUtils.debugFullLog("Detected hub");
+                if (mc.currentScreen instanceof GuiInventory) {
+                    LogUtils.debugLog("Detected open inventory in hub, stopping threads");
+                    Utils.resetExecutor();
+                }
                 if (!cookie && MiscConfig.autoCookie) {
                     if (!buying) {
                         LogUtils.debugLog("Starting cookie thread");
@@ -517,7 +584,11 @@ public class FarmHelper {
                             // If on solid block
                             if ((mc.thePlayer.posY % 1) == 0) {
                                 if (!stuck && !dropping) {
-                                    AngleUtils.hardRotate(playerYaw);
+                                    try {
+                                        AngleUtils.hardRotate(playerYaw);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                                 // Cannot move forwards or backwards
                                 if (!isWalkable(BlockUtils.getFrontBlock()) && !isWalkable(BlockUtils.getBackBlock())) {
@@ -750,7 +821,11 @@ public class FarmHelper {
                                     }
                                 }
                             } else {
-                                AngleUtils.hardRotate(playerYaw);
+                                try {
+                                    AngleUtils.hardRotate(playerYaw);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                                 if (isWalkable(BlockUtils.getRightBlock()) && isWalkable(BlockUtils.getLeftBlock())) {
                                     if (lastDirection == direction.NONE) {
                                         LogUtils.debugFullLog("Middle of row - No direction last tick, recalculating");
@@ -814,19 +889,10 @@ public class FarmHelper {
         }
     };
 
-    public static Runnable updateCounters = new Runnable() {
-        @Override
-        public void run() {
-            if (enabled) {
-//                if (InventoryUtils.getCounter() != 0) {
-//                    currentCounter = InventoryUtils.getCounter();
-//                }
-                // InventoryUtils.getInventoryDifference(mc.thePlayer.inventory.mainInventory);
-//                for (String itemKey : InventoryUtils.itemPickupLog.keySet()) {
-//                    System.out.println(itemKey + ": " + InventoryUtils.itemPickupLog.get(itemKey));
-//                }
-                ProfitUtils.updateProfitState();
-            }
+    public static Runnable updateCounters = () -> {
+        if (enabled) {
+            InventoryUtils.getInventoryDifference(mc.thePlayer.inventory.mainInventory);
+            ProfitUtils.updateProfitState();
         }
     };
 
@@ -991,9 +1057,7 @@ public class FarmHelper {
 
     public static Runnable hubCage = () -> {
         try {
-            LogUtils.debugFullLog("Waiting till rotate head");
-            Thread.sleep(4000);
-            AngleUtils.smoothRotateAnticlockwise(77, 2);
+            AngleUtils.smoothRotateAnticlockwise(77, 1);
             Thread.sleep(1000);
             updateKeys(true, false, false, false, false, false);
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), true);
@@ -1052,8 +1116,9 @@ public class FarmHelper {
                     LogUtils.debugLog("Cookie buff not active!");
                     foundCookieText = false;
                     cookie = false;
-                    if (MiscConfig.autoCookie && !buying) {
+                    if (MiscConfig.autoCookie && !buying && buyCooldown < System.currentTimeMillis() && enabled) {
                         LogUtils.debugLog("Going to buy cookie in 1 second");
+                        timeoutStart = System.currentTimeMillis();
                         mc.thePlayer.sendChatMessage("/hub");
                     }
                 } else if (foundCookieText) {
@@ -1065,8 +1130,9 @@ public class FarmHelper {
             if (!foundGodPot) {
                 LogUtils.debugLog("God pot buff not active!");
                 godPot = false;
-                if (MiscConfig.autoGodPot && !buying) {
+                if (MiscConfig.autoGodPot && !buying && buyCooldown < System.currentTimeMillis() && enabled) {
                     LogUtils.debugLog("Going to buy god potion in 1 second");
+                    timeoutStart = System.currentTimeMillis();
                     mc.thePlayer.sendChatMessage("/hub");
                 }
             } else {
@@ -1147,6 +1213,7 @@ public class FarmHelper {
 
     public static Runnable autoSell = () -> {
         try {
+            timeoutStart = System.currentTimeMillis();
             selling = true;
             checkFull = true;
             int hoeSlot = mc.thePlayer.inventory.currentItem;
@@ -1177,8 +1244,9 @@ public class FarmHelper {
                 checkFull = false;
                 return;
             }
+            System.out.println("autoSell1 - status: " +Thread.currentThread().isInterrupted());
             PlayerUtils.openSack();
-
+            System.out.println("autoSell2 - status: " +Thread.currentThread().isInterrupted());
             // Count all items in sack NPC
             for (int i = 0; i < NPCSellSlots.length; i++) {
                 InventoryUtils.waitForItem(NPCSellSlots[i], "");
@@ -1195,9 +1263,11 @@ public class FarmHelper {
             for (int i = 0; i < NPCSellSlots.length; i++) {
                 while (NPCSellSlotCounts[i] != 0) {
                     if (!(mc.currentScreen instanceof GuiContainer)) {
+                        if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                         PlayerUtils.openSack();
                     }
                     while (mc.thePlayer.inventory.getFirstEmptyStack() != -1 && NPCSellSlotCounts[i] != 0) {
+                        if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                         LogUtils.debugLog("Collecting");
                         InventoryUtils.clickWindow(mc.thePlayer.openContainer.windowId, NPCSellSlots[i]);
                         InventoryUtils.waitForItem(NPCSellSlots[i], "");
@@ -1205,18 +1275,19 @@ public class FarmHelper {
                         NPCSellSlotCounts[i] = InventoryUtils.countSack(NPCSellSlots[i]);
                     }
                     InventoryUtils.sellInventory();
+                    timeoutStart = System.currentTimeMillis();
                 }
             }
 
             // If any remaining in sack, sell to bazaar
             for (int i = 0; i < BZSellSlots.length; i++) {
+                if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                 if (BZSellSlotCounts[i] != 0) {
                     PlayerUtils.openBazaar();
                     InventoryUtils.waitForItemClick(11, "Selling whole inventory", 39, "Sell Sacks Now");
                     InventoryUtils.waitForItemClick(11, "Items sold!", 11, "Selling whole inventory");
                 }
             }
-
             mc.thePlayer.closeScreen();
             mc.thePlayer.inventory.currentItem = hoeSlot;
             Thread.sleep(100);
@@ -1242,9 +1313,10 @@ public class FarmHelper {
                 elapsed += 10;
                 Thread.sleep(10);
             }
-            if (((float) count / total) > (AutoSellConfig.fullRatio / 100) && !selling && AutoSellConfig.autoSell) {
+            if (((float) count / total) > (AutoSellConfig.fullRatio / 100) && !selling && AutoSellConfig.autoSell && sellCooldown < System.currentTimeMillis()) {
                 selling = true;
                 LogUtils.webhookLog("Inventory full, Auto Selling!");
+                timeoutStart = System.currentTimeMillis();
                 Utils.ExecuteRunnable(autoSell);
             } else {
                 checkFull = false;
@@ -1256,6 +1328,7 @@ public class FarmHelper {
 
     public static Runnable buyGodPot = () -> {
         try {
+            timeoutStart = System.currentTimeMillis();
             int hoeSlot = mc.thePlayer.inventory.currentItem;
             PlayerUtils.goToBlock(4, -95);
             PlayerUtils.goToBlock(3, -99);
@@ -1264,6 +1337,7 @@ public class FarmHelper {
             LogUtils.debugLog(String.valueOf(mc.currentScreen instanceof GuiContainer));
             KeyBinding.onTick(PlayerUtils.keybindUseItem);
             while (!(mc.currentScreen instanceof GuiContainer)) {
+                if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                 Thread.sleep(100);
                 KeyBinding.onTick(PlayerUtils.keybindUseItem);
             }
@@ -1275,6 +1349,7 @@ public class FarmHelper {
                 InventoryUtils.clickWindow(mc.thePlayer.openContainer.windowId, 19);
                 Thread.sleep(100);
                 while (InventoryUtils.findItemInventory("God Potion") == -1) {
+                    if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                     if (mc.thePlayer.openContainer.getSlot(11).getStack().getDisplayName().contains("Confirm")) {
                         InventoryUtils.clickWindow(mc.thePlayer.openContainer.windowId, 11);
                         // InventoryUtils.clickWindow(mc.thePlayer.openContainer.windowId, 15);
@@ -1285,6 +1360,7 @@ public class FarmHelper {
                 LogUtils.debugLog("Found god pot in inventory, switching");
                 mc.thePlayer.closeScreen();
                 while (mc.currentScreen instanceof GuiContainer) {
+                    if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                     LogUtils.debugLog("Waiting for shop to close");
                     Thread.sleep(100);
                 }
@@ -1297,6 +1373,7 @@ public class FarmHelper {
                 LogUtils.debugLog("Done switching");
                 mc.thePlayer.inventory.currentItem = 6;
                 while (InventoryUtils.findItemInventory("God Potion") != -1 || !FarmHelper.godPot) {
+                    if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                     if (mc.thePlayer.inventory.getCurrentItem() != null && mc.thePlayer.inventory.getCurrentItem().getDisplayName().contains("God Potion")) {
                         KeyBinding.onTick(PlayerUtils.keybindUseItem);
                     }
@@ -1319,11 +1396,13 @@ public class FarmHelper {
 
     public static Runnable buyCookie = () -> {
         try {
+            timeoutStart = System.currentTimeMillis();
             int hoeSlot = mc.thePlayer.inventory.currentItem;
             PlayerUtils.goToBlock(-3, -77);
             PlayerUtils.goToBlock(-31, -77);
             KeyBinding.onTick(PlayerUtils.keybindUseItem);
             while (!(mc.currentScreen instanceof GuiContainer)) {
+                if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                 KeyBinding.onTick(PlayerUtils.keybindUseItem);
                 Thread.sleep(100);
             }
@@ -1340,11 +1419,13 @@ public class FarmHelper {
                 InventoryUtils.clickWindow(mc.thePlayer.openContainer.windowId, 10);
                 LogUtils.debugLog("Clicked on buy cookie");
                 while (InventoryUtils.findItemInventory("Booster Cookie") == -1 && InventoryUtils.findItemInventory("Booster Cookie") < 36) {
+                    if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                     Thread.sleep(100);
                 }
                 LogUtils.debugLog("Found bought cookie in inventory");
                 mc.thePlayer.closeScreen();
                 while (mc.currentScreen instanceof GuiContainer) {
+                    if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                     LogUtils.debugLog("Waiting for bazaar to close");
                     Thread.sleep(100);
                 }
@@ -1356,11 +1437,13 @@ public class FarmHelper {
                 Thread.sleep(1000);
                 mc.thePlayer.inventory.currentItem = 6;
                 while (!(mc.currentScreen instanceof GuiContainer)) {
+                    if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                     KeyBinding.onTick(PlayerUtils.keybindUseItem);
                     Thread.sleep(100);
                 }
                 LogUtils.debugLog("Opened cookie consume menu");
                 while (InventoryUtils.findItemInventory("Booster Cookie") != -1 || !FarmHelper.cookie) {
+                    if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                     InventoryUtils.clickWindow(mc.thePlayer.openContainer.windowId, 11);
                     Utils.ExecuteRunnable(checkFooter);
                     Thread.sleep(100);
@@ -1525,6 +1608,8 @@ public class FarmHelper {
             LogUtils.scriptLog("Stopped script");
             LogUtils.webhookLog("Stopped script");
             updateKeys(false, false, false, false, false, false);
+            Utils.resetExecutor();
+            mc.thePlayer.closeScreen();
         } else {
             enabled = true;
             initialize();

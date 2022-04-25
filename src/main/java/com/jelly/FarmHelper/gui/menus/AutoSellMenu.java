@@ -23,6 +23,7 @@ public class AutoSellMenu extends UIContainer {
             mc.thePlayer.closeScreen();
             FarmHelper.cookie = true;
             Utils.ExecuteRunnable(FarmHelper.checkFooter);
+            FarmHelper.timeoutStart = System.currentTimeMillis();
             if (FarmHelper.cookie) LogUtils.debugLog("Executing sell in 1 second");
             Utils.ScheduleRunnable(FarmHelper.autoSell, 1, TimeUnit.SECONDS);
             return null;

@@ -22,14 +22,16 @@ public class MiscMenu extends UIContainer {
         ((Button) new Button("Buy Cookie").setChildOf(this)).setOnClick((component, uiClickEvent) -> {
             FarmHelper.openedGUI = false;
             mc.thePlayer.closeScreen();
-            Utils.ExecuteRunnable(FarmHelper.checkFooter);
+            FarmHelper.buying = true;
+            FarmHelper.timeoutStart = System.currentTimeMillis();
             Utils.ScheduleRunnable(FarmHelper.buyCookie, 1, TimeUnit.SECONDS);
             return null;
         });
         ((Button) new Button("Buy God Potion").setChildOf(this)).setOnClick((component, uiClickEvent) -> {
             FarmHelper.openedGUI = false;
             mc.thePlayer.closeScreen();
-            Utils.ExecuteRunnable(FarmHelper.checkFooter);
+            FarmHelper.buying = true;
+            FarmHelper.timeoutStart = System.currentTimeMillis();
             Utils.ScheduleRunnable(FarmHelper.buyGodPot, 1, TimeUnit.SECONDS);
             return null;
         });

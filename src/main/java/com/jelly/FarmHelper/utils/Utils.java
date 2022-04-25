@@ -2,6 +2,7 @@ package com.jelly.FarmHelper.utils;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.jelly.FarmHelper.FarmHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScoreObjective;
@@ -12,9 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class Utils {
@@ -87,14 +86,15 @@ public class Utils {
     }
 
     public static void ScheduleRunnable(Runnable r, int delay, TimeUnit tu) {
-        ScheduledExecutorService eTemp = Executors.newScheduledThreadPool(1);
-        eTemp.schedule(r, delay, tu);
-        eTemp.shutdown();
+        FarmHelper.executor.schedule(r, delay, tu);
     }
 
     public static void ExecuteRunnable(Runnable r) {
-        ScheduledExecutorService eTemp = Executors.newScheduledThreadPool(1);
-        eTemp.execute(r);
-        eTemp.shutdown();
+        FarmHelper.executor.execute(r);
+    }
+
+    public static void resetExecutor() {
+        FarmHelper.executor.shutdownNow();
+        FarmHelper.executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
     }
 }

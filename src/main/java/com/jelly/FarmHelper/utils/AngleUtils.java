@@ -36,7 +36,7 @@ public class AngleUtils {
         return get360RotationYaw(initialYaw360 - targetYaw360);
     }
 
-    public static void smoothRotateTo(float targetYaw360, float speed) {
+    public static void smoothRotateTo(float targetYaw360, float speed) throws Exception {
         if (shouldRotateClockwise(get360RotationYaw(), targetYaw360)) {
             smoothRotateClockwise(clockwiseDifference(get360RotationYaw(), targetYaw360), speed);
         } else {
@@ -44,13 +44,14 @@ public class AngleUtils {
         }
     }
 
-    public static void smoothRotateClockwise(float rotateAngle) {
+    public static void smoothRotateClockwise(float rotateAngle) throws Exception {
         smoothRotateClockwise(rotateAngle, 1);
     }
 
-    public static void smoothRotateClockwise(float rotateAngle, float speed) {
+    public static void smoothRotateClockwise(float rotateAngle, float speed) throws Exception {
         float targetYaw = (get360RotationYaw() + rotateAngle) % 360;
         while (get360RotationYaw() != targetYaw) {
+            if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
             if (Math.abs(get360RotationYaw() - targetYaw) < speed) {
                 mc.thePlayer.rotationYaw += Math.abs(get360RotationYaw() - targetYaw);
                 LogUtils.debugLog("Done rotating");
@@ -65,9 +66,10 @@ public class AngleUtils {
         }
     }
 
-    public static void sineRotateCW(float rotateAngle, float speed) {
+    public static void sineRotateCW(float rotateAngle, float speed) throws Exception {
         float targetYaw = (get360RotationYaw() + rotateAngle) % 360;
         while (get360RotationYaw() != targetYaw) {
+            if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
             float difference = Math.abs(get360RotationYaw() - targetYaw);
             if (difference < 0.4f * speed) {
                 mc.thePlayer.rotationYaw += difference;
@@ -82,13 +84,14 @@ public class AngleUtils {
         }
     }
 
-    public static void smoothRotateAnticlockwise(float rotateAngle) {
+    public static void smoothRotateAnticlockwise(float rotateAngle) throws Exception {
         smoothRotateAnticlockwise(rotateAngle, 1);
     }
 
-    public static void smoothRotateAnticlockwise(float rotateAngle, float speed) {
+    public static void smoothRotateAnticlockwise(float rotateAngle, float speed) throws Exception {
         float targetYaw = get360RotationYaw(get360RotationYaw() - rotateAngle);
         while (get360RotationYaw() != targetYaw) {
+            if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
             if (Math.abs(get360RotationYaw() - targetYaw) < speed) {
                 mc.thePlayer.rotationYaw -= Math.abs(get360RotationYaw() - targetYaw);
                 return;
@@ -102,9 +105,10 @@ public class AngleUtils {
         }
     }
 
-    public static void sineRotateACW(float rotateAngle, float speed) {
+    public static void sineRotateACW(float rotateAngle, float speed) throws Exception {
         float targetYaw = get360RotationYaw(get360RotationYaw() - rotateAngle);
         while (get360RotationYaw() != targetYaw) {
+            if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
             float difference = Math.abs(get360RotationYaw() - targetYaw);
             if (difference < 0.4f * speed) {
                 mc.thePlayer.rotationYaw -= difference;
@@ -129,8 +133,9 @@ public class AngleUtils {
             (-yaw % 360 > 180 ? (180 - (-yaw % 360 - 180)) : -(-yaw % 360));
     }
 
-    public static void hardRotate(float yaw) {
+    public static void hardRotate(float yaw) throws Exception {
         while (get360RotationYaw() != yaw) {
+            if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
             if (Math.abs(get360RotationYaw() - yaw) < 0.2f) {
                 mc.thePlayer.rotationYaw = yaw;
                 return;

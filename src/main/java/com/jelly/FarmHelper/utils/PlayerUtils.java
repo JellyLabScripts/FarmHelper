@@ -39,19 +39,13 @@ public class PlayerUtils {
         openSBMenu();
         try {
             ItemStack stack = mc.thePlayer.openContainer.getSlot(31).getStack();
-            ItemStack clickStack = mc.thePlayer.openContainer.getSlot(sackSlot + 45).getStack();
+            ItemStack clickStack = mc.thePlayer.openContainer.getSlot(sackSlot + 46).getStack();
             while (stack == null || !stack.getDisplayName().contains("Close")) {
-                if (stack == null) {
-                    LogUtils.debugLog("stack null");
-                } else {
-                    LogUtils.debugLog("stack: " + stack.getDisplayName());
-                }
-                if (clickStack == null) {
-                    LogUtils.debugLog("click null");
-                } else {
-                    LogUtils.debugLog("click: " + clickStack.getDisplayName());
-                }
-                clickStack = mc.thePlayer.openContainer.getSlot(sackSlot + 45).getStack();
+                LogUtils.debugLog("t" + Thread.currentThread().isInterrupted());
+                if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
+                // clickStack = mc.thePlayer.openContainer.getSlot(sackSlot + 45).getStack();
+                clickStack = mc.thePlayer.openContainer.getSlot(sackSlot + 46).getStack();
+
                 stack = mc.thePlayer.openContainer.getSlot(31).getStack();
                 if (clickStack != null && clickStack.getDisplayName().contains("Large Enchanted Agronomy Sack")) {
                     InventoryUtils.clickWindow(mc.thePlayer.openContainer.windowId, sackSlot + 45, 1);
@@ -99,6 +93,7 @@ public class PlayerUtils {
             Thread.sleep(100);
 
             while (Math.abs(distance) > 0.2) {
+                if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                 xdiff = x + 0.5 - mc.thePlayer.posX;
                 zdiff = z + 0.5 - mc.thePlayer.posZ;
                 targetYaw = AngleUtils.get360RotationYaw((float) Math.toDegrees(Math.atan2(-xdiff, zdiff)));
@@ -106,7 +101,7 @@ public class PlayerUtils {
                 updateKeys(true, false, false, false, false, 1.4 * speed >= distance);
                 distance = Math.sqrt(Math.pow((x + 0.5 - mc.thePlayer.posX), 2) + Math.pow((z + 0.5 - mc.thePlayer.posZ), 2));
                 speed = Math.sqrt((Math.pow(Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX), 2) + (Math.pow(Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ), 2))));
-                Thread.sleep(10);
+                Thread.sleep(20);
             }
             updateKeys(false, false, false, false, false, false);
         } catch (Throwable e) {

@@ -101,10 +101,10 @@ public class LogUtils {
                 .setThumbnail("https://crafatar.com/renders/head/" + mc.thePlayer.getUniqueID())
                 .addField("Username", mc.thePlayer.getName(), true)
                 .addField("Runtime", getRuntimeFormat(), true)
-                .addField("Total Profit", ProfitUtils.getProfit() != 0 ? "$" + Utils.formatNumber(ProfitUtils.getProfit()) : "Not supported", false)
-                .addField("Profit / hr", "$" + Utils.formatNumber((float) ProfitUtils.getHourProfit(ProfitUtils.getProfit())), false)
-                .addField(ProfitUtils.getHighTierName(), Utils.formatNumber(ProfitUtils.getHighTierCount()), true)
-                .addField("Counter", Utils.formatNumber(FarmHelper.currentCounter), true)
+                .addField("Total Profit", ProfitUtils.profit.get(), false)
+                .addField("Profit / hr", "$" + ProfitUtils.profitHr.get(), false)
+                .addField(ProfitUtils.getHighTierName(), ProfitUtils.cropCount.get(), true)
+                .addField("Counter", ProfitUtils.counter.get(), true)
             );
             new Thread(() -> {
                 try {

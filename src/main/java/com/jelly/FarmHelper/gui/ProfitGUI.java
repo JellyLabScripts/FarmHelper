@@ -33,7 +33,7 @@ public class ProfitGUI extends UIBlock {
             })
             .setChildOf(window);
 
-        UIComponent topBar = new UIBlock(new Color(18, 19, 20, 40))
+        UIComponent topBar = new UIBlock(new Color(18, 19, 20, 100))
             .setX(new PixelConstraint(0))
             .setY(new PixelConstraint(0))
             .setWidth(new RelativeConstraint(1f))
@@ -93,7 +93,7 @@ class Stat extends UIBlock {
         this.setY(new SiblingConstraint())
             .setHeight(new ChildBasedSizeConstraint())
             .setWidth(new RelativeConstraint(1f))
-            .setColor(new Color(36, 37, 39, 40));
+            .setColor(new Color(36, 37, 39, 85));
 
         try {
             UIImage.ofURL(new URL(iconURL))
