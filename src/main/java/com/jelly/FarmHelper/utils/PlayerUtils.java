@@ -39,12 +39,12 @@ public class PlayerUtils {
         openSBMenu();
         try {
             ItemStack stack = mc.thePlayer.openContainer.getSlot(31).getStack();
-            ItemStack clickStack = mc.thePlayer.openContainer.getSlot(sackSlot + 46).getStack();
+            ItemStack clickStack = mc.thePlayer.openContainer.getSlot(sackSlot + 45).getStack();
             while (stack == null || !stack.getDisplayName().contains("Close")) {
                 LogUtils.debugLog("t" + Thread.currentThread().isInterrupted());
                 if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                 // clickStack = mc.thePlayer.openContainer.getSlot(sackSlot + 45).getStack();
-                clickStack = mc.thePlayer.openContainer.getSlot(sackSlot + 46).getStack();
+                clickStack = mc.thePlayer.openContainer.getSlot(sackSlot + 45).getStack();
 
                 stack = mc.thePlayer.openContainer.getSlot(31).getStack();
                 if (clickStack != null && clickStack.getDisplayName().contains("Large Enchanted Agronomy Sack")) {

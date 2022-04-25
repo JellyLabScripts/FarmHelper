@@ -618,12 +618,12 @@ public class FarmHelper {
                                             Utils.ExecuteRunnable(fixRowStuck);
                                         }
                                     } else if (isWalkable(BlockUtils.getRightBlock()) && !isWalkable(BlockUtils.getLeftBlock())) {
-                                        newRow = true;
+                                        // newRow = true;
                                         LogUtils.debugLog("Start of farm - Go right");
                                         lastDirection = direction.RIGHT;
                                         updateKeys(false, false, false, true, true, false);
                                     } else if (isWalkable(BlockUtils.getLeftBlock()) && !isWalkable(BlockUtils.getRightBlock())) {
-                                        newRow = true;
+                                        // newRow = true;
                                         LogUtils.debugLog("Start of farm - Go left");
                                         lastDirection = direction.LEFT;
                                         updateKeys(false, false, true, false, true, false);
