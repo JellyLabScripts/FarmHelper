@@ -133,18 +133,18 @@ public class AngleUtils {
             (-yaw % 360 > 180 ? (180 - (-yaw % 360 - 180)) : -(-yaw % 360));
     }
 
-    public static void hardRotate(float yaw) throws Exception {
-        while (get360RotationYaw() != yaw) {
-            if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
-            if (Math.abs(get360RotationYaw() - yaw) < 0.2f) {
-                mc.thePlayer.rotationYaw = yaw;
-                return;
-            }
-            if (shouldRotateClockwise(get360RotationYaw(), yaw)) {
-                mc.thePlayer.rotationYaw += 0.1f;
-            } else {
-                mc.thePlayer.rotationYaw -= 0.1f;
-            }
+    public static void hardRotate(float yaw) {
+        Minecraft mc = Minecraft.getMinecraft();
+        if (Math.abs(mc.thePlayer.rotationYaw - yaw) < 0.2f) {
+            mc.thePlayer.rotationYaw = yaw;
+            return;
+        }
+        while (mc.thePlayer.rotationYaw > yaw) {
+            mc.thePlayer.rotationYaw -= 0.1f;
+        }
+        while (mc.thePlayer.rotationYaw < yaw) {
+            mc.thePlayer.rotationYaw += 0.1f;
+
         }
     }
 }

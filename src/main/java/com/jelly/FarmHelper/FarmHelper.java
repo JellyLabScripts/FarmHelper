@@ -346,6 +346,8 @@ public class FarmHelper {
         if (mc.currentScreen instanceof GuiIngameMenu) {
             // LogUtils.debugLog("Detected esc menu, stopping all threads");
             Utils.resetExecutor();
+            updateKeys(false, false, false, false, false, false);
+            return;
         }
 
         if (mc.currentScreen instanceof GuiInventory && buying) {
@@ -355,6 +357,7 @@ public class FarmHelper {
             buying = false;
             cookie = true;
             godPot = true;
+            return;
         }
 
         if (buying && (System.currentTimeMillis() - timeoutStart) > 20000) {
@@ -373,6 +376,7 @@ public class FarmHelper {
                 LogUtils.debugLog("Failed to buy 3 times, turning off auto cookie/pot");
                 LogUtils.webhookLog("Failed to buy 3 times, turning off auto cookie/pot");
             }
+            return;
         }
 
         if (selling && checkFull && (System.currentTimeMillis() - timeoutStart) > 20000) {
@@ -396,7 +400,7 @@ public class FarmHelper {
             double dz = Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ);
             double dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
             currentLocation = getLocation();
-            Utils.ExecuteRunnable(updateCounters);
+            if (ProfitCalculatorConfig.profitCalculator) Utils.ExecuteRunnable(updateCounters);
 
             if (caged) {
                 switch (currentLocation) {
@@ -585,7 +589,7 @@ public class FarmHelper {
                             if ((mc.thePlayer.posY % 1) == 0) {
                                 if (!stuck && !dropping) {
                                     try {
-                                        AngleUtils.hardRotate(playerYaw);
+                                        // AngleUtils.hardRotate(playerYaw);
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }
@@ -822,7 +826,7 @@ public class FarmHelper {
                                 }
                             } else {
                                 try {
-                                    AngleUtils.hardRotate(playerYaw);
+                                    // AngleUtils.hardRotate(playerYaw);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
@@ -955,6 +959,7 @@ public class FarmHelper {
             angleEnum = angleEnum.ordinal() < 2 ? AngleEnum.values()[angleEnum.ordinal() + 2] : AngleEnum.values()[angleEnum.ordinal() - 2];
             playerYaw = AngleUtils.angleToValue(angleEnum);
             AngleUtils.smoothRotateClockwise(180, 1.2f);
+            System.out.println("-------EXPECTED: " + AngleUtils.get360RotationYaw() + "ACTUAL--------" + playerYaw);
             Thread.sleep(100);
             KeyBinding.setKeyBindState(PlayerUtils.keybindW, true);
             Thread.sleep(200);
@@ -1341,6 +1346,7 @@ public class FarmHelper {
                 Thread.sleep(100);
                 KeyBinding.onTick(PlayerUtils.keybindUseItem);
             }
+            Thread.sleep(20);
             KeyBinding.setKeyBindState(PlayerUtils.keybindUseItem, false);
             if (mc.thePlayer.inventory.getFirstEmptyStack() != -1) {
                 InventoryUtils.waitForItemClick(19, "God Potion", 4, "Bits Shop");
@@ -1358,7 +1364,10 @@ public class FarmHelper {
                     Thread.sleep(100);
                 }
                 LogUtils.debugLog("Found god pot in inventory, switching");
+                KeyBinding.unPressAllKeys();
                 mc.thePlayer.closeScreen();
+                Thread.sleep(20);
+                KeyBinding.setKeyBindState(PlayerUtils.keybindUseItem, false);
                 while (mc.currentScreen instanceof GuiContainer) {
                     if (Thread.currentThread().isInterrupted()) throw new Exception("Detected interrupt - stopping");
                     LogUtils.debugLog("Waiting for shop to close");
