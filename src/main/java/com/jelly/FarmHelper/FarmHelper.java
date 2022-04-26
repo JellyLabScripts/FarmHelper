@@ -589,7 +589,7 @@ public class FarmHelper {
                             if ((mc.thePlayer.posY % 1) == 0) {
                                 if (!stuck && !dropping) {
                                     try {
-                                        // AngleUtils.hardRotate(playerYaw);
+                                        AngleUtils.hardRotate(playerYaw);
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }
@@ -826,7 +826,7 @@ public class FarmHelper {
                                 }
                             } else {
                                 try {
-                                    // AngleUtils.hardRotate(playerYaw);
+                                    AngleUtils.hardRotate(playerYaw);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
