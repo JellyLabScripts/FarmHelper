@@ -1,0 +1,28 @@
+{
+  "mappings": {
+    "co/uk/isxander/lunarspoof/mixins/MixinNetHandlerPlayClient": {
+      "handleJoinGame": "Lbcy;a(Lgt;)V"
+    },
+    "co/uk/isxander/lunarspoof/mixins/MixinRender": {
+      "renderLivingLabel": "Lbiv;a(Lpk;Ljava/lang/String;DDDI)V"
+    }
+  },
+  "data": {
+    "notch": {
+      "co/uk/isxander/lunarspoof/mixins/MixinNetHandlerPlayClient": {
+        "handleJoinGame": "Lbcy;a(Lgt;)V"
+      },
+      "co/uk/isxander/lunarspoof/mixins/MixinRender": {
+        "renderLivingLabel": "Lbiv;a(Lpk;Ljava/lang/String;DDDI)V"
+      }
+    },
+    "searge": {
+      "co/uk/isxander/lunarspoof/mixins/MixinNetHandlerPlayClient": {
+        "handleJoinGame": "Lnet/minecraft/client/network/NetHandlerPlayClient;func_147282_a(Lnet/minecraft/network/play/server/S01PacketJoinGame;)V"
+      },
+      "co/uk/isxander/lunarspoof/mixins/MixinRender": {
+        "renderLivingLabel": "Lnet/minecraft/client/renderer/entity/Render;func_147906_a(Lnet/minecraft/entity/Entity;Ljava/lang/String;DDDI)V"
+      }
+    }
+  }
+}

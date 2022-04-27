@@ -1,0 +1,10 @@
+{
+  "required": true,
+  "compatibilityLevel": "JAVA_8",
+  "package": "co.uk.isxander.lunarspoof.mixins",
+  "refmap": "mixins.lunarspoof.refmap.json",
+  "verbose": true,
+  "mixins": [
+    "MixinNetHandlerPlayClient"
+  ]
+}

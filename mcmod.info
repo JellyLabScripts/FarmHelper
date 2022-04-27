@@ -1,0 +1,16 @@
+[
+{
+  "modid": "lunarspoof",
+  "name": "Lunar Spoof v1",
+  "description": "Small mod that makes servers think you are on lunar client.",
+  "version": "1.1.2",
+  "mcversion": "1.8.9",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["isXander"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

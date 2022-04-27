@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+TweakOrder: 0
+MixinConfigs: mixins.lunarspoof.json
+Manifset-Version: 1.0
+TweakClass: co.uk.isxander.lunarspoof.LunarTweaker
+
