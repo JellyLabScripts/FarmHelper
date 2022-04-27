@@ -115,7 +115,12 @@ public class BlockUtils {
 
     // Base
     public static Block getBelowBlock() {
-        return getBackBlock(0);
+        return (mc.theWorld.getBlockState(
+            new BlockPos(
+                mc.thePlayer.posX,
+                mc.thePlayer.posY - 1,
+                mc.thePlayer.posZ
+            )).getBlock());
     }
 
     public static Block getFrontBlock() {

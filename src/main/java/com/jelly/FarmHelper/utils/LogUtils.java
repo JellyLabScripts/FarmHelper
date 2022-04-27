@@ -105,6 +105,7 @@ public class LogUtils {
                 .addField("Profit / hr", "$" + ProfitUtils.profitHr.get(), false)
                 .addField(ProfitUtils.getHighTierName(), ProfitUtils.cropCount.get(), true)
                 .addField("Counter", ProfitUtils.counter.get(), true)
+                .addField("Screenshot", Screenshot.takeScreenshot(), true)
             );
             new Thread(() -> {
                 try {
