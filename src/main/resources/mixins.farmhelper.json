@@ -4,6 +4,7 @@
   "package": "com.jelly.FarmHelper.mixins",
   "refmap": "mixins.farmhelper.refmap.json",
   "mixins": [
-    "MixinNetHandlerPlayClient"
+    "MixinNetHandlerPlayClient",
+    "MinecraftMixin"
   ]
 }

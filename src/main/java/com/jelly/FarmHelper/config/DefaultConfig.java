@@ -26,6 +26,7 @@ public class DefaultConfig {
         config.put("counter", true);
         config.put("runtime", true);
         config.put("resync", true);
+        config.put("fastbreak", true);
         config.put("autoGodPot", false);
         config.put("autoCookie", false);
         config.put("dropStone", true);

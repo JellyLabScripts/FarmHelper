@@ -19,6 +19,7 @@ public class MiscMenu extends UIContainer {
         new Toggle("Auto Cookie", "autoCookie").setChildOf(this);
         new Toggle("Drop Stone", "dropStone").setChildOf(this);
         new Toggle("Debug Mode", "debugMode").setChildOf(this);
+        new Toggle("Fastbreak", "fastbreak").setChildOf(this);
         ((Button) new Button("Buy Cookie").setChildOf(this)).setOnClick((component, uiClickEvent) -> {
             FarmHelper.openedGUI = false;
             mc.thePlayer.closeScreen();
