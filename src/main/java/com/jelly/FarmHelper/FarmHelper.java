@@ -1475,7 +1475,7 @@ public class FarmHelper {
     public static boolean jacobExceeded() {
         for (String line : Utils.getSidebarLines()) {
             String cleanedLine = Utils.cleanSB(line);
-            if (cleanedLine.contains("Nether Wart")) {
+            if (cleanedLine.contains("Wart") || cleanedLine.contains("Nether")) {
                 return getJacobCounter() > JacobConfig.netherWartCap;
             } else if (cleanedLine.contains("Mushroom")) {
                 return getJacobCounter() > JacobConfig.mushroomCap;
