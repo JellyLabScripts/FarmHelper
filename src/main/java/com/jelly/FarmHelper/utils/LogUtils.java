@@ -154,7 +154,7 @@ public class LogUtils {
         }
     }
 
-    public static void sendLog(ChatComponentText chat) {
+    public synchronized static void sendLog(ChatComponentText chat) {
         mc.thePlayer.addChatMessage(chat);
     }
 
