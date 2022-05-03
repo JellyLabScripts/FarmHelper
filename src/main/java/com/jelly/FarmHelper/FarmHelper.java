@@ -190,6 +190,14 @@ public class FarmHelper {
         beforeX = mc.thePlayer.posX;
         beforeY = mc.thePlayer.posY;
         beforeZ = mc.thePlayer.posZ;
+        angleEnum = Math.round(AngleUtils.get360RotationYaw() / 90) < 4 ? AngleEnum.values()[Math.round(AngleUtils.get360RotationYaw() / 90)] : AngleEnum.A0;
+        playerYaw = AngleUtils.angleToValue(angleEnum);
+
+        try {
+            AngleUtils.smoothRotateTo(AngleUtils.get360RotationYaw(playerYaw), 1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         Utils.resetExecutor();
         mc.thePlayer.closeScreen();
@@ -300,17 +308,30 @@ public class FarmHelper {
             mc.displayGuiScreen(new MenuGUI());
         }
         if (customKeyBinds[1].isPressed()) {
+            mc.thePlayer.closeScreen();
+            openedGUI = false;
+
             if (!enabled) {
                 LogUtils.scriptLog("Starting script", EnumChatFormatting.GREEN);
                 LogUtils.configLog();
+                if (MiscConfig.ungrab) Utils.ungrabMouse();
                 if (MiscConfig.dropStone) {
                     LogUtils.scriptLog("Make sure slot 7 has nothing important or it may be dropped", EnumChatFormatting.RED);
                 }
                 if (MiscConfig.dropStone || AutoSellConfig.autoSell || MiscConfig.autoCookie || MiscConfig.autoGodPot) {
                     LogUtils.scriptLog("Make sure important slots are locked with SBA", EnumChatFormatting.DARK_BLUE);
                 }
+                enabled = true;
+                initialize();
+            } else {
+                enabled = false;
+                Utils.regrabMouse();
+                LogUtils.scriptLog("Stopped script");
+                LogUtils.webhookLog("Stopped script");
+                updateKeys(false, false, false, false, false, false);
+                Utils.resetExecutor();
+                mc.thePlayer.closeScreen();
             }
-            toggle();
         }
     }
 
@@ -581,25 +602,46 @@ public class FarmHelper {
                 }
                 // In trenches walking along the layer
                 else if (inTrenches) {
-                    angleEnum = Math.round(AngleUtils.get360RotationYaw() / 90) < 4 ? AngleEnum.values()[Math.round(AngleUtils.get360RotationYaw() / 90)] : AngleEnum.A0;
-                    playerYaw = AngleUtils.angleToValue(angleEnum);
                     if (FarmConfig.cropType.equals(CropEnum.NETHERWART)) {
                         mc.thePlayer.rotationPitch = 0;
                     } else {
                         mc.thePlayer.rotationPitch = (float) 2.8;
+                    }
+                    if (!rotating && AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(playerYaw), AngleUtils.get360RotationYaw()) > 179) {
+                        LogUtils.debugLog("180 pad yaw change detected, ignoring");
+                        angleEnum = Math.round(AngleUtils.get360RotationYaw() / 90) < 4 ? AngleEnum.values()[Math.round(AngleUtils.get360RotationYaw() / 90)] : AngleEnum.A0;
+                        playerYaw = AngleUtils.angleToValue(angleEnum);
+                    } else if (!rotating && AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(playerYaw), AngleUtils.get360RotationYaw()) > 10) {
+                        LogUtils.scriptLog("Possible staff rotation check", EnumChatFormatting.RED);
+                        LogUtils.webhookLog("Possible staff rotation check");
+                        new Thread(() -> {
+                            try {
+                                Thread.sleep(800);
+                                updateKeys(false, false, false, false, false, false);
+                                Thread.sleep(800);
+                                AngleUtils.smoothRotateTo(AngleUtils.get360RotationYaw(playerYaw), 1);
+                                rotating = false;
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }).start();
+                        rotating = true;
+                    }
+                    if (rotating) {
+                        return;
                     }
                     // Not falling
                     if (FarmConfig.farmType == FarmEnum.LAYERED) {
                         if (dy == 0) {
                             // If on solid block
                             if ((mc.thePlayer.posY % 1) == 0) {
-                                if (!stuck && !dropping) {
-                                    try {
-                                        AngleUtils.hardRotate(playerYaw);
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-                                }
+//                                if (!stuck && !dropping) {
+//                                    try {
+//                                        AngleUtils.hardRotate(playerYaw);
+//                                    } catch (Exception e) {
+//                                        e.printStackTrace();
+//                                    }
+//                                }
                                 // Cannot move forwards or backwards
                                 if (!isWalkable(BlockUtils.getFrontBlock()) && !isWalkable(BlockUtils.getBackBlock())) {
                                     if (!checkFull && !selling && mc.thePlayer.inventory.getFirstEmptyStack() == -1) {
@@ -965,7 +1007,6 @@ public class FarmHelper {
             angleEnum = angleEnum.ordinal() < 2 ? AngleEnum.values()[angleEnum.ordinal() + 2] : AngleEnum.values()[angleEnum.ordinal() - 2];
             playerYaw = AngleUtils.angleToValue(angleEnum);
             AngleUtils.smoothRotateClockwise(180, 1.2f);
-            System.out.println("-------EXPECTED: " + AngleUtils.get360RotationYaw() + "ACTUAL--------" + playerYaw);
             Thread.sleep(100);
             KeyBinding.setKeyBindState(PlayerUtils.keybindW, true);
             Thread.sleep(200);
@@ -1617,18 +1658,6 @@ public class FarmHelper {
     }
 
     public static void toggle() {
-        mc.thePlayer.closeScreen();
-        if (enabled) {
-            enabled = false;
-            LogUtils.scriptLog("Stopped script");
-            LogUtils.webhookLog("Stopped script");
-            updateKeys(false, false, false, false, false, false);
-            Utils.resetExecutor();
-            mc.thePlayer.closeScreen();
-        } else {
-            enabled = true;
-            initialize();
-        }
-        openedGUI = false;
+
     }
 }

@@ -30,6 +30,7 @@ public class DefaultConfig {
         config.put("autoGodPot", false);
         config.put("autoCookie", false);
         config.put("dropStone", true);
+        config.put("ungrab", true);
         config.put("debugMode", false);
         config.put("cropType", 1);
         config.put("farmType", 0);

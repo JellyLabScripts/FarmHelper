@@ -9,6 +9,7 @@ public class MiscConfig {
     public static boolean autoCookie;
     public static boolean dropStone;
     public static boolean debugMode;
+    public static boolean ungrab;
 
     public static void update() {
         resync = (boolean) FarmHelperConfig.get("resync");
@@ -16,6 +17,7 @@ public class MiscConfig {
         autoGodPot = (boolean) FarmHelperConfig.get("autoGodPot");
         autoCookie = (boolean) FarmHelperConfig.get("autoCookie");
         dropStone = (boolean) FarmHelperConfig.get("dropStone");
+        ungrab = (boolean) FarmHelperConfig.get("ungrab");
         debugMode = (boolean) FarmHelperConfig.get("debugMode");
     }
 }

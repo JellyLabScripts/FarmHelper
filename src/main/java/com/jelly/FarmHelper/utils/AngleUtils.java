@@ -3,6 +3,8 @@ package com.jelly.FarmHelper.utils;
 import com.jelly.FarmHelper.config.enums.AngleEnum;
 import net.minecraft.client.Minecraft;
 
+import java.util.Map;
+
 public class AngleUtils {
     private static Minecraft mc = Minecraft.getMinecraft();
 
@@ -34,6 +36,10 @@ public class AngleUtils {
 
     public static float antiClockwiseDifference(float initialYaw360, float targetYaw360) {
         return get360RotationYaw(initialYaw360 - targetYaw360);
+    }
+
+    public static float smallestAngleDifference(float initialYaw360, float targetYaw360) {
+        return Math.min(clockwiseDifference(initialYaw360, targetYaw360), antiClockwiseDifference(initialYaw360, targetYaw360));
     }
 
     public static void smoothRotateTo(float targetYaw360, float speed) throws Exception {
