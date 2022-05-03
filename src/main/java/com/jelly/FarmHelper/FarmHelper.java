@@ -59,7 +59,7 @@ import static com.jelly.FarmHelper.utils.PlayerUtils.updateKeys;
 public class FarmHelper {
     public static final String MODID = "farmhelper";
     public static final String NAME = "Farm Helper";
-    public static final String VERSION = "3.0-beta3.2";
+    public static final String VERSION = "3.0-beta5.0.2";
 
     public static final Minecraft mc = Minecraft.getMinecraft();
 
@@ -303,6 +303,12 @@ public class FarmHelper {
             if (!enabled) {
                 LogUtils.scriptLog("Starting script", EnumChatFormatting.GREEN);
                 LogUtils.configLog();
+                if (MiscConfig.dropStone) {
+                    LogUtils.scriptLog("Make sure slot 7 has nothing important or it may be dropped", EnumChatFormatting.RED);
+                }
+                if (MiscConfig.dropStone || AutoSellConfig.autoSell || MiscConfig.autoCookie || MiscConfig.autoGodPot) {
+                    LogUtils.scriptLog("Make sure important slots are locked with SBA", EnumChatFormatting.DARK_BLUE);
+                }
             }
             toggle();
         }
@@ -343,16 +349,16 @@ public class FarmHelper {
     public void OnTickPlayer(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
 
-        if (mc.currentScreen instanceof GuiIngameMenu) {
-            // LogUtils.debugLog("Detected esc menu, stopping all threads");
-            Utils.resetExecutor();
-            updateKeys(false, false, false, false, false, false);
-            return;
-        }
+//        if (mc.currentScreen instanceof GuiIngameMenu) {
+//            // LogUtils.debugLog("Detected esc menu, stopping all threads");
+//            Utils.resetExecutor();
+//            updateKeys(false, false, false, false, false, false);
+//            return;
+//        }
 
         if (mc.currentScreen instanceof GuiInventory && buying) {
             LogUtils.debugLog("Detected inventory, stopping all threads");
-            Utils.resetExecutor();
+            // Utils.resetExecutor();
             updateKeys(false, false, false, false, false, false);
             buying = false;
             cookie = true;
@@ -461,7 +467,7 @@ public class FarmHelper {
                 LogUtils.debugFullLog("Detected hub");
                 if (mc.currentScreen instanceof GuiInventory) {
                     LogUtils.debugLog("Detected open inventory in hub, stopping threads");
-                    Utils.resetExecutor();
+                    // Utils.resetExecutor();
                 }
                 if (!cookie && MiscConfig.autoCookie) {
                     if (!buying) {
@@ -669,8 +675,7 @@ public class FarmHelper {
                                     lastDirection = direction.NONE;
                                     LogUtils.debugLog("End of row - Switching to next");
                                     LogUtils.webhookStatus();
-                                    newRow = true;
-                                    if (!cached && MiscConfig.resync) {
+                                    if (!cached && !stuck && stuckCooldown < System.currentTimeMillis() && MiscConfig.resync) {
                                         cached = true;
                                         Utils.ExecuteRunnable(cacheRowAge);
                                         Utils.ScheduleRunnable(checkDesync, 4, TimeUnit.SECONDS);
@@ -714,6 +719,7 @@ public class FarmHelper {
 
                                 // Can go forwards and backwards
                                 else if (isWalkable(BlockUtils.getFrontBlock()) && isWalkable(BlockUtils.getBackBlock())) {
+                                    newRow = true;
                                     lastDirection = direction.NONE;
                                     pushedOffSide = false;
                                     LogUtils.debugFullLog("End of row - Middle of col - Go forwards");
@@ -1172,7 +1178,7 @@ public class FarmHelper {
                 InventoryUtils.clickWindow(mc.thePlayer.inventoryContainer.windowId, slotID, 0, 0);
                 Thread.sleep(300);
                 InventoryUtils.clickWindow(mc.thePlayer.inventoryContainer.windowId, slotID, 0, 6);
-                Thread.sleep(300);
+                Thread.sleep(1000);
                 InventoryUtils.clickWindow(mc.thePlayer.inventoryContainer.windowId, 35 + 7, 0, 0);
                 Thread.sleep(300);
                 if (isWalkable(BlockUtils.getRightBlock())) {
@@ -1183,8 +1189,8 @@ public class FarmHelper {
                     AngleUtils.smoothRotateClockwise(90, 2.5f);
                 }
                 Thread.sleep(400);
-                mc.thePlayer.inventory.currentItem = -1 + 7;
-                Thread.sleep(400);
+                mc.thePlayer.inventory.currentItem = 7 - 1;
+                Thread.sleep(2000);
                 mc.thePlayer.dropOneItem(true);
                 LogUtils.debugLog("Dropped successfully");
                 Thread.sleep(100);
