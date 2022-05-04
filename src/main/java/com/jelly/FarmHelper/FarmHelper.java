@@ -654,6 +654,7 @@ public class FarmHelper {
                                         deltaX = 100;
                                         deltaZ = 100;
                                     }
+                                    pushedOffSide = false;
                                     cached = false;
                                     if (newRow) {
                                         newRow = false;
@@ -700,6 +701,15 @@ public class FarmHelper {
                                     } else {
                                         LogUtils.debugLog("Unknown case - id: 4");
                                     }
+                                } else if (deltaX < 1 && deltaZ < 1 && !isWalkable(BlockUtils.getFrontBlock())) {
+                                    LogUtils.debugLog("Corner stuck detected");
+                                    LogUtils.webhookLog("Corner stuck detected");
+                                    if (!stuck && stuckCooldown < System.currentTimeMillis()) {
+                                        stuck = true;
+                                        stuckFrequency();
+                                        updateKeys(false, false, false, false, false, false);
+                                        Utils.ExecuteRunnable(fixCornerStuck);
+                                    }
                                 } else if (deltaX < 1 && deltaZ < 1) {
                                     LogUtils.debugLog("Row switch - Detected stuck");
                                     LogUtils.webhookLog("Row switch - Detected stuck");
@@ -723,6 +733,7 @@ public class FarmHelper {
                                         Utils.ScheduleRunnable(checkDesync, 4, TimeUnit.SECONDS);
                                     }
                                     if (mc.gameSettings.keyBindForward.isKeyDown()) {
+                                        pushedOffSide = false;
                                         LogUtils.debugFullLog("End of row - Start of col - Pushed off - Keep Going forwards");
                                         updateKeys(true, false, false, false, false, false);
                                     } else if (pushedOffSide) {
@@ -1001,6 +1012,32 @@ public class FarmHelper {
         }
     };
 
+    public static Runnable fixCornerStuck = () -> {
+        try {
+            Thread.sleep(20);
+            KeyBinding.setKeyBindState(PlayerUtils.keybindD, true);
+            Thread.sleep(200);
+            KeyBinding.setKeyBindState(PlayerUtils.keybindD, false);
+            Thread.sleep(200);
+            if (isWalkable(BlockUtils.getRightBlock())) {
+                KeyBinding.setKeyBindState(PlayerUtils.keybindD, true);
+                Thread.sleep(200);
+                KeyBinding.setKeyBindState(PlayerUtils.keybindD, false);
+                Thread.sleep(200);
+            } else {
+                KeyBinding.setKeyBindState(PlayerUtils.keybindA, true);
+                Thread.sleep(200);
+                KeyBinding.setKeyBindState(PlayerUtils.keybindA, false);
+                Thread.sleep(200);
+            }
+            deltaX = 100;
+            deltaZ = 100;
+            stuck = false;
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    };
+
     public static Runnable changeLayer = () -> {
         try {
             Thread.sleep(250);
@@ -1011,6 +1048,7 @@ public class FarmHelper {
             KeyBinding.setKeyBindState(PlayerUtils.keybindW, true);
             Thread.sleep(200);
             KeyBinding.setKeyBindState(PlayerUtils.keybindW, false);
+            AngleUtils.hardRotate(playerYaw);
             setStuckCooldown(2);
             deltaX = 100;
             deltaZ = 100;
