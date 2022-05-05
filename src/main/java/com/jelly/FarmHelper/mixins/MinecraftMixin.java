@@ -1,5 +1,6 @@
 package com.jelly.FarmHelper.mixins;
 
+import com.jelly.FarmHelper.config.interfaces.MiscConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiScreen;
@@ -10,16 +11,17 @@ import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
-/*import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(Minecraft.class)*/
+@Mixin(Minecraft.class)
 public class MinecraftMixin {
-/*
-
+    /*
+     *  @Author Apfelsaft
+     */
     @Shadow
     public GuiScreen currentScreen;
 
@@ -46,12 +48,11 @@ public class MinecraftMixin {
 
     @Inject(method = "sendClickBlockToController", at = @At("RETURN"))
     private void sendClickBlockToController(CallbackInfo ci) {
-        if(!Config.fastbreak) return;
-        
-        int extraClicks = 3;
+        if(!MiscConfig.fastbreak) return;
+
         boolean shouldClick = this.currentScreen == null && this.gameSettings.keyBindAttack.isKeyDown() && this.inGameHasFocus;
         if (this.objectMouseOver != null && shouldClick)
-            for (int i = 0; i < extraClicks; i++) {
+            for (int i = 0; i < 3; i++) {
                 BlockPos clickedBlock = this.objectMouseOver.getBlockPos();
                 this.objectMouseOver = this.renderViewEntity.rayTrace(this.playerController.getBlockReachDistance(), 1.0F);
                 if (this.objectMouseOver == null || this.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK)
@@ -63,6 +64,6 @@ public class MinecraftMixin {
                     this.playerController.clickBlock(newBlock, this.objectMouseOver.sideHit);
                 }
             }
-    }*/
+    }
 }
 

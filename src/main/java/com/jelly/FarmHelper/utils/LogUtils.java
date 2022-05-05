@@ -1,9 +1,11 @@
 package com.jelly.FarmHelper.utils;
 
-import com.jelly.FarmHelper.FarmHelper;
 import com.jelly.FarmHelper.config.interfaces.FarmConfig;
 import com.jelly.FarmHelper.config.interfaces.MiscConfig;
 import com.jelly.FarmHelper.config.interfaces.WebhookConfig;
+//import me.acattoXD.Utilities.WebhookUtils;
+//import me.acattoXD.WartMacro;
+import me.acattoXD.WartMacro;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
@@ -74,10 +76,10 @@ public class LogUtils {
     }
 
     public static String getRuntimeFormat() {
-        if (FarmHelper.startTime == 0) {
+        if (WartMacro.startTime == 0) {
             return "0h 0m 0s";
         }
-        long millis = System.currentTimeMillis() - FarmHelper.startTime;
+        long millis = System.currentTimeMillis() - WartMacro.startTime;
         return String.format("%dh %dm %ds",
             TimeUnit.MILLISECONDS.toHours(millis),
             TimeUnit.MILLISECONDS.toMinutes(millis) -
@@ -93,22 +95,22 @@ public class LogUtils {
         }
         long timeDiff = TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - statusMsgTime);
         if (timeDiff > WebhookConfig.webhookStatusCooldown && WebhookConfig.webhookStatus) {
-            FarmHelper.webhook.addEmbed(new DiscordWebhook.EmbedObject()
-                .setTitle("Farm Helper")
+                WartMacro.webhook.addEmbed(new DiscordWebhook.EmbedObject()
                 .setDescription("```" + "I'm still alive!" + "```")
                 .setColor(Color.decode("#ff3b3b"))
                 .setFooter("Jelly", "")
                 .setThumbnail("https://crafatar.com/renders/head/" + mc.thePlayer.getUniqueID())
                 .addField("Username", mc.thePlayer.getName(), true)
                 .addField("Runtime", getRuntimeFormat(), true)
-                .addField("Total Profit", ProfitUtils.getProfit() != 0 ? "$" + Utils.formatNumber(ProfitUtils.getProfit()) : "Not supported", false)
-                .addField("Profit / hr", "$" + Utils.formatNumber((float) ProfitUtils.getHourProfit(ProfitUtils.getProfit())), false)
-                .addField(ProfitUtils.getHighTierName(), Utils.formatNumber(ProfitUtils.getHighTierCount()), true)
-                .addField("Counter", Utils.formatNumber(FarmHelper.currentCounter), true)
+                .addField("Total Profit", ProfitUtils.profit.get(), false)
+                .addField("Profit / hr", "$" + ProfitUtils.profitHr.get(), false)
+                .addField(ProfitUtils.getHighTierName(), ProfitUtils.cropCount.get(), true)
+                .addField("Counter", ProfitUtils.counter.get(), true)
+                .addField("Screenshot", Screenshot.takeScreenshot(), true)
             );
             new Thread(() -> {
                 try {
-                    FarmHelper.webhook.execute();
+                    WartMacro.webhook.execute();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -121,14 +123,14 @@ public class LogUtils {
         long timeDiff = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - logMsgTime);
         debugFullLog("Last webhook message: " + timeDiff);
         if (WebhookConfig.webhookLogs && (timeDiff > 20 || lastWebhook != message)) {
-            FarmHelper.webhook.addEmbed(new DiscordWebhook.EmbedObject()
+            WartMacro.webhook.addEmbed(new DiscordWebhook.EmbedObject()
                 .setDescription("**Farm Helper Log** ```" + message + "```")
                 .setColor(Color.decode("#741010"))
                 .setFooter(mc.thePlayer.getName(), "")
             );
             new Thread(() -> {
                 try {
-                    FarmHelper.webhook.execute();
+                    WartMacro.webhook.execute();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -153,7 +155,7 @@ public class LogUtils {
         }
     }
 
-    public static void sendLog(ChatComponentText chat) {
+    public synchronized static void sendLog(ChatComponentText chat) {
         mc.thePlayer.addChatMessage(chat);
     }
 

@@ -10,8 +10,10 @@ import net.minecraft.item.EnumDyeColor;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3i;
 
-import static com.jelly.FarmHelper.FarmHelper.cropAgeRefs;
-import static com.jelly.FarmHelper.FarmHelper.cropBlockStates;
+//import static com.jelly.FarmHelper.FarmHelper.cropAgeRefs;
+//import static com.jelly.FarmHelper.FarmHelper.cropBlockStates;
+import static me.acattoXD.WartMacro.cropBlockStates;
+import static me.acattoXD.WartMacro.cropAgeRefs;
 
 public class BlockUtils {
     private static Minecraft mc = Minecraft.getMinecraft();
@@ -48,7 +50,6 @@ public class BlockUtils {
                 count++;
             }
         }
-        LogUtils.debugFullLog("Counted bedrock: " + count);
         return count;
         // }
         // return 0;
@@ -116,7 +117,12 @@ public class BlockUtils {
 
     // Base
     public static Block getBelowBlock() {
-        return getBackBlock(0);
+        return (mc.theWorld.getBlockState(
+            new BlockPos(
+                mc.thePlayer.posX,
+                mc.thePlayer.posY - 1,
+                mc.thePlayer.posZ
+            )).getBlock());
     }
 
     public static Block getFrontBlock() {

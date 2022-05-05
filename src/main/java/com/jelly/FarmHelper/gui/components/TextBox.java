@@ -34,7 +34,7 @@ public class TextBox extends UIBlock {
         textWrapper = new UIBlock(new Color(30, 31, 32))
             .setX(new CenterConstraint())
             .setY(new AdditiveConstraint(new SiblingConstraint(), new PixelConstraint(5)))
-            .setHeight(new PixelConstraint(15))
+            .setHeight(new PixelConstraint(20))
             .setWidth(new SubtractiveConstraint(new RelativeConstraint(1f), new PixelConstraint(20)))
             .setChildOf(this)
             .onMouseClick((component, uiClickEvent) -> {

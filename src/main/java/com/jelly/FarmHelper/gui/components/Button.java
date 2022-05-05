@@ -22,7 +22,7 @@ public class Button extends UIBlock {
         button = new UIBlock(new Color(30, 31, 32))
             .setX(new CenterConstraint())
             .setY(new CenterConstraint())
-            .setHeight(new PixelConstraint(15))
+            .setHeight(new PixelConstraint(20))
             .setWidth(new SubtractiveConstraint(new RelativeConstraint(1f), new PixelConstraint(20)))
             .setChildOf(this);
 

@@ -10,14 +10,14 @@ import gg.essential.elementa.state.BasicState;
 import java.awt.*;
 
 public class Slider extends UIBlock {
-    private UIComponent slider;
-    private UIComponent sliderValue;
+    private final UIComponent slider;
+    private final UIComponent sliderValue;
     private boolean dragging = false;
     private double currentValue = 0;
     private double maxValue = 0;
     private double step = 0;
-    private String configName;
-    private BasicState<String> sliderTextState = new BasicState<String>("");
+    private final String configName;
+    private final BasicState<String> sliderTextState = new BasicState<>("");
 
     public Slider(String optionName, double maxValue, double step, String configName) {
         // Get current value from config
@@ -30,7 +30,7 @@ public class Slider extends UIBlock {
         this.setX(new PixelConstraint(0))
             .setY(new SiblingConstraint())
             .setWidth(new RelativeConstraint(1))
-            .setHeight(new AdditiveConstraint(new ChildBasedRangeConstraint(), new PixelConstraint(20)))
+            .setHeight(new AdditiveConstraint(new ChildBasedRangeConstraint(), new PixelConstraint(15)))
             .setColor(new Color(36, 37, 39));
 
         new UIText(optionName, false)

@@ -1,13 +1,12 @@
 package com.jelly.FarmHelper.gui.menus;
 
-import com.jelly.FarmHelper.FarmHelper;
 import com.jelly.FarmHelper.gui.components.Button;
 import com.jelly.FarmHelper.gui.components.Slider;
 import com.jelly.FarmHelper.gui.components.Toggle;
-import com.jelly.FarmHelper.utils.InventoryUtils;
 import com.jelly.FarmHelper.utils.LogUtils;
 import com.jelly.FarmHelper.utils.Utils;
 import gg.essential.elementa.components.UIContainer;
+import me.acattoXD.WartMacro;
 import net.minecraft.client.Minecraft;
 
 import java.util.concurrent.TimeUnit;
@@ -19,12 +18,13 @@ public class AutoSellMenu extends UIContainer {
         new Slider("Inventory Full Time", 20.0, 1.0, "fullTime").setChildOf(this);
         new Slider("Inventory Full Ratio", 100.0, 1.0, "fullRatio").setChildOf(this);
         ((Button) new Button("Sell Inventory").setChildOf(this)).setOnClick((component, uiClickEvent) -> {
-            FarmHelper.openedGUI = false;
+            WartMacro.openedGUI = false;
             mc.thePlayer.closeScreen();
-            FarmHelper.cookie = true;
-            Utils.ExecuteRunnable(FarmHelper.checkFooter);
-            if (FarmHelper.cookie) LogUtils.debugLog("Executing sell in 1 second");
-            Utils.ScheduleRunnable(FarmHelper.autoSell, 1, TimeUnit.SECONDS);
+            WartMacro.cookie = true;
+            Utils.ExecuteRunnable(WartMacro.checkFooter);
+            WartMacro.timeoutStart = System.currentTimeMillis();
+            if (WartMacro.cookie) LogUtils.debugLog("Executing sell in 1 second");
+            Utils.ScheduleRunnable(WartMacro.autoSell, 1, TimeUnit.SECONDS);
             return null;
         });
     }

@@ -5,6 +5,6 @@
   "refmap": "mixins.farmhelper.refmap.json",
   "mixins": [
     "MixinNetHandlerPlayClient",
-    "BlockCropsMixin_CropHeight"
+    "MinecraftMixin"
   ]
 }
