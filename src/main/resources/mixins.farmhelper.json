@@ -1,10 +1,13 @@
 {
   "required": true,
   "compatibilityLevel": "JAVA_8",
-  "package": "com.jelly.FarmHelper.mixins",
+  "package": "com.jelly.farmhelper.mixins",
   "refmap": "mixins.farmhelper.refmap.json",
   "mixins": [
-    "MixinNetHandlerPlayClient",
-    "MinecraftMixin"
+    "MinecraftMixin",
+    "MixinNetHandlerPlayClient"
+  ],
+  "client": [
+    "MixinPlayerControllerMP"
   ]
 }
