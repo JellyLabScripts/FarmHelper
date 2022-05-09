@@ -17,46 +17,61 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.Sys;
 import scala.tools.reflect.quasiquotes.Parsers;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class Resync {
-    private boolean enabled;
-    private Clock verifyTimer = new Clock();
-    private Clock checkTimer = new Clock();
-    public BlockPos lastBrokenPos;
-    private BlockPos cachedPos;
-    private final Minecraft mc = Minecraft.getMinecraft();
+    private static boolean enabled;
+    private static final Clock checkTimer = new Clock();
+    public static BlockPos lastBrokenPos;
+    private static BlockPos cachedPos;
+    private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public void enable() {
-        enabled = true;
-        checkTimer.schedule(8000);
-    }
-
-    public void disable() {
-        enabled = false;
-    }
-
-    @SubscribeEvent
-    public void onBlockBreak(BlockEvent.BreakEvent event) {
-        LogUtils.debugFullLog("Broken block - " + event.state.getBlock());
-    }
-
-    @SubscribeEvent
-    public final void tick(TickEvent.ClientTickEvent event) {
-        if (enabled && mc.theWorld != null && lastBrokenPos != null && mc.theWorld.getBlockState(lastBrokenPos) != null) {
-            System.out.println(checkTimer.passed() + ", "+ lastBrokenPos + ", " + (mc.theWorld.getBlockState(lastBrokenPos).getBlock()));
-            if (checkTimer.passed() && mc.theWorld.getBlockState(lastBrokenPos).getBlock() instanceof BlockBush) {
-                LogUtils.debugFullLog("Resync - in tick " + " " + mc.theWorld.getBlockState(lastBrokenPos));
-                cachedPos = lastBrokenPos;
-                verifyTimer.schedule(5000);
-                checkTimer.schedule(8000);
-            } else if (verifyTimer.passed() && cachedPos != null && mc.theWorld.getBlockState(cachedPos) != null) {
-                verifyTimer.reset();
-                LogUtils.debugLog("Rechecked - " + mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE));
-                if (FarmConfig.cropType == CropEnum.NETHERWART && mc.theWorld.getBlockState(cachedPos).getValue(BlockNetherWart.AGE) > 2) {
-
-                } else if (mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE) > 2) {
-
-                }
-            }
+    public static void update(BlockPos lastBrokenPos) {
+        // System.out.println("resync update recieved - " + lastBrokenPos + ", " + mc.theWorld.getBlockState(lastBrokenPos));
+        Resync.lastBrokenPos = lastBrokenPos;
+        if (checkTimer.passed()) {
+            cachedPos = lastBrokenPos;
+            Timer t = new Timer();
+            t.schedule(
+                new TimerTask() {
+                    @Override
+                    public void run() {
+                        if (cachedPos != null && mc.theWorld.getBlockState(cachedPos) != null) {
+                            LogUtils.debugLog("Rechecked - " + mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE));
+                            if (FarmConfig.cropType == CropEnum.NETHERWART && mc.theWorld.getBlockState(cachedPos).getValue(BlockNetherWart.AGE) > 2) {
+                                mc.thePlayer.sendChatMessage("/hub");
+                            } else if (mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE) > 4) {
+                                mc.thePlayer.sendChatMessage("/hub");
+                            }
+                        }
+                        t.cancel();
+                    }
+                },
+                5000
+            );
+            checkTimer.schedule(10000);
         }
     }
+
+//    @SubscribeEvent
+//    public final void tick(TickEvent.ClientTickEvent event) {
+//        if (enabled && mc.theWorld != null && lastBrokenPos != null && mc.theWorld.getBlockState(lastBrokenPos) != null) {
+//            System.out.println(checkTimer.passed() + ", " + lastBrokenPos + ", " + (mc.theWorld.getBlockState(lastBrokenPos).getBlock()));
+//            if (checkTimer.passed() && mc.theWorld.getBlockState(lastBrokenPos).getBlock() instanceof BlockBush) {
+//                LogUtils.debugFullLog("Resync - in tick " + " " + mc.theWorld.getBlockState(lastBrokenPos));
+//                cachedPos = lastBrokenPos;
+//                verifyTimer.schedule(5000);
+//                checkTimer.schedule(8000);
+//            } else if (verifyTimer.passed() && cachedPos != null && mc.theWorld.getBlockState(cachedPos) != null) {
+//                verifyTimer.reset();
+//                LogUtils.debugLog("Rechecked - " + mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE));
+//                if (FarmConfig.cropType == CropEnum.NETHERWART && mc.theWorld.getBlockState(cachedPos).getValue(BlockNetherWart.AGE) > 2) {
+//
+//                } else if (mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE) > 2) {
+//
+//                }
+//            }
+//        }
+//    }
 }

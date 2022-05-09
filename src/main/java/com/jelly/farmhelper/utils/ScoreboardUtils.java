@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 public class ScoreboardUtils {
     private static Minecraft mc = Minecraft.getMinecraft();
+
     public static List<String> getScoreboardLines() {
         List<String> lines = new ArrayList<>();
         if (mc.theWorld == null) return lines;

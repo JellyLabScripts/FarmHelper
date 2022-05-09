@@ -2,29 +2,30 @@ package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Resync;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.AngleUtils;
 import com.jelly.farmhelper.utils.BlockUtils;
 
 import static com.jelly.farmhelper.FarmHelper.gameState;
-import static com.jelly.farmhelper.macros.MacroHandler.resync;
 import static com.jelly.farmhelper.utils.BlockUtils.getRelativeBlock;
 import static com.jelly.farmhelper.utils.BlockUtils.isWalkable;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
+import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.utils.LogUtils;
+import com.jelly.farmhelper.world.GameState;
 import jline.internal.Log;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
-public class CropMacro implements Macro {
-    private final Minecraft mc = Minecraft.getMinecraft();
-    private boolean enabled = false;
-    private final Rotation rotation = new Rotation();
+public class CropMacro {
+    private static final Minecraft mc = Minecraft.getMinecraft();
 
     enum State {
         DROPPING,
@@ -37,45 +38,72 @@ public class CropMacro implements Macro {
         NONE
     }
 
-    private State currentState;
-    private double layerY;
-    private boolean pushedSide;
-    private boolean pushedFront;
-    private float pitch;
+    private static final Rotation rotation = new Rotation();
+    private static boolean enabled = false;
+    private static State currentState;
+    private static double layerY;
+    private static boolean pushedSide;
+    private static boolean pushedFront;
+    private static boolean antistuckActive;
+    private static float pitch;
 
-    @Override
-    public void enable() {
+    public static void enable() {
         enabled = true;
         layerY = mc.thePlayer.posY;
         currentState = State.NONE;
+        pushedFront = false;
+        pushedSide = false;
+        antistuckActive = false;
         if (FarmConfig.cropType == CropEnum.NETHERWART) {
             pitch = 0f;
         } else {
             pitch = 2.8f;
         }
         rotation.easeTo(AngleUtils.getClosest(), pitch, 500);
-        resync.enable();
         LogUtils.scriptLog("Starting script");
     }
 
-    @Override
-    public void disable() {
+    public static void disable() {
         enabled = false;
         updateKeys(false, false, false, false, false);
-        resync.disable();
         LogUtils.scriptLog("Stopping script");
     }
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
-        if (!enabled || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
+        if (!MacroHandler.macroEnabled || !enabled || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
+
+        if (gameState.currentLocation != GameState.location.ISLAND) {
+            updateKeys(false, false, false, false, false);
+            disable();
+            return;
+        }
 
         if (rotation.rotating) {
             updateKeys(false, false, false, false, false);
             return;
         }
 
+        if (Antistuck.stuck) {
+            if (!antistuckActive) {
+                switch (currentState) {
+                    case RIGHT:
+                    case LEFT:
+                        new Thread(fixRowStuck).start();
+                        break;
+                    case SWITCH_START:
+                    case SWITCH_MID:
+                        new Thread(fixSwitchStuck).start();
+                        break;
+                    case SWITCH_END:
+                        new Thread(fixCornerStuck).start();
+                }
+            }
+            return;
+        }
+
         updateState();
+
         switch (currentState) {
             case TP_PAD:
                 if (mc.thePlayer.posY - layerY > 1) {
@@ -237,17 +265,17 @@ public class CropMacro implements Macro {
         }
     }
 
-    private void updateState() {
-        LogUtils.debugFullLog("updateState");
-        if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || currentState == State.TP_PAD) {
+    private static void updateState() {
+        if (gameState.leftWalkable && gameState.rightWalkable) {
+            layerY = mc.thePlayer.posY;
+            if (currentState != State.RIGHT && currentState != State.LEFT) {
+                mc.thePlayer.sendChatMessage("/setspawn");
+                currentState = calculateDirection();
+            }
+        } else if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || currentState == State.TP_PAD) {
             currentState = State.TP_PAD;
         } else if (layerY - mc.thePlayer.posY > 1 || BlockUtils.getRelativeBlock(0, -1, 1).equals(Blocks.air) || currentState == State.DROPPING) {
             currentState = State.DROPPING;
-        } else if (gameState.leftWalkable && gameState.rightWalkable) {
-            layerY = mc.thePlayer.posY;
-            if (currentState != State.RIGHT && currentState != State.LEFT) {
-                currentState = calculateDirection();
-            }
         } else if (gameState.frontWalkable && !gameState.backWalkable) {
             currentState = State.SWITCH_START;
         } else if (gameState.frontWalkable) {
@@ -273,7 +301,7 @@ public class CropMacro implements Macro {
         }
     }
 
-    private State calculateDirection() {
+    private static State calculateDirection() {
         for (int i = 1; i < 180; i++) {
             if (!isWalkable(BlockUtils.getRelativeBlock(i, 0, 0))) {
                 if (isWalkable(BlockUtils.getRelativeBlock(i - 1, 0, 1))) {
@@ -294,4 +322,69 @@ public class CropMacro implements Macro {
         LogUtils.debugLog("Cannot find direction. Length > 180");
         return State.NONE;
     }
+
+    public static boolean isEnabled() {
+        return CropMacro.enabled;
+    }
+
+    public static Runnable fixRowStuck = () -> {
+        try {
+            Thread.sleep(20);
+            updateKeys(false, true, false, false, false);
+            Thread.sleep(500);
+            updateKeys(false, false, false, false, false);
+            Thread.sleep(200);
+            updateKeys(true, false, false, false, false);
+            Thread.sleep(500);
+            updateKeys(false, false, false, false, false);
+            Thread.sleep(200);
+            antistuckActive = false;
+            Antistuck.stuck = false;
+            Antistuck.cooldown.schedule(2000);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    };
+
+    public static Runnable fixSwitchStuck = () -> {
+        try {
+            Thread.sleep(20);
+            updateKeys(false, false, false, true, false);
+            Thread.sleep(500);
+            updateKeys(false, false, false, false, false);
+            Thread.sleep(200);
+            updateKeys(false, false, true, false, false);
+            Thread.sleep(500);
+            updateKeys(false, false, false, false, false);
+            Thread.sleep(200);
+            antistuckActive = false;
+            Antistuck.stuck = false;
+            Antistuck.cooldown.schedule(2000);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    };
+
+    public static Runnable fixCornerStuck = () -> {
+        try {
+            Thread.sleep(20);
+            updateKeys(false, true, false, false, false);
+            Thread.sleep(200);
+            updateKeys(false, false, false, false, false);
+            Thread.sleep(200);
+            if (gameState.rightWalkable) {
+                updateKeys(false, false, true, false, false);
+            } else {
+                updateKeys(false, false, false, true, false);
+            }
+            Thread.sleep(200);
+            updateKeys(false, false, false, false, false);
+            Thread.sleep(200);
+            antistuckActive = false;
+            Antistuck.stuck = false;
+            Antistuck.cooldown.schedule(2000);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    };
 }

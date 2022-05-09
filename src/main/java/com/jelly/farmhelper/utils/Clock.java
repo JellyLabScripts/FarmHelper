@@ -10,7 +10,7 @@ public class Clock {
     }
 
     public boolean passed() {
-        return System.currentTimeMillis() >= endTime && scheduled;
+        return System.currentTimeMillis() >= endTime;
     }
 
     public void reset() {

@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.world;
 
 import com.jelly.farmhelper.utils.BlockUtils;
+import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.ScoreboardUtils;
 import net.minecraft.client.Minecraft;
@@ -12,7 +13,7 @@ import java.util.regex.Pattern;
 public class GameState {
     private Minecraft mc = Minecraft.getMinecraft();
 
-    enum location {
+    public enum location {
         ISLAND,
         HUB,
         LOBBY,
@@ -26,7 +27,7 @@ public class GameState {
     public boolean godPot;
 
     public location currentLocation = location.ISLAND;
-    public boolean teleporting;
+    public Clock teleporting = new Clock();
 
     private static final Pattern PATTERN_ACTIVE_EFFECTS = Pattern.compile(
       "\u00a7r\u00a7r\u00a77You have a \u00a7r\u00a7cGod Potion \u00a7r\u00a77active! \u00a7r\u00a7d([0-9]*?:?[0-9]*?:?[0-9]*)\u00a7r");
@@ -39,12 +40,15 @@ public class GameState {
     public double dx;
     public double dz;
 
+    public int jacobCounter;
+
     public void update() {
         currentLocation = getLocation();
         checkFooter();
         updateWalkables();
         dx = Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX);
         dz = Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ);
+        jacobCounter = getJacobCounter();
     }
 
     private location getLocation() {
@@ -110,7 +114,13 @@ public class GameState {
         leftWalkable = BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 0, 0));
     }
 
-    private void setTeleporting(boolean teleporting) {
-        this.teleporting = teleporting;
+    public static int getJacobCounter() {
+        for (String line : ScoreboardUtils.getScoreboardLines()) {
+            String cleanedLine = ScoreboardUtils.cleanSB(line);
+            if (cleanedLine.contains("with")) {
+                return Integer.parseInt(cleanedLine.substring(cleanedLine.lastIndexOf(" ") + 1).replace(",", ""));
+            }
+        }
+        return 0;
     }
 }

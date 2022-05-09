@@ -1,6 +1,9 @@
 package com.jelly.farmhelper;
 
 import com.jelly.farmhelper.config.FarmHelperConfig;
+import com.jelly.farmhelper.features.Antistuck;
+import com.jelly.farmhelper.features.Failsafe;
+import com.jelly.farmhelper.features.Resync;
 import com.jelly.farmhelper.gui.MenuGUI;
 import com.jelly.farmhelper.macros.CropMacro;
 import com.jelly.farmhelper.macros.MacroHandler;
@@ -28,9 +31,7 @@ public class FarmHelper {
     public static int tickCount = 0;
     public static boolean openedGUI = false;
     private static final Minecraft mc = Minecraft.getMinecraft();
-
     public static GameState gameState = new GameState();
-    public static MacroHandler macroHandler = new MacroHandler();
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
@@ -40,8 +41,13 @@ public class FarmHelper {
         KeyBindUtils.setup();
         MinecraftForge.EVENT_BUS.register(new FarmHelper());
         MinecraftForge.EVENT_BUS.register(new MenuGUI());
-        MinecraftForge.EVENT_BUS.register(macroHandler);
-        macroHandler.registerEvent();
+        MinecraftForge.EVENT_BUS.register(new MacroHandler());
+
+        MinecraftForge.EVENT_BUS.register(new CropMacro());
+
+        MinecraftForge.EVENT_BUS.register(new Resync());
+        MinecraftForge.EVENT_BUS.register(new Failsafe());
+        MinecraftForge.EVENT_BUS.register(new Antistuck());
     }
 
     @SubscribeEvent

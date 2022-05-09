@@ -43,9 +43,12 @@ public class Rotation {
         }
         else if (!completed) {
             if (shouldRotateClockwise()) {
-                mc.thePlayer.rotationYaw = start.left + difference.left;
+                LogUtils.debugLog("Rotation final st - " + start.left + ", " + mc.thePlayer.rotationYaw);
+                mc.thePlayer.rotationYaw = target.left;
+                LogUtils.debugLog("Rotation final - " + start.left + difference.left);
             } else {
-                mc.thePlayer.rotationYaw = start.left - difference.left;
+                mc.thePlayer.rotationYaw = target.left;
+                LogUtils.debugLog("Rotation final - " + (start.left - difference.left));
             }
             mc.thePlayer.rotationPitch = start.right + difference.right;
             completed = true;
