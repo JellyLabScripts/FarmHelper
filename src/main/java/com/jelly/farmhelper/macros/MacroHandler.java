@@ -28,10 +28,10 @@ public class MacroHandler {
             mc.thePlayer.closeScreen();
             macroEnabled = !macroEnabled;
             if (macroEnabled) {
-                UngrabUtils.ungrabMouse();
+                //UngrabUtils.ungrabMouse();
                 enableCurrentMacro();
             } else {
-                UngrabUtils.regrabMouse();
+                //UngrabUtils.regrabMouse();
                 disableCurrentMacro();
             }
         }

@@ -5,16 +5,13 @@ import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Resync;
 import com.jelly.farmhelper.player.Rotation;
-import com.jelly.farmhelper.utils.AngleUtils;
-import com.jelly.farmhelper.utils.BlockUtils;
+import com.jelly.farmhelper.utils.*;
 
 import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.BlockUtils.getRelativeBlock;
 import static com.jelly.farmhelper.utils.BlockUtils.isWalkable;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
-import com.jelly.farmhelper.utils.KeyBindUtils;
-import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.world.GameState;
 import jline.internal.Log;
 import net.minecraft.client.Minecraft;
@@ -45,7 +42,9 @@ public class CropMacro {
     private static boolean pushedSide;
     private static boolean pushedFront;
     private static boolean antistuckActive;
+    private static float yaw;
     private static float pitch;
+    private static Clock rotateWait = new Clock();
 
     public static void enable() {
         enabled = true;
@@ -59,7 +58,8 @@ public class CropMacro {
         } else {
             pitch = 2.8f;
         }
-        rotation.easeTo(AngleUtils.getClosest(), pitch, 500);
+        yaw = AngleUtils.getClosest();
+        rotation.easeTo(yaw, pitch, 500);
         LogUtils.scriptLog("Starting script");
     }
 
@@ -82,6 +82,18 @@ public class CropMacro {
         if (rotation.rotating) {
             updateKeys(false, false, false, false, false);
             return;
+        }
+
+        if (currentState != State.DROPPING && currentState != State.TP_PAD && (Math.abs(AngleUtils.get360RotationYaw() - yaw) > 5 || Math.abs(mc.thePlayer.rotationPitch - pitch) > 5)) {
+            rotation.reset();
+            if (rotateWait.passed() && rotateWait.isScheduled()) {
+                rotation.easeTo(yaw, pitch, 2000);
+                rotateWait.reset();
+                updateKeys(false, false, false, false, false);
+                return;
+            } else if (rotateWait.passed()) {
+                rotateWait.schedule(500);
+            }
         }
 
         if (Antistuck.stuck) {
@@ -119,7 +131,8 @@ public class CropMacro {
                                 if (!rotation.rotating) {
                                     LogUtils.debugFullLog("Fixing pitch");
                                     rotation.reset();
-                                    rotation.easeTo(mc.thePlayer.rotationYaw, pitch, 2000);
+                                    yaw = AngleUtils.get360RotationYaw();
+                                    rotation.easeTo(yaw, pitch, 2000);
                                 }
                                 LogUtils.debugFullLog("Waiting fix pitch");
                                 updateKeys(false, false, false, false, false);
@@ -155,7 +168,8 @@ public class CropMacro {
                         if (!rotation.rotating) {
                             LogUtils.debugFullLog("Rotating 180");
                             rotation.reset();
-                            rotation.easeTo(mc.thePlayer.rotationYaw + 180, pitch, 2000);
+                            yaw = AngleUtils.get360RotationYaw(yaw + 180);
+                            rotation.easeTo(yaw, pitch, 2000);
                         }
                         LogUtils.debugFullLog("Waiting Rotating 180");
                         updateKeys(false, false, false, false, false);

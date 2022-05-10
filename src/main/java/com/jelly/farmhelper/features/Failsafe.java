@@ -51,7 +51,7 @@ public class Failsafe {
                 }
                 return;
             case LOBBY:
-                if (cooldown.passed()) {
+                if (cooldown.passed() && jacobWait.passed()) {
                     mc.thePlayer.sendChatMessage("/skyblock");
                     cooldown.schedule(5000);
                     teleporting = true;
@@ -66,10 +66,11 @@ public class Failsafe {
                 }
                 return;
             case ISLAND:
-                if (jacobExceeded() && jacobWait.passed()) {
+                if (jacobExceeded() && jacobWait.passed() &&  !jacobWait.isScheduled()) {
                     jacobWait.schedule(getJacobRemaining());
                     mc.thePlayer.sendChatMessage("/lobby");
                 } else if (!MacroHandler.isMacroEnabled() && jacobWait.passed()) {
+                    jacobWait.reset();
                     MacroHandler.enableCurrentMacro();
                 }
         }

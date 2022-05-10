@@ -13,6 +13,10 @@ public class Clock {
         return System.currentTimeMillis() >= endTime;
     }
 
+    public boolean isScheduled() {
+        return scheduled;
+    }
+
     public void reset() {
         scheduled = false;
     }
