@@ -20,12 +20,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin({ PlayerControllerMP.class })
 public class MixinPlayerControllerMP {
-//    @Inject(method={"clickBlock"}, at={@At(value="HEAD")}, cancellable=true)
-//    public void clickBlock(BlockPos loc, EnumFacing face, CallbackInfoReturnable<Boolean> cir) {
-//        if (MiscConfig.resync && CropMacro.isEnabled() && loc != null && Minecraft.getMinecraft().theWorld.getBlockState(loc) != null && Minecraft.getMinecraft().theWorld.getBlockState(loc).getBlock() instanceof BlockBush) {
-//            Resync.update(loc);
-//        }
-//    }
+    @Inject(method={"clickBlock"}, at={@At(value="HEAD")}, cancellable=true)
+    public void clickBlock(BlockPos loc, EnumFacing face, CallbackInfoReturnable<Boolean> cir) {
+        if (MiscConfig.resync && CropMacro.isEnabled() && loc != null && Minecraft.getMinecraft().theWorld.getBlockState(loc) != null && Minecraft.getMinecraft().theWorld.getBlockState(loc).getBlock() instanceof BlockBush) {
+            Resync.update(loc);
+        }
+    }
 
 //    @Inject(method={"clickBlock"}, at={@At(value="HEAD")}, cancellable=true)
 //    private void clickBlockHook(BlockPos pos, EnumFacing face, CallbackInfoReturnable<Boolean> info) {

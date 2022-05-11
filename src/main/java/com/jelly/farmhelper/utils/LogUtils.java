@@ -38,8 +38,9 @@ public class LogUtils {
     }
 
     public static void debugFullLog(String message) {
-        if (MiscConfig.debugMode) {
-            debugLog(message);
-        }
+//        if (MiscConfig.debugMode) {
+//            debugLog(message);
+//        }
+        debugLog(message);
     }
 }

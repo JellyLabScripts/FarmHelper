@@ -66,11 +66,12 @@ public class Failsafe {
                 }
                 return;
             case ISLAND:
-                if (jacobExceeded() && jacobWait.passed() &&  !jacobWait.isScheduled()) {
+                if (jacobExceeded()) {
+                    mc.thePlayer.sendChatMessage("/setspawn");
+                    MacroHandler.disableCurrentMacro();
                     jacobWait.schedule(getJacobRemaining());
                     mc.thePlayer.sendChatMessage("/lobby");
-                } else if (!MacroHandler.isMacroEnabled() && jacobWait.passed()) {
-                    jacobWait.reset();
+                } else {
                     MacroHandler.enableCurrentMacro();
                 }
         }

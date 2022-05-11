@@ -14,6 +14,7 @@ import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 import com.jelly.farmhelper.world.GameState;
 import jline.internal.Log;
+import net.minecraft.block.BlockStone;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
@@ -32,19 +33,32 @@ public class CropMacro {
         SWITCH_END,
         RIGHT,
         LEFT,
+        STONE_THROW,
+        NONE
+    }
+
+    enum StoneThrowState {
+        ROTATE_AWAY,
+        LIFT,
+        SWITCH,
+        DROP,
+        ROTATE_BACK,
         NONE
     }
 
     private static final Rotation rotation = new Rotation();
     private static boolean enabled = false;
     private static State currentState;
+    private static StoneThrowState stoneState;
     private static double layerY;
     private static boolean pushedSide;
     private static boolean pushedFront;
     private static boolean antistuckActive;
     private static float yaw;
     private static float pitch;
-    private static Clock rotateWait = new Clock();
+    private static final Clock rotateWait = new Clock();
+    private static final Clock stoneDropTimer = new Clock();
+    private static int hoeSlot;
 
     public static void enable() {
         enabled = true;
@@ -53,6 +67,8 @@ public class CropMacro {
         pushedFront = false;
         pushedSide = false;
         antistuckActive = false;
+        Antistuck.stuck = false;
+        Antistuck.cooldown.schedule(1000);
         if (FarmConfig.cropType == CropEnum.NETHERWART) {
             pitch = 0f;
         } else {
@@ -60,13 +76,11 @@ public class CropMacro {
         }
         yaw = AngleUtils.getClosest();
         rotation.easeTo(yaw, pitch, 500);
-        LogUtils.scriptLog("Starting script");
     }
 
     public static void disable() {
         enabled = false;
         updateKeys(false, false, false, false, false);
-        LogUtils.scriptLog("Stopping script");
     }
 
     @SubscribeEvent
@@ -84,7 +98,8 @@ public class CropMacro {
             return;
         }
 
-        if (currentState != State.DROPPING && currentState != State.TP_PAD && (Math.abs(AngleUtils.get360RotationYaw() - yaw) > 5 || Math.abs(mc.thePlayer.rotationPitch - pitch) > 5)) {
+        if (currentState != State.DROPPING && currentState != State.TP_PAD && currentState != State.STONE_THROW && (Math.abs(AngleUtils.get360RotationYaw() - yaw) > 5 || Math.abs(mc.thePlayer.rotationPitch - pitch) > 5)) {
+            LogUtils.debugFullLog("Staff rotate");
             rotation.reset();
             if (rotateWait.passed() && rotateWait.isScheduled()) {
                 rotation.easeTo(yaw, pitch, 2000);
@@ -96,8 +111,10 @@ public class CropMacro {
             }
         }
 
-        if (Antistuck.stuck) {
+        if (Antistuck.stuck && currentState != State.STONE_THROW) {
+            LogUtils.debugFullLog("Antistuck");
             if (!antistuckActive) {
+                antistuckActive = true;
                 switch (currentState) {
                     case RIGHT:
                     case LEFT:
@@ -244,7 +261,13 @@ public class CropMacro {
                     updateKeys(false, false, false, true, true);
                 } else if (pushedFront) {
                     if (gameState.dx < 0.01 && gameState.dz < 0.01) {
-                        if (gameState.rightWalkable) {
+                        if (InventoryUtils.getSlotForItem("Stone") != -1) {
+                            currentState = State.STONE_THROW;
+                            stoneState = StoneThrowState.ROTATE_AWAY;
+                            rotation.reset();
+                            LogUtils.debugFullLog("Found stone, switching state");
+                            updateKeys(false, false, true, false, true);
+                        } else if (gameState.rightWalkable) {
                             LogUtils.debugFullLog("Stopped, go right");
                             updateKeys(false, false, true, false, true);
                         } else {
@@ -266,6 +289,73 @@ public class CropMacro {
                     }
                 }
                 return;
+            case STONE_THROW:
+                updateKeys(false, false, false, false, false);
+                int stoneSlot = InventoryUtils.getSlotForItem("Stone");
+                switch (stoneState) {
+                    case ROTATE_AWAY:
+                        if (rotation.completed) {
+                            stoneState = StoneThrowState.LIFT;
+                            rotation.reset();
+                            return;
+                        } else if (!rotation.rotating) {
+                            LogUtils.debugFullLog("Rotating away");
+                            hoeSlot = mc.thePlayer.inventory.currentItem;
+                            mc.thePlayer.inventory.currentItem = 6;
+                            if (gameState.rightWalkable) {
+                                rotation.easeTo(yaw - 90, pitch, 1000);
+                            } else {
+                                rotation.easeTo(yaw + 90, pitch, 1000);
+                            }
+                        }
+                        return;
+                    case LIFT:
+                        if (!stoneDropTimer.isScheduled()) {
+                            LogUtils.debugFullLog("Lifting");
+                            InventoryUtils.clickOpenContainerSlot(stoneSlot);
+                            InventoryUtils.clickOpenContainerSlot(stoneSlot, 6);
+                            stoneDropTimer.schedule(200);
+                        } else if (stoneDropTimer.passed()) {
+                            stoneState = StoneThrowState.SWITCH;
+                            stoneDropTimer.reset();
+                        }
+                        return;
+                    case SWITCH:
+                        LogUtils.debugFullLog("switching - " + stoneDropTimer.passed() + ", " + stoneDropTimer.isScheduled());
+                        if (!stoneDropTimer.isScheduled()) {
+                            LogUtils.debugFullLog("Switching");
+                            stoneDropTimer.schedule(1000);
+                            InventoryUtils.clickOpenContainerSlot(35 + 7, 0);
+                        } else if (stoneDropTimer.passed()) {
+                            stoneState = StoneThrowState.DROP;
+                            stoneDropTimer.reset();
+                        }
+                        return;
+                    case DROP:
+                        if (!stoneDropTimer.isScheduled()) {
+                            LogUtils.debugFullLog("Dropping");
+                            mc.thePlayer.dropOneItem(true);
+                            stoneDropTimer.schedule(1000);
+                        } else if (stoneDropTimer.passed()) {
+                            rotation.reset();
+                            stoneState = StoneThrowState.ROTATE_BACK;
+                            stoneDropTimer.reset();
+                        }
+                        return;
+                    case ROTATE_BACK:
+                        if (rotation.completed) {
+                            currentState = State.SWITCH_END;
+                            rotation.reset();
+                            Antistuck.stuck = false;
+                            Antistuck.cooldown.schedule(2000);
+                            return;
+                        } else if (!rotation.rotating) {
+                            LogUtils.debugFullLog("Rotating back");
+                            mc.thePlayer.inventory.currentItem = hoeSlot;
+                            rotation.easeTo(yaw, pitch, 1000);
+                        }
+                        return;
+                }
             case NONE:
                 LogUtils.debugFullLog("idk");
         }
@@ -280,7 +370,10 @@ public class CropMacro {
     }
 
     private static void updateState() {
-        if (gameState.leftWalkable && gameState.rightWalkable) {
+        State lastState = currentState;
+        if (currentState == State.STONE_THROW) {
+            currentState = State.STONE_THROW;
+        } else if (gameState.leftWalkable && gameState.rightWalkable) {
             layerY = mc.thePlayer.posY;
             if (currentState != State.RIGHT && currentState != State.LEFT) {
                 mc.thePlayer.sendChatMessage("/setspawn");
@@ -304,14 +397,10 @@ public class CropMacro {
             currentState = State.NONE;
         }
 
-        if (currentState != State.SWITCH_START) {
-            pushedSide = false;
-        }
-        if (currentState != State.SWITCH_END) {
-            pushedFront = false;
-        }
-        if (currentState != State.DROPPING && currentState != State.TP_PAD) {
+        if (lastState != currentState) {
             rotation.reset();
+            pushedFront = false;
+            pushedSide = false;
         }
     }
 

@@ -18,8 +18,7 @@ public class MacroHandler {
     public static Macros currentMacro = Macros.CROP_MACRO;
 
     enum Macros {
-        CROP_MACRO,
-        NONE
+        CROP_MACRO
     }
 
     @SubscribeEvent
@@ -28,28 +27,33 @@ public class MacroHandler {
             mc.thePlayer.closeScreen();
             macroEnabled = !macroEnabled;
             if (macroEnabled) {
-                //UngrabUtils.ungrabMouse();
+                LogUtils.scriptLog("Starting script");
+                UngrabUtils.ungrabMouse();
                 enableCurrentMacro();
             } else {
-                //UngrabUtils.regrabMouse();
+                LogUtils.scriptLog("Stopping script");
+                UngrabUtils.regrabMouse();
                 disableCurrentMacro();
             }
         }
     }
 
     public static void enableCurrentMacro() {
-        if (macroEnabled) {
+        if (macroEnabled && !isMacroEnabled()) {
             switch (currentMacro) {
                 case CROP_MACRO:
                     CropMacro.enable();
-                case NONE:
-                    LogUtils.debugLog("No Macro Selected");
             }
         }
     }
 
     public static void disableCurrentMacro() {
-        if (CropMacro.isEnabled()) CropMacro.disable();
+        if (isMacroEnabled()) {
+            switch (currentMacro) {
+                case CROP_MACRO:
+                    CropMacro.disable();
+            }
+        }
     }
 
     public static boolean isMacroEnabled() {

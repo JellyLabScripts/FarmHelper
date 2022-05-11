@@ -64,7 +64,6 @@ public class BlockUtils {
                 count++;
             }
         }
-        LogUtils.debugFullLog("Counted carpet: " + count);
         return count;
     }
 

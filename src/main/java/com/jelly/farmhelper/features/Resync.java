@@ -28,9 +28,9 @@ public class Resync {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public static void update(BlockPos lastBrokenPos) {
-        // System.out.println("resync update recieved - " + lastBrokenPos + ", " + mc.theWorld.getBlockState(lastBrokenPos));
         Resync.lastBrokenPos = lastBrokenPos;
         if (checkTimer.passed()) {
+            System.out.println("resync update recieved - " + lastBrokenPos + ", " + mc.theWorld.getBlockState(lastBrokenPos));
             cachedPos = lastBrokenPos;
             Timer t = new Timer();
             t.schedule(
@@ -38,7 +38,7 @@ public class Resync {
                     @Override
                     public void run() {
                         if (cachedPos != null && mc.theWorld.getBlockState(cachedPos) != null) {
-                            LogUtils.debugLog("Rechecked - " + mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE));
+                            // LogUtils.debugLog("Rechecked - " + mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE));
                             if (FarmConfig.cropType == CropEnum.NETHERWART && mc.theWorld.getBlockState(cachedPos).getValue(BlockNetherWart.AGE) > 2) {
                                 mc.thePlayer.sendChatMessage("/hub");
                             } else if (mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE) > 4) {
@@ -48,9 +48,9 @@ public class Resync {
                         t.cancel();
                     }
                 },
-                5000
+                4000
             );
-            checkTimer.schedule(10000);
+            checkTimer.schedule(5000);
         }
     }
 
