@@ -54,6 +54,7 @@ public class CropMacro {
     private static boolean pushedSide;
     private static boolean pushedFront;
     private static boolean antistuckActive;
+    private static boolean tpFlag;
     private static float yaw;
     private static float pitch;
     private static final Clock rotateWait = new Clock();
@@ -68,6 +69,7 @@ public class CropMacro {
         pushedSide = false;
         antistuckActive = false;
         Antistuck.stuck = false;
+        tpFlag = false;
         Antistuck.cooldown.schedule(1000);
         if (FarmConfig.cropType == CropEnum.NETHERWART) {
             pitch = 0f;
@@ -135,11 +137,13 @@ public class CropMacro {
 
         switch (currentState) {
             case TP_PAD:
-                if (mc.thePlayer.posY - layerY > 1) {
+                if (mc.thePlayer.posY - layerY > 1 || tpFlag) {
                     if (mc.gameSettings.keyBindRight.isKeyDown()) {
+                        if (mc.thePlayer.posY % 1 == 0) tpFlag = true;
                         LogUtils.debugFullLog("On top of pad, keep going right");
                         updateKeys(false, false, true, false, true);
                     } else if (mc.gameSettings.keyBindLeft.isKeyDown()) {
+                        if (mc.thePlayer.posY % 1 == 0) tpFlag = true;
                         LogUtils.debugFullLog("On top of pad, keep going left");
                         updateKeys(false, false, false, true, true);
                     } else if (BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
@@ -149,7 +153,7 @@ public class CropMacro {
                                     LogUtils.debugFullLog("Fixing pitch");
                                     rotation.reset();
                                     yaw = AngleUtils.get360RotationYaw();
-                                    rotation.easeTo(yaw, pitch, 2000);
+                                    rotation.easeTo(yaw, pitch, 500);
                                 }
                                 LogUtils.debugFullLog("Waiting fix pitch");
                                 updateKeys(false, false, false, false, false);
@@ -373,16 +377,16 @@ public class CropMacro {
         State lastState = currentState;
         if (currentState == State.STONE_THROW) {
             currentState = State.STONE_THROW;
+        } else if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || (currentState == State.TP_PAD && !tpFlag)) {
+            currentState = State.TP_PAD;
+        } else if (layerY - mc.thePlayer.posY > 1 || BlockUtils.getRelativeBlock(0, -1, 1).equals(Blocks.air) || currentState == State.DROPPING) {
+            currentState = State.DROPPING;
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
-            layerY = mc.thePlayer.posY;
+            // layerY = mc.thePlayer.posY;
             if (currentState != State.RIGHT && currentState != State.LEFT) {
                 mc.thePlayer.sendChatMessage("/setspawn");
                 currentState = calculateDirection();
             }
-        } else if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || currentState == State.TP_PAD) {
-            currentState = State.TP_PAD;
-        } else if (layerY - mc.thePlayer.posY > 1 || BlockUtils.getRelativeBlock(0, -1, 1).equals(Blocks.air) || currentState == State.DROPPING) {
-            currentState = State.DROPPING;
         } else if (gameState.frontWalkable && !gameState.backWalkable) {
             currentState = State.SWITCH_START;
         } else if (gameState.frontWalkable) {
@@ -397,10 +401,15 @@ public class CropMacro {
             currentState = State.NONE;
         }
 
+        if (lastState == State.TP_PAD && lastState != currentState) {
+            layerY = mc.thePlayer.posY;
+        }
+
         if (lastState != currentState) {
             rotation.reset();
             pushedFront = false;
             pushedSide = false;
+            tpFlag = false;
         }
     }
 

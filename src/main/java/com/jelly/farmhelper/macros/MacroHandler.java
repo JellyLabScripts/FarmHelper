@@ -1,21 +1,21 @@
 package com.jelly.farmhelper.macros;
 
-import com.jelly.farmhelper.features.Resync;
-import com.jelly.farmhelper.gui.components.List;
+import com.jelly.farmhelper.utils.InventoryUtils;
 import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.UngrabUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
+
+import java.util.concurrent.TimeUnit;
 
 public class MacroHandler {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public static boolean macroEnabled;
     public static Macros currentMacro = Macros.CROP_MACRO;
+    public static int startCounter = 0;
+    public static long startTime = 0;
 
     enum Macros {
         CROP_MACRO
@@ -27,6 +27,8 @@ public class MacroHandler {
             mc.thePlayer.closeScreen();
             macroEnabled = !macroEnabled;
             if (macroEnabled) {
+                startTime = System.currentTimeMillis();
+                startCounter = InventoryUtils.getCounter();
                 LogUtils.scriptLog("Starting script");
                 UngrabUtils.ungrabMouse();
                 enableCurrentMacro();

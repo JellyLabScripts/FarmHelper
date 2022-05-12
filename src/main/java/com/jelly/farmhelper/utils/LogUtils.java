@@ -1,9 +1,12 @@
 package com.jelly.farmhelper.utils;
 
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.macros.MacroHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
+
+import java.util.concurrent.TimeUnit;
 
 public class LogUtils {
     private static String lastDebug;
@@ -43,4 +46,19 @@ public class LogUtils {
 //        }
         debugLog(message);
     }
+
+    public static String getRuntimeFormat() {
+        if (MacroHandler.startTime == 0) {
+            return "0h 0m 0s";
+        }
+        long millis = System.currentTimeMillis() - MacroHandler.startTime;
+        return String.format("%dh %dm %ds",
+          TimeUnit.MILLISECONDS.toHours(millis),
+          TimeUnit.MILLISECONDS.toMinutes(millis) -
+            TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),
+          TimeUnit.MILLISECONDS.toSeconds(millis) -
+            TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis))
+        );
+    }
+
 }
