@@ -14,6 +14,7 @@ import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -59,11 +60,16 @@ public class FarmHelper {
     }
 
     @SubscribeEvent
+    public void onChatMessageReceived(ClientChatReceivedEvent e){
+        if(on)
+            currentMacro.onChatMessageReceived(e.message.getUnformattedText());
+    }
+
+    @SubscribeEvent
     public void onRender(RenderWorldLastEvent event){
         if(on)
             currentMacro.onRender();
     }
-
     @SubscribeEvent
     public void OnKeyPress(InputEvent.KeyInputEvent event) {
         if (KeyBindUtils.customKeyBinds[0].isPressed()) {

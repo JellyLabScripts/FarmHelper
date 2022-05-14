@@ -27,6 +27,10 @@ public class Macro {
     public void onRender(){
     }
 
+    public void onChatMessageReceived(String msg){
+
+    }
+
 
 
 

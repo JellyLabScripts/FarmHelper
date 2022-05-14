@@ -4,27 +4,19 @@ import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
-import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumChatFormatting;
-
 import java.util.ArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-
-import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.BlockUtils.getRelativeBlock;
 import static com.jelly.farmhelper.utils.BlockUtils.isWalkable;
 import static com.jelly.farmhelper.utils.KeyBindUtils.*;
+import static com.jelly.farmhelper.FarmHelper.gameState;
 
 public class SugarcaneMacro extends Macro{
     public static State lastLaneDirection;
     public static State currentState;
     public static boolean pushedOff;
-    volatile static boolean setcycled = false;
     volatile static boolean stuck = false;
     public int layerY = 0;
 
@@ -44,14 +36,8 @@ public class SugarcaneMacro extends Macro{
         NONE
     }
 
-    public volatile static double initialX = 0;
-    public volatile static double initialZ = 0;
-    public static GameState gameState = new GameState();
-
-
     public static BlockPos targetBlockPos = new BlockPos(1000, 1000, 1000);
 
-    static volatile boolean bazaarLag = false;
     private static float playerYaw = 0;
 
 
@@ -79,6 +65,13 @@ public class SugarcaneMacro extends Macro{
             rotation.update();
         }
     }
+
+    @Override
+    public void onChatMessageReceived(String msg){
+        if(msg.contains("spawn location has been set"))
+            setspawnLag = false;
+    }
+
 
     @Override
     public void onTick(){
@@ -128,11 +121,11 @@ public class SugarcaneMacro extends Macro{
                 }
                 return;
             case LEFT:
-                updateKeys(false, false, false, true, true, false, false);
+                updateKeys(false, false, false, !setspawnLag, true, false, false);
                 LogUtils.debugFullLog("Going left");
                 return;
             case RIGHT:
-                updateKeys(false, false, true, false, true, false, false);
+                updateKeys(false, false, !setspawnLag, false, true, false, false);
                 LogUtils.debugFullLog("Going right");
                 return;
             case SWITCH: {
@@ -187,11 +180,11 @@ public class SugarcaneMacro extends Macro{
     }
     private void updateState() {
         BlockPos blockInPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
-        if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || (currentState == State.TPPAD)) {
+        if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
             currentState = State.TPPAD;
             return;
         }
-        if(currentState == State.DROPPING || (mc.thePlayer.posY - layerY != 0 && Math.abs(mc.thePlayer.posY - layerY) > 1)) {
+        if(currentState == State.DROPPING || (mc.thePlayer.posY - mc.thePlayer.lastTickPosY != 0 && Math.abs(mc.thePlayer.posY - layerY) > 1 && currentState != State.TPPAD && BlockUtils.getRelativeBlock(0, -1, 1).equals(Blocks.air) && gameState.currentLocation == GameState.location.ISLAND)) {
 
             LogUtils.debugFullLog("dropping" + " " + (currentState == State.DROPPING));
             currentState = State.DROPPING;
@@ -205,6 +198,8 @@ public class SugarcaneMacro extends Macro{
         if(lastState == State.FORWARD){
             if(blockInPos.getX() != targetBlockPos.getX() || blockInPos.getZ() != targetBlockPos.getZ() || !isInCenterOfBlock())
                 return;
+            mc.thePlayer.sendChatMessage("/setspawn");
+            setspawnLag = true;
             currentState = BlockUtils.isWalkable(BlockUtils.getLeftBlock()) ? State.LEFT : State.RIGHT;
             return;
         }
@@ -299,7 +294,7 @@ public class SugarcaneMacro extends Macro{
 
     int rotateAmount(){
         if(BlockUtils.getRelativeBlock(1, 0, 2).equals(Blocks.dirt) || BlockUtils.getRelativeBlock(-1, 0, 2).equals(Blocks.dirt)
-        || !BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 1, 2)) || !BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 1, 2)))
+        || BlockUtils.getRelativeBlock(1, 0, -2).equals(Blocks.dirt) || BlockUtils.getRelativeBlock(-1, 0, -2).equals(Blocks.dirt))
             return 180;
 
         System.out.println(BlockUtils.getRelativeBlock(2, 0, 2));
@@ -319,12 +314,7 @@ public class SugarcaneMacro extends Macro{
         pushedOff = false;
         lastLaneDirection = calculateDirection();
         currentState = calculateDirection();
-        setcycled = false;
         stuck = false;
-
-        initialX = mc.thePlayer.posX;
-        initialZ = mc.thePlayer.posZ;
-        bazaarLag = false;
         setspawnLag = false;
     }
     public static boolean isInCenterOfBlock(){
