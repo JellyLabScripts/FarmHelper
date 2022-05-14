@@ -1,12 +1,11 @@
 package com.jelly.farmhelper.features;
 
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.JacobConfig;
-import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.ScoreboardUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.scoreboard.Score;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -26,7 +25,7 @@ public class Failsafe {
     @SubscribeEvent
     public void onMessageReceived(ClientChatReceivedEvent event) {
         String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
-        if (MacroHandler.macroEnabled) {
+        if (FarmHelper.on) {
             if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing") || message.contains("You cannot join SkyBlock from here!")) {
                 LogUtils.debugLog("Failed teleport - waiting");
                 teleporting = false;
@@ -37,7 +36,7 @@ public class Failsafe {
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
-        if (!MacroHandler.macroEnabled || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
+        if (!FarmHelper.on || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
 
         switch (gameState.currentLocation) {
             case TELEPORTING:
@@ -68,11 +67,11 @@ public class Failsafe {
             case ISLAND:
                 if (jacobExceeded()) {
                     mc.thePlayer.sendChatMessage("/setspawn");
-                    MacroHandler.disableCurrentMacro();
+                    FarmHelper.disableCurrentMacro();
                     jacobWait.schedule(getJacobRemaining());
                     mc.thePlayer.sendChatMessage("/lobby");
                 } else {
-                    MacroHandler.enableCurrentMacro();
+                    FarmHelper.enableCurrentMacro();
                 }
         }
     }

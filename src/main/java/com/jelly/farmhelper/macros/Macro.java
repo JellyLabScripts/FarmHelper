@@ -1,13 +1,33 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.utils.LogUtils;
+import net.minecraft.client.Minecraft;
 
-public interface Macro {
-    static void enable() {
-        LogUtils.debugLog("Missing enable handler");
+public class Macro {
+    public Minecraft mc = Minecraft.getMinecraft();
+    public boolean enabled;
+
+    public void toggle(){
+        enabled = !enabled;
+        if(enabled){
+            onEnable();
+        } else {
+            onDisable();
+        }
+    }
+    public void onEnable() {
     }
 
-    static void disable() {
-        LogUtils.debugLog("Missing disable handler");
+    public void onDisable() {
     }
+
+    public void onTick(){
+    }
+
+    public void onRender(){
+    }
+
+
+
+
 }

@@ -3,12 +3,8 @@ package com.jelly.farmhelper.utils;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.datastructures.ItemDiff;
-import com.jelly.farmhelper.macros.CropMacro;
-import com.jelly.farmhelper.macros.MacroHandler;
 import gg.essential.elementa.state.BasicState;
-import net.minecraft.item.ItemStack;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -70,8 +66,8 @@ public class ProfitUtils {
     }
 
     public static double getHourProfit(double total) {
-        if (TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - MacroHandler.startTime) > 0) {
-            return 3600f * total / TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - MacroHandler.startTime);
+        if (TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - FarmHelper.startTime) > 0) {
+            return 3600f * total / TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - FarmHelper.startTime);
         }
         return 0;
     }
@@ -122,14 +118,14 @@ public class ProfitUtils {
     }
 
     public static int getTier3() {
-        return (InventoryUtils.getCounter() - MacroHandler.startCounter) / 25600;
+        return (InventoryUtils.getCounter() - FarmHelper.startCounter) / 25600;
     }
 
     public static int getTier2() {
-        return ((InventoryUtils.getCounter() - MacroHandler.startCounter) % 25600) / 160;
+        return ((InventoryUtils.getCounter() - FarmHelper.startCounter) % 25600) / 160;
     }
 
     public static int getTier1() {
-        return ((InventoryUtils.getCounter() - MacroHandler.startCounter) % 25600) % 160;
+        return ((InventoryUtils.getCounter() - FarmHelper.startCounter) % 25600) % 160;
     }
 }

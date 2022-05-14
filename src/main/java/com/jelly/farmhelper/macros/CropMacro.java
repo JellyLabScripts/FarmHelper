@@ -13,16 +13,9 @@ import static com.jelly.farmhelper.utils.BlockUtils.isWalkable;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 import com.jelly.farmhelper.world.GameState;
-import jline.internal.Log;
-import net.minecraft.block.BlockStone;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
-
-public class CropMacro {
+public class CropMacro extends Macro{
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     enum State {
@@ -47,7 +40,6 @@ public class CropMacro {
     }
 
     private static final Rotation rotation = new Rotation();
-    private static boolean enabled = false;
     private static State currentState;
     private static StoneThrowState stoneState;
     private static double layerY;
@@ -61,8 +53,9 @@ public class CropMacro {
     private static final Clock stoneDropTimer = new Clock();
     private static int hoeSlot;
 
-    public static void enable() {
-        enabled = true;
+
+    @Override
+    public void onEnable() {
         layerY = mc.thePlayer.posY;
         currentState = State.NONE;
         pushedFront = false;
@@ -80,18 +73,22 @@ public class CropMacro {
         rotation.easeTo(yaw, pitch, 500);
     }
 
-    public static void disable() {
-        enabled = false;
+    @Override
+    public void onDisable() {
         updateKeys(false, false, false, false, false);
     }
+    @Override
+    public void onRender(){
+        if (rotation.rotating) {
+            LogUtils.debugFullLog("onRenderWorld - Rotating");
+            rotation.update();
+        }
+    }
 
-    @SubscribeEvent
-    public final void tick(TickEvent.ClientTickEvent event) {
-        if (!MacroHandler.macroEnabled || !enabled || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
-
+    @Override
+    public void onTick(){
         if (gameState.currentLocation != GameState.location.ISLAND) {
             updateKeys(false, false, false, false, false);
-            disable();
             return;
         }
 
@@ -365,13 +362,6 @@ public class CropMacro {
         }
     }
 
-    @SubscribeEvent
-    public void onRenderWorld(final RenderWorldLastEvent event) {
-        if (enabled && rotation.rotating) {
-            LogUtils.debugFullLog("onRenderWorld - Rotating");
-            rotation.update();
-        }
-    }
 
     private static void updateState() {
         State lastState = currentState;
@@ -434,11 +424,6 @@ public class CropMacro {
         LogUtils.debugLog("Cannot find direction. Length > 180");
         return State.NONE;
     }
-
-    public static boolean isEnabled() {
-        return CropMacro.enabled;
-    }
-
     public static Runnable fixRowStuck = () -> {
         try {
             Thread.sleep(20);
@@ -499,4 +484,5 @@ public class CropMacro {
             e.printStackTrace();
         }
     };
+
 }

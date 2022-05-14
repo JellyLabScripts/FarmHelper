@@ -31,6 +31,7 @@ public class FarmMenu extends UIContainer {
         cropList.add(new ImageBox(new SiblingConstraint(10), new PixelConstraint(10), "https://static.wikia.nocookie.net/minecraft_gamepedia/images/c/c0/Nether_Wart_%28item%29_JE1.png", cropList, 1L, "cropType").setChildOf(selector));
         cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), "https://static.wikia.nocookie.net/minecraft_gamepedia/images/c/c1/Potato_JE3_BE2.png", cropList, 2L, "cropType").setChildOf(selector));
         cropList.add( new ImageBox(new SiblingConstraint(10), new CramSiblingConstraint(10), "https://static.wikia.nocookie.net/minecraft_gamepedia/images/7/75/Wheat_JE2_BE2.png", cropList, 3L, "cropType").setChildOf(selector));
+        cropList.add( new ImageBox(new PixelConstraint(80), new SiblingConstraint(10), "https://static.wikia.nocookie.net/hypixel-skyblock/images/6/67/Sugar_Cane.png/revision/latest?cb=20210615232455", cropList, 4L, "cropType").setChildOf(selector));
 
         farmList.add(new ImageBox(new PixelConstraint(10), new CramSiblingConstraint(10), "https://i.ibb.co/6nFDfRt/layered.png", farmList, 0L, "farmType").setChildOf(selector));
         farmList.add(new ImageBox(new SiblingConstraint(10), new CramSiblingConstraint(10), "https://i.ibb.co/hLG9g3X/vertical.png", farmList, 1L, "farmType").setChildOf(selector));

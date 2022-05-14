@@ -75,6 +75,7 @@ public class KeyBindUtils
         }
     }
 
+
     public static void updateKeys(boolean forward, boolean back, boolean right, boolean left, boolean attack) {
         updateKeys(forward, back, right, left, attack, false, false);
     }

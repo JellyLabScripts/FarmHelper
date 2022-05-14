@@ -13,7 +13,7 @@ import java.util.Arrays;
 
 public class BlockUtils {
     private static Minecraft mc = Minecraft.getMinecraft();
-    private static final Block[] walkables = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign };
+    private static final Block[] walkables = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds };
 
     public static int getUnitX() {
         double modYaw = (mc.thePlayer.rotationYaw % 360 + 360) % 360;
@@ -49,6 +49,13 @@ public class BlockUtils {
             mc.thePlayer.posZ + (getUnitZ() * z) + (getUnitX() * x)
           )).getBlock());
     }
+    public static BlockPos getRelativeBlockPos(float x, float y, float z) {
+           return new BlockPos(
+                    mc.thePlayer.posX + (getUnitX() * z) + (getUnitZ() * -1 * x),
+                    mc.thePlayer.posY + y,
+                    mc.thePlayer.posZ + (getUnitZ() * z) + (getUnitX() * x)
+            );
+    }
 
     public static int countCarpet() {
         int r = 2;
@@ -65,6 +72,19 @@ public class BlockUtils {
             }
         }
         return count;
+    }
+
+    public static Block getLeftBlock(){
+        return getRelativeBlock(-1, 0, 0);
+    }
+    public static Block getRightBlock(){
+        return getRelativeBlock(1, 0, 0);
+    }
+    public static Block getBackBlock(){
+        return getRelativeBlock(0, 0, -1);
+    }
+    public static Block getFrontBlock(){
+        return getRelativeBlock(0, 0, 1);
     }
 
     public static boolean isWalkable(Block block) {

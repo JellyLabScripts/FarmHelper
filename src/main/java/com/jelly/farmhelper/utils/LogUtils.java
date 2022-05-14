@@ -1,7 +1,7 @@
 package com.jelly.farmhelper.utils;
 
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
-import com.jelly.farmhelper.macros.MacroHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
@@ -48,10 +48,10 @@ public class LogUtils {
     }
 
     public static String getRuntimeFormat() {
-        if (MacroHandler.startTime == 0) {
+        if (FarmHelper.startTime == 0) {
             return "0h 0m 0s";
         }
-        long millis = System.currentTimeMillis() - MacroHandler.startTime;
+        long millis = System.currentTimeMillis() - FarmHelper.startTime;
         return String.format("%dh %dm %ds",
           TimeUnit.MILLISECONDS.toHours(millis),
           TimeUnit.MILLISECONDS.toMinutes(millis) -

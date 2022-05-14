@@ -1,6 +1,6 @@
 package com.jelly.farmhelper.features;
 
-import com.jelly.farmhelper.macros.MacroHandler;
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.utils.Clock;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -15,7 +15,7 @@ public class Antistuck {
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
-        if (!MacroHandler.macroEnabled || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
+        if (!FarmHelper.on || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
         if (cooldown.passed()) {
             stuck = Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1;
             lastX = mc.thePlayer.posX;

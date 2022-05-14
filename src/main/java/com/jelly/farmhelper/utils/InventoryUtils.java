@@ -6,11 +6,9 @@ import com.jelly.farmhelper.datastructures.ItemDiff;
 import javafx.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
@@ -261,6 +259,16 @@ public class InventoryUtils {
         }
 
         previousInventory = newInventory;
+    }
+    public static int getSCHoeSlot(){
+        for(int i = 36; i < 44; i++){
+            if(Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null){
+                if(Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Turing")){
+                    return i - 36;
+                }
+            }
+        }
+        return 0;
     }
 
     /**

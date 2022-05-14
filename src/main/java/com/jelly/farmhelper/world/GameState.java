@@ -4,7 +4,9 @@ import com.jelly.farmhelper.utils.BlockUtils;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.ScoreboardUtils;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.IChatComponent;
 
 import java.util.regex.Matcher;
@@ -39,6 +41,10 @@ public class GameState {
 
     public double dx;
     public double dz;
+    public double dy;
+
+    public BlockPos blockInPos;
+    public Block blockStandingOn;
 
     public int jacobCounter;
 
@@ -48,6 +54,9 @@ public class GameState {
         updateWalkables();
         dx = Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX);
         dz = Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ);
+        dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
+        blockInPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+        blockStandingOn = mc.theWorld.getBlockState(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1, mc.thePlayer.posZ)).getBlock();
         jacobCounter = getJacobCounter();
     }
 

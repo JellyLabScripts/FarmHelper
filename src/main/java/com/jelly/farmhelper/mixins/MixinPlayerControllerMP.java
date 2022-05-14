@@ -1,28 +1,27 @@
 package com.jelly.farmhelper.mixins;
 
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.features.Resync;
 import com.jelly.farmhelper.macros.CropMacro;
-import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.utils.LogUtils;
+import com.jelly.farmhelper.macros.SugarcaneMacro;
+import com.sun.scenario.effect.Crop;
 import net.minecraft.block.BlockBush;
-import net.minecraft.block.BlockCarrot;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin({ PlayerControllerMP.class })
 public class MixinPlayerControllerMP {
     @Inject(method={"clickBlock"}, at={@At(value="HEAD")}, cancellable=true)
     public void clickBlock(BlockPos loc, EnumFacing face, CallbackInfoReturnable<Boolean> cir) {
-        if (MiscConfig.resync && CropMacro.isEnabled() && loc != null && Minecraft.getMinecraft().theWorld.getBlockState(loc) != null && Minecraft.getMinecraft().theWorld.getBlockState(loc).getBlock() instanceof BlockBush) {
+        if (MiscConfig.resync && FarmHelper.on && loc != null && Minecraft.getMinecraft().theWorld.getBlockState(loc) != null && Minecraft.getMinecraft().theWorld.getBlockState(loc).getBlock() instanceof BlockBush) {
+            if(FarmHelper.currentMacro instanceof SugarcaneMacro || FarmHelper.currentMacro instanceof CropMacro)
             Resync.update(loc);
         }
     }
