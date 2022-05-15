@@ -12,5 +12,6 @@ public class JacobMenu extends UIContainer {
         new NumberBox("Carrot Cap", 7, "carrotCap").setChildOf(this);
         new NumberBox("Potato Cap", 7, "potatoCap").setChildOf(this);
         new NumberBox("Wheat Cap", 7, "wheatCap").setChildOf(this);
+        new NumberBox("Sugar Cane Cap", 7, "sugarcaneCap").setChildOf(this);
     }
 }

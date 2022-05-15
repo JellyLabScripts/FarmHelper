@@ -5,6 +5,7 @@
   "carrotCap": 400000,
   "potatoCap": 400000,
   "wheatCap": 400000,
+  "sugarcaneCap": 400000,
   "webhookLogs": false,
   "webhookStatus": false,
   "webhookStatusCooldown": 10,

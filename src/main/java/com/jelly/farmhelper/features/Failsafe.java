@@ -2,6 +2,7 @@ package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.JacobConfig;
+import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.ScoreboardUtils;
@@ -25,7 +26,7 @@ public class Failsafe {
     @SubscribeEvent
     public void onMessageReceived(ClientChatReceivedEvent event) {
         String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
-        if (FarmHelper.on) {
+        if (MacroHandler.on) {
             if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing") || message.contains("You cannot join SkyBlock from here!")) {
                 LogUtils.debugLog("Failed teleport - waiting");
                 teleporting = false;
@@ -36,7 +37,7 @@ public class Failsafe {
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
-        if (!FarmHelper.on || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
+        if (!MacroHandler.on || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
 
         switch (gameState.currentLocation) {
             case TELEPORTING:
@@ -66,12 +67,10 @@ public class Failsafe {
                 return;
             case ISLAND:
                 if (jacobExceeded()) {
-                    mc.thePlayer.sendChatMessage("/setspawn");
-                    FarmHelper.disableCurrentMacro();
                     jacobWait.schedule(getJacobRemaining());
                     mc.thePlayer.sendChatMessage("/lobby");
                 } else {
-                    FarmHelper.enableCurrentMacro();
+                    MacroHandler.enableCurrentMacro();
                 }
         }
     }
@@ -89,6 +88,8 @@ public class Failsafe {
                 return gameState.jacobCounter > JacobConfig.potatoCap;
             } else if (cleanedLine.contains("Wheat")) {
                 return gameState.jacobCounter > JacobConfig.wheatCap;
+            } else if (cleanedLine.contains("Sugar") || cleanedLine.contains("Cane") ) {
+                return gameState.jacobCounter > JacobConfig.sugarcaneCap;
             }
         }
         return false;
@@ -100,7 +101,7 @@ public class Failsafe {
             String cleanedLine = ScoreboardUtils.cleanSB(line);
             Matcher matcher = pattern.matcher(cleanedLine);
             if (matcher.find()) {
-                LogUtils.debugLog("Jacob remaining time: " + matcher.group(1) + "m" + matcher.group(2) + "s");
+                LogUtils.scriptLog("Jacob remaining time: " + matcher.group(1) + "m" + matcher.group(2) + "s");
                 // LogUtils.webhookLog("Reached jacob threshold - Resuming in " + matcher.group(1) + "m" + matcher.group(2) + "s");
                 return TimeUnit.MINUTES.toMillis(Long.parseLong(matcher.group(1))) + TimeUnit.SECONDS.toMillis(Long.parseLong(matcher.group(2)));
             }

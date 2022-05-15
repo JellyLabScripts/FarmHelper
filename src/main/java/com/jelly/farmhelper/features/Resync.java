@@ -41,6 +41,8 @@ public class Resync {
                             // LogUtils.debugLog("Rechecked - " + mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE));
                             if (FarmConfig.cropType == CropEnum.NETHERWART && mc.theWorld.getBlockState(cachedPos).getValue(BlockNetherWart.AGE) > 2) {
                                 mc.thePlayer.sendChatMessage("/hub");
+                            } else if(FarmConfig.cropType == CropEnum.SUGARCANE && mc.theWorld.getBlockState(cachedPos).getBlock().equals(Blocks.reeds)){
+                                mc.thePlayer.sendChatMessage("/hub");
                             } else if (mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE) > 4) {
                                 mc.thePlayer.sendChatMessage("/hub");
                             }

@@ -9,6 +9,7 @@ public class JacobConfig {
     public static Integer carrotCap;
     public static Integer potatoCap;
     public static Integer wheatCap;
+    public static Integer sugarcaneCap;
 
     public static void update() {
         jacobFailsafe = (Boolean) FarmHelperConfig.get("jacobFailsafe");
@@ -17,5 +18,6 @@ public class JacobConfig {
         carrotCap = ((Long) FarmHelperConfig.get("carrotCap")).intValue();
         potatoCap = ((Long) FarmHelperConfig.get("potatoCap")).intValue();
         wheatCap = ((Long) FarmHelperConfig.get("wheatCap")).intValue();
+        sugarcaneCap = ((Long) FarmHelperConfig.get("sugarcaneCap")).intValue();
     }
 }

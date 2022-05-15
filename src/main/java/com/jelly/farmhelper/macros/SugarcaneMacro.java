@@ -43,7 +43,7 @@ public class SugarcaneMacro extends Macro{
 
     @Override
     public void onEnable(){
-        initializeVaraibles();
+        initializeVariables();
         mc.thePlayer.closeScreen();
         enabled = true;
         playerYaw = AngleUtils.get360RotationYaw(AngleUtils.getClosest());
@@ -131,7 +131,7 @@ public class SugarcaneMacro extends Macro{
             case SWITCH: {
                 updateKeys(false, false, false, false, false, true, false);
                 if (!pushedOff) {
-                    updateKeys(false, false, !BlockUtils.isWalkable(BlockUtils.getLeftBlock()), BlockUtils.isWalkable(BlockUtils.getLeftBlock()), false, true, false);
+                    updateKeys(false, false, !gameState.leftWalkable, gameState.leftWalkable, false, true, false);
                 }
                 pushedOff = true;
                 return;
@@ -149,7 +149,7 @@ public class SugarcaneMacro extends Macro{
                         if(mc.thePlayer.posY - mc.thePlayer.lastTickPosY == 0) {
                             LogUtils.debugFullLog("Rotating 180");
                             rotation.reset();
-                            playerYaw = AngleUtils.get360RotationYaw(playerYaw + rotateAmount());
+                            playerYaw = AngleUtils.get360RotationYaw(playerYaw + getRotateAmount());
                             rotation.easeTo(playerYaw, 0, 2000);
                         }
                     }
@@ -184,14 +184,12 @@ public class SugarcaneMacro extends Macro{
             currentState = State.TPPAD;
             return;
         }
-        if(currentState == State.DROPPING || (mc.thePlayer.posY - mc.thePlayer.lastTickPosY != 0 && Math.abs(mc.thePlayer.posY - layerY) > 1 && currentState != State.TPPAD && BlockUtils.getRelativeBlock(0, -1, 1).equals(Blocks.air) && gameState.currentLocation == GameState.location.ISLAND)) {
-
-            LogUtils.debugFullLog("dropping" + " " + (currentState == State.DROPPING));
+        if(currentState == State.DROPPING || (mc.thePlayer.posY - mc.thePlayer.lastTickPosY != 0 && Math.abs(mc.thePlayer.posY - layerY) > 1 && currentState != State.TPPAD && BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.air) && gameState.currentLocation == GameState.location.ISLAND)) {
+            LogUtils.debugLog("dropping" + " " + (currentState == State.DROPPING));
             currentState = State.DROPPING;
             return;
         }
         if(lastState == State.SWITCH){
-            LogUtils.debugFullLog("Switching");
             currentState = State.FORWARD;
             return;
         }
@@ -203,9 +201,9 @@ public class SugarcaneMacro extends Macro{
             currentState = BlockUtils.isWalkable(BlockUtils.getLeftBlock()) ? State.LEFT : State.RIGHT;
             return;
         }
-        if((!BlockUtils.isWalkable(BlockUtils.getLeftBlock()) || !BlockUtils.isWalkable(BlockUtils.getRightBlock())) &&
+        if((!gameState.leftWalkable || !gameState.rightWalkable) &&
                 (blockInPos.getX() != targetBlockPos.getX() || blockInPos.getZ() != targetBlockPos.getZ()) &&
-               mc.thePlayer.posX - mc.thePlayer.lastTickPosX == 0 && mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ == 0){
+               gameState.dx == 0 && gameState.dz == 0){
 
             LogUtils.debugFullLog("switch");
             currentState = State.SWITCH;
@@ -282,17 +280,7 @@ public class SugarcaneMacro extends Macro{
         else
             return State.RIGHT;
     }
-
-    boolean shouldWalkForward() {
-        return (BlockUtils.isWalkable(BlockUtils.getBackBlock()) && BlockUtils.isWalkable(BlockUtils.getFrontBlock())) ||
-                (!BlockUtils.isWalkable(BlockUtils.getBackBlock()) && !BlockUtils.isWalkable(BlockUtils.getLeftBlock())) ||
-                (!BlockUtils.isWalkable(BlockUtils.getBackBlock()) && !BlockUtils.isWalkable(BlockUtils.getRightBlock())) ||
-                (!BlockUtils.isWalkable(BlockUtils.getFrontBlock()) && !BlockUtils.isWalkable(BlockUtils.getRightBlock())) ||
-                (!BlockUtils.isWalkable(BlockUtils.getFrontBlock()) && !BlockUtils.isWalkable(BlockUtils.getLeftBlock())) ||
-                (!BlockUtils.isWalkable(BlockUtils.getRightBlock()) && !BlockUtils.isWalkable(BlockUtils.getLeftBlock()));
-    }
-
-    int rotateAmount(){
+    int getRotateAmount(){
         if(BlockUtils.getRelativeBlock(1, 0, 2).equals(Blocks.dirt) || BlockUtils.getRelativeBlock(-1, 0, 2).equals(Blocks.dirt)
         || BlockUtils.getRelativeBlock(1, 0, -2).equals(Blocks.dirt) || BlockUtils.getRelativeBlock(-1, 0, -2).equals(Blocks.dirt))
             return 180;
@@ -310,7 +298,7 @@ public class SugarcaneMacro extends Macro{
     }
 
 
-    void initializeVaraibles() {
+    void initializeVariables() {
         pushedOff = false;
         lastLaneDirection = calculateDirection();
         currentState = calculateDirection();

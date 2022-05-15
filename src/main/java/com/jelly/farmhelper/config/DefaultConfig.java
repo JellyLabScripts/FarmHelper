@@ -11,6 +11,7 @@ public class DefaultConfig {
         config.put("carrotCap", 400000);
         config.put("potatoCap", 400000);
         config.put("wheatCap", 400000);
+        config.put("sugarcaneCap", 400000);
         config.put("webhookLogs", false);
         config.put("webhookStatus", false);
         config.put("webhookStatusCooldown", 1.0);
