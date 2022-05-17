@@ -32,6 +32,11 @@ public class Rotation {
         getDifference();
     }
 
+    public void lockAngle(float yaw, float pitch){
+        if(mc.thePlayer.rotationYaw != yaw || mc.thePlayer.rotationPitch != pitch && !rotating)
+            easeTo(yaw, pitch, 1000);
+    }
+
     public void update() {
         if (System.currentTimeMillis() <= endTime) {
             if (shouldRotateClockwise()) {

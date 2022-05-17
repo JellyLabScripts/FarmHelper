@@ -87,15 +87,19 @@ public class SugarcaneMacro extends Macro{
         if(stuck)
             return;
 
+
         mc.thePlayer.inventory.currentItem = InventoryUtils.getSCHoeSlot();
         mc.thePlayer.rotationPitch = 0;
+
 
         if(Antistuck.stuck) {
             new Thread(fixStuck).start();
             stuck = true;
         }
-
         updateState();
+        if(currentState != State.TPPAD)
+            rotation.lockAngle(playerYaw, 0);
+
         lastState = currentState;
         switch (currentState){
             case TPPAD:
@@ -203,7 +207,7 @@ public class SugarcaneMacro extends Macro{
         }
         if((!gameState.leftWalkable || !gameState.rightWalkable) &&
                 (blockInPos.getX() != targetBlockPos.getX() || blockInPos.getZ() != targetBlockPos.getZ()) &&
-               gameState.dx == 0 && gameState.dz == 0){
+               Math.round(gameState.dx * 100.0) / 100.0 == 0 && Math.round(gameState.dz * 100.0) / 100.0 == 0){
 
             LogUtils.debugFullLog("switch");
             currentState = State.SWITCH;
