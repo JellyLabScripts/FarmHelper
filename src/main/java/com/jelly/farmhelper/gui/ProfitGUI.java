@@ -73,16 +73,17 @@ public class ProfitGUI extends UIBlock {
             .setColor(new Color(249, 249, 249))
             .setChildOf(topBar);
 
-        stats.add(new Stat("https://i.ibb.co/HrWKbsw/profit.png").bind(ProfitUtils.profit).setChildOf(this));
-        stats.add(new Stat("https://i.ibb.co/BP29c8v/profithr.png").bind(ProfitUtils.profitHr).setChildOf(this));
-        stats.add(new Stat("https://i.ibb.co/8dv1fR0/mnw.png").bind(ProfitUtils.cropCount).setChildOf(this));
-        stats.add(new Stat("https://static.wikia.nocookie.net/hypixel-skyblock/images/7/70/Enchanted_Carrot.png").bind(ProfitUtils.cropCount).setChildOf(this));
-        stats.add(new Stat("https://static.wikia.nocookie.net/hypixel-skyblock/images/8/82/Enchanted_Baked_Potato.png").bind(ProfitUtils.cropCount).setChildOf(this));
-        stats.add(new Stat("https://static.wikia.nocookie.net/hypixel-skyblock/images/7/7c/Enchanted_Hay_Bale").bind(ProfitUtils.cropCount).setChildOf(this));
-        stats.add(new Stat("https://static.wikia.nocookie.net/hypixel-skyblock/images/e/e5/Enchanted_Red_Mushroom.png").bind(ProfitUtils.redMushroomCount).setChildOf(this));
-        stats.add(new Stat("https://static.wikia.nocookie.net/hypixel-skyblock/images/6/6a/Enchanted_Brown_Mushroom.png").bind(ProfitUtils.brownMushroomCount).setChildOf(this));
-        stats.add(new Stat("https://i.ibb.co/0YCYCnX/newton-nether-warts-hoe-tier-2.png").bind(ProfitUtils.counter).setChildOf(this));
-        stats.add(new Stat("https://i.ibb.co/t3L9FHw/runtime.png").bind(ProfitUtils.runtime).setChildOf(this));
+        stats.add(new Stat("profit.png").bind(ProfitUtils.profit).setChildOf(this));
+        stats.add(new Stat("profithr.png").bind(ProfitUtils.profitHr).setChildOf(this));
+        stats.add(new Stat("mnw.png").bind(ProfitUtils.cropCount).setChildOf(this));
+        stats.add(new Stat("ecarrot.png").bind(ProfitUtils.cropCount).setChildOf(this));
+        stats.add(new Stat("epotato.png").bind(ProfitUtils.cropCount).setChildOf(this));
+        stats.add(new Stat("ehaybale.png").bind(ProfitUtils.cropCount).setChildOf(this));
+        stats.add(new Stat("ecane.png").bind(ProfitUtils.brownMushroomCount).setChildOf(this));
+        stats.add(new Stat("eredmushroom.png").bind(ProfitUtils.redMushroomCount).setChildOf(this));
+        stats.add(new Stat("ebrownmushroom.png").bind(ProfitUtils.brownMushroomCount).setChildOf(this));
+        stats.add(new Stat("hoe.png").bind(ProfitUtils.counter).setChildOf(this));
+        stats.add(new Stat("clock_00.png").bind(ProfitUtils.runtime).setChildOf(this));
     }
 }
 
@@ -94,16 +95,14 @@ class Stat extends UIBlock {
             .setWidth(new RelativeConstraint(1f))
             .setColor(new Color(36, 37, 39, 85));
 
-        try {
-            UIImage.ofURL(new URL(iconURL))
-                .setX(new PixelConstraint(5))
-                .setY(new CenterConstraint())
-                .setHeight(new PixelConstraint(15))
-                .setWidth(new PixelConstraint(15))
-                .setChildOf(this);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+        String path = "/assets/farmhelper/textures/gui/";
+
+        UIImage.ofResource(path + iconURL)
+            .setX(new PixelConstraint(5))
+            .setY(new CenterConstraint())
+            .setHeight(new PixelConstraint(15))
+            .setWidth(new PixelConstraint(15))
+            .setChildOf(this);
 
         displayString = new UIText("").setTextScale(new PixelConstraint(0.9f))
             .setColor(new Color(249, 249, 249))

@@ -3,7 +3,7 @@ package com.jelly.farmhelper.utils;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.jelly.farmhelper.datastructures.ItemDiff;
-import javafx.util.Pair;
+import com.jelly.farmhelper.datastructures.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.inventory.ContainerChest;

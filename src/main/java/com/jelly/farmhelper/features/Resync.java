@@ -30,27 +30,25 @@ public class Resync {
     public static void update(BlockPos lastBrokenPos) {
         Resync.lastBrokenPos = lastBrokenPos;
         if (checkTimer.passed()) {
-            System.out.println("resync update recieved - " + lastBrokenPos + ", " + mc.theWorld.getBlockState(lastBrokenPos));
             cachedPos = lastBrokenPos;
             Timer t = new Timer();
             t.schedule(
-                new TimerTask() {
-                    @Override
-                    public void run() {
-                        if (cachedPos != null && mc.theWorld.getBlockState(cachedPos) != null) {
-                            // LogUtils.debugLog("Rechecked - " + mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE));
-                            if (FarmConfig.cropType == CropEnum.NETHERWART && mc.theWorld.getBlockState(cachedPos).getValue(BlockNetherWart.AGE) > 2) {
-                                mc.thePlayer.sendChatMessage("/hub");
-                            } else if(FarmConfig.cropType == CropEnum.SUGARCANE && mc.theWorld.getBlockState(cachedPos).getBlock().equals(Blocks.reeds)){
-                                mc.thePlayer.sendChatMessage("/hub");
-                            } else if (mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE) > 4) {
-                                mc.thePlayer.sendChatMessage("/hub");
-                            }
-                        }
-                        t.cancel();
-                    }
-                },
-                4000
+              new TimerTask() {
+                  @Override
+                  public void run() {
+                      if (cachedPos != null && mc.theWorld.getBlockState(cachedPos) != null) {
+                          if (FarmConfig.cropType == CropEnum.NETHERWART && mc.theWorld.getBlockState(cachedPos).getValue(BlockNetherWart.AGE) > 2 ||
+                            FarmConfig.cropType == CropEnum.SUGARCANE && mc.theWorld.getBlockState(cachedPos).getBlock().equals(Blocks.reeds) ||
+                            mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE) > 4) {
+                              LogUtils.debugLog("Desync detected");
+                              LogUtils.webhookLog("Desync detected");
+                              mc.thePlayer.sendChatMessage("/hub");
+                          }
+                      }
+                      t.cancel();
+                  }
+              },
+              4000
             );
             checkTimer.schedule(5000);
         }
