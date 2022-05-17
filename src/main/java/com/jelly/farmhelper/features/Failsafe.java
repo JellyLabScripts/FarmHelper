@@ -2,6 +2,7 @@ package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.JacobConfig;
+import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
@@ -45,6 +46,7 @@ public class Failsafe {
                 return;
             case LIMBO:
                 if (cooldown.passed()) {
+                    LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage("/lobby");
                     cooldown.schedule(5000);
                     teleporting = true;
@@ -52,6 +54,7 @@ public class Failsafe {
                 return;
             case LOBBY:
                 if (cooldown.passed() && jacobWait.passed()) {
+                    LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage("/skyblock");
                     cooldown.schedule(5000);
                     teleporting = true;
@@ -60,13 +63,14 @@ public class Failsafe {
             case HUB:
                 LogUtils.debugLog("Detected Hub");
                 if (cooldown.passed() && jacobWait.passed()) {
+                    LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage("/is");
                     cooldown.schedule(5000);
                     teleporting = true;
                 }
                 return;
             case ISLAND:
-                if (jacobExceeded()) {
+                if (JacobConfig.jacobFailsafe && jacobExceeded()) {
                     jacobWait.schedule(getJacobRemaining());
                     mc.thePlayer.sendChatMessage("/lobby");
                 } else {
@@ -101,8 +105,8 @@ public class Failsafe {
             String cleanedLine = ScoreboardUtils.cleanSB(line);
             Matcher matcher = pattern.matcher(cleanedLine);
             if (matcher.find()) {
-                LogUtils.scriptLog("Jacob remaining time: " + matcher.group(1) + "m" + matcher.group(2) + "s");
-                // LogUtils.webhookLog("Reached jacob threshold - Resuming in " + matcher.group(1) + "m" + matcher.group(2) + "s");
+                LogUtils.debugLog("Jacob remaining time: " + matcher.group(1) + "m" + matcher.group(2) + "s");
+                LogUtils.webhookLog("Jacob score exceeded - - Resuming in " + matcher.group(1) + "m" + matcher.group(2) + "s");
                 return TimeUnit.MINUTES.toMillis(Long.parseLong(matcher.group(1))) + TimeUnit.SECONDS.toMillis(Long.parseLong(matcher.group(2)));
             }
         }

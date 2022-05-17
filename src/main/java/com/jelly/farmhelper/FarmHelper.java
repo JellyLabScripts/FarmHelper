@@ -4,6 +4,7 @@ import com.jelly.farmhelper.config.FarmHelperConfig;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.gui.MenuGUI;
+import com.jelly.farmhelper.gui.Render;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.utils.LogUtils;
@@ -27,7 +28,7 @@ public class FarmHelper {
     public static int tickCount = 0;
     public static boolean openedGUI = false;
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public static GameState gameState = new GameState();
+    public static GameState gameState;
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
@@ -35,11 +36,13 @@ public class FarmHelper {
         Display.setTitle(FarmHelper.NAME + " v" + FarmHelper.VERSION + " | GIGACHADS ONLY");
         FarmHelperConfig.init();
         KeyBindUtils.setup();
-        MinecraftForge.EVENT_BUS.register(new FarmHelper());
+        MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(new Render());
         MinecraftForge.EVENT_BUS.register(new MenuGUI());
         MinecraftForge.EVENT_BUS.register(new Failsafe());
         MinecraftForge.EVENT_BUS.register(new Antistuck());
         MinecraftForge.EVENT_BUS.register(new MacroHandler());
+        gameState = new GameState();
 
     }
     @SubscribeEvent

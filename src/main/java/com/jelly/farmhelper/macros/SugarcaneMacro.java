@@ -7,13 +7,15 @@ import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
+
 import java.util.ArrayList;
+
 import static com.jelly.farmhelper.utils.BlockUtils.getRelativeBlock;
 import static com.jelly.farmhelper.utils.BlockUtils.isWalkable;
 import static com.jelly.farmhelper.utils.KeyBindUtils.*;
 import static com.jelly.farmhelper.FarmHelper.gameState;
 
-public class SugarcaneMacro extends Macro{
+public class SugarcaneMacro extends Macro {
     public static State lastLaneDirection;
     public static State currentState;
     public static boolean pushedOff;
@@ -26,10 +28,10 @@ public class SugarcaneMacro extends Macro{
 
     private static final Rotation rotation = new Rotation();
 
-    enum State{
+    enum State {
         DROPPING,
         TPPAD,
-        RIGHT, 
+        RIGHT,
         LEFT,
         FORWARD,
         SWITCH,
@@ -42,12 +44,12 @@ public class SugarcaneMacro extends Macro{
 
 
     @Override
-    public void onEnable(){
+    public void onEnable() {
         initializeVariables();
         mc.thePlayer.closeScreen();
         enabled = true;
         playerYaw = AngleUtils.get360RotationYaw(AngleUtils.getClosest());
-        layerY = (int)mc.thePlayer.posY;
+        layerY = (int) mc.thePlayer.posY;
         rotation.easeTo(playerYaw, 0, 500);
         currentState = State.NONE;
         lastState = State.NONE;
@@ -55,26 +57,26 @@ public class SugarcaneMacro extends Macro{
     }
 
     @Override
-    public void onDisable(){
+    public void onDisable() {
         stopMovement();
     }
 
     @Override
-    public void onRender(){
+    public void onRender() {
         if (rotation.rotating) {
             rotation.update();
         }
     }
 
     @Override
-    public void onChatMessageReceived(String msg){
-        if(msg.contains("spawn location has been set"))
+    public void onChatMessageReceived(String msg) {
+        if (msg.contains("spawn location has been set"))
             setspawnLag = false;
     }
 
 
     @Override
-    public void onTick(){
+    public void onTick() {
         if (gameState.currentLocation != GameState.location.ISLAND) {
             updateKeys(false, false, false, false, false);
             return;
@@ -84,20 +86,20 @@ public class SugarcaneMacro extends Macro{
             updateKeys(false, false, false, false, false);
             return;
         }
-        if(stuck)
+        if (stuck)
             return;
 
         mc.thePlayer.inventory.currentItem = InventoryUtils.getSCHoeSlot();
         mc.thePlayer.rotationPitch = 0;
 
-        if(Antistuck.stuck) {
+        if (Antistuck.stuck) {
             new Thread(fixStuck).start();
             stuck = true;
         }
 
         updateState();
         lastState = currentState;
-        switch (currentState){
+        switch (currentState) {
             case TPPAD:
                 if (BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
                     if (mc.thePlayer.posY % 1 == 0.8125) {
@@ -146,7 +148,7 @@ public class SugarcaneMacro extends Macro{
                 LogUtils.debugFullLog("Rotating");
                 if (!rotation.completed) {
                     if (!rotation.rotating) {
-                        if(mc.thePlayer.posY - mc.thePlayer.lastTickPosY == 0) {
+                        if (mc.thePlayer.posY - mc.thePlayer.lastTickPosY == 0) {
                             LogUtils.debugFullLog("Rotating 180");
                             rotation.reset();
                             playerYaw = AngleUtils.get360RotationYaw(playerYaw + getRotateAmount());
@@ -160,7 +162,7 @@ public class SugarcaneMacro extends Macro{
                         LogUtils.debugFullLog("Dropped, resuming");
 
                         //rotation.reset();
-                        layerY = (int)mc.thePlayer.posY;
+                        layerY = (int) mc.thePlayer.posY;
                         targetBlockPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
                         currentState = State.NONE;
                         lastState = State.NONE;
@@ -176,34 +178,34 @@ public class SugarcaneMacro extends Macro{
         }
 
 
-
     }
+
     private void updateState() {
         BlockPos blockInPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
         if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
             currentState = State.TPPAD;
             return;
         }
-        if(currentState == State.DROPPING || (mc.thePlayer.posY - mc.thePlayer.lastTickPosY != 0 && Math.abs(mc.thePlayer.posY - layerY) > 1 && currentState != State.TPPAD && BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.air) && gameState.currentLocation == GameState.location.ISLAND)) {
+        if (currentState == State.DROPPING || (mc.thePlayer.posY - mc.thePlayer.lastTickPosY != 0 && Math.abs(mc.thePlayer.posY - layerY) > 1 && currentState != State.TPPAD && BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.air) && gameState.currentLocation == GameState.location.ISLAND)) {
             LogUtils.debugLog("dropping" + " " + (currentState == State.DROPPING));
             currentState = State.DROPPING;
             return;
         }
-        if(lastState == State.SWITCH){
+        if (lastState == State.SWITCH) {
             currentState = State.FORWARD;
             return;
         }
-        if(lastState == State.FORWARD){
-            if(blockInPos.getX() != targetBlockPos.getX() || blockInPos.getZ() != targetBlockPos.getZ() || !isInCenterOfBlock())
+        if (lastState == State.FORWARD) {
+            if (blockInPos.getX() != targetBlockPos.getX() || blockInPos.getZ() != targetBlockPos.getZ() || !isInCenterOfBlock())
                 return;
             mc.thePlayer.sendChatMessage("/setspawn");
             setspawnLag = true;
             currentState = BlockUtils.isWalkable(BlockUtils.getLeftBlock()) ? State.LEFT : State.RIGHT;
             return;
         }
-        if((!gameState.leftWalkable || !gameState.rightWalkable) &&
-                (blockInPos.getX() != targetBlockPos.getX() || blockInPos.getZ() != targetBlockPos.getZ()) &&
-               gameState.dx == 0 && gameState.dz == 0){
+        if ((!gameState.leftWalkable || !gameState.rightWalkable) &&
+          (blockInPos.getX() != targetBlockPos.getX() || blockInPos.getZ() != targetBlockPos.getZ()) &&
+          gameState.dx == 0 && gameState.dz == 0) {
 
             LogUtils.debugFullLog("switch");
             currentState = State.SWITCH;
@@ -216,6 +218,7 @@ public class SugarcaneMacro extends Macro{
             rotation.reset();
         }
     }
+
     //threads
     Runnable fixStuck = () -> {
         try {
@@ -231,20 +234,20 @@ public class SugarcaneMacro extends Macro{
             stuck = false;
             Antistuck.stuck = false;
             Antistuck.cooldown.schedule(2000);
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     };
-    BlockPos calculateTargetBlockPos(){
-        if(!BlockUtils.isWalkable(BlockUtils.getRightBlock()) || !BlockUtils.isWalkable(BlockUtils.getLeftBlock())){
-            if(!BlockUtils.isWalkable(BlockUtils.getRightBlock()) && !BlockUtils.isWalkable(BlockUtils.getLeftBlock())){
+
+    BlockPos calculateTargetBlockPos() {
+        if (!BlockUtils.isWalkable(BlockUtils.getRightBlock()) || !BlockUtils.isWalkable(BlockUtils.getLeftBlock())) {
+            if (!BlockUtils.isWalkable(BlockUtils.getRightBlock()) && !BlockUtils.isWalkable(BlockUtils.getLeftBlock())) {
                 return BlockUtils.getRelativeBlockPos(0, 0, 1);
             } else {
-                if(!BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 1, 0)) && !BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 1, 0))) {
+                if (!BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 1, 0)) && !BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 1, 0))) {
                     LogUtils.scriptLog("Detected one block off");
                     return BlockUtils.getRelativeBlockPos(0, 0, 5);
-                }
-                else {
+                } else {
                     return BlockUtils.getRelativeBlockPos(0, 0, 6);
                 }
 
@@ -280,17 +283,18 @@ public class SugarcaneMacro extends Macro{
         else
             return State.RIGHT;
     }
-    int getRotateAmount(){
-        if(BlockUtils.getRelativeBlock(1, 0, 2).equals(Blocks.dirt) || BlockUtils.getRelativeBlock(-1, 0, 2).equals(Blocks.dirt)
-        || BlockUtils.getRelativeBlock(1, 0, -2).equals(Blocks.dirt) || BlockUtils.getRelativeBlock(-1, 0, -2).equals(Blocks.dirt))
+
+    int getRotateAmount() {
+        if (BlockUtils.getRelativeBlock(1, 0, 2).equals(Blocks.dirt) || BlockUtils.getRelativeBlock(-1, 0, 2).equals(Blocks.dirt)
+          || BlockUtils.getRelativeBlock(1, 0, -2).equals(Blocks.dirt) || BlockUtils.getRelativeBlock(-1, 0, -2).equals(Blocks.dirt))
             return 180;
 
         System.out.println(BlockUtils.getRelativeBlock(2, 0, 2));
-        if(BlockUtils.getRelativeBlock(2, 0, 2).equals(Blocks.dirt) || BlockUtils.getRelativeBlock(2, 0, -2).equals(Blocks.dirt))
+        if (BlockUtils.getRelativeBlock(2, 0, 2).equals(Blocks.dirt) || BlockUtils.getRelativeBlock(2, 0, -2).equals(Blocks.dirt))
             return 90;
 
 
-        if(BlockUtils.getRelativeBlock(-2, 0, -2).equals(Blocks.dirt) || BlockUtils.getRelativeBlock(-2, 0, 2).equals(Blocks.dirt))
+        if (BlockUtils.getRelativeBlock(-2, 0, -2).equals(Blocks.dirt) || BlockUtils.getRelativeBlock(-2, 0, 2).equals(Blocks.dirt))
             return -90;
 
         LogUtils.scriptLog("Unknown rotation case");
@@ -305,12 +309,12 @@ public class SugarcaneMacro extends Macro{
         stuck = false;
         setspawnLag = false;
     }
-    public static boolean isInCenterOfBlock(){
-        return (Math.round(AngleUtils.get360RotationYaw()) == 180 || Math.round(AngleUtils.get360RotationYaw()) == 0) ?Math.abs(Minecraft.getMinecraft().thePlayer.posZ) % 1 > 0.3f && Math.abs(Minecraft.getMinecraft().thePlayer.posZ) % 1 < 0.7f :
-                Math.abs(Minecraft.getMinecraft().thePlayer.posX) % 1 > 0.3f && Math.abs(Minecraft.getMinecraft().thePlayer.posX) % 1 < 0.7f;
+
+    public static boolean isInCenterOfBlock() {
+        return (Math.round(AngleUtils.get360RotationYaw()) == 180 || Math.round(AngleUtils.get360RotationYaw()) == 0) ? Math.abs(Minecraft.getMinecraft().thePlayer.posZ) % 1 > 0.3f && Math.abs(Minecraft.getMinecraft().thePlayer.posZ) % 1 < 0.7f :
+          Math.abs(Minecraft.getMinecraft().thePlayer.posX) % 1 > 0.3f && Math.abs(Minecraft.getMinecraft().thePlayer.posX) % 1 < 0.7f;
 
     }
-
 
 
 }

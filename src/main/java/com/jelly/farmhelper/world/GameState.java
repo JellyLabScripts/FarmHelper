@@ -1,9 +1,8 @@
 package com.jelly.farmhelper.world;
 
-import com.jelly.farmhelper.utils.BlockUtils;
-import com.jelly.farmhelper.utils.Clock;
-import com.jelly.farmhelper.utils.LogUtils;
-import com.jelly.farmhelper.utils.ScoreboardUtils;
+import com.jelly.farmhelper.config.interfaces.WebhookConfig;
+import com.jelly.farmhelper.utils.DiscordWebhook;
+import com.jelly.farmhelper.utils.*;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
@@ -23,6 +22,7 @@ public class GameState {
         TELEPORTING
     }
 
+    public DiscordWebhook webhook;
     public IChatComponent header;
     public IChatComponent footer;
     public boolean cookie;
@@ -47,6 +47,18 @@ public class GameState {
     public Block blockStandingOn;
 
     public int jacobCounter;
+
+    public GameState() {
+        System.out.println("3dwedw-------------------------------- " + WebhookConfig.webhookURL);
+        System.out.println("3dwedw-------------------------------- " + WebhookConfig.webhookURL);
+        System.out.println("3dwedw-------------------------------- " + WebhookConfig.webhookURL);
+        System.out.println("3dwedw-------------------------------- " + WebhookConfig.webhookURL);
+        System.out.println("3dwedw-------------------------------- " + WebhookConfig.webhookURL);
+
+        webhook = new DiscordWebhook(WebhookConfig.webhookURL);
+        webhook.setUsername("Jelly - Farm Helper");
+        webhook.setAvatarUrl("https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png");
+    }
 
     public void update() {
         currentLocation = getLocation();

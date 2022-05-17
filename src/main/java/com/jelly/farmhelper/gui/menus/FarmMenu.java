@@ -27,14 +27,14 @@ public class FarmMenu extends UIContainer {
             .setChildOf(this);
 
 
-        cropList.add(new ImageBox(new PixelConstraint(10), new PixelConstraint(10), "https://static.wikia.nocookie.net/minecraft/images/6/63/Carrot_Updated.png", cropList, 0L, "cropType").setChildOf(selector));
-        cropList.add(new ImageBox(new SiblingConstraint(10), new PixelConstraint(10), "https://static.wikia.nocookie.net/minecraft_gamepedia/images/c/c0/Nether_Wart_%28item%29_JE1.png", cropList, 1L, "cropType").setChildOf(selector));
-        cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), "https://static.wikia.nocookie.net/minecraft_gamepedia/images/c/c1/Potato_JE3_BE2.png", cropList, 2L, "cropType").setChildOf(selector));
-        cropList.add( new ImageBox(new SiblingConstraint(10), new CramSiblingConstraint(10), "https://static.wikia.nocookie.net/minecraft_gamepedia/images/7/75/Wheat_JE2_BE2.png", cropList, 3L, "cropType").setChildOf(selector));
-        cropList.add( new ImageBox(new PixelConstraint(80), new SiblingConstraint(10), "https://static.wikia.nocookie.net/hypixel-skyblock/images/6/67/Sugar_Cane.png/revision/latest?cb=20210615232455", cropList, 4L, "cropType").setChildOf(selector));
+        cropList.add(new ImageBox(new PixelConstraint(10), new PixelConstraint(10), 60f, "carrot.png", cropList, 0L, "cropType").setChildOf(selector));
+        cropList.add(new ImageBox(new SiblingConstraint(10), new PixelConstraint(10), 60f, "netherwart.png", cropList, 1L, "cropType").setChildOf(selector));
+        cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 60f, "potato.png", cropList, 2L, "cropType").setChildOf(selector));
+        cropList.add(new ImageBox(new SiblingConstraint(10), new CramSiblingConstraint(10), 60f, "wheat.png", cropList, 3L, "cropType").setChildOf(selector));
+        cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 130f, "cane.png", cropList, 4L, "cropType").setChildOf(selector));
 
-        farmList.add(new ImageBox(new PixelConstraint(10), new CramSiblingConstraint(10), "https://i.ibb.co/6nFDfRt/layered.png", farmList, 0L, "farmType").setChildOf(selector));
-        farmList.add(new ImageBox(new SiblingConstraint(10), new CramSiblingConstraint(10), "https://i.ibb.co/hLG9g3X/vertical.png", farmList, 1L, "farmType").setChildOf(selector));
+        farmList.add(new ImageBox(new PixelConstraint(10), new CramSiblingConstraint(10), 60f, "layered.png", farmList, 0L, "farmType").setChildOf(selector));
+        farmList.add(new ImageBox(new PixelConstraint(80), new CramSiblingConstraint(10), 60f, "vertical.png", farmList, 1L, "farmType").setChildOf(selector));
 
         new UIText("Layered")
             .setX(new CenterConstraint())
@@ -55,7 +55,7 @@ class ImageBox extends UIBlock {
     private Color fillColor;
     private ArrayList<UIComponent> components;
     private String configName;
-    public ImageBox(XConstraint x, YConstraint y, String ImageURL, ArrayList<UIComponent> components, Long value, String configName) {
+    public ImageBox(XConstraint x, YConstraint y, float width ,String ImageURL, ArrayList<UIComponent> components, Long value, String configName) {
         // Check if already marked
         selected = (long) FarmHelperConfig.get(configName) == value;
         this.components = components;
@@ -63,7 +63,7 @@ class ImageBox extends UIBlock {
         fillColor = selected ? new Color(175, 36, 36) : new Color(30, 31, 32);
         this.setX(x)
             .setY(y)
-            .setWidth(new PixelConstraint(60))
+            .setWidth(new PixelConstraint(width))
             .setHeight(new PixelConstraint(60))
             .setColor(fillColor)
             .onMouseClick((component, uiClickEvent) -> {
@@ -79,19 +79,17 @@ class ImageBox extends UIBlock {
             .setX(new CenterConstraint())
             .setY(new CenterConstraint())
             .setHeight(new RelativeConstraint(0.95f))
-            .setWidth(new RelativeConstraint(0.95f))
+            .setWidth(new PixelConstraint(width - 3))
             .setChildOf(this);
 
-        try {
-            UIImage.ofURL(new URL(ImageURL))
-                .setX(new CenterConstraint())
-                .setY(new CenterConstraint())
-                .setHeight(new RelativeConstraint(0.5f))
-                .setWidth(new RelativeConstraint(0.5f))
-                .setChildOf(this);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+        String path = "/assets/farmhelper/textures/gui/";
+
+        UIImage.ofResource(path + ImageURL)
+            .setX(new CenterConstraint())
+            .setY(new CenterConstraint())
+            .setHeight(new RelativeConstraint(0.5f))
+            .setWidth(new AspectConstraint())
+            .setChildOf(this);
     }
 
 

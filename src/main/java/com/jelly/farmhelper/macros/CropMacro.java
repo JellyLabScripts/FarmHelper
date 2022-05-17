@@ -2,6 +2,7 @@ package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Resync;
 import com.jelly.farmhelper.player.Rotation;
@@ -15,7 +16,8 @@ import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
-public class CropMacro extends Macro{
+
+public class CropMacro extends Macro {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     enum State {
@@ -77,16 +79,21 @@ public class CropMacro extends Macro{
     public void onDisable() {
         updateKeys(false, false, false, false, false);
     }
+
     @Override
-    public void onRender(){
+    public void onRender() {
         if (rotation.rotating) {
-            LogUtils.debugFullLog("onRenderWorld - Rotating");
             rotation.update();
         }
     }
 
     @Override
-    public void onTick(){
+    public void onChatMessageReceived(String msg) {
+
+    }
+
+    @Override
+    public void onTick() {
         if (gameState.currentLocation != GameState.location.ISLAND) {
             updateKeys(false, false, false, false, false);
             return;
@@ -101,6 +108,8 @@ public class CropMacro extends Macro{
             LogUtils.debugFullLog("Staff rotate");
             rotation.reset();
             if (rotateWait.passed() && rotateWait.isScheduled()) {
+                LogUtils.webhookLog("Rotate Checked");
+                LogUtils.debugLog("Rotate Checked");
                 rotation.easeTo(yaw, pitch, 2000);
                 rotateWait.reset();
                 updateKeys(false, false, false, false, false);
@@ -147,7 +156,7 @@ public class CropMacro extends Macro{
                         if (mc.thePlayer.posY % 1 == 0.8125) {
                             if (!rotation.completed) {
                                 if (!rotation.rotating) {
-                                    LogUtils.debugFullLog("Fixing pitch");
+                                    LogUtils.debugLog("Fixing pitch");
                                     rotation.reset();
                                     yaw = AngleUtils.get360RotationYaw();
                                     rotation.easeTo(yaw, pitch, 500);
@@ -155,17 +164,17 @@ public class CropMacro extends Macro{
                                 LogUtils.debugFullLog("Waiting fix pitch");
                                 updateKeys(false, false, false, false, false);
                             } else if (isWalkable(getRelativeBlock(1, 0.1875f, 0))) {
-                                LogUtils.debugFullLog("On top of pad, go right" );
+                                LogUtils.debugLog("On top of pad, go right");
                                 updateKeys(false, false, true, false, true);
                             } else if (isWalkable(getRelativeBlock(-1, 0.1875f, 0))) {
-                                LogUtils.debugFullLog("On top of pad, go left");
+                                LogUtils.debugLog("On top of pad, go left");
                                 updateKeys(false, false, false, true, true);
                             } else {
-                                LogUtils.debugFullLog("On top of pad, cant detect where to go");
+                                LogUtils.debugLog("On top of pad, cant detect where to go");
                                 updateKeys(false, false, false, false, false);
                             }
                         } else if (mc.thePlayer.posY % 1 < 0.8125) {
-                            LogUtils.debugFullLog("Stuck in teleport pad, holding space");
+                            LogUtils.debugLog("Stuck in teleport pad, holding space");
                             updateKeys(false, false, false, false, false, false, true);
                         } else {
                             LogUtils.debugFullLog("Waiting for teleport land (close)");
@@ -176,7 +185,7 @@ public class CropMacro extends Macro{
                         updateKeys(false, false, false, false, false);
                     }
                 } else {
-                    LogUtils.debugFullLog("Waiting for teleport, at pad");
+                    LogUtils.debugLog("Waiting for teleport, at pad");
                     updateKeys(false, false, false, false, false);
                 }
                 return;
@@ -184,7 +193,7 @@ public class CropMacro extends Macro{
                 if (layerY - mc.thePlayer.posY > 1) {
                     if (!rotation.completed) {
                         if (!rotation.rotating) {
-                            LogUtils.debugFullLog("Rotating 180");
+                            LogUtils.debugLog("Rotating 180");
                             rotation.reset();
                             yaw = AngleUtils.get360RotationYaw(yaw + 180);
                             rotation.easeTo(yaw, pitch, 2000);
@@ -193,7 +202,7 @@ public class CropMacro extends Macro{
                         updateKeys(false, false, false, false, false);
                     } else {
                         if (mc.thePlayer.posY % 1 == 0) {
-                            LogUtils.debugFullLog("Dropped, resuming");
+                            LogUtils.debugLog("Dropped, resuming");
                             layerY = mc.thePlayer.posY;
                             rotation.reset();
                             currentState = State.NONE;
@@ -203,17 +212,17 @@ public class CropMacro extends Macro{
                         updateKeys(false, false, false, false, false);
                     }
                 } else {
-                    LogUtils.debugFullLog("Not at drop yet, keep going");
+                    LogUtils.debugLog("Not at drop yet, keep going");
                     updateKeys(true, false, false, false, false);
                 }
 
                 return;
             case RIGHT:
-                LogUtils.debugFullLog("Middle of row, going right");
+                LogUtils.debugLog("Middle of row, going right");
                 updateKeys(false, false, true, false, true);
                 return;
             case LEFT:
-                LogUtils.debugFullLog("Middle of row, going left");
+                LogUtils.debugLog("Middle of row, going left");
                 updateKeys(false, false, false, true, true);
                 return;
             case SWITCH_START:
@@ -222,7 +231,7 @@ public class CropMacro extends Macro{
                     updateKeys(true, false, false, false, false);
                 } else if (pushedSide) {
                     if (gameState.dx < 0.01 && gameState.dz < 0.01) {
-                        LogUtils.debugFullLog("Stopped, go forwards");
+                        LogUtils.debugLog("Stopped, go forwards");
                         updateKeys(true, false, false, false, false);
                     } else {
                         LogUtils.debugFullLog("Pushed, waiting till stopped");
@@ -250,7 +259,7 @@ public class CropMacro extends Macro{
                 }
                 return;
             case SWITCH_MID:
-                LogUtils.debugFullLog("Middle of switch, keep going forwards");
+                LogUtils.debugLog("Middle of switch, keep going forwards");
                 updateKeys(true, false, false, false, false);
                 return;
             case SWITCH_END:
@@ -262,17 +271,17 @@ public class CropMacro extends Macro{
                     updateKeys(false, false, false, true, true);
                 } else if (pushedFront) {
                     if (gameState.dx < 0.01 && gameState.dz < 0.01) {
-                        if (InventoryUtils.getSlotForItem("Stone") != -1) {
+                        if (MiscConfig.dropStone && InventoryUtils.getSlotForItem("Stone") != -1) {
                             currentState = State.STONE_THROW;
                             stoneState = StoneThrowState.ROTATE_AWAY;
                             rotation.reset();
-                            LogUtils.debugFullLog("Found stone, switching state");
+                            LogUtils.debugLog("Found stone, switching state");
                             updateKeys(false, false, true, false, true);
                         } else if (gameState.rightWalkable) {
-                            LogUtils.debugFullLog("Stopped, go right");
+                            LogUtils.debugLog("Stopped, go right");
                             updateKeys(false, false, true, false, true);
                         } else {
-                            LogUtils.debugFullLog("Stopped, go left");
+                            LogUtils.debugLog("Stopped, go left");
                             updateKeys(false, false, false, true, true);
                         }
                     } else {
@@ -300,7 +309,7 @@ public class CropMacro extends Macro{
                             rotation.reset();
                             return;
                         } else if (!rotation.rotating) {
-                            LogUtils.debugFullLog("Rotating away");
+                            LogUtils.debugLog("Rotating away");
                             hoeSlot = mc.thePlayer.inventory.currentItem;
                             mc.thePlayer.inventory.currentItem = 6;
                             if (gameState.rightWalkable) {
@@ -312,7 +321,7 @@ public class CropMacro extends Macro{
                         return;
                     case LIFT:
                         if (!stoneDropTimer.isScheduled()) {
-                            LogUtils.debugFullLog("Lifting");
+                            LogUtils.debugLog("Lifting");
                             InventoryUtils.clickOpenContainerSlot(stoneSlot);
                             InventoryUtils.clickOpenContainerSlot(stoneSlot, 6);
                             stoneDropTimer.schedule(200);
@@ -322,9 +331,8 @@ public class CropMacro extends Macro{
                         }
                         return;
                     case SWITCH:
-                        LogUtils.debugFullLog("switching - " + stoneDropTimer.passed() + ", " + stoneDropTimer.isScheduled());
                         if (!stoneDropTimer.isScheduled()) {
-                            LogUtils.debugFullLog("Switching");
+                            LogUtils.debugLog("Switching");
                             stoneDropTimer.schedule(1000);
                             InventoryUtils.clickOpenContainerSlot(35 + 7, 0);
                         } else if (stoneDropTimer.passed()) {
@@ -334,7 +342,7 @@ public class CropMacro extends Macro{
                         return;
                     case DROP:
                         if (!stoneDropTimer.isScheduled()) {
-                            LogUtils.debugFullLog("Dropping");
+                            LogUtils.debugLog("Dropping");
                             mc.thePlayer.dropOneItem(true);
                             stoneDropTimer.schedule(1000);
                         } else if (stoneDropTimer.passed()) {
@@ -351,7 +359,7 @@ public class CropMacro extends Macro{
                             Antistuck.cooldown.schedule(2000);
                             return;
                         } else if (!rotation.rotating) {
-                            LogUtils.debugFullLog("Rotating back");
+                            LogUtils.debugLog("Rotating back");
                             mc.thePlayer.inventory.currentItem = hoeSlot;
                             rotation.easeTo(yaw, pitch, 1000);
                         }
@@ -424,6 +432,7 @@ public class CropMacro extends Macro{
         LogUtils.debugLog("Cannot find direction. Length > 180");
         return State.NONE;
     }
+
     public static Runnable fixRowStuck = () -> {
         try {
             Thread.sleep(20);
