@@ -205,9 +205,11 @@ public class SugarcaneMacro extends Macro {
             currentState = BlockUtils.isWalkable(BlockUtils.getLeftBlock()) ? State.LEFT : State.RIGHT;
             return;
         }
+       /* LogUtils.debugFullLog(gameState.leftWalkable + " " + gameState.rightWalkable + " " + (blockInPos.getX() != targetBlockPos.getX()) + " " + (blockInPos.getZ()!=targetBlockPos.getZ()) + " " +
+                gameState.dx + " " + gameState.dz);*/
         if((!gameState.leftWalkable || !gameState.rightWalkable) &&
                 (blockInPos.getX() != targetBlockPos.getX() || blockInPos.getZ() != targetBlockPos.getZ()) &&
-               gameState.dx == 0 && gameState.dz == 0){
+               Math.round(gameState.dx * 100.0) / 100.0 == 0 && Math.round(gameState.dz * 100.0) / 100.0 == 0){
 
             LogUtils.debugFullLog("switch");
             currentState = State.SWITCH;
@@ -287,7 +289,7 @@ public class SugarcaneMacro extends Macro {
     }
 
     int getRotateAmount() {
-        if (BlockUtils.getRelativeBlock(-1, 0, -5).equals(Blocks.dirt) || BlockUtils.getRelativeBlock(1, 0, -5).equals(Blocks.dirt))
+        if (BlockUtils.getRelativeBlock(-3, 0, -5).equals(Blocks.dirt) || BlockUtils.getRelativeBlock(3, 0, -5).equals(Blocks.dirt))
             return 180;
 
         if (BlockUtils.getRelativeBlock(-2, 0, -1).equals(Blocks.dirt))
