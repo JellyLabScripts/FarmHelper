@@ -207,6 +207,7 @@ public class SugarcaneMacro extends Macro {
         }
        /* LogUtils.debugFullLog(gameState.leftWalkable + " " + gameState.rightWalkable + " " + (blockInPos.getX() != targetBlockPos.getX()) + " " + (blockInPos.getZ()!=targetBlockPos.getZ()) + " " +
                 gameState.dx + " " + gameState.dz);*/
+
         if((!gameState.leftWalkable || !gameState.rightWalkable) &&
                 (blockInPos.getX() != targetBlockPos.getX() || blockInPos.getZ() != targetBlockPos.getZ()) &&
                Math.round(gameState.dx * 100.0) / 100.0 == 0 && Math.round(gameState.dz * 100.0) / 100.0 == 0){
