@@ -114,11 +114,21 @@ public class SugarcaneMacro extends Macro {
 
         if(currentState != State.TPPAD)
             rotation.lockAngle(playerYaw, 0);
+
         switch (currentState) {
             case TPPAD:
                 if (BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
                     if (mc.thePlayer.posY % 1 == 0.8125) {
-                        if (isWalkable(getRelativeBlock(1, 0.1875f, 0))) {
+                        if (!rotation.completed) {
+                            if (!rotation.rotating) {
+                                LogUtils.debugLog("Fixing pitch");
+                                rotation.reset();
+                                playerYaw = AngleUtils.get360RotationYaw();
+                                rotation.easeTo(playerYaw, 0, 500);
+                            }
+                            LogUtils.debugFullLog("Waiting fix pitch");
+                            updateKeys(false, false, false, false, false);
+                        }else if (isWalkable(getRelativeBlock(1, 0.1875f, 0))) {
                             LogUtils.debugFullLog("On top of pad, go right");
                             updateKeys(false, false, true, false, true);
                         } else if (isWalkable(getRelativeBlock(-1, 0.1875f, 0))) {
