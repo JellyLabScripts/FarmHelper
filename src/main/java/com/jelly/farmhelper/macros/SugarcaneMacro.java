@@ -242,8 +242,6 @@ public class SugarcaneMacro extends Macro {
             rotation.reset();
         }
     }
-
-
     //antistuck
     Runnable fixStuck = () -> {
         try {
@@ -278,7 +276,6 @@ public class SugarcaneMacro extends Macro {
 
             }
         }
-
         LogUtils.scriptLog("can't calculate target block!");
         return new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
 
