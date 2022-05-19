@@ -1,7 +1,7 @@
 package com.jelly.farmhelper.macros;
 
-import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 public abstract class Macro {
     public Minecraft mc = Minecraft.getMinecraft();
@@ -22,7 +22,9 @@ public abstract class Macro {
 
     public abstract void onTick();
 
-    public abstract void onRender();
+    public abstract void onLastRender();
 
     public abstract void onChatMessageReceived(String msg);
+
+    public abstract void onOverlayRender(RenderGameOverlayEvent event);
 }

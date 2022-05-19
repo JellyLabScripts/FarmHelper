@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.macros;
 
+import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -7,6 +8,7 @@ import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 import java.util.ArrayList;
 
@@ -20,7 +22,6 @@ public class SugarcaneMacro extends Macro {
     public static State currentState;
     public static boolean pushedOff;
     volatile static boolean stuck = false;
-    public int layerY = 0;
 
     static boolean setspawnLag;
     State lastState;
@@ -39,7 +40,6 @@ public class SugarcaneMacro extends Macro {
     }
 
     public static BlockPos targetBlockPos = new BlockPos(1000, 1000, 1000);
-
     private static float playerYaw = 0;
 
 
@@ -49,7 +49,6 @@ public class SugarcaneMacro extends Macro {
         mc.thePlayer.closeScreen();
         enabled = true;
         playerYaw = AngleUtils.get360RotationYaw(AngleUtils.getClosest());
-        layerY = (int) mc.thePlayer.posY;
         rotation.easeTo(playerYaw, 0, 500);
         currentState = State.NONE;
         lastState = State.NONE;
@@ -62,7 +61,7 @@ public class SugarcaneMacro extends Macro {
     }
 
     @Override
-    public void onRender() {
+    public void onLastRender() {
         if (rotation.rotating) {
             rotation.update();
         }
@@ -74,9 +73,22 @@ public class SugarcaneMacro extends Macro {
             setspawnLag = false;
     }
 
+    @Override
+    public void onOverlayRender(RenderGameOverlayEvent event) {
+        if(MiscConfig.debugMode && event.type == RenderGameOverlayEvent.ElementType.TEXT){
+            mc.fontRendererObj.drawString((gameState.dy != 0) + " ", 5, 80, -1);
+            mc.fontRendererObj.drawString((currentState != SugarcaneMacro.State.TPPAD) + " ", 1, 95, -1);
+            mc.fontRendererObj.drawString(BlockUtils.getRelativeBlock(0, -1, 0).toString(), 1, 110, -1);
+            mc.fontRendererObj.drawString((gameState.currentLocation == GameState.location.ISLAND) + " ", 1, 125, -1);
+        }
+    }
+
 
     @Override
     public void onTick() {
+        if(mc.thePlayer == null || mc.theWorld == null)
+            return;
+
         if (gameState.currentLocation != GameState.location.ISLAND) {
             updateKeys(false, false, false, false, false);
             return;
@@ -88,6 +100,7 @@ public class SugarcaneMacro extends Macro {
         }
         if (stuck)
             return;
+
 
         mc.thePlayer.inventory.currentItem = InventoryUtils.getSCHoeSlot();
 
@@ -162,9 +175,6 @@ public class SugarcaneMacro extends Macro {
                 } else {
                     if (mc.thePlayer.posY % 1 == 0) {
                         LogUtils.debugFullLog("Dropped, resuming");
-
-                        //rotation.reset();
-                        layerY = (int) mc.thePlayer.posY;
                         targetBlockPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
                         currentState = State.NONE;
                         lastState = State.NONE;
@@ -188,8 +198,7 @@ public class SugarcaneMacro extends Macro {
             currentState = State.TPPAD;
             return;
         }
-        if (currentState == State.DROPPING || (mc.thePlayer.posY - mc.thePlayer.lastTickPosY != 0 && Math.abs(mc.thePlayer.posY - layerY) > 1 && currentState != State.TPPAD && BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.air) && gameState.currentLocation == GameState.location.ISLAND)) {
-            LogUtils.debugLog("dropping" + " " + (currentState == State.DROPPING));
+        if (currentState == State.DROPPING || (gameState.dy != 0 && currentState != State.TPPAD && BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.air) && gameState.currentLocation == GameState.location.ISLAND)) {
             currentState = State.DROPPING;
             return;
         }

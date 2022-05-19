@@ -4,11 +4,10 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
-import com.jelly.farmhelper.gui.MenuGUI;
 import com.jelly.farmhelper.utils.*;
-import com.sun.scenario.effect.Crop;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -33,10 +32,15 @@ public class MacroHandler {
     }
 
     @SubscribeEvent
-    public void onRender(RenderWorldLastEvent event) {
-        if (on) {
-            currentMacro.onRender();
-        }
+    public void onLastRender(RenderWorldLastEvent event) {
+        if (on)
+            currentMacro.onLastRender();
+    }
+
+    @SubscribeEvent
+    public void onOverlayRender(RenderGameOverlayEvent event){
+        if(on)
+            currentMacro.onOverlayRender(event);
     }
 
     @SubscribeEvent

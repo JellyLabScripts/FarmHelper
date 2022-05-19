@@ -16,6 +16,7 @@ import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 public class CropMacro extends Macro {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -81,7 +82,7 @@ public class CropMacro extends Macro {
     }
 
     @Override
-    public void onRender() {
+    public void onLastRender() {
         if (rotation.rotating) {
             rotation.update();
         }
@@ -89,6 +90,11 @@ public class CropMacro extends Macro {
 
     @Override
     public void onChatMessageReceived(String msg) {
+
+    }
+
+    @Override
+    public void onOverlayRender(RenderGameOverlayEvent event) {
 
     }
 
