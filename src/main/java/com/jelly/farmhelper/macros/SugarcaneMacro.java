@@ -5,7 +5,6 @@ import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
-import jline.internal.Log;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
@@ -112,8 +111,9 @@ public class SugarcaneMacro extends Macro {
         updateState();
         lastState = currentState;
 
-        if(currentState != State.TPPAD)
+        if(currentState != State.TPPAD) {
             rotation.lockAngle(playerYaw, 0);
+        }
 
         switch (currentState) {
             case TPPAD:
@@ -121,9 +121,11 @@ public class SugarcaneMacro extends Macro {
                 if (BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
                     if (mc.thePlayer.posY % 1 == 0.8125) {
                         if (isWalkable(getRelativeBlock(1, 0.1875f, 0))) {
+                            playerYaw = AngleUtils.get360RotationYaw(AngleUtils.getClosest());
                             LogUtils.debugFullLog("On top of pad, go right");
                             updateKeys(false, false, true, false, true);
                         } else if (isWalkable(getRelativeBlock(-1, 0.1875f, 0))) {
+                            playerYaw = AngleUtils.get360RotationYaw(AngleUtils.getClosest());
                             LogUtils.debugFullLog("On top of pad, go left");
                             updateKeys(false, false, false, true, true);
                         } else {
@@ -166,7 +168,7 @@ public class SugarcaneMacro extends Macro {
                 if (!rotation.completed) {
                     if (!rotation.rotating) {
                         if (mc.thePlayer.posY - mc.thePlayer.lastTickPosY == 0) {
-                            LogUtils.debugFullLog("Rotating 180");
+                            LogUtils.debugFullLog("Rotating " + getRotateAmount());
                             rotation.reset();
                             playerYaw = AngleUtils.get360RotationYaw(playerYaw + getRotateAmount());
                             rotation.easeTo(playerYaw, 0, 2000);
@@ -196,7 +198,12 @@ public class SugarcaneMacro extends Macro {
 
     private void updateState() {
         BlockPos blockInPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
-        if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || (currentState == State.TPPAD)) {
+
+        if(lastState == State.TPPAD && BlockUtils.getRelativeBlock(0, -1, 0) != Blocks.end_portal_frame && BlockUtils.getRelativeBlock(0, 0, 0) != Blocks.end_portal_frame){
+            currentState = calculateDirection();
+            rotation.reset();
+        }
+        if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
             currentState = State.TPPAD;
             return;
         }
@@ -216,8 +223,6 @@ public class SugarcaneMacro extends Macro {
             currentState = BlockUtils.isWalkable(BlockUtils.getLeftBlock()) ? State.LEFT : State.RIGHT;
             return;
         }
-       /* LogUtils.debugFullLog(gameState.leftWalkable + " " + gameState.rightWalkable + " " + (blockInPos.getX() != targetBlockPos.getX()) + " " + (blockInPos.getZ()!=targetBlockPos.getZ()) + " " +
-                gameState.dx + " " + gameState.dz);*/
 
         if((!gameState.leftWalkable || !gameState.rightWalkable) &&
                 (blockInPos.getX() != targetBlockPos.getX() || blockInPos.getZ() != targetBlockPos.getZ()) &&
