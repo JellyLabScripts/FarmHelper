@@ -5,6 +5,7 @@ import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
+import jline.internal.Log;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
@@ -18,13 +19,12 @@ import static com.jelly.farmhelper.utils.KeyBindUtils.*;
 import static com.jelly.farmhelper.FarmHelper.gameState;
 
 public class SugarcaneMacro extends Macro {
-    public static State lastLaneDirection;
+    public static State lastState;
     public static State currentState;
     public static boolean pushedOff;
-    volatile static boolean stuck = false;
+    public static boolean stuck = false;
 
     static boolean setspawnLag;
-    State lastState;
 
 
     private static final Rotation rotation = new Rotation();
@@ -117,18 +117,10 @@ public class SugarcaneMacro extends Macro {
 
         switch (currentState) {
             case TPPAD:
+
                 if (BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
                     if (mc.thePlayer.posY % 1 == 0.8125) {
-                        if (!rotation.completed) {
-                            if (!rotation.rotating) {
-                                LogUtils.debugLog("Fixing pitch");
-                                rotation.reset();
-                                playerYaw = AngleUtils.get360RotationYaw();
-                                rotation.easeTo(playerYaw, 0, 500);
-                            }
-                            LogUtils.debugFullLog("Waiting fix pitch");
-                            updateKeys(false, false, false, false, false);
-                        }else if (isWalkable(getRelativeBlock(1, 0.1875f, 0))) {
+                        if (isWalkable(getRelativeBlock(1, 0.1875f, 0))) {
                             LogUtils.debugFullLog("On top of pad, go right");
                             updateKeys(false, false, true, false, true);
                         } else if (isWalkable(getRelativeBlock(-1, 0.1875f, 0))) {
@@ -204,7 +196,7 @@ public class SugarcaneMacro extends Macro {
 
     private void updateState() {
         BlockPos blockInPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
-        if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
+        if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || (currentState == State.TPPAD)) {
             currentState = State.TPPAD;
             return;
         }
@@ -269,7 +261,7 @@ public class SugarcaneMacro extends Macro {
             if (!BlockUtils.isWalkable(BlockUtils.getRightBlock()) && !BlockUtils.isWalkable(BlockUtils.getLeftBlock())) {
                 return BlockUtils.getRelativeBlockPos(0, 0, 1);
             } else {
-                if (!BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 1, 0)) && !BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 1, 0))) {
+                if (!BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 0, 1)) && !BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 0, 1))) {
                     LogUtils.scriptLog("Detected one block off");
                     return BlockUtils.getRelativeBlockPos(0, 0, 5);
                 } else {
@@ -328,7 +320,6 @@ public class SugarcaneMacro extends Macro {
 
     void initializeVariables() {
         pushedOff = false;
-        lastLaneDirection = calculateDirection();
         currentState = calculateDirection();
         stuck = false;
         setspawnLag = false;
