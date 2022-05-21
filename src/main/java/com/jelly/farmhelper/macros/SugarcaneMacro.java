@@ -44,14 +44,19 @@ public class SugarcaneMacro extends Macro {
 
     @Override
     public void onEnable() {
-        initializeVariables();
+        LogUtils.scriptLog("Enabling");
+        pushedOff = false;
+        stuck = false;
+        setspawnLag = false;
         mc.thePlayer.closeScreen();
-        enabled = true;
-        playerYaw = AngleUtils.get360RotationYaw(AngleUtils.getClosest());
-        rotation.easeTo(playerYaw, 0, 500);
+        if(gameState.currentLocation == GameState.location.ISLAND) {
+            playerYaw = AngleUtils.get360RotationYaw(AngleUtils.getClosest());
+            rotation.easeTo(playerYaw, 0, 500);
+        }
         currentState = State.NONE;
         lastState = State.NONE;
         targetBlockPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+        enabled = true;
     }
 
     @Override
@@ -164,26 +169,26 @@ public class SugarcaneMacro extends Macro {
                 return;
             }
             case DROPPING: {
-                LogUtils.debugFullLog("Rotating");
+                LogUtils.debugFullLog("Dropping - Rotating");
                 if (!rotation.completed) {
                     if (!rotation.rotating) {
                         if (mc.thePlayer.posY - mc.thePlayer.lastTickPosY == 0) {
-                            LogUtils.debugFullLog("Rotating " + getRotateAmount());
+                            LogUtils.debugFullLog("Dropping - Rotating " + getRotateAmount());
                             rotation.reset();
                             playerYaw = AngleUtils.get360RotationYaw(playerYaw + getRotateAmount());
                             rotation.easeTo(playerYaw, 0, 2000);
                         }
                     }
-                    LogUtils.debugFullLog("Waiting Rotating");
+                    LogUtils.debugFullLog("Dropping - Waiting Rotating");
                     updateKeys(false, false, false, false, false);
                 } else {
                     if (mc.thePlayer.posY % 1 == 0) {
-                        LogUtils.debugFullLog("Dropped, resuming");
+                        LogUtils.debugFullLog("Dropping - Dropped, resuming");
                         targetBlockPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
                         currentState = State.NONE;
                         lastState = State.NONE;
                     } else {
-                        LogUtils.debugFullLog("Falling");
+                        LogUtils.debugFullLog("Dropping - Falling");
                     }
                     updateKeys(false, false, false, false, false);
                 }
@@ -246,11 +251,19 @@ public class SugarcaneMacro extends Macro {
         try {
             Thread.sleep(20);
             updateKeys(false, true, false, false, false);
-            Thread.sleep(500);
+            Thread.sleep(200);
             updateKeys(false, false, false, false, false);
             Thread.sleep(200);
             updateKeys(true, false, false, false, false);
-            Thread.sleep(500);
+            Thread.sleep(200);
+            updateKeys(false, false, false, false, false);
+            Thread.sleep(200);
+            updateKeys(false, false, true, false, false);
+            Thread.sleep(200);
+            updateKeys(false, false, false, false, false);
+            Thread.sleep(200);
+            updateKeys(false, false, false, true, false);
+            Thread.sleep(200);
             updateKeys(false, false, false, false, false);
             Thread.sleep(200);
             stuck = false;
@@ -319,16 +332,9 @@ public class SugarcaneMacro extends Macro {
         LogUtils.scriptLog("Unknown rotation case, if you are not in failsafe, " +
                 "tell this to JellyLab#2505 and provide a screenshot of your drop system" + BlockUtils.getRelativeBlock(-1, 0, -5) + " " + BlockUtils.getRelativeBlock(1, 0, -5) +
                 " " +  BlockUtils.getRelativeBlock(-2, 0, -1) + " " + BlockUtils.getRelativeBlock(2, 0, -1));
-        return 0;
+        return 180;
     }
 
-
-    void initializeVariables() {
-        pushedOff = false;
-        currentState = calculateDirection();
-        stuck = false;
-        setspawnLag = false;
-    }
 
     public static boolean isInCenterOfBlock() {
         return (Math.round(AngleUtils.get360RotationYaw()) == 180 || Math.round(AngleUtils.get360RotationYaw()) == 0) ? Math.abs(Minecraft.getMinecraft().thePlayer.posZ) % 1 > 0.3f && Math.abs(Minecraft.getMinecraft().thePlayer.posZ) % 1 < 0.7f :

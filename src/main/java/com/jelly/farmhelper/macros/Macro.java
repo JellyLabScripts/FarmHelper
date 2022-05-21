@@ -27,4 +27,6 @@ public abstract class Macro {
     public abstract void onChatMessageReceived(String msg);
 
     public abstract void onOverlayRender(RenderGameOverlayEvent event);
+
+
 }
