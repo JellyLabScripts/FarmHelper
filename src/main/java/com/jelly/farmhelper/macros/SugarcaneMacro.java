@@ -175,7 +175,7 @@ public class SugarcaneMacro extends Macro {
                 LogUtils.debugFullLog("Dropping - Rotating");
                 if (!rotation.completed) {
                     if (!rotation.rotating) {
-                        if (mc.thePlayer.posY - mc.thePlayer.lastTickPosY == 0 && !BlockUtils.isWalkable(gameState.blockStandingOn)) {
+                        if (mc.thePlayer.posY % 1 == 0 && !BlockUtils.isWalkable(gameState.blockStandingOn)) {
                             LogUtils.debugFullLog("Dropping - Finished - Rotating " + getRotateAmount());
                             rotation.reset();
                             playerYaw = AngleUtils.get360RotationYaw(playerYaw + getRotateAmount());
@@ -218,6 +218,8 @@ public class SugarcaneMacro extends Macro {
             return;
         }
         if (currentState == State.DROPPING || (gameState.dy != 0 && currentState != State.TPPAD && BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.air) && gameState.currentLocation == GameState.location.ISLAND)) {
+            if(lastState != State.DROPPING)
+                rotation.reset();
             currentState = State.DROPPING;
             return;
         }
