@@ -37,4 +37,15 @@ public class AngleUtils {
             return 270f;
         }
     }
+    public static float getClosest(float yaw) {
+        if (yaw < 45 || yaw > 315) {
+            return 0f;
+        } else if (yaw < 135) {
+            return 90f;
+        } else if (yaw < 225) {
+            return 180f;
+        } else {
+            return 270f;
+        }
+    }
 }

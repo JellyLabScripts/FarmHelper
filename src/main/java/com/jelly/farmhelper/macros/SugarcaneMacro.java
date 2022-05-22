@@ -117,7 +117,8 @@ public class SugarcaneMacro extends Macro {
         updateState();
         lastState = currentState;
 
-        if(currentState != State.TPPAD) {
+        if(currentState != State.TPPAD && currentState != State.DROPPING) {
+            playerYaw = AngleUtils.get360RotationYaw(AngleUtils.getClosest());
             rotation.lockAngle(playerYaw, 0);
         }
 
@@ -178,7 +179,7 @@ public class SugarcaneMacro extends Macro {
                         if (mc.thePlayer.posY % 1 == 0 && !BlockUtils.isWalkable(gameState.blockStandingOn)) {
                             LogUtils.debugFullLog("Dropping - Finished - Rotating " + getRotateAmount());
                             rotation.reset();
-                            playerYaw = AngleUtils.get360RotationYaw(playerYaw + getRotateAmount());
+                            playerYaw = AngleUtils.get360RotationYaw(AngleUtils.getClosest(playerYaw + getRotateAmount()));
                             rotation.easeTo(playerYaw, 0, 2000);
                         }
                     }
