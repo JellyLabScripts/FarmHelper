@@ -100,6 +100,10 @@ public class CropMacro extends Macro {
 
     @Override
     public void onTick() {
+
+        if(mc.thePlayer == null || mc.theWorld == null)
+            return;
+
         if (gameState.currentLocation != GameState.location.ISLAND) {
             updateKeys(false, false, false, false, false);
             return;

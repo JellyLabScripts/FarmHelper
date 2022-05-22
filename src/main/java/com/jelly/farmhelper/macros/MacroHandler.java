@@ -27,7 +27,8 @@ public class MacroHandler {
     @SubscribeEvent
     public void onChatMessageReceived(ClientChatReceivedEvent e) {
         if (on) {
-            currentMacro.onChatMessageReceived(e.message.getUnformattedText());
+            if(e.message != null)
+                 currentMacro.onChatMessageReceived(e.message.getUnformattedText());
         }
     }
 

@@ -21,7 +21,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class Resync {
-    private static boolean enabled;
     private static final Clock checkTimer = new Clock();
     public static BlockPos lastBrokenPos;
     private static BlockPos cachedPos;
@@ -54,24 +53,4 @@ public class Resync {
         }
     }
 
-//    @SubscribeEvent
-//    public final void tick(TickEvent.ClientTickEvent event) {
-//        if (enabled && mc.theWorld != null && lastBrokenPos != null && mc.theWorld.getBlockState(lastBrokenPos) != null) {
-//            System.out.println(checkTimer.passed() + ", " + lastBrokenPos + ", " + (mc.theWorld.getBlockState(lastBrokenPos).getBlock()));
-//            if (checkTimer.passed() && mc.theWorld.getBlockState(lastBrokenPos).getBlock() instanceof BlockBush) {
-//                LogUtils.debugFullLog("Resync - in tick " + " " + mc.theWorld.getBlockState(lastBrokenPos));
-//                cachedPos = lastBrokenPos;
-//                verifyTimer.schedule(5000);
-//                checkTimer.schedule(8000);
-//            } else if (verifyTimer.passed() && cachedPos != null && mc.theWorld.getBlockState(cachedPos) != null) {
-//                verifyTimer.reset();
-//                LogUtils.debugLog("Rechecked - " + mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE));
-//                if (FarmConfig.cropType == CropEnum.NETHERWART && mc.theWorld.getBlockState(cachedPos).getValue(BlockNetherWart.AGE) > 2) {
-//
-//                } else if (mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE) > 2) {
-//
-//                }
-//            }
-//        }
-//    }
 }

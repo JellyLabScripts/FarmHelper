@@ -172,8 +172,8 @@ public class SugarcaneMacro extends Macro {
                 LogUtils.debugFullLog("Dropping - Rotating");
                 if (!rotation.completed) {
                     if (!rotation.rotating) {
-                        if (mc.thePlayer.posY - mc.thePlayer.lastTickPosY == 0) {
-                            LogUtils.debugFullLog("Dropping - Rotating " + getRotateAmount());
+                        if (mc.thePlayer.posY - mc.thePlayer.lastTickPosY == 0 && !BlockUtils.isWalkable(gameState.blockStandingOn)) {
+                            LogUtils.debugFullLog("Dropping - Finished - Rotating " + getRotateAmount());
                             rotation.reset();
                             playerYaw = AngleUtils.get360RotationYaw(playerYaw + getRotateAmount());
                             rotation.easeTo(playerYaw, 0, 2000);
@@ -182,8 +182,8 @@ public class SugarcaneMacro extends Macro {
                     LogUtils.debugFullLog("Dropping - Waiting Rotating");
                     updateKeys(false, false, false, false, false);
                 } else {
-                    if (mc.thePlayer.posY % 1 == 0) {
-                        LogUtils.debugFullLog("Dropping - Dropped, resuming");
+                    if (mc.thePlayer.posY % 1 == 0 && !BlockUtils.isWalkable(gameState.blockStandingOn)) {
+                        LogUtils.debugFullLog("Dropping - Finished rotating, resuming");
                         targetBlockPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
                         currentState = State.NONE;
                         lastState = State.NONE;
