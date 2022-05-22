@@ -23,6 +23,7 @@ public class SugarcaneMacro extends Macro {
     public static boolean pushedOff;
     public static boolean stuck = false;
 
+    static boolean endedTeleporting = false;
     static boolean setspawnLag;
 
 
@@ -132,6 +133,7 @@ public class SugarcaneMacro extends Macro {
                         } else if (isWalkable(getRelativeBlock(-1, 0.1875f, 0))) {
                             playerYaw = AngleUtils.get360RotationYaw(AngleUtils.getClosest());
                             LogUtils.debugFullLog("On top of pad, go left");
+                            currentState = State.LEFT;
                             updateKeys(false, false, false, true, true);
                         } else {
                             LogUtils.debugFullLog("On top of pad, cant detect where to go");
@@ -144,7 +146,8 @@ public class SugarcaneMacro extends Macro {
                         LogUtils.debugFullLog("Waiting for teleport land (close)");
                         updateKeys(false, false, false, false, false);
                     }
-                }
+                } else if(mc.gameSettings.keyBindRight.isKeyDown() || mc.gameSettings.keyBindLeft.isKeyDown()){endedTeleporting = true; LogUtils.debugFullLog("Setting endedTeleporting to true");}
+
                 return;
             case LEFT:
                 updateKeys(false, false, false, !setspawnLag, true, false, false);
@@ -208,7 +211,9 @@ public class SugarcaneMacro extends Macro {
             currentState = calculateDirection();
             rotation.reset();
         }
-        if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
+        if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || (lastState == State.TPPAD && !endedTeleporting)) {
+            LogUtils.debugFullLog("Switching to tp pad");
+            endedTeleporting = false;
             currentState = State.TPPAD;
             return;
         }
