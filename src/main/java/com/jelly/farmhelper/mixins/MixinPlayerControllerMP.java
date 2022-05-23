@@ -1,12 +1,10 @@
 package com.jelly.farmhelper.mixins;
 
-import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.features.Resync;
 import com.jelly.farmhelper.macros.CropMacro;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.macros.SugarcaneMacro;
-import com.sun.scenario.effect.Crop;
 import net.minecraft.block.BlockBush;
 import net.minecraft.block.BlockReed;
 import net.minecraft.client.Minecraft;
@@ -22,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MixinPlayerControllerMP {
     @Inject(method={"clickBlock"}, at={@At(value="HEAD")}, cancellable=true)
     public void clickBlock(BlockPos loc, EnumFacing face, CallbackInfoReturnable<Boolean> cir) {
-        if (MiscConfig.resync && MacroHandler.on && loc != null && Minecraft.getMinecraft().theWorld.getBlockState(loc) != null &&
+        if (MiscConfig.resync && MacroHandler.isMacroOn && loc != null && Minecraft.getMinecraft().theWorld.getBlockState(loc) != null &&
                 (Minecraft.getMinecraft().theWorld.getBlockState(loc).getBlock() instanceof BlockBush || Minecraft.getMinecraft().theWorld.getBlockState(loc).getBlock() instanceof BlockReed)) {
             if(MacroHandler.currentMacro instanceof SugarcaneMacro || MacroHandler.currentMacro instanceof CropMacro)
             Resync.update(loc);

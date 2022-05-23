@@ -1,9 +1,11 @@
 package com.jelly.farmhelper.features;
 
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
+import com.jelly.farmhelper.world.GameState;
 import net.minecraft.block.BlockBush;
 import net.minecraft.block.BlockCarrot;
 import net.minecraft.block.BlockCrops;
@@ -41,7 +43,7 @@ public class Resync {
                             mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE) > 4) {
                               LogUtils.debugLog("Desync detected");
                               LogUtils.webhookLog("Desync detected");
-                              mc.thePlayer.sendChatMessage("/hub");
+                              if(FarmHelper.gameState.currentLocation == GameState.location.ISLAND) mc.thePlayer.sendChatMessage("/hub");
                           }
                       }
                       t.cancel();

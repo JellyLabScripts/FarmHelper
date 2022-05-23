@@ -26,6 +26,11 @@ public class SugarcaneMacro extends Macro {
     static boolean endedTeleporting = false;
     static boolean setspawnLag;
 
+    public static BlockPos targetBlockPos = new BlockPos(1000, 1000, 1000);
+    private static float playerYaw = 0;
+
+    public static Clock antistuckCheck = new Clock();
+
 
     private static final Rotation rotation = new Rotation();
 
@@ -39,8 +44,7 @@ public class SugarcaneMacro extends Macro {
         NONE
     }
 
-    public static BlockPos targetBlockPos = new BlockPos(1000, 1000, 1000);
-    private static float playerYaw = 0;
+
 
 
     @Override
@@ -74,8 +78,11 @@ public class SugarcaneMacro extends Macro {
 
     @Override
     public void onChatMessageReceived(String msg) {
-        if (msg.contains("spawn location has been set"))
-            setspawnLag = false;
+
+        try {
+            if (msg.contains("spawn location has been set"))
+                setspawnLag = false;
+        }catch(Exception ignored){}
     }
 
     @Override
@@ -177,9 +184,9 @@ public class SugarcaneMacro extends Macro {
                 if (!rotation.completed) {
                     if (!rotation.rotating) {
                         if (mc.thePlayer.posY % 1 == 0 && !BlockUtils.isWalkable(gameState.blockStandingOn)) {
-                            LogUtils.debugFullLog("Dropping - Finished - Rotating " + getRotateAmount());
+                            LogUtils.scriptLog("Dropping - Finished - Rotating " + getRotateAmount() + " From " + playerYaw + " to " + AngleUtils.get360RotationYaw(AngleUtils.getClosest(AngleUtils.get360RotationYaw() + getRotateAmount())));
                             rotation.reset();
-                            playerYaw = AngleUtils.get360RotationYaw(AngleUtils.getClosest(playerYaw + getRotateAmount()));
+                            playerYaw = AngleUtils.get360RotationYaw(AngleUtils.get360RotationYaw() + getRotateAmount());
                             rotation.easeTo(playerYaw, 0, 2000);
                         }
                     }
@@ -187,7 +194,7 @@ public class SugarcaneMacro extends Macro {
                     updateKeys(false, false, false, false, false);
                 } else {
                     if (mc.thePlayer.posY % 1 == 0 && !BlockUtils.isWalkable(gameState.blockStandingOn)) {
-                        LogUtils.debugFullLog("Dropping - Finished rotating, resuming");
+                        LogUtils.scriptLog("Dropping - Finished rotating, resuming");
                         targetBlockPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
                         currentState = State.NONE;
                         lastState = State.NONE;
@@ -219,8 +226,10 @@ public class SugarcaneMacro extends Macro {
             return;
         }
         if (currentState == State.DROPPING || (gameState.dy != 0 && currentState != State.TPPAD && BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.air) && gameState.currentLocation == GameState.location.ISLAND)) {
-            if(lastState != State.DROPPING)
+            if(lastState != State.DROPPING) {
+                LogUtils.scriptLog("Detected drop");
                 rotation.reset();
+            }
             currentState = State.DROPPING;
             return;
         }
@@ -257,26 +266,22 @@ public class SugarcaneMacro extends Macro {
     //antistuck
     Runnable fixStuck = () -> {
         try {
+            if(antistuckCheck.isScheduled())
+                mc.thePlayer.sendChatMessage("/lobby");
+
             Thread.sleep(20);
             updateKeys(false, true, false, false, false);
             Thread.sleep(200);
-            updateKeys(false, false, false, false, false);
-            Thread.sleep(200);
             updateKeys(true, false, false, false, false);
-            Thread.sleep(200);
-            updateKeys(false, false, false, false, false);
             Thread.sleep(200);
             updateKeys(false, false, true, false, false);
             Thread.sleep(200);
-            updateKeys(false, false, false, false, false);
-            Thread.sleep(200);
             updateKeys(false, false, false, true, false);
-            Thread.sleep(200);
-            updateKeys(false, false, false, false, false);
             Thread.sleep(200);
             stuck = false;
             Antistuck.stuck = false;
             Antistuck.cooldown.schedule(2000);
+            antistuckCheck.schedule(10000);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -298,8 +303,6 @@ public class SugarcaneMacro extends Macro {
         }
         LogUtils.scriptLog("can't calculate target block!");
         return new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
-
-
     }
 
     State calculateDirection() {
@@ -338,7 +341,7 @@ public class SugarcaneMacro extends Macro {
             return -90;
 
         LogUtils.scriptLog("Unknown rotation case, if you are not in failsafe, " +
-                "tell this to JellyLab#2505 and provide a screenshot of your drop system" + BlockUtils.getRelativeBlock(-1, 0, -5) + " " + BlockUtils.getRelativeBlock(1, 0, -5) +
+                "tell this to JellyLab#2505 and provide a screenshot of your drop system " + BlockUtils.getRelativeBlock(-1, 0, -5) + " " + BlockUtils.getRelativeBlock(1, 0, -5) +
                 " " +  BlockUtils.getRelativeBlock(-2, 0, -1) + " " + BlockUtils.getRelativeBlock(2, 0, -1));
         return 180;
     }

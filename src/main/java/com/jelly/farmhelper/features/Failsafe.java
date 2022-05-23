@@ -25,7 +25,7 @@ public class Failsafe {
     @SubscribeEvent
     public void onMessageReceived(ClientChatReceivedEvent event) {
         String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
-        if (MacroHandler.on) {
+        if (MacroHandler.isMacroOn) {
             if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing") || message.contains("You cannot join SkyBlock from here!")) {
                 LogUtils.debugLog("Failed teleport - waiting");
                 teleporting = false;
@@ -36,7 +36,7 @@ public class Failsafe {
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
-        if (!MacroHandler.on || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
+        if (!MacroHandler.isMacroOn || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
 
         switch (gameState.currentLocation) {
             case TELEPORTING:

@@ -1,6 +1,5 @@
 package com.jelly.farmhelper.features;
 
-import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
@@ -17,9 +16,15 @@ public class Antistuck {
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
-        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
+        if(event.phase == TickEvent.Phase.END)
+            return;
+        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled || mc.thePlayer == null || mc.theWorld == null) {
+            lastX = 10000;
+            lastZ = 10000;
+            return;
+        }
         if (cooldown.passed()) {
-            stuck = Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1;
+            stuck = Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1 && MacroHandler.isMacroOn;
             if (stuck) {
                 LogUtils.webhookLog("Stuck, trying to fix");
                 LogUtils.debugLog("Stuck, trying to fix");

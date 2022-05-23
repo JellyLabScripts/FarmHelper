@@ -17,7 +17,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 public class MacroHandler {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public static Macro currentMacro;
-    public static boolean on;
+    public static boolean isMacroOn;
     public static SugarcaneMacro sugarcaneMacro = new SugarcaneMacro();
     public static CropMacro cropMacro = new CropMacro();
 
@@ -26,7 +26,7 @@ public class MacroHandler {
 
     @SubscribeEvent
     public void onChatMessageReceived(ClientChatReceivedEvent e) {
-        if (on) {
+        if (isMacroOn) {
             if(e.message != null)
                  currentMacro.onChatMessageReceived(e.message.getUnformattedText());
         }
@@ -34,13 +34,13 @@ public class MacroHandler {
 
     @SubscribeEvent
     public void onLastRender(RenderWorldLastEvent event) {
-        if (on)
+        if (isMacroOn)
             currentMacro.onLastRender();
     }
 
     @SubscribeEvent
     public void onOverlayRender(RenderGameOverlayEvent event){
-        if(on)
+        if(isMacroOn)
             currentMacro.onOverlayRender(event);
     }
 
@@ -52,8 +52,8 @@ public class MacroHandler {
             else
                 currentMacro = cropMacro;
 
-            on = !on;
-            if (on) {
+            isMacroOn = !isMacroOn;
+            if (isMacroOn) {
                 LogUtils.scriptLog("Starting script");
                 LogUtils.webhookLog("Starting script");
                 if (MiscConfig.ungrab) UngrabUtils.ungrabMouse();
@@ -72,7 +72,7 @@ public class MacroHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public final void tick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
-        if (on) {
+        if (isMacroOn) {
             currentMacro.onTick();
             InventoryUtils.getInventoryDifference(mc.thePlayer.inventory.mainInventory);
             if (FarmHelper.tickCount == 1) {
@@ -83,14 +83,14 @@ public class MacroHandler {
     }
 
     public static void disableCurrentMacro() {
-        on = false;
+        isMacroOn = false;
         if (currentMacro.enabled) {
             currentMacro.toggle();
         }
     }
 
     public static void enableCurrentMacro() {
-        on = true;
+        isMacroOn = true;
         if (!currentMacro.enabled) {
             currentMacro.toggle();
         }

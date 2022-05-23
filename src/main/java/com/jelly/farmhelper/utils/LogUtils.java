@@ -26,20 +26,20 @@ public class LogUtils {
 
     public static void scriptLog(String message) {
         sendLog(new ChatComponentText(
-          EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.RED + EnumChatFormatting.BOLD + message
+          EnumChatFormatting.DARK_GREEN + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + message
         ));
     }
 
     public static void scriptLog(String message, EnumChatFormatting color) {
         sendLog(new ChatComponentText(
-          EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + color + EnumChatFormatting.BOLD + message
+          EnumChatFormatting.DARK_GREEN + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + color + EnumChatFormatting.BOLD + message
         ));
     }
 
     public static void debugLog(String message) {
         if (MiscConfig.debugMode || lastDebug != message) {
             sendLog(new ChatComponentText(
-              EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.BOLD + "Log " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + message
+              EnumChatFormatting.GREEN + "Log " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + message
             ));
         }
         lastDebug = message;
