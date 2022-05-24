@@ -25,10 +25,6 @@ public class Antistuck {
         }
         if (cooldown.passed()) {
             stuck = Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1 && MacroHandler.isMacroOn;
-            if (stuck) {
-                LogUtils.webhookLog("Stuck, trying to fix");
-                LogUtils.debugLog("Stuck, trying to fix");
-            }
             lastX = mc.thePlayer.posX;
             lastZ = mc.thePlayer.posZ;
             cooldown.schedule(3000);

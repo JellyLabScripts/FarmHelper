@@ -132,6 +132,8 @@ public class CropMacro extends Macro {
         if (Antistuck.stuck && currentState != State.STONE_THROW) {
             LogUtils.debugFullLog("Antistuck");
             if (!antistuckActive) {
+                LogUtils.webhookLog("Stuck, trying to fix");
+                LogUtils.debugLog("Stuck, trying to fix");
                 antistuckActive = true;
                 switch (currentState) {
                     case RIGHT:

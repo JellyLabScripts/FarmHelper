@@ -49,7 +49,6 @@ public class SugarcaneMacro extends Macro {
 
     @Override
     public void onEnable() {
-        LogUtils.scriptLog("Enabling");
         pushedOff = false;
         stuck = false;
         setspawnLag = false;
@@ -60,6 +59,7 @@ public class SugarcaneMacro extends Macro {
         }
         currentState = State.NONE;
         lastState = State.NONE;
+        antistuckCheck.reset();
         targetBlockPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
         enabled = true;
     }
@@ -116,7 +116,9 @@ public class SugarcaneMacro extends Macro {
 
         mc.thePlayer.inventory.currentItem = InventoryUtils.getSCHoeSlot();
 
-        if(Antistuck.stuck) {
+        if(Antistuck.stuck && currentState != State.DROPPING) {
+            LogUtils.webhookLog("Stuck, trying to fix");
+            LogUtils.debugLog("Stuck, trying to fix");
             new Thread(fixStuck).start();
             stuck = true;
         }
@@ -124,7 +126,7 @@ public class SugarcaneMacro extends Macro {
         updateState();
         lastState = currentState;
 
-        if(currentState != State.TPPAD && currentState != State.DROPPING) {
+        if(currentState != State.TPPAD) {
             playerYaw = AngleUtils.get360RotationYaw(AngleUtils.getClosest());
             rotation.lockAngle(playerYaw, 0);
         }
@@ -165,20 +167,18 @@ public class SugarcaneMacro extends Macro {
                 updateKeys(false, false, !setspawnLag, false, true, false, false);
                 LogUtils.debugFullLog("Going right");
                 return;
-            case SWITCH: {
+            case SWITCH:
                 updateKeys(false, false, false, false, false, true, false);
                 if (!pushedOff) {
                     updateKeys(false, false, !gameState.leftWalkable, gameState.leftWalkable, false, true, false);
                 }
                 pushedOff = true;
                 return;
-            }
-            case FORWARD: {
+            case FORWARD:
                 updateKeys(true, false, false, false, true, !BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, -1, 1)) && !BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, -1, 0)), false);
                 LogUtils.debugFullLog("Going Forward");
                 pushedOff = false;
                 return;
-            }
             case DROPPING: {
                 LogUtils.debugFullLog("Dropping - Rotating");
                 if (!rotation.completed) {
@@ -266,9 +266,14 @@ public class SugarcaneMacro extends Macro {
     //antistuck
     Runnable fixStuck = () -> {
         try {
-            if(antistuckCheck.isScheduled())
+            if(antistuckCheck.isScheduled()) {
                 mc.thePlayer.sendChatMessage("/lobby");
-
+                stuck = false;
+                Antistuck.stuck = false;
+                Antistuck.cooldown.schedule(2000);
+                antistuckCheck.reset();
+                return;
+            }
             Thread.sleep(20);
             updateKeys(false, true, false, false, false);
             Thread.sleep(200);
@@ -281,7 +286,7 @@ public class SugarcaneMacro extends Macro {
             stuck = false;
             Antistuck.stuck = false;
             Antistuck.cooldown.schedule(2000);
-            antistuckCheck.schedule(10000);
+            antistuckCheck.schedule(5000);
         } catch (Exception e) {
             e.printStackTrace();
         }
