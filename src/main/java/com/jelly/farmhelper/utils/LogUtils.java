@@ -65,34 +65,36 @@ public class LogUtils {
         );
     }
     public static void webhookStatus() {
-        if (statusMsgTime == -1) {
-            statusMsgTime = System.currentTimeMillis();
-        }
-        long timeDiff = TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - statusMsgTime);
-        if (timeDiff > WebhookConfig.webhookStatusCooldown && WebhookConfig.webhookStatus) {
-            FarmHelper.gameState.webhook.addEmbed(new DiscordWebhook.EmbedObject()
-              .setTitle("Farm Helper")
-              .setDescription("```" + "I'm still alive!" + "```")
-              .setColor(Color.decode("#ff3b3b"))
-              .setFooter("Jelly", "")
-              .setThumbnail("https://crafatar.com/renders/head/" + mc.thePlayer.getUniqueID())
-              .addField("Username", mc.thePlayer.getName(), true)
-              .addField("Runtime", getRuntimeFormat(), true)
-              .addField("Total Profit", ProfitUtils.profit.get(), false)
-              .addField("Profit / hr", ProfitUtils.profitHr.get(), false)
-              .addField(ProfitUtils.getHighTierName(), ProfitUtils.cropCount.get(), true)
-              .addField("Counter", ProfitUtils.counter.get(), true)
-              // .addField("Screenshot", Screenshot.takeScreenshot(), true)
-            );
-            new Thread(() -> {
-                try {
-                    FarmHelper.gameState.webhook.execute();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }).start();
-            statusMsgTime = System.currentTimeMillis();
-        }
+        try {
+            if (statusMsgTime == -1) {
+                statusMsgTime = System.currentTimeMillis();
+            }
+            long timeDiff = TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - statusMsgTime);
+            if (timeDiff > WebhookConfig.webhookStatusCooldown && WebhookConfig.webhookStatus) {
+                FarmHelper.gameState.webhook.addEmbed(new DiscordWebhook.EmbedObject()
+                                .setTitle("Farm Helper")
+                                .setDescription("```" + "I'm still alive!" + "```")
+                                .setColor(Color.decode("#ff3b3b"))
+                                .setFooter("Jelly", "")
+                                .setThumbnail("https://crafatar.com/renders/head/" + mc.thePlayer.getUniqueID())
+                                .addField("Username", mc.thePlayer.getName(), true)
+                                .addField("Runtime", getRuntimeFormat(), true)
+                                .addField("Total Profit", ProfitUtils.profit.get(), false)
+                                .addField("Profit / hr", ProfitUtils.profitHr.get(), false)
+                                .addField(ProfitUtils.getHighTierName(), ProfitUtils.cropCount.get(), true)
+                                .addField("Counter", ProfitUtils.counter.get(), true)
+                        // .addField("Screenshot", Screenshot.takeScreenshot(), true)
+                );
+                new Thread(() -> {
+                    try {
+                        FarmHelper.gameState.webhook.execute();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+                statusMsgTime = System.currentTimeMillis();
+            }
+        }catch (Exception e){e.printStackTrace();}
     }
 
     public static void webhookLog(String message) {

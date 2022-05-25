@@ -72,12 +72,9 @@ public class MacroHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public final void tick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
-        if (isMacroOn) {
+        if (isMacroOn && mc.thePlayer != null && mc.theWorld != null) {
             currentMacro.onTick();
-            try {
-                InventoryUtils.getInventoryDifference(mc.thePlayer.inventory.mainInventory);
-            }catch (Exception ignored){}
-
+            InventoryUtils.getInventoryDifference(mc.thePlayer.inventory.mainInventory);
             if (FarmHelper.tickCount == 1) {
                 LogUtils.webhookStatus();
                 ProfitUtils.updateProfitState();
