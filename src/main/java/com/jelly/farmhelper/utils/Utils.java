@@ -5,10 +5,6 @@ import net.minecraft.util.*;
 import java.util.Random;
 
 public class Utils {
-    private static final Minecraft mc = Minecraft.getMinecraft();
-    public static boolean isUngrabbed = false;
-    private static MouseHelper oldMouseHelper;
-    private static boolean doesGameWantUngrabbed;
 
     public static String formatNumber(int number) {
         String s = Integer.toString(number);

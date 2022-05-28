@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 import static com.jelly.farmhelper.FarmHelper.gameState;
 
 public class Failsafe {
+
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final Clock cooldown = new Clock();
     private static final Clock jacobWait = new Clock();

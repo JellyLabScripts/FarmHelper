@@ -87,17 +87,6 @@ public class CropMacro extends Macro {
             rotation.update();
         }
     }
-
-    @Override
-    public void onChatMessageReceived(String msg) {
-
-    }
-
-    @Override
-    public void onOverlayRender(RenderGameOverlayEvent event) {
-
-    }
-
     @Override
     public void onTick() {
 

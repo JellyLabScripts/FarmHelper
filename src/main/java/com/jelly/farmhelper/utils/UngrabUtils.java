@@ -5,7 +5,6 @@ import net.minecraft.util.MouseHelper;
 import org.lwjgl.input.Mouse;
 
 public class UngrabUtils {
-    private static final Minecraft mc = Minecraft.getMinecraft();
     public static boolean isUngrabbed = false;
     private static MouseHelper oldMouseHelper;
     private static boolean doesGameWantUngrabbed;

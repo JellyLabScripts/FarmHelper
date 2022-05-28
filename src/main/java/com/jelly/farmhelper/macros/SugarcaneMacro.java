@@ -18,21 +18,21 @@ import static com.jelly.farmhelper.utils.KeyBindUtils.*;
 import static com.jelly.farmhelper.FarmHelper.gameState;
 
 public class SugarcaneMacro extends Macro {
-    public static State lastState;
-    public static State currentState;
-    public static boolean pushedOff;
-    public static boolean stuck = false;
+    public State lastState;
+    public State currentState;
+    public boolean pushedOff;
+    public boolean stuck = false;
 
-    static boolean endedTeleporting = false;
-    static boolean setspawnLag;
+    boolean endedTeleporting = false;
+    boolean setspawnLag;
 
-    public static BlockPos targetBlockPos = new BlockPos(1000, 1000, 1000);
-    private static float playerYaw = 0;
+    public BlockPos targetBlockPos = new BlockPos(1000, 1000, 1000);
+    private float playerYaw = 0;
 
-    public static Clock antistuckCheck = new Clock();
+    public Clock antistuckCheck = new Clock();
 
 
-    private static final Rotation rotation = new Rotation();
+    private final Rotation rotation = new Rotation();
 
     enum State {
         DROPPING,
@@ -65,11 +65,6 @@ public class SugarcaneMacro extends Macro {
     }
 
     @Override
-    public void onDisable() {
-        stopMovement();
-    }
-
-    @Override
     public void onLastRender() {
         if (rotation.rotating) {
             rotation.update();
@@ -77,8 +72,12 @@ public class SugarcaneMacro extends Macro {
     }
 
     @Override
-    public void onChatMessageReceived(String msg) {
+    public void onDisable(){
+        updateKeys(false, false, false, false, false, false, false);
+    }
 
+    @Override
+    public void onChatMessageReceived(String msg) {
         try {
             if (msg.contains("spawn location has been set"))
                 setspawnLag = false;
@@ -352,7 +351,7 @@ public class SugarcaneMacro extends Macro {
     }
 
 
-    public static boolean isInCenterOfBlock() {
+    public boolean isInCenterOfBlock() {
         return (Math.round(AngleUtils.get360RotationYaw()) == 180 || Math.round(AngleUtils.get360RotationYaw()) == 0) ? Math.abs(Minecraft.getMinecraft().thePlayer.posZ) % 1 > 0.3f && Math.abs(Minecraft.getMinecraft().thePlayer.posZ) % 1 < 0.7f :
           Math.abs(Minecraft.getMinecraft().thePlayer.posX) % 1 > 0.3f && Math.abs(Minecraft.getMinecraft().thePlayer.posX) % 1 < 0.7f;
 
