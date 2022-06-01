@@ -19,7 +19,7 @@ import net.minecraft.init.Blocks;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 public class CropMacro extends Macro {
-    private static final Minecraft mc = Minecraft.getMinecraft();
+    private final Minecraft mc = Minecraft.getMinecraft();
 
     enum State {
         DROPPING,
@@ -42,19 +42,19 @@ public class CropMacro extends Macro {
         NONE
     }
 
-    private static final Rotation rotation = new Rotation();
-    private static State currentState;
-    private static StoneThrowState stoneState;
-    private static double layerY;
-    private static boolean pushedSide;
-    private static boolean pushedFront;
-    private static boolean antistuckActive;
-    private static boolean tpFlag;
-    private static float yaw;
-    private static float pitch;
-    private static final Clock rotateWait = new Clock();
-    private static final Clock stoneDropTimer = new Clock();
-    private static int hoeSlot;
+    private final Rotation rotation = new Rotation();
+    private State currentState;
+    private StoneThrowState stoneState;
+    private double layerY;
+    private boolean pushedSide;
+    private boolean pushedFront;
+    private boolean antistuckActive;
+    private boolean tpFlag;
+    private float yaw;
+    private float pitch;
+    private final Clock rotateWait = new Clock();
+    private final Clock stoneDropTimer = new Clock();
+    private int hoeSlot;
 
 
     @Override
@@ -372,7 +372,7 @@ public class CropMacro extends Macro {
     }
 
 
-    private static void updateState() {
+    private void updateState() {
         State lastState = currentState;
         if (currentState == State.STONE_THROW) {
             currentState = State.STONE_THROW;
@@ -412,7 +412,7 @@ public class CropMacro extends Macro {
         }
     }
 
-    private static State calculateDirection() {
+    private State calculateDirection() {
         for (int i = 1; i < 180; i++) {
             if (!isWalkable(BlockUtils.getRelativeBlock(i, 0, 0))) {
                 if (isWalkable(BlockUtils.getRelativeBlock(i - 1, 0, 1))) {
@@ -434,7 +434,7 @@ public class CropMacro extends Macro {
         return State.NONE;
     }
 
-    public static Runnable fixRowStuck = () -> {
+    public Runnable fixRowStuck = () -> {
         try {
             Thread.sleep(20);
             updateKeys(false, true, false, false, false);
@@ -453,7 +453,7 @@ public class CropMacro extends Macro {
         }
     };
 
-    public static Runnable fixSwitchStuck = () -> {
+    public Runnable fixSwitchStuck = () -> {
         try {
             Thread.sleep(20);
             updateKeys(false, false, false, true, false);
@@ -472,7 +472,7 @@ public class CropMacro extends Macro {
         }
     };
 
-    public static Runnable fixCornerStuck = () -> {
+    public Runnable fixCornerStuck = () -> {
         try {
             Thread.sleep(20);
             updateKeys(false, true, false, false, false);

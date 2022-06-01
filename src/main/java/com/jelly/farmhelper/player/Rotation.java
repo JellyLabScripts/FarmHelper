@@ -32,8 +32,8 @@ public class Rotation {
         getDifference();
     }
 
-    public void lockAngle(float yaw, float pitch){
-        if(mc.thePlayer.rotationYaw != yaw || mc.thePlayer.rotationPitch != pitch && !rotating)
+    public void lockAngle(float yaw, float pitch) {
+        if (mc.thePlayer.rotationYaw != yaw || mc.thePlayer.rotationPitch != pitch && !rotating)
             easeTo(yaw, pitch, 1000);
     }
 
@@ -78,10 +78,14 @@ public class Rotation {
     private float interpolate(float difference) {
         final float spentMillis = System.currentTimeMillis() - startTime;
         final float relativeProgress = spentMillis / (endTime - startTime);
-        return (difference) * easeOutCubic(relativeProgress);
+        return (difference) * easeOutSine(relativeProgress);
     }
 
     private float easeOutCubic(double number) {
         return (float)(1.0 - Math.pow(1.0 - number, 3.0));
+    }
+
+    private float easeOutSine(double number) {
+        return (float) Math.sin((number * Math.PI) / 2);
     }
 }

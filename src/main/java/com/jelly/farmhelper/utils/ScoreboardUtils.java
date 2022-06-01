@@ -63,7 +63,7 @@ public class ScoreboardUtils {
         try {
             return mc.theWorld.getScoreboard().getObjectiveInDisplaySlot(line).getDisplayName();
         } catch (Exception e) {
-            LogUtils.debugLog("Error in getting scoreboard " + e);
+            LogUtils.debugFullLog("Error in getting scoreboard " + e);
             return "";
         }
     }

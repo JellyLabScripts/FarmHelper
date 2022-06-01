@@ -31,7 +31,6 @@ public class FarmHelper {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        // ClientCommandHandler.instance.registerCommand((ICommand)new CheetoCommand());
         Display.setTitle(FarmHelper.NAME + " v" + FarmHelper.VERSION + " | GIGACHADS ONLY");
         FarmHelperConfig.init();
         KeyBindUtils.setup();
@@ -49,9 +48,7 @@ public class FarmHelper {
         if (KeyBindUtils.customKeyBinds[0].isPressed()) {
             openedGUI = true;
             mc.displayGuiScreen(new MenuGUI());
-            // BlurUtils.renderBlurredBackground(10.0f, resolution.getScaledWidth() - translatedWidth, resolution.getScaledHeight(), resolution.getScaledWidth() - 1 - width, y, width, height);
         }
-
     }
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public final void tick(TickEvent.ClientTickEvent event) {

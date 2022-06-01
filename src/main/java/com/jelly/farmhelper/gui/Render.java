@@ -56,7 +56,7 @@ public class Render {
 
             //UGraphics.enableAlpha();
             window.draw();
-            window.drawFloatingComponents();
+//            window.drawFloatingComponents();
             //UGraphics.disableAlpha();
         }
     }

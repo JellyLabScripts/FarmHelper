@@ -88,7 +88,7 @@ public class SugarcaneMacro extends Macro {
     public void onOverlayRender(RenderGameOverlayEvent event) {
         if(MiscConfig.debugMode && event.type == RenderGameOverlayEvent.ElementType.TEXT){
             mc.fontRendererObj.drawString((gameState.dy != 0) + " ", 5, 80, -1);
-            mc.fontRendererObj.drawString((currentState != SugarcaneMacro.State.TPPAD) + " ", 1, 95, -1);
+            mc.fontRendererObj.drawString((currentState != State.TPPAD) + " ", 1, 95, -1);
             mc.fontRendererObj.drawString(BlockUtils.getRelativeBlock(0, -1, 0).toString(), 1, 110, -1);
             mc.fontRendererObj.drawString((gameState.currentLocation == GameState.location.ISLAND) + " ", 1, 125, -1);
         }

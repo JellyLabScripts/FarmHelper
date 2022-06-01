@@ -69,10 +69,10 @@ public class Failsafe {
                 }
                 return;
             case ISLAND:
-                if (JacobConfig.jacobFailsafe && jacobExceeded()) {
+                if (JacobConfig.jacobFailsafe && jacobExceeded() && jacobWait.passed() && MacroHandler.currentMacro.enabled) {
                     jacobWait.schedule(getJacobRemaining());
                     mc.thePlayer.sendChatMessage("/lobby");
-                } else {
+                } else if (!MacroHandler.currentMacro.enabled) {
                     MacroHandler.enableCurrentMacro();
                 }
         }
@@ -106,6 +106,7 @@ public class Failsafe {
             if (matcher.find()) {
                 LogUtils.debugLog("Jacob remaining time: " + matcher.group(1) + "m" + matcher.group(2) + "s");
                 LogUtils.webhookLog("Jacob score exceeded - - Resuming in " + matcher.group(1) + "m" + matcher.group(2) + "s");
+                MacroHandler.disableCurrentMacro();
                 return TimeUnit.MINUTES.toMillis(Long.parseLong(matcher.group(1))) + TimeUnit.SECONDS.toMillis(Long.parseLong(matcher.group(2)));
             }
         }

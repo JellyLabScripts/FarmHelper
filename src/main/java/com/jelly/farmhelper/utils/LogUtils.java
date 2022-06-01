@@ -26,20 +26,20 @@ public class LogUtils {
 
     public static void scriptLog(String message) {
         sendLog(new ChatComponentText(
-          EnumChatFormatting.DARK_GREEN + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + message
+            EnumChatFormatting.DARK_GREEN + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + message
         ));
     }
 
     public static void scriptLog(String message, EnumChatFormatting color) {
         sendLog(new ChatComponentText(
-          EnumChatFormatting.DARK_GREEN + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + color + EnumChatFormatting.BOLD + message
+            EnumChatFormatting.DARK_GREEN + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + color + EnumChatFormatting.BOLD + message
         ));
     }
 
     public static void debugLog(String message) {
         if (MiscConfig.debugMode || lastDebug != message) {
             sendLog(new ChatComponentText(
-              EnumChatFormatting.GREEN + "Log " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + message
+                EnumChatFormatting.GREEN + "Log " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + message
             ));
         }
         lastDebug = message;
@@ -57,13 +57,14 @@ public class LogUtils {
         }
         long millis = System.currentTimeMillis() - MacroHandler.startTime;
         return String.format("%dh %dm %ds",
-          TimeUnit.MILLISECONDS.toHours(millis),
-          TimeUnit.MILLISECONDS.toMinutes(millis) -
-            TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),
-          TimeUnit.MILLISECONDS.toSeconds(millis) -
-            TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis))
+            TimeUnit.MILLISECONDS.toHours(millis),
+            TimeUnit.MILLISECONDS.toMinutes(millis) -
+                TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),
+            TimeUnit.MILLISECONDS.toSeconds(millis) -
+                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis))
         );
     }
+
     public static void webhookStatus() {
         try {
             if (statusMsgTime == -1) {
@@ -72,18 +73,18 @@ public class LogUtils {
             long timeDiff = TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - statusMsgTime);
             if (timeDiff > WebhookConfig.webhookStatusCooldown && WebhookConfig.webhookStatus) {
                 FarmHelper.gameState.webhook.addEmbed(new DiscordWebhook.EmbedObject()
-                                .setTitle("Farm Helper")
-                                .setDescription("```" + "I'm still alive!" + "```")
-                                .setColor(Color.decode("#ff3b3b"))
-                                .setFooter("Jelly", "")
-                                .setThumbnail("https://crafatar.com/renders/head/" + mc.thePlayer.getUniqueID())
-                                .addField("Username", mc.thePlayer.getName(), true)
-                                .addField("Runtime", getRuntimeFormat(), true)
-                                .addField("Total Profit", ProfitUtils.profit.get(), false)
-                                .addField("Profit / hr", ProfitUtils.profitHr.get(), false)
-                                .addField(ProfitUtils.getHighTierName(), ProfitUtils.cropCount.get(), true)
-                                .addField("Counter", ProfitUtils.counter.get(), true)
-                        // .addField("Screenshot", Screenshot.takeScreenshot(), true)
+                        .setTitle("Farm Helper")
+                        .setDescription("```" + "I'm still alive!" + "```")
+                        .setColor(Color.decode("#ff3b3b"))
+                        .setFooter("Jelly", "")
+                        .setThumbnail("https://crafatar.com/renders/head/" + mc.thePlayer.getUniqueID())
+                        .addField("Username", mc.thePlayer.getName(), true)
+                        .addField("Runtime", getRuntimeFormat(), true)
+                        .addField("Total Profit", ProfitUtils.profit.get(), false)
+                        .addField("Profit / hr", ProfitUtils.profitHr.get(), false)
+                        .addField(ProfitUtils.getHighTierName(), ProfitUtils.cropCount.get(), true)
+                        .addField("Counter", ProfitUtils.counter.get(), true)
+                    // .addField("Screenshot", Screenshot.takeScreenshot(), true)
                 );
                 new Thread(() -> {
                     try {
@@ -94,7 +95,9 @@ public class LogUtils {
                 }).start();
                 statusMsgTime = System.currentTimeMillis();
             }
-        }catch (Exception e){e.printStackTrace();}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void webhookLog(String message) {
@@ -102,9 +105,9 @@ public class LogUtils {
         debugFullLog("Last webhook message: " + timeDiff);
         if (WebhookConfig.webhookLogs && (timeDiff > 20 || lastWebhook != message)) {
             FarmHelper.gameState.webhook.addEmbed(new DiscordWebhook.EmbedObject()
-              .setDescription("**Farm Helper Log** ```" + message + "```")
-              .setColor(Color.decode("#741010"))
-              .setFooter(mc.thePlayer.getName(), "")
+                .setDescription("**Farm Helper Log** ```" + message + "```")
+                .setColor(Color.decode("#741010"))
+                .setFooter(mc.thePlayer.getName(), "")
             );
             new Thread(() -> {
                 try {

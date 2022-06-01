@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GameState {
-    private Minecraft mc = Minecraft.getMinecraft();
+    private final Minecraft mc = Minecraft.getMinecraft();
 
     public enum location {
         ISLAND,
@@ -49,12 +49,6 @@ public class GameState {
     public int jacobCounter;
 
     public GameState() {
-        System.out.println("3dwedw-------------------------------- " + WebhookConfig.webhookURL);
-        System.out.println("3dwedw-------------------------------- " + WebhookConfig.webhookURL);
-        System.out.println("3dwedw-------------------------------- " + WebhookConfig.webhookURL);
-        System.out.println("3dwedw-------------------------------- " + WebhookConfig.webhookURL);
-        System.out.println("3dwedw-------------------------------- " + WebhookConfig.webhookURL);
-
         webhook = new DiscordWebhook(WebhookConfig.webhookURL);
         webhook.setUsername("Jelly - Farm Helper");
         webhook.setAvatarUrl("https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png");

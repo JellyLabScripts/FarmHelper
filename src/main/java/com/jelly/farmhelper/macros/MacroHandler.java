@@ -18,79 +18,91 @@ public class MacroHandler {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public static Macro currentMacro;
     public static boolean isMacroOn;
-    public static SugarcaneMacro sugarcaneMacro = new SugarcaneMacro();
-    public static CropMacro cropMacro = new CropMacro();
+    public SugarcaneMacro sugarcaneMacro = new SugarcaneMacro();
+    public CropMacro cropMacro = new CropMacro();
 
     public static long startTime = 0;
     public static int startCounter = 0;
 
     @SubscribeEvent
     public void onChatMessageReceived(ClientChatReceivedEvent e) {
-        if (isMacroOn) {
-            if(e.message != null)
-                 currentMacro.onChatMessageReceived(e.message.getUnformattedText());
+        if (currentMacro != null && currentMacro.enabled && mc.thePlayer != null && mc.theWorld != null && e.message != null) {
+            currentMacro.onChatMessageReceived(e.message.getUnformattedText());
         }
     }
 
     @SubscribeEvent
     public void onLastRender(RenderWorldLastEvent event) {
-        if (isMacroOn)
+        if (currentMacro != null && currentMacro.enabled && mc.thePlayer != null && mc.theWorld != null) {
             currentMacro.onLastRender();
+        }
     }
 
     @SubscribeEvent
-    public void onOverlayRender(RenderGameOverlayEvent event){
-        if(isMacroOn)
+    public void onOverlayRender(RenderGameOverlayEvent event) {
+        if (currentMacro != null && currentMacro.enabled && mc.thePlayer != null && mc.theWorld != null) {
             currentMacro.onOverlayRender(event);
+        }
     }
 
     @SubscribeEvent
     public void OnKeyPress(InputEvent.KeyInputEvent event) {
         if (KeyBindUtils.customKeyBinds[1].isPressed()) {
-            if (FarmConfig.cropType == CropEnum.SUGARCANE)
+            if (FarmConfig.cropType == CropEnum.SUGARCANE) {
                 currentMacro = sugarcaneMacro;
-            else
-                currentMacro = cropMacro;
-
-            isMacroOn = !isMacroOn;
-            if (isMacroOn) {
-                LogUtils.scriptLog("Starting script");
-                LogUtils.webhookLog("Starting script");
-                if (MiscConfig.ungrab) UngrabUtils.ungrabMouse();
-                startTime = System.currentTimeMillis();
-                startCounter = InventoryUtils.getCounter();
             } else {
-                LogUtils.scriptLog("Disabling script");
-                LogUtils.webhookLog("Disabling script");
-                UngrabUtils.regrabMouse();
+                currentMacro = cropMacro;
             }
-            currentMacro.toggle();
-        }
 
+            if (isMacroOn) {
+                disableMacro();
+            } else {
+                enableMacro();
+            }
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public final void tick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
         if (isMacroOn && mc.thePlayer != null && mc.theWorld != null) {
-            currentMacro.onTick();
-            InventoryUtils.getInventoryDifference(mc.thePlayer.inventory.mainInventory);
+            // InventoryUtils.getInventoryDifference(mc.thePlayer.inventory.mainInventory);
             if (FarmHelper.tickCount == 1) {
                 LogUtils.webhookStatus();
                 ProfitUtils.updateProfitState();
             }
+            if (currentMacro != null && currentMacro.enabled) {
+                currentMacro.onTick();
+            }
         }
     }
 
-    public static void disableCurrentMacro() {
+    public static void enableMacro() {
+        isMacroOn = true;
+        LogUtils.scriptLog("Starting script");
+        LogUtils.webhookLog("Starting script");
+        if (MiscConfig.ungrab) UngrabUtils.ungrabMouse();
+        startTime = System.currentTimeMillis();
+        ProfitUtils.resetProfit();
+        startCounter = InventoryUtils.getCounter();
+        enableCurrentMacro();
+    }
+
+    public static void disableMacro() {
         isMacroOn = false;
+        LogUtils.scriptLog("Disabling script");
+        LogUtils.webhookLog("Disabling script");
+        UngrabUtils.regrabMouse();
+        disableCurrentMacro();
+    }
+
+    public static void disableCurrentMacro() {
         if (currentMacro.enabled) {
             currentMacro.toggle();
         }
     }
 
     public static void enableCurrentMacro() {
-        isMacroOn = true;
         if (!currentMacro.enabled) {
             currentMacro.toggle();
         }

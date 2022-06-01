@@ -23,36 +23,30 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class Resync {
-    private static final Clock checkTimer = new Clock();
-    public static BlockPos lastBrokenPos;
     private static BlockPos cachedPos;
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public static void update(BlockPos lastBrokenPos) {
-        Resync.lastBrokenPos = lastBrokenPos;
-        if (checkTimer.passed()) {
-            cachedPos = lastBrokenPos;
-            Timer t = new Timer();
-            t.schedule(
-              new TimerTask() {
-                  @Override
-                  public void run() {
-                      if (cachedPos != null && mc.theWorld.getBlockState(cachedPos) != null) {
-                          if (FarmConfig.cropType == CropEnum.NETHERWART && mc.theWorld.getBlockState(cachedPos).getValue(BlockNetherWart.AGE) > 2 ||
+        cachedPos = lastBrokenPos;
+        Timer t = new Timer();
+        t.schedule(
+            new TimerTask() {
+                @Override
+                public void run() {
+                    if (cachedPos != null && mc.theWorld.getBlockState(cachedPos) != null) {
+                        if (FarmConfig.cropType == CropEnum.NETHERWART && mc.theWorld.getBlockState(cachedPos).getValue(BlockNetherWart.AGE) > 2 ||
                             FarmConfig.cropType == CropEnum.SUGARCANE && mc.theWorld.getBlockState(cachedPos).getBlock().equals(Blocks.reeds) ||
                             mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE) > 4) {
-                              LogUtils.debugLog("Desync detected");
-                              LogUtils.webhookLog("Desync detected");
-                              if(FarmHelper.gameState.currentLocation == GameState.location.ISLAND) mc.thePlayer.sendChatMessage("/hub");
-                          }
-                      }
-                      t.cancel();
-                  }
-              },
-              4000
-            );
-            checkTimer.schedule(5000);
-        }
+                            LogUtils.debugLog("Desync detected");
+                            LogUtils.webhookLog("Desync detected");
+                            if (FarmHelper.gameState.currentLocation == GameState.location.ISLAND)
+                                mc.thePlayer.sendChatMessage("/hub");
+                        }
+                    }
+                    t.cancel();
+                }
+            },
+            4000
+        );
     }
-
 }

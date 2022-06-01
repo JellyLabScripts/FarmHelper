@@ -5,6 +5,7 @@ import com.jelly.farmhelper.features.Resync;
 import com.jelly.farmhelper.macros.CropMacro;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.macros.SugarcaneMacro;
+import com.jelly.farmhelper.utils.Clock;
 import net.minecraft.block.BlockBush;
 import net.minecraft.block.BlockReed;
 import net.minecraft.client.Minecraft;
@@ -18,12 +19,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin({ PlayerControllerMP.class })
 public class MixinPlayerControllerMP {
+    private final Clock checkTimer = new Clock();
+
     @Inject(method={"clickBlock"}, at={@At(value="HEAD")}, cancellable=true)
     public void clickBlock(BlockPos loc, EnumFacing face, CallbackInfoReturnable<Boolean> cir) {
-        if (MiscConfig.resync && MacroHandler.isMacroOn && loc != null && Minecraft.getMinecraft().theWorld.getBlockState(loc) != null &&
+        if (MiscConfig.resync && MacroHandler.isMacroOn && MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled && loc != null && Minecraft.getMinecraft().theWorld.getBlockState(loc) != null &&
                 (Minecraft.getMinecraft().theWorld.getBlockState(loc).getBlock() instanceof BlockBush || Minecraft.getMinecraft().theWorld.getBlockState(loc).getBlock() instanceof BlockReed)) {
-            if(MacroHandler.currentMacro instanceof SugarcaneMacro || MacroHandler.currentMacro instanceof CropMacro)
-            Resync.update(loc);
+            if (MacroHandler.currentMacro instanceof SugarcaneMacro || MacroHandler.currentMacro instanceof CropMacro) {
+                if (checkTimer.passed()) {
+                    Resync.update(loc);
+                    checkTimer.schedule(5000);
+                }
+            }
         }
     }
 
