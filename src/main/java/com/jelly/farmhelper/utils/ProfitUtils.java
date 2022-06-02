@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class ProfitUtils {
+    private static int lastCounter = 0;
     public static final BasicState<String> profit = new BasicState<>("$0");
     public static final BasicState<String> profitHr = new BasicState<>("$0");
     public static final BasicState<String> cropCount = new BasicState<>("0");
@@ -74,7 +75,8 @@ public class ProfitUtils {
 //        if (cropDiff.size() == 0) return 0;
 //        if (cropDiff.size() == 1) return Math.max(cropDiff.get(0).getAmount(), 0);
 //        return Math.max(cropDiff.get(0).getAmount(), cropDiff.get(1).getAmount());
-        return InventoryUtils.getCounter() - MacroHandler.startCounter;
+        lastCounter = InventoryUtils.getCounter() != 0 ? InventoryUtils.getCounter() : lastCounter;
+        return lastCounter - MacroHandler.startCounter;
     }
 
     public static double getHourProfit(double total) {

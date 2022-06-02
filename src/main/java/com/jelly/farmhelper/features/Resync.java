@@ -21,32 +21,43 @@ import scala.tools.reflect.quasiquotes.Parsers;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Resync {
     private static BlockPos cachedPos;
     private static final Minecraft mc = Minecraft.getMinecraft();
+    private static final ScheduledExecutorService executor;
+
+    static {
+        executor = Executors.newSingleThreadScheduledExecutor();
+    }
 
     public static void update(BlockPos lastBrokenPos) {
         cachedPos = lastBrokenPos;
-        Timer t = new Timer();
-        t.schedule(
-            new TimerTask() {
-                @Override
-                public void run() {
-                    if (cachedPos != null && mc.theWorld.getBlockState(cachedPos) != null) {
-                        if (FarmConfig.cropType == CropEnum.NETHERWART && mc.theWorld.getBlockState(cachedPos).getValue(BlockNetherWart.AGE) > 2 ||
-                            FarmConfig.cropType == CropEnum.SUGARCANE && mc.theWorld.getBlockState(cachedPos).getBlock().equals(Blocks.reeds) ||
-                            mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE) > 4) {
-                            LogUtils.debugLog("Desync detected");
-                            LogUtils.webhookLog("Desync detected");
-                            if (FarmHelper.gameState.currentLocation == GameState.location.ISLAND)
-                                mc.thePlayer.sendChatMessage("/hub");
-                        }
-                    }
-                    t.cancel();
-                }
-            },
-            4000
-        );
+        executor.schedule(checkCrop, 4, TimeUnit.SECONDS);
     }
+
+    static Runnable checkCrop = () -> {
+        if (cachedPos != null && mc.theWorld.getBlockState(cachedPos) != null) {
+            boolean desync = false;
+            switch (FarmConfig.cropType) {
+                case NETHERWART:
+                    if (mc.theWorld.getBlockState(cachedPos).getValue(BlockNetherWart.AGE) > 2) desync = true;
+                    break;
+                case SUGARCANE:
+                    if (mc.theWorld.getBlockState(cachedPos).getBlock().equals(Blocks.reeds)) desync = true;
+                    break;
+                default:
+                    if (mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE) > 4) desync = true;
+            }
+
+            if (desync && FarmHelper.gameState.currentLocation == GameState.location.ISLAND) {
+                LogUtils.debugLog("Desync detected");
+                LogUtils.webhookLog("Desync detected");
+                mc.thePlayer.sendChatMessage("/hub");
+            }
+        }
+    };
 }
