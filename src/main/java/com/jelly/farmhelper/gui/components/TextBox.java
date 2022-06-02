@@ -44,9 +44,9 @@ public class TextBox extends UIBlock {
             });
 
         textInput = (UITextInput) new UITextInput(textValue.equals("") ? placeholder : textValue)
-            .setX(new PixelConstraint(2))
+            .setX(new PixelConstraint(5))
             .setY(new CenterConstraint())
-            .setWidth(new SubtractiveConstraint(new RelativeConstraint(1), new PixelConstraint(6)))
+            .setWidth(new SubtractiveConstraint(new RelativeConstraint(1), new PixelConstraint(10)))
             .setChildOf(textWrapper)
             .onKeyType((component, character, integer) -> {
                 textValue = textInput.getText();

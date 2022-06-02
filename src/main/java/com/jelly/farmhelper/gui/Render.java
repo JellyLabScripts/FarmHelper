@@ -27,12 +27,8 @@ public class Render {
     public void render(RenderGameOverlayEvent event) {
         if (mc.theWorld != null && mc.thePlayer != null && ProfitCalculatorConfig.profitCalculator && event.type == RenderGameOverlayEvent.ElementType.TEXT) {
             profitGUI.stats.forEach(e -> e.parent.removeChild(e));
-            if (ProfitCalculatorConfig.runtime) profitGUI.addChild(profitGUI.stats.get(10));
-            if (ProfitCalculatorConfig.counter) profitGUI.addChild(profitGUI.stats.get(9));
-            if (ProfitCalculatorConfig.mushroomCount) {
-                profitGUI.addChild(profitGUI.stats.get(8));
-                profitGUI.addChild(profitGUI.stats.get(7));
-            }
+            if (ProfitCalculatorConfig.totalProfit) profitGUI.addChild(profitGUI.stats.get(0));
+            if (ProfitCalculatorConfig.profitHour) profitGUI.addChild(profitGUI.stats.get(1));
             if (ProfitCalculatorConfig.itemCount) {
                 switch (FarmConfig.cropType) {
                     case NETHERWART:
@@ -52,8 +48,12 @@ public class Render {
                         break;
                 }
             }
-            if (ProfitCalculatorConfig.profitHour) profitGUI.addChild(profitGUI.stats.get(1));
-            if (ProfitCalculatorConfig.totalProfit) profitGUI.addChild(profitGUI.stats.get(0));
+            if (ProfitCalculatorConfig.mushroomCount) {
+                profitGUI.addChild(profitGUI.stats.get(7));
+                profitGUI.addChild(profitGUI.stats.get(8));
+            }
+            if (ProfitCalculatorConfig.counter) profitGUI.addChild(profitGUI.stats.get(9));
+            if (ProfitCalculatorConfig.runtime) profitGUI.addChild(profitGUI.stats.get(10));
 
             UGraphics.enableAlpha();
             window.draw();

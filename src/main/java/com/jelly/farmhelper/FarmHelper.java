@@ -2,6 +2,7 @@ package com.jelly.farmhelper;
 
 import com.jelly.farmhelper.config.FarmHelperConfig;
 import com.jelly.farmhelper.features.Antistuck;
+import com.jelly.farmhelper.features.Autosell;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.gui.MenuGUI;
 import com.jelly.farmhelper.gui.Render;
@@ -37,9 +38,10 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(new Render());
         MinecraftForge.EVENT_BUS.register(new MenuGUI());
+        MinecraftForge.EVENT_BUS.register(new MacroHandler());
         MinecraftForge.EVENT_BUS.register(new Failsafe());
         MinecraftForge.EVENT_BUS.register(new Antistuck());
-        MinecraftForge.EVENT_BUS.register(new MacroHandler());
+        MinecraftForge.EVENT_BUS.register(new Autosell());
         gameState = new GameState();
 
     }
