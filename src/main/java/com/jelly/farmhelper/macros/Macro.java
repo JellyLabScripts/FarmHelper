@@ -16,17 +16,15 @@ public abstract class Macro {
         }
     }
 
-    public void onEnable(){}
+    public void onEnable() {}
 
-    public void onDisable(){}
+    public void onDisable() {}
 
-    public void onTick(){}
+    public void onTick() {}
 
-    public void onLastRender(){}
+    public void onLastRender() {}
 
-    public void onChatMessageReceived(String msg){}
+    public void onChatMessageReceived(String msg) {}
 
-    public void onOverlayRender(RenderGameOverlayEvent event){}
-
-
+    public void onOverlayRender(RenderGameOverlayEvent event) {}
 }

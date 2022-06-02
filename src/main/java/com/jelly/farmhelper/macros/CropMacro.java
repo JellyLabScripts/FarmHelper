@@ -89,12 +89,9 @@ public class CropMacro extends Macro {
     }
     @Override
     public void onTick() {
-
-        if(mc.thePlayer == null || mc.theWorld == null)
-            return;
-
         if (gameState.currentLocation != GameState.location.ISLAND) {
             updateKeys(false, false, false, false, false);
+            enabled = false;
             return;
         }
 
@@ -103,7 +100,7 @@ public class CropMacro extends Macro {
             return;
         }
 
-        if (currentState != State.DROPPING && currentState != State.TP_PAD && currentState != State.STONE_THROW && (Math.abs(AngleUtils.get360RotationYaw() - yaw) > 5 || Math.abs(mc.thePlayer.rotationPitch - pitch) > 5)) {
+        if (currentState != State.DROPPING && currentState != State.TP_PAD && currentState != State.STONE_THROW && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > 5 || Math.abs(mc.thePlayer.rotationPitch - pitch) > 5)) {
             LogUtils.debugFullLog("Staff rotate");
             rotation.reset();
             if (rotateWait.passed() && rotateWait.isScheduled()) {
@@ -324,7 +321,7 @@ public class CropMacro extends Macro {
                         if (!stoneDropTimer.isScheduled()) {
                             LogUtils.debugLog("Lifting");
                             InventoryUtils.clickOpenContainerSlot(stoneSlot);
-                            InventoryUtils.clickOpenContainerSlot(stoneSlot, 6);
+                            InventoryUtils.clickOpenContainerSlot(stoneSlot, 0, 6);
                             stoneDropTimer.schedule(200);
                         } else if (stoneDropTimer.passed()) {
                             stoneState = StoneThrowState.SWITCH;
@@ -335,7 +332,7 @@ public class CropMacro extends Macro {
                         if (!stoneDropTimer.isScheduled()) {
                             LogUtils.debugLog("Switching");
                             stoneDropTimer.schedule(1000);
-                            InventoryUtils.clickOpenContainerSlot(35 + 7, 0);
+                            InventoryUtils.clickOpenContainerSlot(35 + 7, 0, 0);
                         } else if (stoneDropTimer.passed()) {
                             stoneState = StoneThrowState.DROP;
                             stoneDropTimer.reset();

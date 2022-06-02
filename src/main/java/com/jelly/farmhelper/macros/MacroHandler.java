@@ -2,6 +2,7 @@ package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.enums.CropEnum;
+import com.jelly.farmhelper.config.interfaces.AutoSellConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.utils.*;
@@ -23,6 +24,7 @@ public class MacroHandler {
 
     public static long startTime = 0;
     public static int startCounter = 0;
+    public static boolean startingUp;
 
     @SubscribeEvent
     public void onChatMessageReceived(ClientChatReceivedEvent e) {
@@ -81,6 +83,7 @@ public class MacroHandler {
         isMacroOn = true;
         LogUtils.scriptLog("Starting script");
         LogUtils.webhookLog("Starting script");
+        if (AutoSellConfig.autoSell) LogUtils.scriptLog("Auto Sell is in BETA, lock important slots just in case");
         if (MiscConfig.ungrab) UngrabUtils.ungrabMouse();
         startTime = System.currentTimeMillis();
         ProfitUtils.resetProfit();
@@ -103,8 +106,21 @@ public class MacroHandler {
     }
 
     public static void enableCurrentMacro() {
-        if (!currentMacro.enabled) {
-            currentMacro.toggle();
+        if (!currentMacro.enabled && !startingUp) {
+            startingUp = true;
+            KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
+            new Thread(startCurrent).start();
         }
     }
+
+    static Runnable startCurrent = () -> {
+        try {
+            Thread.sleep(300);
+            KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
+            if (isMacroOn) currentMacro.toggle();
+            startingUp = false;
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    };
 }

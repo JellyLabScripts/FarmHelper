@@ -22,6 +22,7 @@ public class Failsafe {
     private static final Clock cooldown = new Clock();
     private static final Clock jacobWait = new Clock();
     private static boolean teleporting;
+    private static String formattedTime;
 
     @SubscribeEvent
     public void onMessageReceived(ClientChatReceivedEvent event) {
@@ -70,9 +71,12 @@ public class Failsafe {
                 return;
             case ISLAND:
                 if (JacobConfig.jacobFailsafe && jacobExceeded() && jacobWait.passed() && MacroHandler.currentMacro.enabled) {
+                    MacroHandler.disableCurrentMacro();
+                    LogUtils.debugLog("Jacob remaining time: " + formattedTime);
+                    LogUtils.webhookLog("Jacob score exceeded - - Resuming in " + formattedTime);
                     jacobWait.schedule(getJacobRemaining());
                     mc.thePlayer.sendChatMessage("/lobby");
-                } else if (!MacroHandler.currentMacro.enabled) {
+                } else if (!MacroHandler.currentMacro.enabled && jacobWait.passed() && !Autosell.isEnabled() && !MacroHandler.startingUp) {
                     MacroHandler.enableCurrentMacro();
                 }
         }
@@ -104,9 +108,7 @@ public class Failsafe {
             String cleanedLine = ScoreboardUtils.cleanSB(line);
             Matcher matcher = pattern.matcher(cleanedLine);
             if (matcher.find()) {
-                LogUtils.debugLog("Jacob remaining time: " + matcher.group(1) + "m" + matcher.group(2) + "s");
-                LogUtils.webhookLog("Jacob score exceeded - - Resuming in " + matcher.group(1) + "m" + matcher.group(2) + "s");
-                MacroHandler.disableCurrentMacro();
+                formattedTime = matcher.group(1) + "m" + matcher.group(2) + "s";
                 return TimeUnit.MINUTES.toMillis(Long.parseLong(matcher.group(1))) + TimeUnit.SECONDS.toMillis(Long.parseLong(matcher.group(2)));
             }
         }
