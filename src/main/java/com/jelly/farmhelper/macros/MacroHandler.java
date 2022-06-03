@@ -5,6 +5,8 @@ import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.AutoSellConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.config.interfaces.SchedulerConfig;
+import com.jelly.farmhelper.features.Scheduler;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -72,6 +74,7 @@ public class MacroHandler {
             if (FarmHelper.tickCount == 1) {
                 LogUtils.webhookStatus();
                 ProfitUtils.updateProfitState();
+                StatusUtils.updateStateString();
             }
             if (currentMacro != null && currentMacro.enabled) {
                 currentMacro.onTick();
@@ -85,6 +88,7 @@ public class MacroHandler {
         LogUtils.webhookLog("Starting script");
         if (AutoSellConfig.autoSell) LogUtils.scriptLog("Auto Sell is in BETA, lock important slots just in case");
         if (MiscConfig.ungrab) UngrabUtils.ungrabMouse();
+        if (SchedulerConfig.scheduler) Scheduler.start();
         startTime = System.currentTimeMillis();
         ProfitUtils.resetProfit();
         startCounter = InventoryUtils.getCounter();
@@ -93,10 +97,11 @@ public class MacroHandler {
 
     public static void disableMacro() {
         isMacroOn = false;
+        disableCurrentMacro();
         LogUtils.scriptLog("Disabling script");
         LogUtils.webhookLog("Disabling script");
         UngrabUtils.regrabMouse();
-        disableCurrentMacro();
+        StatusUtils.updateStateString();
     }
 
     public static void disableCurrentMacro() {

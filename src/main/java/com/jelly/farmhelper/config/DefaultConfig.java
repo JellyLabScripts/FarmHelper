@@ -37,6 +37,10 @@ public class DefaultConfig {
         config.put("farmType", 0);
         config.put("openGUIKeybind", 54L);
         config.put("startScriptKeybind", 41L);
+        config.put("scheduler", false);
+        config.put("statusGUI", true);
+        config.put("farmTime", 60.0);
+        config.put("breakTime", 5.0);
         return config;
     }
 }
