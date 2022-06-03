@@ -9,6 +9,10 @@ public class Clock {
         scheduled = true;
     }
 
+    public long getEndTime() {
+        return endTime;
+    }
+
     public boolean passed() {
         return System.currentTimeMillis() >= endTime;
     }

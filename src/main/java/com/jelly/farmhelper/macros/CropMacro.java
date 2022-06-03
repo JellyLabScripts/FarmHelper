@@ -375,7 +375,7 @@ public class CropMacro extends Macro {
             currentState = State.STONE_THROW;
         } else if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || (currentState == State.TP_PAD && !tpFlag)) {
             currentState = State.TP_PAD;
-        } else if (layerY - mc.thePlayer.posY > 1 || BlockUtils.getRelativeBlock(0, -1, 1).equals(Blocks.air) || currentState == State.DROPPING) {
+        } else if (layerY - mc.thePlayer.posY > 1 || currentState == State.DROPPING) {
             currentState = State.DROPPING;
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
             // layerY = mc.thePlayer.posY;
@@ -412,14 +412,14 @@ public class CropMacro extends Macro {
     private State calculateDirection() {
         for (int i = 1; i < 180; i++) {
             if (!isWalkable(BlockUtils.getRelativeBlock(i, 0, 0))) {
-                if (isWalkable(BlockUtils.getRelativeBlock(i - 1, 0, 1))) {
+                if (isWalkable(BlockUtils.getRelativeBlock(i - 1, 0, 1)) || isWalkable(BlockUtils.getRelativeBlock(i - 1, -1, 0))) {
                     return State.RIGHT;
                 } else {
                     LogUtils.debugFullLog("Failed right: " + BlockUtils.getRelativeBlock(i - 1, 0, 1));
                     return State.LEFT;
                 }
             } else if (!isWalkable(BlockUtils.getRelativeBlock(-i, 0, 0))) {
-                if (isWalkable(BlockUtils.getRelativeBlock(-i + 1, 0, 1))) {
+                if (isWalkable(BlockUtils.getRelativeBlock(-i + 1, 0, 1)) || isWalkable(BlockUtils.getRelativeBlock(-i + 1, -1, 0))) {
                     return State.LEFT;
                 } else {
                     LogUtils.debugFullLog("Failed left: " + isWalkable(BlockUtils.getRelativeBlock(i - 1, 0, 1)));

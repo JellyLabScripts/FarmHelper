@@ -20,7 +20,7 @@ public class Failsafe {
 
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final Clock cooldown = new Clock();
-    private static final Clock jacobWait = new Clock();
+    public static final Clock jacobWait = new Clock();
     private static boolean teleporting;
     private static String formattedTime;
 
@@ -76,7 +76,7 @@ public class Failsafe {
                     LogUtils.webhookLog("Jacob score exceeded - - Resuming in " + formattedTime);
                     jacobWait.schedule(getJacobRemaining());
                     mc.thePlayer.sendChatMessage("/lobby");
-                } else if (!MacroHandler.currentMacro.enabled && jacobWait.passed() && !Autosell.isEnabled() && !MacroHandler.startingUp) {
+                } else if (!MacroHandler.currentMacro.enabled && jacobWait.passed() && !Autosell.isEnabled() && !MacroHandler.startingUp && Scheduler.isFarming()) {
                     MacroHandler.enableCurrentMacro();
                 }
         }

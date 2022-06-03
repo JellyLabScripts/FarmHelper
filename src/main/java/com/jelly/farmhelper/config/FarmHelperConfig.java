@@ -46,6 +46,7 @@ public class FarmHelperConfig {
         MiscConfig.update();
         ProfitCalculatorConfig.update();
         WebhookConfig.update();
+        SchedulerConfig.update();
     }
 
     public static Object get(String property) {

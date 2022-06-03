@@ -4,6 +4,7 @@ import com.jelly.farmhelper.config.FarmHelperConfig;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Autosell;
 import com.jelly.farmhelper.features.Failsafe;
+import com.jelly.farmhelper.features.Scheduler;
 import com.jelly.farmhelper.gui.MenuGUI;
 import com.jelly.farmhelper.gui.Render;
 import com.jelly.farmhelper.macros.MacroHandler;
@@ -24,7 +25,7 @@ import org.lwjgl.opengl.Display;
 public class FarmHelper {
     public static final String MODID = "farmhelper";
     public static final String NAME = "Farm Helper";
-    public static final String VERSION = "4.0";
+    public static final String VERSION = "4.0-pre4";
     public static int tickCount = 0;
     public static boolean openedGUI = false;
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -42,6 +43,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new Failsafe());
         MinecraftForge.EVENT_BUS.register(new Antistuck());
         MinecraftForge.EVENT_BUS.register(new Autosell());
+        MinecraftForge.EVENT_BUS.register(new Scheduler());
         gameState = new GameState();
 
     }
