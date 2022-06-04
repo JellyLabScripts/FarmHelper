@@ -4,7 +4,6 @@ import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.features.Antistuck;
-import com.jelly.farmhelper.features.Resync;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 
@@ -16,7 +15,6 @@ import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 public class CropMacro extends Macro {
     private final Minecraft mc = Minecraft.getMinecraft();
@@ -203,6 +201,7 @@ public class CropMacro extends Macro {
                             LogUtils.debugLog("Dropped, resuming");
                             layerY = mc.thePlayer.posY;
                             rotation.reset();
+                            mc.thePlayer.sendChatMessage("/setspawn");
                             currentState = State.NONE;
                         } else {
                             LogUtils.debugFullLog("Falling");
@@ -210,8 +209,21 @@ public class CropMacro extends Macro {
                         updateKeys(false, false, false, false, false);
                     }
                 } else {
+                    if (BlockUtils.getRelativeBlock(0, -1, 1).equals(Blocks.air)
+                            && BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.air)
+                            && BlockUtils.getRelativeBlock(0, 1, 1).equals(Blocks.air)) {
+                        updateKeys(true, false, false, false, false);
+                    } else if (BlockUtils.getRelativeBlock(1, -1, 0).equals(Blocks.air)
+                            && BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.air)
+                            && BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.air)) {
+                        updateKeys(false, false, true, false, true);
+                    } else if
+                    (BlockUtils.getRelativeBlock(-1, -1, 0).equals(Blocks.air)
+                                    && BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air)
+                                    && BlockUtils.getRelativeBlock(-1, 1, 0).equals(Blocks.air)) {
+                        updateKeys(false, false, false, true, true);
+                    }
                     LogUtils.debugLog("Not at drop yet, keep going");
-                    updateKeys(true, false, false, false, false);
                 }
 
                 return;
@@ -375,7 +387,20 @@ public class CropMacro extends Macro {
             currentState = State.STONE_THROW;
         } else if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || (currentState == State.TP_PAD && !tpFlag)) {
             currentState = State.TP_PAD;
-        } else if (layerY - mc.thePlayer.posY > 1 || currentState == State.DROPPING) {
+        } else if (layerY - mc.thePlayer.posY > 1
+                || currentState == State.DROPPING
+                || (BlockUtils.getRelativeBlock(0, -1, 1).equals(Blocks.air)
+                && BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.air)
+                && BlockUtils.getRelativeBlock(0, 1, 1).equals(Blocks.air))
+                || (BlockUtils.getRelativeBlock(1, -1, 0).equals(Blocks.air)
+                && BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.air)
+                && BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.air))
+                || (BlockUtils.getRelativeBlock(-1, -1, 0).equals(Blocks.air)
+                && BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air)
+                && BlockUtils.getRelativeBlock(-1, 1, 0).equals(Blocks.air))
+                || (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.air)
+                && BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.air)
+                && BlockUtils.getRelativeBlock(0, 1, 0).equals(Blocks.air))) {
             currentState = State.DROPPING;
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
             // layerY = mc.thePlayer.posY;

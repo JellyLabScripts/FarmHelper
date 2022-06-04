@@ -1,10 +1,7 @@
 package com.jelly.farmhelper;
 
 import com.jelly.farmhelper.config.FarmHelperConfig;
-import com.jelly.farmhelper.features.Antistuck;
-import com.jelly.farmhelper.features.Autosell;
-import com.jelly.farmhelper.features.Failsafe;
-import com.jelly.farmhelper.features.Scheduler;
+import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.gui.MenuGUI;
 import com.jelly.farmhelper.gui.Render;
 import com.jelly.farmhelper.macros.MacroHandler;
@@ -44,6 +41,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new Antistuck());
         MinecraftForge.EVENT_BUS.register(new Autosell());
         MinecraftForge.EVENT_BUS.register(new Scheduler());
+        MinecraftForge.EVENT_BUS.register(new AutoReconnect());
         gameState = new GameState();
 
     }
