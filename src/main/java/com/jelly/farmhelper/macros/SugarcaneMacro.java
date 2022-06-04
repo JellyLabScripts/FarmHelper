@@ -102,6 +102,7 @@ public class SugarcaneMacro extends Macro {
 
         if (gameState.currentLocation != GameState.location.ISLAND) {
             updateKeys(false, false, false, false, false);
+            antistuckCheck.reset();
             return;
         }
 
