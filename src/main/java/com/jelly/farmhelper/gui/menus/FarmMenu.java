@@ -67,7 +67,7 @@ class ImageBox extends UIBlock {
             .setHeight(new PixelConstraint(60))
             .setColor(fillColor)
             .onMouseClick((component, uiClickEvent) -> {
-                if (value == 1 && configName == "farmType") return null; // Temporary disable for vertical button
+                // if (value == 1 && configName == "farmType") return null; // Temporary disable for vertical button
                 components.forEach(c -> ((ImageBox) c).reset());
                 selected = true;
                 FarmHelperConfig.set(configName, value);

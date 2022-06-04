@@ -21,12 +21,12 @@ public class TextBox extends UIBlock {
         this.setX(new PixelConstraint(0))
             .setY(new SiblingConstraint())
             .setWidth(new RelativeConstraint(1))
-            .setHeight(new AdditiveConstraint(new ChildBasedRangeConstraint(), new PixelConstraint(20)))
+            .setHeight(new AdditiveConstraint(new ChildBasedSizeConstraint(), new PixelConstraint(15)))
             .setColor(new Color(36, 37, 39));
 
         new UIText(optionName, false)
             .setX(new PixelConstraint(10))
-            .setY(new PixelConstraint(10))
+            .setY(new PixelConstraint(5))
             .setTextScale(new PixelConstraint(1f))
             .setColor(new Color(249, 249, 249))
             .setChildOf(this);

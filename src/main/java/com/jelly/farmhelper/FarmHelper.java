@@ -22,7 +22,7 @@ import org.lwjgl.opengl.Display;
 public class FarmHelper {
     public static final String MODID = "farmhelper";
     public static final String NAME = "Farm Helper";
-    public static final String VERSION = "4.0-pre4";
+    public static final String VERSION = "4.0-pre6";
     public static int tickCount = 0;
     public static boolean openedGUI = false;
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -30,7 +30,7 @@ public class FarmHelper {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        Display.setTitle(FarmHelper.NAME + " v" + FarmHelper.VERSION + " | GIGACHADS ONLY");
+        Display.setTitle(FarmHelper.NAME + " v" + FarmHelper.VERSION + " | Bing Chilling");
         FarmHelperConfig.init();
         KeyBindUtils.setup();
         MinecraftForge.EVENT_BUS.register(this);
@@ -42,9 +42,10 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new Autosell());
         MinecraftForge.EVENT_BUS.register(new Scheduler());
         MinecraftForge.EVENT_BUS.register(new AutoReconnect());
+        MinecraftForge.EVENT_BUS.register(new AutoCookie());
         gameState = new GameState();
-
     }
+
     @SubscribeEvent
     public void OnKeyPress(InputEvent.KeyInputEvent event) {
         if (KeyBindUtils.customKeyBinds[0].isPressed()) {

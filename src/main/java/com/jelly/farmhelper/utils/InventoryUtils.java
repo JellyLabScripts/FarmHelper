@@ -11,6 +11,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 
@@ -29,6 +30,14 @@ public class InventoryUtils {
             return inv.hasCustomName() ? inv.getName() : null;
         }
         return null;
+    }
+
+    public static boolean inventoryNameStartsWith(String startsWithString) {
+        return InventoryUtils.getInventoryName() != null && InventoryUtils.getInventoryName().startsWith(startsWithString);
+    }
+
+    public static boolean inventoryNameContains(String startsWithString) {
+        return InventoryUtils.getInventoryName() != null && InventoryUtils.getInventoryName().contains(startsWithString);
     }
 
     public static ItemStack getStackInSlot(final int slot) {
@@ -161,6 +170,17 @@ public class InventoryUtils {
         }
 
         return item.getSubCompound("ExtraAttributes", false);
+    }
+
+    public static NBTTagList getLore(ItemStack item) {
+        if (item == null) {
+            throw new NullPointerException("The item cannot be null!");
+        }
+        if (!item.hasTagCompound()) {
+            return null;
+        }
+
+        return item.getSubCompound("display", false).getTagList("Lore", 8);
     }
 
     private static List<ItemStack> copyInventory(ItemStack[] inventory) {

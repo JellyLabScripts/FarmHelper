@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.config.enums.CropEnum;
+import com.jelly.farmhelper.config.enums.FarmEnum;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.features.Antistuck;
@@ -85,6 +86,7 @@ public class CropMacro extends Macro {
             rotation.update();
         }
     }
+
     @Override
     public void onTick() {
         if (gameState.currentLocation != GameState.location.ISLAND) {
@@ -187,7 +189,7 @@ public class CropMacro extends Macro {
                 return;
             case DROPPING:
                 if (layerY - mc.thePlayer.posY > 1) {
-                    if (!rotation.completed) {
+                    if (!rotation.completed && FarmConfig.farmType == FarmEnum.LAYERED) {
                         if (!rotation.rotating) {
                             LogUtils.debugLog("Rotating 180");
                             rotation.reset();
@@ -201,8 +203,8 @@ public class CropMacro extends Macro {
                             LogUtils.debugLog("Dropped, resuming");
                             layerY = mc.thePlayer.posY;
                             rotation.reset();
-                            mc.thePlayer.sendChatMessage("/setspawn");
                             currentState = State.NONE;
+                            mc.thePlayer.sendChatMessage("/setspawn");
                         } else {
                             LogUtils.debugFullLog("Falling");
                         }

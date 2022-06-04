@@ -3,6 +3,7 @@ package com.jelly.farmhelper.features;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.world.GameState;
@@ -56,6 +57,7 @@ public class Resync {
             if (desync && FarmHelper.gameState.currentLocation == GameState.location.ISLAND) {
                 LogUtils.debugLog("Desync detected");
                 LogUtils.webhookLog("Desync detected");
+                MacroHandler.disableCurrentMacro();
                 mc.thePlayer.sendChatMessage("/hub");
             }
         }

@@ -62,7 +62,7 @@ public class Failsafe {
                 return;
             case HUB:
                 LogUtils.debugLog("Detected Hub");
-                if (cooldown.passed() && jacobWait.passed()) {
+                if (cooldown.passed() && jacobWait.passed() && !AutoCookie.isEnabled()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage("/is");
                     cooldown.schedule(5000);
@@ -76,7 +76,7 @@ public class Failsafe {
                     LogUtils.webhookLog("Jacob score exceeded - - Resuming in " + formattedTime);
                     jacobWait.schedule(getJacobRemaining());
                     mc.thePlayer.sendChatMessage("/lobby");
-                } else if (!MacroHandler.currentMacro.enabled && jacobWait.passed() && !Autosell.isEnabled() && !MacroHandler.startingUp && Scheduler.isFarming()) {
+                } else if (!MacroHandler.currentMacro.enabled && jacobWait.passed() && !Autosell.isEnabled() && !MacroHandler.startingUp && Scheduler.isFarming() && !AutoCookie.isEnabled() && !AutoPot.isEnabled()) {
                     MacroHandler.enableCurrentMacro();
                 }
         }

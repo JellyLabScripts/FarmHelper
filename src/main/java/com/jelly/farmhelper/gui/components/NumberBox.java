@@ -25,12 +25,12 @@ public class NumberBox extends UIBlock {
         this.setX(new PixelConstraint(0))
             .setY(new SiblingConstraint())
             .setWidth(new RelativeConstraint(1))
-            .setHeight(new AdditiveConstraint(new ChildBasedRangeConstraint(), new PixelConstraint(20)))
+            .setHeight(new AdditiveConstraint(new ChildBasedSizeConstraint(), new PixelConstraint(15)))
             .setColor(new Color(36, 37, 39));
 
         new UIText(optionName, false)
             .setX(new PixelConstraint(10))
-            .setY(new PixelConstraint(10))
+            .setY(new PixelConstraint(5))
             .setTextScale(new PixelConstraint(1f))
             .setColor(new Color(249, 249, 249))
             .setChildOf(this);
@@ -48,7 +48,7 @@ public class NumberBox extends UIBlock {
             });
 
         numberInput = (UITextInput) new UITextInput(String.valueOf(numberValue))
-            .setX(new PixelConstraint(2))
+            .setX(new PixelConstraint(5))
             .setY(new CenterConstraint())
             .setWidth(new SubtractiveConstraint(new RelativeConstraint(1), new PixelConstraint(6)))
             .setChildOf(inputWrapper)

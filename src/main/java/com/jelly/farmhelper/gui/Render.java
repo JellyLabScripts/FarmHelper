@@ -2,6 +2,7 @@ package com.jelly.farmhelper.gui;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.config.interfaces.ProfitCalculatorConfig;
 import com.jelly.farmhelper.config.interfaces.SchedulerConfig;
 import com.jelly.farmhelper.world.GameState;
@@ -33,10 +34,13 @@ public class Render {
             window.removeChild(statusGUI);
             if (SchedulerConfig.statusGUI) {
                 window.addChild(statusGUI);
+                statusGUI.updateFails();
             }
 
-            profitGUI.stats.forEach(e -> e.parent.removeChild(e));
+            window.removeChild(profitGUI);
             if (ProfitCalculatorConfig.profitCalculator) {
+                window.addChild(profitGUI);
+                profitGUI.stats.forEach(e -> e.parent.removeChild(e));
                 if (ProfitCalculatorConfig.totalProfit) profitGUI.addChild(profitGUI.stats.get(0));
                 if (ProfitCalculatorConfig.profitHour) profitGUI.addChild(profitGUI.stats.get(1));
                 if (ProfitCalculatorConfig.itemCount) {
@@ -58,10 +62,10 @@ public class Render {
                             break;
                     }
                 }
-                if (ProfitCalculatorConfig.mushroomCount) {
-                    profitGUI.addChild(profitGUI.stats.get(7));
-                    profitGUI.addChild(profitGUI.stats.get(8));
-                }
+//                if (ProfitCalculatorConfig.mushroomCount) {
+//                    profitGUI.addChild(profitGUI.stats.get(7));
+//                    profitGUI.addChild(profitGUI.stats.get(8));
+//                }
                 if (ProfitCalculatorConfig.counter) profitGUI.addChild(profitGUI.stats.get(9));
                 if (ProfitCalculatorConfig.runtime) profitGUI.addChild(profitGUI.stats.get(10));
             }

@@ -30,7 +30,7 @@ public class Slider extends UIBlock {
         this.setX(new PixelConstraint(0))
             .setY(new SiblingConstraint())
             .setWidth(new RelativeConstraint(1))
-            .setHeight(new AdditiveConstraint(new ChildBasedRangeConstraint(), new PixelConstraint(15)))
+            .setHeight(new AdditiveConstraint(new ChildBasedSizeConstraint(), new PixelConstraint(15)))
             .setColor(new Color(36, 37, 39));
 
         new UIText(optionName, false)

@@ -16,7 +16,7 @@ public class Button extends UIBlock {
         this.setX(new PixelConstraint(0))
             .setY(new SiblingConstraint())
             .setWidth(new RelativeConstraint(1))
-            .setHeight(new AdditiveConstraint(new ChildBasedSizeConstraint(), new PixelConstraint(20)))
+            .setHeight(new AdditiveConstraint(new ChildBasedSizeConstraint(), new PixelConstraint(10)))
             .setColor(new Color(36, 37, 39));
 
         button = new UIBlock(new Color(30, 31, 32))

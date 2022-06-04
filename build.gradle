@@ -5,7 +5,7 @@ plugins {
     id "java"
 }
 
-version = "v4.0-pre4"
+version = "v4.0-pre6"
 group = "com.jelly.farmhelper"
 archivesBaseName = "FarmHelper"
 

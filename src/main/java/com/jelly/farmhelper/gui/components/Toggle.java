@@ -21,7 +21,7 @@ public class Toggle extends UIBlock {
         this.setX(new PixelConstraint(0))
             .setY(new SiblingConstraint())
             .setWidth(new RelativeConstraint(1))
-            .setHeight(new AdditiveConstraint(new ChildBasedSizeConstraint(), new PixelConstraint(10)))
+            .setHeight(new AdditiveConstraint(new ChildBasedMaxSizeConstraint(), new PixelConstraint(10)))
             .setColor(new Color(36, 37, 39));
 
         new UIText(optionName, false)

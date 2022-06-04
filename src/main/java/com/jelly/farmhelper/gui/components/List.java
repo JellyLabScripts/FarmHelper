@@ -17,7 +17,7 @@ public class List extends UIBlock {
         this.setX(x)
             .setY(y)
             .setWidth(new PixelConstraint(150))
-            .setHeight(new ChildBasedRangeConstraint())
+            .setHeight(new AdditiveConstraint(new ChildBasedSizeConstraint(), new PixelConstraint(10)))
             .setColor(new Color(36, 37, 39))
             .onMouseClick((component, uiClickEvent) -> {
                 parent.removeChild(this);
@@ -67,8 +67,8 @@ public class List extends UIBlock {
             .setChildOf(topBar);
 
         content.setX(new PixelConstraint(0))
-            .setY(new SiblingConstraint())
-            .setHeight(new ChildBasedRangeConstraint())
+            .setY(new AdditiveConstraint(new SiblingConstraint(), new PixelConstraint(5)))
+            .setHeight(new ChildBasedSizeConstraint())
             .setWidth(new RelativeConstraint(1)).setChildOf(this);
     }
 }
