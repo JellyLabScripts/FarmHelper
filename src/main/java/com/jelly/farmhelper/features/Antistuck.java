@@ -23,6 +23,7 @@ public class Antistuck {
         if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled || mc.thePlayer == null || mc.theWorld == null || FarmHelper.gameState.currentLocation != GameState.location.ISLAND) {
             lastX = 10000;
             lastZ = 10000;
+            cooldown.reset();
             return;
         }
         if (cooldown.passed()) {
