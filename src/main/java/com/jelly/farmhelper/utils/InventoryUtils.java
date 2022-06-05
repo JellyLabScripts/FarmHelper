@@ -1,9 +1,5 @@
 package com.jelly.farmhelper.utils;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.jelly.farmhelper.datastructures.ItemDiff;
-import com.jelly.farmhelper.datastructures.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.inventory.ContainerChest;
@@ -12,7 +8,6 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 
 import java.util.*;
@@ -74,6 +69,7 @@ public class InventoryUtils {
     public static void clickOpenContainerSlot(final int slot) {
         clickOpenContainerSlot(slot, 0, 0);
     }
+
 
     public static int getAvailableHotbarSlot(final String name) {
         for (int i = 0; i < 8; ++i) {

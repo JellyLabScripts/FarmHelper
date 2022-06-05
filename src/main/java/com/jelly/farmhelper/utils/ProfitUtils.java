@@ -1,12 +1,9 @@
 package com.jelly.farmhelper.utils;
 
-import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
-import com.jelly.farmhelper.datastructures.ItemDiff;
 import com.jelly.farmhelper.macros.MacroHandler;
 import gg.essential.elementa.state.BasicState;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class ProfitUtils {

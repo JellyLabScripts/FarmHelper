@@ -175,7 +175,7 @@ public class AutoPot {
                     LogUtils.debugFullLog("[AutoPot] Found shop menu");
                     if (InventoryUtils.getStackInOpenContainerSlot(13) != null && InventoryUtils.getStackInOpenContainerSlot(13).getMetadata() == 5 && buyWait.passed()) {
                         LogUtils.debugFullLog("[AutoPot] Correct shop menu, buying");
-                        InventoryUtils.clickOpenContainerSlot(39);
+                        InventoryUtils.clickOpenContainerSlot(InventoryUtils.getSlotForItem("God"));
                         buyWait.schedule(2000);
                     } else {
                         LogUtils.debugFullLog("[AutoPot] Wrong shop menu, switching");

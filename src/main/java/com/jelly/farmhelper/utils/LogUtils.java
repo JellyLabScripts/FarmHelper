@@ -4,7 +4,7 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.config.interfaces.WebhookConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.world.GameState;
+import com.jelly.farmhelper.network.DiscordWebhook;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;

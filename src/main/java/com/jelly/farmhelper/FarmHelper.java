@@ -43,6 +43,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new Scheduler());
         MinecraftForge.EVENT_BUS.register(new AutoReconnect());
         MinecraftForge.EVENT_BUS.register(new AutoCookie());
+        MinecraftForge.EVENT_BUS.register(new AutoPot());
         gameState = new GameState();
     }
 

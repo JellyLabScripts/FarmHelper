@@ -1,7 +1,7 @@
 package com.jelly.farmhelper.world;
 
 import com.jelly.farmhelper.config.interfaces.WebhookConfig;
-import com.jelly.farmhelper.utils.DiscordWebhook;
+import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -76,7 +76,7 @@ public class GameState {
 
         for (String line : ScoreboardUtils.getScoreboardLines()) {
             String cleanedLine = ScoreboardUtils.cleanSB(line);
-            if (cleanedLine.contains("Village")) {
+            if (cleanedLine.contains("Village") || cleanedLine.contains("Bazaar") || cleanedLine.contains("Community")) {
                 return location.HUB;
             } else if (cleanedLine.contains("Island")) {
                 return location.ISLAND;
@@ -113,10 +113,8 @@ public class GameState {
                 }
             }
             if (!foundGodPot) {
-                // LogUtils.debugLog("God pot buff not active!");
                 godPot = false;
             } else {
-                // LogUtils.debugFullLog("God pot buff active!");
                 godPot = true;
             }
         }
