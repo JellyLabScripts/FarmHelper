@@ -44,6 +44,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new AutoReconnect());
         MinecraftForge.EVENT_BUS.register(new AutoCookie());
         MinecraftForge.EVENT_BUS.register(new AutoPot());
+        MinecraftForge.EVENT_BUS.register(new BanwaveChecker());
         gameState = new GameState();
     }
 
