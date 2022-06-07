@@ -18,8 +18,8 @@ import static com.jelly.farmhelper.utils.KeyBindUtils.*;
 import static com.jelly.farmhelper.FarmHelper.gameState;
 
 public class SugarcaneMacro extends Macro {
-    public State lastState;
-    public State currentState;
+    public State lastState = State.NONE;
+    public State currentState = State.NONE;
     public boolean pushedOff;
     public boolean stuck = false;
 

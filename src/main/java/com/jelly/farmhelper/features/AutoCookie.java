@@ -9,9 +9,7 @@ import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -75,7 +73,7 @@ public class AutoCookie {
         if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || FarmHelper.tickCount % 5 != 0)
             return;
 
-        if (!enabled && MacroHandler.isMacroOn && MacroHandler.currentMacro.enabled && cooldown.passed() && MiscConfig.autoCookie && !FarmHelper.gameState.cookie) {
+        if (!enabled && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && cooldown.passed() && MiscConfig.autoCookie && !FarmHelper.gameState.cookie) {
             LogUtils.debugFullLog("[AutoCookie] Detected no cookie buff");
             MacroHandler.disableCurrentMacro();
             enable();

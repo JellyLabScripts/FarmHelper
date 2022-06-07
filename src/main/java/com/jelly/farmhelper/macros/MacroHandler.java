@@ -16,11 +16,12 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.lwjgl.input.Mouse;
 
 public class MacroHandler {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public static Macro currentMacro;
-    public static boolean isMacroOn;
+    public static boolean isMacroing;
     public SugarcaneMacro sugarcaneMacro = new SugarcaneMacro();
     public CropMacro cropMacro = new CropMacro();
 
@@ -58,7 +59,7 @@ public class MacroHandler {
                 currentMacro = cropMacro;
             }
 
-            if (isMacroOn) {
+            if (isMacroing) {
                 disableMacro();
             } else {
                 enableMacro();
@@ -69,8 +70,7 @@ public class MacroHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public final void tick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
-        if (isMacroOn && mc.thePlayer != null && mc.theWorld != null) {
-            // InventoryUtils.getInventoryDifference(mc.thePlayer.inventory.mainInventory);
+        if (isMacroing && mc.thePlayer != null && mc.theWorld != null) {
             if (FarmHelper.tickCount == 1) {
                 LogUtils.webhookStatus();
                 ProfitUtils.updateProfitState();
@@ -83,7 +83,7 @@ public class MacroHandler {
     }
 
     public static void enableMacro() {
-        isMacroOn = true;
+        isMacroing = true;
         LogUtils.scriptLog("Starting script");
         LogUtils.webhookLog("Starting script");
         if (AutoSellConfig.autoSell) LogUtils.scriptLog("Auto Sell is in BETA, lock important slots just in case");
@@ -96,7 +96,7 @@ public class MacroHandler {
     }
 
     public static void disableMacro() {
-        isMacroOn = false;
+        isMacroing = false;
         disableCurrentMacro();
         LogUtils.scriptLog("Disabling script");
         LogUtils.webhookLog("Disabling script");
@@ -122,7 +122,7 @@ public class MacroHandler {
         try {
             Thread.sleep(300);
             KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
-            if (isMacroOn) currentMacro.toggle();
+            if (isMacroing) currentMacro.toggle();
             startingUp = false;
         } catch (InterruptedException e) {
             throw new RuntimeException(e);

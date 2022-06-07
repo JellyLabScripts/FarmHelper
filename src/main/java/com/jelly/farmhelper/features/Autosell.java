@@ -2,7 +2,6 @@ package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.AutoSellConfig;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.InventoryUtils;
@@ -10,7 +9,6 @@ import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.StringUtils;
@@ -19,13 +17,11 @@ import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class Autosell {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -81,7 +77,7 @@ public class Autosell {
         if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || FarmHelper.tickCount % 5 != 0)
             return;
 
-        if (!enabled && AutoSellConfig.autoSell && MacroHandler.isMacroOn && MacroHandler.currentMacro.enabled) {
+        if (!enabled && AutoSellConfig.autoSell && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled) {
             if (mc.thePlayer.inventory.getFirstEmptyStack() == -1 && !fullCheck) {
                 LogUtils.debugLog("[AutoSell] Started inventory full watch");
                 fullCheck = true;

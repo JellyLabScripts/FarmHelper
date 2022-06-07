@@ -3,7 +3,6 @@ package com.jelly.farmhelper.features;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.Clock;
-import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -27,7 +26,7 @@ public class Antistuck {
             return;
         }
         if (cooldown.passed()) {
-            stuck = Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1 && MacroHandler.isMacroOn;
+            stuck = Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1 && MacroHandler.isMacroing;
             lastX = mc.thePlayer.posX;
             lastZ = mc.thePlayer.posZ;
             cooldown.schedule(3000);

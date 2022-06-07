@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class BanwaveChecker {
+public class BanwaveChecker {//not working yet
    /* private static final Minecraft mc = Minecraft.getMinecraft();
     private static Clock cooldown = new Clock();
     private static int lastban = -1;

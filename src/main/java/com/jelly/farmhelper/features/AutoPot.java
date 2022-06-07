@@ -73,7 +73,7 @@ public class AutoPot {
         if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || (FarmHelper.tickCount % 5 != 0 && ((currentState != State.WALKING1 && currentState != State.WALKING2) || !enabled)))
             return;
 
-        if (!enabled && MacroHandler.isMacroOn && MacroHandler.currentMacro.enabled && cooldown.passed() && MiscConfig.autoGodPot && !FarmHelper.gameState.godPot) {
+        if (!enabled && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && cooldown.passed() && MiscConfig.autoGodPot && !FarmHelper.gameState.godPot) {
             LogUtils.debugFullLog("[AutoPot] Detected no GodPot buff");
             MacroHandler.disableCurrentMacro();
             enable();

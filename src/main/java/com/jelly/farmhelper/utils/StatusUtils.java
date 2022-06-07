@@ -13,7 +13,7 @@ public class StatusUtils {
     public static final BasicState<String> potFail = new BasicState<>("AutoPot Fail: 0");
 
     public static void updateStateString() {
-        if (!MacroHandler.isMacroOn) {
+        if (!MacroHandler.isMacroing) {
             setStateString("Idling");
         } else if (Failsafe.jacobWait.passed()) {
             setStateString(Scheduler.getStatusString());

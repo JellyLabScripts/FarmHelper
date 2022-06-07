@@ -23,7 +23,7 @@ public class MixinPlayerControllerMP {
 
     @Inject(method={"clickBlock"}, at={@At(value="HEAD")}, cancellable=true)
     public void clickBlock(BlockPos loc, EnumFacing face, CallbackInfoReturnable<Boolean> cir) {
-        if (MiscConfig.resync && MacroHandler.isMacroOn && MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled && loc != null && Minecraft.getMinecraft().theWorld.getBlockState(loc) != null &&
+        if (MiscConfig.resync && MacroHandler.isMacroing && MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled && loc != null && Minecraft.getMinecraft().theWorld.getBlockState(loc) != null &&
                 (Minecraft.getMinecraft().theWorld.getBlockState(loc).getBlock() instanceof BlockBush || Minecraft.getMinecraft().theWorld.getBlockState(loc).getBlock() instanceof BlockReed)) {
             if (MacroHandler.currentMacro instanceof SugarcaneMacro || MacroHandler.currentMacro instanceof CropMacro) {
                 if (checkTimer.passed()) {
