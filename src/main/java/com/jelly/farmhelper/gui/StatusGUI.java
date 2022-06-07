@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.gui;
 
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.features.BanwaveChecker;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.StatusUtils;
 import gg.essential.elementa.UIComponent;
@@ -16,6 +17,7 @@ public class StatusGUI extends UIBlock {
     UIComponent displayString;
     UIComponent cookieFail;
     UIComponent potFail;
+    UIComponent staffBan;
     boolean cookieFailShown;
     boolean potFailShown;
 
@@ -33,6 +35,13 @@ public class StatusGUI extends UIBlock {
             .setY(new PixelConstraint(5))
             .setChildOf(this);
 
+
+        staffBan = new UIText( "Staff ban: NaN", false)
+                .bindText(StatusUtils.staffBan)
+                .setX(new CenterConstraint())
+                .setY(new AdditiveConstraint(new PixelConstraint(5), new SiblingConstraint()))
+                .setChildOf(this);
+
         cookieFailShown = true;
         cookieFail = new UIText("AutoCookie Fails: 0", false)
             .bindText(StatusUtils.cookieFail)
@@ -46,6 +55,9 @@ public class StatusGUI extends UIBlock {
             .setX(new CenterConstraint())
             .setY(new AdditiveConstraint(new PixelConstraint(5), new SiblingConstraint()))
             .setChildOf(this);
+
+
+
     }
 
     public void updateFails() {

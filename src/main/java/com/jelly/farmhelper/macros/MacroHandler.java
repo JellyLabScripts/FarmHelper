@@ -6,6 +6,7 @@ import com.jelly.farmhelper.config.interfaces.AutoSellConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.config.interfaces.SchedulerConfig;
+import com.jelly.farmhelper.features.BanwaveChecker;
 import com.jelly.farmhelper.features.Scheduler;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.client.Minecraft;
@@ -91,6 +92,7 @@ public class MacroHandler {
         if (SchedulerConfig.scheduler) Scheduler.start();
         startTime = System.currentTimeMillis();
         ProfitUtils.resetProfit();
+        BanwaveChecker.reset();
         startCounter = InventoryUtils.getCounter();
         enableCurrentMacro();
     }

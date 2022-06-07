@@ -22,7 +22,7 @@ import org.lwjgl.opengl.Display;
 public class FarmHelper {
     public static final String MODID = "farmhelper";
     public static final String NAME = "Farm Helper";
-    public static final String VERSION = "4.0-pre6";
+    public static final String VERSION = "4.0-pre7";
     public static int tickCount = 0;
     public static boolean openedGUI = false;
     private static final Minecraft mc = Minecraft.getMinecraft();
