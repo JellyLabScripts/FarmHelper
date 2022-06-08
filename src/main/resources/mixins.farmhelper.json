@@ -5,7 +5,8 @@
   "refmap": "mixins.farmhelper.refmap.json",
   "mixins": [
     "MinecraftMixin",
-    "MixinNetHandlerPlayClient"
+    "MixinNetHandlerPlayClient",
+    "MixinEntityLivingBase"
   ],
   "client": [
     "MixinPlayerControllerMP"
