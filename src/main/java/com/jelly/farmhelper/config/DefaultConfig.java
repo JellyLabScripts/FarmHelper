@@ -41,6 +41,7 @@ public class DefaultConfig {
         config.put("statusGUI", true);
         config.put("farmTime", 60.0);
         config.put("breakTime", 5.0);
+        config.put("banThreshold", 10.0);
         return config;
     }
 }

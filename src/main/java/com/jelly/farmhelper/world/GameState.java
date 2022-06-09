@@ -112,11 +112,7 @@ public class GameState {
                     cookie = true;
                 }
             }
-            if (!foundGodPot) {
-                godPot = false;
-            } else {
-                godPot = true;
-            }
+            godPot = foundGodPot;
         }
     }
 

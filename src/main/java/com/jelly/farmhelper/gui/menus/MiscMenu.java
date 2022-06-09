@@ -5,6 +5,7 @@ import com.jelly.farmhelper.config.FarmHelperConfig;
 import com.jelly.farmhelper.features.AutoCookie;
 import com.jelly.farmhelper.features.AutoPot;
 import com.jelly.farmhelper.gui.components.Button;
+import com.jelly.farmhelper.gui.components.Slider;
 import com.jelly.farmhelper.gui.components.Toggle;
 import com.jelly.farmhelper.utils.KeyBindUtils;
 import gg.essential.elementa.components.UIContainer;
@@ -33,5 +34,6 @@ public class MiscMenu extends UIContainer {
             FarmHelperConfig.set("startScriptKeybind", KeyBindUtils.customKeyBinds[1].getKeyCode());
             return null;
         });
+        new Slider("Ban per 15 mins for disconnection", 40, 1, "banThreshold").setChildOf(this);
     }
 }

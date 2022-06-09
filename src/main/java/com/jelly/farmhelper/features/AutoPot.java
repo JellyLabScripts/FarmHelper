@@ -49,6 +49,7 @@ public class AutoPot {
     }
 
     public static void enable() {
+        MacroHandler.disableCurrentMacro();
         LogUtils.debugLog("[AutoPot] Going to buy GodPot");
         mc.thePlayer.sendChatMessage("/hub");
         hoeSlot = mc.thePlayer.inventory.currentItem;
@@ -63,20 +64,27 @@ public class AutoPot {
         mc.thePlayer.closeScreen();
         mc.thePlayer.inventory.currentItem = hoeSlot;
         enabled = false;
+        MacroHandler.enableCurrentMacro();
         if (cooldown.passed()) {
             cooldown.schedule(1000);
         }
     }
+
+
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || (FarmHelper.tickCount % 5 != 0 && ((currentState != State.WALKING1 && currentState != State.WALKING2) || !enabled)))
             return;
 
-        if (!enabled && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && cooldown.passed() && MiscConfig.autoGodPot && !FarmHelper.gameState.godPot) {
-            LogUtils.debugFullLog("[AutoPot] Detected no GodPot buff");
-            MacroHandler.disableCurrentMacro();
+        if (!enabled && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && cooldown.passed() && MiscConfig.autoGodPot && !FarmHelper.gameState.godPot && FarmHelper.gameState.currentLocation == GameState.location.ISLAND) {
+            LogUtils.scriptLog("[AutoPot] Detected no GodPot buff");
             enable();
+        }
+
+        if(FarmHelper.gameState.godPot && enabled){
+            LogUtils.scriptLog("[AutoPot] Probably a false alert");
+            disable();
         }
         if (!enabled) return;
 

@@ -15,7 +15,7 @@ public class AutoReconnect {
     private static final ServerData hypixelServerData = new ServerData("bozo", "mc.hypixel.net", false);
     @SubscribeEvent(receiveCanceled = true)
     public void onOpenGUI(GuiOpenEvent event) {
-        if ((event.gui instanceof GuiMultiplayer || event.gui instanceof GuiDisconnected) && MacroHandler.isMacroing) {
+        if ((event.gui instanceof GuiMultiplayer || event.gui instanceof GuiDisconnected) && MacroHandler.isMacroing && !BanwaveChecker.banwaveOn) {
             MacroHandler.disableCurrentMacro();
             FMLClientHandler.instance().connectToServer(mc.currentScreen instanceof GuiMultiplayer ? mc.currentScreen : new GuiMultiplayer(new GuiMainMenu()), hypixelServerData);
             event.setCanceled(true);

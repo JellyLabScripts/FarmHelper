@@ -10,6 +10,7 @@ public class MiscConfig {
     public static boolean dropStone;
     public static boolean debugMode;
     public static boolean ungrab;
+    public static double banThreshold;
 
     public static void update() {
         resync = (boolean) FarmHelperConfig.get("resync");
@@ -19,5 +20,6 @@ public class MiscConfig {
         dropStone = (boolean) FarmHelperConfig.get("dropStone");
         ungrab = (boolean) FarmHelperConfig.get("ungrab");
         debugMode = (boolean) FarmHelperConfig.get("debugMode");
+        banThreshold = (double) FarmHelperConfig.get("banThreshold");
     }
 }

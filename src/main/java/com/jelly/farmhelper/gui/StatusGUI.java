@@ -37,7 +37,7 @@ public class StatusGUI extends UIBlock {
 
 
         staffBan = new UIText( "Staff ban: NaN", false)
-                .bindText(StatusUtils.staffBan)
+                .bindText(BanwaveChecker.staffBan)
                 .setX(new CenterConstraint())
                 .setY(new AdditiveConstraint(new PixelConstraint(5), new SiblingConstraint()))
                 .setChildOf(this);
