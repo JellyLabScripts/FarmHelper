@@ -60,7 +60,6 @@ public class MinecraftMixin {
 
                 BlockPos newBlock = this.objectMouseOver.getBlockPos();
                 if (!newBlock.equals(clickedBlock) && this.theWorld.getBlockState(newBlock).getBlock() != Blocks.air) {
-                    this.thePlayer.swingItem();
                     this.playerController.clickBlock(newBlock, this.objectMouseOver.sideHit);
                 }
             }

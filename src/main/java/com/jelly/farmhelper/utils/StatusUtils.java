@@ -21,7 +21,7 @@ public class StatusUtils {
         cookieFail.set("AutoCookie Fail: " + AutoCookie.failCount + (AutoCookie.failCount == 3 ? " (OFF)" : ""));
         potFail.set("AutoPot Fail: " + AutoPot.failCount + (AutoPot.failCount == 3 ? " (OFF)" : ""));
         potFail.set("AutoPot Fail: " + AutoPot.failCount + (AutoPot.failCount == 3 ? " (OFF)" : ""));
-        staffBan.set(BanwaveChecker.getBanTimeDiff() > 2 ? "Staff ban in last " + (BanwaveChecker.getBanTimeDiff()) + " minutes : " + BanwaveChecker.getBanDiff() : "Staff ban : NaN");
+        staffBan.set(BanwaveChecker.getBanTimeDiff() > 2 ? "Staff ban in last " + (BanwaveChecker.getBanTimeDiff()) + " minutes : " + BanwaveChecker.getBanDiff() : "Staff ban : Collecting data...");
     }
 
     public static void setStateString(String stateString) {

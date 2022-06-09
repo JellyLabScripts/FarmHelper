@@ -96,7 +96,6 @@ public class MacroHandler {
         if (SchedulerConfig.scheduler) Scheduler.start();
         startTime = System.currentTimeMillis();
         ProfitUtils.resetProfit();
-        BanwaveChecker.reset();
         startCounter = InventoryUtils.getCounter();
         enableCurrentMacro();
     }

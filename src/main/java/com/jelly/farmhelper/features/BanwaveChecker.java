@@ -12,17 +12,15 @@ import org.json.simple.parser.JSONParser;
 import java.util.LinkedList;
 
 public class BanwaveChecker {
-    private static final Minecraft mc = Minecraft.getMinecraft();
     private static final Clock cooldown = new Clock();
     private static final LinkedList<Integer> staffBanLast15Mins = new LinkedList<>();
     @SubscribeEvent
-    public final void tick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || !MacroHandler.isMacroing)
+    public final void tick(TickEvent event) {
+        if (event.phase == TickEvent.Phase.END)
             return;
         if(!cooldown.isScheduled() || cooldown.passed()){
             new Thread(() -> {
                 try {
-
                     String s = APIHelper.readJsonFromUrl("https://api.plancke.io/hypixel/v1/punishmentStats", "User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
                             .get("record").toString();
                     JSONParser parser = new JSONParser();
@@ -44,8 +42,5 @@ public class BanwaveChecker {
     }
     public static int getBanDiff(){
         return staffBanLast15Mins.size() > 1 ? Math.abs(staffBanLast15Mins.getLast() - staffBanLast15Mins.getFirst()) : 0;
-    }
-    public static void reset(){
-        staffBanLast15Mins.clear();
     }
 }
