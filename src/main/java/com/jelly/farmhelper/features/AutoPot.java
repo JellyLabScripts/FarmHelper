@@ -82,10 +82,6 @@ public class AutoPot {
             enable();
         }
 
-        if(FarmHelper.gameState.godPot && enabled){
-            LogUtils.scriptLog("[AutoPot] Probably a false alert");
-            disable();
-        }
         if (!enabled) return;
 
         KeyBindUtils.stopMovement();

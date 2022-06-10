@@ -34,6 +34,7 @@ public class MiscMenu extends UIContainer {
             FarmHelperConfig.set("startScriptKeybind", KeyBindUtils.customKeyBinds[1].getKeyCode());
             return null;
         });
-        new Slider("Ban per 15 mins for disconnection", 40, 1, "banThreshold").setChildOf(this);
+        new Toggle("Leave on banwave", "banwaveDisconnect").setChildOf(this);
+        new Slider("Ban threshold (15 mins)", 40, 1, "banThreshold").setChildOf(this);
     }
 }

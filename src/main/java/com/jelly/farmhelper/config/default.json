@@ -26,5 +26,6 @@
   "debugMode": "false",
   "cropType": 1,
   "farmType": 0,
-  "banThreshold" : 10.0
+  "banThreshold" : 10.0,
+  "banwaveDisconnect" : true
 }

@@ -10,16 +10,12 @@ import com.jelly.farmhelper.utils.LogUtils;
 import gg.essential.elementa.state.BasicState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
-import net.minecraft.client.gui.GuiMainMenu;
-import net.minecraft.client.gui.GuiMultiplayer;
-import net.minecraft.client.multiplayer.ServerData;
-import net.minecraft.client.multiplayer.WorldClient;
-import net.minecraft.realms.RealmsBridge;
-import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.lwjgl.opengl.Display;
+
 import java.util.LinkedList;
 
 public class BanwaveChecker {
@@ -38,6 +34,7 @@ public class BanwaveChecker {
             new Thread(() -> {
                 try {
 
+
                     String s = APIHelper.readJsonFromUrl("https://api.plancke.io/hypixel/v1/punishmentStats", "User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
                             .get("record").toString();
                     JSONParser parser = new JSONParser();
@@ -51,19 +48,10 @@ public class BanwaveChecker {
                     if(getBanTimeDiff() != 0)
                          banwaveOn = getBanDiff() / (getBanTimeDiff() * 1.0f) > MiscConfig.banThreshold / 15.0f;
 
-                    if(MacroHandler.isMacroing) {
-                        System.out.println(getBanDiff() / (getBanTimeDiff() * 1.0f) + " " + MiscConfig.banThreshold / 15.0f);
-                        if (!banwaveOn && mc.theWorld == null) {
-                            System.out.println("Reconnecting");
-                            LogUtils.webhookLog("Reconnecting");
-                            FMLClientHandler.instance().connectToServer(new GuiMultiplayer(new GuiMainMenu()), new ServerData("bozo", "mc.hypixel.net", false));
-                        }
+                    if(MacroHandler.isMacroing && MiscConfig.banwaveDisconnect) {
                         if (banwaveOn && mc.theWorld != null) {
-                            LogUtils.scriptLog("Disconnecting due to banwave detected");
                             LogUtils.webhookLog("Disconnecting due to banwave detected");
                             this.mc.theWorld.sendQuittingDisconnectingPacket();
-                            mc.displayGuiScreen(new GuiMainMenu());
-
                         }
                     }
 
@@ -73,6 +61,9 @@ public class BanwaveChecker {
             }).start();
             cooldown.schedule(60000);
 
+        }
+        if(!banwaveOn && mc.currentScreen instanceof GuiDisconnected && MiscConfig.banwaveDisconnect){
+            AutoReconnect.reconnectToHypixel();
         }
 
     }

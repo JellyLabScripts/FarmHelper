@@ -4,6 +4,7 @@ import com.jelly.farmhelper.config.interfaces.WebhookConfig;
 import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockDaylightDetector;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.IChatComponent;
@@ -91,9 +92,11 @@ public class GameState {
     }
 
     private void checkFooter() {
-        // LogUtils.debugFullLog("Looking for godpot/cookie");
+        //
         boolean foundGodPot = false;
         boolean foundCookieText = false;
+        boolean loaded = false;
+
         if (footer != null) {
             String formatted = footer.getFormattedText();
             for (String line : formatted.split("\n")) {
@@ -103,16 +106,22 @@ public class GameState {
                 } else if (line.contains("\u00a7d\u00a7lCookie Buff")) {
                     foundCookieText = true;
                 } else if (foundCookieText && line.contains("Not active! Obtain")) {
-                    // LogUtils.debugLog("Cookie buff not active!");
                     foundCookieText = false;
                     cookie = false;
                 } else if (foundCookieText) {
-                    // LogUtils.debugFullLog("Cookie active!");
                     foundCookieText = false;
                     cookie = true;
                 }
+                if(line.contains("Active")) {
+                    loaded = true;
+                }
             }
             godPot = foundGodPot;
+            if(!loaded){
+                LogUtils.debugFullLog("Not loaded");
+                godPot = true;
+                cookie = true;
+            }
         }
     }
 
