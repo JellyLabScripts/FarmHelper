@@ -54,6 +54,7 @@ public class CropMacro extends Macro {
     private final Clock rotateWait = new Clock();
     private final Clock stoneDropTimer = new Clock();
     private int hoeSlot;
+    private int hoeEquipFails = 0;
 
 
     @Override
@@ -145,11 +146,11 @@ public class CropMacro extends Macro {
                     if (mc.gameSettings.keyBindRight.isKeyDown()) {
                         if (mc.thePlayer.posY % 1 == 0) tpFlag = true;
                         LogUtils.debugFullLog("On top of pad, keep going right");
-                        updateKeys(false, false, true, false, true);
+                        updateKeys(false, false, true, false, findAndEquipHoe());
                     } else if (mc.gameSettings.keyBindLeft.isKeyDown()) {
                         if (mc.thePlayer.posY % 1 == 0) tpFlag = true;
                         LogUtils.debugFullLog("On top of pad, keep going left");
-                        updateKeys(false, false, false, true, true);
+                        updateKeys(false, false, false, true, findAndEquipHoe());
                     } else if (BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
                         if (mc.thePlayer.posY % 1 == 0.8125) {
                             if (!rotation.completed) {
@@ -163,10 +164,10 @@ public class CropMacro extends Macro {
                                 updateKeys(false, false, false, false, false);
                             } else if (isWalkable(getRelativeBlock(1, 0.1875f, 0))) {
                                 LogUtils.debugLog("On top of pad, go right");
-                                updateKeys(false, false, true, false, true);
+                                updateKeys(false, false, true, false, findAndEquipHoe());
                             } else if (isWalkable(getRelativeBlock(-1, 0.1875f, 0))) {
                                 LogUtils.debugLog("On top of pad, go left");
-                                updateKeys(false, false, false, true, true);
+                                updateKeys(false, false, false, true, findAndEquipHoe());
                             } else {
                                 LogUtils.debugLog("On top of pad, cant detect where to go");
                                 updateKeys(false, false, false, false, false);
@@ -231,11 +232,11 @@ public class CropMacro extends Macro {
                 return;
             case RIGHT:
                 LogUtils.debugLog("Middle of row, going right");
-                updateKeys(false, false, true, false, true);
+                updateKeys(false, false, true, false, findAndEquipHoe());
                 return;
             case LEFT:
                 LogUtils.debugLog("Middle of row, going left");
-                updateKeys(false, false, false, true, true);
+                updateKeys(false, false, false, true, findAndEquipHoe());
                 return;
             case SWITCH_START:
                 if (mc.gameSettings.keyBindForward.isKeyDown()) {
@@ -262,10 +263,10 @@ public class CropMacro extends Macro {
                     } else {
                         if (gameState.leftWalkable) {
                             LogUtils.debugFullLog("Going to edge, right");
-                            updateKeys(false, false, true, false, true);
+                            updateKeys(false, false, true, false, findAndEquipHoe());
                         } else {
                             LogUtils.debugFullLog("Going to edge, left");
-                            updateKeys(false, false, false, true, true);
+                            updateKeys(false, false, false, true, findAndEquipHoe());
                         }
                     }
                 }
@@ -277,10 +278,10 @@ public class CropMacro extends Macro {
             case SWITCH_END:
                 if (mc.gameSettings.keyBindRight.isKeyDown()) {
                     LogUtils.debugFullLog("Continue going right");
-                    updateKeys(false, false, true, false, true);
+                    updateKeys(false, false, true, false, findAndEquipHoe());
                 } else if (mc.gameSettings.keyBindLeft.isKeyDown()) {
                     LogUtils.debugFullLog("Continue going left");
-                    updateKeys(false, false, false, true, true);
+                    updateKeys(false, false, false, true, findAndEquipHoe());
                 } else if (pushedFront) {
                     if (gameState.dx < 0.01 && gameState.dz < 0.01) {
                         if (MiscConfig.dropStone && InventoryUtils.getSlotForItem("Stone") != -1) {
@@ -288,13 +289,13 @@ public class CropMacro extends Macro {
                             stoneState = StoneThrowState.ROTATE_AWAY;
                             rotation.reset();
                             LogUtils.debugLog("Found stone, switching state");
-                            updateKeys(false, false, true, false, true);
+                            updateKeys(false, false, true, false, findAndEquipHoe());
                         } else if (gameState.rightWalkable) {
                             LogUtils.debugLog("Stopped, go right");
-                            updateKeys(false, false, true, false, true);
+                            updateKeys(false, false, true, false, findAndEquipHoe());
                         } else {
                             LogUtils.debugLog("Stopped, go left");
-                            updateKeys(false, false, false, true, true);
+                            updateKeys(false, false, false, true, findAndEquipHoe());
                         }
                     } else {
                         LogUtils.debugFullLog("Pushed, waiting till stopped");
@@ -518,5 +519,26 @@ public class CropMacro extends Macro {
             e.printStackTrace();
         }
     };
+
+    public boolean findAndEquipHoe() {
+        int hoeSlot = InventoryUtils.getHoeSlot();
+        if (hoeSlot == -1) {
+            hoeEquipFails = hoeEquipFails + 1;
+            if (hoeEquipFails > 10) {
+                LogUtils.webhookLog("No Hoe Detected 10 times, Quitting");
+                LogUtils.debugLog("No Hoe Detected 10 times, Quitting");
+                this.mc.theWorld.sendQuittingDisconnectingPacket();
+            } else {
+                LogUtils.webhookLog("No Hoe Detected");
+                LogUtils.debugLog("No Hoe Detected");
+                mc.thePlayer.sendChatMessage("/hub");
+            }
+            return false;
+        } else {
+            mc.thePlayer.inventory.currentItem = hoeSlot;
+            hoeEquipFails = 0;
+            return true;
+        }
+    }
 
 }

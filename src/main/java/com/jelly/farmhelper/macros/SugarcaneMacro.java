@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.macros;
 
+import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.player.Rotation;
@@ -30,6 +31,7 @@ public class SugarcaneMacro extends Macro {
     private float playerYaw = 0;
 
     public Clock antistuckCheck = new Clock();
+    private int hoeEquipFails = 0;
 
 
     private final Rotation rotation = new Rotation();
@@ -43,6 +45,7 @@ public class SugarcaneMacro extends Macro {
         SWITCH,
         NONE
     }
+
 
 
 
@@ -113,9 +116,6 @@ public class SugarcaneMacro extends Macro {
         if (stuck)
             return;
 
-
-        mc.thePlayer.inventory.currentItem = InventoryUtils.getSCHoeSlot();
-
         if(Antistuck.stuck && currentState != State.DROPPING) {
             LogUtils.webhookLog("Stuck, trying to fix");
             LogUtils.debugLog("Stuck, trying to fix");
@@ -160,11 +160,11 @@ public class SugarcaneMacro extends Macro {
 
                 return;
             case LEFT:
-                updateKeys(false, false, false, !setspawnLag, true, false, false);
+                updateKeys(false, false, false, !setspawnLag, findAndEquipHoe(), false, false);
                 LogUtils.debugFullLog("Going left");
                 return;
             case RIGHT:
-                updateKeys(false, false, !setspawnLag, false, true, false, false);
+                updateKeys(false, false, !setspawnLag, false, findAndEquipHoe(), false, false);
                 LogUtils.debugFullLog("Going right");
                 return;
             case SWITCH:
@@ -175,7 +175,7 @@ public class SugarcaneMacro extends Macro {
                 pushedOff = true;
                 return;
             case FORWARD:
-                updateKeys(true, false, false, false, true, !BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, -1, 1)) && !BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, -1, 0)), false);
+                updateKeys(true, false, false, false, findAndEquipHoe(), !BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, -1, 1)) && !BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, -1, 0)), false);
                 LogUtils.debugFullLog("Going Forward");
                 pushedOff = false;
                 return;
@@ -332,6 +332,27 @@ public class SugarcaneMacro extends Macro {
             return State.LEFT;
         else
             return State.RIGHT;
+    }
+
+    public boolean findAndEquipHoe() {
+        int hoeSlot = InventoryUtils.getHoeSlot();
+        if (hoeSlot == -1) {
+            hoeEquipFails = hoeEquipFails + 1;
+            if (hoeEquipFails > 10) {
+                LogUtils.webhookLog("No Hoe Detected 10 times, Quitting");
+                LogUtils.debugLog("No Hoe Detected 10 times, Quitting");
+                this.mc.theWorld.sendQuittingDisconnectingPacket();
+            } else {
+                LogUtils.webhookLog("No Hoe Detected");
+                LogUtils.debugLog("No Hoe Detected");
+                mc.thePlayer.sendChatMessage("/hub");
+            }
+            return false;
+        } else {
+            mc.thePlayer.inventory.currentItem = hoeSlot;
+            hoeEquipFails = 0;
+            return true;
+        }
     }
 
     int getRotateAmount() {

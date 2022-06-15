@@ -1,10 +1,14 @@
 package com.jelly.farmhelper.utils;
 
+import com.jelly.farmhelper.config.enums.CropEnum;
+import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.macros.CropMacro;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -16,6 +20,7 @@ public class InventoryUtils {
     /*
      *  @Author Mostly Apfelsaft
      */
+    static final String[] hoes = {"Euclid","Gauss Carrot Hoe","Pythagorean Potato Hoe","Turing Sugar Cane Hoe","Newton Nether Warts Hoe","Fungi Cutter","Cactus Knife","Rookie Hoe"};
     private static Minecraft mc = Minecraft.getMinecraft();
 
     public static String getInventoryName() {
@@ -191,14 +196,40 @@ public class InventoryUtils {
         return copy;
     }
 
-    public static int getSCHoeSlot() {
+    public static int getHoeSlot() {
+        if(mc.thePlayer.inventory.getCurrentItem() != null) {
+            if (mc.thePlayer.inventory.getCurrentItem().getItem() instanceof ItemHoe)
+                return mc.thePlayer.inventory.currentItem;
+        }
+
         for (int i = 36; i < 44; i++) {
-            if (Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
-                if (Minecraft.getMinecraft().thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Turing")) {
-                    return i - 36;
+            if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
+
+                switch (FarmConfig.cropType){
+                    case NETHERWART:
+                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Newton")) {
+                            return i - 36;
+                        }
+
+                    case CARROT:
+                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Gauss")) {
+                            return i - 36;
+                        }
+                    case WHEAT:
+                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Euclid")) {
+                            return i - 36;
+                        }
+                    case POTATO:
+                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Pythagorean")) {
+                            return i - 36;
+                        }
+                    case SUGARCANE:
+                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Turing")) {
+                            return i - 36;
+                        }
                 }
             }
         }
-        return 0;
+        return -1;
     }
 }

@@ -6,7 +6,7 @@
   "mixins": [
     "MinecraftMixin",
     "MixinNetHandlerPlayClient",
-    "MixinEntityLivingBase"
+    "MixinGuiDisconnected"
   ],
   "client": [
     "MixinPlayerControllerMP"

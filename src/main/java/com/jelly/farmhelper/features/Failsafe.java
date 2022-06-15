@@ -7,6 +7,7 @@ import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.ScoreboardUtils;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -71,12 +72,11 @@ public class Failsafe {
                 return;
             case ISLAND:
                 if (JacobConfig.jacobFailsafe && jacobExceeded() && jacobWait.passed() && MacroHandler.currentMacro.enabled) {
-                    MacroHandler.disableCurrentMacro();
                     LogUtils.debugLog("Jacob remaining time: " + formattedTime);
                     LogUtils.webhookLog("Jacob score exceeded - - Resuming in " + formattedTime);
                     jacobWait.schedule(getJacobRemaining());
-                    mc.thePlayer.sendChatMessage("/lobby");
-                } else if (!MacroHandler.currentMacro.enabled && jacobWait.passed() && !Autosell.isEnabled() && !MacroHandler.startingUp && Scheduler.isFarming() && !AutoCookie.isEnabled() && !AutoPot.isEnabled()) {
+                    mc.theWorld.sendQuittingDisconnectingPacket();
+                } else if (!MacroHandler.currentMacro.enabled && jacobWait.passed() && !Autosell.isEnabled() && !MacroHandler.startingUp && Scheduler.isFarming() && !AutoCookie.isEnabled() && !AutoPot.isEnabled() && !BanwaveChecker.banwaveOn) {
                     MacroHandler.enableCurrentMacro();
                 }
         }

@@ -14,6 +14,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.junit.internal.runners.statements.Fail;
 import org.lwjgl.opengl.Display;
 
 import java.util.LinkedList;
@@ -25,7 +26,7 @@ public class BanwaveChecker {
 
     private static final Clock cooldown = new Clock();
     private static final LinkedList<Integer> staffBanLast15Mins = new LinkedList<>();
-    public static boolean banwaveOn = false;
+    public volatile static boolean banwaveOn = false;
     @SubscribeEvent
     public final void tick(TickEvent.RenderTickEvent event) {
         if (event.phase == TickEvent.Phase.END)
@@ -45,13 +46,19 @@ public class BanwaveChecker {
 
                     staffBan.set(getBanDisplay());
 
-                    if(getBanTimeDiff() != 0)
-                         banwaveOn = getBanDiff() / (getBanTimeDiff() * 1.0f) > MiscConfig.banThreshold / 15.0f;
+                    if(banwaveOn) {
+                        if (getBanTimeDiff() != 0)
+                            banwaveOn = getBanDiff() / (getBanTimeDiff() * 1.0f) > (MiscConfig.banThreshold * 0.8f)/ 15.0f;
+                    } else {
+                        if (getBanTimeDiff() != 0)
+                            banwaveOn = getBanDiff() / (getBanTimeDiff() * 1.0f) > MiscConfig.banThreshold / 15.0f;
+                    }
 
                     if(MacroHandler.isMacroing && MiscConfig.banwaveDisconnect) {
                         if (banwaveOn && mc.theWorld != null) {
                             LogUtils.webhookLog("Disconnecting due to banwave detected");
                             this.mc.theWorld.sendQuittingDisconnectingPacket();
+
                         }
                     }
 
@@ -60,12 +67,7 @@ public class BanwaveChecker {
                 }
             }).start();
             cooldown.schedule(60000);
-
         }
-        if(!banwaveOn && mc.currentScreen instanceof GuiDisconnected && MiscConfig.banwaveDisconnect){
-            AutoReconnect.reconnectToHypixel();
-        }
-
     }
     private static int getBanTimeDiff(){
         return staffBanLast15Mins.size() > 1 ? staffBanLast15Mins.size() - 1 : 0;
