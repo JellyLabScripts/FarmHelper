@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.config.interfaces.JacobConfig;
+import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
@@ -47,6 +48,12 @@ public class Failsafe {
 
         switch (gameState.currentLocation) {
             case TELEPORTING:
+                if (cooldown.passed()) {
+                    LogUtils.debugLog("Teleport failed??");
+                    LogUtils.webhookLog("Teleport failed??");
+                    mc.thePlayer.sendChatMessage("/lobby");
+                    cooldown.schedule(15000);
+                }
                 return;
             case LIMBO:
                 if (cooldown.passed()) {
@@ -76,7 +83,14 @@ public class Failsafe {
                     LogUtils.webhookLog("Jacob score exceeded - - Resuming in " + formattedTime);
                     jacobWait.schedule(getJacobRemaining());
                     mc.theWorld.sendQuittingDisconnectingPacket();
-                } else if (!MacroHandler.currentMacro.enabled && jacobWait.passed() && !Autosell.isEnabled() && !MacroHandler.startingUp && Scheduler.isFarming() && !AutoCookie.isEnabled() && !AutoPot.isEnabled() && !BanwaveChecker.banwaveOn) {
+                } else if (!MacroHandler.currentMacro.enabled
+                        && jacobWait.passed()
+                        && !Autosell.isEnabled()
+                        && !MacroHandler.startingUp
+                        && Scheduler.isFarming()
+                        && !AutoCookie.isEnabled()
+                        && !AutoPot.isEnabled()
+                        && !(BanwaveChecker.banwaveOn && MiscConfig.banwaveDisconnect)) {
                     MacroHandler.enableCurrentMacro();
                 }
         }
