@@ -36,5 +36,7 @@ public class MiscMenu extends UIContainer {
         });
         new Toggle("Leave on banwave", "banwaveDisconnect").setChildOf(this);
         new Slider("Ban threshold (15 mins)", 40, 1, "banThreshold").setChildOf(this);
+        new Slider("Delay before reconnect (s)", 20, 1, "reconnectDelay").setChildOf(this);
+
     }
 }

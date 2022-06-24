@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.features;
 
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.JacobConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
@@ -15,18 +16,25 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 public class AutoReconnect {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final ServerData hypixelServerData = new ServerData("bozo", "mc.hypixel.net", false);
+
+    public static double waitTime = 0;
 
     @SubscribeEvent
-    public final void tick(TickEvent.RenderTickEvent event) {
+    public final void tick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END || !MacroHandler.isMacroing)
             return;
         if(BanwaveChecker.banwaveOn && MiscConfig.banwaveDisconnect)
             return;
         if(!Failsafe.jacobWait.passed() && JacobConfig.jacobFailsafe)
             return;
-        if((mc.currentScreen instanceof GuiDisconnected || mc.currentScreen instanceof GuiMultiplayer)){
-            FMLClientHandler.instance().connectToServer(mc.currentScreen instanceof GuiMultiplayer ? mc.currentScreen : new GuiMultiplayer(new GuiMainMenu()), hypixelServerData);
+
+        if ((mc.currentScreen instanceof GuiDisconnected)) {
+            if (waitTime >= (MiscConfig.reconnectDelay * 20)) {
+                waitTime = 0;
+                FMLClientHandler.instance().connectToServer(new GuiMultiplayer(new GuiMainMenu()), new ServerData("bozo", FarmHelper.gameState.serverIP, false));
+            } else {
+                waitTime++;
+            }
         }
     }
 

@@ -12,6 +12,8 @@ public class MiscConfig {
     public static boolean ungrab;
     public static boolean banwaveDisconnect;
     public static double banThreshold;
+    public static double reconnectDelay;
+
 
 
     public static void update() {
@@ -24,5 +26,6 @@ public class MiscConfig {
         debugMode = (boolean) FarmHelperConfig.get("debugMode");
         banThreshold = (double) FarmHelperConfig.get("banThreshold");
         banwaveDisconnect = (boolean) FarmHelperConfig.get("banwaveDisconnect");
+        reconnectDelay = (double) FarmHelperConfig.get("reconnectDelay");
     }
 }
