@@ -39,6 +39,7 @@ public class GameState {
     public boolean rightWalkable;
     public boolean backWalkable;
     public boolean leftWalkable;
+    public String serverIP;
 
     public double dx;
     public double dz;
@@ -56,6 +57,7 @@ public class GameState {
     }
 
     public void update() {
+        serverIP = mc.getCurrentServerData().serverIP;
         currentLocation = getLocation();
         checkFooter();
         updateWalkables();

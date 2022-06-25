@@ -43,6 +43,7 @@ public class DefaultConfig {
         config.put("breakTime", 5.0);
         config.put("banThreshold", 10.0);
         config.put("banwaveDisconnect", true);
+        config.put("reconnectDelay", 5.0);
         return config;
     }
 }
