@@ -1,0 +1,128 @@
+plugins {
+    id "net.minecraftforge.gradle.forge" version "8708bf3e0"
+    id "com.github.johnrengelman.shadow" version "6.1.0"
+    id "org.spongepowered.mixin" version "d5f9873"
+    id "java"
+}
+
+version = rootProject.modVersion
+group = "com.jelly.farmhelper"
+archivesBaseName = "FarmHelper"
+
+sourceCompatibility = targetCompatibility = 1.8
+compileJava.options.encoding = 'UTF-8'
+
+sourceSets {
+    main {
+        ext.refMap = "mixins.farmhelper.refmap.json"
+        output.resourcesDir = file("${buildDir}/classes/java/main")
+    }
+}
+
+minecraft {
+    version = "1.8.9-11.15.1.2318-1.8.9"
+    runDir = "farmhelper-mod/run"
+    mappings = "stable_22"
+    makeObfSourceJar = false
+
+    clientRunArgs += "--mixin mixins.farmhelper.json"
+    clientRunArgs += '--tweakClass gg.essential.loader.stage0.EssentialSetupTweaker'
+}
+
+configurations {
+    include
+    implementation.extendsFrom(include)
+}
+
+repositories {
+    mavenCentral()
+    maven { url = "https://repo.sk1er.club/repository/maven-public/" }
+    maven { url = "https://jitpack.io/" }
+    maven { url = "https://repo.spongepowered.org/repository/maven-public/" }
+}
+
+dependencies {
+    include('gg.essential:loader-launchwrapper:1.1.3')
+    implementation('gg.essential:essential-1.8.9-forge:1813')
+
+    implementation('org.projectlombok:lombok:1.18.24')
+    annotationProcessor('org.projectlombok:lombok:1.18.22')
+
+    implementation('org.spongepowered:mixin:0.8.5-SNAPSHOT')
+    annotationProcessor('org.spongepowered:mixin:0.7.11-SNAPSHOT')
+
+    include('com.github.RewisServer:brigadier:master-SNAPSHOT')
+    include('com.github.ronmamo:reflections:master-SNAPSHOT')
+
+    include("org.java-websocket:Java-WebSocket:1.5.3")
+
+    include('com.googlecode.json-simple:json-simple:1.1.1')
+    implementation('com.googlecode.json-simple:json-simple:1.1.1')
+}
+
+mixin {
+    add sourceSets.main, "mixins.farmhelper.refmap.json"
+    defaultObfuscationEnv searge
+}
+
+jar {
+    manifest.attributes(
+            "ForceLoadAsMod": true,
+            'ModSide': 'CLIENT',
+            "TweakClass": "gg.essential.loader.stage0.EssentialSetupTweaker",
+            "TweakOrder": "0",
+            'MixinConfigs': "mixins.farmhelper.json",
+    )
+    enabled = false
+}
+
+sourceJar {
+    enabled = false
+}
+
+shadowJar {
+    archiveClassifier.set("")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    configurations = [project.configurations.include]
+
+    exclude "LICENSE.md"
+    exclude "pack.mcmeta"
+    exclude "dummyThing"
+    exclude "**/module-info.class"
+    exclude "*.so"
+    exclude "*.dylib"
+    exclude "*.dll"
+    exclude "*.jnilib"
+    exclude "ibxm/**"
+    exclude "com/jcraft/**"
+    exclude "org/lwjgl/**"
+    exclude "net/java/**"
+
+    exclude "META-INF/proguard/**"
+    exclude "META-INF/maven/**"
+    exclude "META-INF/versions/**"
+    exclude "META-INF/com.android.tools/**"
+
+    exclude "fabric.mod.json"
+}
+
+tasks.reobfJar.dependsOn tasks.shadowJar
+
+reobf {
+    shadowJar {
+        classpath = sourceSets.main.compileClasspath
+    }
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    filesMatching("mcmod.info") {
+        expand(
+                "version": project.version,
+                "mcversion": project.minecraft.version
+        )
+    }
+    rename '(.+_at.cfg)', 'META-INF/$1'
+}
