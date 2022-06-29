@@ -18,6 +18,7 @@ out
 build
 .gradle
 
+botconfig.json
 # other
 eclipse
 run
