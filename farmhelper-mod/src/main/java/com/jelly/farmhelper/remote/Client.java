@@ -3,9 +3,6 @@ package com.jelly.farmhelper.remote;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.jelly.farmhelper.remote.event.MessageEvent;
 import dev.volix.lib.brigadier.Brigadier;
 import lombok.SneakyThrows;
