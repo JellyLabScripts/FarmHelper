@@ -5,7 +5,9 @@ plugins {
     id "java"
 }
 
-version = rootProject.modVersion
+version = project.modversion
+botversion = project.botversion
+
 group = "com.jelly.farmhelper"
 archivesBaseName = "FarmHelper"
 
@@ -53,7 +55,6 @@ dependencies {
 
     include('com.github.RewisServer:brigadier:master-SNAPSHOT')
     include('com.github.ronmamo:reflections:master-SNAPSHOT')
-
     include("org.java-websocket:Java-WebSocket:1.5.3")
 
     include('com.googlecode.json-simple:json-simple:1.1.1')
@@ -72,8 +73,10 @@ jar {
             "TweakClass": "gg.essential.loader.stage0.EssentialSetupTweaker",
             "TweakOrder": "0",
             'MixinConfigs': "mixins.farmhelper.json",
+            "modversion": version,
+            "botversion": botversion
     )
-    enabled = false
+    enabled = true
 }
 
 sourceJar {
@@ -124,5 +127,4 @@ processResources {
                 "mcversion": project.minecraft.version
         )
     }
-    rename '(.+_at.cfg)', 'META-INF/$1'
 }

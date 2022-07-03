@@ -1,24 +1,25 @@
 package com.yyonezu.remotecontrol.event;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import io.javalin.websocket.WsMessageContext;
 import lombok.SneakyThrows;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+
 
 public class MessageEvent {
     public final WsMessageContext ctx;
-    public final JSONObject message;
+    public final JsonObject message;
     public final String user;
 
     @SneakyThrows
     public MessageEvent(WsMessageContext ctx, String user) {
         this.ctx = ctx;
-        this.message = (JSONObject) new JSONParser().parse(ctx.message());
+        this.message = new Gson().fromJson(ctx.message(), JsonObject.class);
         this.user = user;
     }
 
-    public boolean matchesMetadata(JSONObject data) {
-        return ( (JSONObject) data.get("metadata")).toJSONString()
-                .equals(( (JSONObject) this.message.get("metadata")).toJSONString());
+    public boolean matchesMetadata(JsonObject data) {
+        return  data.get("metadata").toString()
+                .equals(this.message.get("metadata").toString());
     }
 }

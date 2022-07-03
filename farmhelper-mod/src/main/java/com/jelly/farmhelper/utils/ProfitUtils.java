@@ -15,13 +15,13 @@ public class ProfitUtils {
     public static final BasicState<String> brownMushroomCount = new BasicState<>("0");
     public static final BasicState<String> counter = new BasicState<>("0");
     public static final BasicState<String> runtime = new BasicState<>("0h 0m 0s");
+    public static double realProfit = 0;
 
     public static void updateProfitState() {
         counter.set(Utils.formatNumber(InventoryUtils.getCounter()));
         runtime.set(LogUtils.getRuntimeFormat());
         // redMushroomCount.set(Utils.formatNumber(getCropDiff("§fRed Mushroom") / 160));
         // brownMushroomCount.set(Utils.formatNumber(getCropDiff("§fBrown Mushroom") / 160));
-        double realProfit = 0;
         switch (FarmConfig.cropType) {
             case NETHERWART:
                 cropCount.set(Utils.formatNumber(getCropDiff("§fNether Wart") / 25600));
@@ -93,6 +93,8 @@ public class ProfitUtils {
                 return "Enchanted Baked Potatoes";
             case WHEAT:
                 return "Enchanted Hay Bales";
+            case SUGARCANE:
+                return "Enchanted Sugar Cane";
             default:
                 return "Unknown";
         }

@@ -56,7 +56,9 @@ public class GameState {
     }
 
     public void update() {
-        serverIP = mc.getCurrentServerData().serverIP;
+        if (mc.getCurrentServerData().serverIP != null) {
+            serverIP = mc.getCurrentServerData().serverIP;
+        }
         currentLocation = getLocation();
         checkFooter();
         updateWalkables();

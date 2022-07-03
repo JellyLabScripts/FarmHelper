@@ -5,10 +5,10 @@
   "refmap": "mixins.farmhelper.refmap.json",
   "mixins": [
     "MinecraftMixin",
-    "MixinNetHandlerPlayClient",
-    "MixinGuiDisconnected"
+    "MixinGuiDisconnected",
+    "MixinNetHandlerPlayClient"
   ],
   "client": [
-    "MixinPlayerControllerMP"
+    "MixinPlayerControllerMP",
   ]
 }

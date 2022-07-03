@@ -18,13 +18,18 @@ public class EmbedUtils {
         if (titleObj != null){ // Make sure the object is not null before adding it onto the embed.
             embedBuilder.setTitle(titleObj.getAsString());
         }
-
+        JsonObject imageObj = json.getAsJsonObject("image");
+        if (imageObj != null) {
+            String url = imageObj.get("url").getAsString();
+            embedBuilder.setImage(url);
+        }
         JsonObject authorObj = json.getAsJsonObject("author");
         if (authorObj != null) {
             String authorName = authorObj.get("name").getAsString();
-            String authorIconUrl = authorObj.get("icon_url").getAsString();
-            if (authorIconUrl != null) // Make sure the icon_url is not null before adding it onto the embed. If its null then add just the author's name.
-                embedBuilder.setAuthor(authorName, authorIconUrl);
+            String authorIconUrl = authorObj.get("icon_url") != null ? authorObj.get("icon_url").getAsString() : null;
+            String authorUrl = authorObj.get("icon_url") != null ? authorObj.get("icon_url").getAsString() : null;
+            if (authorIconUrl != null && authorUrl != null) // Make sure the icon_url is not null before adding it onto the embed. If its null then add just the author's name.
+                embedBuilder.setAuthor(authorName, authorIconUrl, authorUrl);
             else
                 embedBuilder.setAuthor(authorName);
         }
@@ -51,9 +56,9 @@ public class EmbedUtils {
             });
         }
 
-        JsonPrimitive thumbnailObj = json.getAsJsonPrimitive("thumbnail");
+        JsonObject thumbnailObj = json.getAsJsonObject("thumbnail");
         if (thumbnailObj != null){
-            embedBuilder.setThumbnail(thumbnailObj.getAsString());
+            embedBuilder.setThumbnail(thumbnailObj.get("url").getAsString());
         }
 
         JsonObject footerObj = json.getAsJsonObject("footer");

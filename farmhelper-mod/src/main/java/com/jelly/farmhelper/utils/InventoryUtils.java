@@ -5,6 +5,7 @@ import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.macros.CropMacro;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
+import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
@@ -12,6 +13,7 @@ import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.network.play.client.C16PacketClientStatus;
 import net.minecraft.util.StringUtils;
 
 import java.util.*;
@@ -40,6 +42,10 @@ public class InventoryUtils {
         return InventoryUtils.getInventoryName() != null && InventoryUtils.getInventoryName().contains(startsWithString);
     }
 
+    public static void openInventory() {
+        mc.getNetHandler().addToSendQueue(new C16PacketClientStatus(C16PacketClientStatus.EnumState.OPEN_INVENTORY_ACHIEVEMENT));
+        mc.displayGuiScreen(new GuiInventory(mc.thePlayer));
+    }
     public static ItemStack getStackInSlot(final int slot) {
         return InventoryUtils.mc.thePlayer.inventory.getStackInSlot(slot);
     }

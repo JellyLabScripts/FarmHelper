@@ -8,6 +8,7 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
 import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.world.GameState;
+import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -18,12 +19,19 @@ import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.Display;
 
+import java.net.URL;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
+
 
 @Mod(modid = FarmHelper.MODID, name = FarmHelper.NAME, version = FarmHelper.VERSION)
 public class FarmHelper {
     public static final String MODID = "farmhelper";
     public static final String NAME = "Farm Helper";
-    public static final String VERSION = "4.1";
+    public static final String VERSION = "4.1.4";
+    // the actual mod version from gradle properties, should match with VERSION
+    public static String MODVERSION = "-1";
+    public static String BOTVERSION = "-1";
     public static int tickCount = 0;
     public static boolean openedGUI = false;
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -31,7 +39,7 @@ public class FarmHelper {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        Display.setTitle(FarmHelper.NAME + " v" + FarmHelper.VERSION + " | Bing Chilling");
+        setVersions();
         FarmHelperConfig.init();
         KeyBindUtils.setup();
         MinecraftForge.EVENT_BUS.register(this);
@@ -64,5 +72,21 @@ public class FarmHelper {
             gameState.update();
         tickCount += 1;
         tickCount %= 20;
+    }
+
+    @SneakyThrows
+    public static void setVersions() {
+        Class clazz = FarmHelper.class;
+        String className = clazz.getSimpleName() + ".class";
+        String classPath = clazz.getResource(className).toString();
+        if (!classPath.startsWith("jar")) return;
+
+        String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) +
+                "/META-INF/MANIFEST.MF";
+        Manifest manifest = new Manifest(new URL(manifestPath).openStream());
+        Attributes attr = manifest.getMainAttributes();
+        MODVERSION = attr.getValue("modversion");
+        BOTVERSION = attr.getValue("botversion");
+        Display.setTitle(FarmHelper.NAME + " v" + MODVERSION + " | Bing Chilling");
     }
 }
