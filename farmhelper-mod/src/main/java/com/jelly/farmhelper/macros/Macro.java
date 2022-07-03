@@ -5,7 +5,7 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 public abstract class Macro {
     public Minecraft mc = Minecraft.getMinecraft();
-    public boolean enabled;
+    public boolean enabled = false;
 
     public void toggle() {
         enabled = !enabled;

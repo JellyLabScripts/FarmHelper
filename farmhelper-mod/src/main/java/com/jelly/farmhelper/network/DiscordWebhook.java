@@ -111,9 +111,7 @@ public class DiscordWebhook {
         }
 
         jsonEmbed.put("fields", jsonFields.toArray());
-        JSONObject e = new JSONObject();
-        e.put("embed", jsonEmbed);
-        return e;
+        return jsonEmbed;
     }
 
     public void addEmbed(EmbedObject embed) {

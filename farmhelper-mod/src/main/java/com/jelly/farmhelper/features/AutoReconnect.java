@@ -4,6 +4,7 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.JacobConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
+import com.jelly.farmhelper.remote.command.commands.ReconnectCommand;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.gui.GuiMainMenu;
@@ -21,6 +22,14 @@ public class AutoReconnect {
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
+        if (ReconnectCommand.isEnabled) {
+            if (ReconnectCommand.reconnectClock.isScheduled() && !ReconnectCommand.reconnectClock.passed()) {
+                return;
+            } else if (!((Failsafe.jacobWait.passed() && JacobConfig.jacobFailsafe) && (BanwaveChecker.banwaveOn && MiscConfig.banwaveDisconnect))) {
+                ReconnectCommand.isEnabled = false;
+                FMLClientHandler.instance().connectToServer(new GuiMultiplayer(new GuiMainMenu()), new ServerData("bozo", FarmHelper.gameState.serverIP, false));
+            }
+        }
         if (event.phase == TickEvent.Phase.END || !MacroHandler.isMacroing)
             return;
         if(BanwaveChecker.banwaveOn && MiscConfig.banwaveDisconnect)

@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.remote.command.commands;
 
+import com.google.gson.JsonObject;
 import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.remote.command.BaseCommand;
 import com.jelly.farmhelper.remote.event.MessageEvent;
@@ -13,17 +14,20 @@ import org.json.simple.JSONObject;
 public class SayCommand extends BaseCommand {
     @Command(label = "say")
     public void execute(MessageEvent event, CommandContext<RemoteCommandContext> context, ParameterSet parameter) {
-        JSONObject data = event.obj;
+        JsonObject data = event.obj;
         if (nullCheck()) {
-            String message = data.get("message").toString();
+            String message = data.get("message").getAsString();
             LogUtils.scriptLog(message);
-            data.put("embed", DiscordWebhook.toJson(embed().setDescription("Just sent " + message + " in chat!")));
-            send(data.toJSONString());
+            data.addProperty("embed", toJson(embed()
+                    .setDescription("Just sent " + message + " in chat!"))
+            );
+            send(data);
 
         } else {
-            data.put("embed", DiscordWebhook.toJson(embed().setDescription("I'm not in a world, therefore I can't say anything in chat")));
-            send(data.toJSONString());
-
+            data.addProperty("embed", toJson(embed()
+                    .setDescription("I'm not in a world, therefore I can't say anything in chat"))
+            );
+            send(data);
         }
     }
 }

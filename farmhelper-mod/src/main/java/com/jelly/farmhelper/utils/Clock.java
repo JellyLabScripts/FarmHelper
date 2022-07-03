@@ -9,6 +9,9 @@ public class Clock {
         scheduled = true;
     }
 
+    public long getRemainingTime() {
+        return endTime - System.currentTimeMillis();
+    }
     public long getEndTime() {
         return endTime;
     }

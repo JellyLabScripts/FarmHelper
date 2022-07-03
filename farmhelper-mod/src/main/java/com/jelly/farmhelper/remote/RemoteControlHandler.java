@@ -1,25 +1,26 @@
 package com.jelly.farmhelper.remote;
 
 import com.google.gson.JsonObject;
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.RemoteControlConfig;
 import com.jelly.farmhelper.remote.command.Adapter;
 import com.jelly.farmhelper.remote.command.BaseCommand;
-import com.jelly.farmhelper.remote.event.MessageEvent;
 import dev.volix.lib.brigadier.Brigadier;
 import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.util.ScreenShotHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.handshake.ServerHandshake;
-import org.json.simple.JSONObject;
 import org.reflections.Reflections;
 
-import java.io.IOException;
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static com.jelly.farmhelper.utils.StatusUtils.connecting;
@@ -27,7 +28,10 @@ import static com.jelly.farmhelper.utils.StatusUtils.connecting;
 public class RemoteControlHandler {
     public static int tick = 1;
     public static Client client;
-    Minecraft mc = Minecraft.getMinecraft();
+    public static List<String> queuedScreenshots = new ArrayList<>();
+    public static HashMap<String, String> takenScreenshots = new HashMap<>();
+
+    static Minecraft mc = Minecraft.getMinecraft();
 
     public RemoteControlHandler() {
         registerCommands();
@@ -35,12 +39,13 @@ public class RemoteControlHandler {
 
     public void connect() {
         try {
-            JSONObject j = new JSONObject();
-            j.put("password", RemoteControlConfig.websocketPassword);
-            j.put("name", mc.getSession().getUsername());
-
+            JsonObject j = new JsonObject();
+            j.addProperty("password", RemoteControlConfig.websocketPassword);
+            j.addProperty("name", mc.getSession().getUsername());
+            j.addProperty("modversion", FarmHelper.MODVERSION);
+            j.addProperty("botversion", FarmHelper.BOTVERSION);
             String data = Base64.getEncoder().encodeToString(j.toString().getBytes(StandardCharsets.UTF_8));
-            client = new Client(new URI("ws://localhost:7070/farmhelperws"));
+            client = new Client(new URI("ws://localhost:58637/farmhelperws"));
             client.addHeader("auth", data);
             client.connect();
         } catch (URISyntaxException e) {
@@ -60,9 +65,29 @@ public class RemoteControlHandler {
         }
     }
 
+
     @SneakyThrows
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent e) {
+        if (e.phase != TickEvent.Phase.START) return;
+        if (!queuedScreenshots.isEmpty()) {
+                for (int i = 0; i < queuedScreenshots.size(); i++) {
+                    try {
+                        String s = queuedScreenshots.get(i);
+                        ScreenShotHelper.saveScreenshot(mc.mcDataDir, s, mc.displayWidth, mc.displayHeight, mc.getFramebuffer());
+                        File screenshotDirectory = new File(mc.mcDataDir, "screenshots");
+                        File screenshotFile = new File(screenshotDirectory, s);
+                        byte[] bytes = Files.readAllBytes(Paths.get(screenshotFile.getAbsolutePath()));
+                        String base64 = Base64.getEncoder().encodeToString(bytes);
+                        takenScreenshots.put(s, base64);
+                        screenshotFile.delete();
+                    } catch (Exception z) {
+                        z.printStackTrace();
+                    }
+                }
+                queuedScreenshots.clear();
+        }
+
         if (!RemoteControlConfig.enableRemoteControl) {
             if (client != null && client.isOpen()) {
                 client.close();

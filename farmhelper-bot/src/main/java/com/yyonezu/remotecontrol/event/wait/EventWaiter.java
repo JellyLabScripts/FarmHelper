@@ -43,7 +43,6 @@ public class EventWaiter {
     }
 
     public static void unregister(WaiterAction action) {
-        System.out.println(waiterMap.get(action.id));
         toDelete.add(waiterMap.get(action.id));
     }
 

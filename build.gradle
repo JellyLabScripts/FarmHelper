@@ -6,7 +6,7 @@ subprojects {
     version = project.version
     // copy artifacts to root build folder after build
     tasks.getByName("build").doLast {
-        String version = project.name == "farmhelper-bot" ? project.botVersion : project.modVersion
+        String version = project.name == "farmhelper-bot" ? project.botversion : project.modversion
         copy {
             print("${project.rootProject.rootDir}/${project.name}/build/libs/${project.archivesBaseName}-${version}.jar")
             from "${project.rootProject.rootDir}/${project.name}/build/libs/${project.archivesBaseName}-${version}.jar"

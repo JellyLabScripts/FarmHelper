@@ -4,10 +4,12 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
 
-version = project.botVersion
+version = project.botversion
+modversion = project.modversion
 group = "com.yyonezu.remotecontrol"
 archivesBaseName = "FarmHelper-Bot"
-sourceCompatibility = 1.8
+sourceCompatibility = 1.8;
+
 
 def mainClass = 'com.yyonezu.remotecontrol.Main'
 
@@ -19,6 +21,16 @@ shadowJar {
     classifier = null
     project.configurations.implementation.canBeResolved(true)
     configurations = [project.configurations.implementation]
+}
+
+jar {
+    manifest {
+        attributes(
+                "botversion": version,
+                "modversion": modversion
+        )
+    }
+    enabled = true
 }
 
 repositories {
@@ -33,7 +45,7 @@ repositories {
 
 dependencies {
     implementation("net.dv8tion:JDA:5.0.0-alpha.12")
-    implementation('com.github.Kaktushose:jda-commands:master-SNAPSHOT')
+    implementation('com.github.Kaktushose:jda-commands:dev-jda5-SNAPSHOT')
     implementation('io.javalin:javalin:4.6.3')
     implementation('net.jodah:typetools:0.6.3')
     compileOnly 'org.projectlombok:lombok:1.18.24'

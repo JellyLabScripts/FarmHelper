@@ -1,16 +1,23 @@
 package com.yyonezu.remotecontrol.struct;
 
 import com.github.kaktushose.jda.commands.dispatching.CommandEvent;
+import com.google.gson.JsonObject;
 import com.yyonezu.remotecontrol.command.type.Instance;
 import com.yyonezu.remotecontrol.event.wait.EventWaiter;
 import com.yyonezu.remotecontrol.event.wait.Waiter;
 import com.yyonezu.remotecontrol.event.wait.WaiterAction;
+import lombok.SneakyThrows;
 import net.dv8tion.jda.api.EmbedBuilder;
-import org.json.simple.JSONObject;
 
 import java.awt.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.nio.channels.AcceptPendingException;
+import java.nio.file.Files;
+import java.util.Base64;
+import java.util.UUID;
 
 abstract public class BaseCommand {
     public static void register(Waiter waiter) {
@@ -24,18 +31,33 @@ abstract public class BaseCommand {
         EventWaiter.unregister(action);
     }
 
+    public static EmbedBuilder embed() {
+       return new EmbedBuilder()
+               .setColor(9372933)
+               .setFooter("➤ FarmHelper Remote Control ↳ by yonezu#5542", "https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png");
+    }
+    @SneakyThrows
+    public static File getFileFromBase64(String base64) {
+        File file = new File(UUID.randomUUID().toString() + ".png");
+        file.createNewFile();
+        byte[] data = Base64.getDecoder().decode(base64);
+        try (OutputStream stream = Files.newOutputStream(file.toPath())) {
+            stream.write(data);
+        }
+        return file;
+    }
 
-    public static JSONObject getBaseMessage (CommandEvent ev, Instance instance) {
-        String args = String.join(" ", ev.getCommandDefinition().getLabels());
+    public static JsonObject getBaseMessage (CommandEvent ev, Instance instance) {
+        String args = ev.getCommandDefinition().getLabels().get(0);
         String instanceuser = instance.getUser();
         String instanceid = instance.getId();
-        JSONObject meta = new JSONObject();
-        meta.put("args", args);
-        meta.put("instanceuser", instanceuser);
-        meta.put("instanceid", instanceid);
+        JsonObject meta = new JsonObject();
+        meta.addProperty("args", args);
+        meta.addProperty("instanceuser", instanceuser);
+        meta.addProperty("instanceid", instanceid);
 
-        JSONObject j = new JSONObject();
-        j.put("metadata", meta);
+        JsonObject j = new JsonObject();
+        j.add("metadata", meta);
         return j;
     }
 

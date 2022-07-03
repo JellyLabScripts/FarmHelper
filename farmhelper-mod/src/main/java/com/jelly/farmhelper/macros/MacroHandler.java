@@ -28,8 +28,8 @@ public class MacroHandler {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public static Macro currentMacro;
     public static boolean isMacroing;
-    public SugarcaneMacro sugarcaneMacro = new SugarcaneMacro();
-    public CropMacro cropMacro = new CropMacro();
+    public static SugarcaneMacro sugarcaneMacro = new SugarcaneMacro();
+    public static CropMacro cropMacro = new CropMacro();
 
     public static long startTime = 0;
     public static int startCounter = 0;
@@ -59,17 +59,7 @@ public class MacroHandler {
     @SubscribeEvent
     public void OnKeyPress(InputEvent.KeyInputEvent event) {
         if (KeyBindUtils.customKeyBinds[1].isPressed()) {
-            if (FarmConfig.cropType == CropEnum.SUGARCANE) {
-                currentMacro = sugarcaneMacro;
-            } else {
-                currentMacro = cropMacro;
-            }
-
-            if (isMacroing) {
-                disableMacro();
-            } else {
-                enableMacro();
-            }
+            toggleMacro();
         }
     }
 
@@ -87,9 +77,23 @@ public class MacroHandler {
             }
         }
     }
+    public static void toggleMacro(){
+        if (isMacroing) {
+            disableMacro();
+        } else {
+            enableMacro();
+        }
+    }
 
     public static void enableMacro() {
+        if (FarmConfig.cropType == CropEnum.SUGARCANE) {
+            currentMacro = sugarcaneMacro;
+        } else {
+            currentMacro = cropMacro;
+        }
         isMacroing = true;
+        mc.thePlayer.closeScreen();
+
         LogUtils.scriptLog("Starting script");
         LogUtils.webhookLog("Starting script");
         if (AutoSellConfig.autoSell) LogUtils.scriptLog("Auto Sell is in BETA, lock important slots just in case");
