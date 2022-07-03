@@ -74,7 +74,7 @@ public class ReconnectCommand extends BaseCommand {
         ));
     }
 
-    @Command(value="cancel all", usage = "{prefix}reconnect all time", desc = "Cancels out all current reconnects")
+    @Command(value="cancel all", usage = "{prefix}reconnect cancel all", desc = "Cancels out all current reconnects")
     public void cancelall(CommandEvent ev) {
         if (WebSocketServer.minecraftInstances.values().size() == 0) {
             ev.reply("There isn't any instances connected");
