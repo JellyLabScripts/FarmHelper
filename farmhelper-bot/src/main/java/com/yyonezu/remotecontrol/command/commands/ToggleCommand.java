@@ -36,7 +36,7 @@ public class ToggleCommand extends BaseCommand {
                 () -> ev.reply("Could not get anything from " + instance.getUser() + "... maybe try again?")
         ));
     }
-
+    
     @Command(value = "all", usage = "{prefix}toggle all", desc = "Toggles all macro instances")
     public void all(CommandEvent ev) {
         if (WebSocketServer.minecraftInstances.values().size() == 0) {
