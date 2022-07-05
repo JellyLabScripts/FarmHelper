@@ -52,7 +52,7 @@ public class MinecraftMixin {
 
         boolean shouldClick = this.currentScreen == null && this.gameSettings.keyBindAttack.isKeyDown() && this.inGameHasFocus;
         if (this.objectMouseOver != null && shouldClick)
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < MiscConfig.fastbreakSpeed + 1; i++) {
                 BlockPos clickedBlock = this.objectMouseOver.getBlockPos();
                 this.objectMouseOver = this.renderViewEntity.rayTrace(this.playerController.getBlockReachDistance(), 1.0F);
                 if (this.objectMouseOver == null || this.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK)

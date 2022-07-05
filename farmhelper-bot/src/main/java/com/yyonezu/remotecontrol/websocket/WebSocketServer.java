@@ -4,12 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.yyonezu.remotecontrol.Main;
 import com.yyonezu.remotecontrol.config.interfaces.SecretConfig;
-import com.yyonezu.remotecontrol.utils.Utils;
 import com.yyonezu.remotecontrol.event.MessageEvent;
 import com.yyonezu.remotecontrol.event.wait.EventWaiter;
+import com.yyonezu.remotecontrol.utils.Utils;
 import io.javalin.Javalin;
 import org.eclipse.jetty.websocket.api.Session;
-import org.json.simple.parser.JSONParser;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -34,16 +33,14 @@ public class WebSocketServer {
                     if (decoded.get("password").getAsString().equals(SecretConfig.password)) {
                         minecraftInstances.put(ctx.session, decoded.get("name").getAsString());
                     } else {
-                        ctx.closeSession(69, "lol");
+                        ctx.closeSession(1016, "Why");
                     }
                 } catch (Exception ignored) {
                     ctx.closeSession();
                 }
 
             });
-            ws.onClose(ctx -> {
-                minecraftInstances.remove(ctx.session);
-            });
+            ws.onClose(ctx -> minecraftInstances.remove(ctx.session));
             ws.onMessage(ctx -> EventWaiter.onMessage(new MessageEvent(ctx, Utils.getIgnFromSession(ctx.session))));
         });
 

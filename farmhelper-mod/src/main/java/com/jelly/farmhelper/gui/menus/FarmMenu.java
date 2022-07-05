@@ -11,14 +11,12 @@ import gg.essential.elementa.constraints.animation.AnimatingConstraints;
 import gg.essential.elementa.constraints.animation.Animations;
 
 import java.awt.*;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 
 public class FarmMenu extends UIContainer {
-    private UIComponent selector;
-    private ArrayList<UIComponent> cropList = new ArrayList<>();
-    private ArrayList<UIComponent> farmList = new ArrayList<>();
+    private final UIComponent selector;
+    private final ArrayList<UIComponent> cropList = new ArrayList<>();
+    private final ArrayList<UIComponent> farmList = new ArrayList<>();
 
     public FarmMenu() {
         selector = new UIBlock((new Color(36, 37, 39)))
@@ -52,9 +50,9 @@ public class FarmMenu extends UIContainer {
 
 class ImageBox extends UIBlock {
     private boolean selected;
-    private Color fillColor;
-    private ArrayList<UIComponent> components;
-    private String configName;
+    private final Color fillColor;
+    private final ArrayList<UIComponent> components;
+    private final String configName;
     public ImageBox(XConstraint x, YConstraint y, float width ,String ImageURL, ArrayList<UIComponent> components, Long value, String configName) {
         // Check if already marked
         selected = (long) FarmHelperConfig.get(configName) == value;

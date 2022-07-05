@@ -10,5 +10,7 @@
   ],
   "client": [
     "MixinPlayerControllerMP",
+    "MixinBlockRendererDispatcher",
+    "MixinEffectRenderer"
   ]
 }

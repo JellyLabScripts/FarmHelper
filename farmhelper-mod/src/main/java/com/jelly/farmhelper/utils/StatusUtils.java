@@ -1,9 +1,10 @@
 package com.jelly.farmhelper.utils;
 
-import com.jelly.farmhelper.config.interfaces.RemoteControlConfig;
-import com.jelly.farmhelper.features.*;
+import com.jelly.farmhelper.features.AutoCookie;
+import com.jelly.farmhelper.features.AutoPot;
+import com.jelly.farmhelper.features.Failsafe;
+import com.jelly.farmhelper.features.Scheduler;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.remote.RemoteControlHandler;
 import gg.essential.elementa.state.BasicState;
 
 public class StatusUtils {

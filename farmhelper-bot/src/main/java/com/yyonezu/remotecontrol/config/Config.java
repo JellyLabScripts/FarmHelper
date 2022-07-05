@@ -1,9 +1,5 @@
 package com.yyonezu.remotecontrol.config;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import com.yyonezu.remotecontrol.config.interfaces.SecretConfig;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -27,7 +23,7 @@ public class Config {
             writeConfig(DefaultConfig.getDefaultConfig());
             token = JOptionPane.showInputDialog("Put a discord token here: ");
             password = JOptionPane.showInputDialog("Choose a password (you'll have to set it on the mod as well): ");
-            config = (JSONObject) DefaultConfig.getDefaultConfig();
+            config = DefaultConfig.getDefaultConfig();
             set("token", token);
             set("password", password);
             writeConfig(config);

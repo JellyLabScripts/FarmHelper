@@ -11,7 +11,7 @@ import kotlin.jvm.functions.Function2;
 import java.awt.*;
 
 public class Button extends UIBlock {
-    private UIComponent button;
+    private final UIComponent button;
     public Button(String text) {
         this.setX(new PixelConstraint(0))
             .setY(new SiblingConstraint())

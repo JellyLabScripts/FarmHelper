@@ -11,11 +11,11 @@ import java.awt.*;
 import java.util.Arrays;
 
 public class NumberBox extends UIBlock {
-    private UIComponent inputWrapper;
+    private final UIComponent inputWrapper;
     private UITextInput numberInput;
     private Long numberValue;
-    private Integer[] codes = {14, 28, 203, 205};
-    private Integer digits;
+    private final Integer[] codes = {14, 28, 203, 205};
+    private final Integer digits;
 
     public NumberBox(String optionName, Integer digits, String configName) {
         // Get value from config

@@ -2,7 +2,6 @@ package com.yyonezu.remotecontrol.command.commands;
 
 import com.github.kaktushose.jda.commands.annotations.Command;
 import com.github.kaktushose.jda.commands.annotations.CommandController;
-import com.github.kaktushose.jda.commands.annotations.Concat;
 import com.github.kaktushose.jda.commands.dispatching.CommandEvent;
 import com.google.gson.JsonObject;
 import com.yyonezu.remotecontrol.command.type.Instance;
@@ -11,7 +10,6 @@ import com.yyonezu.remotecontrol.struct.BaseCommand;
 import com.yyonezu.remotecontrol.utils.EmbedUtils;
 import com.yyonezu.remotecontrol.websocket.WebSocketServer;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import org.json.simple.JSONObject;
 
 import java.util.concurrent.TimeUnit;
 

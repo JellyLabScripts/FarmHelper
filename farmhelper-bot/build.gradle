@@ -8,7 +8,7 @@ version = project.botversion
 modversion = project.modversion
 group = "com.yyonezu.remotecontrol"
 archivesBaseName = "FarmHelper-Bot"
-sourceCompatibility = 1.8;
+sourceCompatibility = 1.8
 
 
 def mainClass = 'com.yyonezu.remotecontrol.Main'

@@ -2,18 +2,14 @@ package com.jelly.farmhelper.remote.command;
 
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.network.DiscordWebhook;
-import com.jelly.farmhelper.remote.Client;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
-import com.jelly.farmhelper.remote.command.commands.ScreenshotCommand;
 import com.jelly.farmhelper.utils.Clock;
 import net.minecraft.client.Minecraft;
 
 import java.awt.*;
 import java.util.UUID;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-
-public class BaseCommand {
+abstract public class BaseCommand {
     public static final Minecraft mc = Minecraft.getMinecraft();
     public boolean nullCheck() {
         return mc.thePlayer != null && mc.theWorld != null;
@@ -26,18 +22,16 @@ public class BaseCommand {
         RemoteControlHandler.client.send(content.toString());
     }
 
-    public String toJson(DiscordWebhook.EmbedObject embed) {
+    public static String toJson(DiscordWebhook.EmbedObject embed) {
         return String.valueOf(DiscordWebhook.toJson(embed));
     }
     public static String getScreenshot() {
         String s = UUID.randomUUID().toString();
         RemoteControlHandler.queuedScreenshots.add(s);
-        long waitTime = System.currentTimeMillis() + 5 * 1000;
-        boolean isConditionMet = false;
         Clock timeout = new Clock();
         timeout.schedule(5000);
         while (RemoteControlHandler.takenScreenshots.get(s) == null) {
-            if (!timeout.isScheduled()) {
+                if (timeout.getRemainingTime() < 0) {
                 break;
             }
         }

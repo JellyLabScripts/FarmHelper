@@ -2,6 +2,8 @@ package com.yyonezu.remotecontrol.command.commands;
 
 import com.github.kaktushose.jda.commands.annotations.Command;
 import com.github.kaktushose.jda.commands.annotations.CommandController;
+import com.github.kaktushose.jda.commands.annotations.constraints.Max;
+import com.github.kaktushose.jda.commands.annotations.constraints.Min;
 import com.github.kaktushose.jda.commands.dispatching.CommandEvent;
 import com.google.gson.JsonObject;
 import com.yyonezu.remotecontrol.command.type.Instance;
@@ -13,34 +15,34 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.util.concurrent.TimeUnit;
 
-@CommandController(value = {"info", "i", "information"}, category = "Misc")
-public class InfoCommand extends BaseCommand {
-    @Command(name = "Info command", usage = "{prefix}info instance_ign", desc = "Check information of an instance", isSuper = true)
-    public void infoCommand(CommandEvent ev, Instance instance) {
+@CommandController(value = {"setspeed"}, category = "Misc")
+public class SetSpeedCommand extends BaseCommand {
+    @Command(name = "setspeed", usage = "{prefix}setspeed instance_ign <1-400>", desc = "Sets Rancher's Boots speed", isSuper = true)
+    public void setspeed(CommandEvent ev, Instance instance, @Min(1) @Max(400) int speed) {
         JsonObject data = getBaseMessage(ev, instance);
+        data.addProperty("speed", speed);
         instance.getSession().getRemote().sendStringByFuture(data.toString());
         register(new Waiter(
                 condition -> (condition.matchesMetadata(data)),
                 action -> {
-                    MessageEmbed eb = EmbedUtils.jsonToEmbed(action.message.get("embed").getAsString());
-                    ev.getChannel().sendMessageEmbeds(eb).queue();
+                    MessageEmbed embed = EmbedUtils.jsonToEmbed(action.message.get("embed").getAsString());
+                    ev.getChannel().sendMessageEmbeds(embed).queue();
                 },
                 true,
-                7L,
+                17L,
                 TimeUnit.SECONDS,
                 () -> ev.reply("Could not get anything from " + instance.getUser() + "... maybe try again?")
         ));
     }
 
-
-    @Command(value="all", usage = "{prefix}info all", desc = "Check information of all instances")
-    public void all(CommandEvent ev) {
+    @Command(value = "all", usage = "{prefix}setspeed all <speed>", desc = "Set Rancher's Boots speed for every instance")
+    public void all(CommandEvent ev, @Min(1) @Max(400) int speed) {
         if (WebSocketServer.minecraftInstances.values().size() == 0) {
             ev.reply("There isn't any instances connected");
         } else {
             for (String ign : WebSocketServer.minecraftInstances.values()) {
                 Instance instance = new Instance(ign);
-                this.infoCommand(ev, instance);
+                this.setspeed(ev, instance, speed);
             }
         }
     }

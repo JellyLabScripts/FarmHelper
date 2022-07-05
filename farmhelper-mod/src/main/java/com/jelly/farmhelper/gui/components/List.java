@@ -6,7 +6,6 @@ import gg.essential.elementa.components.UIContainer;
 import gg.essential.elementa.components.UIText;
 import gg.essential.elementa.constraints.*;
 
-
 import java.awt.*;
 
 public class List extends UIBlock {

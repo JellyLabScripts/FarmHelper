@@ -1,8 +1,6 @@
 package com.yyonezu.remotecontrol;
 
 import com.github.kaktushose.jda.commands.JDACommands;
-import com.yyonezu.remotecontrol.command.type.Instance;
-import com.yyonezu.remotecontrol.command.type.adapters.InstanceAdapter;
 import com.yyonezu.remotecontrol.config.Config;
 import com.yyonezu.remotecontrol.config.interfaces.SecretConfig;
 import com.yyonezu.remotecontrol.websocket.WebSocketServer;
@@ -12,9 +10,7 @@ import net.dv8tion.jda.api.JDABuilder;
 
 import javax.security.auth.login.LoginException;
 import javax.swing.*;
-import java.io.IOException;
 import java.net.URL;
-import java.util.Enumeration;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 

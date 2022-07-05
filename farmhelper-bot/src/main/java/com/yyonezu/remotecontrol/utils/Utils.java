@@ -3,17 +3,13 @@ package com.yyonezu.remotecontrol.utils;
 import com.yyonezu.remotecontrol.websocket.WebSocketServer;
 import org.eclipse.jetty.websocket.api.Session;
 
-import java.io.IOException;
-import java.net.URL;
 import java.time.Duration;
-import java.util.Enumeration;
 import java.util.Map;
-import java.util.jar.Manifest;
 
 public class Utils {
     public static Session getSessionFromIGN(String ign) {
         for (Map.Entry<Session, String> entry : WebSocketServer.minecraftInstances.entrySet()) {
-            if (entry.getValue().equals(ign)) {
+            if (entry.getValue().equalsIgnoreCase(ign)) {
                 return entry.getKey();
             }
         }

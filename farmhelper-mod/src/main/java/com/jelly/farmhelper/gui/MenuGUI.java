@@ -4,7 +4,7 @@ import com.jelly.farmhelper.gui.components.List;
 import com.jelly.farmhelper.gui.menus.*;
 import gg.essential.elementa.UIComponent;
 import gg.essential.elementa.WindowScreen;
-import gg.essential.elementa.constraints.*;
+import gg.essential.elementa.constraints.PixelConstraint;
 
 public class MenuGUI extends WindowScreen {
     public UIComponent menu;

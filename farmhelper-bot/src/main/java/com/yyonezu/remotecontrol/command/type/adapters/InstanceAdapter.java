@@ -6,7 +6,7 @@ import com.github.kaktushose.jda.commands.dispatching.adapter.TypeAdapter;
 import com.yyonezu.remotecontrol.command.type.Instance;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Optional;
 
 @Component
 public class InstanceAdapter implements TypeAdapter<Instance> {

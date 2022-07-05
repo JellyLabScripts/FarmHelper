@@ -18,7 +18,7 @@ import static com.yyonezu.remotecontrol.utils.Utils.withSuffix;
 import static com.yyonezu.remotecontrol.websocket.WebSocketServer.minecraftInstances;
 
 @CommandController(value={"totalprofit", "profit", "tp"}, category = "Misc")
-public class TotalProfit extends BaseCommand {
+public class TotalProfitCommand extends BaseCommand {
     @Command(name = "Info command", usage = "{prefix}totalprofit", desc = "Get total profit totalled from all instances")
     public void infoCommand(CommandEvent ev) {
         int size = minecraftInstances.size();

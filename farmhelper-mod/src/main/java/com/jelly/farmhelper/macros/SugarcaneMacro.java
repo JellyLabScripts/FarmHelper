@@ -1,6 +1,5 @@
 package com.jelly.farmhelper.macros;
 
-import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.player.Rotation;
@@ -12,11 +11,12 @@ import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 import java.util.ArrayList;
+import java.util.Random;
 
+import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.BlockUtils.getRelativeBlock;
 import static com.jelly.farmhelper.utils.BlockUtils.isWalkable;
-import static com.jelly.farmhelper.utils.KeyBindUtils.*;
-import static com.jelly.farmhelper.FarmHelper.gameState;
+import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class SugarcaneMacro extends Macro {
     public State lastState = State.NONE;
@@ -116,6 +116,7 @@ public class SugarcaneMacro extends Macro {
         if (stuck)
             return;
 
+
         if(Antistuck.stuck && currentState != State.DROPPING) {
             LogUtils.webhookLog("Stuck, trying to fix");
             LogUtils.debugLog("Stuck, trying to fix");
@@ -126,7 +127,7 @@ public class SugarcaneMacro extends Macro {
         updateState();
         lastState = currentState;
 
-        if(currentState != State.TPPAD) {
+        if(currentState != State.TPPAD && MacroHandler.isMacroing) {
             playerYaw = AngleUtils.get360RotationYaw(AngleUtils.getClosest());
             rotation.lockAngle(playerYaw, 0);
         }
@@ -261,6 +262,7 @@ public class SugarcaneMacro extends Macro {
             rotation.reset();
         }
     }
+
 
 
     //antistuck

@@ -1,12 +1,8 @@
 package com.jelly.farmhelper.gui;
 
-import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.config.interfaces.ProfitCalculatorConfig;
 import com.jelly.farmhelper.config.interfaces.SchedulerConfig;
-import com.jelly.farmhelper.world.GameState;
-import gg.essential.elementa.UIComponent;
 import gg.essential.elementa.components.Window;
 import gg.essential.universal.UGraphics;
 import net.minecraft.client.Minecraft;

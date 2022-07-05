@@ -7,15 +7,14 @@ import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
+import com.jelly.farmhelper.world.GameState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
 
 import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.BlockUtils.getRelativeBlock;
 import static com.jelly.farmhelper.utils.BlockUtils.isWalkable;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
-
-import com.jelly.farmhelper.world.GameState;
-import net.minecraft.client.Minecraft;
-import net.minecraft.init.Blocks;
 
 public class CropMacro extends Macro {
     private final Minecraft mc = Minecraft.getMinecraft();
@@ -42,7 +41,7 @@ public class CropMacro extends Macro {
     }
 
     private final Rotation rotation = new Rotation();
-    private State currentState;
+    public State currentState;
     private StoneThrowState stoneState;
     private double layerY;
     private boolean pushedSide;

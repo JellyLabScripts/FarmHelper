@@ -37,7 +37,7 @@ public class Autosell {
 
     private static boolean fullCheck;
     private static long checkStart;
-    private static Clock checkTimer = new Clock();
+    private static final Clock checkTimer = new Clock();
     private static int fullCount;
     private static int totalCount;
 

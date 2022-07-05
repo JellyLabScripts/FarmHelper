@@ -4,7 +4,6 @@ package com.jelly.farmhelper.utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -39,7 +38,7 @@ public class Imgur {
             return null;
         }
 
-        JsonObject imgurJson = new Gson().fromJson(new InputStreamReader(connection.getInputStream(), "UTF-8"), JsonObject.class);
+        JsonObject imgurJson = new Gson().fromJson(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8), JsonObject.class);
         return imgurJson.getAsJsonObject("data").get("link").getAsString();
     }
 }

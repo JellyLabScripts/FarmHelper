@@ -9,12 +9,8 @@ import com.yyonezu.remotecontrol.event.wait.WaiterAction;
 import lombok.SneakyThrows;
 import net.dv8tion.jda.api.EmbedBuilder;
 
-import java.awt.*;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Array;
-import java.nio.channels.AcceptPendingException;
 import java.nio.file.Files;
 import java.util.Base64;
 import java.util.UUID;
@@ -38,7 +34,7 @@ abstract public class BaseCommand {
     }
     @SneakyThrows
     public static File getFileFromBase64(String base64) {
-        File file = new File(UUID.randomUUID().toString() + ".png");
+        File file = new File(UUID.randomUUID() + ".png");
         file.createNewFile();
         byte[] data = Base64.getDecoder().decode(base64);
         try (OutputStream stream = Files.newOutputStream(file.toPath())) {

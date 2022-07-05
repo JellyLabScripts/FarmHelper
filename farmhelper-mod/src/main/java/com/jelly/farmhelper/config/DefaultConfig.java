@@ -28,6 +28,7 @@ public class DefaultConfig {
         config.put("runtime", true);
         config.put("resync", true);
         config.put("fastbreak", true);
+        config.put("fastbreakSpeed", 3.0);
         config.put("autoGodPot", false);
         config.put("autoCookie", false);
         config.put("dropStone", true);
@@ -46,6 +47,9 @@ public class DefaultConfig {
         config.put("reconnectDelay", 5.0);
         config.put("websocketPassword", "");
         config.put("enableRemoteControl", false);
+        config.put("xray", false);
+        config.put("randomization", false);
+
         return config;
     }
 }

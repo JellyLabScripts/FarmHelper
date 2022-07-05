@@ -10,7 +10,7 @@ import gg.essential.elementa.constraints.*;
 import java.awt.*;
 
 public class TextBox extends UIBlock {
-    private UIComponent textWrapper;
+    private final UIComponent textWrapper;
     private UITextInput textInput;
     private String textValue;
 

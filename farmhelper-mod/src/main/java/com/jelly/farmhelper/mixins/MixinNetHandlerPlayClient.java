@@ -1,7 +1,6 @@
 package com.jelly.farmhelper.mixins;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.entity.player.EntityPlayer;

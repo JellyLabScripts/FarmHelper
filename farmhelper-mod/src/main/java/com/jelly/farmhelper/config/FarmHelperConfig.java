@@ -1,15 +1,18 @@
 package com.jelly.farmhelper.config;
 
-import java.io.*;
-
 import com.jelly.farmhelper.config.interfaces.*;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class FarmHelperConfig {
     private static JSONObject config;
-    private static File configFile = new File("farmhelper.json");
+    private static final File configFile = new File("farmhelper.json");
 
     public static void init() {
         // Create config file if it doesn't exist

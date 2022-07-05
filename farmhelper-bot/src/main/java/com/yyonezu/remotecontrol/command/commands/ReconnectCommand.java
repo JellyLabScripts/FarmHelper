@@ -10,11 +10,7 @@ import com.yyonezu.remotecontrol.struct.BaseCommand;
 import com.yyonezu.remotecontrol.utils.EmbedUtils;
 import com.yyonezu.remotecontrol.websocket.WebSocketServer;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import org.eclipse.jetty.websocket.api.Session;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.yyonezu.remotecontrol.utils.Utils.toMillis;

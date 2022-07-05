@@ -1,26 +1,21 @@
 package com.jelly.farmhelper.features;
 
-import akka.actor.MinimalActorRef;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
-import com.jelly.farmhelper.gui.DisconnectGUI;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
 import gg.essential.elementa.state.BasicState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.internal.runners.statements.Fail;
-import org.lwjgl.opengl.Display;
 
 import java.util.LinkedList;
 
 public class BanwaveChecker {
-    private Minecraft mc = Minecraft.getMinecraft();
+    private final Minecraft mc = Minecraft.getMinecraft();
     public static final BasicState<String> staffBan = new BasicState<>("Staff ban : NaN");
 
 

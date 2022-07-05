@@ -10,7 +10,6 @@ import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiMultiplayer;
 import net.minecraft.client.multiplayer.ServerData;
-import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -23,7 +22,7 @@ public class AutoReconnect {
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
         if (ReconnectCommand.isEnabled) {
-            if (ReconnectCommand.reconnectClock.isScheduled() && !ReconnectCommand.reconnectClock.passed()) {
+            if (ReconnectCommand.reconnectClock.getRemainingTime() > 0) {
                 return;
             } else if (!((Failsafe.jacobWait.passed() && JacobConfig.jacobFailsafe) && (BanwaveChecker.banwaveOn && MiscConfig.banwaveDisconnect))) {
                 ReconnectCommand.isEnabled = false;

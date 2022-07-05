@@ -10,9 +10,10 @@ import com.jelly.farmhelper.utils.InventoryUtils;
 import dev.volix.lib.brigadier.command.Command;
 import dev.volix.lib.brigadier.context.CommandContext;
 import dev.volix.lib.brigadier.parameter.ParameterSet;
-import net.minecraft.client.gui.inventory.GuiInventory;
 
 import java.io.IOException;
+
+import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 
 public class ScreenshotCommand extends BaseCommand {
@@ -39,14 +40,11 @@ public class ScreenshotCommand extends BaseCommand {
         if (nullCheck()) {
             if (MacroHandler.isMacroing) {
                 wasMacroing = true;
-                MacroHandler.toggleMacro();
+                MacroHandler.isMacroing = false;
             }
             InventoryUtils.openInventory();
             String link = Imgur.upload(getScreenshot());
             mc.thePlayer.closeScreen();
-            if (wasMacroing) {
-                MacroHandler.toggleMacro();
-            }
             if (link != null) {
                 obj.addProperty("embed", toJson(embed()
                         .setDescription("Sent a screenshot")
@@ -54,6 +52,10 @@ public class ScreenshotCommand extends BaseCommand {
             } else {
                 obj.addProperty("embed", toJson(embed()
                         .setDescription("Could not send a screenshot, check if Patcher's ScreenshotManager is enabled using /patcher ingame. If it isn't then it could be imgur timeout, try again")));
+            }
+            if (wasMacroing) {
+                MacroHandler.isMacroing = true;
+                MacroHandler.enableCurrentMacro();
             }
         } else {
             obj.addProperty("embed", toJson(embed()

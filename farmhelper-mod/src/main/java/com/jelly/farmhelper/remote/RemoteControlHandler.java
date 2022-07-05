@@ -8,8 +8,6 @@ import com.jelly.farmhelper.remote.command.BaseCommand;
 import dev.volix.lib.brigadier.Brigadier;
 import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ScreenShotHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -72,8 +70,8 @@ public class RemoteControlHandler {
         if (e.phase != TickEvent.Phase.START) return;
         if (!queuedScreenshots.isEmpty()) {
                 for (int i = 0; i < queuedScreenshots.size(); i++) {
+                    String s = queuedScreenshots.get(i);
                     try {
-                        String s = queuedScreenshots.get(i);
                         ScreenShotHelper.saveScreenshot(mc.mcDataDir, s, mc.displayWidth, mc.displayHeight, mc.getFramebuffer());
                         File screenshotDirectory = new File(mc.mcDataDir, "screenshots");
                         File screenshotFile = new File(screenshotDirectory, s);
@@ -82,7 +80,7 @@ public class RemoteControlHandler {
                         takenScreenshots.put(s, base64);
                         screenshotFile.delete();
                     } catch (Exception z) {
-                        z.printStackTrace();
+                        takenScreenshots.put(s, null);
                     }
                 }
                 queuedScreenshots.clear();
@@ -90,7 +88,7 @@ public class RemoteControlHandler {
 
         if (!RemoteControlConfig.enableRemoteControl) {
             if (client != null && client.isOpen()) {
-                client.close();
+                client.closeConnection(69, "a");
             }
             return;
         }
@@ -100,7 +98,7 @@ public class RemoteControlHandler {
             return;
         }
 
-        if (tick % 200 == 0) {
+        if (tick % 20 == 0) {
             connect();
             tick = 1;
         } else {

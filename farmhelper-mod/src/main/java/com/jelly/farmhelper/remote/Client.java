@@ -1,23 +1,18 @@
 package com.jelly.farmhelper.remote;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.jelly.farmhelper.config.DefaultConfig;
 import com.jelly.farmhelper.config.FarmHelperConfig;
-import com.jelly.farmhelper.config.interfaces.RemoteControlConfig;
 import com.jelly.farmhelper.remote.event.MessageEvent;
 import com.jelly.farmhelper.utils.LogUtils;
 import dev.volix.lib.brigadier.Brigadier;
 import lombok.SneakyThrows;
-import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.jelly.farmhelper.utils.StatusUtils.connecting;
 
@@ -53,17 +48,20 @@ public class Client extends WebSocketClient {
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        // When the client disconnects (they uncheck the "enable remote control" box)
-        if (code == -1 && remote) {
-            connecting.set("WebSocket is down, trying again");
+        if (code == -1 && !remote) {
+            connecting.set("WebSocket is not online, trying again");
         } else {
-            if (code == -1) {
+            if (code == 69) {
                 connecting.set("Connecting to the websocket..");
-            } else if (remote) {
+            } else if (code == 1006) {
                 connecting.set("Wrong password for Socket, trying again");
             }
         }
     }
+
+
+
+
 
     @Override
     public void onError(Exception ex) {

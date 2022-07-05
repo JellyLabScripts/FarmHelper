@@ -5,6 +5,9 @@ import com.jelly.farmhelper.config.FarmHelperConfig;
 public class MiscConfig {
     public static boolean resync;
     public static boolean fastbreak;
+    public static double fastbreakSpeed;
+    public static boolean xray;
+    public static boolean randomization;
     public static boolean autoGodPot;
     public static boolean autoCookie;
     public static boolean dropStone;
@@ -19,6 +22,9 @@ public class MiscConfig {
     public static void update() {
         resync = (boolean) FarmHelperConfig.get("resync");
         fastbreak = (boolean) FarmHelperConfig.get("fastbreak");
+        fastbreakSpeed = (double) FarmHelperConfig.get("fastbreakSpeed");
+        xray = (boolean) FarmHelperConfig.get("xray");
+        randomization = (boolean) FarmHelperConfig.get("randomization");
         autoGodPot = (boolean) FarmHelperConfig.get("autoGodPot");
         autoCookie = (boolean) FarmHelperConfig.get("autoCookie");
         dropStone = (boolean) FarmHelperConfig.get("dropStone");

@@ -6,10 +6,12 @@ import com.jelly.farmhelper.config.interfaces.AutoSellConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.config.interfaces.SchedulerConfig;
-import com.jelly.farmhelper.features.BanwaveChecker;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.Scheduler;
+import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
+import com.jelly.farmhelper.world.GameState;
+import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -20,9 +22,11 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.lwjgl.input.Mouse;
 
 import java.lang.reflect.Field;
+import java.util.Random;
+
+import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class MacroHandler {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -32,6 +36,7 @@ public class MacroHandler {
     public static CropMacro cropMacro = new CropMacro();
 
     public static long startTime = 0;
+    public static boolean randomizing = false;
     public static int startCounter = 0;
     public static boolean startingUp;
 
@@ -76,6 +81,26 @@ public class MacroHandler {
                 currentMacro.onTick();
             }
         }
+
+        if (isMacroing && FarmHelper.gameState.currentLocation == GameState.location.ISLAND && MiscConfig.randomization) {
+            if (currentMacro instanceof SugarcaneMacro) {
+                SugarcaneMacro.State state = ((SugarcaneMacro) currentMacro).currentState;
+                if (state == SugarcaneMacro.State.RIGHT || state == SugarcaneMacro.State.LEFT) {
+                    // 1/2 chance of starting every minute in ticks
+                    if (Math.random() < 0.000416) {
+                        new Thread(randomizememe).start();
+                    }
+                }
+            } else if (currentMacro instanceof CropMacro) {
+                CropMacro.State state = ((CropMacro) currentMacro).currentState;
+                if (state == CropMacro.State.RIGHT || state == CropMacro.State.LEFT) {
+                    // 1/2 chance of starting every minute in ticks
+                    if (Math.random() < 0.000416) {
+                        new Thread(randomizememe).start();
+                    }
+                }
+            }
+        }
     }
     public static void toggleMacro(){
         if (isMacroing) {
@@ -101,6 +126,7 @@ public class MacroHandler {
         if (SchedulerConfig.scheduler) Scheduler.start();
         startTime = System.currentTimeMillis();
         ProfitUtils.resetProfit();
+
         Failsafe.jacobWait.reset();
         startCounter = InventoryUtils.getCounter();
         enableCurrentMacro();
@@ -124,7 +150,7 @@ public class MacroHandler {
     public static void enableCurrentMacro() {
         if (!currentMacro.enabled && !startingUp) {
             mc.inGameHasFocus = true;
-            mc.displayGuiScreen((GuiScreen) null);
+            mc.displayGuiScreen(null);
             Field f = null;
             f = FieldUtils.getDeclaredField(mc.getClass(), "leftClickCounter",true);
             try {
@@ -147,5 +173,30 @@ public class MacroHandler {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    };
+
+    static Runnable randomizememe = () -> {
+        randomizing =  true;
+        isMacroing = false;
+        float currentyaw = mc.thePlayer.rotationYaw;
+        int decrease = (Math.random() > 0.5 ? -1 : 1);
+        for (int i = 0; i < Math.random() * 180; i++) {
+            try {
+                Thread.sleep(20);
+                mc.thePlayer.rotationYaw += decrease;
+            } catch (InterruptedException ignored) {}
+        }
+        LogUtils.scriptLog("Randomizing movements");
+        mc.thePlayer.sendChatMessage("/setspawn");
+        try {
+            for (int i = 0; i < 15; i++) {
+                Thread.sleep(200);
+                updateKeys(new Random().nextBoolean(), new Random().nextBoolean(), new Random().nextBoolean(), new Random().nextBoolean(),  false, true, false);
+            }
+        } catch (Exception e) {}
+        LogUtils.scriptLog("We finished randomizing");
+        mc.thePlayer.rotationYaw = currentyaw;
+        isMacroing = true;
+        MacroHandler.enableCurrentMacro();
     };
 }

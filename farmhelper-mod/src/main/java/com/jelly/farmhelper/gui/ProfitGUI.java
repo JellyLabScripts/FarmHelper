@@ -10,8 +10,6 @@ import gg.essential.elementa.constraints.*;
 import gg.essential.elementa.state.State;
 
 import java.awt.*;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 
 public class ProfitGUI extends UIBlock {
@@ -88,7 +86,7 @@ public class ProfitGUI extends UIBlock {
 }
 
 class Stat extends UIBlock {
-    private UIComponent displayString;
+    private final UIComponent displayString;
     public Stat(String iconURL) {
         this.setY(new SiblingConstraint())
             .setHeight(new ChildBasedSizeConstraint())

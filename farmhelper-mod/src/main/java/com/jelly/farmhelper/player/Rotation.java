@@ -3,8 +3,6 @@ package com.jelly.farmhelper.player;
 import com.jelly.farmhelper.utils.AngleUtils;
 import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.lang3.tuple.MutablePair;
 
 // Inspired by Apfelsaft, no steal clueless

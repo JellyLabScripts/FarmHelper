@@ -1,20 +1,16 @@
 package com.yyonezu.remotecontrol.command.commands;
 
-import com.github.kaktushose.jda.commands.annotations.*;
+import com.github.kaktushose.jda.commands.annotations.Command;
+import com.github.kaktushose.jda.commands.annotations.CommandController;
 import com.github.kaktushose.jda.commands.dispatching.CommandEvent;
-import com.github.kaktushose.jda.commands.embeds.EmbedDTO;
 import com.google.gson.JsonObject;
 import com.yyonezu.remotecontrol.command.type.Instance;
-import com.yyonezu.remotecontrol.event.wait.EventWaiter;
-import com.yyonezu.remotecontrol.struct.BaseCommand;
 import com.yyonezu.remotecontrol.event.wait.Waiter;
+import com.yyonezu.remotecontrol.struct.BaseCommand;
 import com.yyonezu.remotecontrol.utils.EmbedUtils;
 import com.yyonezu.remotecontrol.websocket.WebSocketServer;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
-import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 @CommandController(value = {"screenshot", "ss"}, category = "Misc")

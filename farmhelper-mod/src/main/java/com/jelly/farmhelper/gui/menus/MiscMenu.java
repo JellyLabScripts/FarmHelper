@@ -1,6 +1,5 @@
 package com.jelly.farmhelper.gui.menus;
 
-import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.FarmHelperConfig;
 import com.jelly.farmhelper.features.AutoCookie;
 import com.jelly.farmhelper.features.AutoPot;
@@ -12,7 +11,7 @@ import gg.essential.elementa.components.UIContainer;
 import net.minecraft.client.Minecraft;
 
 public class MiscMenu extends UIContainer {
-    private Minecraft mc = Minecraft.getMinecraft();
+    private final Minecraft mc = Minecraft.getMinecraft();
     public MiscMenu() {
         new Toggle("Resync", "resync").setChildOf(this);
         new Toggle("Auto GodPot", "autoGodPot").setChildOf(this);
@@ -21,6 +20,9 @@ public class MiscMenu extends UIContainer {
         new Toggle("Ungrab Mouse", "ungrab").setChildOf(this);
         new Toggle("Debug Mode", "debugMode").setChildOf(this);
         new Toggle("Fastbreak", "fastbreak").setChildOf(this);
+        new Slider("Fastbreak extra blocks", 6, 1, "fastbreakSpeed").setChildOf(this);
+        new Toggle("Xray", "xray").setChildOf(this);
+        new Toggle("Randomization", "randomization").setChildOf(this);
         ((Button) new Button("Buy Cookie").setChildOf(this)).setOnClick((component, uiClickEvent) -> {
             AutoCookie.enable();
             return null;

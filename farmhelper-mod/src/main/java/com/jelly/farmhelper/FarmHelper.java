@@ -1,6 +1,7 @@
 package com.jelly.farmhelper;
 
 import com.jelly.farmhelper.config.FarmHelperConfig;
+import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.gui.MenuGUI;
 import com.jelly.farmhelper.gui.Render;
@@ -10,6 +11,9 @@ import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.world.GameState;
 import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraftforge.client.event.RenderBlockOverlayEvent;
+import net.minecraftforge.client.event.RenderWorldEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -28,7 +32,7 @@ import java.util.jar.Manifest;
 public class FarmHelper {
     public static final String MODID = "farmhelper";
     public static final String NAME = "Farm Helper";
-    public static final String VERSION = "4.2.1";
+    public static final String VERSION = "4.2.2";
     // the actual mod version from gradle properties, should match with VERSION
     public static String MODVERSION = "-1";
     public static String BOTVERSION = "-1";

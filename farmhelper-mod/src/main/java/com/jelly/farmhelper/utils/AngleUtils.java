@@ -3,7 +3,7 @@ package com.jelly.farmhelper.utils;
 import net.minecraft.client.Minecraft;
 
 public class AngleUtils {
-    private static Minecraft mc = Minecraft.getMinecraft();
+    private static final Minecraft mc = Minecraft.getMinecraft();
 
     public static float get360RotationYaw(float yaw) {
         return (yaw % 360 + 360) % 360;

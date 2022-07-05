@@ -18,7 +18,7 @@ public class LogUtils {
     private static String lastWebhook;
     private static long logMsgTime = 1000;
     private static long statusMsgTime = -1;
-    private static Minecraft mc = Minecraft.getMinecraft();
+    private static final Minecraft mc = Minecraft.getMinecraft();
 
     public synchronized static void sendLog(ChatComponentText chat) {
         mc.thePlayer.addChatMessage(chat);

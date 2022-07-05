@@ -21,7 +21,7 @@ public class EventWaiter {
             }
         });
         waiterMap.values().removeAll(toDelete);
-    };
+    }
 
     public static void register(Waiter waiterToRegister) {
         waiterToRegister.setId(Math.random());
