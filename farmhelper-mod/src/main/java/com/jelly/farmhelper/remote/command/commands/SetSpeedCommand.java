@@ -66,7 +66,7 @@ public class SetSpeedCommand extends BaseCommand {
             Thread.sleep(500);
             KeyBinding.onTick(mc.gameSettings.keyBindAttack.getKeyCode());
             Thread.sleep(1000);
-            Method m = ((GuiEditSign) mc.currentScreen).getClass().getDeclaredMethod("keyTyped", char.class, int.class);
+            Method m = ((GuiEditSign) mc.currentScreen).getClass().getDeclaredMethod("func_73869_a", char.class, int.class);
             m.setAccessible(true);
             m.invoke(mc.currentScreen, '\r', 14);
             Thread.sleep(300);
