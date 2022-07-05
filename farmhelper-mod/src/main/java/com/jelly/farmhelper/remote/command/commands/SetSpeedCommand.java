@@ -5,7 +5,7 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.command.BaseCommand;
 import com.jelly.farmhelper.remote.command.RemoteCommandContext;
 import com.jelly.farmhelper.remote.event.MessageEvent;
-import com.jelly.farmhelper.utils.*;
+import com.jelly.farmhelper.utils.InventoryUtils;
 import dev.volix.lib.brigadier.command.Command;
 import dev.volix.lib.brigadier.context.CommandContext;
 import dev.volix.lib.brigadier.parameter.ParameterSet;
@@ -13,11 +13,9 @@ import net.minecraft.client.gui.inventory.GuiEditSign;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.nbt.NBTException;
 
-import javax.crypto.Mac;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
-import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 import static com.jelly.farmhelper.utils.Utils.clickWindow;
 
 public class SetSpeedCommand extends BaseCommand {

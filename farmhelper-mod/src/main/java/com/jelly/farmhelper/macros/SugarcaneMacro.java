@@ -11,7 +11,6 @@ import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.BlockUtils.getRelativeBlock;

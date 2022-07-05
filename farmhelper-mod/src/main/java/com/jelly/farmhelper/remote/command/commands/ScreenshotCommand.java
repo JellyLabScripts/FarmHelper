@@ -13,8 +13,6 @@ import dev.volix.lib.brigadier.parameter.ParameterSet;
 
 import java.io.IOException;
 
-import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
-
 
 public class ScreenshotCommand extends BaseCommand {
 

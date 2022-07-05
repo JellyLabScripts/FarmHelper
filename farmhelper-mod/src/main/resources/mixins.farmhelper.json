@@ -9,8 +9,8 @@
     "MixinNetHandlerPlayClient"
   ],
   "client": [
-    "MixinPlayerControllerMP",
     "MixinBlockRendererDispatcher",
-    "MixinEffectRenderer"
+    "MixinEffectRenderer",
+    "MixinPlayerControllerMP"
   ]
 }
