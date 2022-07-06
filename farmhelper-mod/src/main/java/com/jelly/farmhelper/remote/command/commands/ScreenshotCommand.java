@@ -35,7 +35,7 @@ public class ScreenshotCommand extends BaseCommand {
     public void inventory(MessageEvent event, CommandContext<RemoteCommandContext> context, ParameterSet parameter) throws InterruptedException, IOException {
         JsonObject obj = event.obj;
         boolean wasMacroing = false;
-        if (nullCheck()) {
+        if (nullCheck() && !MacroHandler.randomizing) {
             if (MacroHandler.isMacroing) {
                 wasMacroing = true;
                 MacroHandler.isMacroing = false;

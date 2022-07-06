@@ -6,6 +6,7 @@ import com.jelly.farmhelper.config.interfaces.AutoSellConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.config.interfaces.SchedulerConfig;
+import com.jelly.farmhelper.features.BanwaveChecker;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.Scheduler;
 import com.jelly.farmhelper.player.Rotation;
@@ -24,6 +25,7 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import java.lang.reflect.Field;
 import java.util.Random;
 
+import static com.jelly.farmhelper.features.BanwaveChecker.getBanDiff;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class MacroHandler {
@@ -80,12 +82,12 @@ public class MacroHandler {
             }
         }
 
-        if (isMacroing && FarmHelper.gameState.currentLocation == GameState.location.ISLAND && MiscConfig.randomization) {
+        if ((mc.thePlayer != null && mc.theWorld != null) && isMacroing && FarmHelper.gameState.currentLocation == GameState.location.ISLAND && MiscConfig.randomization) {
             if (currentMacro instanceof SugarcaneMacro) {
                 SugarcaneMacro.State state = ((SugarcaneMacro) currentMacro).currentState;
                 if (state == SugarcaneMacro.State.RIGHT || state == SugarcaneMacro.State.LEFT) {
                     // 1/2 chance of starting every minute in ticks
-                    if (Math.random() < 0.000416) {
+                    if (Math.random() < 0.000416 * (1 + 0.05 * getBanDiff())) {
                         new Thread(randomizememe).start();
                     }
                 }
@@ -93,7 +95,7 @@ public class MacroHandler {
                 CropMacro.State state = ((CropMacro) currentMacro).currentState;
                 if (state == CropMacro.State.RIGHT || state == CropMacro.State.LEFT) {
                     // 1/2 chance of starting every minute in ticks
-                    if (Math.random() < 0.000416) {
+                    if (Math.random() < 0.000416 * (1 + 0.05 * getBanDiff())) {
                         new Thread(randomizememe).start();
                     }
                 }
@@ -177,6 +179,7 @@ public class MacroHandler {
         randomizing =  true;
         isMacroing = false;
         float currentyaw = mc.thePlayer.rotationYaw;
+        float currentpitch = mc.thePlayer.rotationPitch;
         int decrease = (Math.random() > 0.5 ? -1 : 1);
         // please dont judge me lpleae pleas
         // couldn't get easeto to work here
@@ -193,10 +196,10 @@ public class MacroHandler {
                 Thread.sleep(400);
                 updateKeys(new Random().nextBoolean(), new Random().nextBoolean(), new Random().nextBoolean(), new Random().nextBoolean(),  false, true, false);
             }
-        } catch (Exception e) {}
+        } catch (Exception ignored) {}
         LogUtils.scriptLog("We finished randomizing");
 
-        new Rotation().easeTo(currentyaw, 0, 2000);
+        new Rotation().easeTo(currentyaw, currentpitch, 2000);
         isMacroing = true;
         randomizing = false;
         MacroHandler.enableCurrentMacro();

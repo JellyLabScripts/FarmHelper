@@ -25,7 +25,7 @@ public class SetSpeedCommand extends BaseCommand {
     public void execute(MessageEvent event, CommandContext<RemoteCommandContext> context, ParameterSet parameter) throws IOException, NBTException {
         data = event.obj;
         speed = data.get("speed").getAsString();
-        if (nullCheck()) {
+        if (nullCheck() && !MacroHandler.randomizing) {
             if (InventoryUtils.getRancherBootSpeed() == -1) {
                 data.addProperty("embed", toJson(embed().setDescription("You need to have Rancher's boots equipped for this command to work.")));
             } else if (InventoryUtils.getRancherBootSpeed() == Integer.parseInt(speed)) {

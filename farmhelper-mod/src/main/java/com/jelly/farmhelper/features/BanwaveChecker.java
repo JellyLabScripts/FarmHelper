@@ -67,7 +67,7 @@ public class BanwaveChecker {
     private static int getBanTimeDiff(){
         return staffBanLast15Mins.size() > 1 ? staffBanLast15Mins.size() - 1 : 0;
     }
-    private static int getBanDiff(){
+    public static int getBanDiff(){
         return staffBanLast15Mins.size() > 1 ? Math.abs(staffBanLast15Mins.getLast() - staffBanLast15Mins.getFirst()) : 0;
     }
     public static String getBanDisplay(){
