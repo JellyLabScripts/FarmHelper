@@ -8,6 +8,7 @@ import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.config.interfaces.SchedulerConfig;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.Scheduler;
+import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
@@ -177,23 +178,27 @@ public class MacroHandler {
         isMacroing = false;
         float currentyaw = mc.thePlayer.rotationYaw;
         int decrease = (Math.random() > 0.5 ? -1 : 1);
+        // please dont judge me lpleae pleas
+        // couldn't get easeto to work here
         for (int i = 0; i < Math.random() * 180; i++) {
             try {
-                Thread.sleep(20);
+                Thread.sleep(30);
                 mc.thePlayer.rotationYaw += decrease;
             } catch (InterruptedException ignored) {}
         }
         LogUtils.scriptLog("Randomizing movements");
         mc.thePlayer.sendChatMessage("/setspawn");
         try {
-            for (int i = 0; i < 15; i++) {
-                Thread.sleep(200);
+            for (int i = 0; i < 10; i++) {
+                Thread.sleep(400);
                 updateKeys(new Random().nextBoolean(), new Random().nextBoolean(), new Random().nextBoolean(), new Random().nextBoolean(),  false, true, false);
             }
         } catch (Exception e) {}
         LogUtils.scriptLog("We finished randomizing");
-        mc.thePlayer.rotationYaw = currentyaw;
+
+        new Rotation().easeTo(currentyaw, 0, 2000);
         isMacroing = true;
+        randomizing = false;
         MacroHandler.enableCurrentMacro();
     };
 }
