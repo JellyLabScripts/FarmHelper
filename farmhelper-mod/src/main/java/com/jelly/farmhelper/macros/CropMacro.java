@@ -100,7 +100,7 @@ public class CropMacro extends Macro {
             return;
         }
 
-        if (currentState != State.DROPPING && currentState != State.TP_PAD && currentState != State.STONE_THROW && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > 5 || Math.abs(mc.thePlayer.rotationPitch - pitch) > 5)) {
+        if (!MacroHandler.randomizing && (currentState != State.DROPPING && currentState != State.TP_PAD && currentState != State.STONE_THROW && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > 5 || Math.abs(mc.thePlayer.rotationPitch - pitch) > 5))) {
             LogUtils.debugFullLog("Staff rotate");
             rotation.reset();
             if (rotateWait.passed() && rotateWait.isScheduled()) {

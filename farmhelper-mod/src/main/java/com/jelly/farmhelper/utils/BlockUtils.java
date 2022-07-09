@@ -74,6 +74,21 @@ public class BlockUtils {
         return count;
     }
 
+    public static int bedrockCount() {
+        int r = 4;
+        int count = 0;
+        BlockPos playerPos = Minecraft.getMinecraft().thePlayer.getPosition();
+        playerPos.add(0, 1, 0);
+        Vec3i vec3i = new Vec3i(r, r, r);
+        Vec3i vec3i2 = new Vec3i(r, r, r);
+        for (BlockPos blockPos : BlockPos.getAllInBox(playerPos.add(vec3i), playerPos.subtract(vec3i2))) {
+            IBlockState blockState = Minecraft.getMinecraft().theWorld.getBlockState(blockPos);
+            if (blockState.getBlock() == Blocks.bedrock) {
+                count++;
+            }
+        }
+        return count;
+    }
     public static Block getLeftBlock(){
         return getRelativeBlock(-1, 0, 0);
     }

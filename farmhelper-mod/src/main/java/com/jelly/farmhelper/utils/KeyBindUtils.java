@@ -5,11 +5,12 @@ import com.jelly.farmhelper.config.FarmHelperConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
+import org.lwjgl.input.Keyboard;
 
 public class KeyBindUtils
 {
     private static Minecraft mc;
-    public static KeyBinding[] customKeyBinds = new KeyBinding[2];
+    public static KeyBinding[] customKeyBinds = new KeyBinding[3];
 
     static {
         KeyBindUtils.mc = Minecraft.getMinecraft();

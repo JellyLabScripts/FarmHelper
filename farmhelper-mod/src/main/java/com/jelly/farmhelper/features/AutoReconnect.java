@@ -3,6 +3,7 @@ package com.jelly.farmhelper.features;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.JacobConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.macros.Macro;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.command.commands.ReconnectCommand;
 import net.minecraft.client.Minecraft;
@@ -28,6 +29,17 @@ public class AutoReconnect {
                 ReconnectCommand.isEnabled = false;
                 FMLClientHandler.instance().connectToServer(new GuiMultiplayer(new GuiMainMenu()), new ServerData("bozo", FarmHelper.gameState.serverIP, false));
             }
+        }
+        if (MacroHandler.resting && ((mc.currentScreen instanceof GuiDisconnected) || (mc.currentScreen instanceof GuiMainMenu))) {
+            new Thread(() -> {
+                try {
+                    Thread.sleep(1000 * 10 * 5);
+                    if ((mc.currentScreen instanceof GuiDisconnected) || (mc.currentScreen instanceof GuiMainMenu)) {
+                        MacroHandler.resting = false;
+                    }
+                } catch (Exception e) {
+                }
+            }).start();
         }
         if (event.phase == TickEvent.Phase.END || !MacroHandler.isMacroing)
             return;
