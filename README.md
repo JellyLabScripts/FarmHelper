@@ -1,2 +1,2 @@
 # NWMaf
-https://discord.gg/8uHtY2kA official discord
+https://discord.gg/jellylab official discord
