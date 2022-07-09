@@ -28,7 +28,7 @@ import java.util.jar.Manifest;
 public class FarmHelper {
     public static final String MODID = "farmhelper";
     public static final String NAME = "Farm Helper";
-    public static final String VERSION = "4.2.3";
+    public static final String VERSION = "4.2.4";
     // the actual mod version from gradle properties, should match with VERSION
     public static String MODVERSION = "-1";
     public static String BOTVERSION = "-1";
