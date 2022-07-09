@@ -10,7 +10,7 @@ import org.lwjgl.input.Keyboard;
 public class KeyBindUtils
 {
     private static Minecraft mc;
-    public static KeyBinding[] customKeyBinds = new KeyBinding[3];
+    public static KeyBinding[] customKeyBinds = new KeyBinding[2];
 
     static {
         KeyBindUtils.mc = Minecraft.getMinecraft();
