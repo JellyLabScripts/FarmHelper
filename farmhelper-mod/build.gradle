@@ -28,7 +28,6 @@ minecraft {
     makeObfSourceJar = false
 
     clientRunArgs += "--mixin mixins.farmhelper.json"
-    clientRunArgs += '--tweakClass gg.essential.loader.stage0.EssentialSetupTweaker'
 }
 
 configurations {
@@ -59,6 +58,12 @@ dependencies {
 
     include('com.googlecode.json-simple:json-simple:1.1.1')
     implementation('com.googlecode.json-simple:json-simple:1.1.1')
+
+
+
+
+
+
 }
 
 mixin {
@@ -74,13 +79,14 @@ jar {
             "TweakOrder": "0",
             'MixinConfigs': "mixins.farmhelper.json",
             "modversion": version,
-            "botversion": botversion
+            "botversion": botversion,
     )
-    enabled = true
+    enabled = false
 }
 
 sourceJar {
     enabled = false
+
 }
 
 shadowJar {

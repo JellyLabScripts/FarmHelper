@@ -1,4 +1,4 @@
-package com.jelly.farmhelper.mixins;
+package com.jelly.farmhelper.mixins.network;
 
 import com.jelly.farmhelper.FarmHelper;
 import net.minecraft.client.multiplayer.WorldClient;

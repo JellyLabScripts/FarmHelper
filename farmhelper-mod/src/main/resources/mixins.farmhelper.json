@@ -4,13 +4,15 @@
   "package": "com.jelly.farmhelper.mixins",
   "refmap": "mixins.farmhelper.refmap.json",
   "mixins": [
-    "MinecraftMixin",
-    "MixinGuiDisconnected",
-    "MixinNetHandlerPlayClient"
+    "client.MinecraftMixin",
+    "gui.MixinGuiDisconnected",
+    "network.MixinNetworkManagerChInit"
   ],
   "client": [
-    "MixinBlockRendererDispatcher",
-    "MixinEffectRenderer",
-    "MixinPlayerControllerMP"
+    "block.MixinBlockRendererDispatcher",
+    "client.MixinPlayerControllerMP",
+    "gui.MixinGuiMultiplayer",
+    "gui.MixinGuiScreen",
+    "render.MixinEffectRenderer"
   ]
 }

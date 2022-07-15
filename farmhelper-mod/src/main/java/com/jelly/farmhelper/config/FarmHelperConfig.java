@@ -50,6 +50,7 @@ public class FarmHelperConfig {
         ProfitCalculatorConfig.update();
         RemoteControlConfig.update();
         SchedulerConfig.update();
+        ProxyConfig.update();
     }
 
     public static Object get(String property) {

@@ -1,4 +1,4 @@
-package com.jelly.farmhelper.mixins;
+package com.jelly.farmhelper.mixins.client;
 
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.features.Resync;
