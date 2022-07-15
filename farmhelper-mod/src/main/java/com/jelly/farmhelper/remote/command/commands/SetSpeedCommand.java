@@ -49,6 +49,7 @@ public class SetSpeedCommand extends BaseCommand {
         try {
             if (MacroHandler.isMacroing) {
                 MacroHandler.isMacroing = false;
+                MacroHandler.disableCurrentMacro();
                 wasMacroing = true;
             }
             Thread.sleep(500);

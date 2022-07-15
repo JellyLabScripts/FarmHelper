@@ -9,6 +9,7 @@ public class RemoteControlMenu extends UIContainer {
     public RemoteControlMenu() {
         new Toggle("Enable Remote Control", "enableRemoteControl").setChildOf(this);
         new TextBox("WebSocket password", "yourWebSocketPassword", "websocketPassword").setChildOf(this);
+        new TextBox("WebSocket IP (DANGEROUS!!)", "localhost:58637", "websocketIP").setChildOf(this);
 
         new Toggle("Send Logs", "webhookLogs").setChildOf(this);
         new Toggle("Send Status Updates", "webhookStatus").setChildOf(this);

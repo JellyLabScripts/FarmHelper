@@ -43,7 +43,7 @@ public class RemoteControlHandler {
             j.addProperty("modversion", FarmHelper.MODVERSION);
             j.addProperty("botversion", FarmHelper.BOTVERSION);
             String data = Base64.getEncoder().encodeToString(j.toString().getBytes(StandardCharsets.UTF_8));
-            client = new Client(new URI("ws://localhost:58637/farmhelperws"));
+            client = new Client(new URI("ws://" + RemoteControlConfig.websocketIP + "/farmhelperws"));
             client.addHeader("auth", data);
             client.connect();
         } catch (URISyntaxException e) {

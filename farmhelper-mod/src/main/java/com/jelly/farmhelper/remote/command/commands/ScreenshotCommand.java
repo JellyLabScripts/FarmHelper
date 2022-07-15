@@ -39,6 +39,7 @@ public class ScreenshotCommand extends BaseCommand {
             if (MacroHandler.isMacroing) {
                 wasMacroing = true;
                 MacroHandler.isMacroing = false;
+                MacroHandler.disableCurrentMacro();
             }
             InventoryUtils.openInventory();
             String link = Imgur.upload(getScreenshot());

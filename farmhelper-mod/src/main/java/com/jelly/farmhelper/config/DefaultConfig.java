@@ -47,13 +47,14 @@ public class DefaultConfig {
         config.put("reconnectDelay", 5.0);
         config.put("websocketPassword", "");
         config.put("enableRemoteControl", false);
+        config.put("websocketIP", "localhost:58637");
         config.put("xray", false);
         config.put("randomization", false);
         config.put("proxyType", 0);
         config.put("proxyAddress", "");
         config.put("proxyUsername", "");
         config.put("proxyPassword", "");
-        config.put("connectAtStartup", true);
+        config.put("connectAtStartup", false);
         return config;
     }
 }

@@ -46,12 +46,12 @@ public class Scheduler {
         if (!SchedulerConfig.scheduler || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || FarmHelper.tickCount % 5 != 0)
             return;
 
-        if (MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && currentState == State.FARMING && farmClock.passed()) {
+        if (!MacroHandler.randomizing && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && currentState == State.FARMING && farmClock.passed()) {
             LogUtils.debugLog("[Scheduler] Farming time has passed, stopping");
             MacroHandler.disableCurrentMacro();
             currentState = State.BREAK;
             breakClock.schedule(TimeUnit.MINUTES.toMillis((long) SchedulerConfig.breakTime));
-        } else if (MacroHandler.isMacroing && currentState == State.BREAK && breakClock.passed()) {
+        } else if (!MacroHandler.randomizing && MacroHandler.isMacroing && currentState == State.BREAK && breakClock.passed()) {
             LogUtils.debugLog("[Scheduler] Break time has passed, starting");
             currentState = State.FARMING;
             farmClock.schedule(TimeUnit.MINUTES.toMillis((long) SchedulerConfig.farmTime));

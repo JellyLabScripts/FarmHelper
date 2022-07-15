@@ -7,6 +7,7 @@ public class RemoteControlConfig {
     public static boolean webhookStatus;
     public static boolean enableRemoteControl;
     public static String websocketPassword;
+    public static String websocketIP;
 
     public static double webhookStatusCooldown;
     public static String webhookURL;
@@ -14,6 +15,7 @@ public class RemoteControlConfig {
     public static void update() {
         enableRemoteControl = (boolean) FarmHelperConfig.get("enableRemoteControl");
         websocketPassword = (String) FarmHelperConfig.get("websocketPassword");
+        websocketIP = (String) FarmHelperConfig.get("websocketIP");
 
         webhookLogs = (boolean) FarmHelperConfig.get("webhookLogs");
         webhookStatus = (boolean) FarmHelperConfig.get("webhookStatus");
