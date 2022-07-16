@@ -32,6 +32,8 @@ public class SugarcaneMacro extends Macro {
     public Clock antistuckCheck = new Clock();
     private int hoeEquipFails = 0;
 
+    private int randomCooldown = 0;
+
 
     private final Rotation rotation = new Rotation();
 
@@ -47,8 +49,6 @@ public class SugarcaneMacro extends Macro {
 
 
 
-
-
     @Override
     public void onEnable() {
         pushedOff = false;
@@ -59,10 +59,20 @@ public class SugarcaneMacro extends Macro {
             playerYaw = AngleUtils.get360RotationYaw(AngleUtils.getClosest());
             rotation.easeTo(playerYaw, 0, 500);
         }
-        currentState = State.NONE;
-        lastState = State.NONE;
+
+
+        if(scanCaneDensity(BlockUtils.isWalkable(BlockUtils.getLeftBlock())) < 0.6d &&
+                (!BlockUtils.isWalkable(BlockUtils.getLeftBlock()) || !BlockUtils.isWalkable(BlockUtils.getRightBlock()))){
+            lastState = State.SWITCH;
+            currentState = State.FORWARD;
+            targetBlockPos = calculateTargetBlockPos();
+        } else {
+            lastState = State.NONE;
+            currentState = State.NONE;
+            targetBlockPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+        }
         antistuckCheck.reset();
-        targetBlockPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+
         enabled = true;
     }
 
@@ -83,6 +93,7 @@ public class SugarcaneMacro extends Macro {
         try {
             if (msg.contains("spawn location has been set"))
                 setspawnLag = false;
+
         }catch(Exception ignored){}
     }
 
@@ -114,6 +125,11 @@ public class SugarcaneMacro extends Macro {
         }
         if (stuck)
             return;
+        if(randomCooldown > 0){
+            updateKeys(false, false, false, false, false);
+            randomCooldown --;
+            return;
+        }
 
 
         if(Antistuck.stuck && currentState != State.DROPPING) {
@@ -160,10 +176,18 @@ public class SugarcaneMacro extends Macro {
 
                 return;
             case LEFT:
+                if(Utils.nextInt(450) == 0){
+                    randomCooldown = 25 + Utils.nextInt(30);
+                    return;
+                }
                 updateKeys(false, false, false, !setspawnLag, findAndEquipHoe(), false, false);
                 LogUtils.debugFullLog("Going left");
                 return;
             case RIGHT:
+                if(Utils.nextInt(450) == 0){
+                    randomCooldown = 25 + Utils.nextInt(30);
+                    return;
+                }
                 updateKeys(false, false, !setspawnLag, false, findAndEquipHoe(), false, false);
                 LogUtils.debugFullLog("Going right");
                 return;
@@ -195,9 +219,14 @@ public class SugarcaneMacro extends Macro {
                 } else {
                     if (mc.thePlayer.posY % 1 == 0 && !BlockUtils.isWalkable(gameState.blockStandingOn)) {
                         LogUtils.scriptLog("Dropping - Finished rotating, resuming");
-                        targetBlockPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
-                        currentState = State.NONE;
-                        lastState = State.NONE;
+                        if(scanCaneDensity(BlockUtils.isWalkable(BlockUtils.getLeftBlock())) < 0.6d){
+                            lastState = State.SWITCH;
+                            currentState = State.FORWARD;
+                            targetBlockPos = calculateTargetBlockPos();
+                        } else {
+                            currentState = State.NONE;
+                            targetBlockPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+                        }
                     } else {
                         LogUtils.debugFullLog("Dropping - Falling");
                     }
@@ -240,8 +269,15 @@ public class SugarcaneMacro extends Macro {
         if (lastState == State.FORWARD) {
             if (blockInPos.getX() != targetBlockPos.getX() || blockInPos.getZ() != targetBlockPos.getZ() || !isInCenterOfBlock())
                 return;
-            mc.thePlayer.sendChatMessage("/setspawn");
-            setspawnLag = true;
+            if(scanCaneDensity(BlockUtils.isWalkable(BlockUtils.getLeftBlock())) < 0.6d){
+                targetBlockPos = calculateTargetBlockPos();
+                return;
+            }
+            if(Utils.nextInt(16) == 0) {
+                mc.thePlayer.sendChatMessage("/setspawn");
+                setspawnLag = true;
+            }
+
             currentState = BlockUtils.isWalkable(BlockUtils.getLeftBlock()) ? State.LEFT : State.RIGHT;
             return;
         }
@@ -309,6 +345,16 @@ public class SugarcaneMacro extends Macro {
         }
         LogUtils.scriptLog("can't calculate target block!");
         return new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+    }
+    double scanCaneDensity(boolean left) {
+        int caneAmount = 0;
+        try {
+            for (int i = 1; i < 16; i++) {
+                if (BlockUtils.getRelativeBlock(left ? -i : i, 2, 0).equals(Blocks.reeds))
+                    caneAmount++;
+            }
+        } catch (Exception ignored){}
+        return caneAmount * 1.0 / 15;
     }
 
     State calculateDirection() {

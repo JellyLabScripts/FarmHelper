@@ -54,6 +54,7 @@ public class CropMacro extends Macro {
     private final Clock stoneDropTimer = new Clock();
     private int hoeSlot;
     private int hoeEquipFails = 0;
+    private int randomCooldown = 0;
 
 
     @Override
@@ -96,6 +97,12 @@ public class CropMacro extends Macro {
         }
 
         if (rotation.rotating) {
+            updateKeys(false, false, false, false, false);
+            return;
+        }
+
+        if(randomCooldown > 0){
+            randomCooldown --;
             updateKeys(false, false, false, false, false);
             return;
         }
@@ -230,10 +237,18 @@ public class CropMacro extends Macro {
 
                 return;
             case RIGHT:
+                if(Utils.nextInt(450) == 0){
+                    randomCooldown = 25 + Utils.nextInt(30);
+                    return;
+                }
                 LogUtils.debugLog("Middle of row, going right");
                 updateKeys(false, false, true, false, findAndEquipHoe());
                 return;
             case LEFT:
+                if(Utils.nextInt(450) == 0){
+                    randomCooldown = 25 + Utils.nextInt(30);
+                    return;
+                }
                 LogUtils.debugLog("Middle of row, going left");
                 updateKeys(false, false, false, true, findAndEquipHoe());
                 return;
@@ -407,8 +422,10 @@ public class CropMacro extends Macro {
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
             // layerY = mc.thePlayer.posY;
             if (currentState != State.RIGHT && currentState != State.LEFT) {
-                mc.thePlayer.sendChatMessage("/setspawn");
-                currentState = calculateDirection();
+                if(Utils.nextInt(4) == 0) {
+                    mc.thePlayer.sendChatMessage("/setspawn");
+                    currentState = calculateDirection();
+                }
             }
         } else if (gameState.frontWalkable && !gameState.backWalkable) {
             currentState = State.SWITCH_START;

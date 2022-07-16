@@ -11,7 +11,7 @@ public class ProxyConfig {
     public static boolean connectAtStartup;
 
     public static void update() {
-        type = ProxyType.values()[((Long) FarmHelperConfig.get("proxyType")).intValue()];
+        type = ProxyType.values()[((Long)(FarmHelperConfig.get("proxyType"))).intValue()];
         address = (String) FarmHelperConfig.get("proxyAddress");
         username = (String) FarmHelperConfig.get("proxyUsername");
         password = (String) FarmHelperConfig.get("proxyPassword");

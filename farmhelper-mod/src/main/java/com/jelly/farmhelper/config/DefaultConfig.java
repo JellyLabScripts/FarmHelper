@@ -50,7 +50,7 @@ public class DefaultConfig {
         config.put("websocketIP", "localhost:58637");
         config.put("xray", false);
         config.put("randomization", false);
-        config.put("proxyType", 0);
+        config.put("proxyType", 0L);
         config.put("proxyAddress", "");
         config.put("proxyUsername", "");
         config.put("proxyPassword", "");
