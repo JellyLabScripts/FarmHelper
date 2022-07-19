@@ -10,6 +10,8 @@ import net.dv8tion.jda.api.JDABuilder;
 
 import javax.security.auth.login.LoginException;
 import javax.swing.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -21,13 +23,13 @@ public class Main {
     public static String MODVERSION;
     public static void main(String[] args) {
         setVersions();
-        System.out.println(BOTVERSION);
-        System.out.println(MODVERSION);
         Config.init();
         try {
             WebSocketServer.start();
+            JOptionPane.showMessageDialog(null, "Running successfully!");
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, e.getMessage());
+            killProcessByPort(58637);
+            JOptionPane.showMessageDialog(null, "Killed the process, run this again");
             System.exit(0);
         }
 
@@ -59,5 +61,44 @@ public class Main {
         Attributes attr = manifest.getMainAttributes();
         MODVERSION = attr.getValue("modversion");
         BOTVERSION = attr.getValue("botversion");
+    }
+
+    private static void killProcessByPort(int port) {
+        if (System.getProperty("os.name").contains("win")) { // Probably Windows
+            try {
+                Runtime rt = Runtime.getRuntime();
+                Process proc = rt.exec("cmd /c netstat -ano | findstr " + port);
+
+                BufferedReader stdInput = new BufferedReader(new
+                        InputStreamReader(proc.getInputStream()));
+                String s;
+                if ((s = stdInput.readLine()) != null) {
+                    int index = s.lastIndexOf(" ");
+                    String sc = s.substring(index);
+
+                    Process pr = rt.exec("cmd /c Taskkill /PID" + sc + " /T /F");
+                    pr.waitFor();
+
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Something went wrong while killing process. Report this");
+            }
+        } else { // mac & linux
+            try {
+                Runtime rt = Runtime.getRuntime();
+                Process p = rt.exec("lsof -t -i:58637");
+                BufferedReader stdInput = new BufferedReader(new
+                        InputStreamReader(p.getInputStream()));
+                String s;
+                if ((s = stdInput.readLine()) != null) {
+                    Process pr = rt.exec("kill -9 " + s);
+                    pr.waitFor();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Something went wrong while killing process. Report this");
+            }
+        }
     }
 }

@@ -31,8 +31,12 @@ public class ReconnectCommand extends BaseCommand {
         register(new Waiter(
                 condition -> (condition.matchesMetadata(obj)),
                 action -> {
-                    MessageEmbed eb = EmbedUtils.jsonToEmbed(action.message.get("embed").getAsString());
-                    ev.getChannel().sendMessageEmbeds(eb).queue();
+                    MessageEmbed embed = EmbedUtils.jsonToEmbed(action.message.get("embed").getAsString());
+                    if (action.message.get("image") != null) {
+                        addImageToEmbedAndSend(action.message.get("image").getAsString(), embed, ev);
+                    } else {
+                        ev.getChannel().sendMessageEmbeds(embed).queue();
+                    }
                 },
                 true,
                 5L,
@@ -60,8 +64,12 @@ public class ReconnectCommand extends BaseCommand {
         register(new Waiter(
                 condition -> (condition.matchesMetadata(obj)),
                 action -> {
-                    MessageEmbed eb = EmbedUtils.jsonToEmbed(action.message.get("embed").getAsString());
-                    ev.getChannel().sendMessageEmbeds(eb).queue();
+                    MessageEmbed embed = EmbedUtils.jsonToEmbed(action.message.get("embed").getAsString());
+                    if (action.message.get("image") != null) {
+                        addImageToEmbedAndSend(action.message.get("image").getAsString(), embed, ev);
+                    } else {
+                        ev.getChannel().sendMessageEmbeds(embed).queue();
+                    }
                 },
                 true,
                 5L,

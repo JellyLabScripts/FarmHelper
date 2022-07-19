@@ -5,7 +5,6 @@ import com.jelly.farmhelper.config.FarmHelperConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
-import org.lwjgl.input.Keyboard;
 
 public class KeyBindUtils
 {

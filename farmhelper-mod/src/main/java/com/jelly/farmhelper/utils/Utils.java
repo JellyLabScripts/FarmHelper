@@ -5,12 +5,32 @@ import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.util.EnumChatFormatting;
 
+import java.awt.*;
+import java.net.URI;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class Utils {
+    public static void openURL(String url) {
+        String os = System.getProperty("os.name").toLowerCase();
+        try {
+            if (Desktop.isDesktopSupported()) { // Probably Windows
+                Desktop desktop = Desktop.getDesktop();
+                desktop.browse(new URI(url));
+            } else { // Definitely Non-windows
+                Runtime runtime = Runtime.getRuntime();
+                if (os.contains("mac")) { // Apple
+                    runtime.exec("open " + url);
+                } else if (os.contains("nix") || os.contains("nux")) { // Linux
+                    runtime.exec("xdg-open " + url);
+                }
+            }
+        } catch (Exception e) {
+
+        }
+    }
 
     public static void clickWindow(int windowID, int slotID, int mouseButtonClicked, int mode) throws Exception {
         if (Minecraft.getMinecraft().thePlayer.openContainer instanceof ContainerChest || Minecraft.getMinecraft().currentScreen instanceof GuiInventory) {

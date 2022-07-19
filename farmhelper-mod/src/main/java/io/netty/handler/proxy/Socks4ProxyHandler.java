@@ -18,12 +18,7 @@ package io.netty.handler.proxy;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.socksx.v4.Socks4CmdRequest;
-import io.netty.handler.codec.socksx.v4.Socks4CmdResponse;
-import io.netty.handler.codec.socksx.v4.Socks4CmdResponseDecoder;
-import io.netty.handler.codec.socksx.v4.Socks4CmdStatus;
-import io.netty.handler.codec.socksx.v4.Socks4CmdType;
-import io.netty.handler.codec.socksx.v4.Socks4MessageEncoder;
+import io.netty.handler.codec.socksx.v4.*;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;

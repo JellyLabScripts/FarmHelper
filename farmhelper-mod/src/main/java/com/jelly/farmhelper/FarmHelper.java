@@ -1,26 +1,17 @@
 package com.jelly.farmhelper;
 
-import com.google.common.eventbus.EventBus;
 import com.jelly.farmhelper.config.FarmHelperConfig;
-import com.jelly.farmhelper.config.enums.ProxyType;
-import com.jelly.farmhelper.config.interfaces.ProxyConfig;
 import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.gui.MenuGUI;
-import com.jelly.farmhelper.gui.ProxyScreen;
 import com.jelly.farmhelper.gui.Render;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.network.proxy.ConnectionState;
-import com.jelly.farmhelper.network.proxy.ProxyManager;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
 import com.jelly.farmhelper.utils.KeyBindUtils;
+import com.jelly.farmhelper.utils.TickTask;
 import com.jelly.farmhelper.world.GameState;
-import io.netty.channel.Channel;
-import io.netty.handler.proxy.Socks5ProxyHandler;
 import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.LoadController;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -29,7 +20,7 @@ import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.Display;
 
-import java.net.InetSocketAddress;
+import java.io.IOException;
 import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -46,6 +37,7 @@ public class FarmHelper {
     public static String BOTVERSION = "-1";
     public static int tickCount = 0;
     public static boolean openedGUI = false;
+    public static TickTask ticktask;
     private static final Minecraft mc = Minecraft.getMinecraft();
     public static GameState gameState;
 
@@ -79,13 +71,17 @@ public class FarmHelper {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public final void tick(TickEvent.ClientTickEvent event) {
+    public final void tick(TickEvent.ClientTickEvent event) throws IOException {
+        if (ticktask != null ) {
+            ticktask.onTick();
+        }
         if (event.phase != TickEvent.Phase.START) return;
         if (mc.thePlayer != null && mc.theWorld != null)
             gameState.update();
         tickCount += 1;
         tickCount %= 20;
     }
+
 
     @SneakyThrows
     public static void setVersions() {

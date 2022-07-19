@@ -3,19 +3,13 @@ package com.jelly.farmhelper.mixins.gui;
 import com.jelly.farmhelper.config.interfaces.ProxyConfig;
 import com.jelly.farmhelper.gui.ProxyScreen;
 import com.jelly.farmhelper.network.proxy.ConnectionState;
-import com.jelly.farmhelper.network.proxy.ProxyManager;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiMultiplayer;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.multiplayer.ServerData;
-import net.minecraft.util.EnumChatFormatting;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Objects;
 
 @Mixin(GuiMultiplayer.class)
 public class MixinGuiMultiplayer extends MixinGuiScreen {

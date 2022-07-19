@@ -16,7 +16,8 @@ import net.minecraft.network.status.server.S01PacketPong;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
 
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 public class ProxyManager {
     public static boolean isTesting = false;
