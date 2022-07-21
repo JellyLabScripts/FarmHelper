@@ -1,6 +1,6 @@
 package com.jelly.farmhelper.gui;
 
-import com.jelly.farmhelper.config.FarmHelperConfig;
+import com.jelly.farmhelper.config.ConfigHandler;
 import com.jelly.farmhelper.config.enums.ProxyType;
 import com.jelly.farmhelper.config.interfaces.ProxyConfig;
 import com.jelly.farmhelper.gui.components.GuiCheckBox;
@@ -41,7 +41,7 @@ public class ProxyScreen extends GuiScreen {
 
         if (connectAtStartupCb.isChecked() && state == ConnectionState.INVALID) {
             this.connectAtStartupCb.setIsChecked(false);
-            FarmHelperConfig.set("connectAtStartup", this.connectAtStartupCb.isChecked());
+            ConfigHandler.set("connectAtStartup", this.connectAtStartupCb.isChecked());
             connectAtStartupCb.enabled = false;
         } else {
             connectAtStartupCb.enabled = true;
@@ -93,9 +93,9 @@ public class ProxyScreen extends GuiScreen {
         this.proxyUsernameTf.textboxKeyTyped(typedChar, keyCode);
         this.proxyPasswordTf.textboxKeyTyped(typedChar, keyCode);
 
-        FarmHelperConfig.set("proxyAddress", this.proxyAddressTf.getText());
-        FarmHelperConfig.set("proxyUsername", this.proxyUsernameTf.getText());
-        FarmHelperConfig.set("proxyPassword", this.proxyPasswordTf.getText());
+        ConfigHandler.set("proxyAddress", this.proxyAddressTf.getText());
+        ConfigHandler.set("proxyUsername", this.proxyUsernameTf.getText());
+        ConfigHandler.set("proxyPassword", this.proxyPasswordTf.getText());
 
         if (this.proxyAddressTf.isFocused()) {
             validateProxy();
@@ -154,15 +154,15 @@ public class ProxyScreen extends GuiScreen {
     protected void actionPerformed(GuiButton button) {
         switch (button.id) {
             case 1: // typeBtn
-                long type = (long) FarmHelperConfig.get("proxyType");
+                long type = (long) ConfigHandler.get("proxyType");
                 type = type == 0 ? 1 : 0;
                 this.proxyPasswordTf.setEnabled(type == 1);
-                FarmHelperConfig.set("proxyType", type);
+                ConfigHandler.set("proxyType", type);
                 button.displayString = String.valueOf(ProxyConfig.type);
                 break;
             case 2: // connect at startup checkbox
                 this.connectAtStartupCb.setIsChecked(this.connectAtStartupCb.isChecked());
-                FarmHelperConfig.set("connectAtStartup", this.connectAtStartupCb.isChecked());
+                ConfigHandler.set("connectAtStartup", this.connectAtStartupCb.isChecked());
                 break;
             case 3: // connect btn
                 state = ConnectionState.CONNECTING;

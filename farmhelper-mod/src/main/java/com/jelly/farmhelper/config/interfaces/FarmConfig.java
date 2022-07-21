@@ -1,15 +1,13 @@
 package com.jelly.farmhelper.config.interfaces;
 
-import com.jelly.farmhelper.config.FarmHelperConfig;
+import com.jelly.farmhelper.config.ConfigHandler;
+import com.jelly.farmhelper.config.annotations.Config;
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.enums.FarmEnum;
 
 public class FarmConfig {
+    @Config(key = "cropType")
     public static CropEnum cropType;
+    @Config(key = "farmType")
     public static FarmEnum farmType;
-
-    public static void update() {
-        cropType = CropEnum.values()[((Long) FarmHelperConfig.get("cropType")).intValue()];
-        farmType = FarmEnum.values()[((Long) FarmHelperConfig.get("farmType")).intValue()];
-    }
 }

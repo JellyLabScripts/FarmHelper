@@ -1,26 +1,16 @@
 package com.jelly.farmhelper;
 
-import com.google.common.eventbus.EventBus;
-import com.jelly.farmhelper.config.FarmHelperConfig;
-import com.jelly.farmhelper.config.enums.ProxyType;
-import com.jelly.farmhelper.config.interfaces.ProxyConfig;
+import com.jelly.farmhelper.config.ConfigHandler;
 import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.gui.MenuGUI;
-import com.jelly.farmhelper.gui.ProxyScreen;
 import com.jelly.farmhelper.gui.Render;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.network.proxy.ConnectionState;
-import com.jelly.farmhelper.network.proxy.ProxyManager;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
 import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.world.GameState;
-import io.netty.channel.Channel;
-import io.netty.handler.proxy.Socks5ProxyHandler;
 import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.LoadController;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -29,7 +19,6 @@ import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.Display;
 
-import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -37,7 +26,7 @@ import java.util.jar.Manifest;
 
 @Mod(modid = FarmHelper.MODID, name = FarmHelper.NAME, version = FarmHelper.VERSION)
 public class FarmHelper {
-    public static final String MODID = "farmhelper";
+    public static final String MODID = "keystrokes";
     public static final String NAME = "Farm Helper";
     public static final String VERSION = "4.2.5";
 
@@ -52,7 +41,7 @@ public class FarmHelper {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         setVersions();
-        FarmHelperConfig.init();
+        ConfigHandler.init();
         KeyBindUtils.setup();
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(new Render());

@@ -1,23 +1,21 @@
 package com.jelly.farmhelper.config.interfaces;
 
-import com.jelly.farmhelper.config.FarmHelperConfig;
+import com.jelly.farmhelper.config.ConfigHandler;
+import com.jelly.farmhelper.config.annotations.Config;
 
 public class JacobConfig {
+    @Config(key = "jacobFailsafe")
     public static boolean jacobFailsafe;
-    public static Integer mushroomCap;
-    public static Integer netherWartCap;
-    public static Integer carrotCap;
-    public static Integer potatoCap;
-    public static Integer wheatCap;
-    public static Integer sugarcaneCap;
-
-    public static void update() {
-        jacobFailsafe = (Boolean) FarmHelperConfig.get("jacobFailsafe");
-        mushroomCap = ((Long) FarmHelperConfig.get("mushroomCap")).intValue();
-        netherWartCap = ((Long) FarmHelperConfig.get("netherWartCap")).intValue();
-        carrotCap = ((Long) FarmHelperConfig.get("carrotCap")).intValue();
-        potatoCap = ((Long) FarmHelperConfig.get("potatoCap")).intValue();
-        wheatCap = ((Long) FarmHelperConfig.get("wheatCap")).intValue();
-        sugarcaneCap = ((Long) FarmHelperConfig.get("sugarcaneCap")).intValue();
-    }
+    @Config(key = "mushroomCap")
+    public static int mushroomCap;
+    @Config(key = "netherWartCap")
+    public static int netherWartCap;
+    @Config(key = "carrotCap")
+    public static int carrotCap;
+    @Config(key = "potatoCap")
+    public static int potatoCap;
+    @Config(key = "wheatCap")
+    public static int wheatCap;
+    @Config(key = "sugarcaneCap")
+    public static int sugarcaneCap;
 }

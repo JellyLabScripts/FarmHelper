@@ -1,6 +1,6 @@
 package com.jelly.farmhelper.gui.components;
 
-import com.jelly.farmhelper.config.FarmHelperConfig;
+import com.jelly.farmhelper.config.ConfigHandler;
 import gg.essential.elementa.UIComponent;
 import gg.essential.elementa.components.UIBlock;
 import gg.essential.elementa.components.UIText;
@@ -19,7 +19,7 @@ public class NumberBox extends UIBlock {
 
     public NumberBox(String optionName, Integer digits, String configName) {
         // Get value from config
-        this.numberValue = (Long) FarmHelperConfig.get(configName);
+        this.numberValue = (Long) ConfigHandler.get(configName);
         this.digits = digits;
 
         this.setX(new PixelConstraint(0))
@@ -56,7 +56,7 @@ public class NumberBox extends UIBlock {
                 // LogUtils.debugLog("Typed: " + character + ", " + integer);
                 if ((Character.isDigit(character) || Arrays.asList(codes).contains(integer)) && numberInput.getText().length() <= this.digits) {
                     numberValue = !numberInput.getText().equals("") ? Long.parseLong(numberInput.getText()) : 0;
-                    FarmHelperConfig.set(configName, numberValue);
+                    ConfigHandler.set(configName, numberValue);
                 } else {
                     numberInput.setText(String.valueOf(numberValue));
                 }

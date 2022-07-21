@@ -1,6 +1,6 @@
 package com.jelly.farmhelper.gui.components;
 
-import com.jelly.farmhelper.config.FarmHelperConfig;
+import com.jelly.farmhelper.config.ConfigHandler;
 import gg.essential.elementa.UIComponent;
 import gg.essential.elementa.components.UIBlock;
 import gg.essential.elementa.components.UIText;
@@ -21,7 +21,7 @@ public class Slider extends UIBlock {
 
     public Slider(String optionName, double maxValue, double step, String configName) {
         // Get current value from config
-        this.currentValue = (Double) FarmHelperConfig.get(configName);
+        this.currentValue = (Double) ConfigHandler.get(configName);
         this.configName = configName;
         this.maxValue = maxValue;
         this.step = step;
@@ -82,6 +82,6 @@ public class Slider extends UIBlock {
         this.currentValue = Math.round(Math.min(Math.max(maxValue * (relPosX / slider.getWidth()), 0), maxValue) * (1/step)) / (1/step);
         sliderValue.setWidth(new ScaleConstraint(new RelativeConstraint(1f), (float) (currentValue / maxValue)));
         sliderTextState.set(String.valueOf(currentValue));
-        FarmHelperConfig.set(configName, currentValue);
+        ConfigHandler.set(configName, currentValue);
     }
 }

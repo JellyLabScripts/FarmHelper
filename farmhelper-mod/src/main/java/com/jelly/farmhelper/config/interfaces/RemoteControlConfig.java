@@ -1,25 +1,21 @@
 package com.jelly.farmhelper.config.interfaces;
 
-import com.jelly.farmhelper.config.FarmHelperConfig;
+import com.jelly.farmhelper.config.ConfigHandler;
+import com.jelly.farmhelper.config.annotations.Config;
 
 public class RemoteControlConfig {
+    @Config(key = "webhookLogs")
     public static boolean webhookLogs;
+    @Config(key = "webhookStatus")
     public static boolean webhookStatus;
+    @Config(key = "enableRemoteControl")
     public static boolean enableRemoteControl;
+    @Config(key = "websocketPassword")
     public static String websocketPassword;
+    @Config(key = "websocketIP")
     public static String websocketIP;
-
+    @Config(key = "webhookStatusCooldown")
     public static double webhookStatusCooldown;
+    @Config(key = "webhookURL")
     public static String webhookURL;
-
-    public static void update() {
-        enableRemoteControl = (boolean) FarmHelperConfig.get("enableRemoteControl");
-        websocketPassword = (String) FarmHelperConfig.get("websocketPassword");
-        websocketIP = (String) FarmHelperConfig.get("websocketIP");
-
-        webhookLogs = (boolean) FarmHelperConfig.get("webhookLogs");
-        webhookStatus = (boolean) FarmHelperConfig.get("webhookStatus");
-        webhookStatusCooldown = (double) FarmHelperConfig.get("webhookStatusCooldown");
-        webhookURL = (String) FarmHelperConfig.get("webhookURL");
-    }
 }

@@ -1,37 +1,33 @@
 package com.jelly.farmhelper.config.interfaces;
 
-import com.jelly.farmhelper.config.FarmHelperConfig;
+import com.jelly.farmhelper.config.ConfigHandler;
+import com.jelly.farmhelper.config.annotations.Config;
 
 public class MiscConfig {
+    @Config(key = "resync")
     public static boolean resync;
+    @Config(key = "fastbreak")
     public static boolean fastbreak;
+    @Config(key = "fastbreakSpeed")
     public static double fastbreakSpeed;
+    @Config(key = "xray")
     public static boolean xray;
+    @Config(key = "randomization")
     public static boolean randomization;
+    @Config(key = "autoGodPot")
     public static boolean autoGodPot;
+    @Config(key = "autoCookie")
     public static boolean autoCookie;
+    @Config(key = "dropStone")
     public static boolean dropStone;
+    @Config(key = "debugMode")
     public static boolean debugMode;
+    @Config(key = "ungrab")
     public static boolean ungrab;
+    @Config(key = "banwaveDisconnect")
     public static boolean banwaveDisconnect;
+    @Config(key = "banThreshold")
     public static double banThreshold;
+    @Config(key = "reconnectDelay")
     public static double reconnectDelay;
-
-
-
-    public static void update() {
-        resync = (boolean) FarmHelperConfig.get("resync");
-        fastbreak = (boolean) FarmHelperConfig.get("fastbreak");
-        fastbreakSpeed = (double) FarmHelperConfig.get("fastbreakSpeed");
-        xray = (boolean) FarmHelperConfig.get("xray");
-        randomization = (boolean) FarmHelperConfig.get("randomization");
-        autoGodPot = (boolean) FarmHelperConfig.get("autoGodPot");
-        autoCookie = (boolean) FarmHelperConfig.get("autoCookie");
-        dropStone = (boolean) FarmHelperConfig.get("dropStone");
-        ungrab = (boolean) FarmHelperConfig.get("ungrab");
-        debugMode = (boolean) FarmHelperConfig.get("debugMode");
-        banThreshold = (double) FarmHelperConfig.get("banThreshold");
-        banwaveDisconnect = (boolean) FarmHelperConfig.get("banwaveDisconnect");
-        reconnectDelay = (double) FarmHelperConfig.get("reconnectDelay");
-    }
 }
