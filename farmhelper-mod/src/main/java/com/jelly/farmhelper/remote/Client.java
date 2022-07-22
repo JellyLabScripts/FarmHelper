@@ -2,7 +2,7 @@ package com.jelly.farmhelper.remote;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.jelly.farmhelper.config.FarmHelperConfig;
+import com.jelly.farmhelper.config.ConfigHandler;
 import com.jelly.farmhelper.remote.event.MessageEvent;
 import com.jelly.farmhelper.utils.LogUtils;
 import dev.volix.lib.brigadier.Brigadier;
@@ -34,7 +34,7 @@ public class Client extends WebSocketClient {
     public void onMessage(String message) {
         if (message.equals("VERSIONERROR")) {
             LogUtils.scriptLog("RemoteControl wont work on this instance as mod/bot versions don't match. Download latest version from discord.");
-            FarmHelperConfig.set("enableRemoteControl", false);
+            ConfigHandler.set("enableRemoteControl", false);
             this.close(-1);
         }
         MessageEvent ctx = new MessageEvent(this, new Gson().fromJson(message, JsonObject.class));

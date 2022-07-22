@@ -1,6 +1,6 @@
 package com.jelly.farmhelper.gui.menus;
 
-import com.jelly.farmhelper.config.FarmHelperConfig;
+import com.jelly.farmhelper.config.ConfigHandler;
 import com.jelly.farmhelper.features.AutoCookie;
 import com.jelly.farmhelper.features.AutoPot;
 import com.jelly.farmhelper.gui.components.Button;
@@ -32,8 +32,8 @@ public class MiscMenu extends UIContainer {
             return null;
         });
         ((Button) new Button("Save Keybinds").setChildOf(this)).setOnClick((component, uiClickEvent) -> {
-            FarmHelperConfig.set("openGUIKeybind", KeyBindUtils.customKeyBinds[0].getKeyCode());
-            FarmHelperConfig.set("startScriptKeybind", KeyBindUtils.customKeyBinds[1].getKeyCode());
+            ConfigHandler.set("openGUIKeybind", KeyBindUtils.customKeyBinds[0].getKeyCode());
+            ConfigHandler.set("startScriptKeybind", KeyBindUtils.customKeyBinds[1].getKeyCode());
             return null;
         });
         new Toggle("Leave on banwave", "banwaveDisconnect").setChildOf(this);

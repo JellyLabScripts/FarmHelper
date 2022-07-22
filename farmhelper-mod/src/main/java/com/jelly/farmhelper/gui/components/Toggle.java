@@ -1,6 +1,6 @@
 package com.jelly.farmhelper.gui.components;
 
-import com.jelly.farmhelper.config.FarmHelperConfig;
+import com.jelly.farmhelper.config.ConfigHandler;
 import gg.essential.elementa.components.UIBlock;
 import gg.essential.elementa.components.UIText;
 import gg.essential.elementa.constraints.*;
@@ -15,7 +15,7 @@ public class Toggle extends UIBlock {
 
     public Toggle(String optionName, String configName) {
         // Get value from config
-        toggleValue = (boolean) FarmHelperConfig.get(configName);
+        toggleValue = (boolean) ConfigHandler.get(configName);
         fillColor = toggleValue ? new Color(175, 36, 36) : new Color(30, 31, 32);
 
         this.setX(new PixelConstraint(0))
@@ -38,7 +38,7 @@ public class Toggle extends UIBlock {
             .setWidth(new PixelConstraint(14))
             .onMouseClick((component, uiClickEvent) -> {
                 toggleValue = !toggleValue;
-                FarmHelperConfig.set(configName, toggleValue);
+                ConfigHandler.set(configName, toggleValue);
                 fillColor = toggleValue ? new Color(175, 36, 36) : new Color(30, 31, 32);
 
                 AnimatingConstraints anim = component.makeAnimation().setColorAnimation(Animations.OUT_EXP, 0.5f, new ConstantColorConstraint(fillColor));

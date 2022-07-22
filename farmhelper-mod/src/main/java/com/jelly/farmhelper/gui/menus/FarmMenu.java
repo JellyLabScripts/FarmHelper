@@ -1,6 +1,6 @@
 package com.jelly.farmhelper.gui.menus;
 
-import com.jelly.farmhelper.config.FarmHelperConfig;
+import com.jelly.farmhelper.config.ConfigHandler;
 import gg.essential.elementa.UIComponent;
 import gg.essential.elementa.components.UIBlock;
 import gg.essential.elementa.components.UIContainer;
@@ -55,7 +55,7 @@ class ImageBox extends UIBlock {
     private final String configName;
     public ImageBox(XConstraint x, YConstraint y, float width ,String ImageURL, ArrayList<UIComponent> components, Long value, String configName) {
         // Check if already marked
-        selected = (long) FarmHelperConfig.get(configName) == value;
+        selected = (long) ConfigHandler.get(configName) == value;
         this.components = components;
         this.configName = configName;
         fillColor = selected ? new Color(175, 36, 36) : new Color(30, 31, 32);
@@ -68,7 +68,7 @@ class ImageBox extends UIBlock {
                 // if (value == 1 && configName == "farmType") return null; // Temporary disable for vertical button
                 components.forEach(c -> ((ImageBox) c).reset());
                 selected = true;
-                FarmHelperConfig.set(configName, value);
+                ConfigHandler.set(configName, value);
                 AnimatingConstraints anim = this.makeAnimation().setColorAnimation(Animations.OUT_EXP, 0.5f, new ConstantColorConstraint(new Color(175, 36, 36)));
                 this.animateTo(anim);
                 return null;

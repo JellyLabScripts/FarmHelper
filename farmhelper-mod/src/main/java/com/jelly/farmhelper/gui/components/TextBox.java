@@ -1,6 +1,6 @@
 package com.jelly.farmhelper.gui.components;
 
-import com.jelly.farmhelper.config.FarmHelperConfig;
+import com.jelly.farmhelper.config.ConfigHandler;
 import gg.essential.elementa.UIComponent;
 import gg.essential.elementa.components.UIBlock;
 import gg.essential.elementa.components.UIText;
@@ -16,7 +16,7 @@ public class TextBox extends UIBlock {
 
     public TextBox(String optionName, String placeholder, String configName) {
         // Get value from config
-        this.textValue = (String) FarmHelperConfig.get(configName);
+        this.textValue = (String) ConfigHandler.get(configName);
 
         this.setX(new PixelConstraint(0))
             .setY(new SiblingConstraint())
@@ -50,7 +50,7 @@ public class TextBox extends UIBlock {
             .setChildOf(textWrapper)
             .onKeyType((component, character, integer) -> {
                 textValue = textInput.getText();
-                FarmHelperConfig.set(configName, textValue);
+                ConfigHandler.set(configName, textValue);
                 return null;
             })
             .onFocusLost(component -> {
