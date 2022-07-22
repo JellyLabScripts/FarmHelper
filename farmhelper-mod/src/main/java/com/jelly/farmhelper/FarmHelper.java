@@ -7,6 +7,7 @@ import com.jelly.farmhelper.gui.Render;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
 import com.jelly.farmhelper.utils.KeyBindUtils;
+import com.jelly.farmhelper.utils.TickTask;
 import com.jelly.farmhelper.world.GameState;
 import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
@@ -18,7 +19,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.Display;
-
+import java.io.IOException;
 import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -35,6 +36,7 @@ public class FarmHelper {
     public static String BOTVERSION = "-1";
     public static int tickCount = 0;
     public static boolean openedGUI = false;
+    public static TickTask ticktask;
     private static final Minecraft mc = Minecraft.getMinecraft();
     public static GameState gameState;
 
@@ -68,13 +70,17 @@ public class FarmHelper {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public final void tick(TickEvent.ClientTickEvent event) {
+    public final void tick(TickEvent.ClientTickEvent event) throws IOException {
+        if (ticktask != null ) {
+            ticktask.onTick();
+        }
         if (event.phase != TickEvent.Phase.START) return;
         if (mc.thePlayer != null && mc.theWorld != null)
             gameState.update();
         tickCount += 1;
         tickCount %= 20;
     }
+
 
     @SneakyThrows
     public static void setVersions() {

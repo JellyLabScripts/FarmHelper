@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.utils;
 
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
@@ -22,6 +23,7 @@ import java.util.regex.Pattern;
 import static java.lang.Integer.parseInt;
 
 public class InventoryUtils {
+    static int opened = 0;
     /*
      *  @Author Mostly Apfelsaft
      */
@@ -61,8 +63,12 @@ public class InventoryUtils {
     }
 
     public static void openInventory() {
-        mc.getNetHandler().addToSendQueue(new C16PacketClientStatus(C16PacketClientStatus.EnumState.OPEN_INVENTORY_ACHIEVEMENT));
-        mc.displayGuiScreen(new GuiInventory(mc.thePlayer));
+        FarmHelper.ticktask = () -> {
+            FarmHelper.ticktask = null;
+            mc.displayGuiScreen(new GuiInventory(mc.thePlayer));
+            opened++;
+            LogUtils.scriptLog("Opened inventory " + opened + " times");
+        };
     }
     public static ItemStack getStackInSlot(final int slot) {
         return InventoryUtils.mc.thePlayer.inventory.getStackInSlot(slot);

@@ -3,7 +3,6 @@ package com.jelly.farmhelper.features;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.JacobConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
-import com.jelly.farmhelper.macros.Macro;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.command.commands.ReconnectCommand;
 import net.minecraft.client.Minecraft;

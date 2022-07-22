@@ -5,7 +5,6 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.command.BaseCommand;
 import com.jelly.farmhelper.remote.command.RemoteCommandContext;
 import com.jelly.farmhelper.remote.event.MessageEvent;
-import com.jelly.farmhelper.utils.Imgur;
 import dev.volix.lib.brigadier.command.Command;
 import dev.volix.lib.brigadier.context.CommandContext;
 import dev.volix.lib.brigadier.parameter.ParameterSet;
@@ -21,8 +20,8 @@ public class ToggleCommand extends BaseCommand {
         if (nullCheck() || MacroHandler.isMacroing) {
             MacroHandler.toggleMacro();
             data.addProperty("embed", toJson(embed()
-                    .setDescription("Toggled Farm Helper " + (MacroHandler.isMacroing ? "on" : "off"))
-                    .setImage(Imgur.upload(getScreenshot()))));
+                    .setDescription("Toggled Farm Helper " + (MacroHandler.isMacroing ? "on" : "off"))));
+            data.addProperty("image", getScreenshot());
         } else {
             data.addProperty("embed", toJson(embed()
                     .setDescription("I'm not in a world, therefore I can't toggle macro")));

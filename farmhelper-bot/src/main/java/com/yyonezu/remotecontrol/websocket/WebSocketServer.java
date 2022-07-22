@@ -19,7 +19,7 @@ public class WebSocketServer {
     public static HashMap<Session, String> minecraftInstances = new HashMap<>();
     public static Javalin app;
     public static void start() {
-        app = Javalin.create().start(58637);
+        app = Javalin.create(javalinConfig -> javalinConfig.wsFactoryConfig(c -> c.getPolicy().setMaxTextMessageSize(Integer.MAX_VALUE))).start(58637);
         app.ws("/farmhelperws", ws -> {
             ws.onConnect(ctx -> {
                 try {

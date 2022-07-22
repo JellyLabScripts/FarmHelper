@@ -17,30 +17,42 @@ public class Config {
 
     public static void init() {
         // Create config file if it doesn't exist
-        String token;
-        String password;
+        String token = "";
+        String password = "";
+
         if (!configFile.isFile()) {
             writeConfig(DefaultConfig.getDefaultConfig());
-            token = JOptionPane.showInputDialog("Put a discord token here: ");
-            password = JOptionPane.showInputDialog("Choose a password (you'll have to set it on the mod as well): ");
+            while ((token == null || token.length() == 0) || (password == null || password.length() == 0)) {
+                if (token == null || token.length() == 0) {
+                    token = JOptionPane.showInputDialog("Put a discord token here: ");
+                } else {
+                    password = JOptionPane.showInputDialog("Choose a password (you'll have to set it on the mod as well): ");
+                }
+            }
             config = DefaultConfig.getDefaultConfig();
             set("token", token);
             set("password", password);
             writeConfig(config);
-        } else {
-            try (FileReader reader = new FileReader("botconfig.json")) {
-                config = (JSONObject) new JSONParser().parse(reader);
-                updateInterfaces();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            }
+        }
+
+        try (FileReader reader = new FileReader("botconfig.json")) {
+            config = (JSONObject) new JSONParser().parse(reader);
+            updateInterfaces();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
         }
         updateInterfaces();
+
+        // if it's still not there
+        while (SecretConfig.password.length() == 0) {
+            password = JOptionPane.showInputDialog("Set your password dumbass: ");
+            set("password", password);
+        }
     }
 
-    private static void     writeConfig(JSONObject json) {
+    private static void writeConfig(JSONObject json) {
         try (FileWriter file = new FileWriter("botconfig.json")) {
             file.write(json.toString());
             file.flush();

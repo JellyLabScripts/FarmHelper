@@ -7,7 +7,6 @@ import com.jelly.farmhelper.remote.command.BaseCommand;
 import com.jelly.farmhelper.remote.command.RemoteCommandContext;
 import com.jelly.farmhelper.remote.event.MessageEvent;
 import com.jelly.farmhelper.utils.Clock;
-import com.jelly.farmhelper.utils.Imgur;
 import dev.volix.lib.brigadier.command.Command;
 import dev.volix.lib.brigadier.context.CommandContext;
 import dev.volix.lib.brigadier.parameter.ParameterSet;
@@ -34,8 +33,9 @@ public class ReconnectCommand extends BaseCommand {
                     .setDescription("I disconnected, reconnecting in " + formatTime(ms))));
         } else {
             obj.addProperty("embed", toJson(embed()
-                    .setDescription("Can't reconnect since I was already disconnected")
-                    .setImage(Imgur.upload(getScreenshot()))));
+                    .setDescription("Can't reconnect since I was already disconnected")));
+            obj.addProperty("image", getScreenshot());
+
         }
         send(obj);
     }
@@ -57,8 +57,8 @@ public class ReconnectCommand extends BaseCommand {
                             "there's a banwave going on" :
                             !Failsafe.jacobWait.passed() ?
                                     "there's a Jacob Contest":
-                                    "of a disconnection error?"))
-                    .setImage(Imgur.upload(getScreenshot()))));
+                                    "of a disconnection error?"))));
+            obj.addProperty("image", getScreenshot());
         }
         send(obj);
     }

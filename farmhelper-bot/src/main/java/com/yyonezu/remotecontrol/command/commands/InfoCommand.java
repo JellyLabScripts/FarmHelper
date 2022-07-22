@@ -22,8 +22,12 @@ public class InfoCommand extends BaseCommand {
         register(new Waiter(
                 condition -> (condition.matchesMetadata(data)),
                 action -> {
-                    MessageEmbed eb = EmbedUtils.jsonToEmbed(action.message.get("embed").getAsString());
-                    ev.getChannel().sendMessageEmbeds(eb).queue();
+                    MessageEmbed embed = EmbedUtils.jsonToEmbed(action.message.get("embed").getAsString());
+                    if (action.message.get("image") != null) {
+                        addImageToEmbedAndSend(action.message.get("image").getAsString(), embed, ev);
+                    } else {
+                        ev.getChannel().sendMessageEmbeds(embed).queue();
+                    }
                 },
                 true,
                 7L,

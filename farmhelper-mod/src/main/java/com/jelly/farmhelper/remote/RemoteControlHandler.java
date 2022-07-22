@@ -8,17 +8,13 @@ import com.jelly.farmhelper.remote.command.BaseCommand;
 import dev.volix.lib.brigadier.Brigadier;
 import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.ScreenShotHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.reflections.Reflections;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static com.jelly.farmhelper.utils.StatusUtils.connecting;
@@ -68,23 +64,6 @@ public class RemoteControlHandler {
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent e) {
         if (e.phase != TickEvent.Phase.START) return;
-        if (!queuedScreenshots.isEmpty()) {
-                for (int i = 0; i < queuedScreenshots.size(); i++) {
-                    String s = queuedScreenshots.get(i);
-                    try {
-                        ScreenShotHelper.saveScreenshot(mc.mcDataDir, s, mc.displayWidth, mc.displayHeight, mc.getFramebuffer());
-                        File screenshotDirectory = new File(mc.mcDataDir, "screenshots");
-                        File screenshotFile = new File(screenshotDirectory, s);
-                        byte[] bytes = Files.readAllBytes(Paths.get(screenshotFile.getAbsolutePath()));
-                        String base64 = Base64.getEncoder().encodeToString(bytes);
-                        takenScreenshots.put(s, base64);
-                        screenshotFile.delete();
-                    } catch (Exception z) {
-                        takenScreenshots.put(s, null);
-                    }
-                }
-                queuedScreenshots.clear();
-        }
 
         if (!RemoteControlConfig.enableRemoteControl) {
             if (client != null && client.isOpen()) {
