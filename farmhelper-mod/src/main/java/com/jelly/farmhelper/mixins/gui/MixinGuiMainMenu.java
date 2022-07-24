@@ -13,17 +13,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GuiMainMenu.class)
 public class MixinGuiMainMenu {
     @Shadow private String splashText;
+    private static boolean done = false;
 
     @Final
     @Inject(method = "updateScreen", at = @At("RETURN"))
     private void initGui(CallbackInfo ci) {
-        FarmHelper.ticktask = () -> {
-            FarmHelper.ticktask = null;
-            UpdateGUI.showGUI();
-        };
+        if (!done) {
+            FarmHelper.ticktask = () -> {
+                FarmHelper.ticktask = null;
+                UpdateGUI.showGUI();
+                done = true;
+            };
+        }
 
         if (UpdateGUI.outdated) {
             this.splashText = "Update FarmHelper <3";
         }
     }
 }
+
+
