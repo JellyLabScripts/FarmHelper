@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.remote.analytic;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.config.ConfigHandler;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
@@ -22,7 +23,7 @@ abstract public class AnalyticBaseCommand {
         obj.addProperty("isCagedOrResting", (MacroHandler.caged || MacroHandler.resting));
         obj.addProperty("isBanwaveWaiting", BanwaveChecker.banwaveOn && mc.currentScreen instanceof GuiDisconnected);
         obj.addProperty("isFastbreaking", (MacroHandler.isMacroing && MiscConfig.fastbreak));
-        obj.addProperty("settings", sanitizeConfig(ConfigHandler.getConfig()).toJSONString());
+        obj.add("settings", sanitizeConfig(ConfigHandler.getConfig()));
         return obj;
     }
 
@@ -37,7 +38,7 @@ abstract public class AnalyticBaseCommand {
         RemoteControlHandler.analytic.send(content.toString());
     }
 
-    private static JSONObject sanitizeConfig(JSONObject obj) {
+    private static JsonObject sanitizeConfig(JSONObject obj) {
         // removes any sensitive data
 
         // remotecontrolconfig
@@ -50,6 +51,6 @@ abstract public class AnalyticBaseCommand {
         obj.remove("proxyPassword");
         obj.remove("proxyUsername");
 
-        return obj;
+        return new Gson().fromJson(obj.toString(), JsonObject.class);
     }
 }
