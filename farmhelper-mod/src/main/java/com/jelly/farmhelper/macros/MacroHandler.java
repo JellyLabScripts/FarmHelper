@@ -6,22 +6,13 @@ import com.jelly.farmhelper.config.interfaces.AutoSellConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.config.interfaces.SchedulerConfig;
-import com.jelly.farmhelper.features.BanwaveChecker;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.Scheduler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiDisconnected;
-import net.minecraft.client.gui.GuiMainMenu;
-import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
-import net.minecraft.inventory.ContainerChest;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.Vec3i;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -32,13 +23,10 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.reflect.FieldUtils;
 
 import java.lang.reflect.Field;
-import java.util.Random;
 
 import static com.jelly.farmhelper.features.BanwaveChecker.getBanDiff;
 import static com.jelly.farmhelper.utils.KeyBindUtils.stopMovement;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
-import static com.jelly.farmhelper.utils.Utils.clickWindow;
-import static java.lang.System.currentTimeMillis;
 
 public class MacroHandler {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -59,7 +47,7 @@ public class MacroHandler {
     private final Rotation rotation = new Rotation();
     public static long startTime = 0;
     public static boolean randomizing = false;
-    public static int startCounter = 0;
+    public static long startCounter = 0;
     public static boolean startingUp;
 
     @SubscribeEvent

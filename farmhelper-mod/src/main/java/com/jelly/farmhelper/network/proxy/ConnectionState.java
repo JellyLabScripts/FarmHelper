@@ -10,7 +10,7 @@ public enum ConnectionState {
 
     public final EnumChatFormatting color;
 
-    private ConnectionState(EnumChatFormatting color) {
+    ConnectionState(EnumChatFormatting color) {
         this.color = color;
     }
 }

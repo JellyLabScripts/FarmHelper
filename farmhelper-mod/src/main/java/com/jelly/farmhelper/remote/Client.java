@@ -18,6 +18,7 @@ import static com.jelly.farmhelper.utils.StatusUtils.connecting;
 
 
 public class Client extends WebSocketClient {
+    boolean isAnalytics;
 
     public Client(URI serverUri) {
         super(serverUri);

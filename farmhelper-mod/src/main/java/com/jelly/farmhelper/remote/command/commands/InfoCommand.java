@@ -5,7 +5,6 @@ import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.remote.command.BaseCommand;
 import com.jelly.farmhelper.remote.command.RemoteCommandContext;
 import com.jelly.farmhelper.remote.event.MessageEvent;
-import com.jelly.farmhelper.utils.Imgur;
 import com.jelly.farmhelper.utils.ProfitUtils;
 import dev.volix.lib.brigadier.command.Command;
 import dev.volix.lib.brigadier.context.CommandContext;
@@ -25,8 +24,9 @@ public class InfoCommand extends BaseCommand {
                 .addField("Total Profit", ProfitUtils.profit.get(), false)
                 .addField("Profit / hr", ProfitUtils.profitHr.get(), false)
                 .addField(ProfitUtils.getHighTierName().equals("Unknown") ? "Unknown crop?" : ProfitUtils.getHighTierName(), ProfitUtils.cropCount.get(), true)
-                .addField("Counter", ProfitUtils.counter.get(), true)
-                .setImage(Imgur.upload(getScreenshot()));
+                .addField("Counter", ProfitUtils.counter.get(), true);
+
+        data.addProperty("image", getScreenshot());
         data.addProperty("embed", toJson(embed));
         send(data);
     }

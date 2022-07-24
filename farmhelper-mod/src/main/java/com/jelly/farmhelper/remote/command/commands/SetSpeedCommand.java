@@ -94,9 +94,10 @@ public class SetSpeedCommand extends BaseCommand {
                 Thread.sleep(200);
                 mc.thePlayer.closeScreen();
             }
+
             Thread.sleep(200);
             mc.thePlayer.inventory.currentItem = InventoryUtils.getItemInHotbar("Hoe");
-            data.addProperty("embed", toJson(embed().setDescription("Done, I'm macroing at " + speed + " now.")));
+            data.addProperty("embed", toJson(embed().setDescription("Done, I'm macroing at " + speed + " speed now.")));
             if (wasMacroing) {
                 MacroHandler.isMacroing = true;
                 MacroHandler.enableCurrentMacro();

@@ -2,7 +2,6 @@ package com.jelly.farmhelper.mixins;
 
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import org.spongepowered.asm.launch.MixinBootstrap;
-import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
 
 import javax.annotation.Nullable;

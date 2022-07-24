@@ -20,10 +20,17 @@ public class ScreenshotCommand extends BaseCommand {
         JsonObject data = getBaseMessage(ev, instance);
         instance.getSession().getRemote().sendStringByFuture(data.toString());
         register(new Waiter(
-                condition -> (condition.matchesMetadata(data)),
+                condition -> {
+                    System.out.println(condition.message.get("metadata").toString());
+                    return condition.matchesMetadata(data);
+                },
                 action -> {
                     MessageEmbed embed = EmbedUtils.jsonToEmbed(action.message.get("embed").getAsString());
-                    ev.getChannel().sendMessageEmbeds(embed).queue();
+                    if (action.message.get("image") != null) {
+                        addImageToEmbedAndSend(action.message.get("image").getAsString(), embed, ev);
+                    } else {
+                        ev.getChannel().sendMessageEmbeds(embed).queue();
+                    }
                 },
                 true,
                 7L,
@@ -34,14 +41,18 @@ public class ScreenshotCommand extends BaseCommand {
 
     @Command(value = "inventory", usage = "{prefix}screenshot inventory instance_ign", desc = "Player sends an inventory screenshot")
     public void inventory(CommandEvent ev, Instance instance) {
+
         JsonObject data = getBaseMessage(ev, instance);
         instance.getSession().getRemote().sendStringByFuture(data.toString());
         register(new Waiter(
                 condition -> (condition.matchesMetadata(data)),
                 action -> {
                     MessageEmbed embed = EmbedUtils.jsonToEmbed(action.message.get("embed").getAsString());
-                    ev.getChannel().sendMessageEmbeds(embed).queue();
-
+                    if (action.message.get("image") != null) {
+                        addImageToEmbedAndSend(action.message.get("image").getAsString(), embed, ev);
+                    } else {
+                        ev.getChannel().sendMessageEmbeds(embed).queue();
+                    }
                 },
                 true,
                 7L,

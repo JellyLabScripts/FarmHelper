@@ -5,7 +5,6 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.command.BaseCommand;
 import com.jelly.farmhelper.remote.command.RemoteCommandContext;
 import com.jelly.farmhelper.remote.event.MessageEvent;
-import com.jelly.farmhelper.utils.Imgur;
 import com.jelly.farmhelper.utils.InventoryUtils;
 import dev.volix.lib.brigadier.command.Command;
 import dev.volix.lib.brigadier.context.CommandContext;
@@ -19,15 +18,10 @@ public class ScreenshotCommand extends BaseCommand {
     @Command(label = "screenshot")
     public void screenshot(MessageEvent event, CommandContext<RemoteCommandContext> context, ParameterSet parameter) throws InterruptedException, IOException {
         JsonObject obj = event.obj;
-        String link = Imgur.upload(getScreenshot());
-        if (link != null) {
-            obj.addProperty("embed", toJson(embed()
-                    .setDescription("Sent a screenshot")
-                    .setImage(link)));
-        } else {
-            obj.addProperty("embed", toJson(embed()
-                    .setDescription("Could not send a screenshot, check if Patcher's ScreenshotManager is enabled using /patcher ingame. If it isn't then it could be imgur timeout, try again")));
-        }
+        String screenshot = getScreenshot();
+        obj.addProperty("embed", toJson(embed()
+                .setDescription("Sent a screenshot")));
+        obj.addProperty("image", screenshot);
         send(obj);
     }
 
@@ -41,17 +35,13 @@ public class ScreenshotCommand extends BaseCommand {
                 MacroHandler.isMacroing = false;
                 MacroHandler.disableCurrentMacro();
             }
+
             InventoryUtils.openInventory();
-            String link = Imgur.upload(getScreenshot());
+            String screenshot = getScreenshot();
             mc.thePlayer.closeScreen();
-            if (link != null) {
-                obj.addProperty("embed", toJson(embed()
-                        .setDescription("Sent a screenshot")
-                        .setImage(link)));
-            } else {
-                obj.addProperty("embed", toJson(embed()
-                        .setDescription("Could not send a screenshot, check if Patcher's ScreenshotManager is enabled using /patcher ingame. If it isn't then it could be imgur timeout, try again")));
-            }
+            obj.addProperty("embed", toJson(embed()
+                    .setDescription("Sent a screenshot")));
+            obj.addProperty("image", screenshot);
             if (wasMacroing) {
                 MacroHandler.isMacroing = true;
                 MacroHandler.enableCurrentMacro();

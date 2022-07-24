@@ -8,6 +8,7 @@ import com.yyonezu.remotecontrol.event.wait.Waiter;
 import com.yyonezu.remotecontrol.event.wait.WaiterAction;
 import lombok.SneakyThrows;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -33,14 +34,17 @@ abstract public class BaseCommand {
                .setFooter("➤ FarmHelper Remote Control ↳ by yonezu#5542", "https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png");
     }
     @SneakyThrows
-    public static File getFileFromBase64(String base64) {
+    public static void addImageToEmbedAndSend(String base64, MessageEmbed embed, CommandEvent ev) {
+        EmbedBuilder em = new EmbedBuilder(embed);
         File file = new File(UUID.randomUUID() + ".png");
         file.createNewFile();
         byte[] data = Base64.getDecoder().decode(base64);
         try (OutputStream stream = Files.newOutputStream(file.toPath())) {
             stream.write(data);
         }
-        return file;
+        em.setImage("attachment://filename.png");
+        ev.getChannel().sendFile(file, "filename.png").setEmbeds(em.build()).queue();
+        file.delete();
     }
 
     public static JsonObject getBaseMessage (CommandEvent ev, Instance instance) {

@@ -4,15 +4,23 @@
   "package": "com.jelly.farmhelper.mixins",
   "refmap": "mixins.farmhelper.refmap.json",
   "mixins": [
+    "block.IBlockAccessor",
+    "block.MixinBlockCrops",
+    "block.MixinBlockNetherWart",
     "client.MinecraftMixin",
+    "fml.MixinFMLHandshakeMessage",
     "gui.MixinGuiDisconnected",
     "network.MixinNetworkManagerChInit"
   ],
   "client": [
     "block.MixinBlockRendererDispatcher",
     "client.MixinPlayerControllerMP",
+    "gui.MixinGuiContainer",
+    "gui.MixinGuiInventory",
+    "gui.MixinGuiMainMenu",
     "gui.MixinGuiMultiplayer",
     "gui.MixinGuiScreen",
-    "render.MixinEffectRenderer"
+    "render.MixinEffectRenderer",
+    "render.MixinInventoryEffectRenderer"
   ]
 }

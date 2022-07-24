@@ -19,7 +19,7 @@ public class WebSocketServer {
     public static HashMap<Session, String> minecraftInstances = new HashMap<>();
     public static Javalin app;
     public static void start() {
-        app = Javalin.create().start(58637);
+        app = Javalin.create(javalinConfig -> javalinConfig.wsFactoryConfig(c -> c.getPolicy().setMaxTextMessageSize(Integer.MAX_VALUE))).start(Main.port);
         app.ws("/farmhelperws", ws -> {
             ws.onConnect(ctx -> {
                 try {
@@ -30,6 +30,11 @@ public class WebSocketServer {
                             ctx.send("VERSIONERROR");
                         }
                     }
+
+                    if (minecraftInstances.containsValue(decoded.get("name").getAsString())) {
+                        ctx.closeSession();
+                    }
+
                     if (decoded.get("password").getAsString().equals(SecretConfig.password)) {
                         minecraftInstances.put(ctx.session, decoded.get("name").getAsString());
                     } else {

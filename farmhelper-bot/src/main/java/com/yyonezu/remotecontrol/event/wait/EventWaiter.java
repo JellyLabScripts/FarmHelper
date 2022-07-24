@@ -13,6 +13,7 @@ public class EventWaiter {
     private static final ArrayList<Waiter> toDelete = new ArrayList<>();
 
     public static void onMessage(MessageEvent e) {
+        System.out.println(e.message);
         waiterMap.values().forEach(waiter -> {
             if (waiter.getConditions().test(e)) {
                 waiter.getAction().accept(new WaiterAction(e.ctx, e.user, waiter.getId()));
