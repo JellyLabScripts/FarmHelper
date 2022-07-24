@@ -62,14 +62,14 @@ public class ProxyScreen extends GuiScreen {
         }
 
         if (this.proxyAddressTf.getText().isEmpty() && !this.proxyAddressTf.isFocused()) {
-            this.proxyAddressTf.setText(ProxyConfig.address);
+            this.proxyAddressTf.setText(ProxyConfig.proxyAddress);
             validateProxy();
         }
 
         if (this.proxyUsernameTf.getText().isEmpty() && !this.proxyUsernameTf.isFocused())
-            this.proxyUsernameTf.setText(ProxyConfig.username);
+            this.proxyUsernameTf.setText(ProxyConfig.proxyUsername);
         if (this.proxyPasswordTf.getText().isEmpty() && !this.proxyPasswordTf.isFocused())
-            this.proxyPasswordTf.setText(ProxyConfig.password);
+            this.proxyPasswordTf.setText(ProxyConfig.proxyPassword);
 
         this.drawString(this.fontRendererObj, "IP:PORT ➤", this.width / 2 - 123, this.height / 2 - 85, Color.GRAY.getRGB());
 
@@ -133,7 +133,7 @@ public class ProxyScreen extends GuiScreen {
     }
 
     private void registerButtons() {
-        this.typeBtn = new GuiButton(1, this.width / 2 + 80, this.height / 2 - 90, 60, 20, ProxyConfig.type.toString());
+        this.typeBtn = new GuiButton(1, this.width / 2 + 80, this.height / 2 - 90, 60, 20, ProxyConfig.proxyType.toString());
         buttonList.add(this.typeBtn);
 
         this.connectAtStartupCb = new GuiCheckBox(2, this.width / 2 + 80, this.height / 2 + 35, "Connect at startup", 15, 15, ProxyConfig.connectAtStartup);
@@ -158,7 +158,7 @@ public class ProxyScreen extends GuiScreen {
                 type = type == 0 ? 1 : 0;
                 this.proxyPasswordTf.setEnabled(type == 1);
                 ConfigHandler.set("proxyType", type);
-                button.displayString = String.valueOf(ProxyConfig.type);
+                button.displayString = String.valueOf(ProxyConfig.proxyType);
                 break;
             case 2: // connect at startup checkbox
                 this.connectAtStartupCb.setIsChecked(this.connectAtStartupCb.isChecked());
@@ -219,6 +219,6 @@ public class ProxyScreen extends GuiScreen {
     private void toggleTextFields(boolean toggle) {
         this.proxyAddressTf.setEnabled(toggle);
         this.proxyUsernameTf.setEnabled(toggle);
-        this.proxyPasswordTf.setEnabled(ProxyConfig.type != ProxyType.SOCKS4 && toggle);
+        this.proxyPasswordTf.setEnabled(ProxyConfig.proxyType != ProxyType.SOCKS4 && toggle);
     }
 }

@@ -7,7 +7,7 @@ import gg.essential.elementa.state.BasicState;
 import java.util.concurrent.TimeUnit;
 
 public class ProfitUtils {
-    private static int lastCounter = 0;
+    private static long lastCounter = 0;
     public static final BasicState<String> profit = new BasicState<>("$0");
     public static final BasicState<String> profitHr = new BasicState<>("$0");
     public static final BasicState<String> cropCount = new BasicState<>("0");
@@ -73,7 +73,7 @@ public class ProfitUtils {
 //        if (cropDiff.size() == 1) return Math.max(cropDiff.get(0).getAmount(), 0);
 //        return Math.max(cropDiff.get(0).getAmount(), cropDiff.get(1).getAmount());
         lastCounter = InventoryUtils.getCounter() != 0 ? InventoryUtils.getCounter() : lastCounter;
-        return lastCounter - MacroHandler.startCounter;
+        return (int) (lastCounter - MacroHandler.startCounter);
     }
 
     public static double getHourProfit(double total) {

@@ -4,6 +4,9 @@
   "package": "com.jelly.farmhelper.mixins",
   "refmap": "mixins.farmhelper.refmap.json",
   "mixins": [
+    "block.IBlockAccessor",
+    "block.MixinBlockCrops",
+    "block.MixinBlockNetherWart",
     "client.MinecraftMixin",
     "fml.MixinFMLHandshakeMessage",
     "gui.MixinGuiDisconnected",

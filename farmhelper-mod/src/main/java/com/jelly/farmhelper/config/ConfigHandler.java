@@ -1,12 +1,8 @@
 package com.jelly.farmhelper.config;
 
-import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.annotations.Config;
-import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.*;
-import net.minecraftforge.fml.common.FMLLog;
-import net.minecraftforge.fml.common.Mod;
-import org.apache.logging.log4j.LogManager;
+import lombok.SneakyThrows;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -16,7 +12,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +19,7 @@ public class ConfigHandler {
     private static JSONObject config;
     private static final File configFile = new File("farmhelper.json");
     private static final List<Class<?>> registeredConfigs = new ArrayList<>();
+    public static JSONObject defaultconfig;
 
     public static void init() {
         // Register config classes so as to check annotations
@@ -35,6 +31,7 @@ public class ConfigHandler {
         registeredConfigs.add(ProxyConfig.class);
         registeredConfigs.add(RemoteControlConfig.class);
         registeredConfigs.add(SchedulerConfig.class);
+        registeredConfigs.add(KeyBindConfig.class);
 
 
         // Create config file if it doesn't exist
@@ -50,9 +47,6 @@ public class ConfigHandler {
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
-
-
-
         // Update all config categories
         updateInterfaces();
     }
@@ -66,15 +60,30 @@ public class ConfigHandler {
         }
     }
 
-    public static void updateInterfaces() {
+    public static JSONObject getConfig() {
+        return config;
+    }
+
+    private static void updateInterfaces() {
         try {
             for (Class<?> clazz : registeredConfigs) {
                 for (Field f : clazz.getDeclaredFields()) {
                     if (f.isAnnotationPresent(Config.class)) {
+                        String property = String.valueOf(ConfigHandler.get(f.getName()));
                         if(f.getType().isEnum()){
-                            f.set(null, f.getType().getEnumConstants()[((Long)ConfigHandler.get(f.getAnnotation(Config.class).key())).intValue()]);
+                            f.set(null, f.getType().getEnumConstants()[Integer.parseInt(property)]);
                         } else {
-                            f.set(null, ConfigHandler.get(f.getAnnotation(Config.class).key()));
+                            if (f.getType().equals(int.class)) {
+                                f.set(null, Integer.parseInt(property));
+                            } else if (f.getType().equals(long.class)) {
+                                f.set(null, Long.parseLong(property));
+                            } else if (f.getType().equals(double.class)) {
+                                f.set(null, Double.parseDouble(property));
+                            } else if (f.getType().equals(boolean.class)) {
+                                f.set(null, Boolean.parseBoolean(property));
+                            } else {
+                                f.set(null, property);
+                            }
                         }
                     }
                 }
@@ -97,60 +106,31 @@ public class ConfigHandler {
         updateInterfaces();
     }
 
-
-    static class DefaultConfig{
+    private static class DefaultConfig {
+        @SneakyThrows
         public static JSONObject getDefaultConfig() {
-            JSONObject config = new JSONObject();
-            config.put("jacobFailsafe", false);
-            config.put("mushroomCap", 200000);
-            config.put("netherWartCap", 400000);
-            config.put("carrotCap", 400000);
-            config.put("potatoCap", 400000);
-            config.put("wheatCap", 400000);
-            config.put("sugarcaneCap", 400000);
-            config.put("webhookLogs", false);
-            config.put("webhookStatus", false);
-            config.put("webhookStatusCooldown", 1.0);
-            config.put("webhookURL", "");
-            config.put("autoSell", false);
-            config.put("fullTime", 6.0);
-            config.put("fullRatio", 65.0);
-            config.put("profitCalculator", false);
-            config.put("totalProfit", true);
-            config.put("profitHour", true);
-            config.put("itemCount", true);
-            config.put("mushroomCount", true);
-            config.put("counter", true);
-            config.put("runtime", true);
-            config.put("resync", true);
-            config.put("fastbreak", true);
-            config.put("fastbreakSpeed", 3.0);
-            config.put("autoGodPot", false);
-            config.put("autoCookie", false);
-            config.put("dropStone", true);
-            config.put("ungrab", true);
-            config.put("debugMode", false);
-            config.put("cropType", 1);
-            config.put("farmType", 0);
-            config.put("scheduler", false);
-            config.put("statusGUI", true);
-            config.put("farmTime", 60.0);
-            config.put("breakTime", 5.0);
-            config.put("banThreshold", 10.0);
-            config.put("banwaveDisconnect", true);
-            config.put("reconnectDelay", 5.0);
-            config.put("websocketPassword", "");
-            config.put("enableRemoteControl", false);
-            config.put("websocketIP", "localhost:58637");
-            config.put("xray", false);
-            config.put("randomization", false);
-            config.put("proxyType", 0);
-            config.put("proxyAddress", "");
-            config.put("proxyUsername", "");
-            config.put("proxyPassword", "");
-            config.put("connectAtStartup", false);
-            return config;
+            if (defaultconfig == null) {
+                defaultconfig = new JSONObject();
+                for (Class<?> clazz : registeredConfigs) {
+                    for (Field f : clazz.getDeclaredFields()) {
+                        if (f.isAnnotationPresent(Config.class)) {
+                            String key = f.getName();
+                            f.setAccessible(true);
+                            if (f.getType().isEnum()) {
+                                for (int i = 0; i < f.getType().getEnumConstants().length; i++) {
+                                    if (f.getType().getEnumConstants()[i].equals(f.get(clazz))) {
+                                        defaultconfig.put(key, i);
+                                        break;
+                                    }
+                                }
+                            } else {
+                                defaultconfig.put(key, f.get(clazz));
+                            }
+                        }
+                    }
+                }
+            }
+            return defaultconfig;
         }
     }
-
 }

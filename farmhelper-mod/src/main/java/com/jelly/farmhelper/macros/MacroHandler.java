@@ -47,7 +47,7 @@ public class MacroHandler {
     private final Rotation rotation = new Rotation();
     public static long startTime = 0;
     public static boolean randomizing = false;
-    public static int startCounter = 0;
+    public static long startCounter = 0;
     public static boolean startingUp;
 
     @SubscribeEvent

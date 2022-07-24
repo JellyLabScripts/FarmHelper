@@ -1,6 +1,5 @@
 package com.jelly.farmhelper.utils;
 
-import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
@@ -12,7 +11,6 @@ import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.network.play.client.C16PacketClientStatus;
 import net.minecraft.util.StringUtils;
 
 import java.util.ArrayList;
@@ -63,12 +61,7 @@ public class InventoryUtils {
     }
 
     public static void openInventory() {
-        FarmHelper.ticktask = () -> {
-            FarmHelper.ticktask = null;
             mc.displayGuiScreen(new GuiInventory(mc.thePlayer));
-            opened++;
-            LogUtils.scriptLog("Opened inventory " + opened + " times");
-        };
     }
     public static ItemStack getStackInSlot(final int slot) {
         return InventoryUtils.mc.thePlayer.inventory.getStackInSlot(slot);
@@ -175,21 +168,23 @@ public class InventoryUtils {
         return ret;
     }
 
-    public static int getCounter() {
-        final ItemStack stack = mc.thePlayer.getHeldItem();
-        if (stack != null && stack.hasTagCompound()) {
-            final NBTTagCompound tag = stack.getTagCompound();
-            if (tag.hasKey("ExtraAttributes", 10)) {
-                final NBTTagCompound ea = tag.getCompoundTag("ExtraAttributes");
-                if (ea.hasKey("mined_crops", 99)) {
-                    return ea.getInteger("mined_crops");
-                } else if (ea.hasKey("farmed_cultivating", 99)) {
-                    return ea.getInteger("farmed_cultivating");
+    public static long getCounter() {
+        if (mc.thePlayer != null && mc.theWorld != null) {
+            final ItemStack stack = mc.thePlayer.getHeldItem();
+            if (stack != null && stack.hasTagCompound()) {
+                final NBTTagCompound tag = stack.getTagCompound();
+                if (tag.hasKey("ExtraAttributes", 10)) {
+                    final NBTTagCompound ea = tag.getCompoundTag("ExtraAttributes");
+                    if (ea.hasKey("mined_crops", 99)) {
+                        return ea.getLong("mined_crops");
+                    } else if (ea.hasKey("farmed_cultivating", 99)) {
+                        return ea.getLong("farmed_cultivating");
+                    }
                 }
             }
+            LogUtils.debugFullLog("Error: Cannot find counter on held item");
         }
-        LogUtils.debugFullLog("Error: Cannot find counter on held item");
-        return 0;
+        return 0L;
     }
 
     public static NBTTagCompound getExtraAttributes(ItemStack item) {

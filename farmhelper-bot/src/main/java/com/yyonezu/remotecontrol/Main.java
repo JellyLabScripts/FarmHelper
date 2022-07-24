@@ -21,15 +21,16 @@ public class Main {
     static boolean validToken = false;
     public static String BOTVERSION;
     public static String MODVERSION;
+    public static final int port = 58637;
     public static void main(String[] args) {
         setVersions();
         Config.init();
         try {
             WebSocketServer.start();
-            JOptionPane.showMessageDialog(null, "Running successfully!");
+            JOptionPane.showMessageDialog(null, "Running successfully! Close this window");
         } catch (Exception e) {
-            killProcessByPort(58637);
-            JOptionPane.showMessageDialog(null, "Killed the process, run this again");
+            killProcessByPort();
+            JOptionPane.showMessageDialog(null, "You ran it twice bozo, I killed the process. Close this and run it again");
             System.exit(0);
         }
 
@@ -63,11 +64,11 @@ public class Main {
         BOTVERSION = attr.getValue("botversion");
     }
 
-    private static void killProcessByPort(int port) {
+    private static void killProcessByPort() {
         if (System.getProperty("os.name").contains("win")) { // Probably Windows
             try {
                 Runtime rt = Runtime.getRuntime();
-                Process proc = rt.exec("cmd /c netstat -ano | findstr " + port);
+                Process proc = rt.exec("cmd /c netstat -ano | findstr " + Main.port);
 
                 BufferedReader stdInput = new BufferedReader(new
                         InputStreamReader(proc.getInputStream()));
@@ -87,7 +88,7 @@ public class Main {
         } else { // mac & linux
             try {
                 Runtime rt = Runtime.getRuntime();
-                Process p = rt.exec("lsof -t -i:58637");
+                Process p = rt.exec("lsof -t -i:" + Main.port);
                 BufferedReader stdInput = new BufferedReader(new
                         InputStreamReader(p.getInputStream()));
                 String s;

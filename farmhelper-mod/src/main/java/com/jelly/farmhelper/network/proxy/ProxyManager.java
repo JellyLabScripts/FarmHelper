@@ -24,16 +24,16 @@ public class ProxyManager {
 
     public static void hook(Channel channel) {
         if (ProxyScreen.state != ConnectionState.CONNECTED && ProxyScreen.state != ConnectionState.CONNECTING) return;
-        int port = Integer.parseInt(ProxyConfig.address.split(":")[1]);
-        String address = ProxyConfig.address.split(":")[0];
+        int port = Integer.parseInt(ProxyConfig.proxyAddress.split(":")[1]);
+        String address = ProxyConfig.proxyAddress.split(":")[0];
 
-        switch (ProxyConfig.type) {
+        switch (ProxyConfig.proxyType) {
             case SOCKS4:
-                Socks4ProxyHandler socks4 = new Socks4ProxyHandler(new InetSocketAddress(address, port), ProxyConfig.username.isEmpty() ? null : ProxyConfig.username);
+                Socks4ProxyHandler socks4 = new Socks4ProxyHandler(new InetSocketAddress(address, port), ProxyConfig.proxyUsername.isEmpty() ? null : ProxyConfig.proxyUsername);
                 channel.pipeline().addFirst(socks4);
                 break;
             case SOCKS5:
-                Socks5ProxyHandler socks5 = new Socks5ProxyHandler(new InetSocketAddress(address, port), ProxyConfig.username.isEmpty() ? null : ProxyConfig.username, ProxyConfig.password.isEmpty() ? null : ProxyConfig.password);
+                Socks5ProxyHandler socks5 = new Socks5ProxyHandler(new InetSocketAddress(address, port), ProxyConfig.proxyUsername.isEmpty() ? null : ProxyConfig.proxyUsername, ProxyConfig.proxyPassword.isEmpty() ? null : ProxyConfig.proxyPassword);
                 channel.pipeline().addFirst(socks5);
                 break;
             // someone make it work with http/s plzz

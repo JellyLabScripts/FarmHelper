@@ -1,7 +1,7 @@
 package com.jelly.farmhelper.utils;
 
 
-import com.jelly.farmhelper.config.ConfigHandler;
+import com.jelly.farmhelper.config.interfaces.KeyBindConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -16,8 +16,8 @@ public class KeyBindUtils
     }
 
     public static void setup() {
-        customKeyBinds[0] = new KeyBinding("Open GUI", ((Long) ConfigHandler.get("openGUIKeybind")).intValue(), "FarmHelper");
-        customKeyBinds[1] = new KeyBinding("Toggle script", ((Long) ConfigHandler.get("startScriptKeybind")).intValue(), "FarmHelper");
+        customKeyBinds[0] = new KeyBinding("Open GUI", KeyBindConfig.openGUIKeybind, "FarmHelper");
+        customKeyBinds[1] = new KeyBinding("Toggle script", KeyBindConfig.startScriptKeybind, "FarmHelper");
         for (KeyBinding customKeyBind : customKeyBinds) {
             ClientRegistry.registerKeyBinding(customKeyBind);
         }

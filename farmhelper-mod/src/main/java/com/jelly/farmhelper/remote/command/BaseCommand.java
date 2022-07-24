@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 abstract public class BaseCommand {
     public static final Minecraft mc = Minecraft.getMinecraft();
+    private static boolean patcherEnabled = false;
     public boolean nullCheck() {
         return mc.thePlayer != null && mc.theWorld != null;
     }
@@ -64,12 +65,16 @@ abstract public class BaseCommand {
     }
 
     private static void disablePatcherShit() {
-        try {
-            Class<?> klazz = Class.forName("club.sk1er.patcher.config.PatcherConfig");
-            Field field = klazz.getDeclaredField("screenshotManager");
-            field.setBoolean(klazz, false);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (patcherEnabled) {
+            try {
+                Class<?> klazz = Class.forName("club.sk1er.patcher.config.PatcherConfig");
+                patcherEnabled = true;
+                Field field = klazz.getDeclaredField("screenshotManager");
+                field.setBoolean(klazz, false);
+            } catch (Exception e) {
+                e.printStackTrace();
+                patcherEnabled = false;
+            }
         }
     }
 }

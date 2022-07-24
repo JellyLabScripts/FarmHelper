@@ -4,11 +4,9 @@ import com.jelly.farmhelper.mixins.render.MixinInventoryEffectRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.gui.inventory.GuiInventory;
-import net.minecraft.client.renderer.InventoryEffectRenderer;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.injection.Inject;
 
 @Mixin(GuiInventory.class)
 public abstract class MixinGuiInventory extends MixinInventoryEffectRenderer {

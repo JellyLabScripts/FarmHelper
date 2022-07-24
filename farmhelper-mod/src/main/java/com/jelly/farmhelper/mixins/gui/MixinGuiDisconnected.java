@@ -1,10 +1,12 @@
 package com.jelly.farmhelper.mixins.gui;
 
+import com.google.gson.JsonObject;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.features.AutoReconnect;
 import com.jelly.farmhelper.features.BanwaveChecker;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.macros.MacroHandler;
+import com.jelly.farmhelper.remote.RemoteControlHandler;
 import com.jelly.farmhelper.remote.command.commands.ReconnectCommand;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
@@ -21,11 +23,26 @@ import static com.jelly.farmhelper.utils.Utils.formatTime;
 @Mixin({ GuiDisconnected.class })
 public class MixinGuiDisconnected {
     @Shadow private String reason;
+    boolean isBanned = false;
 
     @Shadow private List<String> multilineMessage;
 
     @Inject(method={"drawScreen"}, at={@At(value="TAIL")})
     public void drawScreen(CallbackInfo ci) {
+        if (!isBanned && multilineMessage.get(0).contains("banned") && RemoteControlHandler.analytic != null && RemoteControlHandler.analytic.isOpen()) {
+            isBanned = true;
+            String duration = multilineMessage.get(0).replace("§r§cYou are temporarily banned for §r§f", "")
+                    .replace("§r§c from this server!", "");
+            String reason = multilineMessage.get(2).replace("§c§r§7Reason: §r§f", "");
+            JsonObject json = new JsonObject();
+            json.addProperty("duration", duration);
+            json.addProperty("reason", reason);
+            json.addProperty("usingfh", (MacroHandler.caged || MacroHandler.resting || MacroHandler.isMacroing));
+            json.addProperty("username", Minecraft.getMinecraft().getSession().getUsername());
+            RemoteControlHandler.analytic.send(json.toString());
+        }
+
+
         if (ReconnectCommand.reconnectClock.isScheduled() || !ReconnectCommand.reconnectClock.passed()) {
             multilineMessage.set(0, "Time till reconnect: " + formatTime(ReconnectCommand.reconnectClock.getRemainingTime()));
             multilineMessage = multilineMessage.subList(0, 1);

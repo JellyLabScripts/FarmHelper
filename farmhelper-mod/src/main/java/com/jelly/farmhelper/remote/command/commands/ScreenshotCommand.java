@@ -35,37 +35,22 @@ public class ScreenshotCommand extends BaseCommand {
                 MacroHandler.isMacroing = false;
                 MacroHandler.disableCurrentMacro();
             }
-            new Thread(() -> {
-                for (int i = 0; i < 500; i++) {
-                    try {
-                        Thread.sleep(250);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    InventoryUtils.openInventory();
-                    try {
-                        Thread.sleep(250);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    mc.thePlayer.closeScreen();
-                }
-            }).start();
 
-
-/*            String screenshot = getScreenshot();
+            InventoryUtils.openInventory();
+            String screenshot = getScreenshot();
+            mc.thePlayer.closeScreen();
             obj.addProperty("embed", toJson(embed()
                     .setDescription("Sent a screenshot")));
             obj.addProperty("image", screenshot);
             if (wasMacroing) {
                 MacroHandler.isMacroing = true;
                 MacroHandler.enableCurrentMacro();
-            }*/
-        } /*else {
+            }
+        } else {
             obj.addProperty("embed", toJson(embed()
                     .setDescription("I'm not in a world, therefore I can't do that"))
             );
-        }*/
+        }
         send(obj);
     }
 }

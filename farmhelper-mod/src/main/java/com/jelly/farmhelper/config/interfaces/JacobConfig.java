@@ -1,21 +1,20 @@
 package com.jelly.farmhelper.config.interfaces;
 
-import com.jelly.farmhelper.config.ConfigHandler;
 import com.jelly.farmhelper.config.annotations.Config;
 
 public class JacobConfig {
-    @Config(key = "jacobFailsafe")
-    public static boolean jacobFailsafe;
-    @Config(key = "mushroomCap")
-    public static int mushroomCap;
-    @Config(key = "netherWartCap")
-    public static int netherWartCap;
-    @Config(key = "carrotCap")
-    public static int carrotCap;
-    @Config(key = "potatoCap")
-    public static int potatoCap;
-    @Config(key = "wheatCap")
-    public static int wheatCap;
-    @Config(key = "sugarcaneCap")
-    public static int sugarcaneCap;
+    @Config()
+    public static boolean jacobFailsafe = true;
+    @Config()
+    public static int mushroomCap = 200000;
+    @Config()
+    public static int netherWartCap = 400000;
+    @Config()
+    public static int carrotCap = 400000;
+    @Config()
+    public static int potatoCap = 400000;
+    @Config()
+    public static int wheatCap = 400000;
+    @Config()
+    public static int sugarcaneCap = 400000;
 }
