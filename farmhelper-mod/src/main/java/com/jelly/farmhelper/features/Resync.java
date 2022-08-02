@@ -42,6 +42,7 @@ public class Resync {
                 default:
                     if (mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE) > 4) desync = true;
             }
+            cachedPos = null;
 
             if (desync && FarmHelper.gameState.currentLocation == GameState.location.ISLAND) {
                 LogUtils.debugLog("Desync detected");

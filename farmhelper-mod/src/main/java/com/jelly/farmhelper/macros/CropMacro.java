@@ -237,7 +237,7 @@ public class CropMacro extends Macro {
 
                 return;
             case RIGHT:
-                if(Utils.nextInt(450) == 0){
+                if(MiscConfig.randomization && Utils.nextInt(450) == 0){
                     randomCooldown = 25 + Utils.nextInt(30);
                     return;
                 }
@@ -245,7 +245,7 @@ public class CropMacro extends Macro {
                 updateKeys(false, false, true, false, findAndEquipHoe());
                 return;
             case LEFT:
-                if(Utils.nextInt(450) == 0){
+                if(MiscConfig.randomization && Utils.nextInt(450) == 0){
                     randomCooldown = 25 + Utils.nextInt(30);
                     return;
                 }

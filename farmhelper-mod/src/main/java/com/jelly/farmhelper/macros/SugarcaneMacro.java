@@ -176,7 +176,7 @@ public class SugarcaneMacro extends Macro {
 
                 return;
             case LEFT:
-                if(Utils.nextInt(450) == 0){
+                if(MiscConfig.randomization && Utils.nextInt(450) == 0){
                     randomCooldown = 25 + Utils.nextInt(30);
                     return;
                 }
@@ -184,7 +184,7 @@ public class SugarcaneMacro extends Macro {
                 LogUtils.debugFullLog("Going left");
                 return;
             case RIGHT:
-                if(Utils.nextInt(450) == 0){
+                if(MiscConfig.randomization && Utils.nextInt(450) == 0){
                     randomCooldown = 25 + Utils.nextInt(30);
                     return;
                 }
@@ -269,7 +269,7 @@ public class SugarcaneMacro extends Macro {
         if (lastState == State.FORWARD) {
             if (blockInPos.getX() != targetBlockPos.getX() || blockInPos.getZ() != targetBlockPos.getZ() || !isInCenterOfBlock())
                 return;
-            if(scanCaneDensity(BlockUtils.isWalkable(BlockUtils.getLeftBlock())) < 0.6d){
+            if(scanCaneDensity(BlockUtils.isWalkable(BlockUtils.getLeftBlock())) < 0.4d){
                 targetBlockPos = calculateTargetBlockPos();
                 return;
             }
@@ -352,9 +352,11 @@ public class SugarcaneMacro extends Macro {
             for (int i = 1; i < 16; i++) {
                 if (BlockUtils.getRelativeBlock(left ? -i : i, 2, 0).equals(Blocks.reeds))
                     caneAmount++;
+                if (BlockUtils.getRelativeBlock(left ? -i : i, 2, 1).equals(Blocks.reeds))
+                    caneAmount++;
             }
         } catch (Exception ignored){}
-        return caneAmount * 1.0 / 15;
+        return caneAmount * 1.0 / 30;
     }
 
     State calculateDirection() {
