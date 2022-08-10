@@ -37,15 +37,18 @@ abstract public class BaseCommand {
     public static String getScreenshot() {
         AtomicReference<String> base64img = new AtomicReference<>(null);
         disablePatcherShit();
+        disableEssentialsShit();
         FarmHelper.ticktask = () -> {
             FarmHelper.ticktask = null;
             String random = UUID.randomUUID().toString();
             ScreenShotHelper.saveScreenshot(mc.mcDataDir, random, mc.displayWidth, mc.displayHeight, mc.getFramebuffer());
-            File screenshotDirectory = new File(mc.mcDataDir, "screenshots");
+            File screenshotDirectory = new File(mc.mcDataDir.getAbsoluteFile(), "screenshots");
             File screenshotFile = new File(screenshotDirectory, random);
             byte[] bytes = Files.readAllBytes(Paths.get(screenshotFile.getAbsolutePath()));
             base64img.set(Base64.getEncoder().encodeToString(bytes));
-            screenshotFile.delete();
+            screenshotFile.getAbsoluteFile().setWritable(true);
+            while(!screenshotFile.getAbsoluteFile().delete());
+
         };
 
         Clock timeout = new Clock();
@@ -75,6 +78,17 @@ abstract public class BaseCommand {
                 e.printStackTrace();
                 patcherEnabled = false;
             }
+        }
+    }
+
+    private static void disableEssentialsShit()  {
+        try {
+            Class<?> klazz = Class.forName("gg.essential.config.EssentialConfig");
+            Field field = klazz.getDeclaredField("essentialScreenshots");
+            field.setAccessible(true);
+            field.setBoolean(klazz, false);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

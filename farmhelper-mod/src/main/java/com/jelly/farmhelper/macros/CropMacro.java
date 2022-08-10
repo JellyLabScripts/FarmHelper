@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.macros;
 
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.enums.FarmEnum;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
@@ -17,7 +18,7 @@ import static com.jelly.farmhelper.utils.BlockUtils.isWalkable;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class CropMacro extends Macro {
-    private final Minecraft mc = Minecraft.getMinecraft();
+    private static final Minecraft mc = Minecraft.getMinecraft();
 
     enum State {
         DROPPING,
@@ -55,6 +56,8 @@ public class CropMacro extends Macro {
     private int hoeSlot;
     private int hoeEquipFails = 0;
     private int randomCooldown = 0;
+    private int notmovingticks = 0;
+    private int forwardtime = 0;
 
 
     @Override
@@ -140,6 +143,12 @@ public class CropMacro extends Macro {
                     case SWITCH_END:
                         new Thread(fixCornerStuck).start();
                 }
+            } else {
+                if (notmovingticks > 500) {
+                    antistuckActive = false;
+                    notmovingticks = 0;
+                }
+                notmovingticks++;
             }
             return;
         }
@@ -226,13 +235,12 @@ public class CropMacro extends Macro {
                             && BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.air)
                             && BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.air)) {
                         updateKeys(false, false, true, false, true);
-                    } else if
-                    (BlockUtils.getRelativeBlock(-1, -1, 0).equals(Blocks.air)
+                    } else if (BlockUtils.getRelativeBlock(-1, -1, 0).equals(Blocks.air)
                                     && BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air)
                                     && BlockUtils.getRelativeBlock(-1, 1, 0).equals(Blocks.air)) {
                         updateKeys(false, false, false, true, true);
                     }
-                    LogUtils.debugLog("Not at drop yet, keep going");
+                        LogUtils.debugLog("Not at drop yet, keep going");
                 }
 
                 return;
@@ -242,7 +250,7 @@ public class CropMacro extends Macro {
                     return;
                 }
                 LogUtils.debugLog("Middle of row, going right");
-                updateKeys(false, false, true, false, findAndEquipHoe());
+                updateKeys(shouldWalkForwards(), false, true, false, findAndEquipHoe());
                 return;
             case LEFT:
                 if(MiscConfig.randomization && Utils.nextInt(450) == 0){
@@ -250,7 +258,7 @@ public class CropMacro extends Macro {
                     return;
                 }
                 LogUtils.debugLog("Middle of row, going left");
-                updateKeys(false, false, false, true, findAndEquipHoe());
+                updateKeys(shouldWalkForwards(), false, false, true, findAndEquipHoe());
                 return;
             case SWITCH_START:
                 if (mc.gameSettings.keyBindForward.isKeyDown()) {
@@ -318,7 +326,6 @@ public class CropMacro extends Macro {
                 } else {
                     if (gameState.dx < 0.01 && gameState.dz < 0.01) {
                         LogUtils.debugFullLog("Stopped, edge backwards");
-                        updateKeys(false, true, false, false, false, true, false);
                         pushedFront = true;
                     } else {
                         LogUtils.debugFullLog("Going to lane, forwards");
@@ -404,20 +411,7 @@ public class CropMacro extends Macro {
             currentState = State.STONE_THROW;
         } else if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || (currentState == State.TP_PAD && !tpFlag)) {
             currentState = State.TP_PAD;
-        } else if (layerY - mc.thePlayer.posY > 1
-                || currentState == State.DROPPING
-                || (BlockUtils.getRelativeBlock(0, -1, 1).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(0, 1, 1).equals(Blocks.air))
-                || (BlockUtils.getRelativeBlock(1, -1, 0).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.air))
-                || (BlockUtils.getRelativeBlock(-1, -1, 0).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(-1, 1, 0).equals(Blocks.air))
-                || (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(0, 1, 0).equals(Blocks.air))) {
+        } else if (!mc.thePlayer.onGround) {
             currentState = State.DROPPING;
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
             // layerY = mc.thePlayer.posY;
@@ -557,4 +551,20 @@ public class CropMacro extends Macro {
         }
     }
 
+    private static boolean shouldWalkForwards() {
+        float angle = AngleUtils.getClosest();
+        double x = Math.abs(mc.thePlayer.posX) % 1;
+        double z = Math.abs(mc.thePlayer.posZ) % 1;
+        System.out.println(angle);
+        if (angle == 0) {
+            return z < 0.65;
+        } else if (angle == 90) {
+            return x < 0.65;
+        } else if (angle == 180) {
+            return z > 0.35;
+        } else if (angle == 270) {
+            return x > 0.35;
+        }
+        return false;
+    }
 }

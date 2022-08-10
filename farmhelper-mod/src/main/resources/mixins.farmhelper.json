@@ -21,6 +21,7 @@
     "gui.MixinGuiMultiplayer",
     "gui.MixinGuiScreen",
     "render.MixinEffectRenderer",
-    "render.MixinInventoryEffectRenderer"
+    "render.MixinInventoryEffectRenderer",
+    "network.MixinNetHandlerPlayClient"
   ]
 }

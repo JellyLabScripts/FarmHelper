@@ -109,6 +109,7 @@ public class GameState {
             String formatted = footer.getFormattedText();
             for (String line : formatted.split("\n")) {
                 Matcher activeEffectsMatcher = PATTERN_ACTIVE_EFFECTS.matcher(line);
+                LogUtils.scriptLog(line);
                 if (activeEffectsMatcher.matches()) {
                     foundGodPot = true;
                 } else if (line.contains("\u00a7d\u00a7lCookie Buff")) {

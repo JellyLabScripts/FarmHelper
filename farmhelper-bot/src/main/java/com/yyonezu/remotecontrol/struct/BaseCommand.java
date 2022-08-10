@@ -44,7 +44,8 @@ abstract public class BaseCommand {
         }
         em.setImage("attachment://filename.png");
         ev.getChannel().sendFile(file, "filename.png").setEmbeds(em.build()).queue();
-        file.delete();
+        file.getAbsoluteFile().setWritable(true);
+        while(!file.getAbsoluteFile().delete());
     }
 
     public static JsonObject getBaseMessage (CommandEvent ev, Instance instance) {

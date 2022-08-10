@@ -25,8 +25,8 @@ public class WebSocketServer {
                 try {
                     String b64header = ctx.session.getUpgradeRequest().getHeader("auth");
                     JsonObject decoded = new Gson().fromJson(new String(Base64.getDecoder().decode(b64header), StandardCharsets.UTF_8), JsonObject.class);
-                    if (!Objects.equals(decoded.get("modversion").getAsString(), "-1") && !Main.MODVERSION.equals("-1") && !Main.BOTVERSION.equals("-1")) {
-                        if (!decoded.get("modversion").getAsString().equals(Main.MODVERSION) || !decoded.get("botversion").getAsString().equals(Main.BOTVERSION)) {
+                    if (!Objects.equals(decoded.get("botversion").getAsString(), "-1")) {
+                        if (!decoded.get("botversion").getAsString().equals(Main.BOTVERSION)) {
                             ctx.send("VERSIONERROR");
                         }
                     }

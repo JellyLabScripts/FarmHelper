@@ -82,7 +82,7 @@ public class Failsafe {
                     LogUtils.webhookLog("Jacob score exceeded - - Resuming in " + formattedTime);
                     jacobWait.schedule(getJacobRemaining());
                     mc.theWorld.sendQuittingDisconnectingPacket();
-                } else if (Boolean.FALSE.equals(MacroHandler.currentMacro.enabled)
+                } else if (!MacroHandler.currentMacro.enabled
                         && jacobWait.passed()
                         && !Autosell.isEnabled()
                         && !MacroHandler.startingUp

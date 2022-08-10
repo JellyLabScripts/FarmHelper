@@ -2,17 +2,24 @@ package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.enums.CropEnum;
-import com.jelly.farmhelper.config.interfaces.AutoSellConfig;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
-import com.jelly.farmhelper.config.interfaces.SchedulerConfig;
+import com.jelly.farmhelper.config.enums.FarmEnum;
+import com.jelly.farmhelper.config.interfaces.*;
+import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.Scheduler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
+import net.minecraft.block.Block;
+import net.minecraft.block.state.BlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.MathHelper;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -21,6 +28,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.lwjgl.input.Keyboard;
 
 import java.lang.reflect.Field;
 
@@ -40,6 +48,7 @@ public class MacroHandler {
     Thread randomizingthread;
     Thread bzchillingthread;
     public static boolean caged = false;
+    public static boolean safeWalking = false;
     public static boolean resting = false;
     public static SugarcaneMacro sugarcaneMacro = new SugarcaneMacro();
     public static CropMacro cropMacro = new CropMacro();
@@ -77,8 +86,12 @@ public class MacroHandler {
 
     @SubscribeEvent
     public void OnKeyPress(InputEvent.KeyInputEvent event) {
+        Keyboard.enableRepeatEvents(false);
         if (KeyBindUtils.customKeyBinds[1].isPressed()) {
             toggleMacro();
+        } else if (Keyboard.isKeyDown(Keyboard.KEY_J)) {
+            randomizingthread = new Thread(randomizememe);
+            randomizingthread.start();
         }
     }
 
@@ -86,6 +99,15 @@ public class MacroHandler {
     public final void tick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (mc.theWorld.isAirBlock(new BlockPos(mc.thePlayer.posX, (Math.round(mc.thePlayer.posY) - 1), mc.thePlayer.posZ))
+                && mc.thePlayer.onGround && (randomizing || Antistuck.stuck)) {
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
+            safeWalking = true;
+        } else if (safeWalking) {
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
+            safeWalking = false;
+        }
+
         if (isMacroing) {
             if (BlockUtils.bedrockCount() >= 2) {
                 disableMacro();
@@ -171,7 +193,7 @@ public class MacroHandler {
         if (!currentMacro.enabled && !startingUp) {
             mc.inGameHasFocus = true;
             mc.displayGuiScreen(null);
-            Field f = null;
+            Field f;
             f = FieldUtils.getDeclaredField(mc.getClass(), "leftClickCounter",true);
             try {
                 f.set(mc, 10000);
@@ -201,13 +223,13 @@ public class MacroHandler {
         randomizing = true;
         float currentyaw = mc.thePlayer.rotationYaw;
         float currentpitch = mc.thePlayer.rotationPitch;
-
+        LogUtils.scriptLog(mc.thePlayer.isCollidedHorizontally ? "Collided" : "Not collided");
         LogUtils.debugLog("Randomizing movements");
         rotation.easeTo((float) (360 * (Math.random())), (float) (15 * (Math.random())), 2000);
         while (rotation.rotating) {
             try {
                 Thread.sleep(500);
-                updateKeys(Math.random() < 0.5, Math.random() < 0.5, Math.random() < 0.5, Math.random() < 0.5,  false, true, false);
+                updateKeys(Math.random() < 0.5, Math.random() < 0.5, Math.random() < 0.5, Math.random() < 0.5,  false, FarmConfig.farmType != FarmEnum.VERTICAL, false);
             } catch (Exception e) {}
         }
         KeyBindUtils.stopMovement();
@@ -216,6 +238,11 @@ public class MacroHandler {
         try {
             rotation.easeTo(currentyaw, currentpitch, 2000);
             Thread.sleep(2000);
+            if (FarmConfig.farmType == FarmEnum.VERTICAL) {
+                updateKeys(true, false, false, false, false);
+                Thread.sleep(1000);
+            }
+
         } catch (Exception ignored) {}
         randomizing = false;
         isMacroing = true;
@@ -291,7 +318,7 @@ public class MacroHandler {
                 rotation.easeTo((float) (270 * (Math.random())), (float) (20 * (Math.random() - 1)), (long) (800 * (Math.random() + 1)));
                 while (rotation.rotating) {
                     if (i == 0) {
-                        KeyBindUtils.updateKeys(Math.random() < 0.3, Math.random() < 0.3, Math.random() < 0.3, Math.random() < 0.3, Math.random() < 0.3, true, false);
+                        KeyBindUtils.updateKeys(Math.random() < 0.3, Math.random() < 0.3, Math.random() < 0.3, Math.random() < 0.3, Math.random() < 0.3, false, false);
                         Thread.sleep(500);
                         rotation.reset();
                         stopMovement();

@@ -1,9 +1,32 @@
-plugins {
-    id "net.minecraftforge.gradle.forge" version "8708bf3e0"
-    id "com.github.johnrengelman.shadow" version "6.1.0"
-    id "org.spongepowered.mixin" version "d5f9873"
-    id "java"
+buildscript {
+    ext.kotlin_version = "1.6.10"
+
+    repositories {
+        jcenter()
+        maven {
+            name = "forge"
+            url = "https://files.minecraftforge.net/maven"
+        }
+        maven {
+            url "https://jitpack.io"
+        }
+        maven {
+            url "https://repo.spongepowered.org/repository/maven-public/"
+        }
+    }
+    dependencies {
+        classpath "com.github.debuggingss:ForgeGradle:FG_2.1-SNAPSHOT"
+        classpath "com.github.jengelman.gradle.plugins:shadow:6.1.0"
+        classpath "com.github.debuggingss:MixinGradle:0.6-SNAPSHOT"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
 }
+
+apply plugin: 'kotlin'
+apply plugin: "net.minecraftforge.gradle.forge"
+apply plugin: "com.github.johnrengelman.shadow"
+apply plugin: "org.spongepowered.mixin"
+
 
 version = project.modversion
 botversion = project.botversion
@@ -11,15 +34,8 @@ botversion = project.botversion
 group = "com.jelly.farmhelper"
 archivesBaseName = "FarmHelper"
 
-sourceCompatibility = targetCompatibility = 1.8
 compileJava.options.encoding = 'UTF-8'
-
-sourceSets {
-    main {
-        ext.refMap = "mixins.farmhelper.refmap.json"
-        output.resourcesDir = file("${buildDir}/classes/java/main")
-    }
-}
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
 
 minecraft {
     version = "1.8.9-11.15.1.2318-1.8.9"
@@ -28,7 +44,9 @@ minecraft {
     makeObfSourceJar = false
 
     clientRunArgs += "--mixin mixins.farmhelper.json"
+    clientRunArgs += '--tweakClass gg.essential.loader.stage0.EssentialSetupTweaker'
 }
+
 
 configurations {
     include
@@ -36,21 +54,24 @@ configurations {
 }
 
 repositories {
+    maven {
+        url = "https://repo.sk1er.club/repository/maven-public"
+    }
+    maven {
+        url = "https://jitpack.io/"
+    }
+    maven {
+        url = "https://repo.spongepowered.org/repository/maven-public/"
+    }
     mavenCentral()
-    maven { url = "https://repo.sk1er.club/repository/maven-public/" }
-    maven { url = "https://jitpack.io/" }
-    maven { url = "https://repo.spongepowered.org/repository/maven-public/" }
 }
 
 dependencies {
-    include('gg.essential:loader-launchwrapper:1.1.3')
-    implementation('gg.essential:essential-1.8.9-forge:1813')
+    compileOnly "gg.essential:essential-1.8.9-forge:1725"
+    include "gg.essential:loader-launchwrapper:1.1.3"
 
-    implementation('org.projectlombok:lombok:1.18.24')
-    annotationProcessor('org.projectlombok:lombok:1.18.22')
-
-    implementation('org.spongepowered:mixin:0.8.5-SNAPSHOT')
-    annotationProcessor('org.spongepowered:mixin:0.7.11-SNAPSHOT')
+    implementation "org.spongepowered:mixin:0.7.11-SNAPSHOT"
+    annotationProcessor "org.spongepowered:mixin:0.7.11-SNAPSHOT"
 
     include('com.github.RewisServer:brigadier:master-SNAPSHOT')
     include('com.github.ronmamo:reflections:master-SNAPSHOT')
@@ -59,16 +80,14 @@ dependencies {
     include('com.googlecode.json-simple:json-simple:1.1.1')
     implementation('com.googlecode.json-simple:json-simple:1.1.1')
 
-
-
-
-
-
+    implementation('org.projectlombok:lombok:1.18.24')
+    annotationProcessor('org.projectlombok:lombok:1.18.24')
 }
 
 mixin {
     add sourceSets.main, "mixins.farmhelper.refmap.json"
     defaultObfuscationEnv searge
+
 }
 
 jar {

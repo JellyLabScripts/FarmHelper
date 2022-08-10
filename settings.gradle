@@ -1,25 +1,3 @@
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        mavenCentral()
-        maven { url = "https://oss.sonatype.org/content/repositories/snapshots/" }
-        maven { url = "https://maven.minecraftforge.net/" }
-        maven { url = "https://jitpack.io/" }
-    }
-    resolutionStrategy {
-        eachPlugin {
-            switch (requested.id.id) {
-                case 'net.minecraftforge.gradle.forge':
-                    useModule "com.github.asbyth:ForgeGradle:${requested.version}"
-                    break
-                case 'org.spongepowered.mixin':
-                    useModule "com.github.Skytils:MixinGradle:${requested.version}"
-                    break
-            }
-        }
-    }
-}
-
 rootProject.name = "FarmHelper"
 include "farmhelper-bot"
 include "farmhelper-mod"
