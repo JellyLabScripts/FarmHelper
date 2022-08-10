@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.mixins.network;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.entity.player.EntityPlayer;
@@ -8,6 +9,7 @@ import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.C0EPacketClickWindow;
 import net.minecraft.network.play.server.*;
 import net.minecraft.util.EnumParticleTypes;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
