@@ -10,6 +10,7 @@
     "client.MinecraftMixin",
     "fml.MixinFMLHandshakeMessage",
     "gui.MixinGuiDisconnected",
+    "network.MixinNetworkManager",
     "network.MixinNetworkManagerChInit"
   ],
   "client": [
@@ -20,8 +21,8 @@
     "gui.MixinGuiMainMenu",
     "gui.MixinGuiMultiplayer",
     "gui.MixinGuiScreen",
+    "network.MixinNetHandlerPlayClient",
     "render.MixinEffectRenderer",
-    "render.MixinInventoryEffectRenderer",
-    "network.MixinNetHandlerPlayClient"
+    "render.MixinInventoryEffectRenderer"
   ]
 }
