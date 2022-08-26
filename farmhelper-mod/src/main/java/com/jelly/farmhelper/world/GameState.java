@@ -25,11 +25,17 @@ public class GameState {
         TELEPORTING
     }
 
+    public enum EffectState{
+        ON,
+        INDETERMINABLE,
+        OFF,
+    }
+
     public DiscordWebhook webhook;
     public IChatComponent header;
     public IChatComponent footer;
-    public boolean cookie;
-    public boolean godPot;
+    public EffectState cookie;
+    public EffectState godPot;
 
     public location currentLocation = location.ISLAND;
     public Clock teleporting = new Clock();
@@ -109,27 +115,26 @@ public class GameState {
             String formatted = footer.getFormattedText();
             for (String line : formatted.split("\n")) {
                 Matcher activeEffectsMatcher = PATTERN_ACTIVE_EFFECTS.matcher(line);
-                LogUtils.scriptLog(line);
                 if (activeEffectsMatcher.matches()) {
                     foundGodPot = true;
                 } else if (line.contains("\u00a7d\u00a7lCookie Buff")) {
                     foundCookieText = true;
                 } else if (foundCookieText && line.contains("Not active! Obtain")) {
                     foundCookieText = false;
-                    cookie = false;
+                    cookie = EffectState.OFF;
                 } else if (foundCookieText) {
                     foundCookieText = false;
-                    cookie = true;
+                    cookie = EffectState.ON;;
                 }
                 if(line.contains("Active")) {
                     loaded = true;
                 }
             }
-            godPot = foundGodPot;
+            godPot = foundGodPot ? EffectState.ON : EffectState.OFF;
             if(!loaded){
-                LogUtils.debugFullLog("Not loaded");
-                godPot = true;
-                cookie = true;
+                godPot = EffectState.INDETERMINABLE;
+                cookie = EffectState.INDETERMINABLE;
+                LogUtils.debugFullLog("Footer not loaded");
             }
         }
     }

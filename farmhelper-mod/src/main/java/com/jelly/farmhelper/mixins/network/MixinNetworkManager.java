@@ -15,7 +15,6 @@ public class MixinNetworkManager {
     @Inject(method = "channelRead0", at = @At(value = "HEAD"))
     private void onChannelRead0(ChannelHandlerContext p_channelRead0_1_, Packet<?> packet, CallbackInfo ci) {
         if (packet instanceof S47PacketPlayerListHeaderFooter) {
-            LogUtils.scriptLog(((S47PacketPlayerListHeaderFooter) packet).getHeader().getFormattedText());
         }
     }
 }

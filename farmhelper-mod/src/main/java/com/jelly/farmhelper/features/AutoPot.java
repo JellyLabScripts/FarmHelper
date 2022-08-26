@@ -77,8 +77,9 @@ public class AutoPot {
         if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || (FarmHelper.tickCount % 5 != 0 && ((currentState != State.WALKING1 && currentState != State.WALKING2) || !enabled)))
             return;
 
-        if (!enabled && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && cooldown.passed() && MiscConfig.autoGodPot && !FarmHelper.gameState.godPot && FarmHelper.gameState.currentLocation == GameState.location.ISLAND) {
+        if (!enabled && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && cooldown.passed() && MiscConfig.autoGodPot && FarmHelper.gameState.godPot == GameState.EffectState.OFF && FarmHelper.gameState.currentLocation == GameState.location.ISLAND) {
             LogUtils.scriptLog("[AutoPot] Detected no GodPot buff");
+            MacroHandler.disableCurrentMacro();
             enable();
         }
 

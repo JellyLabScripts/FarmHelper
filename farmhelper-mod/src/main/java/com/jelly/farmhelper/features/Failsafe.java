@@ -47,12 +47,6 @@ public class Failsafe {
 
         switch (gameState.currentLocation) {
             case TELEPORTING:
-                if (cooldown.passed()) {
-                    LogUtils.debugLog("Teleport failed??");
-                    LogUtils.webhookLog("Teleport failed??");
-                    mc.thePlayer.sendChatMessage("/lobby");
-                    cooldown.schedule(15000);
-                }
                 return;
             case LIMBO:
                 if (cooldown.passed()) {
@@ -70,7 +64,7 @@ public class Failsafe {
                 return;
             case HUB:
                 LogUtils.debugLog("Detected Hub");
-                if (cooldown.passed() && jacobWait.passed() && !AutoCookie.isEnabled()) {
+                if (cooldown.passed() && jacobWait.passed() && !AutoCookie.isEnabled() && !AutoPot.isEnabled()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage("/is");
                     cooldown.schedule(5000);

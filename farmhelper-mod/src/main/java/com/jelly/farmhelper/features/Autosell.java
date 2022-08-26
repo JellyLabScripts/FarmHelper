@@ -7,6 +7,7 @@ import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.InventoryUtils;
 import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.utils.LogUtils;
+import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -51,7 +52,7 @@ public class Autosell {
     }
 
     public static void enable() {
-        if (!FarmHelper.gameState.cookie) {
+        if (FarmHelper.gameState.cookie == GameState.EffectState.OFF) {
             LogUtils.debugLog("[AutoSell] You need a cookie for auto sell!");
             disable();
             return;

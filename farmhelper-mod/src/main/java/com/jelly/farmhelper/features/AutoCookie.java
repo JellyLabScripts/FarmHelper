@@ -73,7 +73,7 @@ public class AutoCookie {
         if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || FarmHelper.tickCount % 5 != 0)
             return;
 
-        if (!enabled && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && cooldown.passed() && MiscConfig.autoCookie && !FarmHelper.gameState.cookie) {
+        if (!enabled && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && cooldown.passed() && MiscConfig.autoCookie && FarmHelper.gameState.cookie == GameState.EffectState.OFF) {
             LogUtils.debugFullLog("[AutoCookie] Detected no cookie buff");
             MacroHandler.disableCurrentMacro();
             enable();
