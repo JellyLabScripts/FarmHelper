@@ -52,6 +52,7 @@ public class BanwaveChecker {
                     if(MacroHandler.isMacroing && MiscConfig.banwaveDisconnect) {
                         if (banwaveOn && mc.theWorld != null && !MacroHandler.caged) {
                             LogUtils.webhookLog("Disconnecting due to banwave detected");
+                            mc.thePlayer.sendChatMessage("/setspawn");
                             this.mc.theWorld.sendQuittingDisconnectingPacket();
 
                         }
