@@ -411,7 +411,7 @@ public class CropMacro extends Macro {
             currentState = State.STONE_THROW;
         } else if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || (currentState == State.TP_PAD && !tpFlag)) {
             currentState = State.TP_PAD;
-        } else if (!mc.thePlayer.onGround) {
+        } else if (layerY - mc.thePlayer.posY > 1 || currentState == State.DROPPING || isDropping()) {
             currentState = State.DROPPING;
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
             // layerY = mc.thePlayer.posY;
@@ -566,5 +566,21 @@ public class CropMacro extends Macro {
             return x > 0.35;
         }
         return false;
+    }
+
+    private static boolean isDropping(){
+
+        return  (BlockUtils.getRelativeBlock(0, -1, 1).equals(Blocks.air)
+                && BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.air)
+                && BlockUtils.getRelativeBlock(0, 1, 1).equals(Blocks.air))
+                || (BlockUtils.getRelativeBlock(1, -1, 0).equals(Blocks.air)
+                && BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.air)
+                && BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.air))
+                || (BlockUtils.getRelativeBlock(-1, -1, 0).equals(Blocks.air)
+                && BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air)
+                && BlockUtils.getRelativeBlock(-1, 1, 0).equals(Blocks.air))
+                || (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.air)
+                && BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.air)
+                && BlockUtils.getRelativeBlock(0, 1, 0).equals(Blocks.air));
     }
 }

@@ -62,6 +62,7 @@ public class MinecraftMixin {
                 if (!newBlock.equals(clickedBlock) && this.theWorld.getBlockState(newBlock).getBlock() != Blocks.air) {
                     this.playerController.clickBlock(newBlock, this.objectMouseOver.sideHit);
                 }
+                if (i % 3 == 0) this.thePlayer.swingItem();
             }
     }
 }
