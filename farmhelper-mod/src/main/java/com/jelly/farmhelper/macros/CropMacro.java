@@ -157,7 +157,7 @@ public class CropMacro extends Macro {
 
         switch (currentState) {
             case TP_PAD:
-                if (mc.thePlayer.posY - layerY > 1 || tpFlag) {
+                if (Math.abs(mc.thePlayer.posY - layerY) > 1 || tpFlag) {
                     if (mc.gameSettings.keyBindRight.isKeyDown()) {
                         if (mc.thePlayer.posY % 1 == 0) tpFlag = true;
                         LogUtils.debugFullLog("On top of pad, keep going right");
