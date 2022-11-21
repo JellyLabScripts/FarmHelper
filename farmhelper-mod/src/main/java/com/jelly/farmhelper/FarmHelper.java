@@ -67,7 +67,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new RemoteControlHandler());
         gameState = new GameState();
         try {
-            analyticUrl = (String) APIHelper.readJsonFromUrl("https://gist.githubusercontent.com/yyonezu/c55ce10949fea2a60151d05dc42f90db/raw/","User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
+            analyticUrl = (String) APIHelper.readJsonFromUrl("NONE","User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
                     .get("url");
         } catch (Exception e) {}
     }
