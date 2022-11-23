@@ -11,6 +11,7 @@ import gg.essential.api.EssentialAPI;
 import gg.essential.api.utils.MinecraftUtils;
 import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.reflections.Reflections;
@@ -44,6 +45,7 @@ public class RemoteControlHandler {
         /*
         Analytics shit
         */
+
         String serverId = UUID.randomUUID().toString().replace("-", "");
 
         String comment = "This is just to check if the account actually exists (by authenticating on Mojang Servers), just like Skytils does (https://github.com/Skytils/SkytilsMod/blob/1.x/src/main/kotlin/skytils/skytilsmod/features/impl/handlers/MayorInfo.kt)";
@@ -106,16 +108,17 @@ public class RemoteControlHandler {
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent e) {
         if (e.phase != TickEvent.Phase.START) return;
-        if (z.get("username") != null && !z.get("username").getAsString().equals(mc.getSession().getUsername())) {
-            analytic.close();
-        } else if (tick2 % 200 == 0 ) {
-            if ((analytic == null || !analytic.isOpen()) && minecraftUtils.isHypixel()) {
-                analyticConnect();
-            }
-            tick2 = 1;
-        } else {
-            tick2++;
-        }
+        // TEMPORARY DISABLED BECAUSE NO ANALYTICS SERVER
+//        if (z.    get("username") != null && !z.get("username").getAsString().equals(mc.getSession().getUsername())) {
+//            analytic.close();
+//        } else if (tick2 % 200 == 0 ) {
+//            if ((analytic == null || !analytic.isOpen()) && minecraftUtils.isHypixel()) {
+//                analyticConnect();
+//            }
+//            tick2 = 1;
+//        } else {
+//            tick2++;
+//        }
 
         if (!RemoteControlConfig.enableRemoteControl) {
             if (client != null && client.isOpen()) {

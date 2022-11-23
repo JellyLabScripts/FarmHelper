@@ -7,6 +7,7 @@ import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
 import gg.essential.elementa.state.BasicState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.json.simple.JSONObject;
@@ -23,7 +24,7 @@ public class BanwaveChecker {
     private static final LinkedList<Integer> staffBanLast15Mins = new LinkedList<>();
     public volatile static boolean banwaveOn = false;
     @SubscribeEvent
-    public final void tick(TickEvent.RenderTickEvent event) {
+    public final void tick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END)
             return;
         if(!cooldown.isScheduled() || cooldown.passed()){
