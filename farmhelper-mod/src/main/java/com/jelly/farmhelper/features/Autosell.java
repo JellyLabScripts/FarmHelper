@@ -42,6 +42,8 @@ public class Autosell {
     private static int fullCount;
     private static int totalCount;
 
+    private static Clock sellClock = new Clock();
+
     enum State {
         SELL_INVENTORY,
         SACKS
@@ -62,6 +64,7 @@ public class Autosell {
         BZSellSlotCounts = new Integer[]{999, 999, 999};
         hoeSlot = mc.thePlayer.inventory.currentItem;
         sackSlot = getSack();
+        sellClock.reset();
         currentState = State.SELL_INVENTORY;
         enabled = true;
     }
@@ -104,23 +107,20 @@ public class Autosell {
 
         switch (currentState) {
             case SELL_INVENTORY:
+                if(sellClock.isScheduled() && !sellClock.passed())
+                    return;
+
                 if (mc.currentScreen == null) {
                     LogUtils.debugFullLog("[AutoSell] Opening SB menu");
-                    mc.thePlayer.inventory.currentItem = 8;
-                    KeyBindUtils.rightClick();
-                } else if (InventoryUtils.getInventoryName() != null && InventoryUtils.getInventoryName().contains("SkyBlock Menu")) {
-                    LogUtils.debugFullLog("[AutoSell] Detected SB menu, opening trade menu");
-                    final ItemStack emerald = InventoryUtils.getStackInOpenContainerSlot(22);
-                    if (emerald != null) {
-                        LogUtils.debugFullLog("[AutoSell] Found trade emerald, clicking");
-                        InventoryUtils.clickOpenContainerSlot(22);
-                    }
+                    mc.thePlayer.sendChatMessage("/trades");
+                    sellClock.schedule(250);
                 } else if (InventoryUtils.getInventoryName() != null && InventoryUtils.getInventoryName().contains("Trades")) {
                     LogUtils.debugFullLog("[AutoSell] Detected trade menu, selling item");
                     List<Slot> sellList = InventoryUtils.getInventorySlots();
                     sellList.removeIf(item -> !shouldSell(item.getStack()));
                     if (sellList.size() > 0) {
                         InventoryUtils.clickOpenContainerSlot(45 + sellList.get(0).slotNumber);
+                        sellClock.schedule(250);
                     } else {
                         LogUtils.debugFullLog("[AutoSell] Out of items to sell!");
                         if (sackContains() && sackSlot != -1) {
