@@ -75,7 +75,7 @@ public class BlockUtils {
     }
 
     public static int bedrockCount() {
-        int r = 4;
+        int r = 1;
         int count = 0;
         BlockPos playerPos = Minecraft.getMinecraft().thePlayer.getPosition();
         playerPos.add(0, 1, 0);

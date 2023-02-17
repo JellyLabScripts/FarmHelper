@@ -93,7 +93,7 @@ public class GameState {
             String cleanedLine = ScoreboardUtils.cleanSB(line);
             if (cleanedLine.contains("Village") || cleanedLine.contains("Bazaar") || cleanedLine.contains("Community")) {
                 return location.HUB;
-            } else if (cleanedLine.contains("Island")) {
+            } else if (cleanedLine.contains("Island") || cleanedLine.contains("Garden") || cleanedLine.contains("Plot:")) {
                 return location.ISLAND;
             }
         }
