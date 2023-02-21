@@ -341,10 +341,12 @@ public class MacroHandler {
                 caged = false;
                 bzchillingthread = new Thread(bazaarChilling);
                 bzchillingthread.start();
-            } else {
+            } else if (FarmHelper.gameState.currentLocation == GameState.location.ISLAND) {
                 Thread.sleep(1000 * 60 * 5);
                 caged = false;
                 MacroHandler.enableMacro();
+            } else {
+                caged = false;
             }
 
         } catch (Exception ignored) {}
