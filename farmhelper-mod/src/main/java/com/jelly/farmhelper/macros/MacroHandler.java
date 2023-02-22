@@ -312,7 +312,7 @@ public class MacroHandler {
         int firstmsgindex = (int) Math.floor(Math.random() * (messages.length - 1));
         try {
             Thread.sleep(2000);
-            mc.thePlayer.sendChatMessage("/ac " + messages[firstmsgindex]);
+            if(MiscConfig.randomAnswer) mc.thePlayer.sendChatMessage("/ac " + messages[firstmsgindex]);
             Thread.sleep(1000);
             for (int i = 0; i < 3; i++) {
                 rotation.easeTo((float) (270 * (Math.random())), (float) (20 * (Math.random() - 1)), (long) (800 * (Math.random() + 1)));
@@ -323,7 +323,7 @@ public class MacroHandler {
                         rotation.reset();
                         stopMovement();
                         Thread.sleep(2000);
-                        mc.thePlayer.sendChatMessage("/ac " + messages[firstmsgindex + 1]);
+                        if(MiscConfig.randomAnswer) mc.thePlayer.sendChatMessage("/ac " + messages[firstmsgindex + 1]);
                         Thread.sleep(1000);
                         break;
                     } else {

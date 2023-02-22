@@ -23,6 +23,7 @@ public class MiscMenu extends UIContainer {
         new Slider("Fastbreak extra blocks", 6, 1, "fastbreakSpeed").setChildOf(this);
         new Toggle("Xray", "xray").setChildOf(this);
         new Toggle("Randomization", "randomization").setChildOf(this);
+        new Toggle("Random answer when caged", "randomAnswer").setChildOf(this);
         ((Button) new Button("Buy Cookie").setChildOf(this)).setOnClick((component, uiClickEvent) -> {
             AutoCookie.enable();
             return null;

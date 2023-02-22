@@ -24,6 +24,8 @@ public class MiscConfig {
     @Config()
     public static boolean ungrab = true;
     @Config()
+    public static boolean randomAnswer = true;
+    @Config()
     public static boolean banwaveDisconnect = true;
     @Config()
     public static double banThreshold = 10.0;
