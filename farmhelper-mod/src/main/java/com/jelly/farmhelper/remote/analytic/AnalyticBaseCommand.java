@@ -22,7 +22,6 @@ abstract public class AnalyticBaseCommand {
         obj.addProperty("startTime", MacroHandler.startTime);
         obj.addProperty("isCagedOrResting", (MacroHandler.caged || MacroHandler.resting));
         obj.addProperty("isBanwaveWaiting", BanwaveChecker.banwaveOn && mc.currentScreen instanceof GuiDisconnected);
-        obj.addProperty("isFastbreaking", (MacroHandler.isMacroing && MiscConfig.fastbreak));
         obj.add("settings", sanitizeConfig(ConfigHandler.getConfig()));
         return obj;
     }

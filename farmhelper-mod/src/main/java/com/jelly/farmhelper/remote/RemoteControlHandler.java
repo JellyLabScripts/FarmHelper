@@ -31,8 +31,6 @@ public class RemoteControlHandler {
     public static Client client;
     public static Client analytic;
 
-    public static MinecraftUtils minecraftUtils = EssentialAPI.getMinecraftUtil();
-
     static Minecraft mc = Minecraft.getMinecraft();
     JsonObject z = new JsonObject();
 

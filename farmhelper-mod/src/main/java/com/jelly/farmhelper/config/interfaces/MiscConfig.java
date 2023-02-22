@@ -6,13 +6,7 @@ public class MiscConfig {
     @Config()
     public static boolean resync = true;
     @Config()
-    public static boolean fastbreak = true;
-    @Config()
-    public static double fastbreakSpeed = 2.0;
-    @Config()
     public static boolean xray = false;
-    @Config()
-    public static boolean randomization = false;
     @Config()
     public static boolean autoGodPot = false;
     @Config()

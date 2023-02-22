@@ -25,7 +25,7 @@ public class Rotation {
         endTime = System.currentTimeMillis() + time;
         start.setLeft(mc.thePlayer.rotationYaw);
         start.setRight(mc.thePlayer.rotationPitch);
-        target.setLeft(AngleUtils.get360RotationYaw(yaw));
+        target.setLeft(AngleUtils.getActualYawFrom360(yaw));
         target.setRight(pitch);
         getDifference();
     }

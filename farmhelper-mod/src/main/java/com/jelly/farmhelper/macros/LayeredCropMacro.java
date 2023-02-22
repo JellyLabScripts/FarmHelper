@@ -1,6 +1,5 @@
 package com.jelly.farmhelper.macros;
 
-import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.enums.FarmEnum;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
@@ -17,7 +16,7 @@ import static com.jelly.farmhelper.utils.BlockUtils.getRelativeBlock;
 import static com.jelly.farmhelper.utils.BlockUtils.isWalkable;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
-public class CropMacro extends Macro {
+public class LayeredCropMacro extends Macro {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     enum State {
@@ -55,9 +54,7 @@ public class CropMacro extends Macro {
     private final Clock stoneDropTimer = new Clock();
     private int hoeSlot;
     private int hoeEquipFails = 0;
-    private int randomCooldown = 0;
     private int notmovingticks = 0;
-    private int forwardtime = 0;
 
 
     @Override
@@ -104,13 +101,8 @@ public class CropMacro extends Macro {
             return;
         }
 
-        if(randomCooldown > 0){
-            randomCooldown --;
-            updateKeys(false, false, false, false, false);
-            return;
-        }
 
-        if (!MacroHandler.randomizing && (currentState != State.DROPPING && currentState != State.TP_PAD && currentState != State.STONE_THROW && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > 5 || Math.abs(mc.thePlayer.rotationPitch - pitch) > 5))) {
+        if ((currentState != State.DROPPING && currentState != State.TP_PAD && currentState != State.STONE_THROW && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > 5 || Math.abs(mc.thePlayer.rotationPitch - pitch) > 5))) {
             LogUtils.debugFullLog("Staff rotate");
             rotation.reset();
             if (rotateWait.passed() && rotateWait.isScheduled()) {
@@ -245,18 +237,10 @@ public class CropMacro extends Macro {
 
                 return;
             case RIGHT:
-                if(MiscConfig.randomization && Utils.nextInt(450) == 0){
-                    randomCooldown = 25 + Utils.nextInt(30);
-                    return;
-                }
                 LogUtils.debugLog("Middle of row, going right");
                 updateKeys(shouldWalkForwards(), false, true, false, findAndEquipHoe());
                 return;
             case LEFT:
-                if(MiscConfig.randomization && Utils.nextInt(450) == 0){
-                    randomCooldown = 25 + Utils.nextInt(30);
-                    return;
-                }
                 LogUtils.debugLog("Middle of row, going left");
                 updateKeys(shouldWalkForwards(), false, false, true, findAndEquipHoe());
                 return;

@@ -10,16 +10,10 @@ import com.jelly.farmhelper.features.Scheduler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.MathHelper;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -27,12 +21,8 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.lwjgl.input.Keyboard;
 
-import java.lang.reflect.Field;
-
-import static com.jelly.farmhelper.features.BanwaveChecker.getBanDiff;
 import static com.jelly.farmhelper.utils.KeyBindUtils.stopMovement;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
@@ -50,8 +40,10 @@ public class MacroHandler {
     public static boolean caged = false;
     public static boolean safeWalking = false;
     public static boolean resting = false;
+
     public static SugarcaneMacro sugarcaneMacro = new SugarcaneMacro();
-    public static CropMacro cropMacro = new CropMacro();
+    public static LayeredCropMacro layeredCropMacro = new LayeredCropMacro();
+    public static VerticalCropMacro verticalCropMacro = new VerticalCropMacro();
 
     private final Rotation rotation = new Rotation();
     public static long startTime = 0;
@@ -123,27 +115,6 @@ public class MacroHandler {
             }
         }
 
-        if (isMacroing && FarmHelper.gameState.currentLocation == GameState.location.ISLAND && MiscConfig.randomization) {
-            if (currentMacro instanceof SugarcaneMacro) {
-                SugarcaneMacro.State state = ((SugarcaneMacro) currentMacro).currentState;
-                if (state == SugarcaneMacro.State.RIGHT || state == SugarcaneMacro.State.LEFT) {
-                    // 1/2 chance of starting every minute in ticks
-                    if (Math.random() < 0.000416 * (1 + 0.05 * getBanDiff())) {
-                        randomizingthread = new Thread(randomizememe);
-                        randomizingthread.start();
-                    }
-                }
-            } else if (currentMacro instanceof CropMacro) {
-                CropMacro.State state = ((CropMacro) currentMacro).currentState;
-                if (state == CropMacro.State.RIGHT || state == CropMacro.State.LEFT) {
-                    // 1/2 chance of starting every minute in ticks
-                    if (Math.random() < 0.000416 * (1 + 0.05 * getBanDiff())) {
-                        randomizingthread = new Thread(randomizememe);
-                        randomizingthread.start();
-                    }
-                }
-            }
-        }
     }
     public static void toggleMacro(){
         if (isMacroing) {
@@ -153,11 +124,17 @@ public class MacroHandler {
         }
     }
     public static void enableMacro() {
-        if (FarmConfig.cropType == CropEnum.SUGARCANE) {
-            currentMacro = sugarcaneMacro;
+        if(FarmConfig.farmType == FarmEnum.VERTICAL){
+            currentMacro = verticalCropMacro;
         } else {
-            currentMacro = cropMacro;
+            if (FarmConfig.cropType == CropEnum.SUGARCANE) {
+                currentMacro = sugarcaneMacro;
+            } else {
+
+                currentMacro = layeredCropMacro;
+            }
         }
+
         isMacroing = true;
         mc.thePlayer.closeScreen();
 
@@ -166,6 +143,7 @@ public class MacroHandler {
         if (AutoSellConfig.autoSell) LogUtils.scriptLog("Auto Sell is in BETA, lock important slots just in case");
         if (MiscConfig.ungrab) UngrabUtils.ungrabMouse();
         if (SchedulerConfig.scheduler) Scheduler.start();
+
         startTime = System.currentTimeMillis();
         ProfitUtils.resetProfit();
 
@@ -193,13 +171,6 @@ public class MacroHandler {
         if (!currentMacro.enabled && !startingUp) {
             mc.inGameHasFocus = true;
             mc.displayGuiScreen(null);
-            Field f;
-            f = FieldUtils.getDeclaredField(mc.getClass(), "leftClickCounter",true);
-            try {
-                f.set(mc, 10000);
-            }catch (Exception e){
-                e.printStackTrace();
-            }
             startingUp = true;
             KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
             new Thread(startCurrent).start();

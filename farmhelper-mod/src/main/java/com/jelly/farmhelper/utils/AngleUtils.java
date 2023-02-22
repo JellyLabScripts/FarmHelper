@@ -25,6 +25,38 @@ public class AngleUtils {
         return Math.min(clockwiseDifference(initialYaw360, targetYaw360), antiClockwiseDifference(initialYaw360, targetYaw360));
     }
 
+    public static float getActualYawFrom360(float yaw360) {
+        float currentYaw = yaw360;
+        if(mc.thePlayer.rotationYaw > yaw360){
+            while (mc.thePlayer.rotationYaw - currentYaw < 180 || mc.thePlayer.rotationYaw - currentYaw > 0){
+                if(Math.abs(currentYaw + 360 - mc.thePlayer.rotationYaw) < Math.abs(currentYaw - mc.thePlayer.rotationYaw))
+                    currentYaw = currentYaw + 360;
+                else  break;
+            }
+        }
+        if(mc.thePlayer.rotationYaw < yaw360){
+            while (currentYaw - mc.thePlayer.rotationYaw > 180 || mc.thePlayer.rotationYaw - currentYaw < 0){
+                if(Math.abs(currentYaw - 360 - mc.thePlayer.rotationYaw) < Math.abs(currentYaw - mc.thePlayer.rotationYaw))
+                    currentYaw = currentYaw - 360;
+                else  break;
+            }
+        }
+        return currentYaw;
+
+
+    }
+
+    public static float getClosestDiagonal() {
+        if (get360RotationYaw() < 90 && get360RotationYaw() > 0) {
+            return 45;
+        } else if (get360RotationYaw() < 180) {
+            return 135f;
+        } else if (get360RotationYaw() < 270) {
+            return 225f;
+        } else {
+            return 315f;
+        }
+    }
     public static float getClosest() {
         if (get360RotationYaw() < 45 || get360RotationYaw() > 315) {
             return 0f;
@@ -37,11 +69,11 @@ public class AngleUtils {
         }
     }
     public static float getClosest(float yaw) {
-        if (yaw < 45 || yaw > 315) {
+        if (get360RotationYaw(yaw) < 45 || get360RotationYaw(yaw) > 315) {
             return 0f;
-        } else if (yaw < 135) {
+        } else if (get360RotationYaw(yaw) < 135) {
             return 90f;
-        } else if (yaw < 225) {
+        } else if (get360RotationYaw(yaw) < 225) {
             return 180f;
         } else {
             return 270f;

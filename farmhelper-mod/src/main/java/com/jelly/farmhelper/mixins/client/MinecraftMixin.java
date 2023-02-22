@@ -19,10 +19,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Minecraft.class)
 public class MinecraftMixin {
-    /*
-     *  @Author Apfelsaft gigachad
-     */
-    @Shadow
+    //R.I.P. Fastbreak 2022-2022
+
+    /*@Shadow
     public GuiScreen currentScreen;
 
     @Shadow
@@ -64,6 +63,6 @@ public class MinecraftMixin {
                 }
                 if (i % 3 == 0) this.thePlayer.swingItem();
             }
-    }
+    }*/
 }
 

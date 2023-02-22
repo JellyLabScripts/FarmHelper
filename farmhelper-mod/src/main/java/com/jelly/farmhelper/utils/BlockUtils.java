@@ -10,31 +10,39 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3i;
 
 import java.util.Arrays;
+import static com.jelly.farmhelper.utils.AngleUtils.*;
 
 public class BlockUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final Block[] walkables = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds };
 
-    public static int getUnitX() {
-        double modYaw = (mc.thePlayer.rotationYaw % 360 + 360) % 360;
-        if (modYaw < 45 || modYaw > 315) {
+    public static int getUnitX(){
+        return getUnitX((mc.thePlayer.rotationYaw % 360 + 360) % 360);
+    }
+
+    public static int getUnitZ(){
+        return getUnitZ((mc.thePlayer.rotationYaw % 360 + 360) % 360);
+
+    }
+
+    public static int getUnitX(float modYaw) {
+        if (get360RotationYaw(modYaw) < 45 || get360RotationYaw(modYaw) > 315) {
             return 0;
-        } else if (modYaw < 135) {
+        } else if (get360RotationYaw(modYaw) < 135) {
             return -1;
-        } else if (modYaw < 225) {
+        } else if (get360RotationYaw(modYaw) < 225) {
             return 0;
         } else {
             return 1;
         }
     }
 
-    public static int getUnitZ() {
-        double modYaw = (mc.thePlayer.rotationYaw % 360 + 360) % 360;
-        if (modYaw < 45 || modYaw > 315) {
+    public static int getUnitZ(float modYaw) {
+        if (get360RotationYaw(modYaw) < 45 || get360RotationYaw(modYaw) > 315) {
             return 1;
-        } else if (modYaw < 135) {
+        } else if (get360RotationYaw(modYaw) < 135) {
             return 0;
-        } else if (modYaw < 225) {
+        } else if (get360RotationYaw(modYaw) < 225) {
             return -1;
         } else {
             return 0;
@@ -55,6 +63,22 @@ public class BlockUtils {
                     mc.thePlayer.posY + y,
                     mc.thePlayer.posZ + (getUnitZ() * z) + (getUnitX() * x)
             );
+    }
+
+    public static Block getRelativeBlock(float x, float y, float z, float yaw) {
+        return (mc.theWorld.getBlockState(
+                new BlockPos(
+                        mc.thePlayer.posX + (getUnitX(yaw) * z) + (getUnitZ(yaw) * -1 * x),
+                        mc.thePlayer.posY + y,
+                        mc.thePlayer.posZ + (getUnitZ(yaw) * z) + (getUnitX(yaw) * x)
+                )).getBlock());
+    }
+    public static BlockPos getRelativeBlockPos(float x, float y, float z, float yaw) {
+        return new BlockPos(
+                mc.thePlayer.posX + (getUnitX(yaw) * z) + (getUnitZ(yaw) * -1 * x),
+                mc.thePlayer.posY + y,
+                mc.thePlayer.posZ + (getUnitZ(yaw) * z) + (getUnitX(yaw) * x)
+        );
     }
 
     public static int countCarpet() {
@@ -88,6 +112,9 @@ public class BlockUtils {
             }
         }
         return count;
+    }
+    public static boolean isWater(Block b){
+        return b.equals(Blocks.water) || b.equals(Blocks.flowing_water);
     }
     public static Block getLeftBlock(){
         return getRelativeBlock(-1, 0, 0);

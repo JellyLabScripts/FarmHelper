@@ -2,7 +2,7 @@ package com.jelly.farmhelper.mixins.client;
 
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.features.Resync;
-import com.jelly.farmhelper.macros.CropMacro;
+import com.jelly.farmhelper.macros.LayeredCropMacro;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.macros.SugarcaneMacro;
 import com.jelly.farmhelper.utils.Clock;
@@ -25,7 +25,7 @@ public class MixinPlayerControllerMP {
     public void clickBlock(BlockPos loc, EnumFacing face, CallbackInfoReturnable<Boolean> cir) {
         if (MiscConfig.resync && MacroHandler.isMacroing && MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled && loc != null && Minecraft.getMinecraft().theWorld.getBlockState(loc) != null &&
                 (Minecraft.getMinecraft().theWorld.getBlockState(loc).getBlock() instanceof BlockBush || Minecraft.getMinecraft().theWorld.getBlockState(loc).getBlock() instanceof BlockReed)) {
-            if (MacroHandler.currentMacro instanceof SugarcaneMacro || MacroHandler.currentMacro instanceof CropMacro) {
+            if (MacroHandler.currentMacro instanceof SugarcaneMacro || MacroHandler.currentMacro instanceof LayeredCropMacro) {
                 if (checkTimer.passed()) {
                     Resync.update(loc);
                     checkTimer.schedule(5000);
@@ -34,23 +34,4 @@ public class MixinPlayerControllerMP {
         }
     }
 
-//    @Inject(method={"clickBlock"}, at={@At(value="HEAD")}, cancellable=true)
-//    private void clickBlockHook(BlockPos pos, EnumFacing face, CallbackInfoReturnable<Boolean> info) {
-//        // LogUtils.debugFullLog("clickBlockHook - " + pos + Minecraft.getMinecraft().theWorld.getBlockState(pos));
-//    }
-
-//    @Inject(method={"onPlayerDamageBlock"}, at={ @At(value="HEAD") }, cancellable=true)
-//    private void onPlayerDamageBlockHook(BlockPos pos, EnumFacing face, CallbackInfoReturnable<Boolean> info) {
-//
-//    }
-//
-//    @Inject(method={"resetBlockRemoving"}, at={ @At(value="HEAD") }, cancellable=true)
-//    private void resetBlock(CallbackInfo info) {
-//
-//    }
-//
-//    @Inject(method={"getBlockReachDistance"}, at={@At(value="RETURN")}, cancellable=true)
-//    private void getReachDistanceHook(CallbackInfoReturnable<Float> distance) {
-//
-//    }
 }

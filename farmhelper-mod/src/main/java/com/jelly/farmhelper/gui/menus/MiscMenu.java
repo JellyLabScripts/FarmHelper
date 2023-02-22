@@ -19,10 +19,7 @@ public class MiscMenu extends UIContainer {
         new Toggle("Drop Stone", "dropStone").setChildOf(this);
         new Toggle("Ungrab Mouse", "ungrab").setChildOf(this);
         new Toggle("Debug Mode", "debugMode").setChildOf(this);
-        new Toggle("Fastbreak", "fastbreak").setChildOf(this);
-        new Slider("Fastbreak extra blocks", 6, 1, "fastbreakSpeed").setChildOf(this);
         new Toggle("Xray", "xray").setChildOf(this);
-        new Toggle("Randomization", "randomization").setChildOf(this);
         ((Button) new Button("Buy Cookie").setChildOf(this)).setOnClick((component, uiClickEvent) -> {
             AutoCookie.enable();
             return null;
