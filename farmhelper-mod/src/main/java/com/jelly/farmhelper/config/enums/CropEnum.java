@@ -5,5 +5,7 @@ public enum CropEnum {
         NETHERWART,
         POTATO,
         WHEAT,
-        SUGARCANE
+        SUGARCANE,
+        MELONS
+
 }
