@@ -44,7 +44,6 @@ public class Failsafe {
         if(gameState.currentLocation != GameState.location.ISLAND && MacroHandler.currentMacro.enabled){
             MacroHandler.disableCurrentMacro();
         }
-
         switch (gameState.currentLocation) {
             case TELEPORTING:
                 return;

@@ -92,7 +92,7 @@ public class SugarcaneMacro extends Macro {
                         currentWalkState == WalkState.A, true, mc.thePlayer.capabilities.isFlying, false);
                 break;
             case TPPAD:
-                if(mc.thePlayer.capabilities.isFlying) {
+                if(mc.thePlayer.capabilities.isFlying || (!getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame))) {
                     KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
                 } else if (mc.thePlayer.posY % 1 > 0 && mc.thePlayer.posY % 1 < 0.8125f) {
                     KeyBindUtils.updateKeys(false, false, false, false, false, false, true);
@@ -122,7 +122,9 @@ public class SugarcaneMacro extends Macro {
     }
 
     void updateState() {
-        if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
+        if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
+                || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
+                      BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)) {
             currentState = State.TPPAD;
             return;
         } else {

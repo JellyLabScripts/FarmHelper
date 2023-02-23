@@ -45,7 +45,7 @@ repositories {
 
 dependencies {
     implementation("net.dv8tion:JDA:5.0.0-alpha.12")
-    implementation('com.github.Kaktushose:jda-commands:3.0.0')
+    implementation('com.github.Kaktushose:jda-commands:v3.0.0')
     implementation('io.javalin:javalin:4.6.3')
     implementation('net.jodah:typetools:0.6.3')
     compileOnly 'org.projectlombok:lombok:1.18.24'

@@ -9,8 +9,11 @@ import com.yyonezu.remotecontrol.event.wait.WaiterAction;
 import lombok.SneakyThrows;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.utils.FileUpload;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.Base64;
@@ -43,7 +46,8 @@ abstract public class BaseCommand {
             stream.write(data);
         }
         em.setImage("attachment://filename.png");
-        ev.getChannel().sendFile(file, "filename.png").setEmbeds(em.build()).queue();
+        File initialFile = new File("src/main/resources/sample.txt");
+        ev.getChannel().sendFiles(FileUpload.fromData(initialFile, "filename.png")).setEmbeds(em.build()).queue();
         file.getAbsoluteFile().setWritable(true);
         while(!file.getAbsoluteFile().delete());
     }

@@ -41,6 +41,12 @@ public class KeyBindUtils
         }
     }
 
+    public static void onTick(KeyBinding key) {
+        if (mc.currentScreen == null) {
+            KeyBinding.onTick(key.getKeyCode());
+        }
+    }
+
     public static void updateKeys(boolean forward, boolean back, boolean right, boolean left, boolean attack) {
         updateKeys(forward, back, right, left, attack, false, false);
     }

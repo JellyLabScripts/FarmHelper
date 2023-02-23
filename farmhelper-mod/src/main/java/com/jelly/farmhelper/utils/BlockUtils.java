@@ -14,7 +14,7 @@ import static com.jelly.farmhelper.utils.AngleUtils.*;
 
 public class BlockUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final Block[] walkables = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds };
+    private static final Block[] walkables = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_block };
 
     public static int getUnitX(){
         return getUnitX((mc.thePlayer.rotationYaw % 360 + 360) % 360);

@@ -35,18 +35,12 @@ public class Main {
         }
 
         do {
-            try {
-                jda = JDABuilder.createDefault(SecretConfig.token).build();
-                JDACommands.start(jda, Main.class);
+            jda = JDABuilder.createDefault(SecretConfig.token).build();
+            JDACommands.start(jda, Main.class);
 /*
                         .getAdapterRegistry().register(Instance.class, new InstanceAdapter());
 */
-
-                validToken = true;
-            } catch (LoginException e) {
-                String token = JOptionPane.showInputDialog("Incorrect token, set it again");
-                Config.set("token", token);
-            }
+            validToken = true;
         } while (!validToken);
     }
     @SneakyThrows
