@@ -81,9 +81,6 @@ public class MacroHandler {
         Keyboard.enableRepeatEvents(false);
         if (KeyBindUtils.customKeyBinds[1].isPressed()) {
             toggleMacro();
-        } else if (Keyboard.isKeyDown(Keyboard.KEY_J)) {
-            randomizingthread = new Thread(randomizememe);
-            randomizingthread.start();
         }
     }
 
