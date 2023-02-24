@@ -42,6 +42,7 @@ public class MacroHandler {
     public static boolean resting = false;
 
     public static SugarcaneMacro sugarcaneMacro = new SugarcaneMacro();
+    public static CocoaBeanMacro cocoaBeanMacrp = new CocoaBeanMacro();
     public static LayeredCropMacro layeredCropMacro = new LayeredCropMacro();
     public static VerticalCropMacro verticalCropMacro = new VerticalCropMacro();
 
@@ -69,7 +70,7 @@ public class MacroHandler {
     }
 
     @SubscribeEvent
-    public void onOverlayRender(RenderGameOverlayEvent event) {
+    public void onOverlayRender(RenderGameOverlayEvent.Post event) {
         if (currentMacro != null && currentMacro.enabled && mc.thePlayer != null && mc.theWorld != null) {
             currentMacro.onOverlayRender(event);
         }
@@ -126,8 +127,9 @@ public class MacroHandler {
         } else {
             if (FarmConfig.cropType == CropEnum.SUGARCANE) {
                 currentMacro = sugarcaneMacro;
+            } else if (FarmConfig.cropType == CropEnum.COCOA_BEANS) {
+                currentMacro = cocoaBeanMacrp;
             } else {
-
                 currentMacro = layeredCropMacro;
             }
         }

@@ -67,11 +67,11 @@ repositories {
 }
 
 dependencies {
-    compileOnly "gg.essential:essential-1.8.9-forge:1725"
-    include "gg.essential:loader-launchwrapper:1.1.3"
-
     implementation('org.spongepowered:mixin:0.7.11-SNAPSHOT')
     annotationProcessor('org.spongepowered:mixin:0.7.11-SNAPSHOT')
+
+    implementation "gg.essential:essential-1.8.9-forge:1725"
+    include "gg.essential:loader-launchwrapper:1.1.3"
 
     include('com.github.RewisServer:brigadier:master-SNAPSHOT')
     include('com.github.ronmamo:reflections:master-SNAPSHOT')
@@ -87,19 +87,21 @@ dependencies {
 mixin {
     add sourceSets.main, "mixins.farmhelper.refmap.json"
     defaultObfuscationEnv searge
-
 }
 
 jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     manifest.attributes(
             "ForceLoadAsMod": true,
-            'ModSide': 'CLIENT',
+            "ModSide": "CLIENT",
             "TweakClass": "gg.essential.loader.stage0.EssentialSetupTweaker",
             "TweakOrder": "0",
-            'MixinConfigs': "mixins.farmhelper.json",
+            "MixinConfigs": "mixins.farmhelper.json",
             "modversion": version,
             "botversion": botversion,
     )
+
     enabled = false
 }
 
