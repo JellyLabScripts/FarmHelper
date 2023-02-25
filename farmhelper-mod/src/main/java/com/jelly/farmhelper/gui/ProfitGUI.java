@@ -80,6 +80,7 @@ public class ProfitGUI extends UIBlock {
         stats.add(new Stat("ecane.png").bind(ProfitUtils.brownMushroomCount).setChildOf(this));
         stats.add(new Stat("eredmushroom.png").bind(ProfitUtils.redMushroomCount).setChildOf(this));
         stats.add(new Stat("ebrownmushroom.png").bind(ProfitUtils.brownMushroomCount).setChildOf(this));
+        // stats.add(new Stat("ecocoabeans.png").bind(ProfitUtils.cropCount).setChildOf(this));
         stats.add(new Stat("hoe.png").bind(ProfitUtils.counter).setChildOf(this));
         stats.add(new Stat("clock_00.png").bind(ProfitUtils.runtime).setChildOf(this));
     }

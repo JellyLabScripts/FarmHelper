@@ -7,6 +7,7 @@ import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -250,6 +251,30 @@ public class InventoryUtils {
                         }
                     case SUGARCANE:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Turing")) {
+                            return i - 36;
+                        }
+                }
+            }
+        }
+        return -1;
+    }
+
+    public static int getAxeSlot() {
+        if(mc.thePlayer.inventory.getCurrentItem() != null) {
+            if (mc.thePlayer.inventory.getCurrentItem().getItem() instanceof ItemAxe)
+                return mc.thePlayer.inventory.currentItem;
+        }
+
+        for (int i = 36; i < 44; i++) {
+            if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
+
+                switch (FarmConfig.cropType){
+                    case MELONS:
+                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Dicer")) {
+                            return i - 36;
+                        }
+                    case COCOA_BEANS:
+                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Chopper")) {
                             return i - 36;
                         }
                 }
