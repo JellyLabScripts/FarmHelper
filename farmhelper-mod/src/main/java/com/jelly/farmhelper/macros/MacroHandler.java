@@ -28,18 +28,11 @@ import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class MacroHandler {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final String[] messages = new String[]
-            {"What?", "yo huh?", "So whaats this?", "bedrock??", "ehhhhh??", "LOL what", "wtf is this", "why am i here",
-                    "tf", "lmao what?", "????", "whatdahell", "what the frick", "UMMM???", "huh where am i", "damn wth",
-                    "i don't get it", "What is this?", "WHy is bedrock here?", "can u explain?", "?!?!?!????", "why bedrocki",
-                    "?!?!?!?!!!!!!" };
+
     public static Macro currentMacro;
     public static boolean isMacroing;
     Thread randomizingthread;
-    Thread bzchillingthread;
-    public static boolean caged = false;
-    public static boolean safeWalking = false;
-    public static boolean resting = false;
+
 
     public static SugarcaneMacro sugarcaneMacro = new SugarcaneMacro();
     public static LayeredCropMacro layeredCropMacro = new LayeredCropMacro();
@@ -82,8 +75,7 @@ public class MacroHandler {
         if (KeyBindUtils.customKeyBinds[1].isPressed()) {
             toggleMacro();
         } else if (Keyboard.isKeyDown(Keyboard.KEY_J)) {
-            randomizingthread = new Thread(randomizememe);
-            randomizingthread.start();
+            //debug
         }
     }
 
@@ -91,20 +83,8 @@ public class MacroHandler {
     public final void tick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (mc.theWorld.isAirBlock(new BlockPos(mc.thePlayer.posX, (Math.round(mc.thePlayer.posY) - 1), mc.thePlayer.posZ))
-                && mc.thePlayer.onGround && (randomizing || Antistuck.stuck)) {
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
-            safeWalking = true;
-        } else if (safeWalking) {
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
-            safeWalking = false;
-        }
 
         if (isMacroing) {
-            if (BlockUtils.bedrockCount() >= 2) {
-                disableMacro();
-                new Thread(cagedActing).start();
-            }
             if (FarmHelper.tickCount == 1) {
                 LogUtils.webhookStatus();
                 ProfitUtils.updateProfitState();
@@ -117,7 +97,11 @@ public class MacroHandler {
 
     }
     public static void toggleMacro(){
-        if (isMacroing) {
+        if(Failsafe.emergency) {
+            Failsafe.stopAllFailsafeThreads();
+            disableMacro();
+        }
+        else if (isMacroing) {
             disableMacro();
         } else {
             enableMacro();
@@ -148,6 +132,7 @@ public class MacroHandler {
         ProfitUtils.resetProfit();
 
         Failsafe.jacobWait.reset();
+        Failsafe.emergency = false;
         startCounter = InventoryUtils.getCounter();
         enableCurrentMacro();
     }
@@ -159,10 +144,11 @@ public class MacroHandler {
         LogUtils.webhookLog("Disabling script");
         UngrabUtils.regrabMouse();
         StatusUtils.updateStateString();
+        Failsafe.emergency = false;
     }
 
     public static void disableCurrentMacro() {
-        if (currentMacro.enabled) {
+        if (currentMacro != null && currentMacro.enabled) {
             currentMacro.toggle();
         }
     }
@@ -188,136 +174,6 @@ public class MacroHandler {
         }
     };
 
-    Runnable randomizememe = () -> {
-        rotation.reset();
-        isMacroing = false;
-        randomizing = true;
-        float currentyaw = mc.thePlayer.rotationYaw;
-        float currentpitch = mc.thePlayer.rotationPitch;
-        LogUtils.scriptLog(mc.thePlayer.isCollidedHorizontally ? "Collided" : "Not collided");
-        LogUtils.debugLog("Randomizing movements");
-        rotation.easeTo((float) (360 * (Math.random())), (float) (15 * (Math.random())), 2000);
-        while (rotation.rotating) {
-            try {
-                Thread.sleep(500);
-                updateKeys(Math.random() < 0.5, Math.random() < 0.5, Math.random() < 0.5, Math.random() < 0.5,  false, FarmConfig.farmType != FarmEnum.VERTICAL, false);
-            } catch (Exception e) {}
-        }
-        KeyBindUtils.stopMovement();
-        LogUtils.debugLog("Finished randomization");
 
-        try {
-            rotation.easeTo(currentyaw, currentpitch, 2000);
-            Thread.sleep(2000);
-            if (FarmConfig.farmType == FarmEnum.VERTICAL) {
-                updateKeys(true, false, false, false, false);
-                Thread.sleep(1000);
-            }
 
-        } catch (Exception ignored) {}
-        randomizing = false;
-        isMacroing = true;
-        MacroHandler.enableCurrentMacro();
-    };
-
-    Runnable bazaarChilling = () -> {
-        try {
-            resting = true;
-            UngrabUtils.ungrabMouse();
-            LogUtils.scriptLog("Gonna chill for a bit (we don't want to get banned)");
-            LogUtils.webhookLog("Gonna chill in hub for about 5 minutes");
-
-            rotation.reset();
-            rotation.easeTo(103f, -11f, 1000);
-            Thread.sleep(1500);
-            KeyBindUtils.updateKeys(true, false, false, false, false, true, false);
-            long timeout = System.currentTimeMillis();
-            boolean timedOut = false;
-            while (BlockUtils.getRelativeBlock(0, 0, 1) != Blocks.spruce_stairs) {
-                if ((System.currentTimeMillis() - timeout) > 10000) {
-                    LogUtils.scriptLog("Couldn't find bz, gonna chill here");
-                    timedOut = true;
-                    break;
-                }
-            }
-            stopMovement();
-
-            if (!timedOut) {
-                // about 5 minutes
-                for (int i = 0; i < 15; i++) {
-                    Thread.sleep(6000);
-                    KeyBindUtils.rightClick();
-                    Thread.sleep(3000);
-                    InventoryUtils.clickOpenContainerSlot(11);
-                    Thread.sleep(3000);
-                    InventoryUtils.clickOpenContainerSlot(11);
-                    Thread.sleep(3000);
-                    InventoryUtils.clickOpenContainerSlot(10);
-                    Thread.sleep(3000);
-                    InventoryUtils.clickOpenContainerSlot(10);
-                    Thread.sleep(3000);
-                    mc.thePlayer.closeScreen();
-                }
-            } else {
-                Thread.sleep(1000 * 60 * 5);
-            }
-
-            resting = false;
-            mc.thePlayer.sendChatMessage("/is");
-            Thread.sleep(6000);
-            MacroHandler.enableMacro();
-        } catch (Exception e) {}
-
-    };
-    Runnable cagedActing = () -> {
-        caged = true;
-        LogUtils.webhookLog("You just got caged bozo! Buy a lottery ticket! @everyone");
-        if (randomizingthread != null) {
-            randomizingthread.interrupt();
-        }
-
-        if (bzchillingthread != null) {
-            bzchillingthread.interrupt();
-        }
-
-        int firstmsgindex = (int) Math.floor(Math.random() * (messages.length - 1));
-        try {
-            Thread.sleep(2000);
-            mc.thePlayer.sendChatMessage("/ac " + messages[firstmsgindex]);
-            Thread.sleep(1000);
-            for (int i = 0; i < 3; i++) {
-                rotation.easeTo((float) (270 * (Math.random())), (float) (20 * (Math.random() - 1)), (long) (800 * (Math.random() + 1)));
-                while (rotation.rotating) {
-                    if (i == 0) {
-                        KeyBindUtils.updateKeys(Math.random() < 0.3, Math.random() < 0.3, Math.random() < 0.3, Math.random() < 0.3, Math.random() < 0.3, false, false);
-                        Thread.sleep(500);
-                        rotation.reset();
-                        stopMovement();
-                        Thread.sleep(2000);
-                        mc.thePlayer.sendChatMessage("/ac " + messages[firstmsgindex + 1]);
-                        Thread.sleep(1000);
-                        break;
-                    } else {
-                        // around 0.3/0.6s long movements (the more random the best)
-                        Thread.sleep((long) (100 * (Math.random() + 2)));
-                        KeyBindUtils.updateKeys(Math.random() < 0.5, Math.random() < 0.5, Math.random() < 0.5, Math.random() < 0.5, Math.random() < 0.5, Math.random() < 0.8, Math.random() < 0.3);
-                    }
-                }
-            }
-            stopMovement();
-            Thread.sleep(1000);
-            mc.thePlayer.sendChatMessage("/hub");
-            Thread.sleep(5000);
-            if (FarmHelper.gameState.currentLocation == GameState.location.HUB) {
-                caged = false;
-                bzchillingthread = new Thread(bazaarChilling);
-                bzchillingthread.start();
-            } else {
-                Thread.sleep(1000 * 60 * 5);
-                caged = false;
-                MacroHandler.enableMacro();
-            }
-
-        } catch (Exception ignored) {}
-    };
 }

@@ -1,18 +1,28 @@
 package com.jelly.farmhelper.utils;
 
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.ResourceLocation;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import java.awt.*;
+import java.io.*;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class Utils {
+    static Minecraft mc = Minecraft.getMinecraft();
     public static void openURL(String url) {
         String os = System.getProperty("os.name").toLowerCase();
         try {
@@ -30,6 +40,30 @@ public class Utils {
         } catch (Exception e) {
 
         }
+    }
+
+    public static void sendPingAlert() {
+        new Thread(() -> {
+            try {
+                /*InputStream audioSource = Objects.requireNonNull(Utils.class.getClassLoader().getResourceAsStream("assets/farmhelper/sounds/ding.mp3"));
+                InputStream bufferedIn = new BufferedInputStream(audioSource);
+                AudioInputStream audioStream = AudioSystem.getAudioInputStream(bufferedIn);*/
+                /*Media hit = new Media(Objects.requireNonNull(Utils.class.getClassLoader().getResource("assets/farmhelper/sounds/ding.mp3")).toURI().toString());
+                MediaPlayer mediaPlayer = new MediaPlayer(hit);
+                mediaPlayer.play();*/
+                for (int i = 0; i < 15; i++) {
+                    mc.theWorld.playSound(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, "random.orb", 10.0F, 1.0F, false);
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     public static void clickWindow(int windowID, int slotID, int mouseButtonClicked, int mode) throws Exception {

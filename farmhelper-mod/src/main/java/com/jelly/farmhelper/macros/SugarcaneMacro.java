@@ -96,12 +96,17 @@ public class SugarcaneMacro extends Macro {
                     KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
                 } else if (mc.thePlayer.posY % 1 > 0 && mc.thePlayer.posY % 1 < 0.8125f) {
                     KeyBindUtils.updateKeys(false, false, false, false, false, false, true);
-                } else KeyBindUtils.updateKeys(false,
-                            calculateDirection() == WalkState.S,
-                            calculateDirection()== WalkState.D,
-                            calculateDirection() == WalkState.A, true, false, false);
+                } else {
+                    currentWalkState = calculateDirection();
+                    KeyBindUtils.updateKeys(false,
+                            currentWalkState == WalkState.S,
+                            currentWalkState == WalkState.D,
+                            currentWalkState == WalkState.A, true, false, false);
+                }
+                break;
         }
         updateState();
+        System.out.println(currentState + " " + currentWalkState);
 
     }
 
@@ -114,11 +119,13 @@ public class SugarcaneMacro extends Macro {
     private WalkState calculateDirection() {
         if(isWater(getRelativeBlock(2, -1, 1, yaw - 45f)) || isWater(getRelativeBlock(2, 0, 1, yaw - 45f))
         || isWater(getRelativeBlock(-1, -1, 1, yaw - 45f)) || isWater(getRelativeBlock(-1, 0, 1, yaw - 45f)))
-            return WalkState.A;
+            if(!(hasWall(0, 1, yaw - 45f) && hasWall(-1, 0, yaw - 45f)))
+                return WalkState.A;
         else if(isWater(getRelativeBlock(2, -1, 1, yaw + 45f)) || isWater(getRelativeBlock(2, 0, 1, yaw + 45f))
                 || isWater(getRelativeBlock(-1, -1, 1, yaw + 45f)) ||isWater(getRelativeBlock(-1, 0, 1, yaw + 45f)))
-            return WalkState.D;
-        else return WalkState.S;
+            if(!(hasWall(0, 1, yaw + 45f) && hasWall(11, 0, yaw + 45f)))
+                return WalkState.D;
+        return WalkState.S;
     }
 
     void updateState() {
@@ -150,6 +157,7 @@ public class SugarcaneMacro extends Macro {
                 if((hasWall(0, 1, yaw - 45f) && hasWall(0, -1, yaw - 45f)) ||
                         (hasWall(0, 1, yaw + 45f) && hasWall(0, -1, yaw + 45f)))
                     break;
+
 
                 if(hasWall(0, -1,  yaw - 45) &&
                         (getNearestSideWall(yaw - 45, 1) + getNearestSideWall(yaw - 45, -1)) == 2 * LANE_WIDTH)
@@ -186,7 +194,10 @@ public class SugarcaneMacro extends Macro {
     };
 
     boolean hasWall(int rightOffset, int frontOffset, float yaw) {
-        return !isWalkable(getRelativeBlock(rightOffset, 0, frontOffset, yaw)) || !isWalkable(getRelativeBlock(rightOffset, 1, frontOffset, yaw));
+        boolean f1 = !isWalkable(getRelativeBlock(rightOffset, 1, frontOffset, yaw));
+        return  f1 ||
+                (BlockUtils.getRelativeBlock(0,0, 0).equals(Blocks.end_portal_frame) ?
+                !isWalkable(getRelativeBlock(rightOffset, 2, frontOffset, yaw)) : !isWalkable(getRelativeBlock(rightOffset, 0, frontOffset, yaw)));
     }
     int getNearestSideWall(float yaw, int dir) { // right = 1; left = -1
         for(int i = 0; i < 8; i++) {

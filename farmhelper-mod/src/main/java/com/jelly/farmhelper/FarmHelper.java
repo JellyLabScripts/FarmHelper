@@ -25,6 +25,8 @@ import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.launch.platform.MixinContainer;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.jar.Attributes;
@@ -49,6 +51,15 @@ public class FarmHelper {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
+        TrayIcon trayIcon = new TrayIcon(new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR), "MightyMiner Failsafe Notification");
+        trayIcon.setToolTip("Farm Helper Failsafe Notification");
+        try {
+            SystemTray.getSystemTray().add(trayIcon);
+        } catch (AWTException e) {
+            throw new RuntimeException(e);
+        }
+        trayIcon.displayMessage("init", "init", TrayIcon.MessageType.INFO);
+        SystemTray.getSystemTray().remove(trayIcon);
         setVersions();
         ConfigHandler.init();
         KeyBindUtils.setup();

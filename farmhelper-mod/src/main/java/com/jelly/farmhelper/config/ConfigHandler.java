@@ -32,6 +32,7 @@ public class ConfigHandler {
         registeredConfigs.add(RemoteControlConfig.class);
         registeredConfigs.add(SchedulerConfig.class);
         registeredConfigs.add(KeyBindConfig.class);
+        registeredConfigs.add(FailsafeConfig.class);
 
 
         // Create config file if it doesn't exist

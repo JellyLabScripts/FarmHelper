@@ -1,17 +1,17 @@
 package com.jelly.farmhelper.features;
 
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
 import gg.essential.elementa.state.BasicState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.junit.internal.runners.statements.Fail;
 
 import java.util.LinkedList;
 
@@ -30,8 +30,6 @@ public class BanwaveChecker {
         if(!cooldown.isScheduled() || cooldown.passed()){
             new Thread(() -> {
                 try {
-
-
                     String s = APIHelper.readJsonFromUrl("https://api.plancke.io/hypixel/v1/punishmentStats", "User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
                             .get("record").toString();
                     JSONParser parser = new JSONParser();
@@ -44,14 +42,14 @@ public class BanwaveChecker {
 
                     if(banwaveOn) {
                         if (getBanTimeDiff() != 0)
-                            banwaveOn = getBanDiff() / (getBanTimeDiff() * 1.0f) > (MiscConfig.banThreshold * 0.8f)/ 15.0f;
+                            banwaveOn = getBanDiff() / (getBanTimeDiff() * 1.0f) > (FailsafeConfig.banThreshold * 0.8f)/ 15.0f;
                     } else {
                         if (getBanTimeDiff() != 0)
-                            banwaveOn = getBanDiff() / (getBanTimeDiff() * 1.0f) > MiscConfig.banThreshold / 15.0f;
+                            banwaveOn = getBanDiff() / (getBanTimeDiff() * 1.0f) > FailsafeConfig.banThreshold / 15.0f;
                     }
 
-                    if(MacroHandler.isMacroing && MiscConfig.banwaveDisconnect) {
-                        if (banwaveOn && mc.theWorld != null && !MacroHandler.caged) {
+                    if(MacroHandler.isMacroing && FailsafeConfig.banwaveDisconnect) {
+                        if (banwaveOn && mc.theWorld != null && !Failsafe.emergency) {
                             LogUtils.webhookLog("Disconnecting due to banwave detected");
                             this.mc.theWorld.sendQuittingDisconnectingPacket();
 

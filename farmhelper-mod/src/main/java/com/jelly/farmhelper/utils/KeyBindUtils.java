@@ -51,6 +51,30 @@ public class KeyBindUtils
         updateKeys(forward, back, right, left, attack, false, false);
     }
 
+    public static void setKeyBindState(KeyBinding key, boolean pressed) {
+        if (pressed) {
+            if (mc.currentScreen != null) {
+                realSetKeyBindState(key, false);
+                return;
+            }
+        }
+        realSetKeyBindState(key, pressed);
+    }
+
+    private static void realSetKeyBindState(KeyBinding key, boolean pressed){
+        if(pressed){
+            if(!key.isKeyDown()){
+                KeyBinding.onTick(key.getKeyCode());
+            }
+            KeyBinding.setKeyBindState(key.getKeyCode(), true);
+
+        } else {
+            KeyBinding.setKeyBindState(key.getKeyCode(), false);
+        }
+
+    }
+
+
     public static void updateKeys(boolean forward, boolean back, boolean right, boolean left, boolean attack, boolean crouch, boolean space) {
         if (mc.currentScreen != null) {
             stopMovement();

@@ -1,8 +1,8 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.JacobConfig;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.command.commands.ReconnectCommand;
 import net.minecraft.client.Minecraft;
@@ -24,30 +24,20 @@ public class AutoReconnect {
         if (ReconnectCommand.isEnabled) {
             if (ReconnectCommand.reconnectClock.getRemainingTime() > 0) {
                 return;
-            } else if (!((Failsafe.jacobWait.passed() && JacobConfig.jacobFailsafe) && (BanwaveChecker.banwaveOn && MiscConfig.banwaveDisconnect))) {
+            } else if (!((Failsafe.jacobWait.passed() && JacobConfig.jacobFailsafe) && (BanwaveChecker.banwaveOn && FailsafeConfig.banwaveDisconnect))) {
                 ReconnectCommand.isEnabled = false;
                 FMLClientHandler.instance().connectToServer(new GuiMultiplayer(new GuiMainMenu()), new ServerData("bozo", FarmHelper.gameState.serverIP, false));
             }
         }
-        if (MacroHandler.resting && ((mc.currentScreen instanceof GuiDisconnected) || (mc.currentScreen instanceof GuiMainMenu))) {
-            new Thread(() -> {
-                try {
-                    Thread.sleep(1000 * 10 * 5);
-                    if ((mc.currentScreen instanceof GuiDisconnected) || (mc.currentScreen instanceof GuiMainMenu)) {
-                        MacroHandler.resting = false;
-                    }
-                } catch (Exception e) {
-                }
-            }).start();
-        }
+
         if (event.phase == TickEvent.Phase.END || !MacroHandler.isMacroing)
             return;
-        if(BanwaveChecker.banwaveOn && MiscConfig.banwaveDisconnect)
+        if(BanwaveChecker.banwaveOn && FailsafeConfig.banwaveDisconnect)
             return;
         if(!Failsafe.jacobWait.passed() && JacobConfig.jacobFailsafe)
             return;
         if ((mc.currentScreen instanceof GuiDisconnected)) {
-            if (waitTime >= (MiscConfig.reconnectDelay * 20)) {
+            if (waitTime >= (FailsafeConfig.reconnectDelay * 20)) {
                 waitTime = 0;
                 FMLClientHandler.instance().connectToServer(new GuiMultiplayer(new GuiMainMenu()), new ServerData("bozo", FarmHelper.gameState.serverIP, false));
             } else {

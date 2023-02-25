@@ -45,10 +45,7 @@ public class Resync {
             cachedPos = null;
 
             if (desync && FarmHelper.gameState.currentLocation == GameState.location.ISLAND) {
-                LogUtils.debugLog("Desync detected");
-                LogUtils.webhookLog("Desync detected");
-                MacroHandler.disableCurrentMacro();
-                mc.thePlayer.sendChatMessage("/hub");
+                Failsafe.emergencyFailsafe(Failsafe.FailsafeType.DESYNC);
             }
         }
     };

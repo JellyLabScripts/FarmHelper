@@ -20,7 +20,6 @@ abstract public class AnalyticBaseCommand {
         obj.addProperty("hoeCounter", InventoryUtils.getCounter());
         obj.addProperty("isMacroing", MacroHandler.isMacroing);
         obj.addProperty("startTime", MacroHandler.startTime);
-        obj.addProperty("isCagedOrResting", (MacroHandler.caged || MacroHandler.resting));
         obj.addProperty("isBanwaveWaiting", BanwaveChecker.banwaveOn && mc.currentScreen instanceof GuiDisconnected);
         obj.add("settings", sanitizeConfig(ConfigHandler.getConfig()));
         return obj;

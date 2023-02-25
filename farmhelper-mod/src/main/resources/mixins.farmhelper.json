@@ -8,6 +8,7 @@
     "block.MixinBlockCrops",
     "block.MixinBlockNetherWart",
     "client.MinecraftMixin",
+    "client.MixinChunk",
     "fml.MixinFMLHandshakeMessage",
     "gui.MixinGuiDisconnected",
     "network.MixinNetworkManager",

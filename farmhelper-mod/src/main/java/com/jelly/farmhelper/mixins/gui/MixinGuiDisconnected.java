@@ -1,8 +1,7 @@
 package com.jelly.farmhelper.mixins.gui;
 
 import com.google.gson.JsonObject;
-import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.features.AutoReconnect;
 import com.jelly.farmhelper.features.BanwaveChecker;
 import com.jelly.farmhelper.features.Failsafe;
@@ -19,7 +18,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
-import java.util.Objects;
 
 import static com.jelly.farmhelper.utils.Utils.formatTime;
 
@@ -40,7 +38,6 @@ public class MixinGuiDisconnected {
             JsonObject json = new JsonObject();
             json.addProperty("duration", duration);
             json.addProperty("reason", reason);
-            json.addProperty("usingfh", (MacroHandler.caged || MacroHandler.resting || MacroHandler.isMacroing));
             json.addProperty("username", Minecraft.getMinecraft().getSession().getUsername());
             json.add("otherData", AnalyticBaseCommand.gatherMacroingData());
             RemoteControlHandler.analytic.send(json.toString());
@@ -53,14 +50,14 @@ public class MixinGuiDisconnected {
         }
 
         if(MacroHandler.isMacroing) {
-            if (BanwaveChecker.banwaveOn && MiscConfig.banwaveDisconnect) {
+            if (BanwaveChecker.banwaveOn && FailsafeConfig.banwaveDisconnect) {
                 Minecraft.getMinecraft().fontRendererObj.drawString("There is a banwave! " + BanwaveChecker.getBanDisplay(), 5, 5, -1);
             }
             if (!Failsafe.jacobWait.passed()) {
                 Minecraft.getMinecraft().fontRendererObj.drawString("In Jacob Failsafe", 5, 20, -1);
             }
             if (AutoReconnect.waitTime > 0) {
-                multilineMessage.set(0, "Seconds till reconnect: " + Math.floor(((MiscConfig.reconnectDelay * 20) - AutoReconnect.waitTime) / 20));
+                multilineMessage.set(0, "Seconds till reconnect: " + Math.floor(((FailsafeConfig.reconnectDelay * 20) - AutoReconnect.waitTime) / 20));
                 multilineMessage = multilineMessage.subList(0, 1);
             }
         }
