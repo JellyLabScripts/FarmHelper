@@ -1,10 +1,13 @@
 package com.jelly.farmhelper.utils;
 
+import com.jelly.farmhelper.macros.Macro;
+import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.mixins.block.IBlockAccessor;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 
 
@@ -52,5 +55,51 @@ public class CropUtils {
 
     public static void updateWartMaxY(World world, BlockPos pos, Block block) {
         ((IBlockAccessor) block).setMaxY(NETHER_WART_BOX[world.getBlockState(pos).getValue(BlockNetherWart.AGE)].maxY);
+    }
+
+    public static void updateCocoaBeansHitbox(IBlockState blockState) {
+        EnumFacing enumFacing = blockState.getValue(BlockDirectional.FACING);
+        int age = blockState.getValue(BlockCocoa.AGE);
+        int j = 4 + age * 2;
+        int k = 5 + age * 2;
+
+        if (MacroHandler.currentMacro == MacroHandler.cocoaBeanMacro && MacroHandler.isMacroing) {
+            switch (enumFacing) {
+                case SOUTH: {
+                    blockState.getBlock().setBlockBounds(0, (12.0f - (float) k) / 16.0f, (15.0f - (float) j) / 16.0f, 1, 0.75f, 0.9375f);
+                    break;
+                }
+                case NORTH: {
+                    blockState.getBlock().setBlockBounds(0, (12.0f - (float) k) / 16.0f, 0.0625f, 1, 0.75f, (1.0f + (float) j) / 16.0f);
+                    break;
+                }
+                case WEST: {
+                    blockState.getBlock().setBlockBounds(0.0625f, (12.0f - (float) k) / 16.0f, 0, (1.0f + (float) j) / 16.0f, 0.75f, 1);
+                    break;
+                }
+                case EAST: {
+                    blockState.getBlock().setBlockBounds((15.0f - (float) j) / 16.0f, (12.0f - (float) k) / 16.0f, 0, 0.9375f, 0.75f, 1);
+                }
+            }
+        } else {
+            float f = (float)j / 2.0f;
+            switch (enumFacing) {
+                case SOUTH: {
+                    blockState.getBlock().setBlockBounds((8.0f - f) / 16.0f, (12.0f - (float)k) / 16.0f, (15.0f - (float)j) / 16.0f, (8.0f + f) / 16.0f, 0.75f, 0.9375f);
+                    break;
+                }
+                case NORTH: {
+                    blockState.getBlock().setBlockBounds((8.0f - f) / 16.0f, (12.0f - (float)k) / 16.0f, 0.0625f, (8.0f + f) / 16.0f, 0.75f, (1.0f + (float)j) / 16.0f);
+                    break;
+                }
+                case WEST: {
+                    blockState.getBlock().setBlockBounds(0.0625f, (12.0f - (float)k) / 16.0f, (8.0f - f) / 16.0f, (1.0f + (float)j) / 16.0f, 0.75f, (8.0f + f) / 16.0f);
+                    break;
+                }
+                case EAST: {
+                    blockState.getBlock().setBlockBounds((15.0f - (float)j) / 16.0f, (12.0f - (float)k) / 16.0f, (8.0f - f) / 16.0f, 0.9375f, 0.75f, (8.0f + f) / 16.0f);
+                }
+            }
+        }
     }
 }

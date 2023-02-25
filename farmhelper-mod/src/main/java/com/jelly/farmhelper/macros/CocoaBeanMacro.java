@@ -25,6 +25,7 @@ public class CocoaBeanMacro extends Macro {
         SWITCH_ROW,
         SWITCH_SIDE,
         RIGHT,
+        KEEP_RIGHT,
         LEFT,
         LEFT_KEEP,
         STONE_THROW,
@@ -55,6 +56,8 @@ public class CocoaBeanMacro extends Macro {
     private int axeSlot;
     private int axeEquipFails = 0;
     private int notmovingticks = 0;
+    private double prevPlayerX;
+    private double prevPlayerZ;
 
     @Override
     public void onEnable() {
@@ -88,12 +91,16 @@ public class CocoaBeanMacro extends Macro {
         if (!enabled) return;
         if (event.type == RenderGameOverlayEvent.ElementType.ALL && currentState != null) {
             FontUtils.drawScaledString("State: " + currentState.name(), 1, 300, 100, true);
-            FontUtils.drawScaledString("Block: " + BlockUtils.getRelativeBlock(-1, 0, 1), 1, 300, 100 + 12, true);
         }
     }
 
     @Override
     public void onTick() {
+        if (currentState == State.TP_PAD && (Math.abs(prevPlayerZ - mc.thePlayer.posZ) > 10 || Math.abs(prevPlayerX - mc.thePlayer.posX) > 10)) {
+            LogUtils.debugLog("Detected teleport due to sudden large position change");
+            tpFlag = true;
+        }
+
         if (gameState.currentLocation != GameState.location.ISLAND) {
             updateKeys(false, false, false, false, false);
             enabled = false;
@@ -147,7 +154,22 @@ public class CocoaBeanMacro extends Macro {
         updateState();
 
         switch (currentState) {
+            case TP_PAD:
+                if (Math.abs(mc.thePlayer.posY - layerY) > 0.5 || tpFlag) {
+                    LogUtils.debugLog("Teleported!");
+                    updateKeys(true, false, false, false, false);
+                    tpFlag = false;
+                    currentState = State.LEFT;
+                } else {
+                    LogUtils.debugLog("Waiting for teleport land");
+                    updateKeys(false, false, false, false, false);
+                }
+                return;
             case RIGHT:
+                LogUtils.debugLog("On right row, going back");
+                updateKeys(false, false, true, false, findAndEquipAxe());
+                return;
+            case KEEP_RIGHT:
                 LogUtils.debugLog("On right row, going back");
                 updateKeys(false, true, true, false, findAndEquipAxe());
                 return;
@@ -163,8 +185,10 @@ public class CocoaBeanMacro extends Macro {
             case SWITCH_SIDE:
                 LogUtils.debugLog("Finished row, going right");
                 updateKeys(false, true, true, false, false);
-                return;
         }
+
+        prevPlayerX = mc.thePlayer.posX;
+        prevPlayerZ = mc.thePlayer.posZ;
     }
 
     private void updateState() {
@@ -183,14 +207,18 @@ public class CocoaBeanMacro extends Macro {
             if (BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.cobblestone)) {
                 currentState = State.RIGHT;
             }
-        } else if (currentState == State.RIGHT && !BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.air)) {
+        } else if (currentState == State.KEEP_RIGHT && !BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.air)) {
             currentState = State.SWITCH_ROW;
-        } else if (currentState == State.LEFT && BlockUtils.getRelativeBlock(-1, 0, 2).equals(Blocks.air)) {
+        } else if (currentState == State.LEFT_KEEP && BlockUtils.getRelativeBlock(-1, 0, 1).equals(Blocks.air)) {
             currentState = State.SWITCH_SIDE;
-        } else if ((currentState == State.NONE || (currentState == State.LEFT && lastState == State.LEFT)) && BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.cobblestone)) {
-            currentState = State.LEFT_KEEP;
+        } else if (BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.cobblestone)) {
+            if ((currentState == State.NONE || (currentState == State.LEFT && lastState == State.LEFT))) {
+                currentState = State.LEFT_KEEP;
+            }
         } else if (BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.cobblestone)) {
-            currentState = State.RIGHT;
+            if ((currentState == State.NONE || (currentState == State.RIGHT && lastState == State.RIGHT))) {
+                currentState = State.KEEP_RIGHT;
+            }
         } else {
             currentState = State.NONE;
         }

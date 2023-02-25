@@ -5,6 +5,7 @@
   "refmap": "mixins.farmhelper.refmap.json",
   "mixins": [
     "block.IBlockAccessor",
+    "block.MixinBlockCocoa",
     "block.MixinBlockCrops",
     "block.MixinBlockNetherWart",
     "client.MinecraftMixin",
