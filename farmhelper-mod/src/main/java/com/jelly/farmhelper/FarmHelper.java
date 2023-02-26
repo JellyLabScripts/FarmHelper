@@ -37,7 +37,7 @@ import java.util.jar.Manifest;
 public class FarmHelper {
     public static final String MODID = "farmhelper";
     public static final String NAME = "Farm Helper";
-    public static final String VERSION = "4.2.10";
+    public static final String VERSION = "4.3";
     public static String analyticUrl;
 
     // the actual mod version from gradle properties, should match with VERSION
@@ -51,15 +51,18 @@ public class FarmHelper {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        TrayIcon trayIcon = new TrayIcon(new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR), "MightyMiner Failsafe Notification");
-        trayIcon.setToolTip("Farm Helper Failsafe Notification");
-        try {
-            SystemTray.getSystemTray().add(trayIcon);
-        } catch (AWTException e) {
-            throw new RuntimeException(e);
-        }
-        trayIcon.displayMessage("init", "init", TrayIcon.MessageType.INFO);
-        SystemTray.getSystemTray().remove(trayIcon);
+        new Thread(() -> {
+            TrayIcon trayIcon = new TrayIcon(new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR), "Farm Helper Failsafe Notification");
+            trayIcon.setToolTip("Farm Helper Failsafe Notification");
+            try {
+                SystemTray.getSystemTray().add(trayIcon);
+            } catch (AWTException e) {
+                throw new RuntimeException(e);
+            }
+            trayIcon.displayMessage("init", "init", TrayIcon.MessageType.ERROR);
+            SystemTray.getSystemTray().remove(trayIcon);
+        }).start();
+
         setVersions();
         ConfigHandler.init();
         KeyBindUtils.setup();

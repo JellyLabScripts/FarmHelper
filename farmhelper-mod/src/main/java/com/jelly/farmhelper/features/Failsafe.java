@@ -34,6 +34,8 @@ public class Failsafe {
     private static final Clock cooldown = new Clock();
     public static final Clock jacobWait = new Clock();
     private static String formattedTime;
+
+    private static boolean wasInGarden = false;
     private static final String[] messages = new String[]
             {"What", "what?", "what", "what??", "What???", "Wut?", "?", "what???", "yo huh", "yo huh?", "yo?", "bedrock??", "bedrock?",
                     "ehhhhh??", "eh", "yo", "ahmm", "ehh", "LOL what", "Lol", "lol", "lmao", "Lmfao", "lmfao"
@@ -59,14 +61,20 @@ public class Failsafe {
         if (!MacroHandler.isMacroing || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
 
 
-        if(BlockUtils.bedrockCount() > 2){
+        if(!emergency && BlockUtils.bedrockCount() > 2){
             emergencyFailsafe(FailsafeType.BEDROCK);
             return;
         }
-        if(gameState.currentLocation != GameState.location.ISLAND && MacroHandler.currentMacro.enabled){
+
+        GameState.location location = gameState.currentLocation;
+        //TODO: Fix not creating notifications
+        if(location != GameState.location.ISLAND && MacroHandler.currentMacro.enabled){
+            if(FailsafeConfig.notifications)
+                createNotification("Not in island", SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
+            LogUtils.scriptLog("Failsafe - Not in island, re-warping" + (FailsafeConfig.autoSetspawn ? "" : ". Since auto setspawn was disabled, fly back to the place where you started"));
             MacroHandler.disableCurrentMacro();
         }
-        switch (gameState.currentLocation) {
+        switch (location) {
             case TELEPORTING:
                 return;
             case LIMBO:
@@ -87,11 +95,12 @@ public class Failsafe {
                 LogUtils.debugLog("Detected Hub");
                 if (cooldown.passed() && jacobWait.passed() && !AutoCookie.isEnabled() && !AutoPot.isEnabled()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
-                    mc.thePlayer.sendChatMessage("/is");
+                    mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
                     cooldown.schedule(5000);
                 }
                 return;
             case ISLAND:
+                checkInGarden();
                 if (JacobConfig.jacobFailsafe && jacobExceeded() && jacobWait.passed() && MacroHandler.currentMacro.enabled) {
                     LogUtils.debugLog("Jacob remaining time: " + formattedTime);
                     LogUtils.webhookLog("Jacob score exceeded - - Resuming in " + formattedTime);
@@ -104,12 +113,22 @@ public class Failsafe {
                         && Scheduler.isFarming()
                         && !AutoCookie.isEnabled()
                         && !AutoPot.isEnabled()
-                        && !(BanwaveChecker.banwaveOn && FailsafeConfig.banwaveDisconnect)) {
+                        && !(BanwaveChecker.banwaveOn && FailsafeConfig.banwaveDisconnect)
+                        && !emergency) {
                     MacroHandler.enableCurrentMacro();
                 }
         }
     }
 
+    public static void checkInGarden(){
+        for (String line : ScoreboardUtils.getScoreboardLines()) {
+            String cleanedLine = ScoreboardUtils.cleanSB(line);
+            if (cleanedLine.contains("Island")) {
+                wasInGarden = false;
+            } else if(cleanedLine.contains("Garden") || cleanedLine.contains("Plot:"))
+                wasInGarden = true;
+        }
+    }
 
 
     public static boolean jacobExceeded() {
@@ -157,7 +176,7 @@ public class Failsafe {
     @SubscribeEvent
     public void onBlockChange(BlockChangeEvent event){
 
-        if(mc.thePlayer == null || mc.theWorld == null || MacroHandler.currentMacro == null || !MacroHandler.isMacroing || !MacroHandler.currentMacro.enabled)
+        if(mc.thePlayer == null || mc.theWorld == null || MacroHandler.currentMacro == null || !MacroHandler.isMacroing || !MacroHandler.currentMacro.enabled || emergency)
             return;
 
         if(gameState.currentLocation != GameState.location.ISLAND || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame))
@@ -182,10 +201,10 @@ public class Failsafe {
     }
 
     public enum FailsafeType {
-        DIRT ("Dirt checked"),
-        BEDROCK ("Bedrock checked"),
-        ROTATION ("Rotation checked"),
-        DESYNC("Desynced");
+        DIRT ("You may have been dirt checked"),
+        BEDROCK ("You have been bedrock checked"),
+        ROTATION ("You may have been rotation checked or you may have moved your mouse"),
+        DESYNC("You are desynced so there may be a staff spectating");
 
         final String label;
         FailsafeType(String s) {
@@ -195,14 +214,17 @@ public class Failsafe {
 
     public static void emergencyFailsafe(FailsafeType type) {
         emergency = true;
-        LogUtils.scriptLog("You might have been staff checked! Act like a normal player and STOP the script now");
-        if(type != FailsafeType.DIRT && type != FailsafeType.DESYNC) // you may not be able to see the dirt
+
+        LogUtils.webhookLog(type.label);
+        LogUtils.scriptLog("You might have been staff checked! Act like a normal player and stop the script!");
+
+        if(type != FailsafeType.DIRT && type != FailsafeType.DESYNC) // you may not be able to see the dirt, disable a few seconds later
             MacroHandler.disableCurrentMacro();
 
         SystemTray tray = SystemTray.getSystemTray();
 
         if(FailsafeConfig.notifications){
-            createNotification(type.label, tray);
+            createNotification(type.label, tray, TrayIcon.MessageType.WARNING);
         }
 
         if(FailsafeConfig.pingSound) {
@@ -211,7 +233,8 @@ public class Failsafe {
 
         if(FailsafeConfig.fakeMovements) {
             switch (type){
-                case DIRT: case DESYNC: break;
+                case DIRT: case DESYNC:
+                    emergencyThreadExecutor.submit(stopScript);
                 case ROTATION:
                     emergencyThreadExecutor.submit(rotationMovement);
                     break;
@@ -221,9 +244,9 @@ public class Failsafe {
         }
     }
 
-    public static void createNotification(String text, SystemTray tray) {
+    public static void createNotification(String text, SystemTray tray, TrayIcon.MessageType messageType) {
         new Thread(() -> {
-            TrayIcon trayIcon = new TrayIcon(new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR), "MightyMiner Failsafe Notification");
+            TrayIcon trayIcon = new TrayIcon(new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR), "Farm Helper Failsafe Notification");
             trayIcon.setToolTip("Farm Helper Failsafe Notification");
             try {
                 tray.add(trayIcon);
@@ -231,42 +254,16 @@ public class Failsafe {
                 throw new RuntimeException(e);
             }
 
-            trayIcon.displayMessage("MightyMiner - Failsafes", text, TrayIcon.MessageType.WARNING);
+            trayIcon.displayMessage("Farm Helper - Failsafes", text, messageType);
         }).start();
 
     }
 
-    static Runnable rotationMovement = () -> {
-        try {
-            int numberOfRepeats = new Random().nextInt(2) + 2;
-            Thread.sleep(new Random().nextInt(150) + 200);
-            if (Math.random() < 0.3f)
-                mc.thePlayer.jump();
-            else if (Math.random() < 0.5f){
-                for (int i = 0; i < new Random().nextInt(2) + 1; i++) {
-                    KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
-                    Thread.sleep(150 + new Random().nextInt(300));
-                    KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, false);
-                    Thread.sleep(150 + new Random().nextInt(300));
-                }
-            }
-            Thread.sleep(new Random().nextInt(200) + 150);
-            for (int i = 0; i < numberOfRepeats; i++) {
-                Thread.sleep(new Random().nextInt(150) + 200);
-                Tuple<Float, Float> targetRotation = new Tuple<>(mc.thePlayer.rotationYaw + new Random().nextInt(100) - 50, Math.min(Math.max(mc.thePlayer.rotationPitch + new Random().nextInt(100) - 50, -45), 45));
-                int timeToRotate = new Random().nextInt(250) + 250;
-                rotation.easeTo(targetRotation.getFirst(), targetRotation.getSecond(), timeToRotate);
-                Thread.sleep(timeToRotate + new Random().nextInt(250));
-                if (new Random().nextInt(3) == 0) {
-                    for (int j = 0; j < new Random().nextInt(3); j++) {
-                        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
-                        Thread.sleep(100 + new Random().nextInt(200));
-                        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, false);
-                        Thread.sleep(150);
-                    }
-                }
-            }
-        } catch (InterruptedException e) {
+    static Runnable stopScript = () -> {
+        try{
+            Thread.sleep((long) (2000 + Math.random() * 1000));
+            MacroHandler.disableCurrentMacro();
+        } catch(Exception e){
             e.printStackTrace();
         }
     };
@@ -298,13 +295,13 @@ public class Failsafe {
                     Thread.sleep(6000);
                     KeyBindUtils.rightClick();
                     Thread.sleep(3000);
-                    InventoryUtils.clickOpenContainerSlot(11);
+                    PlayerUtils.clickOpenContainerSlot(11);
                     Thread.sleep(3000);
-                    InventoryUtils.clickOpenContainerSlot(11);
+                    PlayerUtils.clickOpenContainerSlot(11);
                     Thread.sleep(3000);
-                    InventoryUtils.clickOpenContainerSlot(10);
+                    PlayerUtils.clickOpenContainerSlot(10);
                     Thread.sleep(3000);
-                    InventoryUtils.clickOpenContainerSlot(10);
+                    PlayerUtils.clickOpenContainerSlot(10);
                     Thread.sleep(3000);
                     mc.thePlayer.closeScreen();
                 }
@@ -317,6 +314,57 @@ public class Failsafe {
         } catch (Exception e) {}
 
     };
+
+
+    static Runnable rotationMovement = () -> {
+        try {
+            int numberOfRepeats = new Random().nextInt(2) + 2;
+            boolean sneak = Math.random() < 0.3d;
+            Thread.sleep(new Random().nextInt(300) + 300);
+            if (Math.random() < 0.3f)
+                mc.thePlayer.jump();
+            else if (Math.random() < 0.1f){
+                for (int i = 0; i < new Random().nextInt(2) + 1; i++) {
+                    KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
+                    Thread.sleep(150 + new Random().nextInt(300));
+                    KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, false);
+                    Thread.sleep(150 + new Random().nextInt(300));
+                }
+            }
+            Thread.sleep(new Random().nextInt(200) + 150);
+
+            for (int i = 0; i < numberOfRepeats; i++) {
+                Thread.sleep(new Random().nextInt(150) + 200);
+                Tuple<Float, Float> targetRotation = new Tuple<>(mc.thePlayer.rotationYaw + new Random().nextInt(100) - 50, Math.min(Math.max(mc.thePlayer.rotationPitch + new Random().nextInt(100) - 50, -45), 45));
+                int timeToRotate = new Random().nextInt(250) + 250;
+                rotation.easeTo(targetRotation.getFirst(), targetRotation.getSecond(), timeToRotate);
+                Thread.sleep(timeToRotate + new Random().nextInt(250));
+                if (sneak && new Random().nextInt(3) == 0) {
+                    for (int j = 0; j < new Random().nextInt(3); j++) {
+                        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
+                        Thread.sleep(120 + new Random().nextInt(200));
+                        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, false);
+                        Thread.sleep(150);
+                    }
+                }
+            }
+            LogUtils.scriptLog("Stop the macro if you see this!");
+            Thread.sleep(3000);
+            if(Math.random() < 0.5d) {
+                mc.thePlayer.sendChatMessage("/hub");
+                Thread.sleep(1000);
+                if (FarmHelper.gameState.currentLocation == GameState.location.HUB) {
+                    emergencyThreadExecutor.submit(bazaarChilling);
+                } else {
+                    Thread.sleep(1000 * 60 * 5);
+                    MacroHandler.enableMacro();
+                }
+            } else mc.theWorld.sendQuittingDisconnectingPacket();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    };
+
 
     static Runnable cagedActing = () -> {
         LogUtils.webhookLog("You just got caged bozo! Buy a lottery ticket! @everyone");
@@ -353,8 +401,8 @@ public class Failsafe {
             }
             stopMovement();
             Thread.sleep((long) (500 + Math.random() * 2000));
-            mc.thePlayer.sendChatMessage("/hub");
             if(Math.random() < 0.5d) {
+                mc.thePlayer.sendChatMessage("/hub");
                 Thread.sleep(5000);
                 if (FarmHelper.gameState.currentLocation == GameState.location.HUB) {
                     emergencyThreadExecutor.submit(bazaarChilling);

@@ -2,20 +2,24 @@ package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.enums.FarmEnum;
+import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Antistuck;
+import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 
 import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.BlockUtils.getRelativeBlock;
 import static com.jelly.farmhelper.utils.BlockUtils.isWalkable;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
+//TODO: Add drop rotation detection
 public class LayeredCropMacro extends Macro {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
@@ -44,25 +48,22 @@ public class LayeredCropMacro extends Macro {
     public State currentState;
     private StoneThrowState stoneState;
     private double layerY;
-    private boolean pushedSide;
-    private boolean pushedFront;
     private boolean antistuckActive;
     private boolean tpFlag;
     private float yaw;
     private float pitch;
-    private final Clock rotateWait = new Clock();
     private final Clock stoneDropTimer = new Clock();
     private int hoeSlot;
     private int hoeEquipFails = 0;
     private int notmovingticks = 0;
+
+    final float RANDOM_CONST = 1 / 13.0f;
 
 
     @Override
     public void onEnable() {
         layerY = mc.thePlayer.posY;
         currentState = State.NONE;
-        pushedFront = false;
-        pushedSide = false;
         antistuckActive = false;
         Antistuck.stuck = false;
         tpFlag = false;
@@ -89,12 +90,15 @@ public class LayeredCropMacro extends Macro {
     }
 
     @Override
-    public void onTick() {
-        if (gameState.currentLocation != GameState.location.ISLAND) {
-            updateKeys(false, false, false, false, false);
-            enabled = false;
-            return;
+    public void onPacketReceived(ReceivePacketEvent event) {
+        if(rotation.rotating && currentState == State.DROPPING && event.packet instanceof S08PacketPlayerPosLook) {
+            rotation.reset();
+            Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
         }
+    }
+
+    @Override
+    public void onTick() {
 
         if (rotation.rotating) {
             updateKeys(false, false, false, false, false);
@@ -102,19 +106,11 @@ public class LayeredCropMacro extends Macro {
         }
 
 
-        if ((currentState != State.DROPPING && currentState != State.TP_PAD && currentState != State.STONE_THROW && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > 5 || Math.abs(mc.thePlayer.rotationPitch - pitch) > 5))) {
-            LogUtils.debugFullLog("Staff rotate");
+        if ((currentState != State.DROPPING && currentState != State.TP_PAD && currentState != State.STONE_THROW &&
+                (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens))) {
             rotation.reset();
-            if (rotateWait.passed() && rotateWait.isScheduled()) {
-                LogUtils.webhookLog("Rotate Checked");
-                LogUtils.debugLog("Rotate Checked");
-                rotation.easeTo(yaw, pitch, 2000);
-                rotateWait.reset();
-                updateKeys(false, false, false, false, false);
-                return;
-            } else if (rotateWait.passed()) {
-                rotateWait.schedule(500);
-            }
+            Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
+            return;
         }
 
         if (Antistuck.stuck && currentState != State.STONE_THROW) {
@@ -202,7 +198,7 @@ public class LayeredCropMacro extends Macro {
                             LogUtils.debugLog("Rotating 180");
                             rotation.reset();
                             yaw = AngleUtils.get360RotationYaw(yaw + 180);
-                            rotation.easeTo(yaw, pitch, 2000);
+                            rotation.easeTo(yaw, pitch, (long) (1000 + Math.random() * 1000));
                         }
                         LogUtils.debugFullLog("Waiting Rotating 180");
                         updateKeys(false, false, false, false, false);
@@ -212,7 +208,7 @@ public class LayeredCropMacro extends Macro {
                             layerY = mc.thePlayer.posY;
                             rotation.reset();
                             currentState = State.NONE;
-                            mc.thePlayer.sendChatMessage("/setspawn");
+                            PlayerUtils.attemptSetSpawn();
                         } else {
                             LogUtils.debugFullLog("Falling");
                         }
@@ -245,81 +241,25 @@ public class LayeredCropMacro extends Macro {
                 updateKeys(shouldWalkForwards(), false, false, true, findAndEquipHoe());
                 return;
             case SWITCH_START:
-                if (mc.gameSettings.keyBindForward.isKeyDown()) {
-                    LogUtils.debugFullLog("Continue forwards");
-                    updateKeys(true, false, false, false, false);
-                } else if (pushedSide) {
-                    if (gameState.dx < 0.01 && gameState.dz < 0.01) {
-                        LogUtils.debugLog("Stopped, go forwards");
-                        updateKeys(true, false, false, false, false);
-                    } else {
-                        LogUtils.debugFullLog("Pushed, waiting till stopped");
-                        updateKeys(false, false, false, false, false, true, false);
-                    }
-                } else {
-                    if (gameState.dx < 0.01 && gameState.dz < 0.01) {
-                        if (gameState.leftWalkable) {
-                            LogUtils.debugFullLog("Stopped, edge left");
-                            updateKeys(false, false, false, true, false, true, false);
-                        } else {
-                            LogUtils.debugFullLog("Stopped, edge right");
-                            updateKeys(false, false, true, false, false, true, false);
-                        }
-                        pushedSide = true;
-                    } else {
-                        if (gameState.leftWalkable) {
-                            LogUtils.debugFullLog("Going to edge, right");
-                            updateKeys(false, false, true, false, findAndEquipHoe());
-                        } else {
-                            LogUtils.debugFullLog("Going to edge, left");
-                            updateKeys(false, false, false, true, findAndEquipHoe());
-                        }
-                    }
-                }
+                LogUtils.debugFullLog("Continue forwards");
+                updateKeys(true, false, false, false, false);
                 return;
             case SWITCH_MID:
                 LogUtils.debugLog("Middle of switch, keep going forwards");
                 updateKeys(true, false, false, false, false);
                 return;
             case SWITCH_END:
-                if (mc.gameSettings.keyBindRight.isKeyDown()) {
+                if (gameState.rightWalkable) {
                     LogUtils.debugFullLog("Continue going right");
                     updateKeys(false, false, true, false, findAndEquipHoe());
-                } else if (mc.gameSettings.keyBindLeft.isKeyDown()) {
+                } else if (gameState.leftWalkable) {
                     LogUtils.debugFullLog("Continue going left");
                     updateKeys(false, false, false, true, findAndEquipHoe());
-                } else if (pushedFront) {
-                    if (gameState.dx < 0.01 && gameState.dz < 0.01) {
-                        if (MiscConfig.dropStone && InventoryUtils.getSlotForItem("Stone") != -1) {
-                            currentState = State.STONE_THROW;
-                            stoneState = StoneThrowState.ROTATE_AWAY;
-                            rotation.reset();
-                            LogUtils.debugLog("Found stone, switching state");
-                            updateKeys(false, false, true, false, findAndEquipHoe());
-                        } else if (gameState.rightWalkable) {
-                            LogUtils.debugLog("Stopped, go right");
-                            updateKeys(false, false, true, false, findAndEquipHoe());
-                        } else {
-                            LogUtils.debugLog("Stopped, go left");
-                            updateKeys(false, false, false, true, findAndEquipHoe());
-                        }
-                    } else {
-                        LogUtils.debugFullLog("Pushed, waiting till stopped");
-                        updateKeys(false, false, false, false, false, true, false);
-                    }
-                } else {
-                    if (gameState.dx < 0.01 && gameState.dz < 0.01) {
-                        LogUtils.debugFullLog("Stopped, edge backwards");
-                        pushedFront = true;
-                    } else {
-                        LogUtils.debugFullLog("Going to lane, forwards");
-                        updateKeys(true, false, false, false, false);
-                    }
                 }
                 return;
             case STONE_THROW:
                 updateKeys(false, false, false, false, false);
-                int stoneSlot = InventoryUtils.getSlotForItem("Stone");
+                int stoneSlot = PlayerUtils.getSlotForItem("Stone");
                 switch (stoneState) {
                     case ROTATE_AWAY:
                         if (rotation.completed) {
@@ -340,8 +280,8 @@ public class LayeredCropMacro extends Macro {
                     case LIFT:
                         if (!stoneDropTimer.isScheduled()) {
                             LogUtils.debugLog("Lifting");
-                            InventoryUtils.clickOpenContainerSlot(stoneSlot);
-                            InventoryUtils.clickOpenContainerSlot(stoneSlot, 0, 6);
+                            PlayerUtils.clickOpenContainerSlot(stoneSlot);
+                            PlayerUtils.clickOpenContainerSlot(stoneSlot, 0, 6);
                             stoneDropTimer.schedule(200);
                         } else if (stoneDropTimer.passed()) {
                             stoneState = StoneThrowState.SWITCH;
@@ -352,7 +292,7 @@ public class LayeredCropMacro extends Macro {
                         if (!stoneDropTimer.isScheduled()) {
                             LogUtils.debugLog("Switching");
                             stoneDropTimer.schedule(1000);
-                            InventoryUtils.clickOpenContainerSlot(35 + 7, 0, 0);
+                            PlayerUtils.clickOpenContainerSlot(35 + 7, 0, 0);
                         } else if (stoneDropTimer.passed()) {
                             stoneState = StoneThrowState.DROP;
                             stoneDropTimer.reset();
@@ -400,17 +340,17 @@ public class LayeredCropMacro extends Macro {
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
             // layerY = mc.thePlayer.posY;
             if (currentState != State.RIGHT && currentState != State.LEFT) {
-                if(Utils.nextInt(4) == 0) {
-                    mc.thePlayer.sendChatMessage("/setspawn");
-                    currentState = calculateDirection();
-                }
+                PlayerUtils.attemptSetSpawn();
+                currentState = calculateDirection();
             }
         } else if (gameState.frontWalkable && !gameState.backWalkable) {
-            currentState = State.SWITCH_START;
+            if( Math.random() < RANDOM_CONST)
+                currentState = State.SWITCH_START;
         } else if (gameState.frontWalkable) {
             currentState = State.SWITCH_MID;
         } else if (gameState.backWalkable) {
-            currentState = State.SWITCH_END;
+            if( Math.random() < RANDOM_CONST)
+                currentState = State.SWITCH_END;
         } else if (gameState.leftWalkable) {
             currentState = State.LEFT;
         } else if (gameState.rightWalkable) {
@@ -425,8 +365,6 @@ public class LayeredCropMacro extends Macro {
 
         if (lastState != currentState) {
             rotation.reset();
-            pushedFront = false;
-            pushedSide = false;
             tpFlag = false;
         }
     }
@@ -515,7 +453,7 @@ public class LayeredCropMacro extends Macro {
     };
 
     public boolean findAndEquipHoe() {
-        int hoeSlot = InventoryUtils.getHoeSlot();
+        int hoeSlot = PlayerUtils.getHoeSlot();
         if (hoeSlot == -1) {
             hoeEquipFails = hoeEquipFails + 1;
             if (hoeEquipFails > 10) {

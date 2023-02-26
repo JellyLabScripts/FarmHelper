@@ -110,7 +110,7 @@ public class AutoPot {
 
         if (!buyWait.passed()) {
             LogUtils.debugFullLog("[AutoPot] Waiting after purchase");
-            for (Slot item : InventoryUtils.getInventorySlots()) {
+            for (Slot item : PlayerUtils.getInventorySlots()) {
                 if (item.getStack().getDisplayName().contains("God Potion") && currentState == State.BUYING) {
                     LogUtils.debugFullLog("[AutoPot] Detected GodPot purchase");
                     currentState = State.BOUGHT;
@@ -173,21 +173,21 @@ public class AutoPot {
                     LogUtils.debugFullLog("[AutoPot] Purchased god potion, switching to consume");
                     currentState = State.BOUGHT;
                     pickupState = PickupState.LIFT;
-                } else if (InventoryUtils.inventoryNameContains("Confirm")) {
+                } else if (PlayerUtils.inventoryNameContains("Confirm")) {
                     LogUtils.debugFullLog("[AutoPot] Found confirm menu");
-                    InventoryUtils.clickOpenContainerSlot(11);
-                } else if (InventoryUtils.inventoryNameContains("Community Shop")) {
+                    PlayerUtils.clickOpenContainerSlot(11);
+                } else if (PlayerUtils.inventoryNameContains("Community Shop")) {
                     LogUtils.debugFullLog("[AutoPot] Found shop menu");
-                    if (InventoryUtils.getStackInOpenContainerSlot(13) != null && InventoryUtils.getStackInOpenContainerSlot(13).getMetadata() == 5 && buyWait.passed()) {
+                    if (PlayerUtils.getStackInOpenContainerSlot(13) != null && PlayerUtils.getStackInOpenContainerSlot(13).getMetadata() == 5 && buyWait.passed()) {
                         LogUtils.debugFullLog("[AutoPot] Correct shop menu, buying");
-                        InventoryUtils.clickOpenContainerSlot(InventoryUtils.getSlotForItem("God"));
+                        PlayerUtils.clickOpenContainerSlot(PlayerUtils.getSlotForItem("God"));
                         buyWait.schedule(2000);
                     } else {
                         LogUtils.debugFullLog("[AutoPot] Wrong shop menu, switching");
-                        InventoryUtils.clickOpenContainerSlot(4);
+                        PlayerUtils.clickOpenContainerSlot(4);
                     }
                 } else {
-                    LogUtils.debugFullLog("[AutoPot] Unknown menu " + InventoryUtils.getInventoryName() + ", closing");
+                    LogUtils.debugFullLog("[AutoPot] Unknown menu " + PlayerUtils.getInventoryName() + ", closing");
                     mc.thePlayer.closeScreen();
                 }
                 break;
@@ -197,7 +197,7 @@ public class AutoPot {
                     if (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), 270) > 5) {
                         LogUtils.debugFullLog("[AutoPot] Looking away from shop");
                         rotation.easeTo(270, mc.thePlayer.rotationPitch, 1000);
-                    } else if (InventoryUtils.getItemInHotbar("God Potion") == 6 && pickupState != PickupState.DROP) {
+                    } else if (PlayerUtils.getItemInHotbar("God Potion") == 6 && pickupState != PickupState.DROP) {
                         LogUtils.debugFullLog("[AutoPot] Detected GodPot in hotbar");
                         if (mc.thePlayer.inventory.currentItem == 6) {
                             LogUtils.debugFullLog("[AutoPot] Using god potion");
@@ -206,24 +206,24 @@ public class AutoPot {
                             LogUtils.debugFullLog("[AutoPot] Switching to god potion");
                             mc.thePlayer.inventory.currentItem = 6;
                         }
-                    } else if (InventoryUtils.getSlotForItem("God Potion") != -1 || pickupState != PickupState.LIFT) {
+                    } else if (PlayerUtils.getSlotForItem("God Potion") != -1 || pickupState != PickupState.LIFT) {
                         switch (pickupState) {
                             case LIFT:
                                 LogUtils.debugFullLog("[AutoPot] Picking up GodPot");
-                                potSlot = InventoryUtils.getSlotForItem("God Potion");
-                                InventoryUtils.clickOpenContainerSlot(potSlot);
+                                potSlot = PlayerUtils.getSlotForItem("God Potion");
+                                PlayerUtils.clickOpenContainerSlot(potSlot);
                                 pickupState = PickupState.SWAP;
                                 break;
 
                             case SWAP:
                                 LogUtils.debugFullLog("[AutoPot] Swapping GodPot with slot 7");
-                                InventoryUtils.clickOpenContainerSlot(35 + 7);
+                                PlayerUtils.clickOpenContainerSlot(35 + 7);
                                 pickupState = PickupState.DROP;
                                 break;
 
                             case DROP:
                                 LogUtils.debugFullLog("[AutoPot] Dropping slot 7 to GodPot slot");
-                                InventoryUtils.clickOpenContainerSlot(potSlot);
+                                PlayerUtils.clickOpenContainerSlot(potSlot);
                                 pickupState = PickupState.LIFT;
                                 break;
                         }
@@ -232,7 +232,7 @@ public class AutoPot {
                         disable();
                     }
                 } else {
-                    LogUtils.debugFullLog("[AutoPot] Unknown menu " + InventoryUtils.getInventoryName() + ", closing");
+                    LogUtils.debugFullLog("[AutoPot] Unknown menu " + PlayerUtils.getInventoryName() + ", closing");
                     mc.thePlayer.closeScreen();
                 }
         }
@@ -296,7 +296,7 @@ public class AutoPot {
     }
 
     private static boolean haveGodPot() {
-        for (Slot item : InventoryUtils.getInventorySlots()) {
+        for (Slot item : PlayerUtils.getInventorySlots()) {
             if (item.getStack().getDisplayName().contains("God Potion")) {
                 return true;
             }
@@ -306,7 +306,7 @@ public class AutoPot {
 
     private static boolean purchaseConfirmations() {
         try {
-            return InventoryUtils.getLore(InventoryUtils.getStackInOpenContainerSlot(49)).get(2).toString().contains("Enabled!");
+            return PlayerUtils.getLore(PlayerUtils.getStackInOpenContainerSlot(49)).get(2).toString().contains("Enabled!");
         } catch (Exception e) {
             LogUtils.debugLog("[AutoPot] Failed to get purchase confirmation, sent error to logs");
             System.out.println("Purchase confirmation error: " + e);

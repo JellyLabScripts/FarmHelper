@@ -4,16 +4,12 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.enums.FarmEnum;
 import com.jelly.farmhelper.config.interfaces.*;
-import com.jelly.farmhelper.features.Antistuck;
+import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.Scheduler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
-import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -23,7 +19,6 @@ import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
-import static com.jelly.farmhelper.utils.KeyBindUtils.stopMovement;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class MacroHandler {
@@ -31,12 +26,11 @@ public class MacroHandler {
 
     public static Macro currentMacro;
     public static boolean isMacroing;
-    Thread randomizingthread;
-
 
     public static SugarcaneMacro sugarcaneMacro = new SugarcaneMacro();
     public static LayeredCropMacro layeredCropMacro = new LayeredCropMacro();
     public static VerticalCropMacro verticalCropMacro = new VerticalCropMacro();
+    public static VerticalCropMacro cocoaBeanMacro = new VerticalCropMacro();
 
     private final Rotation rotation = new Rotation();
     public static long startTime = 0;
@@ -68,6 +62,13 @@ public class MacroHandler {
         }
     }
 
+    @SubscribeEvent
+    public void onPacketReceived(ReceivePacketEvent event) {
+        if (currentMacro != null && currentMacro.enabled && mc.thePlayer != null && mc.theWorld != null) {
+            currentMacro.onPacketReceived(event);
+        }
+    }
+
 
     @SubscribeEvent
     public void OnKeyPress(InputEvent.KeyInputEvent event) {
@@ -83,6 +84,7 @@ public class MacroHandler {
     public final void tick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
+
 
         if (isMacroing) {
             if (FarmHelper.tickCount == 1) {
@@ -100,8 +102,8 @@ public class MacroHandler {
         if(Failsafe.emergency) {
             Failsafe.stopAllFailsafeThreads();
             disableMacro();
-        }
-        else if (isMacroing) {
+            LogUtils.scriptLog("Do not restart macro too soon and farm yourself. The staff might still be spectating for 1-2 minutes");
+        } else if (isMacroing) {
             disableMacro();
         } else {
             enableMacro();
@@ -113,8 +115,9 @@ public class MacroHandler {
         } else {
             if (FarmConfig.cropType == CropEnum.SUGARCANE) {
                 currentMacro = sugarcaneMacro;
+            } else if (FarmConfig.cropType == CropEnum.COCOA_BEANS) {
+                currentMacro = cocoaBeanMacro;
             } else {
-
                 currentMacro = layeredCropMacro;
             }
         }
@@ -132,8 +135,7 @@ public class MacroHandler {
         ProfitUtils.resetProfit();
 
         Failsafe.jacobWait.reset();
-        Failsafe.emergency = false;
-        startCounter = InventoryUtils.getCounter();
+        startCounter = PlayerUtils.getCounter();
         enableCurrentMacro();
     }
 
@@ -144,11 +146,10 @@ public class MacroHandler {
         LogUtils.webhookLog("Disabling script");
         UngrabUtils.regrabMouse();
         StatusUtils.updateStateString();
-        Failsafe.emergency = false;
     }
 
     public static void disableCurrentMacro() {
-        if (currentMacro != null && currentMacro.enabled) {
+        if (currentMacro.enabled) {
             currentMacro.toggle();
         }
     }
@@ -173,7 +174,6 @@ public class MacroHandler {
             throw new RuntimeException(e);
         }
     };
-
 
 
 }

@@ -49,6 +49,9 @@ public class BlockUtils {
         }
     }
 
+    public static Block getBlock(BlockPos blockPos) {
+        return mc.theWorld.getBlockState(blockPos).getBlock();
+    }
     public static Block getRelativeBlock(float x, float y, float z) {
         return (mc.theWorld.getBlockState(
           new BlockPos(
@@ -99,16 +102,11 @@ public class BlockUtils {
     }
 
     public static int bedrockCount() {
-        int r = 1;
         int count = 0;
-        BlockPos playerPos = Minecraft.getMinecraft().thePlayer.getPosition();
-        playerPos.add(0, 1, 0);
-        Vec3i vec3i = new Vec3i(r, r, r);
-        Vec3i vec3i2 = new Vec3i(r, r, r);
-        for (BlockPos blockPos : BlockPos.getAllInBox(playerPos.add(vec3i), playerPos.subtract(vec3i2))) {
-            IBlockState blockState = Minecraft.getMinecraft().theWorld.getBlockState(blockPos);
-            if (blockState.getBlock() == Blocks.bedrock) {
-                count++;
+        for(int i = 0; i < 10; i++){
+            for(int j = 0; j < 10; j++){
+                if(getBlock(mc.thePlayer.getPosition().add(i, 1, j)).equals(Blocks.bedrock))
+                    count ++;
             }
         }
         return count;

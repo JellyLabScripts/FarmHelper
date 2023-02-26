@@ -4,7 +4,7 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.AutoSellConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.Clock;
-import com.jelly.farmhelper.utils.InventoryUtils;
+import com.jelly.farmhelper.utils.PlayerUtils;
 import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.world.GameState;
@@ -114,12 +114,12 @@ public class Autosell {
                     LogUtils.debugFullLog("[AutoSell] Opening SB menu");
                     mc.thePlayer.sendChatMessage("/trades");
                     sellClock.schedule(250);
-                } else if (InventoryUtils.getInventoryName() != null && InventoryUtils.getInventoryName().contains("Trades")) {
+                } else if (PlayerUtils.getInventoryName() != null && PlayerUtils.getInventoryName().contains("Trades")) {
                     LogUtils.debugFullLog("[AutoSell] Detected trade menu, selling item");
-                    List<Slot> sellList = InventoryUtils.getInventorySlots();
+                    List<Slot> sellList = PlayerUtils.getInventorySlots();
                     sellList.removeIf(item -> !shouldSell(item.getStack()));
                     if (sellList.size() > 0) {
-                        InventoryUtils.clickOpenContainerSlot(45 + sellList.get(0).slotNumber);
+                        PlayerUtils.clickOpenContainerSlot(45 + sellList.get(0).slotNumber);
                         sellClock.schedule(250);
                     } else {
                         LogUtils.debugFullLog("[AutoSell] Out of items to sell!");
@@ -132,7 +132,7 @@ public class Autosell {
                         }
                     }
                 } else {
-                    LogUtils.debugFullLog("[AutoSell] Unknown menu " + InventoryUtils.getInventoryName());
+                    LogUtils.debugFullLog("[AutoSell] Unknown menu " + PlayerUtils.getInventoryName());
                     mc.thePlayer.closeScreen();
                 }
                 break;
@@ -147,13 +147,13 @@ public class Autosell {
                     LogUtils.debugFullLog("[AutoSell] Full inventory! Selling");
                     countSack();
                     currentState = State.SELL_INVENTORY;
-                } else if (InventoryUtils.getInventoryName() != null && InventoryUtils.getInventoryName().contains("Enchanted Agronomy Sack")) {
+                } else if (PlayerUtils.getInventoryName() != null && PlayerUtils.getInventoryName().contains("Enchanted Agronomy Sack")) {
                     countSack();
                     if (sackContains()) {
                         LogUtils.debugFullLog("[AutoSell] Found item, claiming");
                         for (int i = 0; i < NPCSellSlots.length; i++) {
                             if (NPCSellSlotCounts[i] > 0) {
-                                InventoryUtils.clickOpenContainerSlot(NPCSellSlots[i]);
+                                PlayerUtils.clickOpenContainerSlot(NPCSellSlots[i]);
                                 return;
                             }
                         }
@@ -162,16 +162,16 @@ public class Autosell {
                         countSack();
                         currentState = State.SELL_INVENTORY;
                     }
-                } else if (InventoryUtils.getInventoryName() != null &&
-                    (InventoryUtils.getInventoryName().contains("SkyBlock Menu") || InventoryUtils.getInventoryName().contains("Trades"))) {
+                } else if (PlayerUtils.getInventoryName() != null &&
+                    (PlayerUtils.getInventoryName().contains("SkyBlock Menu") || PlayerUtils.getInventoryName().contains("Trades"))) {
                     LogUtils.debugFullLog("[AutoSell] In menu, opening sack");
-                    InventoryUtils.clickOpenContainerSlot(45 + sackSlot, 1);
+                    PlayerUtils.clickOpenContainerSlot(45 + sackSlot, 1);
                 } else if (mc.currentScreen == null) {
                     LogUtils.debugFullLog("[AutoSell] No menu, opening SB menu");
                     mc.thePlayer.inventory.currentItem = 8;
                     KeyBindUtils.rightClick();
                 } else {
-                    LogUtils.debugFullLog("[AutoSell] Unknown menu " + InventoryUtils.getInventoryName());
+                    LogUtils.debugFullLog("[AutoSell] Unknown menu " + PlayerUtils.getInventoryName());
                     mc.thePlayer.closeScreen();
                 }
         }
@@ -197,7 +197,7 @@ public class Autosell {
     }
 
     private static int getSack() {
-        List<Slot> sellList = InventoryUtils.getInventorySlots();
+        List<Slot> sellList = PlayerUtils.getInventorySlots();
         for (Slot slot : sellList) {
             String name = net.minecraft.util.StringUtils.stripControlCodes(slot.getStack().getDisplayName());
             if (name.contains("Large Enchanted Agronomy Sack")) {

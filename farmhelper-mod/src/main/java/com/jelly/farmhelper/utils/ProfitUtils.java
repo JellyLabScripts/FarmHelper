@@ -18,7 +18,7 @@ public class ProfitUtils {
     public static double realProfit = 0;
 
     public static void updateProfitState() {
-        counter.set(Utils.formatNumber(InventoryUtils.getCounter()));
+        counter.set(Utils.formatNumber(PlayerUtils.getCounter()));
         runtime.set(LogUtils.getRuntimeFormat());
         // redMushroomCount.set(Utils.formatNumber(getCropDiff("§fRed Mushroom") / 160));
         // brownMushroomCount.set(Utils.formatNumber(getCropDiff("§fBrown Mushroom") / 160));
@@ -72,7 +72,7 @@ public class ProfitUtils {
 //        if (cropDiff.size() == 0) return 0;
 //        if (cropDiff.size() == 1) return Math.max(cropDiff.get(0).getAmount(), 0);
 //        return Math.max(cropDiff.get(0).getAmount(), cropDiff.get(1).getAmount());
-        lastCounter = InventoryUtils.getCounter() != 0 ? InventoryUtils.getCounter() : lastCounter;
+        lastCounter = PlayerUtils.getCounter() != 0 ? PlayerUtils.getCounter() : lastCounter;
         return (int) (lastCounter - MacroHandler.startCounter);
     }
 

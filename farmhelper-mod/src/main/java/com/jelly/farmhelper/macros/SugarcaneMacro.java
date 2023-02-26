@@ -1,16 +1,20 @@
 package com.jelly.farmhelper.macros;
 
+import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.features.Antistuck;
+import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
+import com.jelly.farmhelper.world.GameState;
 import net.minecraft.init.Blocks;
-import net.minecraft.network.Packet;
 
+import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.BlockUtils.*;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class SugarcaneMacro extends Macro {
 
+    final float RANDOM_CONST = 1 / 15.0f;
     enum State {
         WALK,
         TPPAD
@@ -42,6 +46,7 @@ public class SugarcaneMacro extends Macro {
         currentWalkState = calculateDirection();
 
         stuck = false;
+        mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot();
         Antistuck.stuck = false;
         Antistuck.cooldown.schedule(1000);
     }
@@ -55,28 +60,27 @@ public class SugarcaneMacro extends Macro {
 
     @Override
     public void onTick() {
+
+
         if(mc.thePlayer == null || mc.theWorld == null || stuck) return;
+
+        if (gameState.currentLocation != GameState.location.ISLAND) {
+            updateKeys(false, false, false, false, false);
+            enabled = false;
+            return;
+        }
 
         if (rotator.rotating) {
             updateKeys(false, false, false, false, false);
             return;
         }
 
-
-
-        if (currentState != State.TPPAD && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > 5 || Math.abs(mc.thePlayer.rotationPitch - pitch) > 5)) {
-            LogUtils.debugFullLog("Staff rotate");
+        if (currentState != State.TPPAD
+                && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) >= FailsafeConfig.rotationSens
+                || Math.abs(mc.thePlayer.rotationPitch - pitch) >= FailsafeConfig.rotationSens)) {
             rotator.reset();
-            /*if (rotateWait.passed() && rotateWait.isScheduled()) {
-                LogUtils.webhookLog("Rotate Checked");
-                LogUtils.debugLog("Rotate Checked");
-                rotation.easeTo(yaw, pitch, 2000);
-                rotateWait.reset();
-                updateKeys(false, false, false, false, false);
-                return;
-            } else if (rotateWait.passed()) {
-                rotateWait.schedule(500);
-            }*/
+            Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
+            return;
         }
 
         if(Antistuck.stuck){
@@ -106,7 +110,6 @@ public class SugarcaneMacro extends Macro {
                 break;
         }
         updateState();
-        System.out.println(currentState + " " + currentWalkState);
 
     }
 
@@ -144,14 +147,18 @@ public class SugarcaneMacro extends Macro {
                 if(hasWall(0, 1, yaw - 45f) && hasWall(0, -1, yaw - 45f))
                     break; // this situation is indeterminable for A, S or D!
 
-                if(hasWall(0, 1, yaw - 45f))
+                if(hasWall(0, 1, yaw - 45f) && Math.random() < RANDOM_CONST) {
+                    PlayerUtils.attemptSetSpawn();
                     currentWalkState = WalkState.S;
+                }
             case D:
                 if(hasWall(0, 1, yaw + 45f) && hasWall(0, -1, yaw + 45f))
                     break;
 
-                if(hasWall(0, 1, yaw + 45))
+                if(hasWall(0, 1, yaw + 45) && Math.random() < RANDOM_CONST) {
+                    PlayerUtils.attemptSetSpawn();
                     currentWalkState = WalkState.S;
+                }
                 break;
             case S:
                 if((hasWall(0, 1, yaw - 45f) && hasWall(0, -1, yaw - 45f)) ||
@@ -159,11 +166,11 @@ public class SugarcaneMacro extends Macro {
                     break;
 
 
-                if(hasWall(0, -1,  yaw - 45) &&
+                if(hasWall(0, -1,  yaw - 45) && Math.random() < RANDOM_CONST &&
                         (getNearestSideWall(yaw - 45, 1) + getNearestSideWall(yaw - 45, -1)) == 2 * LANE_WIDTH)
                     currentWalkState = WalkState.A;
 
-                if(hasWall(0, -1,  yaw + 45) &&
+                if(hasWall(0, -1,  yaw + 45) && Math.random() < RANDOM_CONST &&
                         (getNearestSideWall(yaw + 45, 1) + getNearestSideWall(yaw + 45, -1)) == 2 * LANE_WIDTH)
                     currentWalkState = WalkState.D;
 

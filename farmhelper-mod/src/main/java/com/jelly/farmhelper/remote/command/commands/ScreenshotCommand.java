@@ -5,7 +5,7 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.command.BaseCommand;
 import com.jelly.farmhelper.remote.command.RemoteCommandContext;
 import com.jelly.farmhelper.remote.event.MessageEvent;
-import com.jelly.farmhelper.utils.InventoryUtils;
+import com.jelly.farmhelper.utils.PlayerUtils;
 import dev.volix.lib.brigadier.command.Command;
 import dev.volix.lib.brigadier.context.CommandContext;
 import dev.volix.lib.brigadier.parameter.ParameterSet;
@@ -36,7 +36,7 @@ public class ScreenshotCommand extends BaseCommand {
                 MacroHandler.disableCurrentMacro();
             }
 
-            InventoryUtils.openInventory();
+            PlayerUtils.openInventory();
             String screenshot = getScreenshot();
             mc.thePlayer.closeScreen();
             obj.addProperty("embed", toJson(embed()

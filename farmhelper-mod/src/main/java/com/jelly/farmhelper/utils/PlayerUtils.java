@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.utils;
 
+import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
@@ -7,6 +8,7 @@ import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -20,13 +22,19 @@ import java.util.regex.Pattern;
 
 import static java.lang.Integer.parseInt;
 
-public class InventoryUtils {
-    static int opened = 0;
+public class PlayerUtils {
+
     /*
-     *  @Author Mostly Apfelsaft
+     *  @Author partly Apfelsaft
      */
     static final String[] hoes = {"Euclid","Gauss Carrot Hoe","Pythagorean Potato Hoe","Turing Sugar Cane Hoe","Newton Nether Warts Hoe","Fungi Cutter","Cactus Knife","Rookie Hoe"};
     private static final Minecraft mc = Minecraft.getMinecraft();
+
+
+    public static void attemptSetSpawn() {
+        if(FailsafeConfig.autoSetspawn)
+            mc.thePlayer.sendChatMessage("/setspawn");
+    }
 
     public static int getRancherBootSpeed() {
         final ItemStack stack = mc.thePlayer.inventoryContainer.getSlot(8).getStack();
@@ -44,8 +52,8 @@ public class InventoryUtils {
         return speed;
     }
     public static String getInventoryName() {
-        if (InventoryUtils.mc.currentScreen instanceof GuiChest) {
-            final ContainerChest chest = (ContainerChest)InventoryUtils.mc.thePlayer.openContainer;
+        if (PlayerUtils.mc.currentScreen instanceof GuiChest) {
+            final ContainerChest chest = (ContainerChest) PlayerUtils.mc.thePlayer.openContainer;
             final IInventory inv = chest.getLowerChestInventory();
             return inv.hasCustomName() ? inv.getName() : null;
         }
@@ -53,23 +61,23 @@ public class InventoryUtils {
     }
 
     public static boolean inventoryNameStartsWith(String startsWithString) {
-        return InventoryUtils.getInventoryName() != null && InventoryUtils.getInventoryName().startsWith(startsWithString);
+        return PlayerUtils.getInventoryName() != null && PlayerUtils.getInventoryName().startsWith(startsWithString);
     }
 
     public static boolean inventoryNameContains(String startsWithString) {
-        return InventoryUtils.getInventoryName() != null && InventoryUtils.getInventoryName().contains(startsWithString);
+        return PlayerUtils.getInventoryName() != null && PlayerUtils.getInventoryName().contains(startsWithString);
     }
 
     public static void openInventory() {
             mc.displayGuiScreen(new GuiInventory(mc.thePlayer));
     }
     public static ItemStack getStackInSlot(final int slot) {
-        return InventoryUtils.mc.thePlayer.inventory.getStackInSlot(slot);
+        return PlayerUtils.mc.thePlayer.inventory.getStackInSlot(slot);
     }
 
     public static ItemStack getStackInOpenContainerSlot(final int slot) {
-        if (InventoryUtils.mc.thePlayer.openContainer.inventorySlots.get(slot).getHasStack()) {
-            return InventoryUtils.mc.thePlayer.openContainer.inventorySlots.get(slot).getStack();
+        if (PlayerUtils.mc.thePlayer.openContainer.inventorySlots.get(slot).getHasStack()) {
+            return PlayerUtils.mc.thePlayer.openContainer.inventorySlots.get(slot).getStack();
         }
         return null;
     }
@@ -122,7 +130,7 @@ public class InventoryUtils {
 
     public static int getAmountInHotbar(final String item) {
         for (int i = 0; i < 8; ++i) {
-            final ItemStack is = InventoryUtils.mc.thePlayer.inventory.getStackInSlot(i);
+            final ItemStack is = PlayerUtils.mc.thePlayer.inventory.getStackInSlot(i);
             if (is != null && StringUtils.stripControlCodes(is.getDisplayName()).equals(item)) {
                 return is.stackSize;
             }
@@ -132,7 +140,7 @@ public class InventoryUtils {
 
     public static int getItemInHotbar(final String itemName) {
         for (int i = 0; i < 8; ++i) {
-            final ItemStack is = InventoryUtils.mc.thePlayer.inventory.getStackInSlot(i);
+            final ItemStack is = PlayerUtils.mc.thePlayer.inventory.getStackInSlot(i);
             if (is != null && StringUtils.stripControlCodes(is.getDisplayName()).contains(itemName)) {
                 return i;
             }
@@ -143,7 +151,7 @@ public class InventoryUtils {
     public static List<ItemStack> getInventoryStacks() {
         final List<ItemStack> ret = new ArrayList<ItemStack>();
         for (int i = 9; i < 44; ++i) {
-            final Slot slot = InventoryUtils.mc.thePlayer.inventoryContainer.getSlot(i);
+            final Slot slot = PlayerUtils.mc.thePlayer.inventoryContainer.getSlot(i);
             if (slot != null) {
                 final ItemStack stack = slot.getStack();
                 if (stack != null) {
@@ -157,7 +165,7 @@ public class InventoryUtils {
     public static List<Slot> getInventorySlots() {
         final List<Slot> ret = new ArrayList<>();
         for (int i = 9; i < 44; ++i) {
-            final Slot slot = InventoryUtils.mc.thePlayer.inventoryContainer.getSlot(i);
+            final Slot slot = PlayerUtils.mc.thePlayer.inventoryContainer.getSlot(i);
             if (slot != null) {
                 final ItemStack stack = slot.getStack();
                 if (stack != null) {
@@ -255,6 +263,30 @@ public class InventoryUtils {
                 }
             }
         }
-        return -1;
+        return 0;
+    }
+
+    public static int getAxeSlot() {
+        if(mc.thePlayer.inventory.getCurrentItem() != null) {
+            if (mc.thePlayer.inventory.getCurrentItem().getItem() instanceof ItemAxe)
+                return mc.thePlayer.inventory.currentItem;
+        }
+
+        for (int i = 36; i < 44; i++) {
+            if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
+
+                switch (FarmConfig.cropType){
+                    case MELONS:
+                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Dicer")) {
+                            return i - 36;
+                        }
+                    case COCOA_BEANS:
+                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Chopper")) {
+                            return i - 36;
+                        }
+                }
+            }
+        }
+        return 0;
     }
 }

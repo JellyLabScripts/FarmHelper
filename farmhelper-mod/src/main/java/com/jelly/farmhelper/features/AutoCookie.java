@@ -106,7 +106,7 @@ public class AutoCookie {
 
         if (!buyWait.passed()) {
             LogUtils.debugFullLog("[AutoCookie] Waiting after purchase");
-            for (Slot item : InventoryUtils.getInventorySlots()) {
+            for (Slot item : PlayerUtils.getInventorySlots()) {
                 if (item.getStack().getDisplayName().contains("Booster Cookie") && currentState == State.BUYING) {
                     LogUtils.debugFullLog("[AutoCookie] Detected cookie purchase");
                     currentState = State.BOUGHT;
@@ -143,27 +143,27 @@ public class AutoCookie {
                         LogUtils.debugFullLog("[AutoCookie] Sending interact packet");
                         mc.playerController.interactWithEntitySendPacket(mc.thePlayer, bazaarNPC);
                     }
-                } else if (InventoryUtils.inventoryNameContains("Bazaar") && InventoryUtils.inventoryNameContains("Oddities")) {
+                } else if (PlayerUtils.inventoryNameContains("Bazaar") && PlayerUtils.inventoryNameContains("Oddities")) {
                     LogUtils.debugFullLog("[AutoCookie] Found oddities menu, opening cookie menu");
-                    InventoryUtils.clickOpenContainerSlot(11);
-                } else if (InventoryUtils.inventoryNameContains("Bazaar")) {
+                    PlayerUtils.clickOpenContainerSlot(11);
+                } else if (PlayerUtils.inventoryNameContains("Bazaar")) {
                     LogUtils.debugFullLog("[AutoCookie] Found bazaar menu, opening oddities");
-                    InventoryUtils.clickOpenContainerSlot(36);
-                } else if (InventoryUtils.inventoryNameContains("Oddities") && InventoryUtils.inventoryNameContains("Booster Cookie")) {
+                    PlayerUtils.clickOpenContainerSlot(36);
+                } else if (PlayerUtils.inventoryNameContains("Oddities") && PlayerUtils.inventoryNameContains("Booster Cookie")) {
                     LogUtils.debugFullLog("[AutoCookie] Found booster cookie menu, opening instant buy");
-                    InventoryUtils.clickOpenContainerSlot(10);
-                } else if (InventoryUtils.inventoryNameContains("Oddities")) {
+                    PlayerUtils.clickOpenContainerSlot(10);
+                } else if (PlayerUtils.inventoryNameContains("Oddities")) {
                     LogUtils.debugFullLog("[AutoCookie] Found unknown oddity menu, closing");
                     mc.thePlayer.closeScreen();
-                } else if (InventoryUtils.inventoryNameContains("Booster Cookie") && InventoryUtils.inventoryNameContains("Instant Buy")) {
+                } else if (PlayerUtils.inventoryNameContains("Booster Cookie") && PlayerUtils.inventoryNameContains("Instant Buy")) {
                     LogUtils.debugFullLog("[AutoCookie] Found instant buy menu, buying");
-                    InventoryUtils.clickOpenContainerSlot(10);
+                    PlayerUtils.clickOpenContainerSlot(10);
                     buyWait.schedule(2000);
-                } else if (InventoryUtils.inventoryNameContains("Booster Cookie")) {
+                } else if (PlayerUtils.inventoryNameContains("Booster Cookie")) {
                     LogUtils.debugFullLog("[AutoCookie] Found unknown booster cookie menu, closing");
                     mc.thePlayer.closeScreen();
                 } else {
-                    LogUtils.debugFullLog("[AutoCookie] Unknown menu " + InventoryUtils.getInventoryName() + ", closing");
+                    LogUtils.debugFullLog("[AutoCookie] Unknown menu " + PlayerUtils.getInventoryName() + ", closing");
                     mc.thePlayer.closeScreen();
                 }
                 break;
@@ -173,7 +173,7 @@ public class AutoCookie {
                     if (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), 270) > 5) {
                         LogUtils.debugFullLog("[AutoCookie] Looking away from bazaar");
                         rotation.easeTo(270, mc.thePlayer.rotationPitch, 1000);
-                    } else if (InventoryUtils.getItemInHotbar("Booster Cookie") == 6 && pickupState != PickupState.DROP) {
+                    } else if (PlayerUtils.getItemInHotbar("Booster Cookie") == 6 && pickupState != PickupState.DROP) {
                         LogUtils.debugFullLog("[AutoCookie] Detected booster cookie in hotbar");
                         if (mc.thePlayer.inventory.currentItem == 6) {
                             LogUtils.debugFullLog("[AutoCookie] Opening consume cookie menu");
@@ -182,24 +182,24 @@ public class AutoCookie {
                             LogUtils.debugFullLog("[AutoCookie] Switching to cookie");
                             mc.thePlayer.inventory.currentItem = 6;
                         }
-                    } else if (InventoryUtils.getSlotForItem("Booster Cookie") != -1 || pickupState != PickupState.LIFT) {
+                    } else if (PlayerUtils.getSlotForItem("Booster Cookie") != -1 || pickupState != PickupState.LIFT) {
                         switch (pickupState) {
                             case LIFT:
                                 LogUtils.debugFullLog("[AutoCookie] Picking up cookie");
-                                cookieSlot = InventoryUtils.getSlotForItem("Booster Cookie");
-                                InventoryUtils.clickOpenContainerSlot(cookieSlot);
+                                cookieSlot = PlayerUtils.getSlotForItem("Booster Cookie");
+                                PlayerUtils.clickOpenContainerSlot(cookieSlot);
                                 pickupState = PickupState.SWAP;
                                 break;
 
                             case SWAP:
                                 LogUtils.debugFullLog("[AutoCookie] Swapping cookie with slot 7");
-                                InventoryUtils.clickOpenContainerSlot(35 + 7);
+                                PlayerUtils.clickOpenContainerSlot(35 + 7);
                                 pickupState = PickupState.DROP;
                                 break;
 
                             case DROP:
                                 LogUtils.debugFullLog("[AutoCookie] Dropping slot 7 to cookie slot");
-                                InventoryUtils.clickOpenContainerSlot(cookieSlot);
+                                PlayerUtils.clickOpenContainerSlot(cookieSlot);
                                 pickupState = PickupState.LIFT;
                                 break;
                         }
@@ -207,11 +207,11 @@ public class AutoCookie {
                         LogUtils.debugFullLog("[AutoCookie] No cookie in inventory, quitting");
                         disable();
                     }
-                } else if (InventoryUtils.inventoryNameContains("Consume Booster Cookie?")) {
+                } else if (PlayerUtils.inventoryNameContains("Consume Booster Cookie?")) {
                     LogUtils.debugFullLog("[AutoCookie] Detected consume cookie menu, consuming");
-                    InventoryUtils.clickOpenContainerSlot(11);
+                    PlayerUtils.clickOpenContainerSlot(11);
                 } else {
-                    LogUtils.debugFullLog("[AutoCookie] Unknown menu " + InventoryUtils.getInventoryName() + ", closing");
+                    LogUtils.debugFullLog("[AutoCookie] Unknown menu " + PlayerUtils.getInventoryName() + ", closing");
                     mc.thePlayer.closeScreen();
                 }
         }

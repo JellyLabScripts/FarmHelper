@@ -3,11 +3,10 @@ package com.jelly.farmhelper.remote.analytic;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.config.ConfigHandler;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.features.BanwaveChecker;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
-import com.jelly.farmhelper.utils.InventoryUtils;
+import com.jelly.farmhelper.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
 import org.json.simple.JSONObject;
@@ -17,7 +16,7 @@ abstract public class AnalyticBaseCommand {
 
     public static JsonObject gatherMacroingData() {
         JsonObject obj = new JsonObject();
-        obj.addProperty("hoeCounter", InventoryUtils.getCounter());
+        obj.addProperty("hoeCounter", PlayerUtils.getCounter());
         obj.addProperty("isMacroing", MacroHandler.isMacroing);
         obj.addProperty("startTime", MacroHandler.startTime);
         obj.addProperty("isBanwaveWaiting", BanwaveChecker.banwaveOn && mc.currentScreen instanceof GuiDisconnected);
