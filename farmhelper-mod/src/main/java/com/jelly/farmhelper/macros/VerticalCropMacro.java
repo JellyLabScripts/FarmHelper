@@ -48,7 +48,7 @@ public class VerticalCropMacro extends Macro{
                 pitch = 28 + (float) (Math.random() * 2); //28-30
                 break;
             case COCOA_BEANS:
-                pitch = (float) (88 + Math.random()); // 88 -89
+                pitch = -90;
         }
         dir = direction.NONE;
         flyToggleTimer = 0;
