@@ -8,7 +8,6 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
 import com.jelly.farmhelper.utils.KeyBindUtils;
-import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.TickTask;
 import com.jelly.farmhelper.world.GameState;
 import lombok.SneakyThrows;
@@ -21,10 +20,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.Display;
-import org.spongepowered.asm.launch.MixinBootstrap;
-import org.spongepowered.asm.launch.platform.MixinContainer;
-import org.spongepowered.asm.mixin.MixinEnvironment;
-
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -37,7 +32,7 @@ import java.util.jar.Manifest;
 public class FarmHelper {
     public static final String MODID = "farmhelper";
     public static final String NAME = "Farm Helper";
-    public static final String VERSION = "4.3";
+    public static final String VERSION = "4.3.0.2";
     public static String analyticUrl;
 
     // the actual mod version from gradle properties, should match with VERSION
@@ -83,7 +78,7 @@ public class FarmHelper {
         try {
             analyticUrl = (String) APIHelper.readJsonFromUrl("NONE","User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
                     .get("url");
-        } catch (Exception e) {}
+        } catch (Exception ignored) {}
     }
 
     @SubscribeEvent

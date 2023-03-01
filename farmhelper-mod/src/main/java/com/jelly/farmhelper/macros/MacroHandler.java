@@ -19,7 +19,6 @@ import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
-import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class MacroHandler {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -110,7 +109,6 @@ public class MacroHandler {
         }
     }
     public static void enableMacro() {
-        System.out.println(FarmConfig.farmType + " " + FarmConfig.cropType);
         if(FarmConfig.farmType == FarmEnum.VERTICAL){
             currentMacro = verticalCropMacro;
         } else {

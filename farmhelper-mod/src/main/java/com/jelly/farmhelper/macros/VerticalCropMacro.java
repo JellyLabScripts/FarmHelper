@@ -86,7 +86,7 @@ public class VerticalCropMacro extends Macro{
 
             dir = direction.NONE;
 
-            if(mc.thePlayer.capabilities.isFlying || (!getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame))) {
+            if(mc.thePlayer.capabilities.isFlying || (!getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) && !mc.thePlayer.onGround)) {
                 KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
             } else if (mc.thePlayer.posY % 1 > 0 && mc.thePlayer.posY % 1 < 0.8125f) {
                 KeyBindUtils.updateKeys(false, false, false, false, false, false, true);

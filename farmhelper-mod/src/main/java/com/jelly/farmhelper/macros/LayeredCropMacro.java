@@ -9,10 +9,10 @@ import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
-import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
+
 
 import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.BlockUtils.getRelativeBlock;
@@ -49,7 +49,6 @@ public class LayeredCropMacro extends Macro {
     private StoneThrowState stoneState;
     private double layerY;
     private boolean antistuckActive;
-    private boolean tpFlag;
     private float yaw;
     private float pitch;
     private final Clock stoneDropTimer = new Clock();
@@ -57,7 +56,9 @@ public class LayeredCropMacro extends Macro {
     private int hoeEquipFails = 0;
     private int notmovingticks = 0;
 
-    final float RANDOM_CONST = 1 / 13.0f;
+    private final Clock tpCoolDown = new Clock();
+
+    final float RANDOM_CONST = 1 / 8.0f;
 
 
     @Override
@@ -66,7 +67,6 @@ public class LayeredCropMacro extends Macro {
         currentState = State.NONE;
         antistuckActive = false;
         Antistuck.stuck = false;
-        tpFlag = false;
         Antistuck.cooldown.schedule(1000);
         if (FarmConfig.cropType == CropEnum.NETHERWART) {
             pitch = 0f;
@@ -74,6 +74,7 @@ public class LayeredCropMacro extends Macro {
             pitch = 2.8f;
         }
         yaw = AngleUtils.getClosest();
+        tpCoolDown.reset();
         rotation.easeTo(yaw, pitch, 500);
     }
 
@@ -145,51 +146,27 @@ public class LayeredCropMacro extends Macro {
 
         switch (currentState) {
             case TP_PAD:
-                if (Math.abs(mc.thePlayer.posY - layerY) > 1 || tpFlag) {
-                    if (mc.gameSettings.keyBindRight.isKeyDown()) {
-                        if (mc.thePlayer.posY % 1 == 0) tpFlag = true;
-                        LogUtils.debugFullLog("On top of pad, keep going right");
+                if(!tpCoolDown.passed())
+                    break;
+
+                tpCoolDown.reset();
+                if(mc.thePlayer.capabilities.isFlying || (!getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) && !mc.thePlayer.onGround)) {
+                    KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
+                } else if (mc.thePlayer.posY % 1 > 0 && mc.thePlayer.posY % 1 < 0.8125f) {
+                    KeyBindUtils.updateKeys(false, false, false, false, false, false, true);
+                } else {
+                    if (isWalkable(getRelativeBlock(1, 0.1875f, 0))) {
+                        LogUtils.debugLog("On top of pad, go right");
                         updateKeys(false, false, true, false, findAndEquipHoe());
-                    } else if (mc.gameSettings.keyBindLeft.isKeyDown()) {
-                        if (mc.thePlayer.posY % 1 == 0) tpFlag = true;
-                        LogUtils.debugFullLog("On top of pad, keep going left");
+                    } else if (isWalkable(getRelativeBlock(-1, 0.1875f, 0))) {
+                        LogUtils.debugLog("On top of pad, go left");
                         updateKeys(false, false, false, true, findAndEquipHoe());
-                    } else if (BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
-                        if (mc.thePlayer.posY % 1 == 0.8125) {
-                            if (!rotation.completed) {
-                                if (!rotation.rotating) {
-                                    LogUtils.debugLog("Fixing pitch");
-                                    rotation.reset();
-                                    yaw = AngleUtils.get360RotationYaw();
-                                    rotation.easeTo(yaw, pitch, 500);
-                                }
-                                LogUtils.debugFullLog("Waiting fix pitch");
-                                updateKeys(false, false, false, false, false);
-                            } else if (isWalkable(getRelativeBlock(1, 0.1875f, 0))) {
-                                LogUtils.debugLog("On top of pad, go right");
-                                updateKeys(false, false, true, false, findAndEquipHoe());
-                            } else if (isWalkable(getRelativeBlock(-1, 0.1875f, 0))) {
-                                LogUtils.debugLog("On top of pad, go left");
-                                updateKeys(false, false, false, true, findAndEquipHoe());
-                            } else {
-                                LogUtils.debugLog("On top of pad, cant detect where to go");
-                                updateKeys(false, false, false, false, false);
-                            }
-                        } else if (mc.thePlayer.posY % 1 < 0.8125) {
-                            LogUtils.debugLog("Stuck in teleport pad, holding space");
-                            updateKeys(false, false, false, false, false, false, true);
-                        } else {
-                            LogUtils.debugFullLog("Waiting for teleport land (close)");
-                            updateKeys(false, false, false, false, false);
-                        }
                     } else {
-                        LogUtils.debugFullLog("Waiting for teleport land");
+                        LogUtils.debugLog("On top of pad, cant detect where to go");
                         updateKeys(false, false, false, false, false);
                     }
-                } else {
-                    LogUtils.debugLog("Waiting for teleport, at pad");
-                    updateKeys(false, false, false, false, false);
                 }
+
                 return;
             case DROPPING:
                 if (layerY - mc.thePlayer.posY > 1) {
@@ -325,16 +302,20 @@ public class LayeredCropMacro extends Macro {
                 }
             case NONE:
                 LogUtils.debugFullLog("idk");
+
         }
     }
 
 
     private void updateState() {
         State lastState = currentState;
+
         if (currentState == State.STONE_THROW) {
             currentState = State.STONE_THROW;
-        } else if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || (currentState == State.TP_PAD && !tpFlag)) {
+        } else if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
             currentState = State.TP_PAD;
+            if(!tpCoolDown.isScheduled())
+                tpCoolDown.schedule(500);
         } else if (layerY - mc.thePlayer.posY > 1 || currentState == State.DROPPING || isDropping()) {
             currentState = State.DROPPING;
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
@@ -365,7 +346,6 @@ public class LayeredCropMacro extends Macro {
 
         if (lastState != currentState) {
             rotation.reset();
-            tpFlag = false;
         }
     }
 
@@ -459,7 +439,7 @@ public class LayeredCropMacro extends Macro {
             if (hoeEquipFails > 10) {
                 LogUtils.webhookLog("No Hoe Detected 10 times, Quitting");
                 LogUtils.debugLog("No Hoe Detected 10 times, Quitting");
-                this.mc.theWorld.sendQuittingDisconnectingPacket();
+                mc.theWorld.sendQuittingDisconnectingPacket();
             } else {
                 LogUtils.webhookLog("No Hoe Detected");
                 LogUtils.debugLog("No Hoe Detected");
@@ -475,17 +455,17 @@ public class LayeredCropMacro extends Macro {
 
     private static boolean shouldWalkForwards() {
         float angle = AngleUtils.getClosest();
-        double x = Math.abs(mc.thePlayer.posX) % 1;
-        double z = Math.abs(mc.thePlayer.posZ) % 1;
+        double x = mc.thePlayer.posX % 1;
+        double z = mc.thePlayer.posZ % 1;
         System.out.println(angle);
         if (angle == 0) {
-            return z < 0.65;
+            return (z > -0.9 && z < -0.35) || (z < 0.65 && z > 0.1);
         } else if (angle == 90) {
-            return x < 0.65;
+            return (x > -0.65 && x < -0.1) || (x < 0.9 && x > 0.35);
         } else if (angle == 180) {
-            return z > 0.35;
+            return (z > -0.65 && z < -0.1) || (z < 0.9 && z > 0.35);
         } else if (angle == 270) {
-            return x > 0.35;
+            return (x > -0.9 && x < -0.35) || (x < 0.65 && x > 0.1);
         }
         return false;
     }

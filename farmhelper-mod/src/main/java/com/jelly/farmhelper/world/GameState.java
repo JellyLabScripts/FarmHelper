@@ -41,7 +41,7 @@ public class GameState {
     public Clock teleporting = new Clock();
 
     private static final Pattern PATTERN_ACTIVE_EFFECTS = Pattern.compile(
-      "\u00a7r\u00a7r\u00a77You have a \u00a7r\u00a7cGod Potion \u00a7r\u00a77active! \u00a7r\u00a7d([0-9]*?:?[0-9]*?:?[0-9]*)\u00a7r");
+      "§r§r§7You have a §r§cGod Potion §r§7active! §r§d([0-9]*?:?[0-9]*?:?[0-9]*)§r");
 
     public boolean frontWalkable;
     public boolean rightWalkable;
@@ -134,7 +134,6 @@ public class GameState {
             if(!loaded){
                 godPot = EffectState.INDETERMINABLE;
                 cookie = EffectState.INDETERMINABLE;
-                LogUtils.debugFullLog("Footer not loaded");
             }
         }
     }
