@@ -260,6 +260,10 @@ public class PlayerUtils {
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Turing")) {
                             return i - 36;
                         }
+                    case CACTUS:
+                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Knife")) {
+                            return i - 36;
+                        }
                 }
             }
         }

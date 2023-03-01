@@ -32,6 +32,7 @@ public class FarmMenu extends UIContainer {
         cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 60f, "cane.png", cropList, 4L, "cropType").setChildOf(selector));
         cropList.add(new ImageBox(new SiblingConstraint(10), new CramSiblingConstraint(10), 60f, "melonandpumpkin.png", cropList, 5L, "cropType").setChildOf(selector));
         cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 60f, "cocoabeans.png", cropList, 6L, "cropType").setChildOf(selector));
+        cropList.add(new ImageBox(new SiblingConstraint(10), new CramSiblingConstraint(10), 60f, "cactus.png", cropList, 7L, "cropType").setChildOf(selector));
         //cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 130f, ".png", cropList, 4L, "cropType").setChildOf(selector));
 
         farmList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 60f, "layered.png", farmList, 0L, "farmType").setChildOf(selector));

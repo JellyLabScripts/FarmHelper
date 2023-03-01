@@ -68,7 +68,7 @@ public class LayeredCropMacro extends Macro {
         antistuckActive = false;
         Antistuck.stuck = false;
         Antistuck.cooldown.schedule(1000);
-        if (FarmConfig.cropType == CropEnum.NETHERWART) {
+        if (FarmConfig.cropType == CropEnum.NETHERWART || FarmConfig.cropType == CropEnum.CACTUS) {
             pitch = 0f;
         } else {
             pitch = 2.8f;
@@ -211,11 +211,11 @@ public class LayeredCropMacro extends Macro {
                 return;
             case RIGHT:
                 LogUtils.debugLog("Middle of row, going right");
-                updateKeys(shouldWalkForwards(), false, true, false, findAndEquipHoe());
+                updateKeys(FarmConfig.cropType != CropEnum.CACTUS && shouldWalkForwards(), FarmConfig.cropType == CropEnum.CACTUS && shouldPushBack(), true, false, findAndEquipHoe());
                 return;
             case LEFT:
                 LogUtils.debugLog("Middle of row, going left");
-                updateKeys(shouldWalkForwards(), false, false, true, findAndEquipHoe());
+                updateKeys(FarmConfig.cropType != CropEnum.CACTUS && shouldWalkForwards(), FarmConfig.cropType == CropEnum.CACTUS && shouldPushBack(), false, true, findAndEquipHoe());
                 return;
             case SWITCH_START:
                 LogUtils.debugFullLog("Continue forwards");
@@ -324,7 +324,7 @@ public class LayeredCropMacro extends Macro {
                 PlayerUtils.attemptSetSpawn();
                 currentState = calculateDirection();
             }
-        } else if (gameState.frontWalkable && !gameState.backWalkable) {
+        } else if (gameState.frontWalkable && !gameState.backWalkable && (FarmConfig.cropType == CropEnum.CACTUS && !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus))) {
             if( Math.random() < RANDOM_CONST)
                 currentState = State.SWITCH_START;
         } else if (gameState.frontWalkable) {
@@ -466,6 +466,24 @@ public class LayeredCropMacro extends Macro {
             return (z > -0.65 && z < -0.1) || (z < 0.9 && z > 0.35);
         } else if (angle == 270) {
             return (x > -0.9 && x < -0.35) || (x < 0.65 && x > 0.1);
+        }
+        return false;
+    }
+
+    private boolean shouldPushBack() {
+        float angle = AngleUtils.getClosest();
+        double x = mc.thePlayer.posX % 1;
+        double z = mc.thePlayer.posZ % 1;
+        System.out.println(angle);
+        if (!BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.cobblestone)) return false;
+        if (angle == 0) {
+            return (z > -0.65 && z < -0.1) || (z < 0.9 && z > 0.35);
+        } else if (angle == 90) {
+            return (x > -0.9 && x < -0.35) || (x < 0.65 && x > 0.1);
+        } else if (angle == 180) {
+            return (z > -0.9 && z < -0.35) || (z < 0.65 && z > 0.1);
+        } else if (angle == 270) {
+            return (x > -0.65 && x < -0.1) || (x < 0.9 && x > 0.35);
         }
         return false;
     }
