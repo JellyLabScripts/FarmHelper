@@ -8,6 +8,7 @@ public enum CropEnum {
         SUGARCANE,
         MELONS,
         COCOA_BEANS,
-        CACTUS
+        CACTUS,
+        MUSHROOMS,
 
 }

@@ -16,7 +16,7 @@ public class KeyBindUtils
     }
 
     public static void setup() {
-        customKeyBinds[0] = new KeyBinding("Open GUI", KeyBindConfig.openGUIKeybind, "FarmHelper");
+        customKeyBinds[0] = new KeyBinding("Open FarmHelper's GUI", KeyBindConfig.openGUIKeybind, "FarmHelper");
         customKeyBinds[1] = new KeyBinding("Toggle script", KeyBindConfig.startScriptKeybind, "FarmHelper");
         for (KeyBinding customKeyBind : customKeyBinds) {
             ClientRegistry.registerKeyBinding(customKeyBind);
