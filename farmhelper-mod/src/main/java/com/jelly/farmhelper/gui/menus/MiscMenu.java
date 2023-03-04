@@ -1,12 +1,6 @@
 package com.jelly.farmhelper.gui.menus;
 
-import com.jelly.farmhelper.config.ConfigHandler;
-import com.jelly.farmhelper.features.AutoCookie;
-import com.jelly.farmhelper.features.AutoPot;
-import com.jelly.farmhelper.gui.components.Button;
-import com.jelly.farmhelper.gui.components.Slider;
 import com.jelly.farmhelper.gui.components.Toggle;
-import com.jelly.farmhelper.utils.KeyBindUtils;
 import gg.essential.elementa.components.UIContainer;
 import net.minecraft.client.Minecraft;
 
@@ -19,6 +13,7 @@ public class MiscMenu extends UIContainer {
         new Toggle("Ungrab Mouse", "ungrab").setChildOf(this);
         new Toggle("Debug Mode", "debugMode").setChildOf(this);
         new Toggle("Xray", "xray").setChildOf(this);
+        new Toggle("Rotate 180* after TP", "rotateAfterTP").setChildOf(this);
         /*((Button) new Button("Buy Cookie").setChildOf(this)).setOnClick((component, uiClickEvent) -> {
             AutoCookie.enable();
             return null;

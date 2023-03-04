@@ -1,9 +1,12 @@
 package com.jelly.farmhelper;
 
 import com.jelly.farmhelper.config.ConfigHandler;
+import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
+import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.gui.MenuGUI;
 import com.jelly.farmhelper.gui.Render;
+import com.jelly.farmhelper.gui.menus.FarmMenu;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
@@ -46,18 +49,6 @@ public class FarmHelper {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        new Thread(() -> {
-            TrayIcon trayIcon = new TrayIcon(new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR), "Farm Helper Failsafe Notification");
-            trayIcon.setToolTip("Farm Helper Failsafe Notification");
-            try {
-                SystemTray.getSystemTray().add(trayIcon);
-            } catch (AWTException e) {
-                throw new RuntimeException(e);
-            }
-            trayIcon.displayMessage("init", "init", TrayIcon.MessageType.ERROR);
-            SystemTray.getSystemTray().remove(trayIcon);
-        }).start();
-
         setVersions();
         ConfigHandler.init();
         KeyBindUtils.setup();
@@ -79,6 +70,24 @@ public class FarmHelper {
             analyticUrl = (String) APIHelper.readJsonFromUrl("NONE","User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
                     .get("url");
         } catch (Exception ignored) {}
+
+        if (FailsafeConfig.notifications) {
+            registerInitNotification();
+        }
+    }
+
+    public static void registerInitNotification() {
+        new Thread(() -> {
+            TrayIcon trayIcon = new TrayIcon(new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR), "Farm Helper Failsafe Notification");
+            trayIcon.setToolTip("Farm Helper Failsafe Notification");
+            try {
+                SystemTray.getSystemTray().add(trayIcon);
+            } catch (AWTException e) {
+                throw new RuntimeException(e);
+            }
+            trayIcon.displayMessage("Farm Helper Failsafe Notification", "Register Notifications", TrayIcon.MessageType.INFO);
+            SystemTray.getSystemTray().remove(trayIcon);
+        }).start();
     }
 
     @SubscribeEvent

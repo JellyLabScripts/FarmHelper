@@ -4,11 +4,13 @@ import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.enums.FarmEnum;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
@@ -68,7 +70,7 @@ public class LayeredCropMacro extends Macro {
         antistuckActive = false;
         Antistuck.stuck = false;
         Antistuck.cooldown.schedule(1000);
-        if (FarmConfig.cropType == CropEnum.NETHERWART) {
+        if (FarmConfig.cropType == CropEnum.NETHERWART || FarmConfig.cropType == CropEnum.CACTUS) {
             pitch = 0f;
         } else {
             pitch = 2.8f;
@@ -106,8 +108,22 @@ public class LayeredCropMacro extends Macro {
             return;
         }
 
+        if (MiscConfig.rotateAfterTP && tpCoolDown.isScheduled() && tpCoolDown.getRemainingTime() < 700 && rotation.completed) {
+            yaw = AngleUtils.getClosest((yaw + 180 + 360) % 360);
+            rotation.easeTo(yaw, pitch, 500);
+            tpCoolDown.reset();
+            currentState = State.NONE;
+            return;
+        } else if (tpCoolDown.isScheduled() && tpCoolDown.getRemainingTime() < 700 && rotation.completed) {
+            yaw = AngleUtils.getClosest();
+            rotation.easeTo(yaw, pitch, 500);
+            tpCoolDown.reset();
+            currentState = State.NONE;
+            return;
+        }
 
-        if ((currentState != State.DROPPING && currentState != State.TP_PAD && currentState != State.STONE_THROW &&
+
+        if ((!tpCoolDown.isScheduled() || tpCoolDown.passed()) && (currentState != State.DROPPING && currentState != State.TP_PAD && currentState != State.STONE_THROW &&
                 (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens))) {
             rotation.reset();
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
@@ -211,11 +227,11 @@ public class LayeredCropMacro extends Macro {
                 return;
             case RIGHT:
                 LogUtils.debugLog("Middle of row, going right");
-                updateKeys(shouldWalkForwards(), false, true, false, findAndEquipHoe());
+                updateKeys(FarmConfig.cropType != CropEnum.CACTUS && shouldWalkForwards(), FarmConfig.cropType == CropEnum.CACTUS && shouldPushBack(), true, false, findAndEquipHoe());
                 return;
             case LEFT:
                 LogUtils.debugLog("Middle of row, going left");
-                updateKeys(shouldWalkForwards(), false, false, true, findAndEquipHoe());
+                updateKeys(FarmConfig.cropType != CropEnum.CACTUS && shouldWalkForwards(), FarmConfig.cropType == CropEnum.CACTUS && shouldPushBack(), false, true, findAndEquipHoe());
                 return;
             case SWITCH_START:
                 LogUtils.debugFullLog("Continue forwards");
@@ -315,7 +331,7 @@ public class LayeredCropMacro extends Macro {
         } else if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
             currentState = State.TP_PAD;
             if(!tpCoolDown.isScheduled())
-                tpCoolDown.schedule(500);
+                tpCoolDown.schedule(1500);
         } else if (layerY - mc.thePlayer.posY > 1 || currentState == State.DROPPING || isDropping()) {
             currentState = State.DROPPING;
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
@@ -324,7 +340,7 @@ public class LayeredCropMacro extends Macro {
                 PlayerUtils.attemptSetSpawn();
                 currentState = calculateDirection();
             }
-        } else if (gameState.frontWalkable && !gameState.backWalkable) {
+        } else if (gameState.frontWalkable && !gameState.backWalkable && (FarmConfig.cropType == CropEnum.CACTUS && !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus))) {
             if( Math.random() < RANDOM_CONST)
                 currentState = State.SWITCH_START;
         } else if (gameState.frontWalkable) {
@@ -466,6 +482,25 @@ public class LayeredCropMacro extends Macro {
             return (z > -0.65 && z < -0.1) || (z < 0.9 && z > 0.35);
         } else if (angle == 270) {
             return (x > -0.9 && x < -0.35) || (x < 0.65 && x > 0.1);
+        }
+        return false;
+    }
+
+    private boolean shouldPushBack() {
+        float angle = AngleUtils.getClosest();
+        double x = mc.thePlayer.posX % 1;
+        double z = mc.thePlayer.posZ % 1;
+        System.out.println(angle);
+        Block blockBehind = BlockUtils.getRelativeBlock(0, 0, -1);
+        if (!blockBehind.equals(Blocks.cobblestone) || !blockBehind.equals(Blocks.carpet)) return false;
+        if (angle == 0) {
+            return (z > -0.65 && z < -0.1) || (z < 0.9 && z > 0.35);
+        } else if (angle == 90) {
+            return (x > -0.9 && x < -0.35) || (x < 0.65 && x > 0.1);
+        } else if (angle == 180) {
+            return (z > -0.9 && z < -0.35) || (z < 0.65 && z > 0.1);
+        } else if (angle == 270) {
+            return (x > -0.65 && x < -0.1) || (x < 0.9 && x > 0.35);
         }
         return false;
     }

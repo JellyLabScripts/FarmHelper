@@ -7,8 +7,8 @@ public enum CropEnum {
         WHEAT,
         SUGARCANE,
         MELON,
-
         PUMPKIN,
+        CACTUS,
         COCOA_BEANS
 
 }

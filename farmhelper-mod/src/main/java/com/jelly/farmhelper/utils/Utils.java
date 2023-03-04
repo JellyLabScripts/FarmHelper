@@ -1,21 +1,12 @@
 package com.jelly.farmhelper.utils;
 
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.ResourceLocation;
 
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
 import java.awt.*;
-import java.io.*;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -42,8 +33,12 @@ public class Utils {
         }
     }
 
+    private static Thread pingThread;
+
     public static void sendPingAlert() {
-        new Thread(() -> {
+        if (pingThread != null && pingThread.isAlive())
+            return;
+        pingThread = new Thread(() -> {
             try {
                 /*InputStream audioSource = Objects.requireNonNull(Utils.class.getClassLoader().getResourceAsStream("assets/farmhelper/sounds/ding.mp3"));
                 InputStream bufferedIn = new BufferedInputStream(audioSource);
@@ -62,8 +57,11 @@ public class Utils {
 
             }catch (Exception e){
                 e.printStackTrace();
+            } finally {
+                pingThread = null;
             }
-        }).start();
+        });
+        pingThread.start();
     }
 
     public static void clickWindow(int windowID, int slotID, int mouseButtonClicked, int mode) throws Exception {
