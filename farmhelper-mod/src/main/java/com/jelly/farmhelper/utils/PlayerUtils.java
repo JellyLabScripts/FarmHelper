@@ -276,7 +276,7 @@ public class PlayerUtils {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
 
                 switch (FarmConfig.cropType){
-                    case MELONS:
+                    case MELON: case PUMPKIN:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Dicer")) {
                             return i - 36;
                         }

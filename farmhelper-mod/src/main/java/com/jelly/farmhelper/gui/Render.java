@@ -56,14 +56,20 @@ public class Render {
                         case SUGARCANE:
                             profitGUI.addChild(profitGUI.stats.get(6));
                             break;
+                        case COCOA_BEANS:
+                            profitGUI.addChild(profitGUI.stats.get(7));
+                            break;
+                        case MELON:
+                            profitGUI.addChild(profitGUI.stats.get(8));
+                            break;
+                        case PUMPKIN:
+                            profitGUI.addChild(profitGUI.stats.get(9));
+                            break;
+
                     }
                 }
-//                if (ProfitCalculatorConfig.mushroomCount) {
-//                    profitGUI.addChild(profitGUI.stats.get(7));
-//                    profitGUI.addChild(profitGUI.stats.get(8));
-//                }
-                if (ProfitCalculatorConfig.counter) profitGUI.addChild(profitGUI.stats.get(9));
-                if (ProfitCalculatorConfig.runtime) profitGUI.addChild(profitGUI.stats.get(10));
+                if (ProfitCalculatorConfig.counter) profitGUI.addChild(profitGUI.stats.get(10));
+                if (ProfitCalculatorConfig.runtime) profitGUI.addChild(profitGUI.stats.get(11));
             }
 
             UGraphics.enableAlpha();

@@ -80,10 +80,10 @@ public class LogUtils {
                         .setThumbnail("https://crafatar.com/renders/head/" + mc.thePlayer.getUniqueID())
                         .addField("Username", mc.thePlayer.getName(), true)
                         .addField("Runtime", getRuntimeFormat(), true)
-                        .addField("Total Profit", ProfitUtils.profit.get(), false)
-                        .addField("Profit / hr", ProfitUtils.profitHr.get(), false)
-                        .addField(ProfitUtils.getHighTierName(), ProfitUtils.cropCount.get(), true)
-                        .addField("Counter", ProfitUtils.counter.get(), true)
+                        .addField("Total Profit", ProfitCalculator.profit.get(), false)
+                        .addField("Profit / hr", ProfitCalculator.profitHr.get(), false)
+                        .addField(ProfitCalculator.getHighTierName(), ProfitCalculator.enchantedCropCount.get(), true)
+                        .addField("Counter", ProfitCalculator.counter.get(), true)
                     // .addField("Screenshot", Screenshot.takeScreenshot(), true)
                 );
                 new Thread(() -> {

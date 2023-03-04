@@ -1,6 +1,6 @@
 package com.jelly.farmhelper.gui;
 
-import com.jelly.farmhelper.utils.ProfitUtils;
+import com.jelly.farmhelper.utils.ProfitCalculator;
 import gg.essential.elementa.UIComponent;
 import gg.essential.elementa.components.UIBlock;
 import gg.essential.elementa.components.UIImage;
@@ -71,18 +71,19 @@ public class ProfitGUI extends UIBlock {
             .setColor(new Color(249, 249, 249))
             .setChildOf(topBar);
 
-        stats.add(new Stat("profit.png").bind(ProfitUtils.profit).setChildOf(this));
-        stats.add(new Stat("profithr.png").bind(ProfitUtils.profitHr).setChildOf(this));
-        stats.add(new Stat("mnw.png").bind(ProfitUtils.cropCount).setChildOf(this));
-        stats.add(new Stat("ecarrot.png").bind(ProfitUtils.cropCount).setChildOf(this));
-        stats.add(new Stat("epotato.png").bind(ProfitUtils.cropCount).setChildOf(this));
-        stats.add(new Stat("ehaybale.png").bind(ProfitUtils.cropCount).setChildOf(this));
-        stats.add(new Stat("ecane.png").bind(ProfitUtils.brownMushroomCount).setChildOf(this));
-        stats.add(new Stat("eredmushroom.png").bind(ProfitUtils.redMushroomCount).setChildOf(this));
-        stats.add(new Stat("ebrownmushroom.png").bind(ProfitUtils.brownMushroomCount).setChildOf(this));
-        // stats.add(new Stat("ecocoabeans.png").bind(ProfitUtils.cropCount).setChildOf(this));
-        stats.add(new Stat("hoe.png").bind(ProfitUtils.counter).setChildOf(this));
-        stats.add(new Stat("clock_00.png").bind(ProfitUtils.runtime).setChildOf(this));
+        // the order must be followed as in Render.java
+        stats.add(new Stat("profit.png").bind(ProfitCalculator.profit).setChildOf(this));
+        stats.add(new Stat("profithr.png").bind(ProfitCalculator.profitHr).setChildOf(this));
+        stats.add(new Stat("mnw.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+        stats.add(new Stat("ecarrot.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+        stats.add(new Stat("epotato.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+        stats.add(new Stat("ehaybale.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+        stats.add(new Stat("ecane.png").bind(ProfitCalculator.brownMushroomCount).setChildOf(this));
+        stats.add(new Stat("ecocoabeans.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+        stats.add(new Stat("emelon.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+        stats.add(new Stat("epumpkin.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+        stats.add(new Stat("hoe.png").bind(ProfitCalculator.counter).setChildOf(this));
+        stats.add(new Stat("clock_00.png").bind(ProfitCalculator.runtime).setChildOf(this));
     }
 }
 

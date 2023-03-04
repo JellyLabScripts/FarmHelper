@@ -5,7 +5,7 @@ import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.remote.command.BaseCommand;
 import com.jelly.farmhelper.remote.command.RemoteCommandContext;
 import com.jelly.farmhelper.remote.event.MessageEvent;
-import com.jelly.farmhelper.utils.ProfitUtils;
+import com.jelly.farmhelper.utils.ProfitCalculator;
 import dev.volix.lib.brigadier.command.Command;
 import dev.volix.lib.brigadier.context.CommandContext;
 import dev.volix.lib.brigadier.parameter.ParameterSet;
@@ -21,10 +21,10 @@ public class InfoCommand extends BaseCommand {
         DiscordWebhook.EmbedObject embed = embed()
                 .addField("Username", mc.getSession().getUsername(), true)
                 .addField("Runtime", getRuntimeFormat(), true)
-                .addField("Total Profit", ProfitUtils.profit.get(), false)
-                .addField("Profit / hr", ProfitUtils.profitHr.get(), false)
-                .addField(ProfitUtils.getHighTierName().equals("Unknown") ? "Unknown crop?" : ProfitUtils.getHighTierName(), ProfitUtils.cropCount.get(), true)
-                .addField("Counter", ProfitUtils.counter.get(), true);
+                .addField("Total Profit", ProfitCalculator.profit.get(), false)
+                .addField("Profit / hr", ProfitCalculator.profitHr.get(), false)
+                .addField(ProfitCalculator.getHighTierName().equals("Unknown") ? "Unknown crop?" : ProfitCalculator.getHighTierName(), ProfitCalculator.enchantedCropCount.get(), true)
+                .addField("Counter", ProfitCalculator.counter.get(), true);
 
         data.addProperty("image", getScreenshot());
         data.addProperty("embed", toJson(embed));

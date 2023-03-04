@@ -39,6 +39,20 @@ public class MacroHandler {
 
     @SubscribeEvent
     public void onChatMessageReceived(ClientChatReceivedEvent e) {
+        if(isMacroing) {
+            if(e.message == null)
+                return;
+
+            if(e.message.getUnformattedText().contains("UNCOMMON"))
+                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.UNCOMMON);
+            else if(e.message.getUnformattedText().contains("CRAZY"))
+                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.CRAZY_RARE);
+            else if(e.message.getUnformattedText().contains("RARE"))
+                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.RARE);
+            else if(e.message.getUnformattedText().contains("RNGESUS"))
+                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.PRAY);
+
+        }
         if (currentMacro != null && currentMacro.enabled && mc.thePlayer != null && mc.theWorld != null && e.message != null) {
             currentMacro.onChatMessageReceived(e.message.getUnformattedText());
         }
@@ -86,9 +100,10 @@ public class MacroHandler {
 
 
         if (isMacroing) {
+            ProfitCalculator.iterateInventory();
             if (FarmHelper.tickCount == 1) {
                 LogUtils.webhookStatus();
-                ProfitUtils.updateProfitState();
+
                 StatusUtils.updateStateString();
             }
             if (currentMacro != null && currentMacro.enabled) {
@@ -131,7 +146,7 @@ public class MacroHandler {
         if (SchedulerConfig.scheduler) Scheduler.start();
 
         startTime = System.currentTimeMillis();
-        ProfitUtils.resetProfit();
+        ProfitCalculator.resetProfit();
 
         Failsafe.jacobWait.reset();
         startCounter = PlayerUtils.getCounter();
