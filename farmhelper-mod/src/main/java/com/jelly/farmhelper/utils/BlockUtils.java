@@ -3,6 +3,7 @@ package com.jelly.farmhelper.utils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCarpet;
 import net.minecraft.block.BlockCrops;
+import net.minecraft.block.BlockNetherWart;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
@@ -16,7 +17,7 @@ import static com.jelly.farmhelper.utils.AngleUtils.get360RotationYaw;
 
 public class BlockUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final Block[] walkables = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs };
+    private static final Block[] walkables = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs, Blocks.carpet };
 
     public static int getUnitX(){
         return getUnitX((mc.thePlayer.rotationYaw % 360 + 360) % 360);
@@ -145,7 +146,9 @@ public class BlockUtils {
 
     public static boolean leftCropIsReady(){
         Block crop = getRelativeBlock(-1, 1, 1);
-        if (crop.equals(Blocks.wheat) || crop.equals(Blocks.carrots) || crop.equals(Blocks.potatoes) || crop.equals(Blocks.nether_wart))
+        if (crop.equals(Blocks.nether_wart)) {
+            return mc.theWorld.getBlockState(getRelativeBlockPos(-1, 1, 1)).getValue(BlockNetherWart.AGE) == 3;
+        } else if (crop.equals(Blocks.wheat) || crop.equals(Blocks.carrots) || crop.equals(Blocks.potatoes))
             return mc.theWorld.getBlockState(getRelativeBlockPos(-1, 1, 1)).getValue(BlockCrops.AGE) == 7;
         else {
             crop = getRelativeBlock(-1, 0, 1);
@@ -154,7 +157,9 @@ public class BlockUtils {
     }
     public static boolean rightCropIsReady(){
         Block crop = getRelativeBlock(1, 1, 1);
-        if (crop.equals(Blocks.wheat) || crop.equals(Blocks.carrots) || crop.equals(Blocks.potatoes) || crop.equals(Blocks.nether_wart))
+        if (crop.equals(Blocks.nether_wart)) {
+            return mc.theWorld.getBlockState(getRelativeBlockPos(1, 1, 1)).getValue(BlockNetherWart.AGE) == 3;
+        } else if (crop.equals(Blocks.wheat) || crop.equals(Blocks.carrots) || crop.equals(Blocks.potatoes))
             return mc.theWorld.getBlockState(getRelativeBlockPos(1, 1, 1)).getValue(BlockCrops.AGE) == 7;
         else {
             crop = getRelativeBlock(1, 0, 1);
