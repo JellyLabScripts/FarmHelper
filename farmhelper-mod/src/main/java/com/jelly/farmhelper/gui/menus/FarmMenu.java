@@ -25,6 +25,7 @@ public class FarmMenu extends UIContainer {
             .setChildOf(this);
 
 
+        // Make sure to match CropEnum!
         cropList.add(new ImageBox(new PixelConstraint(10), new PixelConstraint(10), 60f, "carrot.png", cropList, 0L, "cropType").setChildOf(selector));
         cropList.add(new ImageBox(new SiblingConstraint(10), new PixelConstraint(10), 60f, "netherwart.png", cropList, 1L, "cropType").setChildOf(selector));
         cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 60f, "potato.png", cropList, 2L, "cropType").setChildOf(selector));
@@ -32,9 +33,8 @@ public class FarmMenu extends UIContainer {
         cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 60f, "cane.png", cropList, 4L, "cropType").setChildOf(selector));
         cropList.add(new ImageBox(new SiblingConstraint(10), new CramSiblingConstraint(10), 60f, "melon.png", cropList, 5L, "cropType").setChildOf(selector));
         cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 60f, "pumpkin.png", cropList, 6L, "cropType").setChildOf(selector));
-        cropList.add(new ImageBox(new SiblingConstraint(10), new CramSiblingConstraint(10), 60f, "cocoabeans.png", cropList, 7L, "cropType").setChildOf(selector));
-        cropList.add(new ImageBox(new SiblingConstraint(10), new CramSiblingConstraint(10), 60f, "cactus.png", cropList, 8L, "cropType").setChildOf(selector));
-        //cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 130f, ".png", cropList, 4L, "cropType").setChildOf(selector));
+        cropList.add(new ImageBox(new SiblingConstraint(10), new CramSiblingConstraint(10), 60f, "cactus.png", cropList, 7L, "cropType").setChildOf(selector));
+        cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 60f, "cocoabeans.png", cropList, 8L, "cropType").setChildOf(selector));
 
         farmList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 60f, "layered.png", farmList, 0L, "farmType").setChildOf(selector));
         farmList.add(new ImageBox(new PixelConstraint(80), new CramSiblingConstraint(10), 60f, "vertical.png", farmList, 1L, "farmType").setChildOf(selector));

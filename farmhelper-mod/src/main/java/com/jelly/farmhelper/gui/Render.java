@@ -65,11 +65,13 @@ public class Render {
                         case PUMPKIN:
                             profitGUI.addChild(profitGUI.stats.get(9));
                             break;
-
+                        case CACTUS:
+                            profitGUI.addChild(profitGUI.stats.get(10));
+                            break;
                     }
                 }
-                if (ProfitCalculatorConfig.counter) profitGUI.addChild(profitGUI.stats.get(10));
-                if (ProfitCalculatorConfig.runtime) profitGUI.addChild(profitGUI.stats.get(11));
+                if (ProfitCalculatorConfig.counter) profitGUI.addChild(profitGUI.stats.get(11));
+                if (ProfitCalculatorConfig.runtime) profitGUI.addChild(profitGUI.stats.get(12));
             }
 
             UGraphics.enableAlpha();

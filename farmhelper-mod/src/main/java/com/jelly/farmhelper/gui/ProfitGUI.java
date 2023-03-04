@@ -82,6 +82,9 @@ public class ProfitGUI extends UIBlock {
         stats.add(new Stat("ecocoabeans.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
         stats.add(new Stat("emelon.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
         stats.add(new Stat("epumpkin.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+        stats.add(new Stat("ecactus.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+
+
         stats.add(new Stat("hoe.png").bind(ProfitCalculator.counter).setChildOf(this));
         stats.add(new Stat("clock_00.png").bind(ProfitCalculator.runtime).setChildOf(this));
     }

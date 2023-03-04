@@ -71,9 +71,9 @@ public class LayeredCropMacro extends Macro {
         Antistuck.stuck = false;
         Antistuck.cooldown.schedule(1000);
         if (FarmConfig.cropType == CropEnum.NETHERWART || FarmConfig.cropType == CropEnum.CACTUS) {
-            pitch = 0f;
+            pitch = (float) (0f + Math.random() * 0.5f);
         } else {
-            pitch = 2.8f;
+            pitch = (float) (2.8f + Math.random() * 0.5f);
         }
         yaw = AngleUtils.getClosest();
         tpCoolDown.reset();

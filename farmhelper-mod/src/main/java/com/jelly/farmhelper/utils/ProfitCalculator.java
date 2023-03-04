@@ -3,13 +3,16 @@ package com.jelly.farmhelper.utils;
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
+import com.jelly.farmhelper.network.APIHelper;
 import gg.essential.elementa.state.BasicState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemBlock;
+import org.json.simple.JSONObject;
 
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 public class ProfitCalculator {
@@ -21,12 +24,12 @@ public class ProfitCalculator {
     public static final BasicState<String> brownMushroomCount = new BasicState<>("0");
     public static final BasicState<String> counter = new BasicState<>("0");
     public static final BasicState<String> runtime = new BasicState<>("0h 0m 0s");
-    public static double realProfit = 0;
-
+    public static float realProfit = 0;
     public static final int ENCHANTED_TIER_1 = 160;
     public static final int ENCHANTED_TIER_2 = 25600;
     public static final int HAY_ENCHANTED_TIER_1 = 144; // enchanted hay bale
 
+    public static HashMap<CropEnum, Double> bazaarPrice = new HashMap<>();
     public static long lastTickCropCount = 0;
     public static long cumulativeCropCount = 0;
 
@@ -36,6 +39,7 @@ public class ProfitCalculator {
         CRAZY_RARE,
         PRAY
     }
+
 
     public static void iterateInventory(){
         long newCropCount = 0, cropDiff;
@@ -52,7 +56,8 @@ public class ProfitCalculator {
                     if(!s.getStack().getItem().equals(Items.carrot))
                         continue;
                     break;
-                case COCOA_BEANS:
+                case COCOA_BEANS: // add detection later
+                case CACTUS:
                     if(!s.getStack().getItem().equals(Items.dye))
                         continue;
                     break;
@@ -76,6 +81,7 @@ public class ProfitCalculator {
                     if(!s.getStack().getItem().equals(Items.nether_wart))
                         continue;
                     break;
+                // Add detection
             }
             newCropCount += s.getStack().stackSize;
         }
@@ -96,13 +102,10 @@ public class ProfitCalculator {
         updateProfit();
     }
 
-    // https://hypixel-skyblock.fandom.com/wiki/Melon_Dicer
-    // https://hypixel-skyblock.fandom.com/wiki/Pumpkin_Dicer
-    // collection equivalent
+    // https://hypixel-skyblock.fandom.com/wiki/Melon_Dicer, https://hypixel-skyblock.fandom.com/wiki/Pumpkin_Dicer collection
     public static void addRNGProfit(RNG rng) {
         if(FarmConfig.cropType != CropEnum.PUMPKIN && FarmConfig.cropType != CropEnum.MELON)
             return;
-
         switch (rng) {
             case UNCOMMON:
                 cumulativeCropCount += FarmConfig.cropType == CropEnum.PUMPKIN ? 64 : 160;
@@ -120,38 +123,27 @@ public class ProfitCalculator {
         counter.set(Utils.formatNumber(PlayerUtils.getCounter()));
         runtime.set(LogUtils.getRuntimeFormat());
 
-        //TODO: Change these price respectively to max(bazaarPirce, npcPrice) (fetch)
+        float enchantedCount = 0;
         switch (FarmConfig.cropType) {
             case NETHERWART:
             case SUGARCANE:
-                enchantedCropCount.set(Utils.formatNumber(cumulativeCropCount * 1.0f / ENCHANTED_TIER_2));
-                realProfit = cumulativeCropCount * 2;
+            case POTATO:
+            case MELON:
+            case CACTUS:
+                enchantedCount = cumulativeCropCount * 1.0f / ENCHANTED_TIER_2;
                 break;
             case CARROT:
-                enchantedCropCount.set(Utils.formatNumber(cumulativeCropCount * 1.0f / ENCHANTED_TIER_1));
-                realProfit = cumulativeCropCount * 1.5625;
-                break;
-            case POTATO:
-                enchantedCropCount.set(Utils.formatNumber(cumulativeCropCount * 1.0f / ENCHANTED_TIER_2));
-                realProfit = cumulativeCropCount * 1.2065;
+            case COCOA_BEANS:
+            case PUMPKIN:
+                enchantedCount = cumulativeCropCount * 1.0f / ENCHANTED_TIER_1;
                 break;
             case WHEAT:
-                enchantedCropCount.set(Utils.formatNumber(cumulativeCropCount * 1.0f / HAY_ENCHANTED_TIER_1));
-                realProfit = cumulativeCropCount * 6.52;
+                enchantedCount = cumulativeCropCount * 1.0f / HAY_ENCHANTED_TIER_1;
                 break;
-            case COCOA_BEANS:
-                enchantedCropCount.set(Utils.formatNumber(cumulativeCropCount * 1.0f/ ENCHANTED_TIER_1));
-                realProfit = cumulativeCropCount * 1.5; //TODO: Change, temp only
-                break;
-            case PUMPKIN:
-                enchantedCropCount.set(Utils.formatNumber(cumulativeCropCount * 1.0f / ENCHANTED_TIER_1));
-                realProfit = cumulativeCropCount * 2;
-                break;
-            case MELON:
-                enchantedCropCount.set(Utils.formatNumber(cumulativeCropCount * 1.0f / ENCHANTED_TIER_2));
-                realProfit = cumulativeCropCount * 3;
-                break;
+
         }
+        enchantedCropCount.set(Utils.formatNumber(enchantedCount));
+        realProfit = (float) (enchantedCount * bazaarPrice.get(FarmConfig.cropType));
 
         profit.set("$" + Utils.formatNumber(Math.round(realProfit)));
         profitHr.set("$" + Utils.formatNumber(Math.round(getHourProfit(realProfit))));
@@ -178,26 +170,48 @@ public class ProfitCalculator {
         return 0;
     }
 
-    public static String getHighTierName() {
-        switch (FarmConfig.cropType) {
+    public static String getHighTierCommonName(CropEnum type, boolean formalName) {
+        switch (type) {
             case NETHERWART:
-                return "Mutant Netherwart";
+                return formalName ? "MUTANT_NETHER_STALK" : "Mutant Nether Wart";
             case CARROT:
-                return "Enchanted Carrots";
+                return formalName ? "ENCHANTED_CARROT" : "Enchanted Carrot";
             case POTATO:
-                return "Enchanted Baked Potatoes";
+                return formalName ? "ENCHANTED_BAKED_POTATO" : "Enchanted Baked Potato";
             case WHEAT:
-                return "Enchanted Hay Bales";
+                return formalName ? "ENCHANTED_HAY_BLOCK" :"Enchanted Hay Bale";
             case SUGARCANE:
-                return "Enchanted Sugar Cane";
+                return formalName ? "ENCHANTED_SUGAR_CANE" :"Enchanted Sugar Cane";
             case COCOA_BEANS:
-                return "Enchanted Cocoa Bean";
+                return formalName ? "ENCHANTED_COCOA" :"Enchanted Cocoa Bean";
             case MELON:
-                return "Enchanted Melon Block";
+                return formalName ? "ENCHANTED_MELON_BLOCK" : "Enchanted Melon Block";
             case PUMPKIN:
-                return "Enchanted Pumpkin";
+                return formalName ? "ENCHANTED_PUMPKIN" : "Enchanted Pumpkin";
+            case CACTUS:
+                return formalName ? "ENCHANTED_CACTUS" : "Enchanted Cactus";
             default:
-                return "Unknown";
+                return formalName ? "UNKNOWN" : "Unknown";
         }
     }
+
+
+
+    public static void fetchBazaarPrices() {
+        try {
+            JSONObject json = APIHelper.readJsonFromUrl("https://api.hypixel.net/skyblock/bazaar","User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
+            JSONObject json1 = (JSONObject) json.get("products");
+            for (int i = 0; i < CropEnum.values().length; i++) {
+                JSONObject json2 = (JSONObject)json1.get(getHighTierCommonName(CropEnum.values()[i], true));
+                JSONObject json3 = (JSONObject)json2.get("quick_status");
+                bazaarPrice.put(CropEnum.values()[i], (Double) (json3).get("buyPrice")); // assume sell order
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
 }

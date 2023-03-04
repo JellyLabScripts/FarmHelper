@@ -1,6 +1,7 @@
 package com.jelly.farmhelper;
 
 import com.jelly.farmhelper.config.ConfigHandler;
+import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.features.*;
@@ -11,6 +12,7 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
 import com.jelly.farmhelper.utils.KeyBindUtils;
+import com.jelly.farmhelper.utils.ProfitCalculator;
 import com.jelly.farmhelper.utils.TickTask;
 import com.jelly.farmhelper.world.GameState;
 import lombok.SneakyThrows;
@@ -27,6 +29,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -47,6 +50,8 @@ public class FarmHelper {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public static GameState gameState;
 
+
+
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         setVersions();
@@ -66,6 +71,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new BanwaveChecker());
         MinecraftForge.EVENT_BUS.register(new RemoteControlHandler());
         gameState = new GameState();
+        ProfitCalculator.fetchBazaarPrices();
         try {
             analyticUrl = (String) APIHelper.readJsonFromUrl("NONE","User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
                     .get("url");
@@ -75,6 +81,7 @@ public class FarmHelper {
             registerInitNotification();
         }
     }
+
 
     public static void registerInitNotification() {
         new Thread(() -> {

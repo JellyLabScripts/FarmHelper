@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.utils;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.config.interfaces.RemoteControlConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
@@ -82,7 +83,7 @@ public class LogUtils {
                         .addField("Runtime", getRuntimeFormat(), true)
                         .addField("Total Profit", ProfitCalculator.profit.get(), false)
                         .addField("Profit / hr", ProfitCalculator.profitHr.get(), false)
-                        .addField(ProfitCalculator.getHighTierName(), ProfitCalculator.enchantedCropCount.get(), true)
+                        .addField(ProfitCalculator.getHighTierCommonName(FarmConfig.cropType, false), ProfitCalculator.enchantedCropCount.get(), true)
                         .addField("Counter", ProfitCalculator.counter.get(), true)
                     // .addField("Screenshot", Screenshot.takeScreenshot(), true)
                 );

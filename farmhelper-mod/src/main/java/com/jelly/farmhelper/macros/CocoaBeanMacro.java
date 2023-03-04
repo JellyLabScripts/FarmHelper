@@ -26,32 +26,16 @@ public class CocoaBeanMacro extends Macro {
         KEEP_RIGHT,
         LEFT,
         LEFT_KEEP,
-        STONE_THROW,
-        NONE
-    }
-
-    enum StoneThrowState {
-        ROTATE_AWAY,
-        LIFT,
-        SWITCH,
-        DROP,
-        ROTATE_BACK,
         NONE
     }
 
     private final Rotation rotation = new Rotation();
     public State currentState;
-    private StoneThrowState stoneState;
     private double layerY;
-    private boolean pushedSide;
-    private boolean pushedFront;
     private boolean antistuckActive;
     private boolean tpFlag;
     private float yaw;
     private float pitch;
-    private final Clock rotateWait = new Clock();
-    private final Clock stoneDropTimer = new Clock();
-    private int axeSlot;
     private int axeEquipFails = 0;
     private int notmovingticks = 0;
     private double prevPlayerX;
@@ -61,8 +45,6 @@ public class CocoaBeanMacro extends Macro {
     public void onEnable() {
         layerY = mc.thePlayer.posY;
         currentState = State.NONE;
-        pushedFront = false;
-        pushedSide = false;
         antistuckActive = false;
         Antistuck.stuck = false;
         tpFlag = false;
@@ -110,14 +92,14 @@ public class CocoaBeanMacro extends Macro {
             return;
         }
 
-        if ((currentState != State.DROPPING && currentState != State.TP_PAD && currentState != State.STONE_THROW &&
+        if ((currentState != State.DROPPING && currentState != State.TP_PAD &&
                 (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) >= FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) >= FailsafeConfig.rotationSens))) {
             rotation.reset();
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
             return;
         }
 
-        if (Antistuck.stuck && currentState != State.STONE_THROW) {
+        if (Antistuck.stuck) {
             LogUtils.debugFullLog("Antistuck");
             if (!antistuckActive) {
                 LogUtils.webhookLog("Stuck, trying to fix");
@@ -183,9 +165,8 @@ public class CocoaBeanMacro extends Macro {
 
     private void updateState() {
         State lastState = currentState;
-        if (currentState == State.STONE_THROW) {
-            currentState = State.STONE_THROW;
-        } else if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || (currentState == State.TP_PAD && !tpFlag)) {
+
+        if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || (currentState == State.TP_PAD && !tpFlag)) {
             currentState = State.TP_PAD;
         } else if (layerY - mc.thePlayer.posY > 1 || currentState == State.DROPPING || isDropping()) {
             currentState = State.DROPPING;
@@ -218,33 +199,14 @@ public class CocoaBeanMacro extends Macro {
         }
 
         if (lastState != currentState) {
+            //TODO: Further test set spawn
+            if(currentState == State.KEEP_RIGHT || currentState == State.LEFT_KEEP) {
+                if(Math.random() < 0.5d)
+                    PlayerUtils.attemptSetSpawn();
+            }
             rotation.reset();
-            pushedFront = false;
-            pushedSide = false;
             tpFlag = false;
         }
-    }
-
-    private State calculateDirection() {
-        for (int i = 1; i < 180; i++) {
-            if (!isWalkable(BlockUtils.getRelativeBlock(i, 0, 0))) {
-                if (isWalkable(BlockUtils.getRelativeBlock(i - 1, 0, 1)) || isWalkable(BlockUtils.getRelativeBlock(i - 1, -1, 0))) {
-                    return State.RIGHT;
-                } else {
-                    LogUtils.debugFullLog("Failed right: " + BlockUtils.getRelativeBlock(i - 1, 0, 1));
-                    return State.LEFT;
-                }
-            } else if (!isWalkable(BlockUtils.getRelativeBlock(-i, 0, 0))) {
-                if (isWalkable(BlockUtils.getRelativeBlock(-i + 1, 0, 1)) || isWalkable(BlockUtils.getRelativeBlock(-i + 1, -1, 0))) {
-                    return State.LEFT;
-                } else {
-                    LogUtils.debugFullLog("Failed left: " + isWalkable(BlockUtils.getRelativeBlock(i - 1, 0, 1)));
-                    return State.RIGHT;
-                }
-            }
-        }
-        LogUtils.debugLog("Cannot find direction. Length > 180");
-        return State.NONE;
     }
 
     public boolean findAndEquipAxe() {
@@ -266,23 +228,6 @@ public class CocoaBeanMacro extends Macro {
             axeEquipFails = 0;
             return true;
         }
-    }
-
-    private static boolean shouldWalkForwards() {
-        float angle = AngleUtils.getClosest();
-        double x = Math.abs(mc.thePlayer.posX) % 1;
-        double z = Math.abs(mc.thePlayer.posZ) % 1;
-        System.out.println(angle);
-        if (angle == 0) {
-            return z < 0.65;
-        } else if (angle == 90) {
-            return x < 0.65;
-        } else if (angle == 180) {
-            return z > 0.35;
-        } else if (angle == 270) {
-            return x > 0.35;
-        }
-        return false;
     }
 
     private static boolean isDropping(){
