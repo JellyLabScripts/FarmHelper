@@ -94,7 +94,8 @@ public class LayeredCropMacro extends Macro {
 
     @Override
     public void onPacketReceived(ReceivePacketEvent event) {
-        if(rotation.rotating && currentState == State.DROPPING && event.packet instanceof S08PacketPlayerPosLook) {
+        if(rotation.rotating && event.packet instanceof S08PacketPlayerPosLook &&
+                (currentState == State.DROPPING || (currentState == State.TP_PAD && tpCoolDown.passed()))) {
             rotation.reset();
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
         }
@@ -103,32 +104,37 @@ public class LayeredCropMacro extends Macro {
     @Override
     public void onTick() {
 
-        if (rotation.rotating) {
+        if (rotation.rotating && currentState != State.TP_PAD) {
             updateKeys(false, false, false, false, false);
             return;
         }
 
-        if (MiscConfig.rotateAfterTP && tpCoolDown.isScheduled() && tpCoolDown.getRemainingTime() < 700 && rotation.completed) {
-            yaw = AngleUtils.getClosest((yaw + 180 + 360) % 360);
-            rotation.easeTo(yaw, pitch, 500);
-            tpCoolDown.reset();
-            currentState = State.NONE;
-            return;
-        } else if (tpCoolDown.isScheduled() && tpCoolDown.getRemainingTime() < 700 && rotation.completed) {
-            yaw = AngleUtils.getClosest();
-            rotation.easeTo(yaw, pitch, 500);
-            tpCoolDown.reset();
-            currentState = State.NONE;
-            return;
+        if(currentState != State.DROPPING && currentState != State.STONE_THROW) {
+
+            boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens
+                    || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens;
+
+            if(currentState == State.TP_PAD && tpCoolDown.passed()) {
+                if(mc.thePlayer.posY % 1 == 0.8125f && mc.thePlayer.rotationPitch == 0) {
+                    if (!(FarmConfig.cropType == CropEnum.NETHERWART) && !(FarmConfig.cropType == CropEnum.CACTUS)) {
+                        yaw = AngleUtils.getClosest();
+                        rotation.easeTo(mc.thePlayer.rotationYaw, pitch, 300);
+                        return;
+                    }
+                }
+            } else if(currentState == State.TP_PAD && !tpCoolDown.passed()) {
+                if(flag && (Math.round(AngleUtils.get360RotationYaw()) % 90 != 0 || Math.round(mc.thePlayer.rotationPitch) != 0)) {
+                    rotation.reset();
+                    Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
+                    return;
+                }
+            } else if(flag) {
+                rotation.reset();
+                Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
+                return;
+            }
         }
 
-
-        if ((!tpCoolDown.isScheduled() || tpCoolDown.passed()) && (currentState != State.DROPPING && currentState != State.TP_PAD && currentState != State.STONE_THROW &&
-                (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens))) {
-            rotation.reset();
-            Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
-            return;
-        }
 
         if (Antistuck.stuck && currentState != State.STONE_THROW) {
             LogUtils.debugFullLog("Antistuck");
@@ -159,27 +165,39 @@ public class LayeredCropMacro extends Macro {
         }
 
         updateState();
+        System.out.println(currentState);
 
         switch (currentState) {
             case TP_PAD:
-                if(!tpCoolDown.passed())
+                if(!tpCoolDown.passed()) {
+                    LogUtils.debugLog("Waiting for cd");
+                    KeyBindUtils.stopMovement();
                     break;
-
+                }
                 tpCoolDown.reset();
+
                 if(mc.thePlayer.capabilities.isFlying || (!getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) && !mc.thePlayer.onGround)) {
+                    LogUtils.debugLog("Pressing shift");
                     KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
                 } else if (mc.thePlayer.posY % 1 > 0 && mc.thePlayer.posY % 1 < 0.8125f) {
+                    LogUtils.debugLog("Pressing space");
                     KeyBindUtils.updateKeys(false, false, false, false, false, false, true);
                 } else {
-                    if (isWalkable(getRelativeBlock(1, 0.1875f, 0))) {
+                    if(mc.gameSettings.keyBindRight.isKeyDown()) {
+                        LogUtils.debugLog("On top of pad, keep going right");
+                        updateKeys(false, false, true, false, true, false, false);
+                    } else if(mc.gameSettings.keyBindLeft.isKeyDown()) {
+                        LogUtils.debugLog("On top of pad, keep going left");
+                        updateKeys(false, false, false, true, true, false, false);
+                    } else if (isWalkable(getRelativeBlock(1, 0.1875f, 0))) {
                         LogUtils.debugLog("On top of pad, go right");
-                        updateKeys(false, false, true, false, findAndEquipHoe());
+                        updateKeys(false, false, true, false, false, false, false);
                     } else if (isWalkable(getRelativeBlock(-1, 0.1875f, 0))) {
                         LogUtils.debugLog("On top of pad, go left");
-                        updateKeys(false, false, false, true, findAndEquipHoe());
+                        updateKeys(false, false, false, true, false, false, false);
                     } else {
                         LogUtils.debugLog("On top of pad, cant detect where to go");
-                        updateKeys(false, false, false, false, false);
+                        updateKeys(false, false, false, false, false, false, false);
                     }
                 }
 
@@ -330,9 +348,9 @@ public class LayeredCropMacro extends Macro {
             currentState = State.STONE_THROW;
         } else if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
             currentState = State.TP_PAD;
-            if(!tpCoolDown.isScheduled())
-                tpCoolDown.schedule(1500);
-        } else if (layerY - mc.thePlayer.posY > 1 || currentState == State.DROPPING || isDropping()) {
+            if(!tpCoolDown.isScheduled() && lastState != currentState)
+                tpCoolDown.schedule(500);
+        } else if (currentState != State.TP_PAD && (layerY - mc.thePlayer.posY > 1 || currentState == State.DROPPING || isDropping())) {
             currentState = State.DROPPING;
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
             // layerY = mc.thePlayer.posY;

@@ -31,8 +31,6 @@ public class VerticalCropMacro extends Macro{
     float pitch;
     float yaw;
 
-    int flyToggleTimer = 0;
-
     Rotation rotation = new Rotation();
 
     private final Clock lastTp = new Clock();
@@ -60,7 +58,6 @@ public class VerticalCropMacro extends Macro{
                 pitch = -90;
         }
         dir = direction.NONE;
-        flyToggleTimer = 0;
         rotation.easeTo(yaw, pitch, 500);
         if (FarmConfig.cropType != CropEnum.MELON && FarmConfig.cropType != CropEnum.PUMPKIN)
             mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot();
@@ -117,8 +114,6 @@ public class VerticalCropMacro extends Macro{
         if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
                 BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)) {//standing on tp pad
-            if(flyToggleTimer > 0)
-                flyToggleTimer --;
             if (!lastTp.isScheduled())
                 lastTp.schedule(1500);
             LogUtils.debugLog("Scheduled tp");
@@ -126,8 +121,6 @@ public class VerticalCropMacro extends Macro{
 
             if(mc.thePlayer.capabilities.isFlying || (!getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) && !mc.thePlayer.onGround)) {
                 KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
-//            } else if (mc.thePlayer.posY % 1 > 0 && mc.thePlayer.posY % 1 < 0.8125f) {
-//                KeyBindUtils.updateKeys(false, false, false, false, false, false, true);
             } else if (isWalkable(getRelativeBlock(1, 1, 0))) {
                 updateKeys(false, false, true, false, false);
             } else if (isWalkable(getRelativeBlock(-1, 1, 0))) {
