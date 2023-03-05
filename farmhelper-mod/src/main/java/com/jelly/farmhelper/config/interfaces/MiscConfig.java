@@ -15,6 +15,4 @@ public class MiscConfig {
     public static boolean debugMode = false;
     @Config()
     public static boolean ungrab = true;
-    @Config
-    public static boolean rotateAfterTP = false;
 }
