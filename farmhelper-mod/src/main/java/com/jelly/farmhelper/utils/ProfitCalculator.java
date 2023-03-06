@@ -29,15 +29,28 @@ public class ProfitCalculator {
     public static final int ENCHANTED_TIER_2 = 25600;
     public static final int HAY_ENCHANTED_TIER_1 = 144; // enchanted hay bale
 
-    public static HashMap<CropEnum, Double> bazaarPrice = new HashMap<>();
+    public static HashMap<CropEnum, Double> cropBazaarPrice = new HashMap<>();
+    public static HashMap<ArmorDrop, Double> armorDropBazaarPrice = new HashMap<>();
     public static long lastTickCropCount = 0;
     public static long cumulativeCropCount = 0;
+    public static long armorDropProfit = 0;
 
     public enum RNG {
         UNCOMMON,
         RARE,
         CRAZY_RARE,
         PRAY
+    }
+
+    public enum ArmorDrop {
+        FERMENTO ("FERMENTO"),
+        CROPIE ("CROPIE"),
+        SQUASH ("SQUASH");
+
+        final String formalName;
+        ArmorDrop(String formalName) {
+            this.formalName = formalName;
+        }
     }
 
 
@@ -119,6 +132,10 @@ public class ProfitCalculator {
         updateProfit();
     }
 
+    public static void addArmorDropProfit(ArmorDrop drop) {
+        armorDropProfit += armorDropBazaarPrice.get(drop);
+    }
+
     private static void updateProfit() {
         counter.set(Utils.formatNumber(PlayerUtils.getCounter()));
         runtime.set(LogUtils.getRuntimeFormat());
@@ -143,7 +160,7 @@ public class ProfitCalculator {
 
         }
         enchantedCropCount.set(Utils.formatNumber(enchantedCount));
-        realProfit = (float) (enchantedCount * bazaarPrice.get(FarmConfig.cropType));
+        realProfit = (float) (enchantedCount * cropBazaarPrice.get(FarmConfig.cropType) + armorDropProfit);
 
         profit.set("$" + Utils.formatNumber(Math.round(realProfit)));
         profitHr.set("$" + Utils.formatNumber(Math.round(getHourProfit(realProfit))));
@@ -159,6 +176,7 @@ public class ProfitCalculator {
         brownMushroomCount.set("0");
         counter.set("0");
         runtime.set("0h 0m 0s");
+        armorDropProfit = 0;
         cumulativeCropCount = 0;
         lastTickCropCount = 0;
     }
@@ -201,11 +219,18 @@ public class ProfitCalculator {
         try {
             JSONObject json = APIHelper.readJsonFromUrl("https://api.hypixel.net/skyblock/bazaar","User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
             JSONObject json1 = (JSONObject) json.get("products");
+
             for (int i = 0; i < CropEnum.values().length; i++) {
                 JSONObject json2 = (JSONObject)json1.get(getHighTierCommonName(CropEnum.values()[i], true));
                 JSONObject json3 = (JSONObject)json2.get("quick_status");
-                bazaarPrice.put(CropEnum.values()[i], (Double) (json3).get("buyPrice")); // assume sell order
+                cropBazaarPrice.put(CropEnum.values()[i], (Double) (json3).get("buyPrice")); // assume sell order
             }
+            for (int i = 0; i < ArmorDrop.values().length; i++) {
+                JSONObject json2 = (JSONObject)json1.get(ArmorDrop.values()[i].formalName);
+                JSONObject json3 = (JSONObject)json2.get("quick_status");
+                armorDropBazaarPrice.put(ArmorDrop.values()[i], (Double) (json3).get("buyPrice")); // assume sell order
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
