@@ -204,7 +204,7 @@ public class Failsafe {
         DIRT ("You may have been dirt checked"),
         BEDROCK ("You have been bedrock checked"),
         ROTATION ("You may have been rotation checked or you may have moved your mouse"),
-        DESYNC("You are desynced so there may be a staff spectating");
+        DESYNC("You are desynced. You might be lagging or there might be a staff spectating");
 
         final String label;
         FailsafeType(String s) {
@@ -235,11 +235,13 @@ public class Failsafe {
             switch (type){
                 case DIRT: case DESYNC:
                     emergencyThreadExecutor.submit(stopScript);
+                    break;
                 case ROTATION:
                     emergencyThreadExecutor.submit(rotationMovement);
                     break;
                 case BEDROCK:
                     emergencyThreadExecutor.submit(cagedActing);
+                    break;
             }
         }
     }

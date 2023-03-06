@@ -52,6 +52,14 @@ public class MacroHandler {
             else if(e.message.getUnformattedText().contains("RNGESUS"))
                 ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.PRAY);
 
+            if(e.message.getUnformattedText().contains("CROPIE")) {
+                ProfitCalculator.addArmorDropProfit(ProfitCalculator.ArmorDrop.CROPIE);
+            } else if(e.message.getUnformattedText().contains("SQUASH")) {
+                ProfitCalculator.addArmorDropProfit(ProfitCalculator.ArmorDrop.SQUASH);
+            } else if(e.message.getUnformattedText().contains("FERMENTO")) {
+                ProfitCalculator.addArmorDropProfit(ProfitCalculator.ArmorDrop.FERMENTO);
+            }
+
         }
         if (currentMacro != null && currentMacro.enabled && mc.thePlayer != null && mc.theWorld != null && e.message != null) {
             currentMacro.onChatMessageReceived(e.message.getUnformattedText());
