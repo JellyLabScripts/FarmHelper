@@ -1,5 +1,7 @@
 package com.jelly.farmhelper.utils;
 
+import com.jelly.farmhelper.config.enums.CropEnum;
+import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCarpet;
 import net.minecraft.block.BlockCrops;
@@ -18,6 +20,7 @@ import static com.jelly.farmhelper.utils.AngleUtils.get360RotationYaw;
 public class BlockUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final Block[] walkables = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs, Blocks.carpet };
+    private static final Block[] walkablesCactus = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs };
 
     public static int getUnitX(){
         return getUnitX((mc.thePlayer.rotationYaw % 360 + 360) % 360);
@@ -141,7 +144,7 @@ public class BlockUtils {
     }
 
     public static boolean isWalkable(Block block) {
-        return Arrays.asList(walkables).contains(block);
+        return Arrays.asList(FarmConfig.cropType == CropEnum.CACTUS ? walkablesCactus : walkables).contains(block);
     }
 
     public static boolean leftCropIsReady(){

@@ -4,7 +4,6 @@ import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.enums.FarmEnum;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
@@ -14,7 +13,6 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
-
 
 import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.BlockUtils.getRelativeBlock;
@@ -195,6 +193,9 @@ public class LayeredCropMacro extends Macro {
                     } else if (isWalkable(getRelativeBlock(-1, 0.1875f, 0))) {
                         LogUtils.debugLog("On top of pad, go left");
                         updateKeys(false, false, false, true, false, false, false);
+                    } else if (isWalkable(getRelativeBlock(0, 0.1875f, 1))) {
+                        LogUtils.debugLog("On top of pad, go forward");
+                        updateKeys(true, false, false, false, false, false, false);
                     } else {
                         LogUtils.debugLog("On top of pad, cant detect where to go");
                         updateKeys(false, false, false, false, false, false, false);
@@ -245,6 +246,9 @@ public class LayeredCropMacro extends Macro {
                 return;
             case RIGHT:
                 LogUtils.debugLog("Middle of row, going right");
+                LogUtils.debugLog("Should walk forwards: " + (FarmConfig.cropType != CropEnum.CACTUS && shouldWalkForwards()));
+                LogUtils.debugLog("Should push back: " + (FarmConfig.cropType == CropEnum.CACTUS && shouldPushBack()));
+                LogUtils.debugLog("Should push back 2: " + (shouldPushBack()));
                 updateKeys(FarmConfig.cropType != CropEnum.CACTUS && shouldWalkForwards(), FarmConfig.cropType == CropEnum.CACTUS && shouldPushBack(), true, false, findAndEquipHoe());
                 return;
             case LEFT:
@@ -510,7 +514,7 @@ public class LayeredCropMacro extends Macro {
         double z = mc.thePlayer.posZ % 1;
         System.out.println(angle);
         Block blockBehind = BlockUtils.getRelativeBlock(0, 0, -1);
-        if (!blockBehind.equals(Blocks.cobblestone) || !blockBehind.equals(Blocks.carpet)) return false;
+        if (!blockBehind.equals(Blocks.cobblestone) && !blockBehind.equals(Blocks.carpet)) return false;
         if (angle == 0) {
             return (z > -0.65 && z < -0.1) || (z < 0.9 && z > 0.35);
         } else if (angle == 90) {
