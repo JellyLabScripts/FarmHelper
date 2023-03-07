@@ -7,11 +7,8 @@ import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
-import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
-
-import java.util.Arrays;
 
 import static com.jelly.farmhelper.utils.BlockUtils.*;
 import static com.jelly.farmhelper.utils.KeyBindUtils.stopMovement;
@@ -35,8 +32,6 @@ public class VerticalCropMacro extends Macro{
     Rotation rotation = new Rotation();
 
     private final Clock lastTp = new Clock();
-
-    private final Block[] wall = new Block[]{Blocks.cobblestone, Blocks.stone_slab};
 
     @Override
     public void onEnable() {
@@ -146,8 +141,8 @@ public class VerticalCropMacro extends Macro{
             } else {
                 stopMovement();
             }
-        } else if ((!isWalkable(getLeftBlock()) && (Arrays.asList(wall).contains(getLeftBlock()) || Arrays.asList(wall).contains(getLeftTopBlock()))) &&
-                (isWalkable(getRightBlock()) && !Arrays.asList(wall).contains(getRightBlock()) && !Arrays.asList(wall).contains(getRightTopBlock()))) {
+        } else if (isWalkable(getRightBlock()) && isWalkable(getRightTopBlock()) &&
+                (!isWalkable(getLeftBlock()) || !isWalkable(getLeftTopBlock()))) {
             if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d && Math.random() < RANDOM_CONST) {
                 dir = direction.RIGHT;
                 updateKeys(false, false, true, false, true);
@@ -155,8 +150,8 @@ public class VerticalCropMacro extends Macro{
                 if(Math.random() < 0.5d)
                     PlayerUtils.attemptSetSpawn();
             }
-        } else if (isWalkable(getLeftBlock()) && !Arrays.asList(wall).contains(getLeftBlock()) && !Arrays.asList(wall).contains(getLeftTopBlock()) &&
-                (!isWalkable(getRightBlock()) && (Arrays.asList(wall).contains(getRightBlock()) || Arrays.asList(wall).contains(getRightTopBlock())))) {
+        } else if (isWalkable(getLeftBlock()) && isWalkable(getLeftTopBlock()) &&
+                (!isWalkable(getRightBlock()) || !isWalkable(getRightTopBlock()))) {
             if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d && Math.random() < RANDOM_CONST) {
                 dir = direction.LEFT;
                 updateKeys(false, false, false, true, true);
