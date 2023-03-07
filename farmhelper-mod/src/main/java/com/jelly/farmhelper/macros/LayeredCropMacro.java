@@ -246,9 +246,6 @@ public class LayeredCropMacro extends Macro {
                 return;
             case RIGHT:
                 LogUtils.debugLog("Middle of row, going right");
-                LogUtils.debugLog("Should walk forwards: " + (FarmConfig.cropType != CropEnum.CACTUS && shouldWalkForwards()));
-                LogUtils.debugLog("Should push back: " + (FarmConfig.cropType == CropEnum.CACTUS && shouldPushBack()));
-                LogUtils.debugLog("Should push back 2: " + (shouldPushBack()));
                 updateKeys(FarmConfig.cropType != CropEnum.CACTUS && shouldWalkForwards(), FarmConfig.cropType == CropEnum.CACTUS && shouldPushBack(), true, false, findAndEquipHoe());
                 return;
             case LEFT:
