@@ -96,6 +96,9 @@ public class Failsafe {
                 if (cooldown.passed() && jacobWait.passed() && !AutoCookie.isEnabled() && !AutoPot.isEnabled()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
+                    updateKeys(false, false, false, false, false, true, false)
+                    Thread.sleep(1000);
+                    updateKeys(false, false, false, false, false, false, false)
                     cooldown.schedule(5000);
                 }
                 return;
