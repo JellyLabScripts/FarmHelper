@@ -37,10 +37,8 @@ public class Autosell {
     private static final Integer[] NPCSellSlots = {11, 16, 21, 23};
     private static Integer[] NPCSellSlotCounts = {999, 999, 999, 999};
     private static final Integer[] BZSellSlots = {10, 13, 19};
-    private static Integer[] BZSellSlotCounts = {999, 999, 999};
 
     private static boolean fullCheck;
-    private static long checkStart;
     private static final Clock checkTimer = new Clock();
     private static int fullCount;
     private static int totalCount;
@@ -67,7 +65,6 @@ public class Autosell {
         }
         LogUtils.debugLog("[AutoSell] Started inventory sell");
         NPCSellSlotCounts = new Integer[]{999, 999, 999, 999};
-        BZSellSlotCounts = new Integer[]{999, 999, 999};
         hoeSlot = mc.thePlayer.inventory.currentItem;
         sackSlot = getSack();
         sellClock.reset();
@@ -93,7 +90,6 @@ public class Autosell {
             if (mc.thePlayer.inventory.getFirstEmptyStack() == -1 && !fullCheck) {
                 LogUtils.debugLog("[AutoSell] Started inventory full watch");
                 fullCheck = true;
-                checkStart = System.currentTimeMillis();
                 checkTimer.schedule(TimeUnit.SECONDS.toMillis((long) AutoSellConfig.fullTime));
                 fullCount = 1;
                 totalCount = 1;
@@ -265,10 +261,6 @@ public class Autosell {
         // Count all items in sack NPC
         for (int i = 0; i < NPCSellSlots.length; i++) {
             NPCSellSlotCounts[i] = countSlotInSack(NPCSellSlots[i]);
-        }
-        // Count all items in sack BZ
-        for (int i = 0; i < BZSellSlots.length; i++) {
-            BZSellSlotCounts[i] = countSlotInSack(BZSellSlots[i]);
         }
     }
 
