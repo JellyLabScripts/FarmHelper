@@ -10,7 +10,6 @@ import com.jelly.farmhelper.utils.PlayerUtils;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -36,14 +35,13 @@ public class Autosell {
 
     private static final Integer[] NPCSellSlots = {11, 16, 21, 23};
     private static Integer[] NPCSellSlotCounts = {999, 999, 999, 999};
-    private static final Integer[] BZSellSlots = {10, 13, 19};
 
     private static boolean fullCheck;
     private static final Clock checkTimer = new Clock();
     private static int fullCount;
     private static int totalCount;
 
-    private static Clock sellClock = new Clock();
+    private static final Clock sellClock = new Clock();
 
     private static boolean soldToBZ = false;
     private static boolean soldSacks = false;
