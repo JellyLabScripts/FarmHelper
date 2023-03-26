@@ -1,13 +1,10 @@
 package com.jelly.farmhelper;
 
 import com.jelly.farmhelper.config.ConfigHandler;
-import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.gui.MenuGUI;
 import com.jelly.farmhelper.gui.Render;
-import com.jelly.farmhelper.gui.menus.FarmMenu;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
@@ -29,7 +26,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -38,7 +34,7 @@ import java.util.jar.Manifest;
 public class FarmHelper {
     public static final String MODID = "farmhelper";
     public static final String NAME = "Farm Helper";
-    public static final String VERSION = "4.3.1.1";
+    public static final String VERSION = "4.3.2";
     public static String analyticUrl;
 
     // the actual mod version from gradle properties, should match with VERSION

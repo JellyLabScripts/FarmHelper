@@ -7,8 +7,8 @@ import com.yyonezu.remotecontrol.websocket.WebSocketServer;
 import lombok.SneakyThrows;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 
-import javax.security.auth.login.LoginException;
 import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -35,13 +35,16 @@ public class Main {
         }
 
         do {
-            jda = JDABuilder.createDefault(SecretConfig.token).build();
-            JDACommands.start(jda, Main.class);
-/*
-                        .getAdapterRegistry().register(Instance.class, new InstanceAdapter());
-*/
-            validToken = true;
-        } while (!validToken);
+            try {
+                jda = JDABuilder.createDefault(SecretConfig.token).build();
+                JDACommands.start(jda, Main.class);
+                validToken = true;
+            } catch (InvalidTokenException e) {
+                String token = JOptionPane.showInputDialog("Incorrect token, set it again");
+                Config.set("token", token);
+            }
+        } while(!validToken);
+
     }
     @SneakyThrows
     public static void setVersions() {

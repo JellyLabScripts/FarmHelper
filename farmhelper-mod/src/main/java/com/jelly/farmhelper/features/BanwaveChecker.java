@@ -11,7 +11,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.junit.internal.runners.statements.Fail;
 
 import java.util.LinkedList;
 
@@ -51,6 +50,8 @@ public class BanwaveChecker {
                     if(MacroHandler.isMacroing && FailsafeConfig.banwaveDisconnect) {
                         if (banwaveOn && mc.theWorld != null && !Failsafe.emergency) {
                             LogUtils.webhookLog("Disconnecting due to banwave detected");
+
+                            MacroHandler.disableCurrentMacro();
                             this.mc.theWorld.sendQuittingDisconnectingPacket();
 
                         }

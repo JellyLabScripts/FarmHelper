@@ -67,13 +67,14 @@ public class Failsafe {
         }
 
         GameState.location location = gameState.currentLocation;
-        //TODO: Fix not creating notifications
+
         if(location != GameState.location.ISLAND && MacroHandler.currentMacro.enabled){
             if(FailsafeConfig.notifications)
                 createNotification("Not in island", SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
             LogUtils.scriptLog("Failsafe - Not in island, re-warping" + (FailsafeConfig.autoSetspawn ? "" : ". Since auto setspawn was disabled, fly back to the place where you started"));
             MacroHandler.disableCurrentMacro();
         }
+
         switch (location) {
             case TELEPORTING:
                 return;
@@ -115,6 +116,8 @@ public class Failsafe {
                         && !AutoPot.isEnabled()
                         && !(BanwaveChecker.banwaveOn && FailsafeConfig.banwaveDisconnect)
                         && !emergency) {
+
+
                     MacroHandler.enableCurrentMacro();
                 }
         }
@@ -167,11 +170,15 @@ public class Failsafe {
 
 
 
+    // region emergency
     private static final Rotation rotation = new Rotation();
     static Thread bzchillingthread;
     public static boolean emergency = false;
 
+    //private static Clock eDisable = new Clock();
+
     private static ExecutorService emergencyThreadExecutor = Executors.newScheduledThreadPool(5);
+
 
     @SubscribeEvent
     public void onBlockChange(BlockChangeEvent event){
@@ -200,6 +207,11 @@ public class Failsafe {
 
     }
 
+    /*public static void disableEmergencyCheck(int time){
+        eDisable.reset();
+        eDisable.schedule(time);
+    }*/
+
     public enum FailsafeType {
         DIRT ("You may have been dirt checked"),
         BEDROCK ("You have been bedrock checked"),
@@ -213,6 +225,7 @@ public class Failsafe {
     }
 
     public static void emergencyFailsafe(FailsafeType type) {
+
         emergency = true;
 
         LogUtils.webhookLog(type.label);
@@ -313,7 +326,7 @@ public class Failsafe {
             mc.thePlayer.sendChatMessage("/is");
             Thread.sleep(6000);
             MacroHandler.enableMacro();
-        } catch (Exception e) {}
+        } catch (Exception ignored) {}
 
     };
 
