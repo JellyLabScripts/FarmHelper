@@ -264,6 +264,10 @@ public class PlayerUtils {
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Knife")) {
                             return i - 36;
                         }
+                    case MUSHROOM:
+                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Fungi")) {
+                            return i - 36;
+                        }
                 }
             }
         }

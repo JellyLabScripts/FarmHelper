@@ -2,10 +2,7 @@ package com.jelly.farmhelper.utils;
 
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockCarpet;
-import net.minecraft.block.BlockCrops;
-import net.minecraft.block.BlockNetherWart;
+import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
@@ -20,6 +17,7 @@ import static com.jelly.farmhelper.utils.AngleUtils.get360RotationYaw;
 public class BlockUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final Block[] walkables = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs, Blocks.carpet };
+    private static final Block[] walkablesMushroom = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs, Blocks.carpet, Blocks.stone_slab, Blocks.stone_slab2, Blocks.wooden_slab };
     private static final Block[] walkablesCactus = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs };
 
     public static int getUnitX(){
@@ -122,18 +120,18 @@ public class BlockUtils {
         return b.equals(Blocks.water) || b.equals(Blocks.flowing_water);
     }
     public static Block getLeftBlock(){
-        return getRelativeBlock(-1, 0, 0);
+        return getRelativeBlock(-1, 0, 0, FarmConfig.cropType == CropEnum.MUSHROOM ? mc.thePlayer.rotationYaw - 45 : mc.thePlayer.rotationYaw);
     }
     public static Block getRightBlock(){
-        return getRelativeBlock(1, 0, 0);
+        return getRelativeBlock(1, 0, 0, FarmConfig.cropType == CropEnum.MUSHROOM ? mc.thePlayer.rotationYaw - 45 : mc.thePlayer.rotationYaw);
     }
 
     public static Block getLeftTopBlock() {
-        return getRelativeBlock(-1, 1, 0);
+        return getRelativeBlock(-1, 1, 0, FarmConfig.cropType == CropEnum.MUSHROOM ? mc.thePlayer.rotationYaw - 45 : mc.thePlayer.rotationYaw);
     }
 
     public static Block getRightTopBlock() {
-        return getRelativeBlock(1, 1, 0);
+        return getRelativeBlock(1, 1, 0, FarmConfig.cropType == CropEnum.MUSHROOM ? mc.thePlayer.rotationYaw - 45 : mc.thePlayer.rotationYaw);
     }
 
     public static Block getBackBlock(){
@@ -144,27 +142,33 @@ public class BlockUtils {
     }
 
     public static boolean isWalkable(Block block) {
-        return Arrays.asList(FarmConfig.cropType == CropEnum.CACTUS ? walkablesCactus : walkables).contains(block);
+        return Arrays.asList(FarmConfig.cropType == CropEnum.CACTUS ? walkablesCactus :
+                                FarmConfig.cropType == CropEnum.MUSHROOM ? walkablesMushroom :
+                                walkables).contains(block);
     }
 
     public static boolean leftCropIsReady(){
-        Block crop = getRelativeBlock(-1, 1, 1);
+        Block crop = getRelativeBlock(-1, FarmConfig.cropType == CropEnum.MUSHROOM ? 2 : 1, 1, FarmConfig.cropType == CropEnum.MUSHROOM ? mc.thePlayer.rotationYaw - 45 : mc.thePlayer.rotationYaw);
         if (crop.equals(Blocks.nether_wart)) {
             return mc.theWorld.getBlockState(getRelativeBlockPos(-1, 1, 1)).getValue(BlockNetherWart.AGE) == 3;
         } else if (crop.equals(Blocks.wheat) || crop.equals(Blocks.carrots) || crop.equals(Blocks.potatoes))
             return mc.theWorld.getBlockState(getRelativeBlockPos(-1, 1, 1)).getValue(BlockCrops.AGE) == 7;
-        else {
+        else if (crop.equals(Blocks.brown_mushroom) || crop.equals(Blocks.red_mushroom)) {
+            return true;
+        } else {
             crop = getRelativeBlock(-1, 0, 1);
             return crop.equals(Blocks.melon_block) || crop.equals(Blocks.pumpkin);
         }
     }
     public static boolean rightCropIsReady(){
-        Block crop = getRelativeBlock(1, 1, 1);
+        Block crop = getRelativeBlock(1, FarmConfig.cropType == CropEnum.MUSHROOM ? 2 : 1, 1, FarmConfig.cropType == CropEnum.MUSHROOM ? mc.thePlayer.rotationYaw - 45 : mc.thePlayer.rotationYaw);
         if (crop.equals(Blocks.nether_wart)) {
             return mc.theWorld.getBlockState(getRelativeBlockPos(1, 1, 1)).getValue(BlockNetherWart.AGE) == 3;
         } else if (crop.equals(Blocks.wheat) || crop.equals(Blocks.carrots) || crop.equals(Blocks.potatoes))
             return mc.theWorld.getBlockState(getRelativeBlockPos(1, 1, 1)).getValue(BlockCrops.AGE) == 7;
-        else {
+        else if (crop.equals(Blocks.brown_mushroom) || crop.equals(Blocks.red_mushroom)) {
+            return true;
+        } else {
             crop = getRelativeBlock(1, 0, 1);
             return crop.equals(Blocks.melon_block) || crop.equals(Blocks.pumpkin);
         }

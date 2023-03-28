@@ -9,6 +9,6 @@ public enum CropEnum {
         MELON,
         PUMPKIN,
         CACTUS,
-        COCOA_BEANS
-
+        COCOA_BEANS,
+        MUSHROOM
 }

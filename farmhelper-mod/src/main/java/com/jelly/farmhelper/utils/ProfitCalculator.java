@@ -208,6 +208,8 @@ public class ProfitCalculator {
                 return formalName ? "ENCHANTED_PUMPKIN" : "Enchanted Pumpkin";
             case CACTUS:
                 return formalName ? "ENCHANTED_CACTUS" : "Enchanted Cactus";
+            case MUSHROOM:
+                return formalName ? "ENCHANTED_BROWN_MUSHROOM" : "Enchanted Brown Mushroom";
             default:
                 return formalName ? "UNKNOWN" : "Unknown";
         }
