@@ -30,6 +30,7 @@ public class MacroHandler {
     public static LayeredCropMacro layeredCropMacro = new LayeredCropMacro();
     public static VerticalCropMacro verticalCropMacro = new VerticalCropMacro();
     public static CocoaBeanMacro cocoaBeanMacro = new CocoaBeanMacro();
+    public static MushroomMacro mushroomMacro = new MushroomMacro();
 
     private final Rotation rotation = new Rotation();
     public static long startTime = 0;
@@ -132,8 +133,12 @@ public class MacroHandler {
         }
     }
     public static void enableMacro() {
-        if(FarmConfig.farmType == FarmEnum.VERTICAL){
-            currentMacro = verticalCropMacro;
+        if(FarmConfig.farmType == FarmEnum.VERTICAL) {
+            if (FarmConfig.cropType == CropEnum.MUSHROOM) {
+                currentMacro = mushroomMacro;
+            } else {
+                currentMacro = verticalCropMacro;
+            }
         } else {
             if (FarmConfig.cropType == CropEnum.SUGARCANE) {
                 currentMacro = sugarcaneMacro;
