@@ -53,10 +53,6 @@ public class VerticalCropMacro extends Macro{
             case COCOA_BEANS:
                 pitch = -90;
                 break;
-            case MUSHROOM:
-                pitch = (float) (Math.random() * 2 - 1); // -1 - 1
-                yaw = AngleUtils.get360RotationYaw(yaw + 45);
-                break;
         }
         dir = direction.NONE;
         rotation.easeTo(yaw, pitch, 500);
@@ -88,7 +84,7 @@ public class VerticalCropMacro extends Macro{
             rotation.easeTo(yaw, pitch, 500);
         }
 
-        if (lastTp.isScheduled() && !lastTp.passed() && (FarmConfig.cropType != CropEnum.MELON && FarmConfig.cropType != CropEnum.PUMPKIN && FarmConfig.cropType != CropEnum.MUSHROOM)) {
+        if (lastTp.isScheduled() && !lastTp.passed() && (FarmConfig.cropType != CropEnum.MELON && FarmConfig.cropType != CropEnum.PUMPKIN)) {
             updateKeys(true, false, false, false, false);
             dir = direction.NONE;
             return;
@@ -110,13 +106,14 @@ public class VerticalCropMacro extends Macro{
             if (!lastTp.isScheduled())
                 lastTp.schedule(1500);
             LogUtils.debugLog("Scheduled tp");
+
             dir = direction.NONE;
 
             if(mc.thePlayer.capabilities.isFlying || (!getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) && !mc.thePlayer.onGround)) {
                 KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
-            } else if (isWalkable(getRelativeBlock(1, 1, 0, FarmConfig.cropType == CropEnum.MUSHROOM ? mc.thePlayer.rotationYaw - 45 : mc.thePlayer.rotationYaw))) {
+            } else if (isWalkable(getRelativeBlock(1, 1, 0))) {
                 updateKeys(false, false, true, false, false);
-            } else if (isWalkable(getRelativeBlock(-1, 1, 0, FarmConfig.cropType == CropEnum.MUSHROOM ? mc.thePlayer.rotationYaw - 45 : mc.thePlayer.rotationYaw))) {
+            } else if (isWalkable(getRelativeBlock(-1, 1, 0))) {
                 updateKeys(false, false, false, true, false);
                 return;
             }
@@ -140,9 +137,9 @@ public class VerticalCropMacro extends Macro{
                 dir = calculateDirection();
             }
             if (dir == direction.RIGHT)
-                updateKeys(((FarmConfig.cropType != CropEnum.MELON && FarmConfig.cropType != CropEnum.PUMPKIN) && shouldWalkForwards()) || FarmConfig.cropType == CropEnum.MUSHROOM, false, FarmConfig.cropType != CropEnum.MUSHROOM, false, true);
+                updateKeys(((FarmConfig.cropType != CropEnum.MELON && FarmConfig.cropType != CropEnum.PUMPKIN) && shouldWalkForwards()), false, true, false, true);
             else if (dir == direction.LEFT) {
-                updateKeys((FarmConfig.cropType != CropEnum.MELON && FarmConfig.cropType != CropEnum.PUMPKIN && FarmConfig.cropType != CropEnum.MUSHROOM)  && shouldWalkForwards(), false, false, true, true);
+                updateKeys((FarmConfig.cropType != CropEnum.MELON && FarmConfig.cropType != CropEnum.PUMPKIN)  && shouldWalkForwards(), false, false, true, true);
             } else {
                 stopMovement();
             }
@@ -150,11 +147,8 @@ public class VerticalCropMacro extends Macro{
                 (!isWalkable(getLeftBlock()) || !isWalkable(getLeftTopBlock()))) {
             if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d && Math.random() < RANDOM_CONST) {
                 dir = direction.RIGHT;
-                if (FarmConfig.cropType == CropEnum.MUSHROOM) {
-                    updateKeys(false, false, false, false, false);
-                } else {
-                    updateKeys(false, false, true, false, true);
-                }
+                updateKeys(false, false, true, false, true);
+
 
                 if(Math.random() < 0.5d)
                     PlayerUtils.attemptSetSpawn();
@@ -163,11 +157,8 @@ public class VerticalCropMacro extends Macro{
                 (!isWalkable(getRightBlock()) || !isWalkable(getRightTopBlock()))) {
             if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d && Math.random() < RANDOM_CONST) {
                 dir = direction.LEFT;
-                if (FarmConfig.cropType == CropEnum.MUSHROOM) {
-                    updateKeys(false, false, false, false, false);
-                } else {
-                    updateKeys(false, false, false, true, true);
-                }
+                updateKeys(false, false, false, true, true);
+
                 if(Math.random() < 0.5d)
                     PlayerUtils.attemptSetSpawn();
             }
@@ -218,15 +209,15 @@ public class VerticalCropMacro extends Macro{
         }
 
         for (int i = 0; i < 180; i++) {
-            if (isWalkable(getRelativeBlock(i, -1, 0, FarmConfig.cropType == CropEnum.MUSHROOM ? mc.thePlayer.rotationYaw - 45 : mc.thePlayer.rotationYaw)) && f1) {
+            if (isWalkable(getRelativeBlock(i, -1, 0)) && f1) {
                 return direction.RIGHT;
             }
-            if(!isWalkable(getRelativeBlock(i, 0, 0, FarmConfig.cropType == CropEnum.MUSHROOM ? mc.thePlayer.rotationYaw - 45 : mc.thePlayer.rotationYaw)))
+            if(!isWalkable(getRelativeBlock(i, 0, 0)))
                 f1 = false;
-            if (isWalkable(getRelativeBlock(-i, -1, 0, FarmConfig.cropType == CropEnum.MUSHROOM ? mc.thePlayer.rotationYaw - 45 : mc.thePlayer.rotationYaw)) && f2) {
+            if (isWalkable(getRelativeBlock(-i, -1, 0)) && f2) {
                 return direction.LEFT;
             }
-            if(!isWalkable(getRelativeBlock(-i, 0, 0, FarmConfig.cropType == CropEnum.MUSHROOM ? mc.thePlayer.rotationYaw - 45 : mc.thePlayer.rotationYaw)))
+            if(!isWalkable(getRelativeBlock(-i, 0, 0)))
                 f2 = false;
         }
         return direction.NONE;
