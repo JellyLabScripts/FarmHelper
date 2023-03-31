@@ -31,25 +31,32 @@ public abstract class MixinInventoryPlayer {
     public void onInventoryChangeReturn(int index, ItemStack stack, CallbackInfo ci) {
         if (stack != null && stack.getItem() != null) {
             postAddInventory = PlayerUtils.copyInventory(mainInventory).toArray(new ItemStack[0]);
-            if (ProfitCalculator.armorDropToCount.stream().anyMatch(armor -> StringUtils.stripControlCodes(stack.getDisplayName()).contains(armor.localizedName))) {
-                return;
-            }
             for (int i = 0; i < 36; i++) {
-                if (preAddInventory[i] != null && postAddInventory[i] != null) {
-                    if ((preAddInventory[i].getItem() == postAddInventory[i].getItem() && preAddInventory[i].stackSize != postAddInventory[i].stackSize)
-                        || (preAddInventory[i].getItem() != postAddInventory[i].getItem() && postAddInventory[i].stackSize >= 0)) {
-
-                        int size = postAddInventory[i].stackSize - preAddInventory[i].stackSize;
-                        if (!StringUtils.stripControlCodes(preAddInventory[i].getDisplayName()).equals("Hay Bale")) {
-                            if (getAmountOfItemInInventory(preAddInventory[i].getDisplayName(), preAddInventory) + size >= 160)
-                                size -= 160 - getAmountOfItemInInventory(preAddInventory[i].getDisplayName(), preAddInventory);
-                        }
-                        if (size > 0)
-                            ProfitCalculator.onInventoryChanged(postAddInventory[i], size);
+                if (postAddInventory[i] != null) {
+                    int size = 0;
+                    if (preAddInventory[i] != null && preAddInventory[i].getItem() == postAddInventory[i].getItem() && preAddInventory[i].stackSize != postAddInventory[i].stackSize) {
+                        size = postAddInventory[i].stackSize - preAddInventory[i].stackSize;
                     }
+                    if ((preAddInventory[i] == null || (preAddInventory[i].getItem() != postAddInventory[i].getItem()))&& postAddInventory[i].stackSize >= 0) {
+                        size = postAddInventory[i].stackSize;
+                    }
+                    if (size > 0)
+                        checkForCompactAmount(i, size, postAddInventory);
                 }
             }
         }
+    }
+
+    private void checkForCompactAmount(int i, int size, ItemStack[] postAddInventory) {
+        if (StringUtils.stripControlCodes(postAddInventory[i].getDisplayName()).equals("Hay Bale")) {
+            if (getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory) + size >= 144)
+                size -= 144 - getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory);
+        } else {
+            if (getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory) + size >= 160)
+                size -= 160 - getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory);
+        }
+        if (size > 0)
+            ProfitCalculator.onInventoryChanged(postAddInventory[i], size);
     }
 
     private int getAmountOfItemInInventory(String name, ItemStack[] inventory) {

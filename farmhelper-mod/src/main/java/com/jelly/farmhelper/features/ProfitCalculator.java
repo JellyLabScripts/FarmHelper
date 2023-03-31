@@ -196,9 +196,6 @@ public class ProfitCalculator {
                     if (isCrop.isPresent()) {
                         BazaarItem crop = isCrop.get();
                         double price = bazaarPrices.get(crop.localizedName);
-                        if (crop.localizedName.equals("Hay Bale")) {
-                            System.out.println("Hay Bale amount: " + item.amount);
-                        }
                         totalProfit += price * (item.amount * 1.0f / crop.amountToEnchanted);
                         dropToShow.put(item.name, new GuiItem((int) Math.floor(item.amount * 1.0F / crop.amountToEnchanted), crop.image));
                     } else {
@@ -228,22 +225,11 @@ public class ProfitCalculator {
         }
     }
 
-    @SubscribeEvent
-    public void onReceiveChatMessage(ClientChatReceivedEvent event) {
-        if (event.message.getUnformattedText().contains("RARE CROP!")) {
-            Optional<BazaarItem> isArmor = armorDropToCount.stream().filter(armor -> event.message.getUnformattedText().contains(armor.localizedName)).findFirst();
-            if (isArmor.isPresent()) {
-                BazaarItem crop = isArmor.get();
-                onInventoryChanged(crop.localizedName, 1);
-            }
-        }
-    }
-
-    public static void onInventoryChanged(String itemName, int size) {
-        if (itemsDropped.containsKey(StringUtils.stripControlCodes(itemName))) {
-            Collection<DroppedItem> droppedItem = itemsDropped.get(StringUtils.stripControlCodes(itemName));
+    public static void onInventoryChanged(ItemStack item, int size) {
+        if (itemsDropped.containsKey(StringUtils.stripControlCodes(item.getDisplayName()))) {
+            Collection<DroppedItem> droppedItem = itemsDropped.get(StringUtils.stripControlCodes(item.getDisplayName()));
             if (droppedItem.size() == 0) {
-                itemsDropped.put(StringUtils.stripControlCodes(itemName), new DroppedItem(StringUtils.stripControlCodes(itemName), size));
+                itemsDropped.put(StringUtils.stripControlCodes(item.getDisplayName()), new DroppedItem(StringUtils.stripControlCodes(item.getDisplayName()), size));
             } else {
                 boolean added = false;
                 for (DroppedItem loopDiff : droppedItem) {
@@ -254,16 +240,12 @@ public class ProfitCalculator {
                 }
                 if (!added) {
                     if (size < 0) return;
-                    itemsDropped.put(StringUtils.stripControlCodes(itemName), new DroppedItem(StringUtils.stripControlCodes(itemName), size));
+                    itemsDropped.put(StringUtils.stripControlCodes(item.getDisplayName()), new DroppedItem(StringUtils.stripControlCodes(item.getDisplayName()), size));
                 }
             }
         } else {
-            itemsDropped.put(StringUtils.stripControlCodes(itemName), new DroppedItem(StringUtils.stripControlCodes(itemName), size));
+            itemsDropped.put(StringUtils.stripControlCodes(item.getDisplayName()), new DroppedItem(StringUtils.stripControlCodes(item.getDisplayName()), size));
         }
-    }
-
-    public static void onInventoryChanged(ItemStack item, int size) {
-        onInventoryChanged(item.getDisplayName(), size);
     }
 
     public static String getImageName(String name) {
