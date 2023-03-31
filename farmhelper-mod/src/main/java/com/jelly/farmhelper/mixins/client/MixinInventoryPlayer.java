@@ -31,16 +31,16 @@ public abstract class MixinInventoryPlayer {
     public void onInventoryChangeReturn(int index, ItemStack stack, CallbackInfo ci) {
         if (stack != null && stack.getItem() != null) {
             postAddInventory = PlayerUtils.copyInventory(mainInventory).toArray(new ItemStack[0]);
+            if (ProfitCalculator.armorDropToCount.stream().anyMatch(armor -> StringUtils.stripControlCodes(stack.getDisplayName()).contains(armor.localizedName))) {
+                return;
+            }
             for (int i = 0; i < 36; i++) {
                 if (preAddInventory[i] != null && postAddInventory[i] != null) {
                     if ((preAddInventory[i].getItem() == postAddInventory[i].getItem() && preAddInventory[i].stackSize != postAddInventory[i].stackSize)
                         || (preAddInventory[i].getItem() != postAddInventory[i].getItem() && postAddInventory[i].stackSize >= 0)) {
 
                         int size = postAddInventory[i].stackSize - preAddInventory[i].stackSize;
-                        if (StringUtils.stripControlCodes(preAddInventory[i].getDisplayName()).equals("Wheat")) {
-                            if (getAmountOfItemInInventory(preAddInventory[i].getDisplayName(), preAddInventory) + size >= 144)
-                                size -= 144 - getAmountOfItemInInventory(preAddInventory[i].getDisplayName(), preAddInventory);
-                        } else {
+                        if (!StringUtils.stripControlCodes(preAddInventory[i].getDisplayName()).equals("Hay Bale")) {
                             if (getAmountOfItemInInventory(preAddInventory[i].getDisplayName(), preAddInventory) + size >= 160)
                                 size -= 160 - getAmountOfItemInInventory(preAddInventory[i].getDisplayName(), preAddInventory);
                         }

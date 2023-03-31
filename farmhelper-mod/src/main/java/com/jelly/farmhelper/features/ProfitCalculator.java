@@ -39,7 +39,8 @@ public class ProfitCalculator {
     private static final String path = "/assets/farmhelper/textures/gui/";
 
     public static final List<BazaarItem> cropsToCount = new ArrayList<BazaarItem>() {{
-        add(new BazaarItem("Wheat", "ENCHANTED_HAY_BLOCK", HAY_ENCHANTED_TIER_1).setImage());
+        add(new BazaarItem("Hay Bale", "ENCHANTED_HAY_BLOCK", HAY_ENCHANTED_TIER_1).setImage());
+        add(new BazaarItem("Seeds", "ENCHANTED_SEEDS", ENCHANTED_TIER_1).setImage());
         add(new BazaarItem("Carrot", "ENCHANTED_CARROT", ENCHANTED_TIER_1).setImage());
         add(new BazaarItem("Potato", "ENCHANTED_POTATO", ENCHANTED_TIER_1).setImage());
         add(new BazaarItem("Melon", "ENCHANTED_MELON_BLOCK", ENCHANTED_TIER_2).setImage());
@@ -195,6 +196,9 @@ public class ProfitCalculator {
                     if (isCrop.isPresent()) {
                         BazaarItem crop = isCrop.get();
                         double price = bazaarPrices.get(crop.localizedName);
+                        if (crop.localizedName.equals("Hay Bale")) {
+                            System.out.println("Hay Bale amount: " + item.amount);
+                        }
                         totalProfit += price * (item.amount * 1.0f / crop.amountToEnchanted);
                         dropToShow.put(item.name, new GuiItem((int) Math.floor(item.amount * 1.0F / crop.amountToEnchanted), crop.image));
                     } else {
@@ -264,8 +268,10 @@ public class ProfitCalculator {
 
     public static String getImageName(String name) {
         switch (name) {
-            case "Wheat":
+            case "Hay Bale":
                 return "ehaybale.png";
+            case "Seeds":
+                return "eseeds.png";
             case "Carrot":
                 return "ecarrot.png";
             case "Potato":
