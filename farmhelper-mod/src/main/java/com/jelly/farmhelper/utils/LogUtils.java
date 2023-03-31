@@ -4,6 +4,7 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.config.interfaces.RemoteControlConfig;
+import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.DiscordWebhook;
 import net.minecraft.client.Minecraft;
@@ -83,8 +84,7 @@ public class LogUtils {
                         .addField("Runtime", getRuntimeFormat(), true)
                         .addField("Total Profit", ProfitCalculator.profit.get(), false)
                         .addField("Profit / hr", ProfitCalculator.profitHr.get(), false)
-                        .addField(ProfitCalculator.getHighTierCommonName(FarmConfig.cropType, false), ProfitCalculator.enchantedCropCount.get(), true)
-                        .addField("Counter", ProfitCalculator.counter.get(), true)
+                        .addField("Crop Type", String.valueOf(FarmConfig.cropType), true)
                     // .addField("Screenshot", Screenshot.takeScreenshot(), true)
                 );
                 new Thread(() -> {

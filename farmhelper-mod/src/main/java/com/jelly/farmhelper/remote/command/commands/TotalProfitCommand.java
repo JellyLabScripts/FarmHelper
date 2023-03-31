@@ -1,11 +1,11 @@
 package com.jelly.farmhelper.remote.command.commands;
 
 import com.google.gson.JsonObject;
+import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.command.BaseCommand;
 import com.jelly.farmhelper.remote.command.RemoteCommandContext;
 import com.jelly.farmhelper.remote.event.MessageEvent;
-import com.jelly.farmhelper.utils.ProfitCalculator;
 import dev.volix.lib.brigadier.command.Command;
 import dev.volix.lib.brigadier.context.CommandContext;
 import dev.volix.lib.brigadier.parameter.ParameterSet;

@@ -11,6 +11,7 @@
     "block.MixinBlockNetherWart",
     "client.MinecraftMixin",
     "client.MixinChunk",
+    "client.MixinInventoryPlayer",
     "fml.MixinFMLHandshakeMessage",
     "gui.MixinGuiDisconnected",
     "network.MixinNetworkManager",

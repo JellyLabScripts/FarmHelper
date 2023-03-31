@@ -9,7 +9,6 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
 import com.jelly.farmhelper.utils.KeyBindUtils;
-import com.jelly.farmhelper.utils.ProfitCalculator;
 import com.jelly.farmhelper.utils.TickTask;
 import com.jelly.farmhelper.world.GameState;
 import lombok.SneakyThrows;
@@ -66,7 +65,9 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new AutoPot());
         MinecraftForge.EVENT_BUS.register(new BanwaveChecker());
         MinecraftForge.EVENT_BUS.register(new RemoteControlHandler());
+        MinecraftForge.EVENT_BUS.register(new ProfitCalculator());
         gameState = new GameState();
+//        ProfitCalculator.fetchBazaarPrices();
         ProfitCalculator.fetchBazaarPrices();
         try {
             analyticUrl = (String) APIHelper.readJsonFromUrl("NONE","User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")

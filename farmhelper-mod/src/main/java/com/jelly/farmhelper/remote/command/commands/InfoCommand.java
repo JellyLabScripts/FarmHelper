@@ -2,11 +2,11 @@ package com.jelly.farmhelper.remote.command.commands;
 
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.remote.command.BaseCommand;
 import com.jelly.farmhelper.remote.command.RemoteCommandContext;
 import com.jelly.farmhelper.remote.event.MessageEvent;
-import com.jelly.farmhelper.utils.ProfitCalculator;
 import dev.volix.lib.brigadier.command.Command;
 import dev.volix.lib.brigadier.context.CommandContext;
 import dev.volix.lib.brigadier.parameter.ParameterSet;
@@ -24,8 +24,7 @@ public class InfoCommand extends BaseCommand {
                 .addField("Runtime", getRuntimeFormat(), true)
                 .addField("Total Profit", ProfitCalculator.profit.get(), false)
                 .addField("Profit / hr", ProfitCalculator.profitHr.get(), false)
-                .addField(ProfitCalculator.getHighTierCommonName(FarmConfig.cropType, false).equals("Unknown") ? "Unknown crop?" : ProfitCalculator.getHighTierCommonName(FarmConfig.cropType, false), ProfitCalculator.enchantedCropCount.get(), true)
-                .addField("Counter", ProfitCalculator.counter.get(), true);
+                .addField("Crop type", String.valueOf(FarmConfig.cropType), true);
 
         data.addProperty("image", getScreenshot());
         data.addProperty("embed", toJson(embed));

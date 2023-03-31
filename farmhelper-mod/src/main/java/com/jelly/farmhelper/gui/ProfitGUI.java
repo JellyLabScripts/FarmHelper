@@ -1,13 +1,11 @@
 package com.jelly.farmhelper.gui;
 
-import com.jelly.farmhelper.utils.ProfitCalculator;
+import com.jelly.farmhelper.features.ProfitCalculator;
 import gg.essential.elementa.UIComponent;
 import gg.essential.elementa.components.UIBlock;
-import gg.essential.elementa.components.UIImage;
 import gg.essential.elementa.components.UIText;
 import gg.essential.elementa.components.Window;
 import gg.essential.elementa.constraints.*;
-import gg.essential.elementa.state.State;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -64,58 +62,34 @@ public class ProfitGUI extends UIBlock {
             })
             .setChildOf(this);
 
+        topBar.setComponentName("DON'T TOUCH THIS");
+
         new UIText("Profit Calculator", false)
             .setX(new CenterConstraint())
             .setY(new CenterConstraint())
             .setTextScale(new PixelConstraint(1.1f))
             .setColor(new Color(249, 249, 249))
-            .setChildOf(topBar);
+            .setChildOf(topBar)
+            .setComponentName("DON'T TOUCH THIS");
 
         // the order must be followed as in Render.java
         stats.add(new Stat("profit.png").bind(ProfitCalculator.profit).setChildOf(this));
         stats.add(new Stat("profithr.png").bind(ProfitCalculator.profitHr).setChildOf(this));
-        stats.add(new Stat("mnw.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
-        stats.add(new Stat("ecarrot.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
-        stats.add(new Stat("epotato.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
-        stats.add(new Stat("ehaybale.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
-        stats.add(new Stat("ecane.png").bind(ProfitCalculator.brownMushroomCount).setChildOf(this));
-        stats.add(new Stat("ecocoabeans.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
-        stats.add(new Stat("emelon.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
-        stats.add(new Stat("epumpkin.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
-        stats.add(new Stat("ecactus.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+//        stats.add(new Stat("mnw.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+//        stats.add(new Stat("ecarrot.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+//        stats.add(new Stat("epotato.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+//        stats.add(new Stat("ehaybale.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+//        stats.add(new Stat("ecane.png").bind(ProfitCalculator.brownMushroomCount).setChildOf(this));
+//        stats.add(new Stat("ecocoabeans.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+//        stats.add(new Stat("emelon.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+//        stats.add(new Stat("epumpkin.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+//        stats.add(new Stat("ecactus.png").bind(ProfitCalculator.enchantedCropCount).setChildOf(this));
+//        for (ProfitCalculatorNew.GuiItem item : ProfitCalculatorNew.dropToShow.values()) {
+//            stats.add(new Stat(item.imgName).bind(item.getEnchantedAmount()).setChildOf(this));
+//        }
 
 
-        stats.add(new Stat("hoe.png").bind(ProfitCalculator.counter).setChildOf(this));
         stats.add(new Stat("clock_00.png").bind(ProfitCalculator.runtime).setChildOf(this));
     }
 }
 
-class Stat extends UIBlock {
-    private final UIComponent displayString;
-    public Stat(String iconURL) {
-        this.setY(new SiblingConstraint())
-            .setHeight(new ChildBasedSizeConstraint())
-            .setWidth(new RelativeConstraint(1f))
-            .setColor(new Color(36, 37, 39, 85));
-
-        String path = "/assets/farmhelper/textures/gui/";
-
-        UIImage.ofResource(path + iconURL)
-            .setX(new PixelConstraint(5))
-            .setY(new CenterConstraint())
-            .setHeight(new PixelConstraint(15))
-            .setWidth(new PixelConstraint(15))
-            .setChildOf(this);
-
-        displayString = new UIText("").setTextScale(new PixelConstraint(0.9f))
-            .setColor(new Color(249, 249, 249))
-            .setX(new SiblingConstraint(5))
-            .setY(new CenterConstraint())
-            .setChildOf(this);
-    }
-
-    public UIComponent bind(State<String> state) {
-        ((UIText) displayString).bindText(state);
-        return this;
-    }
-}

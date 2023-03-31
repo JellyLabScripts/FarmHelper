@@ -6,6 +6,7 @@ import com.jelly.farmhelper.config.enums.FarmEnum;
 import com.jelly.farmhelper.config.interfaces.*;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Failsafe;
+import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.features.Scheduler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -44,22 +45,22 @@ public class MacroHandler {
             if(e.message == null)
                 return;
 
-            if(e.message.getUnformattedText().contains("UNCOMMON"))
-                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.UNCOMMON);
-            else if(e.message.getUnformattedText().contains("CRAZY"))
-                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.CRAZY_RARE);
-            else if(e.message.getUnformattedText().contains("RARE"))
-                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.RARE);
-            else if(e.message.getUnformattedText().contains("RNGESUS"))
-                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.PRAY);
-
-            if(e.message.getUnformattedText().contains("CROPIE")) {
-                ProfitCalculator.addArmorDropProfit(ProfitCalculator.ArmorDrop.CROPIE);
-            } else if(e.message.getUnformattedText().contains("SQUASH")) {
-                ProfitCalculator.addArmorDropProfit(ProfitCalculator.ArmorDrop.SQUASH);
-            } else if(e.message.getUnformattedText().contains("FERMENTO")) {
-                ProfitCalculator.addArmorDropProfit(ProfitCalculator.ArmorDrop.FERMENTO);
-            }
+//            if(e.message.getUnformattedText().contains("UNCOMMON"))
+//                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.UNCOMMON);
+//            else if(e.message.getUnformattedText().contains("CRAZY"))
+//                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.CRAZY_RARE);
+//            else if(e.message.getUnformattedText().contains("RARE"))
+//                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.RARE);
+//            else if(e.message.getUnformattedText().contains("RNGESUS"))
+//                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.PRAY);
+//
+//            if(e.message.getUnformattedText().contains("CROPIE")) {
+//                ProfitCalculator.addArmorDropProfit(ProfitCalculator.ArmorDrop.CROPIE);
+//            } else if(e.message.getUnformattedText().contains("SQUASH")) {
+//                ProfitCalculator.addArmorDropProfit(ProfitCalculator.ArmorDrop.SQUASH);
+//            } else if(e.message.getUnformattedText().contains("FERMENTO")) {
+//                ProfitCalculator.addArmorDropProfit(ProfitCalculator.ArmorDrop.FERMENTO);
+//            }
 
         }
         if (currentMacro != null && currentMacro.enabled && mc.thePlayer != null && mc.theWorld != null && e.message != null) {
@@ -109,7 +110,7 @@ public class MacroHandler {
 
 
         if (isMacroing) {
-            ProfitCalculator.iterateInventory();
+//            ProfitCalculator.iterateInventory();
             if (FarmHelper.tickCount == 1) {
                 LogUtils.webhookStatus();
 

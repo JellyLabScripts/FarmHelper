@@ -217,7 +217,7 @@ public class PlayerUtils {
         return item.getSubCompound("display", false).getTagList("Lore", 8);
     }
 
-    private static List<ItemStack> copyInventory(ItemStack[] inventory) {
+    public static List<ItemStack> copyInventory(ItemStack[] inventory) {
         List<ItemStack> copy = new ArrayList<>(inventory.length);
         for (ItemStack item : inventory) {
             if (item != null) {
