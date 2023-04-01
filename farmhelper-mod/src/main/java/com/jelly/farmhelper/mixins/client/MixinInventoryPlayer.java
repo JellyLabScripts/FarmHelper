@@ -35,9 +35,12 @@ public abstract class MixinInventoryPlayer {
                 if (postAddInventory[i] != null) {
                     int size = 0;
                     if (preAddInventory[i] != null && preAddInventory[i].getItem() == postAddInventory[i].getItem() && preAddInventory[i].stackSize != postAddInventory[i].stackSize) {
-                        size = postAddInventory[i].stackSize - preAddInventory[i].stackSize;
+                        if (preAddInventory[i].stackSize < postAddInventory[i].stackSize)
+                            size = postAddInventory[i].stackSize - preAddInventory[i].stackSize;
+                        else
+                            size = preAddInventory[i].stackSize - postAddInventory[i].stackSize;
                     }
-                    if ((preAddInventory[i] == null || (preAddInventory[i].getItem() != postAddInventory[i].getItem()))&& postAddInventory[i].stackSize >= 0) {
+                    if ((preAddInventory[i] == null || (preAddInventory[i].getItem() != postAddInventory[i].getItem())) && postAddInventory[i].stackSize >= 0) {
                         size = postAddInventory[i].stackSize;
                     }
                     if (size > 0)
@@ -49,11 +52,19 @@ public abstract class MixinInventoryPlayer {
 
     private void checkForCompactAmount(int i, int size, ItemStack[] postAddInventory) {
         if (StringUtils.stripControlCodes(postAddInventory[i].getDisplayName()).equals("Hay Bale")) {
-            if (getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory) + size >= 144)
-                size -= 144 - getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory);
-        } else {
-            if (getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory) + size >= 160)
-                size -= 160 - getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory);
+            if (getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory) + size >= 144) {
+                int newSize = 144 - getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory);
+                if (newSize > 0)
+                    size -= newSize;
+            }
+        } else if (!StringUtils.stripControlCodes(postAddInventory[i].getDisplayName()).equals("Cropie") &&
+                    !StringUtils.stripControlCodes(postAddInventory[i].getDisplayName()).equals("Squash") &&
+                    !StringUtils.stripControlCodes(postAddInventory[i].getDisplayName()).equals("Fermento")) {
+            if (getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory) + size >= 160) {
+                int newSize = 160 - getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory);
+                if (newSize > 0)
+                    size -= newSize;
+            }
         }
         if (size > 0)
             ProfitCalculator.onInventoryChanged(postAddInventory[i], size);

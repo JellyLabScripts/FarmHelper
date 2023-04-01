@@ -112,19 +112,22 @@ public class LayeredCropMacro extends Macro {
             boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens
                     || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens;
 
-            if(currentState == State.TP_PAD && tpCoolDown.passed()) {
-                if(mc.thePlayer.posY % 1 == 0.8125f && mc.thePlayer.rotationPitch == 0) {
-                    if (!(FarmConfig.cropType == CropEnum.NETHERWART) && !(FarmConfig.cropType == CropEnum.CACTUS)) {
+
+//            if(currentState == State.TP_PAD && tpCoolDown.passed()) {
+//                if(mc.thePlayer.posY % 1 == 0.8125f && mc.thePlayer.rotationPitch != pitch) {
+//                    if (!(FarmConfig.cropType == CropEnum.NETHERWART) && !(FarmConfig.cropType == CropEnum.CACTUS)) {
+//                        yaw = AngleUtils.getClosest();
+//                        rotation.easeTo(yaw, pitch, 500);
+//                        return;
+//                    }
+//                }
+            if (currentState == State.TP_PAD && !tpCoolDown.passed()) {
+                if(flag && (Math.round(AngleUtils.get360RotationYaw()) % 90 != 0 || mc.thePlayer.rotationPitch != pitch)) {
+                    if (tpCoolDown.getRemainingTime() < 500) {
                         yaw = AngleUtils.getClosest();
-                        rotation.easeTo(mc.thePlayer.rotationYaw, pitch, 300);
+                        rotation.easeTo(yaw, pitch, 500);
                         return;
                     }
-                }
-            } else if(currentState == State.TP_PAD && !tpCoolDown.passed()) {
-                if(flag && (Math.round(AngleUtils.get360RotationYaw()) % 90 != 0 || Math.round(mc.thePlayer.rotationPitch) != 0)) {
-                    rotation.reset();
-                    Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
-                    return;
                 }
             } else if(flag) {
                 rotation.reset();
@@ -350,7 +353,7 @@ public class LayeredCropMacro extends Macro {
         } else if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
             currentState = State.TP_PAD;
             if(!tpCoolDown.isScheduled() && lastState != currentState)
-                tpCoolDown.schedule(500);
+                tpCoolDown.schedule(1500);
         } else if (currentState != State.TP_PAD && (layerY - mc.thePlayer.posY > 1 || currentState == State.DROPPING || isDropping())) {
             currentState = State.DROPPING;
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
