@@ -1,6 +1,5 @@
 package com.jelly.farmhelper.mixins.render;
 
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.particle.EffectRenderer;
@@ -16,14 +15,14 @@ public class MixinEffectRenderer {
 
     @Inject(method = "addBlockDestroyEffects", at = @At("HEAD"), cancellable = true)
     private void addBlockDestroyEffects(BlockPos pos, IBlockState state, CallbackInfo ci) {
-        if (MiscConfig.xray && (MacroHandler.isMacroing | MacroHandler.randomizing)) {
+        if (MacroHandler.isMacroing | MacroHandler.randomizing) {
             ci.cancel();
         }
     }
 
     @Inject(method = "addBlockHitEffects(Lnet/minecraft/util/BlockPos;Lnet/minecraft/util/EnumFacing;)V", at = @At("HEAD"), cancellable = true, remap = false)
     private void addBlockDestroyEffects(BlockPos pos, EnumFacing side, CallbackInfo ci) {
-        if (MiscConfig.xray && (MacroHandler.isMacroing | MacroHandler.randomizing)) {
+        if (MacroHandler.isMacroing | MacroHandler.randomizing) {
             ci.cancel();
         }
     }

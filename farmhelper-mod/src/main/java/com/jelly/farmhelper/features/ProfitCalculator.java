@@ -320,12 +320,12 @@ public class ProfitCalculator {
             for (int i = 0; i < cropsToCount.size(); i++) {
                 JSONObject json2 = (JSONObject)json1.get(cropsToCount.get(i).bazaarId);
                 JSONObject json3 = (JSONObject)json2.get("quick_status");
-                bazaarPrices.put(cropsToCount.get(i).localizedName, (Double) (json3).get("buyPrice"));
+                bazaarPrices.put(cropsToCount.get(i).localizedName, (Double) (json3).get("sellPrice"));
             }
             for (int i = 0; i < armorDropToCount.size(); i++) {
                 JSONObject json2 = (JSONObject)json1.get(armorDropToCount.get(i).bazaarId);
                 JSONObject json3 = (JSONObject)json2.get("quick_status");
-                bazaarPrices.put(armorDropToCount.get(i).localizedName, (Double) (json3).get("buyPrice"));
+                bazaarPrices.put(armorDropToCount.get(i).localizedName, (Double) (json3).get("sellPrice"));
             }
             if (Minecraft.getMinecraft().thePlayer != null && Minecraft.getMinecraft().theWorld != null)
                 LogUtils.debugLog("Bazaar prices updated");

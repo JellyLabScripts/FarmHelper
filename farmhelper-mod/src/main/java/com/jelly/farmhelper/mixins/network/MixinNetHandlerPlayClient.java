@@ -1,16 +1,15 @@
 package com.jelly.farmhelper.mixins.network;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.utils.LogUtils;
-import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.C0EPacketClickWindow;
 import net.minecraft.network.play.server.*;
-import net.minecraft.util.EnumParticleTypes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -18,21 +17,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(NetHandlerPlayClient.class)
 public class MixinNetHandlerPlayClient {
+    @Shadow @Final private NetworkManager netManager;
     private static final String TARGET = "Lnet/minecraft/entity/player/EntityPlayer;" +
         "setPositionAndRotation(DDDFF)V";
 
     @Redirect(method = "handlePlayerPosLook", at = @At(value = "INVOKE", target = TARGET))
     public void handlePlayerPosLook_setPositionAndRotation(EntityPlayer player, double x, double y, double z, float yaw, float pitch) {
         player.setPositionAndRotation(x, y, z, yaw, pitch);
-    }
-
-    @Redirect(method = "handleParticles", at = @At(
-        value = "INVOKE",
-        target = "Lnet/minecraft/client/multiplayer/WorldClient;spawnParticle(Lnet/minecraft/util/EnumParticleTypes;ZDDDDDD[I)V"
-    ))
-    public void handleParticles(WorldClient world, EnumParticleTypes particleTypes, boolean isLongDistance,
-                                double xCoord, double yCoord, double zCoord,
-                                double xOffset, double yOffset, double zOffset, int[] params) {
     }
 
     @Inject(method = "handleSpawnMob", at = @At("RETURN"))
