@@ -15,8 +15,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 
 import static com.jelly.farmhelper.FarmHelper.gameState;
-import static com.jelly.farmhelper.utils.BlockUtils.getRelativeBlock;
-import static com.jelly.farmhelper.utils.BlockUtils.isWalkable;
+import static com.jelly.farmhelper.utils.BlockUtils.*;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 //TODO: Add drop rotation detection
@@ -57,8 +56,7 @@ public class LayeredCropMacro extends Macro {
     private int notmovingticks = 0;
 
     private final Clock tpCoolDown = new Clock();
-
-    final float RANDOM_CONST = 1 / 8.0f;
+    private final Clock waitForChangeDirection = new Clock();
 
 
     @Override
@@ -75,6 +73,7 @@ public class LayeredCropMacro extends Macro {
         }
         yaw = AngleUtils.getClosest();
         tpCoolDown.reset();
+        waitForChangeDirection.reset();
         rotation.easeTo(yaw, pitch, 500);
     }
 
@@ -362,14 +361,32 @@ public class LayeredCropMacro extends Macro {
                 PlayerUtils.attemptSetSpawn();
                 currentState = calculateDirection();
             }
-        } else if (gameState.frontWalkable && !gameState.backWalkable && (FarmConfig.cropType == CropEnum.CACTUS && !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus))) {
-            if( Math.random() < RANDOM_CONST)
+        } else if (gameState.frontWalkable && !gameState.backWalkable && (FarmConfig.cropType != CropEnum.CACTUS || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus))) {
+            if(waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                 currentState = State.SWITCH_START;
-        } else if (gameState.frontWalkable) {
+                waitForChangeDirection.reset();
+                System.out.println("Switching to start");
+                return;
+            }
+            if (!waitForChangeDirection.isScheduled()) {
+                long waitTime = (long) (Math.random() * 500 + 250);
+                System.out.println("Waiting " + waitTime + "ms");
+                waitForChangeDirection.schedule(waitTime);
+            }
+        } else if (gameState.frontWalkable && gameState.backWalkable) {
             currentState = State.SWITCH_MID;
         } else if (gameState.backWalkable) {
-            if( Math.random() < RANDOM_CONST)
+            if(waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                 currentState = State.SWITCH_END;
+                waitForChangeDirection.reset();
+                System.out.println("Switching to end");
+                return;
+            }
+            if (!waitForChangeDirection.isScheduled()) {
+                long waitTime = (long) (Math.random() * 500 + 250);
+                System.out.println("Waiting2 " + waitTime + "ms");
+                waitForChangeDirection.schedule(waitTime);
+            }
         } else if (gameState.leftWalkable) {
             currentState = State.LEFT;
         } else if (gameState.rightWalkable) {
@@ -383,11 +400,19 @@ public class LayeredCropMacro extends Macro {
         }
 
         if (lastState != currentState) {
+            waitForChangeDirection.reset();
             rotation.reset();
         }
     }
 
     private State calculateDirection() {
+
+        if (leftCropIsReady()) {
+            return State.LEFT;
+        } else if (rightCropIsReady()) {
+            return State.RIGHT;
+        }
+
         for (int i = 1; i < 180; i++) {
             if (!isWalkable(BlockUtils.getRelativeBlock(i, 0, 0))) {
                 if (isWalkable(BlockUtils.getRelativeBlock(i - 1, 0, 1)) || isWalkable(BlockUtils.getRelativeBlock(i - 1, -1, 0))) {

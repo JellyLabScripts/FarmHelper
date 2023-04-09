@@ -155,6 +155,8 @@ public class BlockUtils {
             return mc.theWorld.getBlockState(getRelativeBlockPos(-1, 1, 1)).getValue(BlockCrops.AGE) == 7;
         else if (crop.equals(Blocks.brown_mushroom) || crop.equals(Blocks.red_mushroom)) {
             return true;
+        } else if (crop.equals(Blocks.cactus)) {
+            return true;
         } else {
             crop = getRelativeBlock(-1, 0, 1);
             return crop.equals(Blocks.melon_block) || crop.equals(Blocks.pumpkin);
@@ -167,6 +169,8 @@ public class BlockUtils {
         } else if (crop.equals(Blocks.wheat) || crop.equals(Blocks.carrots) || crop.equals(Blocks.potatoes))
             return mc.theWorld.getBlockState(getRelativeBlockPos(1, 1, 1)).getValue(BlockCrops.AGE) == 7;
         else if (crop.equals(Blocks.brown_mushroom) || crop.equals(Blocks.red_mushroom)) {
+            return true;
+        } else if (crop.equals(Blocks.cactus)) {
             return true;
         } else {
             crop = getRelativeBlock(1, 0, 1);

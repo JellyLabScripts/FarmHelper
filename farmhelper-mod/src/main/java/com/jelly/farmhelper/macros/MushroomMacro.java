@@ -24,8 +24,8 @@ public class MushroomMacro extends Macro {
         NONE
     }
 
-    final float RANDOM_CONST = 1 / 10.0f;
     direction dir;
+    direction prevDir;
 
     float pitch;
     float yaw;
@@ -35,10 +35,13 @@ public class MushroomMacro extends Macro {
     private final Clock lastTp = new Clock();
 
     private Vec3 preTpPos;
+    private final Clock waitForChangeDirection = new Clock();
+
 
     @Override
     public void onEnable() {
         lastTp.reset();
+        waitForChangeDirection.reset();
         pitch = (float) (Math.random() * 2 - 1); // -1 - 1
         yaw = AngleUtils.getClosestDiagonal();
         dir = direction.NONE;
@@ -119,25 +122,41 @@ public class MushroomMacro extends Macro {
             }
         } else if (isWalkable(getRightBlock()) && isWalkable(getRightTopBlock()) &&
                 (!isWalkable(getLeftBlock()) || !isWalkable(getLeftTopBlock()))) {
-            if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d && Math.random() < RANDOM_CONST) {
-                dir = direction.FORWARD;
-                updateKeys(true, false, false, false, true);
-
-                if(Math.random() < 0.5d)
-                    PlayerUtils.attemptSetSpawn();
+            if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d) {
+                if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
+                    dir = direction.FORWARD;
+                    waitForChangeDirection.reset();
+                    updateKeys(true, false, false, false, true);
+                    if (Math.random() < 0.5d)
+                        PlayerUtils.attemptSetSpawn();
+                    return;
+                }
+                if (!waitForChangeDirection.isScheduled()) {
+                    long waitTime = (long) (Math.random() * 500 + 250);
+                    waitForChangeDirection.schedule(waitTime);
+                }
             }
         } else if (isWalkable(getLeftBlock()) && isWalkable(getLeftTopBlock()) &&
                 (!isWalkable(getRightBlock()) || !isWalkable(getRightTopBlock()))) {
-            if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d && Math.random() < RANDOM_CONST) {
-                dir = direction.LEFT;
-                if (FarmConfig.cropType == CropEnum.MUSHROOM) {
+            if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d) {
+                if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
+                    dir = direction.LEFT;
+                    waitForChangeDirection.reset();
                     updateKeys(false, false, false, true, true);
-                } else {
-                    updateKeys(false, false, false, true, true);
+                    if (Math.random() < 0.5d)
+                        PlayerUtils.attemptSetSpawn();
+                    return;
                 }
-                if(Math.random() < 0.5d)
-                    PlayerUtils.attemptSetSpawn();
+                if (!waitForChangeDirection.isScheduled()) {
+                    long waitTime = (long) (Math.random() * 500 + 250);
+                    waitForChangeDirection.schedule(waitTime);
+                }
             }
+        }
+
+        if (prevDir != dir) {
+            prevDir = dir;
+            waitForChangeDirection.reset();
         }
     }
 

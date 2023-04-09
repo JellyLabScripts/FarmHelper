@@ -23,8 +23,8 @@ public class VerticalCropMacro extends Macro{
         NONE
     }
 
-    final float RANDOM_CONST = 1 / 10.0f;
     direction dir;
+    direction prevDir;
 
     float pitch;
     float yaw;
@@ -32,10 +32,13 @@ public class VerticalCropMacro extends Macro{
     Rotation rotation = new Rotation();
 
     private final Clock lastTp = new Clock();
+    private final Clock waitForChangeDirection = new Clock();
+
 
     @Override
     public void onEnable() {
         lastTp.reset();
+        waitForChangeDirection.reset();
         yaw = AngleUtils.getClosest();
         switch(FarmConfig.cropType){
             case SUGARCANE:
@@ -145,23 +148,41 @@ public class VerticalCropMacro extends Macro{
             }
         } else if (isWalkable(getRightBlock()) && isWalkable(getRightTopBlock()) &&
                 (!isWalkable(getLeftBlock()) || !isWalkable(getLeftTopBlock()))) {
-            if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d && Math.random() < RANDOM_CONST) {
-                dir = direction.RIGHT;
-                updateKeys(false, false, true, false, true);
-
-
-                if(Math.random() < 0.5d)
-                    PlayerUtils.attemptSetSpawn();
+            if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d) {
+                if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
+                    dir = direction.RIGHT;
+                    waitForChangeDirection.reset();
+                    updateKeys(false, false, true, false, true);
+                    if (Math.random() < 0.5d)
+                        PlayerUtils.attemptSetSpawn();
+                    return;
+                }
+                if (!waitForChangeDirection.isScheduled()) {
+                    long waitTime = (long) (Math.random() * 500 + 250);
+                    waitForChangeDirection.schedule(waitTime);
+                }
             }
         } else if (isWalkable(getLeftBlock()) && isWalkable(getLeftTopBlock()) &&
                 (!isWalkable(getRightBlock()) || !isWalkable(getRightTopBlock()))) {
-            if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d && Math.random() < RANDOM_CONST) {
-                dir = direction.LEFT;
-                updateKeys(false, false, false, true, true);
-
-                if(Math.random() < 0.5d)
-                    PlayerUtils.attemptSetSpawn();
+            if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d) {
+                if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
+                    dir = direction.LEFT;
+                    waitForChangeDirection.reset();
+                    updateKeys(false, false, true, false, true);
+                    if (Math.random() < 0.5d)
+                        PlayerUtils.attemptSetSpawn();
+                    return;
+                }
+                if (!waitForChangeDirection.isScheduled()) {
+                    long waitTime = (long) (Math.random() * 500 + 250);
+                    waitForChangeDirection.schedule(waitTime);
+                }
             }
+        }
+
+        if (prevDir != dir) {
+            prevDir = dir;
+            waitForChangeDirection.reset();
         }
     }
 
@@ -202,10 +223,10 @@ public class VerticalCropMacro extends Macro{
 
         boolean f1 = true, f2 = true;
 
-        if (!leftCropIsReady()) {
-            return direction.RIGHT;
-        } else if (!rightCropIsReady()) {
+        if (leftCropIsReady()) {
             return direction.LEFT;
+        } else if (rightCropIsReady()) {
+            return direction.RIGHT;
         }
 
         for (int i = 0; i < 180; i++) {
