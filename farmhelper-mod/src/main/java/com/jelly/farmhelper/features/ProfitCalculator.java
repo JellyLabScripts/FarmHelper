@@ -2,6 +2,9 @@ package com.jelly.farmhelper.features;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.jelly.farmhelper.config.enums.CropEnum;
+import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.gui.Stat;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
@@ -10,6 +13,7 @@ import gg.essential.elementa.UIComponent;
 import gg.essential.elementa.components.UIImage;
 import gg.essential.elementa.state.BasicState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -26,10 +30,13 @@ public class ProfitCalculator {
     private final Minecraft mc = Minecraft.getMinecraft();
 
     public static long realProfit = 0;
+    public static long blocksBroken = 0;
 
     public static final BasicState<String> profit = new BasicState<>("$0");
     public static final BasicState<String> profitHr = new BasicState<>("$0");
     public static final BasicState<String> runtime = new BasicState<>("0h 0m 0s");
+    public static final BasicState<String> blocksPerSecond = new BasicState<>("0 BPS");
+
     private List<ItemStack> previousInventory;
     public static Multimap<String, DroppedItem> itemsDropped = ArrayListMultimap.create();
     private final Pattern pattern = Pattern.compile(" x([0-9]+)");
@@ -213,6 +220,14 @@ public class ProfitCalculator {
             profit.set("$" + Utils.formatNumber(Math.round(totalProfit * 0.95)));
             profitHr.set("$" + Utils.formatNumber(Math.round(getHourProfit(totalProfit * 0.95))));
             runtime.set(Utils.formatTime(System.currentTimeMillis() - MacroHandler.startTime));
+            blocksPerSecond.set(Math.round((float) blocksBroken / (System.currentTimeMillis() - MacroHandler.startTime) * 10000f) / 10f + " BPS");
+        }
+    }
+
+    @SubscribeEvent
+    public void onBlockChange(BlockChangeEvent event) {
+        if (FarmConfig.cropType == CropEnum.CACTUS && event.old.getBlock() == Blocks.cactus && event.update.getBlock() != Blocks.cactus) {
+            blocksBroken++;
         }
     }
 
@@ -293,6 +308,7 @@ public class ProfitCalculator {
     }
 
     public static void resetProfit() {
+        blocksBroken = 0;
         itemsDropped.clear();
         dropToShow.clear();
     }

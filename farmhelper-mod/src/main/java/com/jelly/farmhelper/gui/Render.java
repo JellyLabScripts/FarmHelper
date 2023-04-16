@@ -80,6 +80,7 @@ public class Render {
 //                            break;
 //                    }
                 }
+                if (ProfitCalculatorConfig.blocksPerSecond) profitGUI.addChild(profitGUI.stats.get(profitGUI.stats.size() - 2));
                 if (ProfitCalculatorConfig.runtime) profitGUI.addChild(profitGUI.stats.get(profitGUI.stats.size() - 1));
             }
 

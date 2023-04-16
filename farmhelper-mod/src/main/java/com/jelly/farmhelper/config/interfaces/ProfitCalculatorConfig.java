@@ -16,5 +16,7 @@ public class ProfitCalculatorConfig {
     @Config()
     public static boolean counter = true;
     @Config()
+    public static boolean blocksPerSecond = true;
+    @Config()
     public static boolean runtime = true;
 }
