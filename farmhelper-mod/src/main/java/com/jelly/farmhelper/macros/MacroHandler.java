@@ -187,7 +187,7 @@ public class MacroHandler {
             mc.inGameHasFocus = true;
             mc.displayGuiScreen(null);
             startingUp = true;
-            KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
+            KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
             new Thread(startCurrent).start();
         }
     }
