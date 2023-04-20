@@ -207,11 +207,6 @@ public class Failsafe {
 
     }
 
-    /*public static void disableEmergencyCheck(int time){
-        eDisable.reset();
-        eDisable.schedule(time);
-    }*/
-
     public enum FailsafeType {
         DIRT ("You may have been dirt checked"),
         BEDROCK ("You have been bedrock checked"),
@@ -229,7 +224,8 @@ public class Failsafe {
         emergency = true;
 
         LogUtils.webhookLog(type.label);
-        LogUtils.scriptLog("You might have been staff checked! Act like a normal player and stop the script!");
+        LogUtils.scriptLog(type.label + "!");
+        LogUtils.scriptLog("Act like a normal player and stop the script!");
 
         if(type != FailsafeType.DIRT && type != FailsafeType.DESYNC) // you may not be able to see the dirt, disable a few seconds later
             MacroHandler.disableCurrentMacro();
