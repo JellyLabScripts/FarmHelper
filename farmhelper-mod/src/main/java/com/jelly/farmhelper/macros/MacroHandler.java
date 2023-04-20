@@ -39,7 +39,7 @@ public class MacroHandler {
     public static long startCounter = 0;
     public static boolean startingUp;
 
-    @SubscribeEvent
+    @SubscribeEvent(receiveCanceled = true, priority = EventPriority.HIGHEST)
     public void onChatMessageReceived(ClientChatReceivedEvent e) {
         if(isMacroing) {
             if(e.message == null)

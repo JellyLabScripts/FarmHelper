@@ -10,6 +10,7 @@ import com.jelly.farmhelper.utils.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.Vec3;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import static com.jelly.farmhelper.utils.BlockUtils.*;
 import static com.jelly.farmhelper.utils.BlockUtils.getRelativeBlock;
@@ -33,8 +34,8 @@ public class MushroomMacro extends Macro {
     Rotation rotation = new Rotation();
 
     private final Clock lastTp = new Clock();
+    private boolean isTping = false;
 
-    private Vec3 preTpPos;
     private final Clock waitForChangeDirection = new Clock();
 
 
@@ -47,7 +48,7 @@ public class MushroomMacro extends Macro {
         dir = direction.NONE;
         rotation.easeTo(yaw, pitch, 500);
         mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot();
-        preTpPos = null;
+        isTping = false;
     }
 
     @Override
@@ -56,41 +57,45 @@ public class MushroomMacro extends Macro {
     }
 
     @Override
+    public void onChatMessageReceived(String msg) {
+        super.onChatMessageReceived(msg);
+        if (msg.contains("Warped from the ") && msg.contains(" to the ")) {
+            lastTp.schedule(1250);
+            isTping = false;
+            LogUtils.debugLog("Tped");
+        }
+    }
+
+    @Override
     public void onTick() {
 
         if(mc.thePlayer == null || mc.theWorld == null)
             return;
 
-        if(rotation.rotating) {
+        if(rotation.rotating || isTping) {
             KeyBindUtils.stopMovement();
             return;
-        }
-
-        if (lastTp.isScheduled() && preTpPos != null && preTpPos.distanceTo(mc.thePlayer.getPositionVector()) > 1) {
-            updateKeys(dir == direction.FORWARD, false, false, dir == direction.LEFT, true);
         }
 
         if (lastTp.passed()) {
             lastTp.reset();
         }
 
-        if (lastTp.isScheduled()) {
+        if (lastTp.isScheduled() && !lastTp.passed()) {
+            updateKeys(dir == direction.FORWARD, false, false, dir == direction.LEFT, true);
             return;
         }
 
-        if (!lastTp.isScheduled() && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens)) {
+        if (!isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens)) {
             rotation.reset();
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
             return;
         }
 
-        if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
+        if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
-                BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)) {//standing on tp pad
-            if (!lastTp.isScheduled()) {
-                preTpPos = mc.thePlayer.getPositionVector();
-                lastTp.schedule(2500);
-            }
+                BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)) && !isTping) {//standing on tp pad
+            isTping = true;
             LogUtils.debugLog("Scheduled tp");
 
             updateKeys(false, false, false, false, false);

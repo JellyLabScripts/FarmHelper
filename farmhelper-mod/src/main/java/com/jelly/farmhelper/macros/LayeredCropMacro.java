@@ -11,6 +11,7 @@ import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 
@@ -56,6 +57,7 @@ public class LayeredCropMacro extends Macro {
     private int notmovingticks = 0;
 
     private final Clock tpCoolDown = new Clock();
+    private boolean isTping = false;
     private final Clock waitForChangeDirection = new Clock();
 
 
@@ -75,6 +77,17 @@ public class LayeredCropMacro extends Macro {
         tpCoolDown.reset();
         waitForChangeDirection.reset();
         rotation.easeTo(yaw, pitch, 500);
+        isTping = false;
+    }
+
+    @Override
+    public void onChatMessageReceived(String msg) {
+        super.onChatMessageReceived(msg);
+        if (msg.contains("Warped from the ") && msg.contains(" to the ")) {
+            tpCoolDown.schedule(1500);
+            isTping = false;
+            LogUtils.debugLog("Tped");
+        }
     }
 
     @Override
@@ -106,20 +119,23 @@ public class LayeredCropMacro extends Macro {
             return;
         }
 
+        if (isTping) {
+            KeyBindUtils.stopMovement();
+            return;
+        }
+
+        if (tpCoolDown.isScheduled() && tpCoolDown.passed()) {
+            tpCoolDown.reset();
+        } else if (tpCoolDown.isScheduled() && !tpCoolDown.passed()) {
+            return;
+        }
+
         if(currentState != State.DROPPING && currentState != State.STONE_THROW) {
 
             boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens
                     || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens;
 
 
-//            if(currentState == State.TP_PAD && tpCoolDown.passed()) {
-//                if(mc.thePlayer.posY % 1 == 0.8125f && mc.thePlayer.rotationPitch != pitch) {
-//                    if (!(FarmConfig.cropType == CropEnum.NETHERWART) && !(FarmConfig.cropType == CropEnum.CACTUS)) {
-//                        yaw = AngleUtils.getClosest();
-//                        rotation.easeTo(yaw, pitch, 500);
-//                        return;
-//                    }
-//                }
             if (currentState == State.TP_PAD && !tpCoolDown.passed()) {
                 if(flag && (Math.round(AngleUtils.get360RotationYaw()) % 90 != 0 || mc.thePlayer.rotationPitch != pitch)) {
                     if (tpCoolDown.getRemainingTime() < 500) {
@@ -169,12 +185,12 @@ public class LayeredCropMacro extends Macro {
 
         switch (currentState) {
             case TP_PAD:
-                if(!tpCoolDown.passed()) {
-                    LogUtils.debugLog("Waiting for cd");
-                    KeyBindUtils.stopMovement();
-                    break;
-                }
-                tpCoolDown.reset();
+//                if(!tpCoolDown.passed()) {
+//                    LogUtils.debugLog("Waiting for cd");
+//                    KeyBindUtils.stopMovement();
+//                    break;
+//                }
+//                tpCoolDown.reset();
 
                 if(mc.thePlayer.capabilities.isFlying || (!getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) && !mc.thePlayer.onGround)) {
                     LogUtils.debugLog("Pressing shift");
@@ -349,10 +365,12 @@ public class LayeredCropMacro extends Macro {
 
         if (currentState == State.STONE_THROW) {
             currentState = State.STONE_THROW;
-        } else if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) {
+        } else if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) && !tpCoolDown.isScheduled()) {
             currentState = State.TP_PAD;
-            if(!tpCoolDown.isScheduled() && lastState != currentState)
-                tpCoolDown.schedule(1500);
+            isTping = true;
+            LogUtils.debugLog("On the TP Pad, tping");
+//            if(!tpCoolDown.isScheduled() && lastState != currentState)
+//                tpCoolDown.schedule(1500);
         } else if (currentState != State.TP_PAD && (layerY - mc.thePlayer.posY > 1 || currentState == State.DROPPING || isDropping())) {
             currentState = State.DROPPING;
         } else if (gameState.leftWalkable && gameState.rightWalkable) {

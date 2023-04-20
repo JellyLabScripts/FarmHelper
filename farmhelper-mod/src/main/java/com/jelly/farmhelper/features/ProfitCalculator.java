@@ -5,14 +5,18 @@ import com.google.common.collect.Multimap;
 import com.jelly.farmhelper.gui.Stat;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
-import com.jelly.farmhelper.utils.*;
+import com.jelly.farmhelper.utils.Clock;
+import com.jelly.farmhelper.utils.LogUtils;
+import com.jelly.farmhelper.utils.PlayerUtils;
+import com.jelly.farmhelper.utils.Utils;
 import gg.essential.elementa.UIComponent;
 import gg.essential.elementa.components.UIImage;
 import gg.essential.elementa.state.BasicState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiChest;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
-import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.json.simple.JSONObject;
@@ -370,6 +374,24 @@ public class ProfitCalculator {
         public BasicState<String> getEnchantedAmount() {
             enchantedAmountState.set(enchantedAmount + "");
             return enchantedAmountState;
+        }
+    }
+
+    public class SubtractionListElem {
+        /** Name of the item */
+        public String text;
+        /** Quantity of that item */
+        public int quant;
+        /** The amount of ticks the element has left until is no longer shown on the screen */
+        public int lifetme = 200;
+
+        /**
+         * @param s = Name of the item
+         * @param q = Quantity of the item
+         */
+        public SubtractionListElem(String s,int q) {
+            this.text = s;
+            this.quant = q;
         }
     }
 }
