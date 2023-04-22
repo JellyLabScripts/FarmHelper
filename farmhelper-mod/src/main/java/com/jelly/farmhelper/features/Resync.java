@@ -3,6 +3,7 @@ package com.jelly.farmhelper.features;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
+import com.jelly.farmhelper.utils.BlockUtils;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.block.BlockCrops;
@@ -26,7 +27,7 @@ public class Resync {
 
     public static void update(BlockPos lastBrokenPos) {
         cachedPos = lastBrokenPos;
-        executor.schedule(checkCrop, 4, TimeUnit.SECONDS);
+        executor.schedule(checkCrop, 3, TimeUnit.SECONDS);
     }
 
     static Runnable checkCrop = () -> {
@@ -38,6 +39,9 @@ public class Resync {
                     break;
                 case SUGARCANE:
                     if (mc.theWorld.getBlockState(cachedPos).getBlock().equals(Blocks.reeds)) desync = true;
+                    break;
+                case CACTUS: case MELON: case PUMPKIN:
+                    if (!BlockUtils.isWalkable(mc.theWorld.getBlockState(cachedPos).getBlock())) desync = true;
                     break;
                 default:
                     if (mc.theWorld.getBlockState(cachedPos).getValue(BlockCrops.AGE) > 4) desync = true;
