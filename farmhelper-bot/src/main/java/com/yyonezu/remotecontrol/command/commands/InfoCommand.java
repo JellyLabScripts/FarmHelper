@@ -1,8 +1,8 @@
 package com.yyonezu.remotecontrol.command.commands;
 
-import com.github.kaktushose.jda.commands.annotations.Command;
-import com.github.kaktushose.jda.commands.annotations.CommandController;
-import com.github.kaktushose.jda.commands.dispatching.CommandEvent;
+import com.github.kaktushose.jda.commands.annotations.interactions.Interaction;
+import com.github.kaktushose.jda.commands.annotations.interactions.SlashCommand;
+import com.github.kaktushose.jda.commands.dispatching.commands.CommandEvent;
 import com.google.gson.JsonObject;
 import com.yyonezu.remotecontrol.command.type.Instance;
 import com.yyonezu.remotecontrol.event.wait.Waiter;
@@ -13,9 +13,9 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.util.concurrent.TimeUnit;
 
-@CommandController(value = {"info", "i", "information"}, category = "Misc")
+@Interaction
 public class InfoCommand extends BaseCommand {
-    @Command(name = "Info command", usage = "{prefix}info instance_ign", desc = "Check information of an instance", isSuper = true)
+    @SlashCommand(value = "Info command", desc = "Check information of an instance")
     public void infoCommand(CommandEvent ev, Instance instance) {
         JsonObject data = getBaseMessage(ev, instance);
         instance.getSession().getRemote().sendStringByFuture(data.toString());
@@ -37,7 +37,7 @@ public class InfoCommand extends BaseCommand {
     }
 
 
-    @Command(value="all", usage = "{prefix}info all", desc = "Check information of all instances")
+    @SlashCommand(value="all", desc = "Check information of all instances")
     public void all(CommandEvent ev) {
         if (WebSocketServer.minecraftInstances.values().size() == 0) {
             ev.reply("There isn't any instances connected");

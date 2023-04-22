@@ -8,6 +8,7 @@ import com.yyonezu.remotecontrol.event.MessageEvent;
 import com.yyonezu.remotecontrol.event.wait.EventWaiter;
 import com.yyonezu.remotecontrol.utils.Utils;
 import io.javalin.Javalin;
+import org.eclipse.jetty.util.log.Slf4jLog;
 import org.eclipse.jetty.websocket.api.Session;
 
 import java.nio.charset.StandardCharsets;
@@ -48,6 +49,12 @@ public class WebSocketServer {
             ws.onClose(ctx -> minecraftInstances.remove(ctx.session));
             ws.onMessage(ctx -> EventWaiter.onMessage(new MessageEvent(ctx, Utils.getIgnFromSession(ctx.session))));
         });
+    }
 
+    public static void stop() {
+        if (app != null) {
+            app.stop();
+            app = null;
+        }
     }
 }

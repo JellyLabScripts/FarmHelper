@@ -1,7 +1,7 @@
 package com.yyonezu.remotecontrol.command.type.adapters;
 
 import com.github.kaktushose.jda.commands.annotations.Component;
-import com.github.kaktushose.jda.commands.dispatching.CommandContext;
+import com.github.kaktushose.jda.commands.dispatching.GenericContext;
 import com.github.kaktushose.jda.commands.dispatching.adapter.TypeAdapter;
 import com.yyonezu.remotecontrol.command.type.Instance;
 import org.jetbrains.annotations.NotNull;
@@ -12,8 +12,13 @@ import java.util.Optional;
 public class InstanceAdapter implements TypeAdapter<Instance> {
 
     @Override
-    public Optional<Instance> parse(@NotNull String raw, @NotNull CommandContext context) {
+    public Optional<Instance> parse(@NotNull String raw, @NotNull GenericContext context) {
         return Optional.of(new Instance(raw));
+    }
+
+    @Override
+    public String sanitizeMention(@NotNull String mention) {
+        return TypeAdapter.super.sanitizeMention(mention);
     }
 }
 

@@ -1,8 +1,8 @@
 package com.yyonezu.remotecontrol.command.commands;
 
-import com.github.kaktushose.jda.commands.annotations.Command;
-import com.github.kaktushose.jda.commands.annotations.CommandController;
-import com.github.kaktushose.jda.commands.dispatching.CommandEvent;
+import com.github.kaktushose.jda.commands.annotations.interactions.Interaction;
+import com.github.kaktushose.jda.commands.annotations.interactions.SlashCommand;
+import com.github.kaktushose.jda.commands.dispatching.commands.CommandEvent;
 import com.google.gson.JsonObject;
 import com.yyonezu.remotecontrol.command.type.Instance;
 import com.yyonezu.remotecontrol.event.wait.Waiter;
@@ -17,9 +17,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import static com.yyonezu.remotecontrol.utils.Utils.withSuffix;
 import static com.yyonezu.remotecontrol.websocket.WebSocketServer.minecraftInstances;
 
-@CommandController(value={"totalprofit", "profit", "tp"}, category = "Misc")
+@Interaction
 public class TotalProfitCommand extends BaseCommand {
-    @Command(name = "Info command", usage = "{prefix}totalprofit", desc = "Get total profit totalled from all instances")
+    @SlashCommand(value = "Info command", desc = "Get total profit totalled from all instances")
     public void infoCommand(CommandEvent ev) {
         int size = minecraftInstances.size();
         if (size == 0) {

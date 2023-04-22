@@ -1,8 +1,8 @@
 package com.yyonezu.remotecontrol.command.commands;
 
-import com.github.kaktushose.jda.commands.annotations.Command;
-import com.github.kaktushose.jda.commands.annotations.CommandController;
-import com.github.kaktushose.jda.commands.dispatching.CommandEvent;
+import com.github.kaktushose.jda.commands.annotations.interactions.Interaction;
+import com.github.kaktushose.jda.commands.annotations.interactions.SlashCommand;
+import com.github.kaktushose.jda.commands.dispatching.commands.CommandEvent;
 import com.google.gson.JsonObject;
 import com.yyonezu.remotecontrol.command.type.Instance;
 import com.yyonezu.remotecontrol.event.wait.Waiter;
@@ -13,10 +13,10 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.util.concurrent.TimeUnit;
 
-@CommandController(value = {"toggle", "t"}, category = "Core")
+@Interaction
 public class ToggleCommand extends BaseCommand {
 
-    @Command(name = "toggle", usage = "{prefix}toggle instance_ign", desc = "Toggle Farm Helper", isSuper = true)
+    @SlashCommand(value = "toggle", desc = "Toggle Farm Helper")
     public void toggle(CommandEvent ev, Instance instance) {
         JsonObject data = getBaseMessage(ev, instance);
         instance.getSession().getRemote().sendStringByFuture(data.toString());
@@ -39,7 +39,7 @@ public class ToggleCommand extends BaseCommand {
         ));
     }
     
-    @Command(value = "all", usage = "{prefix}toggle all", desc = "Toggles all macro instances")
+    @SlashCommand(value = "all", desc = "Toggles all macro instances")
     public void all(CommandEvent ev) {
         if (WebSocketServer.minecraftInstances.values().size() == 0) {
             ev.reply("There isn't any instances connected");

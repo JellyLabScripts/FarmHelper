@@ -8,7 +8,6 @@ version = project.botversion
 modversion = project.modversion
 group = "com.yyonezu.remotecontrol"
 archivesBaseName = "FarmHelper-Bot"
-sourceCompatibility = 1.8
 
 
 def mainClass = 'com.yyonezu.remotecontrol.Main'
@@ -44,8 +43,8 @@ repositories {
 }
 
 dependencies {
-    implementation("net.dv8tion:JDA:5.0.0-alpha.12")
-    implementation('com.github.Kaktushose:jda-commands:v3.0.0')
+    implementation("net.dv8tion:JDA:5.0.0-beta.8")
+    implementation 'com.github.Kaktushose:jda-commands:dev-jda5-SNAPSHOT'
     implementation('io.javalin:javalin:4.6.3')
     implementation('net.jodah:typetools:0.6.3')
     compileOnly 'org.projectlombok:lombok:1.18.24'

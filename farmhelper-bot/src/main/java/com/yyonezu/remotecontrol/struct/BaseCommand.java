@@ -1,6 +1,6 @@
 package com.yyonezu.remotecontrol.struct;
 
-import com.github.kaktushose.jda.commands.dispatching.CommandEvent;
+import com.github.kaktushose.jda.commands.dispatching.commands.CommandEvent;
 import com.google.gson.JsonObject;
 import com.yyonezu.remotecontrol.command.type.Instance;
 import com.yyonezu.remotecontrol.event.wait.EventWaiter;
@@ -53,7 +53,7 @@ abstract public class BaseCommand {
     }
 
     public static JsonObject getBaseMessage (CommandEvent ev, Instance instance) {
-        String args = ev.getCommandDefinition().getLabels().get(0);
+        String args = ev.getCommandDefinition().getParameters().get(0).getName();
         String instanceuser = instance.getUser();
         String instanceid = instance.getId();
         JsonObject meta = new JsonObject();

@@ -3,6 +3,7 @@ package com.yyonezu.remotecontrol.utils;
 import com.yyonezu.remotecontrol.websocket.WebSocketServer;
 import org.eclipse.jetty.websocket.api.Session;
 
+import java.awt.*;
 import java.time.Duration;
 import java.util.Map;
 
@@ -38,6 +39,26 @@ public class Utils {
             }
         }
         return null;
+    }
+
+    public static void showNotification(String text) {
+        try {
+            //Obtain only one instance of the SystemTray object
+            SystemTray tray = SystemTray.getSystemTray();
+
+            //If the icon is a file
+            Image image = Toolkit.getDefaultToolkit().createImage(Utils.class.getResource("/assets/rat.png"));
+            TrayIcon trayIcon = new TrayIcon(image, "FarmHelper Bot");
+            //Let the system resize the image if needed
+            trayIcon.setImageAutoSize(true);
+            //Set tooltip text for the tray icon
+            trayIcon.setToolTip("FarmHelper Bot");
+            tray.add(trayIcon);
+
+            trayIcon.displayMessage("FarmHelper Bot", text, TrayIcon.MessageType.NONE);
+            SystemTray.getSystemTray().remove(trayIcon);
+
+        } catch (Exception ignored) {}
     }
 
 }

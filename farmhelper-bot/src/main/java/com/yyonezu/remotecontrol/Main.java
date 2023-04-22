@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -22,29 +23,48 @@ public class Main {
     public static String BOTVERSION;
     public static String MODVERSION;
     public static final int port = 58637;
+    public static final boolean onWindows = System.getProperty("os.name").toLowerCase().contains("win");
+    private static JDACommands jdaCommands;
+
     public static void main(String[] args) {
+        if (System.getProperty("java.version").contains("1.8")) {
+            String message = "<html>This program only works with Java 8. Please check this link for instructions on how to switch Java versions on Windows:<br><a href=\"https://www.happycoders.eu/java/how-to-switch-multiple-java-versions-windows/\">https://www.happycoders.eu/java/how-to-switch-multiple-java-versions-windows/</a></html>";
+            JOptionPane.showMessageDialog(null, message, "Java Version Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        new FarmHelperBotGUI();
+    }
+
+    public static void start() {
+
         setVersions();
         Config.init();
         try {
             WebSocketServer.start();
-            JOptionPane.showMessageDialog(null, "Running successfully! Close this window");
+            FarmHelperBotGUI.setInfoText("The bot is running successfully, you should minimize this window (goes to system tray)");
         } catch (Exception e) {
+            e.printStackTrace();
             killProcessByPort();
-            JOptionPane.showMessageDialog(null, "You ran it twice bozo, I killed the process. Close this and run it again");
-            System.exit(0);
+            FarmHelperBotGUI.setInfoText("The bot is already running somehow? I've killed the process for you, try pressing start again");
+            stop();
         }
 
         do {
             try {
                 jda = JDABuilder.createDefault(SecretConfig.token).build();
-                JDACommands.start(jda, Main.class);
+                jdaCommands = JDACommands.start(jda, Main.class);
                 validToken = true;
             } catch (InvalidTokenException e) {
-                String token = JOptionPane.showInputDialog("Incorrect token, set it again");
+                String token = JOptionPane.showInputDialog("Invalid discord bot token, type it again: ");
                 Config.set("token", token);
             }
         } while(!validToken);
+    }
 
+    public static void stop() {
+        if (jda != null) jda.shutdownNow();
+        if (jdaCommands != null) jdaCommands.shutdown();
+        WebSocketServer.stop();
     }
     @SneakyThrows
     public static void setVersions() {
@@ -62,7 +82,7 @@ public class Main {
     }
 
     private static void killProcessByPort() {
-        if (System.getProperty("os.name").contains("win")) { // Probably Windows
+        if (onWindows) {
             try {
                 Runtime rt = Runtime.getRuntime();
                 Process proc = rt.exec("cmd /c netstat -ano | findstr " + Main.port);

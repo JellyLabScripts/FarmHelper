@@ -1,8 +1,8 @@
 package com.yyonezu.remotecontrol.command.commands;
 
-import com.github.kaktushose.jda.commands.annotations.Command;
-import com.github.kaktushose.jda.commands.annotations.CommandController;
-import com.github.kaktushose.jda.commands.dispatching.CommandEvent;
+import com.github.kaktushose.jda.commands.annotations.interactions.Interaction;
+import com.github.kaktushose.jda.commands.annotations.interactions.SlashCommand;
+import com.github.kaktushose.jda.commands.dispatching.commands.CommandEvent;
 import com.google.gson.JsonObject;
 import com.yyonezu.remotecontrol.command.type.Instance;
 import com.yyonezu.remotecontrol.event.wait.Waiter;
@@ -13,9 +13,9 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.util.concurrent.TimeUnit;
 
-@CommandController(value = {"screenshot", "ss"}, category = "Misc")
+@Interaction
 public class ScreenshotCommand extends BaseCommand {
-    @Command(name = "screenshot", usage = "{prefix}screenshot instance_ign", desc = "Player sends a screenshot", isSuper = true)
+    @SlashCommand(value = "screenshot", desc = "Player sends a screenshot")
     public void screenshot(CommandEvent ev, Instance instance) {
         JsonObject data = getBaseMessage(ev, instance);
         instance.getSession().getRemote().sendStringByFuture(data.toString());
@@ -39,7 +39,7 @@ public class ScreenshotCommand extends BaseCommand {
         ));
     }
 
-    @Command(value = "inventory", usage = "{prefix}screenshot inventory instance_ign", desc = "Player sends an inventory screenshot")
+    @SlashCommand(value = "inventory", desc = "Player sends an inventory screenshot")
     public void inventory(CommandEvent ev, Instance instance) {
 
         JsonObject data = getBaseMessage(ev, instance);
@@ -60,7 +60,7 @@ public class ScreenshotCommand extends BaseCommand {
                 () -> ev.reply("Could not get anything from " + instance.getUser() + "... maybe try again?")
         ));
     }
-    @Command(value = "all", usage = "{prefix}screenshot all", desc = "Get a screenshot from all players")
+    @SlashCommand(value = "all", desc = "Get a screenshot from all players")
     public void all(CommandEvent ev) {
         if (WebSocketServer.minecraftInstances.values().size() == 0) {
             ev.reply("There isn't any instances connected");
@@ -72,7 +72,7 @@ public class ScreenshotCommand extends BaseCommand {
         }
     }
 
-    @Command(value = "inventory all", usage = "{prefix}screenshot all", desc = "Get an inventory screenshot from all players")
+    @SlashCommand(value = "inventory all", desc = "Get an inventory screenshot from all players")
     public void inventoryall(CommandEvent ev) {
         if (WebSocketServer.minecraftInstances.values().size() == 0) {
             ev.reply("There isn't any instances connected");

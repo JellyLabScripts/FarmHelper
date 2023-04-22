@@ -1,8 +1,8 @@
 package com.yyonezu.remotecontrol.command.commands;
 
-import com.github.kaktushose.jda.commands.annotations.Command;
-import com.github.kaktushose.jda.commands.annotations.CommandController;
-import com.github.kaktushose.jda.commands.dispatching.CommandEvent;
+import com.github.kaktushose.jda.commands.annotations.interactions.Interaction;
+import com.github.kaktushose.jda.commands.annotations.interactions.SlashCommand;
+import com.github.kaktushose.jda.commands.dispatching.commands.CommandEvent;
 import com.google.gson.JsonObject;
 import com.yyonezu.remotecontrol.command.type.Instance;
 import com.yyonezu.remotecontrol.event.wait.Waiter;
@@ -15,9 +15,9 @@ import java.util.concurrent.TimeUnit;
 
 import static com.yyonezu.remotecontrol.utils.Utils.toMillis;
 
-@CommandController(value = "reconnect", category = "Misc")
+@Interaction
 public class ReconnectCommand extends BaseCommand {
-    @Command(name = "Reconnect command", usage = "{prefix}reconnect instance_ign time", desc = "Reconnect in X time (e.g: 1h30m, 7h14m3s, 10m)", isSuper = true)
+    @SlashCommand(value = "Reconnect command", desc = "Reconnect in X time (e.g: 1h30m, 7h14m3s, 10m)")
     public void reconnect(CommandEvent ev, Instance instance, String time) {
         JsonObject obj = getBaseMessage(ev, instance);
         try {
@@ -45,7 +45,7 @@ public class ReconnectCommand extends BaseCommand {
         ));
     }
 
-    @Command(value="all", usage = "{prefix}reconnect all time", desc = "Reconnects in X time all instances")
+    @SlashCommand(value="all", desc = "Reconnects in X time all instances")
     public void all(CommandEvent ev, String time) {
         if (WebSocketServer.minecraftInstances.values().size() == 0) {
             ev.reply("There isn't any instances connected");
@@ -57,7 +57,7 @@ public class ReconnectCommand extends BaseCommand {
         }
     }
 
-    @Command(value = "cancel", usage = "{prefix}reconnect cancel instance_ign", desc = "Cancels out a current reconnect command")
+    @SlashCommand(value = "cancel", desc = "Cancels out a current reconnect command")
     public void cancel(CommandEvent ev, Instance instance) {
         JsonObject obj = getBaseMessage(ev, instance);
         instance.getSession().getRemote().sendStringByFuture(obj.toString());
@@ -78,7 +78,7 @@ public class ReconnectCommand extends BaseCommand {
         ));
     }
 
-    @Command(value="cancel all", usage = "{prefix}reconnect cancel all", desc = "Cancels out all current reconnects")
+    @SlashCommand(value="cancel all", desc = "Cancels out all current reconnects")
     public void cancelall(CommandEvent ev) {
         if (WebSocketServer.minecraftInstances.values().size() == 0) {
             ev.reply("There isn't any instances connected");
