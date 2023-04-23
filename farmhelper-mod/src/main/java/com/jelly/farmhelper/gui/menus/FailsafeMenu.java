@@ -16,6 +16,7 @@ public class FailsafeMenu extends UIContainer {
         new Toggle("Fake movements", "fakeMovements").setChildOf(this);
         new Toggle("Ping sound",  "pingSound").setChildOf(this);
         new Toggle("Leave on banwave", "banwaveDisconnect").setChildOf(this);
+        new Toggle("Check desync",  "checkDesync").setChildOf(this);
         new Toggle("Auto set spawn", "autoSetspawn").setChildOf(this);
         new Slider("Rotation check sensitivity (deg)", 10, 1, "rotationSens").setChildOf(this);
         new Slider("Ban threshold (15 mins)", 40, 1, "banThreshold").setChildOf(this);

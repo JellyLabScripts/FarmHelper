@@ -9,6 +9,8 @@ public class FailsafeConfig {
     public static boolean pingSound;
     @Config
     public static boolean fakeMovements;
+    @Config()
+    public static boolean checkDesync = true;
     @Config
     public static double rotationSens = 1.0;
     @Config()

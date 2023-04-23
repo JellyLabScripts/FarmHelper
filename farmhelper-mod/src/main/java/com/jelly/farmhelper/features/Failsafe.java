@@ -211,7 +211,8 @@ public class Failsafe {
         DIRT ("You may have been dirt checked"),
         BEDROCK ("You have been bedrock checked"),
         ROTATION ("You may have been rotation checked or you may have moved your mouse"),
-        DESYNC("You are desynced. You might be lagging or there might be a staff spectating");
+        DESYNC("You are desynced. " +
+                "You might be lagging or there might be a staff spectating. If this is happening frequently, disable check desync");
 
         final String label;
         FailsafeType(String s) {
