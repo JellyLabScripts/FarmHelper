@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.config.enums.CropEnum;
+import com.jelly.farmhelper.config.enums.MacroEnum;
 import com.jelly.farmhelper.config.enums.FarmEnum;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
@@ -11,7 +12,6 @@ import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 
@@ -46,6 +46,7 @@ public class LayeredCropMacro extends Macro {
 
     private final Rotation rotation = new Rotation();
     public State currentState;
+    public State prevState;
     private StoneThrowState stoneState;
     private double layerY;
     private boolean antistuckActive;
@@ -60,6 +61,7 @@ public class LayeredCropMacro extends Macro {
     private boolean isTping = false;
     private final Clock waitForChangeDirection = new Clock();
 
+    private CropEnum crop;
 
     @Override
     public void onEnable() {
@@ -68,7 +70,10 @@ public class LayeredCropMacro extends Macro {
         antistuckActive = false;
         Antistuck.stuck = false;
         Antistuck.cooldown.schedule(1000);
-        if (FarmConfig.cropType == CropEnum.NETHERWART || FarmConfig.cropType == CropEnum.CACTUS) {
+        crop = MacroHandler.getFarmingCrop();
+        LogUtils.debugLog("Crop: " + crop);
+        MacroHandler.crop = crop;
+        if (crop == CropEnum.NETHERWART || crop == CropEnum.CACTUS) {
             pitch = (float) (0f + Math.random() * 0.5f);
         } else {
             pitch = (float) (2.8f + Math.random() * 0.5f);
@@ -181,6 +186,7 @@ public class LayeredCropMacro extends Macro {
         }
 
         updateState();
+        prevState = currentState;
         System.out.println(currentState);
 
         switch (currentState) {
@@ -264,15 +270,15 @@ public class LayeredCropMacro extends Macro {
                 return;
             case RIGHT:
                 LogUtils.debugLog("Middle of row, going right");
-                updateKeys(FarmConfig.cropType != CropEnum.CACTUS && shouldWalkForwards(), FarmConfig.cropType == CropEnum.CACTUS && shouldPushBack(), true, false, findAndEquipHoe());
+                updateKeys(FarmConfig.cropType != MacroEnum.CACTUS && shouldWalkForwards(), FarmConfig.cropType == MacroEnum.CACTUS && shouldPushBack(), true, false, findAndEquipHoe());
                 return;
             case LEFT:
                 LogUtils.debugLog("Middle of row, going left");
-                updateKeys(FarmConfig.cropType != CropEnum.CACTUS && shouldWalkForwards(), FarmConfig.cropType == CropEnum.CACTUS && shouldPushBack(), false, true, findAndEquipHoe());
+                updateKeys(FarmConfig.cropType != MacroEnum.CACTUS && shouldWalkForwards(), FarmConfig.cropType == MacroEnum.CACTUS && shouldPushBack(), false, true, findAndEquipHoe());
                 return;
             case SWITCH_START:
                 LogUtils.debugFullLog("Continue forwards");
-                updateKeys(true, false, false, false, false);
+                updateKeys(true, false, prevState == State.RIGHT, prevState == State.LEFT, false);
                 return;
             case SWITCH_MID:
                 LogUtils.debugLog("Middle of switch, keep going forwards");
@@ -379,7 +385,7 @@ public class LayeredCropMacro extends Macro {
                 PlayerUtils.attemptSetSpawn();
                 currentState = calculateDirection();
             }
-        } else if (gameState.frontWalkable && !gameState.backWalkable && (FarmConfig.cropType != CropEnum.CACTUS || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus))) {
+        } else if (gameState.frontWalkable && !gameState.backWalkable && (FarmConfig.cropType != MacroEnum.CACTUS || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus))) {
             if(waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                 currentState = State.SWITCH_START;
                 waitForChangeDirection.reset();
@@ -514,7 +520,7 @@ public class LayeredCropMacro extends Macro {
     };
 
     public boolean findAndEquipHoe() {
-        int hoeSlot = PlayerUtils.getHoeSlot();
+        int hoeSlot = PlayerUtils.getHoeSlot(crop);
         if (hoeSlot == -1) {
             hoeEquipFails = hoeEquipFails + 1;
             if (hoeEquipFails > 10) {

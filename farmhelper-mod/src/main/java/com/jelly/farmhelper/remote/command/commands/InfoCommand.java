@@ -1,8 +1,8 @@
 package com.jelly.farmhelper.remote.command.commands;
 
 import com.google.gson.JsonObject;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.features.ProfitCalculator;
+import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.remote.command.BaseCommand;
 import com.jelly.farmhelper.remote.command.RemoteCommandContext;
@@ -24,7 +24,7 @@ public class InfoCommand extends BaseCommand {
                 .addField("Runtime", getRuntimeFormat(), true)
                 .addField("Total Profit", ProfitCalculator.profit.get(), false)
                 .addField("Profit / hr", ProfitCalculator.profitHr.get(), false)
-                .addField("Crop type", String.valueOf(FarmConfig.cropType), true);
+                .addField("Crop type", String.valueOf(MacroHandler.crop), true);
 
         data.addProperty("image", getScreenshot());
         data.addProperty("embed", toJson(embed));

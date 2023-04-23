@@ -2,6 +2,7 @@ package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.enums.CropEnum;
+import com.jelly.farmhelper.config.enums.MacroEnum;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.features.Failsafe;
@@ -34,6 +35,7 @@ public class VerticalCropMacro extends Macro{
     private final Clock lastTp = new Clock();
     private boolean isTping = false;
     private final Clock waitForChangeDirection = new Clock();
+    private CropEnum crop;
 
 
     @Override
@@ -41,7 +43,11 @@ public class VerticalCropMacro extends Macro{
         lastTp.reset();
         waitForChangeDirection.reset();
         yaw = AngleUtils.getClosest();
-        switch(FarmConfig.cropType){
+        crop = MacroHandler.getFarmingCrop();
+        LogUtils.debugLog("Crop: " + crop);
+        MacroHandler.crop = crop;
+
+        switch(crop){
             case SUGARCANE:
                 pitch = (float) (Math.random() * 2); // 0 - 2
                 break;
@@ -60,8 +66,8 @@ public class VerticalCropMacro extends Macro{
         }
         dir = direction.NONE;
         rotation.easeTo(yaw, pitch, 500);
-        if (FarmConfig.cropType != CropEnum.MELON && FarmConfig.cropType != CropEnum.PUMPKIN)
-            mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot();
+        if (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)
+            mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(crop);
         else
             mc.thePlayer.inventory.currentItem = PlayerUtils.getAxeSlot();
         isTping = false;
@@ -98,7 +104,7 @@ public class VerticalCropMacro extends Macro{
             rotation.easeTo(yaw, pitch, 500);
         }
 
-        if (lastTp.isScheduled() && !lastTp.passed() && (FarmConfig.cropType != CropEnum.MELON && FarmConfig.cropType != CropEnum.PUMPKIN)) {
+        if (lastTp.isScheduled() && !lastTp.passed() && (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)) {
             updateKeys(true, false, false, false, false);
             dir = direction.NONE;
             return;
@@ -150,9 +156,9 @@ public class VerticalCropMacro extends Macro{
                 dir = calculateDirection();
             }
             if (dir == direction.RIGHT)
-                updateKeys(((FarmConfig.cropType != CropEnum.MELON && FarmConfig.cropType != CropEnum.PUMPKIN) && shouldWalkForwards()), false, true, false, true);
+                updateKeys(((FarmConfig.cropType != MacroEnum.PUMPKIN_MELON) && shouldWalkForwards()), false, true, false, true);
             else if (dir == direction.LEFT) {
-                updateKeys((FarmConfig.cropType != CropEnum.MELON && FarmConfig.cropType != CropEnum.PUMPKIN)  && shouldWalkForwards(), false, false, true, true);
+                updateKeys((FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)  && shouldWalkForwards(), false, false, true, true);
             } else {
                 stopMovement();
             }
@@ -163,8 +169,7 @@ public class VerticalCropMacro extends Macro{
                     dir = direction.RIGHT;
                     waitForChangeDirection.reset();
                     updateKeys(false, false, true, false, true);
-                    if (Math.random() < 0.5d)
-                        PlayerUtils.attemptSetSpawn();
+                    PlayerUtils.attemptSetSpawn();
                     return;
                 }
                 if (!waitForChangeDirection.isScheduled()) {
@@ -180,8 +185,7 @@ public class VerticalCropMacro extends Macro{
                     dir = direction.LEFT;
                     waitForChangeDirection.reset();
                     updateKeys(false, false, false, true, true);
-                    if (Math.random() < 0.5d)
-                        PlayerUtils.attemptSetSpawn();
+                    PlayerUtils.attemptSetSpawn();
                     return;
                 }
                 if (!waitForChangeDirection.isScheduled()) {

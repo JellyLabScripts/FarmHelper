@@ -1,7 +1,6 @@
 package com.jelly.farmhelper.utils;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.config.interfaces.RemoteControlConfig;
 import com.jelly.farmhelper.features.ProfitCalculator;
@@ -13,6 +12,7 @@ import net.minecraft.util.EnumChatFormatting;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class LogUtils {
@@ -39,7 +39,7 @@ public class LogUtils {
     }
 
     public static void debugLog(String message) {
-        if (MiscConfig.debugMode || lastDebug != message) {
+        if (MiscConfig.debugMode || !Objects.equals(lastDebug, message)) {
             sendLog(new ChatComponentText(
                 EnumChatFormatting.GREEN + "Log " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + message
             ));
@@ -84,7 +84,7 @@ public class LogUtils {
                         .addField("Runtime", getRuntimeFormat(), true)
                         .addField("Total Profit", ProfitCalculator.profit.get(), false)
                         .addField("Profit / hr", ProfitCalculator.profitHr.get(), false)
-                        .addField("Crop Type", String.valueOf(FarmConfig.cropType), true)
+                        .addField("Crop Type", String.valueOf(MacroHandler.crop), true)
                     // .addField("Screenshot", Screenshot.takeScreenshot(), true)
                 );
                 new Thread(() -> {
@@ -104,7 +104,7 @@ public class LogUtils {
     public static void webhookLog(String message) {
         long timeDiff = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - logMsgTime);
         debugFullLog("Last webhook message: " + timeDiff);
-        if (RemoteControlConfig.webhookLogs && (timeDiff > 20 || lastWebhook != message)) {
+        if (RemoteControlConfig.webhookLogs && (timeDiff > 20 || !Objects.equals(lastWebhook, message))) {
             FarmHelper.gameState.webhook.addEmbed(new DiscordWebhook.EmbedObject()
                 .setDescription("**Farm Helper Log** ```" + message + "```")
                 .setColor(Color.decode("#741010"))

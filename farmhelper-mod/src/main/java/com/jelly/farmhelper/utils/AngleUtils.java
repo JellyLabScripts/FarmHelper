@@ -57,6 +57,27 @@ public class AngleUtils {
             return 315f;
         }
     }
+
+    public static float getClosest36() {
+        if (get360RotationYaw() < 45) {
+            return 36f;
+        } else if (get360RotationYaw() < 90) {
+            return 54f;
+        } else if (get360RotationYaw() < 135) {
+            return 126f;
+        } else if (get360RotationYaw() < 180) {
+            return 144f;
+        } else if (get360RotationYaw() < 225) {
+            return 216f;
+        } else if (get360RotationYaw() < 270) {
+            return 234f;
+        } else if (get360RotationYaw() < 315) {
+            return 306f;
+        } else {
+            return 324f;
+        }
+    }
+
     public static float getClosest() {
         if (get360RotationYaw() < 45 || get360RotationYaw() > 315) {
             return 0f;

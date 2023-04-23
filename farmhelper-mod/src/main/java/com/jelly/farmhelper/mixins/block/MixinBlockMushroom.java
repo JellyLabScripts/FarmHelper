@@ -1,16 +1,7 @@
 package com.jelly.farmhelper.mixins.block;
 
-import com.jelly.farmhelper.config.enums.CropEnum;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
-import com.jelly.farmhelper.macros.MacroHandler;
 import net.minecraft.block.BlockBush;
 import net.minecraft.block.BlockMushroom;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin({BlockMushroom.class})

@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.utils;
 
+import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import net.minecraft.client.Minecraft;
@@ -9,7 +10,6 @@ import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemAxe;
-import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -17,6 +17,7 @@ import net.minecraft.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,13 +28,19 @@ public class PlayerUtils {
     /*
      *  @Author partly Apfelsaft
      */
-    static final String[] hoes = {"Euclid","Gauss Carrot Hoe","Pythagorean Potato Hoe","Turing Sugar Cane Hoe","Newton Nether Warts Hoe","Fungi Cutter","Cactus Knife","Rookie Hoe"};
     private static final Minecraft mc = Minecraft.getMinecraft();
 
+    private static final Clock clock = new Clock();
 
     public static void attemptSetSpawn() {
-        if(FailsafeConfig.autoSetspawn)
-            mc.thePlayer.sendChatMessage("/setspawn");
+        if(FailsafeConfig.autoSetspawn) {
+            if (clock.isScheduled() && clock.passed()) {
+                mc.thePlayer.sendChatMessage("/setspawn");
+                clock.schedule(new Random().nextInt(8000) + 3000);
+            } else if (!clock.isScheduled()) {
+                clock.schedule(new Random().nextInt(8000) + 3000);
+            }
+        }
     }
 
     public static int getRancherBootSpeed() {
@@ -229,16 +236,16 @@ public class PlayerUtils {
         return copy;
     }
 
-    public static int getHoeSlot() {
-        if(mc.thePlayer.inventory.getCurrentItem() != null) {
-            if (mc.thePlayer.inventory.getCurrentItem().getItem() instanceof ItemHoe)
-                return mc.thePlayer.inventory.currentItem;
-        }
+    public static int getHoeSlot(CropEnum crop) {
+//        if(mc.thePlayer.inventory.getCurrentItem() != null) {
+//            if (mc.thePlayer.inventory.getCurrentItem().getItem() instanceof ItemHoe)
+//                return mc.thePlayer.inventory.currentItem;
+//        }
 
         for (int i = 36; i < 44; i++) {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
 
-                switch (FarmConfig.cropType){
+                switch (crop){
                     case NETHERWART:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Newton")) {
                             return i - 36;
@@ -284,11 +291,11 @@ public class PlayerUtils {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
 
                 switch (FarmConfig.cropType){
-                    case MELON: case PUMPKIN:
+                    case PUMPKIN_MELON:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Dicer")) {
                             return i - 36;
                         }
-                    case COCOA_BEANS:
+                    case COCOABEANS:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Chopper")) {
                             return i - 36;
                         }

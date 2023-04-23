@@ -1,9 +1,7 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
@@ -32,7 +30,7 @@ public class Resync {
     static Runnable checkCrop = () -> {
         if (cachedPos != null && mc.theWorld.getBlockState(cachedPos) != null) {
             boolean desync = false;
-            switch (FarmConfig.cropType) {
+            switch (MacroHandler.crop) {
                 case NETHERWART:
                     if (mc.theWorld.getBlockState(cachedPos).getValue(BlockNetherWart.AGE) > 2) desync = true;
                     break;

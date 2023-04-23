@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.macros;
 
+import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
@@ -36,17 +37,22 @@ public class SugarcaneMacro extends Macro {
 
     private final Rotation rotator = new Rotation();
 
+    private CropEnum crop;
+
     @Override
     public void onEnable() {
         yaw = AngleUtils.getClosestDiagonal();
         pitch = 0;
         rotator.easeTo(yaw, pitch, 500);
+        crop = MacroHandler.getFarmingCrop();
+        LogUtils.debugLog("Crop: " + crop);
+        MacroHandler.crop = crop;
 
         currentState = State.WALK;
         currentWalkState = calculateDirection();
 
         stuck = false;
-        mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot();
+        mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(CropEnum.SUGARCANE);
         Antistuck.stuck = false;
         Antistuck.cooldown.schedule(1000);
     }
