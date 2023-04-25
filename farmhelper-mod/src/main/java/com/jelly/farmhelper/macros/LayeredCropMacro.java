@@ -110,7 +110,7 @@ public class LayeredCropMacro extends Macro {
     @Override
     public void onPacketReceived(ReceivePacketEvent event) {
         if(rotation.rotating && event.packet instanceof S08PacketPlayerPosLook &&
-                (currentState == State.DROPPING || (currentState == State.TP_PAD && tpCoolDown.passed()))) {
+                (currentState == State.DROPPING || (currentState == State.TP_PAD && !isTping && tpCoolDown.passed()))) {
             rotation.reset();
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
         }
@@ -131,8 +131,6 @@ public class LayeredCropMacro extends Macro {
 
         if (tpCoolDown.isScheduled() && tpCoolDown.passed()) {
             tpCoolDown.reset();
-        } else if (tpCoolDown.isScheduled() && !tpCoolDown.passed()) {
-            return;
         }
 
         if(currentState != State.DROPPING && currentState != State.STONE_THROW) {
