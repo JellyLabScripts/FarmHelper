@@ -267,6 +267,7 @@ public class Failsafe {
             }
 
             trayIcon.displayMessage("Farm Helper - Failsafes", text, messageType);
+            tray.remove(trayIcon);
         }).start();
 
     }
