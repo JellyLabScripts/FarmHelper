@@ -36,15 +36,16 @@ public class PlayerUtils {
 
     public static void attemptSetSpawn() {
         if(FailsafeConfig.autoSetspawn) {
-            if (FailsafeConfig.autoSetSpawnMaxDelay - FailsafeConfig.autoSetSpawnMinDelay < 0) {
+            double diff = (FailsafeConfig.autoSetSpawnMaxDelay * 1000) - (FailsafeConfig.autoSetSpawnMinDelay * 1000);
+            if (diff < 0) {
                 LogUtils.scriptLog("autoSetSpawnMaxDelay must be greater than autoSetSpawnMinDelay", EnumChatFormatting.RED);
                 return;
             }
             if (clock.isScheduled() && clock.passed()) {
                 mc.thePlayer.sendChatMessage("/setspawn");
-                clock.schedule((long) (new Random().nextInt((int) (FailsafeConfig.autoSetSpawnMaxDelay - FailsafeConfig.autoSetSpawnMinDelay)) + FailsafeConfig.autoSetSpawnMinDelay));
+                clock.schedule((long) (new Random().nextInt((int) (diff)) + (FailsafeConfig.autoSetSpawnMinDelay * 1000)));
             } else if (!clock.isScheduled()) {
-                clock.schedule((long) (new Random().nextInt((int) (FailsafeConfig.autoSetSpawnMaxDelay - FailsafeConfig.autoSetSpawnMinDelay)) + FailsafeConfig.autoSetSpawnMinDelay));
+                clock.schedule((long) (new Random().nextInt((int) (diff)) + (FailsafeConfig.autoSetSpawnMinDelay * 1000)));
             }
         }
     }
