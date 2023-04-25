@@ -48,7 +48,7 @@ public class MushroomMacro extends Macro {
         MacroHandler.crop = crop;
 
         if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
-            yaw = AngleUtils.getClosest36();
+            yaw = AngleUtils.getClosest30();
         } else {
             yaw = AngleUtils.getClosestDiagonal();
         }
@@ -181,7 +181,7 @@ public class MushroomMacro extends Macro {
     }
     
     public static int getAngleDiff() {
-        return (FarmConfig.cropType == MacroEnum.MUSHROOM ? 45 : (int) AngleUtils.getClosest36());
+        return (FarmConfig.cropType == MacroEnum.MUSHROOM ? 45 : (int) AngleUtils.getClosest30());
     }
 
     @Override
