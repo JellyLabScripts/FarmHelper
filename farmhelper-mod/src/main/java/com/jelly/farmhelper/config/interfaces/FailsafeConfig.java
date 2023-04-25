@@ -16,6 +16,10 @@ public class FailsafeConfig {
     @Config()
     public static boolean autoSetspawn = true;
     @Config()
+    public static double autoSetSpawnMinDelay = 5.0;
+    @Config()
+    public static double autoSetSpawnMaxDelay = 10.0;
+    @Config()
     public static boolean banwaveDisconnect = true;
     @Config()
     public static double banThreshold = 10.0;

@@ -381,8 +381,8 @@ public class LayeredCropMacro extends Macro {
             currentState = State.DROPPING;
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
             // layerY = mc.thePlayer.posY;
+            PlayerUtils.attemptSetSpawn();
             if (currentState != State.RIGHT && currentState != State.LEFT) {
-                PlayerUtils.attemptSetSpawn();
                 currentState = calculateDirection();
             }
         } else if (gameState.frontWalkable && !gameState.backWalkable && (FarmConfig.cropType != MacroEnum.CACTUS || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus))) {

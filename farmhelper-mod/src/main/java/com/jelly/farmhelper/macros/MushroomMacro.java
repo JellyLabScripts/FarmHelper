@@ -126,6 +126,8 @@ public class MushroomMacro extends Macro {
             if(mc.thePlayer.lastTickPosY - mc.thePlayer.posY != 0)
                 return;
 
+            PlayerUtils.attemptSetSpawn();
+
             if (dir == direction.NONE) {
                 dir = calculateDirection();
             }
@@ -149,7 +151,6 @@ public class MushroomMacro extends Macro {
                     dir = direction.RIGHT;
                     waitForChangeDirection.reset();
                     updateKeys(true, false, false, false, true);
-                    PlayerUtils.attemptSetSpawn();
                     return;
                 }
                 if (!waitForChangeDirection.isScheduled()) {
@@ -164,7 +165,6 @@ public class MushroomMacro extends Macro {
                     dir = direction.LEFT;
                     waitForChangeDirection.reset();
                     updateKeys(false, false, false, true, true);
-                    PlayerUtils.attemptSetSpawn();
                     return;
                 }
                 if (!waitForChangeDirection.isScheduled()) {
