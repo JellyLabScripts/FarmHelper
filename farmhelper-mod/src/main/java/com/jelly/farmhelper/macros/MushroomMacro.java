@@ -34,6 +34,7 @@ public class MushroomMacro extends Macro {
 
     private final Clock lastTp = new Clock();
     private boolean isTping = false;
+    private int timeSinceTP = 0;
 
     private final Clock waitForChangeDirection = new Clock();
     private CropEnum crop;
@@ -76,6 +77,7 @@ public class MushroomMacro extends Macro {
 
     @Override
     public void onTick() {
+        timeSinceTP++
 
         if(mc.thePlayer == null || mc.theWorld == null)
             return;
@@ -108,8 +110,9 @@ public class MushroomMacro extends Macro {
 
         if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
-                BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)) && !isTping) {//standing on tp pad
+                BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)) && !isTping && timeSinceTP >= 60) {//standing on tp pad && it's been longer than 3 seconds since the las tp
             isTping = true;
+            timeSinceTP = 0;
             LogUtils.debugLog("Scheduled tp");
 
             updateKeys(false, false, false, false, false);
