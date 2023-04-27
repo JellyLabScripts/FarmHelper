@@ -94,7 +94,6 @@ public class LayeredCropMacro extends Macro {
             tpCoolDown.schedule(1500);
             isTping = false;
             LogUtils.debugLog("Tped");
-            currentState = State.NONE;
             waitBetweenTp.schedule(5000);
         }
     }
@@ -135,6 +134,9 @@ public class LayeredCropMacro extends Macro {
 
         if (tpCoolDown.isScheduled() && tpCoolDown.passed()) {
             tpCoolDown.reset();
+            currentState = calculateDirection();
+        } else if (tpCoolDown.isScheduled() && !tpCoolDown.isScheduled()) {
+            return;
         }
 
         if (waitBetweenTp.isScheduled() && waitBetweenTp.passed()) {
@@ -383,7 +385,7 @@ public class LayeredCropMacro extends Macro {
             LogUtils.debugLog("On the TP Pad, tping");
 //            if(!tpCoolDown.isScheduled() && lastState != currentState)
 //                tpCoolDown.schedule(1500);
-        } else if (currentState != State.TP_PAD && (layerY - mc.thePlayer.posY > 1 || currentState == State.DROPPING || isDropping())) {
+        } else if (currentState != State.TP_PAD && (layerY - mc.thePlayer.posY > 2 || currentState == State.DROPPING || isDropping())) {
             currentState = State.DROPPING;
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
             // layerY = mc.thePlayer.posY;
