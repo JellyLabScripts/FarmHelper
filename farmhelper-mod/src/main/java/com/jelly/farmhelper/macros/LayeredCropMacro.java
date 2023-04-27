@@ -226,7 +226,7 @@ public class LayeredCropMacro extends Macro {
 
                 return;
             case DROPPING:
-                if (layerY - mc.thePlayer.posY > 1) {
+                if (layerY - mc.thePlayer.posY >= 2) {
                     if (!rotation.completed && FarmConfig.farmType == FarmEnum.LAYERED) {
                         if (!rotation.rotating) {
                             LogUtils.debugLog("Rotating 180");
