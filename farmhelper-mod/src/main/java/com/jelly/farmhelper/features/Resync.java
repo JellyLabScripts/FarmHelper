@@ -13,12 +13,13 @@ import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 
 import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class Resync {
-    private static final ArrayList<BlockPos> cachedPos = new ArrayList<>();
+    private static final CopyOnWriteArrayList<BlockPos> cachedPos = new CopyOnWriteArrayList<>();
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final ScheduledExecutorService executor;
 
@@ -28,7 +29,6 @@ public class Resync {
 
     public static void update(BlockPos lastBrokenPos) {
         cachedPos.add(lastBrokenPos);
-        LogUtils.debugLog("Desync check cache size: " + cachedPos.size());
         if(cachedPos.size() >= 4)
            executor.schedule(checkCrop, 2, TimeUnit.SECONDS);
     }

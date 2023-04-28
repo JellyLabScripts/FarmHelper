@@ -22,6 +22,8 @@ public class FailsafeConfig {
     @Config()
     public static boolean banwaveDisconnect = true;
     @Config()
+    public static boolean autoTpOnWorldChange = true;
+    @Config()
     public static double banThreshold = 10.0;
     @Config()
     public static double reconnectDelay = 5.0;
