@@ -60,6 +60,7 @@ public class LayeredCropMacro extends Macro {
     private final Clock tpCoolDown = new Clock();
     private boolean isTping = false;
     private final Clock waitForChangeDirection = new Clock();
+    private final Clock waitBetweenTp = new Clock();
 
     private CropEnum crop;
 
@@ -81,6 +82,7 @@ public class LayeredCropMacro extends Macro {
         yaw = AngleUtils.getClosest();
         tpCoolDown.reset();
         waitForChangeDirection.reset();
+        waitBetweenTp.reset();
         rotation.easeTo(yaw, pitch, 500);
         isTping = false;
     }
@@ -92,6 +94,7 @@ public class LayeredCropMacro extends Macro {
             tpCoolDown.schedule(1500);
             isTping = false;
             LogUtils.debugLog("Tped");
+            waitBetweenTp.schedule(5000);
         }
     }
 
@@ -110,7 +113,7 @@ public class LayeredCropMacro extends Macro {
     @Override
     public void onPacketReceived(ReceivePacketEvent event) {
         if(rotation.rotating && event.packet instanceof S08PacketPlayerPosLook &&
-                (currentState == State.DROPPING || (currentState == State.TP_PAD && !isTping && tpCoolDown.passed()))) {
+                (currentState == State.DROPPING || (currentState == State.TP_PAD && !isTping && (!tpCoolDown.isScheduled() || tpCoolDown.passed())))) {
             rotation.reset();
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
         }
@@ -131,6 +134,13 @@ public class LayeredCropMacro extends Macro {
 
         if (tpCoolDown.isScheduled() && tpCoolDown.passed()) {
             tpCoolDown.reset();
+            currentState = calculateDirection();
+        } else if (tpCoolDown.isScheduled() && !tpCoolDown.isScheduled()) {
+            return;
+        }
+
+        if (waitBetweenTp.isScheduled() && waitBetweenTp.passed()) {
+            waitBetweenTp.reset();
         }
 
         if(currentState != State.DROPPING && currentState != State.STONE_THROW) {
@@ -369,13 +379,13 @@ public class LayeredCropMacro extends Macro {
 
         if (currentState == State.STONE_THROW) {
             currentState = State.STONE_THROW;
-        } else if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) && !tpCoolDown.isScheduled()) {
+        } else if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) && !tpCoolDown.isScheduled() && (waitBetweenTp.isScheduled() && waitBetweenTp.passed())) {
             currentState = State.TP_PAD;
             isTping = true;
             LogUtils.debugLog("On the TP Pad, tping");
 //            if(!tpCoolDown.isScheduled() && lastState != currentState)
 //                tpCoolDown.schedule(1500);
-        } else if (currentState != State.TP_PAD && (layerY - mc.thePlayer.posY > 1 || currentState == State.DROPPING || isDropping())) {
+        } else if (currentState != State.TP_PAD && (layerY - mc.thePlayer.posY > 2 || currentState == State.DROPPING || isDropping())) {
             currentState = State.DROPPING;
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
             // layerY = mc.thePlayer.posY;

@@ -36,12 +36,14 @@ public class MushroomMacro extends Macro {
     private boolean isTping = false;
 
     private final Clock waitForChangeDirection = new Clock();
+    private final Clock waitBetweenTp = new Clock();
     private CropEnum crop;
 
     @Override
     public void onEnable() {
         lastTp.reset();
         waitForChangeDirection.reset();
+        waitBetweenTp.reset();
         pitch = (float) (Math.random() * 2 - 1); // -1 - 1
         crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
@@ -71,6 +73,7 @@ public class MushroomMacro extends Macro {
             lastTp.schedule(1250);
             isTping = false;
             LogUtils.debugLog("Tped");
+            waitBetweenTp.schedule(5000);
         }
     }
 
@@ -85,11 +88,17 @@ public class MushroomMacro extends Macro {
             return;
         }
 
-        if (lastTp.passed()) {
-            lastTp.reset();
+        if (waitBetweenTp.isScheduled() && waitBetweenTp.passed()) {
+            waitBetweenTp.reset();
         }
 
-        System.out.println(dir);
+        if (lastTp.isScheduled() && lastTp.passed()) {
+            lastTp.reset();
+            dir = calculateDirection();
+        } else if (lastTp.isScheduled() && !lastTp.isScheduled()) {
+            return;
+        }
+
 
         if (lastTp.isScheduled() && !lastTp.passed()) {
             if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
@@ -108,7 +117,7 @@ public class MushroomMacro extends Macro {
 
         if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
-                BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)) && !isTping) {//standing on tp pad
+                BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)) && !isTping && (waitBetweenTp.isScheduled() && waitBetweenTp.passed())) {//standing on tp pad
             isTping = true;
             LogUtils.debugLog("Scheduled tp");
 
