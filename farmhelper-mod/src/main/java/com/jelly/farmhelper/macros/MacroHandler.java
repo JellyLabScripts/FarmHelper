@@ -2,6 +2,7 @@ package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.enums.CropEnum;
+import com.jelly.farmhelper.config.enums.MacroEnum;
 import com.jelly.farmhelper.config.enums.FarmEnum;
 import com.jelly.farmhelper.config.interfaces.*;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
@@ -10,7 +11,11 @@ import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.features.Scheduler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
+import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -38,8 +43,9 @@ public class MacroHandler {
     public static boolean randomizing = false;
     public static long startCounter = 0;
     public static boolean startingUp;
+    public static CropEnum crop;
 
-    @SubscribeEvent
+    @SubscribeEvent(receiveCanceled = true, priority = EventPriority.HIGHEST)
     public void onChatMessageReceived(ClientChatReceivedEvent e) {
         if(isMacroing) {
             if(e.message == null)
@@ -53,14 +59,6 @@ public class MacroHandler {
 //                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.RARE);
 //            else if(e.message.getUnformattedText().contains("RNGESUS"))
 //                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.PRAY);
-//
-//            if(e.message.getUnformattedText().contains("CROPIE")) {
-//                ProfitCalculator.addArmorDropProfit(ProfitCalculator.ArmorDrop.CROPIE);
-//            } else if(e.message.getUnformattedText().contains("SQUASH")) {
-//                ProfitCalculator.addArmorDropProfit(ProfitCalculator.ArmorDrop.SQUASH);
-//            } else if(e.message.getUnformattedText().contains("FERMENTO")) {
-//                ProfitCalculator.addArmorDropProfit(ProfitCalculator.ArmorDrop.FERMENTO);
-//            }
 
         }
         if (currentMacro != null && currentMacro.enabled && mc.thePlayer != null && mc.theWorld != null && e.message != null) {
@@ -135,15 +133,15 @@ public class MacroHandler {
     }
     public static void enableMacro() {
         if(FarmConfig.farmType == FarmEnum.VERTICAL) {
-            if (FarmConfig.cropType == CropEnum.MUSHROOM) {
+            if (FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
                 currentMacro = mushroomMacro;
             } else {
                 currentMacro = verticalCropMacro;
             }
         } else {
-            if (FarmConfig.cropType == CropEnum.SUGARCANE) {
+            if (FarmConfig.cropType == MacroEnum.SUGARCANE) {
                 currentMacro = sugarcaneMacro;
-            } else if (FarmConfig.cropType == CropEnum.COCOA_BEANS) {
+            } else if (FarmConfig.cropType == MacroEnum.COCOABEANS) {
                 currentMacro = cocoaBeanMacro;
             } else {
                 currentMacro = layeredCropMacro;
@@ -187,7 +185,7 @@ public class MacroHandler {
             mc.inGameHasFocus = true;
             mc.displayGuiScreen(null);
             startingUp = true;
-            KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
+            KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
             new Thread(startCurrent).start();
         }
     }
@@ -203,5 +201,28 @@ public class MacroHandler {
         }
     };
 
+    public static CropEnum getFarmingCrop() {
+        for (int x = 0; x < 3; x++) {
+            for (int y = -2; y < 3; y++) {
+                for (int z = 0; z < 3; z++) {
+                    BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, 1 + z);
+                    Block block = mc.theWorld.getBlockState(pos).getBlock();
+                    if (block.equals(Blocks.wheat)) return CropEnum.WHEAT;
+                    if (block.equals(Blocks.carrots)) return CropEnum.CARROT;
+                    if (block.equals(Blocks.potatoes)) return CropEnum.POTATO;
+                    if (block.equals(Blocks.nether_wart)) return CropEnum.NETHERWART;
+                    if (block.equals(Blocks.reeds)) return CropEnum.SUGARCANE;
+                    if (block.equals(Blocks.cocoa)) return CropEnum.COCOA_BEANS;
+                    if (block.equals(Blocks.melon_block)) return CropEnum.MELON;
+                    if (block.equals(Blocks.pumpkin)) return CropEnum.PUMPKIN;
+                    if (block.equals(Blocks.red_mushroom)) return CropEnum.MUSHROOM;
+                    if (block.equals(Blocks.brown_mushroom)) return CropEnum.MUSHROOM;
+                    if (block.equals(Blocks.cactus)) return CropEnum.CACTUS;
+                }
+            }
+        }
+        LogUtils.scriptLog("Can't detect crop type, defaulting to wheat", EnumChatFormatting.RED);
+        return CropEnum.WHEAT;
+    }
 
 }

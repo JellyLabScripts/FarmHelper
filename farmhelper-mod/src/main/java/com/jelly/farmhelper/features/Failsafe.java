@@ -5,6 +5,7 @@ import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.JacobConfig;
 import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.macros.MacroHandler;
+import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
@@ -13,6 +14,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.util.Tuple;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -56,6 +58,24 @@ public class Failsafe {
     }
 
     @SubscribeEvent
+    public final void onUnloadWorld(WorldEvent.Unload event) {
+        if (mc.theWorld == null || mc.thePlayer == null) return;
+        if (!MacroHandler.isMacroing) return;
+        if (gameState.currentLocation != GameState.location.ISLAND && MacroHandler.currentMacro.enabled) {
+            if(FailsafeConfig.notifications)
+                createNotification("Not in island. It might be a server reboot or staff check." +
+                        (FailsafeConfig.autoTpOnWorldChange ? "" : " Please go back to your island and restart the script."), SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
+
+            LogUtils.scriptLog("Failsafe - Not in island. It might be a server reboot or staff check." +
+                    (FailsafeConfig.autoTpOnWorldChange ? "" : " Please go back to your island and restart the script." +
+                            (FailsafeConfig.autoSetspawn ? "" : " Since auto setspawn was disabled, fly back to the place where you started")));
+            MacroHandler.disableCurrentMacro();
+            cooldown.schedule((long) (3000 + Math.random() * 3000));
+        }
+
+    }
+
+    @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
 
         if (!MacroHandler.isMacroing || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
@@ -68,12 +88,8 @@ public class Failsafe {
 
         GameState.location location = gameState.currentLocation;
 
-        if(location != GameState.location.ISLAND && MacroHandler.currentMacro.enabled){
-            if(FailsafeConfig.notifications)
-                createNotification("Not in island", SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
-            LogUtils.scriptLog("Failsafe - Not in island, re-warping" + (FailsafeConfig.autoSetspawn ? "" : ". Since auto setspawn was disabled, fly back to the place where you started"));
-            MacroHandler.disableCurrentMacro();
-        }
+
+        if(!FailsafeConfig.autoTpOnWorldChange) return;
 
         switch (location) {
             case TELEPORTING:
@@ -207,16 +223,12 @@ public class Failsafe {
 
     }
 
-    /*public static void disableEmergencyCheck(int time){
-        eDisable.reset();
-        eDisable.schedule(time);
-    }*/
-
     public enum FailsafeType {
         DIRT ("You may have been dirt checked"),
         BEDROCK ("You have been bedrock checked"),
         ROTATION ("You may have been rotation checked or you may have moved your mouse"),
-        DESYNC("You are desynced. You might be lagging or there might be a staff spectating");
+        DESYNC("You are desynced. " +
+                "You might be lagging or there might be a staff spectating. If this is happening frequently, disable check desync");
 
         final String label;
         FailsafeType(String s) {
@@ -229,7 +241,8 @@ public class Failsafe {
         emergency = true;
 
         LogUtils.webhookLog(type.label);
-        LogUtils.scriptLog("You might have been staff checked! Act like a normal player and stop the script!");
+        LogUtils.scriptLog(type.label + "!");
+        LogUtils.scriptLog("Act like a normal player and stop the script!");
 
         if(type != FailsafeType.DIRT && type != FailsafeType.DESYNC) // you may not be able to see the dirt, disable a few seconds later
             MacroHandler.disableCurrentMacro();
@@ -270,6 +283,9 @@ public class Failsafe {
             }
 
             trayIcon.displayMessage("Farm Helper - Failsafes", text, messageType);
+
+            if(System.getProperty("os.name").startsWith("Windows"))
+              tray.remove(trayIcon);
         }).start();
 
     }

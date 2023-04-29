@@ -12,6 +12,7 @@
     "client.MinecraftMixin",
     "client.MixinChunk",
     "client.MixinInventoryPlayer",
+    "client.MixinSoundManager",
     "fml.MixinFMLHandshakeMessage",
     "gui.MixinGuiDisconnected",
     "network.MixinNetworkManager",

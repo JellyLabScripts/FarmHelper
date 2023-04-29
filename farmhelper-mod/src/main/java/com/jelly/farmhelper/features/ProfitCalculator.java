@@ -8,7 +8,10 @@ import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.gui.Stat;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
-import com.jelly.farmhelper.utils.*;
+import com.jelly.farmhelper.utils.Clock;
+import com.jelly.farmhelper.utils.LogUtils;
+import com.jelly.farmhelper.utils.PlayerUtils;
+import com.jelly.farmhelper.utils.Utils;
 import gg.essential.elementa.UIComponent;
 import gg.essential.elementa.components.UIImage;
 import gg.essential.elementa.state.BasicState;
@@ -16,7 +19,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
-import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.json.simple.JSONObject;
@@ -336,12 +338,12 @@ public class ProfitCalculator {
             for (int i = 0; i < cropsToCount.size(); i++) {
                 JSONObject json2 = (JSONObject)json1.get(cropsToCount.get(i).bazaarId);
                 JSONObject json3 = (JSONObject)json2.get("quick_status");
-                bazaarPrices.put(cropsToCount.get(i).localizedName, (Double) (json3).get("sellPrice"));
+                bazaarPrices.put(cropsToCount.get(i).localizedName, (Double) (json3).get("buyPrice"));
             }
             for (int i = 0; i < armorDropToCount.size(); i++) {
                 JSONObject json2 = (JSONObject)json1.get(armorDropToCount.get(i).bazaarId);
                 JSONObject json3 = (JSONObject)json2.get("quick_status");
-                bazaarPrices.put(armorDropToCount.get(i).localizedName, (Double) (json3).get("sellPrice"));
+                bazaarPrices.put(armorDropToCount.get(i).localizedName, (Double) (json3).get("buyPrice"));
             }
             if (Minecraft.getMinecraft().thePlayer != null && Minecraft.getMinecraft().theWorld != null)
                 LogUtils.debugLog("Bazaar prices updated");
@@ -386,6 +388,24 @@ public class ProfitCalculator {
         public BasicState<String> getEnchantedAmount() {
             enchantedAmountState.set(enchantedAmount + "");
             return enchantedAmountState;
+        }
+    }
+
+    public class SubtractionListElem {
+        /** Name of the item */
+        public String text;
+        /** Quantity of that item */
+        public int quant;
+        /** The amount of ticks the element has left until is no longer shown on the screen */
+        public int lifetme = 200;
+
+        /**
+         * @param s = Name of the item
+         * @param q = Quantity of the item
+         */
+        public SubtractionListElem(String s,int q) {
+            this.text = s;
+            this.quant = q;
         }
     }
 }

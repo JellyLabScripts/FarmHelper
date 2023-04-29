@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin({InventoryPlayer.class})
 public abstract class MixinInventoryPlayer {
@@ -34,15 +35,28 @@ public abstract class MixinInventoryPlayer {
             for (int i = 0; i < 36; i++) {
                 if (postAddInventory[i] != null) {
                     int size = 0;
-                    if (preAddInventory[i] != null && preAddInventory[i].getItem() == postAddInventory[i].getItem() && preAddInventory[i].stackSize != postAddInventory[i].stackSize) {
-                        if (preAddInventory[i].stackSize < postAddInventory[i].stackSize)
+
+                    if (preAddInventory[i] == null) {
+                        size = postAddInventory[i].stackSize;
+                    } else if (preAddInventory[i].getItem() == postAddInventory[i].getItem()) {
+                        if (preAddInventory[i].stackSize < postAddInventory[i].stackSize) {
                             size = postAddInventory[i].stackSize - preAddInventory[i].stackSize;
-                        else
+                        } else if (postAddInventory[i].stackSize < preAddInventory[i].stackSize) {
                             size = preAddInventory[i].stackSize - postAddInventory[i].stackSize;
-                    }
-                    if ((preAddInventory[i] == null || (preAddInventory[i].getItem() != postAddInventory[i].getItem())) && postAddInventory[i].stackSize >= 0) {
+                        }
+                    } else if (preAddInventory[i].getItem() != postAddInventory[i].getItem()) {
                         size = postAddInventory[i].stackSize;
                     }
+
+
+//                    if (preAddInventory[i] != null && preAddInventory[i].getItem() == postAddInventory[i].getItem() && preAddInventory[i].stackSize != postAddInventory[i].stackSize) {
+//                        if (preAddInventory[i].stackSize < postAddInventory[i].stackSize)
+//                            size = postAddInventory[i].stackSize - preAddInventory[i].stackSize;
+//                        else
+//                            size = preAddInventory[i].stackSize - postAddInventory[i].stackSize;
+//                    } else if ((preAddInventory[i] == null || (preAddInventory[i].getItem() != postAddInventory[i].getItem())) && postAddInventory[i].stackSize >= 0) {
+//                        size = postAddInventory[i].stackSize;
+//                    }
                     if (size > 0)
                         checkForCompactAmount(i, size, postAddInventory);
                 }
