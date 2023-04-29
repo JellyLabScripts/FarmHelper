@@ -94,7 +94,8 @@ public class LayeredCropMacro extends Macro {
             tpCoolDown.schedule(1500);
             isTping = false;
             LogUtils.debugLog("Tped");
-            waitBetweenTp.schedule(5000);
+            waitBetweenTp.schedule(10000);
+            layerY = mc.thePlayer.posY;
         }
     }
 
@@ -135,7 +136,7 @@ public class LayeredCropMacro extends Macro {
         if (tpCoolDown.isScheduled() && tpCoolDown.passed()) {
             tpCoolDown.reset();
             currentState = calculateDirection();
-        } else if (tpCoolDown.isScheduled() && !tpCoolDown.isScheduled()) {
+        } else if (tpCoolDown.isScheduled() && !tpCoolDown.passed()) {
             return;
         }
 
