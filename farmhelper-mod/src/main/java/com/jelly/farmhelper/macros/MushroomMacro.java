@@ -59,6 +59,11 @@ public class MushroomMacro extends Macro {
         rotation.easeTo(yaw, pitch, 500);
         mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(CropEnum.MUSHROOM);
         isTping = false;
+        if (getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)) {
+            lastTp.schedule(1500);
+            LogUtils.debugLog("Started on tp pad");
+            waitBetweenTp.schedule(10000);
+        }
     }
 
     @Override
@@ -83,9 +88,13 @@ public class MushroomMacro extends Macro {
         if(mc.thePlayer == null || mc.theWorld == null)
             return;
 
-        if(rotation.rotating || isTping) {
+        if(rotation.rotating) {
             KeyBindUtils.stopMovement();
             return;
+        }
+
+        if (lastTp.passed()) {
+            lastTp.reset();
         }
 
         if (waitBetweenTp.isScheduled() && waitBetweenTp.passed()) {
@@ -95,21 +104,20 @@ public class MushroomMacro extends Macro {
         if (lastTp.isScheduled() && lastTp.passed()) {
             lastTp.reset();
             dir = calculateDirection();
-        } else if (lastTp.isScheduled() && !lastTp.isScheduled()) {
-            return;
         }
-
 
         if (lastTp.isScheduled() && !lastTp.passed()) {
             if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
+                LogUtils.debugLog("Going FORWARD");
                 updateKeys(true, false, false, false, true);
             } else {
+                LogUtils.debugLog("Going " + dir);
                 updateKeys(dir == direction.RIGHT, false, false, dir == direction.LEFT, true);
             }
             return;
         }
 
-        if (!isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens)) {
+        if (!rotation.rotating && !isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens)) {
             rotation.reset();
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
             return;
@@ -151,6 +159,7 @@ public class MushroomMacro extends Macro {
             else if (dir == direction.LEFT) {
                 updateKeys(false, false, false, true, true);
             } else {
+                LogUtils.debugLog("Error: dir == direction.NONE");
                 stopMovement();
             }
         } else if (isWalkable(getRightBlock(getAngleDiff())) && isWalkable(getRightTopBlock(getAngleDiff())) &&
@@ -206,10 +215,10 @@ public class MushroomMacro extends Macro {
         if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD)
             return direction.RIGHT;
 
-        if (leftCropIsReady()) {
-            return direction.LEFT;
-        } else if (rightCropIsReady()) {
+        if (rightCropIsReady()) {
             return direction.RIGHT;
+        } else if (leftCropIsReady()) {
+            return direction.LEFT;
         }
 
         for (int i = 0; i < 180; i++) {

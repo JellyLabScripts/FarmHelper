@@ -10,6 +10,7 @@ import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
 import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.utils.TickTask;
+import com.jelly.farmhelper.utils.Utils;
 import com.jelly.farmhelper.world.GameState;
 import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
@@ -33,7 +34,7 @@ import java.util.jar.Manifest;
 public class FarmHelper {
     public static final String MODID = "farmhelper";
     public static final String NAME = "Farm Helper";
-    public static final String VERSION = "4.3.4";
+    public static final String VERSION = "4.3.4.2";
     public static String analyticUrl;
 
     // the actual mod version from gradle properties, should match with VERSION
@@ -66,6 +67,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new BanwaveChecker());
         MinecraftForge.EVENT_BUS.register(new RemoteControlHandler());
         MinecraftForge.EVENT_BUS.register(new ProfitCalculator());
+        MinecraftForge.EVENT_BUS.register(new Utils());
         gameState = new GameState();
         ProfitCalculator.fetchBazaarPrices();
         try {

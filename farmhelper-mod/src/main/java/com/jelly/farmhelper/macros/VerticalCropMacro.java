@@ -35,6 +35,8 @@ public class VerticalCropMacro extends Macro{
     private final Clock lastTp = new Clock();
     private boolean isTping = false;
     private final Clock waitForChangeDirection = new Clock();
+    private final Clock waitBetweenTp = new Clock();
+
     private CropEnum crop;
 
 
@@ -42,6 +44,7 @@ public class VerticalCropMacro extends Macro{
     public void onEnable() {
         lastTp.reset();
         waitForChangeDirection.reset();
+        waitBetweenTp.reset();
         yaw = AngleUtils.getClosest();
         crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
@@ -71,6 +74,11 @@ public class VerticalCropMacro extends Macro{
         else
             mc.thePlayer.inventory.currentItem = PlayerUtils.getAxeSlot();
         isTping = false;
+        if (getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)) {
+            lastTp.schedule(1000);
+            LogUtils.debugLog("Started on tp pad");
+            waitBetweenTp.schedule(10000);
+        }
     }
 
     @Override
@@ -82,9 +90,10 @@ public class VerticalCropMacro extends Macro{
     public void onChatMessageReceived(String msg) {
         super.onChatMessageReceived(msg);
         if (msg.contains("Warped from the ") && msg.contains(" to the ")) {
-            lastTp.schedule(1250);
+            lastTp.schedule(1000);
             isTping = false;
             LogUtils.debugLog("Tped");
+            waitBetweenTp.schedule(10000);
         }
     }
 
@@ -94,7 +103,7 @@ public class VerticalCropMacro extends Macro{
         if(mc.thePlayer == null || mc.theWorld == null)
             return;
 
-        if(rotation.rotating || isTping) {
+        if(rotation.rotating) {
             KeyBindUtils.stopMovement();
             return;
         }
@@ -102,6 +111,7 @@ public class VerticalCropMacro extends Macro{
         if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
             yaw = AngleUtils.getClosest();
             rotation.easeTo(yaw, pitch, 500);
+            KeyBindUtils.stopMovement();
         }
 
         if (lastTp.isScheduled() && !lastTp.passed() && (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)) {
@@ -114,7 +124,11 @@ public class VerticalCropMacro extends Macro{
             lastTp.reset();
         }
 
-        if (!lastTp.isScheduled() && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens)) {
+        if (waitBetweenTp.isScheduled() && waitBetweenTp.passed()) {
+            waitBetweenTp.reset();
+        }
+
+        if (!rotation.rotating && !lastTp.isScheduled() && !isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens)) {
             rotation.reset();
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
             return;
@@ -122,7 +136,7 @@ public class VerticalCropMacro extends Macro{
 
         if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
-                BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)) && !lastTp.isScheduled()) {//standing on tp pad
+                BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)) && !lastTp.isScheduled() && (!waitBetweenTp.isScheduled() || waitBetweenTp.passed()) && !isTping) {//standing on tp pad
             isTping = true;
             LogUtils.debugLog("Scheduled tp");
 
@@ -174,7 +188,11 @@ public class VerticalCropMacro extends Macro{
                     return;
                 }
                 if (!waitForChangeDirection.isScheduled()) {
-                    long waitTime = (long) (Math.random() * 500 + 250);
+                    long waitTime = (long) (Math.random() * 750 + 500);
+                    if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
+                            || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
+                            BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)))
+                        waitTime = 1;
                     System.out.println("Scheduling wait for change direction for " + waitTime + "ms");
                     waitForChangeDirection.schedule(waitTime);
                 }
@@ -189,7 +207,11 @@ public class VerticalCropMacro extends Macro{
                     return;
                 }
                 if (!waitForChangeDirection.isScheduled()) {
-                    long waitTime = (long) (Math.random() * 500 + 250);
+                    long waitTime = (long) (Math.random() * 750 + 500);
+                    if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
+                            || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
+                            BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)))
+                        waitTime = 1;
                     System.out.println("Scheduling wait for change direction for " + waitTime + "ms");
                     waitForChangeDirection.schedule(waitTime);
                 }
@@ -240,10 +262,10 @@ public class VerticalCropMacro extends Macro{
 
         boolean f1 = true, f2 = true;
 
-        if (leftCropIsReady()) {
-            return direction.LEFT;
-        } else if (rightCropIsReady()) {
+        if (rightCropIsReady()) {
             return direction.RIGHT;
+        } else if (leftCropIsReady()) {
+            return direction.LEFT;
         }
 
         for (int i = 0; i < 180; i++) {

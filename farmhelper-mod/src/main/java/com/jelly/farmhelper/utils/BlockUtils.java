@@ -62,14 +62,14 @@ public class BlockUtils {
         return (mc.theWorld.getBlockState(
           new BlockPos(
             mc.thePlayer.posX + (getUnitX() * z) + (getUnitZ() * -1 * x),
-            mc.thePlayer.posY + y,
+                  ((mc.thePlayer.posY % 1) > 0.7 ? Math.ceil(mc.thePlayer.posY) : mc.thePlayer.posY) + y,
             mc.thePlayer.posZ + (getUnitZ() * z) + (getUnitX() * x)
           )).getBlock());
     }
     public static BlockPos getRelativeBlockPos(float x, float y, float z) {
            return new BlockPos(
                     mc.thePlayer.posX + (getUnitX() * z) + (getUnitZ() * -1 * x),
-                    mc.thePlayer.posY + y,
+                   ((mc.thePlayer.posY % 1) > 0.7 ? Math.ceil(mc.thePlayer.posY) : mc.thePlayer.posY) + y,
                     mc.thePlayer.posZ + (getUnitZ() * z) + (getUnitX() * x)
             );
     }
@@ -78,14 +78,14 @@ public class BlockUtils {
         return (mc.theWorld.getBlockState(
                 new BlockPos(
                         mc.thePlayer.posX + (getUnitX(yaw) * z) + (getUnitZ(yaw) * -1 * x),
-                        mc.thePlayer.posY + y,
+                        ((mc.thePlayer.posY % 1) > 0.7 ? Math.ceil(mc.thePlayer.posY) : mc.thePlayer.posY) + y,
                         mc.thePlayer.posZ + (getUnitZ(yaw) * z) + (getUnitX(yaw) * x)
                 )).getBlock());
     }
     public static BlockPos getRelativeBlockPos(float x, float y, float z, float yaw) {
         return new BlockPos(
                 mc.thePlayer.posX + (getUnitX(yaw) * z) + (getUnitZ(yaw) * -1 * x),
-                mc.thePlayer.posY + y,
+                ((mc.thePlayer.posY % 1) > 0.7 ? Math.ceil(mc.thePlayer.posY) : mc.thePlayer.posY) + y,
                 mc.thePlayer.posZ + (getUnitZ(yaw) * z) + (getUnitX(yaw) * x)
         );
     }
