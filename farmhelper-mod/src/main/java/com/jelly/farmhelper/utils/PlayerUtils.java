@@ -37,7 +37,7 @@ public class PlayerUtils {
     public static void attemptSetSpawn() {
         if(FailsafeConfig.autoSetspawn) {
             double diff = (FailsafeConfig.autoSetSpawnMaxDelay * 1000) - (FailsafeConfig.autoSetSpawnMinDelay * 1000);
-            if (diff < 0) {
+            if (diff <= 0) {
                 LogUtils.scriptLog("autoSetSpawnMaxDelay must be greater than autoSetSpawnMinDelay", EnumChatFormatting.RED);
                 return;
             }
