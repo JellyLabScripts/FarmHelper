@@ -59,9 +59,9 @@ public class Failsafe {
 
     @SubscribeEvent
     public final void onUnloadWorld(WorldEvent.Unload event) {
-
-        if(!MacroHandler.isMacroing) return;
-        if(gameState.currentLocation != GameState.location.ISLAND && MacroHandler.currentMacro.enabled){
+        if (mc.theWorld == null || mc.thePlayer == null) return;
+        if (!MacroHandler.isMacroing) return;
+        if (gameState.currentLocation != GameState.location.ISLAND && MacroHandler.currentMacro.enabled) {
             if(FailsafeConfig.notifications)
                 createNotification("Not in island. It might be a server reboot or staff check." +
                         (FailsafeConfig.autoTpOnWorldChange ? "" : " Please go back to your island and restart the script."), SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);

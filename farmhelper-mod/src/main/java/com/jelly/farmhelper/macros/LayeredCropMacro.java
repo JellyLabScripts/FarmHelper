@@ -394,7 +394,7 @@ public class LayeredCropMacro extends Macro {
                 currentState = calculateDirection();
             }
         } else if (gameState.frontWalkable && !gameState.backWalkable && (FarmConfig.cropType != MacroEnum.CACTUS || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus))) {
-            if(waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
+            if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                 currentState = State.SWITCH_START;
                 waitForChangeDirection.reset();
                 System.out.println("Switching to start");
