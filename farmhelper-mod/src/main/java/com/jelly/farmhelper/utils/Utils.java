@@ -7,6 +7,7 @@ import net.minecraft.util.EnumChatFormatting;
 
 import java.awt.*;
 import java.net.URI;
+import java.util.ConcurrentModificationException;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -51,10 +52,10 @@ public class Utils {
                 mediaPlayer.play();*/
                 pingAlertPlaying = true;
                 for (int i = 0; i < 15; i++) {
-                    mc.theWorld.playSound(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, "random.orb", 10.0F, 1.0F, false);
                     try {
+                        mc.theWorld.playSound(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, "random.orb", 10.0F, 1.0F, false);
                         Thread.sleep(100);
-                    } catch (InterruptedException e) {
+                    } catch (InterruptedException | ConcurrentModificationException e) {
                         e.printStackTrace();
                     }
                 }
