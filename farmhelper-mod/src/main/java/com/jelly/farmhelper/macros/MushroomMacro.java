@@ -70,10 +70,10 @@ public class MushroomMacro extends Macro {
     public void onChatMessageReceived(String msg) {
         super.onChatMessageReceived(msg);
         if (msg.contains("Warped from the ") && msg.contains(" to the ")) {
-            lastTp.schedule(1250);
+            lastTp.schedule(1500);
             isTping = false;
             LogUtils.debugLog("Tped");
-            waitBetweenTp.schedule(5000);
+            waitBetweenTp.schedule(10000);
         }
     }
 
@@ -117,7 +117,7 @@ public class MushroomMacro extends Macro {
 
         if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
-                BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)) && !isTping && (waitBetweenTp.isScheduled() && waitBetweenTp.passed())) {//standing on tp pad
+                BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)) && !isTping && (!waitBetweenTp.isScheduled() || waitBetweenTp.passed())) {//standing on tp pad
             isTping = true;
             LogUtils.debugLog("Scheduled tp");
 

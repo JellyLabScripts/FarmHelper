@@ -380,7 +380,7 @@ public class LayeredCropMacro extends Macro {
 
         if (currentState == State.STONE_THROW) {
             currentState = State.STONE_THROW;
-        } else if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) && !tpCoolDown.isScheduled() && (waitBetweenTp.isScheduled() && waitBetweenTp.passed())) {
+        } else if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) && !tpCoolDown.isScheduled() && (!waitBetweenTp.isScheduled() || waitBetweenTp.passed())) {
             currentState = State.TP_PAD;
             isTping = true;
             LogUtils.debugLog("On the TP Pad, tping");
@@ -440,10 +440,15 @@ public class LayeredCropMacro extends Macro {
 
     private State calculateDirection() {
 
-        if (leftCropIsReady()) {
-            return State.LEFT;
-        } else if (rightCropIsReady()) {
+//        if (leftCropIsReady()) {
+//            return State.LEFT;
+//        } else if (rightCropIsReady()) {
+//            return State.RIGHT;
+//        }
+        if (rightCropIsReady()) {
             return State.RIGHT;
+        } else if (leftCropIsReady()) {
+            return State.LEFT;
         }
 
         for (int i = 1; i < 180; i++) {
