@@ -12,10 +12,6 @@ public class ProfitCalculatorConfig {
     @Config()
     public static boolean itemCount = true;
     @Config()
-    public static boolean mushroomCount = true;
-    @Config()
-    public static boolean counter = true;
-    @Config()
     public static boolean blocksPerSecond = true;
     @Config()
     public static boolean runtime = true;

@@ -9,8 +9,7 @@ public class ProfitCalculatorMenu extends UIContainer {
         new Toggle("Total Profit", "totalProfit").setChildOf(this);
         new Toggle("Profit per Hour", "profitHour").setChildOf(this);
         new Toggle("Item Count", "itemCount").setChildOf(this);
-        // new Toggle("Mushroom Count", "mushroomCount").setChildOf(this);
-        new Toggle("Counter", "counter").setChildOf(this);
+        new Toggle("Blocks per second", "blocksPerSecond").setChildOf(this);
         new Toggle("Runtime", "runtime").setChildOf(this);
     }
 }

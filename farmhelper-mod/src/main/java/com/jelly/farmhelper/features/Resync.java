@@ -1,10 +1,8 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.BlockUtils;
-import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
@@ -12,7 +10,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 
-import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -30,7 +27,7 @@ public class Resync {
     public static void update(BlockPos lastBrokenPos) {
         cachedPos.add(lastBrokenPos);
         if(cachedPos.size() >= 4)
-           executor.schedule(checkCrop, 2, TimeUnit.SECONDS);
+           executor.schedule(checkCrop, 2500, TimeUnit.MILLISECONDS);
     }
 
     static Runnable checkCrop = () -> {

@@ -2,7 +2,7 @@ package com.jelly.farmhelper.features;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.jelly.farmhelper.config.enums.CropEnum;
+import com.jelly.farmhelper.config.enums.MacroEnum;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.gui.Stat;
@@ -10,11 +10,12 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
-import com.jelly.farmhelper.utils.PlayerUtils;
 import com.jelly.farmhelper.utils.Utils;
 import gg.essential.elementa.UIComponent;
 import gg.essential.elementa.components.UIImage;
 import gg.essential.elementa.state.BasicState;
+import net.minecraft.block.BlockCrops;
+import net.minecraft.block.BlockNetherWart;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
@@ -222,15 +223,55 @@ public class ProfitCalculator {
             profit.set("$" + Utils.formatNumber(Math.round(totalProfit * 0.95)));
             profitHr.set("$" + Utils.formatNumber(Math.round(getHourProfit(totalProfit * 0.95))));
             runtime.set(Utils.formatTime(System.currentTimeMillis() - MacroHandler.startTime));
-            blocksPerSecond.set(Math.round((float) blocksBroken / (System.currentTimeMillis() - MacroHandler.startTime) * 10000f) / 10f + " BPS");
+            float bps = Math.round(((FarmConfig.cropType == MacroEnum.SUGARCANE ? 0.5f : 1) * blocksBroken) / (System.currentTimeMillis() - MacroHandler.startTime) * 10000f) / 10f;
+            blocksPerSecond.set(bps + " BPS");
         }
     }
 
     @SubscribeEvent
     public void onBlockChange(BlockChangeEvent event) {
-        if (FarmConfig.cropType == CropEnum.CACTUS && event.old.getBlock() == Blocks.cactus && event.update.getBlock() != Blocks.cactus) {
-            blocksBroken++;
+        switch (FarmConfig.cropType) {
+            case CACTUS:
+                if (event.old.getBlock() == Blocks.cactus && event.update.getBlock() != Blocks.cactus) {
+                    blocksBroken++;
+                }
+                break;
+            case PUMPKIN_MELON:
+                if (event.old.getBlock() == Blocks.pumpkin && event.update.getBlock() != Blocks.pumpkin) {
+                    blocksBroken++;
+                }
+                if (event.old.getBlock() == Blocks.melon_block && event.update.getBlock() != Blocks.melon_block) {
+                    blocksBroken++;
+                }
+                break;
+            case SUGARCANE:
+                if (event.old.getBlock() == Blocks.reeds && event.update.getBlock() != Blocks.reeds) {
+                    blocksBroken ++;
+                }
+                break;
+            case MUSHROOM: case MUSHROOM_TP_PAD:
+                if (event.old.getBlock() == Blocks.brown_mushroom && event.update.getBlock() != Blocks.brown_mushroom) {
+                    blocksBroken ++;
+                }
+                if (event.old.getBlock() == Blocks.red_mushroom && event.update.getBlock() != Blocks.red_mushroom) {
+                    blocksBroken ++;
+                }
+                break;
+            case COCOABEANS:
+                if (event.old.getBlock() == Blocks.cocoa && event.update.getBlock() != Blocks.cocoa) {
+                    blocksBroken ++;
+                }
+                break;
+            case CARROT_NW_WHEAT_POTATO:
+                if (event.old.getBlock() instanceof BlockCrops && !(event.update.getBlock() instanceof BlockCrops)) {
+                    blocksBroken ++;
+                }
+                if (event.old.getBlock() instanceof BlockNetherWart && !(event.update.getBlock() instanceof BlockNetherWart)) {
+                    blocksBroken ++;
+                }
+                break;
         }
+
     }
 
     @SubscribeEvent
@@ -335,15 +376,15 @@ public class ProfitCalculator {
             JSONObject json = APIHelper.readJsonFromUrl("https://api.hypixel.net/skyblock/bazaar","User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
             JSONObject json1 = (JSONObject) json.get("products");
 
-            for (int i = 0; i < cropsToCount.size(); i++) {
-                JSONObject json2 = (JSONObject)json1.get(cropsToCount.get(i).bazaarId);
-                JSONObject json3 = (JSONObject)json2.get("quick_status");
-                bazaarPrices.put(cropsToCount.get(i).localizedName, (Double) (json3).get("buyPrice"));
+            for (BazaarItem item : cropsToCount) {
+                JSONObject json2 = (JSONObject) json1.get(item.bazaarId);
+                JSONObject json3 = (JSONObject) json2.get("quick_status");
+                bazaarPrices.put(item.localizedName, (Double) (json3).get("buyPrice"));
             }
-            for (int i = 0; i < armorDropToCount.size(); i++) {
-                JSONObject json2 = (JSONObject)json1.get(armorDropToCount.get(i).bazaarId);
-                JSONObject json3 = (JSONObject)json2.get("quick_status");
-                bazaarPrices.put(armorDropToCount.get(i).localizedName, (Double) (json3).get("buyPrice"));
+            for (BazaarItem bazaarItem : armorDropToCount) {
+                JSONObject json2 = (JSONObject) json1.get(bazaarItem.bazaarId);
+                JSONObject json3 = (JSONObject) json2.get("quick_status");
+                bazaarPrices.put(bazaarItem.localizedName, (Double) (json3).get("buyPrice"));
             }
             if (Minecraft.getMinecraft().thePlayer != null && Minecraft.getMinecraft().theWorld != null)
                 LogUtils.debugLog("Bazaar prices updated");

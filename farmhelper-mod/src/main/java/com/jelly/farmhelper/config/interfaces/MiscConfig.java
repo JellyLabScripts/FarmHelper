@@ -10,8 +10,6 @@ public class MiscConfig {
     @Config()
     public static boolean autoCookie = false;
     @Config()
-    public static boolean dropStone = true;
-    @Config()
     public static boolean debugMode = false;
     @Config()
     public static boolean ungrab = true;
