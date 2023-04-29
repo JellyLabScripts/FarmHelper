@@ -88,7 +88,7 @@ public class ProfitGUI extends UIBlock {
 //            stats.add(new Stat(item.imgName).bind(item.getEnchantedAmount()).setChildOf(this));
 //        }
 
-
+        stats.add(new Stat("bps.png").bind(ProfitCalculator.blocksPerSecond).setChildOf(this));
         stats.add(new Stat("clock_00.png").bind(ProfitCalculator.runtime).setChildOf(this));
     }
 }
