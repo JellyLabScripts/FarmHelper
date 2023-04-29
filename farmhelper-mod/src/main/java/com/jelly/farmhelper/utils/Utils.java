@@ -14,6 +14,9 @@ import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class Utils {
     static Minecraft mc = Minecraft.getMinecraft();
+
+    public static boolean pingAlertPlaying = false;
+
     public static void openURL(String url) {
         String os = System.getProperty("os.name").toLowerCase();
         try {
@@ -46,6 +49,7 @@ public class Utils {
                 /*Media hit = new Media(Objects.requireNonNull(Utils.class.getClassLoader().getResource("assets/farmhelper/sounds/ding.mp3")).toURI().toString());
                 MediaPlayer mediaPlayer = new MediaPlayer(hit);
                 mediaPlayer.play();*/
+                pingAlertPlaying = true;
                 for (int i = 0; i < 15; i++) {
                     mc.theWorld.playSound(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, "random.orb", 10.0F, 1.0F, false);
                     try {
@@ -54,7 +58,7 @@ public class Utils {
                         e.printStackTrace();
                     }
                 }
-
+                pingAlertPlaying = false;
             }catch (Exception e){
                 e.printStackTrace();
             } finally {
