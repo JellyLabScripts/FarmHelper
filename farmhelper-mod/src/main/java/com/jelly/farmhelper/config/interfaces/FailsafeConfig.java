@@ -14,6 +14,8 @@ public class FailsafeConfig {
     @Config
     public static double rotationSens = 1.0;
     @Config()
+    public static boolean autoTpOnWorldChange = true;
+    @Config()
     public static boolean autoSetspawn = true;
     @Config()
     public static double autoSetSpawnMinDelay = 5.0;
@@ -21,8 +23,6 @@ public class FailsafeConfig {
     public static double autoSetSpawnMaxDelay = 10.0;
     @Config()
     public static boolean banwaveDisconnect = true;
-    @Config()
-    public static boolean autoTpOnWorldChange = true;
     @Config()
     public static double banThreshold = 10.0;
     @Config()
