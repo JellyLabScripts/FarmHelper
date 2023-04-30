@@ -67,6 +67,7 @@ public class VerticalCropMacro extends Macro{
                 pitch = -90;
                 break;
         }
+        prevDir = null;
         dir = direction.NONE;
         rotation.easeTo(yaw, pitch, 500);
         if (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)
@@ -100,10 +101,10 @@ public class VerticalCropMacro extends Macro{
     @Override
     public void onTick() {
 
-        if(mc.thePlayer == null || mc.theWorld == null)
+        if (mc.thePlayer == null || mc.theWorld == null)
             return;
 
-        if(rotation.rotating) {
+        if (rotation.rotating) {
             KeyBindUtils.stopMovement();
             return;
         }
@@ -140,7 +141,7 @@ public class VerticalCropMacro extends Macro{
             isTping = true;
             LogUtils.debugLog("Scheduled tp");
 
-            dir = direction.NONE;
+//            dir = direction.NONE;
 
             if(mc.thePlayer.capabilities.isFlying || (!getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) && !mc.thePlayer.onGround)) {
                 KeyBindUtils.updateKeys(false, false, false, false, false, true, false);

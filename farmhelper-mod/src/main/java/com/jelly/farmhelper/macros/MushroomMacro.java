@@ -55,6 +55,7 @@ public class MushroomMacro extends Macro {
             yaw = AngleUtils.getClosestDiagonal();
         }
 
+        prevDir = null;
         dir = direction.NONE;
         rotation.easeTo(yaw, pitch, 500);
         mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(CropEnum.MUSHROOM);
@@ -75,7 +76,7 @@ public class MushroomMacro extends Macro {
     public void onChatMessageReceived(String msg) {
         super.onChatMessageReceived(msg);
         if (msg.contains("Warped from the ") && msg.contains(" to the ")) {
-            lastTp.schedule(1500);
+            lastTp.schedule(1000);
             isTping = false;
             LogUtils.debugLog("Tped");
             waitBetweenTp.schedule(10000);
@@ -85,16 +86,12 @@ public class MushroomMacro extends Macro {
     @Override
     public void onTick() {
 
-        if(mc.thePlayer == null || mc.theWorld == null)
+        if (mc.thePlayer == null || mc.theWorld == null)
             return;
 
-        if(rotation.rotating) {
+        if (rotation.rotating) {
             KeyBindUtils.stopMovement();
             return;
-        }
-
-        if (lastTp.passed()) {
-            lastTp.reset();
         }
 
         if (waitBetweenTp.isScheduled() && waitBetweenTp.passed()) {
@@ -103,7 +100,13 @@ public class MushroomMacro extends Macro {
 
         if (lastTp.isScheduled() && lastTp.passed()) {
             lastTp.reset();
-            dir = calculateDirection();
+            if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
+                LogUtils.debugLog("Change direction to FORWARD (tp pad)");
+                dir = direction.RIGHT;
+            } else {
+                LogUtils.debugLog("Change direction");
+                dir = calculateDirection();
+            }
         }
 
         if (lastTp.isScheduled() && !lastTp.passed()) {
@@ -146,17 +149,20 @@ public class MushroomMacro extends Macro {
             PlayerUtils.attemptSetSpawn();
 
             if (dir == direction.NONE) {
-                dir = calculateDirection();
+                if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
+                    LogUtils.debugLog("Change direction to FORWARD (tp pad)");
+                    dir = direction.RIGHT;
+                } else {
+                    dir = calculateDirection();
+                }
             }
 
-            if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
-                updateKeys(true, false, false, false, true);
-                return;
-            }
 
-            if (dir == direction.RIGHT)
+            if (dir == direction.RIGHT) {
+                LogUtils.debugLog("Going RIGHT");
                 updateKeys(true, false, false, false, true);
-            else if (dir == direction.LEFT) {
+            } else if (dir == direction.LEFT) {
+                LogUtils.debugLog("Going LEFT");
                 updateKeys(false, false, false, true, true);
             } else {
                 LogUtils.debugLog("Error: dir == direction.NONE");
@@ -168,6 +174,7 @@ public class MushroomMacro extends Macro {
                 if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                     dir = direction.RIGHT;
                     waitForChangeDirection.reset();
+                    LogUtils.debugLog("Change direction to RIGHT");
                     updateKeys(true, false, false, false, true);
                     return;
                 }
@@ -182,6 +189,7 @@ public class MushroomMacro extends Macro {
                 if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                     dir = direction.LEFT;
                     waitForChangeDirection.reset();
+                    LogUtils.debugLog("Change direction to LEFT");
                     updateKeys(false, false, false, true, true);
                     return;
                 }
@@ -193,6 +201,7 @@ public class MushroomMacro extends Macro {
         }
 
         if (prevDir != dir) {
+            LogUtils.debugLog("Direction changed to " + dir + " from " + prevDir);
             prevDir = dir;
             waitForChangeDirection.reset();
         }

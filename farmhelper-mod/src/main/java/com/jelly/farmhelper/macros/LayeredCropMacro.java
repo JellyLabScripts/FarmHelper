@@ -70,6 +70,7 @@ public class LayeredCropMacro extends Macro {
         currentState = State.NONE;
         antistuckActive = false;
         Antistuck.stuck = false;
+        prevState = null;
         Antistuck.cooldown.schedule(1000);
         crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
