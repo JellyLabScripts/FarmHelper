@@ -6,6 +6,7 @@ import com.jelly.farmhelper.config.interfaces.RemoteControlConfig;
 import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.DiscordWebhook;
+import com.jelly.farmhelper.features.BanwaveChecker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
@@ -85,7 +86,7 @@ public class LogUtils {
                         .addField("Total Profit", ProfitCalculator.profit.get(), false)
                         .addField("Profit / hr", ProfitCalculator.profitHr.get(), false)
                         .addField("Crop Type", String.valueOf(MacroHandler.crop), true)
-                    // .addField("Screenshot", Screenshot.takeScreenshot(), true)
+                        .addField(BanwaveChecker.getBanDisplay(), "", false)
                 );
                 new Thread(() -> {
                     try {
