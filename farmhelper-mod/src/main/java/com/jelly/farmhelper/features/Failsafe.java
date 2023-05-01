@@ -69,6 +69,7 @@ public class Failsafe {
             LogUtils.scriptLog("Failsafe - Not in island. It might be a server reboot or staff check." +
                     (FailsafeConfig.autoTpOnWorldChange ? "" : " Please go back to your island and restart the script." +
                             (FailsafeConfig.autoSetspawn ? "" : " Since auto setspawn was disabled, fly back to the place where you started")));
+            
             MacroHandler.disableCurrentMacro();
             cooldown.schedule((long) (3000 + Math.random() * 3000));
         }

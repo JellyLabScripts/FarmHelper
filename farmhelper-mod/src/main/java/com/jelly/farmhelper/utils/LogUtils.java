@@ -23,7 +23,8 @@ public class LogUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public synchronized static void sendLog(ChatComponentText chat) {
-        mc.thePlayer.addChatMessage(chat);
+        if(mc.thePlayer != null)
+           mc.thePlayer.addChatMessage(chat);
     }
 
     public static void scriptLog(String message) {
