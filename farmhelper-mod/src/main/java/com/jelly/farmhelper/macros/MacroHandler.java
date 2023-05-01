@@ -205,7 +205,10 @@ public class MacroHandler {
         for (int x = 0; x < 3; x++) {
             for (int y = -2; y < 3; y++) {
                 for (int z = 0; z < 3; z++) {
-                    BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, 1 + z);
+                    BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, 1 + z,
+                            FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.SUGARCANE ? AngleUtils.getClosestDiagonal() - 45
+                            : FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD ? AngleUtils.getClosest30() - 30
+                            : AngleUtils.getClosest());
                     Block block = mc.theWorld.getBlockState(pos).getBlock();
                     if (block.equals(Blocks.wheat)) return CropEnum.WHEAT;
                     if (block.equals(Blocks.carrots)) return CropEnum.CARROT;

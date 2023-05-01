@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MixinSoundManager {
     @Inject(method = "getNormalizedVolume", at = @At("RETURN"), cancellable = true)
     private void getNormalizedVolume(ISound sound, SoundPoolEntry soundPoolEntry, SoundCategory category, CallbackInfoReturnable<Float> ci) {
-        if(Utils.pingAlertPlaying && category == SoundCategory.AMBIENT) return;
+        if(Utils.pingAlertPlaying && category == SoundCategory.PLAYERS) return;
         if(MacroHandler.isMacroing && MiscConfig.muteGame) {
             ci.setReturnValue(0.0f);
         }

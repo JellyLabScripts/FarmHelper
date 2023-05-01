@@ -70,6 +70,7 @@ public class LayeredCropMacro extends Macro {
         currentState = State.NONE;
         antistuckActive = false;
         Antistuck.stuck = false;
+        prevState = null;
         Antistuck.cooldown.schedule(1000);
         crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
@@ -85,16 +86,22 @@ public class LayeredCropMacro extends Macro {
         waitBetweenTp.reset();
         rotation.easeTo(yaw, pitch, 500);
         isTping = false;
+        if (getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)) {
+            tpCoolDown.schedule(1500);
+            LogUtils.debugLog("Started on tp pad");
+            waitBetweenTp.schedule(10000);
+        }
     }
 
     @Override
     public void onChatMessageReceived(String msg) {
         super.onChatMessageReceived(msg);
         if (msg.contains("Warped from the ") && msg.contains(" to the ")) {
-            tpCoolDown.schedule(1500);
+            tpCoolDown.schedule(1000);
             isTping = false;
             LogUtils.debugLog("Tped");
-            waitBetweenTp.schedule(5000);
+            waitBetweenTp.schedule(10000);
+            layerY = mc.thePlayer.posY;
         }
     }
 
@@ -122,12 +129,22 @@ public class LayeredCropMacro extends Macro {
     @Override
     public void onTick() {
 
-        if (rotation.rotating && currentState != State.TP_PAD) {
-            updateKeys(false, false, false, false, false);
+        if(mc.thePlayer == null || mc.theWorld == null)
+            return;
+
+        if (isTping) return;
+
+        if(rotation.rotating) {
+            KeyBindUtils.stopMovement();
             return;
         }
 
-        if (isTping) {
+        if (tpCoolDown.isScheduled() && tpCoolDown.getRemainingTime() < 500 && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
+            yaw = AngleUtils.getClosest();
+            rotation.easeTo(yaw, pitch, 500);
+        }
+
+        if (tpCoolDown.isScheduled() && !tpCoolDown.passed()) {
             KeyBindUtils.stopMovement();
             return;
         }
@@ -135,8 +152,6 @@ public class LayeredCropMacro extends Macro {
         if (tpCoolDown.isScheduled() && tpCoolDown.passed()) {
             tpCoolDown.reset();
             currentState = calculateDirection();
-        } else if (tpCoolDown.isScheduled() && !tpCoolDown.isScheduled()) {
-            return;
         }
 
         if (waitBetweenTp.isScheduled() && waitBetweenTp.passed()) {
@@ -148,16 +163,7 @@ public class LayeredCropMacro extends Macro {
             boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens
                     || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens;
 
-
-            if (currentState == State.TP_PAD && !tpCoolDown.passed()) {
-                if(flag && (Math.round(AngleUtils.get360RotationYaw()) % 90 != 0 || mc.thePlayer.rotationPitch != pitch)) {
-                    if (tpCoolDown.getRemainingTime() < 500) {
-                        yaw = AngleUtils.getClosest();
-                        rotation.easeTo(yaw, pitch, 500);
-                        return;
-                    }
-                }
-            } else if(flag) {
+            if(flag && tpCoolDown.passed() && currentState != State.TP_PAD && !rotation.rotating) {
                 rotation.reset();
                 Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
                 return;
@@ -213,6 +219,7 @@ public class LayeredCropMacro extends Macro {
                     LogUtils.debugLog("Pressing space");
                     KeyBindUtils.updateKeys(false, false, false, false, false, false, true);
                 } else {
+
                     if(mc.gameSettings.keyBindRight.isKeyDown()) {
                         LogUtils.debugLog("On top of pad, keep going right");
                         updateKeys(false, false, true, false, true, false, false);
@@ -377,9 +384,17 @@ public class LayeredCropMacro extends Macro {
     private void updateState() {
         State lastState = currentState;
 
+        System.out.println("getRelativeBlock(1, -1, 0) " + getRelativeBlock(1, -1, 0));
+        System.out.println("getRelativeBlock(0, -1, 0) " + getRelativeBlock(0, -1, 0));
+        System.out.println("gameState.rightWalkable " + gameState.rightWalkable);
+        System.out.println("gameState.leftWalkable " + gameState.leftWalkable);
+
         if (currentState == State.STONE_THROW) {
             currentState = State.STONE_THROW;
-        } else if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) && !tpCoolDown.isScheduled() && (waitBetweenTp.isScheduled() && waitBetweenTp.passed())) {
+        } else if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) ||
+                BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame)) &&
+                !tpCoolDown.isScheduled() && !isTping &&
+                (!waitBetweenTp.isScheduled() || waitBetweenTp.passed())) {
             currentState = State.TP_PAD;
             isTping = true;
             LogUtils.debugLog("On the TP Pad, tping");
@@ -408,7 +423,7 @@ public class LayeredCropMacro extends Macro {
         } else if (gameState.frontWalkable && gameState.backWalkable) {
             currentState = State.SWITCH_MID;
         } else if (gameState.backWalkable) {
-            if(waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
+            if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                 currentState = State.SWITCH_END;
                 waitForChangeDirection.reset();
                 System.out.println("Switching to end");
@@ -419,6 +434,10 @@ public class LayeredCropMacro extends Macro {
                 System.out.println("Waiting2 " + waitTime + "ms");
                 waitForChangeDirection.schedule(waitTime);
             }
+        } else if (((getRelativeBlock(0, -1, 0).equals(Blocks.air) || getRelativeBlock(-1, -1, 0).equals(Blocks.air)) && gameState.rightWalkable)) {
+            currentState = State.DROPPING;
+        } else if (((getRelativeBlock(0, -1, 0).equals(Blocks.air) || getRelativeBlock(1, -1, 0).equals(Blocks.air)) && gameState.leftWalkable)) {
+            currentState = State.DROPPING;
         } else if (gameState.leftWalkable) {
             currentState = State.LEFT;
         } else if (gameState.rightWalkable) {
@@ -439,25 +458,29 @@ public class LayeredCropMacro extends Macro {
 
     private State calculateDirection() {
 
-        if (leftCropIsReady()) {
-            return State.LEFT;
-        } else if (rightCropIsReady()) {
+        if (rightCropIsReady()) {
             return State.RIGHT;
+        } else if (leftCropIsReady()) {
+            return State.LEFT;
         }
 
+        boolean insideTpPad = BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame);
+
         for (int i = 1; i < 180; i++) {
-            if (!isWalkable(BlockUtils.getRelativeBlock(i, 0, 0))) {
-                if (isWalkable(BlockUtils.getRelativeBlock(i - 1, 0, 1)) || isWalkable(BlockUtils.getRelativeBlock(i - 1, -1, 0))) {
+            int zeroY = insideTpPad ? 1 : 0;
+            int minusY = insideTpPad ? 0 : -1;
+            if (!isWalkable(BlockUtils.getRelativeBlock(i, zeroY, 0))) {
+                if (isWalkable(BlockUtils.getRelativeBlock(i - 1, zeroY, 1)) || isWalkable(BlockUtils.getRelativeBlock(i - 1, minusY, 0))) {
                     return State.RIGHT;
                 } else {
-                    LogUtils.debugFullLog("Failed right: " + BlockUtils.getRelativeBlock(i - 1, 0, 1));
+                    LogUtils.debugFullLog("Failed right: " + BlockUtils.getRelativeBlock(i - 1, zeroY, 1));
                     return State.LEFT;
                 }
-            } else if (!isWalkable(BlockUtils.getRelativeBlock(-i, 0, 0))) {
-                if (isWalkable(BlockUtils.getRelativeBlock(-i + 1, 0, 1)) || isWalkable(BlockUtils.getRelativeBlock(-i + 1, -1, 0))) {
+            } else if (!isWalkable(BlockUtils.getRelativeBlock(-i, zeroY, 0))) {
+                if (isWalkable(BlockUtils.getRelativeBlock(-i + 1, zeroY, 1)) || isWalkable(BlockUtils.getRelativeBlock(-i + 1, minusY, 0))) {
                     return State.LEFT;
                 } else {
-                    LogUtils.debugFullLog("Failed left: " + isWalkable(BlockUtils.getRelativeBlock(i - 1, 0, 1)));
+                    LogUtils.debugFullLog("Failed left: " + isWalkable(BlockUtils.getRelativeBlock(i - 1, zeroY, 1)));
                     return State.RIGHT;
                 }
             }

@@ -148,8 +148,12 @@ public class GameState {
     public static int getJacobCounter() {
         for (String line : ScoreboardUtils.getScoreboardLines()) {
             String cleanedLine = ScoreboardUtils.cleanSB(line);
-            if (cleanedLine.contains("with")) {
-                return Integer.parseInt(cleanedLine.substring(cleanedLine.lastIndexOf(" ") + 1).replace(",", ""));
+            if (cleanedLine.contains("with") && !cleanedLine.contains("Elle")) {
+                try {
+                    return Integer.parseInt(cleanedLine.substring(cleanedLine.lastIndexOf(" ") + 1).replace(",", ""));
+                } catch (NumberFormatException e) {
+                    return 0;
+                }
             }
         }
         return 0;

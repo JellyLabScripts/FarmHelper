@@ -55,10 +55,16 @@ public class MushroomMacro extends Macro {
             yaw = AngleUtils.getClosestDiagonal();
         }
 
+        prevDir = null;
         dir = direction.NONE;
         rotation.easeTo(yaw, pitch, 500);
         mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(CropEnum.MUSHROOM);
         isTping = false;
+        if (getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)) {
+            lastTp.schedule(1500);
+            LogUtils.debugLog("Started on tp pad");
+            waitBetweenTp.schedule(10000);
+        }
     }
 
     @Override
@@ -70,20 +76,20 @@ public class MushroomMacro extends Macro {
     public void onChatMessageReceived(String msg) {
         super.onChatMessageReceived(msg);
         if (msg.contains("Warped from the ") && msg.contains(" to the ")) {
-            lastTp.schedule(1250);
+            lastTp.schedule(1000);
             isTping = false;
             LogUtils.debugLog("Tped");
-            waitBetweenTp.schedule(5000);
+            waitBetweenTp.schedule(10000);
         }
     }
 
     @Override
     public void onTick() {
 
-        if(mc.thePlayer == null || mc.theWorld == null)
+        if (mc.thePlayer == null || mc.theWorld == null)
             return;
 
-        if(rotation.rotating || isTping) {
+        if (rotation.rotating) {
             KeyBindUtils.stopMovement();
             return;
         }
@@ -94,22 +100,27 @@ public class MushroomMacro extends Macro {
 
         if (lastTp.isScheduled() && lastTp.passed()) {
             lastTp.reset();
-            dir = calculateDirection();
-        } else if (lastTp.isScheduled() && !lastTp.isScheduled()) {
-            return;
+            if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
+                LogUtils.debugLog("Change direction to FORWARD (tp pad)");
+                dir = direction.RIGHT;
+            } else {
+                LogUtils.debugLog("Change direction");
+                dir = calculateDirection();
+            }
         }
-
 
         if (lastTp.isScheduled() && !lastTp.passed()) {
             if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
+                LogUtils.debugLog("Going FORWARD");
                 updateKeys(true, false, false, false, true);
             } else {
+                LogUtils.debugLog("Going " + dir);
                 updateKeys(dir == direction.RIGHT, false, false, dir == direction.LEFT, true);
             }
             return;
         }
 
-        if (!isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens)) {
+        if (!rotation.rotating && !isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens)) {
             rotation.reset();
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
             return;
@@ -117,7 +128,7 @@ public class MushroomMacro extends Macro {
 
         if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
-                BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)) && !isTping && (waitBetweenTp.isScheduled() && waitBetweenTp.passed())) {//standing on tp pad
+                BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)) && !isTping && (!waitBetweenTp.isScheduled() || waitBetweenTp.passed())) {//standing on tp pad
             isTping = true;
             LogUtils.debugLog("Scheduled tp");
 
@@ -138,19 +149,23 @@ public class MushroomMacro extends Macro {
             PlayerUtils.attemptSetSpawn();
 
             if (dir == direction.NONE) {
-                dir = calculateDirection();
+                if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
+                    LogUtils.debugLog("Change direction to FORWARD (tp pad)");
+                    dir = direction.RIGHT;
+                } else {
+                    dir = calculateDirection();
+                }
             }
 
-            if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
-                updateKeys(true, false, false, false, true);
-                return;
-            }
 
-            if (dir == direction.RIGHT)
+            if (dir == direction.RIGHT) {
+                LogUtils.debugLog("Going RIGHT");
                 updateKeys(true, false, false, false, true);
-            else if (dir == direction.LEFT) {
+            } else if (dir == direction.LEFT) {
+                LogUtils.debugLog("Going LEFT");
                 updateKeys(false, false, false, true, true);
             } else {
+                LogUtils.debugLog("Error: dir == direction.NONE");
                 stopMovement();
             }
         } else if (isWalkable(getRightBlock(getAngleDiff())) && isWalkable(getRightTopBlock(getAngleDiff())) &&
@@ -159,6 +174,7 @@ public class MushroomMacro extends Macro {
                 if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                     dir = direction.RIGHT;
                     waitForChangeDirection.reset();
+                    LogUtils.debugLog("Change direction to RIGHT");
                     updateKeys(true, false, false, false, true);
                     return;
                 }
@@ -173,6 +189,7 @@ public class MushroomMacro extends Macro {
                 if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                     dir = direction.LEFT;
                     waitForChangeDirection.reset();
+                    LogUtils.debugLog("Change direction to LEFT");
                     updateKeys(false, false, false, true, true);
                     return;
                 }
@@ -184,6 +201,7 @@ public class MushroomMacro extends Macro {
         }
 
         if (prevDir != dir) {
+            LogUtils.debugLog("Direction changed to " + dir + " from " + prevDir);
             prevDir = dir;
             waitForChangeDirection.reset();
         }
@@ -206,10 +224,10 @@ public class MushroomMacro extends Macro {
         if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD)
             return direction.RIGHT;
 
-        if (leftCropIsReady()) {
-            return direction.LEFT;
-        } else if (rightCropIsReady()) {
+        if (rightCropIsReady()) {
             return direction.RIGHT;
+        } else if (leftCropIsReady()) {
+            return direction.LEFT;
         }
 
         for (int i = 0; i < 180; i++) {
