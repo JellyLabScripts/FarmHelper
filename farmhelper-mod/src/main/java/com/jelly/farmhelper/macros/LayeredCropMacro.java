@@ -384,6 +384,11 @@ public class LayeredCropMacro extends Macro {
     private void updateState() {
         State lastState = currentState;
 
+        System.out.println("getRelativeBlock(1, -1, 0) " + getRelativeBlock(1, -1, 0));
+        System.out.println("getRelativeBlock(0, -1, 0) " + getRelativeBlock(0, -1, 0));
+        System.out.println("gameState.rightWalkable " + gameState.rightWalkable);
+        System.out.println("gameState.leftWalkable " + gameState.leftWalkable);
+
         if (currentState == State.STONE_THROW) {
             currentState = State.STONE_THROW;
         } else if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) ||
@@ -418,7 +423,7 @@ public class LayeredCropMacro extends Macro {
         } else if (gameState.frontWalkable && gameState.backWalkable) {
             currentState = State.SWITCH_MID;
         } else if (gameState.backWalkable) {
-            if(waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
+            if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                 currentState = State.SWITCH_END;
                 waitForChangeDirection.reset();
                 System.out.println("Switching to end");
@@ -429,6 +434,10 @@ public class LayeredCropMacro extends Macro {
                 System.out.println("Waiting2 " + waitTime + "ms");
                 waitForChangeDirection.schedule(waitTime);
             }
+        } else if (((getRelativeBlock(0, -1, 0).equals(Blocks.air) || getRelativeBlock(-1, -1, 0).equals(Blocks.air)) && gameState.rightWalkable)) {
+            currentState = State.DROPPING;
+        } else if (((getRelativeBlock(0, -1, 0).equals(Blocks.air) || getRelativeBlock(1, -1, 0).equals(Blocks.air)) && gameState.leftWalkable)) {
+            currentState = State.DROPPING;
         } else if (gameState.leftWalkable) {
             currentState = State.LEFT;
         } else if (gameState.rightWalkable) {
