@@ -248,10 +248,14 @@ public class Failsafe {
         if(type != FailsafeType.DIRT && type != FailsafeType.DESYNC) // you may not be able to see the dirt, disable a few seconds later
             MacroHandler.disableCurrentMacro();
 
-        SystemTray tray = SystemTray.getSystemTray();
 
         if(FailsafeConfig.notifications){
-            createNotification(type.label, tray, TrayIcon.MessageType.WARNING);
+            try {
+                SystemTray tray = SystemTray.getSystemTray();
+                createNotification(type.label, tray, TrayIcon.MessageType.WARNING);
+            } catch (UnsupportedOperationException e) {
+                LogUtils.scriptLog("Notifications are not supported on this system");
+            }
         }
 
         if(FailsafeConfig.pingSound) {

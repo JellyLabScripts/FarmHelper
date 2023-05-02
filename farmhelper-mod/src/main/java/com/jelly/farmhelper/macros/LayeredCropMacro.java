@@ -384,11 +384,6 @@ public class LayeredCropMacro extends Macro {
     private void updateState() {
         State lastState = currentState;
 
-        System.out.println("getRelativeBlock(1, -1, 0) " + getRelativeBlock(1, -1, 0));
-        System.out.println("getRelativeBlock(0, -1, 0) " + getRelativeBlock(0, -1, 0));
-        System.out.println("gameState.rightWalkable " + gameState.rightWalkable);
-        System.out.println("gameState.leftWalkable " + gameState.leftWalkable);
-
         if (currentState == State.STONE_THROW) {
             currentState = State.STONE_THROW;
         } else if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) ||
@@ -398,12 +393,9 @@ public class LayeredCropMacro extends Macro {
             currentState = State.TP_PAD;
             isTping = true;
             LogUtils.debugLog("On the TP Pad, tping");
-//            if(!tpCoolDown.isScheduled() && lastState != currentState)
-//                tpCoolDown.schedule(1500);
-        } else if (currentState != State.TP_PAD && (layerY - mc.thePlayer.posY > 2 || currentState == State.DROPPING || isDropping())) {
+        } else if (currentState != State.TP_PAD && (Math.abs(layerY - mc.thePlayer.posY) > 2 || currentState == State.DROPPING || isDropping())) {
             currentState = State.DROPPING;
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
-            // layerY = mc.thePlayer.posY;
             PlayerUtils.attemptSetSpawn();
             if (currentState != State.RIGHT && currentState != State.LEFT) {
                 currentState = calculateDirection();
