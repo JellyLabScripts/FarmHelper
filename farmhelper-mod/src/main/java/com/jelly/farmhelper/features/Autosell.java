@@ -54,6 +54,8 @@ public class Autosell {
     public static boolean isEnabled() {
         return enabled;
     }
+    public static final Clock waitBeforeSellClock = new Clock();
+    public static final Clock stuckClock = new Clock();
 
     public static void enable() {
         if (FarmHelper.gameState.cookie == GameState.EffectState.OFF) {
@@ -70,6 +72,8 @@ public class Autosell {
         enabled = true;
         soldToBZ = false;
         soldSacks = false;
+        waitBeforeSellClock.schedule(3_500);
+        stuckClock.schedule(10_000);
     }
 
     public static void disable() {
@@ -106,6 +110,17 @@ public class Autosell {
         }
 
         if (!enabled) return;
+
+        if (stuckClock.isScheduled() && stuckClock.passed()) {
+            LogUtils.debugLog("[AutoSell] Stuck in sell menu, restarting");
+            disable();
+            mc.thePlayer.closeScreen();
+            enable();
+            return;
+        }
+
+        if (waitBeforeSellClock.isScheduled() && !waitBeforeSellClock.passed())
+            return;
 
         switch (currentState) {
             case SELL_INVENTORY:
