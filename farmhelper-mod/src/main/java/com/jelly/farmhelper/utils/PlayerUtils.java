@@ -34,6 +34,10 @@ public class PlayerUtils {
 
     private static final Clock clock = new Clock();
 
+    public static void setSpawn() {
+        mc.thePlayer.sendChatMessage("/setspawn");
+    }
+
     public static void attemptSetSpawn() {
         if(FailsafeConfig.autoSetspawn) {
             double diff = (FailsafeConfig.autoSetSpawnMaxDelay * 1000) - (FailsafeConfig.autoSetSpawnMinDelay * 1000);

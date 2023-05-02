@@ -5,6 +5,7 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
+import com.jelly.farmhelper.utils.PlayerUtils;
 import gg.essential.elementa.state.BasicState;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -22,6 +23,7 @@ public class BanwaveChecker {
     private static final Clock cooldown = new Clock();
     private static final LinkedList<Integer> staffBanLast15Mins = new LinkedList<>();
     public volatile static boolean banwaveOn = false;
+    public static final Clock leaveTime = new Clock();
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END)
@@ -52,7 +54,13 @@ public class BanwaveChecker {
                             LogUtils.webhookLog("Disconnecting due to banwave detected");
 
                             MacroHandler.disableCurrentMacro();
-                            this.mc.theWorld.sendQuittingDisconnectingPacket();
+                            PlayerUtils.setSpawn();
+                            if (leaveTime.isScheduled() && leaveTime.passed()) {
+                                leaveTime.reset();
+                                this.mc.theWorld.sendQuittingDisconnectingPacket();
+                            } else if (!leaveTime.isScheduled()) {
+                                leaveTime.schedule(3_000);
+                            }
 
                         }
                     }
