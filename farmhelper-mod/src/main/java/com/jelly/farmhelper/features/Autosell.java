@@ -241,7 +241,7 @@ public class Autosell {
             name.startsWith("Red Mushroom") || name.startsWith("Enchanted Red Mushroom") || name.startsWith("Red Mushroom Block") || name.startsWith("Red Enchanted Mushroom Block") ||
             name.startsWith("Nether Wart") || name.startsWith("Enchanted Nether Wart") || name.startsWith("Mutant Nether Wart") ||
             name.startsWith("Sugar Cane") || name.startsWith("Enchanted Sugar") || name.startsWith("Enchanted Sugar Cane") ||
-            name.startsWith("Cropie") || name.startsWith("Squash") || name.startsWith("Fermento") ||
+            name.startsWith("Cropie") || name.startsWith("Squash") || name.startsWith("Fermento") || name.startsWith("Burrowing") ||
             name.startsWith("Stone")) && !name.contains("Hoe");
     }
 
