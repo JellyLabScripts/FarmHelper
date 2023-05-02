@@ -5,7 +5,6 @@ import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.JacobConfig;
 import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
@@ -258,7 +257,7 @@ public class Failsafe {
             }
         }
 
-        if(FailsafeConfig.pingSound) {
+        if (FailsafeConfig.pingSound) {
             Utils.sendPingAlert();
         }
 

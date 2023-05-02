@@ -39,7 +39,12 @@ public class AutoReconnect {
         if ((mc.currentScreen instanceof GuiDisconnected)) {
             if (waitTime >= (FailsafeConfig.reconnectDelay * 20)) {
                 waitTime = 0;
-                FMLClientHandler.instance().connectToServer(new GuiMultiplayer(new GuiMainMenu()), new ServerData("bozo", FarmHelper.gameState.serverIP, false));
+                try {
+                    FMLClientHandler.instance().connectToServer(new GuiMultiplayer(new GuiMainMenu()), new ServerData("bozo", FarmHelper.gameState.serverIP != null ? FarmHelper.gameState.serverIP : "mc.hypixel.net", false));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("Failed to reconnect to server!");
+                }
             } else {
                 waitTime++;
             }
