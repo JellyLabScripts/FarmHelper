@@ -20,7 +20,7 @@ import static com.jelly.farmhelper.utils.BlockUtils.*;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 //TODO: Add drop rotation detection
-public class LayeredCropMacro extends Macro {
+public class SShapeCropMacro extends Macro {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     enum State {

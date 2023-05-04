@@ -33,7 +33,7 @@ public class MacroHandler {
     public static boolean isMacroing;
 
     public static SugarcaneMacro sugarcaneMacro = new SugarcaneMacro();
-    public static LayeredCropMacro layeredCropMacro = new LayeredCropMacro();
+    public static SShapeCropMacro sShapeCropMacro = new SShapeCropMacro();
     public static VerticalCropMacro verticalCropMacro = new VerticalCropMacro();
     public static CocoaBeanMacro cocoaBeanMacro = new CocoaBeanMacro();
     public static MushroomMacro mushroomMacro = new MushroomMacro();
@@ -144,7 +144,7 @@ public class MacroHandler {
             } else if (FarmConfig.cropType == MacroEnum.COCOABEANS) {
                 currentMacro = cocoaBeanMacro;
             } else {
-                currentMacro = layeredCropMacro;
+                currentMacro = sShapeCropMacro;
             }
         }
 
