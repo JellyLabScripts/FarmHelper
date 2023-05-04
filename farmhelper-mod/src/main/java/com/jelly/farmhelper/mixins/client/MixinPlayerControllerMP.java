@@ -21,7 +21,7 @@ public class MixinPlayerControllerMP {
 
     private int blocksChecked = 0;
 
-    @Inject(method={"clickBlock"}, at={@At(value="HEAD")}, cancellable=true)
+    @Inject(method={"clickBlock"}, at={@At(value="HEAD")})
     public void clickBlock(BlockPos loc, EnumFacing face, CallbackInfoReturnable<Boolean> cir) {
         if (FailsafeConfig.checkDesync &&
                 MacroHandler.isMacroing && MacroHandler.currentMacro != null
@@ -54,5 +54,4 @@ public class MixinPlayerControllerMP {
 
         }
     }
-
 }

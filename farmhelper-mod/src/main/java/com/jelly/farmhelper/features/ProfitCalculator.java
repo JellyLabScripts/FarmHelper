@@ -77,6 +77,9 @@ public class ProfitCalculator {
     private final Clock updateClock = new Clock();
     private static final Clock updateBazaarClock = new Clock();
 
+    public static final List<String> rngDropListDontCompact = Arrays.asList("Cropie", "Squash", "Fermento", "Burrowing Spores");
+
+
 
     @SubscribeEvent
     public void onTickUpdateProfit(TickEvent.ClientTickEvent event) {
@@ -125,6 +128,7 @@ public class ProfitCalculator {
 
     @SubscribeEvent
     public void onBlockChange(BlockChangeEvent event) {
+        if (!MacroHandler.isMacroing) return;
         switch (FarmConfig.cropType) {
             case CACTUS:
                 if (event.old.getBlock() == Blocks.cactus && event.update.getBlock() != Blocks.cactus) {
