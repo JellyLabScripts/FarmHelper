@@ -12,6 +12,8 @@ public class ProfitCalculatorConfig {
     @Config()
     public static boolean itemCount = true;
     @Config()
+    public static boolean countRNGtoHourly = true;
+    @Config()
     public static boolean blocksPerSecond = true;
     @Config()
     public static boolean runtime = true;

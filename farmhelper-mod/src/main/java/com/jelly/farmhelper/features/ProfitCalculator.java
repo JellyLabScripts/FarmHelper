@@ -4,6 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.jelly.farmhelper.config.enums.MacroEnum;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.config.interfaces.ProfitCalculatorConfig;
 import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.gui.Stat;
 import com.jelly.farmhelper.macros.MacroHandler;
@@ -30,7 +31,7 @@ import java.util.regex.Pattern;
 
 public class ProfitCalculator {
 
-    private final Minecraft mc = Minecraft.getMinecraft();
+    private static final Minecraft mc = Minecraft.getMinecraft();
 
     public static long realProfit = 0;
     public static long blocksBroken = 0;
@@ -86,6 +87,7 @@ public class ProfitCalculator {
             updateClock.schedule(100);
 
             long totalProfit = 0;
+            long totalProfitBasedOnConditions = 0;
 
             for (DroppedItem item : itemsDropped.values()) {
                 if (item.amount < 0) continue;
@@ -95,12 +97,16 @@ public class ProfitCalculator {
                         BazaarItem crop = isCrop.get();
                         double price = bazaarPrices.get(crop.localizedName);
                         totalProfit += price * (item.amount * 1.0f / crop.amountToEnchanted);
+                        totalProfitBasedOnConditions += price * (item.amount * 1.0f / crop.amountToEnchanted);
                         dropToShow.put(item.name, new GuiItem((int) Math.floor(item.amount * 1.0F / crop.amountToEnchanted), crop.image));
                     } else {
                         Optional<BazaarItem> isArmor = rngDropToCount.stream().filter(armor -> StringUtils.stripControlCodes(item.name).equalsIgnoreCase(armor.localizedName)).findFirst();
                         if (isArmor.isPresent()) {
                             double price = bazaarPrices.get(isArmor.get().localizedName);
                             totalProfit += price * item.amount * 1.0f;
+                            if (ProfitCalculatorConfig.countRNGtoHourly) {
+                                totalProfitBasedOnConditions += price * item.amount * 1.0f;
+                            }
                             dropToShow.put(item.name, new GuiItem(item.amount, isArmor.get().image));
                         }
                     }
@@ -108,8 +114,9 @@ public class ProfitCalculator {
             }
 
             realProfit = totalProfit;
+            realProfit += checkForBountiful();
             profit.set("$" + Utils.formatNumber(Math.round(totalProfit * 0.95)));
-            profitHr.set("$" + Utils.formatNumber(Math.round(getHourProfit(totalProfit * 0.95))));
+            profitHr.set("$" + Utils.formatNumber(Math.round(getHourProfit(totalProfitBasedOnConditions * 0.95))));
             runtime.set(Utils.formatTime(System.currentTimeMillis() - MacroHandler.startTime));
             float bps = Math.round(((FarmConfig.cropType == MacroEnum.SUGARCANE ? 0.5f : 1) * blocksBroken) / (System.currentTimeMillis() - MacroHandler.startTime) * 10000f) / 10f;
             blocksPerSecond.set(bps + " BPS");
@@ -160,6 +167,14 @@ public class ProfitCalculator {
                 break;
         }
 
+    }
+
+    private static float checkForBountiful() {
+        ItemStack currentItem = mc.thePlayer.getCurrentEquippedItem();
+        if (currentItem.getDisplayName().contains("Bountiful")) {
+            return blocksBroken * 0.2f;
+        } else
+            return 0;
     }
 
     @SubscribeEvent
