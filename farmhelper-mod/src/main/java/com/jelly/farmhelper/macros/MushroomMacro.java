@@ -125,10 +125,10 @@ public class MushroomMacro extends Macro {
         if (lastTp.isScheduled() && !lastTp.passed()) {
             if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
                 LogUtils.debugLog("Going FORWARD");
-                updateKeys(true, false, false, false, true);
+                updateKeys(false, false, true, false, true);
             } else {
                 LogUtils.debugLog("Going " + currentState);
-                updateKeys(currentState == State.RIGHT, false, false, currentState == State.LEFT, true);
+                updateKeys(false, currentState == State.LEFT, currentState == State.RIGHT, false, true);
             }
             return;
         }
