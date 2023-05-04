@@ -12,6 +12,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Mixin({InventoryPlayer.class})
 public abstract class MixinInventoryPlayer {
 
@@ -48,21 +51,14 @@ public abstract class MixinInventoryPlayer {
                         size = postAddInventory[i].stackSize;
                     }
 
-
-//                    if (preAddInventory[i] != null && preAddInventory[i].getItem() == postAddInventory[i].getItem() && preAddInventory[i].stackSize != postAddInventory[i].stackSize) {
-//                        if (preAddInventory[i].stackSize < postAddInventory[i].stackSize)
-//                            size = postAddInventory[i].stackSize - preAddInventory[i].stackSize;
-//                        else
-//                            size = preAddInventory[i].stackSize - postAddInventory[i].stackSize;
-//                    } else if ((preAddInventory[i] == null || (preAddInventory[i].getItem() != postAddInventory[i].getItem())) && postAddInventory[i].stackSize >= 0) {
-//                        size = postAddInventory[i].stackSize;
-//                    }
                     if (size > 0)
                         checkForCompactAmount(i, size, postAddInventory);
                 }
             }
         }
     }
+
+    private final List<String> rngDropListDontCompact = Arrays.asList("Cropie", "Squash", "Fermento", "Burrowing Spores");
 
     private void checkForCompactAmount(int i, int size, ItemStack[] postAddInventory) {
         if (StringUtils.stripControlCodes(postAddInventory[i].getDisplayName()).equals("Hay Bale")) {
@@ -71,10 +67,7 @@ public abstract class MixinInventoryPlayer {
                 if (newSize > 0)
                     size -= newSize;
             }
-        } else if (!StringUtils.stripControlCodes(postAddInventory[i].getDisplayName()).equals("Cropie") &&
-                !StringUtils.stripControlCodes(postAddInventory[i].getDisplayName()).equals("Squash") &&
-                !StringUtils.stripControlCodes(postAddInventory[i].getDisplayName()).equals("Fermento") &&
-                !StringUtils.stripControlCodes(postAddInventory[i].getDisplayName()).equals("Burrowing Spores")) {
+        } else if (rngDropListDontCompact.stream().noneMatch(postAddInventory[i].getDisplayName()::contains)) {
             if (getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory) + size >= 160) {
                 int newSize = 160 - getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory);
                 if (newSize > 0)

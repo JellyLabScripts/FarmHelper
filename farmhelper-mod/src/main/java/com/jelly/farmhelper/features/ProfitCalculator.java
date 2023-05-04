@@ -39,10 +39,7 @@ public class ProfitCalculator {
     public static final BasicState<String> profitHr = new BasicState<>("$0");
     public static final BasicState<String> runtime = new BasicState<>("0h 0m 0s");
     public static final BasicState<String> blocksPerSecond = new BasicState<>("0 BPS");
-
-    private List<ItemStack> previousInventory;
     public static Multimap<String, DroppedItem> itemsDropped = ArrayListMultimap.create();
-    private final Pattern pattern = Pattern.compile(" x([0-9]+)");
 
     public static final HashMap<String, GuiItem> dropToShow = new HashMap<>();
 
@@ -79,116 +76,6 @@ public class ProfitCalculator {
     private final Clock updateClock = new Clock();
     private static final Clock updateBazaarClock = new Clock();
 
-    // SECOND WAY TO COUNT THE ITEMS, LESS ACCURATE
-
-//    @SubscribeEvent
-//    public void onTick(TickEvent event) {
-//        if (!MacroHandler.isMacroing) return;
-//        if (mc.thePlayer == null || mc.theWorld == null) return;
-//
-//        List<ItemStack> newInventory = PlayerUtils.copyInventory(mc.thePlayer.inventory.mainInventory);
-//        Map<String, Integer> previousInventoryMap = new HashMap<>();
-//        Map<String, Integer> newInventoryMap = new HashMap<>();
-//
-//        if (previousInventory != null) {
-//
-//            for(int i = 0; i < newInventory.size(); i++) {
-//                if (i == 8) {
-//                    continue;
-//                }
-//
-//                ItemStack previousItem = null;
-//                ItemStack newItem = null;
-//
-//                try {
-//                    previousItem = previousInventory.get(i);
-//                    newItem = newInventory.get(i);
-//
-//                    if(previousItem != null) {
-//                        int amount;
-//                        if (previousInventoryMap.containsKey(previousItem.getDisplayName())) {
-//                            amount = previousInventoryMap.get(previousItem.getDisplayName()) + previousItem.stackSize;
-//                        } else {
-//                            amount = previousItem.stackSize;
-//                        }
-//                        previousInventoryMap.put(previousItem.getDisplayName(), amount);
-//                    }
-//
-//                    if(newItem != null) {
-//                        if (pattern.matcher(newItem.getDisplayName()).matches()) {
-//                            String newName = newItem.getDisplayName().substring(0, newItem.getDisplayName().lastIndexOf(" "));
-//                            newItem.setStackDisplayName(newName);
-//                        }
-//                        int amount;
-//                        if (newInventoryMap.containsKey(newItem.getDisplayName())) {
-//                            amount = newInventoryMap.get(newItem.getDisplayName()) + newItem.stackSize;
-//                        }  else {
-//                            amount = newItem.stackSize;
-//                        }
-//                        newInventoryMap.put(newItem.getDisplayName(), amount);
-//                    }
-//                } catch (RuntimeException exception) {
-//                    CrashReport crashReport = CrashReport.makeCrashReport(exception, "Comparing current inventory to previous inventory");
-//                    CrashReportCategory inventoryDetails = crashReport.makeCategory("Inventory Details");
-//                    inventoryDetails.addCrashSection("Previous", "Size: " + previousInventory.size());
-//                    inventoryDetails.addCrashSection("New", "Size: " + newInventory.size());
-//                    CrashReportCategory itemDetails = crashReport.makeCategory("Item Details");
-//                    itemDetails.addCrashSection("Previous Item", "Item: " + (previousItem != null ? previousItem.toString() : "null") + "\n"
-//                            + "Display Name: " + (previousItem != null ? previousItem.getDisplayName() : "null") + "\n"
-//                            + "Index: " + i + "\n"
-//                            + "Map Value: " + (previousItem != null ? (previousInventoryMap.get(previousItem.getDisplayName()) != null ? previousInventoryMap.get(previousItem.getDisplayName()).toString() : "null") : "null"));
-//                    itemDetails.addCrashSection("New Item", "Item: " + (newItem != null ? newItem.toString() : "null") + "\n"
-//                            + "Display Name: " + (newItem != null ? newItem.getDisplayName() : "null") + "\n"
-//                            + "Index: " + i + "\n"
-//                            + "Map Value: " + (newItem != null ? (previousInventoryMap.get(newItem.getDisplayName()) != null ? previousInventoryMap.get(newItem.getDisplayName()).toString() : "null") : "null"));
-//                    throw new ReportedException(crashReport);
-//                }
-//            }
-//
-//            List<DroppedItem> inventoryDifference = new LinkedList<>();
-//            Set<String> keySet = new HashSet<>(previousInventoryMap.keySet());
-//            keySet.addAll(newInventoryMap.keySet());
-//
-//            keySet.forEach(key -> {
-//                int previousAmount = 0;
-//                if (previousInventoryMap.containsKey(key)) {
-//                    previousAmount = previousInventoryMap.get(key);
-//                }
-//
-//                int newAmount = 0;
-//                if (newInventoryMap.containsKey(key)) {
-//                    newAmount = newInventoryMap.get(key);
-//                }
-//
-//                int diff = newAmount - previousAmount;
-//                if (diff != 0) {
-//                    inventoryDifference.add(new DroppedItem(key, diff));
-//                }
-//            });
-//
-//            for (DroppedItem diff : inventoryDifference) {
-//                Collection<DroppedItem> itemDiffs = itemsDropped.get(diff.name);
-//                if (itemDiffs.size() == 0) {
-//                    itemsDropped.put(diff.name, diff);
-//
-//                } else {
-//                    boolean added = false;
-//                    for (DroppedItem loopDiff : itemDiffs) {
-//                        if ((diff.amount < 0 && loopDiff.amount < 0) || (diff.amount > 0 && loopDiff.amount > 0)) {
-//                            loopDiff.add(diff.amount);
-//                            added = true;
-//                        }
-//                    }
-//                    if (!added) {
-//                        if (diff.amount < 0) continue;
-//                        itemsDropped.put(diff.name, diff);
-//                    }
-//                }
-//            }
-//        }
-//
-//        previousInventory = newInventory;
-//    }
 
     @SubscribeEvent
     public void onTickUpdateProfit(TickEvent.ClientTickEvent event) {
