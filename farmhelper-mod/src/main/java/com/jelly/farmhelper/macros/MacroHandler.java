@@ -175,7 +175,7 @@ public class MacroHandler {
     }
 
     public static void disableCurrentMacro() {
-        if (currentMacro.enabled) {
+        if (currentMacro != null && currentMacro.enabled) {
             currentMacro.toggle();
         }
     }

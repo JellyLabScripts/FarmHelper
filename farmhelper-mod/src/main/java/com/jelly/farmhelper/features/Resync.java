@@ -46,6 +46,9 @@ public class Resync {
                     case PUMPKIN:
                         if (BlockUtils.isWalkable(mc.theWorld.getBlockState(bp).getBlock())) desync = false;
                         break;
+                    case MUSHROOM:
+                        if (!mc.theWorld.getBlockState(bp).getBlock().equals(Blocks.brown_mushroom_block) && !mc.theWorld.getBlockState(bp).getBlock().equals(Blocks.red_mushroom_block)) desync = false;
+                        break;
                     default:
                         if (mc.theWorld.getBlockState(bp).getValue(BlockCrops.AGE) <= 4) desync = false;
                 }

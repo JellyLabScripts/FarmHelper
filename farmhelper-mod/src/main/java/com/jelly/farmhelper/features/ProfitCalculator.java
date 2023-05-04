@@ -118,7 +118,8 @@ public class ProfitCalculator {
 
             realProfit = totalProfit;
             realProfit += checkForBountiful();
-            profit.set("$" + Utils.formatNumber(Math.round(totalProfit * 0.95)));
+            totalProfitBasedOnConditions += checkForBountiful();
+            profit.set("$" + Utils.formatNumber(Math.round(realProfit * 0.95)));
             profitHr.set("$" + Utils.formatNumber(Math.round(getHourProfit(totalProfitBasedOnConditions * 0.95))));
             runtime.set(Utils.formatTime(System.currentTimeMillis() - MacroHandler.startTime));
             float bps = Math.round(((FarmConfig.cropType == MacroEnum.SUGARCANE ? 0.5f : 1) * blocksBroken) / (System.currentTimeMillis() - MacroHandler.startTime) * 10000f) / 10f;
@@ -175,7 +176,8 @@ public class ProfitCalculator {
 
     private static float checkForBountiful() {
         ItemStack currentItem = mc.thePlayer.getCurrentEquippedItem();
-        if (currentItem.getDisplayName().contains("Bountiful")) {
+        if (currentItem != null && currentItem.getItem() != null && currentItem.getDisplayName().contains("Bountiful")) {
+            System.out.println(blocksBroken);
             return blocksBroken * 0.2f;
         } else
             return 0;
