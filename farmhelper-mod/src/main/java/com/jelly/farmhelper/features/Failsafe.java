@@ -4,7 +4,6 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.JacobConfig;
 import com.jelly.farmhelper.events.BlockChangeEvent;
-import com.jelly.farmhelper.macros.Macro;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -18,7 +17,6 @@ import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
-import javax.crypto.Mac;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Random;
@@ -62,9 +60,9 @@ public class Failsafe {
             if (message.contains("to warp out! CLICK to warp now!")) {
                 setSpawnCorrectly = true;
                 PlayerUtils.setSpawn();
-                MacroHandler.disableCurrentMacro(true);
                 LogUtils.debugLog("Update or restart is required - Evacuating in 5s");
                 evacuateCooldown.schedule(5000);
+                MacroHandler.disableCurrentMacro(true);
             }
         }
         if (message.contains("You cannot set your spawn here!")) {
@@ -155,7 +153,6 @@ public class Failsafe {
                     mc.thePlayer.sendChatMessage("/evacuate");
                     evacuateCooldown.reset();
                     cooldown.schedule(5000);
-                    afterEvacuateCooldown.schedule(7500);
                 }
                 if (JacobConfig.jacobFailsafe && jacobExceeded() && jacobWait.passed() && MacroHandler.currentMacro.enabled) {
                     LogUtils.debugLog("Jacob remaining time: " + formattedTime);
@@ -171,6 +168,7 @@ public class Failsafe {
                         && !AutoPot.isEnabled()
                         && !(BanwaveChecker.banwaveOn && FailsafeConfig.banwaveDisconnect)
                         && !emergency
+                        && !evacuateCooldown.isScheduled()
                         && !afterEvacuateCooldown.isScheduled()
                         && !restartAfterFailsafeCooldown.isScheduled()) {
 
