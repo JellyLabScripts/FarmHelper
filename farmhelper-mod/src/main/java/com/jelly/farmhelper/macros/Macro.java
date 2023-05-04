@@ -7,12 +7,17 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 public abstract class Macro {
     public Minecraft mc = Minecraft.getMinecraft();
     public boolean enabled = false;
+    public boolean disabledByFailsafe = false;
 
 
     public void toggle() {
         enabled = !enabled;
         if (enabled) {
             onEnable();
+            if (disabledByFailsafe) {
+                disabledByFailsafe = false;
+                restoreStateAfterFailsafe();
+            }
         } else {
             onDisable();
         }
@@ -31,4 +36,11 @@ public abstract class Macro {
     public void onOverlayRender(RenderGameOverlayEvent event) {}
 
     public void onPacketReceived(ReceivePacketEvent event) {}
+
+    public void failsafeDisable() {
+        disabledByFailsafe = true;
+        toggle();
+    }
+
+    public void restoreStateAfterFailsafe() {}
 }

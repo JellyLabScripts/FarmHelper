@@ -17,15 +17,15 @@ import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class VerticalCropMacro extends Macro{
     private static final Minecraft mc = Minecraft.getMinecraft();
-    enum direction {
+    enum State {
         RIGHT,
         LEFT,
         FORWARD,
         NONE
     }
 
-    direction dir;
-    direction prevDir;
+    State currentState;
+    State prevState;
 
     float pitch;
     float yaw;
@@ -37,7 +37,19 @@ public class VerticalCropMacro extends Macro{
     private final Clock waitForChangeDirection = new Clock();
     private final Clock waitBetweenTp = new Clock();
 
-    private CropEnum crop;
+    private State stateBeforeFailsafe = null;
+
+    @Override
+    public void failsafeDisable() {
+        stateBeforeFailsafe = currentState;
+        super.failsafeDisable();
+    }
+
+    @Override
+    public void restoreStateAfterFailsafe() {
+        currentState = stateBeforeFailsafe;
+        super.restoreStateAfterFailsafe();
+    }
 
 
     @Override
@@ -46,7 +58,7 @@ public class VerticalCropMacro extends Macro{
         waitForChangeDirection.reset();
         waitBetweenTp.reset();
         yaw = AngleUtils.getClosest();
-        crop = MacroHandler.getFarmingCrop();
+        CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
 
@@ -67,8 +79,8 @@ public class VerticalCropMacro extends Macro{
                 pitch = -90;
                 break;
         }
-        prevDir = null;
-        dir = direction.NONE;
+        prevState = null;
+        currentState = State.NONE;
         rotation.easeTo(yaw, pitch, 500);
         if (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)
             mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(crop);
@@ -117,7 +129,7 @@ public class VerticalCropMacro extends Macro{
 
         if (lastTp.isScheduled() && !lastTp.passed() && (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)) {
             updateKeys(true, false, false, false, false);
-            dir = direction.NONE;
+            currentState = State.NONE;
             return;
         }
 
@@ -154,12 +166,12 @@ public class VerticalCropMacro extends Macro{
         }
 
         if (stairsAtTheFront()) {
-            dir = direction.FORWARD;
+            currentState = State.FORWARD;
             updateKeys(true, false, false, false, false);
             return;
         }
 
-        if (dir == direction.FORWARD) {
+        if (currentState == State.FORWARD) {
             updateKeys(true, false, false, false, false);
         }
 
@@ -169,12 +181,12 @@ public class VerticalCropMacro extends Macro{
 
             PlayerUtils.attemptSetSpawn();
 
-            if (dir == direction.NONE) {
-                dir = calculateDirection();
+            if (currentState == State.NONE) {
+                currentState = calculateDirection();
             }
-            if (dir == direction.RIGHT)
+            if (currentState == State.RIGHT)
                 updateKeys(((FarmConfig.cropType != MacroEnum.PUMPKIN_MELON) && shouldWalkForwards()), false, true, false, true);
-            else if (dir == direction.LEFT) {
+            else if (currentState == State.LEFT) {
                 updateKeys((FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)  && shouldWalkForwards(), false, false, true, true);
             } else {
                 stopMovement();
@@ -183,7 +195,7 @@ public class VerticalCropMacro extends Macro{
                 (!isWalkable(getLeftBlock()) || !isWalkable(getLeftTopBlock()))) {
             if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d) {
                 if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
-                    dir = direction.RIGHT;
+                    currentState = State.RIGHT;
                     waitForChangeDirection.reset();
                     updateKeys(false, false, true, false, true);
                     return;
@@ -202,7 +214,7 @@ public class VerticalCropMacro extends Macro{
                 (!isWalkable(getRightBlock()) || !isWalkable(getRightTopBlock()))) {
             if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d) {
                 if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
-                    dir = direction.LEFT;
+                    currentState = State.LEFT;
                     waitForChangeDirection.reset();
                     updateKeys(false, false, false, true, true);
                     return;
@@ -219,9 +231,9 @@ public class VerticalCropMacro extends Macro{
             }
         }
 
-        if (prevDir != dir) {
-            System.out.println("Changed direction to " + dir + " from " + prevDir);
-            prevDir = dir;
+        if (prevState != currentState) {
+            System.out.println("Changed direction to " + currentState + " from " + prevState);
+            prevState = currentState;
             waitForChangeDirection.reset();
         }
     }
@@ -259,28 +271,28 @@ public class VerticalCropMacro extends Macro{
         return false;
     }
 
-    direction calculateDirection() {
+    State calculateDirection() {
 
         boolean f1 = true, f2 = true;
 
         if (rightCropIsReady()) {
-            return direction.RIGHT;
+            return State.RIGHT;
         } else if (leftCropIsReady()) {
-            return direction.LEFT;
+            return State.LEFT;
         }
 
         for (int i = 0; i < 180; i++) {
             if (isWalkable(getRelativeBlock(i, -1, 0)) && f1) {
-                return direction.RIGHT;
+                return State.RIGHT;
             }
             if(!isWalkable(getRelativeBlock(i, 0, 0)))
                 f1 = false;
             if (isWalkable(getRelativeBlock(-i, -1, 0)) && f2) {
-                return direction.LEFT;
+                return State.LEFT;
             }
             if(!isWalkable(getRelativeBlock(-i, 0, 0)))
                 f2 = false;
         }
-        return direction.NONE;
+        return State.NONE;
     }
 }

@@ -110,6 +110,20 @@ public class SShapeCropMacro extends Macro {
         updateKeys(false, false, false, false, false);
     }
 
+    private State stateBeforeFailsafe = null;
+
+    @Override
+    public void failsafeDisable() {
+        stateBeforeFailsafe = currentState;
+        super.failsafeDisable();
+    }
+
+    @Override
+    public void restoreStateAfterFailsafe() {
+        currentState = stateBeforeFailsafe;
+        super.restoreStateAfterFailsafe();
+    }
+
     @Override
     public void onLastRender() {
         if (rotation.rotating) {

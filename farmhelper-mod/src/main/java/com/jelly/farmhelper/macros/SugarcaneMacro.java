@@ -37,14 +37,12 @@ public class SugarcaneMacro extends Macro {
 
     private final Rotation rotator = new Rotation();
 
-    private CropEnum crop;
-
     @Override
     public void onEnable() {
         yaw = AngleUtils.getClosestDiagonal();
         pitch = 0;
         rotator.easeTo(yaw, pitch, 500);
-        crop = MacroHandler.getFarmingCrop();
+        CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
 
@@ -62,7 +60,19 @@ public class SugarcaneMacro extends Macro {
         KeyBindUtils.stopMovement();
     }
 
+    private State stateBeforeFailsafe = null;
 
+    @Override
+    public void failsafeDisable() {
+        stateBeforeFailsafe = currentState;
+        super.failsafeDisable();
+    }
+
+    @Override
+    public void restoreStateAfterFailsafe() {
+        currentState = stateBeforeFailsafe;
+        super.restoreStateAfterFailsafe();
+    }
 
     @Override
     public void onTick() {

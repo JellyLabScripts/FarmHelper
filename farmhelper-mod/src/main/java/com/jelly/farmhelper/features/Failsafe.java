@@ -34,6 +34,8 @@ public class Failsafe {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final Clock cooldown = new Clock();
     public static final Clock jacobWait = new Clock();
+    private static final Clock evacuateCooldown = new Clock();
+    private static final Clock afterEvacuateCooldown = new Clock();
     private static String formattedTime;
 
     private static boolean wasInGarden = false;
@@ -52,6 +54,12 @@ public class Failsafe {
             if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing") || message.contains("You cannot join SkyBlock from here!")) {
                 LogUtils.debugLog("Failed teleport - waiting");
                 cooldown.schedule(10000);
+            }
+            if (message.contains("to warp out! CLICK to warp now!")) {
+                PlayerUtils.setSpawn();
+                MacroHandler.disableCurrentMacro(true);
+                LogUtils.debugLog("Update or restart is required - Evacuating in 5s");
+                evacuateCooldown.schedule(5000);
             }
         }
     }
@@ -114,10 +122,18 @@ public class Failsafe {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
                     cooldown.schedule(5000);
+                    afterEvacuateCooldown.schedule(7500);
                 }
                 return;
             case ISLAND:
                 checkInGarden();
+                if (evacuateCooldown.isScheduled() && evacuateCooldown.passed()) {
+                    LogUtils.debugLog("Evacuating");
+                    mc.thePlayer.sendChatMessage("/evacuate");
+                    evacuateCooldown.reset();
+                    cooldown.schedule(5000);
+                    afterEvacuateCooldown.schedule(7500);
+                }
                 if (JacobConfig.jacobFailsafe && jacobExceeded() && jacobWait.passed() && MacroHandler.currentMacro.enabled) {
                     LogUtils.debugLog("Jacob remaining time: " + formattedTime);
                     LogUtils.webhookLog("Jacob score exceeded - - Resuming in " + formattedTime);
@@ -131,10 +147,16 @@ public class Failsafe {
                         && !AutoCookie.isEnabled()
                         && !AutoPot.isEnabled()
                         && !(BanwaveChecker.banwaveOn && FailsafeConfig.banwaveDisconnect)
-                        && !emergency) {
+                        && !emergency
+                        && !afterEvacuateCooldown.isScheduled()) {
 
 
                     MacroHandler.enableCurrentMacro();
+                } else if (afterEvacuateCooldown.isScheduled() && !afterEvacuateCooldown.passed()) {
+                    LogUtils.debugLog("Waiting for after entering island cooldown: " + afterEvacuateCooldown.getRemainingTime());
+                } else if (afterEvacuateCooldown.isScheduled() && afterEvacuateCooldown.passed()) {
+                    LogUtils.debugLog("After entering island cooldown passed");
+                    afterEvacuateCooldown.reset();
                 }
         }
     }

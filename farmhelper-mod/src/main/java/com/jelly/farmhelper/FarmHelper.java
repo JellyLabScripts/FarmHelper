@@ -22,10 +22,12 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.Display;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Objects;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -118,9 +120,9 @@ public class FarmHelper {
 
     @SneakyThrows
     public static void setVersions() {
-        Class clazz = FarmHelper.class;
+        Class<FarmHelper> clazz = FarmHelper.class;
         String className = clazz.getSimpleName() + ".class";
-        String classPath = clazz.getResource(className).toString();
+        String classPath = Objects.requireNonNull(clazz.getResource(className)).toString();
         if (!classPath.startsWith("jar")) return;
 
         String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) +
