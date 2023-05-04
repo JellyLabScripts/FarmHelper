@@ -63,10 +63,11 @@ public class ProfitCalculator {
         add(new BazaarItem("Brown Mushroom", "ENCHANTED_BROWN_MUSHROOM", ENCHANTED_TIER_1).setImage());
     }};
 
-    public static final List<BazaarItem> armorDropToCount = new ArrayList<BazaarItem>() {{
+    public static final List<BazaarItem> rngDropToCount = new ArrayList<BazaarItem>() {{
         add(new BazaarItem("Cropie", "CROPIE", 1).setImage());
         add(new BazaarItem("Squash", "SQUASH", 1).setImage());
         add(new BazaarItem("Fermento", "FERMENTO", 1).setImage());
+        add(new BazaarItem("Burrowing Spores", "BURROWING_SPORES", 1).setImage());
     }};
 
     public static HashMap<String, Double> bazaarPrices = new HashMap<>();
@@ -209,7 +210,7 @@ public class ProfitCalculator {
                         totalProfit += price * (item.amount * 1.0f / crop.amountToEnchanted);
                         dropToShow.put(item.name, new GuiItem((int) Math.floor(item.amount * 1.0F / crop.amountToEnchanted), crop.image));
                     } else {
-                        Optional<BazaarItem> isArmor = armorDropToCount.stream().filter(armor -> StringUtils.stripControlCodes(item.name).equalsIgnoreCase(armor.localizedName)).findFirst();
+                        Optional<BazaarItem> isArmor = rngDropToCount.stream().filter(armor -> StringUtils.stripControlCodes(item.name).equalsIgnoreCase(armor.localizedName)).findFirst();
                         if (isArmor.isPresent()) {
                             double price = bazaarPrices.get(isArmor.get().localizedName);
                             totalProfit += price * item.amount * 1.0f;
@@ -338,6 +339,8 @@ public class ProfitCalculator {
                 return "squash.png";
             case "Fermento":
                 return "fermento.png";
+            case "Burrowing Spores":
+                return "burrowingspores.png";
             default:
                 throw new IllegalArgumentException("No image for " + name);
         }
@@ -381,7 +384,7 @@ public class ProfitCalculator {
                 JSONObject json3 = (JSONObject) json2.get("quick_status");
                 bazaarPrices.put(item.localizedName, (Double) (json3).get("buyPrice"));
             }
-            for (BazaarItem bazaarItem : armorDropToCount) {
+            for (BazaarItem bazaarItem : rngDropToCount) {
                 JSONObject json2 = (JSONObject) json1.get(bazaarItem.bazaarId);
                 JSONObject json3 = (JSONObject) json2.get("quick_status");
                 bazaarPrices.put(bazaarItem.localizedName, (Double) (json3).get("buyPrice"));

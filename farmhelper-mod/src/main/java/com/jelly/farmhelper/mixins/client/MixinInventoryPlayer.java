@@ -72,8 +72,9 @@ public abstract class MixinInventoryPlayer {
                     size -= newSize;
             }
         } else if (!StringUtils.stripControlCodes(postAddInventory[i].getDisplayName()).equals("Cropie") &&
-                    !StringUtils.stripControlCodes(postAddInventory[i].getDisplayName()).equals("Squash") &&
-                    !StringUtils.stripControlCodes(postAddInventory[i].getDisplayName()).equals("Fermento")) {
+                !StringUtils.stripControlCodes(postAddInventory[i].getDisplayName()).equals("Squash") &&
+                !StringUtils.stripControlCodes(postAddInventory[i].getDisplayName()).equals("Fermento") &&
+                !StringUtils.stripControlCodes(postAddInventory[i].getDisplayName()).equals("Burrowing Spores")) {
             if (getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory) + size >= 160) {
                 int newSize = 160 - getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory);
                 if (newSize > 0)
