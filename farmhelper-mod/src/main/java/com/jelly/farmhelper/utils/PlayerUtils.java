@@ -3,7 +3,6 @@ package com.jelly.farmhelper.utils;
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
-import com.jelly.farmhelper.macros.MacroHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiInventory;
@@ -255,37 +254,42 @@ public class PlayerUtils {
 
         for (int i = 36; i < 44; i++) {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
-
                 switch (crop){
                     case NETHERWART:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Newton")) {
                             return i - 36;
                         }
-
+                        continue;
                     case CARROT:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Gauss")) {
                             return i - 36;
                         }
+                        continue;
                     case WHEAT:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Euclid")) {
                             return i - 36;
                         }
+                        continue;
                     case POTATO:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Pythagorean")) {
                             return i - 36;
                         }
+                        continue;
                     case SUGARCANE:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Turing")) {
                             return i - 36;
                         }
+                        continue;
                     case CACTUS:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Knife")) {
                             return i - 36;
                         }
+                        continue;
                     case MUSHROOM:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Fungi")) {
                             return i - 36;
                         }
+                        continue;
                 }
             }
         }
