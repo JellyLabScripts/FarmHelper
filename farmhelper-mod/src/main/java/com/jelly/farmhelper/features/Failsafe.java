@@ -40,6 +40,7 @@ public class Failsafe {
     private static final Clock afterEvacuateCooldown = new Clock();
     public static final Clock restartAfterFailsafeCooldown = new Clock();
     private static String formattedTime;
+    private static boolean setSpawnCorrectly = false;
 
     private static boolean wasInGarden = false;
     private static final String[] messages = new String[]
@@ -59,11 +60,16 @@ public class Failsafe {
                 cooldown.schedule(10000);
             }
             if (message.contains("to warp out! CLICK to warp now!")) {
+                setSpawnCorrectly = true;
                 PlayerUtils.setSpawn();
                 MacroHandler.disableCurrentMacro(true);
                 LogUtils.debugLog("Update or restart is required - Evacuating in 5s");
                 evacuateCooldown.schedule(5000);
             }
+        }
+        if (message.contains("You cannot set your spawn here!")) {
+            setSpawnCorrectly = false;
+            LogUtils.debugLog("Spawn set incorrectly");
         }
     }
 
@@ -165,10 +171,16 @@ public class Failsafe {
                         && !AutoPot.isEnabled()
                         && !(BanwaveChecker.banwaveOn && FailsafeConfig.banwaveDisconnect)
                         && !emergency
-                        && !afterEvacuateCooldown.isScheduled()) {
+                        && !afterEvacuateCooldown.isScheduled()
+                        && !restartAfterFailsafeCooldown.isScheduled()) {
 
-
-                    MacroHandler.enableCurrentMacro();
+                    if (setSpawnCorrectly) {
+                        LogUtils.debugLog("Resuming macro");
+                        MacroHandler.enableCurrentMacro();
+                    } else {
+                        LogUtils.debugLog("Spawn wasn't set correctly");
+                        MacroHandler.disableCurrentMacro();
+                    }
                 } else if (afterEvacuateCooldown.isScheduled() && !afterEvacuateCooldown.passed()) {
                     LogUtils.debugLog("Waiting for \"after entering island\" cooldown: " + (String.format("%.1f", afterEvacuateCooldown.getRemainingTime() / 1000f)));
                 } else if (afterEvacuateCooldown.isScheduled() && afterEvacuateCooldown.passed()) {
