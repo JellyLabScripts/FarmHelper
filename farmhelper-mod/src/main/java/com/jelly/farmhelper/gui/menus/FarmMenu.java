@@ -21,7 +21,7 @@ import java.util.List;
 public class FarmMenu extends UIContainer {
     private final UIComponent selector;
     private static final ArrayList<UIComponent> cropList = new ArrayList<>();
-    private static final ArrayList<UIComponent> farmList = new ArrayList<>();
+    private final ArrayList<UIComponent> farmList = new ArrayList<>();
 
     public static final Color SELECTED_COLOR = new Color(175, 36, 36);
     public static final Color NOT_SELECTED_COLOR = new Color(30, 31, 32);

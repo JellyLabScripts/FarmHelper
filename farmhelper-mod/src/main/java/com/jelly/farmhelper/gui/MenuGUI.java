@@ -17,17 +17,17 @@ public class MenuGUI extends WindowScreen {
 //            .setHeight(new FillConstraint())
 //            .setChildOf(getWindow());
 
-        new List(new PixelConstraint(10), new PixelConstraint(10), "Farm Helper", new FarmMenu()).setChildOf(getWindow());
+        new List(new PixelConstraint(10), new PixelConstraint(10), "Farm Helper", new FarmMenu(), 150).setChildOf(getWindow());
 
         new List(new PixelConstraint(170), new PixelConstraint(10), "Remote Control", new RemoteControlMenu()).setChildOf(getWindow());
         new List(new PixelConstraint(170), new PixelConstraint(284), "Auto Sell", new AutoSellMenu()).setChildOf(getWindow());
 
-        new List(new PixelConstraint(330), new PixelConstraint(10), "Jacob", new JacobMenu()).setChildOf(getWindow());
-        new List(new PixelConstraint(330), new PixelConstraint(336), "Scheduler", new SchedulerMenu()).setChildOf(getWindow());
+        new List(new PixelConstraint(360), new PixelConstraint(10), "Jacob", new JacobMenu()).setChildOf(getWindow());
+        new List(new PixelConstraint(360), new PixelConstraint(336), "Scheduler", new SchedulerMenu()).setChildOf(getWindow());
 
-        new List(new PixelConstraint(490), new PixelConstraint(216), "Profit Calculator", new ProfitCalculatorMenu()).setChildOf(getWindow());
-        new List(new PixelConstraint(490), new PixelConstraint(10), "Miscellaneous", new MiscMenu()).setChildOf(getWindow());
+        new List(new PixelConstraint(550), new PixelConstraint(216), "Profit Calculator", new ProfitCalculatorMenu()).setChildOf(getWindow());
+        new List(new PixelConstraint(550), new PixelConstraint(10), "Miscellaneous", new MiscMenu()).setChildOf(getWindow());
 
-        new List(new PixelConstraint(650), new PixelConstraint(10), "Failsafes", new FailsafeMenu()).setChildOf(getWindow());
+        new List(new PixelConstraint(740), new PixelConstraint(10), "Failsafes", new FailsafeMenu()).setChildOf(getWindow());
     }
 }

@@ -27,4 +27,6 @@ public class FailsafeConfig {
     public static double banThreshold = 10.0;
     @Config()
     public static double reconnectDelay = 5.0;
+    @Config()
+    public static boolean restartAfterFailsafe = false;
 }

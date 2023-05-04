@@ -1,6 +1,8 @@
 package com.jelly.farmhelper.macros;
 
+import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
+import com.jelly.farmhelper.features.Failsafe;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
@@ -21,6 +23,7 @@ public abstract class Macro {
         } else {
             onDisable();
         }
+        Failsafe.restartAfterFailsafeCooldown.reset();
     }
 
     public void onEnable() {}

@@ -4,6 +4,7 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.JacobConfig;
 import com.jelly.farmhelper.events.BlockChangeEvent;
+import com.jelly.farmhelper.macros.Macro;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -17,6 +18,7 @@ import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+import javax.crypto.Mac;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Random;
@@ -36,6 +38,7 @@ public class Failsafe {
     public static final Clock jacobWait = new Clock();
     private static final Clock evacuateCooldown = new Clock();
     private static final Clock afterEvacuateCooldown = new Clock();
+    public static final Clock restartAfterFailsafeCooldown = new Clock();
     private static String formattedTime;
 
     private static boolean wasInGarden = false;
@@ -85,8 +88,21 @@ public class Failsafe {
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
+        // Mustario is a grape
 
-        if (!MacroHandler.isMacroing || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
+        if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
+
+        if (restartAfterFailsafeCooldown.isScheduled()) {
+            LogUtils.debugLog("Waiting to restart macro: " + (String.format("%.1f", restartAfterFailsafeCooldown.getRemainingTime() / 1000f)) + "s");
+
+            if (restartAfterFailsafeCooldown.passed()) {
+                LogUtils.debugLog("Restarting macro. 3 minutes after failsafe are passed");
+                MacroHandler.enableMacro();
+                restartAfterFailsafeCooldown.reset();
+            }
+        }
+
+        if (!MacroHandler.isMacroing) return;
 
 
         if(!emergency && BlockUtils.bedrockCount() > 2){
@@ -114,6 +130,7 @@ public class Failsafe {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage("/skyblock");
                     cooldown.schedule(5000);
+                    afterEvacuateCooldown.schedule(7500);
                 }
                 return;
             case HUB:
@@ -153,9 +170,9 @@ public class Failsafe {
 
                     MacroHandler.enableCurrentMacro();
                 } else if (afterEvacuateCooldown.isScheduled() && !afterEvacuateCooldown.passed()) {
-                    LogUtils.debugLog("Waiting for after entering island cooldown: " + afterEvacuateCooldown.getRemainingTime());
+                    LogUtils.debugLog("Waiting for \"after entering island\" cooldown: " + (String.format("%.1f", afterEvacuateCooldown.getRemainingTime() / 1000f)));
                 } else if (afterEvacuateCooldown.isScheduled() && afterEvacuateCooldown.passed()) {
-                    LogUtils.debugLog("After entering island cooldown passed");
+                    LogUtils.debugLog("\"After entering island\" cooldown passed");
                     afterEvacuateCooldown.reset();
                 }
         }
@@ -268,7 +285,7 @@ public class Failsafe {
         LogUtils.scriptLog("Act like a normal player and stop the script!");
 
         if(type != FailsafeType.DIRT && type != FailsafeType.DESYNC) // you may not be able to see the dirt, disable a few seconds later
-            MacroHandler.disableCurrentMacro();
+            MacroHandler.disableCurrentMacro(true);
 
 
         if(FailsafeConfig.notifications){
@@ -284,12 +301,12 @@ public class Failsafe {
             Utils.sendPingAlert();
         }
 
-        if(FailsafeConfig.fakeMovements) {
+        if (FailsafeConfig.fakeMovements) {
             switch (type){
-                case DIRT: case DESYNC:
+                case DESYNC:
                     emergencyThreadExecutor.submit(stopScript);
                     break;
-                case ROTATION:
+                case DIRT: case ROTATION:
                     emergencyThreadExecutor.submit(rotationMovement);
                     break;
                 case BEDROCK:
@@ -297,6 +314,9 @@ public class Failsafe {
                     break;
             }
         }
+
+        if (FailsafeConfig.restartAfterFailsafe)
+            restartAfterFailsafeCooldown.schedule(180_000);
     }
 
     public static void createNotification(String text, SystemTray tray, TrayIcon.MessageType messageType) {
@@ -320,7 +340,7 @@ public class Failsafe {
     static Runnable stopScript = () -> {
         try{
             Thread.sleep((long) (2000 + Math.random() * 1000));
-            MacroHandler.disableCurrentMacro();
+            MacroHandler.disableCurrentMacro(true);
         } catch(Exception e){
             e.printStackTrace();
         }
@@ -407,6 +427,7 @@ public class Failsafe {
                 }
             }
             LogUtils.scriptLog("Stop the macro if you see this!");
+            PlayerUtils.setSpawn();
             Thread.sleep(3000);
             if(Math.random() < 0.5d) {
                 mc.thePlayer.sendChatMessage("/hub");

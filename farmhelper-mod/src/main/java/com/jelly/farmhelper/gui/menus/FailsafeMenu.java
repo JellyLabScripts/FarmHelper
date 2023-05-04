@@ -16,6 +16,7 @@ public class FailsafeMenu extends UIContainer {
     public FailsafeMenu() {
         new Toggle("Pop-up notifications", "notifications").setChildOf(this);
         new Toggle("Fake movements", "fakeMovements").setChildOf(this);
+        new Toggle("Restart 3 min after failsafe", "restartAfterFailsafe").setChildOf(this);
         new Toggle("Ping sound",  "pingSound").setChildOf(this);
         new Toggle("Leave on banwave", "banwaveDisconnect").setChildOf(this);
         new Toggle("Check desync",  "checkDesync").setChildOf(this);
