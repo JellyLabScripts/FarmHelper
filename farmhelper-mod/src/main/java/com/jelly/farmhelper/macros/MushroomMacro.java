@@ -18,6 +18,7 @@ import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class MushroomMacro extends Macro {
     private static final Minecraft mc = Minecraft.getMinecraft();
+
     enum State {
         LEFT,
         RIGHT,
@@ -111,7 +112,7 @@ public class MushroomMacro extends Macro {
             waitBetweenTp.reset();
         }
 
-        if (lastTp.isScheduled() && lastTp.passed()) {
+        if ((Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && Failsafe.waitAfterVisitorMacroCooldown.passed() || (lastTp.isScheduled() && lastTp.passed())) && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
             lastTp.reset();
             if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
                 LogUtils.debugLog("Change direction to FORWARD (tp pad)");
@@ -122,7 +123,7 @@ public class MushroomMacro extends Macro {
             }
         }
 
-        if (lastTp.isScheduled() && !lastTp.passed()) {
+        if ((Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && !Failsafe.waitAfterVisitorMacroCooldown.passed() || (lastTp.isScheduled() && !lastTp.passed()))) {
             if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
                 LogUtils.debugLog("Going FORWARD");
                 updateKeys(false, false, true, false, true);
@@ -156,7 +157,7 @@ public class MushroomMacro extends Macro {
         }
 
         if (isWalkable(getRightBlock(getAngleDiff())) && isWalkable(getLeftBlock(getAngleDiff()))) {
-            if(mc.thePlayer.lastTickPosY - mc.thePlayer.posY != 0)
+            if (mc.thePlayer.lastTickPosY - mc.thePlayer.posY != 0)
                 return;
 
             PlayerUtils.attemptSetSpawn();
@@ -219,14 +220,14 @@ public class MushroomMacro extends Macro {
             waitForChangeDirection.reset();
         }
     }
-    
+
     public static int getAngleDiff() {
         return (FarmConfig.cropType == MacroEnum.MUSHROOM ? 45 : (int) AngleUtils.getClosest30());
     }
 
     @Override
     public void onLastRender() {
-        if(rotation.rotating)
+        if (rotation.rotating)
             rotation.update();
     }
 
@@ -247,12 +248,12 @@ public class MushroomMacro extends Macro {
             if (isWalkable(getRelativeBlock(i, -1, 0, getAngleDiff())) && f1) {
                 return State.RIGHT;
             }
-            if(!isWalkable(getRelativeBlock(i, 0, 0, getAngleDiff())))
+            if (!isWalkable(getRelativeBlock(i, 0, 0, getAngleDiff())))
                 f1 = false;
             if (isWalkable(getRelativeBlock(-i, -1, 0, getAngleDiff())) && f2) {
                 return State.LEFT;
             }
-            if(!isWalkable(getRelativeBlock(-i, 0, 0, getAngleDiff())))
+            if (!isWalkable(getRelativeBlock(-i, 0, 0, getAngleDiff())))
                 f2 = false;
         }
         System.out.println("No direction found");

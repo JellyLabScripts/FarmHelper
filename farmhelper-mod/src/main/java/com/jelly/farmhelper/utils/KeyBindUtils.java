@@ -9,7 +9,7 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 public class KeyBindUtils
 {
     private static Minecraft mc;
-    public static KeyBinding[] customKeyBinds = new KeyBinding[2];
+    public static KeyBinding[] customKeyBinds = new KeyBinding[3];
 
     static {
         KeyBindUtils.mc = Minecraft.getMinecraft();
@@ -18,6 +18,7 @@ public class KeyBindUtils
     public static void setup() {
         customKeyBinds[0] = new KeyBinding("Open FarmHelper's GUI", KeyBindConfig.openGUIKeybind, "FarmHelper");
         customKeyBinds[1] = new KeyBinding("Toggle script", KeyBindConfig.startScriptKeybind, "FarmHelper");
+        customKeyBinds[2] = new KeyBinding("Set Desk Position", 0, "FarmHelper");
         for (KeyBinding customKeyBind : customKeyBinds) {
             ClientRegistry.registerKeyBinding(customKeyBind);
         }
@@ -89,6 +90,21 @@ public class KeyBindUtils
         KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindJump.getKeyCode(), space);
     }
 
+    public static void updateKeys(boolean forward, boolean back, boolean right, boolean left, boolean attack, boolean crouch, boolean space, boolean sprint) {
+        if (mc.currentScreen != null) {
+            stopMovement();
+            return;
+        }
+        KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindForward.getKeyCode(), forward);
+        KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindBack.getKeyCode(), back);
+        KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindRight.getKeyCode(), right);
+        KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindLeft.getKeyCode(), left);
+        KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindAttack.getKeyCode(), attack);
+        KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindSneak.getKeyCode(), crouch);
+        KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindJump.getKeyCode(), space);
+        KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindSprint.getKeyCode(), sprint);
+    }
+
     public static void stopMovement() {
         KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindForward.getKeyCode(), false);
         KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindBack.getKeyCode(), false);
@@ -97,6 +113,7 @@ public class KeyBindUtils
         KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindAttack.getKeyCode(), false);
         KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindSneak.getKeyCode(), false);
         KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindJump.getKeyCode(), false);
+        KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindSprint.getKeyCode(), false);
     }
 
 

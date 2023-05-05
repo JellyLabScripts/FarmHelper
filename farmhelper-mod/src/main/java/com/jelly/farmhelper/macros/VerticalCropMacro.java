@@ -121,14 +121,14 @@ public class VerticalCropMacro extends Macro{
             return;
         }
 
-        if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
+        if ((Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && Failsafe.waitAfterVisitorMacroCooldown.getRemainingTime() < 500 || (lastTp.isScheduled() && lastTp.getRemainingTime() < 500)) && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
             yaw = AngleUtils.getClosest();
             rotation.easeTo(yaw, pitch, 500);
             KeyBindUtils.stopMovement();
         }
 
-        if (lastTp.isScheduled() && !lastTp.passed() && (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)) {
-            updateKeys(true, false, false, false, false);
+        if ((Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && !Failsafe.waitAfterVisitorMacroCooldown.passed() || (lastTp.isScheduled() && !lastTp.passed())) && (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)) {
+            updateKeys(false, false, false, false, false);
             currentState = State.NONE;
             return;
         }

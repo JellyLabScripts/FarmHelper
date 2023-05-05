@@ -1,6 +1,12 @@
 package com.jelly.farmhelper.utils;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.Vec3;
+import org.apache.commons.lang3.tuple.Pair;
+
+import static gg.essential.universal.UMath.wrapAngleTo180;
 
 public class AngleUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -99,5 +105,31 @@ public class AngleUtils {
         } else {
             return 270f;
         }
+    }
+
+    public static Pair<Float, Float> getRotation(BlockPos block) {
+        return getRotation(new Vec3(block.getX() + 0.5, block.getY() + 0.5, block.getZ() + 0.5));
+    }
+
+    public static Pair<Float, Float> getRotation(Entity entity) {
+        return getRotation(new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ));
+    }
+
+    public static Pair<Float, Float> getRotation(Vec3 vec3) {
+        double diffX = vec3.xCoord - mc.thePlayer.posX;
+        double diffY = vec3.yCoord - mc.thePlayer.posY - mc.thePlayer.getEyeHeight();
+        double diffZ = vec3.zCoord - mc.thePlayer.posZ;
+        return getRotationTo(diffX, diffY, diffZ);
+    }
+
+    private static Pair<Float, Float> getRotationTo(double diffX, double diffY, double diffZ) {
+        double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
+
+        float pitch = (float) -Math.atan2(dist, diffY);
+        float yaw = (float) Math.atan2(diffZ, diffX);
+        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90) * -1);
+        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90);
+
+        return Pair.of(yaw, pitch);
     }
 }

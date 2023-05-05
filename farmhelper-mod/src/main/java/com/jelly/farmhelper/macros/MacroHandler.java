@@ -12,6 +12,7 @@ import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.features.Scheduler;
+import com.jelly.farmhelper.features.VisitorsMacro;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.block.Block;
@@ -111,14 +112,15 @@ public class MacroHandler {
 
 
         if (isMacroing) {
-//            ProfitCalculator.iterateInventory();
             if (FarmHelper.tickCount == 1) {
                 LogUtils.webhookStatus();
 
                 StatusUtils.updateStateString();
             }
             if (currentMacro != null && currentMacro.enabled) {
-                currentMacro.onTick();
+                if (VisitorsMacro.macroNotRunning() || !MiscConfig.visitorsMacro) {
+                    currentMacro.onTick();
+                }
             }
         }
 

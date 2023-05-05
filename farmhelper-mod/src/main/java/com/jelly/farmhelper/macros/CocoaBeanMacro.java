@@ -105,6 +105,18 @@ public class CocoaBeanMacro extends Macro {
             return;
         }
 
+        if ((Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && Failsafe.waitAfterVisitorMacroCooldown.getRemainingTime() < 500 && !rotation.rotating && mc.thePlayer.rotationPitch != pitch)) {
+            yaw = AngleUtils.getClosest();
+            rotation.easeTo(yaw, pitch, 500);
+            KeyBindUtils.stopMovement();
+        }
+
+        if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && !Failsafe.waitAfterVisitorMacroCooldown.passed()) {
+            KeyBindUtils.stopMovement();
+            currentState = State.NONE;
+            return;
+        }
+
         if ((currentState != State.DROPPING && currentState != State.TP_PAD &&
                 (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) >= FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) >= FailsafeConfig.rotationSens))) {
             rotation.reset();

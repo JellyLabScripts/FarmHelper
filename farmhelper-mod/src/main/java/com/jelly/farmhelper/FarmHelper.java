@@ -8,12 +8,11 @@ import com.jelly.farmhelper.gui.Render;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
-import com.jelly.farmhelper.utils.KeyBindUtils;
-import com.jelly.farmhelper.utils.TickTask;
-import com.jelly.farmhelper.utils.Utils;
+import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.BlockPos;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -70,6 +69,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new RemoteControlHandler());
         MinecraftForge.EVENT_BUS.register(new ProfitCalculator());
         MinecraftForge.EVENT_BUS.register(new Utils());
+        MinecraftForge.EVENT_BUS.register(new VisitorsMacro());
         gameState = new GameState();
         ProfitCalculator.fetchBazaarPrices();
         try {
@@ -102,6 +102,13 @@ public class FarmHelper {
         if (KeyBindUtils.customKeyBinds[0].isPressed()) {
             openedGUI = true;
             mc.displayGuiScreen(new MenuGUI());
+        }
+        if (KeyBindUtils.customKeyBinds[2].isPressed()) {
+            BlockPos pos = BlockUtils.getRelativeBlockPos(0, -1, 0);
+            ConfigHandler.set("visitorsDeskPosX", pos.getX());
+            ConfigHandler.set("visitorsDeskPosY", pos.getY());
+            ConfigHandler.set("visitorsDeskPosZ", pos.getZ());
+            LogUtils.scriptLog("Visitors Desk Position Set. BlockPos: " + pos);
         }
     }
 

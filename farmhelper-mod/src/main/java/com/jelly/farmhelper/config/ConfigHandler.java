@@ -95,7 +95,12 @@ public class ConfigHandler {
     }
 
     public static Object get(String property) {
-        if (config.get(property) == null) {
+        try {
+            if (config.get(property) == null) {
+                set(property, DefaultConfig.getDefaultConfig().get(property));
+            }
+        } catch (Exception e) {
+            System.out.println("Error getting property: " + property);
             set(property, DefaultConfig.getDefaultConfig().get(property));
         }
         return config.get(property);

@@ -37,6 +37,7 @@ public class Failsafe {
     private static final Clock evacuateCooldown = new Clock();
     private static final Clock afterEvacuateCooldown = new Clock();
     public static final Clock restartAfterFailsafeCooldown = new Clock();
+    public static final Clock waitAfterVisitorMacroCooldown = new Clock();
     private static String formattedTime;
     private static boolean setSpawnCorrectly = false;
 
@@ -104,6 +105,13 @@ public class Failsafe {
                 MacroHandler.enableMacro();
                 restartAfterFailsafeCooldown.reset();
             }
+        }
+
+        if (waitAfterVisitorMacroCooldown.isScheduled() && !waitAfterVisitorMacroCooldown.passed()) {
+            return;
+        } else if (waitAfterVisitorMacroCooldown.isScheduled() && waitAfterVisitorMacroCooldown.passed()) {
+            waitAfterVisitorMacroCooldown.reset();
+            return;
         }
 
         if (!MacroHandler.isMacroing) return;

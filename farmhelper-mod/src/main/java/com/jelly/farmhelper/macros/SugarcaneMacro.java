@@ -91,6 +91,13 @@ public class SugarcaneMacro extends Macro {
             return;
         }
 
+
+        if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && !Failsafe.waitAfterVisitorMacroCooldown.passed()) {
+            KeyBindUtils.stopMovement();
+            currentState = State.WALK;
+            return;
+        }
+
         if (currentState != State.TPPAD
                 && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) >= FailsafeConfig.rotationSens
                 || Math.abs(mc.thePlayer.rotationPitch - pitch) >= FailsafeConfig.rotationSens)) {

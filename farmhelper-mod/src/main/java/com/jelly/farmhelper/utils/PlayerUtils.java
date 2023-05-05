@@ -6,6 +6,8 @@ import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiInventory;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
@@ -16,9 +18,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -318,5 +318,25 @@ public class PlayerUtils {
             }
         }
         return 0;
+    }
+
+    public static Entity getEntityCuttingOtherEntity(Entity e) {
+        List<Entity> possible = mc.theWorld.getEntitiesInAABBexcluding(e, e.getEntityBoundingBox().expand(0.3D, 2.0D, 0.3D), a -> {
+            boolean flag1 = (!a.isDead && !a.equals(mc.thePlayer));
+            boolean flag2 = !(a instanceof EntityArmorStand);
+            boolean flag3 = !(a instanceof net.minecraft.entity.projectile.EntityFireball);
+            boolean flag4 = !(a instanceof net.minecraft.entity.projectile.EntityFishHook);
+            return flag1 && flag2 && flag3 && flag4;
+        });
+        if (!possible.isEmpty())
+            return Collections.min(possible, Comparator.comparing(e2 -> e2.getDistanceToEntity(e)));
+        return null;
+    }
+
+    public static String getItemLore(ItemStack itemStack, int index) {
+        if (itemStack.hasTagCompound()) {
+            return itemStack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8).getStringTagAt(index);
+        }
+        return null;
     }
 }
