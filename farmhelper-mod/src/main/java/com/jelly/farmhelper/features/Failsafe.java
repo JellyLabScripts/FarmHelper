@@ -269,6 +269,7 @@ public class Failsafe {
 
     @SubscribeEvent
     public void onItemChange(ReceivePacketEvent event) {
+        if (!MacroHandler.isMacroing) return;
         if (event.packet instanceof S09PacketHeldItemChange) {
             emergencyFailsafe(FailsafeType.ITEM_CHANGE);
         }
