@@ -140,11 +140,9 @@ public class VisitorsMacro {
         }
 
 
-        if (!MiscConfig.debugMode) {
-            if (macroNotRunning() && TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
-                LogUtils.debugLog("Queue is not full, waiting...");
-                return;
-            }
+        if (macroNotRunning() && TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
+            LogUtils.debugLog("Queue is not full, waiting...");
+            return;
         }
 
         Block blockAbove = BlockUtils.getRelativeBlock(0, 3, 0);
