@@ -82,10 +82,7 @@ public class VerticalCropMacro extends Macro{
         prevState = null;
         currentState = State.NONE;
         rotation.easeTo(yaw, pitch, 500);
-        if (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)
-            mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(crop);
-        else
-            mc.thePlayer.inventory.currentItem = PlayerUtils.getAxeSlot();
+        getTool();
         isTping = false;
         if (getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)) {
             lastTp.schedule(1000);
@@ -121,15 +118,13 @@ public class VerticalCropMacro extends Macro{
             return;
         }
 
+
         if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && Failsafe.waitAfterVisitorMacroCooldown.getRemainingTime() < 500 && !rotation.rotating) {
             if (mc.thePlayer.rotationPitch != pitch) {
                 yaw = AngleUtils.getClosest();
                 rotation.easeTo(yaw, pitch, 500);
             }
-            if (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)
-                mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
-            else
-                mc.thePlayer.inventory.currentItem = PlayerUtils.getAxeSlot();
+            getTool();
             KeyBindUtils.stopMovement();
             return;
         }
@@ -159,6 +154,8 @@ public class VerticalCropMacro extends Macro{
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
             return;
         }
+
+        getTool(false);
 
         if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||

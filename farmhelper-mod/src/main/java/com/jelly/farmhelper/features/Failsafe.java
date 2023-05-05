@@ -4,12 +4,14 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.JacobConfig;
 import com.jelly.farmhelper.events.BlockChangeEvent;
+import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
+import net.minecraft.network.play.server.S09PacketHeldItemChange;
 import net.minecraft.util.Tuple;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -265,6 +267,13 @@ public class Failsafe {
         }
     }
 
+    @SubscribeEvent
+    public void onItemChange(ReceivePacketEvent event) {
+        if (event.packet instanceof S09PacketHeldItemChange) {
+            emergencyFailsafe(FailsafeType.ITEM_CHANGE);
+        }
+    }
+
     public static void stopAllFailsafeThreads() {
         emergencyThreadExecutor.shutdownNow();
         emergencyThreadExecutor = Executors.newScheduledThreadPool(2);
@@ -279,6 +288,7 @@ public class Failsafe {
         ROTATION ("You may have been rotation checked or you may have moved your mouse"),
         DESYNC("You are desynced. " +
                 "You might be lagging or there might be a staff spectating. If this is happening frequently, disable check desync"),
+        ITEM_CHANGE("Your item has been probably changed."),
         TEST("Its just a test failsafe. (Its Safe to Ignore)");
 
         final String label;
@@ -304,7 +314,7 @@ public class Failsafe {
         LogUtils.scriptLog(type.label + "!");
         LogUtils.scriptLog("Act like a normal player and stop the script!");
 
-        if(type != FailsafeType.DIRT && type != FailsafeType.DESYNC) // you may not be able to see the dirt, disable a few seconds later
+        if(type != FailsafeType.DIRT && type != FailsafeType.DESYNC && type != FailsafeType.ITEM_CHANGE) // you may not be able to see the dirt, disable a few seconds later
             MacroHandler.disableCurrentMacro(true);
 
 
@@ -331,6 +341,9 @@ public class Failsafe {
                     break;
                 case BEDROCK:
                     emergencyThreadExecutor.submit(cagedActing);
+                    break;
+                case ITEM_CHANGE:
+                    emergencyThreadExecutor.submit(itemChange);
                     break;
             }
         }
@@ -459,6 +472,46 @@ public class Failsafe {
                     MacroHandler.enableMacro();
                 }
             } else mc.theWorld.sendQuittingDisconnectingPacket();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    };
+
+    static Runnable itemChange = () -> {
+        try {
+            Thread.sleep(1000 + new Random().nextInt(1000));
+            MacroHandler.disableCurrentMacro(true);
+            int numberOfRepeats = new Random().nextInt(2) + 2;
+            boolean sneak = Math.random() < 0.3d;
+            Thread.sleep(new Random().nextInt(300) + 300);
+            if (Math.random() < 0.3f)
+                mc.thePlayer.jump();
+            else if (Math.random() < 0.1f){
+                for (int i = 0; i < new Random().nextInt(2) + 1; i++) {
+                    KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
+                    Thread.sleep(150 + new Random().nextInt(300));
+                    KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, false);
+                    Thread.sleep(150 + new Random().nextInt(300));
+                }
+            }
+            Thread.sleep(new Random().nextInt(200) + 150);
+
+            for (int i = 0; i < numberOfRepeats; i++) {
+                Thread.sleep(new Random().nextInt(150) + 200);
+                Tuple<Float, Float> targetRotation = new Tuple<>(mc.thePlayer.rotationYaw + new Random().nextInt(100) - 50, Math.min(Math.max(mc.thePlayer.rotationPitch + new Random().nextInt(100) - 50, -45), 45));
+                int timeToRotate = new Random().nextInt(250) + 250;
+                rotation.easeTo(targetRotation.getFirst(), targetRotation.getSecond(), timeToRotate);
+                Thread.sleep(timeToRotate + new Random().nextInt(250));
+                if (sneak && new Random().nextInt(3) == 0) {
+                    for (int j = 0; j < new Random().nextInt(3); j++) {
+                        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
+                        Thread.sleep(120 + new Random().nextInt(200));
+                        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, false);
+                        Thread.sleep(150);
+                    }
+                }
+            }
+            MacroHandler.enableMacro();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

@@ -75,6 +75,7 @@ public class SShapeCropMacro extends Macro {
         crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
+        getTool();
         if (crop == CropEnum.NETHERWART || crop == CropEnum.CACTUS) {
             pitch = (float) (0f + Math.random() * 0.5f);
         } else {
@@ -157,10 +158,8 @@ public class SShapeCropMacro extends Macro {
             if (mc.thePlayer.rotationPitch != pitch) {
                 rotation.easeTo(yaw, pitch, 500);
             }
-            if (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)
-                mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
-            else
-                mc.thePlayer.inventory.currentItem = PlayerUtils.getAxeSlot();
+            getTool();
+
             KeyBindUtils.stopMovement();
             return;
         }
@@ -225,6 +224,7 @@ public class SShapeCropMacro extends Macro {
             return;
         }
 
+        getTool(false);
         updateState();
         prevState = currentState;
         System.out.println(currentState);
@@ -311,11 +311,11 @@ public class SShapeCropMacro extends Macro {
                 return;
             case RIGHT:
                 LogUtils.debugLog("Middle of row, going right");
-                updateKeys(FarmConfig.cropType != MacroEnum.CACTUS && shouldWalkForwards(), FarmConfig.cropType == MacroEnum.CACTUS && shouldPushBack(), true, false, findAndEquipHoe());
+                updateKeys(FarmConfig.cropType != MacroEnum.CACTUS && shouldWalkForwards(), FarmConfig.cropType == MacroEnum.CACTUS && shouldPushBack(), true, false, true);
                 return;
             case LEFT:
                 LogUtils.debugLog("Middle of row, going left");
-                updateKeys(FarmConfig.cropType != MacroEnum.CACTUS && shouldWalkForwards(), FarmConfig.cropType == MacroEnum.CACTUS && shouldPushBack(), false, true, findAndEquipHoe());
+                updateKeys(FarmConfig.cropType != MacroEnum.CACTUS && shouldWalkForwards(), FarmConfig.cropType == MacroEnum.CACTUS && shouldPushBack(), false, true, true);
                 return;
             case SWITCH_START:
                 LogUtils.debugFullLog("Continue forwards");
@@ -328,10 +328,10 @@ public class SShapeCropMacro extends Macro {
             case SWITCH_END:
                 if (gameState.rightWalkable) {
                     LogUtils.debugFullLog("Continue going right");
-                    updateKeys(false, false, true, false, findAndEquipHoe());
+                    updateKeys(false, false, true, false, true);
                 } else if (gameState.leftWalkable) {
                     LogUtils.debugFullLog("Continue going left");
-                    updateKeys(false, false, false, true, findAndEquipHoe());
+                    updateKeys(false, false, false, true, true);
                 }
                 return;
             case STONE_THROW:
@@ -568,26 +568,26 @@ public class SShapeCropMacro extends Macro {
         }
     };
 
-    public boolean findAndEquipHoe() {
-        int hoeSlot = PlayerUtils.getHoeSlot(crop);
-        if (hoeSlot == -1) {
-            hoeEquipFails = hoeEquipFails + 1;
-            if (hoeEquipFails > 10) {
-                LogUtils.webhookLog("No Hoe Detected 10 times, Quitting");
-                LogUtils.debugLog("No Hoe Detected 10 times, Quitting");
-                mc.theWorld.sendQuittingDisconnectingPacket();
-            } else {
-                LogUtils.webhookLog("No Hoe Detected");
-                LogUtils.debugLog("No Hoe Detected");
-                mc.thePlayer.sendChatMessage("/hub");
-            }
-            return false;
-        } else {
-            mc.thePlayer.inventory.currentItem = hoeSlot;
-            hoeEquipFails = 0;
-            return true;
-        }
-    }
+//    public boolean findAndEquipHoe() {
+//        int hoeSlot = PlayerUtils.getHoeSlot(crop);
+//        if (hoeSlot == -1) {
+//            hoeEquipFails = hoeEquipFails + 1;
+//            if (hoeEquipFails > 10) {
+//                LogUtils.webhookLog("No Hoe Detected 10 times, Quitting");
+//                LogUtils.debugLog("No Hoe Detected 10 times, Quitting");
+//                mc.theWorld.sendQuittingDisconnectingPacket();
+//            } else {
+//                LogUtils.webhookLog("No Hoe Detected");
+//                LogUtils.debugLog("No Hoe Detected");
+//                mc.thePlayer.sendChatMessage("/hub");
+//            }
+//            return false;
+//        } else {
+//            mc.thePlayer.inventory.currentItem = hoeSlot;
+//            hoeEquipFails = 0;
+//            return true;
+//        }
+//    }
 
     private static boolean shouldWalkForwards() {
         float angle = AngleUtils.getClosest();

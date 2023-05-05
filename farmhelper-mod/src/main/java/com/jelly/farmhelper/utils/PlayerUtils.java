@@ -247,11 +247,6 @@ public class PlayerUtils {
     }
 
     public static int getHoeSlot(CropEnum crop) {
-//        if(mc.thePlayer.inventory.getCurrentItem() != null) {
-//            if (mc.thePlayer.inventory.getCurrentItem().getItem() instanceof ItemHoe)
-//                return mc.thePlayer.inventory.currentItem;
-//        }
-
         for (int i = 36; i < 44; i++) {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
                 switch (crop){
@@ -297,11 +292,6 @@ public class PlayerUtils {
     }
 
     public static int getAxeSlot() {
-        if(mc.thePlayer.inventory.getCurrentItem() != null) {
-            if (mc.thePlayer.inventory.getCurrentItem().getItem() instanceof ItemAxe)
-                return mc.thePlayer.inventory.currentItem;
-        }
-
         for (int i = 36; i < 44; i++) {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
 
