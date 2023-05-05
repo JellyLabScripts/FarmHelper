@@ -10,8 +10,8 @@ import com.jelly.farmhelper.world.GameState;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -145,9 +145,9 @@ public class VisitorsMacro {
             return;
         }
 
-        Block blockAbove = BlockUtils.getRelativeBlock(0, 3, 0);
-        if (macroNotRunning() && blockAbove != Blocks.air) {
-            LogUtils.scriptLog("Players isn't on highest row.");
+        if (macroNotRunning() && !isAboveHeadClear()) {
+            LogUtils.scriptLog("Players doesn't have clear space above their head, still going.");
+            clock.schedule(5000);
             return;
         }
         Block blockUnder = BlockUtils.getRelativeBlock(0, -1, 0);
@@ -446,6 +446,11 @@ public class VisitorsMacro {
 
                 break;
             case GIVE_ITEMS:
+                if (!hasRequiredItemsInInventory()) {
+                    delayClock.schedule(250);
+                    return;
+                }
+
                 for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
                     if (rejectOffer) {
                         if (slot.getHasStack() && slot.getStack().getDisplayName().contains("Refuse Offer")) {
@@ -500,6 +505,35 @@ public class VisitorsMacro {
         itemsToBuy.clear();
         itemToBuy = null;
         delayClock.schedule(250);
+    }
+
+    private boolean isAboveHeadClear() {
+        for (int y = (int) mc.thePlayer.posY + 1; y < 110; y++) {
+            BlockPos blockPos = new BlockPos(mc.thePlayer.posX, y, mc.thePlayer.posZ);
+            if (!mc.theWorld.isAirBlock(blockPos)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean hasRequiredItemsInInventory() {
+        for (Pair<String, Integer> item : itemsToBuy) {
+            if (!hasItem(item.getLeft(), item.getRight())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean hasItem(String name, int amount) {
+        int count = 0;
+        for (ItemStack itemStack : mc.thePlayer.inventory.mainInventory) {
+            if (itemStack != null && StringUtils.stripControlCodes(itemStack.getDisplayName()).equals(name)) {
+                count += itemStack.stackSize;
+            }
+        }
+        return count >= amount;
     }
 
     private boolean noMoreVisitors() {
