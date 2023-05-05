@@ -107,13 +107,6 @@ public class Failsafe {
             }
         }
 
-        if (waitAfterVisitorMacroCooldown.isScheduled() && !waitAfterVisitorMacroCooldown.passed()) {
-            return;
-        } else if (waitAfterVisitorMacroCooldown.isScheduled() && waitAfterVisitorMacroCooldown.passed()) {
-            waitAfterVisitorMacroCooldown.reset();
-            return;
-        }
-
         if (!MacroHandler.isMacroing) return;
 
 
@@ -297,6 +290,15 @@ public class Failsafe {
     public static void emergencyFailsafe(FailsafeType type) {
 
         emergency = true;
+
+        if (type == FailsafeType.ROTATION) {
+            System.out.println(waitAfterVisitorMacroCooldown.isScheduled());
+            if (waitAfterVisitorMacroCooldown.isScheduled() && !waitAfterVisitorMacroCooldown.passed()) {
+                return;
+            } else if (waitAfterVisitorMacroCooldown.isScheduled() && waitAfterVisitorMacroCooldown.passed()) {
+                waitAfterVisitorMacroCooldown.reset();
+            }
+        }
 
         LogUtils.webhookLog(type.label);
         LogUtils.scriptLog(type.label + "!");

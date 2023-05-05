@@ -153,12 +153,24 @@ public class SShapeCropMacro extends Macro {
             return;
         }
 
-        if ((Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && Failsafe.waitAfterVisitorMacroCooldown.getRemainingTime() < 500 || (tpCoolDown.isScheduled() && tpCoolDown.getRemainingTime() < 500)) && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
+        if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && Failsafe.waitAfterVisitorMacroCooldown.getRemainingTime() < 500 && !rotation.rotating) {
+            if (mc.thePlayer.rotationPitch != pitch) {
+                rotation.easeTo(yaw, pitch, 500);
+            }
+            if (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)
+                mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
+            else
+                mc.thePlayer.inventory.currentItem = PlayerUtils.getAxeSlot();
+            KeyBindUtils.stopMovement();
+            return;
+        }
+
+        if (tpCoolDown.isScheduled() && tpCoolDown.getRemainingTime() < 500 && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
             yaw = AngleUtils.getClosest();
             rotation.easeTo(yaw, pitch, 500);
         }
 
-        if ((Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && !Failsafe.waitAfterVisitorMacroCooldown.passed() || (tpCoolDown.isScheduled() && !tpCoolDown.passed())) && (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)) {
+        if (tpCoolDown.isScheduled() && !tpCoolDown.passed()) {
             KeyBindUtils.stopMovement();
             return;
         }

@@ -88,6 +88,12 @@ public class VisitorsMacro {
         waitAfterTpClock.reset();
         boughtAllItems = false;
         KeyBindUtils.stopMovement();
+        visitorsFinished.clear();
+        itemsToBuy.clear();
+        itemToBuy = null;
+        currentBuyState = BuyState.IDLE;
+        currentVisitor = null;
+        signText = "";
     }
 
     @SubscribeEvent
@@ -134,9 +140,11 @@ public class VisitorsMacro {
         }
 
 
-        if (macroNotRunning() && TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
-            LogUtils.debugLog("Queue is not full, waiting...");
-            return;
+        if (!MiscConfig.debugMode) {
+            if (macroNotRunning() && TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
+                LogUtils.debugLog("Queue is not full, waiting...");
+                return;
+            }
         }
 
         Block blockAbove = BlockUtils.getRelativeBlock(0, 3, 0);
@@ -258,6 +266,11 @@ public class VisitorsMacro {
                 if (rotation.rotating) return;
                 KeyBindUtils.stopMovement();
                 LogUtils.scriptLog("Looking for a visitor...");
+
+                if (mc.thePlayer.capabilities.isFlying) {
+                    mc.thePlayer.capabilities.isFlying = false;
+                    mc.thePlayer.sendPlayerAbilities();
+                }
 
                 if (noMoreVisitors()) {
                     currentState = State.BACK_TO_FARMING;
@@ -492,7 +505,7 @@ public class VisitorsMacro {
     }
 
     private boolean noMoreVisitors() {
-        return visitors.isEmpty() && visitorsFinished.containsAll(visitors);
+        return visitors.isEmpty() || visitorsFinished.containsAll(visitors);
     }
 
     private void clickSlot(int slot, int windowAdd) {

@@ -108,11 +108,23 @@ public class MushroomMacro extends Macro {
             return;
         }
 
+        if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && Failsafe.waitAfterVisitorMacroCooldown.getRemainingTime() < 500 && !rotation.rotating) {
+            if (mc.thePlayer.rotationPitch != pitch) {
+                rotation.easeTo(yaw, pitch, 500);
+            }
+            if (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)
+                mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
+            else
+                mc.thePlayer.inventory.currentItem = PlayerUtils.getAxeSlot();
+            KeyBindUtils.stopMovement();
+            return;
+        }
+
         if (waitBetweenTp.isScheduled() && waitBetweenTp.passed()) {
             waitBetweenTp.reset();
         }
 
-        if ((Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && Failsafe.waitAfterVisitorMacroCooldown.passed() || (lastTp.isScheduled() && lastTp.passed())) && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
+        if (lastTp.isScheduled() && lastTp.passed()) {
             lastTp.reset();
             if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
                 LogUtils.debugLog("Change direction to FORWARD (tp pad)");
@@ -123,7 +135,7 @@ public class MushroomMacro extends Macro {
             }
         }
 
-        if ((Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && !Failsafe.waitAfterVisitorMacroCooldown.passed() || (lastTp.isScheduled() && !lastTp.passed()))) {
+        if (lastTp.isScheduled() && !lastTp.passed()) {
             if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
                 LogUtils.debugLog("Going FORWARD");
                 updateKeys(false, false, true, false, true);
