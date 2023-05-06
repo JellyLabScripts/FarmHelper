@@ -194,11 +194,6 @@ public class VisitorsMacro {
         if (!enabled) return;
         if (delayClock.isScheduled() && !delayClock.passed()) return;
 
-        if (MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled) return;
-
-        System.out.println("Current state: " + currentState);
-        System.out.println("Current buy state: " + currentBuyState);
-
         if (clock.isScheduled() && !clock.passed()) {
             return;
         } else if (clock.isScheduled()) {
@@ -206,6 +201,11 @@ public class VisitorsMacro {
             MacroHandler.disableCurrentMacro();
             return;
         }
+
+        if (MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled) return;
+
+        System.out.println("Current state: " + currentState);
+        System.out.println("Current buy state: " + currentBuyState);
 
         if (stuckClock.isScheduled() && stuckClock.passed()) {
             LogUtils.scriptLog("Player is stuck, resetting macro");
