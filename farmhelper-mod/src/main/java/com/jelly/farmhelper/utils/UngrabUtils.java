@@ -38,6 +38,7 @@ public class UngrabUtils {
      */
     public static void regrabMouse() {
         if (!isUngrabbed) return;
+
         Minecraft m = Minecraft.getMinecraft();
         m.mouseHelper = oldMouseHelper;
         if (!doesGameWantUngrabbed) m.mouseHelper.grabMouseCursor();

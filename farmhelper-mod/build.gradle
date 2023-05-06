@@ -16,12 +16,16 @@ buildscript {
         maven {
             url = "https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1"
         }
+        maven {
+            url 'https://oss.sonatype.org/content/repositories/'
+        }
     }
     dependencies {
         classpath "com.github.Skytils:ForgeGradle:41dfce0a70"
         classpath "com.github.jengelman.gradle.plugins:shadow:6.1.0"
         classpath "com.github.xcfrg:MixinGradle:0.6-SNAPSHOT"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "com.dorkbox:Notify:3.7"
     }
 }
 
@@ -81,7 +85,11 @@ dependencies {
 
     include('com.github.RewisServer:brigadier:master-SNAPSHOT')
     include('com.github.ronmamo:reflections:master-SNAPSHOT')
+
     include("org.java-websocket:Java-WebSocket:1.5.3")
+
+    include ("com.dorkbox:Notify:3.7")
+    implementation ("com.dorkbox:Notify:3.7")
 
     include('com.googlecode.json-simple:json-simple:1.1.1')
     implementation('com.googlecode.json-simple:json-simple:1.1.1')

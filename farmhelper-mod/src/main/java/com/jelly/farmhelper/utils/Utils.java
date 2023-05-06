@@ -1,38 +1,26 @@
 package com.jelly.farmhelper.utils;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiInventory;
-import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.lwjgl.LWJGLException;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.DisplayMode;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.PixelFormat;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.lang.reflect.Field;
 import java.net.URI;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.ConcurrentModificationException;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import dorkbox.notify.*;
+
 
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
-public class Utils {
+public class Utils{
     static Minecraft mc = Minecraft.getMinecraft();
 
     public static boolean pingAlertPlaying = false;
@@ -107,14 +95,15 @@ public class Utils {
     }
 
     public static void createNotification(String text, SystemTray tray, TrayIcon.MessageType messageType) {
-        new Thread(() -> {
 
+        new Thread(() -> {
             if(Minecraft.isRunningOnMac) {
-                try {
-                    Runtime.getRuntime().exec(new String[]{"osascript", "-e", "display notification"});
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                Notify.create()
+                        .title("Farm Helper Failsafes") // not enough space
+                        .position(Pos.TOP_RIGHT)
+                        .text(text)
+                        .darkStyle()
+                        .showWarning();
             } else {
                 TrayIcon trayIcon = new TrayIcon(new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR), "Farm Helper Failsafe Notification");
                 trayIcon.setToolTip("Farm Helper Failsafe Notification");
@@ -156,7 +145,11 @@ public class Utils {
                     robot.keyRelease(TAB_KEY);
                     robot.delay(100);
                 }
-                UngrabUtils.regrabMouse();
+
+                float initialSensitivity = mc.gameSettings.mouseSensitivity;
+                mc.gameSettings.mouseSensitivity = 0;
+                mc.thePlayer.closeScreen();
+                mc.gameSettings.mouseSensitivity = initialSensitivity;
 
             }
             catch (AWTException e)
