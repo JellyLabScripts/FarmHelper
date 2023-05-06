@@ -78,25 +78,8 @@ public class FarmHelper {
                     .get("url");
         } catch (Exception ignored) {}
 
-        if (FailsafeConfig.notifications) {
-            registerInitNotification();
-        }
     }
 
-
-    public static void registerInitNotification() {
-        new Thread(() -> {
-            TrayIcon trayIcon = new TrayIcon(new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR), "Farm Helper Failsafe Notification");
-            trayIcon.setToolTip("Farm Helper Failsafe Notification");
-            try {
-                SystemTray.getSystemTray().add(trayIcon);
-            } catch (AWTException e) {
-                throw new RuntimeException(e);
-            }
-            trayIcon.displayMessage("Farm Helper Failsafe Notification", "Register Notifications", TrayIcon.MessageType.INFO);
-            SystemTray.getSystemTray().remove(trayIcon);
-        }).start();
-    }
 
     @SubscribeEvent
     public void OnKeyPress(InputEvent.KeyInputEvent event) {
