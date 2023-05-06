@@ -8,6 +8,7 @@ import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.PlayerUtils;
 import gg.essential.elementa.state.BasicState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ChunkProviderClient;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.json.simple.JSONObject;
@@ -54,7 +55,8 @@ public class BanwaveChecker {
                             LogUtils.webhookLog("Disconnecting due to banwave detected");
 
                             MacroHandler.disableCurrentMacro();
-                            PlayerUtils.setSpawn();
+                            if (FailsafeConfig.setSpawnBeforeEvacuate)
+                                PlayerUtils.setSpawn();
                             if (leaveTime.isScheduled() && leaveTime.passed()) {
                                 leaveTime.reset();
                                 this.mc.theWorld.sendQuittingDisconnectingPacket();

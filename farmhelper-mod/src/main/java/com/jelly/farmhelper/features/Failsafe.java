@@ -10,6 +10,7 @@ import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ChunkProviderClient;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S09PacketHeldItemChange;
 import net.minecraft.util.Tuple;
@@ -58,7 +59,8 @@ public class Failsafe {
                 cooldown.schedule(10000);
             }
             if (message.contains("to warp out! CLICK to warp now!")) {
-                PlayerUtils.setSpawn();
+                if (FailsafeConfig.setSpawnBeforeEvacuate)
+                    PlayerUtils.setSpawn();
                 LogUtils.debugLog("Update or restart is required - Evacuating in 5s");
                 evacuateCooldown.schedule(5_000);
                 MacroHandler.disableCurrentMacro(true);

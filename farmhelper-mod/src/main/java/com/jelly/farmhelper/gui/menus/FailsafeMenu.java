@@ -23,6 +23,7 @@ public class FailsafeMenu extends UIContainer {
         new Toggle("Auto alt-tab on staff check",  "autoFocusOnStaffCheck").setChildOf(this);
         new Toggle("Auto tp on world change", "autoTpOnWorldChange").setChildOf(this);
         new Toggle("Auto set spawn", "autoSetspawn").setChildOf(this);
+        new Toggle("Set spawn before evacuate", "setSpawnBeforeEvacuate").setChildOf(this);
         new Slider("Auto set spawn min delay (s)", 120, 1, "autoSetSpawnMinDelay").setChildOf(this);
         new Slider("Auto set spawn max delay (s)", 120, 1, "autoSetSpawnMaxDelay").setChildOf(this);
         new Slider("Rotation check sensitivity (deg)", 10, 1, "rotationSens").setChildOf(this);

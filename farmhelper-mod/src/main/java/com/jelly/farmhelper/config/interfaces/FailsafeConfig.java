@@ -31,4 +31,6 @@ public class FailsafeConfig {
     public static double reconnectDelay = 5.0;
     @Config()
     public static boolean restartAfterFailsafe = false;
+    @Config()
+    public static boolean setSpawnBeforeEvacuate = true;
 }
