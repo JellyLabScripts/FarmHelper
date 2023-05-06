@@ -48,9 +48,9 @@ public class FailsafeMenu extends UIContainer {
         super.draw(matrixStack);
         if (oldNotifications != FailsafeConfig.notifications) {
             oldNotifications = FailsafeConfig.notifications;
-            if (FailsafeConfig.notifications) {
-                FarmHelper.registerInitNotification();
-            }
+//            if (FailsafeConfig.notifications) {
+//                FarmHelper.registerInitNotification();
+//            }
         }
     }
 }
