@@ -2,16 +2,20 @@ package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.enums.CropEnum;
-import com.jelly.farmhelper.config.enums.MacroEnum;
 import com.jelly.farmhelper.config.enums.FarmEnum;
-import com.jelly.farmhelper.config.interfaces.*;
+import com.jelly.farmhelper.config.enums.MacroEnum;
+import com.jelly.farmhelper.config.interfaces.AutoSellConfig;
+import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.config.interfaces.SchedulerConfig;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.features.Scheduler;
+import com.jelly.farmhelper.features.VisitorsMacro;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
-import net.minecraft.block.*;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
@@ -98,14 +102,15 @@ public class MacroHandler {
 
 
         if (isMacroing) {
-//            ProfitCalculator.iterateInventory();
             if (FarmHelper.tickCount == 1) {
                 LogUtils.webhookStatus();
 
                 StatusUtils.updateStateString();
             }
             if (currentMacro != null && currentMacro.enabled) {
-                currentMacro.onTick();
+                if (VisitorsMacro.macroNotRunning() || !MiscConfig.visitorsMacro) {
+                    currentMacro.onTick();
+                }
             }
         }
 
@@ -165,8 +170,16 @@ public class MacroHandler {
     }
 
     public static void disableCurrentMacro() {
+        disableCurrentMacro(false);
+    }
+
+    public static void disableCurrentMacro(boolean failsafeDisable) {
         if (currentMacro != null && currentMacro.enabled) {
-            currentMacro.toggle();
+            if (failsafeDisable) {
+                currentMacro.failsafeDisable();
+            } else {
+                currentMacro.toggle();
+            }
         }
     }
 
@@ -217,5 +230,4 @@ public class MacroHandler {
         LogUtils.scriptLog("Can't detect crop type, defaulting to wheat", EnumChatFormatting.RED);
         return CropEnum.WHEAT;
     }
-
 }

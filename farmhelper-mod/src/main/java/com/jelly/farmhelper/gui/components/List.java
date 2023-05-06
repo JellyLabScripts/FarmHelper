@@ -12,10 +12,15 @@ public class List extends UIBlock {
     private boolean isDragging = false;
     float xDragOffset;
     float yDragOffset;
+
     public List(XConstraint x, YConstraint y, String title, UIContainer content) {
+        this(x, y, title, content, 180);
+    }
+
+    public List(XConstraint x, YConstraint y, String title, UIContainer content, int width) {
         this.setX(x)
             .setY(y)
-            .setWidth(new PixelConstraint(150))
+            .setWidth(new PixelConstraint(width))
             .setHeight(new AdditiveConstraint(new ChildBasedSizeConstraint(), new PixelConstraint(10)))
             .setColor(new Color(36, 37, 39))
             .onMouseClick((component, uiClickEvent) -> {

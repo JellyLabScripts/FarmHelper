@@ -1,7 +1,9 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.config.enums.CropEnum;
+import com.jelly.farmhelper.config.enums.MacroEnum;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
+import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
@@ -35,16 +37,14 @@ public class SugarcaneMacro extends Macro {
 
     private boolean stuck;
 
-    private final Rotation rotator = new Rotation();
-
-    private CropEnum crop;
+    private final Rotation rotation = new Rotation();
 
     @Override
     public void onEnable() {
         yaw = AngleUtils.getClosestDiagonal();
         pitch = 0;
-        rotator.easeTo(yaw, pitch, 500);
-        crop = MacroHandler.getFarmingCrop();
+        rotation.easeTo(yaw, pitch, 500);
+        CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
 
@@ -62,7 +62,19 @@ public class SugarcaneMacro extends Macro {
         KeyBindUtils.stopMovement();
     }
 
+    private State stateBeforeFailsafe = null;
 
+    @Override
+    public void failsafeDisable() {
+        stateBeforeFailsafe = currentState;
+        super.failsafeDisable();
+    }
+
+    @Override
+    public void restoreStateAfterFailsafe() {
+        currentState = stateBeforeFailsafe;
+        super.restoreStateAfterFailsafe();
+    }
 
     @Override
     public void onTick() {
@@ -76,15 +88,24 @@ public class SugarcaneMacro extends Macro {
             return;
         }
 
-        if (rotator.rotating) {
+        if (rotation.rotating) {
             updateKeys(false, false, false, false, false);
+            return;
+        }
+
+        if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && Failsafe.waitAfterVisitorMacroCooldown.getRemainingTime() < 500 && !rotation.rotating) {
+            if (mc.thePlayer.rotationPitch != pitch) {
+                rotation.easeTo(yaw, pitch, 500);
+            }
+            mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
+            KeyBindUtils.stopMovement();
             return;
         }
 
         if (currentState != State.TPPAD
                 && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) >= FailsafeConfig.rotationSens
                 || Math.abs(mc.thePlayer.rotationPitch - pitch) >= FailsafeConfig.rotationSens)) {
-            rotator.reset();
+            rotation.reset();
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
             return;
         }
@@ -121,8 +142,8 @@ public class SugarcaneMacro extends Macro {
 
     @Override
     public void onLastRender() {
-        if(rotator.rotating)
-            rotator.update();
+        if(rotation.rotating)
+            rotation.update();
     }
 
     private WalkState calculateDirection() {

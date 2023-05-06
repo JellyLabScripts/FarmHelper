@@ -19,6 +19,8 @@ import org.lwjgl.opengl.PixelFormat;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -103,6 +105,33 @@ public class Utils {
         return String.format("%,d", Math.round(number));
     }
 
+    public static void createNotification(String text, SystemTray tray, TrayIcon.MessageType messageType) {
+        new Thread(() -> {
+
+            if(Minecraft.isRunningOnMac) {
+                try {
+                    Runtime.getRuntime().exec(new String[]{"osascript", "-e", "display notification"});
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                TrayIcon trayIcon = new TrayIcon(new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR), "Farm Helper Failsafe Notification");
+                trayIcon.setToolTip("Farm Helper Failsafe Notification");
+                try {
+                    tray.add(trayIcon);
+                } catch (AWTException e) {
+                    throw new RuntimeException(e);
+                }
+
+                trayIcon.displayMessage("Farm Helper - Failsafes", text, messageType);
+
+                tray.remove(trayIcon);
+            }
+
+        }).start();
+
+    }
+
     public static void bringWindowToFront() {
 
         SwingUtilities.invokeLater(() -> {
@@ -126,7 +155,7 @@ public class Utils {
                     robot.keyRelease(TAB_KEY);
                     robot.delay(100);
                 }
-
+                UngrabUtils.regrabMouse();
 
             }
             catch (AWTException e)

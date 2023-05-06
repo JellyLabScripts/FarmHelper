@@ -16,10 +16,11 @@ public class FailsafeMenu extends UIContainer {
     public FailsafeMenu() {
         new Toggle("Pop-up notifications", "notifications").setChildOf(this);
         new Toggle("Fake movements", "fakeMovements").setChildOf(this);
+        new Toggle("Restart 3 min after failsafe", "restartAfterFailsafe").setChildOf(this);
         new Toggle("Ping sound",  "pingSound").setChildOf(this);
         new Toggle("Leave on banwave", "banwaveDisconnect").setChildOf(this);
         new Toggle("Check desync",  "checkDesync").setChildOf(this);
-        new Toggle("Auto-tab on staff check",  "autoFocusOnStaffCheck").setChildOf(this);
+        new Toggle("Auto alt-tab on staff check",  "autoFocusOnStaffCheck").setChildOf(this);
         new Toggle("Auto tp on world change", "autoTpOnWorldChange").setChildOf(this);
         new Toggle("Auto set spawn", "autoSetspawn").setChildOf(this);
         new Slider("Auto set spawn min delay (s)", 120, 1, "autoSetSpawnMinDelay").setChildOf(this);
@@ -28,8 +29,14 @@ public class FailsafeMenu extends UIContainer {
         new Slider("Ban threshold (15 mins)", 40, 1, "banThreshold").setChildOf(this);
         new Slider("Delay before reconnect (s)", 20, 1, "reconnectDelay").setChildOf(this);
         ((Button) new Button("Test Failsafe").setChildOf(this)).setOnClick((component, uiClickEvent) -> {
-            Failsafe.emergencyFailsafe(Failsafe.FailsafeType.TEST);
             Minecraft.getMinecraft().currentScreen = null;
+            //wait for 1.5 second
+            new Thread(() -> {
+                try {
+                    Thread.sleep(1500);
+                    Failsafe.emergencyFailsafe(Failsafe.FailsafeType.TEST);
+                } catch (Exception ignored){}
+            }).start();
             return null;
         });
     }

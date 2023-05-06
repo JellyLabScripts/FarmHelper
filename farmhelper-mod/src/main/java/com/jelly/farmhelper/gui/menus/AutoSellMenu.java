@@ -16,13 +16,6 @@ public class AutoSellMenu extends UIContainer {
         new Slider("Inventory Full Ratio", 100.0, 1.0, "fullRatio").setChildOf(this);
         ((Button) new Button("Sell Inventory").setChildOf(this)).setOnClick((component, uiClickEvent) -> {
             Autosell.enable();
-//            FarmHelper.openedGUI = false;
-//            mc.thePlayer.closeScreen();
-//            FarmHelper.cookie = true;
-//            Utils.ExecuteRunnable(FarmHelper.checkFooter);
-//            FarmHelper.timeoutStart = System.currentTimeMillis();
-//            if (FarmHelper.cookie) LogUtils.debugLog("Executing sell in 1 second");
-//            Utils.ScheduleRunnable(FarmHelper.autoSell, 1, TimeUnit.SECONDS);
             return null;
         });
     }

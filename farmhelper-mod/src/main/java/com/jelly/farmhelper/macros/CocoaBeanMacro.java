@@ -11,7 +11,6 @@ import net.minecraft.init.Blocks;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 import static com.jelly.farmhelper.FarmHelper.gameState;
-import static com.jelly.farmhelper.utils.BlockUtils.isWalkable;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class CocoaBeanMacro extends Macro {
@@ -59,6 +58,20 @@ public class CocoaBeanMacro extends Macro {
         updateKeys(false, false, false, false, false);
     }
 
+    private State stateBeforeFailsafe = null;
+
+    @Override
+    public void failsafeDisable() {
+        stateBeforeFailsafe = currentState;
+        super.failsafeDisable();
+    }
+
+    @Override
+    public void restoreStateAfterFailsafe() {
+        currentState = stateBeforeFailsafe;
+        super.restoreStateAfterFailsafe();
+    }
+
     @Override
     public void onLastRender() {
         if (rotation.rotating) {
@@ -92,10 +105,18 @@ public class CocoaBeanMacro extends Macro {
             return;
         }
 
-        if ((currentState != State.DROPPING && currentState != State.TP_PAD &&
-                (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) >= FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) >= FailsafeConfig.rotationSens))) {
-            rotation.reset();
-            Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
+        if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && Failsafe.waitAfterVisitorMacroCooldown.getRemainingTime() < 500 && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
+            rotation.easeTo(yaw, pitch, 500);
+            KeyBindUtils.stopMovement();
+            return;
+        }
+
+        if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && Failsafe.waitAfterVisitorMacroCooldown.getRemainingTime() < 500 && !rotation.rotating) {
+            if (mc.thePlayer.rotationPitch != pitch) {
+                rotation.easeTo(yaw, pitch, 500);
+            }
+            mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
+            KeyBindUtils.stopMovement();
             return;
         }
 

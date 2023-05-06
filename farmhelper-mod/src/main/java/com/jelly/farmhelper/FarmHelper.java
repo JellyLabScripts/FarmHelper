@@ -8,12 +8,11 @@ import com.jelly.farmhelper.gui.Render;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
-import com.jelly.farmhelper.utils.KeyBindUtils;
-import com.jelly.farmhelper.utils.TickTask;
-import com.jelly.farmhelper.utils.Utils;
+import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.BlockPos;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -23,10 +22,12 @@ import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Objects;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -69,6 +70,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new RemoteControlHandler());
         MinecraftForge.EVENT_BUS.register(new ProfitCalculator());
         MinecraftForge.EVENT_BUS.register(new Utils());
+        MinecraftForge.EVENT_BUS.register(new VisitorsMacro());
         gameState = new GameState();
         ProfitCalculator.fetchBazaarPrices();
         try {
@@ -102,6 +104,13 @@ public class FarmHelper {
             openedGUI = true;
             mc.displayGuiScreen(new MenuGUI());
         }
+        if (KeyBindUtils.customKeyBinds[2].isPressed()) {
+            BlockPos pos = BlockUtils.getRelativeBlockPos(0, -1, 0);
+            ConfigHandler.set("visitorsDeskPosX", pos.getX());
+            ConfigHandler.set("visitorsDeskPosY", pos.getY());
+            ConfigHandler.set("visitorsDeskPosZ", pos.getZ());
+            LogUtils.scriptLog("Visitors Desk Position Set. BlockPos: " + pos);
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -119,9 +128,9 @@ public class FarmHelper {
 
     @SneakyThrows
     public static void setVersions() {
-        Class clazz = FarmHelper.class;
+        Class<FarmHelper> clazz = FarmHelper.class;
         String className = clazz.getSimpleName() + ".class";
-        String classPath = clazz.getResource(className).toString();
+        String classPath = Objects.requireNonNull(clazz.getResource(className)).toString();
         if (!classPath.startsWith("jar")) return;
 
         String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) +

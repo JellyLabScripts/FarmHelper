@@ -177,7 +177,6 @@ public class ProfitCalculator {
     private static float checkForBountiful() {
         ItemStack currentItem = mc.thePlayer.getCurrentEquippedItem();
         if (currentItem != null && currentItem.getItem() != null && currentItem.getDisplayName().contains("Bountiful")) {
-            System.out.println(blocksBroken);
             return blocksBroken * 0.2f;
         } else
             return 0;

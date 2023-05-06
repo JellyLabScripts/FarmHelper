@@ -5,7 +5,6 @@ import gg.essential.elementa.components.UIContainer;
 import net.minecraft.client.Minecraft;
 
 public class MiscMenu extends UIContainer {
-    private final Minecraft mc = Minecraft.getMinecraft();
     public MiscMenu() {
         new Toggle("Auto GodPot", "autoGodPot").setChildOf(this);
         new Toggle("Auto Cookie", "autoCookie").setChildOf(this);
@@ -13,5 +12,6 @@ public class MiscMenu extends UIContainer {
         new Toggle("Debug Mode", "debugMode").setChildOf(this);
         new Toggle("Xray", "xray").setChildOf(this);
         new Toggle("Mute Game", "muteGame").setChildOf(this);
+        new Toggle("Visitors Macro", "visitorsMacro").setChildOf(this);
     }
 }

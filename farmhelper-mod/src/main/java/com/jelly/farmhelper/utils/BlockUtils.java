@@ -9,6 +9,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
 import net.minecraft.util.Vec3i;
 
 import java.util.Arrays;
@@ -194,5 +196,17 @@ public class BlockUtils {
             crop = getRelativeBlock(1, 0, 1);
             return crop.equals(Blocks.melon_block) || crop.equals(Blocks.pumpkin);
         }
+    }
+
+    public static boolean canSetSpawn(Block blockUnder) {
+        return !blockUnder.equals(Blocks.stone_slab) &&
+                !blockUnder.equals(Blocks.stone_slab2) &&
+                !blockUnder.equals(Blocks.wooden_slab) &&
+                !blockUnder.equals(Blocks.carpet);
+    }
+
+    public static boolean isBlockVisible(BlockPos pos) {
+        MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ), new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5));
+        return mop == null;
     }
 }

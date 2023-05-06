@@ -3,10 +3,11 @@ package com.jelly.farmhelper.utils;
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
-import com.jelly.farmhelper.macros.MacroHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiInventory;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
@@ -17,9 +18,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -248,44 +247,44 @@ public class PlayerUtils {
     }
 
     public static int getHoeSlot(CropEnum crop) {
-//        if(mc.thePlayer.inventory.getCurrentItem() != null) {
-//            if (mc.thePlayer.inventory.getCurrentItem().getItem() instanceof ItemHoe)
-//                return mc.thePlayer.inventory.currentItem;
-//        }
-
         for (int i = 36; i < 44; i++) {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
-
                 switch (crop){
                     case NETHERWART:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Newton")) {
                             return i - 36;
                         }
-
+                        continue;
                     case CARROT:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Gauss")) {
                             return i - 36;
                         }
+                        continue;
                     case WHEAT:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Euclid")) {
                             return i - 36;
                         }
+                        continue;
                     case POTATO:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Pythagorean")) {
                             return i - 36;
                         }
+                        continue;
                     case SUGARCANE:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Turing")) {
                             return i - 36;
                         }
+                        continue;
                     case CACTUS:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Knife")) {
                             return i - 36;
                         }
+                        continue;
                     case MUSHROOM:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Fungi")) {
                             return i - 36;
                         }
+                        continue;
                 }
             }
         }
@@ -293,11 +292,6 @@ public class PlayerUtils {
     }
 
     public static int getAxeSlot() {
-        if(mc.thePlayer.inventory.getCurrentItem() != null) {
-            if (mc.thePlayer.inventory.getCurrentItem().getItem() instanceof ItemAxe)
-                return mc.thePlayer.inventory.currentItem;
-        }
-
         for (int i = 36; i < 44; i++) {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
 
@@ -314,5 +308,25 @@ public class PlayerUtils {
             }
         }
         return 0;
+    }
+
+    public static Entity getEntityCuttingOtherEntity(Entity e) {
+        List<Entity> possible = mc.theWorld.getEntitiesInAABBexcluding(e, e.getEntityBoundingBox().expand(0.3D, 2.0D, 0.3D), a -> {
+            boolean flag1 = (!a.isDead && !a.equals(mc.thePlayer));
+            boolean flag2 = !(a instanceof EntityArmorStand);
+            boolean flag3 = !(a instanceof net.minecraft.entity.projectile.EntityFireball);
+            boolean flag4 = !(a instanceof net.minecraft.entity.projectile.EntityFishHook);
+            return flag1 && flag2 && flag3 && flag4;
+        });
+        if (!possible.isEmpty())
+            return Collections.min(possible, Comparator.comparing(e2 -> e2.getDistanceToEntity(e)));
+        return null;
+    }
+
+    public static String getItemLore(ItemStack itemStack, int index) {
+        if (itemStack.hasTagCompound()) {
+            return itemStack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8).getStringTagAt(index);
+        }
+        return null;
     }
 }
