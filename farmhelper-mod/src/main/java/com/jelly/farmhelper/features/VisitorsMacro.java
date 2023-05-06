@@ -539,7 +539,6 @@ public class VisitorsMacro {
                 delayClock.schedule(2000);
                 break;
             case TELEPORT_TO_GARDEN:
-//                Failsafe.waitAfterVisitorMacroCooldown.schedule(5_500);
                 mc.thePlayer.sendChatMessage("/warp garden");
                 currentState = State.CHANGE_TO_NONE;
                 delayClock.schedule(2500);
@@ -549,7 +548,7 @@ public class VisitorsMacro {
                 stopMacro();
                 delayClock.schedule(10_000);
                 MacroHandler.enableCurrentMacro();
-                break;
+                return;
         }
 
         if (previousState != currentState) {
@@ -647,4 +646,16 @@ public class VisitorsMacro {
         BlockPos deskPosTemp = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ);
         RenderUtils.drawBlockBox(deskPosTemp, Color.DARK_GRAY);
     }
+
+//    @SubscribeEvent
+//    public void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
+//        if (!MiscConfig.visitorsMacro) return;
+//        if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
+//        if (!MiscConfig.debugMode) return;
+//
+//        FontUtils.drawString("State: " + currentState, 2, 2, Color.WHITE.hashCode(), true);
+//        FontUtils.drawString("Buy state: " + currentBuyState, 2, 12, Color.WHITE.hashCode(), true);
+//        FontUtils.drawString("Stuck timer: " + (stuckClock.getRemainingTime()), 2, 22, Color.WHITE.hashCode(), true);
+//
+//    }
 }
