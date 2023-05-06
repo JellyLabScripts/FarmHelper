@@ -19,6 +19,7 @@ public class FailsafeMenu extends UIContainer {
         new Toggle("Ping sound",  "pingSound").setChildOf(this);
         new Toggle("Leave on banwave", "banwaveDisconnect").setChildOf(this);
         new Toggle("Check desync",  "checkDesync").setChildOf(this);
+        new Toggle("Auto-tab on staff check",  "autoFocusOnStaffCheck").setChildOf(this);
         new Toggle("Auto tp on world change", "autoTpOnWorldChange").setChildOf(this);
         new Toggle("Auto set spawn", "autoSetspawn").setChildOf(this);
         new Slider("Auto set spawn min delay (s)", 120, 1, "autoSetSpawnMinDelay").setChildOf(this);

@@ -248,6 +248,9 @@ public class Failsafe {
         if(type != FailsafeType.DIRT && type != FailsafeType.DESYNC) // you may not be able to see the dirt, disable a few seconds later
             MacroHandler.disableCurrentMacro();
 
+        if(FailsafeConfig.autoFocusOnStaffCheck) {
+            Utils.bringWindowToFront();
+        }
 
         if(FailsafeConfig.notifications){
             try {

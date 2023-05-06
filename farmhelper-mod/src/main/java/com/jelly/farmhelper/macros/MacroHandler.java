@@ -50,16 +50,6 @@ public class MacroHandler {
         if(isMacroing) {
             if(e.message == null)
                 return;
-
-//            if(e.message.getUnformattedText().contains("UNCOMMON"))
-//                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.UNCOMMON);
-//            else if(e.message.getUnformattedText().contains("CRAZY"))
-//                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.CRAZY_RARE);
-//            else if(e.message.getUnformattedText().contains("RARE"))
-//                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.RARE);
-//            else if(e.message.getUnformattedText().contains("RNGESUS"))
-//                ProfitCalculator.addRNGProfit(ProfitCalculator.RNG.PRAY);
-
         }
         if (currentMacro != null && currentMacro.enabled && mc.thePlayer != null && mc.theWorld != null && e.message != null) {
             currentMacro.onChatMessageReceived(e.message.getUnformattedText());

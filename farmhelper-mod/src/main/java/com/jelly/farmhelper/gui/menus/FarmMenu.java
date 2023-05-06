@@ -48,6 +48,12 @@ public class FarmMenu extends UIContainer {
         farmList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 60f, "layered.png", farmList, 0L, "farmType").setChildOf(selector));
         farmList.add(new ImageBox(new PixelConstraint(80), new CramSiblingConstraint(10), 60f, "vertical.png", farmList, 1L, "farmType").setChildOf(selector));
 
+        System.out.println(farmList.get(0));
+        new UIText("S Shape")
+                .setX(new CenterConstraint())
+                .setY(new PixelConstraint(5, true))
+                .setTextScale(new PixelConstraint(0.8f));
+
         new UIText("S Shape")
                 .setX(new CenterConstraint())
                 .setY(new PixelConstraint(5, true))

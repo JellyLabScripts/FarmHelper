@@ -12,6 +12,8 @@ public class FailsafeConfig {
     @Config()
     public static boolean checkDesync = true;
     @Config
+    public static boolean autoFocusOnStaffCheck;
+    @Config
     public static double rotationSens = 1.0;
     @Config()
     public static boolean autoTpOnWorldChange = true;

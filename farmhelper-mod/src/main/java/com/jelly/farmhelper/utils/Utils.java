@@ -1,15 +1,30 @@
 package com.jelly.farmhelper.utils;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiInventory;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.lwjgl.LWJGLException;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.DisplayMode;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.PixelFormat;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.lang.reflect.Field;
 import java.net.URI;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.ConcurrentModificationException;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -86,6 +101,40 @@ public class Utils {
     public static String formatNumber(float number) {
         String s = Integer.toString(Math.round(number));
         return String.format("%,d", Math.round(number));
+    }
+
+    public static void bringWindowToFront() {
+
+        SwingUtilities.invokeLater(() -> {
+
+            int TAB_KEY = Minecraft.isRunningOnMac ? KeyEvent.VK_META : KeyEvent.VK_ALT;
+            try
+            {
+                Robot robot = new Robot();
+
+                int i = 0;
+                while (!Display.isActive())
+                {
+                    i++;
+                    robot.keyPress(TAB_KEY);
+                    for(int j = 0; j < i; j++) {
+                        robot.keyPress(KeyEvent.VK_TAB);
+                        robot.delay(100);
+                        robot.keyRelease(KeyEvent.VK_TAB);
+
+                    }
+                    robot.keyRelease(TAB_KEY);
+                    robot.delay(100);
+                }
+
+
+            }
+            catch (AWTException e)
+            {
+                System.out.println("Failed to use Robot, got exception: " + e.getMessage());
+            }
+        });
+
     }
 
     public static String formatTime(long millis) {
