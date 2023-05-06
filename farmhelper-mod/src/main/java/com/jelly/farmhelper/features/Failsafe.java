@@ -40,7 +40,7 @@ public class Failsafe {
     public static final Clock restartAfterFailsafeCooldown = new Clock();
     public static final Clock waitAfterVisitorMacroCooldown = new Clock();
     private static String formattedTime;
-    private static boolean setSpawnCorrectly = false;
+    public static boolean setSpawnCorrectly = false;
 
     private static boolean wasInGarden = false;
     private static final String[] FAILSAFE_MESSAGES = new String[]
@@ -65,6 +65,10 @@ public class Failsafe {
                 LogUtils.debugLog("Update or restart is required - Evacuating in 5s");
                 evacuateCooldown.schedule(5000);
                 MacroHandler.disableCurrentMacro(true);
+            }
+            if (message.contains("Your spawn location has been set!")) {
+                setSpawnCorrectly = true;
+                LogUtils.debugLog("Spawn set correctly");
             }
         }
         if (message.contains("You cannot set your spawn here!")) {
@@ -106,6 +110,12 @@ public class Failsafe {
                 MacroHandler.enableMacro();
                 restartAfterFailsafeCooldown.reset();
             }
+        }
+
+        if (waitAfterVisitorMacroCooldown.isScheduled() && waitAfterVisitorMacroCooldown.passed()) {
+            waitAfterVisitorMacroCooldown.reset();
+            mc.inGameHasFocus = true;
+            mc.mouseHelper.grabMouseCursor();
         }
 
         if (!MacroHandler.isMacroing) return;
@@ -305,8 +315,6 @@ public class Failsafe {
             System.out.println(waitAfterVisitorMacroCooldown.isScheduled());
             if (waitAfterVisitorMacroCooldown.isScheduled() && !waitAfterVisitorMacroCooldown.passed()) {
                 return;
-            } else if (waitAfterVisitorMacroCooldown.isScheduled() && waitAfterVisitorMacroCooldown.passed()) {
-                waitAfterVisitorMacroCooldown.reset();
             }
         }
 

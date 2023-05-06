@@ -59,13 +59,17 @@ public class VisitorsMacro {
     }
 
     private static State currentState = State.NONE;
+    private static State previousState = State.NONE;
     private static BuyState currentBuyState = BuyState.IDLE;
+    private static BuyState previousBuyState = BuyState.IDLE;
     private static Entity currentVisitor = null;
 
     private static final Clock clock = new Clock();
     public static final Rotation rotation = new Rotation();
     public static final Clock waitAfterTpClock = new Clock();
     public static final Clock delayClock = new Clock();
+    public static final Clock stuckClock = new Clock();
+    public static final Clock giveBackItemsClock = new Clock();
     public static boolean rejectOffer = false;
     private static final Pattern pattern = Pattern.compile("^ [\\w ]+", Pattern.CASE_INSENSITIVE);
     public static String signText = "";
@@ -94,6 +98,9 @@ public class VisitorsMacro {
         currentBuyState = BuyState.IDLE;
         currentVisitor = null;
         signText = "";
+        stuckClock.reset();
+        previousState = State.NONE;
+        previousBuyState = BuyState.IDLE;
     }
 
     @SubscribeEvent
@@ -132,6 +139,10 @@ public class VisitorsMacro {
         if (!MiscConfig.visitorsMacro) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
+        if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && !Failsafe.waitAfterVisitorMacroCooldown.passed()) {
+            return;
+        }
+
         if (clock.isScheduled() && !clock.passed()) {
             return;
         } else if (clock.isScheduled()) {
@@ -146,19 +157,19 @@ public class VisitorsMacro {
         }
 
         if (macroNotRunning() && !isAboveHeadClear()) {
-            LogUtils.scriptLog("Players doesn't have clear space above their head, still going.");
+            LogUtils.debugLog("Player doesn't have clear space above their head, still going.");
             clock.schedule(5000);
             return;
         }
         Block blockUnder = BlockUtils.getRelativeBlock(0, -1, 0);
         if (macroNotRunning() && !BlockUtils.canSetSpawn(blockUnder)) {
-            LogUtils.scriptLog("Can't setspawn here, still going.");
+            LogUtils.debugLog("Can't setspawn here, still going.");
             return;
         }
         int aspectOfTheVoid = PlayerUtils.getItemInHotbar("Aspect of the Void");
         if (aspectOfTheVoid == -1) {
             ConfigHandler.set("visitorsMacro", false);
-            LogUtils.scriptLog("Disabling this feature, player doesn't have AOTV (Aspect of the Void)");
+            LogUtils.debugLog("Disabling this feature, player doesn't have AOTV (Aspect of the Void)");
             return;
         }
 
@@ -174,6 +185,17 @@ public class VisitorsMacro {
             rotation.completed = true;
             LogUtils.debugLog("Visitors macro is started");
             clock.schedule(3000);
+            stuckClock.schedule(60_000);
+            return;
+        }
+
+        if (stuckClock.isScheduled() && stuckClock.passed()) {
+            LogUtils.scriptLog("Player is stuck, resetting macro");
+            stopMacro();
+            mc.thePlayer.closeScreen();
+            currentState = State.MANAGING_VISITORS;
+            currentBuyState = BuyState.IDLE;
+            stuckClock.reset();
             return;
         }
 
@@ -187,7 +209,7 @@ public class VisitorsMacro {
                 break;
             case TRY_TO_SET_SPAWN:
                 // idle to wait for chatmessage
-                return;
+                break;
             case FLYING_TO_110_Y:
                 int playerY = mc.thePlayer.getPosition().getY();
 
@@ -205,7 +227,7 @@ public class VisitorsMacro {
                 }
                 break;
             case ROTATE_TO_DESK:
-                if (mc.currentScreen != null) return;
+                if (mc.currentScreen != null) break;
 
                 BlockPos deskPosTemp = new BlockPos(MiscConfig.visitorsDeskPosX + 0.5, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), MiscConfig.visitorsDeskPosZ + 0.5);
 
@@ -217,16 +239,16 @@ public class VisitorsMacro {
 
                 break;
             case MOVE_TOWARDS_DESK:
-                if (rotation.rotating) return;
-                if (mc.currentScreen != null) return;
+                if (rotation.rotating) break;
+                if (mc.currentScreen != null) break;
 
-                BlockPos finalDeskPos = new BlockPos(MiscConfig.visitorsDeskPosX + 0.5, MiscConfig.visitorsDeskPosY + 1, MiscConfig.visitorsDeskPosZ + 0.5);
+                BlockPos finalDeskPos = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY + 1, MiscConfig.visitorsDeskPosZ);
 
                 if (PlayerUtils.getItemInHotbar("Void") == -1) {
                     LogUtils.scriptLog("Player doesn't have Aspect of the Void, stopping macro.");
                     stopMacro();
                     ConfigHandler.set("visitorsMacro", false);
-                    return;
+                    break;
                 }
 
                 mc.thePlayer.inventory.currentItem = PlayerUtils.getItemInHotbar("Void");
@@ -235,22 +257,22 @@ public class VisitorsMacro {
 
                 if (BlockUtils.isBlockVisible(finalDeskPos) && distance < 50) {
                     KeyBindUtils.updateKeys(false, false, false, false, false, true, true, false);
-                    if (FarmHelper.gameState.dx > 0.05 || FarmHelper.gameState.dz > 0.05) {
-                        return;
+                    if (FarmHelper.gameState.dx > 0.01 || FarmHelper.gameState.dz > 0.01) {
+                        break;
                     }
 
                     rotationToDesk = AngleUtils.getRotation(finalDeskPos);
-                    rotation.easeTo(rotationToDesk.getLeft(), rotationToDesk.getRight(), 1000);
+                    rotation.easeTo(rotationToDesk.getLeft(), rotationToDesk.getRight(), 800);
 
                     currentState = State.TELEPORT_TO_DESK;
-                    return;
+                    break;
                 }
 
                 KeyBindUtils.updateKeys(true, false, false, false, false, false, false, true);
 
                 break;
             case TELEPORT_TO_DESK:
-                if (rotation.rotating) return;
+                if (rotation.rotating) break;
 
                 mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem());
                 currentState = State.MANAGING_VISITORS;
@@ -258,10 +280,13 @@ public class VisitorsMacro {
 
                 break;
             case MANAGING_VISITORS:
-                if (mc.currentScreen != null) return;
-                if (waitAfterTpClock.isScheduled() && !waitAfterTpClock.passed()) return;
-                if (delayClock.isScheduled() && !delayClock.passed()) return;
-                if (rotation.rotating) return;
+                if (mc.currentScreen != null) {
+
+                    break;
+                }
+                if (waitAfterTpClock.isScheduled() && !waitAfterTpClock.passed()) break;
+                if (delayClock.isScheduled() && !delayClock.passed()) break;
+                if (rotation.rotating) break;
                 KeyBindUtils.stopMovement();
                 LogUtils.scriptLog("Looking for a visitor...");
 
@@ -314,9 +339,9 @@ public class VisitorsMacro {
             case OPEN_VISITOR:
                 if (currentVisitor == null) {
                     currentState = State.MANAGING_VISITORS;
-                    return;
+                    break;
                 }
-                if (rotation.rotating) return;
+                if (rotation.rotating) break;
 
                 itemsToBuy.clear();
                 mc.playerController.interactWithEntitySendPacket(mc.thePlayer, currentVisitor);
@@ -327,7 +352,7 @@ public class VisitorsMacro {
                 delayClock.schedule(250);
                 break;
             case BUY_ITEMS:
-                if (delayClock.isScheduled() && !delayClock.passed()) return;
+                if (delayClock.isScheduled() && !delayClock.passed()) break;
                 String chestName = mc.thePlayer.openContainer.inventorySlots.get(0).inventory.getName();
 
                 System.out.println(chestName);
@@ -338,7 +363,7 @@ public class VisitorsMacro {
                             if (!itemsToBuy.isEmpty()) {
                                 itemToBuy = itemsToBuy.get(0);
                                 mc.thePlayer.sendChatMessage("/bz " + itemToBuy.getLeft());
-                                delayClock.schedule(250);
+                                delayClock.schedule(750);
                                 currentBuyState = BuyState.CLICK_CROP;
                                 break;
                             }
@@ -354,12 +379,13 @@ public class VisitorsMacro {
                                                 String[] split = cleanLore.split("x");
                                                 cropsToBuy.add(Pair.of(split[0].trim(), Integer.parseInt(split[1].replace(",", "").trim())));
                                             } else {
-                                                cropsToBuy.add(Pair.of(cleanLore, 1));
+                                                cropsToBuy.add(Pair.of(cleanLore.trim(), 1));
                                             }
                                         }
                                     }
                                     if (cropsToBuy.isEmpty()) {
                                         LogUtils.scriptLog("No items to buy");
+                                        stopMacro();
                                         return;
                                     }
                                     itemsToBuy.addAll(cropsToBuy);
@@ -376,7 +402,7 @@ public class VisitorsMacro {
                                 }
                                 for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
                                     if (!slot.getHasStack()) continue;
-                                    if (StringUtils.stripControlCodes(slot.getStack().getDisplayName()).equals(itemToBuy.getLeft())) {
+                                    if (StringUtils.stripControlCodes(slot.getStack().getDisplayName()).trim().equals(itemToBuy.getLeft().trim())) {
                                         clickSlot(slot.slotNumber, 0);
                                         currentBuyState = BuyState.CLICK_SIGN;
                                         rejectOffer = false;
@@ -384,10 +410,12 @@ public class VisitorsMacro {
                                         return;
                                     }
                                 }
-
+                                System.out.println("Item not found");
+                                System.out.println(itemToBuy.getLeft());
                                 rejectOffer = true;
                                 signText = "";
-                                currentState = State.GIVE_ITEMS;
+                                boughtAllItems = true;
+                                currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
                             }
                             break;
                         case CLICK_SIGN:
@@ -396,14 +424,12 @@ public class VisitorsMacro {
                                 break;
                             }
                             if (chestName.contains("➜") && !chestName.contains("Bazaar")) {
-                                if (chestName.contains("➜") && !chestName.contains("Bazaar")) {
-                                    clickSlot(10, 0);
-                                    clickSlot(16, 1);
+                                clickSlot(10, 0);
+                                clickSlot(16, 1);
 
-                                    signText = String.valueOf(itemToBuy.getRight());
-                                    currentBuyState = BuyState.CLICK_BUY;
-                                    delayClock.schedule(250);
-                                }
+                                signText = String.valueOf(itemToBuy.getRight());
+                                currentBuyState = BuyState.CLICK_BUY;
+                                delayClock.schedule(250);
                             }
                             break;
                         case CLICK_BUY:
@@ -446,21 +472,31 @@ public class VisitorsMacro {
 
                 break;
             case GIVE_ITEMS:
-                if (!hasRequiredItemsInInventory()) {
+                if (!hasRequiredItemsInInventory() && !rejectOffer) {
+                    if (!giveBackItemsClock.isScheduled()) {
+                        giveBackItemsClock.schedule(15_000);
+                    } else if (giveBackItemsClock.passed()) {
+                        LogUtils.scriptLog("Can't give items to visitor, going to buy again");
+                        visitorsFinished.clear();
+                        delayClock.schedule(3_000);
+                        currentState = State.MANAGING_VISITORS;
+                        currentBuyState = BuyState.IDLE;
+                        break;
+                    }
                     delayClock.schedule(250);
-                    return;
+                    break;
                 }
 
                 for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
                     if (rejectOffer) {
                         if (slot.getHasStack() && slot.getStack().getDisplayName().contains("Refuse Offer")) {
                             finishVisitor(slot);
-                            return;
+                            break;
                         }
                     } else {
                         if (slot.getHasStack() && slot.getStack().getDisplayName().contains("Accept Offer")) {
                             finishVisitor(slot);
-                            return;
+                            break;
                         }
                     }
                 }
@@ -469,28 +505,39 @@ public class VisitorsMacro {
                 if (mc.currentScreen != null) {
                     mc.thePlayer.closeScreen();
                     delayClock.schedule(250);
-                    return;
+                    break;
                 }
                 if (noMoreVisitors()) {
                     currentState = State.TELEPORT_TO_GARDEN;
                     delayClock.schedule(2000);
-                    return;
+                    break;
                 } else {
                     currentState = State.MANAGING_VISITORS;
                 }
                 delayClock.schedule(1500);
                 break;
             case TELEPORT_TO_GARDEN:
-                Failsafe.waitAfterVisitorMacroCooldown.schedule(5000);
+                Failsafe.waitAfterVisitorMacroCooldown.schedule(7_500);
                 mc.thePlayer.sendChatMessage("/warp garden");
                 currentState = State.CHANGE_TO_NONE;
                 delayClock.schedule(2500);
                 break;
             case CHANGE_TO_NONE:
                 currentState = State.NONE;
-                delayClock.schedule(2500);
                 stopMacro();
+                delayClock.schedule(10_000);
                 break;
+        }
+
+        if (previousState != currentState) {
+            System.out.println("State changed from " + previousState + " to " + currentState);
+            stuckClock.schedule(60_000);
+            previousState = currentState;
+        }
+        if (previousBuyState != currentBuyState) {
+            System.out.println("Buy state changed from " + previousBuyState + " to " + currentBuyState);
+            stuckClock.schedule(60_000);
+            previousBuyState = currentBuyState;
         }
     }
 
@@ -537,7 +584,7 @@ public class VisitorsMacro {
     }
 
     private boolean noMoreVisitors() {
-        return visitors.isEmpty() || visitorsFinished.containsAll(visitors);
+        return visitors.isEmpty() || visitorsFinished.size() == 5;
     }
 
     private void clickSlot(int slot, int windowAdd) {
