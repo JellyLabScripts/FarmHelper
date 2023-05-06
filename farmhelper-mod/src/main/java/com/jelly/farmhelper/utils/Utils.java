@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
-public class Utils {
+public class Utils{
     static Minecraft mc = Minecraft.getMinecraft();
 
     public static boolean pingAlertPlaying = false;
@@ -108,6 +108,7 @@ public class Utils {
     public static void createNotification(String text, SystemTray tray, TrayIcon.MessageType messageType) {
         new Thread(() -> {
 
+
             if(Minecraft.isRunningOnMac) {
                 try {
                     Runtime.getRuntime().exec(new String[]{"osascript", "-e", "display notification"});
@@ -155,7 +156,11 @@ public class Utils {
                     robot.keyRelease(TAB_KEY);
                     robot.delay(100);
                 }
-                UngrabUtils.regrabMouse();
+
+                float initialSensitivity = mc.gameSettings.mouseSensitivity;
+                mc.gameSettings.mouseSensitivity = 0;
+                mc.thePlayer.closeScreen();
+                mc.gameSettings.mouseSensitivity = initialSensitivity;
 
             }
             catch (AWTException e)

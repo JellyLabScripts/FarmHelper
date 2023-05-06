@@ -16,6 +16,9 @@ buildscript {
         maven {
             url = "https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1"
         }
+        maven {
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
     }
     dependencies {
         classpath "com.github.Skytils:ForgeGradle:41dfce0a70"
@@ -81,7 +84,11 @@ dependencies {
 
     include('com.github.RewisServer:brigadier:master-SNAPSHOT')
     include('com.github.ronmamo:reflections:master-SNAPSHOT')
+
     include("org.java-websocket:Java-WebSocket:1.5.3")
+
+    //include('com.sshtools:two-slices:0.9.0-SNAPSHOT')
+    //annotationProcessor('com.sshtools:two-slices:0.9.0-SNAPSHOT')
 
     include('com.googlecode.json-simple:json-simple:1.1.1')
     implementation('com.googlecode.json-simple:json-simple:1.1.1')
