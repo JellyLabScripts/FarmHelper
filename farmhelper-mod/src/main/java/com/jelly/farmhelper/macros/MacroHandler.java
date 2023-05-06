@@ -116,6 +116,7 @@ public class MacroHandler {
 
     }
     public static void toggleMacro(){
+        Failsafe.restartAfterFailsafeCooldown.reset();
         if(Failsafe.emergency) {
             Failsafe.stopAllFailsafeThreads();
             disableMacro();

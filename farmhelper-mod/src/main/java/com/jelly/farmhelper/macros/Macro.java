@@ -38,7 +38,6 @@ public abstract class Macro {
         } else {
             onDisable();
         }
-        Failsafe.restartAfterFailsafeCooldown.reset();
     }
 
     public void onEnable() {}
