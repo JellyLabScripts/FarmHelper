@@ -158,9 +158,13 @@ public class SShapeCropMacro extends Macro {
             if (mc.thePlayer.rotationPitch != pitch) {
                 rotation.easeTo(yaw, pitch, 500);
             }
-            getTool();
+            getTool(true);
 
             KeyBindUtils.stopMovement();
+            return;
+        } else if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && !Failsafe.waitAfterVisitorMacroCooldown.passed()) {
+            KeyBindUtils.stopMovement();
+            getTool(true);
             return;
         }
 

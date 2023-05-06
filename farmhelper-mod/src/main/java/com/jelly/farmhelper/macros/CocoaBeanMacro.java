@@ -115,8 +115,12 @@ public class CocoaBeanMacro extends Macro {
             if (mc.thePlayer.rotationPitch != pitch) {
                 rotation.easeTo(yaw, pitch, 500);
             }
-            mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
+            getTool(true);
             KeyBindUtils.stopMovement();
+            return;
+        } else if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && !Failsafe.waitAfterVisitorMacroCooldown.passed()) {
+            KeyBindUtils.stopMovement();
+            getTool(true);
             return;
         }
 

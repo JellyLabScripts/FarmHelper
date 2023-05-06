@@ -61,6 +61,7 @@ public class Utils{
 
     public static void sendPingAlert() {
         pingAlertPlaying = true;
+        numPings = 15;
     }
 
     @SubscribeEvent

@@ -124,8 +124,12 @@ public class VerticalCropMacro extends Macro{
                 yaw = AngleUtils.getClosest();
                 rotation.easeTo(yaw, pitch, 500);
             }
-            getTool();
+            getTool(true);
             KeyBindUtils.stopMovement();
+            return;
+        } else if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && !Failsafe.waitAfterVisitorMacroCooldown.passed()) {
+            KeyBindUtils.stopMovement();
+            getTool(true);
             return;
         }
 

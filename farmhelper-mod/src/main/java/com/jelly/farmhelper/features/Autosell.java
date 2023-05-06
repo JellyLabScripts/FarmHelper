@@ -74,6 +74,7 @@ public class Autosell {
         soldSacks = false;
         waitBeforeSellClock.schedule(3_500);
         stuckClock.schedule(10_000);
+        Failsafe.setSpawnCorrectly = true;
     }
 
     public static void disable() {
