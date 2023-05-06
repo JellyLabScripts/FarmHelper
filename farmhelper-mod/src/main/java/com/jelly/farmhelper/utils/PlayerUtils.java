@@ -323,6 +323,15 @@ public class PlayerUtils {
         return null;
     }
 
+    public static ArrayList<String> getItemLore(ItemStack itemStack) {
+        NBTTagList loreTag = itemStack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8);
+        ArrayList<String> loreList = new ArrayList<>();
+        for (int i = 0; i < loreTag.tagCount(); i++) {
+            loreList.add(StringUtils.stripControlCodes(loreTag.getStringTagAt(i)));
+        }
+        return loreList;
+    }
+
     public static String getItemLore(ItemStack itemStack, int index) {
         if (itemStack.hasTagCompound()) {
             return itemStack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8).getStringTagAt(index);

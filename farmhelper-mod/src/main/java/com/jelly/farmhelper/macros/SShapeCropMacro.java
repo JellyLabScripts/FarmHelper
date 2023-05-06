@@ -75,7 +75,7 @@ public class SShapeCropMacro extends Macro {
         crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
-        getTool();
+        CropUtils.getTool();
         if (crop == CropEnum.NETHERWART || crop == CropEnum.CACTUS) {
             pitch = (float) (0f + Math.random() * 0.5f);
         } else {
@@ -154,20 +154,6 @@ public class SShapeCropMacro extends Macro {
             return;
         }
 
-        if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && Failsafe.waitAfterVisitorMacroCooldown.getRemainingTime() < 500 && !rotation.rotating) {
-            if (mc.thePlayer.rotationPitch != pitch) {
-                rotation.easeTo(yaw, pitch, 500);
-            }
-            getTool(true);
-
-            KeyBindUtils.stopMovement();
-            return;
-        } else if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && !Failsafe.waitAfterVisitorMacroCooldown.passed()) {
-            KeyBindUtils.stopMovement();
-            getTool(true);
-            return;
-        }
-
         if (tpCoolDown.isScheduled() && tpCoolDown.getRemainingTime() < 500 && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
             yaw = AngleUtils.getClosest();
             rotation.easeTo(yaw, pitch, 500);
@@ -228,7 +214,7 @@ public class SShapeCropMacro extends Macro {
             return;
         }
 
-        getTool(false);
+        CropUtils.getTool();
         updateState();
         prevState = currentState;
         System.out.println(currentState);

@@ -202,7 +202,8 @@ public class BlockUtils {
         return !blockUnder.equals(Blocks.stone_slab) &&
                 !blockUnder.equals(Blocks.stone_slab2) &&
                 !blockUnder.equals(Blocks.wooden_slab) &&
-                !blockUnder.equals(Blocks.carpet);
+                !blockUnder.equals(Blocks.carpet) &&
+                !blockUnder.equals(Blocks.end_portal_frame);
     }
 
     public static boolean isBlockVisible(BlockPos pos) {

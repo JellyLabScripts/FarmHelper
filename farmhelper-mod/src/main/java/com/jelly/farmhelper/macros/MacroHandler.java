@@ -108,7 +108,7 @@ public class MacroHandler {
                 StatusUtils.updateStateString();
             }
             if (currentMacro != null && currentMacro.enabled) {
-                if (VisitorsMacro.macroNotRunning() || !MiscConfig.visitorsMacro) {
+                if (!VisitorsMacro.isEnabled()) {
                     currentMacro.onTick();
                 }
             }
@@ -167,6 +167,7 @@ public class MacroHandler {
         LogUtils.webhookLog("Disabling script");
         UngrabUtils.regrabMouse();
         StatusUtils.updateStateString();
+        VisitorsMacro.stopMacro();
     }
 
     public static void disableCurrentMacro() {
@@ -188,6 +189,7 @@ public class MacroHandler {
             mc.inGameHasFocus = true;
             mc.displayGuiScreen(null);
             startingUp = true;
+            CropUtils.itemChangedByStaff = false;
             KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
             new Thread(startCurrent).start();
         }

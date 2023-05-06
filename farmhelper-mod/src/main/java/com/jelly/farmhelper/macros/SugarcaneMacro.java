@@ -93,19 +93,6 @@ public class SugarcaneMacro extends Macro {
             return;
         }
 
-        if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && Failsafe.waitAfterVisitorMacroCooldown.getRemainingTime() < 500 && !rotation.rotating) {
-            if (mc.thePlayer.rotationPitch != pitch) {
-                rotation.easeTo(yaw, pitch, 500);
-            }
-            getTool(true);
-            KeyBindUtils.stopMovement();
-            return;
-        } else if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && !Failsafe.waitAfterVisitorMacroCooldown.passed()) {
-            KeyBindUtils.stopMovement();
-            getTool(true);
-            return;
-        }
-
         if (currentState != State.TPPAD
                 && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) >= FailsafeConfig.rotationSens
                 || Math.abs(mc.thePlayer.rotationPitch - pitch) >= FailsafeConfig.rotationSens)) {
@@ -118,6 +105,9 @@ public class SugarcaneMacro extends Macro {
             stuck = true;
             new Thread(fixRowStuck).start();
         }
+
+        CropUtils.getTool();
+
 
         switch(currentState){
             case WALK:

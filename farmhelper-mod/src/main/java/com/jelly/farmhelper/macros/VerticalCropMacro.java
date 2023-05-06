@@ -82,7 +82,7 @@ public class VerticalCropMacro extends Macro{
         prevState = null;
         currentState = State.NONE;
         rotation.easeTo(yaw, pitch, 500);
-        getTool();
+        CropUtils.getTool();
         isTping = false;
         if (getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)) {
             lastTp.schedule(1000);
@@ -119,20 +119,6 @@ public class VerticalCropMacro extends Macro{
         }
 
 
-        if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && Failsafe.waitAfterVisitorMacroCooldown.getRemainingTime() < 500 && !rotation.rotating) {
-            if (mc.thePlayer.rotationPitch != pitch) {
-                yaw = AngleUtils.getClosest();
-                rotation.easeTo(yaw, pitch, 500);
-            }
-            getTool(true);
-            KeyBindUtils.stopMovement();
-            return;
-        } else if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && !Failsafe.waitAfterVisitorMacroCooldown.passed()) {
-            KeyBindUtils.stopMovement();
-            getTool(true);
-            return;
-        }
-
         if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
             yaw = AngleUtils.getClosest();
             rotation.easeTo(yaw, pitch, 500);
@@ -159,7 +145,7 @@ public class VerticalCropMacro extends Macro{
             return;
         }
 
-        getTool(false);
+        CropUtils.getTool();
 
         if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||

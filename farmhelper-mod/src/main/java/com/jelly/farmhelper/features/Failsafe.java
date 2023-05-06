@@ -38,9 +38,7 @@ public class Failsafe {
     private static final Clock evacuateCooldown = new Clock();
     private static final Clock afterEvacuateCooldown = new Clock();
     public static final Clock restartAfterFailsafeCooldown = new Clock();
-    public static final Clock waitAfterVisitorMacroCooldown = new Clock();
     private static String formattedTime;
-    public static boolean setSpawnCorrectly = false;
 
     private static boolean wasInGarden = false;
     private static final String[] FAILSAFE_MESSAGES = new String[]
@@ -60,19 +58,16 @@ public class Failsafe {
                 cooldown.schedule(10000);
             }
             if (message.contains("to warp out! CLICK to warp now!")) {
-                setSpawnCorrectly = true;
                 PlayerUtils.setSpawn();
                 LogUtils.debugLog("Update or restart is required - Evacuating in 5s");
-                evacuateCooldown.schedule(5000);
+                evacuateCooldown.schedule(5_000);
                 MacroHandler.disableCurrentMacro(true);
             }
             if (message.contains("Your spawn location has been set!")) {
-                setSpawnCorrectly = true;
                 LogUtils.debugLog("Spawn set correctly");
             }
         }
         if (message.contains("You cannot set your spawn here!")) {
-            setSpawnCorrectly = false;
             LogUtils.debugLog("Spawn set incorrectly");
         }
     }
@@ -112,12 +107,6 @@ public class Failsafe {
             }
         }
 
-        if (waitAfterVisitorMacroCooldown.isScheduled() && waitAfterVisitorMacroCooldown.passed()) {
-            waitAfterVisitorMacroCooldown.reset();
-            mc.inGameHasFocus = true;
-            mc.mouseHelper.grabMouseCursor();
-        }
-
         if (!MacroHandler.isMacroing) return;
 
 
@@ -155,7 +144,6 @@ public class Failsafe {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
                     cooldown.schedule(5000);
-                    afterEvacuateCooldown.schedule(7500);
                 }
                 return;
             case ISLAND:
@@ -165,6 +153,7 @@ public class Failsafe {
                     mc.thePlayer.sendChatMessage("/evacuate");
                     evacuateCooldown.reset();
                     cooldown.schedule(5000);
+                    afterEvacuateCooldown.schedule(15_000);
                 }
                 if (JacobConfig.jacobFailsafe && jacobExceeded() && jacobWait.passed() && MacroHandler.currentMacro.enabled) {
                     LogUtils.debugLog("Jacob remaining time: " + formattedTime);
@@ -182,15 +171,10 @@ public class Failsafe {
                         && !emergency
                         && !evacuateCooldown.isScheduled()
                         && !afterEvacuateCooldown.isScheduled()
-                        && !restartAfterFailsafeCooldown.isScheduled()) {
+                        && !restartAfterFailsafeCooldown.isScheduled()
+                        && !VisitorsMacro.isEnabled()) {
 
-                    if (setSpawnCorrectly) {
-                        LogUtils.debugLog("Resuming macro");
-                        MacroHandler.enableCurrentMacro();
-                    } else {
-                        LogUtils.debugLog("Spawn wasn't set correctly");
-                        MacroHandler.disableCurrentMacro();
-                    }
+                    MacroHandler.enableCurrentMacro();
                 } else if (afterEvacuateCooldown.isScheduled() && !afterEvacuateCooldown.passed()) {
                     LogUtils.debugLog("Waiting for \"after entering island\" cooldown: " + (String.format("%.1f", afterEvacuateCooldown.getRemainingTime() / 1000f)));
                 } else if (afterEvacuateCooldown.isScheduled() && afterEvacuateCooldown.passed()) {
@@ -279,8 +263,10 @@ public class Failsafe {
     @SubscribeEvent
     public void onItemChange(ReceivePacketEvent event) {
         if (!MacroHandler.isMacroing) return;
+        if (evacuateCooldown.isScheduled() || afterEvacuateCooldown.isScheduled()) return;
         if (event.packet instanceof S09PacketHeldItemChange) {
             emergencyFailsafe(FailsafeType.ITEM_CHANGE);
+            CropUtils.itemChangedByStaff = true;
         }
     }
 
@@ -310,13 +296,6 @@ public class Failsafe {
     public static void emergencyFailsafe(FailsafeType type) {
 
         emergency = true;
-
-        if (type == FailsafeType.ROTATION) {
-            System.out.println(waitAfterVisitorMacroCooldown.isScheduled());
-            if (waitAfterVisitorMacroCooldown.isScheduled() && !waitAfterVisitorMacroCooldown.passed()) {
-                return;
-            }
-        }
 
         LogUtils.webhookLog(type.label);
         LogUtils.scriptLog(type.label + "!");

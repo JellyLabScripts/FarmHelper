@@ -18,6 +18,15 @@ public abstract class Macro {
     public boolean disabledByFailsafe = false;
 
 
+    public void toggle(boolean pause) {
+        if (pause) {
+            enabled = false;
+            onDisable();
+        } else {
+            toggle();
+        }
+    }
+
     public void toggle() {
         enabled = !enabled;
         if (enabled) {
@@ -27,7 +36,6 @@ public abstract class Macro {
                 restoreStateAfterFailsafe();
             }
         } else {
-            VisitorsMacro.stopMacro();
             onDisable();
         }
         Failsafe.restartAfterFailsafeCooldown.reset();
@@ -54,21 +62,5 @@ public abstract class Macro {
 
     public void restoreStateAfterFailsafe() {}
 
-    public void getTool() {
-        getTool(true);
-    }
 
-    public void getTool(boolean blatant) {
-        // Sometimes if staff changed your slot, you might not have the tool in your hand after the swap, so it won't be obvious that you're using a macro
-        if (!blatant) {
-            ItemStack tool = mc.thePlayer.getHeldItem();
-            if (tool != null && !(tool.getItem() instanceof ItemHoe) && !(tool.getItem() instanceof ItemAxe)) {
-                return;
-            }
-        }
-        if (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)
-            mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
-        else
-            mc.thePlayer.inventory.currentItem = PlayerUtils.getAxeSlot();
-    }
 }

@@ -23,7 +23,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -58,6 +57,8 @@ public class VisitorsMacro {
         HAND_IN_CROPS,
     }
 
+    private static boolean enabled = false;
+
     private static State currentState = State.NONE;
     private static State previousState = State.NONE;
     private static BuyState currentBuyState = BuyState.IDLE;
@@ -71,7 +72,6 @@ public class VisitorsMacro {
     public static final Clock stuckClock = new Clock();
     public static final Clock giveBackItemsClock = new Clock();
     public static boolean rejectOffer = false;
-    private static final Pattern pattern = Pattern.compile("^ [\\w ]+", Pattern.CASE_INSENSITIVE);
     public static String signText = "";
 
     public static final ArrayList<String> visitors = new ArrayList<>();
@@ -80,8 +80,8 @@ public class VisitorsMacro {
     public static Pair<String, Integer> itemToBuy = null;
     public static boolean boughtAllItems = false;
 
-    public static boolean macroNotRunning() {
-        return currentState == State.FARMING || currentState == State.NONE;
+    public static boolean isEnabled() {
+        return enabled;
     }
 
     public static void stopMacro() {
@@ -101,6 +101,7 @@ public class VisitorsMacro {
         stuckClock.reset();
         previousState = State.NONE;
         previousBuyState = BuyState.IDLE;
+        enabled = false;
     }
 
     @SubscribeEvent
@@ -133,37 +134,30 @@ public class VisitorsMacro {
     }
 
     @SubscribeEvent
-    public void onTick(TickEvent.ClientTickEvent event) {
-        if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
-        if (!MacroHandler.isMacroing) return;
+    public void onTickStart(TickEvent.ClientTickEvent event) {
         if (!MiscConfig.visitorsMacro) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
-
-        if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && !Failsafe.waitAfterVisitorMacroCooldown.passed()) {
-            return;
-        }
-
-        if (clock.isScheduled() && !clock.passed()) {
-            return;
-        } else if (clock.isScheduled()) {
-            clock.reset();
-            return;
-        }
+        if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
+        if (Failsafe.emergency) return;
+        if (!MacroHandler.isMacroing) return;
+        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
 
 
-        if (macroNotRunning() && TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
+        if (TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
             LogUtils.debugLog("Queue is not full, waiting...");
+            clock.schedule(1000);
             return;
         }
 
-        if (macroNotRunning() && !isAboveHeadClear()) {
+        if (!isAboveHeadClear()) {
             LogUtils.debugLog("Player doesn't have clear space above their head, still going.");
             clock.schedule(5000);
             return;
         }
         Block blockUnder = BlockUtils.getRelativeBlock(0, -1, 0);
-        if (macroNotRunning() && !BlockUtils.canSetSpawn(blockUnder)) {
+        if (!BlockUtils.canSetSpawn(blockUnder)) {
             LogUtils.debugLog("Can't setspawn here, still going.");
+            clock.schedule(1000);
             return;
         }
         int aspectOfTheVoid = PlayerUtils.getItemInHotbar("Aspect of the Void");
@@ -179,13 +173,37 @@ public class VisitorsMacro {
             return;
         }
 
-        if (currentState == State.NONE && MacroHandler.isMacroing) {
+        if (currentState == State.NONE) {
             currentState = State.FARMING;
             rotation.reset();
             rotation.completed = true;
             LogUtils.debugLog("Visitors macro is started");
             clock.schedule(3000);
             stuckClock.schedule(60_000);
+            enabled = true;
+        }
+    }
+
+    @SubscribeEvent
+    public void onTick(TickEvent.ClientTickEvent event) {
+        if (!MiscConfig.visitorsMacro) return;
+        if (!MacroHandler.isMacroing) return;
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
+        if (Failsafe.emergency) return;
+        if (!enabled) return;
+        if (delayClock.isScheduled() && !delayClock.passed()) return;
+
+        if (MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled) return;
+
+        System.out.println("Current state: " + currentState);
+        System.out.println("Current buy state: " + currentBuyState);
+
+        if (clock.isScheduled() && !clock.passed()) {
+            return;
+        } else if (clock.isScheduled()) {
+            clock.reset();
+            MacroHandler.disableCurrentMacro();
             return;
         }
 
@@ -205,7 +223,7 @@ public class VisitorsMacro {
                 PlayerUtils.setSpawn();
                 System.out.println("Setting spawn");
                 currentState = State.TRY_TO_SET_SPAWN;
-                clock.schedule(1500);
+                delayClock.schedule(1500);
                 break;
             case TRY_TO_SET_SPAWN:
                 // idle to wait for chatmessage
@@ -352,7 +370,6 @@ public class VisitorsMacro {
                 delayClock.schedule(250);
                 break;
             case BUY_ITEMS:
-                if (delayClock.isScheduled() && !delayClock.passed()) break;
                 String chestName = mc.thePlayer.openContainer.inventorySlots.get(0).inventory.getName();
 
                 System.out.println(chestName);
@@ -370,16 +387,22 @@ public class VisitorsMacro {
                             for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
                                 if (slot.getHasStack() && slot.getStack().getDisplayName().contains("Accept Offer")) {
                                     ArrayList<Pair<String, Integer>> cropsToBuy = new ArrayList<>();
-                                    for (int i = 1; i < 4; i++) {
-                                        String lore = PlayerUtils.getItemLore(slot.getStack(), i);
-                                        System.out.println(lore);
-                                        if (lore != null && pattern.matcher(StringUtils.stripControlCodes(lore)).matches()) {
-                                            String cleanLore = StringUtils.stripControlCodes(lore);
-                                            if (cleanLore.contains("x")) {
-                                                String[] split = cleanLore.split("x");
+                                    boolean foundRequiredItems = false;
+                                    ArrayList<String> lore = PlayerUtils.getItemLore(slot.getStack());
+                                    for (String line : lore) {
+                                        if (line.contains("Required:")) {
+                                            foundRequiredItems = true;
+                                            continue;
+                                        }
+                                        if (line.trim().contains("Rewards:") || line.trim().isEmpty()) {
+                                            break;
+                                        }
+                                        if (foundRequiredItems) {
+                                            if (line.contains("x")) {
+                                                String[] split = line.split("x");
                                                 cropsToBuy.add(Pair.of(split[0].trim(), Integer.parseInt(split[1].replace(",", "").trim())));
                                             } else {
-                                                cropsToBuy.add(Pair.of(cleanLore.trim(), 1));
+                                                cropsToBuy.add(Pair.of(line.trim(), 1));
                                             }
                                         }
                                     }
@@ -410,7 +433,7 @@ public class VisitorsMacro {
                                         return;
                                     }
                                 }
-                                System.out.println("Item not found");
+                                LogUtils.debugLog("Item not found in BZ. Rejecting");
                                 System.out.println(itemToBuy.getLeft());
                                 rejectOffer = true;
                                 signText = "";
@@ -439,13 +462,13 @@ public class VisitorsMacro {
                             }
                             if (chestName.equals("Confirm Instant Buy")) {
                                 signText = "";
+                                clickSlot(13, 0);
                                 itemsToBuy.remove(itemToBuy);
                                 if (!itemsToBuy.isEmpty()) {
                                     currentBuyState = BuyState.IDLE;
                                 } else {
                                     currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
                                 }
-                                clickSlot(13, 0);
                                 delayClock.schedule(250);
                             }
                             break;
@@ -472,7 +495,8 @@ public class VisitorsMacro {
 
                 break;
             case GIVE_ITEMS:
-                if (!hasRequiredItemsInInventory() && !rejectOffer) {
+                LogUtils.debugLog("Have items: " + haveRequiredItemsInInventory());
+                if (!haveRequiredItemsInInventory() && !rejectOffer) {
                     if (!giveBackItemsClock.isScheduled()) {
                         giveBackItemsClock.schedule(15_000);
                     } else if (giveBackItemsClock.passed()) {
@@ -509,15 +533,13 @@ public class VisitorsMacro {
                 }
                 if (noMoreVisitors()) {
                     currentState = State.TELEPORT_TO_GARDEN;
-                    delayClock.schedule(2000);
-                    break;
                 } else {
                     currentState = State.MANAGING_VISITORS;
                 }
-                delayClock.schedule(1500);
+                delayClock.schedule(2000);
                 break;
             case TELEPORT_TO_GARDEN:
-                Failsafe.waitAfterVisitorMacroCooldown.schedule(7_500);
+//                Failsafe.waitAfterVisitorMacroCooldown.schedule(5_500);
                 mc.thePlayer.sendChatMessage("/warp garden");
                 currentState = State.CHANGE_TO_NONE;
                 delayClock.schedule(2500);
@@ -526,6 +548,7 @@ public class VisitorsMacro {
                 currentState = State.NONE;
                 stopMacro();
                 delayClock.schedule(10_000);
+                MacroHandler.enableCurrentMacro();
                 break;
         }
 
@@ -564,7 +587,7 @@ public class VisitorsMacro {
         return true;
     }
 
-    private boolean hasRequiredItemsInInventory() {
+    private boolean haveRequiredItemsInInventory() {
         for (Pair<String, Integer> item : itemsToBuy) {
             if (!hasItem(item.getLeft(), item.getRight())) {
                 return false;
@@ -576,7 +599,7 @@ public class VisitorsMacro {
     private boolean hasItem(String name, int amount) {
         int count = 0;
         for (ItemStack itemStack : mc.thePlayer.inventory.mainInventory) {
-            if (itemStack != null && StringUtils.stripControlCodes(itemStack.getDisplayName()).equals(name)) {
+            if (itemStack != null && StringUtils.stripControlCodes(StringUtils.stripControlCodes(itemStack.getDisplayName())).equals(name)) {
                 count += itemStack.stackSize;
             }
         }
@@ -584,7 +607,7 @@ public class VisitorsMacro {
     }
 
     private boolean noMoreVisitors() {
-        return visitors.isEmpty() || visitorsFinished.size() == 5;
+        return visitors.isEmpty() && visitorsFinished.size() >= 5;
     }
 
     private void clickSlot(int slot, int windowAdd) {

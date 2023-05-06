@@ -108,18 +108,6 @@ public class MushroomMacro extends Macro {
             return;
         }
 
-        if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && Failsafe.waitAfterVisitorMacroCooldown.getRemainingTime() < 500 && !rotation.rotating) {
-            if (mc.thePlayer.rotationPitch != pitch) {
-                rotation.easeTo(yaw, pitch, 500);
-            }
-            getTool(true);
-            KeyBindUtils.stopMovement();
-            return;
-        } else if (Failsafe.waitAfterVisitorMacroCooldown.isScheduled() && !Failsafe.waitAfterVisitorMacroCooldown.passed()) {
-            KeyBindUtils.stopMovement();
-            getTool(true);
-            return;
-        }
 
         if (waitBetweenTp.isScheduled() && waitBetweenTp.passed()) {
             waitBetweenTp.reset();

@@ -1,10 +1,16 @@
 package com.jelly.farmhelper.utils;
 
+import com.jelly.farmhelper.config.enums.MacroEnum;
+import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.macros.Macro;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.mixins.block.IBlockAccessor;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.item.ItemAxe;
+import net.minecraft.item.ItemHoe;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
@@ -12,6 +18,8 @@ import net.minecraft.world.World;
 
 
 public class CropUtils {
+
+    private static final Minecraft mc = Minecraft.getMinecraft();
 
     public static final AxisAlignedBB[] CARROT_POTATO_BOX = {
             new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 0.125D, 1.0D),
@@ -101,5 +109,18 @@ public class CropUtils {
                 }
             }
         }
+    }
+
+    public static boolean itemChangedByStaff = false;
+
+    public static void getTool() {
+        // Sometimes if staff changed your slot, you might not have the tool in your hand after the swap, so it won't be obvious that you're using a macro
+        if (itemChangedByStaff) {
+            return;
+        }
+        if (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON && FarmConfig.cropType != MacroEnum.COCOABEANS)
+            mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
+        else
+            mc.thePlayer.inventory.currentItem = PlayerUtils.getAxeSlot();
     }
 }
