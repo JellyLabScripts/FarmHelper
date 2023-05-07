@@ -150,7 +150,6 @@ public class VisitorsMacro {
         if (!MacroHandler.isMacroing) return;
         if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
 
-
         if (TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
             LogUtils.debugLog("Queue is not full, waiting...");
             clock.schedule(1000);
@@ -162,8 +161,10 @@ public class VisitorsMacro {
             clock.schedule(5000);
             return;
         }
+
         Block blockUnder = BlockUtils.getRelativeBlock(0, -1, 0);
-        if (!BlockUtils.canSetSpawn(blockUnder)) {
+        Block blockCurrent = BlockUtils.getRelativeBlock(0, 0, 0);
+        if (!BlockUtils.canSetSpawn(blockUnder) || !BlockUtils.canSetSpawn(blockCurrent)) {
             LogUtils.debugLog("Can't setspawn here, still going.");
             clock.schedule(1000);
             return;
@@ -389,9 +390,10 @@ public class VisitorsMacro {
 
                 itemsToBuy.clear();
                 mc.playerController.interactWithEntitySendPacket(mc.thePlayer, currentVisitor);
-                if (boughtAllItems)
+                if (boughtAllItems) {
                     currentState = State.GIVE_ITEMS;
-                else
+                    delayClock.schedule(1250);
+                } else
                     currentState = State.BUY_ITEMS;
                 delayClock.schedule(250);
                 break;
