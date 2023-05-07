@@ -93,6 +93,8 @@ public class Failsafe {
 
     }
 
+    public static final Clock waitBetweenSendingInfo = new Clock();
+
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
         // Mustario is a grape
@@ -100,7 +102,11 @@ public class Failsafe {
         if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
 
         if (restartAfterFailsafeCooldown.isScheduled()) {
-            LogUtils.debugLog("Waiting to restart macro: " + (String.format("%.1f", restartAfterFailsafeCooldown.getRemainingTime() / 1000f)) + "s");
+            if (waitBetweenSendingInfo.isScheduled() && waitBetweenSendingInfo.passed()) {
+                LogUtils.debugLog("Waiting to restart macro: " + (String.format("%.1f", restartAfterFailsafeCooldown.getRemainingTime() / 1000f)) + "s");
+            } else if (!waitBetweenSendingInfo.passed()) {
+                waitBetweenSendingInfo.schedule(15_000);
+            }
 
             if (restartAfterFailsafeCooldown.passed()) {
                 LogUtils.debugLog("Restarting macro. 3 minutes after failsafe are passed");
