@@ -74,6 +74,7 @@ public class Autosell {
         soldSacks = false;
         waitBeforeSellClock.schedule(3_500);
         stuckClock.schedule(10_000);
+        MacroHandler.disableCurrentMacro();
     }
 
     public static void disable() {
@@ -81,6 +82,7 @@ public class Autosell {
         mc.thePlayer.closeScreen();
         mc.thePlayer.inventory.currentItem = hoeSlot;
         enabled = false;
+        MacroHandler.enableCurrentMacro();
     }
 
     @SubscribeEvent
@@ -128,11 +130,13 @@ public class Autosell {
                     return;
 
                 if (mc.currentScreen == null) {
-                    LogUtils.debugFullLog("[AutoSell] Opening SB menu");
-                    if (AutoSellConfig.sellToNPC)
+                    if (AutoSellConfig.sellToNPC) {
+                        LogUtils.debugFullLog("[AutoSell] Opening Trades menu");
                         mc.thePlayer.sendChatMessage("/trades");
-                    else
+                    } else {
+                        LogUtils.debugFullLog("[AutoSell] Opening BZ menu");
                         mc.thePlayer.sendChatMessage("/bz");
+                    }
                     sellClock.schedule(250);
                 } else if (PlayerUtils.getInventoryName() != null && AutoSellConfig.sellToNPC && PlayerUtils.getInventoryName().contains("Trades")) {
                     LogUtils.debugFullLog("[AutoSell] Detected trade menu, selling item");

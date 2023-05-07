@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.gui;
 
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.gui.components.List;
 import com.jelly.farmhelper.gui.menus.*;
 import gg.essential.elementa.UIComponent;
@@ -29,5 +30,11 @@ public class MenuGUI extends WindowScreen {
         new List(new PixelConstraint(550), new PixelConstraint(10), "Miscellaneous", new MiscMenu()).setChildOf(getWindow());
 
         new List(new PixelConstraint(740), new PixelConstraint(10), "Failsafes", new FailsafeMenu()).setChildOf(getWindow());
+    }
+
+    @Override
+    public void onScreenClose() {
+        super.onScreenClose();
+        FarmHelper.openedGUI = false;
     }
 }
