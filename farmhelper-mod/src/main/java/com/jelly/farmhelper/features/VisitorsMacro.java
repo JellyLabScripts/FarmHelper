@@ -79,6 +79,9 @@ public class VisitorsMacro {
     public static final ArrayList<Pair<String, Integer>> itemsToBuy = new ArrayList<>();
     public static Pair<String, Integer> itemToBuy = null;
     public static boolean boughtAllItems = false;
+    public static double previousDistanceToDesk = 0;
+    public static int retriesToGettingCloser = 0;
+    public static boolean disableMacro = false;
 
     public static boolean isEnabled() {
         return enabled;
@@ -102,6 +105,11 @@ public class VisitorsMacro {
         previousState = State.NONE;
         previousBuyState = BuyState.IDLE;
         enabled = false;
+        retriesToGettingCloser = 0;
+        if (disableMacro) {
+            ConfigHandler.set("visitorsMacro", false);
+        }
+        disableMacro = false;
     }
 
     @SubscribeEvent
@@ -254,6 +262,7 @@ public class VisitorsMacro {
                 rotation.easeTo(rotationToDesk.getLeft(), rotationToDesk.getRight(), 500);
 
                 currentState = State.MOVE_TOWARDS_DESK;
+                previousDistanceToDesk = Integer.MAX_VALUE;
 
                 break;
             case MOVE_TOWARDS_DESK:
@@ -273,6 +282,23 @@ public class VisitorsMacro {
 
                 double distance = mc.thePlayer.getDistance(finalDeskPos.getX(), finalDeskPos.getY(), finalDeskPos.getZ());
 
+                if (distance > previousDistanceToDesk) {
+                    retriesToGettingCloser++;
+                    currentState = State.ROTATE_TO_DESK;
+                    KeyBindUtils.stopMovement();
+                    delayClock.schedule(2000);
+                    previousDistanceToDesk = Integer.MAX_VALUE;
+                    if (retriesToGettingCloser >= 2) {
+                        LogUtils.scriptLog("Player is not getting closer to the desk, stopping Visitors Macro. Set the desk position in more open to sight area.");
+                        disableMacro = true;
+                        currentState = State.BACK_TO_FARMING;
+                        break;
+                    }
+                    break;
+                }
+
+                previousDistanceToDesk = distance;
+
                 if (BlockUtils.isBlockVisible(finalDeskPos) && distance < 50) {
                     KeyBindUtils.updateKeys(false, false, false, false, false, true, true, false);
                     if (FarmHelper.gameState.dx > 0.01 || FarmHelper.gameState.dz > 0.01) {
@@ -286,7 +312,7 @@ public class VisitorsMacro {
                     break;
                 }
 
-                KeyBindUtils.updateKeys(true, false, false, false, false, false, false, true);
+                KeyBindUtils.updateKeys(true, false, false, false, false, false, false, false);
 
                 break;
             case TELEPORT_TO_DESK:
@@ -294,7 +320,7 @@ public class VisitorsMacro {
 
                 mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem());
                 currentState = State.MANAGING_VISITORS;
-                waitAfterTpClock.schedule(1000L);
+                waitAfterTpClock.schedule(750L);
 
                 break;
             case MANAGING_VISITORS:
@@ -531,7 +557,7 @@ public class VisitorsMacro {
                     delayClock.schedule(250);
                     break;
                 }
-                if (noMoreVisitors()) {
+                if (noMoreVisitors() || disableMacro) {
                     currentState = State.TELEPORT_TO_GARDEN;
                 } else {
                     currentState = State.MANAGING_VISITORS;

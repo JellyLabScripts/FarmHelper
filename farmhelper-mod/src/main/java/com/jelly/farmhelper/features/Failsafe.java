@@ -266,6 +266,7 @@ public class Failsafe {
     public void onItemChange(ReceivePacketEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (evacuateCooldown.isScheduled() || afterEvacuateCooldown.isScheduled()) return;
+        if (gameState.currentLocation != GameState.location.ISLAND) return;
         if (event.packet instanceof S09PacketHeldItemChange) {
             emergencyFailsafe(FailsafeType.ITEM_CHANGE);
             CropUtils.itemChangedByStaff = true;

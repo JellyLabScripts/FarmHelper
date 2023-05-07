@@ -122,7 +122,7 @@ public class ProfitCalculator {
             profit.set("$" + Utils.formatNumber(Math.round(realProfit * 0.95)));
             profitHr.set("$" + Utils.formatNumber(Math.round(getHourProfit(totalProfitBasedOnConditions * 0.95))));
             runtime.set(Utils.formatTime(System.currentTimeMillis() - MacroHandler.startTime));
-            float bps = Math.round(((FarmConfig.cropType == MacroEnum.SUGARCANE ? 0.5f : 1) * blocksBroken) / (System.currentTimeMillis() - MacroHandler.startTime) * 10000f) / 10f;
+            float bps = Math.round((((FarmConfig.cropType == MacroEnum.SUGARCANE || FarmConfig.cropType == MacroEnum.CACTUS) ? 0.5f : 1) * blocksBroken) / (System.currentTimeMillis() - MacroHandler.startTime) * 10000f) / 10f;
             blocksPerSecond.set(bps + " BPS");
         }
     }
