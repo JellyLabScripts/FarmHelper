@@ -10,12 +10,14 @@ import com.jelly.farmhelper.world.GameState;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
@@ -159,37 +161,43 @@ public class VisitorsMacro {
         if (!isAboveHeadClear()) {
             LogUtils.debugLog("Player doesn't have clear space above their head, still going.");
             clock.schedule(5000);
+            enabled = false;
             return;
         }
 
-        Block blockUnder = BlockUtils.getRelativeBlock(0, -1, 0);
-        Block blockCurrent = BlockUtils.getRelativeBlock(0, 0, 0);
-        if (!BlockUtils.canSetSpawn(blockUnder) || !BlockUtils.canSetSpawn(blockCurrent)) {
+        // Change it so it can check for a block under the player
+
+        BlockPos blockUnder = BlockUtils.getRelativeBlockPos(0, 0, 0);
+        if (!BlockUtils.canSetSpawn(blockUnder)) {
             LogUtils.debugLog("Can't setspawn here, still going.");
             clock.schedule(1000);
+            enabled = false;
             return;
         }
+
         int aspectOfTheVoid = PlayerUtils.getItemInHotbar("Aspect of the Void");
         if (aspectOfTheVoid == -1) {
             ConfigHandler.set("visitorsMacro", false);
             LogUtils.debugLog("Disabling this feature, player doesn't have AOTV (Aspect of the Void)");
+            enabled = false;
             return;
         }
 
         if ((MiscConfig.visitorsDeskPosX == 0 && MiscConfig.visitorsDeskPosY == 0 && MiscConfig.visitorsDeskPosZ == 0) ) {
             LogUtils.scriptLog("Desk position is not set, disabling this feature. Please set it up with the keybind");
             ConfigHandler.set("visitorsMacro", false);
+            enabled = false;
             return;
         }
 
-        if (currentState == State.NONE) {
-            currentState = State.FARMING;
+        if (currentState == State.NONE && clock.passed()) {
+            currentState = State.TRY_TO_SET_SPAWN;
             rotation.reset();
             rotation.completed = true;
-            LogUtils.debugLog("Visitors macro is started");
             clock.schedule(3000);
             stuckClock.schedule(60_000);
-            enabled = true;
+            PlayerUtils.setSpawn();
+//            enabled = true;
         }
     }
 
@@ -647,18 +655,23 @@ public class VisitorsMacro {
         );
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onChat(ClientChatReceivedEvent event) {
+        if (!MacroHandler.isMacroing) return;
+        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
+        if (event.type != 0) return;
         String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains("You cannot set your spawn here!")) {
-            currentState = State.FARMING;
+            currentState = State.NONE;
             if (!clock.isScheduled()) {
-                clock.schedule(5000L);
+                clock.schedule(25_000L);
             }
         } else if (message.contains("Your spawn location has been set!")) {
             currentState = State.FLYING_TO_110_Y;
             clock.schedule(1500L);
+            LogUtils.debugLog("Visitors macro can be started");
             KeyBindUtils.stopMovement();
+            enabled = true;
         }
     }
 

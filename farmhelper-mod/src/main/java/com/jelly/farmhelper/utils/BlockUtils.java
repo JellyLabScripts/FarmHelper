@@ -206,6 +206,20 @@ public class BlockUtils {
                 !blockUnder.equals(Blocks.end_portal_frame);
     }
 
+    public static boolean canSetSpawn(BlockPos currentPosition) {
+        Block currentPositionBlock = mc.theWorld.getBlockState(currentPosition).getBlock();
+        if ((currentPositionBlock.equals(Blocks.carpet) || currentPositionBlock.equals(Blocks.stone_slab) || currentPositionBlock.equals(Blocks.stone_slab2) || currentPositionBlock.equals(Blocks.wooden_slab)) && !mc.theWorld.getBlockState(currentPosition.down()).getBlock().equals(Blocks.air)) {
+            return true;
+        }
+        if (currentPositionBlock.equals(Blocks.water) && (mc.theWorld.getBlockState(currentPosition.down()).getBlock().equals(Blocks.trapdoor) || mc.theWorld.getBlockState(currentPosition.down()).getBlock().equals(Blocks.iron_trapdoor))) {
+            return true;
+        }
+        if (currentPositionBlock.equals(Blocks.air) && !mc.theWorld.getBlockState(currentPosition.down()).getBlock().equals(Blocks.air)) {
+            return true;
+        }
+        return false;
+    }
+
     public static boolean isBlockVisible(BlockPos pos) {
         MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ), new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5));
         return mop == null;
