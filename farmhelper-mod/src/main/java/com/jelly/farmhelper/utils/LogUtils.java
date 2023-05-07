@@ -41,7 +41,7 @@ public class LogUtils {
     }
 
     public static void debugLog(String message) {
-        if (MiscConfig.debugMode || !Objects.equals(lastDebug, message)) {
+        if (MiscConfig.debugMode) {
             sendLog(new ChatComponentText(
                 EnumChatFormatting.GREEN + "Log " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + message
             ));
