@@ -191,7 +191,7 @@ public class MacroHandler {
             mc.displayGuiScreen(null);
             startingUp = true;
             CropUtils.itemChangedByStaff = false;
-            KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
+            KeyBindUtils.updateKeys(false, false, false, false, false, mc.thePlayer.capabilities.isFlying, false);
             new Thread(startCurrent).start();
         }
     }
