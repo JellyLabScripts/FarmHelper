@@ -11,8 +11,11 @@ import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ChunkProviderClient;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S09PacketHeldItemChange;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.Tuple;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -116,6 +119,17 @@ public class Failsafe {
         }
 
         if (!MacroHandler.isMacroing) return;
+
+        if (dirtToCheck != null) {
+            frustum.setPosition(mc.getRenderViewEntity().posX, mc.getRenderViewEntity().posY, mc.getRenderViewEntity().posZ);
+            if (frustum.isBoundingBoxInFrustum(new AxisAlignedBB(dirtToCheck.getX(), dirtToCheck.getY(), dirtToCheck.getZ(), dirtToCheck.getX() + 1, dirtToCheck.getY() + 1, dirtToCheck.getZ() + 1))) {
+                emergencyFailsafe(FailsafeType.DIRT);
+            }
+            if (dirtCheck.isScheduled() && dirtCheck.passed()) {
+                dirtToCheck = null;
+                dirtCheck.reset();
+            }
+        }
 
 
         if(!emergency && BlockUtils.bedrockCount() > 2){
@@ -243,10 +257,13 @@ public class Failsafe {
     private static final Rotation rotation = new Rotation();
     static Thread bzchillingthread;
     public static boolean emergency = false;
+    private static final Frustum frustum = new Frustum();
 
     //private static Clock eDisable = new Clock();
 
     private static ExecutorService emergencyThreadExecutor = Executors.newScheduledThreadPool(5);
+    private static BlockPos dirtToCheck = null;
+    private static final Clock dirtCheck = new Clock();
 
 
     @SubscribeEvent
@@ -258,8 +275,13 @@ public class Failsafe {
         if(gameState.currentLocation != GameState.location.ISLAND || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame))
             return;
 
-        if(event.old != null && BlockUtils.isWalkable(event.old.getBlock()) && event.update.getBlock().equals(Blocks.dirt))
-            emergencyFailsafe(FailsafeType.DIRT);
+        if(event.old != null && BlockUtils.isWalkable(event.old.getBlock()) && event.update.getBlock().equals(Blocks.dirt)) {
+            if (mc.thePlayer.getDistanceSqToCenter(event.pos) < 10) {
+                dirtToCheck = event.pos;
+                dirtCheck.schedule(10_000);
+            }
+        }
+
     }
     @SubscribeEvent
     public void onWorldLastRender(RenderWorldLastEvent event) {
