@@ -39,6 +39,9 @@ public class SugarcaneMacro extends Macro {
 
     private final Rotation rotation = new Rotation();
 
+    private final Clock lastTp = new Clock();
+
+
     @Override
     public void onEnable() {
         yaw = AngleUtils.getClosestDiagonal();
@@ -77,6 +80,11 @@ public class SugarcaneMacro extends Macro {
     }
 
     @Override
+    public void triggerTpCooldown() {
+        lastTp.schedule(1500);
+    }
+
+    @Override
     public void onTick() {
 
 
@@ -90,6 +98,18 @@ public class SugarcaneMacro extends Macro {
 
         if (rotation.rotating) {
             updateKeys(false, false, false, false, false);
+            return;
+        }
+
+        if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
+            yaw = AngleUtils.getClosestDiagonal();
+            rotation.easeTo(yaw, pitch, 500);
+            KeyBindUtils.stopMovement();
+        }
+
+        if (lastTp.isScheduled() && !lastTp.passed()) {
+            updateKeys(true, false, false, false, false);
+            currentState = State.WALK;
             return;
         }
 

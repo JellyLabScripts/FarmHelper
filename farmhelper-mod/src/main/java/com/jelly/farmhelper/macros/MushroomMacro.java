@@ -98,6 +98,11 @@ public class MushroomMacro extends Macro {
     }
 
     @Override
+    public void triggerTpCooldown() {
+        lastTp.schedule(1500);
+    }
+
+    @Override
     public void onTick() {
 
         if (mc.thePlayer == null || mc.theWorld == null)

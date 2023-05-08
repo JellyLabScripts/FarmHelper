@@ -133,6 +133,11 @@ public class SShapeCropMacro extends Macro {
     }
 
     @Override
+    public void triggerTpCooldown() {
+        tpCoolDown.schedule(1500);
+    }
+
+    @Override
     public void onPacketReceived(ReceivePacketEvent event) {
         if(rotation.rotating && event.packet instanceof S08PacketPlayerPosLook &&
                 (currentState == State.DROPPING || (currentState == State.TP_PAD && !isTping && (!tpCoolDown.isScheduled() || tpCoolDown.passed())))) {

@@ -7,15 +7,14 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
-import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -73,12 +72,14 @@ public class VisitorsMacro {
     public static final Clock delayClock = new Clock();
     public static final Clock stuckClock = new Clock();
     public static final Clock giveBackItemsClock = new Clock();
+    public static final Clock haveItemsClock = new Clock();
     public static boolean rejectOffer = false;
     public static String signText = "";
 
     public static final ArrayList<String> visitors = new ArrayList<>();
     public static final ArrayList<String> visitorsFinished = new ArrayList<>();
     public static final ArrayList<Pair<String, Integer>> itemsToBuy = new ArrayList<>();
+    public static final ArrayList<Pair<String, Integer>> itemsToBuyForCheck = new ArrayList<>();
     public static Pair<String, Integer> itemToBuy = null;
     public static boolean boughtAllItems = false;
     public static double previousDistanceToDesk = 0;
@@ -99,6 +100,7 @@ public class VisitorsMacro {
         KeyBindUtils.stopMovement();
         visitorsFinished.clear();
         itemsToBuy.clear();
+        itemsToBuyForCheck.clear();
         itemToBuy = null;
         currentBuyState = BuyState.IDLE;
         currentVisitor = null;
@@ -112,6 +114,9 @@ public class VisitorsMacro {
             ConfigHandler.set("visitorsMacro", false);
         }
         disableMacro = false;
+        if (MacroHandler.currentMacro != null) {
+            MacroHandler.currentMacro.triggerTpCooldown();
+        }
     }
 
     @SubscribeEvent
@@ -197,7 +202,6 @@ public class VisitorsMacro {
             clock.schedule(3000);
             stuckClock.schedule(60_000);
             PlayerUtils.setSpawn();
-//            enabled = true;
         }
     }
 
@@ -226,11 +230,21 @@ public class VisitorsMacro {
 
         if (stuckClock.isScheduled() && stuckClock.passed()) {
             LogUtils.scriptLog("Player is stuck, resetting macro");
-            stopMacro();
+            clock.reset();
+            rotation.reset();
+            waitAfterTpClock.reset();
+            boughtAllItems = false;
+            visitorsFinished.clear();
+            itemsToBuy.clear();
+            itemToBuy = null;
+            currentVisitor = null;
+            signText = "";
+            stuckClock.reset();
             mc.thePlayer.closeScreen();
             currentState = State.MANAGING_VISITORS;
             currentBuyState = BuyState.IDLE;
             stuckClock.reset();
+            delayClock.schedule(3000);
             return;
         }
 
@@ -343,6 +357,13 @@ public class VisitorsMacro {
                 KeyBindUtils.stopMovement();
                 LogUtils.scriptLog("Looking for a visitor...");
 
+                if (getNonToolItem() == -1) {
+                    LogUtils.scriptLog("You don't have any free (non tool) slot in your hotbar, that would be less sus if you had one." +
+                            "Clicking with AOTV or hoe in your hand will be more sus, but it will still work.");
+                } else {
+                    mc.thePlayer.inventory.currentItem = getNonToolItem();
+                }
+
                 if (mc.thePlayer.capabilities.isFlying) {
                     mc.thePlayer.capabilities.isFlying = false;
                     mc.thePlayer.sendPlayerAbilities();
@@ -397,10 +418,11 @@ public class VisitorsMacro {
                 if (rotation.rotating) break;
 
                 itemsToBuy.clear();
+                itemsToBuyForCheck.clear();
                 mc.playerController.interactWithEntitySendPacket(mc.thePlayer, currentVisitor);
                 if (boughtAllItems) {
                     currentState = State.GIVE_ITEMS;
-                    delayClock.schedule(1250);
+                    delayClock.schedule(250);
                 } else
                     currentState = State.BUY_ITEMS;
                 delayClock.schedule(250);
@@ -414,6 +436,12 @@ public class VisitorsMacro {
                     switch (currentBuyState) {
                         case IDLE:
                             if (!itemsToBuy.isEmpty()) {
+                                if (haveRequiredItemsInInventory()) {
+                                    currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
+                                    boughtAllItems = true;
+                                    delayClock.schedule(750);
+                                    break;
+                                }
                                 itemToBuy = itemsToBuy.get(0);
                                 mc.thePlayer.sendChatMessage("/bz " + itemToBuy.getLeft());
                                 delayClock.schedule(750);
@@ -447,7 +475,9 @@ public class VisitorsMacro {
                                         stopMacro();
                                         return;
                                     }
+                                    itemsToBuyForCheck.clear();
                                     itemsToBuy.addAll(cropsToBuy);
+                                    itemsToBuyForCheck.addAll(cropsToBuy);
                                     currentBuyState = BuyState.IDLE;
                                     boughtAllItems = false;
                                 }
@@ -518,10 +548,19 @@ public class VisitorsMacro {
                                         System.out.println("Found visitor to give items");
                                         currentVisitor = visitorEntity;
 
-                                        currentState = State.OPEN_VISITOR;
-                                        boughtAllItems = true;
-                                        mc.thePlayer.closeScreen();
-                                        delayClock.schedule(250);
+                                        Entity characterr = PlayerUtils.getEntityCuttingOtherEntity(currentVisitor);
+
+                                        if (characterr != null) {
+                                            LogUtils.scriptLog("Found a visitor and going to give items to him");
+                                            rotation.reset();
+                                            rotation.easeTo(AngleUtils.getRotation(characterr).getLeft(), AngleUtils.getRotation(characterr).getRight(), 750);
+                                            currentState = State.OPEN_VISITOR;
+                                            boughtAllItems = true;
+                                            mc.thePlayer.closeScreen();
+                                        } else {
+                                            LogUtils.scriptLog("Visitor might a bit too far away, going to wait for him to get closer");
+                                        }
+                                        delayClock.schedule(750);
                                     });
                             break;
                     }
@@ -545,6 +584,12 @@ public class VisitorsMacro {
                     }
                     delayClock.schedule(250);
                     break;
+                } else if (haveRequiredItemsInInventory() && !rejectOffer) {
+                    if (!haveItemsClock.isScheduled()) {
+                        haveItemsClock.schedule(500);
+                    } else if (haveItemsClock.isScheduled() && !haveItemsClock.passed()) {
+                        return;
+                    }
                 }
 
                 for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
@@ -589,12 +634,12 @@ public class VisitorsMacro {
 
         if (previousState != currentState) {
             System.out.println("State changed from " + previousState + " to " + currentState);
-            stuckClock.schedule(60_000);
+            stuckClock.schedule(25_000);
             previousState = currentState;
         }
         if (previousBuyState != currentBuyState) {
             System.out.println("Buy state changed from " + previousBuyState + " to " + currentBuyState);
-            stuckClock.schedule(60_000);
+            stuckClock.schedule(25_000);
             previousBuyState = currentBuyState;
         }
     }
@@ -608,8 +653,10 @@ public class VisitorsMacro {
         boughtAllItems = false;
         rejectOffer = false;
         itemsToBuy.clear();
+        itemsToBuyForCheck.clear();
         itemToBuy = null;
         delayClock.schedule(250);
+        haveItemsClock.reset();
     }
 
     private boolean isAboveHeadClear() {
@@ -623,7 +670,7 @@ public class VisitorsMacro {
     }
 
     private boolean haveRequiredItemsInInventory() {
-        for (Pair<String, Integer> item : itemsToBuy) {
+        for (Pair<String, Integer> item : itemsToBuyForCheck) {
             if (!hasItem(item.getLeft(), item.getRight())) {
                 return false;
             }
@@ -655,6 +702,16 @@ public class VisitorsMacro {
         );
     }
 
+    private int getNonToolItem() {
+        for (int i = 0; i < 8; i++) {
+            ItemStack itemStack = mc.thePlayer.inventory.mainInventory[i];
+            if (itemStack != null && itemStack.getItem() != null && !(itemStack.getItem() instanceof ItemTool) && !(itemStack.getItem() instanceof ItemSword) && !(itemStack.getItem() instanceof ItemHoe) && !(itemStack.getItem() instanceof ItemSpade)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onChat(ClientChatReceivedEvent event) {
         if (!MacroHandler.isMacroing) return;
@@ -677,7 +734,7 @@ public class VisitorsMacro {
 
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event) {
-        if (rotation.rotating)
+        if (rotation.rotating && mc.currentScreen == null)
             rotation.update();
 
         if ((MiscConfig.visitorsDeskPosX == 0 && MiscConfig.visitorsDeskPosY == 0 && MiscConfig.visitorsDeskPosZ == 0)) {
@@ -688,15 +745,25 @@ public class VisitorsMacro {
         RenderUtils.drawBlockBox(deskPosTemp, Color.DARK_GRAY);
     }
 
-//    @SubscribeEvent
-//    public void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
-//        if (!MiscConfig.visitorsMacro) return;
-//        if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
-//        if (!MiscConfig.debugMode) return;
-//
-//        FontUtils.drawString("State: " + currentState, 2, 2, Color.WHITE.hashCode(), true);
-//        FontUtils.drawString("Buy state: " + currentBuyState, 2, 12, Color.WHITE.hashCode(), true);
-//        FontUtils.drawString("Stuck timer: " + (stuckClock.getRemainingTime()), 2, 22, Color.WHITE.hashCode(), true);
-//
-//    }
+    @SubscribeEvent
+    public void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
+        if (!MiscConfig.visitorsMacro) return;
+        if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
+        if (!MiscConfig.debugMode) return;
+
+        ArrayList<Pair<String, Integer>> itemsToBuyCopy = new ArrayList<>(itemsToBuy);
+
+        int x = 120;
+
+        FontUtils.drawString("State: " + currentState, x, 2, Color.WHITE.hashCode(), true);
+        FontUtils.drawString("Buy state: " + currentBuyState, x, 12, Color.WHITE.hashCode(), true);
+        FontUtils.drawString("Stuck timer: " + (stuckClock.getRemainingTime() > 0 ? stuckClock.getRemainingTime() : "None"), x, 22, Color.WHITE.hashCode(), true);
+        FontUtils.drawString("Items to buy: ", x, 32, Color.WHITE.hashCode(), true);
+        for (Pair<String, Integer> item : itemsToBuyCopy) {
+            FontUtils.drawString(item.getLeft() + " x" + item.getRight(), x + 5, 42 + (itemsToBuyCopy.indexOf(item) * 10), Color.WHITE.hashCode(), true);
+        }
+        if (!itemsToBuyCopy.isEmpty())
+            FontUtils.drawString("Have items in inventory: " + haveRequiredItemsInInventory(), x, 42 + (itemsToBuyCopy.size() * 10), Color.WHITE.hashCode(), true);
+
+    }
 }

@@ -238,6 +238,11 @@ public class VerticalCropMacro extends Macro{
         }
     }
 
+    @Override
+    public void triggerTpCooldown() {
+        lastTp.schedule(1500);
+    }
+
     private static boolean shouldWalkForwards() {
         float angle = AngleUtils.getClosest();
         double x = mc.thePlayer.posX % 1;

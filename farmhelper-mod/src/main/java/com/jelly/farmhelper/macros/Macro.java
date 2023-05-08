@@ -61,5 +61,5 @@ public abstract class Macro {
 
     public void restoreStateAfterFailsafe() {}
 
-
+    public void triggerTpCooldown() {}
 }
