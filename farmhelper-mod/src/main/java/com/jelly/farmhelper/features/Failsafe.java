@@ -375,7 +375,7 @@ public class Failsafe {
 
     static Runnable stopScript = () -> {
         try{
-            Thread.sleep((long) (2000 + Math.random() * 1000));
+//            Thread.sleep((long) (2000 + Math.random() * 1000));
             MacroHandler.disableCurrentMacro(true);
         } catch(Exception e){
             e.printStackTrace();

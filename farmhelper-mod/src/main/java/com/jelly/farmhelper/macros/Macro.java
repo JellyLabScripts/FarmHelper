@@ -1,15 +1,7 @@
 package com.jelly.farmhelper.macros;
 
-import com.jelly.farmhelper.config.enums.MacroEnum;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
-import com.jelly.farmhelper.features.Failsafe;
-import com.jelly.farmhelper.features.VisitorsMacro;
-import com.jelly.farmhelper.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.item.ItemAxe;
-import net.minecraft.item.ItemHoe;
-import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 public abstract class Macro {
@@ -56,7 +48,15 @@ public abstract class Macro {
 
     public void failsafeDisable() {
         disabledByFailsafe = true;
-        toggle();
+        new Thread(() -> {
+            try {
+                Thread.sleep((long) (1500 + Math.random() * 2000));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (MacroHandler.isMacroing)
+                toggle();
+        }).start();
     }
 
     public void restoreStateAfterFailsafe() {}

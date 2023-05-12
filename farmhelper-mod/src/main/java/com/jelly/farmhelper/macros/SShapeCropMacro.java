@@ -183,7 +183,7 @@ public class SShapeCropMacro extends Macro {
             boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens
                     || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens;
 
-            if(flag && tpCoolDown.passed() && currentState != State.TP_PAD && !rotation.rotating) {
+            if(!Failsafe.emergency && flag && tpCoolDown.passed() && currentState != State.TP_PAD && !rotation.rotating) {
                 rotation.reset();
                 Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
                 return;

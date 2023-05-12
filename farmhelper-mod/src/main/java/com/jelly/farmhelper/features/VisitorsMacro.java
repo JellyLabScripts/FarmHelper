@@ -716,6 +716,7 @@ public class VisitorsMacro {
     public void onChat(ClientChatReceivedEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
+        if (!MiscConfig.visitorsMacro) return;
         if (event.type != 0) return;
         String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains("You cannot set your spawn here!")) {

@@ -15,7 +15,7 @@ import com.jelly.farmhelper.features.Scheduler;
 import com.jelly.farmhelper.features.VisitorsMacro;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
-import net.minecraft.block.Block;
+import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
@@ -27,6 +27,7 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.input.Keyboard;
 
 
@@ -208,26 +209,47 @@ public class MacroHandler {
     };
 
     public static CropEnum getFarmingCrop() {
-        for (int x = 0; x < 3; x++) {
-            for (int y = -2; y < 3; y++) {
-                for (int z = 0; z < 3; z++) {
+        Pair<Block, BlockPos> closestCrop = null;
+        for (int x = -3; x < 3; x++) {
+            for (int y = -3; y < 3; y++) {
+                for (int z = -3; z < 3; z++) {
                     BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, 1 + z,
                             FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.SUGARCANE ? AngleUtils.getClosestDiagonal() - 45
                             : FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD ? AngleUtils.getClosest30() - 30
                             : AngleUtils.getClosest());
                     Block block = mc.theWorld.getBlockState(pos).getBlock();
-                    if (block.equals(Blocks.wheat)) return CropEnum.WHEAT;
-                    if (block.equals(Blocks.carrots)) return CropEnum.CARROT;
-                    if (block.equals(Blocks.potatoes)) return CropEnum.POTATO;
-                    if (block.equals(Blocks.nether_wart)) return CropEnum.NETHERWART;
-                    if (block.equals(Blocks.reeds)) return CropEnum.SUGARCANE;
-                    if (block.equals(Blocks.cocoa)) return CropEnum.COCOA_BEANS;
-                    if (block.equals(Blocks.melon_block)) return CropEnum.MELON;
-                    if (block.equals(Blocks.pumpkin)) return CropEnum.PUMPKIN;
-                    if (block.equals(Blocks.red_mushroom)) return CropEnum.MUSHROOM;
-                    if (block.equals(Blocks.brown_mushroom)) return CropEnum.MUSHROOM;
-                    if (block.equals(Blocks.cactus)) return CropEnum.CACTUS;
+                    if (!(block instanceof BlockCrops || block instanceof BlockReed || block instanceof BlockCocoa || block instanceof BlockNetherWart || block instanceof BlockMelon || block instanceof  BlockPumpkin || block instanceof BlockMushroom || block instanceof BlockCactus)) continue;
+
+                    if (closestCrop == null || mc.thePlayer.getPosition().distanceSq(pos.getX(), pos.getY(), pos.getZ()) < mc.thePlayer.getPosition().distanceSq(closestCrop.getRight().getX(), closestCrop.getRight().getY(), closestCrop.getRight().getZ())) {
+                        closestCrop = Pair.of(block, pos);
+                    }
                 }
+            }
+        }
+        if (closestCrop != null) {
+            Block left = closestCrop.getLeft();
+            if (left.equals(Blocks.wheat)) {
+                return CropEnum.WHEAT;
+            } else if (left.equals(Blocks.carrots)) {
+                return CropEnum.CARROT;
+            } else if (left.equals(Blocks.potatoes)) {
+                return CropEnum.POTATO;
+            } else if (left.equals(Blocks.nether_wart)) {
+                return CropEnum.NETHERWART;
+            } else if (left.equals(Blocks.reeds)) {
+                return CropEnum.SUGARCANE;
+            } else if (left.equals(Blocks.cocoa)) {
+                return CropEnum.COCOA_BEANS;
+            } else if (left.equals(Blocks.melon_block)) {
+                return CropEnum.MELON;
+            } else if (left.equals(Blocks.pumpkin)) {
+                return CropEnum.PUMPKIN;
+            } else if (left.equals(Blocks.red_mushroom)) {
+                return CropEnum.MUSHROOM;
+            } else if (left.equals(Blocks.brown_mushroom)) {
+                return CropEnum.MUSHROOM;
+            } else if (left.equals(Blocks.cactus)) {
+                return CropEnum.CACTUS;
             }
         }
         LogUtils.scriptLog("Can't detect crop type, defaulting to wheat", EnumChatFormatting.RED);
