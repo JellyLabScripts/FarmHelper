@@ -44,11 +44,16 @@ public class PlayerUtils {
                 LogUtils.scriptLog("autoSetSpawnMaxDelay must be greater than autoSetSpawnMinDelay", EnumChatFormatting.RED);
                 return;
             }
+            System.out.println(clock.isScheduled());
             if (clock.isScheduled() && clock.passed()) {
                 mc.thePlayer.sendChatMessage("/setspawn");
-                clock.schedule((long) (new Random().nextInt((int) (diff)) + (FailsafeConfig.autoSetSpawnMinDelay * 1000)));
+                long time = (long) (new Random().nextInt((int) (diff)) + (FailsafeConfig.autoSetSpawnMinDelay * 1000));
+                System.out.println("time: " + time);
+                clock.schedule(time);
             } else if (!clock.isScheduled()) {
-                clock.schedule((long) (new Random().nextInt((int) (diff)) + (FailsafeConfig.autoSetSpawnMinDelay * 1000)));
+                long time = (long) (new Random().nextInt((int) (diff)) + (FailsafeConfig.autoSetSpawnMinDelay * 1000));
+                System.out.println("time: " + time);
+                clock.schedule(time);
             }
         }
     }

@@ -156,8 +156,6 @@ public class SugarcaneMacro extends Macro {
 
         CropUtils.getTool();
 
-        PlayerUtils.attemptSetSpawn();
-
         switch(currentState){
             case WALK:
                 KeyBindUtils.updateKeys(false,
@@ -180,9 +178,6 @@ public class SugarcaneMacro extends Macro {
                 break;
         }
         updateState();
-
-        System.out.println("Current state: " + currentState);
-        System.out.println("Current walk state: " + currentWalkState);
     }
 
     @Override
@@ -226,6 +221,7 @@ public class SugarcaneMacro extends Macro {
                     if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                         currentWalkState = WalkState.S;
                         waitForChangeDirection.reset();
+                        PlayerUtils.attemptSetSpawn();
                         return;
                     }
                     if (!waitForChangeDirection.isScheduled()) {
@@ -246,6 +242,7 @@ public class SugarcaneMacro extends Macro {
                     if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                         currentWalkState = WalkState.S;
                         waitForChangeDirection.reset();
+                        PlayerUtils.attemptSetSpawn();
                         return;
                     }
                     if (!waitForChangeDirection.isScheduled()) {
@@ -268,6 +265,7 @@ public class SugarcaneMacro extends Macro {
                     if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                         currentWalkState = WalkState.A;
                         waitForChangeDirection.reset();
+                        PlayerUtils.attemptSetSpawn();
                         return;
                     }
                     if (!waitForChangeDirection.isScheduled()) {
@@ -285,6 +283,7 @@ public class SugarcaneMacro extends Macro {
                     if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                         currentWalkState = WalkState.D;
                         waitForChangeDirection.reset();
+                        PlayerUtils.attemptSetSpawn();
                         return;
                     }
                     if (!waitForChangeDirection.isScheduled()) {
