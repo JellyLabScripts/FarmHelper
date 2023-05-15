@@ -75,15 +75,15 @@ public class MushroomMacro extends Macro {
     private State stateBeforeFailsafe = null;
 
     @Override
-    public void failsafeDisable() {
+    public void saveLastStateBeforeDisable() {
         stateBeforeFailsafe = currentState;
-        super.failsafeDisable();
+        super.saveLastStateBeforeDisable();
     }
 
     @Override
-    public void restoreStateAfterFailsafe() {
+    public void restoreState() {
         currentState = stateBeforeFailsafe;
-        super.restoreStateAfterFailsafe();
+        super.restoreState();
     }
 
     @Override

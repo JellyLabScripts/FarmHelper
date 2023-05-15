@@ -7,7 +7,7 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 public abstract class Macro {
     public Minecraft mc = Minecraft.getMinecraft();
     public boolean enabled = false;
-    public boolean disabledByFailsafe = false;
+    public boolean savedLastState = false;
 
 
     public void toggle(boolean pause) {
@@ -23,9 +23,9 @@ public abstract class Macro {
         enabled = !enabled;
         if (enabled) {
             onEnable();
-            if (disabledByFailsafe) {
-                disabledByFailsafe = false;
-                restoreStateAfterFailsafe();
+            if (savedLastState) {
+                savedLastState = false;
+                restoreState();
             }
         } else {
             onDisable();
@@ -46,8 +46,8 @@ public abstract class Macro {
 
     public void onPacketReceived(ReceivePacketEvent event) {}
 
-    public void failsafeDisable() {
-        disabledByFailsafe = true;
+    public void saveLastStateBeforeDisable() {
+        savedLastState = true;
         new Thread(() -> {
             try {
                 Thread.sleep((long) (1500 + Math.random() * 2000));
@@ -59,7 +59,7 @@ public abstract class Macro {
         }).start();
     }
 
-    public void restoreStateAfterFailsafe() {}
+    public void restoreState() {}
 
     public void triggerTpCooldown() {}
 }

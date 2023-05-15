@@ -688,7 +688,7 @@ public class VisitorsMacro {
     }
 
     private boolean noMoreVisitors() {
-        return visitors.isEmpty() && visitorsFinished.size() >= 5;
+        return TablistUtils.getTabList().stream().noneMatch("Visitors: "::contains);
     }
 
     private void clickSlot(int slot, int windowAdd) {

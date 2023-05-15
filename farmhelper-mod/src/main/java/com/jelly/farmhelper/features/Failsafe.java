@@ -3,6 +3,7 @@ package com.jelly.farmhelper.features;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.JacobConfig;
+import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.macros.MacroHandler;
@@ -140,12 +141,12 @@ public class Failsafe {
         GameState.location location = gameState.currentLocation;
 
 
-        if(!FailsafeConfig.autoTpOnWorldChange) return;
 
         switch (location) {
             case TELEPORTING:
                 return;
             case LIMBO:
+                if(!FailsafeConfig.autoTpOnWorldChange) return;
                 if (cooldown.passed()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage("/lobby");
@@ -153,6 +154,7 @@ public class Failsafe {
                 }
                 return;
             case LOBBY:
+                if(!FailsafeConfig.autoTpOnWorldChange) return;
                 if (cooldown.passed() && jacobWait.passed()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage("/skyblock");
@@ -161,6 +163,7 @@ public class Failsafe {
                 }
                 return;
             case HUB:
+                if(!FailsafeConfig.autoTpOnWorldChange) return;
                 LogUtils.debugLog("Detected Hub");
                 if (cooldown.passed() && jacobWait.passed() && !AutoCookie.isEnabled() && !AutoPot.isEnabled()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
@@ -194,8 +197,9 @@ public class Failsafe {
                         && !evacuateCooldown.isScheduled()
                         && !afterEvacuateCooldown.isScheduled()
                         && !restartAfterFailsafeCooldown.isScheduled()
-                        && !VisitorsMacro.isEnabled()) {
+                        && (!MiscConfig.visitorsMacro || !VisitorsMacro.isEnabled())) {
 
+                    LogUtils.debugLog("Resuming macro");
                     MacroHandler.enableCurrentMacro();
                 } else if (afterEvacuateCooldown.isScheduled() && !afterEvacuateCooldown.passed()) {
                     LogUtils.debugLog("Waiting for \"after entering island\" cooldown: " + (String.format("%.1f", afterEvacuateCooldown.getRemainingTime() / 1000f)));

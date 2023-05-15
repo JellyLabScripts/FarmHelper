@@ -48,7 +48,7 @@ public class Scheduler {
 
         if (!MacroHandler.randomizing && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && currentState == State.FARMING && farmClock.passed()) {
             LogUtils.debugLog("[Scheduler] Farming time has passed, stopping");
-            MacroHandler.disableCurrentMacro();
+            MacroHandler.disableCurrentMacro(true);
             currentState = State.BREAK;
             breakClock.schedule(TimeUnit.MINUTES.toMillis((long) SchedulerConfig.breakTime));
         } else if (!MacroHandler.randomizing && MacroHandler.isMacroing && currentState == State.BREAK && breakClock.passed()) {

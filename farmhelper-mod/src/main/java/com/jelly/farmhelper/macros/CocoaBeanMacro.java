@@ -1,8 +1,6 @@
 package com.jelly.farmhelper.macros;
 
-import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.features.Antistuck;
-import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
@@ -61,15 +59,15 @@ public class CocoaBeanMacro extends Macro {
     private State stateBeforeFailsafe = null;
 
     @Override
-    public void failsafeDisable() {
+    public void saveLastStateBeforeDisable() {
         stateBeforeFailsafe = currentState;
-        super.failsafeDisable();
+        super.saveLastStateBeforeDisable();
     }
 
     @Override
-    public void restoreStateAfterFailsafe() {
+    public void restoreState() {
         currentState = stateBeforeFailsafe;
-        super.restoreStateAfterFailsafe();
+        super.restoreState();
     }
 
     @Override

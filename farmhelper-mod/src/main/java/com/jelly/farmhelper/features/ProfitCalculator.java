@@ -45,27 +45,28 @@ public class ProfitCalculator {
     public static final HashMap<String, GuiItem> dropToShow = new HashMap<>();
 
     private static final String path = "/assets/farmhelper/textures/gui/";
+    private static boolean cantConnectToApi = false;
 
     public static final List<BazaarItem> cropsToCount = new ArrayList<BazaarItem>() {{
-        add(new BazaarItem("Hay Bale", "ENCHANTED_HAY_BLOCK", HAY_ENCHANTED_TIER_1).setImage());
-        add(new BazaarItem("Seeds", "ENCHANTED_SEEDS", ENCHANTED_TIER_1).setImage());
-        add(new BazaarItem("Carrot", "ENCHANTED_CARROT", ENCHANTED_TIER_1).setImage());
-        add(new BazaarItem("Potato", "ENCHANTED_POTATO", ENCHANTED_TIER_1).setImage());
-        add(new BazaarItem("Melon", "ENCHANTED_MELON_BLOCK", ENCHANTED_TIER_2).setImage());
-        add(new BazaarItem("Pumpkin", "ENCHANTED_PUMPKIN", ENCHANTED_TIER_2).setImage());
-        add(new BazaarItem("Sugar Cane", "ENCHANTED_SUGAR_CANE", ENCHANTED_TIER_2).setImage());
-        add(new BazaarItem("Cocoa Beans", "ENCHANTED_COCOA", ENCHANTED_TIER_1).setImage());
-        add(new BazaarItem("Nether Wart", "MUTANT_NETHER_STALK", ENCHANTED_TIER_2).setImage());
-        add(new BazaarItem("Cactus Green", "ENCHANTED_CACTUS", ENCHANTED_TIER_2).setImage());
-        add(new BazaarItem("Red Mushroom", "ENCHANTED_RED_MUSHROOM", ENCHANTED_TIER_1).setImage());
-        add(new BazaarItem("Brown Mushroom", "ENCHANTED_BROWN_MUSHROOM", ENCHANTED_TIER_1).setImage());
+        add(new BazaarItem("Hay Bale", "ENCHANTED_HAY_BLOCK", HAY_ENCHANTED_TIER_1, 54).setImage());
+        add(new BazaarItem("Seeds", "ENCHANTED_SEEDS", ENCHANTED_TIER_1, 3).setImage());
+        add(new BazaarItem("Carrot", "ENCHANTED_CARROT", ENCHANTED_TIER_1, 4).setImage());
+        add(new BazaarItem("Potato", "ENCHANTED_POTATO", ENCHANTED_TIER_1, 4).setImage());
+        add(new BazaarItem("Melon", "ENCHANTED_MELON_BLOCK", ENCHANTED_TIER_2, 2).setImage());
+        add(new BazaarItem("Pumpkin", "ENCHANTED_PUMPKIN", ENCHANTED_TIER_2, 10).setImage());
+        add(new BazaarItem("Sugar Cane", "ENCHANTED_SUGAR_CANE", ENCHANTED_TIER_2, 5).setImage());
+        add(new BazaarItem("Cocoa Beans", "ENCHANTED_COCOA", ENCHANTED_TIER_1, 3).setImage());
+        add(new BazaarItem("Nether Wart", "MUTANT_NETHER_STALK", ENCHANTED_TIER_2, 5).setImage());
+        add(new BazaarItem("Cactus Green", "ENCHANTED_CACTUS", ENCHANTED_TIER_2, 3).setImage());
+        add(new BazaarItem("Red Mushroom", "ENCHANTED_RED_MUSHROOM", ENCHANTED_TIER_1, 10).setImage());
+        add(new BazaarItem("Brown Mushroom", "ENCHANTED_BROWN_MUSHROOM", ENCHANTED_TIER_1, 10).setImage());
     }};
 
     public static final List<BazaarItem> rngDropToCount = new ArrayList<BazaarItem>() {{
-        add(new BazaarItem("Cropie", "CROPIE", 1).setImage());
-        add(new BazaarItem("Squash", "SQUASH", 1).setImage());
-        add(new BazaarItem("Fermento", "FERMENTO", 1).setImage());
-        add(new BazaarItem("Burrowing Spores", "BURROWING_SPORES", 1).setImage());
+        add(new BazaarItem("Cropie", "CROPIE", 1, 25_000).setImage());
+        add(new BazaarItem("Squash", "SQUASH", 1, 75_000).setImage());
+        add(new BazaarItem("Fermento", "FERMENTO", 1, 250_000).setImage());
+        add(new BazaarItem("Burrowing Spores", "BURROWING_SPORES", 1, 1).setImage());
     }};
 
     public static HashMap<String, Double> bazaarPrices = new HashMap<>();
@@ -112,6 +113,14 @@ public class ProfitCalculator {
                             }
                             dropToShow.put(item.name, new GuiItem(item.amount, isArmor.get().image));
                         }
+                    }
+                } else if (cantConnectToApi) {
+                    Optional<BazaarItem> optional = cropsToCount.stream().filter(bzItem -> bzItem.localizedName.equals(StringUtils.stripControlCodes(item.name))).findAny();
+                    if (optional.isPresent()) {
+                        double price = optional.get().npcPrice * item.amount;
+                        totalProfit += price;
+                        totalProfitBasedOnConditions += price;
+                        dropToShow.put(item.name, new GuiItem((int) Math.floor(item.amount * 1.0F / optional.get().amountToEnchanted), optional.get().image));
                     }
                 }
             }
@@ -184,6 +193,7 @@ public class ProfitCalculator {
 
     @SubscribeEvent
     public void onTickUpdateBazaarPrices(TickEvent.ClientTickEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
         if (updateBazaarClock.passed()) {
             updateBazaarClock.reset();
             updateBazaarClock.schedule(1000 * 60 * 5);
@@ -296,12 +306,13 @@ public class ProfitCalculator {
                 JSONObject json3 = (JSONObject) json2.get("quick_status");
                 bazaarPrices.put(bazaarItem.localizedName, (Double) (json3).get("buyPrice"));
             }
-            if (Minecraft.getMinecraft().thePlayer != null && Minecraft.getMinecraft().theWorld != null)
-                LogUtils.debugLog("Bazaar prices updated");
+            LogUtils.debugLog("Bazaar prices updated");
+            cantConnectToApi = false;
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException(e);
+            LogUtils.debugLog("Failed to update bazaar prices");
+            cantConnectToApi = true;
         }
     }
 
@@ -311,11 +322,13 @@ public class ProfitCalculator {
         public int amountToEnchanted;
 
         public UIComponent image;
+        public int npcPrice;
 
-        public BazaarItem(String localizedName, String bazaarId, int amountToEnchanted) {
+        public BazaarItem(String localizedName, String bazaarId, int amountToEnchanted, int npcPrice) {
             this.localizedName = localizedName;
             this.bazaarId = bazaarId;
             this.amountToEnchanted = amountToEnchanted;
+            this.npcPrice = npcPrice;
         }
 
         public BazaarItem setImage() {
@@ -339,24 +352,6 @@ public class ProfitCalculator {
         public BasicState<String> getEnchantedAmount() {
             enchantedAmountState.set(enchantedAmount + "");
             return enchantedAmountState;
-        }
-    }
-
-    public class SubtractionListElem {
-        /** Name of the item */
-        public String text;
-        /** Quantity of that item */
-        public int quant;
-        /** The amount of ticks the element has left until is no longer shown on the screen */
-        public int lifetme = 200;
-
-        /**
-         * @param s = Name of the item
-         * @param q = Quantity of the item
-         */
-        public SubtractionListElem(String s,int q) {
-            this.text = s;
-            this.quant = q;
         }
     }
 }

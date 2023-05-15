@@ -176,10 +176,10 @@ public class MacroHandler {
         disableCurrentMacro(false);
     }
 
-    public static void disableCurrentMacro(boolean failsafeDisable) {
+    public static void disableCurrentMacro(boolean saveLastState) {
         if (currentMacro != null && currentMacro.enabled) {
-            if (failsafeDisable) {
-                currentMacro.failsafeDisable();
+            if (saveLastState) {
+                currentMacro.saveLastStateBeforeDisable();
             } else {
                 currentMacro.toggle();
             }
