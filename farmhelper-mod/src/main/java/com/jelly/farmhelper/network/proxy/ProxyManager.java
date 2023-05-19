@@ -45,7 +45,7 @@ public class ProxyManager {
             try {
                 isTesting = true;
                 final boolean[] success = {false};
-                NetworkManager manager = NetworkManager.createNetworkManagerAndConnect(InetAddress.getByName("us.mineplex.com"), 25565, false);
+                NetworkManager manager = NetworkManager.createNetworkManagerAndConnect(InetAddress.getByName("tm.mc-complex.com"), 25565, false);
                 manager.setNetHandler(new INetHandlerStatusClient() {
                     public void onDisconnect(IChatComponent reason) {}
 
@@ -64,7 +64,7 @@ public class ProxyManager {
 
                 // Doesn't seem to work without this timeout??
                 Thread.sleep(1000);
-                manager.sendPacket(new C00Handshake(47, "us.mineplex.com", 25565, EnumConnectionState.STATUS));
+                manager.sendPacket(new C00Handshake(47, "tm.mc-complex.com", 25565, EnumConnectionState.STATUS));
                 manager.sendPacket(new C00PacketServerQuery());
                 Thread.sleep(4000);
                 if (!success[0]) {
