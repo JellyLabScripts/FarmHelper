@@ -9,6 +9,7 @@ import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.*;
 import net.minecraft.util.BlockPos;
@@ -37,9 +38,7 @@ public class VisitorsMacro {
 
 
     public enum State {
-        FARMING,
         TRY_TO_SET_SPAWN,
-//        FLYING_TO_110_Y,
         ROTATE_TO_EDGE,
         MOVE_TO_EDGE,
         ROTATE_TO_CENTER,
@@ -232,9 +231,10 @@ public class VisitorsMacro {
             currentState = State.TRY_TO_SET_SPAWN;
             rotation.reset();
             rotation.completed = true;
-            clock.schedule(3000);
-            stuckClock.schedule(60_000);
+            clock.schedule(1_500);
+            stuckClock.schedule(25_000);
             PlayerUtils.setSpawn();
+            mc.thePlayer.closeScreen();
         }
     }
 
@@ -248,17 +248,27 @@ public class VisitorsMacro {
         if (!enabled) return;
         if (delayClock.isScheduled() && !delayClock.passed()) return;
 
+        System.out.println("IsScheduled: " + clock.isScheduled());
+        System.out.println("passed: " + clock.passed());
+
         if (clock.isScheduled() && !clock.passed()) {
             return;
-        } else if (clock.isScheduled()) {
+        } else if (clock.isScheduled() && clock.passed()) {
+            System.out.println("Clock passed");
             clock.reset();
             MacroHandler.disableCurrentMacro();
             return;
         }
 
+        System.out.println("MacroHandler.currentMacro.enabled: " + MacroHandler.currentMacro.enabled);
+
         visitorsFinished.removeIf(visitor -> System.currentTimeMillis() - visitor.getRight() > 10_000);
 
-        if (MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled) return;
+        if (MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled) {
+            MacroHandler.disableCurrentMacro();
+            delayClock.schedule(1000);
+            return;
+        }
 
         System.out.println("Current state: " + currentState);
         System.out.println("Current buy state: " + currentBuyState);
@@ -285,20 +295,15 @@ public class VisitorsMacro {
 
 
         switch (currentState) {
-            case FARMING:
-                PlayerUtils.setSpawn();
-                System.out.println("Setting spawn");
-                currentState = State.TRY_TO_SET_SPAWN;
-                delayClock.schedule(1500);
-                break;
             case TRY_TO_SET_SPAWN:
                 // idle to wait for chatmessage
                 break;
             case ROTATE_TO_EDGE:
-                if (mc.currentScreen != null) break;
+                if ((mc.thePlayer.openContainer instanceof ContainerChest)) break;
 
                 BlockPos closestEdge = barnEdges.stream().min(Comparator.comparingInt(edge -> (int) mc.thePlayer.getDistance(edge.getX(), edge.getY(), edge.getZ()))).orElse(null);
 
+                System.out.println("Closest edge: " + closestEdge);
                 if (closestEdge != null) {
                     if (mc.thePlayer.getDistanceSq(barnCenter) < mc.thePlayer.getDistanceSq(closestEdge)) {
                         closestEdge = barnCenter;
@@ -311,11 +316,14 @@ public class VisitorsMacro {
                     currentState = State.MOVE_TO_EDGE;
                     currentEdge = closestEdge;
                     previousDistanceToCheck = Integer.MAX_VALUE;
+                } else {
+                    LogUtils.debugLog("Can't find closest edge, waiting...");
+                    delayClock.schedule(1000);
                 }
 
                 break;
             case MOVE_TO_EDGE:
-                if (mc.currentScreen != null) break;
+                if ((mc.thePlayer.openContainer instanceof ContainerChest)) break;
                 if (rotation.rotating) break;
 
                 int aspectOfTheVoid = PlayerUtils.getItemInHotbar("Aspect of the");
@@ -359,13 +367,14 @@ public class VisitorsMacro {
                         }
                         KeyBindUtils.updateKeys(false, false, false, false, false, false, true, false);
                         break;
-                    } else
-                        KeyBindUtils.updateKeys(true, false, false, false, false, false, playerY < 85, true);
+                    } else {
+                        KeyBindUtils.updateKeys(true, false, false, false, false, false, playerY < 85, false);
 
-                    if (distanceToEdge > 9) {
-                        if ((aotvTpCooldown.passed() || !aotvTpCooldown.isScheduled()) && haveAotv) {
-                            PlayerUtils.rightClick();
-                            aotvTpCooldown.schedule((long) (300 + Math.random() * 300));
+                        if (distanceToEdge > 14) {
+                            if ((aotvTpCooldown.passed() || !aotvTpCooldown.isScheduled()) && haveAotv) {
+                                PlayerUtils.rightClick();
+                                aotvTpCooldown.schedule((long) (200 + Math.random() * 200));
+                            }
                         }
                     }
 
@@ -382,10 +391,10 @@ public class VisitorsMacro {
 
                 break;
             case ROTATE_TO_CENTER:
-                if (mc.currentScreen != null) break;
+                if ((mc.thePlayer.openContainer instanceof ContainerChest)) break;
                 if (rotation.rotating) break;
 
-                if (FarmHelper.gameState.dx > 0.3 || FarmHelper.gameState.dz > 0.3) {
+                if (FarmHelper.gameState.dx > 0.25 || FarmHelper.gameState.dz > 0.25) {
                     break;
                 }
 
@@ -405,7 +414,7 @@ public class VisitorsMacro {
 
                 break;
             case MOVE_TO_CENTER:
-                if (mc.currentScreen != null) return;
+                if ((mc.thePlayer.openContainer instanceof ContainerChest)) return;
 
                 BlockPos center = barnCenter;
 
@@ -440,18 +449,18 @@ public class VisitorsMacro {
                     break;
                 } else {
                     if (Math.abs(rotationToCenter.getLeft() - mc.thePlayer.rotationYaw) > 1 && !rotation.rotating) {
-                        rotation.easeTo(rotationToCenter.getLeft(), 4 + (float) (Math.random() * 2), 250);
+                        rotation.easeTo(rotationToCenter.getLeft(), 4 + (float) (Math.random() * 2), 175);
                     }
-                    KeyBindUtils.updateKeys(true, false, false, false, false, false, false, true);
+                    KeyBindUtils.updateKeys(true, false, false, false, false, false, false, false);
                 }
 
                 previousDistanceToCheck = distanceToCenter;
 
                 break;
             case ROTATE_TO_DESK:
-                if (mc.currentScreen != null) break;
+                if ((mc.thePlayer.openContainer instanceof ContainerChest)) break;
                 KeyBindUtils.stopMovement();
-                if (FarmHelper.gameState.dx > 0.3 || FarmHelper.gameState.dz > 0.3) {
+                if (FarmHelper.gameState.dx > 0.25 || FarmHelper.gameState.dz > 0.25) {
                     break;
                 }
                 BlockPos deskPosTemp = new BlockPos(MiscConfig.visitorsDeskPosX + 0.5, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ + 0.5);
@@ -465,11 +474,11 @@ public class VisitorsMacro {
 
                 break;
             case MOVE_TOWARDS_DESK:
-                if (mc.currentScreen != null) break;
+                if ((mc.thePlayer.openContainer instanceof ContainerChest)) break;
 
                 finalDeskPos = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ);
 
-                if (BlockUtils.isBlockVisible(finalDeskPos.up()) && !BlockUtils.getRelativeBlockPos(0, -1, 0).equals(finalDeskPos)) {
+                if (BlockUtils.isBlockVisible(finalDeskPos.up()) && BlockUtils.getRelativeBlockPos(0, -1, 0).distanceSq(finalDeskPos) > 4.5f) {
                     rotationToDesk = AngleUtils.getRotation(finalDeskPos.up().up());
                     if ((Math.abs(rotationToDesk.getLeft() - mc.thePlayer.rotationYaw) > 1 || Math.abs(rotationToDesk.getRight() - mc.thePlayer.rotationPitch) > 1) && !rotation.rotating) {
                         rotation.easeTo(rotationToDesk.getLeft(), rotationToDesk.getRight(), 250);
@@ -477,15 +486,16 @@ public class VisitorsMacro {
                     KeyBindUtils.updateKeys(true, false, false, false, false, mc.thePlayer.capabilities.isFlying, false, !mc.thePlayer.capabilities.isFlying);
 
                     break;
-                } else if (BlockUtils.getRelativeBlockPos(0, -1, 0).equals(finalDeskPos)) {
+                } else if (BlockUtils.getRelativeBlockPos(0, -1, 0).distanceSq(finalDeskPos) <= 1.5f) {
                     currentState = State.MANAGING_VISITORS;
-                    KeyBindUtils.updateKeys(false, false, false, false, false, true, false, false);
+                    KeyBindUtils.stopMovement();
+                } else if (BlockUtils.getRelativeBlockPos(0, -1, 0).distanceSq(finalDeskPos) <= 4.5f) {
+                    KeyBindUtils.updateKeys(true, false, false, false, false, true, false, false);
                 }
 
                 break;
             case MANAGING_VISITORS:
-                if (mc.currentScreen != null) {
-
+                if ((mc.thePlayer.openContainer instanceof ContainerChest)) {
                     break;
                 }
                 if (waitAfterTpClock.isScheduled() && !waitAfterTpClock.passed()) break;
@@ -543,7 +553,7 @@ public class VisitorsMacro {
                     currentState = State.OPEN_VISITOR;
                     rotation.reset();
                     firstTimeOpen = true;
-                    rotation.easeTo(AngleUtils.getRotation(character).getLeft(), AngleUtils.getRotation(character).getRight(), 1000);
+                    rotation.easeTo(AngleUtils.getRotation(character).getLeft(), AngleUtils.getRotation(character).getRight(), 500);
                     return;
                 }
 
@@ -801,9 +811,9 @@ public class VisitorsMacro {
     }
 
     private boolean isAboveHeadClear() {
-        for (int y = (int) mc.thePlayer.posY + 1; y < 110; y++) {
+        for (int y = (int) mc.thePlayer.posY + 1; y < 100; y++) {
             BlockPos blockPos = new BlockPos(mc.thePlayer.posX, y, mc.thePlayer.posZ);
-            if (!mc.theWorld.isAirBlock(blockPos) || !mc.theWorld.getBlockState(blockPos).getBlock().isPassable(mc.theWorld, blockPos)) {
+            if (!mc.theWorld.isAirBlock(blockPos) && !mc.theWorld.getBlockState(blockPos).getBlock().isPassable(mc.theWorld, blockPos)) {
                 return false;
             }
         }
@@ -880,7 +890,7 @@ public class VisitorsMacro {
         if (message.contains("You cannot set your spawn here!")) {
             currentState = State.NONE;
             if (!clock.isScheduled()) {
-                clock.schedule(25_000L);
+                clock.schedule(5_000L);
             }
         } else if (message.contains("Your spawn location has been set!")) {
             currentState = State.ROTATE_TO_EDGE;
@@ -893,7 +903,7 @@ public class VisitorsMacro {
 
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event) {
-        if (rotation.rotating && mc.currentScreen == null)
+        if (rotation.rotating && !(mc.thePlayer.openContainer instanceof ContainerChest))
             rotation.update();
 
         if ((MiscConfig.visitorsDeskPosX == 0 && MiscConfig.visitorsDeskPosY == 0 && MiscConfig.visitorsDeskPosZ == 0)) {

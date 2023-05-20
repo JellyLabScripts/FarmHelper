@@ -209,6 +209,9 @@ public class BlockUtils {
         if (currentPositionBlock.equals(Blocks.air) && !mc.theWorld.getBlockState(currentPosition.down()).getBlock().equals(Blocks.air)) {
             return true;
         }
+        if (currentPositionBlock.equals(Blocks.reeds) && (mc.theWorld.getBlockState(currentPosition.down()).getBlock().equals(Blocks.dirt) || mc.theWorld.getBlockState(currentPosition.down()).getBlock().equals(Blocks.grass) || mc.theWorld.getBlockState(currentPosition.down()).getBlock().equals(Blocks.sand))) {
+            return true;
+        }
         return false;
     }
 
