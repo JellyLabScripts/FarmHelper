@@ -84,7 +84,7 @@ public class VisitorsMacro {
     public static String signText = "";
 
     public static final ArrayList<String> visitors = new ArrayList<>();
-    public static final ArrayList<String> visitorsFinished = new ArrayList<>();
+    public static final ArrayList<Pair<String, Long>> visitorsFinished = new ArrayList<>();
     public static final ArrayList<Pair<String, Integer>> itemsToBuy = new ArrayList<>();
     public static final ArrayList<Pair<String, Integer>> itemsToBuyForCheck = new ArrayList<>();
     public static Pair<String, Integer> itemToBuy = null;
@@ -179,6 +179,12 @@ public class VisitorsMacro {
         if (!MacroHandler.isMacroing) return;
         if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
 
+        if (clock.isScheduled() && !clock.passed()) {
+            return;
+        } else if (clock.passed()) {
+            clock.reset();
+        }
+
         if (TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
             LogUtils.debugLog("Queue is not full, waiting...");
             clock.schedule(1000);
@@ -249,6 +255,8 @@ public class VisitorsMacro {
             MacroHandler.disableCurrentMacro();
             return;
         }
+
+        visitorsFinished.removeIf(visitor -> System.currentTimeMillis() - visitor.getRight() > 10_000);
 
         if (MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled) return;
 
@@ -513,7 +521,7 @@ public class VisitorsMacro {
                 Entity closest = null;
 
                 for (Entity entity : entities) {
-                    if (visitorsFinished.contains(StringUtils.stripControlCodes(entity.getCustomNameTag()))) {
+                    if (visitorsFinished.stream().anyMatch(v -> StringUtils.stripControlCodes(v.getLeft()).contains(StringUtils.stripControlCodes(entity.getCustomNameTag())))) {
                         continue;
                     }
                     if (closest == null || mc.thePlayer.getDistanceToEntity(entity) < mc.thePlayer.getDistanceToEntity(closest)) {
@@ -779,7 +787,7 @@ public class VisitorsMacro {
 
     private void finishVisitor(Slot slot) {
         clickSlot(slot.slotNumber, 0);
-        visitorsFinished.add(StringUtils.stripControlCodes(currentVisitor.getCustomNameTag()));
+        visitorsFinished.add(Pair.of(StringUtils.stripControlCodes(currentVisitor.getCustomNameTag()), System.currentTimeMillis()));
         currentVisitor = null;
         currentState = State.BACK_TO_FARMING;
         currentBuyState = BuyState.IDLE;
