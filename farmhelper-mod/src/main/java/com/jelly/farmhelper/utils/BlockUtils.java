@@ -198,14 +198,6 @@ public class BlockUtils {
         }
     }
 
-    public static boolean canSetSpawn(Block blockUnder) {
-        return !blockUnder.equals(Blocks.stone_slab) &&
-                !blockUnder.equals(Blocks.stone_slab2) &&
-                !blockUnder.equals(Blocks.wooden_slab) &&
-                !blockUnder.equals(Blocks.carpet) &&
-                !blockUnder.equals(Blocks.end_portal_frame);
-    }
-
     public static boolean canSetSpawn(BlockPos currentPosition) {
         Block currentPositionBlock = mc.theWorld.getBlockState(currentPosition).getBlock();
         if ((currentPositionBlock.equals(Blocks.carpet) || currentPositionBlock.equals(Blocks.stone_slab) || currentPositionBlock.equals(Blocks.stone_slab2) || currentPositionBlock.equals(Blocks.wooden_slab)) && !mc.theWorld.getBlockState(currentPosition.down()).getBlock().equals(Blocks.air)) {

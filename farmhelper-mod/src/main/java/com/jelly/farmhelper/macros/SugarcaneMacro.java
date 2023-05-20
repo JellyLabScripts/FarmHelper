@@ -90,16 +90,19 @@ public class SugarcaneMacro extends Macro {
     }
 
     private State stateBeforeFailsafe = null;
+    private WalkState walkStateBeforeFailsafe = null;
 
     @Override
     public void saveLastStateBeforeDisable() {
         stateBeforeFailsafe = currentState;
+        walkStateBeforeFailsafe = currentWalkState;
         super.saveLastStateBeforeDisable();
     }
 
     @Override
     public void restoreState() {
         currentState = stateBeforeFailsafe;
+        currentWalkState = walkStateBeforeFailsafe;
         super.restoreState();
     }
 

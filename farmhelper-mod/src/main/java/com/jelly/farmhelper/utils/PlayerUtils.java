@@ -18,6 +18,8 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -342,5 +344,21 @@ public class PlayerUtils {
             return itemStack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8).getStringTagAt(index);
         }
         return null;
+    }
+
+    public static void rightClick() {
+        try {
+            Method rightClick = mc.getClass().getDeclaredMethod("func_147121_ag");
+            rightClick.setAccessible(true);
+            rightClick.invoke(mc);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException ex) {
+            try {
+                Method rightClick = mc.getClass().getDeclaredMethod("rightClickMouse");
+                rightClick.setAccessible(true);
+                rightClick.invoke(mc);
+            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException ex2) {
+                ex2.printStackTrace();
+            }
+        }
     }
 }

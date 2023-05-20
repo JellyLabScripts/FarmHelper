@@ -11,7 +11,6 @@ import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ChunkProviderClient;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S09PacketHeldItemChange;
@@ -93,7 +92,7 @@ public class Failsafe {
                             (FailsafeConfig.autoSetspawn ? "" : " Since auto setspawn was disabled, fly back to the place where you started")));
             
             MacroHandler.disableCurrentMacro();
-            cooldown.schedule((long) (3000 + Math.random() * 3000));
+            cooldown.schedule((long) (6000 + Math.random() * 5000));
         }
 
     }
@@ -140,7 +139,6 @@ public class Failsafe {
         }
 
         GameState.location location = gameState.currentLocation;
-
 
 
         switch (location) {

@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.utils;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
@@ -20,7 +21,10 @@ public class RenderUtils {
         double x2 = x + 1;
         double y2 = y + 1;
         double z2 = z + 1;
-        drawBox(new AxisAlignedBB(x, y, z, x2, y2, z2), color);
+        double d0 = Minecraft.getMinecraft().getRenderManager().viewerPosX;
+        double d1 = Minecraft.getMinecraft().getRenderManager().viewerPosY;
+        double d2 = Minecraft.getMinecraft().getRenderManager().viewerPosZ;
+        drawBox(new AxisAlignedBB(x, y, z, x2, y2, z2).offset(-d0, -d1, -d2), color);
     }
 
     public static void drawBox(AxisAlignedBB aabb, Color color) {
