@@ -100,6 +100,7 @@ public class VisitorsMacro {
 
     public static BlockPos currentEdge = null;
 
+    public static boolean haveAotv = false;
     public static final Clock aotvTpCooldown = new Clock();
 
     public static boolean isEnabled() {
@@ -112,6 +113,7 @@ public class VisitorsMacro {
         currentState = State.NONE;
         aotvTpCooldown.reset();
         clock.reset();
+        haveAotv = false;
         rotation.reset();
         waitAfterTpClock.reset();
         goingToCenterFirst = false;
@@ -206,10 +208,10 @@ public class VisitorsMacro {
 
         int aspectOfTheVoid = PlayerUtils.getItemInHotbar("Aspect of the");
         if (aspectOfTheVoid == -1) {
-            ConfigHandler.set("visitorsMacro", false);
-            LogUtils.debugLog("Disabling this feature, player doesn't have AOTE nor AOTV)");
-            enabled = false;
-            return;
+            LogUtils.debugLog("Player doesn't have AOTE nor AOTV)");
+            haveAotv = false;
+        } else {
+            haveAotv = true;
         }
 
         if ((MiscConfig.visitorsDeskPosX == 0 && MiscConfig.visitorsDeskPosY == 0 && MiscConfig.visitorsDeskPosZ == 0) ) {
@@ -309,10 +311,10 @@ public class VisitorsMacro {
 
                 int aspectOfTheVoid = PlayerUtils.getItemInHotbar("Aspect of the");
                 if (aspectOfTheVoid == -1) {
-                    ConfigHandler.set("visitorsMacro", false);
-                    LogUtils.debugLog("Disabling this feature, player doesn't have AOTE nor AOTV)");
-                    enabled = false;
-                    return;
+                    LogUtils.debugLog("Player doesn't have AOTE nor AOTV)");
+                    haveAotv = false;
+                } else {
+                    haveAotv = true;
                 }
 
                 stuckClock.schedule(25_000);
@@ -352,7 +354,7 @@ public class VisitorsMacro {
                         KeyBindUtils.updateKeys(true, false, false, false, false, false, playerY < 85, true);
 
                     if (distanceToEdge > 9) {
-                        if (aotvTpCooldown.passed() || !aotvTpCooldown.isScheduled()) {
+                        if ((aotvTpCooldown.passed() || !aotvTpCooldown.isScheduled()) && haveAotv) {
                             PlayerUtils.rightClick();
                             aotvTpCooldown.schedule((long) (300 + Math.random() * 300));
                         }
