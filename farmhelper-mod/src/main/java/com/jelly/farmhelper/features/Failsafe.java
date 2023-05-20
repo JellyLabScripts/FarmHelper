@@ -68,6 +68,7 @@ public class Failsafe {
                 LogUtils.debugLog("Update or restart is required - Evacuating in 5s");
                 evacuateCooldown.schedule(5_000);
                 MacroHandler.disableCurrentMacro(true);
+                KeyBindUtils.stopMovement();
             }
             if (message.contains("Your spawn location has been set!")) {
                 LogUtils.debugLog("Spawn set correctly");
@@ -158,7 +159,7 @@ public class Failsafe {
                 if (cooldown.passed() && jacobWait.passed()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage("/skyblock");
-                    cooldown.schedule(5000);
+                    cooldown.schedule(7500);
                     afterEvacuateCooldown.schedule(7500);
                 }
                 return;
@@ -169,6 +170,8 @@ public class Failsafe {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
                     cooldown.schedule(5000);
+                } else if (afterEvacuateCooldown.isScheduled() && !afterEvacuateCooldown.passed()) {
+                    LogUtils.debugLog("Waiting for \"after evacuate\" cooldown: " + (String.format("%.1f", afterEvacuateCooldown.getRemainingTime() / 1000f)));
                 }
                 return;
             case ISLAND:
