@@ -96,6 +96,7 @@ public class VisitorsMacro {
 
     public static final List<BlockPos> barnEdges = Arrays.asList(new BlockPos(33, 85, -6), new BlockPos(-32, 85, -6));
     public static final BlockPos barnCenter = new BlockPos(0, 85, -6);
+    public static boolean goingToCenterFirst = false;
 
     public static BlockPos currentEdge = null;
 
@@ -113,6 +114,7 @@ public class VisitorsMacro {
         clock.reset();
         rotation.reset();
         waitAfterTpClock.reset();
+        goingToCenterFirst = false;
         boughtAllItems = false;
         KeyBindUtils.stopMovement();
         visitorsFinished.clear();
@@ -174,11 +176,11 @@ public class VisitorsMacro {
         if (!MacroHandler.isMacroing) return;
         if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
 
-//        if (TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
-//            LogUtils.debugLog("Queue is not full, waiting...");
-//            clock.schedule(1000);
-//            return;
-//        }
+        if (TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
+            LogUtils.debugLog("Queue is not full, waiting...");
+            clock.schedule(1000);
+            return;
+        }
 
         if (!canSeeClosestEdgeOfBarn()) {
             LogUtils.debugLog("Can't see any edge of barn, still going.");
@@ -289,6 +291,7 @@ public class VisitorsMacro {
                 if (closestEdge != null) {
                     if (mc.thePlayer.getDistanceSq(barnCenter) < mc.thePlayer.getDistanceSq(closestEdge)) {
                         closestEdge = barnCenter;
+                        goingToCenterFirst = true;
                     }
                     Pair<Float, Float> rotationToEdge = AngleUtils.getRotation(closestEdge.add(new Vec3i(0, -0.3, 0)));
 
@@ -357,7 +360,11 @@ public class VisitorsMacro {
 
                 } else {
                     KeyBindUtils.stopMovement();
-                    currentState = State.ROTATE_TO_CENTER;
+                    if (goingToCenterFirst) {
+                        currentState = State.ROTATE_TO_DESK;
+                    } else {
+                        currentState = State.ROTATE_TO_CENTER;
+                    }
                 }
 
                 previousDistanceToCheck = distanceToEdge;
