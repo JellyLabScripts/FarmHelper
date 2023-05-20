@@ -46,7 +46,6 @@ public class VisitorsMacro {
         MOVE_TO_CENTER,
         ROTATE_TO_DESK,
         MOVE_TOWARDS_DESK,
-        TELEPORT_TO_DESK,
         MANAGING_VISITORS,
         OPEN_VISITOR,
         BUY_ITEMS,
@@ -102,6 +101,7 @@ public class VisitorsMacro {
 
     public static boolean haveAotv = false;
     public static final Clock aotvTpCooldown = new Clock();
+    public static boolean firstTimeOpen = true;
 
     public static boolean isEnabled() {
         return enabled;
@@ -130,6 +130,7 @@ public class VisitorsMacro {
         previousState = State.NONE;
         previousBuyState = BuyState.IDLE;
         enabled = false;
+        firstTimeOpen = true;
         retriesToGettingCloser = 0;
         if (disableMacro) {
             ConfigHandler.set("visitorsMacro", false);
@@ -474,13 +475,6 @@ public class VisitorsMacro {
                 }
 
                 break;
-            case TELEPORT_TO_DESK:
-                if (rotation.rotating) break;
-
-                currentState = State.MANAGING_VISITORS;
-                waitAfterTpClock.schedule(750L);
-
-                break;
             case MANAGING_VISITORS:
                 if (mc.currentScreen != null) {
 
@@ -540,6 +534,7 @@ public class VisitorsMacro {
                     currentVisitor = closest;
                     currentState = State.OPEN_VISITOR;
                     rotation.reset();
+                    firstTimeOpen = true;
                     rotation.easeTo(AngleUtils.getRotation(character).getLeft(), AngleUtils.getRotation(character).getRight(), 1000);
                     return;
                 }
@@ -564,7 +559,10 @@ public class VisitorsMacro {
                 break;
             case BUY_ITEMS:
                 String chestName = mc.thePlayer.openContainer.inventorySlots.get(0).inventory.getName();
-
+                if (firstTimeOpen) {
+                    mc.playerController.interactWithEntitySendPacket(mc.thePlayer, currentVisitor);
+                    firstTimeOpen = false;
+                }
                 System.out.println(chestName);
 
                 if (chestName != null) {
@@ -824,7 +822,7 @@ public class VisitorsMacro {
     }
 
     private boolean noMoreVisitors() {
-        return TablistUtils.getTabList().stream().noneMatch("Visitors: "::contains);
+        return TablistUtils.getTabList().stream().noneMatch(l -> l.contains("Visitors: "));
     }
 
     private boolean canSeeClosestEdgeOfBarn() {
