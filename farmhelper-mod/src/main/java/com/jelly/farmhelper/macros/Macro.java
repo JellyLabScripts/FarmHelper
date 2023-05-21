@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.events.ReceivePacketEvent;
+import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
@@ -47,16 +48,10 @@ public abstract class Macro {
     public void onPacketReceived(ReceivePacketEvent event) {}
 
     public void saveLastStateBeforeDisable() {
+        LogUtils.debugLog("Saving last state before disabling macro");
         savedLastState = true;
-        new Thread(() -> {
-            try {
-                Thread.sleep((long) (1500 + Math.random() * 2000));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if (MacroHandler.isMacroing)
-                toggle();
-        }).start();
+        if (MacroHandler.isMacroing && MacroHandler.currentMacro.enabled)
+            toggle();
     }
 
     public void restoreState() {}

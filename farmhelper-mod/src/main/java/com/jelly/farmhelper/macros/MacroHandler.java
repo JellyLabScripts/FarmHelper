@@ -165,6 +165,8 @@ public class MacroHandler {
 
     public static void disableMacro() {
         isMacroing = false;
+        if (currentMacro != null)
+            currentMacro.savedLastState = false;
         disableCurrentMacro();
         LogUtils.scriptLog("Disabling script");
         LogUtils.webhookLog("Disabling script");

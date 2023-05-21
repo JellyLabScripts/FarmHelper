@@ -111,24 +111,33 @@ public class AngleUtils {
         return getRotation(new Vec3(block.getX() + 0.5, block.getY() + 0.5, block.getZ() + 0.5));
     }
 
-    public static Pair<Float, Float> getRotation(Entity entity) {
+    public static Pair<Float, Float> getRotation(Entity entity, boolean randomness) {
         return getRotation(new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ));
+
     }
 
-    public static Pair<Float, Float> getRotation(Vec3 vec3) {
+    public static Pair<Float, Float> getRotation(Entity entity) {
+        return getRotation(entity, false);
+    }
+
+    public static Pair<Float, Float> getRotation(Vec3 vec3, boolean randomness) {
         double diffX = vec3.xCoord - mc.thePlayer.posX;
         double diffY = vec3.yCoord - mc.thePlayer.posY - mc.thePlayer.getEyeHeight();
         double diffZ = vec3.zCoord - mc.thePlayer.posZ;
-        return getRotationTo(diffX, diffY, diffZ);
+        return getRotationTo(diffX, diffY, diffZ, randomness);
     }
 
-    private static Pair<Float, Float> getRotationTo(double diffX, double diffY, double diffZ) {
+    public static Pair<Float, Float> getRotation(Vec3 vec3) {
+        return getRotation(vec3, false);
+    }
+
+    private static Pair<Float, Float> getRotationTo(double diffX, double diffY, double diffZ, boolean randomness) {
         double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
 
         float pitch = (float) -Math.atan2(dist, diffY);
         float yaw = (float) Math.atan2(diffZ, diffX);
-        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90) * -1);
-        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90);
+        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90) * -1) + (randomness ? (float) (Math.random() * 3 - 1.5f) : 0);
+        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90) + (randomness ? (float) (Math.random() * 3 - 1.5f) : 0);
 
         return Pair.of(yaw, pitch);
     }

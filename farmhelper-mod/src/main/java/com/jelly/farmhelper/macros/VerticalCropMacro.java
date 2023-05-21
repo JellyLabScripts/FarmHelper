@@ -47,6 +47,7 @@ public class VerticalCropMacro extends Macro{
 
     @Override
     public void restoreState() {
+        LogUtils.debugLog("Restoring state: " + stateBeforeFailsafe);
         currentState = stateBeforeFailsafe;
         super.restoreState();
     }

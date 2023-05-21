@@ -9,6 +9,7 @@ import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.*;
@@ -257,7 +258,8 @@ public class VisitorsMacro {
         } else if (clock.isScheduled() && clock.passed()) {
             System.out.println("Clock passed");
             clock.reset();
-            MacroHandler.disableCurrentMacro();
+            if (MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled)
+                MacroHandler.disableCurrentMacro(true);
             return;
         }
 
@@ -266,7 +268,7 @@ public class VisitorsMacro {
         visitorsFinished.removeIf(visitor -> System.currentTimeMillis() - visitor.getRight() > 10_000);
 
         if (MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled) {
-            MacroHandler.disableCurrentMacro();
+            MacroHandler.disableCurrentMacro(true);
             delayClock.schedule(1000);
             return;
         }
@@ -554,7 +556,8 @@ public class VisitorsMacro {
                     currentState = State.OPEN_VISITOR;
                     rotation.reset();
                     firstTimeOpen = true;
-                    rotation.easeTo(AngleUtils.getRotation(character).getLeft(), AngleUtils.getRotation(character).getRight(), 500);
+                    Pair<Float, Float> rotationToCharacter = AngleUtils.getRotation(character, true);
+                    rotation.easeTo(rotationToCharacter.getLeft(), rotationToCharacter.getRight(), 400);
                     return;
                 }
 
@@ -705,7 +708,8 @@ public class VisitorsMacro {
                                         if (characterr != null) {
                                             LogUtils.scriptLog("Found a visitor and going to give items to him");
                                             rotation.reset();
-                                            rotation.easeTo(AngleUtils.getRotation(characterr).getLeft(), AngleUtils.getRotation(characterr).getRight(), 750);
+                                            Pair<Float, Float> rotationTo = AngleUtils.getRotation(characterr, true);
+                                            rotation.easeTo(rotationTo.getLeft(), rotationTo.getRight(), 450);
                                             currentState = State.OPEN_VISITOR;
                                             boughtAllItems = true;
                                             mc.thePlayer.closeScreen();
@@ -814,7 +818,7 @@ public class VisitorsMacro {
     private boolean isAboveHeadClear() {
         for (int y = (int) mc.thePlayer.posY + 1; y < 100; y++) {
             BlockPos blockPos = new BlockPos(mc.thePlayer.posX, y, mc.thePlayer.posZ);
-            if (!mc.theWorld.isAirBlock(blockPos) && !mc.theWorld.getBlockState(blockPos).getBlock().isPassable(mc.theWorld, blockPos)) {
+            if (!mc.theWorld.isAirBlock(blockPos) && !mc.theWorld.getBlockState(blockPos).getBlock().equals(Blocks.reeds)) {
                 return false;
             }
         }
