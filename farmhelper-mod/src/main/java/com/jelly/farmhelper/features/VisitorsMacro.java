@@ -7,6 +7,8 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
+import net.minecraft.block.BlockSlab;
+import net.minecraft.block.BlockStairs;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
@@ -250,9 +252,6 @@ public class VisitorsMacro {
         if (!enabled) return;
         if (delayClock.isScheduled() && !delayClock.passed()) return;
 
-        System.out.println("IsScheduled: " + clock.isScheduled());
-        System.out.println("passed: " + clock.passed());
-
         if (clock.isScheduled() && !clock.passed()) {
             return;
         } else if (clock.isScheduled() && clock.passed()) {
@@ -262,8 +261,6 @@ public class VisitorsMacro {
                 MacroHandler.disableCurrentMacro(true);
             return;
         }
-
-        System.out.println("MacroHandler.currentMacro.enabled: " + MacroHandler.currentMacro.enabled);
 
         visitorsFinished.removeIf(visitor -> System.currentTimeMillis() - visitor.getRight() > 10_000);
 
@@ -343,7 +340,7 @@ public class VisitorsMacro {
 
                 double distanceToEdge = mc.thePlayer.getDistance(currentEdge.getX(), currentEdge.getY(), currentEdge.getZ());
 
-                if (distanceToEdge > previousDistanceToCheck) {
+                if (distanceToEdge > previousDistanceToCheck && distanceToEdge > 15) {
                     retriesToGettingCloser++;
                     currentState = State.ROTATE_TO_EDGE;
                     KeyBindUtils.stopMovement();
@@ -358,7 +355,7 @@ public class VisitorsMacro {
                     break;
                 }
 
-                if (distanceToEdge > 5) {
+                if (distanceToEdge > 3) {
                     int playerY = mc.thePlayer.getPosition().getY();
 
                     if (playerY < 77) {
@@ -371,7 +368,7 @@ public class VisitorsMacro {
                         KeyBindUtils.updateKeys(false, false, false, false, false, false, true, false);
                         break;
                     } else {
-                        KeyBindUtils.updateKeys(true, false, false, false, false, false, playerY < 85, false);
+                        KeyBindUtils.updateKeys(true, false, false, false, false, false, playerY < 85, true);
 
                         if (distanceToEdge > 14) {
                             if ((aotvTpCooldown.passed() || !aotvTpCooldown.isScheduled()) && haveAotv) {
@@ -381,7 +378,9 @@ public class VisitorsMacro {
                         }
                     }
 
-                } else {
+                }
+
+                if (distanceToEdge <= 3 || (distanceToEdge > previousDistanceToCheck && distanceToEdge < 6)) {
                     KeyBindUtils.stopMovement();
                     if (goingToCenterFirst) {
                         currentState = State.ROTATE_TO_DESK;
@@ -424,14 +423,15 @@ public class VisitorsMacro {
                 rotationToCenter = AngleUtils.getRotation(barnCenter);
 
                 double distanceToCenter = mc.thePlayer.getDistance(center.getX(), center.getY(), center.getZ());
-                finalDeskPos = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY + 1, MiscConfig.visitorsDeskPosZ);
+                finalDeskPos = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ);
 
-                if (BlockUtils.isBlockVisible(finalDeskPos)) {
+                if (BlockUtils.isBlockVisible(finalDeskPos.up())) {
                     currentState = State.ROTATE_TO_DESK;
+                    KeyBindUtils.stopMovement();
                     break;
                 }
 
-                if (distanceToCenter > previousDistanceToCheck) {
+                if (distanceToCenter > previousDistanceToCheck && distanceToCenter > 15) {
                     retriesToGettingCloser++;
                     currentState = State.ROTATE_TO_CENTER;
                     KeyBindUtils.stopMovement();
@@ -446,7 +446,7 @@ public class VisitorsMacro {
                     break;
                 }
 
-                if (distanceToCenter < 2) {
+                if (distanceToCenter <= 3 || (distanceToCenter > previousDistanceToCheck && distanceToCenter < 6)) {
                     KeyBindUtils.stopMovement();
                     currentState = State.ROTATE_TO_DESK;
                     break;
@@ -466,9 +466,9 @@ public class VisitorsMacro {
                 if (FarmHelper.gameState.dx > 0.25 || FarmHelper.gameState.dz > 0.25) {
                     break;
                 }
-                BlockPos deskPosTemp = new BlockPos(MiscConfig.visitorsDeskPosX + 0.5, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ + 0.5);
+                BlockPos deskPosTemp = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ);
 
-                Pair<Float, Float> rotationToDesk = AngleUtils.getRotation(deskPosTemp);
+                Pair<Float, Float> rotationToDesk = AngleUtils.getRotation(deskPosTemp.up());
 
                 rotation.easeTo(rotationToDesk.getLeft(), rotationToDesk.getRight(), 500);
 
@@ -481,19 +481,19 @@ public class VisitorsMacro {
 
                 finalDeskPos = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ);
 
-                if (BlockUtils.isBlockVisible(finalDeskPos.up()) && BlockUtils.getRelativeBlockPos(0, -1, 0).distanceSq(finalDeskPos) > 4.5f) {
-                    rotationToDesk = AngleUtils.getRotation(finalDeskPos.up().up());
-                    if ((Math.abs(rotationToDesk.getLeft() - mc.thePlayer.rotationYaw) > 1 || Math.abs(rotationToDesk.getRight() - mc.thePlayer.rotationPitch) > 1) && !rotation.rotating) {
-                        rotation.easeTo(rotationToDesk.getLeft(), rotationToDesk.getRight(), 250);
-                    }
-                    KeyBindUtils.updateKeys(true, false, false, false, false, mc.thePlayer.capabilities.isFlying, false, !mc.thePlayer.capabilities.isFlying);
-
+                rotationToDesk = AngleUtils.getRotation(finalDeskPos.up().up());
+                double distance = mc.thePlayer.getDistance(finalDeskPos.getX(), finalDeskPos.getY(), finalDeskPos.getZ());
+                if ((Math.abs(rotationToDesk.getLeft() - mc.thePlayer.rotationYaw) > 1 || Math.abs(rotationToDesk.getRight() - mc.thePlayer.rotationPitch) > 1) && !rotation.rotating) {
+                    rotation.easeTo(rotationToDesk.getLeft(), rotationToDesk.getRight(), 250);
+                }
+                if (BlockUtils.isBlockVisible(finalDeskPos.up()) && distance > 4.5f) {
+                    KeyBindUtils.updateKeys(true, false, false, false, false, mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround, shouldJump(), !mc.thePlayer.capabilities.isFlying);
                     break;
-                } else if (BlockUtils.getRelativeBlockPos(0, -1, 0).distanceSq(finalDeskPos) <= 1.5f) {
+                } else if (distance <= 1.5f) {
                     currentState = State.MANAGING_VISITORS;
                     KeyBindUtils.stopMovement();
-                } else if (BlockUtils.getRelativeBlockPos(0, -1, 0).distanceSq(finalDeskPos) <= 4.5f) {
-                    KeyBindUtils.updateKeys(true, false, false, false, false, true, false, false);
+                } else if (distance <= 3.5f) {
+                    KeyBindUtils.updateKeys(true, false, false, false, false, true, shouldJump(), false);
                 }
 
                 break;
@@ -709,7 +709,7 @@ public class VisitorsMacro {
                                             LogUtils.scriptLog("Found a visitor and going to give items to him");
                                             rotation.reset();
                                             Pair<Float, Float> rotationTo = AngleUtils.getRotation(characterr, true);
-                                            rotation.easeTo(rotationTo.getLeft(), rotationTo.getRight(), 450);
+                                            rotation.easeTo(rotationTo.getLeft(), rotationTo.getRight(), (long) (350 + Math.random() * 200));
                                             currentState = State.OPEN_VISITOR;
                                             boughtAllItems = true;
                                             mc.thePlayer.closeScreen();
@@ -813,6 +813,13 @@ public class VisitorsMacro {
         itemToBuy = null;
         delayClock.schedule(250);
         haveItemsClock.reset();
+    }
+
+    private boolean shouldJump() {
+        return mc.thePlayer.onGround &&
+                !BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.air) &&
+                !(BlockUtils.getRelativeBlock(0, 0, 1) instanceof BlockSlab) &&
+                !(BlockUtils.getRelativeBlock(0, 0, 1) instanceof BlockStairs);
     }
 
     private boolean isAboveHeadClear() {
@@ -933,12 +940,13 @@ public class VisitorsMacro {
         FontUtils.drawString("State: " + currentState, x, 2, Color.WHITE.hashCode(), true);
         FontUtils.drawString("Buy state: " + currentBuyState, x, 12, Color.WHITE.hashCode(), true);
         FontUtils.drawString("Stuck timer: " + (stuckClock.getRemainingTime() > 0 ? stuckClock.getRemainingTime() : "None"), x, 22, Color.WHITE.hashCode(), true);
-        FontUtils.drawString("Items to buy: ", x, 32, Color.WHITE.hashCode(), true);
+        FontUtils.drawString("Distance to check: " + previousDistanceToCheck, x, 32, Color.WHITE.hashCode(), true);
+        FontUtils.drawString("Items to buy: ", x, 42, Color.WHITE.hashCode(), true);
         for (Pair<String, Integer> item : itemsToBuyCopy) {
-            FontUtils.drawString(item.getLeft() + " x" + item.getRight(), x + 5, 42 + (itemsToBuyCopy.indexOf(item) * 10), Color.WHITE.hashCode(), true);
+            FontUtils.drawString(item.getLeft() + " x" + item.getRight(), x + 5, 52 + (itemsToBuyCopy.indexOf(item) * 10), Color.WHITE.hashCode(), true);
         }
         if (!itemsToBuyCopy.isEmpty())
-            FontUtils.drawString("Have items in inventory: " + haveRequiredItemsInInventory(), x, 42 + (itemsToBuyCopy.size() * 10), Color.WHITE.hashCode(), true);
+            FontUtils.drawString("Have items in inventory: " + haveRequiredItemsInInventory(), x, 52 + (itemsToBuyCopy.size() * 10), Color.WHITE.hashCode(), true);
 
     }
 }

@@ -112,7 +112,7 @@ public class AngleUtils {
     }
 
     public static Pair<Float, Float> getRotation(Entity entity, boolean randomness) {
-        return getRotation(new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ));
+        return getRotation(new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), randomness);
 
     }
 
