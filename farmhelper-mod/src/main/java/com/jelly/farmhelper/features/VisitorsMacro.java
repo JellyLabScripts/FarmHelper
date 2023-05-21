@@ -106,6 +106,8 @@ public class VisitorsMacro {
     public static boolean firstTimeOpen = true;
     public static float randomValue = 0;
 
+    public static float purseBeforeVisitors = 0;
+
     public static boolean isEnabled() {
         return enabled;
     }
@@ -142,8 +144,10 @@ public class VisitorsMacro {
         if (MacroHandler.currentMacro != null) {
             MacroHandler.currentMacro.triggerTpCooldown();
         }
-        ProfitCalculator.startingPurse = -1;
+        ProfitCalculator.startingPurse = ProfitCalculator.getCurrentPurse() - (purseBeforeVisitors - ProfitCalculator.startingPurse);
         randomValue = 0;
+        purseBeforeVisitors = 0;
+        LogUtils.scriptLog("Stopped visitors macro");
     }
 
     @SubscribeEvent
@@ -241,6 +245,7 @@ public class VisitorsMacro {
             stuckClock.schedule(25_000);
             PlayerUtils.setSpawn();
             mc.thePlayer.closeScreen();
+            purseBeforeVisitors = ProfitCalculator.getCurrentPurse();
         }
     }
 
@@ -359,7 +364,6 @@ public class VisitorsMacro {
                 }
 
                 if (distanceToEdge > 3) {
-
                     if (playerY < 78 || mc.thePlayer.onGround) {
                         if (!mc.thePlayer.capabilities.isFlying) {
                             mc.thePlayer.capabilities.isFlying = true;
@@ -368,7 +372,6 @@ public class VisitorsMacro {
                         }
                         System.out.println("Flying");
                         KeyBindUtils.updateKeys(false, false, false, false, false, false, true, false);
-                        break;
                     } else if (playerY > 78) {
                         KeyBindUtils.updateKeys(true, false, false, false, false, false, playerY < 85, true);
 
@@ -410,7 +413,7 @@ public class VisitorsMacro {
 
                 BlockPos finalDeskPos = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY + 1, MiscConfig.visitorsDeskPosZ);
 
-                if (BlockUtils.isBlockVisible(finalDeskPos)) {
+                if (BlockUtils.isBlockVisible(finalDeskPos) && mc.thePlayer.getDistance(finalDeskPos.getX(), finalDeskPos.getY(), finalDeskPos.getZ()) < 15) {
                     currentState = State.ROTATE_TO_DESK;
                     break;
                 }
@@ -433,7 +436,7 @@ public class VisitorsMacro {
                 double distanceToCenter = mc.thePlayer.getDistance(center.getX(), mc.thePlayer.posY, center.getZ());
                 finalDeskPos = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ);
 
-                if (BlockUtils.isBlockVisible(finalDeskPos.up())) {
+                if (BlockUtils.isBlockVisible(finalDeskPos.up()) && mc.thePlayer.getDistance(finalDeskPos.getX(), finalDeskPos.getY(), finalDeskPos.getZ()) < 15) {
                     currentState = State.ROTATE_TO_DESK;
                     KeyBindUtils.stopMovement();
                     break;
@@ -784,6 +787,7 @@ public class VisitorsMacro {
                 delayClock.schedule(2000);
                 break;
             case TELEPORT_TO_GARDEN:
+                LogUtils.scriptLog("Spent: " + (purseBeforeVisitors - ProfitCalculator.getCurrentPurse()) + " coins on visitors");
                 mc.thePlayer.sendChatMessage("/warp garden");
                 currentState = State.CHANGE_TO_NONE;
                 delayClock.schedule(2500);

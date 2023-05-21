@@ -83,7 +83,7 @@ public class ProfitCalculator {
 
     public static final List<String> rngDropItemsList = Arrays.asList("Cropie", "Squash", "Fermento", "Burrowing Spores");
 
-    public static long startingPurse = -1;
+    public static float startingPurse = -1;
 
     @SubscribeEvent
     public void onTickUpdateProfit(TickEvent.ClientTickEvent event) {
@@ -191,7 +191,20 @@ public class ProfitCalculator {
         if (currentItem == null || currentItem.getItem() == null || !currentItem.getDisplayName().contains("Bountiful")) {
             return 0;
         }
-        long currentPurse = -1;
+        float currentPurse = getCurrentPurse();
+        if (currentPurse == 0) {
+            return 0;
+        }
+        if (startingPurse == -1) {
+            startingPurse = currentPurse;
+        } else {
+            return (currentPurse - startingPurse);
+        }
+        return 0;
+    }
+
+    public static float getCurrentPurse() {
+        long currentPurse = 0;
 
         for (String l : ScoreboardUtils.getScoreboardLines()) {
             String line = ScoreboardUtils.cleanSB(l);
@@ -200,15 +213,7 @@ public class ProfitCalculator {
                 break;
             }
         }
-        if (currentPurse == -1) {
-            return 0;
-        }
-        if (startingPurse == -1) {
-            startingPurse = currentPurse;
-        } else {
-            return (float) (currentPurse - startingPurse);
-        }
-        return 0;
+        return currentPurse;
     }
 
     @SubscribeEvent

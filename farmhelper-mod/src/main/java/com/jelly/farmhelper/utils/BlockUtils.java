@@ -215,6 +215,9 @@ public class BlockUtils {
         if (currentPositionBlock.equals(Blocks.melon_stem) || currentPositionBlock.equals(Blocks.pumpkin_stem)) {
             return true;
         }
+        if (currentPositionBlock.equals(Blocks.dirt) && !mc.theWorld.getBlockState(currentPosition.down()).getBlock().isPassable(mc.theWorld, currentPosition.down())) {
+            return true;
+        }
         return false;
     }
 
