@@ -104,6 +104,7 @@ public class VisitorsMacro {
     public static boolean haveAotv = false;
     public static final Clock aotvTpCooldown = new Clock();
     public static boolean firstTimeOpen = true;
+    public static float randomValue = 0;
 
     public static boolean isEnabled() {
         return enabled;
@@ -142,6 +143,7 @@ public class VisitorsMacro {
             MacroHandler.currentMacro.triggerTpCooldown();
         }
         ProfitCalculator.startingPurse = -1;
+        randomValue = 0;
     }
 
     @SubscribeEvent
@@ -309,9 +311,9 @@ public class VisitorsMacro {
                         closestEdge = barnCenter;
                         goingToCenterFirst = true;
                     }
-                    Pair<Float, Float> rotationToEdge = AngleUtils.getRotation(closestEdge.add(new Vec3i(0, -0.3, 0)));
+                    Pair<Float, Float> rotationToEdge = AngleUtils.getRotation(closestEdge.add(new Vec3i(0, -0.5, 0)));
 
-                    rotation.easeTo(rotationToEdge.getLeft(), 4 + (float) (Math.random() * 2), 500);
+                    rotation.easeTo(rotationToEdge.getLeft(), 0 + (float) (Math.random() * 4 - 2), 500);
 
                     currentState = State.MOVE_TO_EDGE;
                     currentEdge = closestEdge;
@@ -338,7 +340,8 @@ public class VisitorsMacro {
 
                 mc.thePlayer.inventory.currentItem = aspectOfTheVoid;
 
-                double distanceToEdge = mc.thePlayer.getDistance(currentEdge.getX(), currentEdge.getY(), currentEdge.getZ());
+                double distanceToEdge = mc.thePlayer.getDistance(currentEdge.getX(), mc.thePlayer.posY, currentEdge.getZ());
+                int playerY = mc.thePlayer.getPosition().getY();
 
                 if (distanceToEdge > previousDistanceToCheck && distanceToEdge > 15) {
                     retriesToGettingCloser++;
@@ -356,18 +359,17 @@ public class VisitorsMacro {
                 }
 
                 if (distanceToEdge > 3) {
-                    int playerY = mc.thePlayer.getPosition().getY();
 
-                    if (playerY < 77) {
+                    if (playerY < 78 || mc.thePlayer.onGround) {
                         if (!mc.thePlayer.capabilities.isFlying) {
                             mc.thePlayer.capabilities.isFlying = true;
                             mc.thePlayer.capabilities.allowFlying = true;
                             mc.thePlayer.sendPlayerAbilities();
-                            break;
                         }
+                        System.out.println("Flying");
                         KeyBindUtils.updateKeys(false, false, false, false, false, false, true, false);
                         break;
-                    } else {
+                    } else if (playerY > 78) {
                         KeyBindUtils.updateKeys(true, false, false, false, false, false, playerY < 85, true);
 
                         if (distanceToEdge > 14) {
@@ -377,7 +379,6 @@ public class VisitorsMacro {
                             }
                         }
                     }
-
                 }
 
                 if (distanceToEdge <= 3 || (distanceToEdge > previousDistanceToCheck && distanceToEdge < 6)) {
@@ -387,9 +388,16 @@ public class VisitorsMacro {
                     } else {
                         currentState = State.ROTATE_TO_CENTER;
                     }
+                    break;
                 }
 
                 previousDistanceToCheck = distanceToEdge;
+
+                Pair<Float, Float> rotationToEdge = AngleUtils.getRotation(currentEdge);
+                if ((Math.abs(mc.thePlayer.rotationYaw - rotationToEdge.getLeft()) < 0.5) && (Math.abs(mc.thePlayer.rotationPitch - randomValue) < 0.5)) {
+                    randomValue = playerY < 85 ? 5 + (float) (Math.random() * 4 - 2) : 1 + (float) (Math.random() * 4 - 2);
+                    rotation.easeTo(rotationToEdge.getLeft(), randomValue, 400 + (int) (Math.random() * 200));
+                }
 
                 break;
             case ROTATE_TO_CENTER:
@@ -409,7 +417,7 @@ public class VisitorsMacro {
 
                 Pair<Float, Float> rotationToCenter = AngleUtils.getRotation(barnCenter);
 
-                rotation.easeTo(rotationToCenter.getLeft(), 4 + (float) (Math.random() * 2), 500);
+                rotation.easeTo(rotationToCenter.getLeft(), 4 + (float) (Math.random() * 2), 375);
 
                 currentState = State.MOVE_TO_CENTER;
                 previousDistanceToCheck = Integer.MAX_VALUE;
@@ -422,7 +430,7 @@ public class VisitorsMacro {
 
                 rotationToCenter = AngleUtils.getRotation(barnCenter);
 
-                double distanceToCenter = mc.thePlayer.getDistance(center.getX(), center.getY(), center.getZ());
+                double distanceToCenter = mc.thePlayer.getDistance(center.getX(), mc.thePlayer.posY, center.getZ());
                 finalDeskPos = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ);
 
                 if (BlockUtils.isBlockVisible(finalDeskPos.up())) {
