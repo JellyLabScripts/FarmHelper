@@ -1,7 +1,6 @@
 package com.jelly.farmhelper;
 
 import com.jelly.farmhelper.config.ConfigHandler;
-import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.gui.MenuGUI;
 import com.jelly.farmhelper.gui.Render;
@@ -20,11 +19,8 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Objects;
@@ -36,7 +32,7 @@ import java.util.jar.Manifest;
 public class FarmHelper {
     public static final String MODID = "farmhelper";
     public static final String NAME = "Farm Helper";
-    public static final String VERSION = "4.3.4.2";
+    public static final String VERSION = "4.3.5-PRE";
     public static String analyticUrl;
 
     // the actual mod version from gradle properties, should match with VERSION

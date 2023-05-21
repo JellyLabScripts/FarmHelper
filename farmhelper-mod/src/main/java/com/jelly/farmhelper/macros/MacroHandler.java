@@ -156,6 +156,7 @@ public class MacroHandler {
 
         startTime = System.currentTimeMillis();
         ProfitCalculator.resetProfit();
+        ProfitCalculator.startingPurse = -1;
 
         Failsafe.jacobWait.reset();
         startCounter = PlayerUtils.getCounter();
@@ -177,6 +178,7 @@ public class MacroHandler {
     }
 
     public static void disableCurrentMacro(boolean saveLastState) {
+        LogUtils.debugLog("Disabling current macro");
         if (currentMacro != null && currentMacro.enabled) {
             if (saveLastState) {
                 currentMacro.saveLastStateBeforeDisable();

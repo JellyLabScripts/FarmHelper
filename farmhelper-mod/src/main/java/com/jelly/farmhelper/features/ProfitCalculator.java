@@ -4,6 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.jelly.farmhelper.config.enums.MacroEnum;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.config.interfaces.ProfitCalculatorConfig;
 import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.gui.Stat;
@@ -11,6 +12,7 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
+import com.jelly.farmhelper.utils.ScoreboardUtils;
 import com.jelly.farmhelper.utils.Utils;
 import gg.essential.elementa.UIComponent;
 import gg.essential.elementa.components.UIImage;
@@ -21,13 +23,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.json.simple.JSONObject;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 public class ProfitCalculator {
 
@@ -78,9 +81,9 @@ public class ProfitCalculator {
     private final Clock updateClock = new Clock();
     private static final Clock updateBazaarClock = new Clock();
 
-    public static final List<String> rngDropListDontCompact = Arrays.asList("Cropie", "Squash", "Fermento", "Burrowing Spores");
+    public static final List<String> rngDropItemsList = Arrays.asList("Cropie", "Squash", "Fermento", "Burrowing Spores");
 
-
+    public static long startingPurse = -1;
 
     @SubscribeEvent
     public void onTickUpdateProfit(TickEvent.ClientTickEvent event) {
@@ -185,10 +188,27 @@ public class ProfitCalculator {
 
     private static float checkForBountiful() {
         ItemStack currentItem = mc.thePlayer.getCurrentEquippedItem();
-        if (currentItem != null && currentItem.getItem() != null && currentItem.getDisplayName().contains("Bountiful")) {
-            return blocksBroken * 0.2f;
-        } else
+        if (currentItem == null || currentItem.getItem() == null || !currentItem.getDisplayName().contains("Bountiful")) {
             return 0;
+        }
+        long currentPurse = -1;
+
+        for (String l : ScoreboardUtils.getScoreboardLines()) {
+            String line = ScoreboardUtils.cleanSB(l);
+            if (line.contains("Purse:") || line.contains("Piggy:")) {
+                currentPurse = Long.parseLong(StringUtils.stripControlCodes(line).split(" ")[1].replace(",", "").trim());
+                break;
+            }
+        }
+        if (currentPurse == -1) {
+            return 0;
+        }
+        if (startingPurse == -1) {
+            startingPurse = currentPurse;
+        } else {
+            return (float) (currentPurse - startingPurse);
+        }
+        return 0;
     }
 
     @SubscribeEvent
@@ -201,7 +221,54 @@ public class ProfitCalculator {
         }
     }
 
+    @SubscribeEvent
+    public void onChatReceived(ClientChatReceivedEvent event) {
+        if (!MacroHandler.isMacroing) return;
+        if (event.type != 0) return;
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        Optional<String> optional = rngDropItemsList.stream().filter(message::contains).findAny();
+        if (!optional.isPresent()) return;
+
+        String itemName = optional.get();
+        LogUtils.debugLog("Rng drop detected: " + itemName);
+        if (itemsDropped.containsKey(itemName)) {
+            Collection<DroppedItem> droppedItem = itemsDropped.get(itemName);
+            if (droppedItem.size() == 0) {
+                itemsDropped.put(itemName, new DroppedItem(itemName, 1));
+            } else {
+                boolean added = false;
+                for (DroppedItem loopDiff : droppedItem) {
+                    if (loopDiff.amount > 0) {
+                        loopDiff.add(1);
+                        added = true;
+                        break;
+                    }
+                }
+                if (!added) {
+                    itemsDropped.get(itemName).add(new DroppedItem(itemName, 1));
+                }
+            }
+        } else {
+            itemsDropped.put(itemName, new DroppedItem(itemName, 1));
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderGui(RenderGameOverlayEvent event) {
+        if (!MacroHandler.isMacroing) return;
+        if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
+        if (!MiscConfig.debugMode) return;
+
+        int x = 210;
+
+        mc.fontRendererObj.drawStringWithShadow("Bountiful: " + checkForBountiful(), x, 2, 0xFFFFFF);
+    }
+
     public static void onInventoryChanged(ItemStack item, int size) {
+        if (rngDropItemsList.stream().anyMatch(item.getDisplayName()::contains)) {
+            LogUtils.debugLog("Rng drop detected: " + item.getDisplayName());
+            return;
+        }
         if (itemsDropped.containsKey(StringUtils.stripControlCodes(item.getDisplayName()))) {
             Collection<DroppedItem> droppedItem = itemsDropped.get(StringUtils.stripControlCodes(item.getDisplayName()));
             if (droppedItem.size() == 0) {

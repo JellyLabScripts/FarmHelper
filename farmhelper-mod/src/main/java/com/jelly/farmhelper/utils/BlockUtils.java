@@ -212,6 +212,9 @@ public class BlockUtils {
         if (currentPositionBlock.equals(Blocks.reeds) && (mc.theWorld.getBlockState(currentPosition.down()).getBlock().equals(Blocks.dirt) || mc.theWorld.getBlockState(currentPosition.down()).getBlock().equals(Blocks.grass) || mc.theWorld.getBlockState(currentPosition.down()).getBlock().equals(Blocks.sand))) {
             return true;
         }
+        if (currentPositionBlock.equals(Blocks.melon_stem) || currentPositionBlock.equals(Blocks.pumpkin_stem)) {
+            return true;
+        }
         return false;
     }
 

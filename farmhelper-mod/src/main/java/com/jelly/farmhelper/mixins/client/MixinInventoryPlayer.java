@@ -1,13 +1,9 @@
 package com.jelly.farmhelper.mixins.client;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
-import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.PlayerUtils;
-import com.jelly.farmhelper.utils.ScoreboardUtils;
-import com.jelly.farmhelper.utils.Utils;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
@@ -17,9 +13,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Arrays;
-import java.util.List;
 
 @Mixin({InventoryPlayer.class})
 public abstract class MixinInventoryPlayer {
@@ -75,7 +68,7 @@ public abstract class MixinInventoryPlayer {
                 if (newSize > 0)
                     size -= newSize;
             }
-        } else if (ProfitCalculator.rngDropListDontCompact.stream().noneMatch(postAddInventory[i].getDisplayName()::contains)) {
+        } else if (ProfitCalculator.rngDropItemsList.stream().noneMatch(postAddInventory[i].getDisplayName()::contains)) {
             if (getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory) + size >= 160) {
                 int newSize = 160 - getAmountOfItemInInventory(postAddInventory[i].getDisplayName(), preAddInventory);
                 if (newSize > 0)

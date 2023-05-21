@@ -916,6 +916,7 @@ public class VisitorsMacro {
 
     @SubscribeEvent
     public void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
+        if (!MacroHandler.isMacroing) return;
         if (!MiscConfig.visitorsMacro) return;
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
         if (!MiscConfig.debugMode) return;

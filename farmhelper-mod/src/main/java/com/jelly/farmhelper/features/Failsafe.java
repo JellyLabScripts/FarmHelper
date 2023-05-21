@@ -65,7 +65,7 @@ public class Failsafe {
                 if (FailsafeConfig.setSpawnBeforeEvacuate)
                     PlayerUtils.setSpawn();
                 LogUtils.debugLog("Update or restart is required - Evacuating in 5s");
-                evacuateCooldown.schedule(5_000);
+                evacuateCooldown.schedule(2_500);
                 MacroHandler.disableCurrentMacro(true);
                 KeyBindUtils.stopMovement();
             }
@@ -164,22 +164,31 @@ public class Failsafe {
             case HUB:
                 if(!FailsafeConfig.autoTpOnWorldChange) return;
                 LogUtils.debugLog("Detected Hub");
+                if (afterEvacuateCooldown.isScheduled() && !afterEvacuateCooldown.passed()) {
+                    LogUtils.debugLog("Waiting for \"after evacuate\" cooldown: " + (String.format("%.1f", afterEvacuateCooldown.getRemainingTime() / 1000f)));
+                    return;
+                } else if (afterEvacuateCooldown.isScheduled() && afterEvacuateCooldown.passed()) {
+                    LogUtils.debugLog("After evacuate cooldown passed");
+                    LogUtils.webhookLog("Teleporting back to island after evacuate");
+                    mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
+                    afterEvacuateCooldown.schedule(5_000);
+                }
                 if (cooldown.passed() && jacobWait.passed() && !AutoCookie.isEnabled() && !AutoPot.isEnabled()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
                     cooldown.schedule(5000);
-                } else if (afterEvacuateCooldown.isScheduled() && !afterEvacuateCooldown.passed()) {
-                    LogUtils.debugLog("Waiting for \"after evacuate\" cooldown: " + (String.format("%.1f", afterEvacuateCooldown.getRemainingTime() / 1000f)));
                 }
                 return;
             case ISLAND:
                 checkInGarden();
+                if (evacuateCooldown.isScheduled() && evacuateCooldown.getRemainingTime() < 2_500 && MacroHandler.currentMacro.enabled) {
+                    MacroHandler.disableCurrentMacro(true);
+                }
                 if (evacuateCooldown.isScheduled() && evacuateCooldown.passed()) {
                     LogUtils.debugLog("Evacuating");
                     mc.thePlayer.sendChatMessage("/evacuate");
                     evacuateCooldown.reset();
-                    cooldown.schedule(5000);
-                    afterEvacuateCooldown.schedule(15_000);
+                    afterEvacuateCooldown.schedule(5_000);
                 }
                 if (JacobConfig.jacobFailsafe && jacobExceeded() && jacobWait.passed() && MacroHandler.currentMacro.enabled) {
                     LogUtils.debugLog("Jacob remaining time: " + formattedTime);
