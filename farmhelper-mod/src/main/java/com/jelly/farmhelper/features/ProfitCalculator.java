@@ -196,7 +196,7 @@ public class ProfitCalculator {
         for (String l : ScoreboardUtils.getScoreboardLines()) {
             String line = ScoreboardUtils.cleanSB(l);
             if (line.contains("Purse:") || line.contains("Piggy:")) {
-                currentPurse = Long.parseLong(StringUtils.stripControlCodes(line).split(" ")[1].replace(",", "").trim());
+                currentPurse = Long.parseLong(StringUtils.stripControlCodes(line).split(" ")[1].replace(",", "").replace("(+1)", "").trim());
                 break;
             }
         }

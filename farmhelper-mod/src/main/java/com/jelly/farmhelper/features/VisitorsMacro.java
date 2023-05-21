@@ -138,6 +138,7 @@ public class VisitorsMacro {
         if (MacroHandler.currentMacro != null) {
             MacroHandler.currentMacro.triggerTpCooldown();
         }
+        ProfitCalculator.startingPurse = -1;
     }
 
     @SubscribeEvent
