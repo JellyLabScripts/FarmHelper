@@ -135,6 +135,9 @@ public class SShapeCropMacro extends Macro {
     @Override
     public void triggerTpCooldown() {
         tpCoolDown.schedule(1500);
+        if (currentState == State.DROPPING) {
+            currentState = calculateDirection();
+        }
     }
 
     @Override
@@ -226,13 +229,6 @@ public class SShapeCropMacro extends Macro {
 
         switch (currentState) {
             case TP_PAD:
-//                if(!tpCoolDown.passed()) {
-//                    LogUtils.debugLog("Waiting for cd");
-//                    KeyBindUtils.stopMovement();
-//                    break;
-//                }
-//                tpCoolDown.reset();
-
                 if(mc.thePlayer.capabilities.isFlying || (!getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) && !mc.thePlayer.onGround)) {
                     LogUtils.debugLog("Pressing shift");
                     KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
@@ -447,9 +443,9 @@ public class SShapeCropMacro extends Macro {
                 System.out.println("Waiting2 " + waitTime + "ms");
                 waitForChangeDirection.schedule(waitTime);
             }
-        } else if (((getRelativeBlock(0, -1, 0).equals(Blocks.air) || getRelativeBlock(-1, -1, 0).equals(Blocks.air)) && gameState.rightWalkable)) {
+        } else if ((getRelativeBlock(0, -1, 0).equals(Blocks.air) || getRelativeBlock(-1, -1, 0).equals(Blocks.air) && getRelativeBlock(-1, 0, 0).equals(Blocks.air)) && gameState.rightWalkable) {
             currentState = State.DROPPING;
-        } else if (((getRelativeBlock(0, -1, 0).equals(Blocks.air) || getRelativeBlock(1, -1, 0).equals(Blocks.air)) && gameState.leftWalkable)) {
+        } else if ((getRelativeBlock(0, -1, 0).equals(Blocks.air) || getRelativeBlock(1, -1, 0).equals(Blocks.air) && getRelativeBlock(1, 0, 0).equals(Blocks.air)) && gameState.leftWalkable) {
             currentState = State.DROPPING;
         } else if (gameState.leftWalkable) {
             currentState = State.LEFT;
@@ -562,27 +558,6 @@ public class SShapeCropMacro extends Macro {
             e.printStackTrace();
         }
     };
-
-//    public boolean findAndEquipHoe() {
-//        int hoeSlot = PlayerUtils.getHoeSlot(crop);
-//        if (hoeSlot == -1) {
-//            hoeEquipFails = hoeEquipFails + 1;
-//            if (hoeEquipFails > 10) {
-//                LogUtils.webhookLog("No Hoe Detected 10 times, Quitting");
-//                LogUtils.debugLog("No Hoe Detected 10 times, Quitting");
-//                mc.theWorld.sendQuittingDisconnectingPacket();
-//            } else {
-//                LogUtils.webhookLog("No Hoe Detected");
-//                LogUtils.debugLog("No Hoe Detected");
-//                mc.thePlayer.sendChatMessage("/hub");
-//            }
-//            return false;
-//        } else {
-//            mc.thePlayer.inventory.currentItem = hoeSlot;
-//            hoeEquipFails = 0;
-//            return true;
-//        }
-//    }
 
     private static boolean shouldWalkForwards() {
         float angle = AngleUtils.getClosest();

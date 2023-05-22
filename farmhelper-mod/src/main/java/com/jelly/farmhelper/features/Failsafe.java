@@ -1,9 +1,7 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
-import com.jelly.farmhelper.config.interfaces.JacobConfig;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.config.interfaces.*;
 import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.macros.MacroHandler;
@@ -234,6 +232,7 @@ public class Failsafe {
                 } else if (afterEvacuateCooldown.isScheduled() && afterEvacuateCooldown.passed()) {
                     LogUtils.debugLog("\"After entering island\" cooldown passed");
                     afterEvacuateCooldown.reset();
+                    MacroHandler.currentMacro.triggerTpCooldown();
                 } else {
                     // DEBUG MESSAGES IN CASE SOMETHING IS BROKEN AGAIN
 //                    if (!MacroHandler.currentMacro.enabled) {
@@ -244,23 +243,23 @@ public class Failsafe {
 //                        LogUtils.debugLog("Condition not met: jacobWait.passed()");
 //                    }
 //
-//                    if (!Autosell.isEnabled()) {
+//                    if (AutoSellConfig.autoSell && !Autosell.isEnabled()) {
 //                        LogUtils.debugLog("Condition not met: Autosell.isEnabled()");
 //                    }
 //
-//                    if (!MacroHandler.startingUp) {
+//                    if ((!MacroHandler.currentMacro.enabled || !Scheduler.isFarming()) && !MacroHandler.startingUp) {
 //                        LogUtils.debugLog("Condition not met: MacroHandler.startingUp");
 //                    }
 //
-//                    if (!Scheduler.isFarming()) {
+//                    if (SchedulerConfig.scheduler && !Scheduler.isFarming()) {
 //                        LogUtils.debugLog("Condition not met: Scheduler.isFarming()");
 //                    }
 //
-//                    if (!AutoCookie.isEnabled()) {
+//                    if (MiscConfig.autoCookie && !AutoCookie.isEnabled()) {
 //                        LogUtils.debugLog("Condition not met: AutoCookie.isEnabled()");
 //                    }
 //
-//                    if (!AutoPot.isEnabled()) {
+//                    if (MiscConfig.autoGodPot && !AutoPot.isEnabled()) {
 //                        LogUtils.debugLog("Condition not met: AutoPot.isEnabled()");
 //                    }
 //
