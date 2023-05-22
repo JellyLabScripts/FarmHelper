@@ -18,6 +18,8 @@ public class MiscConfig {
     @Config()
     public static boolean visitorsMacro = false;
     @Config
+    public static double visitorsMacroMoneyThreshold = 5.0;
+    @Config
     public static int visitorsDeskPosX = 0;
     @Config
     public static int visitorsDeskPosY = 0;

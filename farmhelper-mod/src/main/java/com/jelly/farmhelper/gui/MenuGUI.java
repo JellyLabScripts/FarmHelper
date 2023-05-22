@@ -26,7 +26,7 @@ public class MenuGUI extends WindowScreen {
         new List(new PixelConstraint(360), new PixelConstraint(10), "Jacob", new JacobMenu()).setChildOf(getWindow());
         new List(new PixelConstraint(360), new PixelConstraint(336), "Scheduler", new SchedulerMenu()).setChildOf(getWindow());
 
-        new List(new PixelConstraint(550), new PixelConstraint(216), "Profit Calculator", new ProfitCalculatorMenu()).setChildOf(getWindow());
+        new List(new PixelConstraint(550), new PixelConstraint(256), "Profit Calculator", new ProfitCalculatorMenu()).setChildOf(getWindow());
         new List(new PixelConstraint(550), new PixelConstraint(10), "Miscellaneous", new MiscMenu()).setChildOf(getWindow());
 
         new List(new PixelConstraint(740), new PixelConstraint(10), "Failsafes", new FailsafeMenu()).setChildOf(getWindow());

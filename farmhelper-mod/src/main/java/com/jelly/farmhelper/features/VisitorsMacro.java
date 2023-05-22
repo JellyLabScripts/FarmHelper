@@ -192,6 +192,12 @@ public class VisitorsMacro {
             clock.reset();
         }
 
+        if (ProfitCalculator.getCurrentPurse() < MiscConfig.visitorsMacroMoneyThreshold * 1_000_000) {
+            LogUtils.debugLog("Not enough money to start visitors macro, waiting...");
+            clock.schedule(5000);
+            return;
+        }
+
         if (TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
             LogUtils.debugLog("Queue is not full, waiting...");
             clock.schedule(1000);
