@@ -507,6 +507,8 @@ public class VisitorsMacro {
                     KeyBindUtils.updateKeys(true, false, false, false, false, true, shouldJump(), false);
                 }
 
+                previousDistanceToCheck = distance;
+
                 break;
             case MANAGING_VISITORS:
                 if ((mc.thePlayer.openContainer instanceof ContainerChest)) {
@@ -828,6 +830,7 @@ public class VisitorsMacro {
     }
 
     private boolean shouldJump() {
+        System.out.println(BlockUtils.getRelativeBlock(0, 0, 1));
         return mc.thePlayer.onGround &&
                 !BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.air) &&
                 !(BlockUtils.getRelativeBlock(0, 0, 1) instanceof BlockSlab) &&

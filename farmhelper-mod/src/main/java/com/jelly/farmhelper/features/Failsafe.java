@@ -18,6 +18,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Tuple;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -97,7 +98,29 @@ public class Failsafe {
 
     }
 
-    public static final Clock waitBetweenSendingInfo = new Clock();
+    @SubscribeEvent
+    public void onRenderGameOverlay(RenderGameOverlayEvent event) {
+        if (!MacroHandler.isMacroing) return;
+        if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
+        if (!MiscConfig.debugMode) return;
+        if (mc.theWorld == null || mc.thePlayer == null) return;
+
+        if (restartAfterFailsafeCooldown.isScheduled() && !restartAfterFailsafeCooldown.passed()) {
+            mc.fontRendererObj.drawStringWithShadow("restartAfterFailsafeCooldown: " + restartAfterFailsafeCooldown.getRemainingTime(), 300, 2, Color.WHITE.getRGB());
+        }
+
+        if (evacuateCooldown.isScheduled() && !evacuateCooldown.passed()) {
+            mc.fontRendererObj.drawStringWithShadow("evacuateCooldown: " + evacuateCooldown.getRemainingTime(), 300, 12, Color.WHITE.getRGB());
+        }
+
+        if (afterEvacuateCooldown.isScheduled() && !afterEvacuateCooldown.passed()) {
+            mc.fontRendererObj.drawStringWithShadow("afterEvacuateCooldown: " + afterEvacuateCooldown.getRemainingTime(), 300, 22, Color.WHITE.getRGB());
+        }
+
+        if (cooldown.isScheduled() && !cooldown.passed()) {
+            mc.fontRendererObj.drawStringWithShadow("cooldown: " + cooldown.getRemainingTime(), 300, 32, Color.WHITE.getRGB());
+        }
+    }
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
@@ -106,16 +129,11 @@ public class Failsafe {
         if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
 
         if (restartAfterFailsafeCooldown.isScheduled()) {
-            if (waitBetweenSendingInfo.isScheduled() && waitBetweenSendingInfo.passed()) {
-                LogUtils.debugLog("Waiting to restart macro: " + (String.format("%.1f", restartAfterFailsafeCooldown.getRemainingTime() / 1000f)) + "s");
-            } else if (!waitBetweenSendingInfo.passed()) {
-                waitBetweenSendingInfo.schedule(15_000);
-            }
-
             if (restartAfterFailsafeCooldown.passed()) {
-                LogUtils.debugLog("Restarting macro. 3 minutes after failsafe are passed");
-                MacroHandler.enableMacro();
+                LogUtils.debugLog("Restarting macro. 3 minutes after failsafe is passed");
+                emergency = false;
                 restartAfterFailsafeCooldown.reset();
+                MacroHandler.enableMacro();
             }
         }
 
@@ -207,7 +225,7 @@ public class Failsafe {
                         && !evacuateCooldown.isScheduled()
                         && !afterEvacuateCooldown.isScheduled()
                         && !restartAfterFailsafeCooldown.isScheduled()
-                        && (!MiscConfig.visitorsMacro || !VisitorsMacro.isEnabled())) {
+                        && !VisitorsMacro.isEnabled()) {
 
                     LogUtils.debugLog("Resuming macro");
                     MacroHandler.enableCurrentMacro();
@@ -216,6 +234,59 @@ public class Failsafe {
                 } else if (afterEvacuateCooldown.isScheduled() && afterEvacuateCooldown.passed()) {
                     LogUtils.debugLog("\"After entering island\" cooldown passed");
                     afterEvacuateCooldown.reset();
+                } else {
+                    // DEBUG MESSAGES IN CASE SOMETHING IS BROKEN AGAIN
+//                    if (!MacroHandler.currentMacro.enabled) {
+//                        LogUtils.debugLog("Condition not met: MacroHandler.currentMacro.enabled");
+//                    }
+//
+//                    if (!jacobWait.passed()) {
+//                        LogUtils.debugLog("Condition not met: jacobWait.passed()");
+//                    }
+//
+//                    if (!Autosell.isEnabled()) {
+//                        LogUtils.debugLog("Condition not met: Autosell.isEnabled()");
+//                    }
+//
+//                    if (!MacroHandler.startingUp) {
+//                        LogUtils.debugLog("Condition not met: MacroHandler.startingUp");
+//                    }
+//
+//                    if (!Scheduler.isFarming()) {
+//                        LogUtils.debugLog("Condition not met: Scheduler.isFarming()");
+//                    }
+//
+//                    if (!AutoCookie.isEnabled()) {
+//                        LogUtils.debugLog("Condition not met: AutoCookie.isEnabled()");
+//                    }
+//
+//                    if (!AutoPot.isEnabled()) {
+//                        LogUtils.debugLog("Condition not met: AutoPot.isEnabled()");
+//                    }
+//
+//                    if (BanwaveChecker.banwaveOn && FailsafeConfig.banwaveDisconnect) {
+//                        LogUtils.debugLog("Condition not met: !(BanwaveChecker.banwaveOn && FailsafeConfig.banwaveDisconnect)");
+//                    }
+//
+//                    if (emergency) {
+//                        LogUtils.debugLog("Condition not met: !emergency");
+//                    }
+//
+//                    if (evacuateCooldown.isScheduled()) {
+//                        LogUtils.debugLog("Condition not met: !evacuateCooldown.isScheduled()");
+//                    }
+//
+//                    if (afterEvacuateCooldown.isScheduled()) {
+//                        LogUtils.debugLog("Condition not met: !afterEvacuateCooldown.isScheduled()");
+//                    }
+//
+//                    if (restartAfterFailsafeCooldown.isScheduled()) {
+//                        LogUtils.debugLog("Condition not met: !restartAfterFailsafeCooldown.isScheduled()");
+//                    }
+//
+//                    if (MiscConfig.visitorsMacro && VisitorsMacro.isEnabled()) {
+//                        LogUtils.debugLog("Condition not met: (!MiscConfig.visitorsMacro || !VisitorsMacro.isEnabled())");
+//                    }
                 }
         }
     }

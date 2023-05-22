@@ -204,13 +204,17 @@ public class ProfitCalculator {
     }
 
     public static float getCurrentPurse() {
-        long currentPurse = 0;
+        float currentPurse = 0;
 
         for (String l : ScoreboardUtils.getScoreboardLines()) {
             String line = ScoreboardUtils.cleanSB(l);
             if (line.contains("Purse:") || line.contains("Piggy:")) {
-                currentPurse = Long.parseLong(StringUtils.stripControlCodes(line).split(" ")[1].replace(",", "").replace("(+1)", "").trim());
-                break;
+                try {
+                    currentPurse = Float.parseFloat(StringUtils.stripControlCodes(line).split(" ")[1].replace(",", "").replace("(+1)", "").trim());
+                    break;
+                } catch (Exception ignored) {
+                    return 0;
+                }
             }
         }
         return currentPurse;
@@ -263,6 +267,7 @@ public class ProfitCalculator {
         if (!MacroHandler.isMacroing) return;
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
         if (!MiscConfig.debugMode) return;
+        if (mc.theWorld == null || mc.thePlayer == null) return;
 
         int x = 210;
 
