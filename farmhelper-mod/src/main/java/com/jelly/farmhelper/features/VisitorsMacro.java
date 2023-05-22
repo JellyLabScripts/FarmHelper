@@ -80,6 +80,7 @@ public class VisitorsMacro {
     public static final Clock stuckClock = new Clock();
     public static final Clock giveBackItemsClock = new Clock();
     public static final Clock haveItemsClock = new Clock();
+    public static final Clock tpDelay = new Clock();
     public static boolean rejectOffer = false;
     public static String signText = "";
 
@@ -402,7 +403,7 @@ public class VisitorsMacro {
 
                 Pair<Float, Float> rotationToEdge = AngleUtils.getRotation(currentEdge);
                 randomValue = playerY > 85 ? 5 + (float) (Math.random() * 1 - 0.5) : 1 + (float) (Math.random() * 1 - 0.5);
-                if ((Math.abs(mc.thePlayer.rotationYaw - rotationToEdge.getLeft()) > 0.5 || Math.abs(mc.thePlayer.rotationPitch - randomValue) > 0.5) && !rotation.rotating) {
+                if ((Math.abs(mc.thePlayer.rotationYaw - rotationToEdge.getLeft()) > 0.5 || Math.abs(mc.thePlayer.rotationPitch - randomValue) > 0.5) && !rotation.rotating && !aotvTpCooldown.passed()) {
                     rotation.easeTo(rotationToEdge.getLeft(), randomValue, 275 + (int) (Math.random() * 100));
                 }
 
@@ -839,7 +840,8 @@ public class VisitorsMacro {
         BlockPos playerPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
         EnumFacing playerFacing = mc.thePlayer.getHorizontalFacing();
         BlockPos blockInFront = playerPos.offset(playerFacing);
-        Block block = mc.theWorld.getBlockState(blockInFront.up()).getBlock();
+        Block block = mc.theWorld.getBlockState(blockInFront).getBlock();
+        LogUtils.debugLog("Block in front: " + block);
         return mc.thePlayer.onGround &&
                 !block.equals(Blocks.air) &&
                 !(block instanceof BlockSlab) &&

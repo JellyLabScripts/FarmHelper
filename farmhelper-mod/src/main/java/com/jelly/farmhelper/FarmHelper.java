@@ -10,8 +10,10 @@ import com.jelly.farmhelper.remote.RemoteControlHandler;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import lombok.SneakyThrows;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -97,10 +99,12 @@ public class FarmHelper {
             ticktask.onTick();
         }
         if (event.phase != TickEvent.Phase.START) return;
-        if (mc.thePlayer != null && mc.theWorld != null)
+        if (mc.thePlayer != null && mc.theWorld != null) {
             gameState.update();
+        }
         tickCount += 1;
         tickCount %= 20;
+
     }
 
 
