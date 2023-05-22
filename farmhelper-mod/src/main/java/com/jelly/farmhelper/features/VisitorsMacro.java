@@ -7,6 +7,7 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockSlab;
 import net.minecraft.block.BlockStairs;
 import net.minecraft.client.Minecraft;
@@ -15,10 +16,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.*;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.StringUtils;
-import net.minecraft.util.Vec3;
-import net.minecraft.util.Vec3i;
+import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -96,7 +94,7 @@ public class VisitorsMacro {
     public static boolean disableMacro = false;
 
     public static final List<BlockPos> barnEdges = Arrays.asList(new BlockPos(33, 85, -6), new BlockPos(-32, 85, -6));
-    public static final BlockPos barnCenter = new BlockPos(0, 85, -6);
+    public static final BlockPos barnCenter = new BlockPos(0, 85, -7);
     public static boolean goingToCenterFirst = false;
 
     public static BlockPos currentEdge = null;
@@ -194,11 +192,11 @@ public class VisitorsMacro {
             clock.reset();
         }
 
-        if (TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
-            LogUtils.debugLog("Queue is not full, waiting...");
-            clock.schedule(1000);
-            return;
-        }
+//        if (TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
+//            LogUtils.debugLog("Queue is not full, waiting...");
+//            clock.schedule(1000);
+//            return;
+//        }
 
         if (!canSeeClosestEdgeOfBarn()) {
             LogUtils.debugLog("Can't see any edge of barn, still going.");
@@ -238,7 +236,7 @@ public class VisitorsMacro {
         }
 
         if (currentState == State.NONE && clock.passed()) {
-            currentState = State.TRY_TO_SET_SPAWN;
+            currentState = State.ROTATE_TO_EDGE;
             rotation.reset();
             rotation.completed = true;
             clock.schedule(1_500);
@@ -246,6 +244,7 @@ public class VisitorsMacro {
             PlayerUtils.setSpawn();
             mc.thePlayer.closeScreen();
             purseBeforeVisitors = ProfitCalculator.getCurrentPurse();
+            enabled = true;
         }
     }
 
@@ -376,7 +375,7 @@ public class VisitorsMacro {
                         KeyBindUtils.updateKeys(true, false, false, false, false, false, playerY < 85, true);
 
                         if (distanceToEdge > 14) {
-                            if ((aotvTpCooldown.passed() || !aotvTpCooldown.isScheduled()) && haveAotv) {
+                            if ((aotvTpCooldown.passed() || !aotvTpCooldown.isScheduled()) && haveAotv && !rotation.rotating) {
                                 PlayerUtils.rightClick();
                                 aotvTpCooldown.schedule((long) (200 + Math.random() * 200));
                             }
@@ -397,9 +396,9 @@ public class VisitorsMacro {
                 previousDistanceToCheck = distanceToEdge;
 
                 Pair<Float, Float> rotationToEdge = AngleUtils.getRotation(currentEdge);
-                if ((Math.abs(mc.thePlayer.rotationYaw - rotationToEdge.getLeft()) < 0.5) && (Math.abs(mc.thePlayer.rotationPitch - randomValue) < 0.5)) {
-                    randomValue = playerY < 85 ? 5 + (float) (Math.random() * 4 - 2) : 1 + (float) (Math.random() * 4 - 2);
-                    rotation.easeTo(rotationToEdge.getLeft(), randomValue, 400 + (int) (Math.random() * 200));
+                randomValue = playerY > 85 ? 5 + (float) (Math.random() * 1 - 0.5) : 1 + (float) (Math.random() * 1 - 0.5);
+                if ((Math.abs(mc.thePlayer.rotationYaw - rotationToEdge.getLeft()) > 0.5 || Math.abs(mc.thePlayer.rotationPitch - randomValue) > 0.5) && !rotation.rotating) {
+                    rotation.easeTo(rotationToEdge.getLeft(), randomValue, 275 + (int) (Math.random() * 100));
                 }
 
                 break;
@@ -408,6 +407,7 @@ public class VisitorsMacro {
                 if (rotation.rotating) break;
 
                 if (FarmHelper.gameState.dx > 0.25 || FarmHelper.gameState.dz > 0.25) {
+                    KeyBindUtils.updateKeys(false, true, false, false, false, false, false, false);
                     break;
                 }
 
@@ -436,7 +436,7 @@ public class VisitorsMacro {
                 double distanceToCenter = mc.thePlayer.getDistance(center.getX(), mc.thePlayer.posY, center.getZ());
                 finalDeskPos = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ);
 
-                if (BlockUtils.isBlockVisible(finalDeskPos.up()) && mc.thePlayer.getDistance(finalDeskPos.getX(), finalDeskPos.getY(), finalDeskPos.getZ()) < 15) {
+                if (BlockUtils.isBlockVisible(finalDeskPos.up().up()) && mc.thePlayer.getDistance(finalDeskPos.getX(), finalDeskPos.getY(), finalDeskPos.getZ()) < 23) {
                     currentState = State.ROTATE_TO_DESK;
                     KeyBindUtils.stopMovement();
                     break;
@@ -465,7 +465,7 @@ public class VisitorsMacro {
                     if (Math.abs(rotationToCenter.getLeft() - mc.thePlayer.rotationYaw) > 1 && !rotation.rotating) {
                         rotation.easeTo(rotationToCenter.getLeft(), 4 + (float) (Math.random() * 2), 175);
                     }
-                    KeyBindUtils.updateKeys(true, false, false, false, false, false, false, false);
+                    KeyBindUtils.updateKeys(true, false, false, false, false, false, false, true);
                 }
 
                 previousDistanceToCheck = distanceToCenter;
@@ -473,10 +473,11 @@ public class VisitorsMacro {
                 break;
             case ROTATE_TO_DESK:
                 if ((mc.thePlayer.openContainer instanceof ContainerChest)) break;
-                KeyBindUtils.stopMovement();
                 if (FarmHelper.gameState.dx > 0.25 || FarmHelper.gameState.dz > 0.25) {
+                    KeyBindUtils.updateKeys(false, true, false, false, false, false, false, false);
                     break;
                 }
+                KeyBindUtils.stopMovement();
                 BlockPos deskPosTemp = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ);
 
                 Pair<Float, Float> rotationToDesk = AngleUtils.getRotation(deskPosTemp.up());
@@ -491,21 +492,21 @@ public class VisitorsMacro {
                 if ((mc.thePlayer.openContainer instanceof ContainerChest)) break;
 
                 finalDeskPos = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ);
+                BlockPos deskPosWithoutY = new BlockPos(MiscConfig.visitorsDeskPosX, mc.thePlayer.posY, MiscConfig.visitorsDeskPosZ);
 
                 rotationToDesk = AngleUtils.getRotation(finalDeskPos.up().up());
                 double distance = mc.thePlayer.getDistance(finalDeskPos.getX(), finalDeskPos.getY(), finalDeskPos.getZ());
+                double distance2 = mc.thePlayer.getDistance(deskPosWithoutY.getX(), deskPosWithoutY.getY(), deskPosWithoutY.getZ());
                 if ((Math.abs(rotationToDesk.getLeft() - mc.thePlayer.rotationYaw) > 1 || Math.abs(rotationToDesk.getRight() - mc.thePlayer.rotationPitch) > 1) && !rotation.rotating) {
                     rotation.easeTo(rotationToDesk.getLeft(), rotationToDesk.getRight(), 250);
                 }
-                if (BlockUtils.isBlockVisible(finalDeskPos.up()) && distance > 4.5f) {
-                    KeyBindUtils.updateKeys(true, false, false, false, false, mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround, shouldJump(), !mc.thePlayer.capabilities.isFlying);
-                    break;
+                if (distance > 4.5f) {
+                    KeyBindUtils.updateKeys(distance2 > 1f, false, false, false, false, mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround, shouldJump(), !mc.thePlayer.capabilities.isFlying);
                 } else if (distance <= 1.5f) {
                     currentState = State.MANAGING_VISITORS;
                     KeyBindUtils.stopMovement();
-                } else if (distance <= 3.5f) {
-                    KeyBindUtils.updateKeys(true, false, false, false, false, true, shouldJump(), false);
-                }
+                } else
+                    KeyBindUtils.updateKeys(distance2 > 1f, false, false, false, false, distance <= 3.5f || (mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround), shouldJump(), false);
 
                 previousDistanceToCheck = distance;
 
@@ -830,11 +831,14 @@ public class VisitorsMacro {
     }
 
     private boolean shouldJump() {
-        System.out.println(BlockUtils.getRelativeBlock(0, 0, 1));
+        BlockPos playerPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+        EnumFacing playerFacing = mc.thePlayer.getHorizontalFacing();
+        BlockPos blockInFront = playerPos.offset(playerFacing);
+        Block block = mc.theWorld.getBlockState(blockInFront.up()).getBlock();
         return mc.thePlayer.onGround &&
-                !BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.air) &&
-                !(BlockUtils.getRelativeBlock(0, 0, 1) instanceof BlockSlab) &&
-                !(BlockUtils.getRelativeBlock(0, 0, 1) instanceof BlockStairs);
+                !block.equals(Blocks.air) &&
+                !(block instanceof BlockSlab) &&
+                !(block instanceof BlockStairs);
     }
 
     private boolean isAboveHeadClear() {

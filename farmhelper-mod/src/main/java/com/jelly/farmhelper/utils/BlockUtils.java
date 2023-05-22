@@ -223,6 +223,6 @@ public class BlockUtils {
 
     public static boolean isBlockVisible(BlockPos pos) {
         MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ), new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5));
-        return mop == null;
+        return mop == null || (mop.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY && mop.entityHit.getDistance(pos.getX(), pos.getY(), pos.getZ()) < 2) || mop.getBlockPos().equals(pos);
     }
 }
