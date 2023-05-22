@@ -192,11 +192,11 @@ public class VisitorsMacro {
             clock.reset();
         }
 
-//        if (TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
-//            LogUtils.debugLog("Queue is not full, waiting...");
-//            clock.schedule(1000);
-//            return;
-//        }
+        if (TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
+            LogUtils.debugLog("Queue is not full, waiting...");
+            clock.schedule(1000);
+            return;
+        }
 
         if (!canSeeClosestEdgeOfBarn()) {
             LogUtils.debugLog("Can't see any edge of barn, still going.");
@@ -236,7 +236,7 @@ public class VisitorsMacro {
         }
 
         if (currentState == State.NONE && clock.passed()) {
-            currentState = State.ROTATE_TO_EDGE;
+            currentState = State.TRY_TO_SET_SPAWN;
             rotation.reset();
             rotation.completed = true;
             clock.schedule(1_500);
@@ -244,7 +244,6 @@ public class VisitorsMacro {
             PlayerUtils.setSpawn();
             mc.thePlayer.closeScreen();
             purseBeforeVisitors = ProfitCalculator.getCurrentPurse();
-            enabled = true;
         }
     }
 
