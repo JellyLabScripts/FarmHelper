@@ -8,6 +8,7 @@ import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
+import net.minecraft.block.BlockStairs;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 
@@ -271,8 +272,8 @@ public class VerticalCropMacro extends Macro{
         double x = Math.abs(mc.thePlayer.posX % 1);
         double z = Math.abs(mc.thePlayer.posZ % 1);
         if (((angle == 0 || angle == 180) && x > 0.35 && x < 0.65) || ((angle == 90 || angle == 270) && z > 0.35 && z < 0.65)) {
-            return getRelativeBlock(0, 0, 1).equals(Blocks.stone_stairs) || getRelativeBlock(0, 0, 1).equals(Blocks.oak_stairs) || getRelativeBlock(0, 0, 1).equals(Blocks.birch_stairs) || getRelativeBlock(0, 0, 1).equals(Blocks.spruce_stairs) || getRelativeBlock(0, 0, 1).equals(Blocks.jungle_stairs) || getRelativeBlock(0, 0, 1).equals(Blocks.acacia_stairs) || getRelativeBlock(0, 0, 1).equals(Blocks.dark_oak_stairs) ||
-                    getRelativeBlock(0, -1, 0).equals(Blocks.stone_stairs) || getRelativeBlock(0, -1, 0).equals(Blocks.oak_stairs) || getRelativeBlock(0, -1, 0).equals(Blocks.birch_stairs) || getRelativeBlock(0, -1, 0).equals(Blocks.spruce_stairs) || getRelativeBlock(0, -1, 0).equals(Blocks.jungle_stairs) || getRelativeBlock(0, -1, 0).equals(Blocks.acacia_stairs) || getRelativeBlock(0, -1, 0).equals(Blocks.dark_oak_stairs);
+            return getRelativeBlock(0, 0, 1) instanceof BlockStairs ||
+                    getRelativeBlock(0, -1, 0) instanceof BlockStairs;
         }
         return false;
     }
