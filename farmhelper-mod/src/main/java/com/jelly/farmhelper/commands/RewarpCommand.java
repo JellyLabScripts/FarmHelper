@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.commands;
 
+import com.jelly.farmhelper.config.ConfigHandler;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.command.CommandException;
@@ -40,7 +41,6 @@ public class RewarpCommand implements ICommand {
             MiscConfig.rewarpPosX = 0;
             MiscConfig.rewarpPosY = 0;
             MiscConfig.rewarpPosZ = 0;
-            return;
         }
 
         if (args[0].equals("set")) {
@@ -49,6 +49,10 @@ public class RewarpCommand implements ICommand {
             MiscConfig.rewarpPosY = (int) sender.getPosition().getY();
             MiscConfig.rewarpPosZ = (int) sender.getPosition().getZ();
         }
+
+        ConfigHandler.set("rewarpPosX", MiscConfig.rewarpPosX);
+        ConfigHandler.set("rewarpPosY", MiscConfig.rewarpPosY);
+        ConfigHandler.set("rewarpPosZ", MiscConfig.rewarpPosZ);
     }
 
     @Override
