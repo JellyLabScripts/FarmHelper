@@ -25,4 +25,10 @@ public class MiscConfig {
     public static int visitorsDeskPosY = 0;
     @Config
     public static int visitorsDeskPosZ = 0;
+    @Config
+    public static int rewarpPosX = 0;
+    @Config
+    public static int rewarpPosY = 0;
+    @Config
+    public static int rewarpPosZ = 0;
 }

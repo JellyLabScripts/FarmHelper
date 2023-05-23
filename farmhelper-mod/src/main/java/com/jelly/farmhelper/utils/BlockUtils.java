@@ -60,6 +60,10 @@ public class BlockUtils {
         return mc.theWorld.getBlockState(blockPos).getBlock();
     }
 
+    public static boolean isRelativeBlockPassable(float x, float y, float z) {
+        return BlockUtils.getRelativeBlock(x, y, z).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(x, y, z));
+    }
+
     public static Block getRelativeBlock(float x, float y, float z) {
         return (mc.theWorld.getBlockState(
           new BlockPos(

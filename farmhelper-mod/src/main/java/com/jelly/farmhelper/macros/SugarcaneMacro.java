@@ -136,6 +136,7 @@ public class SugarcaneMacro extends Macro {
         if (beforeTeleportationPos != null) {
             LogUtils.debugLog("Waiting for tp...");
             KeyBindUtils.stopMovement();
+            triggerWarpGarden();
             return;
         } else {
             KeyBindUtils.updateKeys(false,
@@ -166,22 +167,12 @@ public class SugarcaneMacro extends Macro {
     }
 
     void updateState() {
-        if (!lastTp.isScheduled() && !isTping && (BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.snow_layer)) &&
+        if (!isRewarpLocationSet() && !lastTp.isScheduled() && !isTping && (BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.snow_layer)) &&
             FarmHelper.gameState.dx < 0.01 && FarmHelper.gameState.dz < 0.01 && FarmHelper.gameState.dy < 0.01) {
-            updateKeys(false, false, false, false, false);
-            if (waitForChangeDirection.isScheduled() && beforeTeleportationPos == null) {
-                waitForChangeDirection.reset();
-            }
-            if (!waitForChangeDirection.isScheduled()) {
-                LogUtils.debugLog("Should TP");
-                long waitTime = (long) (Math.random() * 750 + 500);
-                waitForChangeDirection.schedule(waitTime);
-                beforeTeleportationPos = mc.thePlayer.getPosition();
-            } else if (waitForChangeDirection.passed()) {
-                mc.thePlayer.sendChatMessage(FarmHelper.gameState.wasInGarden ? "/warp garden" : "/is");
-                isTping = true;
-                waitForChangeDirection.reset();
-            }
+            triggerWarpGarden();
+            return;
+        } else if (isRewarpLocationSet() && isStandingOnRewarpLocation()) {
+            triggerWarpGarden();
             return;
         }
 
@@ -274,6 +265,24 @@ public class SugarcaneMacro extends Macro {
                 break;
         }
 
+    }
+
+    private void triggerWarpGarden() {
+        KeyBindUtils.stopMovement();
+        if (waitForChangeDirection.isScheduled() && beforeTeleportationPos == null) {
+            waitForChangeDirection.reset();
+        }
+        if (!waitForChangeDirection.isScheduled()) {
+            LogUtils.debugLog("Should TP");
+            long waitTime = (long) (Math.random() * 750 + 500);
+            waitForChangeDirection.schedule(waitTime);
+            beforeTeleportationPos = mc.thePlayer.getPosition();
+        } else if (waitForChangeDirection.passed()) {
+            mc.thePlayer.sendChatMessage(FarmHelper.gameState.wasInGarden ? "/warp garden" : "/is");
+            isTping = true;
+            waitForChangeDirection.reset();
+        }
+        return;
     }
 
     public Runnable fixRowStuck = () -> {

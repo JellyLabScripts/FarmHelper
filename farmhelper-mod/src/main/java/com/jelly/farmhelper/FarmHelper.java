@@ -1,5 +1,6 @@
 package com.jelly.farmhelper;
 
+import com.jelly.farmhelper.commands.RewarpCommand;
 import com.jelly.farmhelper.config.ConfigHandler;
 import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.gui.MenuGUI;
@@ -11,10 +12,14 @@ import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
+import net.minecraft.command.CommandHandler;
 import net.minecraft.util.BlockPos;
+import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -44,6 +49,11 @@ public class FarmHelper {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public static GameState gameState;
 
+
+    @Mod.EventHandler
+    public void preInit(FMLPreInitializationEvent event) {
+        ClientCommandHandler.instance.registerCommand(new RewarpCommand());
+    }
 
 
     @Mod.EventHandler

@@ -1,8 +1,12 @@
 package com.jelly.farmhelper.macros;
 
+import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
+import com.jelly.farmhelper.utils.BlockUtils;
 import com.jelly.farmhelper.utils.LogUtils;
+import com.jelly.farmhelper.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 public abstract class Macro {
@@ -57,4 +61,14 @@ public abstract class Macro {
     public void restoreState() {}
 
     public void triggerTpCooldown() {}
+
+    public boolean isRewarpLocationSet() {
+        return MiscConfig.rewarpPosX != 0 || MiscConfig.rewarpPosY != 0 || MiscConfig.rewarpPosZ != 0;
+    }
+
+    public boolean isStandingOnRewarpLocation() {
+        BlockPos currentPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+        BlockPos rewardPos = new BlockPos(MiscConfig.rewarpPosX, MiscConfig.rewarpPosY, MiscConfig.rewarpPosZ);
+        return Math.sqrt(currentPos.distanceSqToCenter(rewardPos.getX(), rewardPos.getY(), rewardPos.getZ())) < 1;
+    }
 }

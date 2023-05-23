@@ -230,6 +230,7 @@ public class SShapeCropMacro extends Macro {
         if (beforeTeleportationPos != null) {
             LogUtils.debugLog("Waiting for tp...");
             KeyBindUtils.stopMovement();
+            triggerWarpGarden();
             return;
         }
 
@@ -374,24 +375,13 @@ public class SShapeCropMacro extends Macro {
 
         if (currentState == State.STONE_THROW) {
             currentState = State.STONE_THROW;
-        } else if (!lastTp.isScheduled() && !isTping &&
+        } else if (!isRewarpLocationSet() && !lastTp.isScheduled() && !isTping &&
                     (BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.wall_sign) ||
                     BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.snow_layer)) &&
                 FarmHelper.gameState.dx < 0.01 && FarmHelper.gameState.dz < 0.01 && FarmHelper.gameState.dy < 0.01) {
-            updateKeys(false, false, false, false, false);
-            if (waitForChangeDirection.isScheduled() && beforeTeleportationPos == null) {
-                waitForChangeDirection.reset();
-            }
-            if (!waitForChangeDirection.isScheduled()) {
-                LogUtils.debugLog("Should TP");
-                long waitTime = (long) (Math.random() * 750 + 500);
-                waitForChangeDirection.schedule(waitTime);
-                beforeTeleportationPos = mc.thePlayer.getPosition();
-            } else if (waitForChangeDirection.passed()) {
-                mc.thePlayer.sendChatMessage(FarmHelper.gameState.wasInGarden ? "/warp garden" : "/is");
-                isTping = true;
-                waitForChangeDirection.reset();
-            }
+            triggerWarpGarden();
+        } else if (isRewarpLocationSet() && isStandingOnRewarpLocation()) {
+            triggerWarpGarden();
         } else if (!isTping && (Math.abs(layerY - mc.thePlayer.posY) > 2 || currentState == State.DROPPING || isDropping())) {
             currentState = State.DROPPING;
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
@@ -440,6 +430,23 @@ public class SShapeCropMacro extends Macro {
         if (lastState != currentState) {
             waitForChangeDirection.reset();
             rotation.reset();
+        }
+    }
+
+    private void triggerWarpGarden() {
+        KeyBindUtils.stopMovement();
+        if (waitForChangeDirection.isScheduled() && beforeTeleportationPos == null) {
+            waitForChangeDirection.reset();
+        }
+        if (!waitForChangeDirection.isScheduled()) {
+            LogUtils.debugLog("Should TP");
+            long waitTime = (long) (Math.random() * 750 + 500);
+            waitForChangeDirection.schedule(waitTime);
+            beforeTeleportationPos = mc.thePlayer.getPosition();
+        } else if (waitForChangeDirection.passed()) {
+            mc.thePlayer.sendChatMessage(FarmHelper.gameState.wasInGarden ? "/warp garden" : "/is");
+            isTping = true;
+            waitForChangeDirection.reset();
         }
     }
 

@@ -159,11 +159,11 @@ public class VerticalCropMacro extends Macro{
         if (currentState == State.BACK_TO_TOP_LAYER) {
             if (!BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.ladder) &&
                 BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.ladder) && FarmHelper.gameState.dy < 0.01) {
-                if (BlockUtils.getRelativeBlock(-1, 0, 0).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(-1, 0, 0))) {
+                if (BlockUtils.isRelativeBlockPassable(-1, 0, 0)) {
                     changeStateTo(State.LEFT);
                     lastTp.schedule(1_000);
                     System.out.println("Left");
-                } else if (BlockUtils.getRelativeBlock(1, 0, 0).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(1, 0, 0))) {
+                } else if (BlockUtils.isRelativeBlockPassable(1, 0, 0)) {
                     changeStateTo(State.RIGHT);
                     lastTp.schedule(1_000);
                     System.out.println("Right");
@@ -176,26 +176,21 @@ public class VerticalCropMacro extends Macro{
         if (beforeTeleportationPos != null) {
             LogUtils.debugLog("Waiting for tp...");
             KeyBindUtils.stopMovement();
+            triggerWarpGarden();
             return;
         }
 
-        if (!BlockUtils.getRelativeBlock(0, 0, 1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, 0, 1)) &&
-            !BlockUtils.getRelativeBlock(0, 0, -1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, 0, -1)) &&
+        if (!isRewarpLocationSet() && !BlockUtils.isRelativeBlockPassable(0, 0, 1) &&
+            !BlockUtils.isRelativeBlockPassable(0, 0, -1) &&
             FarmHelper.gameState.dx < 0.1 && FarmHelper.gameState.dz < 0.1 && FarmHelper.gameState.dy < 0.1 &&
             BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.wall_sign) &&
-            (!BlockUtils.getRelativeBlock(1, 0, 0).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(1, 0, 0)) ||
-            !BlockUtils.getRelativeBlock(-1, 0, 0).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(-1, 0, 0))) &&
+            (!BlockUtils.isRelativeBlockPassable(1, 0, 0) ||
+            !BlockUtils.isRelativeBlockPassable(-1, 0, 0)) &&
             !FarmConfig.ladderDesign) {
-            KeyBindUtils.stopMovement();
-            if (!waitForChangeDirection.isScheduled()) {
-                long waitTime = (long) (Math.random() * 750 + 500);
-                waitForChangeDirection.schedule(waitTime);
-                beforeTeleportationPos = mc.thePlayer.getPosition();
-            } else if (waitForChangeDirection.passed()) {
-                mc.thePlayer.sendChatMessage(FarmHelper.gameState.wasInGarden ? "/warp garden" : "/is");
-                isTping = true;
-            }
+            triggerWarpGarden();
             return;
+        } else if (isRewarpLocationSet() && isStandingOnRewarpLocation() && !FarmConfig.ladderDesign) {
+            triggerWarpGarden();
         }
 
         if (isWalkable(getRightBlock()) && isWalkable(getLeftBlock()) && currentState != State.BACK_TO_TOP_LAYER) {
@@ -244,6 +239,21 @@ public class VerticalCropMacro extends Macro{
                     waitForChangeDirection.schedule(waitTime);
                 }
             }
+        }
+    }
+
+    private void triggerWarpGarden() {
+        KeyBindUtils.stopMovement();
+        if (waitForChangeDirection.isScheduled() && beforeTeleportationPos == null) {
+            waitForChangeDirection.reset();
+        }
+        if (!waitForChangeDirection.isScheduled()) {
+            long waitTime = (long) (Math.random() * 750 + 500);
+            waitForChangeDirection.schedule(waitTime);
+            beforeTeleportationPos = mc.thePlayer.getPosition();
+        } else if (waitForChangeDirection.passed()) {
+            mc.thePlayer.sendChatMessage(FarmHelper.gameState.wasInGarden ? "/warp garden" : "/is");
+            isTping = true;
         }
     }
 
