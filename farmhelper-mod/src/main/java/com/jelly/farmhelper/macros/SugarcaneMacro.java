@@ -133,11 +133,16 @@ public class SugarcaneMacro extends Macro {
 
         CropUtils.getTool();
 
-
-        KeyBindUtils.updateKeys(false,
-                currentWalkState == WalkState.S,
-                currentWalkState == WalkState.D,
-                currentWalkState == WalkState.A, true, mc.thePlayer.capabilities.isFlying, false);
+        if (beforeTeleportationPos != null) {
+            LogUtils.debugLog("Waiting for tp...");
+            KeyBindUtils.stopMovement();
+            return;
+        } else {
+            KeyBindUtils.updateKeys(false,
+                    currentWalkState == WalkState.S,
+                    currentWalkState == WalkState.D,
+                    currentWalkState == WalkState.A, true, mc.thePlayer.capabilities.isFlying, false);
+        }
 
         updateState();
     }

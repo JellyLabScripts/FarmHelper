@@ -227,6 +227,12 @@ public class SShapeCropMacro extends Macro {
         prevState = currentState;
         System.out.println(currentState);
 
+        if (beforeTeleportationPos != null) {
+            LogUtils.debugLog("Waiting for tp...");
+            KeyBindUtils.stopMovement();
+            return;
+        }
+
         switch (currentState) {
             case DROPPING:
                 if (layerY - mc.thePlayer.posY >= 2 && mc.thePlayer.onGround && FarmConfig.rotateAfterDrop) {

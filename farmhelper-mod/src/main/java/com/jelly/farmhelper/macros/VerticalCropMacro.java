@@ -173,6 +173,12 @@ public class VerticalCropMacro extends Macro{
             KeyBindUtils.updateKeys(false, false, prevState == State.RIGHT, prevState == State.LEFT, true, false, false);
         }
 
+        if (beforeTeleportationPos != null) {
+            LogUtils.debugLog("Waiting for tp...");
+            KeyBindUtils.stopMovement();
+            return;
+        }
+
         if (!BlockUtils.getRelativeBlock(0, 0, 1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, 0, 1)) &&
             !BlockUtils.getRelativeBlock(0, 0, -1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, 0, -1)) &&
             FarmHelper.gameState.dx < 0.1 && FarmHelper.gameState.dz < 0.1 && FarmHelper.gameState.dy < 0.1 &&
