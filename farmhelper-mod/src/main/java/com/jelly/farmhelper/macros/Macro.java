@@ -68,7 +68,10 @@ public abstract class Macro {
 
     public boolean isStandingOnRewarpLocation() {
         BlockPos currentPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
-        BlockPos rewardPos = new BlockPos(MiscConfig.rewarpPosX, MiscConfig.rewarpPosY, MiscConfig.rewarpPosZ);
-        return Math.sqrt(currentPos.distanceSqToCenter(rewardPos.getX(), rewardPos.getY(), rewardPos.getZ())) < 1;
+        BlockPos rewarpPos = new BlockPos(MiscConfig.rewarpPosX, MiscConfig.rewarpPosY, MiscConfig.rewarpPosZ);
+        System.out.println("currentPos: " + currentPos);
+        System.out.println("rewarpPos: " + rewarpPos);
+        System.out.println("Distance: " + Math.sqrt(currentPos.distanceSqToCenter(rewarpPos.getX(), rewarpPos.getY(), rewarpPos.getZ())));
+        return Math.sqrt(currentPos.distanceSqToCenter(rewarpPos.getX(), rewarpPos.getY(), rewarpPos.getZ())) < 1;
     }
 }

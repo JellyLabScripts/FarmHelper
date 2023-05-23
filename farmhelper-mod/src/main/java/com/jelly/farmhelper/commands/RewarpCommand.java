@@ -41,6 +41,10 @@ public class RewarpCommand implements ICommand {
             MiscConfig.rewarpPosX = 0;
             MiscConfig.rewarpPosY = 0;
             MiscConfig.rewarpPosZ = 0;
+            ConfigHandler.set("rewarpPosX", 0);
+            ConfigHandler.set("rewarpPosY", 0);
+            ConfigHandler.set("rewarpPosZ", 0);
+            return;
         }
 
         if (args[0].equals("set")) {
@@ -48,11 +52,12 @@ public class RewarpCommand implements ICommand {
             MiscConfig.rewarpPosX = (int) sender.getPosition().getX();
             MiscConfig.rewarpPosY = (int) sender.getPosition().getY();
             MiscConfig.rewarpPosZ = (int) sender.getPosition().getZ();
+            ConfigHandler.set("rewarpPosX", sender.getPosition().getX());
+            ConfigHandler.set("rewarpPosY", sender.getPosition().getY());
+            ConfigHandler.set("rewarpPosZ", sender.getPosition().getZ());
         }
 
-        ConfigHandler.set("rewarpPosX", MiscConfig.rewarpPosX);
-        ConfigHandler.set("rewarpPosY", MiscConfig.rewarpPosY);
-        ConfigHandler.set("rewarpPosZ", MiscConfig.rewarpPosZ);
+
     }
 
     @Override
