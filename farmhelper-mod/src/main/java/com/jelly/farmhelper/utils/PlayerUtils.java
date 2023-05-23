@@ -11,7 +11,6 @@ import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -40,7 +39,7 @@ public class PlayerUtils {
     }
 
     public static void attemptSetSpawn() {
-        if(FailsafeConfig.autoSetspawn) {
+        if(FailsafeConfig.autoSetspawn && FarmConfig.ladderDesign) {
             double diff = (FailsafeConfig.autoSetSpawnMaxDelay * 1000) - (FailsafeConfig.autoSetSpawnMinDelay * 1000);
             if (diff <= 0) {
                 LogUtils.scriptLog("autoSetSpawnMaxDelay must be greater than autoSetSpawnMinDelay", EnumChatFormatting.RED);

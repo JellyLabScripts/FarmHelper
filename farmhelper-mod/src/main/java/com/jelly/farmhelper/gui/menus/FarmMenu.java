@@ -31,6 +31,10 @@ public class FarmMenu extends UIContainer {
     public static final List<Integer> FORBIDDEN_SSHAPE_FARMS = Arrays.asList(2, 5, 6);
     public static final List<Integer> FORBIDDEN_VERTICAL_FARMS = Arrays.asList(1, 3, 4);
 
+    public static UIComponent ladderDesign;
+    public static UIComponent rotateAfterBack;
+    public static UIComponent rotateAfterDrop;
+
     public FarmMenu() {
         selector = new UIBlock((new Color(36, 37, 39)))
                 .setWidth(new RelativeConstraint(1))
@@ -61,14 +65,22 @@ public class FarmMenu extends UIContainer {
                 .setTextScale(new PixelConstraint(0.8f))
                 .setChildOf(farmList.get(1));
 
-        new Toggle("Warp Back To Start", "warpBackToStart")
+        rotateAfterBack = new Toggle("Rotate After Back", "rotateAfterBack")
                 .setX(new CenterConstraint())
                 .setY(new PixelConstraint(25, true))
+                .setTextScale(new PixelConstraint(0.3f))
                 .setChildOf(this);
 
-        new Toggle("Rotate After Warp", "rotateAfterTp")
+        ladderDesign = new Toggle("Go back with ladders", "ladderDesign")
                 .setX(new CenterConstraint())
                 .setY(new PixelConstraint(5, true))
+                .setTextScale(new PixelConstraint(0.3f))
+                .setChildOf(this);
+
+        rotateAfterDrop = new Toggle("Rotate After Drop", "rotateAfterDrop")
+                .setX(new CenterConstraint())
+                .setY(new PixelConstraint(5, true))
+                .setTextScale(new PixelConstraint(0.3f))
                 .setChildOf(this);
 
         setDisable(FarmConfig.farmType.ordinal());
@@ -94,8 +106,9 @@ public class FarmMenu extends UIContainer {
                     cropList.get(0).setColor(SELECTED_COLOR);
                     ((ImageBox) cropList.get(0)).onMouseClick();
                 }
-
             }
+            ladderDesign.hide();
+            rotateAfterDrop.unhide(true);
         // Vertical
         } else if (farmType == 1L) {
             for (UIComponent c : cropList) {
@@ -112,6 +125,8 @@ public class FarmMenu extends UIContainer {
                     ((ImageBox) cropList.get(0)).onMouseClick();
                 }
             }
+            ladderDesign.unhide(true);
+            rotateAfterDrop.hide();
         }
     }
 }

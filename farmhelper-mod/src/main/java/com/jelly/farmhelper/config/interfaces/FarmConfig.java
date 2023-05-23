@@ -10,7 +10,9 @@ public class FarmConfig {
     @Config()
     public static FarmEnum farmType = FarmEnum.LAYERED;
     @Config()
-    public static boolean warpBackToStart = false;
+    public static boolean ladderDesign = false;
     @Config()
-    public static boolean rotateAfterTp = false;
+    public static boolean rotateAfterBack = false;
+    @Config()
+    public static boolean rotateAfterDrop = false;
 }

@@ -93,6 +93,8 @@ public class VerticalCropMacro extends Macro{
 
     private BlockPos beforeTeleportationPos = null;
 
+    private boolean rotated = false;
+
     private void checkForTeleport() {
         if (beforeTeleportationPos == null) return;
         if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos) > 1) {
@@ -118,13 +120,15 @@ public class VerticalCropMacro extends Macro{
 
         if (isTping) return;
 
-        if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
-            yaw = AngleUtils.getClosest();
-            if (FarmConfig.rotateAfterTp) {
-                yaw += 180;
+        if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && !rotated) {
+            yaw = AngleUtils.getClosest(yaw);
+            if (FarmConfig.rotateAfterBack) {
+                yaw = AngleUtils.get360RotationYaw(yaw + 180);
             }
-            rotation.easeTo(yaw, pitch, 500);
-            changeStateTo(calculateDirection());
+            if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
+                rotation.easeTo(yaw, pitch, (long) (600 + Math.random() * 200));
+                rotated = true;
+            }
         }
 
         if (lastTp.isScheduled() && !lastTp.passed()) {
@@ -132,8 +136,10 @@ public class VerticalCropMacro extends Macro{
             return;
         }
 
-        if (lastTp.passed()) {
+        if (lastTp.isScheduled() && lastTp.passed()) {
             lastTp.reset();
+            changeStateTo(calculateDirection());
+            rotated = false;
         }
 
         if (!Failsafe.emergency && !rotation.rotating && !lastTp.isScheduled() && !isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens)) {
@@ -146,7 +152,7 @@ public class VerticalCropMacro extends Macro{
 
         if (BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.ladder) ||
                 BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.ladder) ||
-                        BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.ladder) && !FarmConfig.warpBackToStart) {
+                        BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.ladder) && FarmConfig.ladderDesign) {
             changeStateTo(State.BACK_TO_TOP_LAYER);
         }
 
@@ -155,9 +161,11 @@ public class VerticalCropMacro extends Macro{
                 BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.ladder) && FarmHelper.gameState.dy < 0.01) {
                 if (BlockUtils.getRelativeBlock(-1, 0, 0).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(-1, 0, 0))) {
                     changeStateTo(State.LEFT);
+                    lastTp.schedule(1_000);
                     System.out.println("Left");
                 } else if (BlockUtils.getRelativeBlock(1, 0, 0).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(1, 0, 0))) {
                     changeStateTo(State.RIGHT);
+                    lastTp.schedule(1_000);
                     System.out.println("Right");
                 }
             }
@@ -171,7 +179,7 @@ public class VerticalCropMacro extends Macro{
             BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.wall_sign) &&
             (!BlockUtils.getRelativeBlock(1, 0, 0).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(1, 0, 0)) ||
             !BlockUtils.getRelativeBlock(-1, 0, 0).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(-1, 0, 0))) &&
-            FarmConfig.warpBackToStart) {
+            !FarmConfig.ladderDesign) {
             KeyBindUtils.stopMovement();
             if (!waitForChangeDirection.isScheduled()) {
                 long waitTime = (long) (Math.random() * 750 + 500);

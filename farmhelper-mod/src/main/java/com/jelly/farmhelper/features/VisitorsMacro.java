@@ -193,8 +193,8 @@ public class VisitorsMacro {
             clock.reset();
         }
 
-        if (FarmConfig.warpBackToStart) {
-            LogUtils.debugLog("You have warp back to start enabled, visitors macro won't work (for now).");
+        if (!FarmConfig.ladderDesign) {
+            LogUtils.debugLog("You don't have ladder design toggled on, visitors macro won't work (for now).");
             ConfigHandler.set("visitorsMacro", false);
             return;
         }
