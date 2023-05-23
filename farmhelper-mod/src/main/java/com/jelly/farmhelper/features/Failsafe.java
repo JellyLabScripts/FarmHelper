@@ -141,6 +141,8 @@ public class Failsafe {
             frustum.setPosition(mc.getRenderViewEntity().posX, mc.getRenderViewEntity().posY, mc.getRenderViewEntity().posZ);
             if (frustum.isBoundingBoxInFrustum(new AxisAlignedBB(dirtToCheck.getX(), dirtToCheck.getY(), dirtToCheck.getZ(), dirtToCheck.getX() + 1, dirtToCheck.getY() + 1, dirtToCheck.getZ() + 1))) {
                 emergencyFailsafe(FailsafeType.DIRT);
+                dirtCheck.reset();
+                dirtToCheck = null;
             }
             if (dirtCheck.isScheduled() && dirtCheck.passed()) {
                 dirtToCheck = null;
