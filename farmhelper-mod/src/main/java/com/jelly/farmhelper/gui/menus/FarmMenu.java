@@ -3,6 +3,7 @@ package com.jelly.farmhelper.gui.menus;
 import com.jelly.farmhelper.config.ConfigHandler;
 import com.jelly.farmhelper.config.enums.MacroEnum;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.gui.components.Toggle;
 import gg.essential.elementa.UIComponent;
 import gg.essential.elementa.components.UIBlock;
 import gg.essential.elementa.components.UIContainer;
@@ -59,6 +60,11 @@ public class FarmMenu extends UIContainer {
                 .setY(new PixelConstraint(5, true))
                 .setTextScale(new PixelConstraint(0.8f))
                 .setChildOf(farmList.get(1));
+
+        new Toggle("Warp Back To Start", "warpBackToStart")
+                .setX(new CenterConstraint())
+                .setY(new PixelConstraint(5, true))
+                .setChildOf(this);
 
         setDisable(FarmConfig.farmType.ordinal());
     }

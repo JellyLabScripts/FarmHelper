@@ -39,6 +39,7 @@ public class GameState {
 
     public location currentLocation = location.ISLAND;
     public Clock teleporting = new Clock();
+    public boolean wasInGarden = false;
 
     private static final Pattern PATTERN_ACTIVE_EFFECTS = Pattern.compile(
       "§r§r§7You have a §r§cGod Potion §r§7active! §r§d([0-9]*?:?[0-9]*?:?[0-9]*)§r");
@@ -71,6 +72,14 @@ public class GameState {
             }
         }
         currentLocation = getLocation();
+        for (String line : ScoreboardUtils.getScoreboardLines()) {
+            String cleanedLine = ScoreboardUtils.cleanSB(line);
+            if (cleanedLine.contains("Island")) {
+                wasInGarden = false;
+            } else if (cleanedLine.contains("Garden") || cleanedLine.contains("Plot:")) {
+                wasInGarden = true;
+            }
+        }
         checkFooter();
         updateWalkables();
         dx = Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX);

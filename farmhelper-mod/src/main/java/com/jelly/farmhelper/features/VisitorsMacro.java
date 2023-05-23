@@ -2,6 +2,7 @@ package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.ConfigHandler;
+import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
@@ -80,7 +81,6 @@ public class VisitorsMacro {
     public static final Clock stuckClock = new Clock();
     public static final Clock giveBackItemsClock = new Clock();
     public static final Clock haveItemsClock = new Clock();
-    public static final Clock tpDelay = new Clock();
     public static boolean rejectOffer = false;
     public static String signText = "";
 
@@ -191,6 +191,12 @@ public class VisitorsMacro {
             return;
         } else if (clock.passed()) {
             clock.reset();
+        }
+
+        if (FarmConfig.warpBackToStart) {
+            LogUtils.debugLog("You have warp back to start enabled, visitors macro won't work (for now).");
+            ConfigHandler.set("visitorsMacro", false);
+            return;
         }
 
         if (ProfitCalculator.getCurrentPurse() < MiscConfig.visitorsMacroMoneyThreshold * 1_000_000) {
