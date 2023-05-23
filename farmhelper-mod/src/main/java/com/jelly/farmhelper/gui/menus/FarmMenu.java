@@ -63,6 +63,11 @@ public class FarmMenu extends UIContainer {
 
         new Toggle("Warp Back To Start", "warpBackToStart")
                 .setX(new CenterConstraint())
+                .setY(new PixelConstraint(25, true))
+                .setChildOf(this);
+
+        new Toggle("Rotate After Warp", "rotateAfterTp")
+                .setX(new CenterConstraint())
                 .setY(new PixelConstraint(5, true))
                 .setChildOf(this);
 

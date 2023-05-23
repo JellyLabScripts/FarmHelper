@@ -120,6 +120,9 @@ public class VerticalCropMacro extends Macro{
 
         if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
             yaw = AngleUtils.getClosest();
+            if (FarmConfig.rotateAfterTp) {
+                yaw += 180;
+            }
             rotation.easeTo(yaw, pitch, 500);
             changeStateTo(calculateDirection());
         }
@@ -208,10 +211,6 @@ public class VerticalCropMacro extends Macro{
                 }
                 if (!waitForChangeDirection.isScheduled()) {
                     long waitTime = (long) (Math.random() * 750 + 500);
-                    if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
-                            || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
-                            BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)))
-                        waitTime = 1;
                     System.out.println("Scheduling wait for change direction for " + waitTime + "ms");
                     waitForChangeDirection.schedule(waitTime);
                 }
@@ -227,10 +226,6 @@ public class VerticalCropMacro extends Macro{
                 }
                 if (!waitForChangeDirection.isScheduled()) {
                     long waitTime = (long) (Math.random() * 750 + 500);
-                    if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
-                            || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
-                            BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)))
-                        waitTime = 1;
                     System.out.println("Scheduling wait for change direction for " + waitTime + "ms");
                     waitForChangeDirection.schedule(waitTime);
                 }

@@ -1,24 +1,19 @@
 package com.jelly.farmhelper.macros;
 
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
-import com.jelly.farmhelper.world.GameState;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.BlockPos;
 
-import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.BlockUtils.*;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class SugarcaneMacro extends Macro {
-
-    enum State {
-        WALK,
-        TPPAD
-    }
 
     enum WalkState {
         A, D, S
@@ -26,7 +21,6 @@ public class SugarcaneMacro extends Macro {
 
     private final int LANE_WIDTH = 3;
 
-    private State currentState;
     private WalkState currentWalkState;
 
     private float yaw;
@@ -39,7 +33,6 @@ public class SugarcaneMacro extends Macro {
     private final Clock lastTp = new Clock();
 
     private final Clock waitForChangeDirection = new Clock();
-    private final Clock waitBetweenTp = new Clock();
 
 
     private boolean isTping = false;
@@ -54,7 +47,6 @@ public class SugarcaneMacro extends Macro {
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
 
-        currentState = State.WALK;
         currentWalkState = calculateDirection();
 
         stuck = false;
@@ -63,24 +55,18 @@ public class SugarcaneMacro extends Macro {
         Antistuck.cooldown.schedule(1000);
         waitForChangeDirection.reset();
         isTping = false;
-        if (getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)) {
-            lastTp.schedule(1000);
-            LogUtils.debugLog("Started on tp pad");
-            waitBetweenTp.schedule(10000);
-        }
-        waitBetweenTp.reset();
         lastTp.reset();
     }
 
-    @Override
-    public void onChatMessageReceived(String msg) {
-        super.onChatMessageReceived(msg);
-        if (msg.contains("Warped from the ") && msg.contains(" to the ")) {
-            lastTp.schedule(1000);
+    private BlockPos beforeTeleportationPos = null;
+
+    private void checkForTeleport() {
+        if (beforeTeleportationPos == null) return;
+        if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos) > 1) {
+            LogUtils.debugLog("Teleported!");
+            beforeTeleportationPos = null;
             isTping = false;
-            LogUtils.debugLog("Tped");
-            waitBetweenTp.schedule(10000);
-            currentState = State.WALK;
+            lastTp.schedule(1_000);
         }
     }
 
@@ -89,19 +75,16 @@ public class SugarcaneMacro extends Macro {
         KeyBindUtils.stopMovement();
     }
 
-    private State stateBeforeFailsafe = null;
     private WalkState walkStateBeforeFailsafe = null;
 
     @Override
     public void saveLastStateBeforeDisable() {
-        stateBeforeFailsafe = currentState;
         walkStateBeforeFailsafe = currentWalkState;
         super.saveLastStateBeforeDisable();
     }
 
     @Override
     public void restoreState() {
-        currentState = stateBeforeFailsafe;
         currentWalkState = walkStateBeforeFailsafe;
         super.restoreState();
     }
@@ -113,23 +96,15 @@ public class SugarcaneMacro extends Macro {
 
     @Override
     public void onTick() {
-
-
         if(mc.thePlayer == null || mc.theWorld == null || stuck) return;
 
-        if (gameState.currentLocation != GameState.location.ISLAND) {
-            updateKeys(false, false, false, false, false);
-            enabled = false;
-            return;
-        }
+        checkForTeleport();
+
+        if (isTping) return;
 
         if (rotation.rotating) {
             updateKeys(false, false, false, false, false);
             return;
-        }
-
-        if (waitBetweenTp.isScheduled() && waitBetweenTp.passed()) {
-            waitBetweenTp.reset();
         }
 
         if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
@@ -139,12 +114,11 @@ public class SugarcaneMacro extends Macro {
         }
 
         if (lastTp.isScheduled() && !lastTp.passed()) {
-            updateKeys(false, false, false, false, true);
-            currentState = State.WALK;
+            updateKeys(false, false, false, false, false, mc.thePlayer.capabilities.isFlying, false);
             return;
         }
 
-        if (!Failsafe.emergency && currentState != State.TPPAD && !isTping
+        if (!Failsafe.emergency && !isTping
                 && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) >= FailsafeConfig.rotationSens
                 || Math.abs(mc.thePlayer.rotationPitch - pitch) >= FailsafeConfig.rotationSens)) {
             rotation.reset();
@@ -159,27 +133,33 @@ public class SugarcaneMacro extends Macro {
 
         CropUtils.getTool();
 
-        switch(currentState){
-            case WALK:
-                KeyBindUtils.updateKeys(false,
-                        currentWalkState == WalkState.S,
-                        currentWalkState == WalkState.D,
-                        currentWalkState == WalkState.A, true, mc.thePlayer.capabilities.isFlying, false);
-                break;
-            case TPPAD:
-                if(mc.thePlayer.capabilities.isFlying || (!getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) && !mc.thePlayer.onGround)) {
-                    KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
-                } else if (mc.thePlayer.posY % 1 > 0 && mc.thePlayer.posY % 1 < 0.8125f) {
-                    KeyBindUtils.updateKeys(false, false, false, false, false, false, true);
-                } else {
-                    currentWalkState = calculateDirection();
-                    KeyBindUtils.updateKeys(false,
-                            currentWalkState == WalkState.S,
-                            currentWalkState == WalkState.D,
-                            currentWalkState == WalkState.A, true, false, false);
-                }
-                break;
-        }
+
+        KeyBindUtils.updateKeys(false,
+                currentWalkState == WalkState.S,
+                currentWalkState == WalkState.D,
+                currentWalkState == WalkState.A, true, mc.thePlayer.capabilities.isFlying, false);
+
+//        switch(currentState){
+//            case WALK:
+//                KeyBindUtils.updateKeys(false,
+//                        currentWalkState == WalkState.S,
+//                        currentWalkState == WalkState.D,
+//                        currentWalkState == WalkState.A, true, mc.thePlayer.capabilities.isFlying, false);
+//                break;
+//            case TPPAD:
+//                if(mc.thePlayer.capabilities.isFlying || (!getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) && !mc.thePlayer.onGround)) {
+//                    KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
+//                } else if (mc.thePlayer.posY % 1 > 0 && mc.thePlayer.posY % 1 < 0.8125f) {
+//                    KeyBindUtils.updateKeys(false, false, false, false, false, false, true);
+//                } else {
+//                    currentWalkState = calculateDirection();
+//                    KeyBindUtils.updateKeys(false,
+//                            currentWalkState == WalkState.S,
+//                            currentWalkState == WalkState.D,
+//                            currentWalkState == WalkState.A, true, false, false);
+//                }
+//                break;
+//        }
         updateState();
     }
 
@@ -202,16 +182,23 @@ public class SugarcaneMacro extends Macro {
     }
 
     void updateState() {
-        if (!lastTp.isScheduled() && (!waitBetweenTp.isScheduled() || waitBetweenTp.passed()) && !isTping && (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
-                || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
-                      BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame))) {
-            currentState = State.TPPAD;
-            LogUtils.debugLog("Scheduled tp");
-            isTping = true;
-            updateKeys(false, false, false, false, true);
+        if (!lastTp.isScheduled() && !isTping && (BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.snow_layer)) &&
+            FarmHelper.gameState.dx < 0.01 && FarmHelper.gameState.dz < 0.01 && FarmHelper.gameState.dy < 0.01) {
+            updateKeys(false, false, false, false, false);
+            if (waitForChangeDirection.isScheduled() && beforeTeleportationPos == null) {
+                waitForChangeDirection.reset();
+            }
+            if (!waitForChangeDirection.isScheduled()) {
+                LogUtils.debugLog("Should TP");
+                long waitTime = (long) (Math.random() * 750 + 500);
+                waitForChangeDirection.schedule(waitTime);
+                beforeTeleportationPos = mc.thePlayer.getPosition();
+            } else if (waitForChangeDirection.passed()) {
+                mc.thePlayer.sendChatMessage(FarmHelper.gameState.wasInGarden ? "/warp garden" : "/is");
+                isTping = true;
+                waitForChangeDirection.reset();
+            }
             return;
-        } else {
-            currentState = State.WALK;
         }
 
         switch(currentWalkState){
