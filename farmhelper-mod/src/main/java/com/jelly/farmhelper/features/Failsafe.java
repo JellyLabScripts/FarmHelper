@@ -549,7 +549,8 @@ public class Failsafe {
                 }
             }
             LogUtils.scriptLog("Stop the macro if you see this!");
-            PlayerUtils.setSpawn();
+            if (FarmConfig.ladderDesign)
+                PlayerUtils.setSpawn();
             Thread.sleep(3000);
             if(Math.random() < 0.5d) {
                 mc.thePlayer.sendChatMessage("/hub");

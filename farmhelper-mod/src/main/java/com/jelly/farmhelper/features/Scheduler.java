@@ -30,7 +30,7 @@ public class Scheduler {
     public static String getStatusString() {
         if (SchedulerConfig.scheduler) {
             return (currentState == State.FARMING ? "Farming" : "Break") + " for "
-                + Utils.formatTime((currentState == State.FARMING ? farmClock.getEndTime() : breakClock.getEndTime()) - System.currentTimeMillis());
+                + Utils.formatTime((currentState == State.FARMING ? Math.max(farmClock.getEndTime(), 0) : Math.max(breakClock.getEndTime(), 0)) - System.currentTimeMillis());
         } else {
             return "Farming";
         }
@@ -43,7 +43,10 @@ public class Scheduler {
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
-        if (!SchedulerConfig.scheduler || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || FarmHelper.tickCount % 5 != 0)
+        if (MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled && MacroHandler.currentMacro.cantPauseNow()) {
+            LogUtils.debugLog("[Scheduler] Macro cannot pause now, waiting...");
+        }
+        if (!SchedulerConfig.scheduler || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || FarmHelper.tickCount % 5 != 0 || MacroHandler.currentMacro == null || MacroHandler.currentMacro.cantPauseNow())
             return;
 
         if (!MacroHandler.randomizing && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && currentState == State.FARMING && farmClock.passed()) {

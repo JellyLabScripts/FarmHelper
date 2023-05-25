@@ -78,6 +78,8 @@ public class SShapeCropMacro extends Macro {
         CropUtils.getTool();
         if (crop == CropEnum.NETHERWART || crop == CropEnum.CACTUS) {
             pitch = (float) (0f + Math.random() * 0.5f);
+        } else if (crop == CropEnum.MELON || crop == CropEnum.PUMPKIN) {
+            pitch = 28 + (float) (Math.random() * 2); //28-30
         } else {
             pitch = (float) (2.8f + Math.random() * 0.5f);
         }
@@ -274,11 +276,11 @@ public class SShapeCropMacro extends Macro {
                 return;
             case RIGHT:
                 LogUtils.debugLog("Middle of row, going right");
-                updateKeys(FarmConfig.cropType != MacroEnum.CACTUS && shouldWalkForwards(), FarmConfig.cropType == MacroEnum.CACTUS && shouldPushBack(), true, false, true);
+                updateKeys(FarmConfig.cropType != MacroEnum.CACTUS && FarmConfig.cropType != MacroEnum.PUMPKIN_MELON && shouldWalkForwards(), FarmConfig.cropType == MacroEnum.CACTUS && shouldPushBack(), true, false, true);
                 return;
             case LEFT:
                 LogUtils.debugLog("Middle of row, going left");
-                updateKeys(FarmConfig.cropType != MacroEnum.CACTUS && shouldWalkForwards(), FarmConfig.cropType == MacroEnum.CACTUS && shouldPushBack(), false, true, true);
+                updateKeys(FarmConfig.cropType != MacroEnum.CACTUS && FarmConfig.cropType != MacroEnum.PUMPKIN_MELON && shouldWalkForwards(), FarmConfig.cropType == MacroEnum.CACTUS && shouldPushBack(), false, true, true);
                 return;
             case SWITCH_START:
                 LogUtils.debugFullLog("Continue forwards");
@@ -389,7 +391,7 @@ public class SShapeCropMacro extends Macro {
             if (currentState != State.RIGHT && currentState != State.LEFT) {
                 currentState = calculateDirection();
             }
-        } else if (gameState.frontWalkable && !gameState.backWalkable && (FarmConfig.cropType != MacroEnum.CACTUS || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus))) {
+        } else if (gameState.frontWalkable && !gameState.backWalkable && (FarmConfig.cropType != MacroEnum.CACTUS || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus)) && (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON || !BlockUtils.isRelativeBlockPassable(0, -1, 2))) {
             if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                 currentState = State.SWITCH_START;
                 waitForChangeDirection.reset();

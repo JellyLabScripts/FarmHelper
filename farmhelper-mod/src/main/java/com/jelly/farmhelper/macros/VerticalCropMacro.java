@@ -72,9 +72,6 @@ public class VerticalCropMacro extends Macro{
             case NETHERWART:
                 pitch = (float) (Math.random() * 2 - 1); // -1 - 1
                 break;
-            case MELON: case PUMPKIN:
-                pitch = 28 + (float) (Math.random() * 2); //28-30
-                break;
             case COCOA_BEANS:
                 pitch = -90;
                 break;
@@ -104,6 +101,11 @@ public class VerticalCropMacro extends Macro{
             lastTp.reset();
             lastTp.schedule(1_000);
         }
+    }
+
+    @Override
+    public boolean cantPauseNow() {
+        return isTping || lastTp.isScheduled() || rotation.rotating || currentState == State.BACK_TO_TOP_LAYER;
     }
 
     @Override
@@ -203,9 +205,9 @@ public class VerticalCropMacro extends Macro{
                 changeStateTo(calculateDirection());
             }
             if (currentState == State.RIGHT)
-                updateKeys(((FarmConfig.cropType != MacroEnum.PUMPKIN_MELON) && shouldWalkForwards()), false, true, false, true, false, false);
+                updateKeys(shouldWalkForwards(), false, true, false, true, false, false);
             else if (currentState == State.LEFT) {
-                updateKeys((FarmConfig.cropType != MacroEnum.PUMPKIN_MELON)  && shouldWalkForwards(), false, false, true, true, false, false);
+                updateKeys(shouldWalkForwards(), false, false, true, true, false, false);
             } else {
                 stopMovement();
             }

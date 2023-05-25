@@ -2,9 +2,7 @@ package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
-import com.jelly.farmhelper.utils.BlockUtils;
 import com.jelly.farmhelper.utils.LogUtils;
-import com.jelly.farmhelper.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -37,19 +35,26 @@ public abstract class Macro {
         }
     }
 
-    public void onEnable() {}
+    public void onEnable() {
+    }
 
-    public void onDisable() {}
+    public void onDisable() {
+    }
 
-    public void onTick() {}
+    public void onTick() {
+    }
 
-    public void onLastRender() {}
+    public void onLastRender() {
+    }
 
-    public void onChatMessageReceived(String msg) {}
+    public void onChatMessageReceived(String msg) {
+    }
 
-    public void onOverlayRender(RenderGameOverlayEvent event) {}
+    public void onOverlayRender(RenderGameOverlayEvent event) {
+    }
 
-    public void onPacketReceived(ReceivePacketEvent event) {}
+    public void onPacketReceived(ReceivePacketEvent event) {
+    }
 
     public void saveLastStateBeforeDisable() {
         LogUtils.debugLog("Saving last state before disabling macro");
@@ -58,9 +63,11 @@ public abstract class Macro {
             toggle();
     }
 
-    public void restoreState() {}
+    public void restoreState() {
+    }
 
-    public void triggerTpCooldown() {}
+    public void triggerTpCooldown() {
+    }
 
     public boolean isRewarpLocationSet() {
         return MiscConfig.rewarpPosX != 0 || MiscConfig.rewarpPosY != 0 || MiscConfig.rewarpPosZ != 0;
@@ -73,5 +80,9 @@ public abstract class Macro {
         System.out.println("rewarpPos: " + rewarpPos);
         System.out.println("Distance: " + Math.sqrt(currentPos.distanceSqToCenter(rewarpPos.getX(), rewarpPos.getY(), rewarpPos.getZ())));
         return Math.sqrt(currentPos.distanceSqToCenter(rewarpPos.getX(), rewarpPos.getY(), rewarpPos.getZ())) < 1;
+    }
+
+    public boolean cantPauseNow() {
+        return false;
     }
 }
