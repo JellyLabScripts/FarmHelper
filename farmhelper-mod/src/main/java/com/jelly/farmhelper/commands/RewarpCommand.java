@@ -3,7 +3,7 @@ package com.jelly.farmhelper.commands;
 import com.jelly.farmhelper.config.ConfigHandler;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.utils.LogUtils;
-import net.minecraft.command.CommandException;
+import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.BlockPos;
@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RewarpCommand implements ICommand {
+public class RewarpCommand extends CommandBase {
     @Override
     public String getCommandName() {
         return "fhrewarp";
@@ -78,5 +78,10 @@ public class RewarpCommand implements ICommand {
     @Override
     public int compareTo(@NotNull ICommand o) {
         return 0;
+    }
+
+    @Override
+    public int getRequiredPermissionLevel() {
+        return -1;
     }
 }

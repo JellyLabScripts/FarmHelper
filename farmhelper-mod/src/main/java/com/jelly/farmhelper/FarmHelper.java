@@ -52,7 +52,6 @@ public class FarmHelper {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        ClientCommandHandler.instance.registerCommand(new RewarpCommand());
     }
 
 
@@ -77,6 +76,8 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new ProfitCalculator());
         MinecraftForge.EVENT_BUS.register(new Utils());
         MinecraftForge.EVENT_BUS.register(new VisitorsMacro());
+        ClientCommandHandler.instance.registerCommand(new RewarpCommand());
+
         gameState = new GameState();
         try {
             analyticUrl = (String) APIHelper.readJsonFromUrl("NONE","User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
