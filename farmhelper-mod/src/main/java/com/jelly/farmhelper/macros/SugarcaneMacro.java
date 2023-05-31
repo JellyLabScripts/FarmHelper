@@ -3,6 +3,7 @@ package com.jelly.farmhelper.macros;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
+import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
@@ -67,6 +68,9 @@ public class SugarcaneMacro extends Macro {
             beforeTeleportationPos = null;
             isTping = false;
             lastTp.schedule(1_000);
+            if (!isSpawnLocationSet()) {
+                setSpawnLocation();
+            }
         }
     }
 

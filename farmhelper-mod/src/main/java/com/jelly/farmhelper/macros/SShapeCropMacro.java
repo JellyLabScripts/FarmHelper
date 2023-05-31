@@ -144,6 +144,9 @@ public class SShapeCropMacro extends Macro {
             lastTp.schedule(1_000);
             layerY = mc.thePlayer.posY;
             currentState = calculateDirection();
+            if (!isSpawnLocationSet()) {
+                setSpawnLocation();
+            }
         }
     }
 

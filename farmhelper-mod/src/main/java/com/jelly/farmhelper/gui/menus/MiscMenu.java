@@ -14,6 +14,7 @@ public class MiscMenu extends UIContainer {
         new Toggle("Xray", "xray").setChildOf(this);
         new Toggle("Mute Game", "muteGame").setChildOf(this);
         new Toggle("Visitors Macro", "visitorsMacro").setChildOf(this);
+        new Toggle("Visitors Accept Only Profit (BETA)", "visitorsAcceptOnlyProfit").setChildOf(this);
         new Slider("Visitors Macro Money Threshold", 20, 1, "visitorsMacroMoneyThreshold").setChildOf(this);
     }
 }

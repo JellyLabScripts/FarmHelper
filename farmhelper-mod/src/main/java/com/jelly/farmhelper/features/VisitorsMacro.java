@@ -8,6 +8,7 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
+import jline.internal.Log;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockSlab;
 import net.minecraft.block.BlockStairs;
@@ -107,6 +108,8 @@ public class VisitorsMacro {
 
     public static float purseBeforeVisitors = 0;
 
+    public static final List<String> profitRewards = Arrays.asList("Dedication", "Cultivating", "Delicate", "Replenish", "Music Rune");
+
     public static boolean isEnabled() {
         return enabled;
     }
@@ -146,7 +149,8 @@ public class VisitorsMacro {
         ProfitCalculator.startingPurse = ProfitCalculator.getCurrentPurse() - (purseBeforeVisitors - ProfitCalculator.startingPurse);
         randomValue = 0;
         purseBeforeVisitors = 0;
-        LogUtils.scriptLog("Stopped visitors macro");
+        if (MiscConfig.visitorsMacro)
+            LogUtils.scriptLog("Stopped visitors macro");
     }
 
     @SubscribeEvent
@@ -193,9 +197,13 @@ public class VisitorsMacro {
             clock.reset();
         }
 
-        if (!FarmConfig.ladderDesign) {
-            LogUtils.debugLog("You don't have ladder design toggled on, visitors macro won't work (for now).");
-            ConfigHandler.set("visitorsMacro", false);
+        if (!MacroHandler.currentMacro.isSpawnLocationSet() && !FarmConfig.ladderDesign) {
+            LogUtils.debugLog("Spawn pos is not yet determined, will run after rewarping or setting spawn.");
+            return;
+        }
+
+        if (!FarmConfig.ladderDesign && !MacroHandler.currentMacro.isStandingOnSpawnLocation()) {
+            LogUtils.debugLog("Not standing on spawn location, will run after rewarping or setting spawn.");
             return;
         }
 
@@ -226,7 +234,7 @@ public class VisitorsMacro {
         }
 
         BlockPos blockUnder = BlockUtils.getRelativeBlockPos(0, 0, 0);
-        if (!BlockUtils.canSetSpawn(blockUnder)) {
+        if (!BlockUtils.canSetSpawn(blockUnder) && FarmConfig.ladderDesign) {
             LogUtils.debugLog("Can't setspawn here, still going.");
             clock.schedule(1000);
             enabled = false;
@@ -241,7 +249,7 @@ public class VisitorsMacro {
             haveAotv = true;
         }
 
-        if ((MiscConfig.visitorsDeskPosX == 0 && MiscConfig.visitorsDeskPosY == 0 && MiscConfig.visitorsDeskPosZ == 0) ) {
+        if (!MacroHandler.currentMacro.isRewarpLocationSet()) {
             LogUtils.scriptLog("Desk position is not set, disabling this feature. Please set it up with the keybind");
             ConfigHandler.set("visitorsMacro", false);
             enabled = false;
@@ -349,12 +357,12 @@ public class VisitorsMacro {
                     LogUtils.debugLog("Player doesn't have AOTE nor AOTV)");
                     haveAotv = false;
                 } else {
+                    mc.thePlayer.inventory.currentItem = aspectOfTheVoid;
                     haveAotv = true;
                 }
 
                 stuckClock.schedule(25_000);
 
-                mc.thePlayer.inventory.currentItem = aspectOfTheVoid;
 
                 double distanceToEdge = mc.thePlayer.getDistance(currentEdge.getX(), mc.thePlayer.posY, currentEdge.getZ());
                 int playerY = mc.thePlayer.getPosition().getY();
@@ -633,7 +641,25 @@ public class VisitorsMacro {
                                 if (slot.getHasStack() && slot.getStack().getDisplayName().contains("Accept Offer")) {
                                     ArrayList<Pair<String, Integer>> cropsToBuy = new ArrayList<>();
                                     boolean foundRequiredItems = false;
+                                    boolean foundProfit = false;
                                     ArrayList<String> lore = PlayerUtils.getItemLore(slot.getStack());
+                                    if (MiscConfig.visitorsAcceptOnlyProfit) {
+                                        for (String line : lore) {
+                                            if (profitRewards.stream().anyMatch(r -> StringUtils.stripControlCodes(line).contains(StringUtils.stripControlCodes(r)))) {
+                                                foundProfit = true;
+                                                break;
+                                            }
+                                        }
+                                        if (!foundProfit) {
+                                            LogUtils.scriptLog("Visitor offers a reward that is not in the profit rewards list, skipping...");
+                                            rejectOffer = true;
+                                            signText = "";
+                                            boughtAllItems = true;
+                                            currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
+                                            delayClock.schedule(250);
+                                            return;
+                                        }
+                                    }
                                     for (String line : lore) {
                                         if (line.contains("Required:")) {
                                             foundRequiredItems = true;
@@ -921,6 +947,15 @@ public class VisitorsMacro {
             }
         }
         return -1;
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    public void onChatSetSpawn(ClientChatReceivedEvent event) {
+        if (event.type != 0) return;
+        String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
+        if (message.contains("Your spawn location has been set!")) {
+            MacroHandler.currentMacro.setSpawnLocation();
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)

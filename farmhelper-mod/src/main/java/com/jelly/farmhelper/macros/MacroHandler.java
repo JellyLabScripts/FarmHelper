@@ -153,6 +153,7 @@ public class MacroHandler {
         if (AutoSellConfig.autoSell) LogUtils.scriptLog("Auto Sell is in BETA, lock important slots just in case");
         if (MiscConfig.ungrab) UngrabUtils.ungrabMouse();
         if (SchedulerConfig.scheduler) Scheduler.start();
+        if (MiscConfig.visitorsMacro && MiscConfig.visitorsAcceptOnlyProfit) LogUtils.scriptLog("Macro will only accept offers containing any of these products: \"Dedication\", \"Cultivating\", \"Delicate\", \"Replenish\", \"Music Rune\"");
 
         startTime = System.currentTimeMillis();
         ProfitCalculator.resetProfit();

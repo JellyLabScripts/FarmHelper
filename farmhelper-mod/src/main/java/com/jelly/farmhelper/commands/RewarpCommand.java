@@ -44,6 +44,9 @@ public class RewarpCommand extends CommandBase {
             ConfigHandler.set("rewarpPosX", 0);
             ConfigHandler.set("rewarpPosY", 0);
             ConfigHandler.set("rewarpPosZ", 0);
+            ConfigHandler.set("spawnPosX", 0);
+            ConfigHandler.set("spawnPosY", 0);
+            ConfigHandler.set("spawnPosZ", 0);
             return;
         }
 
@@ -55,6 +58,9 @@ public class RewarpCommand extends CommandBase {
             ConfigHandler.set("rewarpPosX", sender.getPosition().getX());
             ConfigHandler.set("rewarpPosY", sender.getPosition().getY());
             ConfigHandler.set("rewarpPosZ", sender.getPosition().getZ());
+            ConfigHandler.set("spawnPosX", 0);
+            ConfigHandler.set("spawnPosY", 0);
+            ConfigHandler.set("spawnPosZ", 0);
         }
 
 

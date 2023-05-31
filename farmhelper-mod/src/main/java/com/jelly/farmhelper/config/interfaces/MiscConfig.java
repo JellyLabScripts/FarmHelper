@@ -20,6 +20,8 @@ public class MiscConfig {
     @Config
     public static double visitorsMacroMoneyThreshold = 5.0;
     @Config
+    public static boolean visitorsAcceptOnlyProfit = false;
+    @Config
     public static int visitorsDeskPosX = 0;
     @Config
     public static int visitorsDeskPosY = 0;
@@ -31,4 +33,10 @@ public class MiscConfig {
     public static int rewarpPosY = 0;
     @Config
     public static int rewarpPosZ = 0;
+    @Config
+    public static int spawnPosX = 0;
+    @Config
+    public static int spawnPosY = 0;
+    @Config
+    public static int spawnPosZ = 0;
 }
