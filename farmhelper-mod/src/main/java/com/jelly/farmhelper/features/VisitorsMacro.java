@@ -645,7 +645,7 @@ public class VisitorsMacro {
                                     ArrayList<String> lore = PlayerUtils.getItemLore(slot.getStack());
                                     if (MiscConfig.visitorsAcceptOnlyProfit) {
                                         for (String line : lore) {
-                                            if (profitRewards.stream().anyMatch(r -> StringUtils.stripControlCodes(line).contains(StringUtils.stripControlCodes(r)))) {
+                                            if (profitRewards.stream().anyMatch(r -> StringUtils.stripControlCodes(line.toLowerCase()).contains(StringUtils.stripControlCodes(r.toLowerCase())))) {
                                                 foundProfit = true;
                                                 break;
                                             }
