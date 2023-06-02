@@ -30,6 +30,8 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.input.Keyboard;
 
+import java.util.stream.Collectors;
+
 
 public class MacroHandler {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -153,7 +155,7 @@ public class MacroHandler {
         if (AutoSellConfig.autoSell) LogUtils.scriptLog("Auto Sell is in BETA, lock important slots just in case");
         if (MiscConfig.ungrab) UngrabUtils.ungrabMouse();
         if (SchedulerConfig.scheduler) Scheduler.start();
-        if (MiscConfig.visitorsMacro && MiscConfig.visitorsAcceptOnlyProfit) LogUtils.scriptLog("Macro will only accept offers containing any of these products: \"Dedication\", \"Cultivating\", \"Delicate\", \"Replenish\", \"Music Rune\"");
+        if (MiscConfig.visitorsMacro && MiscConfig.visitorsAcceptOnlyProfit) LogUtils.scriptLog("Macro will only accept offers containing any of these products: " + String.join(", ", VisitorsMacro.profitRewards));
 
         startTime = System.currentTimeMillis();
         ProfitCalculator.resetProfit();

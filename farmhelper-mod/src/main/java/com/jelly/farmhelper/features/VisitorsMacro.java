@@ -2,13 +2,13 @@ package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.ConfigHandler;
+import com.jelly.farmhelper.config.enums.FarmEnum;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
-import jline.internal.Log;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockSlab;
 import net.minecraft.block.BlockStairs;
@@ -108,7 +108,7 @@ public class VisitorsMacro {
 
     public static float purseBeforeVisitors = 0;
 
-    public static final List<String> profitRewards = Arrays.asList("Dedication", "Cultivating", "Delicate", "Replenish", "Music Rune");
+    public static final List<String> profitRewards = Arrays.asList("Dedication", "Cultivating", "Delicate", "Replenish", "Music Rune", "Green Bandana", "Overgrown Grass", "Space Helmet");
 
     public static boolean isEnabled() {
         return enabled;
@@ -197,12 +197,12 @@ public class VisitorsMacro {
             clock.reset();
         }
 
-        if (!MacroHandler.currentMacro.isSpawnLocationSet() && !FarmConfig.ladderDesign) {
+        if (!MacroHandler.currentMacro.isSpawnLocationSet() && (!FarmConfig.ladderDesign || FarmConfig.farmType == FarmEnum.LAYERED)) {
             LogUtils.debugLog("Spawn pos is not yet determined, will run after rewarping or setting spawn.");
             return;
         }
 
-        if (!FarmConfig.ladderDesign && !MacroHandler.currentMacro.isStandingOnSpawnLocation()) {
+        if ((!FarmConfig.ladderDesign || FarmConfig.farmType == FarmEnum.LAYERED) && !MacroHandler.currentMacro.isStandingOnSpawnLocation()) {
             LogUtils.debugLog("Not standing on spawn location, will run after rewarping or setting spawn.");
             return;
         }
@@ -257,12 +257,20 @@ public class VisitorsMacro {
         }
 
         if (currentState == State.NONE && clock.passed()) {
-            currentState = State.TRY_TO_SET_SPAWN;
+            if ((!FarmConfig.ladderDesign || FarmConfig.farmType == FarmEnum.LAYERED)) {
+                currentState = State.ROTATE_TO_EDGE;
+                clock.schedule(1500L);
+                LogUtils.debugLog("Visitors macro can be started");
+                KeyBindUtils.stopMovement();
+                enabled = true;
+            } else {
+                currentState = State.TRY_TO_SET_SPAWN;
+                PlayerUtils.setSpawn();
+            }
             rotation.reset();
             rotation.completed = true;
             clock.schedule(1_500);
             stuckClock.schedule(25_000);
-            PlayerUtils.setSpawn();
             mc.thePlayer.closeScreen();
             purseBeforeVisitors = ProfitCalculator.getCurrentPurse();
         }
