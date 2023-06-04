@@ -3,38 +3,16 @@ package com.jelly.farmhelper.network;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import javax.net.ssl.*;
+import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
 
 public class APIHelper {
     public static JSONObject readJsonFromUrl(String urlToRead, String requestKey, String requestValue) throws Exception {
         StringBuilder result = new StringBuilder();
         URL url = new URL(urlToRead);
-
-        // Create a trust manager that trusts all certificates
-        TrustManager[] trustAllCerts = new TrustManager[] {
-                new X509TrustManager() {
-                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                        return null;
-                    }
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-                }
-        };
-
-        // Install the trust manager
-        SSLContext sslContext = SSLContext.getInstance("SSL");
-        sslContext.init(null, trustAllCerts, new SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
-
-        // Set the hostname verifier to trust all hostnames
-        HostnameVerifier allHostsValid = (hostname, session) -> true;
-        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
 
         HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
 
