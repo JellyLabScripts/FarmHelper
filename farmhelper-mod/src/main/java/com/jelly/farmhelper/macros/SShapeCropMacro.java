@@ -5,16 +5,22 @@ import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.enums.MacroEnum;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockDoor;
+import net.minecraft.block.BlockSlab;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.BlockUtils.*;
@@ -63,6 +69,8 @@ public class SShapeCropMacro extends Macro {
     private CropEnum crop;
 
     private boolean rotated = false;
+
+    private boolean switchBackwardsDirection = false;
 
     @Override
     public void onEnable() {
@@ -239,6 +247,11 @@ public class SShapeCropMacro extends Macro {
             return;
         }
 
+        if (Failsafe.emergency) {
+            LogUtils.debugLog("Blocking changing movement due to emergency");
+            return;
+        }
+
         switch (currentState) {
             case DROPPING:
                 if (layerY - mc.thePlayer.posY >= 2 && mc.thePlayer.onGround && FarmConfig.rotateAfterDrop) {
@@ -278,27 +291,42 @@ public class SShapeCropMacro extends Macro {
 
                 return;
             case RIGHT:
-                LogUtils.debugLog("Middle of row, going right");
-                updateKeys(FarmConfig.cropType != MacroEnum.CACTUS && FarmConfig.cropType != MacroEnum.PUMPKIN_MELON && shouldWalkForwards(), FarmConfig.cropType == MacroEnum.CACTUS && shouldPushBack(), true, false, true);
+                if (!waitForChangeDirection.isScheduled()) {
+                    LogUtils.debugLog("Middle of row, going right");
+                    updateKeys(FarmConfig.cropType != MacroEnum.CACTUS && FarmConfig.cropType != MacroEnum.PUMPKIN_MELON && shouldWalkForwards(), FarmConfig.cropType == MacroEnum.CACTUS && shouldPushBack(), true, false, true);
+                }
                 return;
             case LEFT:
-                LogUtils.debugLog("Middle of row, going left");
-                updateKeys(FarmConfig.cropType != MacroEnum.CACTUS && FarmConfig.cropType != MacroEnum.PUMPKIN_MELON && shouldWalkForwards(), FarmConfig.cropType == MacroEnum.CACTUS && shouldPushBack(), false, true, true);
+                if (!waitForChangeDirection.isScheduled()) {
+                    LogUtils.debugLog("Middle of row, going left");
+                    updateKeys(FarmConfig.cropType != MacroEnum.CACTUS && FarmConfig.cropType != MacroEnum.PUMPKIN_MELON && shouldWalkForwards(), FarmConfig.cropType == MacroEnum.CACTUS && shouldPushBack(), false, true, true);
+                }
                 return;
             case SWITCH_START:
-                LogUtils.debugFullLog("Continue forwards");
-                updateKeys(true, false, prevState == State.RIGHT, prevState == State.LEFT, false);
-                return;
+                if (!waitForChangeDirection.isScheduled()) {
+                    if (switchBackwardsDirection) {
+                        LogUtils.debugFullLog("Continue backwards");
+                        updateKeys(false, true, prevState == State.RIGHT, prevState == State.LEFT, false);
+                        return;
+                    } else {
+                        LogUtils.debugFullLog("Continue forwards");
+                        updateKeys(true, false, prevState == State.RIGHT, prevState == State.LEFT, false);
+                        return;
+                    }
+                }
             case SWITCH_MID:
-                LogUtils.debugLog("Middle of switch, keep going forwards");
-                updateKeys(true, false, false, false, false);
+                LogUtils.debugLog("Middle of switch, keep going");
+                if (switchBackwardsDirection)
+                    updateKeys(false, true, false, false, false);
+                else
+                    updateKeys(true, false, false, false, false);
                 return;
             case SWITCH_END:
                 if (gameState.rightWalkable) {
-                    LogUtils.debugFullLog("Continue going right");
+                    LogUtils.debugFullLog("Row switched, continue going right");
                     updateKeys(false, false, true, false, true);
                 } else if (gameState.leftWalkable) {
-                    LogUtils.debugFullLog("Continue going left");
+                    LogUtils.debugFullLog("Row switched, continue going left");
                     updateKeys(false, false, false, true, true);
                 }
                 return;
@@ -369,8 +397,16 @@ public class SShapeCropMacro extends Macro {
                         return;
                 }
             case NONE:
-                LogUtils.debugFullLog("idk");
-
+                LogUtils.debugFullLog("NONE");
+                if (!waitForChangeDirection.isScheduled()) {
+                    LogUtils.debugFullLog("idk");
+                    LogUtils.debugFullLog("currentState: " + currentState);
+                    LogUtils.debugFullLog("gameState.leftWalkable: " + gameState.leftWalkable);
+                    LogUtils.debugFullLog("gameState.rightWalkable: " + gameState.rightWalkable);
+                    LogUtils.debugFullLog("gameState.frontWalkable: " + gameState.frontWalkable);
+                    LogUtils.debugFullLog("gameState.backWalkable: " + gameState.backWalkable);
+                    KeyBindUtils.stopMovement();
+                }
         }
     }
 
@@ -390,43 +426,52 @@ public class SShapeCropMacro extends Macro {
         } else if (!isTping && (Math.abs(layerY - mc.thePlayer.posY) > 2 || currentState == State.DROPPING || isDropping())) {
             currentState = State.DROPPING;
         } else if (gameState.leftWalkable && gameState.rightWalkable) {
+            // LogUtils.debugLog("Left and right walkable");
             PlayerUtils.attemptSetSpawn();
             if (currentState != State.RIGHT && currentState != State.LEFT) {
+                LogUtils.debugLog("Calculating direction");
                 currentState = calculateDirection();
             }
-        } else if (gameState.frontWalkable && !gameState.backWalkable && (FarmConfig.cropType != MacroEnum.CACTUS || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus)) && (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON || !BlockUtils.isRelativeBlockPassable(0, -1, 2))) {
+        } else if (((gameState.frontWalkable && (!gameState.backWalkable || BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.water))) || ((!gameState.frontWalkable || BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.water)) && gameState.backWalkable)) && currentState != State.SWITCH_MID  && currentState != State.DROPPING && (FarmConfig.cropType != MacroEnum.CACTUS || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus)) && (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON || (!BlockUtils.isRelativeBlockPassable(0, -1, 2) || !BlockUtils.isRelativeBlockPassable(0, -1, -2)))) {
             if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
+                if (gameState.frontWalkable)
+                    switchBackwardsDirection = false;
+                else if (gameState.backWalkable)
+                    switchBackwardsDirection = true;
                 currentState = State.SWITCH_START;
                 waitForChangeDirection.reset();
-                System.out.println("Switching to start");
+                LogUtils.debugLog("SWITCH_START");
                 return;
             }
-            if (!waitForChangeDirection.isScheduled()) {
+            if (!waitForChangeDirection.isScheduled() && currentState != State.SWITCH_START) {
+                KeyBindUtils.stopMovement();
                 long waitTime = (long) (Math.random() * 500 + 250);
-                System.out.println("Waiting " + waitTime + "ms");
+                LogUtils.debugLog("SWITCH_START: Waiting " + waitTime + "ms");
                 waitForChangeDirection.schedule(waitTime);
             }
-        } else if (gameState.frontWalkable && gameState.backWalkable) {
+        } else if (gameState.frontWalkable && gameState.backWalkable && (currentState == State.SWITCH_START || currentState == State.SWITCH_MID) && !waitForChangeDirection.isScheduled()) {
             currentState = State.SWITCH_MID;
-        } else if (gameState.backWalkable) {
-            if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
-                currentState = State.SWITCH_END;
-                waitForChangeDirection.reset();
-                System.out.println("Switching to end");
-                return;
-            }
-            if (!waitForChangeDirection.isScheduled()) {
-                long waitTime = (long) (Math.random() * 500 + 250);
-                System.out.println("Waiting2 " + waitTime + "ms");
-                waitForChangeDirection.schedule(waitTime);
-            }
+            LogUtils.debugLog("SWITCH_MID");
+        } else if (((gameState.backWalkable && !gameState.frontWalkable && !switchBackwardsDirection) || (gameState.frontWalkable && !gameState.backWalkable && switchBackwardsDirection)) && currentState == State.SWITCH_MID) {
+                if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
+                    currentState = State.SWITCH_END;
+                    waitForChangeDirection.reset();
+                    LogUtils.debugLog("SWITCH_END");
+                    return;
+                }
+                if (!waitForChangeDirection.isScheduled()) {
+                    KeyBindUtils.stopMovement();
+                    long waitTime = (long) (Math.random() * 500 + 250);
+                    LogUtils.debugLog("SWITCH_MID: Waiting " + waitTime + "ms");
+                    waitForChangeDirection.schedule(waitTime);
+                }
         } else if ((getRelativeBlock(0, -1, 0).equals(Blocks.air) || getRelativeBlock(-1, -1, 0).equals(Blocks.air) && getRelativeBlock(-1, 0, 0).equals(Blocks.air)) && gameState.rightWalkable) {
             currentState = State.DROPPING;
         } else if ((getRelativeBlock(0, -1, 0).equals(Blocks.air) || getRelativeBlock(1, -1, 0).equals(Blocks.air) && getRelativeBlock(1, 0, 0).equals(Blocks.air)) && gameState.leftWalkable) {
             currentState = State.DROPPING;
-        } else if (gameState.leftWalkable) {
+        } else if (gameState.leftWalkable && currentState != State.SWITCH_START && currentState != State.SWITCH_MID && currentState != State.SWITCH_END) {
             currentState = State.LEFT;
-        } else if (gameState.rightWalkable) {
+        } else if (gameState.rightWalkable && currentState != State.SWITCH_START && currentState != State.SWITCH_MID && currentState != State.SWITCH_END) {
             currentState = State.RIGHT;
         } else {
             currentState = State.NONE;
@@ -572,7 +617,8 @@ public class SShapeCropMacro extends Macro {
         double z = mc.thePlayer.posZ % 1;
         System.out.println(angle);
         Block blockBehind = BlockUtils.getRelativeBlock(0, 0, -1);
-        if (!blockBehind.equals(Blocks.cobblestone) && !blockBehind.equals(Blocks.carpet)) return false;
+        if (!(blockBehind.getMaterial().isSolid() || (blockBehind instanceof BlockSlab) || blockBehind.equals(Blocks.carpet) || (blockBehind instanceof BlockDoor)) || blockBehind.getMaterial().isLiquid())
+            return false;
         if (angle == 0) {
             return (z > -0.65 && z < -0.1) || (z < 0.9 && z > 0.35);
         } else if (angle == 90) {
@@ -590,12 +636,6 @@ public class SShapeCropMacro extends Macro {
         return  (BlockUtils.getRelativeBlock(0, -1, 1).equals(Blocks.air)
                 && BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.air)
                 && BlockUtils.getRelativeBlock(0, 1, 1).equals(Blocks.air))
-                || (BlockUtils.getRelativeBlock(1, -1, 0).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.air))
-                || (BlockUtils.getRelativeBlock(-1, -1, 0).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(-1, 1, 0).equals(Blocks.air))
                 || (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.air)
                 && BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.air)
                 && BlockUtils.getRelativeBlock(0, 1, 0).equals(Blocks.air));
