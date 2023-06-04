@@ -432,6 +432,9 @@ public class SShapeCropMacro extends Macro {
                 LogUtils.debugLog("Calculating direction");
                 currentState = calculateDirection();
             }
+        } else if (gameState.frontWalkable && gameState.backWalkable && (currentState == State.SWITCH_START || currentState == State.SWITCH_MID) && !waitForChangeDirection.isScheduled()) {
+            currentState = State.SWITCH_MID;
+            LogUtils.debugLog("SWITCH_MID");
         } else if (((gameState.frontWalkable && (!gameState.backWalkable || BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.water))) || ((!gameState.frontWalkable || BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.water)) && gameState.backWalkable)) && currentState != State.SWITCH_MID  && currentState != State.DROPPING && (FarmConfig.cropType != MacroEnum.CACTUS || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus)) && (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON || (!BlockUtils.isRelativeBlockPassable(0, -1, 2) || !BlockUtils.isRelativeBlockPassable(0, -1, -2)))) {
             if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                 if (gameState.frontWalkable)
@@ -449,9 +452,6 @@ public class SShapeCropMacro extends Macro {
                 LogUtils.debugLog("SWITCH_START: Waiting " + waitTime + "ms");
                 waitForChangeDirection.schedule(waitTime);
             }
-        } else if (gameState.frontWalkable && gameState.backWalkable && (currentState == State.SWITCH_START || currentState == State.SWITCH_MID) && !waitForChangeDirection.isScheduled()) {
-            currentState = State.SWITCH_MID;
-            LogUtils.debugLog("SWITCH_MID");
         } else if (((gameState.backWalkable && !gameState.frontWalkable && !switchBackwardsDirection) || (gameState.frontWalkable && !gameState.backWalkable && switchBackwardsDirection)) && currentState == State.SWITCH_MID) {
                 if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                     currentState = State.SWITCH_END;
