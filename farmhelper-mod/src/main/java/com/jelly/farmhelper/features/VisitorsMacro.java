@@ -249,7 +249,7 @@ public class VisitorsMacro {
             haveAotv = true;
         }
 
-        if (!MacroHandler.currentMacro.isRewarpLocationSet()) {
+        if (MiscConfig.visitorsDeskPosX == 0 && MiscConfig.visitorsDeskPosY == 0 && MiscConfig.visitorsDeskPosZ == 0) {
             LogUtils.scriptLog("Desk position is not set, disabling this feature. Please set it up with the keybind");
             ConfigHandler.set("visitorsMacro", false);
             enabled = false;
