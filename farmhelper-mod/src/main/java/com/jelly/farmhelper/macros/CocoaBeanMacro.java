@@ -1,11 +1,13 @@
 package com.jelly.farmhelper.macros;
 
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 import static com.jelly.farmhelper.FarmHelper.gameState;
@@ -16,7 +18,6 @@ public class CocoaBeanMacro extends Macro {
 
     enum State {
         DROPPING,
-        TP_PAD,
         SWITCH_ROW,
         SWITCH_SIDE,
         RIGHT,
@@ -30,13 +31,14 @@ public class CocoaBeanMacro extends Macro {
     public State currentState;
     private double layerY;
     private boolean antistuckActive;
-    private boolean tpFlag;
     private float yaw;
     private float pitch;
     private int axeEquipFails = 0;
     private int notmovingticks = 0;
-    private double prevPlayerX;
-    private double prevPlayerZ;
+    private final Clock waitForChangeDirection = new Clock();
+    private final Clock lastTp = new Clock();
+
+    private boolean isTping = false;
 
     @Override
     public void onEnable() {
@@ -44,16 +46,33 @@ public class CocoaBeanMacro extends Macro {
         currentState = State.NONE;
         antistuckActive = false;
         Antistuck.stuck = false;
-        tpFlag = false;
         Antistuck.cooldown.schedule(1000);
         pitch = -70f + (float) (Math.random() * 0.6);
         yaw = AngleUtils.getClosest();
         rotation.easeTo(yaw, pitch, 500);
+        isTping = false;
+        lastTp.reset();
     }
 
     @Override
     public void onDisable() {
         updateKeys(false, false, false, false, false);
+    }
+
+    private BlockPos beforeTeleportationPos = null;
+
+    private void checkForTeleport() {
+        if (beforeTeleportationPos == null) return;
+        if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos) > 1) {
+            LogUtils.debugLog("Teleported!");
+            beforeTeleportationPos = null;
+            isTping = false;
+            layerY = mc.thePlayer.posY;
+            lastTp.schedule(1_000);
+            if (!isSpawnLocationSet()) {
+                setSpawnLocation();
+            }
+        }
     }
 
     private State stateBeforeFailsafe = null;
@@ -87,19 +106,25 @@ public class CocoaBeanMacro extends Macro {
 
     @Override
     public void onTick() {
-        if (currentState == State.TP_PAD && (Math.abs(prevPlayerZ - mc.thePlayer.posZ) > 10 || Math.abs(prevPlayerX - mc.thePlayer.posX) > 10)) {
-            LogUtils.debugLog("Detected teleport due to sudden large position change");
-            tpFlag = true;
-        }
+        if(mc.thePlayer == null || mc.theWorld == null) return;
 
-        if (gameState.currentLocation != GameState.location.ISLAND) {
-            updateKeys(false, false, false, false, false);
-            enabled = false;
-            return;
-        }
+        checkForTeleport();
+
+        if (isTping) return;
 
         if (rotation.rotating) {
             updateKeys(false, false, false, false, false);
+            return;
+        }
+
+        if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
+            yaw = AngleUtils.getClosestDiagonal();
+            rotation.easeTo(yaw, pitch, 500);
+            KeyBindUtils.stopMovement();
+        }
+
+        if (lastTp.isScheduled() && !lastTp.passed()) {
+            updateKeys(false, false, false, false, false, mc.thePlayer.capabilities.isFlying, false);
             return;
         }
 
@@ -112,7 +137,7 @@ public class CocoaBeanMacro extends Macro {
                 switch (currentState) {
                     case RIGHT:
                     case LEFT:
-                        //new Thread(fixRowStuck).start();
+                        new Thread(fixRowStuck).start();
                         break;
                     case SWITCH_ROW:
                         //
@@ -130,17 +155,6 @@ public class CocoaBeanMacro extends Macro {
         updateState();
 
         switch (currentState) {
-            case TP_PAD:
-                if (Math.abs(mc.thePlayer.posY - layerY) > 0.5 || tpFlag) {
-                    LogUtils.debugLog("Teleported!");
-                    updateKeys(true, false, false, false, false);
-                    tpFlag = false;
-                    currentState = State.LEFT;
-                } else {
-                    LogUtils.debugLog("Waiting for teleport land");
-                    updateKeys(false, false, false, false, false);
-                }
-                return;
             case RIGHT:
                 LogUtils.debugLog("On right row, going back");
                 updateKeys(false, false, true, false, findAndEquipAxe());
@@ -162,17 +176,21 @@ public class CocoaBeanMacro extends Macro {
                 LogUtils.debugLog("Finished row, going right");
                 updateKeys(false, true, true, false, false);
         }
-
-        prevPlayerX = mc.thePlayer.posX;
-        prevPlayerZ = mc.thePlayer.posZ;
     }
 
     private void updateState() {
         State lastState = currentState;
 
-        if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || (currentState == State.TP_PAD && !tpFlag)) {
-            currentState = State.TP_PAD;
-        } else if (layerY - mc.thePlayer.posY > 1 || currentState == State.DROPPING || isDropping()) {
+        if (!isRewarpLocationSet() && !lastTp.isScheduled() && !isTping &&
+                FarmHelper.gameState.dx < 0.01 && FarmHelper.gameState.dz < 0.01 && FarmHelper.gameState.dy < 0.01) {
+            triggerWarpGarden();
+            return;
+        } else if (isRewarpLocationSet() && isStandingOnRewarpLocation()) {
+            triggerWarpGarden();
+            return;
+        }
+
+        if (layerY - mc.thePlayer.posY > 1 || currentState == State.DROPPING || isDropping()) {
             currentState = State.DROPPING;
         } else if (currentState == State.SWITCH_ROW) {
             if (BlockUtils.getRelativeBlock(-1, 0, 1).getMaterial().isSolid()) {
@@ -198,19 +216,50 @@ public class CocoaBeanMacro extends Macro {
             currentState = State.NONE;
         }
 
-        if (lastState == State.TP_PAD && lastState != currentState) {
-            layerY = mc.thePlayer.posY;
-        }
-
         if (lastState != currentState) {
             //TODO: Further test set spawn
             if(currentState == State.KEEP_RIGHT || currentState == State.LEFT_KEEP) {
                 PlayerUtils.attemptSetSpawn();
             }
             rotation.reset();
-            tpFlag = false;
         }
     }
+
+    private void triggerWarpGarden() {
+        KeyBindUtils.stopMovement();
+        if (waitForChangeDirection.isScheduled() && beforeTeleportationPos == null) {
+            waitForChangeDirection.reset();
+        }
+        if (!waitForChangeDirection.isScheduled()) {
+            LogUtils.debugLog("Should TP");
+            long waitTime = (long) (Math.random() * 750 + 500);
+            waitForChangeDirection.schedule(waitTime);
+            beforeTeleportationPos = mc.thePlayer.getPosition();
+        } else if (waitForChangeDirection.passed()) {
+            mc.thePlayer.sendChatMessage(FarmHelper.gameState.wasInGarden ? "/warp garden" : "/is");
+            isTping = true;
+            waitForChangeDirection.reset();
+        }
+    }
+
+    public Runnable fixRowStuck = () -> {
+        try {
+            Thread.sleep(20);
+            updateKeys(false, true, false, false, false);
+            Thread.sleep(500);
+            updateKeys(false, false, false, false, false);
+            Thread.sleep(200);
+            updateKeys(true, false, false, false, false);
+            Thread.sleep(500);
+            updateKeys(false, false, false, false, false);
+            Thread.sleep(200);
+            antistuckActive = false;
+            Antistuck.stuck = false;
+            Antistuck.cooldown.schedule(2000);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    };
 
     public boolean findAndEquipAxe() {
         int axeSlot = PlayerUtils.getAxeSlot();
