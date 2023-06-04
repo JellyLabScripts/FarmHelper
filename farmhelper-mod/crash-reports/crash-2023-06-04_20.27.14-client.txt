@@ -1,0 +1,128 @@
+---- Minecraft Crash Report ----
+// Shall we play a game?
+
+Time: 04.06.23 20:27
+Description: Getting biome
+
+java.lang.ArrayIndexOutOfBoundsException
+	at java.util.ArrayList.add(ArrayList.java:465)
+	at net.minecraft.world.biome.BiomeCache.getBiomeCacheBlock(BiomeCache.java:36)
+	at net.minecraft.world.biome.BiomeCache.func_180284_a(BiomeCache.java:45)
+	at net.minecraft.world.biome.WorldChunkManager.getBiomeGenerator(WorldChunkManager.java:66)
+	at net.minecraft.world.chunk.Chunk.getBiome(Chunk.java:1386)
+	at net.minecraft.world.World.getBiomeGenForCoordsBody(World.java:178)
+	at net.minecraft.world.WorldProvider.getBiomeGenForCoords(WorldProvider.java:427)
+	at net.minecraft.world.World.getBiomeGenForCoords(World.java:167)
+	at net.minecraft.world.ChunkCache.getBiomeGenForCoords(ChunkCache.java:112)
+	at net.minecraft.world.biome.BiomeColorHelper.getColorAtPos(BiomeColorHelper.java:41)
+	at net.minecraft.world.biome.BiomeColorHelper.getWaterColorAtPos(BiomeColorHelper.java:62)
+	at net.minecraft.block.BlockLiquid.colorMultiplier(BlockLiquid.java:58)
+	at net.minecraft.block.Block.colorMultiplier(Block.java:976)
+	at net.minecraft.client.renderer.BlockFluidRenderer.renderFluid(BlockFluidRenderer.java:41)
+	at net.minecraft.client.renderer.BlockRendererDispatcher.renderBlock(BlockRendererDispatcher.java:89)
+	at net.minecraft.client.renderer.chunk.RenderChunk.rebuildChunk(RenderChunk.java:194)
+	at net.minecraft.client.renderer.chunk.ChunkRenderWorker.processTask(ChunkRenderWorker.java:99)
+	at net.minecraft.client.renderer.chunk.ChunkRenderWorker.run(ChunkRenderWorker.java:44)
+	at java.lang.Thread.run(Thread.java:823)
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Stacktrace:
+	at java.util.ArrayList.add(ArrayList.java:465)
+	at net.minecraft.world.biome.BiomeCache.getBiomeCacheBlock(BiomeCache.java:36)
+	at net.minecraft.world.biome.BiomeCache.func_180284_a(BiomeCache.java:45)
+	at net.minecraft.world.biome.WorldChunkManager.getBiomeGenerator(WorldChunkManager.java:66)
+	at net.minecraft.world.chunk.Chunk.getBiome(Chunk.java:1386)
+
+-- Coordinates of biome request --
+Details:
+	Location: World: (17,1,272), Chunk: (at 1,0,0 in 1,17; contains blocks 16,0,272 to 31,255,287), Region: (0,0; contains chunks 0,0 to 31,31, blocks 0,0,0 to 511,255,511)
+Stacktrace:
+	at net.minecraft.world.World.getBiomeGenForCoordsBody(World.java:178)
+	at net.minecraft.world.WorldProvider.getBiomeGenForCoords(WorldProvider.java:427)
+	at net.minecraft.world.World.getBiomeGenForCoords(World.java:167)
+	at net.minecraft.world.ChunkCache.getBiomeGenForCoords(ChunkCache.java:112)
+	at net.minecraft.world.biome.BiomeColorHelper.getColorAtPos(BiomeColorHelper.java:41)
+	at net.minecraft.world.biome.BiomeColorHelper.getWaterColorAtPos(BiomeColorHelper.java:62)
+	at net.minecraft.block.BlockLiquid.colorMultiplier(BlockLiquid.java:58)
+	at net.minecraft.block.Block.colorMultiplier(Block.java:976)
+	at net.minecraft.client.renderer.BlockFluidRenderer.renderFluid(BlockFluidRenderer.java:41)
+
+-- Block being tesselated --
+Details:
+	Block type: ID #9 (tile.water // net.minecraft.block.BlockStaticLiquid)
+	Block data value: 2 / 0x2 / 0b0010
+	Block location: World: (16,1,271), Chunk: (at 0,0,15 in 1,16; contains blocks 16,0,256 to 31,255,271), Region: (0,0; contains chunks 0,0 to 31,31, blocks 0,0,0 to 511,255,511)
+Stacktrace:
+	at net.minecraft.client.renderer.BlockRendererDispatcher.renderBlock(BlockRendererDispatcher.java:89)
+
+-- Affected level --
+Details:
+	Level name: MpServer
+	All players: 1 total; [EntityPlayerSP['Player250'/0, l='MpServer', x=-12,34, y=14,80, z=175,42]]
+	Chunk stats: MultiplayerChunkCache: 159, 159
+	Level seed: 0
+	Level generator: ID 01 - flat, ver 0. Features enabled: false
+	Level generator options: 
+	Level spawn location: 1135,00,4,00,260,00 - World: (1135,4,260), Chunk: (at 15,0,4 in 70,16; contains blocks 1120,0,256 to 1135,255,271), Region: (2,0; contains chunks 64,0 to 95,31, blocks 1024,0,0 to 1535,255,511)
+	Level time: 1109598 game time, 54000 day time
+	Level dimension: 0
+	Level storage version: 0x00000 - Unknown?
+	Level weather: Rain time: 0 (now: false), thunder time: 0 (now: false)
+	Level game mode: Game mode: survival (ID 0). Hardcore: false. Cheats: false
+	Forced entities: 1 total; [EntityPlayerSP['Player250'/0, l='MpServer', x=-12,34, y=14,80, z=175,42]]
+	Retry entities: 0 total; []
+	Server brand: Spigot
+	Server type: Non-integrated multiplayer server
+Stacktrace:
+	at net.minecraft.client.multiplayer.WorldClient.addWorldInfoToCrashReport(WorldClient.java:393)
+	at net.minecraft.client.Minecraft.addGraphicsAndWorldToCrashReport(Minecraft.java:2675)
+	at net.minecraft.client.renderer.chunk.ChunkRenderWorker.run(ChunkRenderWorker.java:54)
+	at java.lang.Thread.run(Thread.java:823)
+
+-- System Details --
+Details:
+	Minecraft Version: 1.8.9
+	Operating System: Windows 10 (amd64) version 10.0
+	Java Version: 1.8.0_292, AdoptOpenJDK
+	Java VM Version: Eclipse OpenJ9 VM (JRE 1.8.0 Windows 10 amd64-64-Bit Compressed References 20210421_1045 (JIT enabled, AOT enabled)
+OpenJ9   - b4cc246d9
+OMR      - 162e6f729
+JCL      - 2a5e268814 based on jdk8u292-b10), Eclipse OpenJ9
+	Memory: 50046152 bytes (47 MB) / 599326720 bytes (571 MB) up to 4272488448 bytes (4074 MB)
+	JVM Flags: 3 total; -Xoptionsfile=C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-openj9\jre\bin\default\options.default -Xlockword:mode=default,noLockword=java/lang/String,noLockword=java/util/MapEntry,noLockword=java/util/HashMap$Entry,noLockword=org/apache/harmony/luni/util/ModifiedMap$Entry,noLockword=java/util/Hashtable$Entry,noLockword=java/lang/invoke/MethodType,noLockword=java/lang/invoke/MethodHandle,noLockword=java/lang/invoke/CollectHandle,noLockword=java/lang/invoke/ConstructorHandle,noLockword=java/lang/invoke/ConvertHandle,noLockword=java/lang/invoke/ArgumentConversionHandle,noLockword=java/lang/invoke/AsTypeHandle,noLockword=java/lang/invoke/ExplicitCastHandle,noLockword=java/lang/invoke/FilterReturnHandle,noLockword=java/lang/invoke/DirectHandle,noLockword=java/lang/invoke/ReceiverBoundHandle,noLockword=java/lang/invoke/DynamicInvokerHandle,noLockword=java/lang/invoke/FieldHandle,noLockword=java/lang/invoke/FieldGetterHandle,noLockword=java/lang/invoke/FieldSetterHandle,noLockword=java/lang/invoke/StaticFieldGetterHandle,noLockword=java/lang/invoke/StaticFieldSetterHandle,noLockword=java/lang/invoke/IndirectHandle,noLockword=java/lang/invoke/InterfaceHandle,noLockword=java/lang/invoke/VirtualHandle,noLockword=java/lang/invoke/PrimitiveHandle,noLockword=java/lang/invoke/InvokeExactHandle,noLockword=java/lang/invoke/InvokeGenericHandle,noLockword=java/lang/invoke/VarargsCollectorHandle,noLockword=java/lang/invoke/ThunkTuple -Xjcl:jclse29
+	IntCache: cache: 0, tcache: 0, allocated: 0, tallocated: 0
+	FML: MCP 9.19 Powered by Forge 11.15.1.2318 5 mods loaded, 5 mods active
+	States: 'U' = Unloaded 'L' = Loaded 'C' = Constructed 'H' = Pre-initialized 'I' = Initialized 'J' = Post-initialized 'A' = Available 'D' = Disabled 'E' = Errored
+
+	| State  | ID         | Version      | Source                                |
+	| ------ | ---------- | ------------ | ------------------------------------- |
+	| UCHIJA | mcp        | 9.19         | minecraft.jar                         |
+	| UCHIJA | FML        | 8.0.99.99    | forgeSrc-1.8.9-11.15.1.2318-1.8.9.jar |
+	| UCHIJA | Forge      | 11.15.1.2318 | forgeSrc-1.8.9-11.15.1.2318-1.8.9.jar |
+	| UCHIJA | essential  | 1.0.0        | Essential (forge_1.8.9).jar           |
+	| UCHIJA | farmhelper | 4.3.5-PRE    | main                                  |
+
+	Loaded coremods (and transformers): 
+DevAuthLoadingPlugin (unknown)
+  me.djtheredstoner.devauth.forge.legacy.ClassTransformer
+	GL info: ~~ERROR~~ RuntimeException: No OpenGL context found in the current thread.
+	Launched Version: UnknownFMLProfile
+	LWJGL: 2.9.4
+	OpenGL: ~~ERROR~~ RuntimeException: No OpenGL context found in the current thread.
+	GL Caps: Using GL 1.3 multitexturing.
+Using GL 1.3 texture combiners.
+Using framebuffer objects because OpenGL 3.0 is supported and separate blending is supported.
+Shaders are available because OpenGL 2.1 is supported.
+VBOs are available because OpenGL 1.5 is supported.
+
+	Using VBOs: No
+	Is Modded: Definitely; Client brand changed to 'fml,forge'
+	Type: Client (map_client.txt)
+	Resource Packs: 
+	Current Language: English (US)
+	Profiler Position: N/A (disabled)
+	CPU: 12x AMD Ryzen 5 5600X 6-Core Processor 

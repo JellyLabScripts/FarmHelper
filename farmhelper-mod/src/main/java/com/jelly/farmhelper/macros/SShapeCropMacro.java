@@ -12,6 +12,8 @@ import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockDoor;
+import net.minecraft.block.BlockSlab;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
@@ -615,7 +617,8 @@ public class SShapeCropMacro extends Macro {
         double z = mc.thePlayer.posZ % 1;
         System.out.println(angle);
         Block blockBehind = BlockUtils.getRelativeBlock(0, 0, -1);
-        if (!(blockBehind.getMaterial().isSolid() || blockBehind.equals(Blocks.stone_slab) || blockBehind.equals(Blocks.carpet) || blockBehind.equals(Blocks.oak_door)) || blockBehind.getMaterial().isLiquid()) return false;
+        if (!(blockBehind.getMaterial().isSolid() || (blockBehind instanceof BlockSlab) || blockBehind.equals(Blocks.carpet) || (blockBehind instanceof BlockDoor)) || blockBehind.getMaterial().isLiquid())
+            return false;
         if (angle == 0) {
             return (z > -0.65 && z < -0.1) || (z < 0.9 && z > 0.35);
         } else if (angle == 90) {
