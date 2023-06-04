@@ -158,6 +158,7 @@ public class Failsafe {
 
         GameState.location location = gameState.currentLocation;
 
+        // LogUtils.debugLog("Test");
 
         switch (location) {
             case TELEPORTING:
@@ -410,6 +411,17 @@ public class Failsafe {
         }
     }
 
+    static Runnable delayedStopScript = () -> {
+        try{
+            LogUtils.debugLog("delayedStopScript: waiting");
+            Thread.sleep((long) (1000 + Math.random() * 1000));
+            MacroHandler.disableCurrentMacro(true);
+            LogUtils.debugLog("delayedStopScript: done, stopping macro");
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    };
+
     public static void emergencyFailsafe(FailsafeType type) {
 
         emergency = true;
@@ -418,8 +430,10 @@ public class Failsafe {
         LogUtils.scriptLog(type.label + "!");
         LogUtils.scriptLog("Act like a normal player and stop the script!");
 
-        if(type != FailsafeType.DIRT && type != FailsafeType.DESYNC && type != FailsafeType.ITEM_CHANGE) // you may not be able to see the dirt, disable a few seconds later
-            MacroHandler.disableCurrentMacro(true);
+        if(type != FailsafeType.DESYNC)
+        {
+            emergencyThreadExecutor.submit(delayedStopScript);
+        }
 
         if(FailsafeConfig.notifications){
             try {
@@ -443,11 +457,11 @@ public class Failsafe {
                 case DESYNC:
                     emergencyThreadExecutor.submit(stopScript);
                     break;
-                case DIRT: case ROTATION:
-                    emergencyThreadExecutor.submit(rotationMovement);
-                    break;
                 case BEDROCK:
                     emergencyThreadExecutor.submit(cagedActing);
+                    break;
+                case DIRT: case ROTATION:
+                    emergencyThreadExecutor.submit(rotationMovement);
                     break;
                 case ITEM_CHANGE:
                     emergencyThreadExecutor.submit(itemChange);
@@ -518,6 +532,11 @@ public class Failsafe {
 
     static Runnable rotationMovement = () -> {
         try {
+            LogUtils.debugLog("rotationMovement: waiting");
+            Thread.sleep((long) (2200 + Math.random() * 1000));
+            LogUtils.debugLog("rotationMovement: sending a message");
+            mc.thePlayer.sendChatMessage(FAILSAFE_MESSAGES[(int) Math.floor(Math.random() * (FAILSAFE_MESSAGES.length - 1))]);
+            Thread.sleep((long) (400 + Math.random() * 1000));
             int numberOfRepeats = new Random().nextInt(2) + 2;
             boolean sneak = Math.random() < 0.3d;
             Thread.sleep(new Random().nextInt(300) + 300);
@@ -609,13 +628,14 @@ public class Failsafe {
 
 
     static Runnable cagedActing = () -> {
+        LogUtils.debugLog("You just got caged bozo! Buy a lottery ticket!");
         LogUtils.webhookLog("You just got caged bozo! Buy a lottery ticket! @everyone");
 
         if (bzchillingthread != null) {
             bzchillingthread.interrupt();
         }
         try {
-            Thread.sleep((long) (Math.random() * 1000));
+            Thread.sleep((long) (3000 + Math.random() * 1000));
             boolean said = false;
             for (int i = 0; i < 3; i++) {
                 long rotationTime = (long) (800 * (Math.random() + 1));
@@ -624,8 +644,9 @@ public class Failsafe {
                     said = true;
                     KeyBindUtils.stopMovement();
                     Thread.sleep(rotationTime + 2800);
+                    Thread.sleep((long) (1500 + Math.random() * 1000));
                     mc.thePlayer.sendChatMessage(FAILSAFE_MESSAGES[(int) Math.floor(Math.random() * (FAILSAFE_MESSAGES.length - 1))]);//"/ac " +
-                    Thread.sleep((long) (200 + Math.random() * 500));
+                    Thread.sleep((long) (1000 + Math.random() * 500));
                 } else while (rotation.rotating) {
                     if (i == 0) {
                         KeyBindUtils.updateKeys(Math.random() < 0.3, Math.random() < 0.3, Math.random() < 0.3, Math.random() < 0.3, Math.random() < 0.3, false, false);

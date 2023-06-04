@@ -46,7 +46,7 @@ public class CocoaBeanMacro extends Macro {
         Antistuck.stuck = false;
         tpFlag = false;
         Antistuck.cooldown.schedule(1000);
-        pitch = -90f;
+        pitch = -70f + (float) (Math.random() * 0.6);
         yaw = AngleUtils.getClosest();
         rotation.easeTo(yaw, pitch, 500);
     }
@@ -175,22 +175,22 @@ public class CocoaBeanMacro extends Macro {
         } else if (layerY - mc.thePlayer.posY > 1 || currentState == State.DROPPING || isDropping()) {
             currentState = State.DROPPING;
         } else if (currentState == State.SWITCH_ROW) {
-            if (BlockUtils.getRelativeBlock(-1, 0, 1).equals(Blocks.cobblestone)) {
+            if (BlockUtils.getRelativeBlock(-1, 0, 1).getMaterial().isSolid()) {
                 currentState = State.LEFT;
             }
         } else if (currentState == State.SWITCH_SIDE) {
-            if (BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.cobblestone)) {
+            if (BlockUtils.getRelativeBlock(1, 0, 0).getMaterial().isSolid()) {
                 currentState = State.RIGHT;
             }
         } else if (currentState == State.KEEP_RIGHT && !BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.air)) {
             currentState = State.SWITCH_ROW;
         } else if (currentState == State.LEFT_KEEP && BlockUtils.getRelativeBlock(-1, 0, 1).equals(Blocks.air)) {
             currentState = State.SWITCH_SIDE;
-        } else if (BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.cobblestone)) {
+        } else if (BlockUtils.getRelativeBlock(-1, 0, 0).getMaterial().isSolid()) {
             if ((currentState == State.NONE || (currentState == State.LEFT && lastState == State.LEFT))) {
                 currentState = State.LEFT_KEEP;
             }
-        } else if (BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.cobblestone)) {
+        } else if (BlockUtils.getRelativeBlock(1, 0, 0).getMaterial().isSolid()) {
             if ((currentState == State.NONE || (currentState == State.RIGHT && lastState == State.RIGHT))) {
                 currentState = State.KEEP_RIGHT;
             }
