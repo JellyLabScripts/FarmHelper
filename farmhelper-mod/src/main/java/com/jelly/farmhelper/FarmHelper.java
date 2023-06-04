@@ -1,5 +1,7 @@
 package com.jelly.farmhelper;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.jelly.farmhelper.commands.RewarpCommand;
 import com.jelly.farmhelper.config.ConfigHandler;
 import com.jelly.farmhelper.features.*;
@@ -48,6 +50,8 @@ public class FarmHelper {
     public static TickTask ticktask;
     private static final Minecraft mc = Minecraft.getMinecraft();
     public static GameState gameState;
+
+    public static Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
 
 
     @Mod.EventHandler

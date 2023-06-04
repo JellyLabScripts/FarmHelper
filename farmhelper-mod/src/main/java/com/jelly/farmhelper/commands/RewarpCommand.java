@@ -2,6 +2,8 @@ package com.jelly.farmhelper.commands;
 
 import com.jelly.farmhelper.config.ConfigHandler;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.config.structs.Rewarp;
+import com.jelly.farmhelper.utils.BlockUtils;
 import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommand;
@@ -20,7 +22,7 @@ public class RewarpCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/fhrewarp [reset|set]";
+        return "/fhrewarp [add|remove|removeall]";
     }
 
     @Override
@@ -32,38 +34,43 @@ public class RewarpCommand extends CommandBase {
     public void processCommand(ICommandSender sender, String[] args) {
         if (args.length != 1) {
             LogUtils.scriptLog("Invalid arguments");
-            LogUtils.scriptLog("Use /fhrewarp [reset|set]");
+            LogUtils.scriptLog("Use /fhrewarp [add|remove|removeall]");
             return;
         }
 
-        if (args[0].equals("reset")) {
-            LogUtils.scriptLog("Resetting re-warp location");
-            MiscConfig.rewarpPosX = 0;
-            MiscConfig.rewarpPosY = 0;
-            MiscConfig.rewarpPosZ = 0;
-            ConfigHandler.set("rewarpPosX", 0);
-            ConfigHandler.set("rewarpPosY", 0);
-            ConfigHandler.set("rewarpPosZ", 0);
-            ConfigHandler.set("spawnPosX", 0);
-            ConfigHandler.set("spawnPosY", 0);
-            ConfigHandler.set("spawnPosZ", 0);
-            return;
+        switch (args[0]) {
+            case "add": {
+                if (ConfigHandler.rewarpList.stream().anyMatch(rewarp -> rewarp.isTheSameAs(BlockUtils.getRelativeBlockPos(0, 0, 0)))) {
+                    LogUtils.scriptLog("Rewarp location already set");
+                    return;
+                }
+                ConfigHandler.addRewarp(new Rewarp(BlockUtils.getRelativeBlockPos(0, 0, 0)));
+                break;
+            }
+            case "remove": {
+                Rewarp closest = null;
+                if (ConfigHandler.rewarpList.size() == 0) {
+                    LogUtils.scriptLog("No rewarp locations set");
+                    return;
+                }
+                double closestDistance = Double.MAX_VALUE;
+                for (Rewarp rewarp : ConfigHandler.rewarpList) {
+                    double distance = rewarp.getDistance(BlockUtils.getRelativeBlockPos(0, 0, 0));
+                    if (distance < closestDistance) {
+                        closest = rewarp;
+                        closestDistance = distance;
+                    }
+                }
+                if (closest != null) {
+                    ConfigHandler.removeRewarp(closest);
+                }
+                break;
+            }
+            case "removeall": {
+                ConfigHandler.removeAllRewarps();
+                break;
+            }
         }
-
-        if (args[0].equals("set")) {
-            LogUtils.scriptLog("Setting re-warp location to: X: " + sender.getPosition().getX() + ", Y: " + sender.getPosition().getY() + ", Z: " + sender.getPosition().getZ());
-            MiscConfig.rewarpPosX = (int) sender.getPosition().getX();
-            MiscConfig.rewarpPosY = (int) sender.getPosition().getY();
-            MiscConfig.rewarpPosZ = (int) sender.getPosition().getZ();
-            ConfigHandler.set("rewarpPosX", sender.getPosition().getX());
-            ConfigHandler.set("rewarpPosY", sender.getPosition().getY());
-            ConfigHandler.set("rewarpPosZ", sender.getPosition().getZ());
-            ConfigHandler.set("spawnPosX", 0);
-            ConfigHandler.set("spawnPosY", 0);
-            ConfigHandler.set("spawnPosZ", 0);
-        }
-
-
     }
 
     @Override

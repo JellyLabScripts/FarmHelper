@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.ConfigHandler;
 import com.jelly.farmhelper.config.enums.CropEnum;
 import com.jelly.farmhelper.config.enums.FarmEnum;
 import com.jelly.farmhelper.config.enums.MacroEnum;
@@ -8,6 +9,7 @@ import com.jelly.farmhelper.config.interfaces.AutoSellConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.config.interfaces.SchedulerConfig;
+import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.ProfitCalculator;
@@ -30,6 +32,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.input.Keyboard;
 
+import java.awt.*;
 import java.util.stream.Collectors;
 
 
@@ -70,6 +73,12 @@ public class MacroHandler {
         }
         if (currentMacro != null && currentMacro.enabled && mc.thePlayer != null && mc.theWorld != null) {
             currentMacro.onLastRender();
+        }
+
+        Color chroma = Color.getHSBColor((float) ((System.currentTimeMillis() / 10) % 2000) / 2000, 1, 1);
+        Color chromaLowerAlpha = new Color(chroma.getRed(), chroma.getGreen(), chroma.getBlue(), 120);
+        for (Rewarp rewarp : ConfigHandler.rewarpList) {
+            RenderUtils.drawBlockBox(new BlockPos(rewarp.x, rewarp.y, rewarp.z), chromaLowerAlpha);
         }
     }
 

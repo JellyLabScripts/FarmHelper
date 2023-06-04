@@ -418,9 +418,6 @@ public class Failsafe {
         LogUtils.scriptLog(type.label + "!");
         LogUtils.scriptLog("Act like a normal player and stop the script!");
 
-        if(type != FailsafeType.DIRT && type != FailsafeType.DESYNC && type != FailsafeType.ITEM_CHANGE) // you may not be able to see the dirt, disable a few seconds later
-            MacroHandler.disableCurrentMacro(true);
-
         if(FailsafeConfig.notifications){
             try {
                 SystemTray tray = SystemTray.getSystemTray();
@@ -453,6 +450,9 @@ public class Failsafe {
                     emergencyThreadExecutor.submit(itemChange);
                     break;
             }
+        } else {
+            if (type != FailsafeType.DIRT && type != FailsafeType.ITEM_CHANGE) // you may not be able to see the dirt, disable a few seconds later
+                emergencyThreadExecutor.submit(stopScript);
         }
 
         if (FailsafeConfig.restartAfterFailsafe)
@@ -461,7 +461,7 @@ public class Failsafe {
 
     static Runnable stopScript = () -> {
         try{
-//            Thread.sleep((long) (2000 + Math.random() * 1000));
+            Thread.sleep((long) (2500 + Math.random() * 2000));
             MacroHandler.disableCurrentMacro(true);
         } catch(Exception e){
             e.printStackTrace();
