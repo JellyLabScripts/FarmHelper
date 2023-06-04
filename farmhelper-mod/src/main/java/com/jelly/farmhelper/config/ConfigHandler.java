@@ -1,7 +1,12 @@
 package com.jelly.farmhelper.config;
 
+import com.google.gson.JsonArray;
+import com.google.gson.reflect.TypeToken;
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.annotations.Config;
 import com.jelly.farmhelper.config.interfaces.*;
+import com.jelly.farmhelper.config.structs.Rewarp;
+import com.jelly.farmhelper.utils.LogUtils;
 import lombok.SneakyThrows;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -12,14 +17,19 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigHandler {
     private static JSONObject config;
     private static final File configFile = new File("farmhelper.json");
+    private static final File configRewarpFile = new File("farmhelper_rewarp.json");
     private static final List<Class<?>> registeredConfigs = new ArrayList<>();
     public static JSONObject defaultconfig;
+
+    public static ArrayList<Rewarp> rewarpList = new ArrayList<>();
 
     public static void init() {
         // Register config classes so as to check annotations
@@ -40,6 +50,14 @@ public class ConfigHandler {
             writeConfig(DefaultConfig.getDefaultConfig());
         }
 
+        if (!configRewarpFile.isFile()) {
+            try {
+                Files.write(configRewarpFile.toPath(), new ArrayList<Rewarp>().toString().getBytes(StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         // Read config file
         JSONParser jsonParser = new JSONParser();
         try (FileReader reader = new FileReader("farmhelper.json")) {
@@ -48,8 +66,40 @@ public class ConfigHandler {
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
+        try {
+            String json = new String(Files.readAllBytes(configRewarpFile.toPath()), StandardCharsets.UTF_8);
+            rewarpList = FarmHelper.gson.fromJson(json, new TypeToken<List<Rewarp>>(){}.getType());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         // Update all config categories
         updateInterfaces();
+    }
+
+    public static void saveRewarpConfig() {
+        try {
+            Files.write(configRewarpFile.toPath(), FarmHelper.gson.toJson(rewarpList).getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void addRewarp(Rewarp rewarp) {
+        rewarpList.add(rewarp);
+        LogUtils.scriptLog("Added rewarp: " + rewarp.toString());
+        saveRewarpConfig();
+    }
+
+    public static void removeRewarp(Rewarp rewarp) {
+        rewarpList.remove(rewarp);
+        LogUtils.scriptLog("Removed closest rewarp: " + rewarp.toString());
+        saveRewarpConfig();
+    }
+
+    public static void removeAllRewarps() {
+        rewarpList.clear();
+        LogUtils.scriptLog("Removed all rewarp points");
+        saveRewarpConfig();
     }
 
     private static void writeConfig(JSONObject json) {

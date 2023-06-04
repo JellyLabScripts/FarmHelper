@@ -522,7 +522,7 @@ public class VisitorsMacro {
                 finalDeskPos = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ);
                 BlockPos deskPosWithoutY = new BlockPos(MiscConfig.visitorsDeskPosX, mc.thePlayer.posY, MiscConfig.visitorsDeskPosZ);
 
-                rotationToDesk = AngleUtils.getRotation(finalDeskPos.up().up());
+                rotationToDesk = AngleUtils.getRotation(finalDeskPos.up().up().up());
                 double distance = mc.thePlayer.getDistance(finalDeskPos.getX(), finalDeskPos.getY(), finalDeskPos.getZ());
                 double distance2 = mc.thePlayer.getDistance(deskPosWithoutY.getX(), deskPosWithoutY.getY(), deskPosWithoutY.getZ());
                 if ((Math.abs(rotationToDesk.getLeft() - mc.thePlayer.rotationYaw) > 1 || Math.abs(rotationToDesk.getRight() - mc.thePlayer.rotationPitch) > 1) && !rotation.rotating) {
@@ -532,6 +532,7 @@ public class VisitorsMacro {
                     KeyBindUtils.updateKeys(distance2 > 1f, false, false, false, false, mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround, shouldJump(), !mc.thePlayer.capabilities.isFlying);
                 } else if (distance <= 1.5f) {
                     currentState = State.MANAGING_VISITORS;
+                    rotation.reset();
                     KeyBindUtils.stopMovement();
                 } else
                     KeyBindUtils.updateKeys(distance2 > 1f, false, false, false, false, distance <= 3.5f || (mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround), shouldJump(), false);
@@ -882,10 +883,11 @@ public class VisitorsMacro {
         BlockPos blockInFront = playerPos.offset(playerFacing);
         Block block = mc.theWorld.getBlockState(blockInFront).getBlock();
         LogUtils.debugLog("Block in front: " + block);
-        return mc.thePlayer.onGround &&
-                !block.equals(Blocks.air) &&
-                !(block instanceof BlockSlab) &&
-                !(block instanceof BlockStairs);
+        if (mc.thePlayer.onGround && !block.equals(Blocks.air) && !(block instanceof BlockSlab) && !(block instanceof BlockStairs)) {
+            rotation.reset();
+            return true;
+        }
+        return false;
     }
 
     private boolean isAboveHeadClear() {
@@ -993,6 +995,8 @@ public class VisitorsMacro {
         if (rotation.rotating && !(mc.thePlayer.openContainer instanceof ContainerChest))
             rotation.update();
 
+        if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
+
         if ((MiscConfig.visitorsDeskPosX == 0 && MiscConfig.visitorsDeskPosY == 0 && MiscConfig.visitorsDeskPosZ == 0)) {
             return;
         }
@@ -1007,6 +1011,7 @@ public class VisitorsMacro {
         if (!MiscConfig.visitorsMacro) return;
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
         if (!MiscConfig.debugMode) return;
+        if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
 
         ArrayList<Pair<String, Integer>> itemsToBuyCopy = new ArrayList<>(itemsToBuy);
 

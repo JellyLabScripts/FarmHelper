@@ -2,6 +2,7 @@ package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.config.ConfigHandler;
 import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.client.Minecraft;
@@ -71,16 +72,26 @@ public abstract class Macro {
     }
 
     public boolean isRewarpLocationSet() {
-        return MiscConfig.rewarpPosX != 0 && MiscConfig.rewarpPosY != 0 && MiscConfig.rewarpPosZ != 0;
+        return ConfigHandler.rewarpList.size() > 0;
     }
 
     public boolean isStandingOnRewarpLocation() {
+        if (ConfigHandler.rewarpList.size() == 0) return false;
+        Rewarp closest = null;
+        double closestDistance = Double.MAX_VALUE;
+        for (Rewarp rewarp : ConfigHandler.rewarpList) {
+            double distance = rewarp.getDistance(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ));
+            if (distance < closestDistance) {
+                closest = rewarp;
+                closestDistance = distance;
+            }
+        }
+        if (closest == null) return false;
         BlockPos currentPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
-        BlockPos rewarpPos = new BlockPos(MiscConfig.rewarpPosX, MiscConfig.rewarpPosY, MiscConfig.rewarpPosZ);
         System.out.println("currentPos: " + currentPos);
-        System.out.println("rewarpPos: " + rewarpPos);
-        System.out.println("Distance: " + Math.sqrt(currentPos.distanceSqToCenter(rewarpPos.getX(), rewarpPos.getY(), rewarpPos.getZ())));
-        return Math.sqrt(currentPos.distanceSqToCenter(rewarpPos.getX(), rewarpPos.getY(), rewarpPos.getZ())) < 1;
+        System.out.println("rewarpPos: " + closest);
+        System.out.println("Distance: " + Math.sqrt(currentPos.distanceSqToCenter(closest.getX(), closest.getY(), closest.getZ())));
+        return Math.sqrt(currentPos.distanceSqToCenter(closest.getX(), closest.getY(), closest.getZ())) < 1;
     }
 
     public boolean isSpawnLocationSet() {
