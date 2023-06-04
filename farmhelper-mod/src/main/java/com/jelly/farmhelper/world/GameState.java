@@ -148,10 +148,10 @@ public class GameState {
     }
 
     private void updateWalkables() {
-        frontWalkable = BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 0, 1));
-        rightWalkable = BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 0, 0));
-        backWalkable = BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 0, -1));
-        leftWalkable = BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 0, 0));
+        frontWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 0, 1)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 1, 1)));
+        rightWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 0, 0)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 1, 0)));
+        backWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 0, -1)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 1, -1)));
+        leftWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 0, 0)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 1, 0)));
     }
 
     public static int getJacobCounter() {
