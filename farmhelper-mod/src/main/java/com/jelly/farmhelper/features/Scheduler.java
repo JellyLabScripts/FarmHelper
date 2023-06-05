@@ -43,9 +43,6 @@ public class Scheduler {
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
-        if (MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled && MacroHandler.currentMacro.cantPauseNow()) {
-            LogUtils.debugLog("[Scheduler] Macro cannot pause now, waiting...");
-        }
         if (!SchedulerConfig.scheduler || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || FarmHelper.tickCount % 5 != 0 || MacroHandler.currentMacro == null || MacroHandler.currentMacro.cantPauseNow())
             return;
 
