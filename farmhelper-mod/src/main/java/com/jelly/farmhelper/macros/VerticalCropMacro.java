@@ -122,6 +122,8 @@ public class VerticalCropMacro extends Macro{
 
         if (isTping) return;
 
+        LogUtils.debugLog("Current state: " + currentState);
+
         if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && !rotated) {
             yaw = AngleUtils.getClosest(yaw);
             if (FarmConfig.rotateAfterBack) {
@@ -149,6 +151,7 @@ public class VerticalCropMacro extends Macro{
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
             return;
         }
+
 
         CropUtils.getTool();
 
