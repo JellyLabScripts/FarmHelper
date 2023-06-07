@@ -436,18 +436,18 @@ public class SShapeCropMacro extends Macro {
             LogUtils.debugLog("SWITCH_MID");
         } else if (((gameState.frontWalkable && (!gameState.backWalkable || BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.water))) || ((!gameState.frontWalkable || BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.water)) && gameState.backWalkable)) && currentState != State.SWITCH_MID && currentState != State.DROPPING && (FarmConfig.cropType != MacroEnum.CACTUS || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus)) && (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON || (!BlockUtils.isRelativeBlockPassable(0, -1, 2) || !BlockUtils.isRelativeBlockPassable(0, -1, -2)))) {
             if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
-                if (gameState.frontWalkable && shouldWalkForwards())
+                if (gameState.frontWalkable)
                     switchBackwardsDirection = false;
-                else if (gameState.backWalkable && shouldPushBack())
+                else if (gameState.backWalkable)
                     switchBackwardsDirection = true;
                 currentState = State.SWITCH_START;
                 waitForChangeDirection.reset();
                 LogUtils.debugLog("SWITCH_START");
                 return;
             }
-            if (!waitForChangeDirection.isScheduled() && currentState != State.SWITCH_START) {
+            if (!waitForChangeDirection.isScheduled() && currentState != State.SWITCH_START && (gameState.dx < 0.1 && gameState.dz < 0.1)) {
                 KeyBindUtils.stopMovement();
-                long waitTime = (long) (Math.random() * 500 + 250);
+                long waitTime = (long) (Math.random() * 300 + 150);
                 LogUtils.debugLog("SWITCH_START: Waiting " + waitTime + "ms");
                 waitForChangeDirection.schedule(waitTime);
             }
@@ -458,10 +458,10 @@ public class SShapeCropMacro extends Macro {
                     LogUtils.debugLog("SWITCH_END");
                     return;
                 }
-                if (!waitForChangeDirection.isScheduled()) {
+                if (!waitForChangeDirection.isScheduled() && (gameState.dx < 0.1 && gameState.dz < 0.1)) {
                     KeyBindUtils.stopMovement();
-                    long waitTime = (long) (Math.random() * 500 + 250);
-                    LogUtils.debugLog("SWITCH_MID: Waiting " + waitTime + "ms");
+                    long waitTime = (long) (Math.random() * 300 + 150);
+                    LogUtils.debugLog("SWITCH_END: Waiting " + waitTime + "ms");
                     waitForChangeDirection.schedule(waitTime);
                 }
         } else if ((getRelativeBlock(0, -1, 0).equals(Blocks.air) || getRelativeBlock(-1, -1, 0).equals(Blocks.air) && getRelativeBlock(-1, 0, 0).equals(Blocks.air)) && gameState.rightWalkable) {
