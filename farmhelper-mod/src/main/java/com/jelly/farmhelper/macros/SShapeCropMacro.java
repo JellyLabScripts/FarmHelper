@@ -87,6 +87,11 @@ public class SShapeCropMacro extends Macro {
         } else {
             pitch = (float) (2.8f + Math.random() * 0.5f);
         }
+//        if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
+//            yaw = AngleUtils.getClosest30();
+//        } else {
+//            yaw = AngleUtils.getClosest();
+//        }
         yaw = AngleUtils.getClosest();
         lastTp.reset();
         waitForChangeDirection.reset();
@@ -460,6 +465,10 @@ public class SShapeCropMacro extends Macro {
                 }
                 if (!waitForChangeDirection.isScheduled() && (gameState.dx < 0.1 && gameState.dz < 0.1)) {
                     KeyBindUtils.stopMovement();
+//                    if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
+//                        yaw = AngleUtils.getClosest30();
+//                        rotation.easeTo(yaw, pitch, 500);
+//                    }
                     long waitTime = (long) (Math.random() * 300 + 150);
                     LogUtils.debugLog("SWITCH_END: Waiting " + waitTime + "ms");
                     waitForChangeDirection.schedule(waitTime);
@@ -594,6 +603,9 @@ public class SShapeCropMacro extends Macro {
     };
 
     private static boolean shouldWalkForwards() {
+//        if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
+//            return true;
+//        }
         float angle = AngleUtils.getClosest();
         double x = mc.thePlayer.posX % 1;
         double z = mc.thePlayer.posZ % 1;

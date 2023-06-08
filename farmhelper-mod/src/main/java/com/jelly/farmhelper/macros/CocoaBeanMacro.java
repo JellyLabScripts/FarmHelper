@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import com.jelly.farmhelper.utils.AngleUtils;
 
 import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
@@ -49,6 +50,7 @@ public class CocoaBeanMacro extends Macro {
         Antistuck.cooldown.schedule(1000);
         pitch = -70f + (float) (Math.random() * 0.6);
         yaw = AngleUtils.getClosest();
+        waitForChangeDirection.reset();
         rotation.easeTo(yaw, pitch, 500);
         isTping = false;
         lastTp.reset();
@@ -117,6 +119,13 @@ public class CocoaBeanMacro extends Macro {
             return;
         }
 
+        if (gameState.currentLocation != GameState.location.ISLAND) {
+            LogUtils.debugLog("You are not on the island nor in the garden!");
+            updateKeys(false, false, false, false, false);
+            enabled = false;
+            return;
+        }
+
         if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
             yaw = AngleUtils.getClosestDiagonal();
             rotation.easeTo(yaw, pitch, 500);
@@ -167,21 +176,25 @@ public class CocoaBeanMacro extends Macro {
                 updateKeys(false, false, true, false, findAndEquipAxe());
                 return;
             case KEEP_RIGHT:
-                LogUtils.debugLog("On right row, going back");
-                updateKeys(false, true, true, false, findAndEquipAxe());
+                LogUtils.debugLog("On right row, keep going back");
+                updateKeys(false, true, false, false, findAndEquipAxe());
                 return;
             case LEFT:
                 LogUtils.debugLog("On left row, going forwards");
                 updateKeys(true, false, false, false, findAndEquipAxe());
                 return;
             case LEFT_KEEP:
-                LogUtils.debugLog("On left row, going forwards");
+                LogUtils.debugLog("On left row, keep going forwards");
                 updateKeys(true, false, false, true, findAndEquipAxe());
                 return;
             case SWITCH_ROW:
+                LogUtils.debugLog("Switching rows");
+                updateKeys(false, false, true, false, false);
+                return;
             case SWITCH_SIDE:
-                LogUtils.debugLog("Finished row, going right");
-                updateKeys(false, true, true, false, false);
+                LogUtils.debugLog("Switching sides");
+                updateKeys(false, false, true, false, false);
+                return;
         }
     }
 
@@ -197,25 +210,76 @@ public class CocoaBeanMacro extends Macro {
             return;
         }
 
-        if (layerY - mc.thePlayer.posY > 1 || currentState == State.DROPPING || isDropping()) {
-            currentState = State.DROPPING;
+        if (currentState == State.KEEP_RIGHT // bottom right
+                && !(BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.air) || BlockUtils.getRelativeBlock(0, 1, -1).equals(Blocks.air))
+        ) {
+            if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed() && gameState.dx < 0.1 && gameState.dz < 0.1) {
+                waitForChangeDirection.reset();
+                currentState = State.SWITCH_ROW;
+                return;
+            }
+            if (!waitForChangeDirection.isScheduled()) {
+                long waitTime = (long) (Math.random() * 300 + 100);
+                LogUtils.debugLog("SWITCH_ROW: Waiting " + waitTime + "ms");
+                waitForChangeDirection.schedule(waitTime);
+            }
+        } else if (currentState == State.LEFT_KEEP // top left
+                && (BlockUtils.getRelativeBlock(0, 0, 1).getMaterial().isSolid() || BlockUtils.getRelativeBlock(0, 1, 1).getMaterial().isSolid())
+                && !(BlockUtils.getRelativeBlock(1, 0, 0).getMaterial().isSolid() && BlockUtils.getRelativeBlock(1, 1, 0).getMaterial().isSolid())) {
+            if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed() && gameState.dx < 0.1 && gameState.dz < 0.1) {
+                currentState = State.SWITCH_SIDE;
+                waitForChangeDirection.reset();
+            }
+            if (!waitForChangeDirection.isScheduled()) {
+                long waitTime = (long) (Math.random() * 300 + 100);
+                LogUtils.debugLog("SWITCH_SIDE1: Waiting " + waitTime + "ms");
+                waitForChangeDirection.schedule(waitTime);
+            }
         } else if (currentState == State.SWITCH_ROW) {
-            if (BlockUtils.getRelativeBlock(-1, 0, 1).getMaterial().isSolid()) {
-                currentState = State.LEFT;
+            if (BlockUtils.getRelativeBlock(-1, 0, 1).getMaterial().isSolid() && gameState.frontWalkable) {
+                double decimalPartX = Math.abs(mc.thePlayer.getPositionVector().xCoord) % 1;
+                double decimalPartZ = Math.abs(mc.thePlayer.getPositionVector().zCoord) % 1;
+                float yaw = AngleUtils.getClosest(mc.thePlayer.rotationYaw);
+                yaw = (yaw % 360 + 360) % 360;
+                if (yaw == 180f && decimalPartX > 0.488) { // North: X > 488
+                    LogUtils.debugLog("North");
+                    currentState = State.LEFT;
+                    return;
+                } else if (yaw == 270f && decimalPartZ > 0.488) { // East: Z > 488
+                    LogUtils.debugLog("East");
+                    currentState = State.LEFT;
+                    return;
+                } else if (yaw == 90f && decimalPartZ < 0.512) { // West: Z < 512
+                    LogUtils.debugLog("West");
+                    currentState = State.LEFT;
+                    return;
+                } else if (yaw == 0f && decimalPartX < 0.512){ // South: X < 512
+                    LogUtils.debugLog("South");
+                    currentState = State.LEFT;
+                    return;
+                }
             }
-        } else if (currentState == State.SWITCH_SIDE) {
-            if (BlockUtils.getRelativeBlock(1, 0, 0).getMaterial().isSolid()) {
+        } else if (currentState == State.SWITCH_SIDE // top right
+                && (BlockUtils.getRelativeBlock(0, 0, 1).getMaterial().isSolid() || BlockUtils.getRelativeBlock(0, 1, 1).getMaterial().isSolid())
+                && (!(BlockUtils.getRelativeBlock(0, 0, -1).isNormalCube() && BlockUtils.getRelativeBlock(0, 1, -1).isNormalCube())
+                || BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.air) && BlockUtils.getRelativeBlock(0, 1, -1).equals(Blocks.air))
+                && !(BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.air) || BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.air))) {
+            if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed() && gameState.dx < 0.1 && gameState.dz < 0.1) {
                 currentState = State.RIGHT;
+                waitForChangeDirection.reset();
             }
-        } else if (currentState == State.KEEP_RIGHT && !BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.air)) {
-            currentState = State.SWITCH_ROW;
-        } else if (currentState == State.LEFT_KEEP && BlockUtils.getRelativeBlock(-1, 0, 1).equals(Blocks.air)) {
-            currentState = State.SWITCH_SIDE;
-        } else if (BlockUtils.getRelativeBlock(-1, 0, 0).getMaterial().isSolid()) {
+            if (!waitForChangeDirection.isScheduled()) {
+                long waitTime = (long) (Math.random() * 500 + 250);
+                LogUtils.debugLog("SWITCH_SIDE2: Waiting " + waitTime + "ms");
+                LogUtils.debugLog("Block: " + BlockUtils.getRelativeBlock(0, 1, -1));
+                LogUtils.debugLog("isSolid: " + BlockUtils.getRelativeBlock(0, 1, -1).getMaterial().isSolid());
+                waitForChangeDirection.schedule(waitTime);
+            }
+        } else if (BlockUtils.getRelativeBlock(-1, 0, 0).getMaterial().isSolid()) { // bottom left
             if ((currentState == State.NONE || (currentState == State.LEFT && lastState == State.LEFT))) {
                 currentState = State.LEFT_KEEP;
             }
-        } else if (BlockUtils.getRelativeBlock(1, 0, 0).getMaterial().isSolid()) {
+        } else if (BlockUtils.getRelativeBlock(1, 0, 0).getMaterial().isSolid()) { // top right again, idk not my code
             if ((currentState == State.NONE || (currentState == State.RIGHT && lastState == State.RIGHT))) {
                 currentState = State.KEEP_RIGHT;
             }
@@ -287,21 +351,5 @@ public class CocoaBeanMacro extends Macro {
             axeEquipFails = 0;
             return true;
         }
-    }
-
-    private static boolean isDropping(){
-
-        return  (BlockUtils.getRelativeBlock(0, -1, 1).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(0, 1, 1).equals(Blocks.air))
-                || (BlockUtils.getRelativeBlock(1, -1, 0).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.air))
-                || (BlockUtils.getRelativeBlock(-1, -1, 0).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(-1, 1, 0).equals(Blocks.air))
-                || (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.air)
-                && BlockUtils.getRelativeBlock(0, 1, 0).equals(Blocks.air));
     }
 }
