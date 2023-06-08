@@ -19,7 +19,6 @@ public class CocoaBeanMacro extends Macro {
 
     enum State {
         DROPPING,
-        TP_PAD,
         SWITCH_ROW,
         SWITCH_SIDE,
         RIGHT,
@@ -33,13 +32,10 @@ public class CocoaBeanMacro extends Macro {
     public State currentState;
     private double layerY;
     private boolean antistuckActive;
-    private boolean tpFlag;
     private float yaw;
     private float pitch;
     private int axeEquipFails = 0;
     private int notmovingticks = 0;
-    private double prevPlayerX;
-    private double prevPlayerZ;
     private final Clock waitForChangeDirection = new Clock();
     private final Clock lastTp = new Clock();
 
@@ -51,7 +47,6 @@ public class CocoaBeanMacro extends Macro {
         currentState = State.NONE;
         antistuckActive = false;
         Antistuck.stuck = false;
-        tpFlag = false;
         Antistuck.cooldown.schedule(1000);
         pitch = -70f + (float) (Math.random() * 0.6);
         yaw = AngleUtils.getClosest();
@@ -67,6 +62,20 @@ public class CocoaBeanMacro extends Macro {
     }
 
     private BlockPos beforeTeleportationPos = null;
+
+    private void checkForTeleport() {
+        if (beforeTeleportationPos == null) return;
+        if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos) > 1) {
+            LogUtils.debugLog("Teleported!");
+            beforeTeleportationPos = null;
+            isTping = false;
+            layerY = mc.thePlayer.posY;
+            lastTp.schedule(1_000);
+            if (!isSpawnLocationSet()) {
+                setSpawnLocation();
+            }
+        }
+    }
 
     private State stateBeforeFailsafe = null;
 
@@ -99,9 +108,15 @@ public class CocoaBeanMacro extends Macro {
 
     @Override
     public void onTick() {
-        if (currentState == State.TP_PAD && (Math.abs(prevPlayerZ - mc.thePlayer.posZ) > 10 || Math.abs(prevPlayerX - mc.thePlayer.posX) > 10)) {
-            LogUtils.debugLog("Detected teleport due to sudden large position change");
-            tpFlag = true;
+        if(mc.thePlayer == null || mc.theWorld == null) return;
+
+        checkForTeleport();
+
+        if (isTping) return;
+
+        if (rotation.rotating) {
+            updateKeys(false, false, false, false, false);
+            return;
         }
 
         if (gameState.currentLocation != GameState.location.ISLAND) {
@@ -122,8 +137,10 @@ public class CocoaBeanMacro extends Macro {
             return;
         }
 
-        if (rotation.rotating) {
-            updateKeys(false, false, false, false, false);
+        if (beforeTeleportationPos != null) {
+            LogUtils.debugLog("Waiting for tp...");
+            KeyBindUtils.stopMovement();
+            triggerWarpGarden();
             return;
         }
 
@@ -154,17 +171,6 @@ public class CocoaBeanMacro extends Macro {
         updateState();
 
         switch (currentState) {
-            case TP_PAD:
-                if (Math.abs(mc.thePlayer.posY - layerY) > 0.5 || tpFlag) {
-                    LogUtils.debugLog("Teleported!");
-                    updateKeys(true, false, false, false, false);
-                    tpFlag = false;
-                    currentState = State.LEFT;
-                } else {
-                    LogUtils.debugLog("Waiting for teleport land");
-                    updateKeys(false, false, false, false, false);
-                }
-                return;
             case RIGHT:
                 LogUtils.debugLog("On right row, going back");
                 updateKeys(false, false, true, false, findAndEquipAxe());
@@ -190,9 +196,6 @@ public class CocoaBeanMacro extends Macro {
                 updateKeys(false, false, true, false, false);
                 return;
         }
-
-        prevPlayerX = mc.thePlayer.posX;
-        prevPlayerZ = mc.thePlayer.posZ;
     }
 
     private void updateState() {
@@ -207,9 +210,7 @@ public class CocoaBeanMacro extends Macro {
             return;
         }
 
-        if (BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame) || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || (currentState == State.TP_PAD && !tpFlag)) {
-            currentState = State.TP_PAD;
-        } else if ((currentState == State.KEEP_RIGHT) // bottom right
+        if ((currentState == State.KEEP_RIGHT) // bottom right
                 && (BlockUtils.getRelativeBlock(0, 0, -1).getMaterial().isSolid() || BlockUtils.getRelativeBlock(0, 1, -1).getMaterial().isSolid()
                 && FarmHelper.gameState.dx < 0.01 && FarmHelper.gameState.dz < 0.01)
         ) {
@@ -285,10 +286,6 @@ public class CocoaBeanMacro extends Macro {
             }
         } else {
             currentState = State.NONE;
-        }
-
-        if (lastState == State.TP_PAD && lastState != currentState) {
-            layerY = mc.thePlayer.posY;
         }
 
         if (lastState != currentState) {
