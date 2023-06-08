@@ -28,7 +28,7 @@ public class FarmMenu extends UIContainer {
     public static final Color NOT_SELECTED_COLOR = new Color(30, 31, 32);
     public static final Color DISABLED_COLOR = new Color(1, 1, 1);
 
-    public static final List<Integer> FORBIDDEN_SSHAPE_FARMS = Arrays.asList(5, 6);
+    public static final List<Integer> FORBIDDEN_SSHAPE_FARMS = Arrays.asList(6);
     public static final List<Integer> FORBIDDEN_VERTICAL_FARMS = Arrays.asList(1, 2, 3, 4);
 
     public static UIComponent ladderDesign;
