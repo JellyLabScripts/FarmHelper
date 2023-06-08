@@ -128,6 +128,13 @@ public class CocoaBeanMacro extends Macro {
             return;
         }
 
+        if (beforeTeleportationPos != null) {
+            LogUtils.debugLog("Waiting for tp...");
+            KeyBindUtils.stopMovement();
+            triggerWarpGarden();
+            return;
+        }
+
         if (Antistuck.stuck) {
             LogUtils.debugFullLog("Antistuck");
             if (!antistuckActive) {
