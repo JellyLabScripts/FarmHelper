@@ -177,7 +177,7 @@ public class CocoaBeanMacro extends Macro {
                 return;
             case KEEP_RIGHT:
                 LogUtils.debugLog("On right row, keep going back");
-                updateKeys(false, true, true, false, findAndEquipAxe());
+                updateKeys(false, true, false, false, findAndEquipAxe());
                 return;
             case LEFT:
                 LogUtils.debugLog("On left row, going forwards");
@@ -210,13 +210,12 @@ public class CocoaBeanMacro extends Macro {
             return;
         }
 
-        if ((currentState == State.KEEP_RIGHT) // bottom right
-                && (BlockUtils.getRelativeBlock(0, 0, -1).getMaterial().isSolid() || BlockUtils.getRelativeBlock(0, 1, -1).getMaterial().isSolid()
-                && FarmHelper.gameState.dx < 0.01 && FarmHelper.gameState.dz < 0.01)
+        if (currentState == State.KEEP_RIGHT // bottom right
+                && !(BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.air) || BlockUtils.getRelativeBlock(0, 1, -1).equals(Blocks.air))
         ) {
-            if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
-                currentState = State.SWITCH_ROW;
+            if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed() && gameState.dx < 0.1 && gameState.dz < 0.1) {
                 waitForChangeDirection.reset();
+                currentState = State.SWITCH_ROW;
                 return;
             }
             if (!waitForChangeDirection.isScheduled()) {
@@ -227,7 +226,7 @@ public class CocoaBeanMacro extends Macro {
         } else if (currentState == State.LEFT_KEEP // top left
                 && (BlockUtils.getRelativeBlock(0, 0, 1).getMaterial().isSolid() || BlockUtils.getRelativeBlock(0, 1, 1).getMaterial().isSolid())
                 && !(BlockUtils.getRelativeBlock(1, 0, 0).getMaterial().isSolid() && BlockUtils.getRelativeBlock(1, 1, 0).getMaterial().isSolid())) {
-            if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed() && gameState.dx < 0.01 && gameState.dz < 0.01) {
+            if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed() && gameState.dx < 0.1 && gameState.dz < 0.1) {
                 currentState = State.SWITCH_SIDE;
                 waitForChangeDirection.reset();
             }
@@ -238,8 +237,8 @@ public class CocoaBeanMacro extends Macro {
             }
         } else if (currentState == State.SWITCH_ROW) {
             if (BlockUtils.getRelativeBlock(-1, 0, 1).getMaterial().isSolid() && gameState.frontWalkable) {
-                double decimalPartX = Math.abs(mc.thePlayer.getPositionVector().xCoord % 1);
-                double decimalPartZ = Math.abs(mc.thePlayer.getPositionVector().zCoord % 1);
+                double decimalPartX = Math.abs(mc.thePlayer.getPositionVector().xCoord) % 1;
+                double decimalPartZ = Math.abs(mc.thePlayer.getPositionVector().zCoord) % 1;
                 float yaw = AngleUtils.getClosest(mc.thePlayer.rotationYaw);
                 yaw = (yaw % 360 + 360) % 360;
                 if (yaw == 180f && decimalPartX > 0.488) { // North: X > 488
@@ -265,7 +264,7 @@ public class CocoaBeanMacro extends Macro {
                 && (!(BlockUtils.getRelativeBlock(0, 0, -1).isNormalCube() && BlockUtils.getRelativeBlock(0, 1, -1).isNormalCube())
                 || BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.air) && BlockUtils.getRelativeBlock(0, 1, -1).equals(Blocks.air))
                 && !(BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.air) || BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.air))) {
-            if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed() && gameState.dx < 0.01 && gameState.dz < 0.01) {
+            if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed() && gameState.dx < 0.1 && gameState.dz < 0.1) {
                 currentState = State.RIGHT;
                 waitForChangeDirection.reset();
             }
