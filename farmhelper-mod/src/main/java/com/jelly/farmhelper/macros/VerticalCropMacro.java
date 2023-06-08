@@ -66,11 +66,8 @@ public class VerticalCropMacro extends Macro{
             case SUGARCANE:
                 pitch = (float) (Math.random() * 2); // 0 - 2
                 break;
-            case POTATO: case CARROT: case WHEAT:
+            case POTATO: case CARROT: case WHEAT: case NETHERWART:
                 pitch = 2.8f + (float) (Math.random() * 0.6); // 2.8-3.4
-                break;
-            case NETHERWART:
-                pitch = (float) (Math.random() * 2 - 1); // -1 - 1
                 break;
             case COCOA_BEANS:
                 pitch = -90;
