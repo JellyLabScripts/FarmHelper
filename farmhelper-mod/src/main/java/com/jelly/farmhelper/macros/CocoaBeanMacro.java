@@ -211,7 +211,7 @@ public class CocoaBeanMacro extends Macro {
         }
 
         if (currentState == State.KEEP_RIGHT // bottom right
-                && !(BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.air) || BlockUtils.getRelativeBlock(0, 1, -1).equals(Blocks.air))
+                && (BlockUtils.getRelativeBlock(0, 0, -1).getMaterial().isSolid() || BlockUtils.getRelativeBlock(0, 1, -1).getMaterial().isSolid())
         ) {
             if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed() && gameState.dx < 0.1 && gameState.dz < 0.1) {
                 waitForChangeDirection.reset();
