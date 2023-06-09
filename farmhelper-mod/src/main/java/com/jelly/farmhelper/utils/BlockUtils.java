@@ -167,12 +167,12 @@ public class BlockUtils {
 
     public static boolean isWalkable(Block block) {
         return Arrays.asList(FarmConfig.cropType == MacroEnum.CACTUS ? walkablesCactus :
-                (FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) ? walkablesMushroom :
+                (FarmConfig.cropType == MacroEnum.MUSHROOM) ? walkablesMushroom :
                                 walkables).contains(block);
     }
 
     public static boolean leftCropIsReady(){
-        Block crop = getRelativeBlock(-1, FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD ? 2 : 1, 1, FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD ? mc.thePlayer.rotationYaw - MushroomMacro.getAngleDiff() : mc.thePlayer.rotationYaw);
+        Block crop = getRelativeBlock(-1, FarmConfig.cropType == MacroEnum.MUSHROOM ? 2 : 1, 1, FarmConfig.cropType == MacroEnum.MUSHROOM ? mc.thePlayer.rotationYaw - MushroomMacro.getAngleDiff() : mc.thePlayer.rotationYaw);
         if (crop.equals(Blocks.nether_wart)) {
             return mc.theWorld.getBlockState(getRelativeBlockPos(-1, 1, 1)).getValue(BlockNetherWart.AGE) == 3;
         } else if (crop.equals(Blocks.wheat) || crop.equals(Blocks.carrots) || crop.equals(Blocks.potatoes))
@@ -187,7 +187,7 @@ public class BlockUtils {
         }
     }
     public static boolean rightCropIsReady(){
-        Block crop = getRelativeBlock(1, FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD ? 2 : 1, 1, FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD ? mc.thePlayer.rotationYaw - MushroomMacro.getAngleDiff() : mc.thePlayer.rotationYaw);
+        Block crop = getRelativeBlock(1, FarmConfig.cropType == MacroEnum.MUSHROOM ? 2 : 1, 1, FarmConfig.cropType == MacroEnum.MUSHROOM ? mc.thePlayer.rotationYaw - MushroomMacro.getAngleDiff() : mc.thePlayer.rotationYaw);
         if (crop.equals(Blocks.nether_wart)) {
             return mc.theWorld.getBlockState(getRelativeBlockPos(1, 1, 1)).getValue(BlockNetherWart.AGE) == 3;
         } else if (crop.equals(Blocks.wheat) || crop.equals(Blocks.carrots) || crop.equals(Blocks.potatoes))

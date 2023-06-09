@@ -161,7 +161,7 @@ public class ProfitCalculator {
                     blocksBroken ++;
                 }
                 break;
-            case MUSHROOM: case MUSHROOM_TP_PAD:
+            case MUSHROOM:
                 if (event.old.getBlock() == Blocks.brown_mushroom && event.update.getBlock() != Blocks.brown_mushroom) {
                     blocksBroken ++;
                 }
@@ -169,7 +169,7 @@ public class ProfitCalculator {
                     blocksBroken ++;
                 }
                 break;
-            case COCOABEANS:
+            case COCOABEANS: case COCOABEANSRG:
                 if (event.old.getBlock() == Blocks.cocoa && event.update.getBlock() != Blocks.cocoa) {
                     blocksBroken ++;
                 }

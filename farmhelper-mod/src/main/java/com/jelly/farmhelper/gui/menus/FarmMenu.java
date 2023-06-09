@@ -28,8 +28,8 @@ public class FarmMenu extends UIContainer {
     public static final Color NOT_SELECTED_COLOR = new Color(30, 31, 32);
     public static final Color DISABLED_COLOR = new Color(1, 1, 1);
 
-    public static final List<Integer> FORBIDDEN_SSHAPE_FARMS = Arrays.asList(6);
-    public static final List<Integer> FORBIDDEN_VERTICAL_FARMS = Arrays.asList(1, 2, 3, 4);
+    public static final List<Integer> FORBIDDEN_SSHAPE_FARMS = Arrays.asList();
+    public static final List<Integer> FORBIDDEN_VERTICAL_FARMS = Arrays.asList(1, 2, 3, 4, 5);
 
     public static UIComponent ladderDesign;
     public static UIComponent rotateAfterBack;
@@ -47,8 +47,8 @@ public class FarmMenu extends UIContainer {
         cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 60f, "pumpkin_melon.png", cropList, 2L, "cropType").setChildOf(selector));
         cropList.add(new ImageBox(new SiblingConstraint(10), new CramSiblingConstraint(10), 60f, "cactus.png", cropList, 3L, "cropType").setChildOf(selector));
         cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 60f, "cocoabeans.png", cropList, 4L, "cropType").setChildOf(selector));
-        cropList.add(new ImageBox(new SiblingConstraint(10), new CramSiblingConstraint(10), 60f, "brownmushroom.png", cropList, 5L, "cropType").setChildOf(selector));
-        cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 60f, "brownmushroomwithtp.png", cropList, 6L, "cropType").setChildOf(selector));
+        cropList.add(new ImageBox(new SiblingConstraint(10), new CramSiblingConstraint(10), 60f, "cocoabeansrg.png", cropList, 5L, "cropType").setChildOf(selector));
+        cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 60f, "brownmushroom.png", cropList, 6L, "cropType").setChildOf(selector));
 
         farmList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 60f, "layered.png", farmList, 0L, "farmType").setChildOf(selector));
         farmList.add(new ImageBox(new PixelConstraint(80), new CramSiblingConstraint(10), 60f, "vertical.png", farmList, 1L, "farmType").setChildOf(selector));

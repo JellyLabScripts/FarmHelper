@@ -71,7 +71,7 @@ public class CropUtils {
         int j = 4 + age * 2;
         int k = 5 + age * 2;
 
-        if (MacroHandler.currentMacro == MacroHandler.cocoaBeanMacro && MacroHandler.isMacroing) {
+        if ((MacroHandler.currentMacro == MacroHandler.cocoaBeanMacro || MacroHandler.currentMacro == MacroHandler.cocoaBeanRGMacro) && MacroHandler.isMacroing) {
             switch (enumFacing) {
                 case SOUTH: {
                     blockState.getBlock().setBlockBounds(0, (12.0f - (float) k) / 16.0f, (15.0f - (float) j) / 16.0f, 1, 0.75f, 0.9375f);
@@ -118,7 +118,7 @@ public class CropUtils {
         if (itemChangedByStaff) {
             return;
         }
-        if (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON && FarmConfig.cropType != MacroEnum.COCOABEANS)
+        if (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON && FarmConfig.cropType != MacroEnum.COCOABEANS && FarmConfig.cropType != MacroEnum.COCOABEANSRG)
             mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
         else
             mc.thePlayer.inventory.currentItem = PlayerUtils.getAxeSlot();

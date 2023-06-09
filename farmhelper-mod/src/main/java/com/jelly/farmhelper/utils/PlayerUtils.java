@@ -306,7 +306,7 @@ public class PlayerUtils {
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Dicer")) {
                             return i - 36;
                         }
-                    case COCOABEANS:
+                    case COCOABEANS: case COCOABEANSRG:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Chopper")) {
                             return i - 36;
                         }

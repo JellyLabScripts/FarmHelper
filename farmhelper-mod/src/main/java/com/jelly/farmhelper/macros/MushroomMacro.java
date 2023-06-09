@@ -49,9 +49,7 @@ public class MushroomMacro extends Macro {
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
 
-        if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
-            yaw = AngleUtils.getClosest30();
-        } else {
+        if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
             yaw = AngleUtils.getClosestDiagonal();
         }
 
@@ -120,20 +118,14 @@ public class MushroomMacro extends Macro {
 
         if (lastTp.isScheduled() && lastTp.passed()) {
             lastTp.reset();
-            if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
-                LogUtils.debugLog("Change direction to FORWARD (tp pad)");
-                currentState = State.RIGHT;
-            } else {
+            if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
                 LogUtils.debugLog("Change direction");
                 currentState = calculateDirection();
             }
         }
 
         if (lastTp.isScheduled() && !lastTp.passed()) {
-            if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
-                LogUtils.debugLog("Going FORWARD");
-                updateKeys(false, false, true, false, true);
-            } else {
+            if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
                 LogUtils.debugLog("Going " + currentState);
                 updateKeys(false, currentState == State.LEFT, currentState == State.RIGHT, false, true);
             }
@@ -153,7 +145,6 @@ public class MushroomMacro extends Macro {
             LogUtils.debugLog("Scheduled tp");
 
             updateKeys(false, false, false, false, false);
-            if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) return;
             if (currentState == State.RIGHT) {
                 currentState = State.LEFT;
             } else {
@@ -169,10 +160,7 @@ public class MushroomMacro extends Macro {
             PlayerUtils.attemptSetSpawn();
 
             if (currentState == State.NONE) {
-                if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
-                    LogUtils.debugLog("Change direction to FORWARD (tp pad)");
-                    currentState = State.RIGHT;
-                } else {
+                if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
                     currentState = calculateDirection();
                 }
             }
@@ -240,9 +228,6 @@ public class MushroomMacro extends Macro {
     State calculateDirection() {
 
         boolean f1 = true, f2 = true;
-
-        if (FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD)
-            return State.RIGHT;
 
         if (rightCropIsReady()) {
             return State.RIGHT;
