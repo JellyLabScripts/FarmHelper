@@ -46,6 +46,7 @@ public class MacroHandler {
     public static SShapeCropMacro sShapeCropMacro = new SShapeCropMacro();
     public static VerticalCropMacro verticalCropMacro = new VerticalCropMacro();
     public static CocoaBeanMacro cocoaBeanMacro = new CocoaBeanMacro();
+    public static CocoaBeanRGMacro cocoaBeanRGMacro = new CocoaBeanRGMacro();
     public static MushroomMacro mushroomMacro = new MushroomMacro();
 
     private final Rotation rotation = new Rotation();
@@ -141,7 +142,7 @@ public class MacroHandler {
     }
     public static void enableMacro() {
         if(FarmConfig.farmType == FarmEnum.VERTICAL) {
-            if (FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD) {
+            if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
                 currentMacro = mushroomMacro;
             } else {
                 currentMacro = verticalCropMacro;
@@ -151,6 +152,8 @@ public class MacroHandler {
                 currentMacro = sugarcaneMacro;
             } else if (FarmConfig.cropType == MacroEnum.COCOABEANS) {
                 currentMacro = cocoaBeanMacro;
+            } else if (FarmConfig.cropType == MacroEnum.COCOABEANSRG) {
+                currentMacro = cocoaBeanRGMacro;
             } else {
                 currentMacro = sShapeCropMacro;
             }
@@ -231,7 +234,6 @@ public class MacroHandler {
                 for (int z = -3; z < 3; z++) {
                     BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, 1 + z,
                             FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.SUGARCANE ? AngleUtils.getClosestDiagonal() - 45
-                            : FarmConfig.cropType == MacroEnum.MUSHROOM_TP_PAD ? AngleUtils.getClosest30() - 30
                             : AngleUtils.getClosest());
                     Block block = mc.theWorld.getBlockState(pos).getBlock();
                     if (!(block instanceof BlockCrops || block instanceof BlockReed || block instanceof BlockCocoa || block instanceof BlockNetherWart || block instanceof BlockMelon || block instanceof  BlockPumpkin || block instanceof BlockMushroom || block instanceof BlockCactus)) continue;

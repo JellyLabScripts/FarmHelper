@@ -6,6 +6,6 @@ public enum MacroEnum {
         PUMPKIN_MELON,
         CACTUS,
         COCOABEANS,
-        MUSHROOM,
-        MUSHROOM_TP_PAD
+        COCOABEANSRG,
+        MUSHROOM
 }
