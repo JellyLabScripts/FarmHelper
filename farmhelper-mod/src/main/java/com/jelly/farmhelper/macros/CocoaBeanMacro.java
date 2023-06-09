@@ -173,7 +173,7 @@ public class CocoaBeanMacro extends Macro {
         switch (currentState) {
             case RIGHT:
                 LogUtils.debugLog("On right row, going back");
-                updateKeys(false, false, true, false, findAndEquipAxe());
+                updateKeys(false, true, true, false, findAndEquipAxe());
                 return;
             case KEEP_RIGHT:
                 LogUtils.debugLog("On right row, keep going back");
@@ -261,8 +261,7 @@ public class CocoaBeanMacro extends Macro {
             }
         } else if (currentState == State.SWITCH_SIDE // top right
                 && (BlockUtils.getRelativeBlock(0, 0, 1).getMaterial().isSolid() || BlockUtils.getRelativeBlock(0, 1, 1).getMaterial().isSolid())
-                && (!(BlockUtils.getRelativeBlock(0, 0, -1).isNormalCube() && BlockUtils.getRelativeBlock(0, 1, -1).isNormalCube())
-                || BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.air) && BlockUtils.getRelativeBlock(0, 1, -1).equals(Blocks.air))
+                && (BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.air) || BlockUtils.getRelativeBlock(0, 1, -1).equals(Blocks.air))
                 && !(BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.air) || BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.air))) {
             if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed() && gameState.dx < 0.1 && gameState.dz < 0.1) {
                 currentState = State.RIGHT;
