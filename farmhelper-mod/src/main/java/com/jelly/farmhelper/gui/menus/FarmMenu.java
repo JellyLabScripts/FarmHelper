@@ -28,8 +28,8 @@ public class FarmMenu extends UIContainer {
     public static final Color NOT_SELECTED_COLOR = new Color(30, 31, 32);
     public static final Color DISABLED_COLOR = new Color(1, 1, 1);
 
-    public static final List<Integer> FORBIDDEN_SSHAPE_FARMS = Arrays.asList();
-    public static final List<Integer> FORBIDDEN_VERTICAL_FARMS = Arrays.asList(1, 2, 3, 4, 5);
+    public static final List<Integer> FORBIDDEN_SSHAPE_FARMS = Arrays.asList(2);
+    public static final List<Integer> FORBIDDEN_VERTICAL_FARMS = Arrays.asList(1, 3, 4, 5, 6);
 
     public static UIComponent ladderDesign;
     public static UIComponent rotateAfterBack;
@@ -41,7 +41,7 @@ public class FarmMenu extends UIContainer {
                 .setHeight(new AdditiveConstraint(new ChildBasedRangeConstraint(), new PixelConstraint(20)))
                 .setChildOf(this);
 
-        // Make sure to match CropEnum!
+        // Make sure to match MacroEnum!
         cropList.add(new ImageBox(new PixelConstraint(10), new PixelConstraint(10), 60f, "carrot_nw_wheat_potato.png", cropList, 0L, "cropType").setChildOf(selector));
         cropList.add(new ImageBox(new SiblingConstraint(10), new PixelConstraint(10), 60f, "cane.png", cropList, 1L, "cropType").setChildOf(selector));
         cropList.add(new ImageBox(new PixelConstraint(10), new SiblingConstraint(10), 60f, "pumpkin_melon.png", cropList, 2L, "cropType").setChildOf(selector));
