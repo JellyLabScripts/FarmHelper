@@ -121,7 +121,6 @@ public class CocoaBeanRGMacro extends Macro {
         }
 
         if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && mc.thePlayer.rotationPitch != pitch) {
-            yaw = AngleUtils.getClosestDiagonal();
             rotation.easeTo(yaw, pitch, 500);
             KeyBindUtils.stopMovement();
         }
