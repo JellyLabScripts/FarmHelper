@@ -127,22 +127,6 @@ public class BlockUtils {
         return b.equals(Blocks.water) || b.equals(Blocks.flowing_water);
     }
 
-    public static Block getLeftBlock(int yaw){
-        return getRelativeBlock(-1, 0, 0, mc.thePlayer.rotationYaw - yaw);
-    }
-    public static Block getRightBlock(int yaw){
-        return getRelativeBlock(1, 0, 0, mc.thePlayer.rotationYaw - yaw);
-    }
-
-    public static Block getLeftTopBlock(int yaw) {
-        return getRelativeBlock(-1, 1, 0, mc.thePlayer.rotationYaw - yaw);
-    }
-
-    public static Block getRightTopBlock(int yaw) {
-        return getRelativeBlock(1, 1, 0, mc.thePlayer.rotationYaw - yaw);
-    }
-
-
     public static Block getLeftBlock(){
         return getRelativeBlock(-1, 0, 0, mc.thePlayer.rotationYaw);
     }
@@ -167,12 +151,13 @@ public class BlockUtils {
 
     public static boolean isWalkable(Block block) {
         return Arrays.asList(FarmConfig.cropType == MacroEnum.CACTUS ? walkablesCactus :
-                (FarmConfig.cropType == MacroEnum.MUSHROOM) ? walkablesMushroom :
+                (FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE) ? walkablesMushroom :
                                 walkables).contains(block);
     }
 
     public static boolean leftCropIsReady(){
-        Block crop = getRelativeBlock(-1, FarmConfig.cropType == MacroEnum.MUSHROOM ? 2 : 1, 1, FarmConfig.cropType == MacroEnum.MUSHROOM ? mc.thePlayer.rotationYaw - MushroomMacro.getAngleDiff() : mc.thePlayer.rotationYaw);
+        Block crop = getRelativeBlock(-1, FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE ? 2 : 1, 1, FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE ? MushroomMacro.closest90Yaw : mc.thePlayer.rotationYaw);
+        System.out.println(crop);
         if (crop.equals(Blocks.nether_wart)) {
             return mc.theWorld.getBlockState(getRelativeBlockPos(-1, 1, 1)).getValue(BlockNetherWart.AGE) == 3;
         } else if (crop.equals(Blocks.wheat) || crop.equals(Blocks.carrots) || crop.equals(Blocks.potatoes))
@@ -187,7 +172,8 @@ public class BlockUtils {
         }
     }
     public static boolean rightCropIsReady(){
-        Block crop = getRelativeBlock(1, FarmConfig.cropType == MacroEnum.MUSHROOM ? 2 : 1, 1, FarmConfig.cropType == MacroEnum.MUSHROOM ? mc.thePlayer.rotationYaw - MushroomMacro.getAngleDiff() : mc.thePlayer.rotationYaw);
+        Block crop = getRelativeBlock(1, FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE ? 2 : 1, 1, FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE ? MushroomMacro.closest90Yaw : mc.thePlayer.rotationYaw);
+        System.out.println(crop);
         if (crop.equals(Blocks.nether_wart)) {
             return mc.theWorld.getBlockState(getRelativeBlockPos(1, 1, 1)).getValue(BlockNetherWart.AGE) == 3;
         } else if (crop.equals(Blocks.wheat) || crop.equals(Blocks.carrots) || crop.equals(Blocks.potatoes))

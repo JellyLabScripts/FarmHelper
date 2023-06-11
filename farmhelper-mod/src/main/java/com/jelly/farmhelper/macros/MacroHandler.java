@@ -22,6 +22,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -142,18 +143,14 @@ public class MacroHandler {
     }
     public static void enableMacro() {
         if(FarmConfig.farmType == FarmEnum.VERTICAL) {
-            if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
-                currentMacro = mushroomMacro;
-            } else {
-                currentMacro = verticalCropMacro;
-            }
+            currentMacro = verticalCropMacro;
         } else {
             if (FarmConfig.cropType == MacroEnum.SUGARCANE) {
                 currentMacro = sugarcaneMacro;
-            } else if (FarmConfig.cropType == MacroEnum.COCOABEANS) {
+            } else if (FarmConfig.cropType == MacroEnum.COCOABEANS || FarmConfig.cropType == MacroEnum.COCOABEANSRG) {
                 currentMacro = cocoaBeanMacro;
-            } else if (FarmConfig.cropType == MacroEnum.COCOABEANSRG) {
-                currentMacro = cocoaBeanRGMacro;
+            } else if (FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE) {
+                currentMacro = mushroomMacro;
             } else {
                 currentMacro = sShapeCropMacro;
             }
@@ -229,17 +226,26 @@ public class MacroHandler {
 
     public static CropEnum getFarmingCrop() {
         Pair<Block, BlockPos> closestCrop = null;
-        for (int x = -3; x < 3; x++) {
-            for (int y = -3; y < 3; y++) {
-                for (int z = -3; z < 3; z++) {
-                    BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, 1 + z,
-                            FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.SUGARCANE ? AngleUtils.getClosestDiagonal() - 45
-                            : AngleUtils.getClosest());
-                    Block block = mc.theWorld.getBlockState(pos).getBlock();
-                    if (!(block instanceof BlockCrops || block instanceof BlockReed || block instanceof BlockCocoa || block instanceof BlockNetherWart || block instanceof BlockMelon || block instanceof  BlockPumpkin || block instanceof BlockMushroom || block instanceof BlockCactus)) continue;
+        if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            BlockPos pos = mc.objectMouseOver.getBlockPos();
+            Block block = mc.theWorld.getBlockState(pos).getBlock();
+            if (block instanceof BlockCrops || block instanceof BlockReed || block instanceof BlockCocoa || block instanceof BlockNetherWart || block instanceof BlockMelon || block instanceof  BlockPumpkin || block instanceof BlockMushroom || block instanceof BlockCactus) {
+                closestCrop = Pair.of(block, pos);
+            }
+        } else {
+            for (int x = -3; x < 3; x++) {
+                for (int y = -3; y < 3; y++) {
+                    for (int z = 0; z < 3; z++) {
+                        BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, 1 + z,
+                                FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.SUGARCANE ? AngleUtils.getClosestDiagonal() - 45
+                                        : AngleUtils.getClosest());
+                        Block block = mc.theWorld.getBlockState(pos).getBlock();
+                        if (!(block instanceof BlockCrops || block instanceof BlockReed || block instanceof BlockCocoa || block instanceof BlockNetherWart || block instanceof BlockMelon || block instanceof BlockPumpkin || block instanceof BlockMushroom || block instanceof BlockCactus))
+                            continue;
 
-                    if (closestCrop == null || mc.thePlayer.getPosition().distanceSq(pos.getX(), pos.getY(), pos.getZ()) < mc.thePlayer.getPosition().distanceSq(closestCrop.getRight().getX(), closestCrop.getRight().getY(), closestCrop.getRight().getZ())) {
-                        closestCrop = Pair.of(block, pos);
+                        if (closestCrop == null || mc.thePlayer.getPosition().distanceSq(pos.getX(), pos.getY(), pos.getZ()) < mc.thePlayer.getPosition().distanceSq(closestCrop.getRight().getX(), closestCrop.getRight().getY(), closestCrop.getRight().getZ())) {
+                            closestCrop = Pair.of(block, pos);
+                        }
                     }
                 }
             }

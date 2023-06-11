@@ -10,7 +10,9 @@ import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.BlockPos;
 
+import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.BlockUtils.*;
 import static com.jelly.farmhelper.utils.BlockUtils.getRelativeBlock;
 import static com.jelly.farmhelper.utils.KeyBindUtils.stopMovement;
@@ -25,9 +27,10 @@ public class MushroomMacro extends Macro {
         NONE
     }
 
-    State currentState;
-    State prevState;
+    static State currentState;
+    static State prevState;
 
+    public static float closest90Yaw;
     float pitch;
     float yaw;
 
@@ -35,6 +38,7 @@ public class MushroomMacro extends Macro {
 
     private final Clock lastTp = new Clock();
     private boolean isTping = false;
+    private boolean rotated = false;
 
     private final Clock waitForChangeDirection = new Clock();
     private final Clock waitBetweenTp = new Clock();
@@ -48,21 +52,18 @@ public class MushroomMacro extends Macro {
         CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
-
-        if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
-            yaw = AngleUtils.getClosestDiagonal();
-        }
-
+        yaw = AngleUtils.getClosestDiagonal();
+        closest90Yaw = AngleUtils.getClosest();
         prevState = null;
+        beforeTeleportationPos = null;
         currentState = State.NONE;
-        rotation.easeTo(yaw, pitch, 500);
+        rotated = false;
+        if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
+            rotation.easeTo(yaw, pitch, 500);
+            rotated = true;
+        }
         mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(CropEnum.MUSHROOM);
         isTping = false;
-        if (getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) || getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)) {
-            lastTp.schedule(1500);
-            LogUtils.debugLog("Started on tp pad");
-            waitBetweenTp.schedule(10000);
-        }
     }
 
     @Override
@@ -95,6 +96,41 @@ public class MushroomMacro extends Macro {
         }
     }
 
+    private void triggerWarpGarden() {
+        KeyBindUtils.stopMovement();
+        if (waitForChangeDirection.isScheduled() && beforeTeleportationPos == null) {
+            waitForChangeDirection.reset();
+        }
+        if (!waitForChangeDirection.isScheduled()) {
+            LogUtils.debugLog("Should TP");
+            long waitTime = (long) (Math.random() * 750 + 500);
+            waitForChangeDirection.schedule(waitTime);
+            beforeTeleportationPos = mc.thePlayer.getPosition();
+        } else if (waitForChangeDirection.passed()) {
+            mc.thePlayer.sendChatMessage(FarmHelper.gameState.wasInGarden ? "/warp garden" : "/is");
+            isTping = true;
+            waitForChangeDirection.reset();
+        }
+    }
+
+    private BlockPos beforeTeleportationPos = null;
+
+    private void checkForTeleport() {
+        if (beforeTeleportationPos == null) return;
+        if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos) > 1) {
+            LogUtils.debugLog("Teleported!");
+            beforeTeleportationPos = null;
+            isTping = false;
+            lastTp.schedule(1_000);
+            currentState = State.NONE;
+            rotated = false;
+            waitForChangeDirection.reset();
+            if (!isSpawnLocationSet()) {
+                setSpawnLocation();
+            }
+        }
+    }
+
     @Override
     public void triggerTpCooldown() {
         lastTp.schedule(1500);
@@ -106,123 +142,156 @@ public class MushroomMacro extends Macro {
         if (mc.thePlayer == null || mc.theWorld == null)
             return;
 
+        checkForTeleport();
+
+        if (isTping) return;
+
         if (rotation.rotating) {
             KeyBindUtils.stopMovement();
             return;
         }
 
+        if (!rotated) {
+            KeyBindUtils.stopMovement();
+        }
 
         if (waitBetweenTp.isScheduled() && waitBetweenTp.passed()) {
             waitBetweenTp.reset();
         }
 
-        if (lastTp.isScheduled() && lastTp.passed()) {
-            lastTp.reset();
-            if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
-                LogUtils.debugLog("Change direction");
-                currentState = calculateDirection();
+        if (FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE) {
+            if (currentState == State.RIGHT && !rotated) {
+                pitch = (float) (Math.random() * 2 - 1); // -1 - 1
+                rotation.easeTo(closest90Yaw + 30, pitch, 400);
+                rotated = true;
+                return;
+            } else if (currentState == State.LEFT && !rotated) {
+                pitch = (float) (Math.random() * 2 - 1); // -1 - 1
+                rotation.easeTo(closest90Yaw - 30, pitch, 400);
+                rotated = true;
+                return;
+            }
+        }
+
+        if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating) {
+            yaw = AngleUtils.getClosestDiagonal();
+            closest90Yaw = AngleUtils.getClosest();
+            pitch = (float) (Math.random() * 2 - 1); // -1 - 1
+            if (FarmConfig.cropType == MacroEnum.MUSHROOM)
+                rotation.easeTo(yaw, pitch, (long) (600 + Math.random() * 200));
+            else if (FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE) {
+                if (currentState == State.RIGHT) {
+                    rotation.easeTo(closest90Yaw + 30, pitch, 400);
+                } else if (currentState == State.LEFT) {
+                    rotation.easeTo(closest90Yaw - 30, pitch, 400);
+                }
             }
         }
 
         if (lastTp.isScheduled() && !lastTp.passed()) {
-            if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
-                LogUtils.debugLog("Going " + currentState);
-                updateKeys(false, currentState == State.LEFT, currentState == State.RIGHT, false, true);
-            }
+            KeyBindUtils.stopMovement();
             return;
         }
 
-        if (!Failsafe.emergency && !rotation.rotating && !isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens)) {
+        if (lastTp.isScheduled() && lastTp.passed()) {
+            lastTp.reset();
+            currentState = calculateDirection();
+        }
+
+        LogUtils.debugLog("Current state: " + currentState);
+
+        if (FarmConfig.cropType == MacroEnum.MUSHROOM && !Failsafe.emergency && !rotation.rotating && !isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens) && rotated) {
+            rotation.reset();
+            Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
+            return;
+        } else if (FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE && !Failsafe.emergency && !rotation.rotating && !isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), closest90Yaw + (currentState == State.LEFT ? -30 : 30)) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens) && rotated) {
             rotation.reset();
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
             return;
         }
 
-        if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
-                || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
-                BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)) && !isTping && (!waitBetweenTp.isScheduled() || waitBetweenTp.passed())) {//standing on tp pad
-            isTping = true;
-            LogUtils.debugLog("Scheduled tp");
 
-            updateKeys(false, false, false, false, false);
-            if (currentState == State.RIGHT) {
-                currentState = State.LEFT;
-            } else {
-                currentState = State.RIGHT;
-            }
+        if (beforeTeleportationPos != null) {
+            LogUtils.debugLog("Waiting for tp...");
+            KeyBindUtils.stopMovement();
+            triggerWarpGarden();
             return;
         }
 
-        if (isWalkable(getRightBlock(getAngleDiff())) && isWalkable(getLeftBlock(getAngleDiff()))) {
-            if (mc.thePlayer.lastTickPosY - mc.thePlayer.posY != 0)
-                return;
-
-            PlayerUtils.attemptSetSpawn();
-
-            if (currentState == State.NONE) {
-                if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
-                    currentState = calculateDirection();
-                }
-            }
-
-
-            if (currentState == State.RIGHT) {
+        switch (currentState) {
+            case RIGHT:
                 LogUtils.debugLog("Going RIGHT");
-                updateKeys(true, false, false, false, true);
-            } else if (currentState == State.LEFT) {
+                updateKeys(FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE || !mushroom45DegreeLeftSide(), false, FarmConfig.cropType == MacroEnum.MUSHROOM && mushroom45DegreeLeftSide(), false, true);
+                break;
+            case LEFT:
                 LogUtils.debugLog("Going LEFT");
-                updateKeys(false, false, false, true, true);
-            } else {
+                updateKeys(FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE || mushroom45DegreeLeftSide(), false, false, FarmConfig.cropType == MacroEnum.MUSHROOM && mushroom45DegreeLeftSide(), true);
+                break;
+            default:
                 LogUtils.debugLog("Error: dir == direction.NONE");
                 stopMovement();
-            }
-        } else if (isWalkable(getRightBlock(getAngleDiff())) && isWalkable(getRightTopBlock(getAngleDiff())) &&
-                (!isWalkable(getLeftBlock(getAngleDiff())) || !isWalkable(getLeftTopBlock(getAngleDiff())))) {
-            if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d) {
-                if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
-                    currentState = State.RIGHT;
-                    waitForChangeDirection.reset();
-                    LogUtils.debugLog("Change direction to RIGHT");
-                    updateKeys(true, false, false, false, true);
-                    return;
-                }
-                if (!waitForChangeDirection.isScheduled()) {
-                    long waitTime = (long) (Math.random() * 500 + 250);
-                    waitForChangeDirection.schedule(waitTime);
-                }
-            }
-        } else if (isWalkable(getLeftBlock(getAngleDiff())) && isWalkable(getLeftTopBlock(getAngleDiff())) &&
-                (!isWalkable(getRightBlock(getAngleDiff())) || !isWalkable(getRightTopBlock(getAngleDiff())))) {
-            if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d) {
-                if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
-                    currentState = State.LEFT;
-                    waitForChangeDirection.reset();
-                    LogUtils.debugLog("Change direction to LEFT");
-                    updateKeys(false, false, false, true, true);
-                    return;
-                }
-                if (!waitForChangeDirection.isScheduled()) {
-                    long waitTime = (long) (Math.random() * 500 + 250);
-                    waitForChangeDirection.schedule(waitTime);
-                }
-            }
+                changeStateTo(calculateDirection());
+                break;
         }
 
-        if (prevState != currentState) {
-            LogUtils.debugLog("Direction changed to " + currentState + " from " + prevState);
-            prevState = currentState;
-            waitForChangeDirection.reset();
-        }
+        updateState();
     }
 
-    public static int getAngleDiff() {
-        return (FarmConfig.cropType == MacroEnum.MUSHROOM ? 45 : (int) AngleUtils.getClosest30());
+    private boolean mushroom45DegreeLeftSide() {
+        return closest90Yaw - yaw == 45 || closest90Yaw - yaw == -315;
+    }
+
+    private void updateState() {
+        if (!isRewarpLocationSet()) {
+            LogUtils.scriptLog("Your rewarp position is not set!");
+        } else if (isRewarpLocationSet() && isStandingOnRewarpLocation()) {
+            triggerWarpGarden();
+        }
+
+        if (gameState.rightWalkable && !gameState.frontWalkable) {
+            if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d) {
+                if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
+                    changeStateTo(calculateDirection());
+                    waitForChangeDirection.reset();
+                    LogUtils.debugLog("Change direction to RIGHT");
+                    return;
+                }
+                if (!waitForChangeDirection.isScheduled()) {
+                    long waitTime = (long) (Math.random() * 500 + 250);
+                    waitForChangeDirection.schedule(waitTime);
+                }
+            }
+        } else if (gameState.leftWalkable && !gameState.frontWalkable) {
+            if (FarmHelper.gameState.dx < 0.01d && FarmHelper.gameState.dz < 0.01d) {
+                if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
+                    changeStateTo(State.LEFT);
+                    waitForChangeDirection.reset();
+                    LogUtils.debugLog("Change direction to LEFT");
+                    return;
+                }
+                if (!waitForChangeDirection.isScheduled()) {
+                    long waitTime = (long) (Math.random() * 500 + 250);
+                    waitForChangeDirection.schedule(waitTime);
+                }
+            }
+        }
     }
 
     @Override
     public void onLastRender() {
         if (rotation.rotating)
             rotation.update();
+    }
+
+    private void changeStateTo(State newState) {
+        State currState = currentState;
+        currentState = newState;
+        if (currState != currentState) {
+            System.out.println("Changed direction to " + currentState + " from " + currState);
+            prevState = currState;
+            waitForChangeDirection.reset();
+            rotated = false;
+        }
     }
 
     State calculateDirection() {
@@ -236,15 +305,15 @@ public class MushroomMacro extends Macro {
         }
 
         for (int i = 0; i < 180; i++) {
-            if (isWalkable(getRelativeBlock(i, -1, 0, getAngleDiff())) && f1) {
+            if (isWalkable(getRelativeBlock(i, 0, 0, closest90Yaw)) && f1) {
                 return State.RIGHT;
             }
-            if (!isWalkable(getRelativeBlock(i, 0, 0, getAngleDiff())))
+            if (!isWalkable(getRelativeBlock(i, 1, 0, closest90Yaw)))
                 f1 = false;
-            if (isWalkable(getRelativeBlock(-i, -1, 0, getAngleDiff())) && f2) {
+            if (isWalkable(getRelativeBlock(-i, 0, 0, closest90Yaw)) && f2) {
                 return State.LEFT;
             }
-            if (!isWalkable(getRelativeBlock(-i, 0, 0, getAngleDiff())))
+            if (!isWalkable(getRelativeBlock(-i, 1, 0, closest90Yaw)))
                 f2 = false;
         }
         System.out.println("No direction found");

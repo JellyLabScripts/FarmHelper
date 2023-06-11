@@ -7,5 +7,6 @@ public enum MacroEnum {
         CACTUS,
         COCOABEANS,
         COCOABEANSRG,
-        MUSHROOM
+        MUSHROOM,
+        MUSHROOM_ROTATE
 }

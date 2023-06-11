@@ -87,11 +87,6 @@ public class SShapeCropMacro extends Macro {
         } else {
             pitch = (float) (2.8f + Math.random() * 0.5f);
         }
-//        if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
-//            yaw = AngleUtils.getClosest30();
-//        } else {
-//            yaw = AngleUtils.getClosest();
-//        }
         yaw = AngleUtils.getClosest();
         lastTp.reset();
         waitForChangeDirection.reset();
@@ -420,11 +415,8 @@ public class SShapeCropMacro extends Macro {
 
         if (currentState == State.STONE_THROW) {
             currentState = State.STONE_THROW;
-        } else if (!isRewarpLocationSet() && !lastTp.isScheduled() && !isTping &&
-                    (BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.wall_sign) ||
-                    BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.snow_layer)) &&
-                FarmHelper.gameState.dx < 0.01 && FarmHelper.gameState.dz < 0.01 && FarmHelper.gameState.dy < 0.01) {
-            triggerWarpGarden();
+        } else if (!isRewarpLocationSet()) {
+            LogUtils.scriptLog("Your rewarp position is not set!");
         } else if (isRewarpLocationSet() && isStandingOnRewarpLocation()) {
             triggerWarpGarden();
         } else if (!isTping && (Math.abs(layerY - mc.thePlayer.posY) > 2 || currentState == State.DROPPING || isDropping())) {
@@ -465,10 +457,6 @@ public class SShapeCropMacro extends Macro {
                 }
                 if (!waitForChangeDirection.isScheduled() && (gameState.dx < 0.1 && gameState.dz < 0.1)) {
                     KeyBindUtils.stopMovement();
-//                    if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
-//                        yaw = AngleUtils.getClosest30();
-//                        rotation.easeTo(yaw, pitch, 500);
-//                    }
                     long waitTime = (long) (Math.random() * 300 + 150);
                     LogUtils.debugLog("SWITCH_END: Waiting " + waitTime + "ms");
                     waitForChangeDirection.schedule(waitTime);
@@ -603,9 +591,6 @@ public class SShapeCropMacro extends Macro {
     };
 
     private static boolean shouldWalkForwards() {
-//        if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
-//            return true;
-//        }
         float angle = AngleUtils.getClosest();
         double x = mc.thePlayer.posX % 1;
         double z = mc.thePlayer.posZ % 1;

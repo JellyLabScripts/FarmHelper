@@ -88,9 +88,6 @@ public abstract class Macro {
         }
         if (closest == null) return false;
         BlockPos currentPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
-        System.out.println("currentPos: " + currentPos);
-        System.out.println("rewarpPos: " + closest);
-        System.out.println("Distance: " + Math.sqrt(currentPos.distanceSqToCenter(closest.getX(), closest.getY(), closest.getZ())));
         return Math.sqrt(currentPos.distanceSqToCenter(closest.getX(), closest.getY(), closest.getZ())) < 1;
     }
 
@@ -101,9 +98,6 @@ public abstract class Macro {
     public boolean isStandingOnSpawnLocation() {
         BlockPos currentPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
         BlockPos spawnPos = new BlockPos(MiscConfig.spawnPosX, MiscConfig.spawnPosY, MiscConfig.spawnPosZ);
-        System.out.println("currentPos: " + currentPos);
-        System.out.println("spawnPos: " + spawnPos);
-        System.out.println("Distance: " + Math.sqrt(currentPos.distanceSqToCenter(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ())));
         return Math.sqrt(currentPos.distanceSqToCenter(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ())) < 1;
     }
 

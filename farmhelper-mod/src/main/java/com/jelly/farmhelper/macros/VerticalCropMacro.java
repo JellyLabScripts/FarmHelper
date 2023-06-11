@@ -182,15 +182,9 @@ public class VerticalCropMacro extends Macro{
             return;
         }
 
-        if (!isRewarpLocationSet() && !BlockUtils.isRelativeBlockPassable(0, 0, 1) &&
-            !BlockUtils.isRelativeBlockPassable(0, 0, -1) &&
-            FarmHelper.gameState.dx < 0.1 && FarmHelper.gameState.dz < 0.1 && FarmHelper.gameState.dy < 0.1 &&
-            BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.wall_sign) &&
-            (!BlockUtils.isRelativeBlockPassable(1, 0, 0) ||
-            !BlockUtils.isRelativeBlockPassable(-1, 0, 0)) &&
+        if (!isRewarpLocationSet() &&
             !FarmConfig.ladderDesign) {
-            triggerWarpGarden();
-            return;
+            LogUtils.debugLog("Rewarp location not set!");
         } else if (isRewarpLocationSet() && isStandingOnRewarpLocation() && !FarmConfig.ladderDesign) {
             triggerWarpGarden();
         }

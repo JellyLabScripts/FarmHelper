@@ -161,7 +161,7 @@ public class ProfitCalculator {
                     blocksBroken ++;
                 }
                 break;
-            case MUSHROOM:
+            case MUSHROOM: case MUSHROOM_ROTATE:
                 if (event.old.getBlock() == Blocks.brown_mushroom && event.update.getBlock() != Blocks.brown_mushroom) {
                     blocksBroken ++;
                 }

@@ -200,10 +200,8 @@ public class CocoaBeanMacro extends Macro {
     private void updateState() {
         State lastState = currentState;
 
-        if (!isRewarpLocationSet() && !lastTp.isScheduled() && !isTping &&
-                FarmHelper.gameState.dx < 0.01 && FarmHelper.gameState.dz < 0.01 && FarmHelper.gameState.dy < 0.01) {
-            triggerWarpGarden();
-            return;
+        if (!isRewarpLocationSet()) {
+            LogUtils.scriptLog("Your rewarp position is not set!");
         } else if (isRewarpLocationSet() && isStandingOnRewarpLocation()) {
             triggerWarpGarden();
             return;

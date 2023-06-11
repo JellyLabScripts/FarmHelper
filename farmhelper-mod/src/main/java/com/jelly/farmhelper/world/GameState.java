@@ -1,6 +1,9 @@
 package com.jelly.farmhelper.world;
 
+import com.jelly.farmhelper.config.enums.MacroEnum;
+import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.config.interfaces.RemoteControlConfig;
+import com.jelly.farmhelper.macros.MushroomMacro;
 import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.utils.BlockUtils;
 import com.jelly.farmhelper.utils.Clock;
@@ -148,10 +151,11 @@ public class GameState {
     }
 
     private void updateWalkables() {
-        frontWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 0, 1)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 1, 1)));
-        rightWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 0, 0)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 1, 0)));
-        backWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 0, -1)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 1, -1)));
-        leftWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 0, 0)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 1, 0)));
+        float yaw = FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE ? MushroomMacro.closest90Yaw : mc.thePlayer.rotationYaw;
+        frontWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 0, 1, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 1, 1, yaw)));
+        rightWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 0, 0, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 1, 0, yaw)));
+        backWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 0, -1, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 1, -1, yaw)));
+        leftWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 0, 0, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 1, 0, yaw)));
     }
 
     public static int getJacobCounter() {
