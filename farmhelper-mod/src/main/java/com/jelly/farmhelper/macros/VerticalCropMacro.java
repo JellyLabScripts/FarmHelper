@@ -2,7 +2,6 @@ package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.enums.CropEnum;
-import com.jelly.farmhelper.config.enums.MacroEnum;
 import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
 import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.features.Failsafe;
@@ -127,7 +126,7 @@ public class VerticalCropMacro extends Macro{
                 yaw = AngleUtils.get360RotationYaw(yaw + 180);
             }
             if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
-                rotation.easeTo(yaw, pitch, (long) (600 + Math.random() * 200));
+                rotation.easeTo(yaw, pitch, (long) (500 + Math.random() * 200));
                 rotated = true;
             }
         }

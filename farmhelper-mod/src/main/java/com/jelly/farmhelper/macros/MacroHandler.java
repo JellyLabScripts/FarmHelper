@@ -34,7 +34,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
-import java.util.stream.Collectors;
 
 
 public class MacroHandler {
@@ -226,13 +225,17 @@ public class MacroHandler {
 
     public static CropEnum getFarmingCrop() {
         Pair<Block, BlockPos> closestCrop = null;
+        boolean foundCropUnderMouse = false;
         if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             BlockPos pos = mc.objectMouseOver.getBlockPos();
             Block block = mc.theWorld.getBlockState(pos).getBlock();
             if (block instanceof BlockCrops || block instanceof BlockReed || block instanceof BlockCocoa || block instanceof BlockNetherWart || block instanceof BlockMelon || block instanceof  BlockPumpkin || block instanceof BlockMushroom || block instanceof BlockCactus) {
                 closestCrop = Pair.of(block, pos);
+                foundCropUnderMouse = true;
             }
-        } else {
+        }
+
+        if (!foundCropUnderMouse) {
             for (int x = -3; x < 3; x++) {
                 for (int y = -3; y < 3; y++) {
                     for (int z = 0; z < 3; z++) {
@@ -250,6 +253,7 @@ public class MacroHandler {
                 }
             }
         }
+
         if (closestCrop != null) {
             Block left = closestCrop.getLeft();
             if (left.equals(Blocks.wheat)) {

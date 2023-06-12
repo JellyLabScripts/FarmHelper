@@ -62,8 +62,6 @@ public class SShapeCropMacro extends Macro {
     private boolean isTping = false;
     private final Clock waitForChangeDirection = new Clock();
 
-    private CropEnum crop;
-
     private boolean rotated = false;
 
     private boolean switchBackwardsDirection = false;
@@ -76,7 +74,7 @@ public class SShapeCropMacro extends Macro {
         Antistuck.stuck = false;
         prevState = null;
         Antistuck.cooldown.schedule(1000);
-        crop = MacroHandler.getFarmingCrop();
+        CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
         CropUtils.getTool();
@@ -175,7 +173,7 @@ public class SShapeCropMacro extends Macro {
             if (FarmConfig.rotateAfterBack)
                 yaw = AngleUtils.get360RotationYaw(yaw + 180);
             if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
-                rotation.easeTo(yaw, pitch, (long) (600 + Math.random() * 200));
+                rotation.easeTo(yaw, pitch, (long) (500 + Math.random() * 200));
                 rotated = true;
             }
         }
