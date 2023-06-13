@@ -62,12 +62,12 @@ public class RemoteControlHandler {
             Remote control shit
              */
             JsonObject j = new JsonObject();
-            j.addProperty("password", FarmHelper.config.webHookURL);
+            j.addProperty("password", FarmHelper.config.webSocketPassword);
             j.addProperty("name", mc.getSession().getUsername());
             j.addProperty("modversion", FarmHelper.MODVERSION);
             j.addProperty("botversion", FarmHelper.BOTVERSION);
             String data = Base64.getEncoder().encodeToString(j.toString().getBytes(StandardCharsets.UTF_8));
-            client = new Client(new URI("ws://" + FarmHelper.config.webHookURL.split(":")[0] + ":58637/farmhelperws"));
+            client = new Client(new URI("ws://" + FarmHelper.config.webSocketIP.split(":")[0] + ":58637/farmhelperws"));
             client.addHeader("auth", data);
             client.connect();
         } catch (URISyntaxException e) {

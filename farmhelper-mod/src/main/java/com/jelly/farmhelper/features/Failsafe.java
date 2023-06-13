@@ -127,7 +127,7 @@ public class Failsafe {
 
         if (restartAfterFailsafeCooldown.isScheduled()) {
             if (restartAfterFailsafeCooldown.passed()) {
-                LogUtils.debugLog("Restarting macro. 3 minutes after failsafe is passed");
+                LogUtils.debugLog("Restarting macro. " + FarmHelper.config.restartAfterFailSafeDelay + " seconds after failsafe is passed");
                 emergency = false;
                 restartAfterFailsafeCooldown.reset();
                 MacroHandler.enableMacro();
@@ -469,7 +469,7 @@ public class Failsafe {
         }
 
         if (FarmHelper.config.enableRestartAfterFailSafe)
-            restartAfterFailsafeCooldown.schedule(180_000);
+            restartAfterFailsafeCooldown.schedule(FarmHelper.config.restartAfterFailSafeDelay * 1000L);
     }
 
     static Runnable stopScript = () -> {

@@ -8,7 +8,6 @@ import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.BasicHud;
 
 import com.jelly.farmhelper.features.ProfitCalculator;
-import com.jelly.farmhelper.utils.Clock;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -16,7 +15,6 @@ import java.util.Map;
 
 public class ProfitCalculatorHUD extends BasicHud {
     protected transient LinkedHashMap<String, String> lines = new LinkedHashMap<String, String>();
-    protected transient final Clock updateClock = new Clock();
     public ProfitCalculatorHUD() {
         super(true, 0, 0, 0.8f, true, true, 3, 4, 6, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
         addLines();

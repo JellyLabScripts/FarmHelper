@@ -181,6 +181,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Fast change direction cane"
 	)
 	public boolean fastChangeDirectionCane = false;
+	@Switch(
+		name = "Count RNG to $/Hr in Profit Calculator", category = GENERAL, subcategory = "Miscellaneous",
+		description = "Count RNG to $/Hr"
+	)
+	public boolean countRNGToDollarPerHour = false;
     @Switch(
         name = "Fast Break", category = GENERAL, subcategory = "Miscellaneous",
         description = "Fast break(gonna crazy asf, so be careful)"
@@ -192,42 +197,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
         min = 1, max = 3, step = 1
     )
     public int fastBreakSpeed = 1;
-
-	@Switch(
-		name = "Enable", category = GENERAL, subcategory = "Profit Calculator",
-		description = "Enable profit calculator"
-	)
-	public boolean profitCalculator = false;
-	@Switch(
-		name = "Total Profit", category = GENERAL, subcategory = "Profit Calculator",
-		description = "Calculate total profit"
-	)
-	public boolean totalProfit = false;
-	@Switch(
-		name = "Profit Per Hour", category = GENERAL, subcategory = "Profit Calculator",
-		description = "Calculate profit per hour"
-	)
-	public boolean profitPerHour = false;
-	@Switch(
-		name = "Item Count", category = GENERAL, subcategory = "Profit Calculator",
-		description = "Calculate item count"
-	)
-	public boolean itemCount = false;
-	@Switch(
-		name = "Count RNG to $/Hr", category = GENERAL, subcategory = "Profit Calculator",
-		description = "Count RNG to $/Hr"
-	)
-	public boolean countRNGToDollarPerHour = false;
-	@Switch(
-		name = "Block Per Second", category = GENERAL, subcategory = "Profit Calculator",
-		description = "Calculate block per second"
-	)
-	public boolean blockPerSecond = false;
-	@Switch(
-		name = "Run Time", category = GENERAL, subcategory = "Profit Calculator",
-		description = "Show the time the macro has been running"
-	)
-	public boolean runTime = false;
 
 	@Switch(
 		name = "Enable", category = GENERAL, subcategory = "Visitors Macro",
