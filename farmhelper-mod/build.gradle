@@ -63,9 +63,6 @@ configurations {
 
 repositories {
     maven {
-        url = "https://repo.sk1er.club/repository/maven-public"
-    }
-    maven {
         url = "https://jitpack.io/"
     }
     maven {
@@ -115,7 +112,7 @@ jar {
     manifest.attributes(
             "ForceLoadAsMod": true,
             "ModSide": "CLIENT",
-            "TweakClass": "gg.essential.loader.stage0.EssentialSetupTweaker",
+            "TweakClass": "cc.polyfrost.oneconfig.loader.stage0.LaunchWrapperTweaker",
             "TweakOrder": "0",
             "MixinConfigs": "mixins.farmhelper.json",
             "modversion": version,
