@@ -6,7 +6,7 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 import org.apache.commons.lang3.tuple.Pair;
 
-import static gg.essential.universal.UMath.wrapAngleTo180;
+import static cc.polyfrost.oneconfig.libs.universal.UMath.wrapAngleTo180;
 
 public class AngleUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
