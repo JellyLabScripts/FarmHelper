@@ -183,7 +183,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public boolean fastChangeDirectionCane = false;
     @Switch(
         name = "Fast Break", category = GENERAL, subcategory = "Miscellaneous",
-        description = "Fast break(gonna crazy asf, so be careful"
+        description = "Fast break(gonna crazy asf, so be careful)"
     )
     public boolean fastBreak = false;
     @Slider(
