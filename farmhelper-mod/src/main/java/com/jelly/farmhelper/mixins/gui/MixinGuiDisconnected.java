@@ -1,7 +1,7 @@
 package com.jelly.farmhelper.mixins.gui;
 
 import com.google.gson.JsonObject;
-import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.AutoReconnect;
 import com.jelly.farmhelper.features.BanwaveChecker;
 import com.jelly.farmhelper.features.Failsafe;
@@ -50,14 +50,14 @@ public class MixinGuiDisconnected {
         }
 
         if(MacroHandler.isMacroing) {
-            if (BanwaveChecker.banwaveOn && FailsafeConfig.banwaveDisconnect) {
+            if (BanwaveChecker.banwaveOn && FarmHelper.config.enableLeaveOnBanwave) {
                 Minecraft.getMinecraft().fontRendererObj.drawString("There is a banwave! " + BanwaveChecker.getBanDisplay(), 5, 5, -1);
             }
             if (!Failsafe.jacobWait.passed()) {
                 Minecraft.getMinecraft().fontRendererObj.drawString("In Jacob Failsafe", 5, 20, -1);
             }
             if (AutoReconnect.waitTime > 0) {
-                multilineMessage.set(0, "Seconds till reconnect: " + Math.floor(((FailsafeConfig.reconnectDelay * 20) - AutoReconnect.waitTime) / 20));
+                multilineMessage.set(0, "Seconds till reconnect: " + Math.floor(((FarmHelper.config.delayBeforeReconnect * 20) - AutoReconnect.waitTime) / 20));
                 multilineMessage = multilineMessage.subList(0, 1);
             }
         }

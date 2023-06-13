@@ -35,10 +35,10 @@ public class Resync {
         for(BlockPos bp : cachedPos) {
             if (mc.theWorld.getBlockState(bp) != null) {
                 switch (MacroHandler.crop) {
-                    case NETHERWART:
+                    case NETHER_WART:
                         if (mc.theWorld.getBlockState(bp).getValue(BlockNetherWart.AGE) <= 2) desync = false;
                         break;
-                    case SUGARCANE:
+                    case SUGAR_CANE:
                         if (!mc.theWorld.getBlockState(bp).getBlock().equals(Blocks.reeds)) desync = false;
                         break;
                     case CACTUS:

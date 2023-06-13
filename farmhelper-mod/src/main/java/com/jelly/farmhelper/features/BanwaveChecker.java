@@ -1,6 +1,6 @@
 package com.jelly.farmhelper.features;
 
-import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.utils.Clock;
@@ -18,7 +18,7 @@ import java.util.LinkedList;
 
 public class BanwaveChecker {
     private final Minecraft mc = Minecraft.getMinecraft();
-    public static final BasicState<String> staffBan = new BasicState<>("Staff ban : NaN");
+    public static String staffBan = "Staff ban : NaN";
 
 
     private static final Clock cooldown = new Clock();
@@ -40,22 +40,22 @@ public class BanwaveChecker {
                     staffBanLast15Mins.addLast((Integer.parseInt(record.get("staff_total").toString())));
                     if(staffBanLast15Mins.size() == 17) staffBanLast15Mins.removeFirst();
 
-                    staffBan.set(getBanDisplay());
+                    staffBan = getBanDisplay();
 
                     if(banwaveOn) {
                         if (getBanTimeDiff() != 0)
-                            banwaveOn = getBanDiff() / (getBanTimeDiff() * 1.0f) > (FailsafeConfig.banThreshold * 0.8f)/ 15.0f;
+                            banwaveOn = getBanDiff() / (getBanTimeDiff() * 1.0f) > (FarmHelper.config.banwaveThreshold * 0.8f)/ 15.0f;
                     } else {
                         if (getBanTimeDiff() != 0)
-                            banwaveOn = getBanDiff() / (getBanTimeDiff() * 1.0f) > FailsafeConfig.banThreshold / 15.0f;
+                            banwaveOn = getBanDiff() / (getBanTimeDiff() * 1.0f) > FarmHelper.config.banwaveThreshold / 15.0f;
                     }
 
-                    if(MacroHandler.isMacroing && FailsafeConfig.banwaveDisconnect) {
+                    if(MacroHandler.isMacroing && FarmHelper.config.enableLeaveOnBanwave) {
                         if (banwaveOn && mc.theWorld != null && !Failsafe.emergency) {
                             LogUtils.webhookLog("Disconnecting due to banwave detected");
 
                             MacroHandler.disableCurrentMacro();
-                            if (FailsafeConfig.setSpawnBeforeEvacuate)
+                            if (FarmHelper.config.setSpawnBeforeEvacuate)
                                 PlayerUtils.setSpawn();
                             if (leaveTime.isScheduled() && leaveTime.passed()) {
                                 leaveTime.reset();

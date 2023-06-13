@@ -1,9 +1,9 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.enums.CropEnum;
-import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.config.Config.CropEnum;
+
+
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
@@ -51,7 +51,7 @@ public class SugarcaneMacro extends Macro {
         currentWalkState = calculateDirection();
 
         stuck = false;
-        mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(CropEnum.SUGARCANE);
+        mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(CropEnum.SUGAR_CANE);
         Antistuck.stuck = false;
         Antistuck.cooldown.schedule(1000);
         waitForChangeDirection.reset();
@@ -123,8 +123,8 @@ public class SugarcaneMacro extends Macro {
         }
 
         if (!Failsafe.emergency && !isTping
-                && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) >= FailsafeConfig.rotationSens
-                || Math.abs(mc.thePlayer.rotationPitch - pitch) >= FailsafeConfig.rotationSens)) {
+                && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) >= FarmHelper.config.rotationCheckSensitivity
+                || Math.abs(mc.thePlayer.rotationPitch - pitch) >= FarmHelper.config.rotationCheckSensitivity)) {
             rotation.reset();
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
             return;

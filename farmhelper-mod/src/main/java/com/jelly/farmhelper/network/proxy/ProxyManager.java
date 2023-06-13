@@ -1,6 +1,6 @@
 package com.jelly.farmhelper.network.proxy;
 
-import com.jelly.farmhelper.config.interfaces.ProxyConfig;
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.gui.ProxyScreen;
 import io.netty.channel.Channel;
 import io.netty.handler.proxy.Socks4ProxyHandler;
@@ -19,25 +19,30 @@ import net.minecraft.util.IChatComponent;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
+
+
 public class ProxyManager {
     public static boolean isTesting = false;
 
+    public enum ProxyType {
+        SOCKS4,
+        SOCKS5
+    }
+
     public static void hook(Channel channel) {
         if (ProxyScreen.state != ConnectionState.CONNECTED && ProxyScreen.state != ConnectionState.CONNECTING) return;
-        int port = Integer.parseInt(ProxyConfig.proxyAddress.split(":")[1]);
-        String address = ProxyConfig.proxyAddress.split(":")[0];
+        int port = Integer.parseInt(FarmHelper.config.proxyAddress.split(":")[1]);
+        String address = FarmHelper.config.proxyAddress.split(":")[0];
 
-        switch (ProxyConfig.proxyType) {
-            case SOCKS4:
-                Socks4ProxyHandler socks4 = new Socks4ProxyHandler(new InetSocketAddress(address, port), ProxyConfig.proxyUsername.isEmpty() ? null : ProxyConfig.proxyUsername);
-                channel.pipeline().addFirst(socks4);
-                break;
-            case SOCKS5:
-                Socks5ProxyHandler socks5 = new Socks5ProxyHandler(new InetSocketAddress(address, port), ProxyConfig.proxyUsername.isEmpty() ? null : ProxyConfig.proxyUsername, ProxyConfig.proxyPassword.isEmpty() ? null : ProxyConfig.proxyPassword);
-                channel.pipeline().addFirst(socks5);
-                break;
-            // someone make it work with http/s plzz
+        if (FarmHelper.config.proxyType == ProxyType.SOCKS4.ordinal()) {
+            Socks4ProxyHandler socks4 = new Socks4ProxyHandler(new InetSocketAddress(address, port), FarmHelper.config.proxyUsername.isEmpty() ? null : FarmHelper.config.proxyUsername);
+            channel.pipeline().addFirst(socks4);
         }
+        else if (FarmHelper.config.proxyType == ProxyType.SOCKS5.ordinal()) {
+            Socks5ProxyHandler socks5 = new Socks5ProxyHandler(new InetSocketAddress(address, port), FarmHelper.config.proxyUsername.isEmpty() ? null : FarmHelper.config.proxyUsername, FarmHelper.config.proxyPassword.isEmpty() ? null : FarmHelper.config.proxyPassword);
+            channel.pipeline().addFirst(socks5);
+        }
+//
     }
 
     public static void testProxy() {

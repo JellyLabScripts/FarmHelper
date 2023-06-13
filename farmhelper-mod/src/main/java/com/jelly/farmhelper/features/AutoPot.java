@@ -1,7 +1,6 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -77,7 +76,7 @@ public class AutoPot {
         if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || (FarmHelper.tickCount % 5 != 0 && ((currentState != State.WALKING1 && currentState != State.WALKING2) || !enabled)))
             return;
 
-        if (!enabled && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && cooldown.passed() && MiscConfig.autoGodPot && FarmHelper.gameState.godPot == GameState.EffectState.OFF && FarmHelper.gameState.currentLocation == GameState.location.ISLAND) {
+        if (!enabled && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && cooldown.passed() && FarmHelper.config.autoGodPot && FarmHelper.gameState.godPot == GameState.EffectState.OFF && FarmHelper.gameState.currentLocation == GameState.location.ISLAND) {
             LogUtils.scriptLog("[AutoPot] Detected no GodPot buff");
             MacroHandler.disableCurrentMacro();
             enable();
@@ -93,7 +92,7 @@ public class AutoPot {
             failCount++;
             if (failCount == 3) {
                 LogUtils.debugFullLog("[AutoPot] Disabling auto GodPot, too many fails");
-                MiscConfig.autoGodPot = false;
+                FarmHelper.config.autoGodPot = false;
             }
             disable();
         }
@@ -255,7 +254,7 @@ public class AutoPot {
             failCount++;
             if (failCount == 3) {
                 LogUtils.debugFullLog("[AutoPot] Disabling AutoPot, too many fails");
-                MiscConfig.autoGodPot = false;
+                FarmHelper.config.autoGodPot = false;
             }
             disable();
         }

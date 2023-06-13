@@ -1,22 +1,23 @@
 package com.jelly.farmhelper.features;
 
+
+import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.Config.SMacroEnum;
+import com.jelly.farmhelper.config.Config.VerticalMacroEnum;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.jelly.farmhelper.config.enums.MacroEnum;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
-import com.jelly.farmhelper.config.interfaces.ProfitCalculatorConfig;
+//import com.jelly.farmhelper.config.enums.MacroEnum;
+//import com.jelly.farmhelper.config.interfaces.FarmConfig;
+//import com.jelly.farmhelper.config.interfaces.MiscConfig;
+//import com.jelly.farmhelper.config.interfaces.ProfitCalculatorConfig;
 import com.jelly.farmhelper.events.BlockChangeEvent;
-import com.jelly.farmhelper.gui.Stat;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.ScoreboardUtils;
 import com.jelly.farmhelper.utils.Utils;
-import gg.essential.elementa.UIComponent;
-import gg.essential.elementa.components.UIImage;
-import gg.essential.elementa.state.BasicState;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
 import net.minecraft.client.Minecraft;
@@ -39,15 +40,14 @@ public class ProfitCalculator {
     public static long realProfit = 0;
     public static long blocksBroken = 0;
 
-    public static final BasicState<String> profit = new BasicState<>("$0");
-    public static final BasicState<String> profitHr = new BasicState<>("$0");
-    public static final BasicState<String> runtime = new BasicState<>("0h 0m 0s");
-    public static final BasicState<String> blocksPerSecond = new BasicState<>("0 BPS");
+    public static String profit = "$0";
+    public static String profitHr = "$0";
+    public static String runtime = "0h 0m 0s";
+    public static String blocksPerSecond = "0 BPS";
     public static Multimap<String, DroppedItem> itemsDropped = ArrayListMultimap.create();
+//    public static final LinkedHashMap<String, String> listDropToShow = new LinkedHashMap<String, String>();
+    public static final LinkedHashMap<String, BazaarItem> ListCropsToShow = new LinkedHashMap<String, BazaarItem>();
 
-    public static final HashMap<String, GuiItem> dropToShow = new HashMap<>();
-
-    private static final String path = "/assets/farmhelper/textures/gui/";
     private static boolean cantConnectToApi = false;
 
     public static final List<BazaarItem> cropsToCount = new ArrayList<BazaarItem>() {{
@@ -105,16 +105,22 @@ public class ProfitCalculator {
                         double price = bazaarPrices.get(crop.localizedName);
                         totalProfit += price * (item.amount * 1.0f / crop.amountToEnchanted);
                         totalProfitBasedOnConditions += price * (item.amount * 1.0f / crop.amountToEnchanted);
-                        dropToShow.put(item.name, new GuiItem((int) Math.floor(item.amount * 1.0F / crop.amountToEnchanted), crop.image));
+                        crop.currentAmount = (int)(item.amount * 1.0F / crop.amountToEnchanted);
+
+                        ListCropsToShow.putIfAbsent(item.name, crop);
+                        ListCropsToShow.put(item.name, crop);
                     } else {
                         Optional<BazaarItem> isArmor = rngDropToCount.stream().filter(armor -> StringUtils.stripControlCodes(item.name).equalsIgnoreCase(armor.localizedName)).findFirst();
                         if (isArmor.isPresent()) {
                             double price = bazaarPrices.get(isArmor.get().localizedName);
                             totalProfit += price * item.amount * 1.0f;
-                            if (ProfitCalculatorConfig.countRNGtoHourly) {
+                            if (FarmHelper.config.countRNGToDollarPerHour) {
                                 totalProfitBasedOnConditions += price * item.amount * 1.0f;
                             }
-                            dropToShow.put(item.name, new GuiItem(item.amount, isArmor.get().image));
+
+                            isArmor.get().currentAmount = item.amount;
+                            ListCropsToShow.putIfAbsent(item.name, isArmor.get());
+                            ListCropsToShow.put(item.name, isArmor.get());
                         }
                     }
                 } else if (cantConnectToApi) {
@@ -123,7 +129,10 @@ public class ProfitCalculator {
                         double price = optional.get().npcPrice * item.amount;
                         totalProfit += price;
                         totalProfitBasedOnConditions += price;
-                        dropToShow.put(item.name, new GuiItem((int) Math.floor(item.amount * 1.0F / optional.get().amountToEnchanted), optional.get().image));
+                        optional.get().currentAmount = (int)Math.floor(item.amount * 1.0F / optional.get().amountToEnchanted);
+
+                        ListCropsToShow.putIfAbsent(item.name, optional.get());
+                        ListCropsToShow.put(item.name, optional.get());
                     }
                 }
             }
@@ -131,59 +140,55 @@ public class ProfitCalculator {
             realProfit = totalProfit;
             realProfit += checkForBountiful();
             totalProfitBasedOnConditions += checkForBountiful();
-            profit.set("$" + Utils.formatNumber(Math.round(realProfit * 0.95)));
-            profitHr.set("$" + Utils.formatNumber(Math.round(getHourProfit(totalProfitBasedOnConditions * 0.95))));
-            runtime.set(Utils.formatTime(System.currentTimeMillis() - MacroHandler.startTime));
-            float bps = Math.round((((FarmConfig.cropType == MacroEnum.SUGARCANE || FarmConfig.cropType == MacroEnum.CACTUS) ? 0.5f : 1) * blocksBroken) / (System.currentTimeMillis() - MacroHandler.startTime) * 10000f) / 10f;
-            blocksPerSecond.set(bps + " BPS");
+            profit = "$" + (Utils.formatNumber(Math.round(realProfit * 0.95)));
+            profitHr = "$" + (Utils.formatNumber(Math.round(getHourProfit(totalProfitBasedOnConditions * 0.95))));
+            runtime = (Utils.formatTime(System.currentTimeMillis() - MacroHandler.startTime));
+            float bps = Math.round((((FarmHelper.config.macroType) && (FarmHelper.config.SShapeMacroType == SMacroEnum.SUGAR_CANE.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.CACTUS.ordinal()) ? 0.5f : 1) * blocksBroken) / (System.currentTimeMillis() - MacroHandler.startTime) * 10000f) / 10f;
+            blocksPerSecond = (bps + " BPS");
         }
     }
 
     @SubscribeEvent
     public void onBlockChange(BlockChangeEvent event) {
         if (!MacroHandler.isMacroing) return;
-        switch (FarmConfig.cropType) {
-            case CACTUS:
-                if (event.old.getBlock() == Blocks.cactus && event.update.getBlock() != Blocks.cactus) {
-                    blocksBroken++;
-                }
-                break;
-            case PUMPKIN_MELON:
-                if (event.old.getBlock() == Blocks.pumpkin && event.update.getBlock() != Blocks.pumpkin) {
-                    blocksBroken++;
-                }
-                if (event.old.getBlock() == Blocks.melon_block && event.update.getBlock() != Blocks.melon_block) {
-                    blocksBroken++;
-                }
-                break;
-            case SUGARCANE:
-                if (event.old.getBlock() == Blocks.reeds && event.update.getBlock() != Blocks.reeds) {
-                    blocksBroken ++;
-                }
-                break;
-            case MUSHROOM: case MUSHROOM_ROTATE:
-                if (event.old.getBlock() == Blocks.brown_mushroom && event.update.getBlock() != Blocks.brown_mushroom) {
-                    blocksBroken ++;
-                }
-                if (event.old.getBlock() == Blocks.red_mushroom && event.update.getBlock() != Blocks.red_mushroom) {
-                    blocksBroken ++;
-                }
-                break;
-            case COCOABEANS: case COCOABEANSRG:
-                if (event.old.getBlock() == Blocks.cocoa && event.update.getBlock() != Blocks.cocoa) {
-                    blocksBroken ++;
-                }
-                break;
-            case CARROT_NW_WHEAT_POTATO:
-                if (event.old.getBlock() instanceof BlockCrops && !(event.update.getBlock() instanceof BlockCrops)) {
-                    blocksBroken ++;
-                }
-                if (event.old.getBlock() instanceof BlockNetherWart && !(event.update.getBlock() instanceof BlockNetherWart)) {
-                    blocksBroken ++;
-                }
-                break;
-        }
 
+        if (!FarmHelper.config.macroType) { //vertical
+            if (FarmHelper.config.VerticalMacroType == VerticalMacroEnum.PUMPKIN_MELON.ordinal()) {
+                if ((event.old.getBlock() == Blocks.pumpkin && event.update.getBlock() != Blocks.pumpkin) ||
+                    (event.old.getBlock() == Blocks.melon_block && event.update.getBlock() != Blocks.melon_block)) {
+                    blocksBroken++;
+                }
+            }
+
+            if (FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM.ordinal() ||
+                FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM_ROTATE.ordinal()) {
+                if ((event.old.getBlock() == Blocks.brown_mushroom && event.update.getBlock() != Blocks.brown_mushroom) ||
+                    (event.old.getBlock() == Blocks.red_mushroom && event.update.getBlock() != Blocks.red_mushroom)) {
+                    blocksBroken++;
+                }
+            }
+
+            if (FarmHelper.config.VerticalMacroType == VerticalMacroEnum.NORMAL_TYPE.ordinal()) {
+                if ((event.old.getBlock() instanceof BlockCrops && !(event.update.getBlock() instanceof BlockCrops)) ||
+                    (event.old.getBlock() instanceof BlockNetherWart && !(event.update.getBlock() instanceof BlockNetherWart))) {
+                    blocksBroken++;
+                }
+            }
+        } else {
+            if (FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS.ordinal() ||
+                FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS_RG.ordinal()) {
+                if (event.old.getBlock() == Blocks.reeds && event.update.getBlock() != Blocks.reeds) {
+                    blocksBroken++;
+                }
+            }
+
+            if (FarmHelper.config.SShapeMacroType == VerticalMacroEnum.NORMAL_TYPE.ordinal()) {
+                if ((event.old.getBlock() instanceof BlockCrops && !(event.update.getBlock() instanceof BlockCrops)) ||
+                    (event.old.getBlock() instanceof BlockNetherWart && !(event.update.getBlock() instanceof BlockNetherWart))) {
+                    blocksBroken++;
+                }
+            }
+        }
     }
 
     private static float checkForBountiful() {
@@ -266,7 +271,7 @@ public class ProfitCalculator {
     public void onRenderGui(RenderGameOverlayEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
-        if (!MiscConfig.debugMode) return;
+        if (!FarmHelper.config.debugMode) return;
         if (mc.theWorld == null || mc.thePlayer == null) return;
 
         int x = 210;
@@ -350,7 +355,7 @@ public class ProfitCalculator {
     public static void resetProfit() {
         blocksBroken = 0;
         itemsDropped.clear();
-        dropToShow.clear();
+        ListCropsToShow.clear();
     }
 
     private static class DroppedItem {
@@ -397,8 +402,8 @@ public class ProfitCalculator {
         public String localizedName;
         public String bazaarId;
         public int amountToEnchanted;
-
-        public UIComponent image;
+        public int currentAmount;
+        public String imageURL;
         public int npcPrice;
 
         public BazaarItem(String localizedName, String bazaarId, int amountToEnchanted, int npcPrice) {
@@ -406,29 +411,13 @@ public class ProfitCalculator {
             this.bazaarId = bazaarId;
             this.amountToEnchanted = amountToEnchanted;
             this.npcPrice = npcPrice;
+            this.currentAmount = 0;
         }
 
         public BazaarItem setImage() {
-            this.image = UIImage.ofResource(path + getImageName(localizedName));
+            this.imageURL = "/assets/farmhelper/textures/gui/" + getImageName(localizedName);
             return this;
         }
     }
 
-    public static class GuiItem {
-        public int enchantedAmount;
-        public UIComponent img;
-        private final BasicState<String> enchantedAmountState = new BasicState<>("0");
-        public UIComponent stat;
-
-        public GuiItem(int enchantedAmount, UIComponent img) {
-            this.enchantedAmount = enchantedAmount;
-            this.img = img;
-            this.stat = new Stat(img).bind(getEnchantedAmount());
-        }
-
-        public BasicState<String> getEnchantedAmount() {
-            enchantedAmountState.set(enchantedAmount + "");
-            return enchantedAmountState;
-        }
-    }
 }

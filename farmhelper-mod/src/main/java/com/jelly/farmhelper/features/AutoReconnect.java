@@ -1,8 +1,6 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
-import com.jelly.farmhelper.config.interfaces.JacobConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.command.commands.ReconnectCommand;
 import net.minecraft.client.Minecraft;
@@ -24,7 +22,7 @@ public class AutoReconnect {
         if (ReconnectCommand.isEnabled) {
             if (ReconnectCommand.reconnectClock.getRemainingTime() > 0) {
                 return;
-            } else if (!((Failsafe.jacobWait.passed() && JacobConfig.jacobFailsafe) && (BanwaveChecker.banwaveOn && FailsafeConfig.banwaveDisconnect))) {
+            } else if (!((Failsafe.jacobWait.passed() && FarmHelper.config.enableJacobFailsafes) && (BanwaveChecker.banwaveOn && FarmHelper.config.enableLeaveOnBanwave))) {
                 ReconnectCommand.isEnabled = false;
                 FMLClientHandler.instance().connectToServer(new GuiMultiplayer(new GuiMainMenu()), new ServerData("bozo", FarmHelper.gameState.serverIP, false));
             }
@@ -32,12 +30,12 @@ public class AutoReconnect {
 
         if (event.phase == TickEvent.Phase.END || !MacroHandler.isMacroing)
             return;
-        if(BanwaveChecker.banwaveOn && FailsafeConfig.banwaveDisconnect)
+        if(BanwaveChecker.banwaveOn && FarmHelper.config.enableLeaveOnBanwave)
             return;
-        if(!Failsafe.jacobWait.passed() && JacobConfig.jacobFailsafe)
+        if(!Failsafe.jacobWait.passed() && FarmHelper.config.enableJacobFailsafes)
             return;
         if ((mc.currentScreen instanceof GuiDisconnected)) {
-            if (waitTime >= (FailsafeConfig.reconnectDelay * 20)) {
+            if (waitTime >= (FarmHelper.config.delayBeforeReconnect * 20)) {
                 waitTime = 0;
                 try {
                     FMLClientHandler.instance().connectToServer(new GuiMultiplayer(new GuiMainMenu()), new ServerData("bozo", FarmHelper.gameState.serverIP != null ? FarmHelper.gameState.serverIP : "mc.hypixel.net", false));

@@ -1,10 +1,9 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.ConfigHandler;
-import com.jelly.farmhelper.config.enums.FarmEnum;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
+
+
+
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -140,7 +139,8 @@ public class VisitorsMacro {
         firstTimeOpen = true;
         retriesToGettingCloser = 0;
         if (disableMacro) {
-            ConfigHandler.set("visitorsMacro", false);
+            FarmHelper.config.visitorsMacro = false;
+            FarmHelper.config.save();
         }
         disableMacro = false;
         if (MacroHandler.currentMacro != null) {
@@ -149,7 +149,7 @@ public class VisitorsMacro {
         ProfitCalculator.startingPurse = ProfitCalculator.getCurrentPurse() - (purseBeforeVisitors - ProfitCalculator.startingPurse);
         randomValue = 0;
         purseBeforeVisitors = 0;
-        if (MiscConfig.visitorsMacro)
+        if (FarmHelper.config.visitorsMacro)
             LogUtils.scriptLog("Stopped visitors macro");
     }
 
@@ -184,7 +184,7 @@ public class VisitorsMacro {
 
     @SubscribeEvent
     public void onTickStart(TickEvent.ClientTickEvent event) {
-        if (!MiscConfig.visitorsMacro) return;
+        if (!FarmHelper.config.visitorsMacro) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
         if (Failsafe.emergency) return;
@@ -197,17 +197,17 @@ public class VisitorsMacro {
             clock.reset();
         }
 
-        if (!MacroHandler.currentMacro.isSpawnLocationSet() && (!FarmConfig.ladderDesign || FarmConfig.farmType == FarmEnum.LAYERED)) {
+        if (!MacroHandler.currentMacro.isSpawnLocationSet() && (!FarmHelper.config.ladderDesign || FarmHelper.config.macroType)) {
             LogUtils.debugLog("Spawn pos is not yet determined, will run after rewarping or setting spawn.");
             return;
         }
 
-        if ((!FarmConfig.ladderDesign || FarmConfig.farmType == FarmEnum.LAYERED) && !MacroHandler.currentMacro.isStandingOnSpawnLocation()) {
+        if ((!FarmHelper.config.ladderDesign || FarmHelper.config.macroType) && !MacroHandler.currentMacro.isStandingOnSpawnLocation()) {
             LogUtils.debugLog("Not standing on spawn location, will run after rewarping or setting spawn.");
             return;
         }
 
-        if (ProfitCalculator.getCurrentPurse() < MiscConfig.visitorsMacroMoneyThreshold * 1_000_000) {
+        if (ProfitCalculator.getCurrentPurse() < FarmHelper.config.visitorsMacroMoneyThreshold * 1_000_000) {
             LogUtils.debugLog("Not enough money to start visitors macro, waiting...");
             clock.schedule(5000);
             return;
@@ -234,7 +234,7 @@ public class VisitorsMacro {
         }
 
         BlockPos blockUnder = BlockUtils.getRelativeBlockPos(0, 0, 0);
-        if (!BlockUtils.canSetSpawn(blockUnder) && FarmConfig.ladderDesign) {
+        if (!BlockUtils.canSetSpawn(blockUnder) && FarmHelper.config.ladderDesign) {
             LogUtils.debugLog("Can't setspawn here, still going.");
             clock.schedule(1000);
             enabled = false;
@@ -249,15 +249,17 @@ public class VisitorsMacro {
             haveAotv = true;
         }
 
-        if (MiscConfig.visitorsDeskPosX == 0 && MiscConfig.visitorsDeskPosY == 0 && MiscConfig.visitorsDeskPosZ == 0) {
+        if (FarmHelper.config.visitorsDeskPosX == 0 && FarmHelper.config.visitorsDeskPosY == 0 && FarmHelper.config.visitorsDeskPosZ == 0) {
             LogUtils.scriptLog("Desk position is not set, disabling this feature. Please set it up with the keybind");
-            ConfigHandler.set("visitorsMacro", false);
+            FarmHelper.config.visitorsMacro = false;
+            FarmHelper.config.save();
+
             enabled = false;
             return;
         }
 
         if (currentState == State.NONE && clock.passed()) {
-            if ((!FarmConfig.ladderDesign || FarmConfig.farmType == FarmEnum.LAYERED)) {
+            if ((!FarmHelper.config.ladderDesign || FarmHelper.config.macroType)) {
                 currentState = State.ROTATE_TO_EDGE;
                 clock.schedule(1500L);
                 LogUtils.debugLog("Visitors macro can be started");
@@ -278,7 +280,7 @@ public class VisitorsMacro {
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
-        if (!MiscConfig.visitorsMacro) return;
+        if (!FarmHelper.config.visitorsMacro) return;
         if (!MacroHandler.isMacroing) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
@@ -439,7 +441,7 @@ public class VisitorsMacro {
                     break;
                 }
 
-                BlockPos finalDeskPos = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY + 1, MiscConfig.visitorsDeskPosZ);
+                BlockPos finalDeskPos = new BlockPos(FarmHelper.config.visitorsDeskPosX, FarmHelper.config.visitorsDeskPosY + 1, FarmHelper.config.visitorsDeskPosZ);
 
                 if (BlockUtils.isBlockVisible(finalDeskPos) && mc.thePlayer.getDistance(finalDeskPos.getX(), finalDeskPos.getY(), finalDeskPos.getZ()) < 15) {
                     currentState = State.ROTATE_TO_DESK;
@@ -462,7 +464,7 @@ public class VisitorsMacro {
                 rotationToCenter = AngleUtils.getRotation(barnCenter);
 
                 double distanceToCenter = mc.thePlayer.getDistance(center.getX(), mc.thePlayer.posY, center.getZ());
-                finalDeskPos = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ);
+                finalDeskPos = new BlockPos(FarmHelper.config.visitorsDeskPosX, FarmHelper.config.visitorsDeskPosY, FarmHelper.config.visitorsDeskPosZ);
 
                 if (BlockUtils.isBlockVisible(finalDeskPos.up().up()) && mc.thePlayer.getDistance(finalDeskPos.getX(), finalDeskPos.getY(), finalDeskPos.getZ()) < 23) {
                     currentState = State.ROTATE_TO_DESK;
@@ -506,7 +508,7 @@ public class VisitorsMacro {
                     break;
                 }
                 KeyBindUtils.stopMovement();
-                BlockPos deskPosTemp = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ);
+                BlockPos deskPosTemp = new BlockPos(FarmHelper.config.visitorsDeskPosX, FarmHelper.config.visitorsDeskPosY, FarmHelper.config.visitorsDeskPosZ);
 
                 Pair<Float, Float> rotationToDesk = AngleUtils.getRotation(deskPosTemp.up());
 
@@ -519,8 +521,8 @@ public class VisitorsMacro {
             case MOVE_TOWARDS_DESK:
                 if ((mc.thePlayer.openContainer instanceof ContainerChest)) break;
 
-                finalDeskPos = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ);
-                BlockPos deskPosWithoutY = new BlockPos(MiscConfig.visitorsDeskPosX, mc.thePlayer.posY, MiscConfig.visitorsDeskPosZ);
+                finalDeskPos = new BlockPos(FarmHelper.config.visitorsDeskPosX, FarmHelper.config.visitorsDeskPosY, FarmHelper.config.visitorsDeskPosZ);
+                BlockPos deskPosWithoutY = new BlockPos(FarmHelper.config.visitorsDeskPosX, mc.thePlayer.posY, FarmHelper.config.visitorsDeskPosZ);
 
                 rotationToDesk = AngleUtils.getRotation(finalDeskPos.up().up().up());
                 double distance = mc.thePlayer.getDistance(finalDeskPos.getX(), finalDeskPos.getY(), finalDeskPos.getZ());
@@ -652,7 +654,7 @@ public class VisitorsMacro {
                                     boolean foundRequiredItems = false;
                                     boolean foundProfit = false;
                                     ArrayList<String> lore = PlayerUtils.getItemLore(slot.getStack());
-                                    if (MiscConfig.visitorsAcceptOnlyProfit) {
+                                    if (FarmHelper.config.onlyAcceptProfitVisitors) {
                                         for (String line : lore) {
                                             if (profitRewards.stream().anyMatch(r -> StringUtils.stripControlCodes(line.toLowerCase()).contains(StringUtils.stripControlCodes(r.toLowerCase())))) {
                                                 foundProfit = true;
@@ -972,7 +974,7 @@ public class VisitorsMacro {
     public void onChat(ClientChatReceivedEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
-        if (!MiscConfig.visitorsMacro) return;
+        if (!FarmHelper.config.visitorsMacro) return;
         if (currentState != State.TRY_TO_SET_SPAWN) return;
         if (event.type != 0) return;
         String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
@@ -997,20 +999,20 @@ public class VisitorsMacro {
 
         if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
 
-        if ((MiscConfig.visitorsDeskPosX == 0 && MiscConfig.visitorsDeskPosY == 0 && MiscConfig.visitorsDeskPosZ == 0)) {
+        if ((FarmHelper.config.visitorsDeskPosX == 0 && FarmHelper.config.visitorsDeskPosY == 0 && FarmHelper.config.visitorsDeskPosZ == 0)) {
             return;
         }
 
-        BlockPos deskPosTemp = new BlockPos(MiscConfig.visitorsDeskPosX, MiscConfig.visitorsDeskPosY, MiscConfig.visitorsDeskPosZ);
+        BlockPos deskPosTemp = new BlockPos(FarmHelper.config.visitorsDeskPosX, FarmHelper.config.visitorsDeskPosY, FarmHelper.config.visitorsDeskPosZ);
         RenderUtils.drawBlockBox(deskPosTemp, new Color(Color.DARK_GRAY.getRed(), Color.DARK_GRAY.getGreen(), Color.DARK_GRAY.getBlue(), 80));
     }
 
     @SubscribeEvent
     public void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
         if (!MacroHandler.isMacroing) return;
-        if (!MiscConfig.visitorsMacro) return;
+        if (!FarmHelper.config.visitorsMacro) return;
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
-        if (!MiscConfig.debugMode) return;
+        if (!FarmHelper.config.debugMode) return;
         if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
 
         ArrayList<Pair<String, Integer>> itemsToBuyCopy = new ArrayList<>(itemsToBuy);

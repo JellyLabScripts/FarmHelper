@@ -1,8 +1,7 @@
 package com.jelly.farmhelper.world;
 
-import com.jelly.farmhelper.config.enums.MacroEnum;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
-import com.jelly.farmhelper.config.interfaces.RemoteControlConfig;
+import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.Config.VerticalMacroEnum;
 import com.jelly.farmhelper.macros.MushroomMacro;
 import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.utils.BlockUtils;
@@ -63,7 +62,7 @@ public class GameState {
     public int jacobCounter;
 
     public GameState() {
-        webhook = new DiscordWebhook(RemoteControlConfig.webhookURL);
+        webhook = new DiscordWebhook(FarmHelper.config.webHookURL);
         webhook.setUsername("Jelly - Farm Helper");
         webhook.setAvatarUrl("https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png");
     }
@@ -151,7 +150,7 @@ public class GameState {
     }
 
     private void updateWalkables() {
-        float yaw = FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE ? MushroomMacro.closest90Yaw : mc.thePlayer.rotationYaw;
+        float yaw = (!FarmHelper.config.macroType && (FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM_ROTATE.ordinal())) ? MushroomMacro.closest90Yaw : mc.thePlayer.rotationYaw;
         frontWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 0, 1, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 1, 1, yaw)));
         rightWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 0, 0, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 1, 0, yaw)));
         backWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 0, -1, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 1, -1, yaw)));

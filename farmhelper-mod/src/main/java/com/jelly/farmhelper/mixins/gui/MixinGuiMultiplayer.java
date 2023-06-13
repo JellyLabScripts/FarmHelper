@@ -1,6 +1,6 @@
 package com.jelly.farmhelper.mixins.gui;
 
-import com.jelly.farmhelper.config.interfaces.ProxyConfig;
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.gui.ProxyScreen;
 import com.jelly.farmhelper.network.proxy.ConnectionState;
 import net.minecraft.client.gui.GuiButton;
@@ -23,7 +23,7 @@ public class MixinGuiMultiplayer extends MixinGuiScreen {
 
     @Inject(method = "drawScreen", at = @At("HEAD"))
     private void drawScreen(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
-        if (ProxyScreen.state == null && !ProxyConfig.connectAtStartup) {
+        if (ProxyScreen.state == null && !FarmHelper.config.connectAtStartup) {
             proxybtn.displayString = ConnectionState.DISCONNECTED.color + "Proxy - DISCONNECTED";
         } else if (ProxyScreen.state != null) {
             switch (ProxyScreen.state) {

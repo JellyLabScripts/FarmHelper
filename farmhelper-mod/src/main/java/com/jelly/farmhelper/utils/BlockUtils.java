@@ -1,7 +1,9 @@
 package com.jelly.farmhelper.utils;
 
-import com.jelly.farmhelper.config.enums.MacroEnum;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.Config.VerticalMacroEnum;
+import com.jelly.farmhelper.config.Config.SMacroEnum;
+
 import com.jelly.farmhelper.macros.MushroomMacro;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
@@ -150,13 +152,20 @@ public class BlockUtils {
     }
 
     public static boolean isWalkable(Block block) {
-        return Arrays.asList(FarmConfig.cropType == MacroEnum.CACTUS ? walkablesCactus :
-                (FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE) ? walkablesMushroom :
-                                walkables).contains(block);
+        if (!FarmHelper.config.macroType) {
+            if (FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM_ROTATE.ordinal() ||
+                    FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM.ordinal()) {
+                return Arrays.asList(walkablesMushroom).contains(block);
+            } else return Arrays.asList(walkables).contains(block);
+        } else {
+            if (FarmHelper.config.SShapeMacroType == SMacroEnum.CACTUS.ordinal()) {
+                return Arrays.asList(walkablesCactus).contains(block);
+            } else return Arrays.asList(walkables).contains(block);
+        }
     }
 
     public static boolean leftCropIsReady(){
-        Block crop = getRelativeBlock(-1, FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE ? 2 : 1, 1, FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE ? MushroomMacro.closest90Yaw : mc.thePlayer.rotationYaw);
+        Block crop = getRelativeBlock(-1, (!FarmHelper.config.macroType && (FarmHelper.config.VerticalMacroType ==  VerticalMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM_ROTATE.ordinal())) ? 2 : 1, 1, (!FarmHelper.config.macroType && (FarmHelper.config.VerticalMacroType ==  VerticalMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM_ROTATE.ordinal())) ? MushroomMacro.closest90Yaw : mc.thePlayer.rotationYaw);
         System.out.println(crop);
         if (crop.equals(Blocks.nether_wart)) {
             return mc.theWorld.getBlockState(getRelativeBlockPos(-1, 1, 1)).getValue(BlockNetherWart.AGE) == 3;
@@ -172,7 +181,7 @@ public class BlockUtils {
         }
     }
     public static boolean rightCropIsReady(){
-        Block crop = getRelativeBlock(1, FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE ? 2 : 1, 1, FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE ? MushroomMacro.closest90Yaw : mc.thePlayer.rotationYaw);
+        Block crop = getRelativeBlock(1, (!FarmHelper.config.macroType && (FarmHelper.config.VerticalMacroType ==  VerticalMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM_ROTATE.ordinal())) ? 2 : 1, 1, (!FarmHelper.config.macroType && (FarmHelper.config.VerticalMacroType ==  VerticalMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM_ROTATE.ordinal())) ? MushroomMacro.closest90Yaw : mc.thePlayer.rotationYaw);
         System.out.println(crop);
         if (crop.equals(Blocks.nether_wart)) {
             return mc.theWorld.getBlockState(getRelativeBlockPos(1, 1, 1)).getValue(BlockNetherWart.AGE) == 3;

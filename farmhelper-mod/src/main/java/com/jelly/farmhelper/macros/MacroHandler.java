@@ -1,14 +1,9 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.ConfigHandler;
-import com.jelly.farmhelper.config.enums.CropEnum;
-import com.jelly.farmhelper.config.enums.FarmEnum;
-import com.jelly.farmhelper.config.enums.MacroEnum;
-import com.jelly.farmhelper.config.interfaces.AutoSellConfig;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
-import com.jelly.farmhelper.config.interfaces.SchedulerConfig;
+import com.jelly.farmhelper.config.Config.VerticalMacroEnum;
+import com.jelly.farmhelper.config.Config.SMacroEnum;
+import com.jelly.farmhelper.config.Config.CropEnum;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Failsafe;
@@ -78,7 +73,7 @@ public class MacroHandler {
 
         Color chroma = Color.getHSBColor((float) ((System.currentTimeMillis() / 10) % 2000) / 2000, 1, 1);
         Color chromaLowerAlpha = new Color(chroma.getRed(), chroma.getGreen(), chroma.getBlue(), 120);
-        for (Rewarp rewarp : ConfigHandler.rewarpList) {
+        for (Rewarp rewarp : FarmHelper.config.rewarpList) {
             RenderUtils.drawBlockBox(new BlockPos(rewarp.x, rewarp.y, rewarp.z), chromaLowerAlpha);
         }
     }
@@ -101,7 +96,7 @@ public class MacroHandler {
     @SubscribeEvent
     public void OnKeyPress(InputEvent.KeyInputEvent event) {
         Keyboard.enableRepeatEvents(false);
-        if (KeyBindUtils.customKeyBinds[1].isPressed()) {
+        if (FarmHelper.config.toggleMacro.isActive()) {
             toggleMacro();
         } else if (Keyboard.isKeyDown(Keyboard.KEY_J)) {
             //debug
@@ -141,15 +136,20 @@ public class MacroHandler {
         }
     }
     public static void enableMacro() {
-        if(FarmConfig.farmType == FarmEnum.VERTICAL) {
-            currentMacro = verticalCropMacro;
-        } else {
-            if (FarmConfig.cropType == MacroEnum.SUGARCANE) {
-                currentMacro = sugarcaneMacro;
-            } else if (FarmConfig.cropType == MacroEnum.COCOABEANS || FarmConfig.cropType == MacroEnum.COCOABEANSRG) {
-                currentMacro = cocoaBeanMacro;
-            } else if (FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE) {
+        if(!FarmHelper.config.macroType) {
+            if (FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM.ordinal() ||
+                FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM_ROTATE.ordinal()) {
                 currentMacro = mushroomMacro;
+            } else {
+                currentMacro = verticalCropMacro;
+            }
+        } else {
+            if (FarmHelper.config.SShapeMacroType == SMacroEnum.SUGAR_CANE.ordinal()) {
+                currentMacro = sugarcaneMacro;
+            } else if (FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS.ordinal()) {
+                currentMacro = cocoaBeanMacro;
+            } else if (FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS_RG.ordinal()) {
+                currentMacro = cocoaBeanRGMacro;
             } else {
                 currentMacro = sShapeCropMacro;
             }
@@ -160,10 +160,10 @@ public class MacroHandler {
 
         LogUtils.scriptLog("Starting script");
         LogUtils.webhookLog("Starting script");
-        if (AutoSellConfig.autoSell) LogUtils.scriptLog("Auto Sell is in BETA, lock important slots just in case");
-        if (MiscConfig.ungrab) UngrabUtils.ungrabMouse();
-        if (SchedulerConfig.scheduler) Scheduler.start();
-        if (MiscConfig.visitorsMacro && MiscConfig.visitorsAcceptOnlyProfit) LogUtils.scriptLog("Macro will only accept offers containing any of these products: " + String.join(", ", VisitorsMacro.profitRewards));
+        if (FarmHelper.config.enableAutoSell) LogUtils.scriptLog("Auto Sell is in BETA, lock important slots just in case");
+        if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
+        if (FarmHelper.config.enableScheduler) Scheduler.start();
+        if (FarmHelper.config.visitorsMacro && FarmHelper.config.onlyAcceptProfitVisitors) LogUtils.scriptLog("Macro will only accept offers containing any of these products: " + String.join(", ", VisitorsMacro.profitRewards));
 
         startTime = System.currentTimeMillis();
         ProfitCalculator.resetProfit();
@@ -240,8 +240,10 @@ public class MacroHandler {
                 for (int y = -3; y < 3; y++) {
                     for (int z = 0; z < 3; z++) {
                         BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, 1 + z,
-                                FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.SUGARCANE ? AngleUtils.getClosestDiagonal() - 45
-                                        : AngleUtils.getClosest());
+                            ((!FarmHelper.config.macroType && FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM.ordinal()) ||
+                                (FarmHelper.config.macroType && FarmHelper.config.SShapeMacroType == SMacroEnum.SUGAR_CANE.ordinal()) ?
+                                AngleUtils.getClosestDiagonal() - 45 :
+                                AngleUtils.getClosest()));
                         Block block = mc.theWorld.getBlockState(pos).getBlock();
                         if (!(block instanceof BlockCrops || block instanceof BlockReed || block instanceof BlockCocoa || block instanceof BlockNetherWart || block instanceof BlockMelon || block instanceof BlockPumpkin || block instanceof BlockMushroom || block instanceof BlockCactus))
                             continue;
@@ -263,9 +265,9 @@ public class MacroHandler {
             } else if (left.equals(Blocks.potatoes)) {
                 return CropEnum.POTATO;
             } else if (left.equals(Blocks.nether_wart)) {
-                return CropEnum.NETHERWART;
+                return CropEnum.NETHER_WART;
             } else if (left.equals(Blocks.reeds)) {
-                return CropEnum.SUGARCANE;
+                return CropEnum.SUGAR_CANE;
             } else if (left.equals(Blocks.cocoa)) {
                 return CropEnum.COCOA_BEANS;
             } else if (left.equals(Blocks.melon_block)) {

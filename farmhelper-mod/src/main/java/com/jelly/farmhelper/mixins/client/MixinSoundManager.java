@@ -1,6 +1,6 @@
 package com.jelly.farmhelper.mixins.client;
 
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.Utils;
 import net.minecraft.client.audio.ISound;
@@ -17,7 +17,7 @@ public class MixinSoundManager {
     @Inject(method = "getNormalizedVolume", at = @At("RETURN"), cancellable = true)
     private void getNormalizedVolume(ISound sound, SoundPoolEntry soundPoolEntry, SoundCategory category, CallbackInfoReturnable<Float> ci) {
         if(Utils.pingAlertPlaying && category == SoundCategory.PLAYERS) return;
-        if(MacroHandler.isMacroing && MiscConfig.muteGame) {
+        if(MacroHandler.isMacroing && FarmHelper.config.muteGame) {
             ci.setReturnValue(0.0f);
         }
     }

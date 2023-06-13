@@ -2,16 +2,12 @@ package com.jelly.farmhelper.remote;
 
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.interfaces.RemoteControlConfig;
 import com.jelly.farmhelper.remote.analytic.AnalyticBaseCommand;
 import com.jelly.farmhelper.remote.command.Adapter;
 import com.jelly.farmhelper.remote.command.BaseCommand;
 import dev.volix.lib.brigadier.Brigadier;
-import gg.essential.api.EssentialAPI;
-import gg.essential.api.utils.MinecraftUtils;
 import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.reflections.Reflections;
@@ -66,12 +62,12 @@ public class RemoteControlHandler {
             Remote control shit
              */
             JsonObject j = new JsonObject();
-            j.addProperty("password", RemoteControlConfig.websocketPassword);
+            j.addProperty("password", FarmHelper.config.webHookURL);
             j.addProperty("name", mc.getSession().getUsername());
             j.addProperty("modversion", FarmHelper.MODVERSION);
             j.addProperty("botversion", FarmHelper.BOTVERSION);
             String data = Base64.getEncoder().encodeToString(j.toString().getBytes(StandardCharsets.UTF_8));
-            client = new Client(new URI("ws://" + RemoteControlConfig.websocketIP.split(":")[0] + ":58637/farmhelperws"));
+            client = new Client(new URI("ws://" + FarmHelper.config.webHookURL.split(":")[0] + ":58637/farmhelperws"));
             client.addHeader("auth", data);
             client.connect();
         } catch (URISyntaxException e) {
@@ -118,7 +114,7 @@ public class RemoteControlHandler {
 //            tick2++;
 //        }
 
-        if (!RemoteControlConfig.enableRemoteControl) {
+        if (!FarmHelper.config.enableRemoteControl) {
             if (client != null && client.isOpen()) {
                 client.closeConnection(69, "a");
             }
@@ -126,7 +122,7 @@ public class RemoteControlHandler {
         }
 
         if (client != null && client.isOpen()) {
-            connecting.set("Connected to Socket");
+            connecting = "Connected to Socket";
             return;
         }
 

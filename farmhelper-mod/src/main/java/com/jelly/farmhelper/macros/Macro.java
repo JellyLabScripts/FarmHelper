@@ -1,7 +1,7 @@
 package com.jelly.farmhelper.macros;
 
-import com.jelly.farmhelper.config.ConfigHandler;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.utils.LogUtils;
@@ -72,14 +72,17 @@ public abstract class Macro {
     }
 
     public boolean isRewarpLocationSet() {
-        return ConfigHandler.rewarpList.size() > 0;
+        for (Rewarp rewarp : Config.rewarpList) {
+          System.out.println("FarmHelper: isRewarpLocationSet: rewarp: " + rewarp.toString());
+        }
+        return Config.rewarpList.size() > 0;
     }
 
     public boolean isStandingOnRewarpLocation() {
-        if (ConfigHandler.rewarpList.size() == 0) return false;
+        if (Config.rewarpList.size() == 0) return false;
         Rewarp closest = null;
         double closestDistance = Double.MAX_VALUE;
-        for (Rewarp rewarp : ConfigHandler.rewarpList) {
+        for (Rewarp rewarp : Config.rewarpList) {
             double distance = rewarp.getDistance(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ));
             if (distance < closestDistance) {
                 closest = rewarp;
@@ -92,23 +95,21 @@ public abstract class Macro {
     }
 
     public boolean isSpawnLocationSet() {
-        return MiscConfig.spawnPosX != 0 && MiscConfig.spawnPosY != 0 && MiscConfig.spawnPosZ != 0;
+        return FarmHelper.config.spawnPosX != 0 && FarmHelper.config.spawnPosY != 0 && FarmHelper.config.spawnPosZ != 0;
     }
 
     public boolean isStandingOnSpawnLocation() {
         BlockPos currentPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
-        BlockPos spawnPos = new BlockPos(MiscConfig.spawnPosX, MiscConfig.spawnPosY, MiscConfig.spawnPosZ);
+        BlockPos spawnPos = new BlockPos(FarmHelper.config.spawnPosX, FarmHelper.config.spawnPosY, FarmHelper.config.spawnPosZ);
         return Math.sqrt(currentPos.distanceSqToCenter(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ())) < 1;
     }
 
     public void setSpawnLocation() {
         if (mc.thePlayer == null) return;
-        ConfigHandler.set("spawnPosX", mc.thePlayer.getPosition().getX());
-        ConfigHandler.set("spawnPosY", mc.thePlayer.getPosition().getY());
-        ConfigHandler.set("spawnPosZ", mc.thePlayer.getPosition().getZ());
-        MiscConfig.spawnPosX = mc.thePlayer.getPosition().getX();
-        MiscConfig.spawnPosY = mc.thePlayer.getPosition().getY();
-        MiscConfig.spawnPosZ = mc.thePlayer.getPosition().getZ();
+        FarmHelper.config.spawnPosX = mc.thePlayer.getPosition().getX();
+        FarmHelper.config.spawnPosY = mc.thePlayer.getPosition().getY();
+        FarmHelper.config.spawnPosZ = mc.thePlayer.getPosition().getZ();
+        FarmHelper.config.save();
     }
 
     public boolean cantPauseNow() {

@@ -1,10 +1,10 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.enums.CropEnum;
-import com.jelly.farmhelper.config.enums.MacroEnum;
-import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.config.Config.VerticalMacroEnum;
+import com.jelly.farmhelper.config.Config.SMacroEnum;
+import com.jelly.farmhelper.config.Config.CropEnum;
+
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
@@ -78,7 +78,7 @@ public class SShapeCropMacro extends Macro {
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
         CropUtils.getTool();
-        if (crop == CropEnum.NETHERWART || crop == CropEnum.CACTUS) {
+        if (crop == CropEnum.NETHER_WART || crop == CropEnum.CACTUS) {
             pitch = (float) (0f + Math.random() * 0.5f);
         } else if (crop == CropEnum.MELON || crop == CropEnum.PUMPKIN) {
             pitch = 28 + (float) (Math.random() * 2); //28-30
@@ -170,7 +170,7 @@ public class SShapeCropMacro extends Macro {
 
         if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && !rotated) {
             yaw = AngleUtils.getClosest(yaw);
-            if (FarmConfig.rotateAfterBack)
+            if (FarmHelper.config.rotateAfterWarped)
                 yaw = AngleUtils.get360RotationYaw(yaw + 180);
             if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
                 rotation.easeTo(yaw, pitch, (long) (500 + Math.random() * 200));
@@ -193,8 +193,8 @@ public class SShapeCropMacro extends Macro {
 
         if(currentState != State.DROPPING && currentState != State.STONE_THROW) {
 
-            boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens
-                    || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens;
+            boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FarmHelper.config.rotationCheckSensitivity
+                    || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity;
 
             if(!Failsafe.emergency && flag && lastTp.passed() && !rotation.rotating) {
                 rotation.reset();
@@ -251,7 +251,7 @@ public class SShapeCropMacro extends Macro {
 
         switch (currentState) {
             case DROPPING:
-                if (layerY - mc.thePlayer.posY >= 2 && mc.thePlayer.onGround && FarmConfig.rotateAfterDrop) {
+                if (layerY - mc.thePlayer.posY >= 2 && mc.thePlayer.onGround && FarmHelper.config.rotateAfterDrop) {
                     if (!rotation.completed) {
                         if (!rotation.rotating) {
                             LogUtils.debugLog("Rotating 180");
@@ -290,13 +290,15 @@ public class SShapeCropMacro extends Macro {
             case RIGHT:
                 if (!waitForChangeDirection.isScheduled()) {
                     LogUtils.debugLog("Middle of row, going right");
-                    updateKeys(FarmConfig.cropType != MacroEnum.CACTUS && FarmConfig.cropType != MacroEnum.PUMPKIN_MELON && shouldWalkForwards(), FarmConfig.cropType == MacroEnum.CACTUS && shouldPushBack(), true, false, true);
+                    updateKeys((FarmHelper.config.VerticalMacroType != VerticalMacroEnum.PUMPKIN_MELON.ordinal()) &&
+                                (FarmHelper.config.SShapeMacroType != SMacroEnum.CACTUS.ordinal()) && shouldWalkForwards(), (FarmHelper.config.SShapeMacroType == SMacroEnum.CACTUS.ordinal()) && shouldPushBack(), true, false, true);
                 }
                 return;
             case LEFT:
                 if (!waitForChangeDirection.isScheduled()) {
                     LogUtils.debugLog("Middle of row, going left");
-                    updateKeys(FarmConfig.cropType != MacroEnum.CACTUS && FarmConfig.cropType != MacroEnum.PUMPKIN_MELON && shouldWalkForwards(), FarmConfig.cropType == MacroEnum.CACTUS && shouldPushBack(), false, true, true);
+                    updateKeys((FarmHelper.config.VerticalMacroType != VerticalMacroEnum.PUMPKIN_MELON.ordinal()) &&
+                        (FarmHelper.config.SShapeMacroType != SMacroEnum.CACTUS.ordinal()) && shouldWalkForwards(), (FarmHelper.config.SShapeMacroType == SMacroEnum.CACTUS.ordinal()) && shouldPushBack(), false, true, true);
                 }
                 return;
             case SWITCH_START:
@@ -429,7 +431,7 @@ public class SShapeCropMacro extends Macro {
         } else if (gameState.frontWalkable && gameState.backWalkable && (currentState == State.SWITCH_START || currentState == State.SWITCH_MID) && !waitForChangeDirection.isScheduled()) {
             currentState = State.SWITCH_MID;
             LogUtils.debugLog("SWITCH_MID");
-        } else if (((gameState.frontWalkable && (!gameState.backWalkable || BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.water))) || ((!gameState.frontWalkable || BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.water)) && gameState.backWalkable)) && currentState != State.SWITCH_MID && currentState != State.DROPPING && (FarmConfig.cropType != MacroEnum.CACTUS || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus)) && (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON || (!BlockUtils.isRelativeBlockPassable(0, -1, 2) || !BlockUtils.isRelativeBlockPassable(0, -1, -2)))) {
+        } else if (((gameState.frontWalkable && (!gameState.backWalkable || BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.water))) || ((!gameState.frontWalkable || BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.water)) && gameState.backWalkable)) && currentState != State.SWITCH_MID && currentState != State.DROPPING && (FarmHelper.config.SShapeMacroType != SMacroEnum.CACTUS.ordinal() || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus)) && (FarmHelper.config.VerticalMacroType != VerticalMacroEnum.PUMPKIN_MELON.ordinal() || (!BlockUtils.isRelativeBlockPassable(0, -1, 2) || !BlockUtils.isRelativeBlockPassable(0, -1, -2)))) {
             if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                 if (gameState.frontWalkable)
                     switchBackwardsDirection = false;

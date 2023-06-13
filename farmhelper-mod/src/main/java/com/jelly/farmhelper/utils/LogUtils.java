@@ -1,8 +1,6 @@
 package com.jelly.farmhelper.utils;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
-import com.jelly.farmhelper.config.interfaces.RemoteControlConfig;
 import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.DiscordWebhook;
@@ -41,7 +39,7 @@ public class LogUtils {
     }
 
     public static void debugLog(String message) {
-        if (MiscConfig.debugMode) {
+        if (FarmHelper.config.debugMode) {
             sendLog(new ChatComponentText(
                 EnumChatFormatting.GREEN + "Log " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + message
             ));
@@ -50,7 +48,7 @@ public class LogUtils {
     }
 
     public static void debugFullLog(String message) {
-        if (MiscConfig.debugMode) {
+        if (FarmHelper.config.debugMode) {
             debugLog(message);
         }
     }
@@ -75,7 +73,7 @@ public class LogUtils {
                 statusMsgTime = System.currentTimeMillis();
             }
             long timeDiff = TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - statusMsgTime);
-            if (timeDiff > RemoteControlConfig.webhookStatusCooldown && RemoteControlConfig.webhookStatus) {
+            if (timeDiff > FarmHelper.config.statusUpdateInterval && FarmHelper.config.sendStatusUpdates) {
                 FarmHelper.gameState.webhook.addEmbed(new DiscordWebhook.EmbedObject()
                         .setTitle("Farm Helper")
                         .setDescription("```" + "I'm still alive!" + "```")
@@ -84,8 +82,8 @@ public class LogUtils {
                         .setThumbnail("https://crafatar.com/renders/head/" + mc.thePlayer.getUniqueID())
                         .addField("Username", mc.thePlayer.getName(), true)
                         .addField("Runtime", getRuntimeFormat(), true)
-                        .addField("Total Profit", ProfitCalculator.profit.get(), false)
-                        .addField("Profit / hr", ProfitCalculator.profitHr.get(), false)
+                        .addField("Total Profit", ProfitCalculator.profit, false)
+                        .addField("Profit / hr", ProfitCalculator.profitHr, false)
                         .addField("Crop Type", String.valueOf(MacroHandler.crop), true)
                         .addField(BanwaveChecker.getBanDisplay(), "", false)
                 );
@@ -106,7 +104,7 @@ public class LogUtils {
     public static void webhookLog(String message) {
         long timeDiff = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - logMsgTime);
         debugFullLog("Last webhook message: " + timeDiff);
-        if (RemoteControlConfig.webhookLogs && (timeDiff > 20 || !Objects.equals(lastWebhook, message))) {
+        if (FarmHelper.config.sendLogs && (timeDiff > 20 || !Objects.equals(lastWebhook, message))) {
             FarmHelper.gameState.webhook.addEmbed(new DiscordWebhook.EmbedObject()
                 .setDescription("**Farm Helper Log** ```" + message + "```")
                 .setColor(Color.decode("#741010"))

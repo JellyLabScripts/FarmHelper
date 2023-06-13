@@ -2,7 +2,7 @@ package com.jelly.farmhelper.remote;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.jelly.farmhelper.config.ConfigHandler;
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.remote.event.MessageEvent;
 import com.jelly.farmhelper.utils.LogUtils;
 import dev.volix.lib.brigadier.Brigadier;
@@ -35,7 +35,9 @@ public class Client extends WebSocketClient {
     public void onMessage(String message) {
         if (message.equals("VERSIONERROR")) {
             LogUtils.scriptLog("RemoteControl wont work on this instance as mod/bot versions don't match. Download latest version from discord.");
-            ConfigHandler.set("enableRemoteControl", false);
+//            ConfigHandler.set("enableRemoteControl", false);
+            FarmHelper.config.enableRemoteControl = false;
+            FarmHelper.config.save();
             this.close(-1);
         }
         MessageEvent ctx = new MessageEvent(this, new Gson().fromJson(message, JsonObject.class));
@@ -50,12 +52,12 @@ public class Client extends WebSocketClient {
     @Override
     public void onClose(int code, String reason, boolean remote) {
         if (code == -1 && !remote) {
-            connecting.set("WebSocket is not online, trying again");
+            connecting = "WebSocket is not online, trying again";
         } else {
             if (code == 69) {
-                connecting.set("Connecting to the websocket..");
+                connecting = "Connecting to the websocket..";
             } else if (code == 1006) {
-                connecting.set("Wrong password for Socket, trying again");
+                connecting = "Wrong password for Socket, trying again";
             }
         }
     }

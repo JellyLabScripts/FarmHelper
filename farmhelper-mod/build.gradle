@@ -52,6 +52,8 @@ minecraft {
 
     clientRunArgs += "--mixin mixins.farmhelper.json"
     clientRunArgs += '--tweakClass gg.essential.loader.stage0.EssentialSetupTweaker'
+    clientRunArgs += '--tweakClass cc.polyfrost.oneconfig.loader.stage0.LaunchWrapperTweaker'
+    clientRunArgs += '-Xms256m -Xmx2048m -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:-UseAdaptiveSizePolicy'
 }
 
 
@@ -73,6 +75,9 @@ repositories {
     mavenCentral()
     maven {
         url = "https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1"
+    }
+    maven {
+        url = 'https://repo.polyfrost.cc/releases'
     }
 }
 
@@ -98,6 +103,9 @@ dependencies {
     annotationProcessor('org.projectlombok:lombok:1.18.24')
 
     implementation("me.djtheredstoner:DevAuth-forge-legacy:1.1.0")
+
+    compileOnly('cc.polyfrost:oneconfig-1.8.9-forge:0.2.0-alpha+')
+    include('cc.polyfrost:oneconfig-wrapper-launchwrapper:1.0.0-beta+')
 }
 
 mixin {

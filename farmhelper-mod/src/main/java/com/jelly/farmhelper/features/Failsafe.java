@@ -1,7 +1,6 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.interfaces.*;
 import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.macros.MacroHandler;
@@ -61,7 +60,7 @@ public class Failsafe {
                 cooldown.schedule(10000);
             }
             if (message.contains("to warp out! CLICK to warp now!")) {
-                if (FailsafeConfig.setSpawnBeforeEvacuate)
+                if (FarmHelper.config.setSpawnBeforeEvacuate)
                     PlayerUtils.setSpawn();
                 LogUtils.debugLog("Update or restart is required - Evacuating in 5s");
                 evacuateCooldown.schedule(2_500);
@@ -82,13 +81,13 @@ public class Failsafe {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (!MacroHandler.isMacroing) return;
         if (gameState.currentLocation != GameState.location.ISLAND && MacroHandler.currentMacro.enabled) {
-            if(FailsafeConfig.notifications)
+            if(FarmHelper.config.popUpNotification)
                 Utils.createNotification("Not in island. It might be a server reboot or staff check." +
-                        (FailsafeConfig.autoTpOnWorldChange ? "" : " Please go back to your island and restart the script."), SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
+                        (FarmHelper.config.autoTPOnWorldChange ? "" : " Please go back to your island and restart the script."), SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
 
             LogUtils.scriptLog("Failsafe - Not in island. It might be a server reboot or staff check." +
-                    (FailsafeConfig.autoTpOnWorldChange ? "" : " Please go back to your island and restart the script." +
-                            (FailsafeConfig.autoSetspawn ? "" : " Since auto setspawn was disabled, fly back to the place where you started")));
+                    (FarmHelper.config.autoTPOnWorldChange ? "" : " Please go back to your island and restart the script." +
+                            (FarmHelper.config.enableAutoSetSpawn ? "" : " Since auto setspawn was disabled, fly back to the place where you started")));
             
             MacroHandler.disableCurrentMacro();
             cooldown.schedule((long) (6000 + Math.random() * 5000));
@@ -100,7 +99,7 @@ public class Failsafe {
     public void onRenderGameOverlay(RenderGameOverlayEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
-        if (!MiscConfig.debugMode) return;
+        if (!FarmHelper.config.debugMode) return;
         if (mc.theWorld == null || mc.thePlayer == null) return;
 
         if (restartAfterFailsafeCooldown.isScheduled() && !restartAfterFailsafeCooldown.passed()) {
@@ -164,7 +163,7 @@ public class Failsafe {
             case TELEPORTING:
                 return;
             case LIMBO:
-                if(!FailsafeConfig.autoTpOnWorldChange) return;
+                if(!FarmHelper.config.autoTPOnWorldChange) return;
                 if (cooldown.passed()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage("/lobby");
@@ -172,7 +171,7 @@ public class Failsafe {
                 }
                 return;
             case LOBBY:
-                if(!FailsafeConfig.autoTpOnWorldChange) return;
+                if(!FarmHelper.config.autoTPOnWorldChange) return;
                 if (cooldown.passed() && jacobWait.passed()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage("/skyblock");
@@ -181,7 +180,7 @@ public class Failsafe {
                 }
                 return;
             case HUB:
-                if(!FailsafeConfig.autoTpOnWorldChange) return;
+                if(!FarmHelper.config.autoTPOnWorldChange) return;
                 LogUtils.debugLog("Detected Hub");
                 if (afterEvacuateCooldown.isScheduled() && !afterEvacuateCooldown.passed()) {
                     LogUtils.debugLog("Waiting for \"after evacuate\" cooldown: " + (String.format("%.1f", afterEvacuateCooldown.getRemainingTime() / 1000f)));
@@ -209,7 +208,7 @@ public class Failsafe {
                     evacuateCooldown.reset();
                     afterEvacuateCooldown.schedule(5_000);
                 }
-                if (JacobConfig.jacobFailsafe && jacobExceeded() && jacobWait.passed() && MacroHandler.currentMacro.enabled) {
+                if (FarmHelper.config.enableJacobFailsafes && jacobExceeded() && jacobWait.passed() && MacroHandler.currentMacro.enabled) {
                     LogUtils.debugLog("Jacob remaining time: " + formattedTime);
                     LogUtils.webhookLog("Jacob score exceeded - - Resuming in " + formattedTime);
                     jacobWait.schedule(getJacobRemaining());
@@ -221,7 +220,7 @@ public class Failsafe {
                         && Scheduler.isFarming()
                         && !AutoCookie.isEnabled()
                         && !AutoPot.isEnabled()
-                        && !(BanwaveChecker.banwaveOn && FailsafeConfig.banwaveDisconnect)
+                        && !(BanwaveChecker.banwaveOn && FarmHelper.config.enableLeaveOnBanwave)
                         && !emergency
                         && !evacuateCooldown.isScheduled()
                         && !afterEvacuateCooldown.isScheduled()
@@ -308,17 +307,17 @@ public class Failsafe {
         for (String line : ScoreboardUtils.getScoreboardLines()) {
             String cleanedLine = ScoreboardUtils.cleanSB(line);
             if (cleanedLine.contains("Wart") || cleanedLine.contains("Nether")) {
-                return gameState.jacobCounter > JacobConfig.netherWartCap;
+                return gameState.jacobCounter > FarmHelper.config.netherWartCap;
             } else if (cleanedLine.contains("Mushroom")) {
-                return gameState.jacobCounter > JacobConfig.mushroomCap;
+                return gameState.jacobCounter > FarmHelper.config.mushroomCap;
             } else if (cleanedLine.contains("Carrot")) {
-                return gameState.jacobCounter > JacobConfig.carrotCap;
+                return gameState.jacobCounter > FarmHelper.config.carrotCap;
             } else if (cleanedLine.contains("Potato")) {
-                return gameState.jacobCounter > JacobConfig.potatoCap;
+                return gameState.jacobCounter > FarmHelper.config.potatoCap;
             } else if (cleanedLine.contains("Wheat")) {
-                return gameState.jacobCounter > JacobConfig.wheatCap;
+                return gameState.jacobCounter > FarmHelper.config.wheatCap;
             } else if (cleanedLine.contains("Sugar") || cleanedLine.contains("Cane") ) {
-                return gameState.jacobCounter > JacobConfig.sugarcaneCap;
+                return gameState.jacobCounter > FarmHelper.config.sugarCaneCap;
             }
         }
         return false;
@@ -435,7 +434,7 @@ public class Failsafe {
             emergencyThreadExecutor.submit(delayedStopScript);
         }
 
-        if(FailsafeConfig.notifications){
+        if(FarmHelper.config.popUpNotification){
             try {
                 SystemTray tray = SystemTray.getSystemTray();
                 Utils.createNotification(type.label, tray, TrayIcon.MessageType.WARNING);
@@ -444,15 +443,15 @@ public class Failsafe {
             }
         }
 
-        if(FailsafeConfig.autoFocusOnStaffCheck) {
+        if(FarmHelper.config.autoAltTabOnFailSafeActivated) {
             Utils.bringWindowToFront();
         }
 
-        if (FailsafeConfig.pingSound) {
+        if (FarmHelper.config.pingSound) {
             Utils.sendPingAlert();
         }
 
-        if (FailsafeConfig.fakeMovements) {
+        if (FarmHelper.config.fakeMovements) {
             switch (type){
                 case DESYNC:
                     emergencyThreadExecutor.submit(stopScript);
@@ -469,7 +468,7 @@ public class Failsafe {
             }
         }
 
-        if (FailsafeConfig.restartAfterFailsafe)
+        if (FarmHelper.config.enableRestartAfterFailSafe)
             restartAfterFailsafeCooldown.schedule(180_000);
     }
 
@@ -568,7 +567,7 @@ public class Failsafe {
                 }
             }
             LogUtils.scriptLog("Stop the macro if you see this!");
-            if (FarmConfig.ladderDesign)
+            if (FarmHelper.config.ladderDesign)
                 PlayerUtils.setSpawn();
             Thread.sleep(3000);
             if(Math.random() < 0.5d) {

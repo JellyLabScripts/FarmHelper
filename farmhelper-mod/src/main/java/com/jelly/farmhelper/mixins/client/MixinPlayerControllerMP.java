@@ -1,6 +1,6 @@
 package com.jelly.farmhelper.mixins.client;
 
-import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.Resync;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.Clock;
@@ -23,7 +23,7 @@ public class MixinPlayerControllerMP {
 
     @Inject(method={"clickBlock"}, at={@At(value="HEAD")})
     public void clickBlock(BlockPos loc, EnumFacing face, CallbackInfoReturnable<Boolean> cir) {
-        if (FailsafeConfig.checkDesync &&
+        if (FarmHelper.config.checkDeSync &&
                 MacroHandler.isMacroing && MacroHandler.currentMacro != null
                 && MacroHandler.currentMacro.enabled && loc != null
                 && Minecraft.getMinecraft().theWorld.getBlockState(loc) != null) {

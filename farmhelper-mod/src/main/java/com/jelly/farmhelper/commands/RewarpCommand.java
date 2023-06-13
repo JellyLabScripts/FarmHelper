@@ -1,7 +1,6 @@
 package com.jelly.farmhelper.commands;
 
-import com.jelly.farmhelper.config.ConfigHandler;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.utils.BlockUtils;
 import com.jelly.farmhelper.utils.LogUtils;
@@ -40,21 +39,21 @@ public class RewarpCommand extends CommandBase {
 
         switch (args[0]) {
             case "add": {
-                if (ConfigHandler.rewarpList.stream().anyMatch(rewarp -> rewarp.isTheSameAs(BlockUtils.getRelativeBlockPos(0, 0, 0)))) {
+                if (Config.rewarpList.stream().anyMatch(rewarp -> rewarp.isTheSameAs(BlockUtils.getRelativeBlockPos(0, 0, 0)))) {
                     LogUtils.scriptLog("Rewarp location already set");
                     return;
                 }
-                ConfigHandler.addRewarp(new Rewarp(BlockUtils.getRelativeBlockPos(0, 0, 0)));
+                Config.addRewarp(new Rewarp(BlockUtils.getRelativeBlockPos(0, 0, 0)));
                 break;
             }
             case "remove": {
                 Rewarp closest = null;
-                if (ConfigHandler.rewarpList.size() == 0) {
+                if (Config.rewarpList.size() == 0) {
                     LogUtils.scriptLog("No rewarp locations set");
                     return;
                 }
                 double closestDistance = Double.MAX_VALUE;
-                for (Rewarp rewarp : ConfigHandler.rewarpList) {
+                for (Rewarp rewarp : Config.rewarpList) {
                     double distance = rewarp.getDistance(BlockUtils.getRelativeBlockPos(0, 0, 0));
                     if (distance < closestDistance) {
                         closest = rewarp;
@@ -62,12 +61,12 @@ public class RewarpCommand extends CommandBase {
                     }
                 }
                 if (closest != null) {
-                    ConfigHandler.removeRewarp(closest);
+                    Config.removeRewarp(closest);
                 }
                 break;
             }
             case "removeall": {
-                ConfigHandler.removeAllRewarps();
+                Config.removeAllRewarps();
                 break;
             }
         }
