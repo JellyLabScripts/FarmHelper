@@ -250,7 +250,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public boolean sendStatusUpdates = false;
 	@Number(
 		name = "Status Update Interval", category = GENERAL, subcategory = "Webhook",
-		description = "The interval to send status updates to WebHook (in seconds)",
+		description = "The interval to send status updates to WebHook (in minutes)",
 		min = 1, max = 60, step = 1
 	)
 	public int statusUpdateInterval = 5;
