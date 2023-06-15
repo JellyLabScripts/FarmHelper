@@ -16,7 +16,7 @@ import java.util.Map;
 public class ProfitCalculatorHUD extends BasicHud {
     protected transient LinkedHashMap<String, String> lines = new LinkedHashMap<String, String>();
     public ProfitCalculatorHUD() {
-        super(true, 0, 0, 0.8f, true, true, 3, 4, 6, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
+        super(true, 0, 0, 4, true, true, 3, 4, 6, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
         addLines();
     }
     @Override
@@ -41,7 +41,7 @@ public class ProfitCalculatorHUD extends BasicHud {
         }
         // draw text
         if (text != null) {
-            NanoVGHelper.INSTANCE.drawText(vg, text, (x + iconWidth + 2) + 4, (y + (iconHeight / 2)), -1, 2 * scale, Fonts.BOLD);
+            NanoVGHelper.INSTANCE.drawText(vg, text, (x + iconWidth + 2) + 4, (y + (iconHeight / 2)), -1, 2 * scale, Fonts.MINECRAFT_REGULAR);
         }
     }
 

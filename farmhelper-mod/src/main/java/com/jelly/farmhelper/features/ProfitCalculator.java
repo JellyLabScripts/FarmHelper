@@ -114,7 +114,7 @@ public class ProfitCalculator {
                         if (isArmor.isPresent()) {
                             double price = bazaarPrices.get(isArmor.get().localizedName);
                             totalProfit += price * item.amount * 1.0f;
-                            if (FarmHelper.config.countRNGToDollarPerHour) {
+                            if (FarmHelper.config.countRNGToProfitCalc) {
                                 totalProfitBasedOnConditions += price * item.amount * 1.0f;
                             }
 

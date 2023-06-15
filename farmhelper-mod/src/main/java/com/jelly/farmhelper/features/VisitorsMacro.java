@@ -207,8 +207,8 @@ public class VisitorsMacro {
             return;
         }
 
-        if (ProfitCalculator.getCurrentPurse() < FarmHelper.config.visitorsMacroMoneyThreshold * 1_000_000) {
-            LogUtils.debugLog("Not enough money to start visitors macro, waiting...");
+        if (ProfitCalculator.getCurrentPurse() < FarmHelper.config.visitorsMacroCoinsThreshold * 1_000_000) {
+            LogUtils.debugLog("Not enough coins to start visitors macro, waiting...");
             clock.schedule(5000);
             return;
         }
@@ -654,7 +654,7 @@ public class VisitorsMacro {
                                     boolean foundRequiredItems = false;
                                     boolean foundProfit = false;
                                     ArrayList<String> lore = PlayerUtils.getItemLore(slot.getStack());
-                                    if (FarmHelper.config.onlyAcceptProfitVisitors) {
+                                    if (FarmHelper.config.onlyAcceptProfitableVisitors) {
                                         for (String line : lore) {
                                             if (profitRewards.stream().anyMatch(r -> StringUtils.stripControlCodes(line.toLowerCase()).contains(StringUtils.stripControlCodes(r.toLowerCase())))) {
                                                 foundProfit = true;

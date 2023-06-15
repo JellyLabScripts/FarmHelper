@@ -57,7 +57,7 @@ public class MixinGuiDisconnected {
                 Minecraft.getMinecraft().fontRendererObj.drawString("In Jacob Failsafe", 5, 20, -1);
             }
             if (AutoReconnect.waitTime > 0) {
-                multilineMessage.set(0, "Seconds till reconnect: " + Math.floor(((FarmHelper.config.delayBeforeReconnect * 20) - AutoReconnect.waitTime) / 20));
+                multilineMessage.set(0, "Seconds till reconnect: " + Math.floor(((FarmHelper.config.delayBeforeReconnecting * 20) - AutoReconnect.waitTime) / 20));
                 multilineMessage = multilineMessage.subList(0, 1);
             }
         }

@@ -163,7 +163,7 @@ public class MacroHandler {
         if (FarmHelper.config.enableAutoSell) LogUtils.scriptLog("Auto Sell is in BETA, lock important slots just in case");
         if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
         if (FarmHelper.config.enableScheduler) Scheduler.start();
-        if (FarmHelper.config.visitorsMacro && FarmHelper.config.onlyAcceptProfitVisitors) LogUtils.scriptLog("Macro will only accept offers containing any of these products: " + String.join(", ", VisitorsMacro.profitRewards));
+        if (FarmHelper.config.visitorsMacro && FarmHelper.config.onlyAcceptProfitableVisitors) LogUtils.scriptLog("Macro will only accept offers containing any of these products: " + String.join(", ", VisitorsMacro.profitRewards));
 
         startTime = System.currentTimeMillis();
         ProfitCalculator.resetProfit();

@@ -23,7 +23,7 @@ public class MixinPlayerControllerMP {
 
     @Inject(method={"clickBlock"}, at={@At(value="HEAD")})
     public void clickBlock(BlockPos loc, EnumFacing face, CallbackInfoReturnable<Boolean> cir) {
-        if (FarmHelper.config.checkDeSync &&
+        if (FarmHelper.config.checkDesync &&
                 MacroHandler.isMacroing && MacroHandler.currentMacro != null
                 && MacroHandler.currentMacro.enabled && loc != null
                 && Minecraft.getMinecraft().theWorld.getBlockState(loc) != null) {

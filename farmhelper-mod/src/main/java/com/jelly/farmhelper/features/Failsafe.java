@@ -307,17 +307,17 @@ public class Failsafe {
         for (String line : ScoreboardUtils.getScoreboardLines()) {
             String cleanedLine = ScoreboardUtils.cleanSB(line);
             if (cleanedLine.contains("Wart") || cleanedLine.contains("Nether")) {
-                return gameState.jacobCounter > FarmHelper.config.netherWartCap;
+                return gameState.jacobCounter > FarmHelper.config.jacobNetherWartCap;
             } else if (cleanedLine.contains("Mushroom")) {
-                return gameState.jacobCounter > FarmHelper.config.mushroomCap;
+                return gameState.jacobCounter > FarmHelper.config.jacobMushroomCap;
             } else if (cleanedLine.contains("Carrot")) {
-                return gameState.jacobCounter > FarmHelper.config.carrotCap;
+                return gameState.jacobCounter > FarmHelper.config.jacobCarrotCap;
             } else if (cleanedLine.contains("Potato")) {
-                return gameState.jacobCounter > FarmHelper.config.potatoCap;
+                return gameState.jacobCounter > FarmHelper.config.jacobPotatoCap;
             } else if (cleanedLine.contains("Wheat")) {
-                return gameState.jacobCounter > FarmHelper.config.wheatCap;
+                return gameState.jacobCounter > FarmHelper.config.jacobWheatCap;
             } else if (cleanedLine.contains("Sugar") || cleanedLine.contains("Cane") ) {
-                return gameState.jacobCounter > FarmHelper.config.sugarCaneCap;
+                return gameState.jacobCounter > FarmHelper.config.jacobSugarCaneCap;
             }
         }
         return false;
@@ -413,7 +413,7 @@ public class Failsafe {
     static Runnable delayedStopScript = () -> {
         try{
             LogUtils.debugLog("delayedStopScript: waiting");
-            Thread.sleep((long) (1000 + Math.random() * 1000));
+            Thread.sleep((long) (FarmHelper.config.delayedStopScriptTime + Math.random() * FarmHelper.config.delayedStopScriptTimeRandomness));
             MacroHandler.disableCurrentMacro(true);
             LogUtils.debugLog("delayedStopScript: done, stopping macro");
         } catch(Exception e){
@@ -443,7 +443,7 @@ public class Failsafe {
             }
         }
 
-        if(FarmHelper.config.autoAltTabOnFailSafeActivated) {
+        if(FarmHelper.config.autoAltTab) {
             Utils.bringWindowToFront();
         }
 

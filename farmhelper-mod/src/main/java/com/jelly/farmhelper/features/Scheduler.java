@@ -37,7 +37,7 @@ public class Scheduler {
 
     public static void start() {
         currentState = State.FARMING;
-        farmClock.schedule(TimeUnit.MINUTES.toMillis((long) FarmHelper.config.farmTime));
+        farmClock.schedule(TimeUnit.MINUTES.toMillis((long) FarmHelper.config.schedulerFarmingTime));
     }
 
     @SubscribeEvent
@@ -49,11 +49,11 @@ public class Scheduler {
             LogUtils.debugLog("[Scheduler] Farming time has passed, stopping");
             MacroHandler.disableCurrentMacro(true);
             currentState = State.BREAK;
-            breakClock.schedule(TimeUnit.MINUTES.toMillis((long) FarmHelper.config.sleepTime));
+            breakClock.schedule(TimeUnit.MINUTES.toMillis((long) FarmHelper.config.schedulerBreakTime));
         } else if (!MacroHandler.randomizing && MacroHandler.isMacroing && currentState == State.BREAK && breakClock.passed()) {
             LogUtils.debugLog("[Scheduler] Break time has passed, starting");
             currentState = State.FARMING;
-            farmClock.schedule(TimeUnit.MINUTES.toMillis((long) FarmHelper.config.farmTime));
+            farmClock.schedule(TimeUnit.MINUTES.toMillis((long) FarmHelper.config.schedulerFarmingTime));
         }
     }
 }

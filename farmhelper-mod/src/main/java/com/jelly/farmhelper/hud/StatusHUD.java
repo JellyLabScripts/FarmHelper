@@ -10,7 +10,7 @@ import java.util.List;
 
 public class StatusHUD extends TextHud {
     public StatusHUD() {
-        super(true, 0, 0, 0.8f, true, false, 10, 8, 8, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
+        super(true, -7, -7, 0.8f, true, false, 10, 8, 8, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
     }
 
     @Override
@@ -18,7 +18,7 @@ public class StatusHUD extends TextHud {
         if (example) {
             lines.add("§f§lIdling");
             lines.add("§f§lFarming for 25m 35s");
-            lines.add("§f§lStaff ban: NaN");
+            lines.add("§f§lStaff ban in Last 15 Minutes: 999");
             lines.add("§f§lAutoCookie Fails: 0");
             lines.add("§f§lAutoPot Fails: 0");
             lines.add("§f§lWebSocket: §a§lConnected");

@@ -35,7 +35,7 @@ public class AutoReconnect {
         if(!Failsafe.jacobWait.passed() && FarmHelper.config.enableJacobFailsafes)
             return;
         if ((mc.currentScreen instanceof GuiDisconnected)) {
-            if (waitTime >= (FarmHelper.config.delayBeforeReconnect * 20)) {
+            if (waitTime >= (FarmHelper.config.delayBeforeReconnecting * 20)) {
                 waitTime = 0;
                 try {
                     FMLClientHandler.instance().connectToServer(new GuiMultiplayer(new GuiMainMenu()), new ServerData("bozo", FarmHelper.gameState.serverIP != null ? FarmHelper.gameState.serverIP : "mc.hypixel.net", false));

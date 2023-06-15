@@ -3,8 +3,10 @@ package com.jelly.farmhelper.config;
 import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.annotations.Number;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
+import cc.polyfrost.oneconfig.config.data.InfoType;
 import cc.polyfrost.oneconfig.config.data.Mod;
 import cc.polyfrost.oneconfig.config.data.ModType;
+import cc.polyfrost.oneconfig.config.data.OptionSize;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.hud.ProfitCalculatorHUD;
 import com.jelly.farmhelper.hud.StatusHUD;
@@ -28,7 +30,11 @@ import java.util.List;
 public class Config extends cc.polyfrost.oneconfig.config.Config {
 	private transient static final Minecraft mc = Minecraft.getMinecraft();
 	private transient static final String GENERAL = "General";
+	private transient static final String MISCELLANEOUS = "Miscellaneous";
 	private transient static final String FAILSAFE = "Fail Safes";
+	private transient static final String VISITORS_MACRO = "Visitors Macro";
+	private transient static final String DELAYS = "Delays";
+	private transient static final String WEBHOOK = "Webhook";
 	private transient static final String DEBUG = "Debug";
 
 	private transient static final File configRewarpFile = new File("farmhelper_rewarp.json");
@@ -79,13 +85,13 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	public static void removeRewarp(Rewarp rewarp) {
 		rewarpList.remove(rewarp);
-		LogUtils.scriptLog("Removed closest rewarp: " + rewarp.toString());
+		LogUtils.scriptLog("Removed the closest rewarp: " + rewarp.toString());
 		saveRewarpConfig();
 	}
 
 	public static void removeAllRewarps() {
 		rewarpList.clear();
-		LogUtils.scriptLog("Removed all rewarp points");
+		LogUtils.scriptLog("Removed all saved rewarp positions");
 		saveRewarpConfig();
 	}
 
@@ -101,451 +107,82 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		name = "Macro Type", category = GENERAL, subcategory = "Macro",
 		description = "The macro to use for farming",
 		left = "Vertical",
-		right = "S Shape"
+		right = "S Shape",
+		size = OptionSize.DUAL
 	)
 	public boolean macroType = false;
-	@Switch(
-		name = "Debug Mode", category = GENERAL, subcategory = "Macro",
-		description = "Enable debug mode"
-	)
-	public boolean debugMode = false;
 	@Dropdown(
 		name = "Vertical Farm", category = GENERAL, subcategory = "Macro",
-		description = "The macro to use for farming",
+		description = "Vertical farm type",
 		options = {
-			"Normal Type", // 0
+			"Wheat/Potato/Carrot/Nether Wart", // 0
 			"Pumpkin/Melon", // 1
-			"Mushroom", // 2
-			"Mushroom ROTATE", // 3 (this shit outdated)
+			"Mushroom (45°)", // 2
+			"Mushroom (30° with rotations)", // 3
 		}
 	)
     public int VerticalMacroType = 0;
 	@Dropdown(
 		name = "S Shape Farm", category = GENERAL, subcategory = "Macro",
-		description = "The macro to use for farming",
+		description = "S Shape farm type",
 		options = {
-			"Normal Type", // 0
+			"Wheat/Potato/Carrot/Nether Wart", // 0
 			"Sugar Cane", // 1
 			"Cactus", // 2
 			"Cocoa Beans", // 3
-			"Cocoa Beans (RoseGold version)"
+			"Cocoa Beans (RoseGold version)" // 4
 		}
 	)
     public int SShapeMacroType = 0;
 	@Switch(
-		name = "Ladder Design", category = GENERAL, subcategory = "Macro",
-		description = "Use ladder design"
-	)
-	public boolean ladderDesign = false;
-	@Switch(
-		name = "Auto Ungrab Mouse", category = GENERAL, subcategory = "Macro",
-		description = "Automatically ungrab the mouse when macroing"
+			name = "Auto Ungrab Mouse", category = GENERAL, subcategory = "Macro",
+			description = "Automatically unfocuses your mouse, so you can safely alt-tab"
 	)
 	public boolean autoUngrabMouse = true;
 	@Switch(
-		name = "Rotate After Warped", category = GENERAL, subcategory = "Macro",
-		description = "Rotate after warped"
+		name = "Ladder Design", category = GENERAL, subcategory = "Macro",
+		description = "Select this if you're using ladder design"
+	)
+	public boolean ladderDesign = false;
+	@Switch(
+			name = "Rotate After Warped", category = GENERAL, subcategory = "Macro",
+			description = "Rotates the player after re-warping"
 	)
 	public boolean rotateAfterWarped = false;
 	@Switch(
 		name = "Rotate After Drop", category = GENERAL, subcategory = "Macro",
-		description = "Rotate after drop"
+		description = "Rotates after the player falls down"
 	)
 	public boolean rotateAfterDrop = false;
 
-	@Switch(
-		name = "Xray Mode", category = GENERAL, subcategory = "Miscellaneous",
-		description = "Enable xray mode"
-	)
-	public boolean xrayMode = false;
-	@Switch(
-		name = "Mute Game", category = GENERAL, subcategory = "Miscellaneous",
-		description = "Mute game"
-	)
-	public boolean muteGame = false;
-	@Switch(
-        name = "Auto GodPot", category = GENERAL, subcategory = "Miscellaneous",
-        description = "Automatically godpot"
-	)
-	public boolean autoGodPot = false;
-	@Switch(
-        name = "Auto Cookie", category = GENERAL, subcategory = "Miscellaneous",
-        description = "Automatically cookie"
-	)
-	public boolean autoCookie = false;
-	@Switch(
-		name = "Fast Change Direction Cane", category = GENERAL, subcategory = "Miscellaneous",
-		description = "Fast change direction cane"
-	)
-	public boolean fastChangeDirectionCane = false;
-	@Switch(
-		name = "Count RNG to $/Hr in Profit Calculator", category = GENERAL, subcategory = "Miscellaneous",
-		description = "Count RNG to $/Hr"
-	)
-	public boolean countRNGToDollarPerHour = false;
-    @Switch(
-        name = "Fast Break", category = GENERAL, subcategory = "Miscellaneous",
-        description = "Fast break(gonna crazy asf, so be careful)"
-    )
-    public boolean fastBreak = false;
-    @Slider(
-        name = "Fast Break Speed", category = GENERAL, subcategory = "Miscellaneous",
-        description = "Fast break speed, 1 its for cowards, 3 its for man",
-        min = 1, max = 3, step = 1
-    )
-    public int fastBreakSpeed = 1;
-
-	@Switch(
-		name = "Enable", category = GENERAL, subcategory = "Visitors Macro",
-		description = "Enable visitors macro"
-	)
-	public boolean visitorsMacro = false;
-	@Switch(
-		name = "Only Accept Profit Visitors", category = GENERAL, subcategory = "Visitors Macro",
-		description = "Only accept visitors that are profitable"
-	)
-	public boolean onlyAcceptProfitVisitors = false;
-	@Number(
-		name = "Visitors Macro Money Threshold", category = GENERAL, subcategory = "Visitors Macro",
-		description = "Visitors Macro Money Threshold",
-		min = 1, max = 20, step = 1
-	)
-	public int visitorsMacroMoneyThreshold = 1;
-
-	@Switch(
-		name = "Enable Remote Control", category = GENERAL, subcategory = "Remote Control",
-		description = "Enable remote control"
-	)
-	public boolean enableRemoteControl = false;
-	@Text(
-		name = "WebSocket IP", category = GENERAL, subcategory = "Remote Control",
-		description = "The IP to use for the WebSocket server",
-		secure = false, multiline = false
-
-	)
-	public String webSocketIP = "";
-	@Text(
-		name = "WebSocket Password", category = GENERAL, subcategory = "Remote Control",
-		description = "The password to use for the WebSocket server",
-		secure = true, multiline = false
-	)
-	public String webSocketPassword = "";
-	@Switch(
-        name = "Enable WebHook", category = GENERAL, subcategory = "Webhook",
-        description = "Enable WebHook"
-	)
-	public boolean enableWebHook = false;
-	@Switch(
-		name = "Send Logs", category = GENERAL, subcategory = "Webhook",
-		description = "Send logs to WebHook"
-	)
-	public boolean sendLogs = false;
-	@Switch(
-		name = "Send Status Updates", category = GENERAL, subcategory = "Webhook",
-		description = "Send status updates to WebHook"
-	)
-	public boolean sendStatusUpdates = false;
-	@Number(
-		name = "Status Update Interval", category = GENERAL, subcategory = "Webhook",
-		description = "The interval to send status updates to WebHook (in minutes)",
-		min = 1, max = 60, step = 1
-	)
-	public int statusUpdateInterval = 5;
-	@Text(
-		name = "WebHook URL", category = GENERAL, subcategory = "Webhook",
-		description = "The WebHook URL to use for the WebHook",
-		placeholder = "https://discord.com/api/webhooks/...",
-		secure = true, multiline = false
-	)
-	public String webHookURL = "";
-
-	@Switch(
-		name = "Enable Auto Sell", category = GENERAL, subcategory = "Auto Sell",
-		description = "Enable auto sell"
-	)
-	public boolean enableAutoSell = false;
-	@Switch(
-		name = "Sell To NPC" , category = GENERAL, subcategory = "Auto Sell",
-		description = "Sell to NPC"
-	)
-	public boolean sellToNPC = false;
-	@Number(
-		name = "Inventory Full Time", category = GENERAL, subcategory = "Auto Sell",
-		description = "The time to wait for inventory to be full (in seconds)",
-		min = 1, max = 20, step = 1
-	)
-	public int inventoryFullTime = 6;
-	@Number(
-		name = "Inventory Full Ratio", category = GENERAL, subcategory = "Auto Sell",
-		description = "The ratio to wait for inventory to be full (in percentage)",
-		min = 1, max = 100, step = 1
-	)
-	public int inventoryFullRatio = 65;
-	@Button(
-		name = "Sell Inventory Now", category = GENERAL, subcategory = "Auto Sell",
-		description = "Sell inventory now",
-		text = "Sell Now"
-	)
-	Runnable autoSellFunction = () -> {
-		mc.thePlayer.closeScreen();
-		Autosell.enable();
-	};
-
-	// END GENERAL
-
-	// START FAIL SAFES
-	@Switch(
-		name = "Enable Scheduler", category = GENERAL, subcategory = "Scheduler",
-		description = "Enable scheduler"
-	)
-	public boolean enableScheduler = false;
-	@Number(
-		name = "Farm time (in minutes)", category = GENERAL, subcategory = "Scheduler",
-		description = "The time to farm (in minutes)",
-		min = 1, max = 500, step = 3
-	)
-	public int farmTime = 30;
-	@Number(
-		name = "Sleep time (in minutes)", category = GENERAL, subcategory = "Scheduler",
-		description = "The time to sleep (in minutes)",
-		min = 1, max = 120, step = 3
-	)
-	public int sleepTime = 10;
-
-
-	@Switch(
-		name = "Pop-up Notification", category = FAILSAFE,
-		description = "Enable pop-up notification"
-	)
-	public boolean popUpNotification = true;
-	@Switch(
-		name = "Fake Movements", category = FAILSAFE,
-		description = "Enable fake movements let you have a chance to not get banned"
-	)
-	public boolean fakeMovements = true;
-	@Switch(
-		name = "Ping Sound", category = FAILSAFE,
-		description = "Enable ping sound"
-	)
-	public boolean pingSound = true;
-	@Switch(
-		name = "Auto alt-tab on FailSafe Activated", category = FAILSAFE,
-		description = "Automatically alt-tab on failsafe activated"
-	)
-	public boolean autoAltTabOnFailSafeActivated = true;
-	@Slider(
-		name = "Rotation Check Sensitivity", category = FAILSAFE,
-		description = "The sensitivity of rotation check, the low the sensitivity, the more accurate the check is, but it will also increase the chance of false positive",
-		min = 1, max = 10, step = 1
-	)
-	public float rotationCheckSensitivity = 2;
-	@Switch(
-		name = "Check DeSync", category = FAILSAFE,
-		description = "Check desync, if desync is detected, it will activate failsafe, turn this off if the network is weak or if it happens frequently"
-	)
-	public boolean checkDeSync = true;
-	@Switch(
-		name = "Auto TP On World Change", category = FAILSAFE,
-		description = "Automatically teleport to spawn on world change like server reboot, server update, etc"
-	)
-	public boolean autoTPOnWorldChange = true;
-	@Switch(
-		name = "Enable", category = FAILSAFE, subcategory = "Restart After FailSafe",
-		description = "Enable restart after failsafe"
-	)
-	public boolean enableRestartAfterFailSafe = false;
-	@Number(
-		name = "Restart Delay", category = FAILSAFE, subcategory = "Restart After FailSafe",
-		description = "The delay to restart after failsafe (in seconds)",
-		min = 0, max = 600, step = 3
-	)
-	public int restartAfterFailSafeDelay = 30;
-	@Switch(
-		name = "Enable", category = FAILSAFE, subcategory = "Auto Set Spawn",
-		description = "Enable auto set spawn"
-	)
-	public boolean enableAutoSetSpawn = false;
-	@Switch(
-		name = "Set Spawn Before Evacuate", category = FAILSAFE, subcategory = "Auto Set Spawn",
-		description = "Set spawn before evacuate"
-	)
-	public boolean setSpawnBeforeEvacuate = false;
-	@Number(
-		name = "Set Spawn min Delay", category = FAILSAFE, subcategory = "Auto Set Spawn",
-		description = "The min delay to set spawn (in seconds)",
-		min = 1, max = 120, step = 1
-	)
-	public int autoSetSpawnMinDelay = 60;
-	@Number(
-		name = "Set Spawn max Delay", category = FAILSAFE, subcategory = "Auto Set Spawn",
-		description = "The max delay to set spawn (in seconds)",
-		min = 1, max = 120, step = 1
-	)
-	public int autoSetSpawnMaxDelay = 25;
-
-	@Switch(
-		name = "Enable", category = FAILSAFE, subcategory = "Leave On Banwave",
-		description = "Enable leave on banwave"
-	)
-	public boolean enableLeaveOnBanwave = false;
-	@Slider(
-		name = "Banwave Threshold", category = FAILSAFE, subcategory = "Leave On Banwave",
-		description = "The banwave threshold",
-		min = 1, max = 100, step = 1
-	)
-	public int banwaveThreshold = 50;
-	@Number(
-		name = "Delay Before Reconnect", category = FAILSAFE, subcategory = "Leave On Banwave",
-		description = "The delay before reconnect (in seconds)",
-		min = 1, max = 20, step = 1
-	)
-	public int delayBeforeReconnect = 5;
-	// END FAIL SAFES
-
-	// START JACOB
-	@Switch(
-		name = "Enable Jacob Failsafes", category = FAILSAFE, subcategory = "Jacob",
-		description = "Enable Jacob failsafes"
-	)
-	public boolean enableJacobFailsafes = true;
-	@Slider(
-		name = "Nether Wart Cap", category = FAILSAFE, subcategory = "Jacob",
-		description = "The nether wart cap",
-		min = 0, max = 1000000, step = 10000
-	)
-	public int netherWartCap = 400000;
-	@Slider(
-		name = "Potato Cap", category = FAILSAFE, subcategory = "Jacob",
-		description = "The potato cap",
-		min = 0, max = 1000000, step = 10000
-	)
-	public int potatoCap = 400000;
-	@Slider(
-		name = "Carrot Cap", category = FAILSAFE, subcategory = "Jacob",
-		description = "The carrot cap",
-		min = 0, max = 1000000, step = 10000
-	)
-	public int carrotCap = 400000;
-	@Slider(
-		name = "Wheat Cap", category = FAILSAFE, subcategory = "Jacob",
-		description = "The wheat cap",
-		min = 0, max = 1000000, step = 1
-	)
-	public int wheatCap = 400000;
-	@Slider(
-		name = "Sugar Cane Cap", category = FAILSAFE, subcategory = "Jacob",
-		description = "The sugar cane cap",
-		min = 0, max = 1000000, step = 10000
-	)
-	public int sugarCaneCap = 400000;
-	@Slider(
-		name = "Mushroom Cap", category = FAILSAFE, subcategory = "Jacob",
-		description = "The mushroom cap",
-		min = 0, max = 1000000, step = 10000
-	)
-	public int mushroomCap = 200000;
-	// END JACOB
-
-	@Button(
-		name = "Set Visitor's Desk", category = DEBUG, subcategory = "Visitor's Desk",
-		description = "Set the visitor's desk position",
-		text = "Set Visitor's Desk"
-	)
-	Runnable setVisitorDesk = () -> {
-		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
-		visitorsDeskPosX = pos.getX();
-		visitorsDeskPosY = pos.getY();
-		visitorsDeskPosZ = pos.getZ();
-		save();
-		LogUtils.scriptLog("Visitors Desk Position Set. BlockPos: " + pos);
-	};
-
-	@Button(
-		name = "Reset Visitor's Desk", category = DEBUG, subcategory = "Visitor's Desk",
-		description = "Reset the visitor's desk position",
-		text = "Reset Visitor's Desk"
-	)
-	Runnable resetVisitorDesk = () -> {
-		visitorsDeskPosX = 0;
-		visitorsDeskPosY = 0;
-		visitorsDeskPosZ = 0;
-		save();
-		LogUtils.scriptLog("Visitors Desk Position Reset");
-	};
-	@Number(
-		name = "Visitor's Desk X", category = DEBUG, subcategory = "Visitor's Desk",
-		description = "The visitor's desk X coordinate",
-		min = -30000000, max = 30000000, step = 1
-	)
-	public int visitorsDeskPosX = 0;
-	@Number(
-		name = "Visitor's Desk Y", category = DEBUG, subcategory = "Visitor's Desk",
-		description = "The visitor's desk Y coordinate",
-		min = -30000000, max = 30000000, step = 1
-	)
-	public int visitorsDeskPosY = 0;
-	@Number(
-		name = "Visitor's Desk Z", category = DEBUG, subcategory = "Visitor's Desk",
-		description = "The visitor's desk Z coordinate",
-		min = -30000000, max = 30000000, step = 1
-	)
-	public int visitorsDeskPosZ = 0;
 	@KeyBind(
-		name = "Visitor's Desk Keybind", category = DEBUG, subcategory = "Visitor's Desk",
-		description = "The visitor's desk keybind"
+			name = "Toggle Farm Helper", category = GENERAL, subcategory = "Keybinds",
+			description = "Toggles the macro on/off"
 	)
-	public OneKeyBind visitorsDeskKeybind = new OneKeyBind(0);
-
-
-
-	@Number(
-		name = "SpawnPos X", category = DEBUG, subcategory = "Spawn Location",
-		description = "The SpawnPos X coordinate",
-		min = -30000000, max = 30000000, step = 1
-	)
-	public int spawnPosX = 0;
-	@Number(
-		name = "SpawnPos Y", category = DEBUG, subcategory = "Spawn Location",
-		description = "The SpawnPos Y coordinate",
-		min = -30000000, max = 30000000, step = 1
-	)
-	public int spawnPosY = 0;
-	@Number(
-		name = "SpawnPos Z", category = DEBUG, subcategory = "Spawn Location",
-		description = "The SpawnPos Z coordinate",
-		min = -30000000, max = 30000000, step = 1
-	)
-	public int spawnPosZ = 0;
-	@Button(
-		name = "Set SpawnPos", category = DEBUG, subcategory = "Spawn Location",
-		description = "Set the SpawnPos position",
-		text = "Set SpawnPos"
-	)
-	Runnable _setSpawnPos = () -> {
-		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
-		spawnPosX = pos.getX();
-		spawnPosY = pos.getY();
-		spawnPosZ = pos.getZ();
-		save();
-		LogUtils.scriptLog("SpawnPos Position Set. BlockPos: " + pos);
-	};
+	public OneKeyBind toggleMacro = new OneKeyBind(Keyboard.KEY_GRAVE);
 
 	@Button(
-		name = "Add Rewarp", category = DEBUG, subcategory = "Rewarp",
-		description = "Add a rewarp position",
-		text = "Add Rewarp"
+			name = "Add Rewarp", category = GENERAL, subcategory = "Rewarp",
+			description = "Adds a rewarp position",
+			text = "Add Rewarp"
 	)
 	Runnable _addRewarp = () -> {
 		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
 		rewarpList.add(new Rewarp(pos.getX(), pos.getY(), pos.getZ()));
 		save();
-		LogUtils.scriptLog("Rewarp Position Added. BlockPos: " + pos);
+		LogUtils.scriptLog("Rewarp position has been added. BlockPos: " + pos);
 	};
-
+	@Info(
+			text = "Don't forget to add rewarp points!",
+			type = InfoType.WARNING,
+			category = GENERAL,
+			subcategory = "Rewarp"
+	)
+	public static boolean ignored;
 	@Button(
-		name = "Remove Rewarp", category = DEBUG, subcategory = "Rewarp",
-		description = "Remove a rewarp position",
-		text = "Remove Rewarp"
+			name = "Remove Rewarp", category = GENERAL, subcategory = "Rewarp",
+			description = "Removes a rewarp position",
+			text = "Remove Rewarp"
 	)
 	Runnable _removeRewarp = () -> {
 		Rewarp closest = null;
@@ -565,22 +202,430 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			removeRewarp(closest);
 		}
 	};
-
 	@Button(
-		name = "Remove All Rewarps", category = DEBUG, subcategory = "Rewarp",
-		description = "Remove all rewarp positions",
-		text = "Remove All Rewarps"
+			name = "Remove All Rewarps", category = GENERAL, subcategory = "Rewarp",
+			description = "Removes all rewarp positions",
+			text = "Remove All Rewarps"
 	)
 	Runnable _removeAllRewarps = () -> {
 		removeAllRewarps();
-		LogUtils.scriptLog("All rewarp positions removed");
+		LogUtils.scriptLog("All rewarp positions has been removed");
 	};
 
-	@KeyBind(
-		name = "Toggle Farm Helper", category = DEBUG, subcategory = "Keybinds",
-		description = "Toggle the farm helper"
+	// END GENERAL
+
+	// START MISCELLANEOUS
+	@Switch(
+			name = "Xray Mode", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Hides blocks to reduce resource usage"
 	)
-	public OneKeyBind toggleMacro = new OneKeyBind(Keyboard.KEY_GRAVE);
+	public boolean xrayMode = false;
+	@Switch(
+			name = "Mute The Game", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Mutes the game while farming"
+	)
+	public boolean muteTheGame = false;
+	@Switch(
+			name = "Auto GodPot", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Automatically purchases and consumes a God Pot"
+	)
+	public boolean autoGodPot = false;
+	@Switch(
+			name = "Auto Cookie", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Automatically purchases and consumes a booster cookie"
+	)
+	public boolean autoCookie = false;
+	@Switch(
+			name = "Fast Change Direction Cane", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Fast change direction cane"
+	)
+	public boolean fastChangeDirectionCane = false;
+	@Switch(
+			name = "Count RNG to $/Hr in Profit Calculator", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Count RNG to $/Hr"
+	)
+	public boolean countRNGToProfitCalc = false;
+	@Switch(
+			name = "Fast Break (DANGEROUS)", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Fast break is very risky and most likely will result in a ban"
+	)
+	public boolean fastBreak = false;
+	@Switch(
+			name = "Debug Mode", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Prints to chat what the bot is currently executing. Useful if you are having issues."
+	)
+	public boolean debugMode = false;
+	@Slider(
+			name = "Fast Break Speed", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Fast break speed",
+			min = 1, max = 3, step = 1
+	)
+	public int fastBreakSpeed = 1;
+
+	@Switch(
+			name = "Enable Auto Sell", category = MISCELLANEOUS, subcategory = "Auto Sell",
+			description = "Enables auto sell"
+	)
+	public boolean enableAutoSell = false;
+	@Switch(
+			name = "Sell To NPC" , category = MISCELLANEOUS, subcategory = "Auto Sell",
+			description = "Automatically sells crops to NPC or Bazaar"
+	)
+	public boolean sellToNPC = false;
+	@Number(
+			name = "Inventory Full Time", category = MISCELLANEOUS, subcategory = "Auto Sell",
+			description = "The time to wait for inventory to be full (in seconds)",
+			min = 1, max = 20
+	)
+	public int inventoryFullTime = 6;
+	@Number(
+			name = "Inventory Full Ratio", category = MISCELLANEOUS, subcategory = "Auto Sell",
+			description = "The ratio to wait for inventory to be full (in percentage)",
+			min = 1, max = 100
+	)
+	public int inventoryFullRatio = 65;
+	@Button(
+			name = "Sell Inventory Now", category = MISCELLANEOUS, subcategory = "Auto Sell",
+			description = "Sells crops in your inventory",
+			text = "Sell Inventory Now"
+	)
+	Runnable autoSellFunction = () -> {
+		mc.thePlayer.closeScreen();
+		Autosell.enable();
+	};
+
+	// END MISCELLANEOUS
+
+	// START DELAYS
+
+	@Slider(
+			name = "Stop Script Delay Time", category = DELAYS, subcategory = "Delays",
+			description = "The time to wait before stopping the script (in milliseconds)",
+			min = 1, max = 10000
+	)
+	public int delayedStopScriptTime = 1000;
+	@Slider(
+			name = "Stop Script Delay Random Time", category = DELAYS, subcategory = "Delays",
+			description = "The maximum random time added to the delay time before stopping the script (in milliseconds)",
+			min = 1, max = 2000
+	)
+	public int delayedStopScriptTimeRandomness = 1000;
+	@Slider(
+			name = "Rotation Time", category = DELAYS, subcategory = "Delays",
+			description = "The time it takes to rotate the player (in milliseconds)",
+			min = 1, max = 2000
+	)
+	public int rotationTime = 500;
+	@Slider(
+			name = "Rotation Random Time", category = DELAYS, subcategory = "Delays",
+			description = "The maximum random time added to the delay time it takes to rotate the player (in milliseconds)",
+			min = 1, max = 2000
+	)
+	public int rotationTimeRandomness = 200;
+
+	// END DELAYS
+
+	// START VISITORS_MACRO
+
+	@Switch(
+		name = "Enable", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+		description = "Enables visitors macro"
+	)
+	public boolean visitorsMacro = false;
+	@Switch(
+		name = "Only Accept Profitable Visitors", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+		description = "Only accepts visitors that are profitable"
+	)
+	public boolean onlyAcceptProfitableVisitors = false;
+	@Number(
+		name = "Visitors Macro Coins Threshold", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+		description = "The maximum amount of coins to be considered profitable",
+		min = 1, max = 20
+	)
+	public int visitorsMacroCoinsThreshold = 1;
+
+
+	@Button(
+			name = "Set Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+			description = "Sets the visitor's desk position",
+			text = "Set Visitor's Desk"
+	)
+	Runnable setVisitorDesk = () -> {
+		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
+		visitorsDeskPosX = pos.getX();
+		visitorsDeskPosY = pos.getY();
+		visitorsDeskPosZ = pos.getZ();
+		save();
+		LogUtils.scriptLog("Visitors desk position has been set. BlockPos: " + pos);
+	};
+
+	@Button(
+			name = "Reset Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+			description = "Resets the visitor's desk position",
+			text = "Reset Visitor's Desk"
+	)
+	Runnable resetVisitorDesk = () -> {
+		visitorsDeskPosX = 0;
+		visitorsDeskPosY = 0;
+		visitorsDeskPosZ = 0;
+		save();
+		LogUtils.scriptLog("Visitors desk position has been reset");
+	};
+	@Number(
+			name = "Visitors Desk X", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+			description = "Visitors desk X coordinate",
+			min = -30000000, max = 30000000
+	)
+	public int visitorsDeskPosX = 0;
+	@Number(
+			name = "Visitors Desk Y", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+			description = "Visitors desk Y coordinate",
+			min = -30000000, max = 30000000
+	)
+	public int visitorsDeskPosY = 0;
+	@Number(
+			name = "Visitors Desk Z", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+			description = "Visitors desk Z coordinate",
+			min = -30000000, max = 30000000
+	)
+	public int visitorsDeskPosZ = 0;
+	@KeyBind(
+			name = "Visitors Desk Keybind", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+			description = "Visitors desk keybind"
+	)
+	public OneKeyBind visitorsDeskKeybind = new OneKeyBind(0);
+
+	// END VISITORS_MACRO
+
+	// START WEBHOOK
+
+	@Switch(
+        name = "Enable webhook messages", category = WEBHOOK, subcategory = "Discord Webhook",
+        description = "Allows to send messages via Discord webhooks"
+	)
+	public boolean enableWebHook = false;
+	@Switch(
+		name = "Send Logs", category = WEBHOOK, subcategory = "Discord Webhook",
+		description = "Sends all messages about the macro, spams a lot of messages"
+	)
+	public boolean sendLogs = false;
+	@Switch(
+		name = "Send Status Updates", category = WEBHOOK, subcategory = "Discord Webhook",
+		description = "Sends messages about the macro, such as when it started, stopped, etc"
+	)
+	public boolean sendStatusUpdates = false;
+	@Number(
+		name = "Status Update Interval (in minutes)", category = WEBHOOK, subcategory = "Discord Webhook",
+		description = "The interval between sending messages about status updates",
+		min = 1, max = 60
+	)
+	public int statusUpdateInterval = 5;
+	@Text(
+		name = "WebHook URL", category = WEBHOOK, subcategory = "Discord Webhook",
+		description = "The URL to use for the webhook",
+		placeholder = "https://discord.com/api/webhooks/...",
+		secure = true, multiline = false
+	)
+	public String webHookURL = "";
+
+	@Switch(
+			name = "Enable", category = WEBHOOK, subcategory = "Remote Control",
+			description = "Enables remote control via Discord messages"
+	)
+	public boolean enableRemoteControl = false;
+	@Info(
+			text = "You don't need to configure this. It's for advanced users only.",
+			type = InfoType.INFO,
+			category = WEBHOOK,
+			subcategory = "Remote Control"
+	)
+	public static boolean ignored2;
+	@Text(
+			name = "WebSocket IP (DANGEROUS)", category = WEBHOOK, subcategory = "Remote Control",
+			description = "The IP to use for the WebSocket server",
+			secure = false, multiline = false
+
+	)
+	public String webSocketIP = "";
+	@Text(
+			name = "WebSocket Password", category = WEBHOOK, subcategory = "Remote Control",
+			description = "The password to use for the WebSocket server",
+			secure = true, multiline = false
+	)
+	public String webSocketPassword = "";
+
+	// END WEBHOOK
+
+	// START FAILSAFE
+
+	@Switch(
+		name = "Pop-up Notification", category = FAILSAFE, subcategory = "Miscellaneous",
+		description = "Enable pop-up notification"
+	)
+	public boolean popUpNotification = true;
+	@Switch(
+		name = "Fake Movements", category = FAILSAFE, subcategory = "Miscellaneous",
+		description = "Tries to act like a real player by moving around"
+	)
+	public boolean fakeMovements = true;
+	@Switch(
+		name = "Ping Sound", category = FAILSAFE, subcategory = "Miscellaneous",
+		description = "Makes a ping sound when a failsafe has been triggered"
+	)
+	public boolean pingSound = true;
+	@Switch(
+		name = "Auto alt-tab when failsafe triggered", category = FAILSAFE, subcategory = "Miscellaneous",
+		description = "Automatically alt-tabs to the game when the dark times come"
+	)
+	public boolean autoAltTab = true;
+	@Switch(
+		name = "Check Desync", category = FAILSAFE, subcategory = "Miscellaneous",
+		description = "If client desynchronization is detected, it activates a failsafe. Turn this off if the network is weak or if it happens frequently."
+	)
+	public boolean checkDesync = true;
+	@Switch(
+		name = "Auto TP On World Change", category = FAILSAFE, subcategory = "Miscellaneous",
+		description = "Automatically warps back to garden on server reboot, server update, etc"
+	)
+	public boolean autoTPOnWorldChange = true;
+	@Slider(
+			name = "Rotation Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
+			description = "The sensitivity of rotation check, the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives",
+			min = 1, max = 10
+	)
+	public float rotationCheckSensitivity = 2;
+
+	@Switch(
+			name = "Enable Scheduler", category = FAILSAFE, subcategory = "Scheduler", size = OptionSize.DUAL,
+			description = "Farms for X amount of minutes then takes a break for X amount of minutes"
+	)
+	public boolean enableScheduler = false;
+	@Slider(
+			name = "Farming time (in minutes)", category = FAILSAFE, subcategory = "Scheduler",
+			description = "How long to farm",
+			min = 1, max = 300, step = 1
+	)
+	public int schedulerFarmingTime = 30;
+	@Slider(
+			name = "Farming time randomness (in minutes)", category = FAILSAFE, subcategory = "Scheduler",
+			description = "How much randomness to add to the farming time",
+			min = 0, max = 15, step = 1
+	)
+	public int schedulerFarmingTimeRandomness = 0;
+	@Slider(
+			name = "Break time (in minutes)", category = FAILSAFE, subcategory = "Scheduler",
+			description = "How long to take a break",
+			min = 1, max = 120, step = 1
+	)
+	public int schedulerBreakTime = 5;
+	@Slider(
+			name = "Break time randomness (in minutes)", category = FAILSAFE, subcategory = "Scheduler",
+			description = "How much randomness to add to the break time",
+			min = 0, max = 15, step = 1
+	)
+	public int schedulerBreakTimeRandomness = 0;
+
+	@Switch(
+		name = "Enable", category = FAILSAFE, subcategory = "Restart After FailSafe",
+		description = "Restarts the macro after a while when a failsafe has been triggered"
+	)
+	public boolean enableRestartAfterFailSafe = false;
+	@Slider(
+		name = "Restart Delay", category = FAILSAFE, subcategory = "Restart After FailSafe",
+		description = "The delay to restart after failsafe (in seconds)",
+		min = 0, max = 600
+	)
+	public int restartAfterFailSafeDelay = 30;
+	@Switch(
+		name = "Enable", category = FAILSAFE, subcategory = "Auto Set Spawn",
+		description = "Enables auto set spawn"
+	)
+	public boolean enableAutoSetSpawn = false;
+	@Switch(
+		name = "Set Spawn Before Evacuation", category = FAILSAFE, subcategory = "Auto Set Spawn",
+		description = "Set spawn before evacuate"
+	)
+	public boolean setSpawnBeforeEvacuate = false;
+	@Number(
+		name = "Set Spawn min delay", category = FAILSAFE, subcategory = "Auto Set Spawn",
+		description = "The minimum delay between setting a new spawn (in seconds)",
+		min = 1, max = 120
+	)
+	public int autoSetSpawnMinDelay = 15;
+	@Number(
+		name = "Set Spawn max delay", category = FAILSAFE, subcategory = "Auto Set Spawn",
+		description = "The maximum delay between setting a new (in seconds)",
+		min = 1, max = 120
+	)
+	public int autoSetSpawnMaxDelay = 25;
+
+	@Switch(
+		name = "Enable", category = FAILSAFE, subcategory = "Leave On Banwave",
+		description = "Automatically leaves the game during banwave"
+	)
+	public boolean enableLeaveOnBanwave = false;
+	@Slider(
+		name = "Banwave Threshold", category = FAILSAFE, subcategory = "Leave On Banwave",
+		description = "The threshold to leave on banwave",
+		min = 1, max = 100, step = 1
+	)
+	public int banwaveThreshold = 50;
+	@Number(
+		name = "Delay Before Reconnecting", category = FAILSAFE, subcategory = "Leave On Banwave",
+		description = "The delay before reconnecting after leaving on banwave (in seconds)",
+		min = 1, max = 20
+	)
+	public int delayBeforeReconnecting = 5;
+
+	// END FAILSAFE
+
+	// START JACOB
+
+	@Switch(
+		name = "Enable Jacob Failsafes", category = FAILSAFE, subcategory = "Jacob",
+		description = "Stops farming once a crop threshold has been met"
+	)
+	public boolean enableJacobFailsafes = true;
+	@Slider(
+		name = "Nether Wart Cap", category = FAILSAFE, subcategory = "Jacob",
+		description = "The nether wart cap",
+		min = 0, max = 1000000, step = 10000
+	)
+	public int jacobNetherWartCap = 400000;
+	@Slider(
+		name = "Potato Cap", category = FAILSAFE, subcategory = "Jacob",
+		description = "The potato cap",
+		min = 0, max = 1000000, step = 10000
+	)
+	public int jacobPotatoCap = 400000;
+	@Slider(
+		name = "Carrot Cap", category = FAILSAFE, subcategory = "Jacob",
+		description = "The carrot cap",
+		min = 0, max = 1000000, step = 10000
+	)
+	public int jacobCarrotCap = 400000;
+	@Slider(
+		name = "Wheat Cap", category = FAILSAFE, subcategory = "Jacob",
+		description = "The wheat cap",
+		min = 0, max = 1000000
+	)
+	public int jacobWheatCap = 400000;
+	@Slider(
+		name = "Sugar Cane Cap", category = FAILSAFE, subcategory = "Jacob",
+		description = "The sugar cane cap",
+		min = 0, max = 1000000, step = 10000
+	)
+	public int jacobSugarCaneCap = 400000;
+	@Slider(
+		name = "Mushroom Cap", category = FAILSAFE, subcategory = "Jacob",
+		description = "The mushroom cap",
+		min = 0, max = 1000000, step = 10000
+	)
+	public int jacobMushroomCap = 200000;
+
+	// END JACOB
+
+	// START DEBUG
 
 	@HUD(
 		name = "Farm Helper Status", category = DEBUG, subcategory = "HUD"
@@ -590,6 +635,39 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		name = "Farm Helper Profit Calculator", category = DEBUG, subcategory = "HUD"
 	)
 	public ProfitCalculatorHUD profitHUD = new ProfitCalculatorHUD();
+
+	@Number(
+		name = "SpawnPos X", category = DEBUG, subcategory = "Spawn Location",
+		description = "Spawn position's X coordinate",
+		min = -30000000, max = 30000000
+	)
+	public int spawnPosX = 0;
+	@Number(
+		name = "SpawnPos Y", category = DEBUG, subcategory = "Spawn Location",
+		description = "Spawn position's Y coordinate",
+		min = -30000000, max = 30000000
+	)
+	public int spawnPosY = 0;
+	@Number(
+		name = "SpawnPos Z", category = DEBUG, subcategory = "Spawn Location",
+		description = "Spawn position's Z coordinate",
+		min = -30000000, max = 30000000
+	)
+	public int spawnPosZ = 0;
+	@Button(
+		name = "Set spawn position", category = DEBUG, subcategory = "Spawn Location",
+		description = "Sets the spawn position",
+		text = "Set spawn position"
+	)
+	Runnable _setSpawnPos = () -> {
+		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
+		spawnPosX = pos.getX();
+		spawnPosY = pos.getY();
+		spawnPosZ = pos.getZ();
+		save();
+		LogUtils.scriptLog("Spawn position has been set. BlockPos: " + pos);
+	};
+	// END DEBUG
 
 	public Config() {
 		super(new Mod("Farm Helper", ModType.HYPIXEL), "/farmhelper/config.json");
@@ -606,40 +684,96 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
             return this.fastBreak;
         });
 
-		this.addDependency("sellToNPC", "enable auto sell", () -> {
+		this.addDependency("sellToNPC", "Enable Auto Sell", () -> {
 			return this.enableAutoSell;
 		});
-		this.addDependency("inventoryFullTime", "sell to npc", () -> {
+		this.addDependency("inventoryFullTime", "Sell to NPC", () -> {
 			return this.enableAutoSell;
 		});
-		this.addDependency("inventoryFullRatio", "sell to npc", () -> {
+		this.addDependency("inventoryFullRatio", "Sell to NPC", () -> {
 			return this.enableAutoSell;
 		});
 
-		this.addDependency("farmTime", "enable scheduler", () -> {
+		this.addDependency("schedulerFarmingTime", "Enable Scheduler", () -> {
 			return this.enableScheduler;
 		});
-		this.addDependency("sleepTime", "scheduler time", () -> {
+		this.addDependency("schedulerFarmingTimeRandomness", "Enable Scheduler", () -> {
 			return this.enableScheduler;
 		});
-
-		this.addDependency("netherWartCap", "enable jacob failsafes", () -> {
+		this.addDependency("schedulerBreakTime", "Enable Scheduler", () -> {
+			return this.enableScheduler;
+		});
+		this.addDependency("schedulerBreakTimeRandomness", "Enable Scheduler", () -> {
+			return this.enableScheduler;
+		});
+		this.addDependency("jacobNetherWartCap", "Enable Jacob Failsafes", () -> {
 			return this.enableJacobFailsafes;
 		});
-		this.addDependency("potatoCap", "enable jacob failsafes", () -> {
+		this.addDependency("jacobPotatoCap", "Enable Jacob Failsafes", () -> {
 			return this.enableJacobFailsafes;
 		});
-		this.addDependency("carrotCap", "enable jacob failsafes", () -> {
+		this.addDependency("jacobCarrotCap", "Enable Jacob Failsafes", () -> {
 			return this.enableJacobFailsafes;
 		});
-		this.addDependency("wheatCap", "enable jacob failsafes", () -> {
+		this.addDependency("jacobWheatCap", "Enable Jacob Failsafes", () -> {
 			return this.enableJacobFailsafes;
 		});
-		this.addDependency("sugarCaneCap", "enable jacob failsafes", () -> {
+		this.addDependency("jacobSugarCaneCap", "Enable Jacob Failsafes", () -> {
 			return this.enableJacobFailsafes;
 		});
-		this.addDependency("mushroomCap", "enable jacob failsafes", () -> {
+		this.addDependency("jacobMushroomCap", "Enable Jacob Failsafes", () -> {
 			return this.enableJacobFailsafes;
+		});
+		this.addDependency("onlyAcceptProfitableVisitors", "Enable Visitors Macro",() -> {
+			return this.visitorsMacro;
+		});
+		this.addDependency("visitorsMacroCoinsThreshold", "Enable Visitors Macro",() -> {
+			return this.visitorsMacro;
+		});
+		this.addDependency("sendLogs", "Enable webhook messages",() -> {
+			return this.enableWebHook;
+		});
+		this.addDependency("sendStatusUpdates", "Enable webhook messages",() -> {
+			return this.enableWebHook;
+		});
+		this.addDependency("statusUpdateInterval", "Enable webhook messages",() -> {
+			return this.enableWebHook;
+		});
+		this.addDependency("webHookURL", "Enable webhook messages",() -> {
+			return this.enableWebHook;
+		});
+		this.addDependency("webSocketIP", "Enable Remote Control",() -> {
+			return this.enableRemoteControl;
+		});
+		this.addDependency("webSocketPassword", "Enable Remote Control",() -> {
+			return this.enableRemoteControl;
+		});
+		this.addDependency("restartAfterFailSafeDelay", "Enable Restart After FailSafe",() -> {
+			return this.enableRestartAfterFailSafe;
+		});
+		this.addDependency("banwaveThreshold", "Enable Leave On Banwave",() -> {
+			return this.enableLeaveOnBanwave;
+		});
+		this.addDependency("delayBeforeReconnecting", "Enable Leave On Banwave",() -> {
+			return this.enableLeaveOnBanwave;
+		});
+		this.addDependency("setSpawnBeforeEvacuate", "Enable Auto Set Spawn",() -> {
+			return this.enableAutoSetSpawn;
+		});
+		this.addDependency("autoSetSpawnMinDelay", "Enable Auto Set Spawn",() -> {
+			return this.enableAutoSetSpawn;
+		});
+		this.addDependency("autoSetSpawnMaxDelay", "Enable Auto Set Spawn",() -> {
+			return this.enableAutoSetSpawn;
+		});
+		this.addDependency("spawnPosX", "debug mode",() -> {
+			return this.debugMode;
+		});
+		this.addDependency("spawnPosY", "debug mode",() -> {
+			return this.debugMode;
+		});
+		this.addDependency("spawnPosZ", "debug mode",() -> {
+			return this.debugMode;
 		});
 		this.addDependency("_setSpawnPos", "debug mode",() -> {
 			return this.debugMode;
