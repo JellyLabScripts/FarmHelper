@@ -16,14 +16,14 @@ import java.util.Map;
 public class ProfitCalculatorHUD extends BasicHud {
     protected transient LinkedHashMap<String, String> lines = new LinkedHashMap<String, String>();
     public ProfitCalculatorHUD() {
-        super(true, 0, 0, 4, true, true, 3, 4, 6, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
+        super(true, 0, 0, 1, true, true, 3, 4, 6, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
         addLines();
     }
     @Override
     protected void draw(UMatrixStack matrices, float x, float y, float scale, boolean example) {
         if (lines == null || lines.size() == 0) return;
         NanoVGHelper.INSTANCE.setupAndDraw(true, (vg) -> {
-            float textY = position.getY() + 2 * scale;
+            float textY = position.getY() + 1 * scale;
             addLines();
 
             for (HashMap.Entry<String, String> line : lines.entrySet()) {
@@ -37,32 +37,39 @@ public class ProfitCalculatorHUD extends BasicHud {
         float iconWidth = 4 * scale;
         float iconHeight = 4 * scale;
         if (iconPath != null) {
-            NanoVGHelper.INSTANCE.drawImage(vg, iconPath, x + 4, y, iconWidth, iconHeight);
+            NanoVGHelper.INSTANCE.drawImage(vg, iconPath, x + paddingX, y, iconWidth, iconHeight);
         }
         // draw text
         if (text != null) {
-            NanoVGHelper.INSTANCE.drawText(vg, text, (x + iconWidth + 2) + 4, (y + (iconHeight / 2)), -1, 2 * scale, Fonts.MINECRAFT_REGULAR);
+            NanoVGHelper.INSTANCE.drawText(vg, text, (x + iconWidth + 2) + paddingX, (y + (iconHeight / 2)), -1, 2 * scale, Fonts.MINECRAFT_REGULAR);
         }
     }
 
-    protected float getLineWidth(String line) {
-        return Platform.getGLPlatform().getStringWidth(line);
+    protected float getLineWidth() {
+        String longestLine = "";
+        int maxLength = 0;
+
+        for (Map.Entry<String, String> entry : lines.entrySet()) {
+            String lineText = entry.getKey();
+            if(lineText.length() > maxLength) {
+                longestLine = lineText;
+                maxLength = lineText.length();
+            }
+        }
+        return Platform.getGLPlatform().getStringWidth(longestLine);
     }
 
     @Override
     protected float getWidth(float scale, boolean example) {
         if (lines == null) return 0;
         float width = 0;
-        for (HashMap.Entry<String, String> line : lines.entrySet()) {
-            width = Math.max(width, getLineWidth(line.getKey()));
-        }
-        return width + paddingX;
+        return Math.max(width, (getLineWidth() / 2 * (scale / 1.5f)) + (scale * lines.size()) + paddingX);
     }
 
     @Override
     protected float getHeight(float scale, boolean example) {
         if (lines == null) return 0;
-        return (float) ((lines.size() * 3.5 + ((lines.size() < 5) ? -5 : (lines.size() > 6) ? + 3 : 0)) * scale) + paddingY;
+        return (((6f - (lines.size() * 0.1f)) * scale) * lines.size() - scale);
     }
 
     public void addLines() {
