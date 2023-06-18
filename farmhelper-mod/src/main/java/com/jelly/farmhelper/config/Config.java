@@ -258,7 +258,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	@Slider(
 			name = "Fast Break Speed", category = MISCELLANEOUS, subcategory = "Miscellaneous",
 			description = "Fast break speed",
-			min = 1, max = 3, step = 1
+			min = 1, max = 3
 	)
 	public int fastBreakSpeed = 1;
 
@@ -293,6 +293,27 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		mc.thePlayer.closeScreen();
 		Autosell.enable();
 	};
+
+	@Switch(
+			name = "Increase Cocoa Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
+			description = "Allows you to farm cocoa beans more efficient on higher speeds by making the hitboxes bigger"
+	)
+	public boolean increasedCocoaBeans = false;
+	@Switch(
+			name = "Increase Crop Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
+			description = "Allows you to farm mushrooms more efficient on higher speeds by making the hitboxes bigger"
+	)
+	public boolean increasedCrops = false;
+	@Switch(
+			name = "Increase Mushroom Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
+			description = "Allows you to farm mushrooms more efficient on higher speeds by making the hitboxes bigger"
+	)
+	public boolean increasedMushrooms = false;
+	@Switch(
+			name = "Increase Nether Wart Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
+			description = "Allows you to farm nether warts more efficient on higher speeds by making the hitboxes bigger"
+	)
+	public boolean increasedNetherWarts = false;
 
 	// END MISCELLANEOUS
 
@@ -429,7 +450,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public String webHookURL = "";
 
 	@Switch(
-			name = "Enable", category = WEBHOOK, subcategory = "Remote Control",
+			name = "Enable (BROKEN)", category = WEBHOOK, subcategory = "Remote Control",
 			description = "Enables remote control via Discord messages"
 	)
 	public boolean enableRemoteControl = false;
@@ -560,18 +581,23 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public int autoSetSpawnMaxDelay = 25;
 
 	@Switch(
-		name = "Enable", category = FAILSAFE, subcategory = "Leave On Banwave",
-		description = "Automatically leaves the game during banwave"
+			name = "Enable Banwave Checker", category = FAILSAFE, subcategory = "Banwave Checker",
+			description = "Checks for banwave and shows you the number of players banned in the last 15 minutes"
+	)
+	public boolean banwaveCheckerEnabled = true;
+	@Switch(
+		name = "Leave during banwave", category = FAILSAFE, subcategory = "Banwave Checker",
+		description = "Automatically disconnects from the server when banwave detected"
 	)
 	public boolean enableLeaveOnBanwave = false;
 	@Slider(
-		name = "Banwave Threshold", category = FAILSAFE, subcategory = "Leave On Banwave",
-		description = "The threshold to leave on banwave",
-		min = 1, max = 100, step = 1
+		name = "Banwave Disconnect Threshold", category = FAILSAFE, subcategory = "Banwave Checker",
+		description = "The threshold to disconnect from the server on banwave",
+		min = 1, max = 100
 	)
 	public int banwaveThreshold = 50;
 	@Number(
-		name = "Delay Before Reconnecting", category = FAILSAFE, subcategory = "Leave On Banwave",
+		name = "Delay Before Reconnecting", category = FAILSAFE, subcategory = "Banwave Checker",
 		description = "The delay before reconnecting after leaving on banwave (in seconds)",
 		min = 1, max = 20
 	)
@@ -636,37 +662,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public ProfitCalculatorHUD profitHUD = new ProfitCalculatorHUD();
 
-	@Number(
-		name = "SpawnPos X", category = DEBUG, subcategory = "Spawn Location",
-		description = "Spawn position's X coordinate",
-		min = -30000000, max = 30000000
-	)
-	public int spawnPosX = 0;
-	@Number(
-		name = "SpawnPos Y", category = DEBUG, subcategory = "Spawn Location",
-		description = "Spawn position's Y coordinate",
-		min = -30000000, max = 30000000
-	)
-	public int spawnPosY = 0;
-	@Number(
-		name = "SpawnPos Z", category = DEBUG, subcategory = "Spawn Location",
-		description = "Spawn position's Z coordinate",
-		min = -30000000, max = 30000000
-	)
-	public int spawnPosZ = 0;
-	@Button(
-		name = "Set spawn position", category = DEBUG, subcategory = "Spawn Location",
-		description = "Sets the spawn position",
-		text = "Set spawn position"
-	)
-	Runnable _setSpawnPos = () -> {
-		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
-		spawnPosX = pos.getX();
-		spawnPosY = pos.getY();
-		spawnPosZ = pos.getZ();
-		save();
-		LogUtils.scriptLog("Spawn position has been set. BlockPos: " + pos);
-	};
 	// END DEBUG
 
 	public Config() {
@@ -751,6 +746,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("restartAfterFailSafeDelay", "Enable Restart After FailSafe",() -> {
 			return this.enableRestartAfterFailSafe;
 		});
+		this.addDependency("enableLeaveOnBanwave", "Enable Banwave Checker",() -> {
+			return this.banwaveCheckerEnabled;
+		});
 		this.addDependency("banwaveThreshold", "Enable Leave On Banwave",() -> {
 			return this.enableLeaveOnBanwave;
 		});
@@ -765,18 +763,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		});
 		this.addDependency("autoSetSpawnMaxDelay", "Enable Auto Set Spawn",() -> {
 			return this.enableAutoSetSpawn;
-		});
-		this.addDependency("spawnPosX", "debug mode",() -> {
-			return this.debugMode;
-		});
-		this.addDependency("spawnPosY", "debug mode",() -> {
-			return this.debugMode;
-		});
-		this.addDependency("spawnPosZ", "debug mode",() -> {
-			return this.debugMode;
-		});
-		this.addDependency("_setSpawnPos", "debug mode",() -> {
-			return this.debugMode;
 		});
 
 		save();

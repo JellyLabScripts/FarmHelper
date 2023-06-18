@@ -16,7 +16,7 @@ import java.util.LinkedList;
 
 public class BanwaveChecker {
     private final Minecraft mc = Minecraft.getMinecraft();
-    public static String staffBan = "Staff ban : NaN";
+    public static String staffBan = "Staff ban: NaN";
 
 
     private static final Clock cooldown = new Clock();
@@ -27,7 +27,7 @@ public class BanwaveChecker {
     public final void tick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END)
             return;
-        if(!cooldown.isScheduled() || cooldown.passed()){
+        if((!cooldown.isScheduled() || cooldown.passed()) && FarmHelper.config.banwaveCheckerEnabled){
             new Thread(() -> {
                 try {
                     String s = APIHelper.readJsonFromUrl("https://api.plancke.io/hypixel/v1/punishmentStats", "User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
@@ -80,7 +80,7 @@ public class BanwaveChecker {
         return staffBanLast15Mins.size() > 1 ? Math.abs(staffBanLast15Mins.getLast() - staffBanLast15Mins.getFirst()) : 0;
     }
     public static String getBanDisplay(){
-        return getBanTimeDiff() > 0 ? "Staff ban in last " + getBanTimeDiff() + " minutes : " + getBanDiff() : "Staff ban : Collecting data...";
+        return getBanTimeDiff() > 0 ? "Staff ban in last " + getBanTimeDiff() + " minutes: " + getBanDiff() : "Staff ban: Collecting data...";
     }
 
 }
