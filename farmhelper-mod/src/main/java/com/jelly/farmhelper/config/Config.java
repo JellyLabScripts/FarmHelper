@@ -301,14 +301,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public boolean increasedCocoaBeans = false;
 	@Switch(
 			name = "Increase Crop Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
-			description = "Allows you to farm mushrooms more efficient on higher speeds by making the hitboxes bigger"
+			description = "Allows you to farm crops more efficient by making the hitboxes bigger"
 	)
 	public boolean increasedCrops = false;
-	@Switch(
-			name = "Increase Mushroom Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
-			description = "Allows you to farm mushrooms more efficient on higher speeds by making the hitboxes bigger"
-	)
-	public boolean increasedMushrooms = false;
 	@Switch(
 			name = "Increase Nether Wart Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
 			description = "Allows you to farm nether warts more efficient on higher speeds by making the hitboxes bigger"
@@ -661,6 +656,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		name = "Farm Helper Profit Calculator", category = DEBUG, subcategory = "HUD"
 	)
 	public ProfitCalculatorHUD profitHUD = new ProfitCalculatorHUD();
+	public int spawnPosX = 0;
+	public int spawnPosY = 0;
+	public int spawnPosZ = 0;
 
 	// END DEBUG
 
