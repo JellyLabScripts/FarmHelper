@@ -16,7 +16,7 @@ import java.util.Map;
 public class ProfitCalculatorHUD extends BasicHud {
     protected transient LinkedHashMap<String, String> lines = new LinkedHashMap<String, String>();
     public ProfitCalculatorHUD() {
-        super(true, 0, 0, 1, true, true, 3, 4, 6, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
+        super(true, 0, 0, 5, true, true, 3, 4, 6, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
         addLines();
     }
     @Override
@@ -37,11 +37,11 @@ public class ProfitCalculatorHUD extends BasicHud {
         float iconWidth = 4 * scale;
         float iconHeight = 4 * scale;
         if (iconPath != null) {
-            NanoVGHelper.INSTANCE.drawImage(vg, iconPath, x + paddingX, y, iconWidth, iconHeight);
+            NanoVGHelper.INSTANCE.drawImage(vg, iconPath, x + 2 * scale - 0.9f * scale, y, iconWidth, iconHeight);
         }
         // draw text
         if (text != null) {
-            NanoVGHelper.INSTANCE.drawText(vg, text, (x + iconWidth + 2) + paddingX, (y + (iconHeight / 2)), -1, 2 * scale, Fonts.MINECRAFT_REGULAR);
+            NanoVGHelper.INSTANCE.drawText(vg, text, (x + iconWidth + 3 * scale - 0.9f * scale), (y + (iconHeight / 2)), -1, 2 * scale, Fonts.MINECRAFT_REGULAR); // made with pain by tama & yuro <3
         }
     }
 
@@ -63,13 +63,13 @@ public class ProfitCalculatorHUD extends BasicHud {
     protected float getWidth(float scale, boolean example) {
         if (lines == null) return 0;
         float width = 0;
-        return Math.max(width, (getLineWidth() / 2 * (scale / 1.5f)) + (scale * lines.size()) + paddingX);
+        return Math.max(width, (getLineWidth() / 2 * (scale / 1.5f)) + (scale * lines.size()) + paddingX / 2);
     }
 
     @Override
     protected float getHeight(float scale, boolean example) {
         if (lines == null) return 0;
-        return (((6f - (lines.size() * 0.1f)) * scale) * lines.size() - scale);
+        return (((6f - (lines.size() * 0.1f)) * scale) * lines.size() - scale + paddingY / 2);
     }
 
     public void addLines() {
