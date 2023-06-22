@@ -153,7 +153,7 @@ public class ProfitCalculator {
         if (!MacroHandler.isMacroing) return;
 
         if (!FarmHelper.config.macroType) { //vertical
-            if (FarmHelper.config.VerticalMacroType == VerticalMacroEnum.PUMPKIN_MELON.ordinal()) {
+            if (FarmHelper.config.VerticalMacroType == SMacroEnum.PUMPKIN_MELON.ordinal()) {
                 if ((event.old.getBlock() == Blocks.pumpkin && event.update.getBlock() != Blocks.pumpkin) ||
                     (event.old.getBlock() == Blocks.melon_block && event.update.getBlock() != Blocks.melon_block)) {
                     blocksBroken++;

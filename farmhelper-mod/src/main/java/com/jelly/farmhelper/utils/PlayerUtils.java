@@ -304,7 +304,7 @@ public class PlayerUtils {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
 
                 if (!FarmHelper.config.macroType) {
-                    if (FarmHelper.config.VerticalMacroType == VerticalMacroEnum.PUMPKIN_MELON.ordinal() && mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Dicer")) {
+                    if (FarmHelper.config.VerticalMacroType == SMacroEnum.PUMPKIN_MELON.ordinal() && mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Dicer")) {
                         return i - 36;
                     }
                 }

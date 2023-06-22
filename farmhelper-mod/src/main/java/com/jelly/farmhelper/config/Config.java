@@ -51,13 +51,13 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	// START GENERAL
      public enum VerticalMacroEnum {
          NORMAL_TYPE,
-         PUMPKIN_MELON,
          MUSHROOM,
 		MUSHROOM_ROTATE
      }
 
      public enum SMacroEnum {
          NORMAL_TYPE,
+		 PUMPKIN_MELON,
          SUGAR_CANE,
 		 CACTUS,
 		 COCOA_BEANS,
@@ -116,9 +116,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Vertical farm type",
 		options = {
 			"Wheat/Potato/Carrot/Nether Wart", // 0
-			"Pumpkin/Melon", // 1
-			"Mushroom (45°)", // 2
-			"Mushroom (30° with rotations)", // 3
+			"Mushroom (45°)", // 1
+			"Mushroom (30° with rotations)", // 2
 		}
 	)
     public int VerticalMacroType = 0;
@@ -127,10 +126,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "S Shape farm type",
 		options = {
 			"Wheat/Potato/Carrot/Nether Wart", // 0
-			"Sugar Cane", // 1
-			"Cactus", // 2
-			"Cocoa Beans", // 3
-			"Cocoa Beans (RoseGold version)" // 4
+			"Pumpkin/Melon", // 1
+			"Sugar Cane", // 2
+			"Cactus", // 3
+			"Cocoa Beans", // 4
+			"Cocoa Beans (RoseGold version)" // 5
 		}
 	)
     public int SShapeMacroType = 0;

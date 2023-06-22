@@ -122,7 +122,7 @@ public class CropUtils {
         }
 
         if (!FarmHelper.config.macroType) {
-            if (FarmHelper.config.VerticalMacroType != VerticalMacroEnum.PUMPKIN_MELON.ordinal()) {
+            if (FarmHelper.config.VerticalMacroType != SMacroEnum.PUMPKIN_MELON.ordinal()) {
                 mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
             } else {
                 mc.thePlayer.inventory.currentItem = PlayerUtils.getAxeSlot();

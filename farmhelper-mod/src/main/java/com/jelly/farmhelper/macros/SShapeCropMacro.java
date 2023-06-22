@@ -290,14 +290,14 @@ public class SShapeCropMacro extends Macro {
             case RIGHT:
                 if (!waitForChangeDirection.isScheduled()) {
                     LogUtils.debugLog("Middle of row, going right");
-                    updateKeys((FarmHelper.config.VerticalMacroType != VerticalMacroEnum.PUMPKIN_MELON.ordinal()) &&
+                    updateKeys((FarmHelper.config.VerticalMacroType != SMacroEnum.PUMPKIN_MELON.ordinal()) &&
                                 (FarmHelper.config.SShapeMacroType != SMacroEnum.CACTUS.ordinal()) && shouldWalkForwards(), (FarmHelper.config.SShapeMacroType == SMacroEnum.CACTUS.ordinal()) && shouldPushBack(), true, false, true);
                 }
                 return;
             case LEFT:
                 if (!waitForChangeDirection.isScheduled()) {
                     LogUtils.debugLog("Middle of row, going left");
-                    updateKeys((FarmHelper.config.VerticalMacroType != VerticalMacroEnum.PUMPKIN_MELON.ordinal()) &&
+                    updateKeys((FarmHelper.config.VerticalMacroType != SMacroEnum.PUMPKIN_MELON.ordinal()) &&
                         (FarmHelper.config.SShapeMacroType != SMacroEnum.CACTUS.ordinal()) && shouldWalkForwards(), (FarmHelper.config.SShapeMacroType == SMacroEnum.CACTUS.ordinal()) && shouldPushBack(), false, true, true);
                 }
                 return;
@@ -305,20 +305,20 @@ public class SShapeCropMacro extends Macro {
                 if (!waitForChangeDirection.isScheduled()) {
                     if (switchBackwardsDirection) {
                         LogUtils.debugFullLog("Continue backwards");
-                        updateKeys(false, true, prevState == State.RIGHT, prevState == State.LEFT, true);
+                        updateKeys(false, true, prevState == State.RIGHT, prevState == State.LEFT, false);
                         return;
                     } else {
                         LogUtils.debugFullLog("Continue forwards");
-                        updateKeys(true, false, prevState == State.RIGHT, prevState == State.LEFT, true);
+                        updateKeys(true, false, prevState == State.RIGHT, prevState == State.LEFT, false);
                         return;
                     }
                 }
             case SWITCH_MID:
                 LogUtils.debugLog("Middle of switch, keep going");
                 if (switchBackwardsDirection)
-                    updateKeys(false, true, false, false, true);
+                    updateKeys(false, true, false, false, false);
                 else
-                    updateKeys(true, false, false, false, true);
+                    updateKeys(true, false, false, false, false);
                 return;
             case SWITCH_END:
                 if (gameState.rightWalkable) {
@@ -431,7 +431,7 @@ public class SShapeCropMacro extends Macro {
         } else if (gameState.frontWalkable && gameState.backWalkable && (currentState == State.SWITCH_START || currentState == State.SWITCH_MID) && !waitForChangeDirection.isScheduled()) {
             currentState = State.SWITCH_MID;
             LogUtils.debugLog("SWITCH_MID");
-        } else if (((gameState.frontWalkable && (!gameState.backWalkable || BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.water))) || ((!gameState.frontWalkable || BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.water)) && gameState.backWalkable)) && currentState != State.SWITCH_MID && currentState != State.DROPPING && (FarmHelper.config.SShapeMacroType != SMacroEnum.CACTUS.ordinal() || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus)) && (FarmHelper.config.VerticalMacroType != VerticalMacroEnum.PUMPKIN_MELON.ordinal() || (!BlockUtils.isRelativeBlockPassable(0, -1, 2) || !BlockUtils.isRelativeBlockPassable(0, -1, -2)))) {
+        } else if (((gameState.frontWalkable && (!gameState.backWalkable || BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.water))) || ((!gameState.frontWalkable || BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.water)) && gameState.backWalkable)) && currentState != State.SWITCH_MID && currentState != State.DROPPING && (FarmHelper.config.SShapeMacroType != SMacroEnum.CACTUS.ordinal() || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus)) && (FarmHelper.config.VerticalMacroType != SMacroEnum.PUMPKIN_MELON.ordinal() || (!BlockUtils.isRelativeBlockPassable(0, -1, 2) || !BlockUtils.isRelativeBlockPassable(0, -1, -2)))) {
             if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                 if (gameState.frontWalkable)
                     switchBackwardsDirection = false;
