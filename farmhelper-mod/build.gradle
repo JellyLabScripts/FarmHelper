@@ -82,7 +82,7 @@ dependencies {
     annotationProcessor('org.spongepowered:mixin:0.7.11-SNAPSHOT')
 
     include('com.github.RewisServer:brigadier:master-SNAPSHOT')
-    include('com.github.ronmamo:reflections:master-SNAPSHOT')
+    include('com.github.ronmamo:reflections:-SNAPSHOT')
 
     include("org.java-websocket:Java-WebSocket:1.5.3")
 

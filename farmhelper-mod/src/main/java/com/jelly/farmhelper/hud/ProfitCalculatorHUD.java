@@ -65,8 +65,8 @@ public class ProfitCalculatorHUD extends BasicHud {
     @Override
     protected float getWidth(float scale, boolean example) {
         if (lines == null) return 0;
-        float width = 0;
-        return Math.max(width, (getLineWidth() / 2 * (scale / 1.5f)) + (scale * lines.size()) + paddingX / 2);
+        float currentWidth = (getLineWidth() / 2 * (scale / 1.5f)) + (scale * lines.size()) + paddingX / 2;
+        return Math.max(width, currentWidth);
     }
 
     @Override

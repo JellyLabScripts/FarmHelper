@@ -18,6 +18,7 @@ public class StatusHUD extends BasicHud {
     protected transient float width = 0;
     public StatusHUD() {
         super(true, -1, -1, 1.0f, true, true, 5, 8, 8, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
+        addLines(1.0f, true);
     }
     @Override
     protected void draw(UMatrixStack matrices, float x, float y, float scale, boolean example) {
@@ -25,10 +26,10 @@ public class StatusHUD extends BasicHud {
 
         NanoVGHelper.INSTANCE.setupAndDraw(true, (vg) -> {
             float textX = position.getX() + 1 * scale;
-            float textY = position.getY() + 3 * scale;
+            float textY = position.getY() + 2.5f * scale;
 
             addLines(scale, example);
-
+    
             for (String line : lines) {
                 drawLine(vg ,line, textX, textY, scale);
                 textY += 3 * scale;
@@ -58,7 +59,7 @@ public class StatusHUD extends BasicHud {
     @Override
     protected float getWidth(float scale, boolean example) {
         if (lines == null) return 0;
-        float currentWidth = (getLineWidth() / 3 * (scale / 1.5f)) + (scale / 2 + paddingX);
+        float currentWidth = (getLineWidth() / 3) * (scale / 1.5f) + (scale / 2) + (paddingX / 2);
         return Math.max(currentWidth, width);
     }
 
@@ -73,7 +74,6 @@ public class StatusHUD extends BasicHud {
         float maxLongestLine = getWidth(scale, example);
         int difference = (int) ((int)((maxLongestLine - maxTextLength) / 2.5f) / (scale / 1.5));
 
-        // return the text with the difference added to the front
        return (difference > 0) ? new String(new char[difference]).replace("\0", " ") + text : text;
     }
 
