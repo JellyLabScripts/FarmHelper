@@ -44,6 +44,7 @@ public class WebSocketServer {
                     ctx.closeSession();
                 }
 
+
             });
             ws.onClose(ctx -> minecraftInstances.remove(ctx.session));
             ws.onMessage(ctx -> EventWaiter.onMessage(new MessageEvent(ctx, Utils.getIgnFromSession(ctx.session))));

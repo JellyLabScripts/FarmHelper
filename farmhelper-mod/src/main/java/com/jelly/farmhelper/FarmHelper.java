@@ -38,7 +38,6 @@ public class FarmHelper {
     public static final String MODID = "farmhelper";
     public static final String NAME = "Farm Helper";
     public static final String VERSION = "4.4.0";
-    public static String analyticUrl;
 
     // the actual mod version from gradle properties, should match with VERSION
     public static String MODVERSION = "-1";
@@ -77,12 +76,7 @@ public class FarmHelper {
         ClientCommandHandler.instance.registerCommand(new RewarpCommand());
         ClientCommandHandler.instance.registerCommand(new FarmHelperCommand());
 
-
         gameState = new GameState();
-        try {
-            analyticUrl = (String) APIHelper.readJsonFromUrl("NONE","User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
-                    .get("url");
-        } catch (Exception ignored) {}
     }
 
     @SubscribeEvent

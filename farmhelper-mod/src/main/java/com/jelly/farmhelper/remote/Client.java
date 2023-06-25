@@ -16,14 +16,10 @@ import java.util.List;
 
 import static com.jelly.farmhelper.utils.StatusUtils.connecting;
 
-
 public class Client extends WebSocketClient {
-    boolean isAnalytics;
-
     public Client(URI serverUri) {
         super(serverUri);
     }
-
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
@@ -35,7 +31,6 @@ public class Client extends WebSocketClient {
     public void onMessage(String message) {
         if (message.equals("VERSIONERROR")) {
             LogUtils.scriptLog("RemoteControl wont work on this instance as mod/bot versions don't match. Download latest version from discord.");
-//            ConfigHandler.set("enableRemoteControl", false);
             FarmHelper.config.enableRemoteControl = false;
             FarmHelper.config.save();
             this.close(-1);
@@ -61,10 +56,6 @@ public class Client extends WebSocketClient {
             }
         }
     }
-
-
-
-
 
     @Override
     public void onError(Exception ex) {

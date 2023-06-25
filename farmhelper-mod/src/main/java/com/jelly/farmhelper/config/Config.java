@@ -50,8 +50,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	// START GENERAL
      public enum VerticalMacroEnum {
-         NORMAL_TYPE,
-         MUSHROOM,
+		NORMAL_TYPE,
+		PUMPKIN_MELON,
+		MUSHROOM,
 		MUSHROOM_ROTATE
      }
 

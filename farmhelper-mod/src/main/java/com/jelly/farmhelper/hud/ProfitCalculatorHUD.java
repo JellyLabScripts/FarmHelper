@@ -15,6 +15,7 @@ import java.util.Map;
 
 public class ProfitCalculatorHUD extends BasicHud {
     protected transient LinkedHashMap<String, String> lines = new LinkedHashMap<String, String>();
+    protected transient float width = 0;
     public ProfitCalculatorHUD() {
         super(true, 0, 0, 5, true, true, 3, 4, 6, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
         addLines();
@@ -23,11 +24,13 @@ public class ProfitCalculatorHUD extends BasicHud {
     protected void draw(UMatrixStack matrices, float x, float y, float scale, boolean example) {
         if (lines == null || lines.size() == 0) return;
         NanoVGHelper.INSTANCE.setupAndDraw(true, (vg) -> {
+            float textX = position.getX() + 1 * scale;
             float textY = position.getY() + 1 * scale;
+
             addLines();
 
             for (HashMap.Entry<String, String> line : lines.entrySet()) {
-                drawLine(vg ,line.getKey(), line.getValue(), position.getX(), textY, scale);
+                drawLine(vg ,line.getKey(), line.getValue(), textX, textY, scale);
                 textY += 5 * scale;
             }
         });
