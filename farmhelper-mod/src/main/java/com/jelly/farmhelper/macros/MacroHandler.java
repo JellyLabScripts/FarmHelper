@@ -146,8 +146,10 @@ public class MacroHandler {
         } else {
             if (FarmConfig.cropType == MacroEnum.SUGARCANE) {
                 currentMacro = sugarcaneMacro;
-            } else if (FarmConfig.cropType == MacroEnum.COCOABEANS || FarmConfig.cropType == MacroEnum.COCOABEANSRG) {
+            } else if (FarmConfig.cropType == MacroEnum.COCOABEANS) {
                 currentMacro = cocoaBeanMacro;
+            } else if (FarmConfig.cropType == MacroEnum.COCOABEANSRG) {
+                currentMacro = cocoaBeanRGMacro;
             } else if (FarmConfig.cropType == MacroEnum.MUSHROOM || FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE) {
                 currentMacro = mushroomMacro;
             } else {
