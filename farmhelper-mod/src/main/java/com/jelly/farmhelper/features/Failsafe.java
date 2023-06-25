@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.macros.MacroHandler;
@@ -235,8 +236,9 @@ public class Failsafe {
                     LogUtils.debugLog("\"After entering island\" cooldown passed");
                     afterEvacuateCooldown.reset();
                     MacroHandler.currentMacro.triggerTpCooldown();
-                } else {
-                    // DEBUG MESSAGES IN CASE SOMETHING IS BROKEN AGAIN
+                }
+                // DEBUG MESSAGES IN CASE SOMETHING IS BROKEN AGAIN
+//                else {
 //                    if (!MacroHandler.currentMacro.enabled) {
 //                        LogUtils.debugLog("Condition not met: MacroHandler.currentMacro.enabled");
 //                    }
@@ -288,7 +290,7 @@ public class Failsafe {
 //                    if (MiscConfig.visitorsMacro && VisitorsMacro.isEnabled()) {
 //                        LogUtils.debugLog("Condition not met: (!MiscConfig.visitorsMacro || !VisitorsMacro.isEnabled())");
 //                    }
-                }
+//                }
         }
     }
 
@@ -644,7 +646,11 @@ public class Failsafe {
                     KeyBindUtils.stopMovement();
                     Thread.sleep(rotationTime + 2800);
                     Thread.sleep((long) (1500 + Math.random() * 1000));
-                    mc.thePlayer.sendChatMessage(FAILSAFE_MESSAGES[(int) Math.floor(Math.random() * (FAILSAFE_MESSAGES.length - 1))]);//"/ac " +
+                    if (FarmHelper.config.sendFailsafeMessage)
+                        if (Config.customFailsafeMessage != null && !Config.customFailsafeMessage.isEmpty())
+                            mc.thePlayer.sendChatMessage(Config.customFailsafeMessage);
+                        else
+                            mc.thePlayer.sendChatMessage(FAILSAFE_MESSAGES[(int) Math.floor(Math.random() * (FAILSAFE_MESSAGES.length - 1))]);//"/ac " +
                     Thread.sleep((long) (1000 + Math.random() * 500));
                 } else while (rotation.rotating) {
                     if (i == 0) {

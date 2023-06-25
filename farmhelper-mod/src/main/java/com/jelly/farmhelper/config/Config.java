@@ -261,6 +261,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			min = 1, max = 3
 	)
 	public int fastBreakSpeed = 1;
+	@Switch(
+			name = "Highlight rewarp points", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Highlights all rewarp points you have added"
+	)
+	public boolean highlightRewarp = true;
 
 	@Switch(
 			name = "Enable Auto Sell", category = MISCELLANEOUS, subcategory = "Auto Sell",
@@ -510,6 +515,17 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			min = 1, max = 10
 	)
 	public float rotationCheckSensitivity = 2;
+	@Switch(
+			name = "Send failsafe message", category = FAILSAFE, subcategory = "Miscellaneous",
+			description = "Sends a message to the chat when a failsafe has been triggered"
+	)
+	public boolean sendFailsafeMessage = true;
+	@Text(
+			name = "Custom failsafe message", category = FAILSAFE, subcategory = "Miscellaneous",
+			description = "Custom failsafe message",
+			placeholder = "Leave empty to use a random message"
+	)
+	public static String customFailsafeMessage = "";
 
 	@Switch(
 			name = "Enable Scheduler", category = FAILSAFE, subcategory = "Scheduler", size = OptionSize.DUAL,
@@ -687,6 +703,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			return this.enableAutoSell;
 		});
 
+		this.addDependency("customFailsafeMessage", "Enable Failsafe Custom Messages", () -> {
+			return this.sendFailsafeMessage;
+		});
 		this.addDependency("schedulerFarmingTime", "Enable Scheduler", () -> {
 			return this.enableScheduler;
 		});
