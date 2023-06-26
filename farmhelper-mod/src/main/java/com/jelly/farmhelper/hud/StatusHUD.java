@@ -17,7 +17,7 @@ public class StatusHUD extends BasicHud {
     protected transient List<String> lines = new ArrayList<>();
     protected transient float width = 0;
     public StatusHUD() {
-        super(true, -1, -1, 1.0f, true, true, 5, 8, 8, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
+        super(true, -5, -5, 5, true, true, 1, 0, 0, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
         addLines(1.0f, true);
     }
     @Override
@@ -39,7 +39,7 @@ public class StatusHUD extends BasicHud {
 
     protected void drawLine(long vg, String text, float x, float y, float scale) {
         if (text != null) {
-            NanoVGHelper.INSTANCE.drawText(vg, text, (x  + 2) + paddingX, y, -1, 2 * scale, Fonts.MINECRAFT_REGULAR);
+            NanoVGHelper.INSTANCE.drawText(vg, text, (x  + 2) + paddingX, y, -1, 2 * scale, Fonts.SEMIBOLD);
         }
     }
 
@@ -90,7 +90,7 @@ public class StatusHUD extends BasicHud {
         } else {
             lines.add(StatusUtils.status);
 
-            if (!BanwaveChecker.staffBan.isEmpty())
+            if (!BanwaveChecker.staffBan.isEmpty() && FarmHelper.config.banwaveCheckerEnabled)
                 lines.add(BanwaveChecker.staffBan);
 
             if (FarmHelper.config.autoCookie)

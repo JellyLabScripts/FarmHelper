@@ -17,7 +17,7 @@ public class ProfitCalculatorHUD extends BasicHud {
     protected transient LinkedHashMap<String, String> lines = new LinkedHashMap<String, String>();
     protected transient float width = 0;
     public ProfitCalculatorHUD() {
-        super(true, 0, 0, 5, true, true, 3, 4, 6, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
+        super(true, 5, 5, 5, true, true, 1, 0, 0, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
         addLines();
     }
     @Override
@@ -40,11 +40,11 @@ public class ProfitCalculatorHUD extends BasicHud {
         float iconWidth = 4 * scale;
         float iconHeight = 4 * scale;
         if (iconPath != null) {
-            NanoVGHelper.INSTANCE.drawImage(vg, iconPath, x + 2 * scale - 0.9f * scale, y, iconWidth, iconHeight);
+            NanoVGHelper.INSTANCE.drawImage(vg, iconPath, x + scale - 0.9f * scale, y, iconWidth, iconHeight);
         }
         // draw text
         if (text != null) {
-            NanoVGHelper.INSTANCE.drawText(vg, text, (x + iconWidth + 3 * scale - 0.9f * scale), (y + (iconHeight / 2)), -1, 2 * scale, Fonts.MINECRAFT_REGULAR); // made with pain by tama & yuro <3
+            NanoVGHelper.INSTANCE.drawText(vg, text, (x + iconWidth + 2 * scale - 0.9f * scale), (y + (iconHeight / 2)), -1, 2 * scale, Fonts.SEMIBOLD); // made with pain by tama & yuro <3
         }
     }
 

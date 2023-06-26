@@ -536,7 +536,10 @@ public class Failsafe {
             LogUtils.debugLog("rotationMovement: waiting");
             Thread.sleep((long) (2200 + Math.random() * 1000));
             LogUtils.debugLog("rotationMovement: sending a message");
-            mc.thePlayer.sendChatMessage(FAILSAFE_MESSAGES[(int) Math.floor(Math.random() * (FAILSAFE_MESSAGES.length - 1))]);
+            if (Config.customFailsafeMessage != null && !Config.customFailsafeMessage.isEmpty())
+                mc.thePlayer.sendChatMessage(Config.customFailsafeMessage);
+            else
+                mc.thePlayer.sendChatMessage(FAILSAFE_MESSAGES[(int) Math.floor(Math.random() * (FAILSAFE_MESSAGES.length - 1))]);
             Thread.sleep((long) (400 + Math.random() * 1000));
             int numberOfRepeats = new Random().nextInt(2) + 2;
             boolean sneak = Math.random() < 0.3d;
