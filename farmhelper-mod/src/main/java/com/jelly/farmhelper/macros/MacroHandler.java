@@ -138,12 +138,7 @@ public class MacroHandler {
     }
     public static void enableMacro() {
         if(!FarmHelper.config.macroType) {
-            if (FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM.ordinal() ||
-                FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM_ROTATE.ordinal()) {
-                currentMacro = mushroomMacro;
-            } else {
-                currentMacro = verticalCropMacro;
-            }
+            currentMacro = verticalCropMacro;
         } else {
             if (FarmHelper.config.SShapeMacroType == SMacroEnum.SUGAR_CANE.ordinal()) {
                 currentMacro = sugarcaneMacro;
@@ -151,7 +146,11 @@ public class MacroHandler {
                 currentMacro = cocoaBeanMacro;
             } else if (FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS_RG.ordinal()) {
                 currentMacro = cocoaBeanRGMacro;
-            } else {
+            } else if (FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal() ||
+                FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal()) {
+                currentMacro = mushroomMacro;
+            }
+            else {
                 currentMacro = sShapeCropMacro;
             }
         }
@@ -241,7 +240,7 @@ public class MacroHandler {
                 for (int y = -3; y < 3; y++) {
                     for (int z = 0; z < 3; z++) {
                         BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, 1 + z,
-                            ((!FarmHelper.config.macroType && FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM.ordinal()) ||
+                            ((FarmHelper.config.macroType && FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal()) ||
                                 (FarmHelper.config.macroType && FarmHelper.config.SShapeMacroType == SMacroEnum.SUGAR_CANE.ordinal()) ?
                                 AngleUtils.getClosestDiagonal() - 45 :
                                 AngleUtils.getClosest()));

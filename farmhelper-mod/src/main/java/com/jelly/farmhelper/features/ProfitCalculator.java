@@ -160,14 +160,6 @@ public class ProfitCalculator {
                 }
             }
 
-            if (FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM.ordinal() ||
-                FarmHelper.config.VerticalMacroType == VerticalMacroEnum.MUSHROOM_ROTATE.ordinal()) {
-                if ((event.old.getBlock() == Blocks.brown_mushroom && event.update.getBlock() != Blocks.brown_mushroom) ||
-                    (event.old.getBlock() == Blocks.red_mushroom && event.update.getBlock() != Blocks.red_mushroom)) {
-                    blocksBroken++;
-                }
-            }
-
             if (FarmHelper.config.VerticalMacroType == VerticalMacroEnum.NORMAL_TYPE.ordinal()) {
                 if ((event.old.getBlock() instanceof BlockCrops && !(event.update.getBlock() instanceof BlockCrops)) ||
                     (event.old.getBlock() instanceof BlockNetherWart && !(event.update.getBlock() instanceof BlockNetherWart))) {
@@ -175,6 +167,13 @@ public class ProfitCalculator {
                 }
             }
         } else {
+            if (FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal() ||
+                FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal()) {
+                if ((event.old.getBlock() == Blocks.brown_mushroom && event.update.getBlock() != Blocks.brown_mushroom) ||
+                    (event.old.getBlock() == Blocks.red_mushroom && event.update.getBlock() != Blocks.red_mushroom)) {
+                    blocksBroken++;
+                }
+            }
             if (FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS.ordinal() ||
                 FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS_RG.ordinal()) {
                 if (event.old.getBlock() == Blocks.reeds && event.update.getBlock() != Blocks.reeds) {

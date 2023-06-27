@@ -50,9 +50,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	// START GENERAL
      public enum VerticalMacroEnum {
-		NORMAL_TYPE,
-		MUSHROOM,
-		MUSHROOM_ROTATE
+		NORMAL_TYPE
      }
 
      public enum SMacroEnum {
@@ -62,6 +60,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		 CACTUS,
 		 COCOA_BEANS,
 		 COCOA_BEANS_RG,
+		 MUSHROOM,
+		 MUSHROOM_ROTATE
      }
 
 	public enum CropEnum {
@@ -115,9 +115,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		name = "Vertical Farm", category = GENERAL, subcategory = "Macro",
 		description = "Vertical farm type",
 		options = {
-			"Wheat/Potato/Carrot/Nether Wart", // 0
-			"Mushroom (45°)", // 1
-			"Mushroom (30° with rotations)", // 2
+			"Wheat/Potato/Carrot/Nether Wart" // 0
 		}
 	)
     public int VerticalMacroType = 0;
@@ -130,7 +128,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			"Sugar Cane", // 2
 			"Cactus", // 3
 			"Cocoa Beans", // 4
-			"Cocoa Beans (RoseGold version)" // 5
+			"Cocoa Beans (RoseGold version)", // 5
+			"Mushroom (45°)", // 6
+			"Mushroom (30° with rotations)", // 7
 		}
 	)
     public int SShapeMacroType = 0;
@@ -140,7 +140,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public boolean autoUngrabMouse = true;
 	@Switch(
-		name = "Ladder Design", category = GENERAL, subcategory = "Macro",
+		name = "Go back with Ladders", category = GENERAL, subcategory = "Macro",
 		description = "Select this if you're using ladder design"
 	)
 	public boolean ladderDesign = false;
@@ -161,6 +161,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public OneKeyBind toggleMacro = new OneKeyBind(Keyboard.KEY_GRAVE);
 
+	@Switch(
+		name = "Highlight rewarp points", category = GENERAL, subcategory = "Rewarp",
+		description = "Highlights all rewarp points you have added",
+		size = OptionSize.DUAL
+	)
+	public boolean highlightRewarp = true;
 	@Button(
 			name = "Add Rewarp", category = GENERAL, subcategory = "Rewarp",
 			description = "Adds a rewarp position",
@@ -261,11 +267,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			min = 1, max = 3
 	)
 	public int fastBreakSpeed = 1;
-	@Switch(
-			name = "Highlight rewarp points", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-			description = "Highlights all rewarp points you have added"
-	)
-	public boolean highlightRewarp = true;
 
 	@Switch(
 			name = "Enable Auto Sell", category = MISCELLANEOUS, subcategory = "Auto Sell",
@@ -682,106 +683,44 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		super(new Mod("Farm Helper", ModType.HYPIXEL), "/farmhelper/config.json");
 		initialize();
 
-		this.addDependency("VerticalMacroType", "Macro Type", () -> {
-			return !this.macroType;
-		});
-		this.addDependency("SShapeMacroType", "Macro Type", () -> {
-			return this.macroType;
-		});
+		this.addDependency("VerticalMacroType", "Macro Type", () -> !this.macroType);
+		this.addDependency("SShapeMacroType", "Macro Type", () -> this.macroType);
 
-        this.addDependency("fastBreakSpeed", "Fast Break", () -> {
-            return this.fastBreak;
-        });
+		this.addDependency("rotateAfterDrop", "Rotate After Drop", () -> this.macroType);
+		this.addDependency("ladderDesign", "Ladder Design", () -> !this.macroType);
 
-		this.addDependency("sellToNPC", "Enable Auto Sell", () -> {
-			return this.enableAutoSell;
-		});
-		this.addDependency("inventoryFullTime", "Sell to NPC", () -> {
-			return this.enableAutoSell;
-		});
-		this.addDependency("inventoryFullRatio", "Sell to NPC", () -> {
-			return this.enableAutoSell;
-		});
+        this.addDependency("fastBreakSpeed", "Fast Break", () -> this.fastBreak);
 
-		this.addDependency("customFailsafeMessage", "Enable Failsafe Custom Messages", () -> {
-			return this.sendFailsafeMessage;
-		});
-		this.addDependency("schedulerFarmingTime", "Enable Scheduler", () -> {
-			return this.enableScheduler;
-		});
-		this.addDependency("schedulerFarmingTimeRandomness", "Enable Scheduler", () -> {
-			return this.enableScheduler;
-		});
-		this.addDependency("schedulerBreakTime", "Enable Scheduler", () -> {
-			return this.enableScheduler;
-		});
-		this.addDependency("schedulerBreakTimeRandomness", "Enable Scheduler", () -> {
-			return this.enableScheduler;
-		});
-		this.addDependency("jacobNetherWartCap", "Enable Jacob Failsafes", () -> {
-			return this.enableJacobFailsafes;
-		});
-		this.addDependency("jacobPotatoCap", "Enable Jacob Failsafes", () -> {
-			return this.enableJacobFailsafes;
-		});
-		this.addDependency("jacobCarrotCap", "Enable Jacob Failsafes", () -> {
-			return this.enableJacobFailsafes;
-		});
-		this.addDependency("jacobWheatCap", "Enable Jacob Failsafes", () -> {
-			return this.enableJacobFailsafes;
-		});
-		this.addDependency("jacobSugarCaneCap", "Enable Jacob Failsafes", () -> {
-			return this.enableJacobFailsafes;
-		});
-		this.addDependency("jacobMushroomCap", "Enable Jacob Failsafes", () -> {
-			return this.enableJacobFailsafes;
-		});
-		this.addDependency("onlyAcceptProfitableVisitors", "Enable Visitors Macro",() -> {
-			return this.visitorsMacro;
-		});
-		this.addDependency("visitorsMacroCoinsThreshold", "Enable Visitors Macro",() -> {
-			return this.visitorsMacro;
-		});
-		this.addDependency("sendLogs", "Enable webhook messages",() -> {
-			return this.enableWebHook;
-		});
-		this.addDependency("sendStatusUpdates", "Enable webhook messages",() -> {
-			return this.enableWebHook;
-		});
-		this.addDependency("statusUpdateInterval", "Enable webhook messages",() -> {
-			return this.enableWebHook;
-		});
-		this.addDependency("webHookURL", "Enable webhook messages",() -> {
-			return this.enableWebHook;
-		});
-		this.addDependency("webSocketIP", "Enable Remote Control",() -> {
-			return this.enableRemoteControl;
-		});
-		this.addDependency("webSocketPassword", "Enable Remote Control",() -> {
-			return this.enableRemoteControl;
-		});
-		this.addDependency("restartAfterFailSafeDelay", "Enable Restart After FailSafe",() -> {
-			return this.enableRestartAfterFailSafe;
-		});
-		this.addDependency("enableLeaveOnBanwave", "Enable Banwave Checker",() -> {
-			return this.banwaveCheckerEnabled;
-		});
-		this.addDependency("banwaveThreshold", "Enable Leave On Banwave",() -> {
-			return this.enableLeaveOnBanwave;
-		});
-		this.addDependency("delayBeforeReconnecting", "Enable Leave On Banwave",() -> {
-			return this.enableLeaveOnBanwave;
-		});
-		this.addDependency("setSpawnBeforeEvacuate", "Enable Auto Set Spawn",() -> {
-			return this.enableAutoSetSpawn;
-		});
-		this.addDependency("autoSetSpawnMinDelay", "Enable Auto Set Spawn",() -> {
-			return this.enableAutoSetSpawn;
-		});
-		this.addDependency("autoSetSpawnMaxDelay", "Enable Auto Set Spawn",() -> {
-			return this.enableAutoSetSpawn;
-		});
+		this.addDependency("sellToNPC", "Enable Auto Sell", () -> this.enableAutoSell);
+		this.addDependency("inventoryFullTime", "Sell to NPC", () -> this.enableAutoSell);
+		this.addDependency("inventoryFullRatio", "Sell to NPC", () -> this.enableAutoSell);
 
+		this.addDependency("customFailsafeMessage", "Enable Failsafe Custom Messages", () -> this.sendFailsafeMessage);
+		this.addDependency("schedulerFarmingTime", "Enable Scheduler", () -> this.enableScheduler);
+		this.addDependency("schedulerFarmingTimeRandomness", "Enable Scheduler", () -> this.enableScheduler);
+		this.addDependency("schedulerBreakTime", "Enable Scheduler", () -> this.enableScheduler);
+		this.addDependency("schedulerBreakTimeRandomness", "Enable Scheduler", () -> this.enableScheduler);
+		this.addDependency("jacobNetherWartCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
+		this.addDependency("jacobPotatoCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
+		this.addDependency("jacobCarrotCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
+		this.addDependency("jacobWheatCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
+		this.addDependency("jacobSugarCaneCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
+		this.addDependency("jacobMushroomCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
+		this.addDependency("onlyAcceptProfitableVisitors", "Enable Visitors Macro",() -> this.visitorsMacro);
+		this.addDependency("visitorsMacroCoinsThreshold", "Enable Visitors Macro",() -> this.visitorsMacro);
+		this.addDependency("sendLogs", "Enable webhook messages",() -> this.enableWebHook);
+		this.addDependency("sendStatusUpdates", "Enable webhook messages",() -> this.enableWebHook);
+		this.addDependency("statusUpdateInterval", "Enable webhook messages",() -> this.enableWebHook);
+		this.addDependency("webHookURL", "Enable webhook messages",() -> this.enableWebHook);
+		this.addDependency("webSocketIP", "Enable Remote Control",() -> this.enableRemoteControl);
+		this.addDependency("webSocketPassword", "Enable Remote Control",() -> this.enableRemoteControl);
+		this.addDependency("restartAfterFailSafeDelay", "Enable Restart After FailSafe",() -> this.enableRestartAfterFailSafe);
+		this.addDependency("enableLeaveOnBanwave", "Enable Banwave Checker",() -> this.banwaveCheckerEnabled);
+		this.addDependency("banwaveThreshold", "Enable Leave On Banwave",() -> this.enableLeaveOnBanwave);
+		this.addDependency("delayBeforeReconnecting", "Enable Leave On Banwave",() -> this.enableLeaveOnBanwave);
+		this.addDependency("setSpawnBeforeEvacuate", "Enable Auto Set Spawn",() -> this.enableAutoSetSpawn);
+		this.addDependency("autoSetSpawnMinDelay", "Enable Auto Set Spawn",() -> this.enableAutoSetSpawn);
+		this.addDependency("autoSetSpawnMaxDelay", "Enable Auto Set Spawn",() -> this.enableAutoSetSpawn);
 		save();
 	}
 }
