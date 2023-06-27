@@ -1,6 +1,10 @@
 name: build-ci
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 
 jobs:
   build:
@@ -22,42 +26,57 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Build
-        run: chmod +x gradlew; ./gradlew setupCiWorkspace && ./gradlew build --stacktrace
+        run: chmod +x gradlew && ./gradlew setupCiWorkspace && ./gradlew build --stacktrace
       - name: Upload build artifacts
         uses: actions/upload-artifact@v1
         with:
           name: build-artifacts
           path: build
-      - name: Verify build artifacts
-        run: |
-          ls -R build
       - name: Fetch latest commit details
         id: latest_commit
         run: |
           COMMIT_API_RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GH_TOKEN }}" "https://api.github.com/repos/JellyLabScripts/FarmHelper/commits?per_page=1")
-          COMMIT_SHA=$(echo "$COMMIT_API_RESPONSE" | jq -r '.[0].sha')
           COMMIT_MESSAGE=$(echo "$COMMIT_API_RESPONSE" | jq -r '.[0].commit.message')
-          echo "::set-output name=commit_sha::$COMMIT_SHA"
+          COMMIT_SHA=$(echo "$COMMIT_API_RESPONSE" | jq -r '.[0].sha')
+          COMMIT_URL=$(echo "$COMMIT_API_RESPONSE" | jq -r '.[0].html_url')
+          SHORT_COMMIT_SHA=$(echo "$COMMIT_SHA" | cut -c 1-7)
           echo "::set-output name=commit_message::$COMMIT_MESSAGE"
+          echo "::set-output name=commit_url::$COMMIT_URL"
+          echo "::set-output name=short_commit_sha::$SHORT_COMMIT_SHA"
 
       - name: Send embed message with timestamp and footer
         run: |
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
           LONG_DATE=$(date -u +"%A, %B %-d, %Y at %T")
+          COMMIT_MESSAGE="${{ steps.latest_commit.outputs.commit_message }}"
+          COMMIT_URL="${{ steps.latest_commit.outputs.commit_url }}"
+          SHORT_COMMIT_SHA="${{ steps.latest_commit.outputs.short_commit_sha }}"
           curl -X POST -H "Content-Type: application/json" \
-            -d '{
-                  "embeds": [
+            -d "{
+                  \"embeds\": [
                     {
-                      "title": "FarmHelper has updated!",
-                      "description": "To view the full list of changes head over to the GitHub \u200B[commits](https://github.com/JellyLabScripts/FarmHelper/commits/master).",
-                      "color": 65280,
-                      "timestamp": "'"$TIMESTAMP"'",
-                      "footer": {
-                        "text": "Latest commit: '"$LONG_DATE"'\n'"${{ steps.latest_commit.outputs.commit_message }}"' ('"${{ steps.latest_commit.outputs.commit_sha }}"')"
+                      \"title\": \"FarmHelper Update\",
+                      \"description\": \"FarmHelper has been updated with the following changes:\",
+                      \"color\": 3447003,
+                      \"thumbnail\": {
+                        \"url\": \"https://cdn.discordapp.com/icons/997464259170680923/b8bec7454dd1d7a9ce5e1bb8f6106173.png\"
+                      },
+                      \"fields\": [
+                        {
+                          \"name\": \"Latest Commit\",
+                          \"value\": \"**${COMMIT_MESSAGE}**\"
+                        },
+                        {
+                          \"name\": \"Commit ID\",
+                          \"value\": \"[View Commit (${SHORT_COMMIT_SHA})](${COMMIT_URL})\\n_Click the hyperlink to learn more about the changes.._\"
+                        }
+                      ],
+                      \"footer\": {
+                        \"text\": \"Updated: ${LONG_DATE}\"
                       }
                     }
                   ]
-                }' \
+                }" \
             ${{ secrets.DISCORD_WEBHOOK_URL }}
       - name: Send build artifacts to Discord webhook
         run: |
