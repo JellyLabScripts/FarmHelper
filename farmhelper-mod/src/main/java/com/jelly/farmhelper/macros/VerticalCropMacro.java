@@ -90,12 +90,15 @@ public class VerticalCropMacro extends Macro{
 
     private void checkForTeleport() {
         if (beforeTeleportationPos == null) return;
-        if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos) > 1) {
+        if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos) > 2) {
             LogUtils.debugLog("Teleported!");
             beforeTeleportationPos = null;
             isTping = false;
             lastTp.reset();
             lastTp.schedule(1_000);
+            if (!isSpawnLocationSet()) {
+                setSpawnLocation();
+            }
         }
     }
 
