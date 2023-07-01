@@ -143,6 +143,12 @@ public class SugarcaneMacro extends Macro {
             triggerWarpGarden();
             return;
         } else {
+
+            if (Failsafe.emergency) {
+                LogUtils.debugLog("Blocking changing movement due to emergency");
+                return;
+            }
+
             KeyBindUtils.updateKeys(false,
                     currentWalkState == WalkState.S,
                     currentWalkState == WalkState.D,

@@ -2,6 +2,7 @@ package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.Antistuck;
+import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
@@ -162,6 +163,11 @@ public class CocoaBeanRGMacro extends Macro {
         }
 
         updateState();
+
+        if (Failsafe.emergency) {
+            LogUtils.debugLog("Blocking changing movement due to emergency");
+            return;
+        }
 
         switch (currentState) {
             case RIGHT:

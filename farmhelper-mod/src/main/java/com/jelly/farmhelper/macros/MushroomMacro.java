@@ -3,7 +3,6 @@ package com.jelly.farmhelper.macros;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config.SMacroEnum;
 import com.jelly.farmhelper.config.Config.CropEnum;
-
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -42,6 +41,8 @@ public class MushroomMacro extends Macro {
     private final Clock waitForChangeDirection = new Clock();
     private final Clock waitBetweenTp = new Clock();
 
+    private boolean stuck = false;
+
     @Override
     public void onEnable() {
         lastTp.reset();
@@ -63,6 +64,7 @@ public class MushroomMacro extends Macro {
         }
         mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(CropEnum.MUSHROOM);
         isTping = false;
+        stuck = false;
     }
 
     @Override
@@ -138,7 +140,7 @@ public class MushroomMacro extends Macro {
     @Override
     public void onTick() {
 
-        if (mc.thePlayer == null || mc.theWorld == null)
+        if (mc.thePlayer == null || mc.theWorld == null || stuck)
             return;
 
         checkForTeleport();
@@ -217,6 +219,16 @@ public class MushroomMacro extends Macro {
             return;
         }
 
+        if (Failsafe.emergency) {
+            LogUtils.debugLog("Blocking changing movement due to emergency");
+            return;
+        }
+
+        if(Antistuck.stuck){
+            stuck = true;
+            new Thread(fixRowStuck).start();
+        }
+
         switch (currentState) {
             case RIGHT:
                 LogUtils.debugLog("Going RIGHT");
@@ -281,6 +293,27 @@ public class MushroomMacro extends Macro {
         if (rotation.rotating)
             rotation.update();
     }
+
+    public Runnable fixRowStuck = () -> {
+        try {
+            LogUtils.scriptLog("Activated antistuck");
+            Thread.sleep(20);
+            updateKeys(false, true, false, false, false);
+            Thread.sleep(200);
+            updateKeys(false, false, true, false, false);
+            Thread.sleep(200);
+            updateKeys(true, false, false, false, false);
+            Thread.sleep(200);
+            updateKeys(false, false, false, true, false);
+            Thread.sleep(200);
+            updateKeys(false, false, false, false, false);
+            stuck = false;
+            Antistuck.stuck = false;
+            Antistuck.cooldown.schedule(2000);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    };
 
     private void changeStateTo(State newState) {
         State currState = currentState;

@@ -196,6 +196,11 @@ public class VerticalCropMacro extends Macro{
             triggerWarpGarden();
         }
 
+        if (Failsafe.emergency) {
+            LogUtils.debugLog("Blocking changing movement due to emergency");
+            return;
+        }
+
         if (isWalkable(getRightBlock()) && isWalkable(getLeftBlock()) && currentState != State.BACK_TO_TOP_LAYER) {
             if(mc.thePlayer.lastTickPosY - mc.thePlayer.posY != 0)
                 return;

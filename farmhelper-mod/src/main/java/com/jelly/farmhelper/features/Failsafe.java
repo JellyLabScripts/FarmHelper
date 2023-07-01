@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.features;
 
+import akka.japi.Pair;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.events.BlockChangeEvent;
@@ -9,10 +10,8 @@ import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S09PacketHeldItemChange;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Tuple;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -23,6 +22,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -137,16 +137,16 @@ public class Failsafe {
 
         if (!MacroHandler.isMacroing) return;
 
-        if (dirtToCheck != null) {
-            frustum.setPosition(mc.getRenderViewEntity().posX, mc.getRenderViewEntity().posY, mc.getRenderViewEntity().posZ);
-            if (frustum.isBoundingBoxInFrustum(new AxisAlignedBB(dirtToCheck.getX(), dirtToCheck.getY(), dirtToCheck.getZ(), dirtToCheck.getX() + 1, dirtToCheck.getY() + 1, dirtToCheck.getZ() + 1))) {
-                emergencyFailsafe(FailsafeType.DIRT);
-                dirtCheck.reset();
-                dirtToCheck = null;
-            }
-            if (dirtCheck.isScheduled() && dirtCheck.passed()) {
-                dirtToCheck = null;
-                dirtCheck.reset();
+        if (!dirtToCheck.isEmpty()) {
+            dirtToCheck.removeIf(pair -> pair.second() + 20_000 < System.currentTimeMillis());
+
+            for (Pair<BlockPos, Long> pair : dirtToCheck) {
+                System.out.println("Distance: " + Math.sqrt(mc.thePlayer.getDistanceSq(pair.first())));
+                if (Math.sqrt(mc.thePlayer.getDistanceSq(pair.first())) < 1.5) {
+                    emergencyFailsafe(FailsafeType.DIRT);
+                    dirtToCheck.clear();
+                    break;
+                }
             }
         }
 
@@ -275,18 +275,18 @@ public class Failsafe {
 //                        LogUtils.debugLog("Condition not met: !emergency");
 //                    }
 //
-//                    if (evacuateCooldown.isScheduled()) {
-//                        LogUtils.debugLog("Condition not met: !evacuateCooldown.isScheduled()");
-//                    }
-//
-//                    if (afterEvacuateCooldown.isScheduled()) {
-//                        LogUtils.debugLog("Condition not met: !afterEvacuateCooldown.isScheduled()");
-//                    }
-//
-//                    if (restartAfterFailsafeCooldown.isScheduled()) {
-//                        LogUtils.debugLog("Condition not met: !restartAfterFailsafeCooldown.isScheduled()");
-//                    }
-//
+                    if (evacuateCooldown.isScheduled()) {
+                        LogUtils.debugLog("Condition not met: !evacuateCooldown.isScheduled()");
+                    }
+
+                    if (afterEvacuateCooldown.isScheduled()) {
+                        LogUtils.debugLog("Condition not met: !afterEvacuateCooldown.isScheduled()");
+                    }
+
+                    if (restartAfterFailsafeCooldown.isScheduled()) {
+                        LogUtils.debugLog("Condition not met: !restartAfterFailsafeCooldown.isScheduled()");
+                    }
+
 //                    if (MiscConfig.visitorsMacro && VisitorsMacro.isEnabled()) {
 //                        LogUtils.debugLog("Condition not met: (!MiscConfig.visitorsMacro || !VisitorsMacro.isEnabled())");
 //                    }
@@ -345,14 +345,9 @@ public class Failsafe {
     private static final Rotation rotation = new Rotation();
     static Thread bzchillingthread;
     public static boolean emergency = false;
-    private static final Frustum frustum = new Frustum();
-
-    //private static Clock eDisable = new Clock();
 
     private static ExecutorService emergencyThreadExecutor = Executors.newScheduledThreadPool(5);
-    private static BlockPos dirtToCheck = null;
-    private static final Clock dirtCheck = new Clock();
-
+    private static final ArrayList<Pair<BlockPos, Long>> dirtToCheck = new ArrayList<>();
 
     @SubscribeEvent
     public void onBlockChange(BlockChangeEvent event){
@@ -360,13 +355,11 @@ public class Failsafe {
         if(mc.thePlayer == null || mc.theWorld == null || MacroHandler.currentMacro == null || !MacroHandler.isMacroing || !MacroHandler.currentMacro.enabled || emergency)
             return;
 
-        if(gameState.currentLocation != GameState.location.ISLAND || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame))
-            return;
 
-        if(event.old != null && BlockUtils.isWalkable(event.old.getBlock()) && event.update.getBlock().equals(Blocks.dirt)) {
-            if (mc.thePlayer.getDistanceSqToCenter(event.pos) < 10) {
-                dirtToCheck = event.pos;
-                dirtCheck.schedule(10_000);
+        if(event.update.getBlock().equals(Blocks.dirt)) {
+            if (dirtToCheck.stream().noneMatch(pair -> pair.first().equals(event.pos))) {
+                dirtToCheck.add(new Pair<>(event.pos, System.currentTimeMillis()));
+                LogUtils.debugLog("Dirt has been put in the world near you");
             }
         }
 
