@@ -1,6 +1,8 @@
 package com.jelly.farmhelper.mixins.client;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.macros.MacroHandler;
+
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -49,7 +51,7 @@ public class MinecraftMixin {
 
     @Inject(method = "sendClickBlockToController", at = @At("RETURN"))
     private void sendClickBlockToController(CallbackInfo ci) {
-        if (!FarmHelper.config.fastBreak) return;
+        if (!FarmHelper.config.fastBreak || !MacroHandler.currentMacro.enabled) return;
 
         boolean shouldClick = this.currentScreen == null && this.gameSettings.keyBindAttack.isKeyDown() && this.inGameHasFocus;
         if (this.objectMouseOver != null && shouldClick)
@@ -58,8 +60,8 @@ public class MinecraftMixin {
                 this.objectMouseOver = this.renderViewEntity.rayTrace(this.playerController.getBlockReachDistance(), 1.0F);
 
                 if (this.objectMouseOver == null ||
-                    this.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK
-//                    this.theWorld.getBlockState(clickedBlock).getBlock().getMaterial() == Material.air
+                    this.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK ||
+                    this.theWorld.getBlockState(clickedBlock).getBlock().getMaterial() == Material.air
                 ) break;
 
                 BlockPos newBlock = this.objectMouseOver.getBlockPos();
