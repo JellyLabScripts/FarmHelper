@@ -27,6 +27,17 @@ jobs:
             ${{ runner.os }}-gradle-
       - name: Build
         run: chmod +x gradlew && ./gradlew setupCiWorkspace && ./gradlew build --stacktrace
+
+      - name: Rename jar files
+        run: |
+          cd build
+          for file in *.jar; do
+            if [[ $file =~ (FarmHelper-Bot-|FarmHelper-)v?[0-9]+\.[0-9]+\.[0-9]+\.jar ]]; then
+              COMMIT_SHA=$(git rev-parse --short=7 HEAD)
+              mv "$file" "${BASH_REMATCH[1]}${COMMIT_SHA}.jar"
+            fi
+          done
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v1
         with:
