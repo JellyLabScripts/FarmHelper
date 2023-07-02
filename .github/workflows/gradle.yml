@@ -34,12 +34,14 @@ jobs:
           path: build
 
       - name: Check for GH_TOKEN and DISCORD_WEBHOOK_URL
-      # Hi
+        #dont ask
         id: check_secrets
         run: |
           if [[ -z "${{ secrets.GH_TOKEN }}" || -z "${{ secrets.DISCORD_WEBHOOK_URL }}" ]]; then
-            echo "Skipping tasks due to missing secrets: GH_TOKEN or DISCORD_WEBHOOK_URL"
-            exit 0
+            echo "Secrets GH_TOKEN or DISCORD_WEBHOOK_URL not provided, skipping tasks"
+            echo "::set-output name=result::failure"
+          else
+            echo "::set-output name=result::success"
           fi
 
       - name: Fetch latest commit details
