@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.config.Config.SMacroEnum;
 import com.jelly.farmhelper.config.Config.CropEnum;
 import com.jelly.farmhelper.features.Failsafe;
