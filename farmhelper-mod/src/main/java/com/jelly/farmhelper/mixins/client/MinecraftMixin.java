@@ -51,7 +51,7 @@ public class MinecraftMixin {
 
     @Inject(method = "sendClickBlockToController", at = @At("RETURN"))
     private void sendClickBlockToController(CallbackInfo ci) {
-        if (!FarmHelper.config.fastBreak || !MacroHandler.currentMacro.enabled) return;
+        if (!FarmHelper.config.fastBreak || (MacroHandler.currentMacro != null && !MacroHandler.currentMacro.enabled)) return;
 
         boolean shouldClick = this.currentScreen == null && this.gameSettings.keyBindAttack.isKeyDown() && this.inGameHasFocus;
         if (this.objectMouseOver != null && shouldClick)
