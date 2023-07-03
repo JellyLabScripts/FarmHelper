@@ -7,7 +7,9 @@ import cc.polyfrost.oneconfig.renderer.font.Fonts;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.BasicHud;
 
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.ProfitCalculator;
+import com.jelly.farmhelper.world.GameState;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -34,6 +36,11 @@ public class ProfitCalculatorHUD extends BasicHud {
                 textY += 5 * scale;
             }
         });
+    }
+
+    @Override
+    protected boolean shouldShow() {
+        return (FarmHelper.gameState.currentLocation == GameState.location.ISLAND);
     }
 
     protected void drawLine(long vg, String text, String iconPath, float x, float y, float scale) {
