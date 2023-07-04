@@ -259,7 +259,7 @@ public class SShapeCropMacro extends Macro {
                             yaw = AngleUtils.get360RotationYaw(yaw + 180);
                             rotation.easeTo(yaw, pitch, (long) (300 + Math.random() * 500));
                         }
-                        LogUtils.debugFullLog("Waiting Rotating 180");
+                        LogUtils.debugFullLog("Waiting: Rotating 180");
                         updateKeys(false, false, false, false, false);
                     } else {
                         if (mc.thePlayer.posY % 1 == 0) {
@@ -316,9 +316,9 @@ public class SShapeCropMacro extends Macro {
             case SWITCH_MID:
                 LogUtils.debugLog("Middle of switch, keep going");
                 if (switchBackwardsDirection)
-                    updateKeys(false, true, false, false, false);
+                    updateKeys(false, true, false, false, true);
                 else
-                    updateKeys(true, false, false, false, false);
+                    updateKeys(true, false, false, false, true);
                 return;
             case SWITCH_END:
                 if (gameState.rightWalkable) {
@@ -443,7 +443,7 @@ public class SShapeCropMacro extends Macro {
                 return;
             }
             if (!waitForChangeDirection.isScheduled() && currentState != State.SWITCH_START && (gameState.dx < 0.1 && gameState.dz < 0.1)) {
-                KeyBindUtils.stopMovement();
+                updateKeys(false, false, false, false, true);
                 long waitTime = (long) (Math.random() * 300 + 150);
                 LogUtils.debugLog("SWITCH_START: Waiting " + waitTime + "ms");
                 waitForChangeDirection.schedule(waitTime);
@@ -456,7 +456,7 @@ public class SShapeCropMacro extends Macro {
                     return;
                 }
                 if (!waitForChangeDirection.isScheduled() && (gameState.dx < 0.1 && gameState.dz < 0.1)) {
-                    KeyBindUtils.stopMovement();
+                    updateKeys(false, false, false, false, true);
                     long waitTime = (long) (Math.random() * 300 + 150);
                     LogUtils.debugLog("SWITCH_END: Waiting " + waitTime + "ms");
                     waitForChangeDirection.schedule(waitTime);
