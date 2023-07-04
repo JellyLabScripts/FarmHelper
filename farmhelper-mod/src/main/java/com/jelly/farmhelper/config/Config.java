@@ -338,7 +338,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	@Slider(
 		name = "Rotation Time", category = DELAYS, subcategory = "Delays",
 		description = "The time it takes to rotate the player (in seconds)",
-		min = 0.4f, max = 10
+		min = 0.2f, max = 10
 	)
 	public float rotationTime = 0.4f;
 	@Slider(

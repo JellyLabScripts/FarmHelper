@@ -538,7 +538,7 @@ public class Failsafe {
             // stage 1: look around and move to back (bonus random crouch)
             LogUtils.debugLog("rotationMovement: stage 1");
             if (dirtPos.size() < 0) {
-                rotationTime = (long) ((Math.random() * FarmHelper.config.rotationTimeRandomness) + FarmHelper.config.rotationTime);
+                rotationTime = (long)((Math.random() * FarmHelper.config.rotationTimeRandomness * 1_000) + FarmHelper.config.rotationTime * 1_000);
                 rotation.easeTo((float) (300 * (Math.random())), (float) (20 * (Math.random() - 1)), rotationTime);
 
                 Thread.sleep(rotationTime + 200);
@@ -582,7 +582,7 @@ public class Failsafe {
             }
 
             for (int i = 0; i < config.rotationActingTimes; i++) {
-                rotationTime = (long) ((Math.random() * FarmHelper.config.rotationTimeRandomness) + FarmHelper.config.rotationTime);
+                rotationTime = (long)((Math.random() * FarmHelper.config.rotationTimeRandomness * 1_000) + FarmHelper.config.rotationTime * 1_000);
                 rotation.easeTo((float) (360 * (Math.random())), (float) (20 * (Math.random() - 1)), rotationTime);
                 if (Math.random() < 0.1f) {
                     KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
@@ -620,7 +620,7 @@ public class Failsafe {
             // stage 3: look around again and jump
             LogUtils.debugLog("rotationMovement: stage 3");
             for (int i = 0; i < config.rotationActingTimes; i++) {
-                rotationTime = (long) ((Math.random() * FarmHelper.config.rotationTimeRandomness) + FarmHelper.config.rotationTime);
+                rotationTime = (long)((Math.random() * FarmHelper.config.rotationTimeRandomness * 1_000) + FarmHelper.config.rotationTime * 1_000);
                 rotation.easeTo((float) (340 * (Math.random())), (float) (20 * (Math.random() - 1)), rotationTime);
                 Thread.sleep(rotationTime + 200);
                 // random crouch
