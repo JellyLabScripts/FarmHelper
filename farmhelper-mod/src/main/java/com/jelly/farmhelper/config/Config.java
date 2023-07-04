@@ -250,6 +250,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public boolean fastChangeDirectionCane = false;
 	@Switch(
+		name = "Hold left click when changing row", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+		description = "Hold left click when change row"
+	)
+	public boolean holdLeftClickWhenChangingRow = true;
+	@Switch(
 		name = "Count RNG to $/Hr in Profit Calculator", category = MISCELLANEOUS, subcategory = "Miscellaneous",
 		description = "Count RNG to $/Hr"
 	)
@@ -787,6 +792,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("rotateAfterDrop", "Rotate After Drop", () -> (this.macroType && !MacroHandler.isMacroing));
 		this.addDependency("ladderDesign", "Ladder Design", () -> (!this.macroType && !MacroHandler.isMacroing));
 
+		this.addDependency("holdLeftClickWhenChangingRow", "S Shape Macro Type", () -> this.macroType);
         this.addDependency("fastBreakSpeed", "Fast Break", () -> this.fastBreak);
 
 		this.addDependency("sellToNPC", "Enable Auto Sell", () -> this.enableAutoSell);

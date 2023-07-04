@@ -305,20 +305,20 @@ public class SShapeCropMacro extends Macro {
                 if (!waitForChangeDirection.isScheduled()) {
                     if (switchBackwardsDirection) {
                         LogUtils.debugFullLog("Continue backwards");
-                        updateKeys(false, true, prevState == State.RIGHT, prevState == State.LEFT, false);
+                        updateKeys(false, true, prevState == State.RIGHT, prevState == State.LEFT, FarmHelper.config.holdLeftClickWhenChangingRow);
                         return;
                     } else {
                         LogUtils.debugFullLog("Continue forwards");
-                        updateKeys(true, false, prevState == State.RIGHT, prevState == State.LEFT, false);
+                        updateKeys(true, false, prevState == State.RIGHT, prevState == State.LEFT, FarmHelper.config.holdLeftClickWhenChangingRow);
                         return;
                     }
                 }
             case SWITCH_MID:
                 LogUtils.debugLog("Middle of switch, keep going");
                 if (switchBackwardsDirection)
-                    updateKeys(false, true, false, false, true);
+                    updateKeys(false, true, false, false, FarmHelper.config.holdLeftClickWhenChangingRow);
                 else
-                    updateKeys(true, false, false, false, true);
+                    updateKeys(true, false, false, false, FarmHelper.config.holdLeftClickWhenChangingRow);
                 return;
             case SWITCH_END:
                 if (gameState.rightWalkable) {
