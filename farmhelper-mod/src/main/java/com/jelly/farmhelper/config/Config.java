@@ -361,7 +361,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		name = "Pause When in Contests", category = VISITORS_MACRO, subcategory = "Visitors Macro",
 		description = "Pauses the visitors macro when in contests"
 	)
-	public boolean pauseWhenInContests = false;
+	public boolean pauseWhenInContests = true;
 	@Switch(
 		name = "Only Accept Profitable Visitors", category = VISITORS_MACRO, subcategory = "Visitors Macro",
 		description = "Only accepts visitors that are profitable"

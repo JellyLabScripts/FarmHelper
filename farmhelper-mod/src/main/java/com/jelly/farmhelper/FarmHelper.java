@@ -8,7 +8,6 @@ import com.jelly.farmhelper.config.Config;
 
 import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
@@ -37,7 +36,7 @@ import java.util.jar.Manifest;
 public class FarmHelper {
     public static final String MODID = "farmhelper";
     public static final String NAME = "Farm Helper";
-    public static final String VERSION = "4.4.1-PRE";
+    public static final String VERSION = "4.5.0";
 
     // the actual mod version from gradle properties, should match with VERSION
     public static String MODVERSION = "-1";
