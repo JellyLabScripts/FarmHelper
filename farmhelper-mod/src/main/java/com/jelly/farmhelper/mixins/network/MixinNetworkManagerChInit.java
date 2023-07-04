@@ -1,6 +1,6 @@
 package com.jelly.farmhelper.mixins.network;
 
-import com.jelly.farmhelper.config.interfaces.ProxyConfig;
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.gui.ProxyScreen;
 import com.jelly.farmhelper.network.proxy.ConnectionState;
 import com.jelly.farmhelper.network.proxy.ProxyManager;
@@ -16,7 +16,7 @@ public abstract class MixinNetworkManagerChInit {
 
     @Inject(method = "initChannel", at = @At(value = "HEAD"))
     private void onInitChannel(Channel channel, CallbackInfo ci) {
-        if (ProxyConfig.connectAtStartup && ProxyScreen.state == null) {
+        if (FarmHelper.config.connectAtStartup && ProxyScreen.state == null) {
             ProxyScreen.state = ConnectionState.CONNECTING;
             ProxyManager.testProxy();
         }

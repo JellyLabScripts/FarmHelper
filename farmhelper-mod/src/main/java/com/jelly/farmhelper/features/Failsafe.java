@@ -2,10 +2,6 @@ package com.jelly.farmhelper.features;
 
 import akka.japi.Pair;
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
-import com.jelly.farmhelper.config.interfaces.JacobConfig;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.macros.MacroHandler;
@@ -33,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.jelly.farmhelper.FarmHelper.config;
 import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.KeyBindUtils.stopMovement;
 
@@ -43,9 +40,8 @@ public class Failsafe {
     public static final Clock jacobWait = new Clock();
     private static final Clock evacuateCooldown = new Clock();
     private static final Clock afterEvacuateCooldown = new Clock();
-    public static final Clock restartAfterFailsafeCooldown = new Clock();
+    public static Clock restartAfterFailsafeCooldown = new Clock();
     private static String formattedTime;
-
     private static boolean wasInGarden = false;
     private static final String[] FAILSAFE_MESSAGES = new String[]
             {"What", "what?", "what", "what??", "What???", "Wut?", "?", "what???", "yo huh", "yo huh?", "yo?", "bedrock??", "bedrock?",
@@ -64,7 +60,7 @@ public class Failsafe {
                 cooldown.schedule(10000);
             }
             if (message.contains("to warp out! CLICK to warp now!")) {
-                if (FailsafeConfig.setSpawnBeforeEvacuate)
+                if (FarmHelper.config.setSpawnBeforeEvacuate)
                     PlayerUtils.setSpawn();
                 LogUtils.debugLog("Update or restart is required - Evacuating in 5s");
                 evacuateCooldown.schedule(2_500);
@@ -85,13 +81,13 @@ public class Failsafe {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (!MacroHandler.isMacroing) return;
         if (gameState.currentLocation != GameState.location.ISLAND && MacroHandler.currentMacro.enabled) {
-            if(FailsafeConfig.notifications)
+            if(FarmHelper.config.popUpNotification)
                 Utils.createNotification("Not in island. It might be a server reboot or staff check." +
-                        (FailsafeConfig.autoTpOnWorldChange ? "" : " Please go back to your island and restart the script."), SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
+                        (FarmHelper.config.autoTPOnWorldChange ? "" : " Please go back to your island and restart the script."), SystemTray.getSystemTray(), TrayIcon.MessageType.WARNING);
 
             LogUtils.scriptLog("Failsafe - Not in island. It might be a server reboot or staff check." +
-                    (FailsafeConfig.autoTpOnWorldChange ? "" : " Please go back to your island and restart the script." +
-                            (FailsafeConfig.autoSetspawn ? "" : " Since auto setspawn was disabled, fly back to the place where you started")));
+                    (FarmHelper.config.autoTPOnWorldChange ? "" : " Please go back to your island and restart the script." +
+                            (FarmHelper.config.enableAutoSetSpawn ? "" : " Since auto setspawn was disabled, fly back to the place where you started")));
             
             MacroHandler.disableCurrentMacro();
             cooldown.schedule((long) (6000 + Math.random() * 5000));
@@ -103,7 +99,7 @@ public class Failsafe {
     public void onRenderGameOverlay(RenderGameOverlayEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
-        if (!MiscConfig.debugMode) return;
+        if (!FarmHelper.config.debugMode) return;
         if (mc.theWorld == null || mc.thePlayer == null) return;
 
         if (restartAfterFailsafeCooldown.isScheduled() && !restartAfterFailsafeCooldown.passed()) {
@@ -131,9 +127,9 @@ public class Failsafe {
 
         if (restartAfterFailsafeCooldown.isScheduled()) {
             if (restartAfterFailsafeCooldown.passed()) {
-                LogUtils.debugLog("Restarting macro. 3 minutes after failsafe is passed");
+                LogUtils.debugLog("Restarting macro. " + FarmHelper.config.restartAfterFailSafeDelay + " seconds after failsafe is passed");
                 emergency = false;
-                restartAfterFailsafeCooldown.reset();
+                restartAfterFailsafeCooldown = new Clock();
                 MacroHandler.enableMacro();
             }
         }
@@ -146,13 +142,13 @@ public class Failsafe {
             for (Pair<BlockPos, Long> pair : dirtToCheck) {
                 System.out.println("Distance: " + Math.sqrt(mc.thePlayer.getDistanceSq(pair.first())));
                 if (Math.sqrt(mc.thePlayer.getDistanceSq(pair.first())) < 1.5) {
+                    dirtPos.add(pair.first());
                     emergencyFailsafe(FailsafeType.DIRT);
                     dirtToCheck.clear();
                     break;
                 }
             }
         }
-
 
         if(!emergency && BlockUtils.bedrockCount() > 2){
             emergencyFailsafe(FailsafeType.BEDROCK);
@@ -161,30 +157,32 @@ public class Failsafe {
 
         GameState.location location = gameState.currentLocation;
 
-        // LogUtils.debugLog("Test");
-
         switch (location) {
             case TELEPORTING:
                 return;
             case LIMBO:
-                if(!FailsafeConfig.autoTpOnWorldChange) return;
+                if(!FarmHelper.config.autoTPOnWorldChange) return;
                 if (cooldown.passed()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage("/lobby");
                     cooldown.schedule(5000);
+                    if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
+                        restartAfterFailsafeCooldown.schedule(FarmHelper.config.restartAfterFailSafeDelay * 1000L);
                 }
                 return;
             case LOBBY:
-                if(!FailsafeConfig.autoTpOnWorldChange) return;
+                if(!FarmHelper.config.autoTPOnWorldChange) return;
                 if (cooldown.passed() && jacobWait.passed()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage("/skyblock");
-                    cooldown.schedule(7500);
-                    afterEvacuateCooldown.schedule(7500);
+                    cooldown.schedule(15_000);
+                    afterEvacuateCooldown.schedule(15_000);
+                    if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
+                        restartAfterFailsafeCooldown.schedule(FarmHelper.config.restartAfterFailSafeDelay * 1000L);
                 }
                 return;
             case HUB:
-                if(!FailsafeConfig.autoTpOnWorldChange) return;
+                if(!FarmHelper.config.autoTPOnWorldChange) return;
                 LogUtils.debugLog("Detected Hub");
                 if (afterEvacuateCooldown.isScheduled() && !afterEvacuateCooldown.passed()) {
                     LogUtils.debugLog("Waiting for \"after evacuate\" cooldown: " + (String.format("%.1f", afterEvacuateCooldown.getRemainingTime() / 1000f)));
@@ -193,13 +191,15 @@ public class Failsafe {
                     LogUtils.debugLog("After evacuate cooldown passed");
                     LogUtils.webhookLog("Teleporting back to island after evacuate");
                     mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
-                    afterEvacuateCooldown.schedule(5_000);
+                    afterEvacuateCooldown.schedule(15_000);
                 }
                 if (cooldown.passed() && jacobWait.passed() && !AutoCookie.isEnabled() && !AutoPot.isEnabled()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
-                    cooldown.schedule(5000);
+                    cooldown.schedule(15_000);
                 }
+                if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
+                    restartAfterFailsafeCooldown.schedule(FarmHelper.config.restartAfterFailSafeDelay * 1000L);
                 return;
             case ISLAND:
                 checkInGarden();
@@ -212,7 +212,7 @@ public class Failsafe {
                     evacuateCooldown.reset();
                     afterEvacuateCooldown.schedule(5_000);
                 }
-                if (JacobConfig.jacobFailsafe && jacobExceeded() && jacobWait.passed() && MacroHandler.currentMacro.enabled) {
+                if (FarmHelper.config.enableJacobFailsafes && jacobExceeded() && jacobWait.passed() && MacroHandler.currentMacro.enabled) {
                     LogUtils.debugLog("Jacob remaining time: " + formattedTime);
                     LogUtils.webhookLog("Jacob score exceeded - - Resuming in " + formattedTime);
                     jacobWait.schedule(getJacobRemaining());
@@ -224,7 +224,7 @@ public class Failsafe {
                         && Scheduler.isFarming()
                         && !AutoCookie.isEnabled()
                         && !AutoPot.isEnabled()
-                        && !(BanwaveChecker.banwaveOn && FailsafeConfig.banwaveDisconnect)
+                        && !(BanwaveChecker.banwaveOn && FarmHelper.config.enableLeaveOnBanwave)
                         && !emergency
                         && !evacuateCooldown.isScheduled()
                         && !afterEvacuateCooldown.isScheduled()
@@ -239,8 +239,9 @@ public class Failsafe {
                     LogUtils.debugLog("\"After entering island\" cooldown passed");
                     afterEvacuateCooldown.reset();
                     MacroHandler.currentMacro.triggerTpCooldown();
-                } else {
-                    // DEBUG MESSAGES IN CASE SOMETHING IS BROKEN AGAIN
+                }
+                // DEBUG MESSAGES IN CASE SOMETHING IS BROKEN AGAIN
+//                else {
 //                    if (!MacroHandler.currentMacro.enabled) {
 //                        LogUtils.debugLog("Condition not met: MacroHandler.currentMacro.enabled");
 //                    }
@@ -277,22 +278,21 @@ public class Failsafe {
 //                        LogUtils.debugLog("Condition not met: !emergency");
 //                    }
 //
-                    if (evacuateCooldown.isScheduled()) {
-                        LogUtils.debugLog("Condition not met: !evacuateCooldown.isScheduled()");
-                    }
-
-                    if (afterEvacuateCooldown.isScheduled()) {
-                        LogUtils.debugLog("Condition not met: !afterEvacuateCooldown.isScheduled()");
-                    }
-
-                    if (restartAfterFailsafeCooldown.isScheduled()) {
-                        LogUtils.debugLog("Condition not met: !restartAfterFailsafeCooldown.isScheduled()");
-                    }
-
+//                    if (evacuateCooldown.isScheduled()) {
+//                        LogUtils.debugLog("Condition not met: !evacuateCooldown.isScheduled()");
+//                    }
+//
+//                    if (afterEvacuateCooldown.isScheduled()) {
+//                        LogUtils.debugLog("Condition not met: !afterEvacuateCooldown.isScheduled()");
+//                    }
+//
+//                    if (restartAfterFailsafeCooldown.isScheduled()) {
+//                        LogUtils.debugLog("Condition not met: !restartAfterFailsafeCooldown.isScheduled()");
+//                    }
 //                    if (MiscConfig.visitorsMacro && VisitorsMacro.isEnabled()) {
 //                        LogUtils.debugLog("Condition not met: (!MiscConfig.visitorsMacro || !VisitorsMacro.isEnabled())");
 //                    }
-                }
+//                }
         }
     }
 
@@ -306,22 +306,21 @@ public class Failsafe {
         }
     }
 
-
     public static boolean jacobExceeded() {
         for (String line : ScoreboardUtils.getScoreboardLines()) {
             String cleanedLine = ScoreboardUtils.cleanSB(line);
             if (cleanedLine.contains("Wart") || cleanedLine.contains("Nether")) {
-                return gameState.jacobCounter > JacobConfig.netherWartCap;
+                return gameState.jacobCounter > FarmHelper.config.jacobNetherWartCap;
             } else if (cleanedLine.contains("Mushroom")) {
-                return gameState.jacobCounter > JacobConfig.mushroomCap;
+                return gameState.jacobCounter > FarmHelper.config.jacobMushroomCap;
             } else if (cleanedLine.contains("Carrot")) {
-                return gameState.jacobCounter > JacobConfig.carrotCap;
+                return gameState.jacobCounter > FarmHelper.config.jacobCarrotCap;
             } else if (cleanedLine.contains("Potato")) {
-                return gameState.jacobCounter > JacobConfig.potatoCap;
+                return gameState.jacobCounter > FarmHelper.config.jacobPotatoCap;
             } else if (cleanedLine.contains("Wheat")) {
-                return gameState.jacobCounter > JacobConfig.wheatCap;
+                return gameState.jacobCounter > FarmHelper.config.jacobWheatCap;
             } else if (cleanedLine.contains("Sugar") || cleanedLine.contains("Cane") ) {
-                return gameState.jacobCounter > JacobConfig.sugarcaneCap;
+                return gameState.jacobCounter > FarmHelper.config.jacobSugarCaneCap;
             }
         }
         return false;
@@ -341,8 +340,6 @@ public class Failsafe {
         return 0;
     }
 
-
-
     // region emergency
     private static final Rotation rotation = new Rotation();
     static Thread bzchillingthread;
@@ -350,13 +347,16 @@ public class Failsafe {
 
     private static ExecutorService emergencyThreadExecutor = Executors.newScheduledThreadPool(5);
     private static final ArrayList<Pair<BlockPos, Long>> dirtToCheck = new ArrayList<>();
+    private static final ArrayList<BlockPos> dirtPos = new ArrayList<>();
 
     @SubscribeEvent
     public void onBlockChange(BlockChangeEvent event){
-
-        if(mc.thePlayer == null || mc.theWorld == null || MacroHandler.currentMacro == null || !MacroHandler.isMacroing || !MacroHandler.currentMacro.enabled || emergency)
+        if (mc.thePlayer == null || mc.theWorld == null || MacroHandler.currentMacro == null || !MacroHandler.isMacroing || !MacroHandler.currentMacro.enabled || emergency)
             return;
 
+        if (!emergency && !dirtPos.isEmpty()) {
+            dirtPos.clear();
+        }
 
         if(event.update.getBlock().equals(Blocks.dirt)) {
             if (dirtToCheck.stream().noneMatch(pair -> pair.first().equals(event.pos))) {
@@ -364,7 +364,6 @@ public class Failsafe {
                 LogUtils.debugLog("Dirt has been put in the world near you");
             }
         }
-
     }
     @SubscribeEvent
     public void onWorldLastRender(RenderWorldLastEvent event) {
@@ -396,8 +395,7 @@ public class Failsafe {
         DIRT ("You may have been dirt checked"),
         BEDROCK ("You have been bedrock checked"),
         ROTATION ("You may have been rotation checked or you may have moved your mouse"),
-        DESYNC("You are desynced. " +
-                "You might be lagging or there might be a staff spectating. If this is happening frequently, disable check desync"),
+        DESYNC("You are desynced. You might be lagging or there might be a staff spectating. If this is happening frequently, disable check desync"),
         ITEM_CHANGE("Your item has been probably changed."),
         TEST("Its just a test failsafe. (Its Safe to Ignore)");
 
@@ -410,7 +408,7 @@ public class Failsafe {
     static Runnable delayedStopScript = () -> {
         try{
             LogUtils.debugLog("delayedStopScript: waiting");
-            Thread.sleep((long) (1000 + Math.random() * 1000));
+            Thread.sleep((long) ((FarmHelper.config.delayedStopScriptTime * 1_000) + Math.random() * (FarmHelper.config.delayedStopScriptTimeRandomness * 1_000)));
             MacroHandler.disableCurrentMacro(true);
             LogUtils.debugLog("delayedStopScript: done, stopping macro");
         } catch(Exception e){
@@ -431,7 +429,7 @@ public class Failsafe {
             emergencyThreadExecutor.submit(delayedStopScript);
         }
 
-        if(FailsafeConfig.notifications){
+        if(FarmHelper.config.popUpNotification){
             try {
                 SystemTray tray = SystemTray.getSystemTray();
                 Utils.createNotification(type.label, tray, TrayIcon.MessageType.WARNING);
@@ -440,15 +438,15 @@ public class Failsafe {
             }
         }
 
-        if(FailsafeConfig.autoFocusOnStaffCheck) {
+        if(FarmHelper.config.autoAltTab) {
             Utils.bringWindowToFront();
         }
 
-        if (FailsafeConfig.pingSound) {
+        if (FarmHelper.config.pingSound) {
             Utils.sendPingAlert();
         }
 
-        if (FailsafeConfig.fakeMovements) {
+        if (FarmHelper.config.fakeMovements) {
             switch (type){
                 case DESYNC:
                     emergencyThreadExecutor.submit(stopScript);
@@ -456,7 +454,10 @@ public class Failsafe {
                 case BEDROCK:
                     emergencyThreadExecutor.submit(cagedActing);
                     break;
-                case DIRT: case ROTATION:
+                case DIRT:
+                    emergencyThreadExecutor.submit(rotationMovement);
+                    break;
+                case ROTATION:
                     emergencyThreadExecutor.submit(rotationMovement);
                     break;
                 case ITEM_CHANGE:
@@ -465,8 +466,8 @@ public class Failsafe {
             }
         }
 
-        if (FailsafeConfig.restartAfterFailsafe)
-            restartAfterFailsafeCooldown.schedule(180_000);
+        if (FarmHelper.config.enableRestartAfterFailSafe)
+            restartAfterFailsafeCooldown.schedule(FarmHelper.config.restartAfterFailSafeDelay * 1000L);
     }
 
     static Runnable stopScript = () -> {
@@ -521,62 +522,138 @@ public class Failsafe {
             mc.thePlayer.sendChatMessage("/is");
             Thread.sleep(6000);
             MacroHandler.enableMacro();
+
         } catch (Exception ignored) {}
-
     };
-
 
     static Runnable rotationMovement = () -> {
         try {
             LogUtils.debugLog("rotationMovement: waiting");
-            Thread.sleep((long) (2200 + Math.random() * 1000));
-            LogUtils.debugLog("rotationMovement: sending a message");
-            mc.thePlayer.sendChatMessage(FAILSAFE_MESSAGES[(int) Math.floor(Math.random() * (FAILSAFE_MESSAGES.length - 1))]);
-            Thread.sleep((long) (400 + Math.random() * 1000));
-            int numberOfRepeats = new Random().nextInt(2) + 2;
-            boolean sneak = Math.random() < 0.3d;
-            Thread.sleep(new Random().nextInt(300) + 300);
-            if (Math.random() < 0.3f)
-                mc.thePlayer.jump();
-            else if (Math.random() < 0.1f){
-                for (int i = 0; i < new Random().nextInt(2) + 1; i++) {
-                    KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
-                    Thread.sleep(150 + new Random().nextInt(300));
-                    KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, false);
-                    Thread.sleep(150 + new Random().nextInt(300));
-                }
-            }
-            Thread.sleep(new Random().nextInt(200) + 150);
+            Thread.sleep((long) (1000 + Math.random() * 1000));
 
-            for (int i = 0; i < numberOfRepeats; i++) {
-                Thread.sleep(new Random().nextInt(150) + 200);
-                Tuple<Float, Float> targetRotation = new Tuple<>(mc.thePlayer.rotationYaw + new Random().nextInt(100) - 50, Math.min(Math.max(mc.thePlayer.rotationPitch + new Random().nextInt(100) - 50, -45), 45));
-                int timeToRotate = new Random().nextInt(250) + 250;
-                rotation.easeTo(targetRotation.getFirst(), targetRotation.getSecond(), timeToRotate);
-                Thread.sleep(timeToRotate + new Random().nextInt(250));
-                if (sneak && new Random().nextInt(3) == 0) {
-                    for (int j = 0; j < new Random().nextInt(3); j++) {
-                        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
-                        Thread.sleep(120 + new Random().nextInt(200));
-                        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, false);
-                        Thread.sleep(150);
-                    }
+            long rotationTime;
+            String messageChosen;
+            boolean said;
+
+            // stage 1: look around and move to back (bonus random crouch)
+            LogUtils.debugLog("rotationMovement: stage 1");
+            if (dirtPos.size() < 0) {
+                rotationTime = (long)((Math.random() * FarmHelper.config.rotationTimeRandomness * 1_000) + FarmHelper.config.rotationTime * 1_000);
+                rotation.easeTo((float) (300 * (Math.random())), (float) (20 * (Math.random() - 1)), rotationTime);
+
+                Thread.sleep(rotationTime + 200);
+                KeyBindUtils.updateKeys(false, true, false, false, false, false, false);
+                Thread.sleep((long) (500 + Math.random() * 500));
+                KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
+            }
+
+            // exeception stage: if have a dirt check then get pos of dirt and look at it
+            if (dirtPos.size() > 0) {
+                LogUtils.debugLog("rotationMovement: stage 1.5");
+                for (BlockPos dirt : dirtPos) {
+                    LogUtils.debugLog("rotationMovement: stage 1.5: dirt found");
+
+                    // get yaw and pitch to dirt
+                    double x = mc.thePlayer.posX - dirt.getX();
+                    double y = mc.thePlayer.posY - dirt.getY();
+                    double z = mc.thePlayer.posZ - dirt.getZ();
+
+                    float yaw = (float) Math.atan2(z, -x);
+                    float pitch = (float)Math.atan2(-y, Math.sqrt(x*x+z*z));;
+
+                    rotation.easeTo(yaw, pitch,450);
+
+                    // move back
+                    KeyBindUtils.updateKeys(false, true, false, false, true, false, false);
+                    Thread.sleep((long) (500 + Math.random() * 500));
+                    KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
+                }
+                dirtPos.clear();
+
+                // random try break dirt block
+                if (Math.random() < 0.5f) {
+                    Thread.sleep((long) (200 + Math.random() * 500));
+                    KeyBindUtils.updateKeys(false, false, false, false, true, false, false);
+                    Thread.sleep(300);
+                    KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
+                }
+
+                Thread.sleep((long) (1000 + Math.random() * 1000));
+            }
+
+            for (int i = 0; i < config.rotationActingTimes; i++) {
+                rotationTime = (long)((Math.random() * FarmHelper.config.rotationTimeRandomness * 1_000) + FarmHelper.config.rotationTime * 1_000);
+                rotation.easeTo((float) (360 * (Math.random())), (float) (20 * (Math.random() - 1)), rotationTime);
+                if (Math.random() < 0.1f) {
+                    KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
+                    Thread.sleep(300);
+                    KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
+                }
+                if (Math.random() < 0.5f) {
+                    KeyBindUtils.updateKeys(Math.random() < 0.5, Math.random() < 0.5, false, false, false, false, false);
+                    Thread.sleep(250);
+                    KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
+                }
+                Thread.sleep(rotationTime + 200);
+            }
+
+            // stage 2: send a message
+            LogUtils.debugLog("rotationMovement: stage 2");
+            if (!FarmHelper.config.customRotationMessages.isEmpty()) {
+                String[] messages = FarmHelper.config.customRotationMessages.split("\\|");
+                if (messages.length > 1) {
+                    messageChosen = messages[(int) Math.floor(Math.random() * (messages.length - 1))];
+                    Thread.sleep((long) ((messageChosen.length() * 250) + Math.random() * 500));
+
+                } else {
+                    messageChosen = FarmHelper.config.customRotationMessages;
+                    Thread.sleep((long) ((FarmHelper.config.customRotationMessages.length() * 250) + Math.random() * 500));
                 }
             }
+            else {
+                messageChosen = FAILSAFE_MESSAGES[(int) Math.floor(Math.random() * (FAILSAFE_MESSAGES.length - 1))];
+                Thread.sleep((long) ((messageChosen.length() * 250) + Math.random() * 500));
+            }
+            mc.thePlayer.sendChatMessage(messageChosen);
+            said = true;
+
+            // stage 3: look around again and jump
+            LogUtils.debugLog("rotationMovement: stage 3");
+            for (int i = 0; i < config.rotationActingTimes; i++) {
+                rotationTime = (long)((Math.random() * FarmHelper.config.rotationTimeRandomness * 1_000) + FarmHelper.config.rotationTime * 1_000);
+                rotation.easeTo((float) (340 * (Math.random())), (float) (20 * (Math.random() - 1)), rotationTime);
+                Thread.sleep(rotationTime + 200);
+                // random crouch
+                if (Math.random() < 0.1f) {
+                    KeyBindUtils.updateKeys(false, false, false, false, false, true, false);
+                    // random jump
+                } else if (Math.random() < 0.1f) {
+                    Thread.sleep(200);
+                    KeyBindUtils.updateKeys(false, false, false, false, false, false, true);
+                } else {
+                    KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
+                }
+            }
+
+            // final stage: come hub or quit game
+            LogUtils.debugLog("rotationMovement: final stage");
             LogUtils.scriptLog("Stop the macro if you see this!");
-            if (FarmConfig.ladderDesign)
-                PlayerUtils.setSpawn();
+            if (FarmHelper.config.ladderDesign) PlayerUtils.setSpawn();
             Thread.sleep(3000);
-            if(Math.random() < 0.5d) {
+
+            if((Math.random() < 0.5d || !config.leaveAfterFailSafe) && said) {
                 mc.thePlayer.sendChatMessage("/hub");
-                Thread.sleep(1000);
+                Thread.sleep(3000);
+                KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
                 if (FarmHelper.gameState.currentLocation == GameState.location.HUB) {
                     emergencyThreadExecutor.submit(bazaarChilling);
                 } else {
                     Thread.sleep(1000 * 60 * 5);
                     MacroHandler.enableMacro();
                 }
-            } else mc.theWorld.sendQuittingDisconnectingPacket();
+            } else {
+                    mc.theWorld.sendQuittingDisconnectingPacket();
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -622,7 +699,6 @@ public class Failsafe {
         }
     };
 
-
     static Runnable cagedActing = () -> {
         LogUtils.debugLog("You just got caged bozo! Buy a lottery ticket!");
         LogUtils.webhookLog("You just got caged bozo! Buy a lottery ticket! @everyone");
@@ -632,24 +708,55 @@ public class Failsafe {
         }
         try {
             Thread.sleep((long) (3000 + Math.random() * 1000));
+            String messageChosen = "";
             boolean said = false;
-            for (int i = 0; i < 3; i++) {
-                long rotationTime = (long) (800 * (Math.random() + 1));
+            long rotationTime;
+
+            // stage 1: look around (random chance)
+            if (Math.random() < 0.5f) {
+                for (int i = 0; i < 3; i++) {
+                    rotationTime = (long) (350 * (Math.random() + 1));
+                    rotation.easeTo((float) (270 * (Math.random())), (float) (20 * (Math.random() - 1)), rotationTime);
+                }
+            }
+
+            // stage 2: look around and sending messages
+            for (int i = 0; i < config.bedrockActingTimes; i++) {
+                rotationTime = (long) ((Math.random() * (FarmHelper.config.rotationTimeRandomness * 1_000)) + (FarmHelper.config.rotationTime * 1_000));
                 rotation.easeTo((float) (270 * (Math.random())), (float) (20 * (Math.random() - 1)), rotationTime);
+                if (i == 0) {
+                    KeyBindUtils.updateKeys(Math.random() < 0.5, Math.random() < 0.5, Math.random() < 0.5, Math.random() < 0.5, Math.random() < 0.5, Math.random() < 0.8, Math.random() < 0.3);
+                }
+
                 if(Math.random() < 0.5d && !said) {
                     said = true;
                     KeyBindUtils.stopMovement();
-                    Thread.sleep(rotationTime + 2800);
-                    Thread.sleep((long) (1500 + Math.random() * 1000));
-                    mc.thePlayer.sendChatMessage(FAILSAFE_MESSAGES[(int) Math.floor(Math.random() * (FAILSAFE_MESSAGES.length - 1))]);//"/ac " +
-                    Thread.sleep((long) (1000 + Math.random() * 500));
+                    Thread.sleep(rotationTime + 1_500);
+
+                    if (!FarmHelper.config.customBedrockMessages.isEmpty()) {
+                        String[] messages = FarmHelper.config.customBedrockMessages.split("\\|");
+                        if (messages.length > 1) {
+                            messageChosen = messages[(int) Math.floor(Math.random() * (messages.length - 1))];
+                            Thread.sleep((long) ((messageChosen.length() * 250) + Math.random() * 500));
+
+                        } else {
+                            messageChosen = FarmHelper.config.customBedrockMessages;
+                            Thread.sleep((long) ((FarmHelper.config.customBedrockMessages.length() * 250) + Math.random() * 500));
+                        }
+                    }
+                    else {
+                        messageChosen = FAILSAFE_MESSAGES[(int) Math.floor(Math.random() * (FAILSAFE_MESSAGES.length - 1))];
+                        Thread.sleep((long) ((messageChosen.length() * 250) + Math.random() * 500));
+                    }
+                    mc.thePlayer.sendChatMessage(messageChosen);
+
+                    Thread.sleep((long) (600 + Math.random() * 500));
                 } else while (rotation.rotating) {
                     if (i == 0) {
                         KeyBindUtils.updateKeys(Math.random() < 0.3, Math.random() < 0.3, Math.random() < 0.3, Math.random() < 0.3, Math.random() < 0.3, false, false);
-                        Thread.sleep(500);
                         rotation.reset();
                         stopMovement();
-                        Thread.sleep((long) (Math.random() * 1000));
+                        Thread.sleep((long) (Math.random() * 450));
                         break;
                     } else {
                         // around 0.3/0.6s long movements (the more random the best)
@@ -658,9 +765,11 @@ public class Failsafe {
                     }
                 }
             }
+
+            // stage 3: come hub or quit game
             stopMovement();
-            Thread.sleep((long) (500 + Math.random() * 2000));
-            if(Math.random() < 0.5d) {
+            Thread.sleep((long) (500 + Math.random() * 3_000));
+            if((Math.random() < 0.5d || !config.leaveAfterFailSafe) && said) {
                 mc.thePlayer.sendChatMessage("/hub");
                 Thread.sleep(5000);
                 if (FarmHelper.gameState.currentLocation == GameState.location.HUB) {
@@ -669,13 +778,12 @@ public class Failsafe {
                     Thread.sleep(1000 * 60 * 5);
                     MacroHandler.enableMacro();
                 }
-            } else mc.theWorld.sendQuittingDisconnectingPacket();
+            } else {
+                mc.theWorld.sendQuittingDisconnectingPacket();
+            }
 
-
-
-        } catch (Exception ignored) {}
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     };
-
-
-
 }

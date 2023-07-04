@@ -1,10 +1,7 @@
 package com.jelly.farmhelper.utils;
 
-
-import com.jelly.farmhelper.config.interfaces.KeyBindConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraftforge.fml.client.registry.ClientRegistry;
 
 public class KeyBindUtils
 {
@@ -13,15 +10,6 @@ public class KeyBindUtils
 
     static {
         KeyBindUtils.mc = Minecraft.getMinecraft();
-    }
-
-    public static void setup() {
-        customKeyBinds[0] = new KeyBinding("Open FarmHelper's GUI", KeyBindConfig.openGUIKeybind, "FarmHelper");
-        customKeyBinds[1] = new KeyBinding("Toggle script", KeyBindConfig.startScriptKeybind, "FarmHelper");
-        customKeyBinds[2] = new KeyBinding("Set Desk Position", 0, "FarmHelper");
-        for (KeyBinding customKeyBind : customKeyBinds) {
-            ClientRegistry.registerKeyBinding(customKeyBind);
-        }
     }
 
     public static void rightClick() {

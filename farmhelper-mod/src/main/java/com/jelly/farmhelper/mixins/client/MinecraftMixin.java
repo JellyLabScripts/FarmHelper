@@ -1,6 +1,12 @@
 package com.jelly.farmhelper.mixins.client;
 
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.macros.MacroHandler;
+
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockCrops;
+import net.minecraft.block.BlockNetherWart;
+import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiScreen;
@@ -20,8 +26,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Minecraft.class)
 public class MinecraftMixin {
     //R.I.P. Fastbreak 2022-2022
+    // GUESS WHO IS BACK!
 
-    /*@Shadow
+    @Shadow
     public GuiScreen currentScreen;
 
     @Shadow
@@ -47,22 +54,38 @@ public class MinecraftMixin {
 
     @Inject(method = "sendClickBlockToController", at = @At("RETURN"))
     private void sendClickBlockToController(CallbackInfo ci) {
-        if (!MiscConfig.fastbreak) return;
+        if (!FarmHelper.config.fastBreak || !(MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled)) {
+            return;
+        }
 
         boolean shouldClick = this.currentScreen == null && this.gameSettings.keyBindAttack.isKeyDown() && this.inGameHasFocus;
         if (this.objectMouseOver != null && shouldClick)
-            for (int i = 0; i < MiscConfig.fastbreakSpeed + 1; i++) {
+            for (int i = 0; i < FarmHelper.config.fastBreakSpeed + 1; i++) {
                 BlockPos clickedBlock = this.objectMouseOver.getBlockPos();
                 this.objectMouseOver = this.renderViewEntity.rayTrace(this.playerController.getBlockReachDistance(), 1.0F);
-                if (this.objectMouseOver == null || this.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK)
-                    break;
 
+                if (this.objectMouseOver == null || this.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
+                    break;
+                }
+
+                // checking first block
                 BlockPos newBlock = this.objectMouseOver.getBlockPos();
-                if (!newBlock.equals(clickedBlock) && this.theWorld.getBlockState(newBlock).getBlock() != Blocks.air) {
+                Block blockTryBreak = this.theWorld.getBlockState(newBlock).getBlock();
+
+                if (!newBlock.equals(clickedBlock)
+                    && (blockTryBreak instanceof BlockCrops ||
+                    blockTryBreak instanceof BlockNetherWart ||
+                    blockTryBreak == Blocks.reeds ||
+                    blockTryBreak == Blocks.cactus ||
+                    blockTryBreak == Blocks.brown_mushroom_block ||
+                    blockTryBreak == Blocks.red_mushroom_block ||
+                    blockTryBreak == Blocks.pumpkin ||
+                    blockTryBreak == Blocks.melon_block)
+                ) {
                     this.playerController.clickBlock(newBlock, this.objectMouseOver.sideHit);
                 }
+
                 if (i % 3 == 0) this.thePlayer.swingItem();
             }
-    }*/
+    }
 }
-

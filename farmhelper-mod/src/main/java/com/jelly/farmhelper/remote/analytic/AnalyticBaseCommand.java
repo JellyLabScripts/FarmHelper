@@ -2,7 +2,6 @@ package com.jelly.farmhelper.remote.analytic;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.jelly.farmhelper.config.ConfigHandler;
 import com.jelly.farmhelper.features.BanwaveChecker;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
@@ -20,7 +19,6 @@ abstract public class AnalyticBaseCommand {
         obj.addProperty("isMacroing", MacroHandler.isMacroing);
         obj.addProperty("startTime", MacroHandler.startTime);
         obj.addProperty("isBanwaveWaiting", BanwaveChecker.banwaveOn && mc.currentScreen instanceof GuiDisconnected);
-        obj.add("settings", sanitizeConfig(ConfigHandler.getConfig()));
         return obj;
     }
 

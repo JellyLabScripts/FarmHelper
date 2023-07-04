@@ -1,8 +1,10 @@
 package com.jelly.farmhelper.utils;
 
-import com.jelly.farmhelper.config.enums.CropEnum;
-import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.Config.VerticalMacroEnum;
+import com.jelly.farmhelper.config.Config.SMacroEnum;
+import com.jelly.farmhelper.config.Config.CropEnum
+    ;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiInventory;
@@ -39,8 +41,8 @@ public class PlayerUtils {
     }
 
     public static void attemptSetSpawn() {
-        if(FailsafeConfig.autoSetspawn && FarmConfig.ladderDesign) {
-            double diff = (FailsafeConfig.autoSetSpawnMaxDelay * 1000) - (FailsafeConfig.autoSetSpawnMinDelay * 1000);
+        if(FarmHelper.config.enableAutoSetSpawn && FarmHelper.config.ladderDesign) {
+            double diff = (FarmHelper.config.autoSetSpawnMaxDelay * 1000) - (FarmHelper.config.autoSetSpawnMinDelay * 1000);
             if (diff <= 0) {
                 LogUtils.scriptLog("autoSetSpawnMaxDelay must be greater than autoSetSpawnMinDelay", EnumChatFormatting.RED);
                 return;
@@ -48,11 +50,11 @@ public class PlayerUtils {
             System.out.println(clock.isScheduled());
             if (clock.isScheduled() && clock.passed()) {
                 mc.thePlayer.sendChatMessage("/setspawn");
-                long time = (long) (new Random().nextInt((int) (diff)) + (FailsafeConfig.autoSetSpawnMinDelay * 1000));
+                long time = (long) (new Random().nextInt((int) (diff)) + (FarmHelper.config.autoSetSpawnMinDelay * 1000L));
                 System.out.println("time: " + time);
                 clock.schedule(time);
             } else if (!clock.isScheduled()) {
-                long time = (long) (new Random().nextInt((int) (diff)) + (FailsafeConfig.autoSetSpawnMinDelay * 1000));
+                long time = (long) (new Random().nextInt((int) (diff)) + (FarmHelper.config.autoSetSpawnMinDelay * 1000L));
                 System.out.println("time: " + time);
                 clock.schedule(time);
             }
@@ -256,7 +258,7 @@ public class PlayerUtils {
         for (int i = 36; i < 44; i++) {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
                 switch (crop){
-                    case NETHERWART:
+                    case NETHER_WART:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Newton")) {
                             return i - 36;
                         }
@@ -276,7 +278,7 @@ public class PlayerUtils {
                             return i - 36;
                         }
                         continue;
-                    case SUGARCANE:
+                    case SUGAR_CANE:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Turing")) {
                             return i - 36;
                         }
@@ -301,15 +303,15 @@ public class PlayerUtils {
         for (int i = 36; i < 44; i++) {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
 
-                switch (FarmConfig.cropType){
-                    case PUMPKIN_MELON:
-                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Dicer")) {
-                            return i - 36;
-                        }
-                    case COCOABEANS: case COCOABEANSRG:
-                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Chopper")) {
-                            return i - 36;
-                        }
+                if (!FarmHelper.config.macroType) {
+                    if (FarmHelper.config.VerticalMacroType == SMacroEnum.PUMPKIN_MELON.ordinal() && mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Dicer")) {
+                        return i - 36;
+                    }
+                }
+                else {
+                    if ((FarmHelper.config.VerticalMacroType == SMacroEnum.COCOA_BEANS.ordinal() || FarmHelper.config.VerticalMacroType == SMacroEnum.COCOA_BEANS_RG.ordinal()) && mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Chopper")) {
+                        return i - 36;
+                    }
                 }
             }
         }

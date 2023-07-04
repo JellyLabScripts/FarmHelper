@@ -1,7 +1,6 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.interfaces.AutoSellConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.KeyBindUtils;
@@ -90,11 +89,11 @@ public class Autosell {
         if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || FarmHelper.tickCount % 5 != 0)
             return;
 
-        if (!enabled && AutoSellConfig.autoSell && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled) {
+        if (!enabled && FarmHelper.config.enableAutoSell && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled) {
             if (mc.thePlayer.inventory.getFirstEmptyStack() == -1 && !fullCheck) {
                 LogUtils.debugLog("[AutoSell] Started inventory full watch");
                 fullCheck = true;
-                checkTimer.schedule(TimeUnit.SECONDS.toMillis((long) AutoSellConfig.fullTime));
+                checkTimer.schedule(TimeUnit.SECONDS.toMillis((long) FarmHelper.config.inventoryFullTime));
                 fullCount = 1;
                 totalCount = 1;
             } else if (fullCheck && !checkTimer.passed()) {
@@ -104,7 +103,7 @@ public class Autosell {
                 totalCount++;
             } else if (fullCheck && checkTimer.passed()) {
                 fullCheck = false;
-                if (((float) fullCount / totalCount) >= (AutoSellConfig.fullRatio / 100.0)) {
+                if (((float) fullCount / totalCount) >= (FarmHelper.config.inventoryFullRatio / 100.0)) {
                     MacroHandler.disableCurrentMacro();
                     enable();
                 }
@@ -130,7 +129,7 @@ public class Autosell {
                     return;
 
                 if (mc.currentScreen == null) {
-                    if (AutoSellConfig.sellToNPC) {
+                    if (FarmHelper.config.sellToNPC) {
                         LogUtils.debugFullLog("[AutoSell] Opening Trades menu");
                         mc.thePlayer.sendChatMessage("/trades");
                     } else {
@@ -138,7 +137,7 @@ public class Autosell {
                         mc.thePlayer.sendChatMessage("/bz");
                     }
                     sellClock.schedule(250);
-                } else if (PlayerUtils.getInventoryName() != null && AutoSellConfig.sellToNPC && PlayerUtils.getInventoryName().contains("Trades")) {
+                } else if (PlayerUtils.getInventoryName() != null && FarmHelper.config.sellToNPC && PlayerUtils.getInventoryName().contains("Trades")) {
                     LogUtils.debugFullLog("[AutoSell] Detected trade menu, selling item");
                     List<Slot> sellList = PlayerUtils.getInventorySlots();
                     sellList.removeIf(item -> !shouldSell(item.getStack()));
@@ -155,7 +154,7 @@ public class Autosell {
                             disable();
                         }
                     }
-                } else if (PlayerUtils.getInventoryName() != null && !soldToBZ && !AutoSellConfig.sellToNPC && PlayerUtils.getInventoryName().contains("Bazaar")) {
+                } else if (PlayerUtils.getInventoryName() != null && !soldToBZ && !FarmHelper.config.sellToNPC && PlayerUtils.getInventoryName().contains("Bazaar")) {
                     if (mc.thePlayer.openContainer.getSlot(47) != null &&
                             mc.thePlayer.openContainer.getSlot(47).getStack() != null &&
                             mc.thePlayer.openContainer.getSlot(47).getStack().getDisplayName().contains("Sell Inventory Now")) {
@@ -168,7 +167,7 @@ public class Autosell {
                         PlayerUtils.clickOpenContainerSlot(47);
                         sellClock.schedule(250);
                     }
-                } else if (PlayerUtils.getInventoryName() != null && soldToBZ && !AutoSellConfig.sellToNPC && PlayerUtils.getInventoryName().contains("Bazaar")) {
+                } else if (PlayerUtils.getInventoryName() != null && soldToBZ && !FarmHelper.config.sellToNPC && PlayerUtils.getInventoryName().contains("Bazaar")) {
                     if (mc.thePlayer.openContainer.getSlot(48) != null &&
                             mc.thePlayer.openContainer.getSlot(48).getStack() != null) {
                         if (mc.thePlayer.openContainer.getSlot(48).getStack().getItem() == Item.getItemFromBlock(Blocks.glass_pane) && mc.thePlayer.openContainer.getSlot(48).getStack().getDisplayName().isEmpty()) {
@@ -189,12 +188,12 @@ public class Autosell {
                             disable();
                         }
                     }
-                } else if (PlayerUtils.getInventoryName() != null && !soldToBZ && !AutoSellConfig.sellToNPC && PlayerUtils.getInventoryName().contains("Are you sure?")) {
+                } else if (PlayerUtils.getInventoryName() != null && !soldToBZ && !FarmHelper.config.sellToNPC && PlayerUtils.getInventoryName().contains("Are you sure?")) {
                     LogUtils.debugFullLog("[AutoSell] Detected Bazaar confirmation, selling item");
                     PlayerUtils.clickOpenContainerSlot(11);
                     sellClock.schedule(250);
                     soldToBZ = true;
-                } else if (PlayerUtils.getInventoryName() != null && soldToBZ && !AutoSellConfig.sellToNPC && PlayerUtils.getInventoryName().contains("Are you sure?")) {
+                } else if (PlayerUtils.getInventoryName() != null && soldToBZ && !FarmHelper.config.sellToNPC && PlayerUtils.getInventoryName().contains("Are you sure?")) {
                     mc.thePlayer.closeScreen();
                     if (soldSacks)
                         disable();

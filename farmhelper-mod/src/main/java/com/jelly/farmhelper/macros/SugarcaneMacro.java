@@ -1,9 +1,9 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.enums.CropEnum;
-import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.config.Config.CropEnum;
+
+
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
@@ -51,7 +51,7 @@ public class SugarcaneMacro extends Macro {
         currentWalkState = calculateDirection();
 
         stuck = false;
-        mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(CropEnum.SUGARCANE);
+        mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(CropEnum.SUGAR_CANE);
         Antistuck.stuck = false;
         Antistuck.cooldown.schedule(1000);
         waitForChangeDirection.reset();
@@ -123,8 +123,8 @@ public class SugarcaneMacro extends Macro {
         }
 
         if (!Failsafe.emergency && !isTping
-                && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) >= FailsafeConfig.rotationSens
-                || Math.abs(mc.thePlayer.rotationPitch - pitch) >= FailsafeConfig.rotationSens)) {
+                && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) >= FarmHelper.config.rotationCheckSensitivity
+                || Math.abs(mc.thePlayer.rotationPitch - pitch) >= FarmHelper.config.rotationCheckSensitivity)) {
             rotation.reset();
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
             return;
@@ -198,7 +198,7 @@ public class SugarcaneMacro extends Macro {
                         return;
                     }
                     if (!waitForChangeDirection.isScheduled()) {
-                        long waitTime = (long) (Math.random() * 750 + 500);
+                        long waitTime = (FarmHelper.config.fastChangeDirectionCane) ? (long) (Math.random() * 200 + 250) : (long) (Math.random() * 750 + 500);
                         if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
                                 BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)))
@@ -219,7 +219,7 @@ public class SugarcaneMacro extends Macro {
                         return;
                     }
                     if (!waitForChangeDirection.isScheduled()) {
-                        long waitTime = (long) (Math.random() * 750 + 500);
+                        long waitTime = (FarmHelper.config.fastChangeDirectionCane) ? (long) (Math.random() * 200 + 250) : (long) (Math.random() * 750 + 500);
                         if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
                                 BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)))
@@ -242,7 +242,7 @@ public class SugarcaneMacro extends Macro {
                         return;
                     }
                     if (!waitForChangeDirection.isScheduled()) {
-                        long waitTime = (long) (Math.random() * 750 + 500);
+                        long waitTime = (FarmHelper.config.fastChangeDirectionCane) ? (long) (Math.random() * 200 + 250) : (long) (Math.random() * 750 + 500);
                         if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
                                 BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)))
@@ -260,7 +260,7 @@ public class SugarcaneMacro extends Macro {
                         return;
                     }
                     if (!waitForChangeDirection.isScheduled()) {
-                        long waitTime = (long) (Math.random() * 750 + 500);
+                        long waitTime = (FarmHelper.config.fastChangeDirectionCane) ? (long) (Math.random() * 200 + 250) : (long) (Math.random() * 750 + 500);
                         if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
                                 BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)))

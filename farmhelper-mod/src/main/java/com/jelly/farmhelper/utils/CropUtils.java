@@ -1,7 +1,9 @@
 package com.jelly.farmhelper.utils;
 
-import com.jelly.farmhelper.config.enums.MacroEnum;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.Config.VerticalMacroEnum;
+import com.jelly.farmhelper.config.Config.SMacroEnum;
+
 import com.jelly.farmhelper.macros.Macro;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.mixins.block.IBlockAccessor;
@@ -118,9 +120,20 @@ public class CropUtils {
         if (itemChangedByStaff) {
             return;
         }
-        if (FarmConfig.cropType != MacroEnum.PUMPKIN_MELON && FarmConfig.cropType != MacroEnum.COCOABEANS && FarmConfig.cropType != MacroEnum.COCOABEANSRG)
-            mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
-        else
-            mc.thePlayer.inventory.currentItem = PlayerUtils.getAxeSlot();
+
+        if (!FarmHelper.config.macroType) {
+            if (FarmHelper.config.VerticalMacroType != SMacroEnum.PUMPKIN_MELON.ordinal()) {
+                mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
+            } else {
+                mc.thePlayer.inventory.currentItem = PlayerUtils.getAxeSlot();
+            }
+        } else {
+            if (FarmHelper.config.SShapeMacroType != SMacroEnum.COCOA_BEANS.ordinal() &&
+                FarmHelper.config.SShapeMacroType != SMacroEnum.COCOA_BEANS_RG.ordinal()) {
+                mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
+            } else {
+                mc.thePlayer.inventory.currentItem = PlayerUtils.getAxeSlot();
+            }
+        }
     }
 }

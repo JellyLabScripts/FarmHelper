@@ -1,9 +1,9 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.enums.CropEnum;
-import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
+import com.jelly.farmhelper.config.Config.CropEnum;
+
+
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -62,10 +62,10 @@ public class VerticalCropMacro extends Macro{
         MacroHandler.crop = crop;
 
         switch(crop){
-            case SUGARCANE:
+            case SUGAR_CANE:
                 pitch = (float) (Math.random() * 2); // 0 - 2
                 break;
-            case POTATO: case CARROT: case WHEAT: case NETHERWART:
+            case POTATO: case CARROT: case WHEAT: case NETHER_WART:
                 pitch = 2.8f + (float) (Math.random() * 0.6); // 2.8-3.4
                 break;
             case COCOA_BEANS:
@@ -125,7 +125,7 @@ public class VerticalCropMacro extends Macro{
 
         if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && !rotated) {
             yaw = AngleUtils.getClosest(yaw);
-            if (FarmConfig.rotateAfterBack) {
+            if (FarmHelper.config.rotateAfterWarped) {
                 yaw = AngleUtils.get360RotationYaw(yaw + 180);
             }
             if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
@@ -145,18 +145,22 @@ public class VerticalCropMacro extends Macro{
             rotated = false;
         }
 
-        if (!Failsafe.emergency && !rotation.rotating && !lastTp.isScheduled() && !isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens)) {
+        if (Failsafe.emergency) {
+            LogUtils.debugLog("Blocking changing movement due to emergency");
+            return;
+        }
+
+        if (!Failsafe.emergency && !rotation.rotating && !lastTp.isScheduled() && !isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FarmHelper.config.rotationCheckSensitivity || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity)) {
             rotation.reset();
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
             return;
         }
 
-
         CropUtils.getTool();
 
         if (BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.ladder) ||
                 BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.ladder) ||
-                        BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.ladder) && FarmConfig.ladderDesign) {
+                        BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.ladder) && FarmHelper.config.ladderDesign) {
             changeStateTo(State.BACK_TO_TOP_LAYER);
         }
 
@@ -185,9 +189,9 @@ public class VerticalCropMacro extends Macro{
         }
 
         if (!isRewarpLocationSet() &&
-            !FarmConfig.ladderDesign) {
+            !FarmHelper.config.ladderDesign) {
             LogUtils.debugLog("Rewarp location not set!");
-        } else if (isRewarpLocationSet() && isStandingOnRewarpLocation() && !FarmConfig.ladderDesign) {
+        } else if (isRewarpLocationSet() && isStandingOnRewarpLocation() && !FarmHelper.config.ladderDesign) {
             triggerWarpGarden();
         }
 

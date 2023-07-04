@@ -22,8 +22,8 @@ public class InfoCommand extends BaseCommand {
         DiscordWebhook.EmbedObject embed = embed()
                 .addField("Username", mc.getSession().getUsername(), true)
                 .addField("Runtime", getRuntimeFormat(), true)
-                .addField("Total Profit", ProfitCalculator.profit.get(), false)
-                .addField("Profit / hr", ProfitCalculator.profitHr.get(), false)
+                .addField("Total Profit", ProfitCalculator.profit, false)
+                .addField("Profit / hr", ProfitCalculator.profitHr, false)
                 .addField("Crop type", String.valueOf(MacroHandler.crop), true);
 
         data.addProperty("image", getScreenshot());

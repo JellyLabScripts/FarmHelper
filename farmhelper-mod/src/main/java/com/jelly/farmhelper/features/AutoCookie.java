@@ -1,7 +1,6 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -73,7 +72,7 @@ public class AutoCookie {
         if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || FarmHelper.tickCount % 5 != 0)
             return;
 
-        if (!enabled && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && cooldown.passed() && MiscConfig.autoCookie && FarmHelper.gameState.cookie == GameState.EffectState.OFF) {
+        if (!enabled && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && cooldown.passed() && FarmHelper.config.autoCookie && FarmHelper.gameState.cookie == GameState.EffectState.OFF) {
             LogUtils.debugFullLog("[AutoCookie] Detected no cookie buff");
             MacroHandler.disableCurrentMacro();
             enable();
@@ -88,7 +87,7 @@ public class AutoCookie {
             failCount++;
             if (failCount == 3) {
                 LogUtils.debugFullLog("[AutoCookie] Disabling auto cookie, too many fails");
-                MiscConfig.autoCookie = false;
+                FarmHelper.config.autoCookie = false;
             }
             disable();
             return;
@@ -243,7 +242,7 @@ public class AutoCookie {
             failCount++;
             if (failCount == 3) {
                 LogUtils.debugFullLog("[AutoCookie] Disabling auto cookie, too many fails");
-                MiscConfig.autoCookie = false;
+                FarmHelper.config.autoCookie = false;
             }
             disable();
         }

@@ -1,11 +1,9 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.enums.CropEnum;
-import com.jelly.farmhelper.config.enums.MacroEnum;
-import com.jelly.farmhelper.config.interfaces.FailsafeConfig;
-import com.jelly.farmhelper.config.interfaces.FarmConfig;
 import com.jelly.farmhelper.features.Antistuck;
+import com.jelly.farmhelper.config.Config.SMacroEnum;
+import com.jelly.farmhelper.config.Config.CropEnum;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -61,7 +59,7 @@ public class MushroomMacro extends Macro {
         beforeTeleportationPos = null;
         currentState = State.NONE;
         rotated = false;
-        if (FarmConfig.cropType == MacroEnum.MUSHROOM) {
+        if (FarmHelper.config.macroType && FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal()) {
             rotation.easeTo(yaw, pitch, 500);
             rotated = true;
         }
@@ -163,7 +161,7 @@ public class MushroomMacro extends Macro {
             waitBetweenTp.reset();
         }
 
-        if (FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE) {
+        if (FarmHelper.config.macroType && FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal()) {
             if (currentState == State.RIGHT && !rotated) {
                 pitch = (float) (Math.random() * 2 - 1); // -1 - 1
                 rotation.easeTo(closest90Yaw + 30, pitch, 400);
@@ -181,9 +179,9 @@ public class MushroomMacro extends Macro {
             yaw = AngleUtils.getClosestDiagonal();
             closest90Yaw = AngleUtils.getClosest();
             pitch = (float) (Math.random() * 2 - 1); // -1 - 1
-            if (FarmConfig.cropType == MacroEnum.MUSHROOM)
+            if (FarmHelper.config.macroType && FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal())
                 rotation.easeTo(yaw, pitch, (long) (600 + Math.random() * 200));
-            else if (FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE) {
+            else if (FarmHelper.config.macroType && FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal()) {
                 if (currentState == State.RIGHT) {
                     rotation.easeTo(closest90Yaw + 30, pitch, 400);
                 } else if (currentState == State.LEFT) {
@@ -204,11 +202,11 @@ public class MushroomMacro extends Macro {
 
         LogUtils.debugLog("Current state: " + currentState);
 
-        if (FarmConfig.cropType == MacroEnum.MUSHROOM && !Failsafe.emergency && !rotation.rotating && !isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens) && rotated) {
+        if ((FarmHelper.config.macroType && FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal()) && !Failsafe.emergency && !rotation.rotating && !isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FarmHelper.config.rotationCheckSensitivity || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity) && rotated) {
             rotation.reset();
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
             return;
-        } else if (FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE && !Failsafe.emergency && !rotation.rotating && !isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), closest90Yaw + (currentState == State.LEFT ? -30 : 30)) > FailsafeConfig.rotationSens || Math.abs(mc.thePlayer.rotationPitch - pitch) > FailsafeConfig.rotationSens) && rotated) {
+        } else if ((FarmHelper.config.macroType && FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal()) && !Failsafe.emergency && !rotation.rotating && !isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), closest90Yaw + (currentState == State.LEFT ? -30 : 30)) > FarmHelper.config.rotationCheckSensitivity || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity) && rotated) {
             rotation.reset();
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
             return;
@@ -235,11 +233,11 @@ public class MushroomMacro extends Macro {
         switch (currentState) {
             case RIGHT:
                 LogUtils.debugLog("Going RIGHT");
-                updateKeys(FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE || !mushroom45DegreeLeftSide(), false, FarmConfig.cropType == MacroEnum.MUSHROOM && mushroom45DegreeLeftSide(), false, true);
+                updateKeys((FarmHelper.config.macroType && FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal()) || !mushroom45DegreeLeftSide(), false, (FarmHelper.config.macroType && FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal()) && mushroom45DegreeLeftSide(), false, true);
                 break;
             case LEFT:
                 LogUtils.debugLog("Going LEFT");
-                updateKeys(FarmConfig.cropType == MacroEnum.MUSHROOM_ROTATE || mushroom45DegreeLeftSide(), false, false, FarmConfig.cropType == MacroEnum.MUSHROOM && mushroom45DegreeLeftSide(), true);
+                updateKeys((FarmHelper.config.macroType && FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal()) || mushroom45DegreeLeftSide(), false, false, (FarmHelper.config.macroType && FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal()) && mushroom45DegreeLeftSide(), true);
                 break;
             default:
                 LogUtils.debugLog("Error: dir == direction.NONE");

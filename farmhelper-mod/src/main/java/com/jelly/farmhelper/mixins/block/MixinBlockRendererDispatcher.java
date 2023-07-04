@@ -1,6 +1,6 @@
 package com.jelly.farmhelper.mixins.block;
 
-import com.jelly.farmhelper.config.interfaces.MiscConfig;
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MixinBlockRendererDispatcher {
     @Inject(method = "renderBlock", at = @At("HEAD"), cancellable = true)
     private void renderBlock(IBlockState state, BlockPos pos, IBlockAccess blockAccess, WorldRenderer worldRendererIn, CallbackInfoReturnable<Boolean> cir) {
-        if (MiscConfig.xray && (MacroHandler.isMacroing | MacroHandler.randomizing)) {
+        if (FarmHelper.config.xrayMode && (MacroHandler.isMacroing | MacroHandler.randomizing)) {
             cir.setReturnValue(false);
         }
     }
