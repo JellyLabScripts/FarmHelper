@@ -807,6 +807,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 		this.addDependency("onlyAcceptProfitableVisitors", "Enable Visitors Macro",() -> this.visitorsMacro);
 		this.addDependency("visitorsMacroCoinsThreshold", "Enable Visitors Macro",() -> this.visitorsMacro);
+		this.addDependency("pauseWhenInContests", "Enable Visitors Macro",() -> this.visitorsMacro);
 
 		this.addDependency("sendLogs", "Enable webhook messages",() -> this.enableWebHook);
 		this.addDependency("sendStatusUpdates", "Enable webhook messages",() -> this.enableWebHook);

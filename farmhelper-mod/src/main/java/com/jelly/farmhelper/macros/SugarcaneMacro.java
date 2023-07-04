@@ -198,7 +198,7 @@ public class SugarcaneMacro extends Macro {
                         return;
                     }
                     if (!waitForChangeDirection.isScheduled()) {
-                        long waitTime = (long) (Math.random() * 750 + 500);
+                        long waitTime = (FarmHelper.config.fastChangeDirectionCane) ? (long) (Math.random() * 200 + 250) : (long) (Math.random() * 750 + 500);
                         if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
                                 BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)))
@@ -219,7 +219,7 @@ public class SugarcaneMacro extends Macro {
                         return;
                     }
                     if (!waitForChangeDirection.isScheduled()) {
-                        long waitTime = (long) (Math.random() * 750 + 500);
+                        long waitTime = (FarmHelper.config.fastChangeDirectionCane) ? (long) (Math.random() * 200 + 250) : (long) (Math.random() * 750 + 500);
                         if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
                                 BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)))
@@ -242,7 +242,7 @@ public class SugarcaneMacro extends Macro {
                         return;
                     }
                     if (!waitForChangeDirection.isScheduled()) {
-                        long waitTime = (long) (Math.random() * 750 + 500);
+                        long waitTime = (FarmHelper.config.fastChangeDirectionCane) ? (long) (Math.random() * 200 + 250) : (long) (Math.random() * 750 + 500);
                         if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
                                 BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)))
@@ -260,7 +260,7 @@ public class SugarcaneMacro extends Macro {
                         return;
                     }
                     if (!waitForChangeDirection.isScheduled()) {
-                        long waitTime = (long) (Math.random() * 750 + 500);
+                        long waitTime = (FarmHelper.config.fastChangeDirectionCane) ? (long) (Math.random() * 200 + 250) : (long) (Math.random() * 750 + 500);
                         if ((BlockUtils.getRelativeBlock(0, -1, 0).equals(Blocks.end_portal_frame)
                                 || BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.end_portal_frame) ||
                                 BlockUtils.getRelativeBlock(0, -2, 0).equals(Blocks.end_portal_frame)))

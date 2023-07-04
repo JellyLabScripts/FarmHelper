@@ -175,8 +175,8 @@ public class Failsafe {
                 if (cooldown.passed() && jacobWait.passed()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage("/skyblock");
-                    cooldown.schedule(7500);
-                    afterEvacuateCooldown.schedule(7500);
+                    cooldown.schedule(15_000);
+                    afterEvacuateCooldown.schedule(15_000);
                     if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
                         restartAfterFailsafeCooldown.schedule(FarmHelper.config.restartAfterFailSafeDelay * 1000L);
                 }
@@ -191,12 +191,12 @@ public class Failsafe {
                     LogUtils.debugLog("After evacuate cooldown passed");
                     LogUtils.webhookLog("Teleporting back to island after evacuate");
                     mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
-                    afterEvacuateCooldown.schedule(5_000);
+                    afterEvacuateCooldown.schedule(15_000);
                 }
                 if (cooldown.passed() && jacobWait.passed() && !AutoCookie.isEnabled() && !AutoPot.isEnabled()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
-                    cooldown.schedule(5000);
+                    cooldown.schedule(15_000);
                 }
                 if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
                     restartAfterFailsafeCooldown.schedule(FarmHelper.config.restartAfterFailSafeDelay * 1000L);
@@ -641,7 +641,7 @@ public class Failsafe {
             if (FarmHelper.config.ladderDesign) PlayerUtils.setSpawn();
             Thread.sleep(3000);
 
-            if((Math.random() < 0.5d || config.leaveAfterFailSafe) && said) {
+            if((Math.random() < 0.5d || !config.leaveAfterFailSafe) && said) {
                 mc.thePlayer.sendChatMessage("/hub");
                 Thread.sleep(3000);
                 KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
@@ -769,7 +769,7 @@ public class Failsafe {
             // stage 3: come hub or quit game
             stopMovement();
             Thread.sleep((long) (500 + Math.random() * 3_000));
-            if((Math.random() < 0.5d || config.leaveAfterFailSafe) && said) {
+            if((Math.random() < 0.5d || !config.leaveAfterFailSafe) && said) {
                 mc.thePlayer.sendChatMessage("/hub");
                 Thread.sleep(5000);
                 if (FarmHelper.gameState.currentLocation == GameState.location.HUB) {
