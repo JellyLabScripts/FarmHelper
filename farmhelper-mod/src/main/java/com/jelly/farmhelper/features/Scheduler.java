@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
@@ -13,8 +14,8 @@ import java.util.concurrent.TimeUnit;
 
 public class Scheduler {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final Clock farmClock = new Clock();
-    private static final Clock breakClock = new Clock();
+    private static Clock farmClock = new Clock();
+    private static Clock breakClock = new Clock();
     private static State currentState;
 
     enum State {
@@ -37,7 +38,7 @@ public class Scheduler {
 
     public static void start() {
         currentState = State.FARMING;
-        farmClock.schedule(TimeUnit.MINUTES.toMillis((long) FarmHelper.config.schedulerFarmingTime));
+        farmClock.schedule(TimeUnit.MINUTES.toMillis(FarmHelper.config.schedulerFarmingTime));
     }
 
     @SubscribeEvent
@@ -49,11 +50,11 @@ public class Scheduler {
             LogUtils.debugLog("[Scheduler] Farming time has passed, stopping");
             MacroHandler.disableCurrentMacro(true);
             currentState = State.BREAK;
-            breakClock.schedule(TimeUnit.MINUTES.toMillis((long) FarmHelper.config.schedulerBreakTime));
+            breakClock.schedule(TimeUnit.MINUTES.toMillis((long)(FarmHelper.config.schedulerBreakTime + (Math.random() * FarmHelper.config.schedulerBreakTimeRandomness))));
         } else if (!MacroHandler.randomizing && MacroHandler.isMacroing && currentState == State.BREAK && breakClock.passed()) {
             LogUtils.debugLog("[Scheduler] Break time has passed, starting");
             currentState = State.FARMING;
-            farmClock.schedule(TimeUnit.MINUTES.toMillis((long) FarmHelper.config.schedulerFarmingTime));
+            farmClock.schedule(TimeUnit.MINUTES.toMillis((long)(FarmHelper.config.schedulerFarmingTime * (Math.random() * FarmHelper.config.schedulerFarmingTimeRandomness))));
         }
     }
 }

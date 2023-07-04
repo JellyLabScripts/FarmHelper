@@ -1,5 +1,7 @@
 package com.jelly.farmhelper.hud;
 
+import cc.polyfrost.oneconfig.config.annotations.Exclude;
+import cc.polyfrost.oneconfig.config.annotations.Switch;
 import cc.polyfrost.oneconfig.libs.universal.UMatrixStack;
 import cc.polyfrost.oneconfig.platform.Platform;
 import cc.polyfrost.oneconfig.renderer.NanoVGHelper;
@@ -11,6 +13,7 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.world.GameState;
 
+import java.awt.*;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -19,12 +22,27 @@ public class ProfitCalculatorHUD extends BasicHud {
     protected transient LinkedHashMap<String, String> lines = new LinkedHashMap<String, String>();
     protected transient float width = 0;
     public ProfitCalculatorHUD() {
-        super(true, 5, 5, 5, true, true, 1, 0, 0, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
+        super(true, 0f, 0f, 5, true, true, 1, 0, 0, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
         addLines();
     }
+    @Switch(
+        name = "Rainbow Text",category = "HUD", subcategory = "StatusHUD",
+        description = "Rainbow text for the status HUD"
+    )
+    public static boolean rainbowProfitText = false;
+
+    @Exclude
+    protected OneColor color = new OneColor(0, 0, 0, 255);
+
     @Override
     protected void draw(UMatrixStack matrices, float x, float y, float scale, boolean example) {
         if (lines == null || lines.size() == 0) return;
+
+        if (rainbowProfitText) {
+            Color chroma = Color.getHSBColor((float) ((System.currentTimeMillis() / 10) % 500) / 500, 1, 1);
+            this.color.setFromOneColor(new OneColor(chroma.getRed(), chroma.getGreen(), chroma.getBlue(), 255));
+        }
+
         NanoVGHelper.INSTANCE.setupAndDraw(true, (vg) -> {
             float textX = position.getX() + 1 * scale;
             float textY = position.getY() + 1 * scale;
@@ -51,10 +69,9 @@ public class ProfitCalculatorHUD extends BasicHud {
         }
         // draw text
         if (text != null) {
-            NanoVGHelper.INSTANCE.drawText(vg, text, (x + iconWidth + 2 * scale - 0.9f * scale), (y + (iconHeight / 2)), -1, 2 * scale, Fonts.SEMIBOLD); // made with pain by tama & yuro <3
+            NanoVGHelper.INSTANCE.drawText(vg, text, (x + iconWidth + 2 * scale - 0.9f * scale), (y + (iconHeight / 2)), rainbowProfitText ? this.color.getRGB() : -1, 2 * scale, Fonts.SEMIBOLD); // made with pain by tama & yuro <3
         }
     }
-
     protected float getLineWidth() {
         String longestLine = "";
         int maxLength = 0;

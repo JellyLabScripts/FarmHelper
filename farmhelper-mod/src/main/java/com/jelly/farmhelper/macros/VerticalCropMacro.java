@@ -129,7 +129,7 @@ public class VerticalCropMacro extends Macro{
                 yaw = AngleUtils.get360RotationYaw(yaw + 180);
             }
             if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
-                rotation.easeTo(yaw, pitch, (long) (FarmHelper.config.rotationTime + Math.random() * FarmHelper.config.rotationTimeRandomness));
+                rotation.easeTo(yaw, pitch, (long) (500 + Math.random() * 200));
                 rotated = true;
             }
         }
@@ -155,7 +155,6 @@ public class VerticalCropMacro extends Macro{
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
             return;
         }
-
 
         CropUtils.getTool();
 

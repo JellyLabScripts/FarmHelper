@@ -33,7 +33,7 @@ public class GameState {
         OFF,
     }
 
-    public DiscordWebhook webhook;
+    public static DiscordWebhook webhook;
     public IChatComponent header;
     public IChatComponent footer;
     public EffectState cookie;

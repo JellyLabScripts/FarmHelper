@@ -87,6 +87,7 @@ public class FarmHelper {
             config.visitorsDeskPosY = pos.getY();
             config.visitorsDeskPosZ = pos.getZ();
             config.save();
+
             LogUtils.scriptLog("Visitors Desk Position Set. BlockPos: " + pos);
         }
     }
@@ -102,9 +103,7 @@ public class FarmHelper {
         }
         tickCount += 1;
         tickCount %= 20;
-
     }
-
 
     @SneakyThrows
     public static void setVersions() {

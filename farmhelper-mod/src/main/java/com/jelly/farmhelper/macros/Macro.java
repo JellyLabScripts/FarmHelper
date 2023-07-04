@@ -72,9 +72,9 @@ public abstract class Macro {
     }
 
     public boolean isRewarpLocationSet() {
-        for (Rewarp rewarp : Config.rewarpList) {
-          System.out.println("FarmHelper: isRewarpLocationSet: rewarp: " + rewarp.toString());
-        }
+//        for (Rewarp rewarp : Config.rewarpList) {
+//          System.out.println("FarmHelper: isRewarpLocationSet: rewarp: " + rewarp.toString());
+//        }
         return Config.rewarpList.size() > 0;
     }
 

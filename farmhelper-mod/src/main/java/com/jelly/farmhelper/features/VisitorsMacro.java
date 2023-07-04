@@ -153,6 +153,16 @@ public class VisitorsMacro {
             LogUtils.scriptLog("Stopped visitors macro");
     }
 
+    private static boolean InJacobContest() {
+        for (String line : ScoreboardUtils.getScoreboardLines()) {
+            String cleanedLine = ScoreboardUtils.cleanSB(line);
+            if ((cleanedLine.toLowerCase()).contains("collected")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @SubscribeEvent
     public void onTickCheckVisitors(TickEvent.ClientTickEvent event) {
         if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
@@ -247,6 +257,12 @@ public class VisitorsMacro {
             haveAotv = false;
         } else {
             haveAotv = true;
+        }
+
+        if (FarmHelper.config.pauseWhenInContests && InJacobContest()) {
+            LogUtils.debugLog("Player is in Jacob's contest, waiting...");
+            clock.schedule(5000);
+            return;
         }
 
         if (FarmHelper.config.visitorsDeskPosX == 0 && FarmHelper.config.visitorsDeskPosY == 0 && FarmHelper.config.visitorsDeskPosZ == 0) {

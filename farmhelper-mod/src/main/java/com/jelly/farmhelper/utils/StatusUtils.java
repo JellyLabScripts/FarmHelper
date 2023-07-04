@@ -16,9 +16,12 @@ public class StatusUtils {
 
         if (!MacroHandler.isMacroing) {
             setStateString("Idling");
-        } else if (Failsafe.jacobWait.passed()) {
+        } else if (Failsafe.emergency && Failsafe.restartAfterFailsafeCooldown.isScheduled() && !Failsafe.restartAfterFailsafeCooldown.passed()) {
+            setStateString("Restart after " + Utils.formatTime(Failsafe.restartAfterFailsafeCooldown.getEndTime() - System.currentTimeMillis()));
+        } else if (!Failsafe.emergency && Failsafe.jacobWait.passed()) {
             setStateString(Scheduler.getStatusString());
-        } else {
+        }
+        else {
             setStateString("Jacob failsafe for " + Utils.formatTime(Failsafe.jacobWait.getEndTime() - System.currentTimeMillis()));
         }
         cookieFail = "AutoCookie Fail: " + AutoCookie.failCount + (AutoCookie.failCount == 3 ? " (OFF)" : "");

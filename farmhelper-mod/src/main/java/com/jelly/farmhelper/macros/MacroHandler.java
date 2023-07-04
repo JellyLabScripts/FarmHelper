@@ -70,9 +70,9 @@ public class MacroHandler {
         if (currentMacro != null && currentMacro.enabled && mc.thePlayer != null && mc.theWorld != null) {
             currentMacro.onLastRender();
         }
-        if (FarmHelper.config.highlightRewarp) {
-            Color chroma = Color.getHSBColor((float) ((System.currentTimeMillis() / 10) % 2000) / 2000, 1, 1);
+        if (FarmHelper.config.highlightRewarp) {Color chroma = Color.getHSBColor((float) ((System.currentTimeMillis() / 10) % 2000) / 2000, 1, 1);
             Color chromaLowerAlpha = new Color(chroma.getRed(), chroma.getGreen(), chroma.getBlue(), 120);
+
             for (Rewarp rewarp : FarmHelper.config.rewarpList) {
                 RenderUtils.drawBlockBox(new BlockPos(rewarp.x, rewarp.y, rewarp.z), chromaLowerAlpha);
             }

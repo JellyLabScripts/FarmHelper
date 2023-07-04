@@ -8,6 +8,9 @@ import cc.polyfrost.oneconfig.config.data.Mod;
 import cc.polyfrost.oneconfig.config.data.ModType;
 import cc.polyfrost.oneconfig.config.data.OptionSize;
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.macros.MacroHandler;
+import com.jelly.farmhelper.network.DiscordWebhook;
+import com.jelly.farmhelper.world.GameState;
 import com.jelly.farmhelper.hud.ProfitCalculatorHUD;
 import com.jelly.farmhelper.hud.StatusHUD;
 import com.jelly.farmhelper.utils.BlockUtils;
@@ -322,28 +325,28 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	@Slider(
 			name = "Stop Script Delay Time", category = DELAYS, subcategory = "Delays",
-			description = "The time to wait before stopping the script (in milliseconds)",
-			min = 1, max = 10000
+			description = "The time to wait before stopping the script (in seconds)",
+			min = 1, max = 10
 	)
-	public int delayedStopScriptTime = 1000;
+	public float delayedStopScriptTime = 3f;
 	@Slider(
 			name = "Stop Script Delay Random Time", category = DELAYS, subcategory = "Delays",
-			description = "The maximum random time added to the delay time before stopping the script (in milliseconds)",
-			min = 1, max = 2000
+			description = "The maximum random time added to the delay time before stopping the script (in seconds)",
+			min = 1, max = 5
 	)
-	public int delayedStopScriptTimeRandomness = 1000;
+	public float delayedStopScriptTimeRandomness = 1f;
 	@Slider(
 			name = "Rotation Time", category = DELAYS, subcategory = "Delays",
-			description = "The time it takes to rotate the player (in milliseconds)",
+			description = "The time it takes to rotate the player (in seconds)",
 			min = 1, max = 2000
 	)
-	public int rotationTime = 500;
+	public float rotationTime = 500f;
 	@Slider(
 			name = "Rotation Random Time", category = DELAYS, subcategory = "Delays",
-			description = "The maximum random time added to the delay time it takes to rotate the player (in milliseconds)",
+			description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)", // rotate the player but its for failsafe or rotate after back?
 			min = 1, max = 2000
 	)
-	public int rotationTimeRandomness = 200;
+	public float rotationTimeRandomness = 200f;
 
 	// END DELAYS
 
@@ -354,6 +357,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Enables visitors macro"
 	)
 	public boolean visitorsMacro = false;
+	@Switch(
+		name = "Pause When in Contests", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+		description = "Pauses the visitors macro when in contests"
+	)
+	public boolean pauseWhenInContests = false;
 	@Switch(
 		name = "Only Accept Profitable Visitors", category = VISITORS_MACRO, subcategory = "Visitors Macro",
 		description = "Only accepts visitors that are profitable"
@@ -449,6 +457,26 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		secure = true, multiline = false
 	)
 	public String webHookURL = "";
+	@Button(
+		name = "Apply WebHook URL", category = WEBHOOK, subcategory = "Discord Webhook",
+		description = "Applies the webhook URL",
+		text = "Apply WebHook URL"
+	)
+	Runnable _applyWebhook = () -> {
+		if (webHookURL.isEmpty()) {
+			LogUtils.scriptLog("Webhook URL is empty");
+			return;
+		}
+		if (!webHookURL.startsWith("https://discord.com/api/webhooks/")) {
+			LogUtils.scriptLog("Invalid webhook URL");
+			return;
+		}
+		GameState.webhook = new DiscordWebhook(FarmHelper.config.webHookURL);
+		GameState.webhook.setUsername("Jelly - Farm Helper");
+		GameState.webhook.setAvatarUrl("https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png");
+		LogUtils.scriptLog("Webhook URL has been applied");
+		save();
+	};
 
 	@Switch(
 			name = "Enable (BROKEN)", category = WEBHOOK, subcategory = "Remote Control",
@@ -516,18 +544,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			min = 1, max = 10
 	)
 	public float rotationCheckSensitivity = 2;
-	@Switch(
-			name = "Send failsafe message", category = FAILSAFE, subcategory = "Miscellaneous",
-			description = "Sends a message to the chat when a failsafe has been triggered"
-	)
-	public boolean sendFailsafeMessage = true;
-	@Text(
-			name = "Custom failsafe message", category = FAILSAFE, subcategory = "Miscellaneous",
-			description = "Custom failsafe message",
-			placeholder = "Leave empty to use a random message"
-	)
-	public static String customFailsafeMessage = "";
-
 	@Switch(
 			name = "Enable Scheduler", category = FAILSAFE, subcategory = "Scheduler", size = OptionSize.DUAL,
 			description = "Farms for X amount of minutes then takes a break for X amount of minutes"
@@ -615,6 +631,23 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public int delayBeforeReconnecting = 5;
 
+	@Text(
+		name = "Rotation messages", category = FAILSAFE, subcategory = "Custom Failsafe Messages",
+		description = "The messages to send to the chat when a rotation failsafe has been triggered (use '|' to split messages)",
+		placeholder = "Leave empty to use a random message",
+		multiline = true
+	)
+	public static String customRotationMessages = "";
+
+	@Text(
+		name = "Bedrock messages", category = FAILSAFE, subcategory = "Custom Failsafe Messages",
+		description = "The messages to send to the chat when a bedrock failsafe has been triggered (use '|' to split messages)",
+		placeholder = "Leave empty to use a random message",
+		multiline = true
+	)
+	public static String customBedrockMessages = "";
+
+
 	// END FAILSAFE
 
 	// START JACOB
@@ -673,9 +706,52 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		name = "Farm Helper Profit Calculator", category = DEBUG, subcategory = "HUD"
 	)
 	public ProfitCalculatorHUD profitHUD = new ProfitCalculatorHUD();
+
+	@Number(
+		name = "SpawnPos X", category = DEBUG, subcategory = "SpawnPos",
+		description = "The X coordinate of the spawn",
+		min = -30000000, max = 30000000
+
+	)
 	public int spawnPosX = 0;
+	@Number(
+		name = "SpawnPos Y", category = DEBUG, subcategory = "SpawnPos",
+		description = "The Y coordinate of the spawn",
+		min = -30000000, max = 30000000
+	)
 	public int spawnPosY = 0;
+	@Number(
+		name = "SpawnPos Z", category = DEBUG, subcategory = "SpawnPos",
+		description = "The Z coordinate of the spawn",
+		min = -30000000, max = 30000000,
+		size = OptionSize.DUAL
+	)
 	public int spawnPosZ = 0;
+	@Button(
+		name = "Set SpawnPos", category = DEBUG, subcategory = "SpawnPos",
+		description = "Sets the spawn position to your current position",
+		text = "Set SpawnPos"
+	)
+	Runnable _setSpawnPos = () -> {
+		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
+		spawnPosX = pos.getX();
+		spawnPosY = pos.getY() + 1;
+		spawnPosZ = pos.getZ();
+		save();
+		LogUtils.scriptLog("Spawn position has been set to " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
+	};
+	@Button(
+		name = "Reset SpawnPos", category = DEBUG, subcategory = "SpawnPos",
+		description = "Resets the spawn position",
+		text = "Reset SpawnPos"
+	)
+	Runnable _resetSpawnPos = () -> {
+		spawnPosX = 0;
+		spawnPosY = 0;
+		spawnPosZ = 0;
+		save();
+		LogUtils.scriptLog("Spawn position has been reset");
+	};
 
 	// END DEBUG
 
@@ -683,11 +759,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		super(new Mod("Farm Helper", ModType.HYPIXEL), "/farmhelper/config.json");
 		initialize();
 
-		this.addDependency("VerticalMacroType", "Macro Type", () -> !this.macroType);
-		this.addDependency("SShapeMacroType", "Macro Type", () -> this.macroType);
+		this.addDependency("macroType", "Macro Type", () -> !MacroHandler.isMacroing);
+		this.addDependency("VerticalMacroType", "Macro Type", () -> (!this.macroType && !MacroHandler.isMacroing));
+		this.addDependency("SShapeMacroType", "Macro Type", () -> (this.macroType && !MacroHandler.isMacroing));
 
-		this.addDependency("rotateAfterDrop", "Rotate After Drop", () -> this.macroType);
-		this.addDependency("ladderDesign", "Ladder Design", () -> !this.macroType);
+		this.addDependency("rotateAfterDrop", "Rotate After Drop", () -> (this.macroType && !MacroHandler.isMacroing));
+		this.addDependency("ladderDesign", "Ladder Design", () -> (!this.macroType && !MacroHandler.isMacroing));
 
         this.addDependency("fastBreakSpeed", "Fast Break", () -> this.fastBreak);
 
@@ -695,32 +772,43 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("inventoryFullTime", "Sell to NPC", () -> this.enableAutoSell);
 		this.addDependency("inventoryFullRatio", "Sell to NPC", () -> this.enableAutoSell);
 
-		this.addDependency("customFailsafeMessage", "Enable Failsafe Custom Messages", () -> this.sendFailsafeMessage);
 		this.addDependency("schedulerFarmingTime", "Enable Scheduler", () -> this.enableScheduler);
 		this.addDependency("schedulerFarmingTimeRandomness", "Enable Scheduler", () -> this.enableScheduler);
 		this.addDependency("schedulerBreakTime", "Enable Scheduler", () -> this.enableScheduler);
 		this.addDependency("schedulerBreakTimeRandomness", "Enable Scheduler", () -> this.enableScheduler);
+
 		this.addDependency("jacobNetherWartCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
 		this.addDependency("jacobPotatoCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
 		this.addDependency("jacobCarrotCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
 		this.addDependency("jacobWheatCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
 		this.addDependency("jacobSugarCaneCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
 		this.addDependency("jacobMushroomCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
+
 		this.addDependency("onlyAcceptProfitableVisitors", "Enable Visitors Macro",() -> this.visitorsMacro);
 		this.addDependency("visitorsMacroCoinsThreshold", "Enable Visitors Macro",() -> this.visitorsMacro);
+
 		this.addDependency("sendLogs", "Enable webhook messages",() -> this.enableWebHook);
 		this.addDependency("sendStatusUpdates", "Enable webhook messages",() -> this.enableWebHook);
 		this.addDependency("statusUpdateInterval", "Enable webhook messages",() -> this.enableWebHook);
 		this.addDependency("webHookURL", "Enable webhook messages",() -> this.enableWebHook);
+
 		this.addDependency("webSocketIP", "Enable Remote Control",() -> this.enableRemoteControl);
 		this.addDependency("webSocketPassword", "Enable Remote Control",() -> this.enableRemoteControl);
+
 		this.addDependency("restartAfterFailSafeDelay", "Enable Restart After FailSafe",() -> this.enableRestartAfterFailSafe);
 		this.addDependency("enableLeaveOnBanwave", "Enable Banwave Checker",() -> this.banwaveCheckerEnabled);
 		this.addDependency("banwaveThreshold", "Enable Leave On Banwave",() -> this.enableLeaveOnBanwave);
 		this.addDependency("delayBeforeReconnecting", "Enable Leave On Banwave",() -> this.enableLeaveOnBanwave);
+
 		this.addDependency("setSpawnBeforeEvacuate", "Enable Auto Set Spawn",() -> this.enableAutoSetSpawn);
 		this.addDependency("autoSetSpawnMinDelay", "Enable Auto Set Spawn",() -> this.enableAutoSetSpawn);
 		this.addDependency("autoSetSpawnMaxDelay", "Enable Auto Set Spawn",() -> this.enableAutoSetSpawn);
+
+		this.addDependency("SpawnPosX","Debug mode", () -> this.debugMode);
+		this.addDependency("SpawnPosY","Debug mode", () -> this.debugMode);
+		this.addDependency("SpawnPosZ","Debug mode", () -> this.debugMode);
+		this.addDependency("_setSpawnPos","Debug mode", () -> this.debugMode);
+		this.addDependency("_resetSpawnPos","Debug mode", () -> this.debugMode);
 		save();
 	}
 }
