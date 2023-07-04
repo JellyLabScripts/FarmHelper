@@ -138,18 +138,18 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
     public int SShapeMacroType = 0;
 	@Switch(
-			name = "Auto Ungrab Mouse", category = GENERAL, subcategory = "Macro",
-			description = "Automatically unfocuses your mouse, so you can safely alt-tab"
+		name = "Auto Ungrab Mouse", category = GENERAL, subcategory = "Macro",
+		description = "Automatically unfocuses your mouse, so you can safely alt-tab"
 	)
 	public boolean autoUngrabMouse = true;
 	@Switch(
-		name = "Go back with Ladders", category = GENERAL, subcategory = "Macro",
-		description = "Select this if you're using ladder design"
+	name = "Go back with Ladders", category = GENERAL, subcategory = "Macro",
+	description = "Select this if you're using ladder design"
 	)
 	public boolean ladderDesign = false;
 	@Switch(
-			name = "Rotate After Warped", category = GENERAL, subcategory = "Macro",
-			description = "Rotates the player after re-warping"
+		name = "Rotate After Warped", category = GENERAL, subcategory = "Macro",
+		description = "Rotates the player after re-warping"
 	)
 	public boolean rotateAfterWarped = false;
 	@Switch(
@@ -159,8 +159,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public boolean rotateAfterDrop = false;
 
 	@KeyBind(
-			name = "Toggle Farm Helper", category = GENERAL, subcategory = "Keybinds",
-			description = "Toggles the macro on/off"
+		name = "Toggle Farm Helper", category = GENERAL, subcategory = "Keybinds",
+		description = "Toggles the macro on/off"
 	)
 	public OneKeyBind toggleMacro = new OneKeyBind(Keyboard.KEY_GRAVE);
 
@@ -171,9 +171,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public boolean highlightRewarp = true;
 	@Button(
-			name = "Add Rewarp", category = GENERAL, subcategory = "Rewarp",
-			description = "Adds a rewarp position",
-			text = "Add Rewarp"
+		name = "Add Rewarp", category = GENERAL, subcategory = "Rewarp",
+		description = "Adds a rewarp position",
+		text = "Add Rewarp"
 	)
 	Runnable _addRewarp = () -> {
 		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
@@ -182,16 +182,16 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		LogUtils.scriptLog("Rewarp position has been added. BlockPos: " + pos);
 	};
 	@Info(
-			text = "Don't forget to add rewarp points!",
-			type = InfoType.WARNING,
-			category = GENERAL,
-			subcategory = "Rewarp"
+		text = "Don't forget to add rewarp points!",
+		type = InfoType.WARNING,
+		category = GENERAL,
+		subcategory = "Rewarp"
 	)
 	public static boolean ignored;
 	@Button(
-			name = "Remove Rewarp", category = GENERAL, subcategory = "Rewarp",
-			description = "Removes a rewarp position",
-			text = "Remove Rewarp"
+		name = "Remove Rewarp", category = GENERAL, subcategory = "Rewarp",
+		description = "Removes a rewarp position",
+		text = "Remove Rewarp"
 	)
 	Runnable _removeRewarp = () -> {
 		Rewarp closest = null;
@@ -212,9 +212,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		}
 	};
 	@Button(
-			name = "Remove All Rewarps", category = GENERAL, subcategory = "Rewarp",
-			description = "Removes all rewarp positions",
-			text = "Remove All Rewarps"
+		name = "Remove All Rewarps", category = GENERAL, subcategory = "Rewarp",
+		description = "Removes all rewarp positions",
+		text = "Remove All Rewarps"
 	)
 	Runnable _removeAllRewarps = () -> {
 		removeAllRewarps();
@@ -225,78 +225,78 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	// START MISCELLANEOUS
 	@Switch(
-			name = "Xray Mode", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-			description = "Hides blocks to reduce resource usage"
+		name = "Xray Mode", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+		description = "Hides blocks to reduce resource usage"
 	)
 	public boolean xrayMode = false;
 	@Switch(
-			name = "Mute The Game", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-			description = "Mutes the game while farming"
+		name = "Mute The Game", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+		description = "Mutes the game while farming"
 	)
 	public boolean muteTheGame = false;
 	@Switch(
-			name = "Auto GodPot", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-			description = "Automatically purchases and consumes a God Pot"
+		name = "Auto GodPot", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+		description = "Automatically purchases and consumes a God Pot"
 	)
 	public boolean autoGodPot = false;
 	@Switch(
-			name = "Auto Cookie", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-			description = "Automatically purchases and consumes a booster cookie"
+		name = "Auto Cookie", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+		description = "Automatically purchases and consumes a booster cookie"
 	)
 	public boolean autoCookie = false;
 	@Switch(
-			name = "Fast Change Direction Cane", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-			description = "Fast change direction cane"
+		name = "Fast Change Direction Cane", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+		description = "Fast change direction cane"
 	)
 	public boolean fastChangeDirectionCane = false;
 	@Switch(
-			name = "Count RNG to $/Hr in Profit Calculator", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-			description = "Count RNG to $/Hr"
+		name = "Count RNG to $/Hr in Profit Calculator", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+		description = "Count RNG to $/Hr"
 	)
 	public boolean countRNGToProfitCalc = false;
 	@Switch(
-			name = "Fast Break (DANGEROUS)", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-			description = "Fast break is very risky and most likely will result in a ban"
+		name = "Fast Break (DANGEROUS)", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+		description = "Fast break is very risky and most likely will result in a ban"
 	)
 	public boolean fastBreak = false;
 	@Switch(
-			name = "Debug Mode", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-			description = "Prints to chat what the bot is currently executing. Useful if you are having issues."
+		name = "Debug Mode", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+		description = "Prints to chat what the bot is currently executing. Useful if you are having issues."
 	)
 	public boolean debugMode = false;
 	@Slider(
-			name = "Fast Break Speed", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-			description = "Fast break speed",
-			min = 1, max = 3
+		name = "Fast Break Speed", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+		description = "Fast break speed",
+		min = 1, max = 3
 	)
 	public int fastBreakSpeed = 1;
 
 	@Switch(
-			name = "Enable Auto Sell", category = MISCELLANEOUS, subcategory = "Auto Sell",
-			description = "Enables auto sell"
+		name = "Enable Auto Sell", category = MISCELLANEOUS, subcategory = "Auto Sell",
+		description = "Enables auto sell"
 	)
 	public boolean enableAutoSell = false;
 	@Switch(
-			name = "Sell To NPC" , category = MISCELLANEOUS, subcategory = "Auto Sell",
-			description = "Automatically sells crops to NPC or Bazaar"
+		name = "Sell To NPC" , category = MISCELLANEOUS, subcategory = "Auto Sell",
+		description = "Automatically sells crops to NPC or Bazaar"
 	)
 	public boolean sellToNPC = false;
 	@Number(
-			name = "Inventory Full Time", category = MISCELLANEOUS, subcategory = "Auto Sell",
-			description = "The time to wait for inventory to be full (in seconds)",
-			min = 1, max = 20
+		name = "Inventory Full Time", category = MISCELLANEOUS, subcategory = "Auto Sell",
+		description = "The time to wait for inventory to be full (in seconds)",
+		min = 1, max = 20
 	)
 	public int inventoryFullTime = 6;
 	@Number(
-			name = "Inventory Full Ratio", category = MISCELLANEOUS, subcategory = "Auto Sell",
-			description = "The ratio to wait for inventory to be full (in percentage)",
-			min = 1, max = 100
+		name = "Inventory Full Ratio", category = MISCELLANEOUS, subcategory = "Auto Sell",
+		description = "The ratio to wait for inventory to be full (in percentage)",
+		min = 1, max = 100
 	)
 	public int inventoryFullRatio = 65;
 	@Button(
-			name = "Sell Inventory Now", category = MISCELLANEOUS, subcategory = "Auto Sell",
-			description = "Sells crops in your inventory",
-			text = "Sell Inventory Now"
+		name = "Sell Inventory Now", category = MISCELLANEOUS, subcategory = "Auto Sell",
+		description = "Sells crops in your inventory",
+		text = "Sell Inventory Now"
 	)
 	Runnable autoSellFunction = () -> {
 		mc.thePlayer.closeScreen();
@@ -304,49 +304,49 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	};
 
 	@Switch(
-			name = "Increase Cocoa Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
-			description = "Allows you to farm cocoa beans more efficient on higher speeds by making the hitboxes bigger"
+		name = "Increase Cocoa Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
+		description = "Allows you to farm cocoa beans more efficient on higher speeds by making the hitboxes bigger"
 	)
-	public boolean increasedCocoaBeans = false;
+	public boolean increasedCocoaBeans = true;
 	@Switch(
-			name = "Increase Crop Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
-			description = "Allows you to farm crops more efficient by making the hitboxes bigger"
+		name = "Increase Crop Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
+		description = "Allows you to farm crops more efficient by making the hitboxes bigger"
 	)
-	public boolean increasedCrops = false;
+	public boolean increasedCrops = true;
 	@Switch(
-			name = "Increase Nether Wart Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
-			description = "Allows you to farm nether warts more efficient on higher speeds by making the hitboxes bigger"
+		name = "Increase Nether Wart Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
+		description = "Allows you to farm nether warts more efficient on higher speeds by making the hitboxes bigger"
 	)
-	public boolean increasedNetherWarts = false;
+	public boolean increasedNetherWarts = true;
 
 	// END MISCELLANEOUS
 
 	// START DELAYS
 
 	@Slider(
-			name = "Stop Script Delay Time", category = DELAYS, subcategory = "Delays",
-			description = "The time to wait before stopping the script (in seconds)",
-			min = 1, max = 10
+		name = "Stop Script Delay Time", category = DELAYS, subcategory = "Delays",
+		description = "The time to wait before stopping the script (in seconds)",
+		min = 1, max = 10
 	)
 	public float delayedStopScriptTime = 3f;
 	@Slider(
-			name = "Stop Script Delay Random Time", category = DELAYS, subcategory = "Delays",
-			description = "The maximum random time added to the delay time before stopping the script (in seconds)",
-			min = 1, max = 5
+		name = "Stop Script Delay Random Time", category = DELAYS, subcategory = "Delays",
+		description = "The maximum random time added to the delay time before stopping the script (in seconds)",
+		min = 1, max = 5
 	)
 	public float delayedStopScriptTimeRandomness = 1f;
 	@Slider(
-			name = "Rotation Time", category = DELAYS, subcategory = "Delays",
-			description = "The time it takes to rotate the player (in seconds)",
-			min = 1, max = 2000
+		name = "Rotation Time", category = DELAYS, subcategory = "Delays",
+		description = "The time it takes to rotate the player (in seconds)",
+		min = 0.4f, max = 10
 	)
-	public float rotationTime = 500f;
+	public float rotationTime = 0.4f;
 	@Slider(
-			name = "Rotation Random Time", category = DELAYS, subcategory = "Delays",
-			description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)", // rotate the player but its for failsafe or rotate after back?
-			min = 1, max = 2000
+		name = "Rotation Random Time", category = DELAYS, subcategory = "Delays",
+		description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)", // rotate the player but its for failsafe or rotate after back?
+		min = 0.2f, max = 10
 	)
-	public float rotationTimeRandomness = 200f;
+	public float rotationTimeRandomness = 0.2f;
 
 	// END DELAYS
 
@@ -376,9 +376,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 
 	@Button(
-			name = "Set Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-			description = "Sets the visitor's desk position",
-			text = "Set Visitor's Desk"
+		name = "Set Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+		description = "Sets the visitor's desk position",
+		text = "Set Visitor's Desk"
 	)
 	Runnable setVisitorDesk = () -> {
 		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
@@ -390,9 +390,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	};
 
 	@Button(
-			name = "Reset Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-			description = "Resets the visitor's desk position",
-			text = "Reset Visitor's Desk"
+		name = "Reset Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+		description = "Resets the visitor's desk position",
+		text = "Reset Visitor's Desk"
 	)
 	Runnable resetVisitorDesk = () -> {
 		visitorsDeskPosX = 0;
@@ -402,26 +402,26 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		LogUtils.scriptLog("Visitors desk position has been reset");
 	};
 	@Number(
-			name = "Visitors Desk X", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-			description = "Visitors desk X coordinate",
-			min = -30000000, max = 30000000
+		name = "Visitors Desk X", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+		description = "Visitors desk X coordinate",
+		min = -30000000, max = 30000000
 	)
 	public int visitorsDeskPosX = 0;
 	@Number(
-			name = "Visitors Desk Y", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-			description = "Visitors desk Y coordinate",
-			min = -30000000, max = 30000000
+		name = "Visitors Desk Y", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+		description = "Visitors desk Y coordinate",
+		min = -30000000, max = 30000000
 	)
 	public int visitorsDeskPosY = 0;
 	@Number(
-			name = "Visitors Desk Z", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-			description = "Visitors desk Z coordinate",
-			min = -30000000, max = 30000000
+		name = "Visitors Desk Z", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+		description = "Visitors desk Z coordinate",
+		min = -30000000, max = 30000000
 	)
 	public int visitorsDeskPosZ = 0;
 	@KeyBind(
-			name = "Visitors Desk Keybind", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-			description = "Visitors desk keybind"
+		name = "Visitors Desk Keybind", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+		description = "Visitors desk keybind"
 	)
 	public OneKeyBind visitorsDeskKeybind = new OneKeyBind(0);
 
@@ -479,28 +479,28 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	};
 
 	@Switch(
-			name = "Enable (BROKEN)", category = WEBHOOK, subcategory = "Remote Control",
-			description = "Enables remote control via Discord messages"
+		name = "Enable (BROKEN)", category = WEBHOOK, subcategory = "Remote Control",
+		description = "Enables remote control via Discord messages"
 	)
 	public boolean enableRemoteControl = false;
 	@Info(
-			text = "You don't need to configure this. It's for advanced users only.",
-			type = InfoType.INFO,
-			category = WEBHOOK,
-			subcategory = "Remote Control"
+		text = "You don't need to configure this. It's for advanced users only.",
+		type = InfoType.INFO,
+		category = WEBHOOK,
+		subcategory = "Remote Control"
 	)
 	public static boolean ignored2;
 	@Text(
-			name = "WebSocket IP (DANGEROUS)", category = WEBHOOK, subcategory = "Remote Control",
-			description = "The IP to use for the WebSocket server",
-			secure = false, multiline = false
+		name = "WebSocket IP (DANGEROUS)", category = WEBHOOK, subcategory = "Remote Control",
+		description = "The IP to use for the WebSocket server",
+		secure = false, multiline = false
 
 	)
 	public String webSocketIP = "";
 	@Text(
-			name = "WebSocket Password", category = WEBHOOK, subcategory = "Remote Control",
-			description = "The password to use for the WebSocket server",
-			secure = true, multiline = false
+		name = "WebSocket Password", category = WEBHOOK, subcategory = "Remote Control",
+		description = "The password to use for the WebSocket server",
+		secure = true, multiline = false
 	)
 	public String webSocketPassword = "";
 
@@ -539,38 +539,38 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public boolean autoTPOnWorldChange = true;
 	@Slider(
-			name = "Rotation Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
-			description = "The sensitivity of rotation check, the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives",
-			min = 1, max = 10
+		name = "Rotation Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
+		description = "The sensitivity of rotation check, the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives",
+		min = 1, max = 10
 	)
 	public float rotationCheckSensitivity = 2;
 	@Switch(
-			name = "Enable Scheduler", category = FAILSAFE, subcategory = "Scheduler", size = OptionSize.DUAL,
-			description = "Farms for X amount of minutes then takes a break for X amount of minutes"
+		name = "Enable Scheduler", category = FAILSAFE, subcategory = "Scheduler", size = OptionSize.DUAL,
+		description = "Farms for X amount of minutes then takes a break for X amount of minutes"
 	)
 	public boolean enableScheduler = false;
 	@Slider(
-			name = "Farming time (in minutes)", category = FAILSAFE, subcategory = "Scheduler",
-			description = "How long to farm",
-			min = 1, max = 300, step = 1
+		name = "Farming time (in minutes)", category = FAILSAFE, subcategory = "Scheduler",
+		description = "How long to farm",
+		min = 1, max = 300, step = 1
 	)
 	public int schedulerFarmingTime = 30;
 	@Slider(
-			name = "Farming time randomness (in minutes)", category = FAILSAFE, subcategory = "Scheduler",
-			description = "How much randomness to add to the farming time",
-			min = 0, max = 15, step = 1
+		name = "Farming time randomness (in minutes)", category = FAILSAFE, subcategory = "Scheduler",
+		description = "How much randomness to add to the farming time",
+		min = 0, max = 15, step = 1
 	)
 	public int schedulerFarmingTimeRandomness = 0;
 	@Slider(
-			name = "Break time (in minutes)", category = FAILSAFE, subcategory = "Scheduler",
-			description = "How long to take a break",
-			min = 1, max = 120, step = 1
+		name = "Break time (in minutes)", category = FAILSAFE, subcategory = "Scheduler",
+		description = "How long to take a break",
+		min = 1, max = 120, step = 1
 	)
 	public int schedulerBreakTime = 5;
 	@Slider(
-			name = "Break time randomness (in minutes)", category = FAILSAFE, subcategory = "Scheduler",
-			description = "How much randomness to add to the break time",
-			min = 0, max = 15, step = 1
+		name = "Break time randomness (in minutes)", category = FAILSAFE, subcategory = "Scheduler",
+		description = "How much randomness to add to the break time",
+		min = 0, max = 15, step = 1
 	)
 	public int schedulerBreakTimeRandomness = 0;
 
@@ -579,6 +579,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Restarts the macro after a while when a failsafe has been triggered"
 	)
 	public boolean enableRestartAfterFailSafe = false;
+	@Switch(
+		name = "Leave after failsafe triggered", category = FAILSAFE, subcategory = "Restart After FailSafe",
+		description = "Leaves the server after a failsafe has been triggered"
+	)
+	public boolean leaveAfterFailSafe = true;
 	@Slider(
 		name = "Restart Delay", category = FAILSAFE, subcategory = "Restart After FailSafe",
 		description = "The delay to restart after failsafe (in seconds)",
@@ -609,8 +614,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public int autoSetSpawnMaxDelay = 25;
 
 	@Switch(
-			name = "Enable Banwave Checker", category = FAILSAFE, subcategory = "Banwave Checker",
-			description = "Checks for banwave and shows you the number of players banned in the last 15 minutes"
+		name = "Enable Banwave Checker", category = FAILSAFE, subcategory = "Banwave Checker",
+		description = "Checks for banwave and shows you the number of players banned in the last 15 minutes"
 	)
 	public boolean banwaveCheckerEnabled = true;
 	@Switch(
@@ -630,6 +635,22 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = 1, max = 20
 	)
 	public int delayBeforeReconnecting = 5;
+
+	@Number(
+		name = "Rotation Acting times", category = FAILSAFE, subcategory = "Custom Failsafe times",
+		description = "When the rotation failsafe is triggered, the number of times to act before leaving (recommend from 5 to 8)",
+		min = 4, max = 20,
+		step = 1
+	)
+	public int rotationActingTimes = 6;
+
+	@Number(
+		name = "Bedrock Acting times", category = FAILSAFE, subcategory = "Custom Failsafe times",
+		description = "When the Bedrock failsafe is triggered, the number of times to act before leaving (recommend from 8 to 10)",
+		min = 4, max = 20,
+		step = 1
+	)
+	public int bedrockActingTimes = 6;
 
 	@Text(
 		name = "Rotation messages", category = FAILSAFE, subcategory = "Custom Failsafe Messages",
@@ -791,6 +812,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("sendStatusUpdates", "Enable webhook messages",() -> this.enableWebHook);
 		this.addDependency("statusUpdateInterval", "Enable webhook messages",() -> this.enableWebHook);
 		this.addDependency("webHookURL", "Enable webhook messages",() -> this.enableWebHook);
+		this.addDependency("_applyWebhook", "Enable webhook messages",() -> this.enableWebHook);
 
 		this.addDependency("webSocketIP", "Enable Remote Control",() -> this.enableRemoteControl);
 		this.addDependency("webSocketPassword", "Enable Remote Control",() -> this.enableRemoteControl);

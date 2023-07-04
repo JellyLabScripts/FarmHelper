@@ -85,22 +85,6 @@ public class MinecraftMixin {
                     this.playerController.clickBlock(newBlock, this.objectMouseOver.sideHit);
                 }
 
-                // checking behind first block
-                newBlock = this.objectMouseOver.getBlockPos();
-                Block behindBlock = this.theWorld.getBlockState(newBlock.offset(this.objectMouseOver.sideHit.getOpposite())).getBlock();
-
-                if (!newBlock.equals(behindBlock) && (behindBlock instanceof BlockCrops ||
-                    behindBlock instanceof BlockNetherWart ||
-                    behindBlock == Blocks.reeds ||
-                    behindBlock == Blocks.cactus ||
-                    behindBlock == Blocks.brown_mushroom_block ||
-                    behindBlock == Blocks.red_mushroom_block ||
-                    behindBlock == Blocks.pumpkin ||
-                    behindBlock == Blocks.melon_block)
-                ) {
-                    this.playerController.clickBlock(newBlock.offset(this.objectMouseOver.sideHit.getOpposite()), this.objectMouseOver.sideHit);
-                }
-
                 if (i % 3 == 0) this.thePlayer.swingItem();
             }
     }

@@ -22,7 +22,7 @@ public class ProfitCalculatorHUD extends BasicHud {
     protected transient LinkedHashMap<String, String> lines = new LinkedHashMap<String, String>();
     protected transient float width = 0;
     public ProfitCalculatorHUD() {
-        super(true, 0f, 0f, 5, true, true, 1, 0, 0, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
+        super(true, 0f, 0f, 3.5f, true, true, 1, 0, 0, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
         addLines();
     }
     @Switch(

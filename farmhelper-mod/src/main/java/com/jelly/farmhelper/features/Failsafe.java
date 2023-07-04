@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.jelly.farmhelper.FarmHelper.config;
 import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.KeyBindUtils.stopMovement;
 
@@ -580,7 +581,7 @@ public class Failsafe {
                 Thread.sleep((long) (1000 + Math.random() * 1000));
             }
 
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < config.rotationActingTimes; i++) {
                 rotationTime = (long) ((Math.random() * FarmHelper.config.rotationTimeRandomness) + FarmHelper.config.rotationTime);
                 rotation.easeTo((float) (360 * (Math.random())), (float) (20 * (Math.random() - 1)), rotationTime);
                 if (Math.random() < 0.1f) {
@@ -618,7 +619,7 @@ public class Failsafe {
 
             // stage 3: look around again and jump
             LogUtils.debugLog("rotationMovement: stage 3");
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < config.rotationActingTimes; i++) {
                 rotationTime = (long) ((Math.random() * FarmHelper.config.rotationTimeRandomness) + FarmHelper.config.rotationTime);
                 rotation.easeTo((float) (340 * (Math.random())), (float) (20 * (Math.random() - 1)), rotationTime);
                 Thread.sleep(rotationTime + 200);
@@ -640,7 +641,7 @@ public class Failsafe {
             if (FarmHelper.config.ladderDesign) PlayerUtils.setSpawn();
             Thread.sleep(3000);
 
-            if(Math.random() < 0.5d && said) {
+            if((Math.random() < 0.5d || config.leaveAfterFailSafe) && said) {
                 mc.thePlayer.sendChatMessage("/hub");
                 Thread.sleep(3000);
                 KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
@@ -651,7 +652,7 @@ public class Failsafe {
                     MacroHandler.enableMacro();
                 }
             } else {
-                mc.theWorld.sendQuittingDisconnectingPacket();
+                    mc.theWorld.sendQuittingDisconnectingPacket();
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -720,7 +721,7 @@ public class Failsafe {
             }
 
             // stage 2: look around and sending messages
-            for (int i = 0; i < 8; i++) {
+            for (int i = 0; i < config.bedrockActingTimes; i++) {
                 rotationTime = (long) ((Math.random() * (FarmHelper.config.rotationTimeRandomness * 1_000)) + (FarmHelper.config.rotationTime * 1_000));
                 rotation.easeTo((float) (270 * (Math.random())), (float) (20 * (Math.random() - 1)), rotationTime);
                 if (i == 0) {
@@ -768,7 +769,7 @@ public class Failsafe {
             // stage 3: come hub or quit game
             stopMovement();
             Thread.sleep((long) (500 + Math.random() * 3_000));
-            if(Math.random() < 0.5d && said) {
+            if((Math.random() < 0.5d || config.leaveAfterFailSafe) && said) {
                 mc.thePlayer.sendChatMessage("/hub");
                 Thread.sleep(5000);
                 if (FarmHelper.gameState.currentLocation == GameState.location.HUB) {
