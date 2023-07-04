@@ -343,7 +343,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public float rotationTime = 0.4f;
 	@Slider(
 		name = "Rotation Random Time", category = DELAYS, subcategory = "Delays",
-		description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)", // rotate the player but its for failsafe or rotate after back?
+		description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
 		min = 0.2f, max = 10
 	)
 	public float rotationTimeRandomness = 0.2f;
