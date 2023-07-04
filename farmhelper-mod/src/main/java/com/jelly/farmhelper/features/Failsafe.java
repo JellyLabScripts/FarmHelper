@@ -239,8 +239,6 @@ public class Failsafe {
                     afterEvacuateCooldown.reset();
                     MacroHandler.currentMacro.triggerTpCooldown();
                 }
-                if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
-                    restartAfterFailsafeCooldown.schedule(FarmHelper.config.restartAfterFailSafeDelay * 1000L);
                 // DEBUG MESSAGES IN CASE SOMETHING IS BROKEN AGAIN
 //                else {
 //                    if (!MacroHandler.currentMacro.enabled) {
@@ -306,7 +304,6 @@ public class Failsafe {
                 wasInGarden = true;
         }
     }
-
 
     public static boolean jacobExceeded() {
         for (String line : ScoreboardUtils.getScoreboardLines()) {
