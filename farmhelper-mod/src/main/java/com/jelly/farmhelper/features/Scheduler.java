@@ -54,7 +54,7 @@ public class Scheduler {
         } else if (!MacroHandler.randomizing && MacroHandler.isMacroing && currentState == State.BREAK && breakClock.passed()) {
             LogUtils.debugLog("[Scheduler] Break time has passed, starting");
             currentState = State.FARMING;
-            farmClock.schedule(TimeUnit.MINUTES.toMillis((long)(FarmHelper.config.schedulerFarmingTime * (Math.random() * FarmHelper.config.schedulerFarmingTimeRandomness))));
+            farmClock.schedule(TimeUnit.MINUTES.toMillis((long)(FarmHelper.config.schedulerFarmingTime + (Math.random() * FarmHelper.config.schedulerFarmingTimeRandomness))));
         }
     }
 }
