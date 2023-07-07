@@ -1,26 +1,25 @@
 package com.jelly.farmhelper.config;
 
-import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.annotations.Number;
+import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.InfoType;
 import cc.polyfrost.oneconfig.config.data.Mod;
 import cc.polyfrost.oneconfig.config.data.ModType;
 import cc.polyfrost.oneconfig.config.data.OptionSize;
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.network.DiscordWebhook;
-import com.jelly.farmhelper.world.GameState;
+import com.jelly.farmhelper.config.structs.Rewarp;
+import com.jelly.farmhelper.features.Autosell;
 import com.jelly.farmhelper.hud.ProfitCalculatorHUD;
 import com.jelly.farmhelper.hud.StatusHUD;
+import com.jelly.farmhelper.macros.MacroHandler;
+import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.utils.BlockUtils;
 import com.jelly.farmhelper.utils.LogUtils;
+import com.jelly.farmhelper.world.GameState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import org.lwjgl.input.Keyboard;
-import net.minecraft.client.Minecraft;
-import com.jelly.farmhelper.features.Autosell;
-
-import com.jelly.farmhelper.config.structs.Rewarp;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,6 +38,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	private transient static final String DELAYS = "Delays";
 	private transient static final String WEBHOOK = "Webhook";
 	private transient static final String DEBUG = "Debug";
+	private transient static final String EXPERIMENTAL = "Experimental";
 
 	private transient static final File configRewarpFile = new File("farmhelper_rewarp.json");
 
@@ -164,6 +164,13 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public OneKeyBind toggleMacro = new OneKeyBind(Keyboard.KEY_GRAVE);
 
+	@KeyBind(
+			name = "Open GUI", category = GENERAL, subcategory = "Keybinds",
+			description = "Open's the main FarmHelper GUI"
+	)
+
+	public OneKeyBind openGuiKeybind = new OneKeyBind(Keyboard.KEY_F);
+
 	@Switch(
 		name = "Highlight rewarp points", category = GENERAL, subcategory = "Rewarp",
 		description = "Highlights all rewarp points you have added",
@@ -259,22 +266,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Count RNG to $/Hr"
 	)
 	public boolean countRNGToProfitCalc = false;
-	@Switch(
-		name = "Fast Break (DANGEROUS)", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-		description = "Fast break is very risky and most likely will result in a ban"
-	)
-	public boolean fastBreak = false;
+
 	@Switch(
 		name = "Debug Mode", category = MISCELLANEOUS, subcategory = "Miscellaneous",
 		description = "Prints to chat what the bot is currently executing. Useful if you are having issues."
 	)
 	public boolean debugMode = false;
-	@Slider(
-		name = "Fast Break Speed", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-		description = "Fast break speed",
-		min = 1, max = 3
-	)
-	public int fastBreakSpeed = 1;
 
 	@Switch(
 		name = "Enable Auto Sell", category = MISCELLANEOUS, subcategory = "Auto Sell",
@@ -781,6 +778,31 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	// END DEBUG
 
+	// START EXPERIMENTAL
+	@Switch(
+			name = "Fast Break (DANGEROUS)", category = EXPERIMENTAL, subcategory = "Experimental",
+			description = "Fast break is very risky and most likely will result in a ban"
+	)
+	public boolean fastBreak = false;
+	@Info(
+			text = "Fastbreak will most likely ban you. Proceed with caution.",
+			type = InfoType.ERROR,
+			category = EXPERIMENTAL,
+			subcategory = "Experimental"
+	)
+
+	public static boolean ignored3;
+
+	@Slider(
+			name = "Fast Break Speed", category = EXPERIMENTAL, subcategory = "Experimental",
+			description = "Fast break speed",
+			min = 1, max = 3
+	)
+	public int fastBreakSpeed = 1;
+
+
+	// END EXPERIMENTAL
+
 	public Config() {
 		super(new Mod("Farm Helper", ModType.HYPIXEL), "/farmhelper/config.json");
 		initialize();
@@ -838,6 +860,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("SpawnPosZ","Debug mode", () -> this.debugMode);
 		this.addDependency("_setSpawnPos","Debug mode", () -> this.debugMode);
 		this.addDependency("_resetSpawnPos","Debug mode", () -> this.debugMode);
+		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
 		save();
 	}
 }

@@ -41,6 +41,9 @@ public class ProfitCalculatorHUD extends BasicHud {
         if (rainbowProfitText) {
             Color chroma = Color.getHSBColor((float) ((System.currentTimeMillis() / 10) % 500) / 500, 1, 1);
             this.color.setFromOneColor(new OneColor(chroma.getRed(), chroma.getGreen(), chroma.getBlue(), 255));
+        } else {
+            Color chroma = Color.WHITE;
+            color.setFromOneColor(new OneColor(chroma.getRed(), chroma.getGreen(), chroma.getBlue(), 255));
         }
 
         NanoVGHelper.INSTANCE.setupAndDraw(true, (vg) -> {
