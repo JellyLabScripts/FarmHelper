@@ -8,6 +8,7 @@ import com.jelly.farmhelper.config.Config;
 
 import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.macros.MacroHandler;
+import com.jelly.farmhelper.nickeh.thirty.PlayMedia;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
@@ -32,6 +33,8 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 
+
+
 @Mod(modid = FarmHelper.MODID, name = FarmHelper.NAME, version = FarmHelper.VERSION)
 public class FarmHelper {
     public static final String MODID = "farmhelper";
@@ -48,6 +51,9 @@ public class FarmHelper {
 
     public static Config config;
     public static Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
+
+    // NickEH30 player
+
 
 
     @Mod.EventHandler
@@ -75,7 +81,11 @@ public class FarmHelper {
         ClientCommandHandler.instance.registerCommand(new RewarpCommand());
         ClientCommandHandler.instance.registerCommand(new FarmHelperCommand());
 
+        //play gif
+
+
         gameState = new GameState();
+
     }
 
     @SubscribeEvent

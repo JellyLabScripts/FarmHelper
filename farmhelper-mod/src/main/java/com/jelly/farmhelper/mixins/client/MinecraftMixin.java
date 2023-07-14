@@ -3,6 +3,7 @@ package com.jelly.farmhelper.mixins.client;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
 
+import com.jelly.farmhelper.nickeh.thirty.PlayMedia;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
@@ -10,6 +11,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.main.GameConfiguration;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.settings.GameSettings;
@@ -27,6 +29,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MinecraftMixin {
     //R.I.P. Fastbreak 2022-2022
     // GUESS WHO IS BACK!
+
 
     @Shadow
     public GuiScreen currentScreen;
@@ -88,4 +91,12 @@ public class MinecraftMixin {
                 if (i % 3 == 0) this.thePlayer.swingItem();
             }
     }
+
+    // gif loader
+     PlayMedia playM = new PlayMedia();
+    @Inject(method= "<init>", at = @At("RETURN"))
+    private void Minecraft(GameConfiguration gameConfig,CallbackInfo info) {
+            playM.showLoader();
+    }
+
 }
