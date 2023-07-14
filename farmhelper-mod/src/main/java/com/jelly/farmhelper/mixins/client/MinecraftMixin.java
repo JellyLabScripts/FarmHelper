@@ -29,8 +29,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MinecraftMixin {
     //R.I.P. Fastbreak 2022-2022
     // GUESS WHO IS BACK!
-
-
+    
     @Shadow
     public GuiScreen currentScreen;
 

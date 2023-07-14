@@ -32,9 +32,6 @@ import java.util.Objects;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-
-
-
 @Mod(modid = FarmHelper.MODID, name = FarmHelper.NAME, version = FarmHelper.VERSION)
 public class FarmHelper {
     public static final String MODID = "farmhelper";
@@ -51,10 +48,6 @@ public class FarmHelper {
 
     public static Config config;
     public static Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
-
-    // NickEH30 player
-
-
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -80,9 +73,6 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new VisitorsMacro());
         ClientCommandHandler.instance.registerCommand(new RewarpCommand());
         ClientCommandHandler.instance.registerCommand(new FarmHelperCommand());
-
-        //play gif
-
 
         gameState = new GameState();
 
