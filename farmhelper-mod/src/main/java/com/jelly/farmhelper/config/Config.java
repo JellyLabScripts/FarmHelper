@@ -16,6 +16,7 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.utils.BlockUtils;
 import com.jelly.farmhelper.utils.LogUtils;
+import com.jelly.farmhelper.utils.Utils;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
@@ -521,11 +522,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public boolean fakeMovements = true;
 	@Switch(
-		name = "Ping Sound", category = FAILSAFE, subcategory = "Miscellaneous",
-		description = "Makes a ping sound when a failsafe has been triggered"
-	)
-	public boolean pingSound = true;
-	@Switch(
 		name = "Auto alt-tab when failsafe triggered", category = FAILSAFE, subcategory = "Miscellaneous",
 		description = "Automatically alt-tabs to the game when the dark times come"
 	)
@@ -547,8 +543,42 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public float rotationCheckSensitivity = 2;
 	@Switch(
-		name = "Enable Scheduler", category = FAILSAFE, subcategory = "Scheduler", size = OptionSize.DUAL,
-		description = "Farms for X amount of minutes then takes a break for X amount of minutes"
+			name = "Enable", category = FAILSAFE, subcategory = "Failsafe Trigger Sound", size = OptionSize.DUAL,
+			description = "Makes a sound when a failsafe has been triggered"
+	)
+	public boolean enableFailsafeSound = true;
+	@Dropdown(
+			name = "Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
+			description = "The sound to play when a failsafe has been triggered",
+			options = {
+					"Ping", // 0
+					"Voice", // 1
+					"Metal Pipe", // 2
+					"AAAAAAAAAA", // 3
+					"Loud Buzz" // 4
+			}
+	)
+	public int failsafeSoundSelected = 0;
+	@Button(
+			name = "", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
+			description = "Plays the selected sound",
+			text = "Play"
+	)
+	Runnable _playFailsafeSoundButton = () -> {
+		if (failsafeSoundSelected == 0)
+			Utils.playPingFailsafeSound();
+		else
+			Utils.playFailsafeSound(failsafeSoundSelected);
+	};
+	@Slider(
+			name = "Failsafe Sound Volume (in dB)", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
+			description = "The volume of the failsafe sound",
+			min = -6f, max = 6f
+	)
+	public float failsafeSoundVolume = 0.0f;
+	@Switch(
+			name = "Enable Scheduler", category = FAILSAFE, subcategory = "Scheduler", size = OptionSize.DUAL,
+			description = "Farms for X amount of minutes then takes a break for X amount of minutes"
 	)
 	public boolean enableScheduler = false;
 	@Slider(
@@ -820,6 +850,10 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("sellToNPC", "Enable Auto Sell", () -> this.enableAutoSell);
 		this.addDependency("inventoryFullTime", "Sell to NPC", () -> this.enableAutoSell);
 		this.addDependency("inventoryFullRatio", "Sell to NPC", () -> this.enableAutoSell);
+
+		this.addDependency("failsafeSoundSelected", "Enable Failsafe Trigger Sound", () -> this.enableFailsafeSound);
+		this.addDependency("_playFailsafeSoundButton", "Enable Failsafe Trigger Sound", () -> this.enableFailsafeSound);
+		this.addDependency("failsafeSoundVolume", "Enable Failsafe Trigger Sound", () -> this.enableFailsafeSound);
 
 		this.addDependency("schedulerFarmingTime", "Enable Scheduler", () -> this.enableScheduler);
 		this.addDependency("schedulerFarmingTimeRandomness", "Enable Scheduler", () -> this.enableScheduler);

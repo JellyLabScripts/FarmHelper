@@ -1,13 +1,19 @@
 package com.jelly.farmhelper.utils;
 
+import com.jelly.farmhelper.FarmHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiInventory;
+import net.minecraft.client.main.Main;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.Display;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -47,7 +53,7 @@ public class Utils{
     private static final Clock pingAlertClock = new Clock();
     private static int numPings = 15;
 
-    public static void sendPingAlert() {
+    public static void playPingFailsafeSound() {
         pingAlertPlaying = true;
         numPings = 15;
     }
@@ -173,5 +179,36 @@ public class Utils{
     public static int nextInt(int upperbound) {
         Random r = new Random();
         return r.nextInt(upperbound);
+    }
+
+    public static synchronized void playFailsafeSound(int soundSelected) {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    AudioInputStream inputStream = null;
+                    switch (soundSelected) {
+                        case 1:
+                            inputStream = AudioSystem.getAudioInputStream(Main.class.getResourceAsStream("/assets/farmhelper/sounds/staff_check_voice_notification.wav"));
+                            break;
+                        case 2:
+                            inputStream = AudioSystem.getAudioInputStream(Main.class.getResourceAsStream("/assets/farmhelper/sounds/metal_pipe.wav"));
+                            break;
+                        case 3:
+                            inputStream = AudioSystem.getAudioInputStream(Main.class.getResourceAsStream("/assets/farmhelper/sounds/AAAAAAAAAA.wav"));
+                            break;
+                        case 4:
+                            inputStream = AudioSystem.getAudioInputStream(Main.class.getResourceAsStream("/assets/farmhelper/sounds/loud_buzz.wav"));
+                            break;
+                    }
+                    Clip clip = AudioSystem.getClip();
+                    clip.open(inputStream);
+                    FloatControl volume = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                    volume.setValue(FarmHelper.config.failsafeSoundVolume);
+                    clip.start();
+                } catch (Exception e) {
+                    System.err.println(e.getMessage());
+                }
+            }
+        }).start();
     }
 }

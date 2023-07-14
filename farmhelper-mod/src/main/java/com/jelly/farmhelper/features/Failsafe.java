@@ -418,6 +418,7 @@ public class Failsafe {
 
     public static void emergencyFailsafe(FailsafeType type) {
 
+        if (emergency) return;
         emergency = true;
 
         LogUtils.webhookLog(type.label);
@@ -442,8 +443,11 @@ public class Failsafe {
             Utils.bringWindowToFront();
         }
 
-        if (FarmHelper.config.pingSound) {
-            Utils.sendPingAlert();
+        if (FarmHelper.config.enableFailsafeSound) {
+            if (FarmHelper.config.failsafeSoundSelected == 0)
+                Utils.playPingFailsafeSound();
+            else
+                Utils.playFailsafeSound(FarmHelper.config.failsafeSoundSelected);
         }
 
         if (FarmHelper.config.fakeMovements) {
