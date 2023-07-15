@@ -42,6 +42,10 @@ public class PetSwapper {
     }
 
     public void swapPets(int n) {
+        if (Config.swappingPet.equals("")) {
+            LogUtils.debugLog("no pet selected");
+            return;
+        }
         scheduler = Executors.newSingleThreadScheduledExecutor();
         MacroHandler.currentMacro.saveLastStateBeforeDisable();
         int randomDelay = ThreadLocalRandom.current().nextInt(900,  1700);
