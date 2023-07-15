@@ -111,7 +111,7 @@ public class PlayerUtils {
         for (final Slot slot : mc.thePlayer.openContainer.inventorySlots) {
             if (slot.getHasStack()) {
                 final ItemStack is = slot.getStack();
-                if (is.getDisplayName().contains(itemName)) {
+                if (StringUtils.stripControlCodes(is.getDisplayName()).equalsIgnoreCase(itemName)) {
                     return slot.slotNumber;
                 }
             }

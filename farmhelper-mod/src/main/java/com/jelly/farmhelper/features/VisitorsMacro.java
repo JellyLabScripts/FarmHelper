@@ -153,10 +153,11 @@ public class VisitorsMacro {
             LogUtils.scriptLog("Stopped visitors macro");
     }
 
-    private static boolean InJacobContest() {
+    public static boolean InJacobContest() {
         for (String line : ScoreboardUtils.getScoreboardLines()) {
             String cleanedLine = ScoreboardUtils.cleanSB(line);
             if ((cleanedLine.toLowerCase()).contains("collected")) {
+                Failsafe.jacobWait.schedule(Failsafe.getJacobRemaining());
                 return true;
             }
         }

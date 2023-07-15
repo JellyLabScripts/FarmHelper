@@ -10,6 +10,7 @@ import cc.polyfrost.oneconfig.config.data.OptionSize;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.features.Autosell;
+import com.jelly.farmhelper.features.PetSwapper;
 import com.jelly.farmhelper.hud.ProfitCalculatorHUD;
 import com.jelly.farmhelper.hud.StatusHUD;
 import com.jelly.farmhelper.macros.MacroHandler;
@@ -321,7 +322,18 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Allows you to farm nether warts more efficient on higher speeds by making the hitboxes bigger"
 	)
 	public boolean increasedNetherWarts = true;
-
+	@Switch(
+			name = "Pet Swapper", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Switches to a preferred pet during Jacobs Contest"
+	)
+	public boolean switchPet = true;
+	@Text(
+			name = "Pet to switch to", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Pet to switch to during Jacob Contests",
+			placeholder = "Elephant",
+			secure = false, multiline = false
+	)
+	public static String swappingPet = "";
 	// END MISCELLANEOUS
 
 	// START DELAYS

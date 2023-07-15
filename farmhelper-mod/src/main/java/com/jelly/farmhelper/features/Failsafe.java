@@ -43,13 +43,14 @@ public class Failsafe {
     public static Clock restartAfterFailsafeCooldown = new Clock();
     private static String formattedTime;
     private static boolean wasInGarden = false;
+    private static boolean shouldSwapPet = true;
+    private PetSwapper petSwapper;
     private static final String[] FAILSAFE_MESSAGES = new String[]
             {"What", "what?", "what", "what??", "What???", "Wut?", "?", "what???", "yo huh", "yo huh?", "yo?", "bedrock??", "bedrock?",
                     "ehhhhh??", "eh", "yo", "ahmm", "ehh", "LOL what", "Lol", "lol", "lmao", "Lmfao", "lmfao"
                     ,"wtf is this", "wtf", "WTF", "wtf is this?", "wtf???", "tf", "tf?", "wth",
                     "lmao what?", "????", "??", "???????", "???", "UMMM???", "Umm", "ummm???", "damn wth", "Dang it", "Damn", "damn wtf", "damn",
                     "hmmm", "hm", "sus", "hmm", "Ok?", "ok?", "again lol", "again??", "ok damn"};
-
 
     @SubscribeEvent
     public void onMessageReceived(ClientChatReceivedEvent event) {
@@ -139,7 +140,7 @@ public class Failsafe {
         if (!dirtToCheck.isEmpty()) {
             dirtToCheck.removeIf(pair -> pair.second() + 20_000 < System.currentTimeMillis());
 
-            for (Pair<BlockPos, Long> pair : dirtToCheck) {
+         for (Pair<BlockPos, Long> pair : dirtToCheck) {
                 System.out.println("Distance: " + Math.sqrt(mc.thePlayer.getDistanceSq(pair.first())));
                 if (Math.sqrt(mc.thePlayer.getDistanceSq(pair.first())) < 1.5) {
                     dirtPos.add(pair.first());
@@ -240,6 +241,17 @@ public class Failsafe {
                     afterEvacuateCooldown.reset();
                     MacroHandler.currentMacro.triggerTpCooldown();
                 }
+
+              if (VisitorsMacro.InJacobContest() && FarmHelper.config.switchPet && MacroHandler.currentMacro.enabled && shouldSwapPet) {
+                    petSwapper = new PetSwapper();
+                    petSwapper.swapPets(1);
+                    shouldSwapPet = false;
+                }
+                else if (jacobWait.passed()) {
+                    shouldSwapPet = true;
+                    petSwapper.swapPets(2);
+                }
+
                 // DEBUG MESSAGES IN CASE SOMETHING IS BROKEN AGAIN
 //                else {
 //                    if (!MacroHandler.currentMacro.enabled) {
