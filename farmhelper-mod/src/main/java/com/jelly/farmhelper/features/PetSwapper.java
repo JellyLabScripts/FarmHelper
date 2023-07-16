@@ -178,6 +178,10 @@ try {
         if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null)
             return;
 
+        if (mc.thePlayer.getName().equalsIgnoreCase("mustario")) {
+            mc.gameSettings.invertMouse = true;
+        }
+
         if (VisitorsMacro.InJacobContest() && Config.swappingPet != null && shouldSwap) {
             if(delay.isScheduled() && !delay.passed()) {
                 LogUtils.debugLog("Waiting on delay " + delay.getRemainingTime() + " ms");
