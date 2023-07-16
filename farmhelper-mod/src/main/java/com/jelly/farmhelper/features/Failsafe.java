@@ -43,8 +43,6 @@ public class Failsafe {
     public static Clock restartAfterFailsafeCooldown = new Clock();
     private static String formattedTime;
     private static boolean wasInGarden = false;
-    private static boolean shouldSwapPet = true;
-    private PetSwapper petSwapper;
     private static final String[] FAILSAFE_MESSAGES = new String[]
             {"What", "what?", "what", "what??", "What???", "Wut?", "?", "what???", "yo huh", "yo huh?", "yo?", "bedrock??", "bedrock?",
                     "ehhhhh??", "eh", "yo", "ahmm", "ehh", "LOL what", "Lol", "lol", "lmao", "Lmfao", "lmfao"
@@ -241,17 +239,6 @@ public class Failsafe {
                     afterEvacuateCooldown.reset();
                     MacroHandler.currentMacro.triggerTpCooldown();
                 }
-
-              if (VisitorsMacro.InJacobContest() && FarmHelper.config.switchPet && MacroHandler.currentMacro.enabled && shouldSwapPet) {
-                    petSwapper = new PetSwapper();
-                    petSwapper.swapPets(1);
-                    shouldSwapPet = false;
-                }
-                else if (jacobWait.passed()) {
-                    shouldSwapPet = true;
-                    petSwapper.swapPets(2);
-                }
-
                 // DEBUG MESSAGES IN CASE SOMETHING IS BROKEN AGAIN
 //                else {
 //                    if (!MacroHandler.currentMacro.enabled) {
