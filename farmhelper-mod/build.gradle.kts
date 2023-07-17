@@ -36,6 +36,9 @@ dependencies {
     embed("com.dorkbox:Notify:3.7")
     embed("com.googlecode.json-simple:json-simple:1.1.1")
     embed("com.github.RewisServer:brigadier:master-SNAPSHOT")
+
+    // required for intellij debug mode to work for some reason
+    runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2")
 }
 
 blossom {
