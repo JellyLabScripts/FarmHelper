@@ -55,8 +55,10 @@ loom {
     launchConfigs {
         getByName("client") {
             arg("--tweakClass", "cc.polyfrost.oneconfig.loader.stage0.LaunchWrapperTweaker")
-            // uncomment the following if you want to authenticate into you minecraft account
-            // while in the dev env. https://github.com/DJtheRedstoner/DevAuth read this
+            /**
+             * uncomment the following if you want to authenticate into you minecraft account
+             * while in the dev env. https://github.com/DJtheRedstoner/DevAuth read this
+             */
             //property("devauth.enabled", "true")
         }
     }
