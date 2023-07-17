@@ -1,24 +1,6 @@
-# eclipse
-bin
-*.launch
-.settings
-.metadata
-.classpath
-.project
-
-# idea
-out
-*.ipr
-*.iws
-*.iml
-*.hprof
-.idea
-
-# gradle
-build
-.gradle
-
-botconfig.json
-# other
-eclipse
-run
+**/.gradle/
+**/build/
+**/run/
+**/botconfig.json
+**/.idea/
+**/.vscode/

@@ -1,9 +1,18 @@
 {
-  "required": true,
   "compatibilityLevel": "JAVA_8",
   "package": "com.jelly.farmhelper.mixins",
-  "refmap": "mixins.farmhelper.refmap.json",
-  "mixins": [
+  "client": [
+    "block.MixinBlockRendererDispatcher",
+    "client.MixinPlayerControllerMP",
+    "gui.MixinGuiContainer",
+    "gui.MixinGuiEditSign",
+    "gui.MixinGuiInventory",
+    "gui.MixinGuiMainMenu",
+    "gui.MixinGuiMultiplayer",
+    "gui.MixinGuiScreen",
+    "network.MixinNetHandlerPlayClient",
+    "render.MixinEffectRenderer",
+    "render.MixinInventoryEffectRenderer",
     "block.IBlockAccessor",
     "block.MixinBlockCocoa",
     "block.MixinBlockCrops",
@@ -18,17 +27,5 @@
     "network.MixinNetworkManager",
     "network.MixinNetworkManagerChInit"
   ],
-  "client": [
-    "block.MixinBlockRendererDispatcher",
-    "client.MixinPlayerControllerMP",
-    "gui.MixinGuiContainer",
-    "gui.MixinGuiEditSign",
-    "gui.MixinGuiInventory",
-    "gui.MixinGuiMainMenu",
-    "gui.MixinGuiMultiplayer",
-    "gui.MixinGuiScreen",
-    "network.MixinNetHandlerPlayClient",
-    "render.MixinEffectRenderer",
-    "render.MixinInventoryEffectRenderer"
-  ]
+  "verbose": true
 }
