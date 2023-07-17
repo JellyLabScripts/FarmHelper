@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.jelly.farmhelper.commands.FarmHelperCommand;
 import com.jelly.farmhelper.commands.RewarpCommand;
-import com.jelly.farmhelper.commands.TestCommand;
 import com.jelly.farmhelper.config.Config;
 
 import com.jelly.farmhelper.features.*;
@@ -76,7 +75,6 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new PetSwapper());
         ClientCommandHandler.instance.registerCommand(new RewarpCommand());
         ClientCommandHandler.instance.registerCommand(new FarmHelperCommand());
-        ClientCommandHandler.instance.registerCommand(new TestCommand());
 
         gameState = new GameState();
     }

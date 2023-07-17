@@ -42,23 +42,20 @@ public class PetSwapper {
     private static StatePet state = StatePet.OPEN_MENU;
     private static ContainerChest chest;
     private static int petSlot;
-    private int pageSlot;
-    private boolean shouldSwap = false;
+    private static int pageSlot;
+    private static boolean shouldSwap = false;
 
-    public void swapPets() {
+    public static void swapPets() {
 try {
         shouldSwap = true;
         switch (state) {
             case OPEN_MENU:
                MacroHandler.disableCurrentMacro(true);
                 mc.thePlayer.sendChatMessage("/pets");
-                PlayerUtils.rightClick();
                 state = StatePet.FIND_PET;
                 delay.schedule(2000);
                 break;
             case FIND_PET:
-                System.out.println(" i dont");
-
               /*  int i;
                 for (ItemStack item : mc.thePlayer.openContainer.getInventory()) {
                  //  System.out.println(mc.thePlayer.openContainer.getSlot(i).getStack().getDisplayName());
@@ -76,18 +73,19 @@ try {
                         petSlot = getSlotForItem(Config.swappingPet.toLowerCase());
                         delay.schedule(1000);
                         state = StatePet.CLICK_PET;
-                        //  delay.schedule(1000);
+                        delay.schedule(1000);
                     } else {
                         state = StatePet.TURN_PAGE;
                         delay.schedule(1000);
                     }
                 } else {
-                   LogUtils.debugLog("");
+                   LogUtils.debugLog("PetSwapper: not in Pets Gui, disabling...");
+                   state = StatePet.CLOSE_MENU;
+                   delay.schedule(1500);
                 }
 
                 break;
             case TURN_PAGE:
-                System.out.println(" i may");
                 if (getSlotForItem("next page") > 0) {
                     pageSlot = getSlotForItem("next page");
                     PlayerUtils.clickOpenContainerSlot(pageSlot, ClickType.PICKUP.ordinal());
@@ -101,7 +99,6 @@ try {
                 }
                 break;
             case CLICK_PET:
-
                 PlayerUtils.clickOpenContainerSlot(getSlotForItem(Config.swappingPet.toLowerCase()), 0, ClickType.PICKUP.ordinal());
                 state = StatePet.CLOSE_MENU;
                 delay.schedule(1000);
@@ -110,7 +107,7 @@ try {
                 if (mc.thePlayer.openContainer != null) mc.thePlayer.closeScreen();
                 shouldSwap = false;
                 state = StatePet.OPEN_MENU;
-                // MacroHandler.toggle();
+                MacroHandler.toggleMacro();
                 LogUtils.debugLog("Closed the Pet GUI");
                 break;
 
