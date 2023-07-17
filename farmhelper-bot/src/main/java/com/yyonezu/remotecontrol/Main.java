@@ -19,11 +19,10 @@ import java.util.jar.Manifest;
 public class Main {
     public static JDA jda;
     static boolean validToken = false;
-    public static String BOTVERSION;
-    public static String MODVERSION;
+    public static String BOTVERSION = "%%VERSION%%";
+
     public static final int port = 58637;
     public static void main(String[] args) {
-        setVersions();
         Config.init();
         try {
             WebSocketServer.start();
@@ -43,22 +42,8 @@ public class Main {
                 String token = JOptionPane.showInputDialog("Incorrect token, set it again");
                 Config.set("token", token);
             }
-        } while(!validToken);
+        } while (!validToken);
 
-    }
-    @SneakyThrows
-    public static void setVersions() {
-        Class clazz = Main.class;
-        String className = clazz.getSimpleName() + ".class";
-        String classPath = clazz.getResource(className).toString();
-        if (!classPath.startsWith("jar")) return;
-
-        String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) +
-                "/META-INF/MANIFEST.MF";
-        Manifest manifest = new Manifest(new URL(manifestPath).openStream());
-        Attributes attr = manifest.getMainAttributes();
-        MODVERSION = attr.getValue("modversion");
-        BOTVERSION = attr.getValue("botversion");
     }
 
     private static void killProcessByPort() {

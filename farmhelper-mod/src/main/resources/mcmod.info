@@ -1,16 +1,20 @@
 [
-{
-  "modid": "farmhelper",
-  "name": "Farm Helper",
-  "description": "A mod that helps with stonks",
-  "version": "${version}",
-  "mcversion": "${mcversion}",
-  "url": "",
-  "updateUrl": "",
-  "authorList": ["Jelly", "Polycrylate", "Yonezu"],
-  "credits": "",
-  "logoFile": "",
-  "screenshots": [],
-  "dependencies": []
-}
+  {
+    "modid": "farmhelper",
+    "name": "FarmHelper",
+    "description": "A mod that helps with stonks",
+    "version": "${version}",
+    "mcversion": "1.8.9",
+    "url": "",
+    "updateUrl": "",
+    "authorList": [
+      "Jelly",
+      "Polycrylate",
+      "Yonezu"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
 ]

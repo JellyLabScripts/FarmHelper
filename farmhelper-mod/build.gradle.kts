@@ -1,0 +1,108 @@
+plugins {
+    id("cc.polyfrost.loom") version "0.10.0.5"
+    id("dev.architectury.architectury-pack200") version "0.1.3"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("io.freefair.lombok") version "8.1.0"
+    id("net.kyori.blossom") version "1.3.1"
+}
+
+version = "4.5.0-pre"
+
+repositories {
+    maven("https://jitpack.io")
+    maven("https://repo.polyfrost.cc/releases")
+    maven("https://repo.spongepowered.org/repository/maven-public")
+    maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
+}
+
+val embed: Configuration by configurations.creating
+configurations.implementation.get().extendsFrom(embed)
+
+dependencies {
+    minecraft("com.mojang:minecraft:1.8.9")
+    mappings("de.oceanlabs.mcp:mcp_stable:22-1.8.9")
+    forge("net.minecraftforge:forge:1.8.9-11.15.1.2318-1.8.9")
+
+    compileOnly("cc.polyfrost:oneconfig-1.8.9-forge:0.2.0-alpha+")
+    embed("cc.polyfrost:oneconfig-wrapper-launchwrapper:1.0.0-beta+")
+
+    compileOnly("org.spongepowered:mixin:0.8.5-SNAPSHOT")
+    annotationProcessor("org.spongepowered:mixin:0.8.5-SNAPSHOT:processor")
+
+    modRuntimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.1.2")
+
+    embed("com.github.ronmamo:reflections:0.10.2")
+    embed("org.java-websocket:Java-WebSocket:1.5.3")
+    embed("com.dorkbox:Notify:3.7")
+    embed("com.googlecode.json-simple:json-simple:1.1.1")
+    embed("com.github.RewisServer:brigadier:master-SNAPSHOT")
+}
+
+blossom {
+    replaceToken("%%VERSION%%", version)
+}
+
+loom {
+    runConfigs {
+        named("client") {
+            ideConfigGenerated(true)
+        }
+    }
+
+    launchConfigs {
+        getByName("client") {
+            arg("--tweakClass", "cc.polyfrost.oneconfig.loader.stage0.LaunchWrapperTweaker")
+            property("devauth.enabled", "true")
+        }
+    }
+
+    forge {
+        pack200Provider.set(dev.architectury.pack200.java.Pack200Adapter())
+        mixinConfig("mixins.farmhelper.json")
+    }
+}
+
+tasks {
+    jar {
+        manifest.attributes(
+                mapOf(
+                        "ModSide" to "CLIENT",
+                        "TweakOrder" to "0",
+                        "ForceLoadAsMod" to true,
+                        "TweakClass" to "cc.polyfrost.oneconfig.loader.stage0.LaunchWrapperTweaker",
+                        "MixinConfigs" to "mixins.farmhelper.json"
+                )
+        )
+        dependsOn(shadowJar)
+    }
+
+    remapJar {
+        input.set(shadowJar.get().archiveFile)
+        archiveClassifier.set("")
+    }
+
+    shadowJar {
+        configurations = listOf(embed)
+    }
+
+    processResources {
+        inputs.property("version", version)
+    }
+    // would have put this into the root build script but it complained that it couldn't find the task
+    build {
+        doLast {
+            copy {
+                from("${project.rootProject.rootDir}/${project.name}/build/libs/${project.name}-${project.version}-all.jar")
+                into("${project.rootProject.rootDir}/build")
+                rename("${project.name}-${project.version}-all.jar", "${project.name}-${project.version}.jar")
+            }
+        }
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(8)
