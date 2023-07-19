@@ -746,6 +746,18 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = 0, max = 1000000, step = 10000
 	)
 	public int jacobMushroomCap = 200000;
+	@Slider(
+		name = "Melon Cap", category = FAILSAFE, subcategory = "Jacob",
+		description = "The melon cap",
+		min = 0, max = 1000000, step = 10000
+	)
+	public int jacobMelonCap = 400000;
+	@Slider(
+		name = "Pumpkin Cap", category = FAILSAFE, subcategory = "Jacob",
+		description = "The pumpkin cap",
+		min = 0, max = 1000000, step = 10000
+	)
+	public int jacobPumpkinCap = 400000;
 
 	// END JACOB
 
