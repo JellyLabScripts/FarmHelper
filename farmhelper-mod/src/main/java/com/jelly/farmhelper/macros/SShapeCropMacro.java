@@ -82,7 +82,7 @@ public class SShapeCropMacro extends Macro {
             pitch = (float) (0f + Math.random() * 0.5f);
         } else if (crop == CropEnum.MELON || crop == CropEnum.PUMPKIN) {
             if(FarmHelper.config.VerticalMacroType == 8) {
-                pitch = 58.5 + (int) (Math.random() * 0.25); //58.5-59 
+                pitch = 59; //59 
             } else { 
                 pitch = 28 + (float) (Math.random() * 2); //28-30
             }
