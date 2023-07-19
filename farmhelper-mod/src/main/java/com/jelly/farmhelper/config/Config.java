@@ -615,7 +615,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		name = "Leave after failsafe triggered", category = FAILSAFE, subcategory = "Restart After FailSafe",
 		description = "Leaves the server after a failsafe has been triggered"
 	)
-	public boolean leaveAfterFailSafe = true;
+	public boolean leaveAfterFailSafe = false;
 	@Slider(
 		name = "Restart Delay", category = FAILSAFE, subcategory = "Restart After FailSafe",
 		description = "The delay to restart after failsafe (in seconds)",

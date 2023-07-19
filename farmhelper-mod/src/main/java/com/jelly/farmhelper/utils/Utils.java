@@ -1,6 +1,9 @@
 package com.jelly.farmhelper.utils;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.sun.jna.Native;
+import com.sun.jna.platform.win32.Kernel32;
+import com.sun.jna.ptr.IntByReference;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.main.Main;
@@ -22,6 +25,9 @@ import java.net.URI;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import dorkbox.notify.*;
+
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
 
 
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
@@ -164,6 +170,17 @@ public class Utils{
             }
         });
 
+    }
+
+    public static void setFocusToWindowsApp() {
+        User32 user32 = User32.INSTANCE;
+
+        WinDef.HWND hWnd = user32.FindWindow(null, Display.getTitle());
+        if (user32.IsWindowVisible(hWnd)) {
+            user32.ShowWindow(hWnd, User32.SW_SHOWMAXIMIZED);
+            user32.SetForegroundWindow(hWnd);
+            user32.SetFocus(hWnd);
+        }
     }
 
     public static String formatTime(long millis) {
