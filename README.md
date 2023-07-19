@@ -2,7 +2,7 @@
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![License][license-shield]][license-url]
+![Downloads][downloads-shield]
 
 <br />
 <div align="center">
@@ -12,9 +12,9 @@
 
 <h3 align="center">FarmHelper</h3>
   <p align="center">
-    <a href="https:/discord.com/jellylabs">Report Bug</a>
+    <a href="https://discord.com/jellylabs">Report Bug</a>
     ·
-    <a href="https:/discord.com/jellylabs">Request Feature</a>
+    <a href="https://discord.com/jellylabs">Request Feature</a>
   </p>
 </div>
 
@@ -51,3 +51,4 @@ Distributed under a custom license. See `LICENSE` for more information.
 [issues-url]: https://github.com/JellyLabScripts/FarmHelper/issues
 [license-shield]: https://img.shields.io/github/license/JellyLabScripts/FarmHelper.svg?style=for-the-badge
 [license-url]: https://github.com/JellyLabScripts/FarmHelper/blob/master/LICENSE
+[downloads-shield]: https://img.shields.io/github/downloads/JellyLabScripts/FarmHelper/total.svg?style=for-the-badge
