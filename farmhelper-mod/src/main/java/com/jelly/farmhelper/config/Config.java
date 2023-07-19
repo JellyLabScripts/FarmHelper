@@ -60,6 +60,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
      public enum SMacroEnum {
          NORMAL_TYPE,
 		 PUMPKIN_MELON,
+		 BLACK_CAT,
          SUGAR_CANE,
 		 CACTUS,
 		 COCOA_BEANS,
