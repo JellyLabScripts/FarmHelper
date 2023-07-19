@@ -615,7 +615,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		name = "Leave after failsafe triggered", category = FAILSAFE, subcategory = "Restart After FailSafe",
 		description = "Leaves the server after a failsafe has been triggered"
 	)
-	public boolean leaveAfterFailSafe = true;
+	public boolean leaveAfterFailSafe = false;
 	@Slider(
 		name = "Restart Delay", category = FAILSAFE, subcategory = "Restart After FailSafe",
 		description = "The delay to restart after failsafe (in seconds)",
@@ -826,9 +826,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			category = EXPERIMENTAL,
 			subcategory = "Experimental"
 	)
-
 	public static boolean ignored3;
-
 	@Slider(
 			name = "Fast Break Speed", category = EXPERIMENTAL, subcategory = "Experimental",
 			description = "Fast break speed",
@@ -836,6 +834,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public int fastBreakSpeed = 1;
 
+	@Dropdown(
+			name = "Alt-tab mode", category = EXPERIMENTAL, subcategory = "Experimental",
+			description = "The mode to use when alt-tabbing. Using keys is more reliable, but it's slower. Using WINAPI is faster, but it's less reliable and Windows only. It also maximizes the game window.",
+			options = {"Using keys", "Using WINAPI (Windows only)"}
+	)
+	public int autoAltTabMode = 0;
 
 	// END EXPERIMENTAL
 
