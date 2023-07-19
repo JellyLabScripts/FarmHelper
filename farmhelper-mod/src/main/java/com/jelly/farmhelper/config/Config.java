@@ -780,6 +780,10 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		size = OptionSize.DUAL
 	)
 	public int spawnPosZ = 0;
+
+	@Switch(name = "Is Spawnpoint set", category = DEBUG, subcategory = "SpawnPos")
+	public boolean isSpawnpointSet = false;
+
 	@Button(
 		name = "Set SpawnPos", category = DEBUG, subcategory = "SpawnPos",
 		description = "Sets the spawn position to your current position",
@@ -790,6 +794,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		spawnPosX = pos.getX();
 		spawnPosY = pos.getY() + 1;
 		spawnPosZ = pos.getZ();
+		isSpawnpointSet = true;
 		save();
 		LogUtils.scriptLog("Spawn position has been set to " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
 	};
@@ -802,6 +807,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		spawnPosX = 0;
 		spawnPosY = 0;
 		spawnPosZ = 0;
+		isSpawnpointSet = false;
 		save();
 		LogUtils.scriptLog("Spawn position has been reset");
 	};
@@ -894,6 +900,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("SpawnPosZ","Debug mode", () -> this.debugMode);
 		this.addDependency("_setSpawnPos","Debug mode", () -> this.debugMode);
 		this.addDependency("_resetSpawnPos","Debug mode", () -> this.debugMode);
+		this.addDependency("isSpawnpointSet", () -> this.debugMode);
 		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
 		save();
 	}

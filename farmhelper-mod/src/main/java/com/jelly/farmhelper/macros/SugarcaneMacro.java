@@ -11,10 +11,15 @@ import com.jelly.farmhelper.utils.*;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 
+import static com.jelly.farmhelper.macros.SShapeCropMacro.isDropping;
 import static com.jelly.farmhelper.utils.BlockUtils.*;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class SugarcaneMacro extends Macro {
+
+    enum State {
+        WALKING, DROPPING
+    }
 
     enum WalkState {
         A, D, S
@@ -23,6 +28,9 @@ public class SugarcaneMacro extends Macro {
     private final int LANE_WIDTH = 3;
 
     private WalkState currentWalkState;
+    private State currentState;
+    private int layerY;
+    private boolean rotated = false;
 
     private float yaw;
     private float pitch;
@@ -49,6 +57,9 @@ public class SugarcaneMacro extends Macro {
         MacroHandler.crop = crop;
 
         currentWalkState = calculateDirection();
+        currentState = State.WALKING;
+        layerY = mc.thePlayer.getPosition().getY();
+        rotated = false;
 
         stuck = false;
         mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(CropEnum.SUGAR_CANE);
@@ -149,10 +160,63 @@ public class SugarcaneMacro extends Macro {
                 return;
             }
 
-            KeyBindUtils.updateKeys(false,
-                    currentWalkState == WalkState.S,
-                    currentWalkState == WalkState.D,
-                    currentWalkState == WalkState.A, true, mc.thePlayer.capabilities.isFlying, false);
+            switch (currentState) {
+                case DROPPING:
+                    if (layerY != mc.thePlayer.getPosition().getY() && mc.thePlayer.onGround && FarmHelper.config.rotateAfterDrop) {
+                        if (!rotated) {
+                            if (!rotation.rotating) {
+                                if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
+                                    LogUtils.debugLog("Rotating 180");
+                                    rotation.reset();
+                                    yaw = AngleUtils.get360RotationYaw(yaw + 180);
+                                    rotation.easeTo(yaw, pitch, (long) (300 + Math.random() * 500));
+                                    rotated = true;
+                                } else if (!waitForChangeDirection.isScheduled()) {
+                                    long waitTime = (FarmHelper.config.fastChangeDirectionCane) ? (long) (Math.random() * 200 + 250) : (long) (Math.random() * 750 + 500);
+                                    waitForChangeDirection.schedule(waitTime);
+                                }
+                            }
+                            LogUtils.debugFullLog("Waiting: Rotating 180");
+                            updateKeys(false, false, false, false, false);
+                        } else {
+                            if (rotation.rotating) return;
+                            if (mc.thePlayer.posY % 1 == 0) {
+                                LogUtils.debugLog("Dropped, resuming");
+                                layerY = mc.thePlayer.getPosition().getY();
+                                rotation.reset();
+                                currentState = State.WALKING;
+                                rotated = false;
+                                long waitTime = (FarmHelper.config.fastChangeDirectionCane) ? (long) (Math.random() * 200 + 250) : (long) (Math.random() * 750 + 500);
+                                waitForChangeDirection.schedule(waitTime);
+                                PlayerUtils.attemptSetSpawn();
+                            } else {
+                                LogUtils.debugFullLog("Falling");
+                            }
+                            updateKeys(false, false, false, false, false);
+                        }
+                    } else if (layerY != mc.thePlayer.posY && mc.thePlayer.onGround) {
+                        if (mc.thePlayer.posY % 1 == 0) {
+                            LogUtils.debugLog("Dropped, resuming");
+                            layerY = mc.thePlayer.getPosition().getY();
+                            rotation.reset();
+                            currentState = State.WALKING;
+                            long waitTime = (FarmHelper.config.fastChangeDirectionCane) ? (long) (Math.random() * 200 + 250) : (long) (Math.random() * 750 + 500);
+                            waitForChangeDirection.schedule(waitTime);
+                            PlayerUtils.attemptSetSpawn();
+                        } else {
+                            LogUtils.debugFullLog("Falling");
+                        }
+                        updateKeys(false, false, false, false, false);
+                    }
+                    break;
+
+                case WALKING:
+                    KeyBindUtils.updateKeys(false,
+                            currentWalkState == WalkState.S,
+                            currentWalkState == WalkState.D,
+                            currentWalkState == WalkState.A, true, mc.thePlayer.capabilities.isFlying, false);
+                    break;
+            }
         }
 
         updateState();
@@ -181,6 +245,14 @@ public class SugarcaneMacro extends Macro {
             LogUtils.scriptLog("Your rewarp position is not set!");
         } else if (isRewarpLocationSet() && isStandingOnRewarpLocation()) {
             triggerWarpGarden();
+            return;
+        }
+
+        if (currentState == State.DROPPING) return;
+
+        if (!isTping && (Math.abs(layerY - mc.thePlayer.posY) > 2 || isDropping())) {
+            currentState = State.DROPPING;
+            waitForChangeDirection.reset();
             return;
         }
 
