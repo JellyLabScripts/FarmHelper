@@ -439,8 +439,11 @@ public class Failsafe {
             }
         }
 
-        if(FarmHelper.config.autoAltTab) {
-            Utils.setFocusToWindowsApp();
+        if (FarmHelper.config.autoAltTab) {
+            if (FarmHelper.config.autoAltTabMode == 1)
+                Utils.bringWindowToFrontWinApi();
+            else
+                Utils.bringWindowToFront();
         }
 
         if (FarmHelper.config.enableFailsafeSound) {

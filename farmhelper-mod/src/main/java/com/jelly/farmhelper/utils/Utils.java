@@ -172,7 +172,7 @@ public class Utils{
 
     }
 
-    public static void setFocusToWindowsApp() {
+    public static void bringWindowToFrontWinApi() {
         User32 user32 = User32.INSTANCE;
 
         WinDef.HWND hWnd = user32.FindWindow(null, Display.getTitle());
