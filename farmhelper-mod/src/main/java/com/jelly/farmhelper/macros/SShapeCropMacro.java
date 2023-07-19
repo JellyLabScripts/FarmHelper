@@ -82,6 +82,8 @@ public class SShapeCropMacro extends Macro {
             pitch = (float) (0f + Math.random() * 0.5f);
         } else if (crop == CropEnum.MELON || crop == CropEnum.PUMPKIN) {
             pitch = 28 + (float) (Math.random() * 2); //28-30
+        } else if (crop == CropEnum.BlackCat || crop == CropEnum.BlackCat) {
+            pitch = 58.5 + (float) (Math.random() * 0.25); //58.5-59
         } else {
             pitch = (float) (2.8f + Math.random() * 0.5f);
         }
