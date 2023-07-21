@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
@@ -44,6 +45,7 @@ public class CocoaBeanRGMacro extends Macro {
         currentState = State.NONE;
         antistuckActive = false;
         Antistuck.stuck = false;
+        MacroHandler.crop = Config.CropEnum.COCOA_BEANS;
         Antistuck.cooldown.schedule(1000);
         if (FarmHelper.config.dontChangePitch) {
             pitch = mc.thePlayer.rotationPitch;
@@ -277,7 +279,7 @@ public class CocoaBeanRGMacro extends Macro {
     };
 
     public boolean findAndEquipAxe() {
-        int axeSlot = PlayerUtils.getAxeSlot();
+        int axeSlot = PlayerUtils.getAxeSlot(MacroHandler.crop);
         if (axeSlot == -1) {
             axeEquipFails = axeEquipFails + 1;
             if (axeEquipFails > 10) {
