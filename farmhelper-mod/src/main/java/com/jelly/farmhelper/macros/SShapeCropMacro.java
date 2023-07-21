@@ -271,7 +271,7 @@ public class SShapeCropMacro extends Macro {
                             LogUtils.debugLog("Dropped, resuming");
                             layerY = mc.thePlayer.posY;
                             rotation.reset();
-                            currentState = State.NONE;
+                            currentState = calculateDirection();
                             PlayerUtils.attemptSetSpawn();
                         } else {
                             LogUtils.debugFullLog("Falling");
@@ -283,7 +283,7 @@ public class SShapeCropMacro extends Macro {
                         LogUtils.debugLog("Dropped, resuming");
                         layerY = mc.thePlayer.posY;
                         rotation.reset();
-                        currentState = State.NONE;
+                        currentState = calculateDirection();
                         PlayerUtils.attemptSetSpawn();
                     } else {
                         LogUtils.debugFullLog("Falling");
@@ -295,14 +295,14 @@ public class SShapeCropMacro extends Macro {
             case RIGHT:
                 if (!waitForChangeDirection.isScheduled()) {
                     LogUtils.debugLog("Middle of row, going right");
-                    updateKeys((FarmHelper.config.VerticalMacroType != SMacroEnum.PUMPKIN_MELON.ordinal()) &&
+                    updateKeys((FarmHelper.config.SShapeMacroType != SMacroEnum.PUMPKIN_MELON.ordinal()) &&
                                 (FarmHelper.config.SShapeMacroType != SMacroEnum.CACTUS.ordinal()) && shouldWalkForwards(), (FarmHelper.config.SShapeMacroType == SMacroEnum.CACTUS.ordinal()) && shouldPushBack(), true, false, true);
                 }
                 return;
             case LEFT:
                 if (!waitForChangeDirection.isScheduled()) {
                     LogUtils.debugLog("Middle of row, going left");
-                    updateKeys((FarmHelper.config.VerticalMacroType != SMacroEnum.PUMPKIN_MELON.ordinal()) &&
+                    updateKeys((FarmHelper.config.SShapeMacroType != SMacroEnum.PUMPKIN_MELON.ordinal()) &&
                         (FarmHelper.config.SShapeMacroType != SMacroEnum.CACTUS.ordinal()) && shouldWalkForwards(), (FarmHelper.config.SShapeMacroType == SMacroEnum.CACTUS.ordinal()) && shouldPushBack(), false, true, true);
                 }
                 return;
@@ -436,7 +436,7 @@ public class SShapeCropMacro extends Macro {
         } else if (gameState.frontWalkable && gameState.backWalkable && (currentState == State.SWITCH_START || currentState == State.SWITCH_MID) && !waitForChangeDirection.isScheduled()) {
             currentState = State.SWITCH_MID;
             LogUtils.debugLog("SWITCH_MID");
-        } else if (((gameState.frontWalkable && (!gameState.backWalkable || (BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.water) || BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.air)))) || ((!gameState.frontWalkable || (BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.water) || BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.air))) && gameState.backWalkable)) && currentState != State.SWITCH_MID && currentState != State.DROPPING && (FarmHelper.config.SShapeMacroType != SMacroEnum.CACTUS.ordinal() || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus)) && (FarmHelper.config.VerticalMacroType != SMacroEnum.PUMPKIN_MELON.ordinal() || (!BlockUtils.isRelativeBlockPassable(0, -1, 2) || !BlockUtils.isRelativeBlockPassable(0, -1, -2)))) {
+        } else if (((gameState.frontWalkable && (!gameState.backWalkable || (BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.water) || BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.air)))) || ((!gameState.frontWalkable || (BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.water) || BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.air))) && gameState.backWalkable)) && currentState != State.SWITCH_MID && currentState != State.DROPPING && (FarmHelper.config.SShapeMacroType != SMacroEnum.CACTUS.ordinal() || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus)) && (FarmHelper.config.SShapeMacroType != SMacroEnum.PUMPKIN_MELON.ordinal() || (!BlockUtils.isRelativeBlockPassable(0, -1, 2) || !BlockUtils.isRelativeBlockPassable(0, -1, -2)))) {
             if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                 if (gameState.frontWalkable)
                     switchBackwardsDirection = false;
