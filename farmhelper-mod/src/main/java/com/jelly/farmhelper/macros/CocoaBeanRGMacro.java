@@ -45,7 +45,11 @@ public class CocoaBeanRGMacro extends Macro {
         antistuckActive = false;
         Antistuck.stuck = false;
         Antistuck.cooldown.schedule(1000);
-        pitch = -90f;
+        if (FarmHelper.config.dontChangePitch) {
+            pitch = mc.thePlayer.rotationPitch;
+        } else {
+            pitch = -90f;
+        }
         yaw = AngleUtils.getClosest();
         rotation.easeTo(yaw, pitch, 500);
         isTping = false;
