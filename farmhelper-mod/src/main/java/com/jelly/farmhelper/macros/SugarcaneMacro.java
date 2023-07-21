@@ -50,7 +50,11 @@ public class SugarcaneMacro extends Macro {
     @Override
     public void onEnable() {
         yaw = AngleUtils.getClosestDiagonal();
-        pitch = 0;
+        if (FarmHelper.config.dontChangePitch) {
+            pitch = mc.thePlayer.rotationPitch;
+        } else {
+            pitch = 0;
+        }
         rotation.easeTo(yaw, pitch, 500);
         CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);

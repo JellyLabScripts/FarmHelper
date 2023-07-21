@@ -49,7 +49,11 @@ public class MushroomMacro extends Macro {
         lastTp.reset();
         waitForChangeDirection.reset();
         waitBetweenTp.reset();
-        pitch = (float) (Math.random() * 2 - 1); // -1 - 1
+        if (FarmHelper.config.dontChangePitch) {
+            pitch = mc.thePlayer.rotationPitch;
+        } else {
+            pitch = (float) (Math.random() * 2 - 1); // -1 - 1
+        }
         CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;

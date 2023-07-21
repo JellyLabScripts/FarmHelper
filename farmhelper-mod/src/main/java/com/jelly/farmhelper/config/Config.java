@@ -143,6 +143,13 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Automatically unfocuses your mouse, so you can safely alt-tab"
 	)
 	public boolean autoUngrabMouse = true;
+
+	@Switch(
+		name = "Don't change pitch", category = GENERAL, subcategory = "Macro",
+		description = "Don't change pitch after starting the macro"
+	)
+	public boolean dontChangePitch = false;
+
 	@Switch(
 	name = "Go back with Ladders", category = GENERAL, subcategory = "Macro",
 	description = "Select this if you're using ladder design"
