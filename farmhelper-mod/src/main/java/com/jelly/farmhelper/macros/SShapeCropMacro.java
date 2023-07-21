@@ -78,18 +78,13 @@ public class SShapeCropMacro extends Macro {
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
         CropUtils.getTool();
-        if (FarmHelper.config.dontChangePitch) {
-            pitch = mc.thePlayer.rotationPitch;
+        if (crop == CropEnum.NETHER_WART || crop == CropEnum.CACTUS) {
+            pitch = (float) (0f + Math.random() * 0.5f);
+        } else if (crop == CropEnum.MELON || crop == CropEnum.PUMPKIN) {
+            pitch = 28 + (float) (Math.random() * 2); //28-30
         } else {
-            if (crop == CropEnum.NETHER_WART || crop == CropEnum.CACTUS) {
-                pitch = (float) (0f + Math.random() * 0.5f);
-            } else if (crop == CropEnum.MELON || crop == CropEnum.PUMPKIN) {
-                pitch = 28 + (float) (Math.random() * 2); //28-30
-            } else {
-                pitch = (float) (2.8f + Math.random() * 0.5f);
-            }
+            pitch = (float) (2.8f + Math.random() * 0.5f);
         }
-
         yaw = AngleUtils.getClosest();
         lastTp.reset();
         waitForChangeDirection.reset();

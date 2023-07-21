@@ -61,22 +61,17 @@ public class VerticalCropMacro extends Macro{
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
 
-        if (FarmHelper.config.dontChangePitch) {
-            pitch = mc.thePlayer.rotationPitch;
-        } else {
-            switch(crop){
-                case SUGAR_CANE:
-                    pitch = (float) (Math.random() * 2); // 0 - 2
-                    break;
-                case POTATO: case CARROT: case WHEAT: case NETHER_WART:
-                    pitch = 2.8f + (float) (Math.random() * 0.6); // 2.8-3.4
-                    break;
-                case COCOA_BEANS:
-                    pitch = -90;
-                    break;
-            }
+        switch(crop){
+            case SUGAR_CANE:
+                pitch = (float) (Math.random() * 2); // 0 - 2
+                break;
+            case POTATO: case CARROT: case WHEAT: case NETHER_WART:
+                pitch = 2.8f + (float) (Math.random() * 0.6); // 2.8-3.4
+                break;
+            case COCOA_BEANS:
+                pitch = -90;
+                break;
         }
-
         prevState = null;
         currentState = State.NONE;
         rotation.easeTo(yaw, pitch, 500);
