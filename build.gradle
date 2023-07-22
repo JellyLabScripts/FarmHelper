@@ -13,4 +13,5 @@ subprojects {
             into "${project.rootProject.rootDir}/build"
         }
     }
+
 }

@@ -156,7 +156,7 @@ public class VisitorsMacro {
     public static boolean InJacobContest() {
         for (String line : ScoreboardUtils.getScoreboardLines()) {
             String cleanedLine = ScoreboardUtils.cleanSB(line);
-            if ((cleanedLine.toLowerCase()).contains("Jacob's Contest")) {
+            if ((cleanedLine.toLowerCase()).contains("jacob's contest")) {
                 Failsafe.jacobWait.schedule(Failsafe.getJacobRemaining());
                 return true;
             }
