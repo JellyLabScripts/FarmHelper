@@ -1,0 +1,3 @@
+subprojects {
+    group = "com.jellylab"
+}
