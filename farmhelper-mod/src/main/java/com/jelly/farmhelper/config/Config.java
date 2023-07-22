@@ -275,6 +275,18 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public boolean debugMode = false;
 
 	@Switch(
+			name = "Swap Pet", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Swaps Pet to The Selected Pet During Jacob's Contest. Selects the first appearance of the pet."
+	)
+	public static boolean petSwap = false;
+
+	@Text(
+			name = "Pet Name", placeholder = "Mushroom Cow", secure = false, multiline = false,
+			category = MISCELLANEOUS, subcategory = "Miscellaneous"
+	)
+	public static String petName = null;
+
+	@Switch(
 		name = "Enable Auto Sell", category = MISCELLANEOUS, subcategory = "Auto Sell",
 		description = "Enables auto sell"
 	)
@@ -894,6 +906,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("SpawnPosZ","Debug mode", () -> this.debugMode);
 		this.addDependency("_setSpawnPos","Debug mode", () -> this.debugMode);
 		this.addDependency("_resetSpawnPos","Debug mode", () -> this.debugMode);
+
+		this.addDependency("petName", "Pet Name", () -> this.petSwap);
 		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
 		save();
 	}

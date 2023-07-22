@@ -119,6 +119,27 @@ public class PlayerUtils {
         return -1;
     }
 
+    public static int getSlotFromGui(final String itemName){
+        List<ItemStack> inventory = mc.thePlayer.openContainer.getInventory();
+        for (ItemStack itemStack : inventory) {
+            if (itemStack == null) continue;
+            if (StringUtils.stripControlCodes(itemStack.getDisplayName()).toLowerCase().contains(itemName.toLowerCase())) {
+                return inventory.indexOf(itemStack);
+            }
+            if (inventory.indexOf(itemStack) >= (inventory.size() - 37)) break;
+        }
+        return -1;
+    }
+
+    public static String matchFromString(final String pattern, final String item){
+        List<ItemStack> inventory = mc.thePlayer.openContainer.getInventory();
+        int slot = getSlotFromGui(item); if(slot==-1) return null;
+        String lore = PlayerUtils.getItemLoreString(inventory.get(slot));
+        Matcher match = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(lore);
+        return (match.find()) ? match.group(1).trim() : null;
+    }
+
+
     public static void clickOpenContainerSlot(final int slot, final int button, final int clickType) {
         mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, slot, button, clickType, mc.thePlayer);
     }
@@ -338,6 +359,19 @@ public class PlayerUtils {
             loreList.add(StringUtils.stripControlCodes(loreTag.getStringTagAt(i)));
         }
         return loreList;
+    }
+
+    public static String getItemLoreString(ItemStack itemStack) {
+        NBTTagList loreTag = itemStack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8);
+        StringBuilder lore = new StringBuilder();
+        ArrayList<String> loreList = new ArrayList<>();
+        for (int i = 0; i < loreTag.tagCount(); i++) {
+            loreList.add(StringUtils.stripControlCodes(loreTag.getStringTagAt(i)));
+        }
+        for(String text: loreList){
+            lore.append(text).append(" ");
+        }
+        return lore.toString().toLowerCase();
     }
 
     public static String getItemLore(ItemStack itemStack, int index) {

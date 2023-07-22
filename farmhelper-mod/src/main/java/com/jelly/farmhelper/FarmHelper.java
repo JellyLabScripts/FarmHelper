@@ -72,6 +72,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new ProfitCalculator());
         MinecraftForge.EVENT_BUS.register(new Utils());
         MinecraftForge.EVENT_BUS.register(new VisitorsMacro());
+        MinecraftForge.EVENT_BUS.register(new PetSwapper());
         ClientCommandHandler.instance.registerCommand(new RewarpCommand());
         ClientCommandHandler.instance.registerCommand(new FarmHelperCommand());
 

@@ -6,10 +6,7 @@ import com.jelly.farmhelper.config.Config.SMacroEnum;
 import com.jelly.farmhelper.config.Config.CropEnum;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
-import com.jelly.farmhelper.features.Failsafe;
-import com.jelly.farmhelper.features.ProfitCalculator;
-import com.jelly.farmhelper.features.Scheduler;
-import com.jelly.farmhelper.features.VisitorsMacro;
+import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.block.*;
@@ -44,7 +41,7 @@ public class MacroHandler {
     public static CocoaBeanRGMacro cocoaBeanRGMacro = new CocoaBeanRGMacro();
     public static MushroomMacro mushroomMacro = new MushroomMacro();
 
-    private final Rotation rotation = new Rotation();
+    public static final Rotation rotation = new Rotation();
     public static long startTime = 0;
     public static boolean randomizing = false;
     public static long startCounter = 0;

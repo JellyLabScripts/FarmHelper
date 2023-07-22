@@ -122,6 +122,7 @@ public class Failsafe {
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
         // Mustario is a grape
+        // Mustario is dannystuff wow emoji
 
         if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
 
@@ -229,7 +230,8 @@ public class Failsafe {
                         && !evacuateCooldown.isScheduled()
                         && !afterEvacuateCooldown.isScheduled()
                         && !restartAfterFailsafeCooldown.isScheduled()
-                        && !VisitorsMacro.isEnabled()) {
+                        && !VisitorsMacro.isEnabled()
+                        && !PetSwapper.toggleSwapper) {
 
                     LogUtils.debugLog("Resuming macro");
                     MacroHandler.enableCurrentMacro();
