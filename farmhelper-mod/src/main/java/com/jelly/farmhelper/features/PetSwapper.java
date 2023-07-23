@@ -40,26 +40,25 @@ public class PetSwapper {
     void onTick(TickEvent.ClientTickEvent event){
         if(mc.thePlayer == null || mc.theWorld == null) return;
         if(delay.isScheduled() && !delay.passed()) {return;}
-        if(!MacroHandler.isMacroing) {if(defaultPet!=null){stop(false);jacob=false;
-            MacroHandler.crop=null;
-        } return;}
+        if(!MacroHandler.isMacroing) {if(defaultPet!=null){stop(false);jacob=false;MacroHandler.crop=null;} return;}
         if(MacroHandler.crop == null) return;
         if(MacroHandler.rotation.rotating) return;
         jacob = VisitorsMacro.inJacobContest();
+        
         if(!toggleSwapper){
             // change to specific pet
             if(expectedPet!=null) start();
             if(jacob && defaultPet==null){
-                debugLog("change pet to wanted pet and stop macro");
+                debugLog("changing pet to desired pet");
                 expectedPet = Config.petName;
-                delay.schedule(2000);
+                delay.schedule(1000);
                 return;
             }
             else if(!jacob && defaultPet!=null){
-                debugLog("change wanted pet to default pet and stop macro");
+                debugLog("changing pet to default pet");
                 expectedPet = defaultPet;
                 defaultPet = null;
-                delay.schedule(2000);
+                delay.schedule(1000);
                 return;
             }
             else{
@@ -69,24 +68,24 @@ public class PetSwapper {
 
         switch(currentState){
             case STARTING:
-                debugLog("starting");
+                debugLog("Starting pet swapper"); // ty tom
                 mc.thePlayer.sendChatMessage("/pets");
                 currentState = State.FIND;
                 delay.schedule(1000);
                 break;
             case FIND:
-                debugLog("inFind");
+                debugLog("looking for gui");
                 if(mc.currentScreen instanceof GuiChest){
-                    debugLog("inChestGui");
+                    debugLog("in pets menu");
                     List<ItemStack> inventory = mc.thePlayer.openContainer.getInventory();
 
                     if(defaultPet==null){
                         defaultPet = PlayerUtils.matchFromString("pet: (.*?) Click", "hide pets");
                         if(defaultPet==null) defaultPet="none";
-                        debugLog("defaultPet: " + defaultPet);
+                        debugLog("Equipped (default) pet: " + defaultPet);
                         // if default pet equipped stop
                         if(defaultPet != null && defaultPet.toLowerCase().contains(expectedPet)){
-                            debugLog("pet already equipped");
+                            debugLog("pet is already equipped");
                             mc.thePlayer.closeScreen();
                             stop(jacob);
                             return;
@@ -94,15 +93,15 @@ public class PetSwapper {
                     }
 
                     expectedPetSlot = PlayerUtils.getSlotFromGui(expectedPet);
-                    debugLog("pet: " + expectedPet);
-                    debugLog("petSlot: " + expectedPetSlot);
+                    debugLog("Expected Pet: " + expectedPet);
+                    debugLog("Expeccted Pet Slot: " + expectedPetSlot);
                     if (expectedPetSlot == -1) {
                         if(inventory.get(nextPageSlot) != null && inventory.get(nextPageSlot).getDisplayName().toLowerCase().contains("page")){
                             PlayerUtils.clickOpenContainerSlot(nextPageSlot);
                             delay.schedule(500);
                         }
                         else {
-                            debugLog("pet not found");
+                            debugLog("Pet not found");
                             stop(jacob);
                         }
                     } else {
@@ -127,26 +126,24 @@ public class PetSwapper {
         if(msg.toLowerCase().contains("you summoned your " + expectedPet.toLowerCase())){
             currentState=State.NONE;
             delay.schedule(1000);
-            debugLog("pet spawned");
+            debugLog("Pet spawned");
         }
     }
 
     public static void start(){
-        debugLog("osamaClient: disabling macro");
+        debugLog("Disabling macro and enabling petswapper");
         MacroHandler.disableCurrentMacro(true);
         currentState=State.STARTING;
-        debugLog("starting");
         toggleSwapper=true;
     }
 
     public static void stop(boolean saveState){
-        debugLog("osamaclient: enablingMacro");
+        debugLog("Disabling petswapper and enabling macro");
         MacroHandler.enableCurrentMacro();
         reset();
         if(saveState){
             return;
         }
-        debugLog("stopping");
         defaultPet = null;
     }
 
