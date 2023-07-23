@@ -323,6 +323,10 @@ public class Failsafe {
                 return gameState.jacobCounter > FarmHelper.config.jacobWheatCap;
             } else if (cleanedLine.contains("Sugar") || cleanedLine.contains("Cane") ) {
                 return gameState.jacobCounter > FarmHelper.config.jacobSugarCaneCap;
+            } else if (cleanedLine.contains("Melon")) {
+                return gameState.jacobCounter > FarmHelper.config.jacobMelonCap;
+            } else if (cleanedLine.contains("Pumpkin")) {
+                return gameState.jacobCounter > FarmHelper.config.jacobPumpkinCap;
             }
         }
         return false;
@@ -441,8 +445,11 @@ public class Failsafe {
             }
         }
 
-        if(FarmHelper.config.autoAltTab) {
-            Utils.bringWindowToFront();
+        if (FarmHelper.config.autoAltTab) {
+            if (FarmHelper.config.autoAltTabMode == 1)
+                Utils.bringWindowToFrontWinApi();
+            else
+                Utils.bringWindowToFront();
         }
 
         if (FarmHelper.config.enableFailsafeSound) {
@@ -647,7 +654,7 @@ public class Failsafe {
             if (FarmHelper.config.ladderDesign) PlayerUtils.setSpawn();
             Thread.sleep(3000);
 
-            if((Math.random() < 0.5d || !config.leaveAfterFailSafe) && said) {
+            if(config.leaveAfterFailSafe && said) {
                 mc.thePlayer.sendChatMessage("/hub");
                 Thread.sleep(3000);
                 KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
@@ -775,7 +782,7 @@ public class Failsafe {
             // stage 3: come hub or quit game
             stopMovement();
             Thread.sleep((long) (500 + Math.random() * 3_000));
-            if((Math.random() < 0.5d || !config.leaveAfterFailSafe) && said) {
+            if(config.leaveAfterFailSafe && said) {
                 mc.thePlayer.sendChatMessage("/hub");
                 Thread.sleep(5000);
                 if (FarmHelper.gameState.currentLocation == GameState.location.HUB) {

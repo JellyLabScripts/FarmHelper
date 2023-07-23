@@ -14,6 +14,7 @@ import java.awt.*;
 import java.io.IOException;
 
 import static com.jelly.farmhelper.FarmHelper.MODVERSION;
+import static com.jelly.farmhelper.FarmHelper.VERSION;
 
 public class UpdateGUI extends GuiScreen {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -95,7 +96,7 @@ public class UpdateGUI extends GuiScreen {
                             "User-Agent",
                             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
                     .get("tag_name").toString();
-            return !MODVERSION.contains(latestversion) && !MODVERSION.contains("PRE");
+            return (!MODVERSION.toLowerCase().contains(latestversion.toLowerCase()) && !VERSION.toLowerCase().contains("pre"));
         } catch (Exception e) {
             return false;
         }

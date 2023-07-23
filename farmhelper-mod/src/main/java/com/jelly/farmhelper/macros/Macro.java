@@ -95,7 +95,7 @@ public abstract class Macro {
     }
 
     public boolean isSpawnLocationSet() {
-        return FarmHelper.config.spawnPosX != 0 && FarmHelper.config.spawnPosY != 0 && FarmHelper.config.spawnPosZ != 0;
+        return FarmHelper.config.isSpawnpointSet;
     }
 
     public boolean isStandingOnSpawnLocation() {
@@ -109,6 +109,7 @@ public abstract class Macro {
         FarmHelper.config.spawnPosX = mc.thePlayer.getPosition().getX();
         FarmHelper.config.spawnPosY = mc.thePlayer.getPosition().getY();
         FarmHelper.config.spawnPosZ = mc.thePlayer.getPosition().getZ();
+        FarmHelper.config.isSpawnpointSet = true;
         FarmHelper.config.save();
     }
 

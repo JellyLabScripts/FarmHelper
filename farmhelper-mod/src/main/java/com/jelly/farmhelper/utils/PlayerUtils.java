@@ -320,19 +320,14 @@ public class PlayerUtils {
         return 0;
     }
 
-    public static int getAxeSlot() {
+    public static int getAxeSlot(CropEnum crop) {
         for (int i = 36; i < 44; i++) {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
-
-                if (!FarmHelper.config.macroType) {
-                    if (FarmHelper.config.VerticalMacroType == SMacroEnum.PUMPKIN_MELON.ordinal() && mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Dicer")) {
-                        return i - 36;
-                    }
+                if ((crop == CropEnum.MELON || crop == CropEnum.PUMPKIN) && mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Dicer")) {
+                    return i - 36;
                 }
-                else {
-                    if ((FarmHelper.config.VerticalMacroType == SMacroEnum.COCOA_BEANS.ordinal() || FarmHelper.config.VerticalMacroType == SMacroEnum.COCOA_BEANS_RG.ordinal()) && mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Chopper")) {
-                        return i - 36;
-                    }
+                if (crop == CropEnum.COCOA_BEANS && mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Chopper")) {
+                    return i - 36;
                 }
             }
         }

@@ -143,6 +143,13 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Automatically unfocuses your mouse, so you can safely alt-tab"
 	)
 	public boolean autoUngrabMouse = true;
+
+	@Switch(
+		name = "Don't change pitch", category = GENERAL, subcategory = "Macro",
+		description = "Don't change pitch after starting the macro"
+	)
+	public boolean dontChangePitch = false;
+
 	@Switch(
 	name = "Go back with Ladders", category = GENERAL, subcategory = "Macro",
 	description = "Select this if you're using ladder design"
@@ -627,7 +634,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		name = "Leave after failsafe triggered", category = FAILSAFE, subcategory = "Restart After FailSafe",
 		description = "Leaves the server after a failsafe has been triggered"
 	)
-	public boolean leaveAfterFailSafe = true;
+	public boolean leaveAfterFailSafe = false;
 	@Slider(
 		name = "Restart Delay", category = FAILSAFE, subcategory = "Restart After FailSafe",
 		description = "The delay to restart after failsafe (in seconds)",
@@ -758,6 +765,18 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = 0, max = 1000000, step = 10000
 	)
 	public int jacobMushroomCap = 200000;
+	@Slider(
+		name = "Melon Cap", category = FAILSAFE, subcategory = "Jacob",
+		description = "The melon cap",
+		min = 0, max = 1000000, step = 10000
+	)
+	public int jacobMelonCap = 400000;
+	@Slider(
+		name = "Pumpkin Cap", category = FAILSAFE, subcategory = "Jacob",
+		description = "The pumpkin cap",
+		min = 0, max = 1000000, step = 10000
+	)
+	public int jacobPumpkinCap = 400000;
 
 	// END JACOB
 
@@ -792,6 +811,10 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		size = OptionSize.DUAL
 	)
 	public int spawnPosZ = 0;
+
+	@Switch(name = "Is Spawnpoint set", category = DEBUG, subcategory = "SpawnPos")
+	public boolean isSpawnpointSet = false;
+
 	@Button(
 		name = "Set SpawnPos", category = DEBUG, subcategory = "SpawnPos",
 		description = "Sets the spawn position to your current position",
@@ -802,6 +825,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		spawnPosX = pos.getX();
 		spawnPosY = pos.getY() + 1;
 		spawnPosZ = pos.getZ();
+		isSpawnpointSet = true;
 		save();
 		LogUtils.scriptLog("Spawn position has been set to " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
 	};
@@ -814,6 +838,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		spawnPosX = 0;
 		spawnPosY = 0;
 		spawnPosZ = 0;
+		isSpawnpointSet = false;
 		save();
 		LogUtils.scriptLog("Spawn position has been reset");
 	};
@@ -832,9 +857,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			category = EXPERIMENTAL,
 			subcategory = "Experimental"
 	)
-
 	public static boolean ignored3;
-
 	@Slider(
 			name = "Fast Break Speed", category = EXPERIMENTAL, subcategory = "Experimental",
 			description = "Fast break speed",
@@ -842,6 +865,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public int fastBreakSpeed = 1;
 
+	@Dropdown(
+			name = "Alt-tab mode", category = EXPERIMENTAL, subcategory = "Experimental",
+			description = "The mode to use when alt-tabbing. Using keys is more reliable, but it's slower. Using WINAPI is faster, but it's less reliable and Windows only. It also maximizes the game window.",
+			options = {"Using keys", "Using WINAPI (Windows only)"}
+	)
+	public int autoAltTabMode = 0;
 
 	// END EXPERIMENTAL
 
@@ -908,6 +937,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("_resetSpawnPos","Debug mode", () -> this.debugMode);
 
 		this.addDependency("petName", "Pet Name", () -> this.petSwap);
+		this.addDependency("isSpawnpointSet", () -> this.debugMode);
 		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
 		save();
 	}
