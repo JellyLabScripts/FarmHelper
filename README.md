@@ -12,9 +12,9 @@
 
 <h3 align="center">FarmHelper</h3>
   <p align="center">
-    <a href="https://discord.com/jellylabs">Report Bug</a>
+    <a href="https://discord.gg/6mSHC2Xd9y">Report Bug</a>
     ·
-    <a href="https://discord.com/jellylabs">Request Feature</a>
+    <a href="https://discord.gg/6mSHC2Xd9y">Request Feature</a>
   </p>
 </div>
 
