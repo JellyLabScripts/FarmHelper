@@ -142,7 +142,7 @@ public class UpdateGUI extends GuiScreen {
                             downloadBtn.enabled = false;
                             closeBtn.enabled = false;
                             displayGUI = 1;
-                            //FileUtils.copyURLToFile(new URL("https://github.com/JellyLabScripts/FarmHelper/releases/download/" + latestVersion + "/FarmHelper-" + latestVersion + ".jar"), new File(mc.mcDataDir + "/mods/farmhelper-mod-" + latestVersion + ".jar"), CONNECT_TIMEOUT, READ_TIMEOUT);
+                            // FileUtils.copyURLToFile(new URL("https://github.com/JellyLabScripts/FarmHelper/releases/download/" + latestVersion + "/FarmHelper-" + latestVersion + ".jar"), new File(mc.mcDataDir + "/mods/farmhelper-mod-" + latestVersion + ".jar"), CONNECT_TIMEOUT, READ_TIMEOUT);
                             downloadFileWithProgress(("https://github.com/JellyLabScripts/FarmHelper/releases/download/" + latestVersion + "/FarmHelper-" + latestVersion + ".jar"), new File(mc.mcDataDir + "/mods/farmhelper-mod-" + latestVersion + ".jar"), CONNECT_TIMEOUT, READ_TIMEOUT);
                             mc.addScheduledTask(() -> {
                                 downloadBtn.enabled = false;
@@ -272,7 +272,6 @@ public class UpdateGUI extends GuiScreen {
         } catch (Exception e) {
             return false;
         }
-//        return true;
     }
 
     private static String getReleaseMessage() {
@@ -284,6 +283,5 @@ public class UpdateGUI extends GuiScreen {
         } catch (Exception e) {
             return "No release message was found.";
         }
-//        return "\n" + "Finally a fully (I hope so) working release after the removal of TP Pads.\r\n\r\n## New command:\r\n* **/fhrewarp <add|remove|removeall>** - Without arguments shows possible options. Used to add/remove a position, on which the macro should trigger /warp garden.\r\n\r\n## Additions:\r\n* Vertical ladder design\r\n* Rotate after back/warp **toggleable**\r\n* Rotate after drop in s shaped farm **toggleable**\r\n* Visitors Macro - To make it work, you need:\r\n  * Set desk position with a keybind (check minecraft controls)\r\n  * Farm normally\r\n  * If you are using layered or vertical non ladder design, then the macro will trigger at the spawn point\r\n  * Macro will fly to the desk position, serve visitors and come back with /warp garden\r\n  * IMPORTANT: Visitors Macro doesn't have checks for bazaar manipulation, you might lose a lot of coins\r\n  * Additional option: Accept only profit rewards, such as: **\"Dedication\", \"Cultivating\", \"Delicate\", \"Replenish\", \"Music Rune\", \"Green Bandana\", \"Overgrown Grass\", \"Space Helmet\"**\r\n* Added staff check of change item packet\r\n* Added test failsafe (button in settings) to check how ping, chat and notification works\r\n\r\n## Changes:\r\n* Mushroom macro contains two options:\r\n  * With rotations - will rotate every row at 30 degree\r\n  * Normal - won't rotate and will farm at 45 degree\r\n* Pumpkin/Melon macro - Works only in s shape farm (check schematics for the design)\r\n* Detection of crop to choose tool works differently:\r\n  * Firstly checks if you are looking at some crop, then chosing the tool for it\r\n  * Secondly if first condition haven't been met, checks in 3x3x3 box in front of you for any closest crop and then choosing the tool for it\r\n* Failsafe will pause the macro after a small delay (2-4 seconds)\r\n* Proxy connection fixed\r\n* Probably an issue with connection from Russia should be fixed\r\n\r\n## Last Information:\r\nI don't remember what else has been changed/fixed/added. If you will encounter any bugs/glitches/issues, report them or use previously working pre-release (if you are not familiar with installing it, type \"preview version\" in any of the chat channel on discord)\r\n<sub><sup>rat included</sup></sub>"+ " \n \n";
     }
 }
