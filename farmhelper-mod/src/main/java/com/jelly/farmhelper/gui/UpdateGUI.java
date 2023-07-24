@@ -2,10 +2,9 @@ package com.jelly.farmhelper.gui;
 
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import com.jelly.farmhelper.network.APIHelper;
+import com.jelly.farmhelper.utils.MarkdownFormatter;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiMainMenu;
-import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.*;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
 import org.lwjgl.input.Keyboard;
@@ -25,8 +24,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
-import net.minecraft.client.gui.GuiSlot;
-
 import static com.jelly.farmhelper.FarmHelper.MODVERSION;
 import static com.jelly.farmhelper.FarmHelper.VERSION;
 
@@ -41,18 +38,17 @@ public class UpdateGUI extends GuiScreen {
     private int downloadProgress = 0;
     protected OneColor color = new OneColor(0, 0, 0, 255);
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private static int GUI_WIDTH = mc.displayWidth;
-    private static final int GUI_HEIGHT = mc.displayHeight / mc.gameSettings.guiScale - 160;
-    private static final int LIST_TOP_MARGIN = 160 / mc.gameSettings.guiScale;
-    private static final int LIST_BOTTOM_MARGIN = 80 / mc.gameSettings.guiScale;
+    private final int LIST_TOP_MARGIN = 80;
+    private final int LIST_BOTTOM_MARGIN = 40;
     private static List<String> message = new ArrayList<>();
+    static List<String> releaseMessage;
     private ScrollableList scrollableList;
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) { // don't skid or i'll find you - yuro
         this.drawBackground(0);
         scrollableList.drawScreen(mouseX, mouseY, partialTicks);
-        float scale = mc.gameSettings.guiScale;
+        float scale = 2;
         GL11.glScalef(scale, scale, 0.0F);
         if (displayGUI == 0)
             this.drawCenteredString(mc.fontRendererObj, "Outdated version of FarmHelper", (int) (this.width / 2f / scale), (int) (30 / scale), Color.RED.darker().getRGB());
@@ -64,23 +60,21 @@ public class UpdateGUI extends GuiScreen {
         if (displayGUI == 2)
             this.drawCenteredString(mc.fontRendererObj, "FarmHelper has been updated!", (int) (this.width / 2f / scale), (int) (30 / scale), Color.GREEN.getRGB());
         GL11.glScalef(1.0F / scale, 1.0F / scale, 0.0F);
-        scale = 1f;
-        GL11.glScalef(scale, scale, 0.0F);
-        this.drawString(mc.fontRendererObj, "What's new? ➤", (int) (this.width / 8f / scale), GUI_HEIGHT / mc.gameSettings.guiScale + 25, Color.GREEN.getRGB());
-        GL11.glScalef(1.0F / scale, 1.0F / scale, 0.0F);
+        ScaledResolution res = new ScaledResolution(mc);
+        this.drawString(mc.fontRendererObj, "What's new? ➤", (int) (res.getScaledHeight() / 8f), LIST_TOP_MARGIN - 12, Color.GREEN.getRGB());
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
     @Override
     public void initGui() {
-        super.initGui();
-        GUI_WIDTH = mc.displayWidth / mc.gameSettings.guiScale; // fix for changing window size
-        scrollableList = new ScrollableList(GUI_WIDTH, GUI_HEIGHT, LIST_TOP_MARGIN, height - LIST_BOTTOM_MARGIN, 10);
+        ScaledResolution res = new ScaledResolution(mc);
+        scrollableList = new ScrollableList(res.getScaledWidth(), res.getScaledHeight(), LIST_TOP_MARGIN, res.getScaledHeight() - LIST_BOTTOM_MARGIN, 12);
         scrollableList.registerScrollButtons(7, 8);
         registerButtons();
+        super.initGui();
     }
 
-    private class ScrollableList extends GuiSlot {
+    private class ScrollableList extends GuiSlot { // spent way too much time on this - yuro
         private ScrollableList(int width, int height, int top, int bottom, int slotHeight) {
             super(UpdateGUI.mc, width, height, top, bottom, slotHeight);
         }
@@ -102,8 +96,9 @@ public class UpdateGUI extends GuiScreen {
         @Override
         protected void drawSlot(int entryID, int insideLeft, int yPos, int insideSlotHeight, int mouseXIn, int mouseYIn) {
             if (entryID >= 0 && entryID < message.size()) {
-                String item = message.get(entryID);
-                drawString(mc.fontRendererObj, item, (int) (mc.displayWidth / 8f / mc.gameSettings.guiScale), yPos + 2, Color.WHITE.getRGB());
+                String item = MarkdownFormatter.format(message.get(entryID));
+                ScaledResolution res = new ScaledResolution(mc);
+                drawString(mc.fontRendererObj, item, (int) (res.getScaledHeight() / 8f), yPos + 2, Color.WHITE.getRGB());
             }
         }
 
@@ -111,7 +106,10 @@ public class UpdateGUI extends GuiScreen {
         protected int getContentHeight() { return getSize() * slotHeight; }
 
         @Override
-        protected int getScrollBarX() { return GUI_WIDTH - 12 / mc.gameSettings.guiScale; }
+        protected int getScrollBarX() {
+            ScaledResolution res = new ScaledResolution(mc);
+            return res.getScaledWidth() - 6;
+        }
     }
 
     @Override
@@ -124,7 +122,11 @@ public class UpdateGUI extends GuiScreen {
     }
 
     @Override
-    public void updateScreen() { super.updateScreen(); }
+    public void updateScreen() {
+        ScaledResolution res = new ScaledResolution(mc);
+        message = splitLongStrings(releaseMessage, res.getScaledWidth() / 6);
+        super.updateScreen();
+    }
 
     @Override
     protected void actionPerformed(GuiButton button)  {
@@ -215,12 +217,51 @@ public class UpdateGUI extends GuiScreen {
 
     public static void showGUI() {
         if (!shownGui && isOutdated()) {
-            mc.displayGuiScreen(new UpdateGUI());
             shownGui = true;
             outdated = isOutdated();
-            message = Arrays.asList(getReleaseMessage().replaceAll("\r", "").replace("+ ", "§a+ ").replace("= ", "§f= ").replace("- ", "§c- ").split("\n"));
+            releaseMessage = Arrays.asList(getReleaseMessage().replaceAll("\r", "").replace("+ ", "§a+ ").replace("= ", "§f= ").replace("- ", "§c- ").split("\n"));
+            ScaledResolution res = new ScaledResolution(mc);
+            message = splitLongStrings(releaseMessage, res.getScaledWidth() / 6);
+            mc.displayGuiScreen(new UpdateGUI());
         }
     }
+
+    public static List<String> splitLongStrings(List<String> inputList, int maxLength) {
+        List<String> splitStrings = new ArrayList<>();
+        if (inputList == null || inputList.isEmpty()) return splitStrings;
+
+        for (String message : inputList) {
+            if (message.length() <= maxLength) {
+                splitStrings.add(message);
+            } else {
+                int endIndex = findLastSpaceBeforeIndex(message, maxLength);
+                splitStrings.add(message.substring(0, endIndex).trim());
+                splitStrings.addAll(splitLongStrings(
+                        createListWithSingleElement(message.substring(endIndex).trim()), maxLength)
+                );
+            }
+        }
+
+        return splitStrings;
+    }
+
+    // Helper method to find the last space before a given index 'maxIndex'
+    private static int findLastSpaceBeforeIndex(String str, int maxIndex) {
+        for (int i = maxIndex - 1; i >= 0; i--) {
+            if (str.charAt(i) == ' ') {
+                return i;
+            }
+        }
+        return maxIndex;
+    }
+
+    // Helper method to create a new ArrayList with a single element
+    private static List<String> createListWithSingleElement(String element) {
+        List<String> list = new ArrayList<>();
+        list.add(element);
+        return list;
+    }
+
     private static boolean isOutdated() {
         try {
             latestVersion = APIHelper.readJsonFromUrl("https://api.github.com/repos/JellyLabScripts/FarmHelper/releases/latest",
@@ -231,6 +272,7 @@ public class UpdateGUI extends GuiScreen {
         } catch (Exception e) {
             return false;
         }
+//        return true;
     }
 
     private static String getReleaseMessage() {
@@ -238,9 +280,10 @@ public class UpdateGUI extends GuiScreen {
             JSONObject j = APIHelper.readJsonFromUrl("https://api.github.com/repos/JellyLabScripts/FarmHelper/releases/latest",
                             "User-Agent",
                             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
-            return "\n" + j.get("body").toString() + "\n\n"; // fix for top and bottom padding
+            return "\n" + j.get("body").toString() + " \n \n"; // fix for top and bottom padding
         } catch (Exception e) {
             return "No release message was found.";
         }
+//        return "\n" + "Finally a fully (I hope so) working release after the removal of TP Pads.\r\n\r\n## New command:\r\n* **/fhrewarp <add|remove|removeall>** - Without arguments shows possible options. Used to add/remove a position, on which the macro should trigger /warp garden.\r\n\r\n## Additions:\r\n* Vertical ladder design\r\n* Rotate after back/warp **toggleable**\r\n* Rotate after drop in s shaped farm **toggleable**\r\n* Visitors Macro - To make it work, you need:\r\n  * Set desk position with a keybind (check minecraft controls)\r\n  * Farm normally\r\n  * If you are using layered or vertical non ladder design, then the macro will trigger at the spawn point\r\n  * Macro will fly to the desk position, serve visitors and come back with /warp garden\r\n  * IMPORTANT: Visitors Macro doesn't have checks for bazaar manipulation, you might lose a lot of coins\r\n  * Additional option: Accept only profit rewards, such as: **\"Dedication\", \"Cultivating\", \"Delicate\", \"Replenish\", \"Music Rune\", \"Green Bandana\", \"Overgrown Grass\", \"Space Helmet\"**\r\n* Added staff check of change item packet\r\n* Added test failsafe (button in settings) to check how ping, chat and notification works\r\n\r\n## Changes:\r\n* Mushroom macro contains two options:\r\n  * With rotations - will rotate every row at 30 degree\r\n  * Normal - won't rotate and will farm at 45 degree\r\n* Pumpkin/Melon macro - Works only in s shape farm (check schematics for the design)\r\n* Detection of crop to choose tool works differently:\r\n  * Firstly checks if you are looking at some crop, then chosing the tool for it\r\n  * Secondly if first condition haven't been met, checks in 3x3x3 box in front of you for any closest crop and then choosing the tool for it\r\n* Failsafe will pause the macro after a small delay (2-4 seconds)\r\n* Proxy connection fixed\r\n* Probably an issue with connection from Russia should be fixed\r\n\r\n## Last Information:\r\nI don't remember what else has been changed/fixed/added. If you will encounter any bugs/glitches/issues, report them or use previously working pre-release (if you are not familiar with installing it, type \"preview version\" in any of the chat channel on discord)\r\n<sub><sup>rat included</sup></sub>"+ " \n \n";
     }
 }

@@ -237,10 +237,16 @@ public class SShapeCropMacro extends Macro {
             return;
         }
 
+        if (!isRewarpLocationSet()) {
+            LogUtils.scriptLog("Your rewarp position is not set!");
+            toggle();
+            return;
+        }
+
         CropUtils.getTool();
         updateState();
         prevState = currentState;
-        System.out.println(currentState);
+        // System.out.println(currentState);
 
         if (beforeTeleportationPos != null) {
             LogUtils.debugLog("Waiting for tp...");
@@ -290,7 +296,6 @@ public class SShapeCropMacro extends Macro {
                     }
                     updateKeys(false, false, false, false, false);
                 }
-
                 return;
             case RIGHT:
                 if (!waitForChangeDirection.isScheduled()) {
@@ -414,14 +419,20 @@ public class SShapeCropMacro extends Macro {
         }
     }
 
+    private boolean canWalkForwardsOrBackwards() {
+        if (gameState.frontWalkable) {
+            return !gameState.backWalkable || (BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.water) || BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.air));
+        } else if (gameState.backWalkable) {
+            return BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.water) || BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.air);
+        }
+        return false;
+    }
 
     private void updateState() {
         State lastState = currentState;
 
         if (currentState == State.STONE_THROW) {
             currentState = State.STONE_THROW;
-        } else if (!isRewarpLocationSet()) {
-            LogUtils.scriptLog("Your rewarp position is not set!");
         } else if (isRewarpLocationSet() && isStandingOnRewarpLocation()) {
             triggerWarpGarden();
         } else if (!isTping && (Math.abs(layerY - mc.thePlayer.posY) > 2 || currentState == State.DROPPING || isDropping())) {
@@ -436,7 +447,13 @@ public class SShapeCropMacro extends Macro {
         } else if (gameState.frontWalkable && gameState.backWalkable && (currentState == State.SWITCH_START || currentState == State.SWITCH_MID) && !waitForChangeDirection.isScheduled()) {
             currentState = State.SWITCH_MID;
             LogUtils.debugLog("SWITCH_MID");
-        } else if (((gameState.frontWalkable && (!gameState.backWalkable || (BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.water) || BlockUtils.getRelativeBlock(0, 0, -1).equals(Blocks.air)))) || ((!gameState.frontWalkable || (BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.water) || BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.air))) && gameState.backWalkable)) && currentState != State.SWITCH_MID && currentState != State.DROPPING && (FarmHelper.config.SShapeMacroType != SMacroEnum.CACTUS.ordinal() || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus)) && (FarmHelper.config.SShapeMacroType != SMacroEnum.PUMPKIN_MELON.ordinal() || (!BlockUtils.isRelativeBlockPassable(0, -1, 2) || !BlockUtils.isRelativeBlockPassable(0, -1, -2)))) {
+        } else if (
+                    canWalkForwardsOrBackwards()
+                    && currentState != State.SWITCH_MID
+                    && currentState != State.DROPPING
+                    && (FarmHelper.config.SShapeMacroType != SMacroEnum.CACTUS.ordinal() || !BlockUtils.getRelativeBlock(0, 0, 2).equals(Blocks.cactus))
+                    && (FarmHelper.config.SShapeMacroType != SMacroEnum.PUMPKIN_MELON.ordinal() || (!BlockUtils.isRelativeBlockPassable(0, -1, 2) || !BlockUtils.isRelativeBlockPassable(0, -1, -2)))
+        ) {
             if (waitForChangeDirection.isScheduled() && waitForChangeDirection.passed()) {
                 if (gameState.frontWalkable)
                     switchBackwardsDirection = false;
@@ -477,7 +494,6 @@ public class SShapeCropMacro extends Macro {
         } else {
             currentState = State.NONE;
         }
-
         if (lastState != currentState) {
             waitForChangeDirection.reset();
             rotation.reset();
@@ -490,7 +506,7 @@ public class SShapeCropMacro extends Macro {
             waitForChangeDirection.reset();
         }
         if (!waitForChangeDirection.isScheduled()) {
-            LogUtils.debugLog("Should TP");
+            LogUtils.debugLog("Scheduling TP");
             long waitTime = (long) (Math.random() * 750 + 500);
             waitForChangeDirection.schedule(waitTime);
             beforeTeleportationPos = mc.thePlayer.getPosition();
@@ -633,7 +649,6 @@ public class SShapeCropMacro extends Macro {
     }
 
     public static boolean isDropping(){
-
         return  (BlockUtils.getRelativeBlock(0, -1, 1).equals(Blocks.air)
                 && BlockUtils.getRelativeBlock(0, 0, 1).equals(Blocks.air)
                 && BlockUtils.getRelativeBlock(0, 1, 1).equals(Blocks.air))
