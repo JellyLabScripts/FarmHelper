@@ -363,7 +363,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	// START VISITORS_MACRO
 
 	@Switch(
-		name = "Enable", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+		name = "Enable visitors macro", category = VISITORS_MACRO, subcategory = "Visitors Macro",
 		description = "Enables visitors macro"
 	)
 	public boolean visitorsMacro = false;
@@ -489,7 +489,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	};
 
 	@Switch(
-		name = "Enable (BROKEN)", category = WEBHOOK, subcategory = "Remote Control",
+		name = "Enable Remote Control (BROKEN)", category = WEBHOOK, subcategory = "Remote Control",
 		description = "Enables remote control via Discord messages"
 	)
 	public boolean enableRemoteControl = false;
@@ -550,7 +550,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public float rotationCheckSensitivity = 2;
 	@Switch(
-			name = "Enable", category = FAILSAFE, subcategory = "Failsafe Trigger Sound", size = OptionSize.DUAL,
+			name = "Enable Failsafe Trigger Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound", size = OptionSize.DUAL,
 			description = "Makes a sound when a failsafe has been triggered"
 	)
 	public boolean enableFailsafeSound = true;
@@ -614,7 +614,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public int schedulerBreakTimeRandomness = 0;
 
 	@Switch(
-		name = "Enable", category = FAILSAFE, subcategory = "Restart After FailSafe",
+		name = "Enable Restart After FailSafe", category = FAILSAFE, subcategory = "Restart After FailSafe",
 		description = "Restarts the macro after a while when a failsafe has been triggered"
 	)
 	public boolean enableRestartAfterFailSafe = false;
@@ -630,7 +630,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public int restartAfterFailSafeDelay = 30;
 	@Switch(
-		name = "Enable", category = FAILSAFE, subcategory = "Auto Set Spawn",
+		name = "Enable Auto Set Spawn", category = FAILSAFE, subcategory = "Auto Set Spawn",
 		description = "Enables auto set spawn"
 	)
 	public boolean enableAutoSetSpawn = false;
@@ -720,51 +720,63 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	@Slider(
 		name = "Nether Wart Cap", category = FAILSAFE, subcategory = "Jacob",
 		description = "The nether wart cap",
-		min = 0, max = 1000000, step = 10000
+		min = 10000, max = 1000000, step = 10000
 	)
-	public int jacobNetherWartCap = 400000;
+	public int jacobNetherWartCap = 800000;
 	@Slider(
 		name = "Potato Cap", category = FAILSAFE, subcategory = "Jacob",
 		description = "The potato cap",
-		min = 0, max = 1000000, step = 10000
+		min = 10000, max = 1000000, step = 10000
 	)
-	public int jacobPotatoCap = 400000;
+	public int jacobPotatoCap = 830000;
 	@Slider(
 		name = "Carrot Cap", category = FAILSAFE, subcategory = "Jacob",
 		description = "The carrot cap",
-		min = 0, max = 1000000, step = 10000
+		min = 10000, max = 1000000, step = 10000
 	)
-	public int jacobCarrotCap = 400000;
+	public int jacobCarrotCap = 860000;
 	@Slider(
 		name = "Wheat Cap", category = FAILSAFE, subcategory = "Jacob",
 		description = "The wheat cap",
-		min = 0, max = 1000000
+		min = 10000, max = 1000000
 	)
-	public int jacobWheatCap = 400000;
+	public int jacobWheatCap = 265000;
 	@Slider(
 		name = "Sugar Cane Cap", category = FAILSAFE, subcategory = "Jacob",
 		description = "The sugar cane cap",
-		min = 0, max = 1000000, step = 10000
+		min = 10000, max = 1000000, step = 10000
 	)
-	public int jacobSugarCaneCap = 400000;
+	public int jacobSugarCaneCap = 575000;
 	@Slider(
 		name = "Mushroom Cap", category = FAILSAFE, subcategory = "Jacob",
 		description = "The mushroom cap",
-		min = 0, max = 1000000, step = 10000
+		min = 10000, max = 1000000, step = 10000
 	)
-	public int jacobMushroomCap = 200000;
+	public int jacobMushroomCap = 250000;
 	@Slider(
 		name = "Melon Cap", category = FAILSAFE, subcategory = "Jacob",
 		description = "The melon cap",
-		min = 0, max = 1000000, step = 10000
+		min = 10000, max = 1000000, step = 10000
 	)
-	public int jacobMelonCap = 400000;
+	public int jacobMelonCap = 1234000;
 	@Slider(
-		name = "Pumpkin Cap", category = FAILSAFE, subcategory = "Jacob",
-		description = "The pumpkin cap",
-		min = 0, max = 1000000, step = 10000
+			name = "Pumpkin Cap", category = FAILSAFE, subcategory = "Jacob",
+			description = "The pumpkin cap",
+			min = 10000, max = 1000000, step = 10000
 	)
-	public int jacobPumpkinCap = 400000;
+	public int jacobPumpkinCap = 240000;
+	@Slider(
+			name = "Cocoa Beans Cap", category = FAILSAFE, subcategory = "Jacob",
+			description = "The cocoa beans cap",
+			min = 10000, max = 1000000, step = 10000
+	)
+	public int jacobCocoaBeansCap = 725000;
+	@Slider(
+			name = "Cactus Beans Cap", category = FAILSAFE, subcategory = "Jacob",
+			description = "The cactus cap",
+			min = 10000, max = 1000000, step = 10000
+	)
+	public int jacobCactusCap = 470000;
 
 	// END JACOB
 
@@ -835,7 +847,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	// START EXPERIMENTAL
 	@Switch(
-			name = "Fast Break (DANGEROUS)", category = EXPERIMENTAL, subcategory = "Experimental",
+			name = "Enable Fast Break (DANGEROUS)", category = EXPERIMENTAL, subcategory = "Experimental",
 			description = "Fast break is very risky and most likely will result in a ban"
 	)
 	public boolean fastBreak = false;
@@ -870,60 +882,60 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("VerticalMacroType", "Macro Type", () -> (!this.macroType && !MacroHandler.isMacroing));
 		this.addDependency("SShapeMacroType", "Macro Type", () -> (this.macroType && !MacroHandler.isMacroing));
 
-		this.addDependency("rotateAfterDrop", "Rotate After Drop", () -> (this.macroType && !MacroHandler.isMacroing));
-		this.addDependency("ladderDesign", "Ladder Design", () -> (!this.macroType && !MacroHandler.isMacroing));
+		this.addDependency("rotateAfterDrop", "Vertical Macro Type", () -> (this.macroType && !MacroHandler.isMacroing));
+		this.addDependency("ladderDesign", "S Shape Macro Type", () -> (!this.macroType && !MacroHandler.isMacroing));
 
-		this.addDependency("holdLeftClickWhenChangingRow", "S Shape Macro Type", () -> this.macroType);
-        this.addDependency("fastBreakSpeed", "Fast Break", () -> this.fastBreak);
+		this.addDependency("holdLeftClickWhenChangingRow", "macroType");
+		this.addDependency("fastBreakSpeed", "fastBreak");
 
-		this.addDependency("sellToNPC", "Enable Auto Sell", () -> this.enableAutoSell);
-		this.addDependency("inventoryFullTime", "Sell to NPC", () -> this.enableAutoSell);
-		this.addDependency("inventoryFullRatio", "Sell to NPC", () -> this.enableAutoSell);
+		this.addDependency("sellToNPC", "enableAutoSell");
+		this.addDependency("inventoryFullTime", "enableAutoSell");
+		this.addDependency("inventoryFullRatio", "enableAutoSell");
 
-		this.addDependency("failsafeSoundSelected", "Enable Failsafe Trigger Sound", () -> this.enableFailsafeSound);
-		this.addDependency("_playFailsafeSoundButton", "Enable Failsafe Trigger Sound", () -> this.enableFailsafeSound);
-		this.addDependency("failsafeSoundVolume", "Enable Failsafe Trigger Sound", () -> this.enableFailsafeSound);
+		this.addDependency("failsafeSoundSelected", "enableFailsafeSound");
+		this.addDependency("_playFailsafeSoundButton", "enableFailsafeSound");
+		this.addDependency("failsafeSoundVolume", "enableFailsafeSound");
 
-		this.addDependency("schedulerFarmingTime", "Enable Scheduler", () -> this.enableScheduler);
-		this.addDependency("schedulerFarmingTimeRandomness", "Enable Scheduler", () -> this.enableScheduler);
-		this.addDependency("schedulerBreakTime", "Enable Scheduler", () -> this.enableScheduler);
-		this.addDependency("schedulerBreakTimeRandomness", "Enable Scheduler", () -> this.enableScheduler);
+		this.addDependency("schedulerFarmingTime", "enableScheduler");
+		this.addDependency("schedulerFarmingTimeRandomness", "enableScheduler");
+		this.addDependency("schedulerBreakTime", "enableScheduler");
+		this.addDependency("schedulerBreakTimeRandomness", "enableScheduler");
 
-		this.addDependency("jacobNetherWartCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
-		this.addDependency("jacobPotatoCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
-		this.addDependency("jacobCarrotCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
-		this.addDependency("jacobWheatCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
-		this.addDependency("jacobSugarCaneCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
-		this.addDependency("jacobMushroomCap", "Enable Jacob Failsafes", () -> this.enableJacobFailsafes);
+		this.addDependency("jacobNetherWartCap", "enableJacobFailsafes");
+		this.addDependency("jacobPotatoCap", "enableJacobFailsafes");
+		this.addDependency("jacobCarrotCap", "enableJacobFailsafes");
+		this.addDependency("jacobWheatCap", "enableJacobFailsafes");
+		this.addDependency("jacobSugarCaneCap", "enableJacobFailsafes");
+		this.addDependency("jacobMushroomCap", "enableJacobFailsafes");
 
-		this.addDependency("onlyAcceptProfitableVisitors", "Enable Visitors Macro",() -> this.visitorsMacro);
-		this.addDependency("visitorsMacroCoinsThreshold", "Enable Visitors Macro",() -> this.visitorsMacro);
-		this.addDependency("pauseWhenInContests", "Enable Visitors Macro",() -> this.visitorsMacro);
+		this.addDependency("onlyAcceptProfitableVisitors", "visitorsMacro");
+		this.addDependency("visitorsMacroCoinsThreshold", "visitorsMacro");
+		this.addDependency("pauseWhenInContests", "visitorsMacro");
 
-		this.addDependency("sendLogs", "Enable webhook messages",() -> this.enableWebHook);
-		this.addDependency("sendStatusUpdates", "Enable webhook messages",() -> this.enableWebHook);
-		this.addDependency("statusUpdateInterval", "Enable webhook messages",() -> this.enableWebHook);
-		this.addDependency("webHookURL", "Enable webhook messages",() -> this.enableWebHook);
-		this.addDependency("_applyWebhook", "Enable webhook messages",() -> this.enableWebHook);
+		this.addDependency("sendLogs", "enableWebHook");
+		this.addDependency("sendStatusUpdates", "enableWebHook");
+		this.addDependency("statusUpdateInterval", "enableWebHook");
+		this.addDependency("webHookURL", "enableWebHook");
+		this.addDependency("_applyWebhook", "enableWebHook");
 
-		this.addDependency("webSocketIP", "Enable Remote Control",() -> this.enableRemoteControl);
-		this.addDependency("webSocketPassword", "Enable Remote Control",() -> this.enableRemoteControl);
+		this.addDependency("webSocketIP", "enableRemoteControl");
+		this.addDependency("webSocketPassword", "enableRemoteControl");
 
-		this.addDependency("restartAfterFailSafeDelay", "Enable Restart After FailSafe",() -> this.enableRestartAfterFailSafe);
-		this.addDependency("enableLeaveOnBanwave", "Enable Banwave Checker",() -> this.banwaveCheckerEnabled);
-		this.addDependency("banwaveThreshold", "Enable Leave On Banwave",() -> this.enableLeaveOnBanwave);
-		this.addDependency("delayBeforeReconnecting", "Enable Leave On Banwave",() -> this.enableLeaveOnBanwave);
+		this.addDependency("restartAfterFailSafeDelay", "enableRestartAfterFailSafe");
+		this.addDependency("enableLeaveOnBanwave", "banwaveCheckerEnabled");
+		this.addDependency("banwaveThreshold", "enableLeaveOnBanwave");
+		this.addDependency("delayBeforeReconnecting", "enableLeaveOnBanwave");
 
-		this.addDependency("setSpawnBeforeEvacuate", "Enable Auto Set Spawn",() -> this.enableAutoSetSpawn);
-		this.addDependency("autoSetSpawnMinDelay", "Enable Auto Set Spawn",() -> this.enableAutoSetSpawn);
-		this.addDependency("autoSetSpawnMaxDelay", "Enable Auto Set Spawn",() -> this.enableAutoSetSpawn);
+		this.addDependency("setSpawnBeforeEvacuate", "enableAutoSetSpawn");
+		this.addDependency("autoSetSpawnMinDelay", "enableAutoSetSpawn");
+		this.addDependency("autoSetSpawnMaxDelay", "enableAutoSetSpawn");
 
-		this.addDependency("SpawnPosX","Debug mode", () -> this.debugMode);
-		this.addDependency("SpawnPosY","Debug mode", () -> this.debugMode);
-		this.addDependency("SpawnPosZ","Debug mode", () -> this.debugMode);
-		this.addDependency("_setSpawnPos","Debug mode", () -> this.debugMode);
-		this.addDependency("_resetSpawnPos","Debug mode", () -> this.debugMode);
-		this.addDependency("isSpawnpointSet", () -> this.debugMode);
+		this.addDependency("SpawnPosX", "debugMode");
+		this.addDependency("SpawnPosY", "debugMode");
+		this.addDependency("SpawnPosZ", "debugMode");
+		this.addDependency("_setSpawnPos", "debugMode");
+		this.addDependency("_resetSpawnPos", "debugMode");
+		this.addDependency("isSpawnpointSet", "debugMode");
 		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
 		save();
 	}

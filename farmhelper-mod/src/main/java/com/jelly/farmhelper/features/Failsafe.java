@@ -325,6 +325,10 @@ public class Failsafe {
                 return gameState.jacobCounter > FarmHelper.config.jacobMelonCap;
             } else if (cleanedLine.contains("Pumpkin")) {
                 return gameState.jacobCounter > FarmHelper.config.jacobPumpkinCap;
+            } else if (cleanedLine.contains("Cocoa") || cleanedLine.contains("Bean")) {
+                return gameState.jacobCounter > FarmHelper.config.jacobCocoaBeansCap;
+            } else if (cleanedLine.contains("Cactus")) {
+                return gameState.jacobCounter > FarmHelper.config.jacobCactusCap;
             }
         }
         return false;
