@@ -12,11 +12,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static com.jelly.farmhelper.features.Failsafe.emergency;
+
 @Mixin(SoundManager.class)
 public class MixinSoundManager {
     @Inject(method = "getNormalizedVolume", at = @At("RETURN"), cancellable = true)
     private void getNormalizedVolume(ISound sound, SoundPoolEntry soundPoolEntry, SoundCategory category, CallbackInfoReturnable<Float> ci) {
-        if(Utils.pingAlertPlaying && category == SoundCategory.PLAYERS) return;
+        if(emergency) return;
         if(MacroHandler.isMacroing && FarmHelper.config.muteTheGame) {
             ci.setReturnValue(0.0f);
         }
