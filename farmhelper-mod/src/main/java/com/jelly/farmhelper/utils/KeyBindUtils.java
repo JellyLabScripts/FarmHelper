@@ -94,15 +94,26 @@ public class KeyBindUtils
     }
 
     public static void stopMovement() {
+        stopMovement(false);
+    }
+
+    public static void stopMovement(boolean ignoreAttack) {
         KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindForward.getKeyCode(), false);
         KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindBack.getKeyCode(), false);
         KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindRight.getKeyCode(), false);
         KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindLeft.getKeyCode(), false);
-        KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindAttack.getKeyCode(), false);
+        if (!ignoreAttack) {
+            KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindAttack.getKeyCode(), false);
+        }
         KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindSneak.getKeyCode(), false);
         KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindJump.getKeyCode(), false);
         KeyBinding.setKeyBindState(KeyBindUtils.mc.gameSettings.keyBindSprint.getKeyCode(), false);
     }
 
-
+    public static void holdThese(KeyBinding ...keyBinding) {
+        for (KeyBinding key : keyBinding) {
+            if (key != null)
+                KeyBinding.setKeyBindState(key.getKeyCode(), true);
+        }
+    }
 }

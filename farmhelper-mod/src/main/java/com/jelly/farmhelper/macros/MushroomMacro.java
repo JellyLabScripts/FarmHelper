@@ -49,8 +49,8 @@ public class MushroomMacro extends Macro {
         lastTp.reset();
         waitForChangeDirection.reset();
         waitBetweenTp.reset();
-        if (FarmHelper.config.dontChangePitch) {
-            pitch = mc.thePlayer.rotationPitch;
+        if (FarmHelper.config.customPitch) {
+            pitch = FarmHelper.config.customPitchLevel;
         } else {
             pitch = (float) (Math.random() * 2 - 1); // -1 - 1
         }
@@ -102,7 +102,7 @@ public class MushroomMacro extends Macro {
         }
     }
 
-    private void triggerWarpGarden() {
+    public void triggerWarpGarden() {
         KeyBindUtils.stopMovement();
         if (waitForChangeDirection.isScheduled() && beforeTeleportationPos == null) {
             waitForChangeDirection.reset();

@@ -16,6 +16,7 @@ public class Antistuck {
     public static boolean stuck;
     private static double lastX;
     private static double lastZ;
+    private static double lastY;
     public static final Clock cooldown = new Clock();
 
     @SubscribeEvent
@@ -23,10 +24,11 @@ public class Antistuck {
         if(event.phase == TickEvent.Phase.END)
             return;
 
-        //TODO: Add for garden!
         if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled || mc.thePlayer == null || mc.theWorld == null || FarmHelper.gameState.currentLocation != GameState.location.ISLAND) {
             lastX = 10000;
             lastZ = 10000;
+            lastY = 10000;
+            stuck = false;
             cooldown.reset();
             return;
         }
@@ -34,9 +36,10 @@ public class Antistuck {
             return;
         if (cooldown.passed()) {
             Block blockIn = BlockUtils.getRelativeBlock(0, 0, 0);
-            stuck = (!blockIn.equals(Blocks.end_portal_frame) && !BlockUtils.isWalkable(blockIn)) || (Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1);
+            stuck = (!blockIn.equals(Blocks.end_portal_frame) && !BlockUtils.isWalkable(blockIn)) || (Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1 && Math.abs(mc.thePlayer.posY - lastY) < 1);
             lastX = mc.thePlayer.posX;
             lastZ = mc.thePlayer.posZ;
+            lastY = mc.thePlayer.posY;
             cooldown.schedule(3000);
         }
     }

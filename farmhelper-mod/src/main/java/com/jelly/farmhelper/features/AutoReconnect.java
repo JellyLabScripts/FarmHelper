@@ -35,6 +35,10 @@ public class AutoReconnect {
         if(!Failsafe.jacobWait.passed() && FarmHelper.config.enableJacobFailsafes)
             return;
         if ((mc.currentScreen instanceof GuiDisconnected)) {
+            if (Failsafe.emergency) {
+                Failsafe.emergency = false;
+                Failsafe.restartAfterFailsafeCooldown.reset();
+            }
             if (waitTime >= (FarmHelper.config.delayBeforeReconnecting * 20)) {
                 waitTime = 0;
                 try {

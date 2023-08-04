@@ -78,8 +78,8 @@ public class SShapeCropMacro extends Macro {
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
         CropUtils.getTool();
-        if (FarmHelper.config.dontChangePitch) {
-            pitch = mc.thePlayer.rotationPitch;
+        if (FarmHelper.config.customPitch) {
+            pitch = FarmHelper.config.customPitchLevel;
         } else {
             if (crop == CropEnum.NETHER_WART || crop == CropEnum.CACTUS) {
                 pitch = (float) (0f + Math.random() * 0.5f);
@@ -500,7 +500,8 @@ public class SShapeCropMacro extends Macro {
         }
     }
 
-    private void triggerWarpGarden() {
+    @Override
+    public void triggerWarpGarden() {
         KeyBindUtils.stopMovement();
         if (waitForChangeDirection.isScheduled() && beforeTeleportationPos == null) {
             waitForChangeDirection.reset();

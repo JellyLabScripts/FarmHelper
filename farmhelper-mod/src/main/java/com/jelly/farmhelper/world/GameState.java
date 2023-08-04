@@ -4,10 +4,7 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config.SMacroEnum;
 import com.jelly.farmhelper.macros.MushroomMacro;
 import com.jelly.farmhelper.network.DiscordWebhook;
-import com.jelly.farmhelper.utils.BlockUtils;
-import com.jelly.farmhelper.utils.Clock;
-import com.jelly.farmhelper.utils.LogUtils;
-import com.jelly.farmhelper.utils.ScoreboardUtils;
+import com.jelly.farmhelper.utils.*;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
@@ -40,7 +37,6 @@ public class GameState {
     public EffectState godPot;
 
     public location currentLocation = location.ISLAND;
-    public Clock teleporting = new Clock();
     public boolean wasInGarden = false;
 
     private static final Pattern PATTERN_ACTIVE_EFFECTS = Pattern.compile(
@@ -50,6 +46,9 @@ public class GameState {
     public boolean rightWalkable;
     public boolean backWalkable;
     public boolean leftWalkable;
+    private final Timer notMovingTimer = new Timer();
+    private long randomValueToWait = (long) (Math.random() * (FarmHelper.config.maxTimeBetweenChangingRows - FarmHelper.config.minTimeBetweenChangingRows) + FarmHelper.config.minTimeBetweenChangingRows);;
+
     public String serverIP;
 
     public double dx;
@@ -83,13 +82,42 @@ public class GameState {
             }
         }
         checkFooter();
-            updateWalkables();
+        updateWalkables();
         dx = Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX);
         dz = Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ);
         dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
         blockInPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
         blockStandingOn = mc.theWorld.getBlockState(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1, mc.thePlayer.posZ)).getBlock();
         jacobCounter = getJacobCounter();
+        if (dx < 0.1 && dz < 0.1 && dy < 0.1) {
+            if (hasPassedSinceStopped()) {
+                notMovingTimer.reset();
+            }
+        } else {
+            if (!notMovingTimer.isScheduled())
+                randomValueToWait = (long) (Math.random() * (FarmHelper.config.maxTimeBetweenChangingRows - FarmHelper.config.minTimeBetweenChangingRows) + FarmHelper.config.minTimeBetweenChangingRows);
+            notMovingTimer.schedule();
+        }
+    }
+
+    public long howLongSinceStopped() {
+        return System.currentTimeMillis() - notMovingTimer.startedAt;
+    }
+
+    public boolean hasPassedSinceStopped() {
+        return notMovingTimer.hasPassed(randomValueToWait);
+    }
+
+    public boolean canChangeDirection() {
+        return !notMovingTimer.isScheduled();
+    }
+
+    public void scheduleNotMoving() {
+        notMovingTimer.schedule();
+    }
+
+    public void newRandomValueToWait() {
+        randomValueToWait = (long) (Math.random() * (FarmHelper.config.maxTimeBetweenChangingRows - FarmHelper.config.minTimeBetweenChangingRows) + FarmHelper.config.minTimeBetweenChangingRows);
     }
 
     private location getLocation() {
@@ -151,9 +179,9 @@ public class GameState {
 
     private void updateWalkables() {
         float yaw = (FarmHelper.config.macroType && (FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal())) ? MushroomMacro.closest90Yaw : mc.thePlayer.rotationYaw;
-        frontWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 0, 1, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 1, 1, yaw)));
+        frontWalkable = (BlockUtils.isSwitchWalkable(BlockUtils.getRelativeBlock(0, 0, 1, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 1, 1, yaw)));
         rightWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 0, 0, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 1, 0, yaw)));
-        backWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 0, -1, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 1, -1, yaw)));
+        backWalkable = (BlockUtils.isSwitchWalkable(BlockUtils.getRelativeBlock(0, 0, -1, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 1, -1, yaw)));
         leftWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 0, 0, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 1, 0, yaw)));
     }
 

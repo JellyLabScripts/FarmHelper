@@ -145,10 +145,17 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public boolean autoUngrabMouse = true;
 
 	@Switch(
-		name = "Don't change pitch", category = GENERAL, subcategory = "Macro",
-		description = "Don't change pitch after starting the macro"
+		name = "Custom pitch", category = GENERAL, subcategory = "Macro",
+		description = "Set pitch to custom level after starting the macro"
 	)
-	public boolean dontChangePitch = false;
+	public boolean customPitch = false;
+
+	@Number(
+		name = "Custom pitch level", category = GENERAL, subcategory = "Macro",
+		description = "Set custom pitch level after starting the macro",
+		min = -90, max = 90
+	)
+	public int customPitchLevel = 0;
 
 	@Switch(
 	name = "Go back with Ladders", category = GENERAL, subcategory = "Macro",
@@ -178,6 +185,18 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 
 	public OneKeyBind openGuiKeybind = new OneKeyBind(Keyboard.KEY_F);
+
+	@Slider(
+			name = "Minimum time between changing rows", category = GENERAL, subcategory = "Delays",
+			description = "The minimum time to wait before changing rows (in milliseconds)", min = 300, max = 2000
+	)
+	public float minTimeBetweenChangingRows = 300f;
+
+	@Slider(
+			name = "Maximum time between changing rows", category = GENERAL, subcategory = "Delays",
+			description = "The maximum time to wait before changing rows (in milliseconds)", min = 300, max = 2000
+	)
+	public float maxTimeBetweenChangingRows = 700f;
 
 	@Switch(
 		name = "Highlight rewarp points", category = GENERAL, subcategory = "Rewarp",
@@ -936,6 +955,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("_setSpawnPos", "debugMode");
 		this.addDependency("_resetSpawnPos", "debugMode");
 		this.addDependency("isSpawnpointSet", "debugMode");
+		this.hideIf("customPitchLevel", () -> !this.customPitch);
 		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
 		save();
 	}

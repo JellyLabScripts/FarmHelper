@@ -50,8 +50,8 @@ public class SugarcaneMacro extends Macro {
     @Override
     public void onEnable() {
         yaw = AngleUtils.getClosestDiagonal();
-        if (FarmHelper.config.dontChangePitch) {
-            pitch = mc.thePlayer.rotationPitch;
+        if (FarmHelper.config.customPitch) {
+            pitch = FarmHelper.config.customPitchLevel;
         } else {
             pitch = 0;
         }
@@ -351,7 +351,7 @@ public class SugarcaneMacro extends Macro {
 
     }
 
-    private void triggerWarpGarden() {
+    public void triggerWarpGarden() {
         KeyBindUtils.stopMovement();
         if (waitForChangeDirection.isScheduled() && beforeTeleportationPos == null) {
             waitForChangeDirection.reset();

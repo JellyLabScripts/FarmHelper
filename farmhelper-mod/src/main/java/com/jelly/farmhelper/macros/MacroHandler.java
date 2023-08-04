@@ -38,7 +38,7 @@ public class MacroHandler {
     public static boolean isMacroing;
 
     public static SugarcaneMacro sugarcaneMacro = new SugarcaneMacro();
-    public static SShapeCropMacro sShapeCropMacro = new SShapeCropMacro();
+    public static SShapeCropMacroNew sShapeCropMacro = new SShapeCropMacroNew();
     public static VerticalCropMacro verticalCropMacro = new VerticalCropMacro();
     public static CocoaBeanMacro cocoaBeanMacro = new CocoaBeanMacro();
     public static CocoaBeanRGMacro cocoaBeanRGMacro = new CocoaBeanRGMacro();

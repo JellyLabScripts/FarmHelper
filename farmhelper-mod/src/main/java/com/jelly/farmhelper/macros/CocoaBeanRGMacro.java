@@ -47,8 +47,8 @@ public class CocoaBeanRGMacro extends Macro {
         Antistuck.stuck = false;
         MacroHandler.crop = Config.CropEnum.COCOA_BEANS;
         Antistuck.cooldown.schedule(1000);
-        if (FarmHelper.config.dontChangePitch) {
-            pitch = mc.thePlayer.rotationPitch;
+        if (FarmHelper.config.customPitch) {
+            pitch = FarmHelper.config.customPitchLevel;
         } else {
             pitch = -90f;
         }
@@ -242,7 +242,8 @@ public class CocoaBeanRGMacro extends Macro {
         }
     }
 
-    private void triggerWarpGarden() {
+
+    public void triggerWarpGarden() {
         KeyBindUtils.stopMovement();
         if (waitForChangeDirection.isScheduled() && beforeTeleportationPos == null) {
             waitForChangeDirection.reset();

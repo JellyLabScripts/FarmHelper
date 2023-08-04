@@ -5,11 +5,15 @@ import com.jelly.farmhelper.config.Config.VerticalMacroEnum;
 import com.jelly.farmhelper.config.Config.SMacroEnum;
 import com.jelly.farmhelper.config.Config.CropEnum
     ;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockDoor;
+import net.minecraft.block.BlockSlab;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
@@ -356,5 +360,42 @@ public class PlayerUtils {
                 ex2.printStackTrace();
             }
         }
+    }
+
+    public static boolean shouldWalkForwards() {
+        float angle = AngleUtils.getClosest();
+        double x = mc.thePlayer.posX % 1;
+        double z = mc.thePlayer.posZ % 1;
+        System.out.println(angle);
+        if (angle == 0) {
+            return (z > -0.9 && z < -0.35) || (z < 0.65 && z > 0.1);
+        } else if (angle == 90) {
+            return (x > -0.65 && x < -0.1) || (x < 0.9 && x > 0.35);
+        } else if (angle == 180) {
+            return (z > -0.65 && z < -0.1) || (z < 0.9 && z > 0.35);
+        } else if (angle == 270) {
+            return (x > -0.9 && x < -0.35) || (x < 0.65 && x > 0.1);
+        }
+        return false;
+    }
+
+    public static boolean shouldPushBack() {
+        float angle = AngleUtils.getClosest();
+        double x = mc.thePlayer.posX % 1;
+        double z = mc.thePlayer.posZ % 1;
+        System.out.println(angle);
+        Block blockBehind = BlockUtils.getRelativeBlock(0, 0, -1);
+        if (!(blockBehind.getMaterial().isSolid() || (blockBehind instanceof BlockSlab) || blockBehind.equals(Blocks.carpet) || (blockBehind instanceof BlockDoor)) || blockBehind.getMaterial().isLiquid())
+            return false;
+        if (angle == 0) {
+            return (z > -0.65 && z < -0.1) || (z < 0.9 && z > 0.35);
+        } else if (angle == 90) {
+            return (x > -0.9 && x < -0.35) || (x < 0.65 && x > 0.1);
+        } else if (angle == 180) {
+            return (z > -0.9 && z < -0.35) || (z < 0.65 && z > 0.1);
+        } else if (angle == 270) {
+            return (x > -0.65 && x < -0.1) || (x < 0.9 && x > 0.35);
+        }
+        return false;
     }
 }

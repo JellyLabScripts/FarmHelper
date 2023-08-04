@@ -61,8 +61,8 @@ public class VerticalCropMacro extends Macro{
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
 
-        if (FarmHelper.config.dontChangePitch) {
-            pitch = mc.thePlayer.rotationPitch;
+        if (FarmHelper.config.customPitch) {
+            pitch = FarmHelper.config.customPitchLevel;
         } else {
             switch(crop){
                 case SUGAR_CANE:
@@ -254,7 +254,7 @@ public class VerticalCropMacro extends Macro{
         }
     }
 
-    private void triggerWarpGarden() {
+    public void triggerWarpGarden() {
         KeyBindUtils.stopMovement();
         if (waitForChangeDirection.isScheduled() && beforeTeleportationPos == null) {
             waitForChangeDirection.reset();
