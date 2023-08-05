@@ -120,9 +120,10 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
         }
 
         if (Antistuck.stuck) {
-            if (!unstuckThread.isAlive()) {
+            if (!Antistuck.unstuckThreadIsRunning) {
+                Antistuck.unstuckThreadIsRunning = true;
                 LogUtils.debugLog("Stuck!");
-                unstuckThread.start();
+                new Thread(Antistuck.unstuckThread).start();
             } else {
                 LogUtils.debugLog("Unstuck thread is alive!");
             }
@@ -169,6 +170,15 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                 } else if (FarmHelper.gameState.backWalkable) {
                     prevState = changeState(State.SWITCHING_LANE);
                     changeLaneDirection = ChangeLaneDirection.BACKWARD;
+                } else {
+                    LogUtils.debugLog("Can't go forward or backward!");
+                    if (FarmHelper.gameState.leftWalkable) {
+                        prevState = changeState(State.LEFT);
+                    } else if (FarmHelper.gameState.rightWalkable) {
+                        prevState = changeState(State.RIGHT);
+                    } else {
+                        prevState = changeState(State.NONE);
+                    }
                 }
                 break;
             }

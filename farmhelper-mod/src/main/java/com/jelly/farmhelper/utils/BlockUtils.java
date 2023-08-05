@@ -1,11 +1,12 @@
 package com.jelly.farmhelper.utils;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.Config.VerticalMacroEnum;
 import com.jelly.farmhelper.config.Config.SMacroEnum;
-
 import com.jelly.farmhelper.macros.MushroomMacro;
-import net.minecraft.block.*;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockCarpet;
+import net.minecraft.block.BlockCrops;
+import net.minecraft.block.BlockNetherWart;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
@@ -22,7 +23,6 @@ import static com.jelly.farmhelper.utils.AngleUtils.get360RotationYaw;
 public class BlockUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final Block[] walkables = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs, Blocks.carpet, Blocks.stone_slab, Blocks.stone_slab2, Blocks.wooden_slab, Blocks.snow_layer, Blocks.trapdoor };
-    private static final Block[] switchLaneWalkables = { Blocks.air, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs, Blocks.carpet, Blocks.stone_slab, Blocks.stone_slab2, Blocks.wooden_slab, Blocks.snow_layer, Blocks.trapdoor };
     private static final Block[] walkablesMushroom = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs, Blocks.carpet, Blocks.stone_slab, Blocks.stone_slab2, Blocks.wooden_slab, Blocks.snow_layer, Blocks.trapdoor, Blocks.red_mushroom, Blocks.brown_mushroom };
     private static final Block[] walkablesCactus = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs, Blocks.snow_layer, Blocks.trapdoor };
 
@@ -163,20 +163,6 @@ public class BlockUtils {
             if (FarmHelper.config.SShapeMacroType == SMacroEnum.CACTUS.ordinal()) {
                 return Arrays.asList(walkablesCactus).contains(block);
             } else return Arrays.asList(walkables).contains(block);
-        }
-    }
-
-    public static boolean isSwitchWalkable(Block block) {
-        if (!FarmHelper.config.macroType) {
-            return Arrays.asList(switchLaneWalkables).contains(block);
-        } else {
-            if (FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal() ||
-                    FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal()) {
-                return Arrays.asList(walkablesMushroom).contains(block);
-            } else
-            if (FarmHelper.config.SShapeMacroType == SMacroEnum.CACTUS.ordinal()) {
-                return Arrays.asList(walkablesCactus).contains(block);
-            } else return Arrays.asList(switchLaneWalkables).contains(block);
         }
     }
 

@@ -108,6 +108,7 @@ public class MacroHandler {
     public final void tick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (mc.currentScreen != null) return;
 
 
         if (isMacroing) {

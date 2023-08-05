@@ -9,6 +9,7 @@ import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.utils.LogUtils;
+import com.jelly.farmhelper.utils.UngrabUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -20,32 +21,6 @@ public abstract class Macro<T> {
     public T currentState = null;
     public final Rotation rotation = new Rotation();
     public boolean rotated = false;
-
-    public final Thread unstuckThread = new Thread(() -> {
-        try {
-            KeyBindUtils.stopMovement();
-            Thread.sleep(20);
-            KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft);
-            Thread.sleep(500);
-            KeyBindUtils.stopMovement();
-            Thread.sleep(20);
-            KeyBindUtils.holdThese(mc.gameSettings.keyBindRight);
-            Thread.sleep(500);
-            KeyBindUtils.stopMovement();
-            Thread.sleep(20);
-            KeyBindUtils.holdThese(mc.gameSettings.keyBindForward);
-            Thread.sleep(500);
-            KeyBindUtils.stopMovement();
-            Thread.sleep(20);
-            KeyBindUtils.holdThese(mc.gameSettings.keyBindBack);
-            Thread.sleep(200);
-            KeyBindUtils.stopMovement();
-            Antistuck.stuck = false;
-            Antistuck.cooldown.schedule(3500);
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-    });
 
 
     public void toggle(boolean pause) {
@@ -96,16 +71,20 @@ public abstract class Macro<T> {
         beforeTeleportationPos = null;
         FarmHelper.gameState.newRandomValueToWait();
         FarmHelper.gameState.scheduleNotMoving();
+        Antistuck.cooldown.schedule(3500);
+        Antistuck.unstuckThreadIsRunning = false;
     }
 
     public void onDisable() {
         KeyBindUtils.stopMovement();
+        UngrabUtils.regrabMouse();
     }
 
     public void onTick() {
         checkForTeleport();
         if (isStandingOnRewarpLocation()) {
             triggerWarpGarden();
+            return;
         }
         if (!isRewarpLocationSet()) {
             LogUtils.scriptLog("Your rewarp position is not set!");

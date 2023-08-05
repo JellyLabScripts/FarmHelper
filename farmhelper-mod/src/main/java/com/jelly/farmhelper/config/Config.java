@@ -955,7 +955,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("_setSpawnPos", "debugMode");
 		this.addDependency("_resetSpawnPos", "debugMode");
 		this.addDependency("isSpawnpointSet", "debugMode");
-		this.hideIf("customPitchLevel", () -> !this.customPitch);
+		this.addDependency("customPitchLevel", "customPitch");
 		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
 		save();
 	}
