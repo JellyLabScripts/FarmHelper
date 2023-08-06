@@ -11,7 +11,6 @@ import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -36,8 +35,8 @@ public class PetSwapper { // Credits: osamabeinglagging, ducklett
         SELECT
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    void onTick(TickEvent.ClientTickEvent event) {
+    @SubscribeEvent
+    public void onTick(TickEvent.ClientTickEvent event) {
         if (!Config.enablePetSwapper) return;
         if (!MacroHandler.isMacroing) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;

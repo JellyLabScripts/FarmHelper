@@ -20,13 +20,13 @@ public class AutoReconnect {
 
     public static double waitTime = 0;
     private static final Clock cooldown = new Clock();
-    private enum State {
+    enum reconnectingState {
         NONE,
         JOINING_SKYBLOCK,
         JOINING_LOBBY,
         ENABLING_MACRO
     }
-    State currentState = State.NONE;
+    static reconnectingState currentState = reconnectingState.NONE;
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
@@ -55,7 +55,7 @@ public class AutoReconnect {
                 try {
                     FMLClientHandler.instance().connectToServer(new GuiMultiplayer(new GuiMainMenu()), new ServerData("bozo", FarmHelper.gameState.serverIP != null ? FarmHelper.gameState.serverIP : "mc.hypixel.net", false));
                     cooldown.schedule(1100);
-                    currentState = State.JOINING_LOBBY;
+                    currentState = reconnectingState.JOINING_LOBBY;
                 } catch (Exception e) {
                     e.printStackTrace();
                     System.out.println("Failed to reconnect to server!");
@@ -77,17 +77,16 @@ public class AutoReconnect {
                                     mc.thePlayer.sendChatMessage("/play sb");
                                 }
                             }
-                            currentState = State.JOINING_SKYBLOCK;
+                            currentState = reconnectingState.JOINING_SKYBLOCK;
                             cooldown.schedule(1100);
                             break;
                         case JOINING_SKYBLOCK:
-                            currentState = State.ENABLING_MACRO;
+                            currentState = reconnectingState.ENABLING_MACRO;
                             cooldown.schedule(1500);
                             break;
                         case ENABLING_MACRO:
-                            MacroHandler.enableMacro();
-                            currentState = State.NONE;
-                            MacroHandler.enableMacro();
+                            currentState = reconnectingState.NONE;
+                            MacroHandler.enableCurrentMacro();
                             break;
                     }
                 }

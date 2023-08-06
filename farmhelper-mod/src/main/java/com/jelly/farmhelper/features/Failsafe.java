@@ -136,6 +136,8 @@ public class Failsafe {
 
         if (!MacroHandler.isMacroing) return;
 
+        if (AutoReconnect.currentState != AutoReconnect.reconnectingState.NONE) return;
+
         if (!dirtToCheck.isEmpty()) {
             dirtToCheck.removeIf(pair -> pair.second() + 20_000 < System.currentTimeMillis());
 

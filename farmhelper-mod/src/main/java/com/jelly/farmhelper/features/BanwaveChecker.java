@@ -60,8 +60,8 @@ public class BanwaveChecker {
                                 PlayerUtils.setSpawn();
                             if (leaveTime.isScheduled() && leaveTime.passed()) {
                                 leaveTime.reset();
-                                MacroHandler.disableMacro();
                                 disconnectPlayerWithMessage("Disconnected due to banwave detected. Reconnecting when banwave is over.");
+                                this.mc.theWorld.sendQuittingDisconnectingPacket();
                             } else if (!leaveTime.isScheduled()) {
                                 leaveTime.schedule(3_000);
                             }
