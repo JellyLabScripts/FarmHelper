@@ -3,7 +3,6 @@ package com.jelly.farmhelper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.jelly.farmhelper.commands.FarmHelperCommand;
-import com.jelly.farmhelper.commands.MovRecCommand;
 import com.jelly.farmhelper.commands.RewarpCommand;
 import com.jelly.farmhelper.config.Config;
 
@@ -19,13 +18,10 @@ import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import org.lwjgl.opengl.Display;
 
 import java.io.IOException;
@@ -33,8 +29,6 @@ import java.net.URL;
 import java.util.Objects;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
-
-import static net.minecraftforge.fml.relauncher.Side.CLIENT;
 
 
 @Mod(modid = FarmHelper.MODID, name = FarmHelper.NAME, version = FarmHelper.VERSION)
