@@ -226,7 +226,7 @@ public class ProfitCalculator {
 
     @SubscribeEvent
     public void onTickUpdateBazaarPrices(TickEvent.ClientTickEvent event) {
-        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (mc.thePlayer == null || mc.theWorld == null || cantConnectToApi) return;
         if (updateBazaarClock.passed()) {
             updateBazaarClock.reset();
             updateBazaarClock.schedule(1000 * 60 * 5);
@@ -374,7 +374,7 @@ public class ProfitCalculator {
     public static void fetchBazaarPrices() {
         updateBazaarClock.reset();
         try {
-            JSONObject json = APIHelper.readJsonFromUrl("https://api.hypixel.net/skyblock/bazaar","User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
+            JSONObject json = APIHelper.readJsonFromUrl("http://api.hypixel.net/skyblock/bazaar","User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
             JSONObject json1 = (JSONObject) json.get("products");
 
             for (BazaarItem item : cropsToCount) {

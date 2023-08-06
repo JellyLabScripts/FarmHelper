@@ -37,12 +37,12 @@ public class MacroHandler {
     public static Macro currentMacro;
     public static boolean isMacroing;
 
-    public static SugarcaneMacro sugarcaneMacro = new SugarcaneMacro();
+    public static SugarcaneMacroNew sugarcaneMacro = new SugarcaneMacroNew();
     public static SShapeCropMacroNew sShapeCropMacro = new SShapeCropMacroNew();
     public static VerticalCropMacro verticalCropMacro = new VerticalCropMacro();
     public static CocoaBeanMacro cocoaBeanMacro = new CocoaBeanMacro();
     public static CocoaBeanRGMacro cocoaBeanRGMacro = new CocoaBeanRGMacro();
-    public static MushroomMacro mushroomMacro = new MushroomMacro();
+    public static MushroomMacroNew mushroomMacro = new MushroomMacroNew();
 
     private final Rotation rotation = new Rotation();
     public static long startTime = 0;
@@ -81,7 +81,7 @@ public class MacroHandler {
 
     @SubscribeEvent
     public void onOverlayRender(RenderGameOverlayEvent event) {
-        if (currentMacro != null && currentMacro.enabled && mc.thePlayer != null && mc.theWorld != null) {
+        if (currentMacro != null && mc.thePlayer != null && mc.theWorld != null) {
             currentMacro.onOverlayRender(event);
         }
     }

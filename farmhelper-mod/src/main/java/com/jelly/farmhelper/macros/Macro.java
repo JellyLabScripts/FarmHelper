@@ -5,22 +5,23 @@ import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Antistuck;
+import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
-import com.jelly.farmhelper.utils.Clock;
-import com.jelly.farmhelper.utils.KeyBindUtils;
-import com.jelly.farmhelper.utils.LogUtils;
-import com.jelly.farmhelper.utils.UngrabUtils;
+import com.jelly.farmhelper.utils.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 public abstract class Macro<T> {
-    public Minecraft mc = Minecraft.getMinecraft();
+    public static final Minecraft mc = Minecraft.getMinecraft();
     public boolean enabled = false;
     public boolean savedLastState = false;
     public T currentState = null;
     public final Rotation rotation = new Rotation();
     public boolean rotated = false;
+    public int layerY = 0;
+    public float yaw;
+    public float pitch;
 
 
     public void toggle(boolean pause) {
@@ -71,8 +72,12 @@ public abstract class Macro<T> {
         beforeTeleportationPos = null;
         FarmHelper.gameState.newRandomValueToWait();
         FarmHelper.gameState.scheduleNotMoving();
+        Antistuck.stuck = false;
         Antistuck.cooldown.schedule(3500);
         Antistuck.unstuckThreadIsRunning = false;
+        layerY = mc.thePlayer.getPosition().getY();
+        rotated = false;
+        rotation.reset();
     }
 
     public void onDisable() {
@@ -98,10 +103,45 @@ public abstract class Macro<T> {
         }
     }
 
+
     public void onChatMessageReceived(String msg) {
     }
 
+    double prevX = 0;
+    double prevZ = 0;
+    double prevY = 0;
+    double prevTime = 0;
+    double blocksPerSecond = 0;
+
     public void onOverlayRender(RenderGameOverlayEvent event) {
+        // Count moved blocks per second and display on screen
+        double deltaX = mc.thePlayer.posX - prevX;
+        double deltaY = mc.thePlayer.posY - prevY;
+        double deltaZ = mc.thePlayer.posZ - prevZ;
+
+        double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+
+        long currentTime = System.currentTimeMillis();
+        double elapsedTime = (currentTime - prevTime) / 1000.0; // Convert milliseconds to seconds
+
+        double speed = distance / elapsedTime;
+
+        if (elapsedTime > 0.1) {
+            prevX = mc.thePlayer.posX;
+            prevY = mc.thePlayer.posY;
+            prevZ = mc.thePlayer.posZ;
+            prevTime = currentTime;
+            blocksPerSecond = speed;
+        }
+
+        if (event.type == RenderGameOverlayEvent.ElementType.TEXT) {
+            String speedString = String.format("%.2f", blocksPerSecond);
+            String text = "Speed: " + speedString + " blocks/s";
+            int x = 2;
+            int y = 2;
+            int color = 0xffffff;
+            mc.fontRendererObj.drawString(text, x, y, color);
+        }
     }
 
     public void onPacketReceived(ReceivePacketEvent event) {
@@ -188,5 +228,44 @@ public abstract class Macro<T> {
         LogUtils.debugLog("Changing state from " + currentState + " to " + newState);
         currentState = newState;
         return newState;
+    }
+
+    public void checkForRotationAfterTp() {
+        // Check for rotation after teleporting back to spawn point
+        if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && !rotated) {
+            yaw = AngleUtils.getClosest(yaw);
+            if (FarmHelper.config.rotateAfterWarped)
+                yaw = AngleUtils.get360RotationYaw(yaw + 180);
+            if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
+                rotation.easeTo(yaw, pitch, (long) (500 + Math.random() * 200));
+                rotated = true;
+            }
+        }
+    }
+
+    public void checkForRotationFailsafe() {
+        // Check for rotation check failsafe
+        boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FarmHelper.config.rotationCheckSensitivity
+                || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity;
+
+        if(!Failsafe.emergency && flag && lastTp.passed() && !rotation.rotating) {
+            rotation.reset();
+            Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
+            return;
+        }
+    }
+
+    public boolean isStuck() {
+        if (Antistuck.stuck) {
+            if (!Antistuck.unstuckThreadIsRunning) {
+                Antistuck.unstuckThreadIsRunning = true;
+                LogUtils.debugLog("Stuck!");
+                new Thread(Antistuck.unstuckThread).start();
+            } else {
+                LogUtils.debugLog("Unstuck thread is alive!");
+            }
+            return true;
+        }
+        return false;
     }
 }

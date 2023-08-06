@@ -14,6 +14,15 @@ public class AngleUtils {
     public static float get360RotationYaw(float yaw) {
         return (yaw % 360 + 360) % 360;
     }
+    public static float normalizeAngle(float angle) {
+        while (angle > 180) {
+            angle -= 360;
+        }
+        while (angle <= -180) {
+            angle += 360;
+        }
+        return angle;
+    }
 
     public static float get360RotationYaw() {
         return get360RotationYaw(mc.thePlayer.rotationYaw);

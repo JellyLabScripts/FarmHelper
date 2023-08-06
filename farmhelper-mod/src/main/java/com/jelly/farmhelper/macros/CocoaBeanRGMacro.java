@@ -16,7 +16,6 @@ import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class CocoaBeanRGMacro extends Macro {
-    private static final Minecraft mc = Minecraft.getMinecraft();
 
     enum State {
         SWITCH_ROW,

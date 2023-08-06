@@ -5,6 +5,8 @@ import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.client.Minecraft;
 import org.apache.commons.lang3.tuple.MutablePair;
 
+import static cc.polyfrost.oneconfig.libs.universal.UMath.wrapAngleTo180;
+
 // Inspired by Apfelsaft, no steal clueless
 public class Rotation {
     private final static Minecraft mc = Minecraft.getMinecraft();
@@ -25,9 +27,18 @@ public class Rotation {
         endTime = System.currentTimeMillis() + time;
         start.setLeft(mc.thePlayer.rotationYaw);
         start.setRight(mc.thePlayer.rotationPitch);
-        target.setLeft(AngleUtils.getActualYawFrom360(yaw));
-        target.setRight(pitch);
+        MutablePair<Float, Float> neededChange = getNeededChange(start, new MutablePair<>(yaw, pitch));
+        target.setLeft(start.left + neededChange.left);
+        target.setRight(start.right + neededChange.right);
         getDifference();
+    }
+
+    public static MutablePair<Float, Float> getNeededChange(MutablePair<Float, Float> startRot, MutablePair<Float, Float> endRot) {
+        float yawDiff = (float) (wrapAngleTo180(endRot.getLeft()) - wrapAngleTo180(startRot.getLeft()));
+
+        yawDiff = AngleUtils.normalizeAngle(yawDiff);
+
+        return new MutablePair<>(yawDiff, endRot.getRight() - startRot.right);
     }
 
     public void lockAngle(float yaw, float pitch) {
@@ -37,23 +48,26 @@ public class Rotation {
 
     public void update() {
         if (System.currentTimeMillis() <= endTime) {
-            if (shouldRotateClockwise()) {
-                mc.thePlayer.rotationYaw = start.left + interpolate(difference.left);
-            } else {
-                mc.thePlayer.rotationYaw = start.left - interpolate(difference.left);
-            }
-            mc.thePlayer.rotationPitch = start.right + interpolate(difference.right);
+//            if (shouldRotateClockwise()) {
+//                mc.thePlayer.rotationYaw = start.left + interpolate(difference.left);
+//            } else {
+//                mc.thePlayer.rotationYaw = start.left - interpolate(difference.left);
+//            }
+            mc.thePlayer.rotationYaw = interpolate(start.getLeft(), target.getLeft());
+            mc.thePlayer.rotationPitch = interpolate(start.getRight(), target.getRight());
         }
         else if (!completed) {
-            if (shouldRotateClockwise()) {
-                LogUtils.debugLog("Rotation final st - " + start.left + ", " + mc.thePlayer.rotationYaw);
-                mc.thePlayer.rotationYaw = target.left;
-                LogUtils.debugLog("Rotation final - " + start.left + difference.left);
-            } else {
-                mc.thePlayer.rotationYaw = target.left;
-                LogUtils.debugLog("Rotation final - " + (start.left - difference.left));
-            }
-            mc.thePlayer.rotationPitch = start.right + difference.right;
+//            if (shouldRotateClockwise()) {
+//                LogUtils.debugLog("Rotation final st - " + start.left + ", " + mc.thePlayer.rotationYaw);
+//                mc.thePlayer.rotationYaw = target.left;
+//                LogUtils.debugLog("Rotation final - " + start.left + difference.left);
+//            } else {
+//                mc.thePlayer.rotationYaw = target.left;
+//                LogUtils.debugLog("Rotation final - " + (start.left - difference.left));
+//            }
+            mc.thePlayer.rotationYaw = target.left;
+            mc.thePlayer.rotationPitch = target.right;
+//            mc.thePlayer.rotationPitch = start.right + difference.right;
             completed = true;
             rotating = false;
         }
@@ -73,14 +87,22 @@ public class Rotation {
         difference.setRight(target.right - start.right);
     }
 
-    private float interpolate(float difference) {
-        final float spentMillis = System.currentTimeMillis() - startTime;
-        final float relativeProgress = spentMillis / (endTime - startTime);
-        return (difference) * easeOutSine(relativeProgress);
+//    private float interpolate(float difference) {
+//        final float spentMillis = System.currentTimeMillis() - startTime;
+//        final float relativeProgress = spentMillis / (endTime - startTime);
+//        return (difference) * easeOutSine(relativeProgress);
+//    }
+//
+//    private float easeOutCubic(double number) {
+//        return (float)(1.0 - Math.pow(1.0 - number, 3.0));
+//    }
+
+    private float interpolate(float start, float end) {
+        return (end - start) * easeOutCubic((float) (System.currentTimeMillis() - startTime) / (endTime - startTime)) + start;
     }
 
-    private float easeOutCubic(double number) {
-        return (float)(1.0 - Math.pow(1.0 - number, 3.0));
+    public float easeOutCubic(double number) {
+        return (float) Math.max(0, Math.min(1, 1 - Math.pow(1 - number, 3)));
     }
 
     private float easeOutSine(double number) {

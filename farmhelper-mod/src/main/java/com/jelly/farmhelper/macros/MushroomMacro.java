@@ -18,7 +18,6 @@ import static com.jelly.farmhelper.utils.KeyBindUtils.stopMovement;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class MushroomMacro extends Macro {
-    private static final Minecraft mc = Minecraft.getMinecraft();
 
     enum State {
         LEFT,

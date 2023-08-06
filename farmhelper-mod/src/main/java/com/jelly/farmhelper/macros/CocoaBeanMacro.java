@@ -17,7 +17,6 @@ import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class CocoaBeanMacro extends Macro {
-    private static final Minecraft mc = Minecraft.getMinecraft();
 
     enum State {
         DROPPING,

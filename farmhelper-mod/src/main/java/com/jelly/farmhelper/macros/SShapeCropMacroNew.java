@@ -2,16 +2,13 @@ package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config;
-import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.utils.*;
-import net.minecraft.client.Minecraft;
 
 import static com.jelly.farmhelper.utils.BlockUtils.*;
 import static com.jelly.farmhelper.utils.BlockUtils.isWalkable;
 
 public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
-    private static final Minecraft mc = Minecraft.getMinecraft();
 
     public enum State {
         LEFT,
@@ -28,14 +25,11 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
 
     public ChangeLaneDirection changeLaneDirection = null;
     public State prevState;
-    private float yaw;
-    private float pitch;
 
     @Override
     public void onEnable() {
         super.onEnable();
         currentState = State.NONE;
-        rotated = false;
         prevState = State.NONE;
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
@@ -84,15 +78,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
         }
 
         // Check for rotation after teleporting back to spawn point
-        if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && !rotated) {
-            yaw = AngleUtils.getClosest(yaw);
-            if (FarmHelper.config.rotateAfterWarped)
-                yaw = AngleUtils.get360RotationYaw(yaw + 180);
-            if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
-                rotation.easeTo(yaw, pitch, (long) (500 + Math.random() * 200));
-                rotated = true;
-            }
-        }
+        checkForRotationAfterTp();
 
         // Don't do anything if macro is after teleportation for few seconds
         if (lastTp.isScheduled() && !lastTp.passed()) {
@@ -109,24 +95,9 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
 
         LogUtils.debugFullLog("Current state: " + currentState);
 
-        // Check for rotation check failsafe
-        boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FarmHelper.config.rotationCheckSensitivity
-                || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity;
+        checkForRotationFailsafe();
 
-        if(!Failsafe.emergency && flag && lastTp.passed() && !rotation.rotating) {
-            rotation.reset();
-            Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
-            return;
-        }
-
-        if (Antistuck.stuck) {
-            if (!Antistuck.unstuckThreadIsRunning) {
-                Antistuck.unstuckThreadIsRunning = true;
-                LogUtils.debugLog("Stuck!");
-                new Thread(Antistuck.unstuckThread).start();
-            } else {
-                LogUtils.debugLog("Unstuck thread is alive!");
-            }
+        if (isStuck()) {
             return;
         }
 
@@ -192,22 +163,22 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
             }
             case DROPPING: {
                 LogUtils.debugLog("On Ground: " + mc.thePlayer.onGround);
-                if (mc.thePlayer.onGround) {
-                    if (FarmHelper.config.rotateAfterDrop) {
+                if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) > 1.5) {
+                    if (FarmHelper.config.rotateAfterDrop && !rotation.rotating) {
                         LogUtils.debugLog("Rotating 180");
                         rotation.reset();
-                        yaw = AngleUtils.get360RotationYaw(yaw + 180);
-                        rotation.easeTo(yaw, pitch, (long) (300 + Math.random() * 500));
+                        yaw = yaw + 180;
+                        rotation.easeTo(yaw, pitch, (long) (400 + Math.random() * 300));
                         rotated = false;
                         KeyBindUtils.stopMovement();
-                        return;
                     }
                     if (FarmHelper.gameState.rightWalkable) {
                         prevState = changeState(State.RIGHT);
                     } else if (FarmHelper.gameState.leftWalkable) {
                         prevState = changeState(State.LEFT);
                     }
-                } else {
+                    layerY = mc.thePlayer.getPosition().getY();
+                } else  {
                     FarmHelper.gameState.scheduleNotMoving();
                 }
                 break;
@@ -252,7 +223,11 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                 }
                 break;
             case DROPPING:
-//                KeyBindUtils.stopMovement();
+                if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) <= 1.5) {
+                    LogUtils.debugLog("Dropping done, but didn't drop high enough to rotate!");
+                    layerY = mc.thePlayer.getPosition().getY();
+                    prevState = changeState(State.NONE);
+                }
                 break;
             case NONE:
                 break;

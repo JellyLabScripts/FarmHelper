@@ -739,61 +739,61 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	@Slider(
 		name = "Nether Wart Cap", category = FAILSAFE, subcategory = "Jacob",
 		description = "The nether wart cap",
-		min = 10000, max = 1000000, step = 10000
+		min = 10000, max = 2000000, step = 10000
 	)
 	public int jacobNetherWartCap = 800000;
 	@Slider(
 		name = "Potato Cap", category = FAILSAFE, subcategory = "Jacob",
 		description = "The potato cap",
-		min = 10000, max = 1000000, step = 10000
+		min = 10000, max = 2000000, step = 10000
 	)
 	public int jacobPotatoCap = 830000;
 	@Slider(
 		name = "Carrot Cap", category = FAILSAFE, subcategory = "Jacob",
 		description = "The carrot cap",
-		min = 10000, max = 1000000, step = 10000
+		min = 10000, max = 2000000, step = 10000
 	)
 	public int jacobCarrotCap = 860000;
 	@Slider(
 		name = "Wheat Cap", category = FAILSAFE, subcategory = "Jacob",
 		description = "The wheat cap",
-		min = 10000, max = 1000000
+		min = 10000, max = 2000000
 	)
 	public int jacobWheatCap = 265000;
 	@Slider(
 		name = "Sugar Cane Cap", category = FAILSAFE, subcategory = "Jacob",
 		description = "The sugar cane cap",
-		min = 10000, max = 1000000, step = 10000
+		min = 10000, max = 2000000, step = 10000
 	)
 	public int jacobSugarCaneCap = 575000;
 	@Slider(
 		name = "Mushroom Cap", category = FAILSAFE, subcategory = "Jacob",
 		description = "The mushroom cap",
-		min = 10000, max = 1000000, step = 10000
+		min = 10000, max = 2000000, step = 10000
 	)
 	public int jacobMushroomCap = 250000;
 	@Slider(
 		name = "Melon Cap", category = FAILSAFE, subcategory = "Jacob",
 		description = "The melon cap",
-		min = 10000, max = 1000000, step = 10000
+		min = 10000, max = 2000000, step = 10000
 	)
 	public int jacobMelonCap = 1234000;
 	@Slider(
 			name = "Pumpkin Cap", category = FAILSAFE, subcategory = "Jacob",
 			description = "The pumpkin cap",
-			min = 10000, max = 1000000, step = 10000
+			min = 10000, max = 2000000, step = 10000
 	)
 	public int jacobPumpkinCap = 240000;
 	@Slider(
 			name = "Cocoa Beans Cap", category = FAILSAFE, subcategory = "Jacob",
 			description = "The cocoa beans cap",
-			min = 10000, max = 1000000, step = 10000
+			min = 10000, max = 2000000, step = 10000
 	)
 	public int jacobCocoaBeansCap = 725000;
 	@Slider(
 			name = "Cactus Beans Cap", category = FAILSAFE, subcategory = "Jacob",
 			description = "The cactus cap",
-			min = 10000, max = 1000000, step = 10000
+			min = 10000, max = 2000000, step = 10000
 	)
 	public int jacobCactusCap = 470000;
 
