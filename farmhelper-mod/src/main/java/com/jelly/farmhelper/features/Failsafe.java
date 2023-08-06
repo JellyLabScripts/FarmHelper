@@ -229,7 +229,8 @@ public class Failsafe {
                         && !evacuateCooldown.isScheduled()
                         && !afterEvacuateCooldown.isScheduled()
                         && !restartAfterFailsafeCooldown.isScheduled()
-                        && !VisitorsMacro.isEnabled()) {
+                        && !VisitorsMacro.isEnabled()
+                        && !PetSwapper.enabled) {
 
                     LogUtils.debugLog("Resuming macro");
                     MacroHandler.enableCurrentMacro();

@@ -331,7 +331,22 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		mc.thePlayer.closeScreen();
 		Autosell.enable();
 	};
-
+	@Switch(
+			name = "Swap Pet", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Swaps pet to the selected pet during Jacob's contest. Selects the first one from the pet list."
+	)
+	public static boolean enablePetSwapper = false;
+	@Slider(
+			name = "Pet Swap Delay", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "The delay between clicking GUI during swapping the pet (in milliseconds)",
+			min = 200, max = 3000
+	)
+	public static int petSwapperDelay = 1000;
+	@Text(
+			name = "Pet Name", placeholder = "Mushroom Cow", secure = false, multiline = false,
+			category = MISCELLANEOUS, subcategory = "Miscellaneous"
+	)
+	public static String petSwapperName = null;
 	@Switch(
 		name = "Increase Cocoa Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
 		description = "Allows you to farm cocoa beans more efficient on higher speeds by making the hitboxes bigger"
@@ -911,6 +926,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("inventoryFullTime", "enableAutoSell");
 		this.addDependency("inventoryFullRatio", "enableAutoSell");
 
+		this.addDependency("petSwapperName", "enablePetSwapper");
+		this.addDependency("petSwapperDelay", "enablePetSwapper");
+
 		this.addDependency("failsafeSoundSelected", "enableFailsafeSound");
 		this.addDependency("_playFailsafeSoundButton", "enableFailsafeSound");
 		this.addDependency("failsafeSoundVolume", "enableFailsafeSound");
@@ -926,6 +944,10 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("jacobWheatCap", "enableJacobFailsafes");
 		this.addDependency("jacobSugarCaneCap", "enableJacobFailsafes");
 		this.addDependency("jacobMushroomCap", "enableJacobFailsafes");
+		this.addDependency("jacobMelonCap", "enableJacobFailsafes");
+		this.addDependency("jacobPumpkinCap", "enableJacobFailsafes");
+		this.addDependency("jacobCocoaBeansCap", "enableJacobFailsafes");
+		this.addDependency("jacobCactusCap", "enableJacobFailsafes");
 
 		this.addDependency("onlyAcceptProfitableVisitors", "visitorsMacro");
 		this.addDependency("visitorsMacroCoinsThreshold", "visitorsMacro");

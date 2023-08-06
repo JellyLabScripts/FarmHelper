@@ -5,8 +5,11 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
+import com.jelly.farmhelper.utils.PacketDisconnect;
 import com.jelly.farmhelper.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IChatComponent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.json.simple.JSONObject;
@@ -50,14 +53,15 @@ public class BanwaveChecker {
 
                     if(MacroHandler.isMacroing && FarmHelper.config.enableLeaveOnBanwave) {
                         if (banwaveOn && mc.theWorld != null && !Failsafe.emergency) {
-                            LogUtils.webhookLog("Disconnecting due to banwave detected");
+                            LogUtils.webhookLog("Disconnecting in 3 seconds due to banwave detected.");
 
                             MacroHandler.disableCurrentMacro();
                             if (FarmHelper.config.setSpawnBeforeEvacuate)
                                 PlayerUtils.setSpawn();
                             if (leaveTime.isScheduled() && leaveTime.passed()) {
                                 leaveTime.reset();
-                                this.mc.theWorld.sendQuittingDisconnectingPacket();
+                                MacroHandler.disableMacro();
+                                disconnectPlayerWithMessage("Disconnected due to banwave detected. Reconnecting when banwave is over.");
                             } else if (!leaveTime.isScheduled()) {
                                 leaveTime.schedule(3_000);
                             }
@@ -82,5 +86,8 @@ public class BanwaveChecker {
     public static String getBanDisplay(){
         return getBanTimeDiff() > 0 ? "Staff ban in last " + getBanTimeDiff() + " minutes: " + getBanDiff() : "Staff ban: Collecting data...";
     }
-
+    public void disconnectPlayerWithMessage(String message) {
+        IChatComponent disconnectReason = new ChatComponentText(message);
+        Minecraft.getMinecraft().getNetHandler().getNetworkManager().closeChannel(disconnectReason);
+    }
 }
