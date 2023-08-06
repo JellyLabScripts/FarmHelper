@@ -10,6 +10,7 @@ import cc.polyfrost.oneconfig.config.data.OptionSize;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.features.Autosell;
+import com.jelly.farmhelper.features.PetSwapper;
 import com.jelly.farmhelper.hud.ProfitCalculatorHUD;
 import com.jelly.farmhelper.hud.StatusHUD;
 import com.jelly.farmhelper.macros.MacroHandler;
@@ -335,18 +336,18 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			name = "Swap Pet", category = MISCELLANEOUS, subcategory = "Miscellaneous",
 			description = "Swaps pet to the selected pet during Jacob's contest. Selects the first one from the pet list."
 	)
-	public static boolean enablePetSwapper = false;
+	public boolean enablePetSwapper = false;
 	@Slider(
 			name = "Pet Swap Delay", category = MISCELLANEOUS, subcategory = "Miscellaneous",
 			description = "The delay between clicking GUI during swapping the pet (in milliseconds)",
 			min = 200, max = 3000
 	)
-	public static int petSwapperDelay = 1000;
+	public int petSwapperDelay = 1000;
 	@Text(
 			name = "Pet Name", placeholder = "Mushroom Cow", secure = false, multiline = false,
 			category = MISCELLANEOUS, subcategory = "Miscellaneous"
 	)
-	public static String petSwapperName = null;
+	public String petSwapperName = null;
 	@Switch(
 		name = "Increase Cocoa Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
 		description = "Allows you to farm cocoa beans more efficient on higher speeds by making the hitboxes bigger"
@@ -816,6 +817,16 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	// START DEBUG
 
+//	@KeyBind(
+//			name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
+//	)
+//	public OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_H);
+//
+//	@KeyBind(
+//			name = "Debug Keybind 2", category = DEBUG, subcategory = "Debug"
+//	)
+//	public OneKeyBind debugKeybind2 = new OneKeyBind(Keyboard.KEY_J);
+
 	@HUD(
 		name = "Farm Helper Status", category = DEBUG, subcategory = "HUD"
 	)
@@ -979,6 +990,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("isSpawnpointSet", "debugMode");
 		this.addDependency("customPitchLevel", "customPitch");
 		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
+//		registerKeyBind(debugKeybind, () -> FarmHelper.petSwapper.startMacro(false));
+//		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
 		save();
 	}
 }

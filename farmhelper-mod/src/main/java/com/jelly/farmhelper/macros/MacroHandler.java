@@ -203,7 +203,7 @@ public class MacroHandler {
     }
 
     public static void enableCurrentMacro() {
-        if (!currentMacro.enabled && !startingUp) {
+        if (currentMacro != null && !currentMacro.enabled && !startingUp) {
             mc.inGameHasFocus = true;
             mc.displayGuiScreen(null);
             startingUp = true;

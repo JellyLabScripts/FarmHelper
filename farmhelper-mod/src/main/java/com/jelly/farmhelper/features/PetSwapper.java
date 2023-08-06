@@ -1,13 +1,13 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.Clock;
+import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.PlayerUtils;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiChest;
+import net.minecraft.inventory.ContainerChest;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -15,112 +15,136 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.List;
-
-import static com.jelly.farmhelper.utils.LogUtils.debugLog;
-
 public class PetSwapper { // Credits: osamabeinglagging, ducklett
 
     final static Minecraft mc = Minecraft.getMinecraft();
     static boolean enabled = false;
     static State currentState = State.NONE;
     static Clock delay = new Clock();
-    private static String expectedPetName = null;
-    static int expectedPetSlot = -1;
-    static final int nextPageSlot = 53;
-    static String defaultPet = null;
+    static String previousPet = null;
+    private boolean getPreviousPet = false;
     enum State {
         NONE,
         STARTING,
-        FIND,
-        SELECT
+        FIND_PREVIOUS,
+        FIND_NEW,
+        WAITING_FOR_SPAWN
     }
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
-        if (!Config.enablePetSwapper) return;
-        if (!MacroHandler.isMacroing) return;
+        if (!FarmHelper.config.enablePetSwapper) return;
+//        if (!MacroHandler.isMacroing) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
         if (Failsafe.emergency) return;
         if (!enabled) return;
         if (delay.isScheduled() && !delay.passed()) return;
-        if (!MacroHandler.isMacroing) {
-            if (defaultPet != null) {
-                stopMacro(false);
-                MacroHandler.crop = null;
-            }
-            return;
-        }
-        if (MacroHandler.crop == null) return;
-
-        if (!enabled) {
-            // change to specific pet
-            if (expectedPetName != null) startMacro();
-            if (VisitorsMacro.inJacobContest() && defaultPet == null) {
-                debugLog("Changing pet to: " + Config.petSwapperName);
-                expectedPetName = Config.petSwapperName;
-                delay.schedule(Config.petSwapperDelay);
-                return;
-            } else if (!VisitorsMacro.inJacobContest() && defaultPet != null) {
-                debugLog("Changing pet to the default one");
-                expectedPetName = defaultPet;
-                defaultPet = null;
-                delay.schedule(Config.petSwapperDelay);
-                return;
-            } else {
-                return;
-            }
-        }
 
         switch (currentState) {
             case STARTING:
-                debugLog("Pet swapper: starting"); // ty tom
+                if (mc.currentScreen != null) return;
+                LogUtils.debugLog("Pet swapper: starting"); // ty tom
                 mc.thePlayer.sendChatMessage("/pets");
-                currentState = State.FIND;
-                delay.schedule(Config.petSwapperDelay);
+                if (previousPet != null && !previousPet.isEmpty() && !getPreviousPet) {
+                    currentState = State.FIND_NEW;
+                } else {
+                    currentState = State.FIND_PREVIOUS;
+                }
+                delay.schedule(FarmHelper.config.petSwapperDelay);
                 break;
-            case FIND:
-                debugLog("Pet swapper: waiting for pets menu");
-                if (mc.currentScreen instanceof GuiChest) {
-                    debugLog("Pet swapper: in pets menu");
-                    List < ItemStack > inventory = mc.thePlayer.openContainer.getInventory();
-
-                    if (defaultPet == null) {
-                        defaultPet = PlayerUtils.matchFromString("pet: (.*?) Click", "hide pets");
-                        if (defaultPet == null) defaultPet = "none";
-                        debugLog("Pet swapper: equipped (default) pet: " + defaultPet);
-                        // stop if default pet is equipped
-                        if (defaultPet != null && defaultPet.toLowerCase().contains(expectedPetName)) {
-                            debugLog("Pet is already equipped!");
-                            mc.thePlayer.closeScreen();
-                            stopMacro(VisitorsMacro.inJacobContest());
+            case FIND_PREVIOUS:
+                LogUtils.debugLog("Pet swapper: waiting for pets menu");
+                if (!(mc.thePlayer.openContainer instanceof ContainerChest)) return;
+                List<ItemStack> inventory = mc.thePlayer.openContainer.getInventory();
+                for (ItemStack itemStack : inventory) {
+                    if (itemStack == null) continue;
+                    List<String> petLore = PlayerUtils.getItemLore(itemStack);
+                    String petName = StringUtils.stripControlCodes(itemStack.getDisplayName());
+                    if (petName.contains("]")) {
+                        petName = petName.substring(petName.indexOf("]") + 2);
+                    }
+                    if (getPreviousPet) {
+                        if (petName.toLowerCase().trim().contains(previousPet.toLowerCase())) {
+                            LogUtils.debugLog("Pet swapper: found previous pet: " + petName);
+                            PlayerUtils.clickOpenContainerSlot(PlayerUtils.getSlotFromGui(petName));
+                            currentState = State.WAITING_FOR_SPAWN;
+                            delay.schedule(FarmHelper.config.petSwapperDelay);
                             return;
                         }
-                    }
-
-                    expectedPetSlot = PlayerUtils.getSlotFromGui(expectedPetName);
-                    debugLog("Pet swapper: expected pet name: " + expectedPetName);
-                    debugLog("Pet swapper: expected pet slot: " + expectedPetSlot);
-                    if (expectedPetSlot == -1) {
-                        if (inventory.get(nextPageSlot) != null && inventory.get(nextPageSlot).getDisplayName().toLowerCase().contains("page")) {
-                            PlayerUtils.clickOpenContainerSlot(nextPageSlot);
-                            delay.schedule(Config.petSwapperDelay);
-                        } else {
-                            debugLog("Pet swapper: pet not found!");
-                            stopMacro(VisitorsMacro.inJacobContest());
+                        if (petName.toLowerCase().contains("next page")) {
+                            PlayerUtils.clickOpenContainerSlot(PlayerUtils.getSlotFromGui("next page"));
+                            delay.schedule(FarmHelper.config.petSwapperDelay);
+                            return;
                         }
-                    } else {
-                        currentState = State.SELECT;
-                        delay.schedule(Config.petSwapperDelay);
+                        continue;
+                    }
+                    if (petLore.stream().anyMatch(s -> s.toLowerCase().contains("click to despawn"))) {
+                        if (petName.toLowerCase().trim().contains(FarmHelper.config.petSwapperName.toLowerCase())) {
+                            LogUtils.scriptLog("Current pet is already the one we want");
+                            stopMacro();
+                            mc.thePlayer.closeScreen();
+                            FarmHelper.config.enablePetSwapper = false;
+                            return;
+                        }
+                        previousPet = petName.toLowerCase().trim();
+                        LogUtils.debugLog("Pet swapper: previous pet: " + previousPet);
+                        currentState = State.FIND_NEW;
+                        delay.schedule(FarmHelper.config.petSwapperDelay);
+                        mc.thePlayer.closeScreen();
+                        mc.thePlayer.sendChatMessage("/pets");
+                        break;
+                    }
+                    if (petName.toLowerCase().contains("next page")) {
+                        PlayerUtils.clickOpenContainerSlot(PlayerUtils.getSlotFromGui("next page"));
+                        delay.schedule(FarmHelper.config.petSwapperDelay);
+                        return;
                     }
                 }
+                if (previousPet == null) {
+                    LogUtils.scriptLog("Pet swapper: no previous pet found");
+                    stopMacro();
+                    mc.thePlayer.closeScreen();
+                    FarmHelper.config.enablePetSwapper = false;
+                    return;
+                }
                 break;
-            case SELECT:
-                PlayerUtils.clickOpenContainerSlot(expectedPetSlot);
-                delay.schedule(Config.petSwapperDelay);
+            case FIND_NEW:
+                LogUtils.debugLog("Pet swapper: waiting for pets menu");
+                if (!(mc.thePlayer.openContainer instanceof ContainerChest)) return;
+                inventory = mc.thePlayer.openContainer.getInventory();
+
+                for (ItemStack itemStack : inventory) {
+                    if (itemStack == null) continue;
+                    String petName = StringUtils.stripControlCodes(itemStack.getDisplayName());
+                    if (petName.contains("]")) {
+                        petName = petName.substring(petName.indexOf("]") + 2);
+                    }
+                    if (petName.toLowerCase().trim().contains(FarmHelper.config.petSwapperName.toLowerCase())) {
+                        LogUtils.debugLog("Pet swapper: found new pet: " + petName);
+                        PlayerUtils.clickOpenContainerSlot(PlayerUtils.getSlotFromGui(petName));
+                        currentState = State.WAITING_FOR_SPAWN;
+                        delay.schedule(FarmHelper.config.petSwapperDelay);
+                        return;
+                    }
+                    if (petName.toLowerCase().contains("next page")) {
+                        PlayerUtils.clickOpenContainerSlot(PlayerUtils.getSlotFromGui("next page"));
+                        delay.schedule(FarmHelper.config.petSwapperDelay);
+                        return;
+                    }
+                }
+
+                LogUtils.scriptLog("Pet swapper: no new pet found");
+                stopMacro();
+                mc.thePlayer.closeScreen();
+                FarmHelper.config.enablePetSwapper = false;
+
+                break;
+            case WAITING_FOR_SPAWN:
                 break;
             case NONE:
-                stopMacro(VisitorsMacro.inJacobContest());
+                stopMacro();
+                break;
         }
     }
 
@@ -128,34 +152,30 @@ public class PetSwapper { // Credits: osamabeinglagging, ducklett
     void onChatMsgReceive(ClientChatReceivedEvent event) {
         if (event.type != 0) return;
         String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());
-        if (msg.toLowerCase().contains("you summoned your " + expectedPetName.toLowerCase())) {
+        String respawnMessage = "you summoned your " + (getPreviousPet ? previousPet : FarmHelper.config.petSwapperName).toLowerCase();
+        if (msg.toLowerCase().contains(respawnMessage)) {
             currentState = State.NONE;
+            LogUtils.debugLog("Pet swapper: pet spawned");
             delay.schedule(1000);
-            debugLog("Pet swapper: pet spawned");
         }
     }
 
-    private static void startMacro() {
-        debugLog("Disabling macro and enabling petswapper");
+    public void startMacro(boolean getPreviousPet) {
+        LogUtils.debugLog("Disabling macro and enabling petswapper");
         MacroHandler.disableCurrentMacro(true);
         currentState = State.STARTING;
         enabled = true;
+        this.getPreviousPet = getPreviousPet;
     }
 
-    private static void stopMacro(boolean saveState) {
-        debugLog("Disabling petswapper and enabling macro");
+    public static void stopMacro() {
+        LogUtils.debugLog("Disabling petswapper and enabling macro");
         MacroHandler.enableCurrentMacro();
         reset();
-        if (saveState) {
-            return;
-        }
-        defaultPet = null;
     }
 
     private static void reset() {
         currentState = State.NONE;
         enabled = false;
-        expectedPetSlot = -1;
-        expectedPetName = null;
     }
 }
