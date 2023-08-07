@@ -148,6 +148,18 @@ public class PetSwapper { // Credits: osamabeinglagging, ducklett
         }
     }
 
+    @SubscribeEvent
+    public void onChatMsgReceive(ClientChatReceivedEvent event) {
+        if (event.type != 0) return;
+        String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        String respawnMessage = "you summoned your " + (getPreviousPet ? previousPet : FarmHelper.config.petSwapperName).toLowerCase();
+        if (msg.toLowerCase().contains(respawnMessage)) {
+            currentState = State.NONE;
+            LogUtils.debugLog("Pet swapper: pet spawned");
+            delay.schedule(1000);
+        }
+    }
+
     public void startMacro(boolean getPreviousPet) {
         LogUtils.debugLog("Disabling macro and enabling petswapper");
         MacroHandler.disableCurrentMacro(true);
