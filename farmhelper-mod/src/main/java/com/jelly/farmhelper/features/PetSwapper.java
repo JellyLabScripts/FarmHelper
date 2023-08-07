@@ -149,7 +149,7 @@ public class PetSwapper { // Credits: osamabeinglagging, ducklett
     }
 
     @SubscribeEvent
-    void onChatMsgReceive(ClientChatReceivedEvent event) {
+    public void onChatMsgReceive(ClientChatReceivedEvent event) {
         if (event.type != 0) return;
         String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());
         String respawnMessage = "you summoned your " + (getPreviousPet ? previousPet : FarmHelper.config.petSwapperName).toLowerCase();
