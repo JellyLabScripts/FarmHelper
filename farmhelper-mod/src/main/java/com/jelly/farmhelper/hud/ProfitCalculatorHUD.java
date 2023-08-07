@@ -12,14 +12,13 @@ import cc.polyfrost.oneconfig.hud.BasicHud;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.world.GameState;
+import net.minecraft.util.Tuple;
 
 import java.awt.*;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ProfitCalculatorHUD extends BasicHud {
-    protected transient LinkedHashMap<String, String> lines = new LinkedHashMap<String, String>();
+    protected transient ArrayList<Tuple<String, String>> lines = new ArrayList<>();
     protected transient float width = 0;
     public ProfitCalculatorHUD() {
         super(true, 0f, 0f, 3.5f, true, true, 1, 0, 0, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
@@ -52,8 +51,8 @@ public class ProfitCalculatorHUD extends BasicHud {
 
             addLines();
 
-            for (HashMap.Entry<String, String> line : lines.entrySet()) {
-                drawLine(vg ,line.getKey(), line.getValue(), textX, textY, scale);
+            for (Tuple<String, String> line : lines) {
+                drawLine(vg ,line.getFirst(), line.getSecond(), textX, textY, scale);
                 textY += 5 * scale;
             }
         });
@@ -79,8 +78,8 @@ public class ProfitCalculatorHUD extends BasicHud {
         String longestLine = "";
         int maxLength = 0;
 
-        for (Map.Entry<String, String> entry : lines.entrySet()) {
-            String lineText = entry.getKey();
+        for (Tuple<String, String> entry : lines) {
+            String lineText = entry.getFirst();
             if(lineText.length() > maxLength) {
                 longestLine = lineText;
                 maxLength = lineText.length();
@@ -105,13 +104,18 @@ public class ProfitCalculatorHUD extends BasicHud {
     public void addLines() {
         lines.clear();
 
-        lines.put(ProfitCalculator.profit, "/assets/farmhelper/textures/gui/profit.png");
-        lines.put(ProfitCalculator.profitHr, "/assets/farmhelper/textures/gui/profithr.png");
-        lines.put(ProfitCalculator.blocksPerSecond, "/assets/farmhelper/textures/gui/bps.png");
-        lines.put(ProfitCalculator.runtime, "/assets/farmhelper/textures/gui/runtime.png");
-        for (Map.Entry<String, ProfitCalculator.BazaarItem> entry : ProfitCalculator.ListCropsToShow.entrySet()) {
-            if (lines.get(entry.getValue().currentAmount + "") == null) lines.put(entry.getValue().currentAmount + "", entry.getValue().imageURL);
-            else lines.put(entry.getValue().currentAmount + " ", entry.getValue().imageURL); // this is very tricky...
+        lines.add(new Tuple<>(ProfitCalculator.profit, "/assets/farmhelper/textures/gui/profit.png"));
+        lines.add(new Tuple<>(ProfitCalculator.profitHr, "/assets/farmhelper/textures/gui/profithr.png"));
+        lines.add(new Tuple<>(ProfitCalculator.blocksPerSecond, "/assets/farmhelper/textures/gui/bps.png"));
+        lines.add(new Tuple<>(ProfitCalculator.runtime, "/assets/farmhelper/textures/gui/runtime.png"));
+        HashMap<String, ProfitCalculator.BazaarItem> linesCopy = new HashMap<>(ProfitCalculator.ListCropsToShow);
+        LinkedHashMap<String, ProfitCalculator.BazaarItem> sorted = new LinkedHashMap<>();
+        linesCopy.entrySet()
+                .stream()
+                .sorted(Comparator.comparingDouble(e -> -e.getValue().currentAmount))
+                .forEachOrdered(x -> sorted.put(x.getKey(), x.getValue()));
+        for (Map.Entry<String, ProfitCalculator.BazaarItem> entry : sorted.entrySet()) {
+            lines.add(new Tuple<>(String.format("%,.2f", entry.getValue().currentAmount), entry.getValue().imageURL));
         }
     }
 }

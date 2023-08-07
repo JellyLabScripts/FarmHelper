@@ -5,8 +5,6 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config.SMacroEnum;
 import com.jelly.farmhelper.config.Config.VerticalMacroEnum;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 //import com.jelly.farmhelper.config.enums.MacroEnum;
 //import com.jelly.farmhelper.config.interfaces.FarmConfig;
 //import com.jelly.farmhelper.config.interfaces.MiscConfig;
@@ -26,12 +24,16 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ProfitCalculator {
 
@@ -44,8 +46,7 @@ public class ProfitCalculator {
     public static String profitHr = "$0";
     public static String runtime = "0h 0m 0s";
     public static String blocksPerSecond = "0 BPS";
-    public static Multimap<String, DroppedItem> itemsDropped = ArrayListMultimap.create();
-//    public static final LinkedHashMap<String, String> listDropToShow = new LinkedHashMap<String, String>();
+    public static HashMap<String, Integer> itemsDropped = new HashMap<>();
     public static final LinkedHashMap<String, BazaarItem> ListCropsToShow = new LinkedHashMap<String, BazaarItem>();
 
     private static boolean cantConnectToApi = false;
@@ -53,13 +54,13 @@ public class ProfitCalculator {
     public static final List<BazaarItem> cropsToCount = new ArrayList<BazaarItem>() {{
         add(new BazaarItem("Hay Bale", "ENCHANTED_HAY_BLOCK", HAY_ENCHANTED_TIER_1, 54).setImage());
         add(new BazaarItem("Seeds", "ENCHANTED_SEEDS", ENCHANTED_TIER_1, 3).setImage());
-        add(new BazaarItem("Carrot", "ENCHANTED_CARROT", ENCHANTED_TIER_1, 4).setImage());
-        add(new BazaarItem("Potato", "ENCHANTED_POTATO", ENCHANTED_TIER_1, 4).setImage());
+        add(new BazaarItem("Carrot", "ENCHANTED_CARROT", ENCHANTED_TIER_1, 3).setImage());
+        add(new BazaarItem("Potato", "ENCHANTED_POTATO", ENCHANTED_TIER_1, 3).setImage());
         add(new BazaarItem("Melon", "ENCHANTED_MELON_BLOCK", ENCHANTED_TIER_2, 2).setImage());
         add(new BazaarItem("Pumpkin", "ENCHANTED_PUMPKIN", ENCHANTED_TIER_2, 10).setImage());
-        add(new BazaarItem("Sugar Cane", "ENCHANTED_SUGAR_CANE", ENCHANTED_TIER_2, 5).setImage());
+        add(new BazaarItem("Sugar Cane", "ENCHANTED_SUGAR_CANE", ENCHANTED_TIER_2, 4).setImage());
         add(new BazaarItem("Cocoa Beans", "ENCHANTED_COCOA", ENCHANTED_TIER_1, 3).setImage());
-        add(new BazaarItem("Nether Wart", "MUTANT_NETHER_STALK", ENCHANTED_TIER_2, 5).setImage());
+        add(new BazaarItem("Nether Wart", "MUTANT_NETHER_STALK", ENCHANTED_TIER_2, 4).setImage());
         add(new BazaarItem("Cactus Green", "ENCHANTED_CACTUS", ENCHANTED_TIER_2, 3).setImage());
         add(new BazaarItem("Red Mushroom", "ENCHANTED_RED_MUSHROOM", ENCHANTED_TIER_1, 10).setImage());
         add(new BazaarItem("Brown Mushroom", "ENCHANTED_BROWN_MUSHROOM", ENCHANTED_TIER_1, 10).setImage());
@@ -96,50 +97,60 @@ public class ProfitCalculator {
             long totalProfit = 0;
             long totalProfitBasedOnConditions = 0;
 
-            for (DroppedItem item : itemsDropped.values()) {
-                if (item.amount < 0) continue;
-                if (bazaarPrices.containsKey(StringUtils.stripControlCodes(item.name))) {
-                    Optional<BazaarItem> isCrop = cropsToCount.stream().filter(crop -> StringUtils.stripControlCodes(item.name).equalsIgnoreCase(crop.localizedName)).findFirst();
+            HashMap<String, Integer> copiedItemsDropped = new HashMap<>(itemsDropped);
+
+            for (Map.Entry<String, Integer> entry : copiedItemsDropped.entrySet()) {
+                String name = entry.getKey();
+                Integer amount = entry.getValue();
+                if (amount < 0) continue;
+                System.out.println(name + " " + amount);
+                if (bazaarPrices.containsKey(StringUtils.stripControlCodes(name))) {
+                    Optional<BazaarItem> isCrop = cropsToCount.stream().filter(crop -> StringUtils.stripControlCodes(name).equalsIgnoreCase(crop.localizedName)).findFirst();
                     if (isCrop.isPresent()) {
                         BazaarItem crop = isCrop.get();
                         double price = bazaarPrices.get(crop.localizedName);
-                        totalProfit += price * (item.amount * 1.0f / crop.amountToEnchanted);
-                        totalProfitBasedOnConditions += price * (item.amount * 1.0f / crop.amountToEnchanted);
-                        crop.currentAmount = (int)(item.amount * 1.0F / crop.amountToEnchanted);
-
-                        ListCropsToShow.putIfAbsent(item.name, crop);
-                        ListCropsToShow.put(item.name, crop);
+                        totalProfit += ((long) (price * (amount * 1.0f / crop.amountToEnchanted)));
+                        totalProfitBasedOnConditions += ((long) (price * (amount * 1.0f / crop.amountToEnchanted)));
+                        crop.currentAmount = (amount * 1.0F / crop.amountToEnchanted);
+                        ListCropsToShow.putIfAbsent(name, crop);
+                        ListCropsToShow.put(name, crop);
                     } else {
-                        Optional<BazaarItem> isArmor = rngDropToCount.stream().filter(armor -> StringUtils.stripControlCodes(item.name).equalsIgnoreCase(armor.localizedName)).findFirst();
-                        if (isArmor.isPresent()) {
-                            double price = bazaarPrices.get(isArmor.get().localizedName);
-                            totalProfit += price * item.amount * 1.0f;
-                            if (FarmHelper.config.countRNGToProfitCalc) {
-                                totalProfitBasedOnConditions += price * item.amount * 1.0f;
-                            }
-
-                            isArmor.get().currentAmount = item.amount;
-                            ListCropsToShow.putIfAbsent(item.name, isArmor.get());
-                            ListCropsToShow.put(item.name, isArmor.get());
+                        Optional<BazaarItem> isRngDrop = rngDropToCount.stream().filter(rngDrop -> StringUtils.stripControlCodes(name).equalsIgnoreCase(rngDrop.localizedName)).findFirst();
+                        if (isRngDrop.isPresent()) {
+                            BazaarItem rngDrop = isRngDrop.get();
+                            double price = bazaarPrices.get(rngDrop.localizedName);
+                            totalProfit += ((long) (price * (amount * 1.0f / rngDrop.amountToEnchanted)));
+                            rngDrop.currentAmount = (amount * 1.0F / rngDrop.amountToEnchanted);
+                            ListCropsToShow.putIfAbsent(name, rngDrop);
+                            ListCropsToShow.put(name, rngDrop);
                         }
                     }
                 } else if (cantConnectToApi) {
-                    Optional<BazaarItem> optional = cropsToCount.stream().filter(bzItem -> bzItem.localizedName.equals(StringUtils.stripControlCodes(item.name))).findAny();
-                    if (optional.isPresent()) {
-                        double price = optional.get().npcPrice * item.amount;
-                        totalProfit += price;
-                        totalProfitBasedOnConditions += price;
-                        optional.get().currentAmount = (int)Math.floor(item.amount * 1.0F / optional.get().amountToEnchanted);
-
-                        ListCropsToShow.putIfAbsent(item.name, optional.get());
-                        ListCropsToShow.put(item.name, optional.get());
+                    Optional<BazaarItem> isCrop = cropsToCount.stream().filter(crop -> StringUtils.stripControlCodes(name).equalsIgnoreCase(crop.localizedName)).findFirst();
+                    if (isCrop.isPresent()) {
+                        BazaarItem crop = isCrop.get();
+                        totalProfit += ((long) (crop.npcPrice * (amount * 1.0f / crop.amountToEnchanted)));
+                        totalProfitBasedOnConditions += ((long) (crop.npcPrice * (amount * 1.0f / crop.amountToEnchanted)));
+                        crop.currentAmount = (amount * 1.0f / crop.amountToEnchanted);
+                        ListCropsToShow.putIfAbsent(name, crop);
+                        ListCropsToShow.put(name, crop);
+                    } else {
+                        Optional<BazaarItem> isRngDrop = rngDropToCount.stream().filter(rngDrop -> StringUtils.stripControlCodes(name).equalsIgnoreCase(rngDrop.localizedName)).findFirst();
+                        if (isRngDrop.isPresent()) {
+                            BazaarItem rngDrop = isRngDrop.get();
+                            totalProfit += ((long) (rngDrop.npcPrice * (amount * 1.0f / rngDrop.amountToEnchanted)));
+                            rngDrop.currentAmount = (amount * 1.0f / rngDrop.amountToEnchanted);
+                            ListCropsToShow.putIfAbsent(name, rngDrop);
+                            ListCropsToShow.put(name, rngDrop);
+                        }
                     }
                 }
             }
 
+            System.out.println("total profit: " + totalProfit);
             realProfit = totalProfit;
             realProfit += checkForBountiful();
-            totalProfitBasedOnConditions += checkForBountiful();
+            totalProfitBasedOnConditions += ((long) checkForBountiful());
             profit = "$" + (Utils.formatNumber(Math.round(realProfit * 0.95)));
             profitHr = "$" + (Utils.formatNumber(Math.round(getHourProfit(totalProfitBasedOnConditions * 0.95))));
             runtime = (Utils.formatTime(System.currentTimeMillis() - MacroHandler.startTime));
@@ -226,43 +237,64 @@ public class ProfitCalculator {
 
     @SubscribeEvent
     public void onTickUpdateBazaarPrices(TickEvent.ClientTickEvent event) {
-        if (mc.thePlayer == null || mc.theWorld == null || cantConnectToApi) return;
+        if (mc.thePlayer == null || mc.theWorld == null) return;
         if (updateBazaarClock.passed()) {
-            updateBazaarClock.reset();
             updateBazaarClock.schedule(1000 * 60 * 5);
+            System.out.println("Updating Bazaar Prices");
             new Thread(ProfitCalculator::fetchBazaarPrices).start();
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onChatReceived(ClientChatReceivedEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (event.type != 0) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        rngArmorDrop(message);
+        rngDicerDrop(message);
+    }
+
+    private final Pattern regex = Pattern.compile("Dicer dropped (\\d+)x ([\\w\\s]+)!");
+    private void rngDicerDrop(String message) {
+        if (!message.contains("Dicer dropped")) return;
+        if (!FarmHelper.config.macroType) return;
+        String itemDropped;
+        int amountDropped;
+        Matcher matcher = regex.matcher(message);
+        if (matcher.find()) {
+            amountDropped = Integer.parseInt(matcher.group(1));
+            if (matcher.group(2).contains("Melon")) {
+                itemDropped = "Melon";
+            } else if (matcher.group(2).contains("Pumpkin")) {
+                itemDropped = "Pumpkin";
+            } else {
+                return;
+            }
+        } else {
+            return;
+        }
+        amountDropped *= 160;
+        if (matcher.group(2).contains("Block") || matcher.group(2).contains("Polished")) {
+            amountDropped *= 160;
+        }
+        addRngDrop(itemDropped, amountDropped);
+    }
+
+    private void rngArmorDrop(String message) {
         Optional<String> optional = rngDropItemsList.stream().filter(message::contains).findAny();
         if (!optional.isPresent()) return;
 
         String itemName = optional.get();
-        LogUtils.debugLog("Rng drop detected: " + itemName);
+        addRngDrop(itemName, 1);
+    }
+
+    private void addRngDrop(String itemName, int amount) {
+        LogUtils.debugLog("Rng drop detected: " + itemName + " " + amount + "x");
         if (itemsDropped.containsKey(itemName)) {
-            Collection<DroppedItem> droppedItem = itemsDropped.get(itemName);
-            if (droppedItem.size() == 0) {
-                itemsDropped.put(itemName, new DroppedItem(itemName, 1));
-            } else {
-                boolean added = false;
-                for (DroppedItem loopDiff : droppedItem) {
-                    if (loopDiff.amount > 0) {
-                        loopDiff.add(1);
-                        added = true;
-                        break;
-                    }
-                }
-                if (!added) {
-                    itemsDropped.get(itemName).add(new DroppedItem(itemName, 1));
-                }
-            }
+            int currentAmount = itemsDropped.get(itemName);
+            itemsDropped.put(itemName, currentAmount + amount);
         } else {
-            itemsDropped.put(itemName, new DroppedItem(itemName, 1));
+            itemsDropped.put(itemName, amount);
         }
     }
 
@@ -284,24 +316,10 @@ public class ProfitCalculator {
             return;
         }
         if (itemsDropped.containsKey(StringUtils.stripControlCodes(item.getDisplayName()))) {
-            Collection<DroppedItem> droppedItem = itemsDropped.get(StringUtils.stripControlCodes(item.getDisplayName()));
-            if (droppedItem.size() == 0) {
-                itemsDropped.put(StringUtils.stripControlCodes(item.getDisplayName()), new DroppedItem(StringUtils.stripControlCodes(item.getDisplayName()), size));
-            } else {
-                boolean added = false;
-                for (DroppedItem loopDiff : droppedItem) {
-                    if ((size < 0 && loopDiff.amount < 0) || (size > 0 && loopDiff.amount > 0)) {
-                        loopDiff.add(size);
-                        added = true;
-                    }
-                }
-                if (!added) {
-                    if (size < 0) return;
-                    itemsDropped.put(StringUtils.stripControlCodes(item.getDisplayName()), new DroppedItem(StringUtils.stripControlCodes(item.getDisplayName()), size));
-                }
-            }
+            int currentAmount = itemsDropped.get(StringUtils.stripControlCodes(item.getDisplayName()));
+            itemsDropped.put(StringUtils.stripControlCodes(item.getDisplayName()), currentAmount + size);
         } else {
-            itemsDropped.put(StringUtils.stripControlCodes(item.getDisplayName()), new DroppedItem(StringUtils.stripControlCodes(item.getDisplayName()), size));
+            itemsDropped.put(StringUtils.stripControlCodes(item.getDisplayName()), size);
         }
     }
 
@@ -372,9 +390,8 @@ public class ProfitCalculator {
     }
 
     public static void fetchBazaarPrices() {
-        updateBazaarClock.reset();
         try {
-            JSONObject json = APIHelper.readJsonFromUrl("http://api.hypixel.net/skyblock/bazaar","User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
+            JSONObject json = APIHelper.readJsonFromUrl("https://api.hypixel.net/skyblock/bazaar","User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
             JSONObject json1 = (JSONObject) json.get("products");
 
             for (BazaarItem item : cropsToCount) {
@@ -401,7 +418,7 @@ public class ProfitCalculator {
         public String localizedName;
         public String bazaarId;
         public int amountToEnchanted;
-        public int currentAmount;
+        public float currentAmount;
         public String imageURL;
         public int npcPrice;
 
