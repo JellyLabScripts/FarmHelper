@@ -11,6 +11,7 @@ import net.minecraft.inventory.ContainerChest;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -148,8 +149,9 @@ public class PetSwapper { // Credits: osamabeinglagging, ducklett
         }
     }
 
-    @SubscribeEvent
-    void onChatMsgReceive(ClientChatReceivedEvent event) {
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    public void onChatMsgReceive(ClientChatReceivedEvent event) {
+        if (!enabled || currentState != State.WAITING_FOR_SPAWN) return;
         if (event.type != 0) return;
         String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());
         String respawnMessage = "you summoned your " + (getPreviousPet ? previousPet : FarmHelper.config.petSwapperName).toLowerCase();
