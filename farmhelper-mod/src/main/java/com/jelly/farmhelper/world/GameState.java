@@ -114,6 +114,12 @@ public class GameState {
     }
 
     public void scheduleNotMoving() {
+        newRandomValueToWait();
+        notMovingTimer.schedule();
+    }
+
+    public void scheduleNotMoving(int time) {
+        randomValueToWait = time;
         notMovingTimer.schedule();
     }
 

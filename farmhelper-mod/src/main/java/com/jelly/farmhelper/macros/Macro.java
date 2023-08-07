@@ -18,20 +18,10 @@ public abstract class Macro<T> {
     public boolean savedLastState = false;
     public T currentState = null;
     public final Rotation rotation = new Rotation();
-    public boolean rotated = false;
     public int layerY = 0;
     public float yaw;
     public float pitch;
 
-
-    public void toggle(boolean pause) {
-        if (pause) {
-            enabled = false;
-            onDisable();
-        } else {
-            toggle();
-        }
-    }
 
     public void toggle() {
         enabled = !enabled;
@@ -59,7 +49,6 @@ public abstract class Macro<T> {
             isTping = false;
             lastTp.reset();
             lastTp.schedule(1_000);
-            rotated = false;
             if (!isSpawnLocationSet()) {
                 setSpawnLocation();
             }
@@ -70,14 +59,16 @@ public abstract class Macro<T> {
         lastTp.reset();
         isTping = false;
         beforeTeleportationPos = null;
-        FarmHelper.gameState.newRandomValueToWait();
-        FarmHelper.gameState.scheduleNotMoving();
+        FarmHelper.gameState.scheduleNotMoving(750);
         Antistuck.stuck = false;
         Antistuck.cooldown.schedule(3500);
         Antistuck.unstuckThreadIsRunning = false;
         layerY = mc.thePlayer.getPosition().getY();
-        rotated = false;
         rotation.reset();
+        if (mc.thePlayer.capabilities.isFlying) {
+            mc.thePlayer.capabilities.isFlying = false;
+            mc.thePlayer.sendPlayerAbilities();
+        }
     }
 
     public void onDisable() {
@@ -160,9 +151,10 @@ public abstract class Macro<T> {
     public void restoreState() {
         LogUtils.debugLog("Restoring last state before disabling macro");
         if (stateBeforeFailsafe != null) {
-            currentState = stateBeforeFailsafe;
+            changeState(stateBeforeFailsafe);
             stateBeforeFailsafe = null;
         }
+        FarmHelper.gameState.scheduleNotMoving(750);
     }
 
     public void triggerTpCooldown() {
@@ -215,11 +207,11 @@ public abstract class Macro<T> {
 
     public void triggerWarpGarden() {
         KeyBindUtils.stopMovement();
+        isTping = true;
         System.out.println("Here");
         if (FarmHelper.gameState.canChangeDirection() && beforeTeleportationPos == null) {
             LogUtils.debugLog("Warping to spawn point");
             mc.thePlayer.sendChatMessage(FarmHelper.gameState.wasInGarden ? "/warp garden" : "/is");
-            isTping = true;
             beforeTeleportationPos = mc.thePlayer.getPosition();
         }
     }
@@ -232,13 +224,12 @@ public abstract class Macro<T> {
 
     public void checkForRotationAfterTp() {
         // Check for rotation after teleporting back to spawn point
-        if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && !rotated) {
+        if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating) {
             yaw = AngleUtils.getClosest(yaw);
             if (FarmHelper.config.rotateAfterWarped)
                 yaw = AngleUtils.get360RotationYaw(yaw + 180);
             if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
                 rotation.easeTo(yaw, pitch, (long) (500 + Math.random() * 200));
-                rotated = true;
             }
         }
     }

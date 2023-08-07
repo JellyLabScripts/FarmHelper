@@ -103,7 +103,6 @@ public class ProfitCalculator {
                 String name = entry.getKey();
                 Integer amount = entry.getValue();
                 if (amount < 0) continue;
-                System.out.println(name + " " + amount);
                 if (bazaarPrices.containsKey(StringUtils.stripControlCodes(name))) {
                     Optional<BazaarItem> isCrop = cropsToCount.stream().filter(crop -> StringUtils.stripControlCodes(name).equalsIgnoreCase(crop.localizedName)).findFirst();
                     if (isCrop.isPresent()) {
@@ -147,7 +146,6 @@ public class ProfitCalculator {
                 }
             }
 
-            System.out.println("total profit: " + totalProfit);
             realProfit = totalProfit;
             realProfit += checkForBountiful();
             totalProfitBasedOnConditions += ((long) checkForBountiful());
@@ -164,13 +162,6 @@ public class ProfitCalculator {
         if (!MacroHandler.isMacroing) return;
 
         if (!FarmHelper.config.macroType) { //vertical
-            if (FarmHelper.config.VerticalMacroType == SMacroEnum.PUMPKIN_MELON.ordinal()) {
-                if ((event.old.getBlock() == Blocks.pumpkin && event.update.getBlock() != Blocks.pumpkin) ||
-                    (event.old.getBlock() == Blocks.melon_block && event.update.getBlock() != Blocks.melon_block)) {
-                    blocksBroken++;
-                }
-            }
-
             if (FarmHelper.config.VerticalMacroType == VerticalMacroEnum.NORMAL_TYPE.ordinal()) {
                 if ((event.old.getBlock() instanceof BlockCrops && !(event.update.getBlock() instanceof BlockCrops)) ||
                     (event.old.getBlock() instanceof BlockNetherWart && !(event.update.getBlock() instanceof BlockNetherWart))) {
@@ -178,6 +169,13 @@ public class ProfitCalculator {
                 }
             }
         } else {
+            if (FarmHelper.config.VerticalMacroType == SMacroEnum.PUMPKIN_MELON.ordinal()) {
+                if ((event.old.getBlock() == Blocks.pumpkin && event.update.getBlock() != Blocks.pumpkin) ||
+                        (event.old.getBlock() == Blocks.melon_block && event.update.getBlock() != Blocks.melon_block)) {
+                    blocksBroken++;
+                }
+            }
+
             if (FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal() ||
                 FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal()) {
                 if ((event.old.getBlock() == Blocks.brown_mushroom && event.update.getBlock() != Blocks.brown_mushroom) ||

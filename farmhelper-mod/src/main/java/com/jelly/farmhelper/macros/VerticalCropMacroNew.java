@@ -8,6 +8,7 @@ import com.jelly.farmhelper.utils.*;
 import net.minecraft.client.Minecraft;
 
 import static com.jelly.farmhelper.macros.VerticalCropMacroNew.State.DROPPING;
+import static com.jelly.farmhelper.macros.VerticalCropMacroNew.State.NONE;
 import static com.jelly.farmhelper.utils.BlockUtils.*;
 import static com.jelly.farmhelper.utils.BlockUtils.isWalkable;
 
@@ -29,7 +30,6 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
     public void onEnable() {
         super.onEnable();
         currentState = State.NONE;
-        rotated = false;
         prevState = State.NONE;
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
@@ -70,21 +70,15 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
             KeyBindUtils.stopMovement();
             FarmHelper.gameState.scheduleNotMoving();
             return;
-        } else {
-            if (!rotated) {
-                prevState = changeState(calculateDirection());
-                rotated = true;
-            }
         }
 
         // Check for rotation after teleporting back to spawn point
-        if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && !rotated) {
+        if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating) {
             yaw = AngleUtils.getClosest(yaw);
             if (FarmHelper.config.rotateAfterWarped)
                 yaw = AngleUtils.get360RotationYaw(yaw + 180);
             if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
                 rotation.easeTo(yaw, pitch, (long) (500 + Math.random() * 200));
-                rotated = true;
             }
         }
 
@@ -98,7 +92,6 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
         if (lastTp.isScheduled() && lastTp.passed()) {
             lastTp.reset();
             currentState = calculateDirection();
-            rotated = false;
         }
 
         LogUtils.debugFullLog("Current state: " + currentState);
@@ -170,21 +163,16 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
                 break;
             case DROPPING: {
                 LogUtils.debugLog("On Ground: " + mc.thePlayer.onGround);
-                if (mc.thePlayer.onGround) {
+                if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) > 1.5) {
                     if (FarmHelper.config.rotateAfterDrop) {
                         LogUtils.debugLog("Rotating 180");
                         rotation.reset();
                         yaw = AngleUtils.get360RotationYaw(yaw + 180);
                         rotation.easeTo(yaw, pitch, (long) (300 + Math.random() * 500));
-                        rotated = false;
-                        KeyBindUtils.stopMovement();
-                        return;
                     }
-                    if (FarmHelper.gameState.rightWalkable) {
-                        prevState = changeState(State.RIGHT);
-                    } else if (FarmHelper.gameState.leftWalkable) {
-                        prevState = changeState(State.LEFT);
-                    }
+                    KeyBindUtils.stopMovement();
+                    layerY = mc.thePlayer.getPosition().getY();
+                    changeState(State.NONE);
                 } else {
                     FarmHelper.gameState.scheduleNotMoving();
                 }
@@ -212,7 +200,11 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
                 );
                 break;
             case DROPPING:
-//                KeyBindUtils.stopMovement();
+                if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) <= 1.5) {
+                    LogUtils.debugLog("Dropping done, but didn't drop high enough to rotate!");
+                    layerY = mc.thePlayer.getPosition().getY();
+                    changeState(State.NONE);
+                }
                 break;
             case NONE:
                 break;

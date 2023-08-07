@@ -70,11 +70,6 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
             KeyBindUtils.stopMovement();
             FarmHelper.gameState.scheduleNotMoving();
             return;
-        } else {
-            if (!rotated) {
-                prevState = changeState(calculateDirection());
-                rotated = true;
-            }
         }
 
         // Check for rotation after teleporting back to spawn point
@@ -90,7 +85,6 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
         if (lastTp.isScheduled() && lastTp.passed()) {
             lastTp.reset();
             currentState = calculateDirection();
-            rotated = false;
         }
 
         LogUtils.debugFullLog("Current state: " + currentState);
@@ -169,15 +163,10 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                         rotation.reset();
                         yaw = yaw + 180;
                         rotation.easeTo(yaw, pitch, (long) (400 + Math.random() * 300));
-                        rotated = false;
-                        KeyBindUtils.stopMovement();
                     }
-                    if (FarmHelper.gameState.rightWalkable) {
-                        prevState = changeState(State.RIGHT);
-                    } else if (FarmHelper.gameState.leftWalkable) {
-                        prevState = changeState(State.LEFT);
-                    }
+                    KeyBindUtils.stopMovement();
                     layerY = mc.thePlayer.getPosition().getY();
+                    changeState(State.NONE);
                 } else  {
                     FarmHelper.gameState.scheduleNotMoving();
                 }

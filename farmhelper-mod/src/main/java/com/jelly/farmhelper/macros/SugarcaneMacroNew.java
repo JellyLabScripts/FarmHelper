@@ -31,7 +31,6 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
         }
         MacroHandler.crop = MacroHandler.getFarmingCrop();
         currentState = State.NONE;
-        rotated = false;
         mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
         rotation.easeTo(yaw, pitch, 500);
         rowStartX = mc.thePlayer.posX;
@@ -50,11 +49,6 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
             KeyBindUtils.stopMovement();
             FarmHelper.gameState.scheduleNotMoving();
             return;
-        } else {
-            if (!rotated) {
-                changeState(calculateDirection());
-                rotated = true;
-            }
         }
 
         checkForRotationAfterTp();
@@ -69,7 +63,6 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
         if (lastTp.isScheduled() && lastTp.passed()) {
             lastTp.reset();
             currentState = calculateDirection();
-            rotated = false;
         }
 
         LogUtils.debugFullLog("Current state: " + currentState);
@@ -138,10 +131,9 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
                         rotation.reset();
                         yaw = yaw + 180;
                         rotation.easeTo(yaw, pitch, (long) (400 + Math.random() * 300));
-                        rotated = false;
-                        KeyBindUtils.stopMovement();
                     }
-                    changeState(calculateDirection());
+                    KeyBindUtils.stopMovement();
+                    changeState(State.NONE);
                     layerY = mc.thePlayer.getPosition().getY();
                 } else  {
                     FarmHelper.gameState.scheduleNotMoving();
