@@ -45,7 +45,7 @@ public class FarmHelper {
     public static TickTask ticktask;
     private static final Minecraft mc = Minecraft.getMinecraft();
     public static GameState gameState;
-    public static PetSwapper petSwapper;
+    public static PetSwapper petSwapper = new PetSwapper();
 
     public static Config config;
     public static Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
@@ -68,7 +68,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new ProfitCalculator());
         MinecraftForge.EVENT_BUS.register(new Utils());
         MinecraftForge.EVENT_BUS.register(new VisitorsMacro());
-        MinecraftForge.EVENT_BUS.register(petSwapper = new PetSwapper());
+        MinecraftForge.EVENT_BUS.register(petSwapper);
         ClientCommandHandler.instance.registerCommand(new RewarpCommand());
         ClientCommandHandler.instance.registerCommand(new FarmHelperCommand());
 

@@ -35,7 +35,7 @@ public class PetSwapper { // Credits: osamabeinglagging, ducklett
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (!FarmHelper.config.enablePetSwapper) return;
-//        if (!MacroHandler.isMacroing) return;
+        if (!MacroHandler.isMacroing) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
         if (Failsafe.emergency) return;
