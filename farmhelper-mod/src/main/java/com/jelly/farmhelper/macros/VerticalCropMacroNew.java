@@ -73,14 +73,7 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
         }
 
         // Check for rotation after teleporting back to spawn point
-        if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating) {
-            yaw = AngleUtils.getClosest(yaw);
-            if (FarmHelper.config.rotateAfterWarped)
-                yaw = AngleUtils.get360RotationYaw(yaw + 180);
-            if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
-                rotation.easeTo(yaw, pitch, (long) (500 + Math.random() * 200));
-            }
-        }
+        checkForRotationAfterTp();
 
         // Don't do anything if macro is after teleportation for few seconds
         if (lastTp.isScheduled() && !lastTp.passed()) {
@@ -96,15 +89,7 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
 
         LogUtils.debugFullLog("Current state: " + currentState);
 
-        // Check for rotation check failsafe
-        boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FarmHelper.config.rotationCheckSensitivity
-                || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity;
-
-        if(!Failsafe.emergency && flag && lastTp.passed() && !rotation.rotating) {
-            rotation.reset();
-            Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
-            return;
-        }
+        checkForRotationFailsafe();
 
         if (Antistuck.stuck) {
             if (!Antistuck.unstuckThreadIsRunning) {

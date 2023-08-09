@@ -405,6 +405,7 @@ public class Failsafe {
         if (!MacroHandler.isMacroing) return;
         if (evacuateCooldown.isScheduled() || afterEvacuateCooldown.isScheduled()) return;
         if (gameState.currentLocation != GameState.location.ISLAND) return;
+        if (MacroHandler.currentMacro.isTping) return;
         if (event.packet instanceof S08PacketPlayerPosLook) {
             if (config.pingServer && (Pinger.dontRotationCheck.isScheduled() && !Pinger.dontRotationCheck.passed() || Pinger.isOffline)) {
                 LogUtils.debugLog("Got rotation packet while connection to server is bad, ignoring");
