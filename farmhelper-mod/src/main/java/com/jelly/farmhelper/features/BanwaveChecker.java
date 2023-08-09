@@ -5,7 +5,6 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
-import com.jelly.farmhelper.utils.PacketDisconnect;
 import com.jelly.farmhelper.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
