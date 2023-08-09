@@ -709,10 +709,15 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = 1, max = 20
 	)
 	public int delayBeforeReconnecting = 5;
+	@Switch(
+			name = "Don't leave during Jacob's Contest", category = FAILSAFE, subcategory = "Banwave Checker",
+			description = "Prevents the macro from leaving during Jacob's Contest even when banwave detected"
+	)
+	public boolean banwaveDontLeaveDuringJacobsContest = true;
 
 	@Number(
 		name = "Rotation Acting times", category = FAILSAFE, subcategory = "Custom Failsafe times",
-		description = "When the rotation failsafe is triggered, the number of times to act before leaving (recommend from 5 to 8)",
+		description = "The number of rotations when failsafe is triggered (recommended from 4 to 8)",
 		min = 4, max = 20,
 		step = 1
 	)
@@ -720,7 +725,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	@Number(
 		name = "Bedrock Acting times", category = FAILSAFE, subcategory = "Custom Failsafe times",
-		description = "When the Bedrock failsafe is triggered, the number of times to act before leaving (recommend from 8 to 10)",
+		description = "When the Bedrock failsafe is triggered, the number of times to act before leaving (recommended from 8 to 10)",
 		min = 4, max = 20,
 		step = 1
 	)
@@ -728,7 +733,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	@Text(
 		name = "Rotation messages", category = FAILSAFE, subcategory = "Custom Failsafe Messages",
-		description = "The messages to send to the chat when a rotation failsafe has been triggered (use '|' to split messages)",
+		description = "The messages to send to the chat when a rotation failsafe has been triggered (use '|' to split the messages)",
 		placeholder = "Leave empty to use a random message",
 		multiline = true
 	)
@@ -736,7 +741,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	@Text(
 		name = "Bedrock messages", category = FAILSAFE, subcategory = "Custom Failsafe Messages",
-		description = "The messages to send to the chat when a bedrock failsafe has been triggered (use '|' to split messages)",
+		description = "The messages to send to the chat when a bedrock failsafe has been triggered (use '|' to split the messages)",
 		placeholder = "Leave empty to use a random message",
 		multiline = true
 	)

@@ -51,15 +51,12 @@ public class PlayerUtils {
                 LogUtils.scriptLog("autoSetSpawnMaxDelay must be greater than autoSetSpawnMinDelay", EnumChatFormatting.RED);
                 return;
             }
-            System.out.println(clock.isScheduled());
             if (clock.isScheduled() && clock.passed()) {
                 mc.thePlayer.sendChatMessage("/setspawn");
                 long time = (long) (new Random().nextInt((int) (diff)) + (FarmHelper.config.autoSetSpawnMinDelay * 1000L));
-                System.out.println("time: " + time);
                 clock.schedule(time);
             } else if (!clock.isScheduled()) {
                 long time = (long) (new Random().nextInt((int) (diff)) + (FarmHelper.config.autoSetSpawnMinDelay * 1000L));
-                System.out.println("time: " + time);
                 clock.schedule(time);
             }
         }
@@ -400,7 +397,6 @@ public class PlayerUtils {
         float angle = AngleUtils.getClosest();
         double x = mc.thePlayer.posX % 1;
         double z = mc.thePlayer.posZ % 1;
-        System.out.println(angle);
         if (angle == 0) {
             return (z > -0.9 && z < -0.35) || (z < 0.65 && z > 0.1);
         } else if (angle == 90) {
@@ -417,7 +413,6 @@ public class PlayerUtils {
         float angle = AngleUtils.getClosest();
         double x = mc.thePlayer.posX % 1;
         double z = mc.thePlayer.posZ % 1;
-        System.out.println(angle);
         Block blockBehind = BlockUtils.getRelativeBlock(0, 0, -1);
         if (!(blockBehind.getMaterial().isSolid() || (blockBehind instanceof BlockSlab) || blockBehind.equals(Blocks.carpet) || (blockBehind instanceof BlockDoor)) || blockBehind.getMaterial().isLiquid())
             return false;

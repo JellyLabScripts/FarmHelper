@@ -153,7 +153,7 @@ public class VisitorsMacro {
             LogUtils.scriptLog("Stopped visitors macro");
     }
 
-    static boolean inJacobContest() {
+    public static boolean inJacobContest() {
         for (String line : ScoreboardUtils.getScoreboardLines()) {
             String cleanedLine = ScoreboardUtils.cleanSB(line);
             if ((cleanedLine.toLowerCase()).contains("jacob's contest")) {
@@ -290,6 +290,7 @@ public class VisitorsMacro {
             clock.schedule(1_500);
             stuckClock.schedule(25_000);
             mc.thePlayer.closeScreen();
+            if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
             purseBeforeVisitors = ProfitCalculator.getCurrentPurse();
         }
     }
@@ -338,6 +339,7 @@ public class VisitorsMacro {
             signText = "";
             stuckClock.reset();
             mc.thePlayer.closeScreen();
+            if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
             currentState = State.MANAGING_VISITORS;
             currentBuyState = BuyState.IDLE;
             stuckClock.reset();
@@ -792,6 +794,7 @@ public class VisitorsMacro {
                                             currentState = State.OPEN_VISITOR;
                                             boughtAllItems = true;
                                             mc.thePlayer.closeScreen();
+                                            if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
                                         } else {
                                             LogUtils.scriptLog("Visitor might a bit too far away, going to wait for him to get closer");
                                         }
@@ -844,6 +847,7 @@ public class VisitorsMacro {
             case BACK_TO_FARMING:
                 if (mc.currentScreen != null) {
                     mc.thePlayer.closeScreen();
+                    if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
                     delayClock.schedule(250);
                     break;
                 }

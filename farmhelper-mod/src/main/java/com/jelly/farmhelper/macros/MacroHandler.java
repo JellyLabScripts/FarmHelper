@@ -6,10 +6,7 @@ import com.jelly.farmhelper.config.Config.SMacroEnum;
 import com.jelly.farmhelper.config.Config.CropEnum;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
-import com.jelly.farmhelper.features.Failsafe;
-import com.jelly.farmhelper.features.ProfitCalculator;
-import com.jelly.farmhelper.features.Scheduler;
-import com.jelly.farmhelper.features.VisitorsMacro;
+import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.block.*;
@@ -118,7 +115,7 @@ public class MacroHandler {
                 StatusUtils.updateStateString();
             }
             if (currentMacro != null && currentMacro.enabled) {
-                if (!VisitorsMacro.isEnabled()) {
+                if (!VisitorsMacro.isEnabled() && !PetSwapper.isEnabled()) {
                     currentMacro.onTick();
                 }
             }
@@ -165,6 +162,9 @@ public class MacroHandler {
         if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
         if (FarmHelper.config.enableScheduler) Scheduler.start();
         if (FarmHelper.config.visitorsMacro && FarmHelper.config.onlyAcceptProfitableVisitors) LogUtils.scriptLog("Macro will only accept offers containing any of these products: " + String.join(", ", VisitorsMacro.profitRewards));
+        if (FarmHelper.config.enablePetSwapper && VisitorsMacro.inJacobContest() && !PetSwapper.hasPetChangedDuringThisContest) {
+            PetSwapper.startMacro(false);
+        }
 
         startTime = System.currentTimeMillis();
         ProfitCalculator.resetProfit();
@@ -185,6 +185,7 @@ public class MacroHandler {
         UngrabUtils.regrabMouse();
         StatusUtils.updateStateString();
         VisitorsMacro.stopMacro();
+        PetSwapper.reset();
     }
 
     public static void disableCurrentMacro() {

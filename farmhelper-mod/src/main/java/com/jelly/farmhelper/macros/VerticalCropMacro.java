@@ -175,11 +175,9 @@ public class VerticalCropMacro extends Macro{
                 if (BlockUtils.isRelativeBlockPassable(-1, 0, 0)) {
                     changeStateTo(State.LEFT);
                     lastTp.schedule(1_000);
-                    System.out.println("Left");
                 } else if (BlockUtils.isRelativeBlockPassable(1, 0, 0)) {
                     changeStateTo(State.RIGHT);
                     lastTp.schedule(1_000);
-                    System.out.println("Right");
                 }
             }
 
