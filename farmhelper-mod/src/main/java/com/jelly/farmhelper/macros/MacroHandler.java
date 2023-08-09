@@ -205,11 +205,13 @@ public class MacroHandler {
 
     public static void enableCurrentMacro() {
         if (currentMacro != null && !currentMacro.enabled && !startingUp) {
-            mc.inGameHasFocus = true;
             mc.displayGuiScreen(null);
+            mc.inGameHasFocus = true;
+            mc.mouseHelper.grabMouseCursor();
             startingUp = true;
             CropUtils.itemChangedByStaff = false;
             KeyBindUtils.updateKeys(false, false, false, false, false, mc.thePlayer.capabilities.isFlying, false);
+            if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
             new Thread(startCurrent).start();
         }
     }
