@@ -1,9 +1,8 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.Config.VerticalMacroEnum;
-import com.jelly.farmhelper.config.Config.SMacroEnum;
 import com.jelly.farmhelper.config.Config.CropEnum;
+import com.jelly.farmhelper.config.Config.SMacroEnum;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.*;

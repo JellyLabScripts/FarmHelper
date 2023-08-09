@@ -1,7 +1,6 @@
 package com.jelly.farmhelper.player;
 
 import com.jelly.farmhelper.utils.AngleUtils;
-import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.client.Minecraft;
 import org.apache.commons.lang3.tuple.MutablePair;
 

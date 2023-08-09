@@ -10,7 +10,6 @@ import cc.polyfrost.oneconfig.config.data.OptionSize;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.features.Autosell;
-import com.jelly.farmhelper.features.PetSwapper;
 import com.jelly.farmhelper.hud.ProfitCalculatorHUD;
 import com.jelly.farmhelper.hud.StatusHUD;
 import com.jelly.farmhelper.macros.MacroHandler;

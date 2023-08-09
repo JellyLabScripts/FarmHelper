@@ -1,9 +1,10 @@
 package com.jelly.farmhelper.utils;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.sun.jna.Native;
-import com.sun.jna.platform.win32.Kernel32;
-import com.sun.jna.ptr.IntByReference;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
+import dorkbox.notify.Notify;
+import dorkbox.notify.Pos;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.main.Main;
@@ -24,11 +25,6 @@ import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import dorkbox.notify.*;
-
-import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef;
-
 
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 

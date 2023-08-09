@@ -2,7 +2,6 @@ package com.jelly.farmhelper.mixins.client;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.utils.Utils;
 import net.minecraft.client.audio.ISound;
 import net.minecraft.client.audio.SoundCategory;
 import net.minecraft.client.audio.SoundManager;

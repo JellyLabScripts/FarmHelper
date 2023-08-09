@@ -1,10 +1,10 @@
 package com.jelly.farmhelper.utils;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.features.BanwaveChecker;
 import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.DiscordWebhook;
-import com.jelly.farmhelper.features.BanwaveChecker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;

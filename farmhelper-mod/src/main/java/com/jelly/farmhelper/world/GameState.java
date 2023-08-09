@@ -2,10 +2,11 @@ package com.jelly.farmhelper.world;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config.SMacroEnum;
-import com.jelly.farmhelper.macros.MushroomMacro;
 import com.jelly.farmhelper.macros.MushroomMacroNew;
 import com.jelly.farmhelper.network.DiscordWebhook;
-import com.jelly.farmhelper.utils.*;
+import com.jelly.farmhelper.utils.BlockUtils;
+import com.jelly.farmhelper.utils.ScoreboardUtils;
+import com.jelly.farmhelper.utils.Timer;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;

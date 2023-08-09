@@ -1,19 +1,16 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.features.Antistuck;
-import com.jelly.farmhelper.config.Config.SMacroEnum;
 import com.jelly.farmhelper.config.Config.CropEnum;
+import com.jelly.farmhelper.config.Config.SMacroEnum;
+import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
-import net.minecraft.client.Minecraft;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 
 import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.BlockUtils.*;
-import static com.jelly.farmhelper.utils.BlockUtils.getRelativeBlock;
 import static com.jelly.farmhelper.utils.KeyBindUtils.stopMovement;
 import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 

@@ -1,18 +1,12 @@
 package com.jelly.farmhelper.utils;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.Config.VerticalMacroEnum;
 import com.jelly.farmhelper.config.Config.SMacroEnum;
-
-import com.jelly.farmhelper.macros.Macro;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.mixins.block.IBlockAccessor;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.item.ItemAxe;
-import net.minecraft.item.ItemHoe;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;

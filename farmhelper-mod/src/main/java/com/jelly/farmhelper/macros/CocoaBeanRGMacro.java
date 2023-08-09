@@ -7,7 +7,6 @@ import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
-import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;

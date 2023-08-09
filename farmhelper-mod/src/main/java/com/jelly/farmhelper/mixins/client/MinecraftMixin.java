@@ -2,11 +2,9 @@ package com.jelly.farmhelper.mixins.client;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
-import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiScreen;
