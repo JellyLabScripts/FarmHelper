@@ -71,7 +71,6 @@ public class BanwaveChecker {
                     }
 
                 } catch(Exception e){
-                    System.out.println(e.getMessage());
                     e.printStackTrace();
                 }
             }).start();
