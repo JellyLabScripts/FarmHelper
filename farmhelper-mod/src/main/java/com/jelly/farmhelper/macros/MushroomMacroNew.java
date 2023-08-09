@@ -125,7 +125,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             updateState();
             invokeState();
         } else {
-            if (!mc.thePlayer.onGround) {
+            if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75) {
                 changeState(State.DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
                 System.out.println("Dropping");

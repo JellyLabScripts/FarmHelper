@@ -94,7 +94,7 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
             updateState();
             invokeState();
         } else {
-            if (!mc.thePlayer.onGround) {
+            if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75) {
                 changeState(State.DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
             }

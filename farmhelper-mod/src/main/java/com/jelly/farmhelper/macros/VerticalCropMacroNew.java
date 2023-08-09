@@ -138,7 +138,7 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
             updateState();
             invokeState();
         } else {
-            if (!mc.thePlayer.onGround) {
+            if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75) {
                 prevState = changeState(DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
             }
@@ -189,13 +189,15 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
             case LEFT:
                 KeyBindUtils.holdThese(
                         mc.gameSettings.keyBindLeft,
-                        mc.gameSettings.keyBindAttack
+                        mc.gameSettings.keyBindAttack,
+                        PlayerUtils.shouldWalkForwards() ? mc.gameSettings.keyBindForward : null
                 );
                 break;
             case RIGHT:
                 KeyBindUtils.holdThese(
                         mc.gameSettings.keyBindRight,
-                        mc.gameSettings.keyBindAttack
+                        mc.gameSettings.keyBindAttack,
+                        PlayerUtils.shouldWalkForwards() ? mc.gameSettings.keyBindForward : null
                 );
                 break;
             case DROPPING:

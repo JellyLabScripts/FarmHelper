@@ -5,7 +5,7 @@ import net.minecraft.client.settings.KeyBinding;
 
 public class KeyBindUtils
 {
-    private static Minecraft mc;
+    private static final Minecraft mc = Minecraft.getMinecraft();
     public static final KeyBinding[] allKeys = {
             mc.gameSettings.keyBindAttack,
             mc.gameSettings.keyBindBack,
@@ -16,10 +16,6 @@ public class KeyBindUtils
             mc.gameSettings.keyBindSneak,
             mc.gameSettings.keyBindSprint,
     };
-
-    static {
-        KeyBindUtils.mc = Minecraft.getMinecraft();
-    }
 
     public static void rightClick() {
         if (!ReflectionUtils.invoke(mc, "func_147121_ag")) {

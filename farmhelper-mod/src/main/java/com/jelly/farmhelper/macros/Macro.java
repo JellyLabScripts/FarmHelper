@@ -84,7 +84,7 @@ public abstract class Macro<T> {
         }
         if (!isRewarpLocationSet()) {
             LogUtils.scriptLog("Your rewarp position is not set!");
-            toggle();
+            MacroHandler.disableCurrentMacro();
         }
     }
 
@@ -257,5 +257,16 @@ public abstract class Macro<T> {
             return true;
         }
         return false;
+    }
+
+    public void unstuck() {
+        if (!Antistuck.unstuckThreadIsRunning) {
+            Antistuck.stuck = true;
+            Antistuck.unstuckThreadIsRunning = true;
+            LogUtils.debugLog("Stuck!");
+            new Thread(Antistuck.unstuckThread).start();
+        } else {
+            LogUtils.debugLog("Unstuck thread is alive!");
+        }
     }
 }

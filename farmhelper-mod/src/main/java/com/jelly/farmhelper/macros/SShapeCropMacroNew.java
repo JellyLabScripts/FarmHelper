@@ -2,6 +2,7 @@ package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config;
+import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.utils.*;
 
@@ -116,7 +117,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
             updateState();
             invokeState();
         } else {
-            if (!mc.thePlayer.onGround) {
+            if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75) {
                 prevState = changeState(State.DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
             }
@@ -129,9 +130,19 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
             case LEFT:
             case RIGHT: {
                 if (FarmHelper.gameState.frontWalkable) {
+                    if (changeLaneDirection == ChangeLaneDirection.BACKWARD) {
+                        // Probably stuck in dirt
+                        unstuck();
+                        return;
+                    }
                     prevState = changeState(State.SWITCHING_LANE);
                     changeLaneDirection = ChangeLaneDirection.FORWARD;
                 } else if (FarmHelper.gameState.backWalkable) {
+                    if (changeLaneDirection == ChangeLaneDirection.FORWARD) {
+                        // Probably stuck in dirt
+                        unstuck();
+                        return;
+                    }
                     prevState = changeState(State.SWITCHING_LANE);
                     changeLaneDirection = ChangeLaneDirection.BACKWARD;
                 } else {
@@ -151,12 +162,15 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                     prevState = changeState(State.LEFT);
                 } else if (FarmHelper.gameState.rightWalkable) {
                     prevState = changeState(State.RIGHT);
+                } else {
+                    unstuck();
                 }
                 break;
             }
             case DROPPING: {
                 LogUtils.debugLog("On Ground: " + mc.thePlayer.onGround);
                 if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) > 1.5) {
+                    changeLaneDirection = null;
                     if (FarmHelper.config.rotateAfterDrop && !rotation.rotating) {
                         LogUtils.debugLog("Rotating 180");
                         rotation.reset();

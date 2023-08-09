@@ -23,7 +23,6 @@ public class Antistuck {
     public static boolean unstuckThreadIsRunning = false;
     public static final Runnable unstuckThread = () -> {
         try {
-
             KeyBindUtils.stopMovement();
             Thread.sleep(20);
             KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft);

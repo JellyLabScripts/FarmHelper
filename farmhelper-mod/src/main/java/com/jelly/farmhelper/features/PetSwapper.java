@@ -170,6 +170,10 @@ public class PetSwapper {
     }
 
     public static void startMacro(boolean getPreviousPet) {
+        if (FarmHelper.config.petSwapperName.trim().equals("")) {
+            LogUtils.scriptLog("Pet swapper: no pet name specified");
+            return;
+        }
         LogUtils.debugLog("Disabling macro and enabling petswapper");
         MacroHandler.disableCurrentMacro(true);
         currentState = State.STARTING;
