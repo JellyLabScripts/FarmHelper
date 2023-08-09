@@ -7,6 +7,7 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
+import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockSlab;

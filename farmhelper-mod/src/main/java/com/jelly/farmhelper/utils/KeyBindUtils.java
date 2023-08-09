@@ -134,7 +134,7 @@ public class KeyBindUtils
         }
     }
 
-    private static boolean contains(KeyBinding[] keyBinding, KeyBinding key) {
+    public static boolean contains(KeyBinding[] keyBinding, KeyBinding key) {
         for (KeyBinding keyBind : keyBinding) {
             if (keyBind == key)
                 return true;
