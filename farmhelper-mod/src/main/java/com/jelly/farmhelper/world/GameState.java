@@ -90,7 +90,7 @@ public class GameState {
         blockInPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
         blockStandingOn = mc.theWorld.getBlockState(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1, mc.thePlayer.posZ)).getBlock();
         jacobCounter = getJacobCounter();
-        if (dx < 0.1 && dz < 0.1 && dy < 0.1) {
+        if (dx < 0.01 && dz < 0.01 && dy < 0.01) {
             if (hasPassedSinceStopped()) {
                 notMovingTimer.reset();
             }

@@ -105,7 +105,7 @@ public abstract class Macro<T> {
     double blocksPerSecond = 0;
 
     public void onOverlayRender(RenderGameOverlayEvent event) {
-        // Count moved blocks per second and display on screen
+        /*// Count moved blocks per second and display on screen
         double deltaX = mc.thePlayer.posX - prevX;
         double deltaY = mc.thePlayer.posY - prevY;
         double deltaZ = mc.thePlayer.posZ - prevZ;
@@ -132,7 +132,7 @@ public abstract class Macro<T> {
             int y = 2;
             int color = 0xffffff;
             mc.fontRendererObj.drawString(text, x, y, color);
-        }
+        }*/
     }
 
     public void onPacketReceived(ReceivePacketEvent event) {

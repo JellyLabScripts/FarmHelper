@@ -6,7 +6,16 @@ import net.minecraft.client.settings.KeyBinding;
 public class KeyBindUtils
 {
     private static Minecraft mc;
-    public static KeyBinding[] customKeyBinds = new KeyBinding[3];
+    public static final KeyBinding[] allKeys = {
+            mc.gameSettings.keyBindAttack,
+            mc.gameSettings.keyBindBack,
+            mc.gameSettings.keyBindForward,
+            mc.gameSettings.keyBindLeft,
+            mc.gameSettings.keyBindRight,
+            mc.gameSettings.keyBindJump,
+            mc.gameSettings.keyBindSneak,
+            mc.gameSettings.keyBindSprint,
+    };
 
     static {
         KeyBindUtils.mc = Minecraft.getMinecraft();
@@ -111,9 +120,25 @@ public class KeyBindUtils
     }
 
     public static void holdThese(KeyBinding ...keyBinding) {
+        releaseAllExcept(keyBinding);
         for (KeyBinding key : keyBinding) {
             if (key != null)
                 KeyBinding.setKeyBindState(key.getKeyCode(), true);
         }
+    }
+
+    public static void releaseAllExcept(KeyBinding ...keyBinding) {
+        for (KeyBinding key : allKeys) {
+            if (key != null && !contains(keyBinding, key))
+                KeyBinding.setKeyBindState(key.getKeyCode(), false);
+        }
+    }
+
+    private static boolean contains(KeyBinding[] keyBinding, KeyBinding key) {
+        for (KeyBinding keyBind : keyBinding) {
+            if (keyBind == key)
+                return true;
+        }
+        return false;
     }
 }
