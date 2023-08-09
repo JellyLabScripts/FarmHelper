@@ -10,6 +10,7 @@ import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.network.play.server.S09PacketHeldItemChange;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Tuple;
@@ -79,6 +80,7 @@ public class Failsafe {
     @SubscribeEvent
     public final void onUnloadWorld(WorldEvent.Unload event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
+        bedrockCheckSent = false;
         if (!MacroHandler.isMacroing) return;
         if (gameState.currentLocation != GameState.location.ISLAND && MacroHandler.currentMacro.enabled) {
             if(FarmHelper.config.popUpNotification)
@@ -119,6 +121,8 @@ public class Failsafe {
         }
     }
 
+    private boolean bedrockCheckSent = false;
+
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
         // Mustario is a grape
@@ -152,8 +156,9 @@ public class Failsafe {
             }
         }
 
-        if(!emergency && BlockUtils.bedrockCount() > 2){
+        if(!bedrockCheckSent && BlockUtils.bedrockCount() > 2){
             emergencyFailsafe(FailsafeType.BEDROCK);
+            bedrockCheckSent = true;
             return;
         }
 
@@ -391,6 +396,30 @@ public class Failsafe {
         if (event.packet instanceof S09PacketHeldItemChange) {
             emergencyFailsafe(FailsafeType.ITEM_CHANGE);
             CropUtils.itemChangedByStaff = true;
+        }
+    }
+
+    @SubscribeEvent
+    public void onRotationPacket(ReceivePacketEvent event) {
+        if (!config.newRotationCheck) return;
+        if (!MacroHandler.isMacroing) return;
+        if (evacuateCooldown.isScheduled() || afterEvacuateCooldown.isScheduled()) return;
+        if (gameState.currentLocation != GameState.location.ISLAND) return;
+        if (event.packet instanceof S08PacketPlayerPosLook) {
+            if (config.pingServer && (Pinger.dontRotationCheck.isScheduled() && !Pinger.dontRotationCheck.passed() || Pinger.isOffline)) {
+                LogUtils.debugLog("Got rotation packet while connection to server is bad, ignoring");
+                return;
+            }
+
+            S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
+            double yaw = packet.getYaw();
+            double pitch = packet.getPitch();
+            double threshold = config.rotationCheckSensitivity;
+            double previousYaw = mc.thePlayer.rotationYaw;
+            double previousPitch = mc.thePlayer.rotationPitch;
+            if (Math.abs(yaw - previousYaw) > threshold || Math.abs(pitch - previousPitch) > threshold) {
+                emergencyFailsafe(FailsafeType.ROTATION);
+            }
         }
     }
 

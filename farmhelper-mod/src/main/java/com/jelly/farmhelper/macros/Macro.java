@@ -234,6 +234,7 @@ public abstract class Macro<T> {
     }
 
     public void checkForRotationFailsafe() {
+        if (FarmHelper.config.newRotationCheck) return;
         // Check for rotation check failsafe
         boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FarmHelper.config.rotationCheckSensitivity
                 || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity;

@@ -922,6 +922,16 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public int autoAltTabMode = 0;
 
+	@Switch(
+			name = "New rotation check method", category = EXPERIMENTAL, subcategory = "Experimental"
+	)
+	public boolean newRotationCheck = false;
+
+	@Switch(
+			name = "Ping server to decrease potential false rotation checks", category = EXPERIMENTAL, subcategory = "Experimental"
+	)
+	public boolean pingServer = false;
+
 	// END EXPERIMENTAL
 
 	public Config() {
