@@ -4,6 +4,7 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.command.commands.ReconnectCommand;
 import com.jelly.farmhelper.utils.Clock;
+import com.jelly.farmhelper.utils.UngrabUtils;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
@@ -11,6 +12,7 @@ import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiMultiplayer;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -92,5 +94,12 @@ public class AutoReconnect {
                 }
             }
         }
+    }
+
+    @SubscribeEvent
+    public final void onLoadWorld(WorldEvent.Load event) {
+        if (mc.theWorld == null || mc.thePlayer == null) return;
+        if (currentState == reconnectingState.NONE) return;
+        if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
     }
 }
