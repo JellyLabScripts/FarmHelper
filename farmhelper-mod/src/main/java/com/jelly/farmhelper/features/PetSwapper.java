@@ -2,7 +2,6 @@ package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.macros.SShapeCropMacroNew;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.PlayerUtils;
