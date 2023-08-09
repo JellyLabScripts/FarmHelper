@@ -29,6 +29,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
+        changeState(State.NONE);
         yaw = AngleUtils.getClosestDiagonal();
         closest90Yaw = AngleUtils.getClosest();
         currentState = calculateDirection();
@@ -78,14 +79,14 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
         }
 
         // Calculate direction after teleportation
-        if (lastTp.isScheduled() && lastTp.passed()) {
-            lastTp.reset();
-            currentState = calculateDirection();
-        }
+//        if (lastTp.isScheduled() && lastTp.passed()) {
+//            lastTp.reset();
+//            currentState = calculateDirection();
+//        }
 
         LogUtils.debugFullLog("Current state: " + currentState);
 
-        if (currentState != State.NONE && currentState != State.DROPPING && !Failsafe.emergency && !rotation.rotating) {
+        if (currentState != State.NONE && currentState != State.DROPPING && !Failsafe.emergency && !rotation.rotating && !FarmHelper.config.newRotationCheck) {
             System.out.println("AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) = " + AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw));
             System.out.println("Math.abs(mc.thePlayer.rotationPitch - pitch) = " + Math.abs(mc.thePlayer.rotationPitch - pitch));
             System.out.println("FarmHelper.config.rotationCheckSensitivity = " + FarmHelper.config.rotationCheckSensitivity);
@@ -100,9 +101,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             }
         }
 
-        if (isStuck()) {
-            return;
-        }
+        if (isStuck()) return;
 
         CropUtils.getTool();
 
@@ -248,7 +247,8 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
     }
 
 
-    private State calculateDirection() {
+    @Override
+    public State calculateDirection() {
         boolean f1 = true, f2 = true;
 
         if (rightCropIsReady()) {

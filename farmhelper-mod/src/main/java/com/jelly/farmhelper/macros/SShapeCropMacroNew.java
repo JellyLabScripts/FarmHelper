@@ -30,8 +30,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
     @Override
     public void onEnable() {
         super.onEnable();
-        currentState = State.NONE;
-        prevState = State.NONE;
+        prevState = changeState(State.NONE);
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
@@ -83,18 +82,16 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
         }
 
         // Calculate direction after teleportation
-        if (lastTp.isScheduled() && lastTp.passed()) {
-            lastTp.reset();
-            currentState = calculateDirection();
-        }
+//        if (lastTp.isScheduled() && lastTp.passed()) {
+//            lastTp.reset();
+//            currentState = calculateDirection();
+//        }
 
         LogUtils.debugFullLog("Current state: " + currentState);
 
         checkForRotationFailsafe();
 
-        if (isStuck()) {
-            return;
-        }
+        if (isStuck()) return;
 
         CropUtils.getTool();
 
@@ -236,7 +233,8 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
         }
     }
 
-    private State calculateDirection() {
+    @Override
+    public State calculateDirection() {
 
         if (rightCropIsReady()) {
             return State.RIGHT;

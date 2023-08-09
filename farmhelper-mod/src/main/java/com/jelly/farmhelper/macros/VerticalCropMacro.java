@@ -304,7 +304,7 @@ public class VerticalCropMacro extends Macro{
             rotation.update();
     }
 
-    State calculateDirection() {
+    public State calculateDirection() {
 
         boolean f1 = true, f2 = true;
 

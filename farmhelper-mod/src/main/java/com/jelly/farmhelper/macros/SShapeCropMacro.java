@@ -517,7 +517,7 @@ public class SShapeCropMacro extends Macro {
         }
     }
 
-    private State calculateDirection() {
+    public State calculateDirection() {
 
         if (rightCropIsReady()) {
             return State.RIGHT;

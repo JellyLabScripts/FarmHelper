@@ -232,7 +232,7 @@ public class SugarcaneMacro extends Macro {
             rotation.update();
     }
 
-    private WalkState calculateDirection() {
+    public WalkState calculateDirection() {
         if(isWater(getRelativeBlock(2, -1, 1, yaw - 45f)) || isWater(getRelativeBlock(2, 0, 1, yaw - 45f))
         || isWater(getRelativeBlock(-1, -1, 1, yaw - 45f)) || isWater(getRelativeBlock(-1, 0, 1, yaw - 45f)))
             if(!(hasWall(0, 1, yaw - 45f) && hasWall(-1, 0, yaw - 45f)))

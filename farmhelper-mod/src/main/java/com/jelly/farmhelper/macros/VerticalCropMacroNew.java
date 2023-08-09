@@ -29,8 +29,7 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
     @Override
     public void onEnable() {
         super.onEnable();
-        currentState = State.NONE;
-        prevState = State.NONE;
+        prevState = changeState(State.NONE);
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
@@ -82,25 +81,16 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
         }
 
         // Calculate direction after teleportation
-        if (lastTp.isScheduled() && lastTp.passed()) {
-            lastTp.reset();
-            currentState = calculateDirection();
-        }
+//        if (lastTp.isScheduled() && lastTp.passed()) {
+//            lastTp.reset();
+//            currentState = calculateDirection();
+//        }
 
         LogUtils.debugFullLog("Current state: " + currentState);
 
         checkForRotationFailsafe();
 
-        if (Antistuck.stuck) {
-            if (!Antistuck.unstuckThreadIsRunning) {
-                Antistuck.unstuckThreadIsRunning = true;
-                LogUtils.debugLog("Stuck!");
-                new Thread(Antistuck.unstuckThread).start();
-            } else {
-                LogUtils.debugLog("Unstuck thread is alive!");
-            }
-            return;
-        }
+        if (isStuck()) return;
 
         CropUtils.getTool();
 
@@ -197,7 +187,8 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
         }
     }
 
-    private State calculateDirection() {
+    @Override
+    public State calculateDirection() {
 
         if (rightCropIsReady()) {
             return State.RIGHT;

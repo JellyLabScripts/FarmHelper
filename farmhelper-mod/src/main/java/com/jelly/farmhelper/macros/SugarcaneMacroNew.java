@@ -30,7 +30,7 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
             pitch = (float) (Math.random() * 1) - 0.5f; // -0.5 to 0.5
         }
         MacroHandler.crop = MacroHandler.getFarmingCrop();
-        currentState = State.NONE;
+        currentState = changeState(State.NONE);
         mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
         rotation.easeTo(yaw, pitch, 500);
         rowStartX = mc.thePlayer.posX;
@@ -60,18 +60,16 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
         }
 
         // Calculate direction after teleportation
-        if (lastTp.isScheduled() && lastTp.passed()) {
-            lastTp.reset();
-            currentState = calculateDirection();
-        }
+//        if (lastTp.isScheduled() && lastTp.passed()) {
+//            lastTp.reset();
+//            currentState = calculateDirection();
+//        }
 
         LogUtils.debugFullLog("Current state: " + currentState);
 
-        checkForRotationAfterTp();
+        checkForRotationFailsafe();
 
-        if (isStuck()) {
-            return;
-        }
+        if (isStuck()) return;
 
         CropUtils.getTool();
 
@@ -178,7 +176,8 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
         }
     }
 
-    private State calculateDirection() {
+    @Override
+    public State calculateDirection() {
         if(isWater(getRelativeBlock(2, -1, 1, yaw - 45f)) || isWater(getRelativeBlock(2, 0, 1, yaw - 45f))
                 || isWater(getRelativeBlock(-1, -1, 1, yaw - 45f)) || isWater(getRelativeBlock(-1, 0, 1, yaw - 45f)))
             if(!(hasWall(0, 1, yaw - 45f) && hasWall(-1, 0, yaw - 45f)))

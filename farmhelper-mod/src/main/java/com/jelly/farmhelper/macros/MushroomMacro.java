@@ -330,7 +330,7 @@ public class MushroomMacro extends Macro {
         }
     }
 
-    State calculateDirection() {
+    public State calculateDirection() {
 
         boolean f1 = true, f2 = true;
 

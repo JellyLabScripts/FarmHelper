@@ -8,6 +8,7 @@ import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
+import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -21,6 +22,7 @@ public abstract class Macro<T> {
     public int layerY = 0;
     public float yaw;
     public float pitch;
+    private boolean rotated = false;
 
 
     public void toggle() {
@@ -45,9 +47,14 @@ public abstract class Macro<T> {
         if (beforeTeleportationPos == null) return;
         if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos) > 2) {
             LogUtils.debugLog("Teleported!");
+            currentState = changeState(calculateDirection());
             beforeTeleportationPos = null;
             isTping = false;
             lastTp.reset();
+            rotated = false;
+            FarmHelper.gameState.scheduleNotMoving(750);
+            Antistuck.stuck = false;
+            Antistuck.cooldown.schedule(3500);
             lastTp.schedule(1_000);
             if (!isSpawnLocationSet()) {
                 setSpawnLocation();
@@ -58,6 +65,7 @@ public abstract class Macro<T> {
     public void onEnable() {
         lastTp.reset();
         isTping = false;
+        rotated = true;
         beforeTeleportationPos = null;
         FarmHelper.gameState.scheduleNotMoving(750);
         Antistuck.stuck = false;
@@ -86,6 +94,9 @@ public abstract class Macro<T> {
             LogUtils.scriptLog("Your rewarp position is not set!");
             MacroHandler.disableCurrentMacro();
         }
+        if (lastTp.isScheduled() && lastTp.passed()) {
+            lastTp.reset();
+        }
     }
 
     public void onLastRender() {
@@ -98,41 +109,7 @@ public abstract class Macro<T> {
     public void onChatMessageReceived(String msg) {
     }
 
-    double prevX = 0;
-    double prevZ = 0;
-    double prevY = 0;
-    double prevTime = 0;
-    double blocksPerSecond = 0;
-
     public void onOverlayRender(RenderGameOverlayEvent event) {
-        /*// Count moved blocks per second and display on screen
-        double deltaX = mc.thePlayer.posX - prevX;
-        double deltaY = mc.thePlayer.posY - prevY;
-        double deltaZ = mc.thePlayer.posZ - prevZ;
-
-        double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
-
-        long currentTime = System.currentTimeMillis();
-        double elapsedTime = (currentTime - prevTime) / 1000.0; // Convert milliseconds to seconds
-
-        double speed = distance / elapsedTime;
-
-        if (elapsedTime > 0.1) {
-            prevX = mc.thePlayer.posX;
-            prevY = mc.thePlayer.posY;
-            prevZ = mc.thePlayer.posZ;
-            prevTime = currentTime;
-            blocksPerSecond = speed;
-        }
-
-        if (event.type == RenderGameOverlayEvent.ElementType.TEXT) {
-            String speedString = String.format("%.2f", blocksPerSecond);
-            String text = "Speed: " + speedString + " blocks/s";
-            int x = 2;
-            int y = 2;
-            int color = 0xffffff;
-            mc.fontRendererObj.drawString(text, x, y, color);
-        }*/
     }
 
     public void onPacketReceived(ReceivePacketEvent event) {
@@ -223,13 +200,14 @@ public abstract class Macro<T> {
 
     public void checkForRotationAfterTp() {
         // Check for rotation after teleporting back to spawn point
-        if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating) {
+        if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && !rotated) {
             yaw = AngleUtils.getClosest(yaw);
             if (FarmHelper.config.rotateAfterWarped)
                 yaw = AngleUtils.get360RotationYaw(yaw + 180);
             if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
                 rotation.easeTo(yaw, pitch, (long) (500 + Math.random() * 200));
             }
+            rotated = true;
         }
     }
 
@@ -269,5 +247,9 @@ public abstract class Macro<T> {
         } else {
             LogUtils.debugLog("Unstuck thread is alive!");
         }
+    }
+
+    public T calculateDirection() {
+        return null;
     }
 }
