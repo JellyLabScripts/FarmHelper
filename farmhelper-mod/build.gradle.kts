@@ -29,7 +29,7 @@ dependencies {
     compileOnly("org.spongepowered:mixin:0.8.5-SNAPSHOT")
     annotationProcessor("org.spongepowered:mixin:0.8.5-SNAPSHOT:processor")
 
-    modRuntimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.1.2")
+    runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.1.2")
 
     embed("com.github.ronmamo:reflections:0.10.2")
     embed("org.java-websocket:Java-WebSocket:1.5.3")
