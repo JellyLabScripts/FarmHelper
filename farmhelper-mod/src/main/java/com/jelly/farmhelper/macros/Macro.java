@@ -208,7 +208,6 @@ public abstract class Macro<T> {
     public void triggerWarpGarden() {
         KeyBindUtils.stopMovement();
         isTping = true;
-        System.out.println("Here");
         if (FarmHelper.gameState.canChangeDirection() && beforeTeleportationPos == null) {
             LogUtils.debugLog("Warping to spawn point");
             mc.thePlayer.sendChatMessage(FarmHelper.gameState.wasInGarden ? "/warp garden" : "/is");

@@ -141,7 +141,6 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
             if (!mc.thePlayer.onGround) {
                 prevState = changeState(DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
-                System.out.println("Dropping");
             }
             invokeState();
         }

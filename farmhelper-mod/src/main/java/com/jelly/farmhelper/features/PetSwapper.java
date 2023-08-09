@@ -11,25 +11,32 @@ import net.minecraft.inventory.ContainerChest;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.List;
-public class PetSwapper { // Credits: osamabeinglagging, ducklett
+
+public class PetSwapper {
 
     final static Minecraft mc = Minecraft.getMinecraft();
     static boolean enabled = false;
     static State currentState = State.NONE;
     static Clock delay = new Clock();
     static String previousPet = null;
-    private boolean getPreviousPet = false;
+    private static boolean getPreviousPet = false;
     enum State {
         NONE,
         STARTING,
         FIND_PREVIOUS,
         FIND_NEW,
         WAITING_FOR_SPAWN
+    }
+    public static boolean hasPetChangedDuringThisContest = false;
+
+    public static boolean isEnabled() {
+        return enabled;
     }
 
     @SubscribeEvent
@@ -45,7 +52,7 @@ public class PetSwapper { // Credits: osamabeinglagging, ducklett
         switch (currentState) {
             case STARTING:
                 if (mc.currentScreen != null) return;
-                LogUtils.debugLog("Pet swapper: starting"); // ty tom
+                LogUtils.debugLog("Pet swapper: starting");
                 mc.thePlayer.sendChatMessage("/pets");
                 if (previousPet != null && !previousPet.isEmpty() && !getPreviousPet) {
                     currentState = State.FIND_NEW;
@@ -162,12 +169,12 @@ public class PetSwapper { // Credits: osamabeinglagging, ducklett
         }
     }
 
-    public void startMacro(boolean getPreviousPet) {
+    public static void startMacro(boolean getPreviousPet) {
         LogUtils.debugLog("Disabling macro and enabling petswapper");
         MacroHandler.disableCurrentMacro(true);
         currentState = State.STARTING;
         enabled = true;
-        this.getPreviousPet = getPreviousPet;
+        PetSwapper.getPreviousPet = getPreviousPet;
     }
 
     public static void stopMacro() {
@@ -176,8 +183,52 @@ public class PetSwapper { // Credits: osamabeinglagging, ducklett
         reset();
     }
 
-    private static void reset() {
+    public static void reset() {
         currentState = State.NONE;
         enabled = false;
+        hasPetChangedDuringThisContest = false;
+    }
+
+    @SubscribeEvent
+    public final void onUnloadWorld(WorldEvent.Unload event) {
+        reset();
+    }
+
+    @SubscribeEvent
+    public void onTickAutoPetSwap(TickEvent.ClientTickEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
+        if (!FarmHelper.config.enablePetSwapper) return;
+        if (enabled) return;
+        if (currentState != State.NONE) return;
+        if (Failsafe.emergency) return;
+        if (!MacroHandler.isMacroing) return;
+        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
+        if (VisitorsMacro.inJacobContest() && !hasPetChangedDuringThisContest) {
+            LogUtils.debugLog("Jacob's contest start detected");
+            startMacro(false);
+            hasPetChangedDuringThisContest = true;
+        }
+    }
+
+    @SubscribeEvent
+    public void onChatMessage(ClientChatReceivedEvent event) {
+        if (event.type != 0) return;
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
+        if (!FarmHelper.config.enablePetSwapper) return;
+        if (enabled) return;
+        if (currentState != State.NONE) return;
+        if (Failsafe.emergency) return;
+        if (!MacroHandler.isMacroing) return;
+        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
+        if (VisitorsMacro.inJacobContest()) return;
+        if (!hasPetChangedDuringThisContest) return;
+        String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        if (msg.contains("The Farming Contest is over!")) {
+            LogUtils.debugLog("Jacob's contest end detected");
+            startMacro(true);
+            hasPetChangedDuringThisContest = false;
+        }
     }
 }

@@ -109,7 +109,6 @@ public class BlockUtils {
         for (BlockPos blockPos : BlockPos.getAllInBox(playerPos.add(vec3i), playerPos.subtract(vec3i2))) {
             IBlockState blockState = mc.theWorld.getBlockState(blockPos);
             if (blockState.getBlock() == Blocks.carpet && blockState.getValue(BlockCarpet.COLOR) == EnumDyeColor.BROWN) {
-                LogUtils.debugFullLog("Carpet color: " + blockState.getValue(BlockCarpet.COLOR));
                 count++;
             }
         }

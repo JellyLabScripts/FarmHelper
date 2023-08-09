@@ -119,7 +119,6 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
             if (!mc.thePlayer.onGround) {
                 prevState = changeState(State.DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
-                System.out.println("Dropping");
             }
             invokeState();
         }

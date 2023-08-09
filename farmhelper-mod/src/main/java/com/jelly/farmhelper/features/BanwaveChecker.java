@@ -52,6 +52,7 @@ public class BanwaveChecker {
                     }
 
                     if(MacroHandler.isMacroing && FarmHelper.config.enableLeaveOnBanwave) {
+                        if (VisitorsMacro.inJacobContest() && FarmHelper.config.banwaveDontLeaveDuringJacobsContest) return;
                         if (banwaveOn && mc.theWorld != null && !Failsafe.emergency) {
                             LogUtils.webhookLog("Disconnecting in 3 seconds due to banwave detected.");
 
@@ -70,7 +71,6 @@ public class BanwaveChecker {
                     }
 
                 } catch(Exception e){
-                    System.out.println(e.getMessage());
                     e.printStackTrace();
                 }
             }).start();
