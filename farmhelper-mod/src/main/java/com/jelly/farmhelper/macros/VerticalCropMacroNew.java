@@ -21,8 +21,6 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
     }
 
     public State prevState;
-    private float yaw;
-    private float pitch;
 
     @Override
     public void onEnable() {
@@ -37,10 +35,10 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
         } else {
             if (crop == Config.CropEnum.SUGAR_CANE) {
                 pitch = (float) (Math.random() * 2); // 0 - 2
-            } else if (crop == Config.CropEnum.POTATO || crop == Config.CropEnum.CARROT || crop == Config.CropEnum.WHEAT || crop == Config.CropEnum.NETHER_WART) {
-                pitch = 2.8f + (float) (Math.random() * 0.6); // 2.8-3.4
             } else if (crop == Config.CropEnum.COCOA_BEANS) {
                 pitch = -90;
+            } else {
+                pitch = 2.8f + (float) (Math.random() * 0.6); // 2.8-3.4
             }
         }
         yaw = AngleUtils.getClosest();

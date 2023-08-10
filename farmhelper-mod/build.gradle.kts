@@ -6,7 +6,7 @@ plugins {
     id("net.kyori.blossom") version "1.3.1"
 }
 
-version = "4.5.7-pre"
+version = "4.5.8-pre"
 
 repositories {
     maven("https://jitpack.io")
