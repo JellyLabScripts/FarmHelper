@@ -4,11 +4,6 @@ package com.jelly.farmhelper.features;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config.SMacroEnum;
 import com.jelly.farmhelper.config.Config.VerticalMacroEnum;
-
-//import com.jelly.farmhelper.config.enums.MacroEnum;
-//import com.jelly.farmhelper.config.interfaces.FarmConfig;
-//import com.jelly.farmhelper.config.interfaces.MiscConfig;
-//import com.jelly.farmhelper.config.interfaces.ProfitCalculatorConfig;
 import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.APIHelper;
@@ -27,7 +22,6 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
 import java.util.*;
@@ -395,12 +389,18 @@ public class ProfitCalculator {
             for (BazaarItem item : cropsToCount) {
                 JSONObject json2 = (JSONObject) json1.get(item.bazaarId);
                 JSONObject json3 = (JSONObject) json2.get("quick_status");
-                bazaarPrices.put(item.localizedName, (Double) (json3).get("buyPrice"));
+                if ((bazaarPrices.get(item.localizedName) == null) || ((Double) json3.get("buyPrice") < bazaarPrices.get(item.localizedName) * 3.0f))
+                    bazaarPrices.put(item.localizedName, (Double) (json3).get("buyPrice"));
+                else
+                    LogUtils.debugLog("Bazaar price for " + item.localizedName + " has been market manipulated. Skipping...");
             }
             for (BazaarItem bazaarItem : rngDropToCount) {
                 JSONObject json2 = (JSONObject) json1.get(bazaarItem.bazaarId);
                 JSONObject json3 = (JSONObject) json2.get("quick_status");
-                bazaarPrices.put(bazaarItem.localizedName, (Double) (json3).get("buyPrice"));
+                if ((bazaarPrices.get(bazaarItem.localizedName) == null) || ((Double) json3.get("buyPrice") < bazaarPrices.get(bazaarItem.localizedName) * 3.0f))
+                    bazaarPrices.put(bazaarItem.localizedName, (Double) (json3).get("buyPrice"));
+                else
+                    LogUtils.debugLog("Bazaar price for " + bazaarItem.localizedName + " has been market manipulated. Skipping...");
             }
             LogUtils.debugLog("Bazaar prices updated");
             cantConnectToApi = false;

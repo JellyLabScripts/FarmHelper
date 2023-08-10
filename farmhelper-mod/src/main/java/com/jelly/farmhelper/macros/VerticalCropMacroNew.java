@@ -8,9 +8,7 @@ import com.jelly.farmhelper.utils.*;
 import net.minecraft.client.Minecraft;
 
 import static com.jelly.farmhelper.macros.VerticalCropMacroNew.State.DROPPING;
-import static com.jelly.farmhelper.macros.VerticalCropMacroNew.State.NONE;
 import static com.jelly.farmhelper.utils.BlockUtils.*;
-import static com.jelly.farmhelper.utils.BlockUtils.isWalkable;
 
 public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
     private static final Minecraft mc = Minecraft.getMinecraft();

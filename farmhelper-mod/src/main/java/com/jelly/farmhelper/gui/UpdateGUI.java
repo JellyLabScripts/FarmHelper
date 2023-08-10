@@ -11,18 +11,17 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
+import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 
 import static com.jelly.farmhelper.FarmHelper.MODVERSION;
 import static com.jelly.farmhelper.FarmHelper.VERSION;
