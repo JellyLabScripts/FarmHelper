@@ -389,7 +389,7 @@ public class ProfitCalculator {
             for (BazaarItem item : cropsToCount) {
                 JSONObject json2 = (JSONObject) json1.get(item.bazaarId);
                 JSONObject json3 = (JSONObject) json2.get("quick_status");
-                if ((bazaarPrices.get(item.localizedName) == null) || (bazaarPrices.get(item.localizedName) != null && ((Double) json3.get("buyPrice") < bazaarPrices.get(item.localizedName) * 3.0f)))
+                if ((bazaarPrices.get(item.localizedName) == null) || ((Double) json3.get("buyPrice") < bazaarPrices.get(item.localizedName) * 3.0f))
                     bazaarPrices.put(item.localizedName, (Double) (json3).get("buyPrice"));
                 else
                     LogUtils.debugLog("Bazaar price for " + item.localizedName + " has been market manipulated. Skipping...");
@@ -397,7 +397,7 @@ public class ProfitCalculator {
             for (BazaarItem bazaarItem : rngDropToCount) {
                 JSONObject json2 = (JSONObject) json1.get(bazaarItem.bazaarId);
                 JSONObject json3 = (JSONObject) json2.get("quick_status");
-                if ((bazaarPrices.get(bazaarItem.localizedName) == null) || (bazaarPrices.get(bazaarItem.localizedName) != null && ((Double) json3.get("buyPrice") < bazaarPrices.get(bazaarItem.localizedName) * 3.0f)))
+                if ((bazaarPrices.get(bazaarItem.localizedName) == null) || ((Double) json3.get("buyPrice") < bazaarPrices.get(bazaarItem.localizedName) * 3.0f))
                     bazaarPrices.put(bazaarItem.localizedName, (Double) (json3).get("buyPrice"));
                 else
                     LogUtils.debugLog("Bazaar price for " + bazaarItem.localizedName + " has been market manipulated. Skipping...");
