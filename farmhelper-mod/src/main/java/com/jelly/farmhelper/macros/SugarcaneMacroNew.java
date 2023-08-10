@@ -49,6 +49,8 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
             KeyBindUtils.stopMovement();
             FarmHelper.gameState.scheduleNotMoving();
             return;
+        } else {
+            rotatedAfterStart = true;
         }
 
         checkForRotationAfterTp();

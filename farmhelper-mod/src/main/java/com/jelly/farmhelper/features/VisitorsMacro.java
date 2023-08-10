@@ -208,12 +208,12 @@ public class VisitorsMacro {
             clock.reset();
         }
 
-        if (!MacroHandler.currentMacro.isSpawnLocationSet() && (!FarmHelper.config.ladderDesign || FarmHelper.config.macroType)) {
+        if (!MacroHandler.currentMacro.isSpawnLocationSet()) {
             LogUtils.debugLog("Spawn pos is not yet determined, will run after rewarping or setting spawn.");
             return;
         }
 
-        if ((!FarmHelper.config.ladderDesign || FarmHelper.config.macroType) && !MacroHandler.currentMacro.isStandingOnSpawnLocation()) {
+        if (!MacroHandler.currentMacro.isStandingOnSpawnLocation()) {
             LogUtils.debugLog("Not standing on spawn location, will run after rewarping or setting spawn.");
             return;
         }
@@ -244,13 +244,6 @@ public class VisitorsMacro {
             return;
         }
 
-        BlockPos blockUnder = BlockUtils.getRelativeBlockPos(0, 0, 0);
-        if (!BlockUtils.canSetSpawn(blockUnder) && FarmHelper.config.ladderDesign) {
-            LogUtils.debugLog("Can't setspawn here, still going.");
-            clock.schedule(1000);
-            enabled = false;
-            return;
-        }
 
         int aspectOfTheVoid = PlayerUtils.getItemInHotbar("Aspect of the");
         if (aspectOfTheVoid == -1) {
@@ -276,16 +269,16 @@ public class VisitorsMacro {
         }
 
         if (currentState == State.NONE && clock.passed()) {
-            if ((!FarmHelper.config.ladderDesign || FarmHelper.config.macroType)) {
+//            if ((!FarmHelper.config.ladderDesign || FarmHelper.config.macroType)) {
                 currentState = State.ROTATE_TO_EDGE;
                 clock.schedule(1500L);
                 LogUtils.debugLog("Visitors macro can be started");
                 KeyBindUtils.stopMovement();
                 enabled = true;
-            } else {
-                currentState = State.TRY_TO_SET_SPAWN;
-                PlayerUtils.setSpawn();
-            }
+//            } else {
+//                currentState = State.TRY_TO_SET_SPAWN;
+//                PlayerUtils.setSpawn();
+//            }
             rotation.reset();
             rotation.completed = true;
             clock.schedule(1_500);

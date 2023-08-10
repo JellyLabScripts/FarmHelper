@@ -69,6 +69,8 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
             KeyBindUtils.stopMovement();
             FarmHelper.gameState.scheduleNotMoving();
             return;
+        } else {
+            rotatedAfterStart = true;
         }
 
         // Check for rotation after teleporting back to spawn point
@@ -141,8 +143,8 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
                     if (FarmHelper.config.rotateAfterDrop) {
                         LogUtils.debugLog("Rotating 180");
                         rotation.reset();
-                        yaw = AngleUtils.get360RotationYaw(yaw + 180);
-                        rotation.easeTo(yaw, pitch, (long) (300 + Math.random() * 500));
+                        yaw = yaw + 180;
+                        rotation.easeTo(yaw, pitch, 500);
                     }
                     KeyBindUtils.stopMovement();
                     layerY = mc.thePlayer.getPosition().getY();

@@ -70,6 +70,8 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
             KeyBindUtils.stopMovement();
             FarmHelper.gameState.scheduleNotMoving();
             return;
+        } else {
+            rotatedAfterStart = true;
         }
 
         // Check for rotation after teleporting back to spawn point

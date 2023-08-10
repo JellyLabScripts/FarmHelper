@@ -163,11 +163,11 @@ public class VerticalCropMacro extends Macro{
 
         CropUtils.getTool();
 
-        if (BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.ladder) ||
-                BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.ladder) ||
-                        BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.ladder) && FarmHelper.config.ladderDesign) {
-            changeStateTo(State.BACK_TO_TOP_LAYER);
-        }
+//        if (BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.ladder) ||
+//                BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.ladder) ||
+//                        BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.ladder) && FarmHelper.config.ladderDesign) {
+//            changeStateTo(State.BACK_TO_TOP_LAYER);
+//        }
 
         if (currentState == State.BACK_TO_TOP_LAYER) {
             if (!BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.ladder) &&
@@ -191,12 +191,12 @@ public class VerticalCropMacro extends Macro{
             return;
         }
 
-        if (!isRewarpLocationSet() &&
-            !FarmHelper.config.ladderDesign) {
-            LogUtils.debugLog("Rewarp location not set!");
-        } else if (isRewarpLocationSet() && isStandingOnRewarpLocation() && !FarmHelper.config.ladderDesign) {
-            triggerWarpGarden();
-        }
+//        if (!isRewarpLocationSet() &&
+//            !FarmHelper.config.ladderDesign) {
+//            LogUtils.debugLog("Rewarp location not set!");
+//        } else if (isRewarpLocationSet() && isStandingOnRewarpLocation() && !FarmHelper.config.ladderDesign) {
+//            triggerWarpGarden();
+//        }
 
         if (Failsafe.emergency) {
             LogUtils.debugLog("Blocking changing movement due to emergency");

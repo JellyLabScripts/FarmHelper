@@ -159,11 +159,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public int customPitchLevel = 0;
 
 	@Switch(
-	name = "Go back with Ladders", category = GENERAL, subcategory = "Macro",
-	description = "Select this if you're using ladder design"
-	)
-	public boolean ladderDesign = false;
-	@Switch(
 		name = "Rotate After Warped", category = GENERAL, subcategory = "Macro",
 		description = "Rotates the player after re-warping"
 	)

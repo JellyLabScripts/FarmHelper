@@ -23,6 +23,7 @@ public abstract class Macro<T> {
     public float yaw;
     public float pitch;
     private boolean rotated = false;
+    protected boolean rotatedAfterStart = false;
 
 
     public void toggle() {
@@ -55,7 +56,7 @@ public abstract class Macro<T> {
             FarmHelper.gameState.scheduleNotMoving(750);
             Antistuck.stuck = false;
             Antistuck.cooldown.schedule(3500);
-            lastTp.schedule(1_000);
+            lastTp.schedule(1_500);
             if (!isSpawnLocationSet()) {
                 setSpawnLocation();
             }
@@ -66,6 +67,7 @@ public abstract class Macro<T> {
         lastTp.reset();
         isTping = false;
         rotated = true;
+        rotatedAfterStart = false;
         beforeTeleportationPos = null;
         FarmHelper.gameState.scheduleNotMoving(750);
         Antistuck.stuck = false;
@@ -201,18 +203,20 @@ public abstract class Macro<T> {
     public void checkForRotationAfterTp() {
         // Check for rotation after teleporting back to spawn point
         if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && !rotated) {
-            yaw = AngleUtils.getClosest(yaw);
+//            yaw = AngleUtils.getClosest(yaw);
             if (FarmHelper.config.rotateAfterWarped)
                 yaw = AngleUtils.get360RotationYaw(yaw + 180);
             if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
                 rotation.easeTo(yaw, pitch, (long) (500 + Math.random() * 200));
             }
             rotated = true;
+            LogUtils.debugLog("Rotating");
         }
     }
 
     public void checkForRotationFailsafe() {
         if (FarmHelper.config.newRotationCheck) return;
+        if (!rotatedAfterStart) return;
         // Check for rotation check failsafe
         boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FarmHelper.config.rotationCheckSensitivity
                 || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity;

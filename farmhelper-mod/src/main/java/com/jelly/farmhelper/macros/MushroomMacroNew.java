@@ -53,6 +53,8 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             KeyBindUtils.stopMovement();
             FarmHelper.gameState.scheduleNotMoving();
             return;
+        } else {
+            rotatedAfterStart = true;
         }
 
         if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating) {
@@ -174,7 +176,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
                         if (FarmHelper.config.SShapeMacroType == Config.SMacroEnum.MUSHROOM.ordinal()) {
                             rotation.easeTo(yaw, pitch, 500);
                         } else {
-                            rotation.easeTo(closest90Yaw + (currentState == State.LEFT ? -30 : 30), pitch, 400);
+                            rotation.easeTo(closest90Yaw + (currentState == State.LEFT ? -30 : 30), pitch, 500);
                         }
                         KeyBindUtils.stopMovement();
                     }

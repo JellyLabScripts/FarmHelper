@@ -45,7 +45,7 @@ public class PlayerUtils {
     }
 
     public static void attemptSetSpawn() {
-        if(FarmHelper.config.enableAutoSetSpawn && FarmHelper.config.ladderDesign) {
+        if(FarmHelper.config.enableAutoSetSpawn) {
             double diff = (FarmHelper.config.autoSetSpawnMaxDelay * 1000) - (FarmHelper.config.autoSetSpawnMinDelay * 1000);
             if (diff <= 0) {
                 LogUtils.scriptLog("autoSetSpawnMaxDelay must be greater than autoSetSpawnMinDelay", EnumChatFormatting.RED);

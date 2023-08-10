@@ -406,6 +406,7 @@ public class Failsafe {
         if (evacuateCooldown.isScheduled() || afterEvacuateCooldown.isScheduled()) return;
         if (gameState.currentLocation != GameState.location.ISLAND) return;
         if (MacroHandler.currentMacro.isTping) return;
+        if (VisitorsMacro.isEnabled()) return;
         if (event.packet instanceof S08PacketPlayerPosLook) {
             if (config.pingServer && (Pinger.dontRotationCheck.isScheduled() && !Pinger.dontRotationCheck.passed() || Pinger.isOffline)) {
                 LogUtils.debugLog("Got rotation packet while connection to server is bad, ignoring");
@@ -686,7 +687,6 @@ public class Failsafe {
             // final stage: come hub or quit game
             LogUtils.debugLog("rotationMovement: final stage");
             LogUtils.scriptLog("Stop the macro if you see this!");
-            if (FarmHelper.config.ladderDesign) PlayerUtils.setSpawn();
             Thread.sleep(3000);
 
             if(config.leaveAfterFailSafe && said) {
