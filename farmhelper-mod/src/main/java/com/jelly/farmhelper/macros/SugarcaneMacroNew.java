@@ -5,7 +5,6 @@ import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.utils.*;
 
 import static com.jelly.farmhelper.utils.BlockUtils.*;
-import static com.jelly.farmhelper.utils.BlockUtils.getRelativeBlock;
 
 public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
 

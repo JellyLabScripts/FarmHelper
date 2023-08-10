@@ -1,10 +1,7 @@
 package com.jelly.farmhelper.utils;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.Config.VerticalMacroEnum;
-import com.jelly.farmhelper.config.Config.SMacroEnum;
-import com.jelly.farmhelper.config.Config.CropEnum
-    ;
+import com.jelly.farmhelper.config.Config.CropEnum;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDoor;
 import net.minecraft.block.BlockSlab;

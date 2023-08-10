@@ -3,14 +3,10 @@ package com.jelly.farmhelper.network;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import javax.net.ssl.*;
+import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
 
 public class APIHelper {
     public static JSONObject readJsonFromUrl(String urlToRead, String requestKey, String requestValue) throws Exception {
