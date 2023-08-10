@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.player;
 
+import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.utils.AngleUtils;
 import net.minecraft.client.Minecraft;
 import org.apache.commons.lang3.tuple.MutablePair;
@@ -70,6 +71,7 @@ public class Rotation {
             completed = true;
             rotating = false;
         }
+        DebugHUD.rotating = rotating;
     }
 
     private boolean shouldRotateClockwise() {

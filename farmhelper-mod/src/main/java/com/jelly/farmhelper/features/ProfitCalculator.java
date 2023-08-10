@@ -131,7 +131,8 @@ public class ProfitCalculator {
                         Optional<BazaarItem> isRngDrop = rngDropToCount.stream().filter(rngDrop -> StringUtils.stripControlCodes(name).equalsIgnoreCase(rngDrop.localizedName)).findFirst();
                         if (isRngDrop.isPresent()) {
                             BazaarItem rngDrop = isRngDrop.get();
-                            totalProfit += ((long) (rngDrop.npcPrice * (amount * 1.0f / rngDrop.amountToEnchanted)));
+                            if (FarmHelper.config.countRNGToProfitCalc)
+                                totalProfit += ((long) (rngDrop.npcPrice * (amount * 1.0f / rngDrop.amountToEnchanted)));
                             rngDrop.currentAmount = (amount * 1.0f / rngDrop.amountToEnchanted);
                             ListCropsToShow.putIfAbsent(name, rngDrop);
                             ListCropsToShow.put(name, rngDrop);
