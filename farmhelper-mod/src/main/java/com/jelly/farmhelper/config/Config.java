@@ -10,6 +10,7 @@ import cc.polyfrost.oneconfig.config.data.OptionSize;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.features.Autosell;
+import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.hud.ProfitCalculatorHUD;
 import com.jelly.farmhelper.hud.StatusHUD;
 import com.jelly.farmhelper.macros.MacroHandler;
@@ -34,6 +35,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	private transient static final Minecraft mc = Minecraft.getMinecraft();
 	private transient static final String GENERAL = "General";
 	private transient static final String MISCELLANEOUS = "Miscellaneous";
+	private transient static final String HUD = "HUD";
 	private transient static final String FAILSAFE = "Fail Safes";
 	private transient static final String VISITORS_MACRO = "Visitors Macro";
 	private transient static final String DELAYS = "Delays";
@@ -53,6 +55,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 
 	// START GENERAL
+
      public enum VerticalMacroEnum {
 		NORMAL_TYPE
      }
@@ -253,6 +256,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	// END GENERAL
 
 	// START MISCELLANEOUS
+
 	@Switch(
 		name = "Xray Mode", category = MISCELLANEOUS, subcategory = "Miscellaneous",
 		description = "Hides blocks to reduce resource usage"
@@ -290,12 +294,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public boolean countRNGToProfitCalc = false;
 
 	@Switch(
-		name = "Debug Mode", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-		description = "Prints to chat what the bot is currently executing. Useful if you are having issues."
-	)
-	public boolean debugMode = false;
-
-	@Switch(
 		name = "Enable Auto Sell", category = MISCELLANEOUS, subcategory = "Auto Sell",
 		description = "Enables auto sell"
 	)
@@ -327,19 +325,19 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		Autosell.enable();
 	};
 	@Switch(
-			name = "Swap Pet", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			name = "Swap pet during Jacob's contest", category = MISCELLANEOUS, subcategory = "Pet Swapper",
 			description = "Swaps pet to the selected pet during Jacob's contest. Selects the first one from the pet list."
 	)
 	public boolean enablePetSwapper = false;
 	@Slider(
-			name = "Pet Swap Delay", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			name = "Pet Swap Delay", category = MISCELLANEOUS, subcategory = "Pet Swapper",
 			description = "The delay between clicking GUI during swapping the pet (in milliseconds)",
 			min = 200, max = 3000
 	)
 	public int petSwapperDelay = 1000;
 	@Text(
 			name = "Pet Name", placeholder = "Mushroom Cow", secure = false, multiline = false,
-			category = MISCELLANEOUS, subcategory = "Miscellaneous"
+			category = MISCELLANEOUS, subcategory = "Pet Swapper"
 	)
 	public String petSwapperName = null;
 	@Switch(
@@ -359,6 +357,19 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public boolean increasedNetherWarts = true;
 
 	// END MISCELLANEOUS
+
+	// START HUD
+
+	@HUD(
+			name = "Status HUD", category = HUD
+	)
+	public StatusHUD statusHUD = new StatusHUD();
+	@HUD(
+			name = "Profit Calculator HUD", category = HUD, subcategory = " "
+	)
+	public ProfitCalculatorHUD profitHUD = new ProfitCalculatorHUD();
+
+	// END HUD
 
 	// START DELAYS
 
@@ -741,7 +752,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public static String customBedrockMessages = "";
 
-
 	// END FAILSAFE
 
 	// START JACOB
@@ -817,24 +827,23 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	// START DEBUG
 
 //	@KeyBind(
-//			name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
+//			name = "Debug Keybind", category = DEBUG
 //	)
 //	public OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_H);
 //
 //	@KeyBind(
-//			name = "Debug Keybind 2", category = DEBUG, subcategory = "Debug"
+//			name = "Debug Keybind 2", category = DEBUG
 //	)
 //	public OneKeyBind debugKeybind2 = new OneKeyBind(Keyboard.KEY_J);
-
-	@HUD(
-		name = "Farm Helper Status", category = DEBUG, subcategory = "HUD"
+	@Switch(
+			name = "Debug Mode", category = DEBUG,
+			description = "Prints to chat what the bot is currently executing. Useful if you are having issues."
 	)
-	public StatusHUD statusHUD = new StatusHUD();
+	public boolean debugMode = false;
 	@HUD(
-		name = "Farm Helper Profit Calculator", category = DEBUG, subcategory = "HUD"
+			name = "Debug HUD", category = DEBUG, subcategory = " "
 	)
-	public ProfitCalculatorHUD profitHUD = new ProfitCalculatorHUD();
-
+	public DebugHUD debugHUD = new DebugHUD();
 	@Number(
 		name = "SpawnPos X", category = DEBUG, subcategory = "SpawnPos",
 		description = "The X coordinate of the spawn",
@@ -855,10 +864,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		size = OptionSize.DUAL
 	)
 	public int spawnPosZ = 0;
-
 	@Switch(name = "Is Spawnpoint set", category = DEBUG, subcategory = "SpawnPos")
 	public boolean isSpawnpointSet = false;
-
 	@Button(
 		name = "Set SpawnPos", category = DEBUG, subcategory = "SpawnPos",
 		description = "Sets the spawn position to your current position",
@@ -890,6 +897,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	// END DEBUG
 
 	// START EXPERIMENTAL
+
 	@Switch(
 			name = "Enable Fast Break (DANGEROUS)", category = EXPERIMENTAL, subcategory = "Experimental",
 			description = "Fast break is very risky and most likely will result in a ban"

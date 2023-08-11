@@ -6,6 +6,7 @@ import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
+import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
@@ -196,6 +197,8 @@ public abstract class Macro<T> {
 
     public T changeState(T newState) {
         LogUtils.debugLog("Changing state from " + currentState + " to " + newState);
+        DebugHUD.currentState = String.valueOf(currentState);
+        DebugHUD.newState = String.valueOf(newState);
         currentState = newState;
         return newState;
     }

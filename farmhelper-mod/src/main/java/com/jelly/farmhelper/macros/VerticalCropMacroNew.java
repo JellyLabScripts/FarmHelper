@@ -25,7 +25,7 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
     @Override
     public void onEnable() {
         super.onEnable();
-        prevState = changeState(State.NONE);
+        changeState(State.NONE);
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
@@ -48,7 +48,7 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
     @Override
     public void triggerTpCooldown() {
         super.triggerTpCooldown();
-        if (currentState == DROPPING) {
+        if (currentState == State.DROPPING) {
             currentState = calculateDirection();
         }
     }
@@ -78,12 +78,6 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
             return;
         }
 
-        // Calculate direction after teleportation
-//        if (lastTp.isScheduled() && lastTp.passed()) {
-//            lastTp.reset();
-//            currentState = calculateDirection();
-//        }
-
         LogUtils.debugFullLog("Current state: " + currentState);
 
         checkForRotationFailsafe();
@@ -112,7 +106,7 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
             invokeState();
         } else {
             if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75) {
-                prevState = changeState(DROPPING);
+                changeState(State.DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
             }
             invokeState();
@@ -125,22 +119,22 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
             case RIGHT: {
                     LogUtils.debugLog("Can't go forward or backward!");
                     if (FarmHelper.gameState.leftWalkable) {
-                        prevState = changeState(State.LEFT);
+                        changeState(State.LEFT);
                     } else if (FarmHelper.gameState.rightWalkable) {
-                        prevState = changeState(State.RIGHT);
+                        changeState(State.RIGHT);
                     } else {
-                        prevState = changeState(State.NONE);
+                        changeState(State.NONE);
                     }
                 }
                 break;
             case DROPPING: {
                 LogUtils.debugLog("On Ground: " + mc.thePlayer.onGround);
                 if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) > 1.5) {
-                    if (FarmHelper.config.rotateAfterDrop) {
+                    if (FarmHelper.config.rotateAfterDrop && !rotation.rotating) {
                         LogUtils.debugLog("Rotating 180");
                         rotation.reset();
                         yaw = yaw + 180;
-                        rotation.easeTo(yaw, pitch, 500);
+                        rotation.easeTo(yaw, pitch, (long) (400 + Math.random() * 300));
                     }
                     KeyBindUtils.stopMovement();
                     layerY = mc.thePlayer.getPosition().getY();
@@ -151,7 +145,7 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
                 break;
             }
             case NONE: {
-                prevState = changeState(calculateDirection());
+                changeState(calculateDirection());
                 break;
             }
         }

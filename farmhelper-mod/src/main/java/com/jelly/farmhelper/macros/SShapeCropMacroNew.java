@@ -24,12 +24,11 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
     }
 
     public ChangeLaneDirection changeLaneDirection = null;
-    public State prevState;
 
     @Override
     public void onEnable() {
         super.onEnable();
-        prevState = changeState(State.NONE);
+        changeState(State.NONE);
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
         MacroHandler.crop = crop;
@@ -82,12 +81,6 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
             return;
         }
 
-        // Calculate direction after teleportation
-//        if (lastTp.isScheduled() && lastTp.passed()) {
-//            lastTp.reset();
-//            currentState = calculateDirection();
-//        }
-
         LogUtils.debugFullLog("Current state: " + currentState);
 
         checkForRotationFailsafe();
@@ -116,7 +109,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
             invokeState();
         } else {
             if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75) {
-                prevState = changeState(State.DROPPING);
+                changeState(State.DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
             }
             invokeState();
@@ -133,7 +126,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                         unstuck();
                         return;
                     }
-                    prevState = changeState(State.SWITCHING_LANE);
+                    changeState(State.SWITCHING_LANE);
                     changeLaneDirection = ChangeLaneDirection.FORWARD;
                 } else if (FarmHelper.gameState.backWalkable) {
                     if (changeLaneDirection == ChangeLaneDirection.FORWARD) {
@@ -141,25 +134,25 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                         unstuck();
                         return;
                     }
-                    prevState = changeState(State.SWITCHING_LANE);
+                    changeState(State.SWITCHING_LANE);
                     changeLaneDirection = ChangeLaneDirection.BACKWARD;
                 } else {
                     LogUtils.debugLog("Can't go forward or backward!");
                     if (FarmHelper.gameState.leftWalkable) {
-                        prevState = changeState(State.LEFT);
+                        changeState(State.LEFT);
                     } else if (FarmHelper.gameState.rightWalkable) {
-                        prevState = changeState(State.RIGHT);
+                        changeState(State.RIGHT);
                     } else {
-                        prevState = changeState(State.NONE);
+                        changeState(State.NONE);
                     }
                 }
                 break;
             }
             case SWITCHING_LANE: {
                 if (FarmHelper.gameState.leftWalkable) {
-                    prevState = changeState(State.LEFT);
+                    changeState(State.LEFT);
                 } else if (FarmHelper.gameState.rightWalkable) {
-                    prevState = changeState(State.RIGHT);
+                    changeState(State.RIGHT);
                 } else {
                     unstuck();
                 }
@@ -184,7 +177,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                 break;
             }
             case NONE: {
-                prevState = changeState(calculateDirection());
+                changeState(calculateDirection());
                 break;
             }
         }
@@ -226,7 +219,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                 if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) <= 1.5) {
                     LogUtils.debugLog("Dropping done, but didn't drop high enough to rotate!");
                     layerY = mc.thePlayer.getPosition().getY();
-                    prevState = changeState(State.NONE);
+                    changeState(State.NONE);
                 }
                 break;
             case NONE:
