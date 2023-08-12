@@ -31,6 +31,7 @@ public class UngrabUtils {
             }
         };
         isUngrabbed = true;
+        LogUtils.debugFullLog("Ungrabbing mouse");
     }
 
     /**
@@ -44,6 +45,7 @@ public class UngrabUtils {
         if (!doesGameWantUngrabbed) m.mouseHelper.grabMouseCursor();
         oldMouseHelper = null;
         isUngrabbed = false;
+        LogUtils.debugFullLog("Regrabbing mouse");
     }
 }
 

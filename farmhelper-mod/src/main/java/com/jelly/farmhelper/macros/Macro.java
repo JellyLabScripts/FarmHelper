@@ -202,9 +202,9 @@ public abstract class Macro<T> {
 
     public T changeState(T newState) {
         LogUtils.debugLog("Changing state from " + currentState + " to " + newState);
-        DebugHUD.currentState = String.valueOf(currentState);
-        DebugHUD.newState = String.valueOf(newState);
+        DebugHUD.prevState = String.valueOf(currentState);
         currentState = newState;
+        DebugHUD.currentState = String.valueOf(currentState);
         return newState;
     }
 

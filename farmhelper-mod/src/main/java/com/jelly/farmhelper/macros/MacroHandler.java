@@ -161,7 +161,7 @@ public class MacroHandler {
         if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
         if (FarmHelper.config.enableScheduler) Scheduler.start();
         if (FarmHelper.config.visitorsMacro && FarmHelper.config.onlyAcceptProfitableVisitors) LogUtils.scriptLog("Macro will only accept offers containing any of these products: " + String.join(", ", VisitorsMacro.profitRewards));
-//        if (FarmHelper.config.enablePetSwapper && VisitorsMacro.inJacobContest() && !PetSwapper.hasPetChangedDuringThisContest) {
+//        if (FarmHelper.config.enablePetSwapper && GameState.inJacobContest() && !PetSwapper.hasPetChangedDuringThisContest) {
 //            PetSwapper.startMacro(false);
 //        }
 

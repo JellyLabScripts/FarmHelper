@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.command.commands.ReconnectCommand;
 import com.jelly.farmhelper.utils.Clock;
@@ -28,7 +29,7 @@ public class AutoReconnect {
         JOINING_LOBBY,
         ENABLING_MACRO
     }
-    static reconnectingState currentState = reconnectingState.NONE;
+    public static reconnectingState currentState = reconnectingState.NONE;
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {

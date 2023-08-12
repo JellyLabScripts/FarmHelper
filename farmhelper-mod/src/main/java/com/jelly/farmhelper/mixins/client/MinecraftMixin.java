@@ -1,7 +1,9 @@
 package com.jelly.farmhelper.mixins.client;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.features.BanwaveChecker;
 import com.jelly.farmhelper.macros.MacroHandler;
+import com.jelly.farmhelper.world.GameState;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
@@ -53,6 +55,12 @@ public class MinecraftMixin {
     @Inject(method = "sendClickBlockToController", at = @At("RETURN"))
     private void sendClickBlockToController(CallbackInfo ci) {
         if (!FarmHelper.config.fastBreak || !(MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled)) {
+            return;
+        }
+        if (FarmHelper.config.disableFastBreakDuringBanWave && BanwaveChecker.banwaveOn) {
+            return;
+        }
+        if (FarmHelper.config.disableFastBreakDuringJacobsContest && GameState.inJacobContest()) {
             return;
         }
 
