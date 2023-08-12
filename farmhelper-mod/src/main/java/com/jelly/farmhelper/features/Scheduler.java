@@ -66,22 +66,4 @@ public class Scheduler {
         DebugHUD.breakClockremainingTime = breakClock.getRemainingTime();
         DebugHUD.breakClockisPaused = breakClock.isPaused();
     }
-
-//    @SubscribeEvent
-//    public void onChatMessage(ClientChatReceivedEvent event) {
-//        if (event.type != 0) return;
-//        if (mc.thePlayer == null || mc.theWorld == null) return;
-//        if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
-//        if (!FarmHelper.config.enablePetSwapper) return;
-//        if (Failsafe.emergency) return;
-//        if (!MacroHandler.isMacroing) return;
-//        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
-//        if (GameState.inJacobContest()) return;
-//        String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());
-//        if (msg.contains("The Farming Contest is over!")) {
-//            LogUtils.debugLog("Jacob's contest end detected, resuming schedulers");
-//            farmClock.resume();
-//            breakClock.resume();
-//        }
-//    }
 }
