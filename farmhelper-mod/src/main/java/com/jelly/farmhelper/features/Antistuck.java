@@ -22,7 +22,7 @@ public class Antistuck {
 
     public static boolean unstuckThreadIsRunning = false;
     public static boolean unstuckLastMoveBack = false;
-    public static final Runnable unstuckThread = () -> {
+    public static final Runnable unstuckRunnable = () -> {
         try {
             KeyBindUtils.stopMovement();
             Thread.sleep(20);
@@ -47,10 +47,12 @@ public class Antistuck {
             Antistuck.stuck = false;
             Antistuck.cooldown.schedule(3500);
             unstuckThreadIsRunning = false;
+            unstuckThreadInstance = null;
         } catch (Throwable e) {
             e.printStackTrace();
         }
     };
+    public static Thread unstuckThreadInstance = null;
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {

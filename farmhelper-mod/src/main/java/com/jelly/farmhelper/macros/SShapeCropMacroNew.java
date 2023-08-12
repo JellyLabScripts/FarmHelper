@@ -28,6 +28,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
     @Override
     public void onEnable() {
         super.onEnable();
+        changeLaneDirection = null;
         changeState(State.NONE);
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
@@ -61,6 +62,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
         super.onTick();
 
         if (isTping) {
+            changeLaneDirection = null;
             return;
         }
 

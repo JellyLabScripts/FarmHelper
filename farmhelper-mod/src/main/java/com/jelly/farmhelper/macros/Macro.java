@@ -9,7 +9,6 @@ import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
-import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -85,6 +84,12 @@ public abstract class Macro<T> {
     public void onDisable() {
         KeyBindUtils.stopMovement();
         UngrabUtils.regrabMouse();
+        if (Antistuck.unstuckThreadIsRunning) {
+            Antistuck.unstuckThreadIsRunning = false;
+            if (Antistuck.unstuckThreadInstance != null) {
+                Antistuck.unstuckThreadInstance.interrupt();
+            }
+        }
     }
 
     public void onTick() {
@@ -233,13 +238,7 @@ public abstract class Macro<T> {
 
     public boolean isStuck() {
         if (Antistuck.stuck) {
-            if (!Antistuck.unstuckThreadIsRunning) {
-                Antistuck.unstuckThreadIsRunning = true;
-                LogUtils.debugLog("Stuck!");
-                new Thread(Antistuck.unstuckThread).start();
-            } else {
-                LogUtils.debugLog("Unstuck thread is alive!");
-            }
+            unstuck();
             return true;
         }
         return false;
@@ -255,7 +254,8 @@ public abstract class Macro<T> {
             Antistuck.unstuckLastMoveBack = lastMoveBack;
             Antistuck.unstuckThreadIsRunning = true;
             LogUtils.debugLog("Stuck!");
-            new Thread(Antistuck.unstuckThread).start();
+            Antistuck.unstuckThreadInstance = new Thread(Antistuck.unstuckRunnable, "antistuck");
+            Antistuck.unstuckThreadInstance.start();
         } else {
             LogUtils.debugLog("Unstuck thread is alive!");
         }

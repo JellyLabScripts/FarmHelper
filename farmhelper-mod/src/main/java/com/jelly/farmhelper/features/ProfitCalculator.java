@@ -164,7 +164,7 @@ public class ProfitCalculator {
                 }
             }
         } else {
-            if (FarmHelper.config.VerticalMacroType == SMacroEnum.PUMPKIN_MELON.ordinal()) {
+            if (FarmHelper.config.SShapeMacroType == SMacroEnum.PUMPKIN_MELON.ordinal()) {
                 if ((event.old.getBlock() == Blocks.pumpkin && event.update.getBlock() != Blocks.pumpkin) ||
                         (event.old.getBlock() == Blocks.melon_block && event.update.getBlock() != Blocks.melon_block)) {
                     blocksBroken++;
