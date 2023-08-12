@@ -243,8 +243,13 @@ public abstract class Macro<T> {
     }
 
     public void unstuck() {
+        unstuck(true);
+    }
+
+    public void unstuck(boolean lastMoveBack) {
         if (!Antistuck.unstuckThreadIsRunning) {
             Antistuck.stuck = true;
+            Antistuck.unstuckLastMoveBack = lastMoveBack;
             Antistuck.unstuckThreadIsRunning = true;
             LogUtils.debugLog("Stuck!");
             new Thread(Antistuck.unstuckThread).start();

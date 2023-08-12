@@ -130,7 +130,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                 if (FarmHelper.gameState.frontWalkable) {
                     if (changeLaneDirection == ChangeLaneDirection.BACKWARD) {
                         // Probably stuck in dirt
-                        unstuck();
+                        unstuck(true);
                         return;
                     }
                     prevState = changeState(State.SWITCHING_LANE);
@@ -138,7 +138,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                 } else if (FarmHelper.gameState.backWalkable) {
                     if (changeLaneDirection == ChangeLaneDirection.FORWARD) {
                         // Probably stuck in dirt
-                        unstuck();
+                        unstuck(false);
                         return;
                     }
                     prevState = changeState(State.SWITCHING_LANE);
@@ -161,7 +161,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                 } else if (FarmHelper.gameState.rightWalkable) {
                     prevState = changeState(State.RIGHT);
                 } else {
-                    unstuck();
+                    unstuck(changeLaneDirection == ChangeLaneDirection.BACKWARD);
                 }
                 break;
             }
