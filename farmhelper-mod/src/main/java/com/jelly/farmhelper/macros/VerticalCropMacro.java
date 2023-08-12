@@ -124,7 +124,7 @@ public class VerticalCropMacro extends Macro{
 
         if (isTping) return;
 
-        LogUtils.debugLog("Current state: " + currentState);
+        LogUtils.debugFullLog("Current state: " + currentState);
 
         if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && !rotated) {
             yaw = AngleUtils.getClosest(yaw);

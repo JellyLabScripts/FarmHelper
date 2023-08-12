@@ -13,6 +13,7 @@ import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.TickTask;
 import com.jelly.farmhelper.utils.Utils;
 import com.jelly.farmhelper.world.GameState;
+import com.jelly.farmhelper.world.JacobsContestHandler;
 import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
@@ -71,6 +72,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new Utils());
         MinecraftForge.EVENT_BUS.register(new VisitorsMacro());
         MinecraftForge.EVENT_BUS.register(new Pinger());
+        MinecraftForge.EVENT_BUS.register(new JacobsContestHandler());
         MinecraftForge.EVENT_BUS.register(petSwapper);
         ClientCommandHandler.instance.registerCommand(new RewarpCommand());
         ClientCommandHandler.instance.registerCommand(new FarmHelperCommand());

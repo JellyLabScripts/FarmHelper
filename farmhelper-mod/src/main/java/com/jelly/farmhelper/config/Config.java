@@ -146,20 +146,17 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Automatically unfocuses your mouse, so you can safely alt-tab"
 	)
 	public boolean autoUngrabMouse = true;
-
 	@Switch(
 		name = "Custom pitch", category = GENERAL, subcategory = "Macro",
 		description = "Set pitch to custom level after starting the macro"
 	)
 	public boolean customPitch = false;
-
 	@Number(
 		name = "Custom pitch level", category = GENERAL, subcategory = "Macro",
 		description = "Set custom pitch level after starting the macro",
 		min = -90, max = 90
 	)
 	public int customPitchLevel = 0;
-
 	@Switch(
 		name = "Rotate After Warped", category = GENERAL, subcategory = "Macro",
 		description = "Rotates the player after re-warping"
@@ -176,7 +173,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Toggles the macro on/off"
 	)
 	public OneKeyBind toggleMacro = new OneKeyBind(Keyboard.KEY_GRAVE);
-
 	@KeyBind(
 			name = "Open GUI", category = GENERAL, subcategory = "Keybinds",
 			description = "Open's the main FarmHelper GUI"
@@ -189,7 +185,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			description = "The minimum time to wait before changing rows (in milliseconds)", min = 300, max = 2000
 	)
 	public float minTimeBetweenChangingRows = 300f;
-
 	@Slider(
 			name = "Maximum time between changing rows", category = GENERAL, subcategory = "Delays",
 			description = "The maximum time to wait before changing rows (in milliseconds)", min = 300, max = 2000
@@ -324,6 +319,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		mc.thePlayer.closeScreen();
 		Autosell.enable();
 	};
+
 	@Switch(
 			name = "Swap pet during Jacob's contest", category = MISCELLANEOUS, subcategory = "Pet Swapper",
 			description = "Swaps pet to the selected pet during Jacob's contest. Selects the first one from the pet list."
@@ -340,6 +336,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			category = MISCELLANEOUS, subcategory = "Pet Swapper"
 	)
 	public String petSwapperName = null;
+
 	@Switch(
 		name = "Increase Cocoa Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
 		description = "Allows you to farm cocoa beans more efficient on higher speeds by making the hitboxes bigger"
@@ -408,10 +405,10 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public boolean visitorsMacro = false;
 	@Switch(
-		name = "Pause When in Contests", category = VISITORS_MACRO, subcategory = "Visitors Macro",
-		description = "Pauses the visitors macro when in contests"
+		name = "Pause the visitors macro during Jacob's contests", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+		description = "Pauses the visitors macro during Jacob's contests"
 	)
-	public boolean pauseWhenInContests = true;
+	public boolean pauseVisitorsMacroDuringJacobsContest = true;
 	@Switch(
 		name = "Only Accept Profitable Visitors", category = VISITORS_MACRO, subcategory = "Visitors Macro",
 		description = "Only accepts visitors that are profitable"
@@ -423,7 +420,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = 1, max = 20
 	)
 	public int visitorsMacroCoinsThreshold = 1;
-
 
 	@Button(
 		name = "Set Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
@@ -438,7 +434,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		save();
 		LogUtils.scriptLog("Visitors desk position has been set. BlockPos: " + pos);
 	};
-
 	@Button(
 		name = "Reset Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
 		description = "Resets the visitor's desk position",
@@ -652,6 +647,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = 0, max = 15, step = 1
 	)
 	public int schedulerBreakTimeRandomness = 0;
+	@Switch(
+			name = "Pause the scheduler during Jacob's Contest", category = FAILSAFE, subcategory = "Scheduler", size = OptionSize.DUAL,
+			description = "Pauses and delays the scheduler during Jacob's Contest"
+	)
+	public boolean pauseSchedulerDuringJacobsContest = false;
 
 	@Switch(
 		name = "Enable Restart After FailSafe", category = FAILSAFE, subcategory = "Restart After FailSafe",
@@ -916,6 +916,16 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			min = 1, max = 3
 	)
 	public int fastBreakSpeed = 1;
+	@Switch(
+			name = "Disable Fast Break during banwave", category = EXPERIMENTAL, subcategory = "Experimental",
+			description = "Disables Fast Break during banwave"
+	)
+	public boolean disableFastBreakDuringBanWave = true;
+	@Switch(
+			name = "Disable Fast Break during Jacob's contest", category = EXPERIMENTAL, subcategory = "Experimental",
+			description = "Disables Fast Break during Jacob's contest"
+	)
+	public boolean disableFastBreakDuringJacobsContest = true;
 
 	@Dropdown(
 			name = "Alt-tab mode", category = EXPERIMENTAL, subcategory = "Experimental",
@@ -949,6 +959,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 		this.addDependency("holdLeftClickWhenChangingRow", "macroType");
 		this.addDependency("fastBreakSpeed", "fastBreak");
+		this.addDependency("disableFastBreakDuringBanWave", "fastBreak");
+		this.addDependency("disableFastBreakDuringJacobsContest", "fastBreak");
 
 		this.addDependency("sellToNPC", "enableAutoSell");
 		this.addDependency("inventoryFullTime", "enableAutoSell");
@@ -965,6 +977,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("schedulerFarmingTimeRandomness", "enableScheduler");
 		this.addDependency("schedulerBreakTime", "enableScheduler");
 		this.addDependency("schedulerBreakTimeRandomness", "enableScheduler");
+		this.addDependency("pauseSchedulerDuringJacobsContest", "enableScheduler");
 
 		this.addDependency("jacobNetherWartCap", "enableJacobFailsafes");
 		this.addDependency("jacobPotatoCap", "enableJacobFailsafes");
@@ -979,7 +992,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 		this.addDependency("onlyAcceptProfitableVisitors", "visitorsMacro");
 		this.addDependency("visitorsMacroCoinsThreshold", "visitorsMacro");
-		this.addDependency("pauseWhenInContests", "visitorsMacro");
+		this.addDependency("pauseVisitorsMacroDuringJacobsContest", "visitorsMacro");
 
 		this.addDependency("sendLogs", "enableWebHook");
 		this.addDependency("sendStatusUpdates", "enableWebHook");

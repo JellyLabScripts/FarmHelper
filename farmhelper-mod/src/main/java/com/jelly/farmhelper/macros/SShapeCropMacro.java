@@ -190,7 +190,7 @@ public class SShapeCropMacro extends Macro {
             rotated = false;
         }
 
-        LogUtils.debugLog("Current state: " + currentState);
+        LogUtils.debugFullLog("Current state: " + currentState);
 
         if(currentState != State.DROPPING && currentState != State.STONE_THROW) {
 

@@ -200,7 +200,7 @@ public class MushroomMacro extends Macro {
             currentState = calculateDirection();
         }
 
-        LogUtils.debugLog("Current state: " + currentState);
+        LogUtils.debugFullLog("Current state: " + currentState);
 
         if ((FarmHelper.config.macroType && FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal()) && !Failsafe.emergency && !rotation.rotating && !isTping && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FarmHelper.config.rotationCheckSensitivity || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity) && rotated) {
             rotation.reset();

@@ -206,4 +206,14 @@ public class GameState {
         }
         return 0;
     }
+
+    public static boolean inJacobContest() {
+        for (String line : ScoreboardUtils.getScoreboardLines()) {
+            String cleanedLine = ScoreboardUtils.cleanSB(line);
+            if ((cleanedLine.toLowerCase()).contains("jacob's contest")) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

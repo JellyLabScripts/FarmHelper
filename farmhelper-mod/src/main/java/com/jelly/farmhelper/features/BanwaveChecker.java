@@ -6,6 +6,7 @@ import com.jelly.farmhelper.network.APIHelper;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.PlayerUtils;
+import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
@@ -51,7 +52,7 @@ public class BanwaveChecker {
                     }
 
                     if(MacroHandler.isMacroing && FarmHelper.config.enableLeaveOnBanwave) {
-                        if (VisitorsMacro.inJacobContest() && FarmHelper.config.banwaveDontLeaveDuringJacobsContest) return;
+                        if (GameState.inJacobContest() && FarmHelper.config.banwaveDontLeaveDuringJacobsContest) return;
                         if (banwaveOn && mc.theWorld != null && !Failsafe.emergency) {
                             LogUtils.webhookLog("Disconnecting in 3 seconds due to banwave detected.");
 

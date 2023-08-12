@@ -4,9 +4,6 @@ import cc.polyfrost.oneconfig.config.annotations.Switch;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.features.BanwaveChecker;
-import com.jelly.farmhelper.macros.VerticalCropMacroNew;
-import com.jelly.farmhelper.utils.StatusUtils;
 
 import java.awt.*;
 import java.util.List;
@@ -21,9 +18,14 @@ public class DebugHUD extends TextHud {
         description = "Rainbow text for the debug HUD"
     )
     public static boolean rainbowStatusText = false;
+    public static String prevState = "";
     public static String currentState = "";
-    public static String newState = "";
     public static boolean rotating = false;
+    public static boolean jacobsContestTriggered = false;
+    public static long farmClockremainingTime = 0;
+    public static boolean farmClockisPaused = false;
+    public static long breakClockremainingTime = 0;
+    public static boolean breakClockisPaused = false;
 
     @Override
     protected void getLines(List<String> lines, boolean example) {
@@ -37,9 +39,14 @@ public class DebugHUD extends TextHud {
 
         }
         if (FarmHelper.config.debugMode) {
+            lines.add("prevState: " + prevState);
             lines.add("currentState: " + currentState);
-            lines.add("newState: " + newState);
             lines.add("rotating: " + rotating);
+            lines.add("jacobsContestTriggered: " + jacobsContestTriggered);
+            lines.add("farmClock remainingTime: " + farmClockremainingTime);
+            lines.add("farmClock isPaused: " + farmClockisPaused);
+            lines.add("breakClock remainingTime: " + breakClockremainingTime);
+            lines.add("breakClock isPaused: " + breakClockisPaused);
         }
     }
 }

@@ -9,7 +9,6 @@ import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
-import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -84,7 +83,6 @@ public abstract class Macro<T> {
 
     public void onDisable() {
         KeyBindUtils.stopMovement();
-        UngrabUtils.regrabMouse();
     }
 
     public void onTick() {
@@ -197,9 +195,9 @@ public abstract class Macro<T> {
 
     public T changeState(T newState) {
         LogUtils.debugLog("Changing state from " + currentState + " to " + newState);
-        DebugHUD.currentState = String.valueOf(currentState);
-        DebugHUD.newState = String.valueOf(newState);
+        DebugHUD.prevState = String.valueOf(currentState);
         currentState = newState;
+        DebugHUD.currentState = String.valueOf(currentState);
         return newState;
     }
 
