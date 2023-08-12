@@ -28,6 +28,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
     @Override
     public void onEnable() {
         super.onEnable();
+        changeLaneDirection = null;
         changeState(State.NONE);
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugLog("Crop: " + crop);
@@ -61,6 +62,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
         super.onTick();
 
         if (isTping) {
+            changeLaneDirection = null;
             return;
         }
 
@@ -123,7 +125,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                 if (FarmHelper.gameState.frontWalkable) {
                     if (changeLaneDirection == ChangeLaneDirection.BACKWARD) {
                         // Probably stuck in dirt
-                        unstuck();
+                        unstuck(true);
                         return;
                     }
                     changeState(State.SWITCHING_LANE);
@@ -131,7 +133,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                 } else if (FarmHelper.gameState.backWalkable) {
                     if (changeLaneDirection == ChangeLaneDirection.FORWARD) {
                         // Probably stuck in dirt
-                        unstuck();
+                        unstuck(false);
                         return;
                     }
                     changeState(State.SWITCHING_LANE);
@@ -154,7 +156,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                 } else if (FarmHelper.gameState.rightWalkable) {
                     changeState(State.RIGHT);
                 } else {
-                    unstuck();
+                    unstuck(changeLaneDirection == ChangeLaneDirection.BACKWARD);
                 }
                 break;
             }

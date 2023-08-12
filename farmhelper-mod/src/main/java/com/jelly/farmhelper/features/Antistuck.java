@@ -21,33 +21,38 @@ public class Antistuck {
     public static final Clock cooldown = new Clock();
 
     public static boolean unstuckThreadIsRunning = false;
-    public static final Runnable unstuckThread = () -> {
+    public static boolean unstuckLastMoveBack = false;
+    public static final Runnable unstuckRunnable = () -> {
         try {
             KeyBindUtils.stopMovement();
             Thread.sleep(20);
-            KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft);
+            KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
+            Thread.sleep(100);
+            KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft, mc.gameSettings.keyBindSneak);
             Thread.sleep(500);
             KeyBindUtils.stopMovement();
             Thread.sleep(20);
-            KeyBindUtils.holdThese(mc.gameSettings.keyBindRight);
+            KeyBindUtils.holdThese(mc.gameSettings.keyBindRight, mc.gameSettings.keyBindSneak);
             Thread.sleep(500);
             KeyBindUtils.stopMovement();
             Thread.sleep(20);
-            KeyBindUtils.holdThese(mc.gameSettings.keyBindForward);
+            KeyBindUtils.holdThese(unstuckLastMoveBack ? mc.gameSettings.keyBindForward : mc.gameSettings.keyBindBack, mc.gameSettings.keyBindSneak);
             Thread.sleep(500);
             KeyBindUtils.stopMovement();
             Thread.sleep(20);
-            KeyBindUtils.holdThese(mc.gameSettings.keyBindBack);
+            KeyBindUtils.holdThese(unstuckLastMoveBack ? mc.gameSettings.keyBindBack : mc.gameSettings.keyBindForward, mc.gameSettings.keyBindSneak);
             Thread.sleep(200);
             KeyBindUtils.stopMovement();
             Thread.sleep(200);
             Antistuck.stuck = false;
             Antistuck.cooldown.schedule(3500);
             unstuckThreadIsRunning = false;
+            unstuckThreadInstance = null;
         } catch (Throwable e) {
             e.printStackTrace();
         }
     };
+    public static Thread unstuckThreadInstance = null;
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {

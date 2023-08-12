@@ -83,6 +83,13 @@ public abstract class Macro<T> {
 
     public void onDisable() {
         KeyBindUtils.stopMovement();
+        UngrabUtils.regrabMouse();
+        if (Antistuck.unstuckThreadIsRunning) {
+            Antistuck.unstuckThreadIsRunning = false;
+            if (Antistuck.unstuckThreadInstance != null) {
+                Antistuck.unstuckThreadInstance.interrupt();
+            }
+        }
     }
 
     public void onTick() {
@@ -231,24 +238,24 @@ public abstract class Macro<T> {
 
     public boolean isStuck() {
         if (Antistuck.stuck) {
-            if (!Antistuck.unstuckThreadIsRunning) {
-                Antistuck.unstuckThreadIsRunning = true;
-                LogUtils.debugLog("Stuck!");
-                new Thread(Antistuck.unstuckThread).start();
-            } else {
-                LogUtils.debugLog("Unstuck thread is alive!");
-            }
+            unstuck();
             return true;
         }
         return false;
     }
 
     public void unstuck() {
+        unstuck(true);
+    }
+
+    public void unstuck(boolean lastMoveBack) {
         if (!Antistuck.unstuckThreadIsRunning) {
             Antistuck.stuck = true;
+            Antistuck.unstuckLastMoveBack = lastMoveBack;
             Antistuck.unstuckThreadIsRunning = true;
             LogUtils.debugLog("Stuck!");
-            new Thread(Antistuck.unstuckThread).start();
+            Antistuck.unstuckThreadInstance = new Thread(Antistuck.unstuckRunnable, "antistuck");
+            Antistuck.unstuckThreadInstance.start();
         } else {
             LogUtils.debugLog("Unstuck thread is alive!");
         }
