@@ -12,11 +12,11 @@ import java.util.List;
 
 public class StatusHUD extends TextHud {
     public StatusHUD() {
-        super(true, 1f, 1f, 1, true, true, 1, 5, 5, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
+        super(true, -1f, -1f, 1, true, true, 1, 5, 5, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
     }
 
     @Switch(
-        name = "Rainbow Text",category = "HUD", subcategory = "StatusHUD",
+        name = "Rainbow Text", category = "Status HUD", subcategory = "StatusHUD",
         description = "Rainbow text for the status HUD"
     )
     public static boolean rainbowStatusText = false;

@@ -60,12 +60,6 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
             return;
         }
 
-        // Calculate direction after teleportation
-//        if (lastTp.isScheduled() && lastTp.passed()) {
-//            lastTp.reset();
-//            currentState = calculateDirection();
-//        }
-
         LogUtils.debugFullLog("Current state: " + currentState);
 
         checkForRotationFailsafe();

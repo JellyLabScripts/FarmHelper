@@ -79,12 +79,6 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             return;
         }
 
-        // Calculate direction after teleportation
-//        if (lastTp.isScheduled() && lastTp.passed()) {
-//            lastTp.reset();
-//            currentState = calculateDirection();
-//        }
-
         LogUtils.debugFullLog("Current state: " + currentState);
 
         if (currentState != State.NONE && currentState != State.DROPPING && !Failsafe.emergency && !rotation.rotating && !FarmHelper.config.newRotationCheck) {
