@@ -141,7 +141,7 @@ public class CocoaBeanMacro extends Macro {
         }
 
         if (beforeTeleportationPos != null) {
-            LogUtils.debugLog("Waiting for tp...");
+            LogUtils.debugFullLog("Waiting for tp...");
             KeyBindUtils.stopMovement();
             triggerWarpGarden();
             return;
@@ -174,7 +174,7 @@ public class CocoaBeanMacro extends Macro {
         updateState();
 
         if (Failsafe.emergency) {
-            LogUtils.debugLog("Blocking changing movement due to emergency");
+            LogUtils.debugFullLog("Blocking changing movement due to emergency");
             return;
         }
 
@@ -226,7 +226,7 @@ public class CocoaBeanMacro extends Macro {
             }
             if (!waitForChangeDirection.isScheduled()) {
                 long waitTime = (long) (Math.random() * 300 + 100);
-                LogUtils.debugLog("SWITCH_ROW: Waiting " + waitTime + "ms");
+                LogUtils.debugFullLog("SWITCH_ROW: Waiting " + waitTime + "ms");
                 waitForChangeDirection.schedule(waitTime);
             }
         } else if (currentState == State.LEFT_KEEP // top left
@@ -238,7 +238,7 @@ public class CocoaBeanMacro extends Macro {
             }
             if (!waitForChangeDirection.isScheduled()) {
                 long waitTime = (long) (Math.random() * 300 + 100);
-                LogUtils.debugLog("SWITCH_SIDE1: Waiting " + waitTime + "ms");
+                LogUtils.debugFullLog("SWITCH_SIDE1: Waiting " + waitTime + "ms");
                 waitForChangeDirection.schedule(waitTime);
             }
         } else if (currentState == State.SWITCH_ROW) {
@@ -248,19 +248,19 @@ public class CocoaBeanMacro extends Macro {
                 float yaw = AngleUtils.getClosest(mc.thePlayer.rotationYaw);
                 yaw = (yaw % 360 + 360) % 360;
                 if (yaw == 180f && decimalPartX > 0.488) { // North: X > 488
-                    LogUtils.debugLog("North");
+                    LogUtils.debugFullLog("North");
                     currentState = State.LEFT;
                     return;
                 } else if (yaw == 270f && decimalPartZ > 0.488) { // East: Z > 488
-                    LogUtils.debugLog("East");
+                    LogUtils.debugFullLog("East");
                     currentState = State.LEFT;
                     return;
                 } else if (yaw == 90f && decimalPartZ < 0.512) { // West: Z < 512
-                    LogUtils.debugLog("West");
+                    LogUtils.debugFullLog("West");
                     currentState = State.LEFT;
                     return;
                 } else if (yaw == 0f && decimalPartX < 0.512){ // South: X < 512
-                    LogUtils.debugLog("South");
+                    LogUtils.debugFullLog("South");
                     currentState = State.LEFT;
                     return;
                 }
@@ -275,9 +275,9 @@ public class CocoaBeanMacro extends Macro {
             }
             if (!waitForChangeDirection.isScheduled()) {
                 long waitTime = (long) (Math.random() * 500 + 250);
-                LogUtils.debugLog("SWITCH_SIDE2: Waiting " + waitTime + "ms");
-                LogUtils.debugLog("Block: " + BlockUtils.getRelativeBlock(0, 1, -1));
-                LogUtils.debugLog("isSolid: " + BlockUtils.getRelativeBlock(0, 1, -1).getMaterial().isSolid());
+                LogUtils.debugFullLog("SWITCH_SIDE2: Waiting " + waitTime + "ms");
+                LogUtils.debugFullLog("Block: " + BlockUtils.getRelativeBlock(0, 1, -1));
+                LogUtils.debugFullLog("isSolid: " + BlockUtils.getRelativeBlock(0, 1, -1).getMaterial().isSolid());
                 waitForChangeDirection.schedule(waitTime);
             }
         } else if (BlockUtils.getRelativeBlock(-1, 0, 0).getMaterial().isSolid()) { // bottom left
@@ -307,7 +307,7 @@ public class CocoaBeanMacro extends Macro {
             waitForChangeDirection.reset();
         }
         if (!waitForChangeDirection.isScheduled()) {
-            LogUtils.debugLog("Should TP");
+            LogUtils.debugFullLog("Should TP");
             long waitTime = (long) (Math.random() * 750 + 500);
             waitForChangeDirection.schedule(waitTime);
             beforeTeleportationPos = mc.thePlayer.getPosition();

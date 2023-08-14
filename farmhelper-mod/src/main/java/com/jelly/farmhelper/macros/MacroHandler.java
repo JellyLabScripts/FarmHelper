@@ -197,7 +197,8 @@ public class MacroHandler {
             if (saveLastState) {
                 currentMacro.saveLastStateBeforeDisable();
             } else {
-                currentMacro.toggle();
+                currentMacro.enabled = false;
+                currentMacro.onDisable();
             }
         }
     }
@@ -210,7 +211,6 @@ public class MacroHandler {
             startingUp = true;
             CropUtils.itemChangedByStaff = false;
             KeyBindUtils.updateKeys(false, false, false, false, false, mc.thePlayer.capabilities.isFlying, false);
-            if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
             new Thread(startCurrent).start();
         }
     }
@@ -219,7 +219,10 @@ public class MacroHandler {
         try {
             Thread.sleep(300);
             KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
-            if (isMacroing) currentMacro.toggle();
+            if (isMacroing) {
+                currentMacro.enabled = true;
+                currentMacro.onEnable();
+            }
             startingUp = false;
         } catch (InterruptedException e) {
             throw new RuntimeException(e);

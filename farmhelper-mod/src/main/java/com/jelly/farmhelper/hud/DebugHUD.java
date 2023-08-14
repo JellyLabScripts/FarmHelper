@@ -8,6 +8,8 @@ import com.jelly.farmhelper.FarmHelper;
 import java.awt.*;
 import java.util.List;
 
+import static com.jelly.farmhelper.FarmHelper.gameState;
+
 public class DebugHUD extends TextHud {
     public DebugHUD() {
         super(true, 1f, 10f, 1, true, true, 1, 5, 5, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
@@ -47,6 +49,7 @@ public class DebugHUD extends TextHud {
             lines.add("farmClock isPaused: " + farmClockisPaused);
             lines.add("breakClock remainingTime: " + breakClockremainingTime);
             lines.add("breakClock isPaused: " + breakClockisPaused);
+            lines.add("currentLocation: " + gameState.currentLocation);
         }
     }
 }

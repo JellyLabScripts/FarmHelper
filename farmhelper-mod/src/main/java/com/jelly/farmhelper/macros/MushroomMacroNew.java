@@ -26,7 +26,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             pitch = (float) (Math.random() * 2 - 1); // -1 - 1
         }
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
-        LogUtils.debugLog("Crop: " + crop);
+        LogUtils.debugFullLog("Crop: " + crop);
         MacroHandler.crop = crop;
         changeState(State.NONE);
         yaw = AngleUtils.getClosestDiagonal();
@@ -79,8 +79,6 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             return;
         }
 
-        LogUtils.debugFullLog("Current state: " + currentState);
-
         if (currentState != State.NONE && currentState != State.DROPPING && !Failsafe.emergency && !rotation.rotating && !FarmHelper.config.newRotationCheck) {
             System.out.println("AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) = " + AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw));
             System.out.println("Math.abs(mc.thePlayer.rotationPitch - pitch) = " + Math.abs(mc.thePlayer.rotationPitch - pitch));
@@ -102,13 +100,13 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
 
         // Waiting for teleportation, don't move
         if (beforeTeleportationPos != null) {
-            LogUtils.debugLog("Waiting for tp...");
+            LogUtils.debugFullLog("Waiting for tp...");
             KeyBindUtils.stopMovement();
             return;
         }
 
         if (Failsafe.emergency) {
-            LogUtils.debugLog("Blocking changing movement due to emergency");
+            LogUtils.debugFullLog("Blocking changing movement due to emergency");
             return;
         }
 
@@ -159,7 +157,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
                 }
                 break;
             case DROPPING: {
-                LogUtils.debugLog("On Ground: " + mc.thePlayer.onGround);
+                LogUtils.debugFullLog("On Ground: " + mc.thePlayer.onGround);
                 if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) > 1.5) {
                     if (FarmHelper.config.rotateAfterDrop && !rotation.rotating) {
                         LogUtils.debugLog("Rotating 180");
