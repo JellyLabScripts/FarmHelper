@@ -452,7 +452,8 @@ public class Failsafe {
 
         LogUtils.webhookLog(type.label);
         LogUtils.scriptLog(type.label + "!");
-        LogUtils.scriptLog("Act like a normal player and stop the script!");
+        if (type != FailsafeType.WORLD_CHANGE)
+            LogUtils.scriptLog("Act like a normal player and stop the script!");
 
         if (type != FailsafeType.DESYNC && type != FailsafeType.WORLD_CHANGE)
         {
