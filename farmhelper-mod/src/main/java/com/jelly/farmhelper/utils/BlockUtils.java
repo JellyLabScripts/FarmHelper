@@ -2,7 +2,7 @@ package com.jelly.farmhelper.utils;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config.SMacroEnum;
-import com.jelly.farmhelper.macros.MushroomMacro;
+import com.jelly.farmhelper.macros.MushroomMacroNew;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCarpet;
 import net.minecraft.block.BlockCrops;
@@ -167,7 +167,7 @@ public class BlockUtils {
 
     public static boolean leftCropIsReady(){
         if (!FarmHelper.gameState.leftWalkable) return false;
-        Block crop = getRelativeBlock(-1, (FarmHelper.config.macroType && (FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal())) ? 2 : 1, 1, (FarmHelper.config.macroType && (FarmHelper.config.SShapeMacroType ==  SMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal())) ? MushroomMacro.closest90Yaw : mc.thePlayer.rotationYaw);
+        Block crop = getRelativeBlock(-1, (FarmHelper.config.macroType && (FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal())) ? 2 : 1, 1, (FarmHelper.config.macroType && (FarmHelper.config.SShapeMacroType ==  SMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal())) ? MushroomMacroNew.closest90Yaw : mc.thePlayer.rotationYaw);
         if (crop.equals(Blocks.nether_wart)) {
             return mc.theWorld.getBlockState(getRelativeBlockPos(-1, 1, 1)).getValue(BlockNetherWart.AGE) == 3;
         } else if (crop.equals(Blocks.wheat) || crop.equals(Blocks.carrots) || crop.equals(Blocks.potatoes))
@@ -183,7 +183,7 @@ public class BlockUtils {
     }
     public static boolean rightCropIsReady(){
         if (!FarmHelper.gameState.rightWalkable) return false;
-        Block crop = getRelativeBlock(1, (FarmHelper.config.macroType && (FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal())) ? 2 : 1, 1, (FarmHelper.config.macroType && (FarmHelper.config.SShapeMacroType ==  SMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal())) ? MushroomMacro.closest90Yaw : mc.thePlayer.rotationYaw);
+        Block crop = getRelativeBlock(1, (FarmHelper.config.macroType && (FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal())) ? 2 : 1, 1, (FarmHelper.config.macroType && (FarmHelper.config.SShapeMacroType ==  SMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal())) ? MushroomMacroNew.closest90Yaw : mc.thePlayer.rotationYaw);
         if (crop.equals(Blocks.nether_wart)) {
             return mc.theWorld.getBlockState(getRelativeBlockPos(1, 1, 1)).getValue(BlockNetherWart.AGE) == 3;
         } else if (crop.equals(Blocks.wheat) || crop.equals(Blocks.carrots) || crop.equals(Blocks.potatoes))
