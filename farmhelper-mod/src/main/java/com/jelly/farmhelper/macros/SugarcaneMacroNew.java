@@ -60,8 +60,6 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
             return;
         }
 
-        LogUtils.debugFullLog("Current state: " + currentState);
-
         checkForRotationFailsafe();
 
         if (isStuck()) return;
@@ -70,13 +68,13 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
 
         // Waiting for teleportation, don't move
         if (beforeTeleportationPos != null) {
-            LogUtils.debugLog("Waiting for tp...");
+            LogUtils.debugFullLog("Waiting for tp...");
             KeyBindUtils.stopMovement();
             return;
         }
 
         if (Failsafe.emergency) {
-            LogUtils.debugLog("Blocking changing movement due to emergency");
+            LogUtils.debugFullLog("Blocking changing movement due to emergency");
             return;
         }
 
@@ -116,7 +114,7 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
                 break;
             }
             case DROPPING: {
-                LogUtils.debugLog("On Ground: " + mc.thePlayer.onGround);
+                LogUtils.debugFullLog("On Ground: " + mc.thePlayer.onGround);
                 if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) > 1.5) {
                     if (FarmHelper.config.rotateAfterDrop && !rotation.rotating) {
                         LogUtils.debugLog("Rotating 180");

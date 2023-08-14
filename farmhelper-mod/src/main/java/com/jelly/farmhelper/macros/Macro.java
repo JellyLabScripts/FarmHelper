@@ -25,20 +25,6 @@ public abstract class Macro<T> {
     private boolean rotated = false;
     protected boolean rotatedAfterStart = false;
 
-
-    public void toggle() {
-        enabled = !enabled;
-        if (enabled) {
-            onEnable();
-            if (savedLastState) {
-                savedLastState = false;
-                restoreState();
-            }
-        } else {
-            onDisable();
-        }
-    }
-
     public BlockPos beforeTeleportationPos = null;
     public final Clock lastTp = new Clock();
 
@@ -83,7 +69,6 @@ public abstract class Macro<T> {
 
     public void onDisable() {
         KeyBindUtils.stopMovement();
-        UngrabUtils.regrabMouse();
         if (Antistuck.unstuckThreadIsRunning) {
             Antistuck.unstuckThreadIsRunning = false;
             if (Antistuck.unstuckThreadInstance != null) {
@@ -129,8 +114,10 @@ public abstract class Macro<T> {
         LogUtils.debugLog("Saving last state before disabling macro");
         stateBeforeFailsafe = currentState;
         savedLastState = true;
-        if (MacroHandler.isMacroing && MacroHandler.currentMacro.enabled)
-            toggle();
+        if (MacroHandler.isMacroing && MacroHandler.currentMacro.enabled) {
+            enabled = false;
+            onDisable();
+        }
     }
 
     public void restoreState() {
@@ -201,7 +188,7 @@ public abstract class Macro<T> {
     }
 
     public T changeState(T newState) {
-        LogUtils.debugLog("Changing state from " + currentState + " to " + newState);
+        LogUtils.debugFullLog("Changing state from " + currentState + " to " + newState);
         DebugHUD.prevState = String.valueOf(currentState);
         currentState = newState;
         DebugHUD.currentState = String.valueOf(currentState);

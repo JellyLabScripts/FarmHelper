@@ -136,7 +136,7 @@ public class CocoaBeanRGMacro extends Macro {
         }
 
         if (beforeTeleportationPos != null) {
-            LogUtils.debugLog("Waiting for tp...");
+            LogUtils.debugFullLog("Waiting for tp...");
             KeyBindUtils.stopMovement();
             triggerWarpGarden();
             return;
@@ -169,7 +169,7 @@ public class CocoaBeanRGMacro extends Macro {
         updateState();
 
         if (Failsafe.emergency) {
-            LogUtils.debugLog("Blocking changing movement due to emergency");
+            LogUtils.debugFullLog("Blocking changing movement due to emergency");
             return;
         }
 
@@ -247,7 +247,7 @@ public class CocoaBeanRGMacro extends Macro {
             waitForChangeDirection.reset();
         }
         if (!waitForChangeDirection.isScheduled()) {
-            LogUtils.debugLog("Should TP");
+            LogUtils.debugFullLog("Should TP");
             long waitTime = (long) (Math.random() * 750 + 500);
             waitForChangeDirection.schedule(waitTime);
             beforeTeleportationPos = mc.thePlayer.getPosition();

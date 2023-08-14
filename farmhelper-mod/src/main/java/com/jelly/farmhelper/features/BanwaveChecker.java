@@ -43,7 +43,7 @@ public class BanwaveChecker {
 
                     staffBan = getBanDisplay();
 
-                    if(banwaveOn) {
+                    if (banwaveOn) {
                         if (getBanTimeDiff() != 0)
                             banwaveOn = getBanDiff() / (getBanTimeDiff() * 1.0f) > (FarmHelper.config.banwaveThreshold * 0.8f)/ 15.0f;
                     } else {
@@ -55,6 +55,7 @@ public class BanwaveChecker {
                         if (GameState.inJacobContest() && FarmHelper.config.banwaveDontLeaveDuringJacobsContest) return;
                         if (banwaveOn && mc.theWorld != null && !Failsafe.emergency) {
                             LogUtils.webhookLog("Disconnecting in 3 seconds due to banwave detected.");
+                            LogUtils.debugLog("Disconnecting in 3 seconds due to banwave detected.");
 
                             MacroHandler.disableCurrentMacro();
                             if (FarmHelper.config.setSpawnBeforeEvacuate)

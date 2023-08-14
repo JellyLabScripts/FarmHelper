@@ -89,6 +89,7 @@ public class AutoReconnect {
                             break;
                         case ENABLING_MACRO:
                             currentState = reconnectingState.NONE;
+                            if (FarmHelper.config.enableScheduler) Scheduler.start();
                             MacroHandler.enableCurrentMacro();
                             break;
                     }

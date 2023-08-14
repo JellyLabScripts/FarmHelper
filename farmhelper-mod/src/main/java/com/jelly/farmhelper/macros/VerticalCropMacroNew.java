@@ -26,7 +26,7 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
         super.onEnable();
         changeState(State.NONE);
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
-        LogUtils.debugLog("Crop: " + crop);
+        LogUtils.debugFullLog("Crop: " + crop);
         MacroHandler.crop = crop;
         CropUtils.getTool();
         if (FarmHelper.config.customPitch) {
@@ -77,8 +77,6 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
             return;
         }
 
-        LogUtils.debugFullLog("Current state: " + currentState);
-
         checkForRotationFailsafe();
 
         if (isStuck()) return;
@@ -87,13 +85,13 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
 
         // Waiting for teleportation, don't move
         if (beforeTeleportationPos != null) {
-            LogUtils.debugLog("Waiting for tp...");
+            LogUtils.debugFullLog("Waiting for tp...");
             KeyBindUtils.stopMovement();
             return;
         }
 
         if (Failsafe.emergency) {
-            LogUtils.debugLog("Blocking changing movement due to emergency");
+            LogUtils.debugFullLog("Blocking changing movement due to emergency");
             return;
         }
 
@@ -126,7 +124,7 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
                 }
                 break;
             case DROPPING: {
-                LogUtils.debugLog("On Ground: " + mc.thePlayer.onGround);
+                LogUtils.debugFullLog("On Ground: " + mc.thePlayer.onGround);
                 if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) > 1.5) {
                     if (FarmHelper.config.rotateAfterDrop && !rotation.rotating) {
                         LogUtils.debugLog("Rotating 180");
