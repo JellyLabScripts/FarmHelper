@@ -83,15 +83,11 @@ public class Failsafe {
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
         if (mc.theWorld == null || mc.thePlayer == null) return;
 
-        if (cooldown.isScheduled() && !cooldown.passed()) {
-            mc.fontRendererObj.drawStringWithShadow("Waiting: " + cooldown.getRemainingTime(), 300, 32, Color.GREEN.getRGB());
+        if (restartAfterFailsafeCooldown.isScheduled() && !restartAfterFailsafeCooldown.passed()) {
+            mc.fontRendererObj.drawStringWithShadow("restartAfterFailsafeCooldown: " + restartAfterFailsafeCooldown.getRemainingTime(), 300, 2, Color.GREEN.getRGB());
         }
 
         if (!FarmHelper.config.debugMode) return;
-
-        if (restartAfterFailsafeCooldown.isScheduled() && !restartAfterFailsafeCooldown.passed()) {
-            mc.fontRendererObj.drawStringWithShadow("restartAfterFailsafeCooldown: " + restartAfterFailsafeCooldown.getRemainingTime(), 300, 2, Color.WHITE.getRGB());
-        }
 
         if (evacuateCooldown.isScheduled() && !evacuateCooldown.passed()) {
             mc.fontRendererObj.drawStringWithShadow("evacuateCooldown: " + evacuateCooldown.getRemainingTime(), 300, 12, Color.WHITE.getRGB());
@@ -99,6 +95,10 @@ public class Failsafe {
 
         if (afterEvacuateCooldown.isScheduled() && !afterEvacuateCooldown.passed()) {
             mc.fontRendererObj.drawStringWithShadow("afterEvacuateCooldown: " + afterEvacuateCooldown.getRemainingTime(), 300, 22, Color.WHITE.getRGB());
+        }
+
+        if (cooldown.isScheduled() && !cooldown.passed()) {
+            mc.fontRendererObj.drawStringWithShadow("cooldown: " + cooldown.getRemainingTime(), 300, 32, Color.WHITE.getRGB());
         }
     }
 
