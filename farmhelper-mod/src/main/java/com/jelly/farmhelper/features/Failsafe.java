@@ -112,7 +112,7 @@ public class Failsafe {
 
         if (restartAfterFailsafeCooldown.isScheduled()) {
             if (restartAfterFailsafeCooldown.passed()) {
-                LogUtils.debugLog("Restarting macro. " + FarmHelper.config.restartAfterFailSafeDelay + " seconds after failsafe is passed");
+                LogUtils.debugLog("Restarting macro in " + FarmHelper.config.restartAfterFailSafeDelay + " seconds after failsafe is passed");
                 emergency = false;
                 restartAfterFailsafeCooldown = new Clock();
                 MacroHandler.enableMacro();
@@ -378,6 +378,7 @@ public class Failsafe {
         if (VisitorsMacro.isEnabled()) return;
         if (emergency) return;
 
+        // World change check
         if (event.packet instanceof S07PacketRespawn) {
             cooldown.schedule((long) (6000 + Math.random() * 5000));
             emergencyFailsafe(FailsafeType.WORLD_CHANGE);
