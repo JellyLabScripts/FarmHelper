@@ -1003,10 +1003,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("webSocketIP", "enableRemoteControl");
 		this.addDependency("webSocketPassword", "enableRemoteControl");
 
+		this.addDependency("leaveAfterFailSafe", "enableRestartAfterFailSafe");
 		this.addDependency("restartAfterFailSafeDelay", "enableRestartAfterFailSafe");
 		this.addDependency("enableLeaveOnBanwave", "banwaveCheckerEnabled");
 		this.addDependency("banwaveThreshold", "enableLeaveOnBanwave");
 		this.addDependency("delayBeforeReconnecting", "enableLeaveOnBanwave");
+		this.addDependency("banwaveDontLeaveDuringJacobsContest", "enableLeaveOnBanwave");
 
 		this.addDependency("setSpawnBeforeEvacuate", "enableAutoSetSpawn");
 		this.addDependency("autoSetSpawnMinDelay", "enableAutoSetSpawn");

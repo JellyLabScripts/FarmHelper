@@ -1,10 +1,9 @@
 package com.jelly.farmhelper.mixins.client;
 
-import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.macros.MacroHandler;
+import com.jelly.farmhelper.utils.LocationUtils;
 import com.jelly.farmhelper.utils.PlayerUtils;
-import com.jelly.farmhelper.world.GameState;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
@@ -26,7 +25,7 @@ public abstract class MixinInventoryPlayer {
     @Inject(method = "setInventorySlotContents", at = @At("HEAD"))
     public void onInventoryChange(int index, ItemStack stack, CallbackInfo ci) {
         if (!MacroHandler.isMacroing) return;
-        if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (stack != null && stack.getItem() != null) {
             preAddInventory = PlayerUtils.copyInventory(mainInventory).toArray(new ItemStack[0]);
         }
@@ -35,7 +34,7 @@ public abstract class MixinInventoryPlayer {
     @Inject(method = "setInventorySlotContents", at = @At("RETURN"))
     public void onInventoryChangeReturn(int index, ItemStack stack, CallbackInfo ci) {
         if (!MacroHandler.isMacroing) return;
-        if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (stack != null && stack.getItem() != null) {
             postAddInventory = PlayerUtils.copyInventory(mainInventory).toArray(new ItemStack[0]);
             for (int i = 0; i < 36; i++) {

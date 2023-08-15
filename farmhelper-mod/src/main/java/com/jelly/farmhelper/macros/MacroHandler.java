@@ -63,10 +63,12 @@ public class MacroHandler {
         if (rotation.rotating) {
             rotation.update();
         }
-        if (currentMacro != null && currentMacro.enabled && mc.thePlayer != null && mc.theWorld != null) {
+        if (mc.thePlayer == null && mc.theWorld == null) return;
+        if (currentMacro != null && currentMacro.enabled) {
             currentMacro.onLastRender();
         }
-        if (FarmHelper.config.highlightRewarp) {Color chroma = Color.getHSBColor((float) ((System.currentTimeMillis() / 10) % 2000) / 2000, 1, 1);
+        if (FarmHelper.config.highlightRewarp && FarmHelper.config.rewarpList != null && LocationUtils.currentIsland == LocationUtils.Island.GARDEN) {
+            Color chroma = Color.getHSBColor((float) ((System.currentTimeMillis() / 10) % 2000) / 2000, 1, 1);
             Color chromaLowerAlpha = new Color(chroma.getRed(), chroma.getGreen(), chroma.getBlue(), 120);
 
             for (Rewarp rewarp : FarmHelper.config.rewarpList) {
@@ -88,7 +90,6 @@ public class MacroHandler {
             currentMacro.onPacketReceived(event);
         }
     }
-
 
     @SubscribeEvent
     public void OnKeyPress(InputEvent.KeyInputEvent event) {

@@ -7,13 +7,13 @@ import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
-import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S07PacketRespawn;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.network.play.server.S09PacketHeldItemChange;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.Tuple;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -143,15 +143,16 @@ public class Failsafe {
             return;
         }
 
-        GameState.location location = gameState.currentLocation;
+        LocationUtils.Island location = LocationUtils.currentIsland;
+
+        if (location == null) return;
 
         switch (location) {
-            case TELEPORTING:
-                return;
             case LIMBO:
                 if(!FarmHelper.config.autoTPOnWorldChange) return;
                 if (cooldown.passed()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
+                    LogUtils.debugFullLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage("/lobby");
                     cooldown.schedule(5000);
                     if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
@@ -162,6 +163,7 @@ public class Failsafe {
                 if(!FarmHelper.config.autoTPOnWorldChange) return;
                 if (cooldown.passed() && jacobWait.passed()) {
                     LogUtils.webhookLog("Not at island - teleporting back");
+                    LogUtils.debugFullLog("Not at island - teleporting back");
                     mc.thePlayer.sendChatMessage("/skyblock");
                     cooldown.schedule(15_000);
                     afterEvacuateCooldown.schedule(15_000);
@@ -169,7 +171,7 @@ public class Failsafe {
                         restartAfterFailsafeCooldown.schedule(FarmHelper.config.restartAfterFailSafeDelay * 1000L);
                 }
                 return;
-            case HUB:
+            case THE_HUB:
                 if(!FarmHelper.config.autoTPOnWorldChange) return;
                 if (afterEvacuateCooldown.isScheduled() && !afterEvacuateCooldown.passed()) {
                     LogUtils.debugLog("Waiting for \"after evacuate\" cooldown: " + (String.format("%.1f", afterEvacuateCooldown.getRemainingTime() / 1000f)));
@@ -189,7 +191,7 @@ public class Failsafe {
                 if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
                     restartAfterFailsafeCooldown.schedule(FarmHelper.config.restartAfterFailSafeDelay * 1000L);
                 return;
-            case ISLAND:
+            case PRIVATE_ISLAND:
                 checkInGarden();
                 if (evacuateCooldown.isScheduled() && evacuateCooldown.getRemainingTime() < 2_500 && MacroHandler.currentMacro.enabled) {
                     MacroHandler.disableCurrentMacro(true);
@@ -229,6 +231,9 @@ public class Failsafe {
                     afterEvacuateCooldown.reset();
                     MacroHandler.currentMacro.triggerTpCooldown();
                 }
+            default:
+                LogUtils.scriptLog("You are outside the garden/island! Disabling the script...", EnumChatFormatting.RED);
+                MacroHandler.disableMacro();
                 // DEBUG MESSAGES IN CASE SOMETHING IS BROKEN AGAIN
 //                else {
 //                    if (!MacroHandler.currentMacro.enabled) {
@@ -373,7 +378,7 @@ public class Failsafe {
     public void checkReceivedPacket(ReceivePacketEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (evacuateCooldown.isScheduled() || afterEvacuateCooldown.isScheduled()) return;
-        if (gameState.currentLocation != GameState.location.ISLAND) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (MacroHandler.currentMacro.isTping) return;
         if (VisitorsMacro.isEnabled()) return;
         if (emergency) return;
@@ -686,7 +691,7 @@ public class Failsafe {
                 mc.thePlayer.sendChatMessage("/hub");
                 Thread.sleep(3000);
                 KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
-                if (FarmHelper.gameState.currentLocation == GameState.location.HUB) {
+                if (LocationUtils.currentIsland == LocationUtils.Island.THE_HUB) {
                     emergencyThreadExecutor.submit(bazaarChilling);
                 } else {
                     Thread.sleep(1000 * 60 * 5);
@@ -813,7 +818,7 @@ public class Failsafe {
             if(config.leaveAfterFailSafe && said) {
                 mc.thePlayer.sendChatMessage("/hub");
                 Thread.sleep(5000);
-                if (FarmHelper.gameState.currentLocation == GameState.location.HUB) {
+                if (LocationUtils.currentIsland == LocationUtils.Island.THE_HUB) {
                     emergencyThreadExecutor.submit(bazaarChilling);
                 } else {
                     Thread.sleep(1000 * 60 * 5);

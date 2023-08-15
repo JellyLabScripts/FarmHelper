@@ -8,9 +8,8 @@ import cc.polyfrost.oneconfig.libs.universal.UMatrixStack;
 import cc.polyfrost.oneconfig.platform.Platform;
 import cc.polyfrost.oneconfig.renderer.NanoVGHelper;
 import cc.polyfrost.oneconfig.renderer.font.Fonts;
-import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.ProfitCalculator;
-import com.jelly.farmhelper.world.GameState;
+import com.jelly.farmhelper.utils.LocationUtils;
 import net.minecraft.util.Tuple;
 
 import java.awt.*;
@@ -24,17 +23,26 @@ public class ProfitCalculatorHUD extends BasicHud {
         addLines();
     }
     @Switch(
-        name = "Rainbow Text",category = "HUD", subcategory = "StatusHUD",
-        description = "Rainbow text for the status HUD"
+            name = "Rainbow Text",category = "HUD", subcategory = "ProfitCalculatorHUD",
+            description = "Rainbow text for the status HUD"
     )
     public static boolean rainbowProfitText = false;
+    @Switch(
+            name = "Don't show Profit Calculator HUD while on the island", category = "HUD", subcategory = "ProfitCalculatorHUD",
+            description = "Rainbow text for the status HUD"
+    )
+    public static boolean dontShowProfitWhileOnTheIsland = true;
 
     @Exclude
     protected OneColor color = new OneColor(0, 0, 0, 255);
 
     @Override
     protected void draw(UMatrixStack matrices, float x, float y, float scale, boolean example) {
-        if (lines == null || lines.size() == 0) return;
+        if (lines == null || lines.isEmpty()) return;
+        if (LocationUtils.currentIsland == LocationUtils.Island.PRIVATE_ISLAND) {
+            if (dontShowProfitWhileOnTheIsland)
+                return;
+        } else if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
 
         if (rainbowProfitText) {
             Color chroma = Color.getHSBColor((float) ((System.currentTimeMillis() / 10) % 500) / 500, 1, 1);
@@ -59,7 +67,7 @@ public class ProfitCalculatorHUD extends BasicHud {
 
     @Override
     protected boolean shouldShow() {
-        return (FarmHelper.gameState.currentLocation == GameState.location.ISLAND);
+        return (LocationUtils.currentIsland == LocationUtils.Island.PRIVATE_ISLAND || LocationUtils.currentIsland == LocationUtils.Island.GARDEN);
     }
 
     protected void drawLine(long vg, String text, String iconPath, float x, float y, float scale) {

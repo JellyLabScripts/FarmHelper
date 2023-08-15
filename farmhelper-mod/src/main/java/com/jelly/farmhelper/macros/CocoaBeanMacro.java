@@ -6,7 +6,6 @@ import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
-import com.jelly.farmhelper.world.GameState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -123,7 +122,7 @@ public class CocoaBeanMacro extends Macro {
             return;
         }
 
-        if (gameState.currentLocation != GameState.location.ISLAND) {
+        if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) {
             LogUtils.debugLog("You are not on the island nor in the garden!");
             updateKeys(false, false, false, false, false);
             enabled = false;

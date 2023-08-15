@@ -6,6 +6,7 @@ import com.jelly.farmhelper.features.Scheduler;
 import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.Clock;
+import com.jelly.farmhelper.utils.LocationUtils;
 import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.StringUtils;
@@ -33,7 +34,7 @@ public class JacobsContestHandler {
                 jacobsContestDelay.reset();
                 jacobsContestDelay.schedule(10000L);
                 if (FarmHelper.config.enablePetSwapper) {
-                    if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
+                    if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
                     if (PetSwapper.isEnabled()) return;
                     if (PetSwapper.currentState != PetSwapper.State.NONE) return;
                     if (Failsafe.emergency) return;

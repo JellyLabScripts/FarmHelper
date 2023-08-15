@@ -4,7 +4,6 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
-import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockSlab;
@@ -153,7 +152,7 @@ public class VisitorsMacro {
 
     @SubscribeEvent
     public void onTickCheckVisitors(TickEvent.ClientTickEvent event) {
-        if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         List<String> tabList = TablistUtils.getTabList();
         if (tabList.size() < 2) return;
@@ -184,7 +183,7 @@ public class VisitorsMacro {
     public void onTickStart(TickEvent.ClientTickEvent event) {
         if (!FarmHelper.config.visitorsMacro) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (Failsafe.emergency) return;
         if (!MacroHandler.isMacroing) return;
         if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
@@ -281,7 +280,7 @@ public class VisitorsMacro {
         if (!FarmHelper.config.visitorsMacro) return;
         if (!MacroHandler.isMacroing) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (Failsafe.emergency) return;
         if (!enabled) return;
         if (delayClock.isScheduled() && !delayClock.passed()) return;
@@ -998,7 +997,7 @@ public class VisitorsMacro {
         if (rotation.rotating && !(mc.thePlayer.openContainer instanceof ContainerChest))
             rotation.update();
 
-        if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
 
         if ((FarmHelper.config.visitorsDeskPosX == 0 && FarmHelper.config.visitorsDeskPosY == 0 && FarmHelper.config.visitorsDeskPosZ == 0)) {
             return;
@@ -1014,7 +1013,7 @@ public class VisitorsMacro {
         if (!FarmHelper.config.visitorsMacro) return;
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
         if (!FarmHelper.config.debugMode) return;
-        if (FarmHelper.gameState.currentLocation != GameState.location.ISLAND) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
 
         ArrayList<Pair<String, Integer>> itemsToBuyCopy = new ArrayList<>(itemsToBuy);
 
