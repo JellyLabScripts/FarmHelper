@@ -1,11 +1,10 @@
 package com.jelly.farmhelper.features;
 
-import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.BlockUtils;
 import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.KeyBindUtils;
-import com.jelly.farmhelper.world.GameState;
+import com.jelly.farmhelper.utils.LocationUtils;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
@@ -59,7 +58,7 @@ public class Antistuck {
         if(event.phase == TickEvent.Phase.END)
             return;
 
-        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled || mc.thePlayer == null || mc.theWorld == null || FarmHelper.gameState.currentLocation != GameState.location.ISLAND || mc.currentScreen != null) {
+        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled || mc.thePlayer == null || mc.theWorld == null || (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) || mc.currentScreen != null) {
             lastX = 10000;
             lastZ = 10000;
             lastY = 10000;

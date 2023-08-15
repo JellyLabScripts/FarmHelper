@@ -93,7 +93,7 @@ public class AutoCookie {
             return;
         }
 
-        if (FarmHelper.gameState.currentLocation != GameState.location.HUB) {
+        if (LocationUtils.currentIsland != LocationUtils.Island.THE_HUB) {
             LogUtils.debugFullLog("[AutoCookie] Waiting for hub");
             return;
         }

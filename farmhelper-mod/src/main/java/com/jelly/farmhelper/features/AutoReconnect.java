@@ -1,12 +1,11 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.command.commands.ReconnectCommand;
 import com.jelly.farmhelper.utils.Clock;
+import com.jelly.farmhelper.utils.LocationUtils;
 import com.jelly.farmhelper.utils.UngrabUtils;
-import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.gui.GuiMainMenu;
@@ -70,7 +69,7 @@ public class AutoReconnect {
         if (cooldown.isScheduled() && cooldown.passed()) {
             if (mc.thePlayer == null || mc.theWorld == null) return;
             if (mc.currentScreen == null) {
-                if (FarmHelper.gameState.currentLocation == GameState.location.LOBBY) {
+                if (LocationUtils.currentIsland == LocationUtils.Island.LOBBY) {
                     switch (currentState) {
                         case JOINING_LOBBY:
                             final ItemStack held = mc.thePlayer.inventory.getCurrentItem();

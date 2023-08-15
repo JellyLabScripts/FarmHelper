@@ -6,7 +6,6 @@ import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.client.Minecraft;
 
-import static com.jelly.farmhelper.macros.VerticalCropMacroNew.State.DROPPING;
 import static com.jelly.farmhelper.utils.BlockUtils.*;
 
 public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {

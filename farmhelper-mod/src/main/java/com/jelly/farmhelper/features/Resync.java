@@ -1,9 +1,8 @@
 package com.jelly.farmhelper.features;
 
-import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.BlockUtils;
-import com.jelly.farmhelper.world.GameState;
+import com.jelly.farmhelper.utils.LocationUtils;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
 import net.minecraft.client.Minecraft;
@@ -55,7 +54,7 @@ public class Resync {
             }
         }
         cachedPos.clear();
-        if (desync && FarmHelper.gameState.currentLocation == GameState.location.ISLAND) {
+        if (desync && (LocationUtils.currentIsland == LocationUtils.Island.PRIVATE_ISLAND || LocationUtils.currentIsland == LocationUtils.Island.GARDEN)) {
             Failsafe.emergencyFailsafe(Failsafe.FailsafeType.DESYNC);
         }
 

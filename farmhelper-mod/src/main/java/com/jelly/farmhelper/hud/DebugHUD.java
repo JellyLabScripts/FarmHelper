@@ -4,6 +4,7 @@ import cc.polyfrost.oneconfig.config.annotations.Switch;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.utils.LocationUtils;
 
 import java.awt.*;
 import java.util.List;
@@ -49,7 +50,8 @@ public class DebugHUD extends TextHud {
             lines.add("farmClock isPaused: " + farmClockisPaused);
             lines.add("breakClock remainingTime: " + breakClockremainingTime);
             lines.add("breakClock isPaused: " + breakClockisPaused);
-            lines.add("currentLocation: " + gameState.currentLocation);
+            lines.add("gameState.currentLocation: " + gameState.currentLocation);
+            lines.add("LocationUtils.currentIsland: " + LocationUtils.currentIsland);
         }
     }
 }

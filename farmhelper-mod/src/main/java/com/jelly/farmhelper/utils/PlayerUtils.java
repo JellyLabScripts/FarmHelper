@@ -10,6 +10,7 @@ import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
@@ -96,6 +97,15 @@ public class PlayerUtils {
     }
     public static ItemStack getStackInSlot(final int slot) {
         return PlayerUtils.mc.thePlayer.inventory.getStackInSlot(slot);
+    }
+
+    public static boolean isInventoryEmpty(EntityPlayer player) {
+        for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
+            if (player.inventory.getStackInSlot(i) != null) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static ItemStack getStackInOpenContainerSlot(final int slot) {
@@ -274,6 +284,7 @@ public class PlayerUtils {
     }
 
     public static int getHoeSlot(CropEnum crop) {
+        if (crop == null) return 0;
         for (int i = 36; i < 44; i++) {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
                 switch (crop){
