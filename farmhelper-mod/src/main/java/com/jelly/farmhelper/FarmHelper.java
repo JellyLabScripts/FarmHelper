@@ -60,7 +60,8 @@ public class FarmHelper {
         config = new Config();
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(new MacroHandler());
-        MinecraftForge.EVENT_BUS.register(new Failsafe());
+//        MinecraftForge.EVENT_BUS.register(new Failsafe());
+        MinecraftForge.EVENT_BUS.register(new FailsafeNew());
         MinecraftForge.EVENT_BUS.register(new Antistuck());
         MinecraftForge.EVENT_BUS.register(new Autosell());
         MinecraftForge.EVENT_BUS.register(new Scheduler());

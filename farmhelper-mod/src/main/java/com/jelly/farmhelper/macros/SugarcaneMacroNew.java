@@ -2,6 +2,7 @@ package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.Failsafe;
+import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.utils.*;
 
 import static com.jelly.farmhelper.utils.BlockUtils.*;
@@ -29,7 +30,8 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
             pitch = (float) (Math.random() * 1) - 0.5f; // -0.5 to 0.5
         }
         MacroHandler.crop = MacroHandler.getFarmingCrop();
-        currentState = changeState(State.NONE);
+        if (currentState == null)
+            changeState(State.NONE);
         mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
         rotation.easeTo(yaw, pitch, 500);
         rowStartX = mc.thePlayer.posX;
@@ -73,7 +75,7 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
             return;
         }
 
-        if (Failsafe.emergency) {
+        if (FailsafeNew.emergency) {
             LogUtils.debugFullLog("Blocking changing movement due to emergency");
             return;
         }

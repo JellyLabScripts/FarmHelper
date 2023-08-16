@@ -3,6 +3,7 @@ package com.jelly.farmhelper.remote.command.commands;
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.features.BanwaveChecker;
 import com.jelly.farmhelper.features.Failsafe;
+import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.remote.command.BaseCommand;
 import com.jelly.farmhelper.remote.command.RemoteCommandContext;
 import com.jelly.farmhelper.remote.event.MessageEvent;
@@ -55,9 +56,9 @@ public class ReconnectCommand extends BaseCommand {
                     .setDescription("Can't reconnect, I was not disconnected by the bot. It's probably because " +
                             (BanwaveChecker.banwaveOn ?
                             "there's a banwave going on" :
-                            !Failsafe.jacobWait.passed() ?
-                                    "there's a Jacob Contest":
-                                    "of a disconnection error?"))));
+                        FailsafeNew.isJacobFailsafeExceeded ?
+                                "there's a Jacob Contest":
+                                "of a disconnection error?"))));
             obj.addProperty("image", getScreenshot());
         }
         send(obj);

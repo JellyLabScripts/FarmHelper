@@ -54,6 +54,10 @@ public class Utils{
 
     private static final Clock pingAlertClock = new Clock();
     private static int numPings = 15;
+    public static void disablePingAlert() {
+        pingAlertPlaying = false;
+        numPings = 15;
+    }
 
     public static void playPingFailsafeSound() {
         pingAlertPlaying = true;

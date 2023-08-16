@@ -108,12 +108,19 @@ public class CropUtils {
     }
 
     public static boolean itemChangedByStaff = false;
+    public static final Clock changeItemEveryClock = new Clock();
 
     public static void getTool() {
         // Sometimes if staff changed your slot, you might not have the tool in your hand after the swap, so it won't be obvious that you're using a macro
         if (itemChangedByStaff) {
             return;
         }
+
+        if (changeItemEveryClock.isScheduled() && !changeItemEveryClock.passed()) {
+            return;
+        }
+
+        changeItemEveryClock.schedule(5_000L);
 
         if (!FarmHelper.config.macroType) {
             mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);

@@ -3,6 +3,7 @@ package com.jelly.farmhelper.macros;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.features.Failsafe;
+import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.utils.*;
 
 import static com.jelly.farmhelper.utils.BlockUtils.*;
@@ -28,10 +29,10 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugFullLog("Crop: " + crop);
         MacroHandler.crop = crop;
-        changeState(State.NONE);
         yaw = AngleUtils.getClosestDiagonal();
         closest90Yaw = AngleUtils.getClosest();
-        currentState = calculateDirection();
+        if (currentState == null)
+            currentState = calculateDirection();
         if (FarmHelper.config.SShapeMacroType == Config.SMacroEnum.MUSHROOM.ordinal()) {
             rotation.easeTo(yaw, pitch, 500);
         } else {
@@ -79,17 +80,17 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             return;
         }
 
-        if (currentState != State.NONE && currentState != State.DROPPING && !Failsafe.emergency && !rotation.rotating && !FarmHelper.config.newRotationCheck) {
+        if (currentState != State.NONE && currentState != State.DROPPING && !FailsafeNew.emergency && !rotation.rotating && !FarmHelper.config.newRotationCheck) {
             System.out.println("AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) = " + AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw));
             System.out.println("Math.abs(mc.thePlayer.rotationPitch - pitch) = " + Math.abs(mc.thePlayer.rotationPitch - pitch));
             System.out.println("FarmHelper.config.rotationCheckSensitivity = " + FarmHelper.config.rotationCheckSensitivity);
             if ((FarmHelper.config.SShapeMacroType == Config.SMacroEnum.MUSHROOM.ordinal()) && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FarmHelper.config.rotationCheckSensitivity || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity)) {
                 rotation.reset();
-                Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
+                FailsafeNew.emergencyFailsafe(FailsafeNew.FailsafeType.ROTATION);
                 return;
             } else if ((FarmHelper.config.SShapeMacroType == Config.SMacroEnum.MUSHROOM_ROTATE.ordinal()) && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), closest90Yaw + (currentState == State.LEFT ? -30 : 30)) > FarmHelper.config.rotationCheckSensitivity || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity)) {
                 rotation.reset();
-                Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
+                FailsafeNew.emergencyFailsafe(FailsafeNew.FailsafeType.ROTATION);
                 return;
             }
         }
@@ -105,7 +106,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             return;
         }
 
-        if (Failsafe.emergency) {
+        if (FailsafeNew.emergency) {
             LogUtils.debugFullLog("Blocking changing movement due to emergency");
             return;
         }

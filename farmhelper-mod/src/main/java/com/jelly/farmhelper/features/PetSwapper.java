@@ -45,7 +45,7 @@ public class PetSwapper {
         if (!MacroHandler.isMacroing) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
-        if (Failsafe.emergency) return;
+        if (FailsafeNew.emergency) return;
         if (!enabled) return;
         if (delay.isScheduled() && !delay.passed()) return;
 

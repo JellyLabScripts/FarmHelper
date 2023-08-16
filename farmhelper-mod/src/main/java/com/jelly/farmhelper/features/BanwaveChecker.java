@@ -53,7 +53,7 @@ public class BanwaveChecker {
 
                     if(MacroHandler.isMacroing && FarmHelper.config.enableLeaveOnBanwave) {
                         if (GameState.inJacobContest() && FarmHelper.config.banwaveDontLeaveDuringJacobsContest) return;
-                        if (banwaveOn && mc.theWorld != null && !Failsafe.emergency) {
+                        if (banwaveOn && mc.theWorld != null && !FailsafeNew.emergency) {
                             LogUtils.webhookLog("Disconnecting in 3 seconds due to banwave detected.");
                             LogUtils.debugLog("Disconnecting in 3 seconds due to banwave detected.");
 

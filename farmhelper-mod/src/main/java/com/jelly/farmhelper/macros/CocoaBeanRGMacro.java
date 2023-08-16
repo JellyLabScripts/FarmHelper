@@ -4,6 +4,7 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
+import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.init.Blocks;
@@ -38,7 +39,8 @@ public class CocoaBeanRGMacro extends Macro {
 
     @Override
     public void onEnable() {
-        currentState = State.NONE;
+        if (currentState == null)
+            currentState = State.NONE;
         antistuckActive = false;
         Antistuck.stuck = false;
         MacroHandler.crop = Config.CropEnum.COCOA_BEANS;
@@ -166,7 +168,7 @@ public class CocoaBeanRGMacro extends Macro {
 
         updateState();
 
-        if (Failsafe.emergency) {
+        if (FailsafeNew.emergency) {
             LogUtils.debugFullLog("Blocking changing movement due to emergency");
             return;
         }

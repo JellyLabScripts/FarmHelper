@@ -5,6 +5,7 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.AutoReconnect;
 import com.jelly.farmhelper.features.BanwaveChecker;
 import com.jelly.farmhelper.features.Failsafe;
+import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
 import com.jelly.farmhelper.remote.analytic.AnalyticBaseCommand;
@@ -53,7 +54,7 @@ public class MixinGuiDisconnected {
             if (BanwaveChecker.banwaveOn && FarmHelper.config.enableLeaveOnBanwave) {
                 Minecraft.getMinecraft().fontRendererObj.drawString("There is a banwave! " + BanwaveChecker.getBanDisplay(), 5, 5, -1);
             }
-            if (!Failsafe.jacobWait.passed()) {
+            if (FailsafeNew.isJacobFailsafeExceeded) {
                 Minecraft.getMinecraft().fontRendererObj.drawString("In Jacob Failsafe", 5, 20, -1);
             }
             if (AutoReconnect.waitTime > 0) {

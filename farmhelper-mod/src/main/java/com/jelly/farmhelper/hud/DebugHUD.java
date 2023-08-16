@@ -6,6 +6,7 @@ import cc.polyfrost.oneconfig.hud.TextHud;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.AutoReconnect;
 import com.jelly.farmhelper.features.Failsafe;
+import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.utils.LocationUtils;
 
 import java.awt.*;
@@ -47,7 +48,7 @@ public class DebugHUD extends TextHud {
             lines.add("prevState: " + prevState);
             lines.add("currentState: " + currentState);
             lines.add("rotating: " + rotating);
-            lines.add("Failsafe.emergency: " + Failsafe.emergency);
+            lines.add("Failsafe.emergency: " + FailsafeNew.emergency);
             lines.add("jacobsContestTriggered: " + jacobsContestTriggered);
             lines.add("farmClock remainingTime: " + farmClockremainingTime);
             lines.add("farmClock isPaused: " + farmClockisPaused);

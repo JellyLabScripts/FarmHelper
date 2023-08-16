@@ -114,7 +114,7 @@ public class MacroHandler {
 
                 StatusUtils.updateStateString();
             }
-            if (currentMacro != null && currentMacro.enabled) {
+            if (currentMacro != null && currentMacro.enabled && (LocationUtils.currentIsland == LocationUtils.Island.GARDEN || LocationUtils.currentIsland == LocationUtils.Island.PRIVATE_ISLAND)) {
                 if (!VisitorsMacro.isEnabled() && !PetSwapper.isEnabled()) {
                     currentMacro.onTick();
                 }
@@ -122,10 +122,10 @@ public class MacroHandler {
         }
 
     }
-    public static void toggleMacro(){
-        Failsafe.restartAfterFailsafeCooldown.reset();
-        if(Failsafe.emergency) {
-            Failsafe.stopAllFailsafeThreads();
+    public static void toggleMacro() {
+        FailsafeNew.restartAfterFailsafeCooldown.reset();
+        if(FailsafeNew.emergency) {
+            FailsafeNew.stopAllFailsafeThreads();
             disableMacro();
             LogUtils.scriptLog("Do not restart macro too soon and farm yourself. The staff might still be spectating for 1-2 minutes");
         } else if (isMacroing) {
@@ -135,6 +135,10 @@ public class MacroHandler {
         }
     }
     public static void enableMacro() {
+        if ((LocationUtils.currentIsland != LocationUtils.Island.GARDEN && LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND)) {
+            LogUtils.scriptLog("You must be on your island/garden to start the macro!", EnumChatFormatting.RED);
+            return;
+        }
         if(!FarmHelper.config.macroType) {
             currentMacro = verticalCropMacro;
         } else {
@@ -170,7 +174,6 @@ public class MacroHandler {
         ProfitCalculator.resetProfit();
         ProfitCalculator.startingPurse = -1;
 
-        Failsafe.jacobWait.reset();
         startCounter = PlayerUtils.getCounter();
         enableCurrentMacro();
     }
@@ -186,7 +189,7 @@ public class MacroHandler {
         StatusUtils.updateStateString();
         VisitorsMacro.stopMacro();
         PetSwapper.reset();
-        Failsafe.resetClocks();
+        FailsafeNew.resetFailsafes();
     }
 
     public static void disableCurrentMacro() {
@@ -212,7 +215,11 @@ public class MacroHandler {
             mc.mouseHelper.grabMouseCursor();
             startingUp = true;
             CropUtils.itemChangedByStaff = false;
+            CropUtils.changeItemEveryClock.reset();
             KeyBindUtils.updateKeys(false, false, false, false, false, mc.thePlayer.capabilities.isFlying, false);
+            if (currentMacro.savedLastState) {
+                currentMacro.restoreState();
+            }
             new Thread(startCurrent).start();
         }
     }

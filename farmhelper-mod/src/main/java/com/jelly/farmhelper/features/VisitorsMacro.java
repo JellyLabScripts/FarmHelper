@@ -184,7 +184,7 @@ public class VisitorsMacro {
         if (!FarmHelper.config.visitorsMacro) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
-        if (Failsafe.emergency) return;
+        if (FailsafeNew.emergency) return;
         if (!MacroHandler.isMacroing) return;
         if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
 
@@ -281,7 +281,7 @@ public class VisitorsMacro {
         if (!MacroHandler.isMacroing) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
-        if (Failsafe.emergency) return;
+        if (FailsafeNew.emergency) return;
         if (!enabled) return;
         if (delayClock.isScheduled() && !delayClock.passed()) return;
 

@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.world;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.Failsafe;
+import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.features.PetSwapper;
 import com.jelly.farmhelper.features.Scheduler;
 import com.jelly.farmhelper.hud.DebugHUD;
@@ -37,7 +38,7 @@ public class JacobsContestHandler {
                     if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
                     if (PetSwapper.isEnabled()) return;
                     if (PetSwapper.currentState != PetSwapper.State.NONE) return;
-                    if (Failsafe.emergency) return;
+                    if (FailsafeNew.emergency) return;
                     if (!MacroHandler.isMacroing) return;
                     if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
                     if (GameState.inJacobContest() && !PetSwapper.hasPetChangedDuringThisContest) {
@@ -65,7 +66,7 @@ public class JacobsContestHandler {
             if (FarmHelper.config.enablePetSwapper) {
                 if (PetSwapper.isEnabled()) return;
                 if (PetSwapper.currentState != PetSwapper.State.NONE) return;
-                if (Failsafe.emergency) return;
+                if (FailsafeNew.emergency) return;
                 if (!MacroHandler.isMacroing) return;
                 if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
                 if (!PetSwapper.hasPetChangedDuringThisContest) return;

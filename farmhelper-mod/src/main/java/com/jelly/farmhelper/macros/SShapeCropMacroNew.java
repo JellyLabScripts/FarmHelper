@@ -3,6 +3,7 @@ package com.jelly.farmhelper.macros;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.features.Failsafe;
+import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.utils.*;
 
 import static com.jelly.farmhelper.utils.BlockUtils.*;
@@ -28,7 +29,8 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
     public void onEnable() {
         super.onEnable();
         changeLaneDirection = null;
-        changeState(State.NONE);
+        if (currentState == null)
+            changeState(State.NONE);
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.debugFullLog("Crop: " + crop);
         MacroHandler.crop = crop;
@@ -95,7 +97,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
             return;
         }
 
-        if (Failsafe.emergency) {
+        if (FailsafeNew.emergency) {
             LogUtils.debugFullLog("Blocking changing movement due to emergency");
             return;
         }

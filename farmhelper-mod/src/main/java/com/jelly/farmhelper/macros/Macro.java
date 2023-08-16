@@ -6,6 +6,7 @@ import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.Failsafe;
+import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.AngleUtils;
@@ -78,6 +79,7 @@ public abstract class Macro<T> {
                 Antistuck.unstuckThreadInstance.interrupt();
             }
         }
+        currentState = null;
     }
 
     public void onTick() {
@@ -219,9 +221,9 @@ public abstract class Macro<T> {
         boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FarmHelper.config.rotationCheckSensitivity
                 || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity;
 
-        if(!Failsafe.emergency && flag && lastTp.passed() && !rotation.rotating) {
+        if(!FailsafeNew.emergency && flag && lastTp.passed() && !rotation.rotating) {
             rotation.reset();
-            Failsafe.emergencyFailsafe(Failsafe.FailsafeType.ROTATION);
+            FailsafeNew.emergencyFailsafe(FailsafeNew.FailsafeType.ROTATION);
             return;
         }
     }
