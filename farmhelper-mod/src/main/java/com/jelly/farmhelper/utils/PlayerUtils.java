@@ -244,7 +244,7 @@ public class PlayerUtils {
                     }
                 }
             }
-            LogUtils.debugFullLog("Error: Cannot find counter on held item");
+            LogUtils.scriptLog("Can't find counter on held item", EnumChatFormatting.RED);
         }
         return 0L;
     }

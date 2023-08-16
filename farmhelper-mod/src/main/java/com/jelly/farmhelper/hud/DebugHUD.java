@@ -4,6 +4,8 @@ import cc.polyfrost.oneconfig.config.annotations.Switch;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.features.AutoReconnect;
+import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.utils.LocationUtils;
 
 import java.awt.*;
@@ -45,6 +47,7 @@ public class DebugHUD extends TextHud {
             lines.add("prevState: " + prevState);
             lines.add("currentState: " + currentState);
             lines.add("rotating: " + rotating);
+            lines.add("Failsafe.emergency: " + Failsafe.emergency);
             lines.add("jacobsContestTriggered: " + jacobsContestTriggered);
             lines.add("farmClock remainingTime: " + farmClockremainingTime);
             lines.add("farmClock isPaused: " + farmClockisPaused);
@@ -52,6 +55,7 @@ public class DebugHUD extends TextHud {
             lines.add("breakClock isPaused: " + breakClockisPaused);
             lines.add("gameState.currentLocation: " + gameState.currentLocation);
             lines.add("LocationUtils.currentIsland: " + LocationUtils.currentIsland);
+            lines.add("AutoReconnect.currentState: " + AutoReconnect.currentState);
         }
     }
 }
