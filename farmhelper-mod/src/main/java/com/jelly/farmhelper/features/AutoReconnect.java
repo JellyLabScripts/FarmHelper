@@ -1,7 +1,6 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.command.commands.ReconnectCommand;
 import com.jelly.farmhelper.utils.Clock;
