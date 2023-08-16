@@ -18,6 +18,8 @@ import net.minecraft.util.Tuple;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -377,7 +379,16 @@ public class Failsafe {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    public void onWorldUnload(WorldEvent.Unload event) {
+        if (!MacroHandler.isMacroing || (MacroHandler.currentMacro != null && !MacroHandler.currentMacro.enabled)) return;
+        if (emergency) return;
+
+        cooldown.schedule((long) (6000 + Math.random() * 5000));
+        emergencyFailsafe(FailsafeType.WORLD_CHANGE);
+    }
+
+    @SubscribeEvent(receiveCanceled = true, priority = EventPriority.NORMAL)
     public void checkReceivedPacket(ReceivePacketEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (evacuateCooldown.isScheduled() || afterEvacuateCooldown.isScheduled()) return;
@@ -542,6 +553,14 @@ public class Failsafe {
             e.printStackTrace();
         }
     };
+
+    public static void resetClocks() {
+        cooldown.reset();
+        jacobWait.reset();
+        evacuateCooldown.reset();
+        afterEvacuateCooldown.reset();
+        restartAfterFailsafeCooldown.reset();
+    }
 
     static Runnable bazaarChilling = () -> {
         try {

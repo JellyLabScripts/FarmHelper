@@ -186,6 +186,7 @@ public class MacroHandler {
         StatusUtils.updateStateString();
         VisitorsMacro.stopMacro();
         PetSwapper.reset();
+        Failsafe.resetClocks();
     }
 
     public static void disableCurrentMacro() {
