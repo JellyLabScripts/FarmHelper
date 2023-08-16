@@ -43,9 +43,9 @@ public class AutoReconnect {
 
         if (event.phase == TickEvent.Phase.END || !MacroHandler.isMacroing)
             return;
-        if(BanwaveChecker.banwaveOn && FarmHelper.config.enableLeaveOnBanwave)
+        if (BanwaveChecker.banwaveOn && FarmHelper.config.enableLeaveOnBanwave)
             return;
-        if(!Failsafe.jacobWait.passed() && FarmHelper.config.enableJacobFailsafes)
+        if (!Failsafe.jacobWait.passed() && FarmHelper.config.enableJacobFailsafes)
             return;
         if ((mc.currentScreen instanceof GuiDisconnected)) {
             if (Failsafe.emergency) {
@@ -69,29 +69,33 @@ public class AutoReconnect {
         if (cooldown.isScheduled() && cooldown.passed()) {
             if (mc.thePlayer == null || mc.theWorld == null) return;
             if (mc.currentScreen == null) {
-                if (LocationUtils.currentIsland == LocationUtils.Island.LOBBY) {
-                    switch (currentState) {
-                        case JOINING_LOBBY:
-                            final ItemStack held = mc.thePlayer.inventory.getCurrentItem();
-                            if (held != null) {
-                                final String displayName = held.getDisplayName();
-                                if (displayName.equals("§aGame Menu §7(Right Click)")) {
-                                    mc.thePlayer.sendChatMessage("/play sb");
-                                }
+                switch (currentState) {
+                    case JOINING_LOBBY:
+                        if (LocationUtils.currentIsland != LocationUtils.Island.LOBBY) return;
+                        final ItemStack held = mc.thePlayer.inventory.getCurrentItem();
+                        if (held != null) {
+                            final String displayName = held.getDisplayName();
+                            if (displayName.equals("§aGame Menu §7(Right Click)")) {
+                                mc.thePlayer.sendChatMessage("/skyblock");
                             }
-                            currentState = reconnectingState.JOINING_SKYBLOCK;
-                            cooldown.schedule(1100);
-                            break;
-                        case JOINING_SKYBLOCK:
-                            currentState = reconnectingState.ENABLING_MACRO;
-                            cooldown.schedule(1500);
-                            break;
-                        case ENABLING_MACRO:
-                            currentState = reconnectingState.NONE;
-                            if (FarmHelper.config.enableScheduler) Scheduler.start();
-                            MacroHandler.enableCurrentMacro();
-                            break;
-                    }
+                        }
+                        currentState = reconnectingState.JOINING_SKYBLOCK;
+                        cooldown.schedule(3500);
+                        break;
+                    case JOINING_SKYBLOCK:
+                        cooldown.schedule(3500);
+                        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN && LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND) {
+                            mc.thePlayer.sendChatMessage("/skyblock"); // if it gets stuck in the lobby
+                            return;
+                        }
+                        currentState = reconnectingState.ENABLING_MACRO;
+                        break;
+                    case ENABLING_MACRO:
+                        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN && LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND) return;
+                        currentState = reconnectingState.NONE;
+                        if (FarmHelper.config.enableScheduler) Scheduler.start();
+                        MacroHandler.enableCurrentMacro();
+                        break;
                 }
             }
         }

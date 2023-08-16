@@ -94,7 +94,6 @@ public class LocationUtils {
     public void onTick(TickEvent.ClientTickEvent event)
     {
         if (event.phase != TickEvent.Phase.START || mc.thePlayer == null || mc.theWorld == null) return;
-        if (currentIsland != null) return;
 
         // Check tab list
         Pattern pattern = Pattern.compile("Area:\\s(.+)");
@@ -122,8 +121,11 @@ public class LocationUtils {
                 if (cleanedLine.contains("Lobby: ")) {
                     currentIsland = Island.LOBBY;
                     return;
-                } else if (cleanedLine.contains("Island") || cleanedLine.contains("Garden") || cleanedLine.contains("Plot:")) {
+                } else if (cleanedLine.contains("Island")) {
                     currentIsland = Island.PRIVATE_ISLAND;
+                    return;
+                } else if (cleanedLine.contains("Garden") || cleanedLine.contains("Plot:")) {
+                    currentIsland = Island.GARDEN;
                     return;
                 }
             }

@@ -18,6 +18,8 @@ import net.minecraft.util.Tuple;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -192,6 +194,7 @@ public class Failsafe {
                     restartAfterFailsafeCooldown.schedule(FarmHelper.config.restartAfterFailSafeDelay * 1000L);
                 return;
             case PRIVATE_ISLAND:
+            case GARDEN:
                 checkInGarden();
                 if (evacuateCooldown.isScheduled() && evacuateCooldown.getRemainingTime() < 2_500 && MacroHandler.currentMacro.enabled) {
                     MacroHandler.disableCurrentMacro(true);
@@ -231,9 +234,11 @@ public class Failsafe {
                     afterEvacuateCooldown.reset();
                     MacroHandler.currentMacro.triggerTpCooldown();
                 }
+                return;
             default:
                 LogUtils.scriptLog("You are outside the garden/island! Disabling the script...", EnumChatFormatting.RED);
                 MacroHandler.disableMacro();
+                return;
                 // DEBUG MESSAGES IN CASE SOMETHING IS BROKEN AGAIN
 //                else {
 //                    if (!MacroHandler.currentMacro.enabled) {
@@ -374,13 +379,23 @@ public class Failsafe {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    public void onWorldUnload(WorldEvent.Unload event) {
+        if (!MacroHandler.isMacroing || (MacroHandler.currentMacro != null && !MacroHandler.currentMacro.enabled)) return;
+        if (emergency) return;
+
+        cooldown.schedule((long) (6000 + Math.random() * 5000));
+        emergencyFailsafe(FailsafeType.WORLD_CHANGE);
+    }
+
+    @SubscribeEvent(receiveCanceled = true, priority = EventPriority.NORMAL)
     public void checkReceivedPacket(ReceivePacketEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (evacuateCooldown.isScheduled() || afterEvacuateCooldown.isScheduled()) return;
         if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (MacroHandler.currentMacro.isTping) return;
         if (VisitorsMacro.isEnabled()) return;
+        if (AutoReconnect.currentState != AutoReconnect.reconnectingState.NONE) return;
         if (emergency) return;
 
         // World change check
@@ -401,7 +416,7 @@ public class Failsafe {
         if (!config.newRotationCheck) return;
         if (event.packet instanceof S08PacketPlayerPosLook) {
             if (config.pingServer && (Pinger.dontRotationCheck.isScheduled() && !Pinger.dontRotationCheck.passed() || Pinger.isOffline)) {
-                LogUtils.debugLog("Got rotation packet while connection to server is bad, ignoring");
+                LogUtils.debugFullLog("Got rotation packet while having bad connection to the server, ignoring");
                 return;
             }
 
@@ -447,7 +462,21 @@ public class Failsafe {
             Thread.sleep((long) ((FarmHelper.config.delayedStopScriptTime * 1_000) + Math.random() * (FarmHelper.config.delayedStopScriptTimeRandomness * 1_000)));
             MacroHandler.disableCurrentMacro(true);
             LogUtils.debugLog("delayedStopScript: done, stopping macro");
-        } catch(Exception e){
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    };
+
+    static Runnable pauseAndRestart = () -> {
+        try {
+            LogUtils.debugLog("pauseAndRestart: stopping the macro");
+            MacroHandler.disableCurrentMacro(true);
+            emergency = false;
+            LogUtils.debugLog("pauseAndRestart: waiting");
+            Thread.sleep((long) ((FarmHelper.config.delayedStopScriptTime * 1_000) + Math.random() * (FarmHelper.config.delayedStopScriptTimeRandomness * 1_000)));
+            LogUtils.debugLog("pauseAndRestart: done, restarting the macro");
+            MacroHandler.enableCurrentMacro();
+        } catch (Exception e){
             e.printStackTrace();
         }
     };
@@ -459,15 +488,20 @@ public class Failsafe {
 
         LogUtils.webhookLog(type.label);
         LogUtils.scriptLog(type.label + "!");
-        if (type != FailsafeType.WORLD_CHANGE)
-            LogUtils.scriptLog("Act like a normal player and stop the script!");
 
-        if (type != FailsafeType.DESYNC && type != FailsafeType.WORLD_CHANGE)
-        {
-            emergencyThreadExecutor.submit(delayedStopScript);
+        switch (type) {
+            case DESYNC:
+                emergencyThreadExecutor.submit(stopScript);
+                return;
+            case WORLD_CHANGE:
+                emergencyThreadExecutor.submit(pauseAndRestart);
+                return;
+            default:
+                emergencyThreadExecutor.submit(delayedStopScript);
+                LogUtils.scriptLog("Act like a normal player and stop the script!");
         }
 
-        if(FarmHelper.config.popUpNotification){
+        if (FarmHelper.config.popUpNotification){
             try {
                 SystemTray tray = SystemTray.getSystemTray();
                 Utils.createNotification(type.label, tray, TrayIcon.MessageType.WARNING);
@@ -488,12 +522,6 @@ public class Failsafe {
                 Utils.playPingFailsafeSound();
             else
                 Utils.playFailsafeSound(FarmHelper.config.failsafeSoundSelected);
-        }
-
-        switch (type) {
-            case DESYNC: case WORLD_CHANGE:
-                emergencyThreadExecutor.submit(stopScript);
-                break;
         }
 
         if (FarmHelper.config.fakeMovements) {
@@ -525,6 +553,14 @@ public class Failsafe {
             e.printStackTrace();
         }
     };
+
+    public static void resetClocks() {
+        cooldown.reset();
+        jacobWait.reset();
+        evacuateCooldown.reset();
+        afterEvacuateCooldown.reset();
+        restartAfterFailsafeCooldown.reset();
+    }
 
     static Runnable bazaarChilling = () -> {
         try {
