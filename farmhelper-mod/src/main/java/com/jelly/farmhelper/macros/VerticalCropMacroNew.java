@@ -107,7 +107,8 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
                 changeState(State.DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
             }
-            invokeState();
+            if (currentState != null)
+                invokeState();
         }
     }
 

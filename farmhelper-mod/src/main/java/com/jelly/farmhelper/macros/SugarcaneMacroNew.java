@@ -91,7 +91,8 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
                 changeState(State.DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
             }
-            invokeState();
+            if (currentState != null)
+                invokeState();
         }
     }
 

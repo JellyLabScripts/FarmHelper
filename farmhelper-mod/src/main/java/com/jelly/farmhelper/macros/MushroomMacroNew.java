@@ -123,7 +123,8 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
                 FarmHelper.gameState.scheduleNotMoving();
                 System.out.println("Dropping");
             }
-            invokeState();
+            if (currentState != null)
+                invokeState();
         }
     }
 

@@ -113,7 +113,8 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                 changeState(State.DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
             }
-            invokeState();
+            if (currentState != null)
+                invokeState();
         }
     }
 
