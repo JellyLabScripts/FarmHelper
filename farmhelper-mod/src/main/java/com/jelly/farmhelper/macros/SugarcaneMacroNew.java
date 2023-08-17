@@ -91,8 +91,7 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
                 changeState(State.DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
             }
-            if (currentState != null)
-                invokeState();
+            invokeState();
         }
     }
 
@@ -141,6 +140,7 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
     }
 
     private void invokeState() {
+        if (currentState == null) return;
         switch (currentState) {
             case NONE:
                 break;

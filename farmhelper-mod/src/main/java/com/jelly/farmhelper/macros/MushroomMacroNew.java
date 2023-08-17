@@ -123,8 +123,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
                 FarmHelper.gameState.scheduleNotMoving();
                 System.out.println("Dropping");
             }
-            if (currentState != null)
-                invokeState();
+            invokeState();
         }
     }
 
@@ -187,6 +186,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
     }
 
     private void invokeState() {
+        if (currentState == null) return;
         switch (currentState) {
             case RIGHT: {
                 if (FarmHelper.config.SShapeMacroType == Config.SMacroEnum.MUSHROOM_ROTATE.ordinal()) {
