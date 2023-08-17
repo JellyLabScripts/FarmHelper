@@ -25,8 +25,6 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
         LEFT
     }
 
-    public ChangeLaneDirection changeLaneDirection = null;
-
     @Override
     public void onEnable() {
         super.onEnable();
@@ -55,7 +53,6 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
         super.onTick();
 
         if (isTping) {
-            changeLaneDirection = null;
             return;
         }
 
@@ -114,12 +111,9 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
         switch (currentState) {
             case BACKWARD:
             case FORWARD: {
-                if (!FarmHelper.gameState.frontWalkable && FarmHelper.gameState.backWalkable) {
+                if ((!FarmHelper.gameState.frontWalkable && FarmHelper.gameState.backWalkable)
+                        || (FarmHelper.gameState.frontWalkable && !FarmHelper.gameState.backWalkable)) {
                     changeState(State.SWITCHING_LANE);
-                    changeLaneDirection = ChangeLaneDirection.RIGHT;
-                } else if (FarmHelper.gameState.frontWalkable && !FarmHelper.gameState.backWalkable) {
-                    changeState(State.SWITCHING_LANE);
-                    changeLaneDirection = ChangeLaneDirection.RIGHT;
                 } else {
                     LogUtils.debugLog("Can't go left or right!");
                     if (FarmHelper.gameState.backWalkable) {
@@ -172,28 +166,7 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
                 );
                 break;
             case SWITCHING_LANE:
-                if (changeLaneDirection == null) {
-                    if (FarmHelper.gameState.rightWalkable) {
-                        changeLaneDirection = ChangeLaneDirection.RIGHT;
-                    } else if (FarmHelper.gameState.leftWalkable) {
-                        changeLaneDirection = ChangeLaneDirection.LEFT;
-                    } else if (shouldPushForward()) {
-                        changeState(State.FORWARD);
-                        return;
-                    }
-                }
-                switch (changeLaneDirection) {
-                    case RIGHT:
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindRight);
-                        break;
-                    case LEFT:
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft);
-                        break;
-                    default: {
-                        LogUtils.scriptLog("I can't decide which direction to go!");
-                        currentState = State.NONE;
-                    }
-                }
+                KeyBindUtils.holdThese(mc.gameSettings.keyBindRight);
                 break;
             case NONE:
                 break;
