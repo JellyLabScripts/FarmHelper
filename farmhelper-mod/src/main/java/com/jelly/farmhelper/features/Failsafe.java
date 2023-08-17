@@ -393,7 +393,6 @@ public class Failsafe {
     public void onWorldUnload(WorldEvent.Unload event) {
         if (!MacroHandler.isMacroing || (MacroHandler.currentMacro != null && !MacroHandler.currentMacro.enabled)) return;
         if (emergency) return;
-        LogUtils.debugLog("Tutaj");
 
         cooldown.schedule((long) (6000 + Math.random() * 5000));
         emergencyFailsafe(FailsafeType.WORLD_CHANGE);
