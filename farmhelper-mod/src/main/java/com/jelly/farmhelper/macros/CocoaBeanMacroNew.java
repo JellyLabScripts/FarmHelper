@@ -16,6 +16,7 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
     public enum State {
         BACKWARD,
         FORWARD,
+        SWITCHING_SIDE,
         SWITCHING_LANE,
         NONE
     }
@@ -91,7 +92,7 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
             return;
         }
 
-//        if (hasLineChanged() && currentState == State.SWITCHING_LANE) {
+//        if (hasLineChanged() && currentState == State.SWITCHING_SIDE) {
 //            changeState(State.FORWARD);
 //            return;
 //        }
@@ -109,11 +110,17 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
         if (currentState == null)
             changeState(State.NONE);
         switch (currentState) {
-            case BACKWARD:
-            case FORWARD: {
-                if ((!FarmHelper.gameState.frontWalkable && FarmHelper.gameState.backWalkable)
-                        || (FarmHelper.gameState.frontWalkable && !FarmHelper.gameState.backWalkable)) {
+            case BACKWARD: {
+                if (FarmHelper.gameState.frontWalkable && !FarmHelper.gameState.backWalkable) {
                     changeState(State.SWITCHING_LANE);
+                    return;
+                }
+                break;
+            }
+            case FORWARD: {
+                if (!FarmHelper.gameState.frontWalkable && FarmHelper.gameState.backWalkable) {
+                    changeState(State.SWITCHING_SIDE);
+                    return;
                 } else {
                     LogUtils.debugLog("Can't go left or right!");
                     if (FarmHelper.gameState.backWalkable) {
@@ -126,20 +133,22 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
                 }
                 break;
             }
+            case SWITCHING_SIDE:
+                if (!FarmHelper.gameState.rightWalkable && FarmHelper.gameState.leftWalkable) {
+                    changeState(State.BACKWARD);
+                }
+                break;
             case SWITCHING_LANE: {
                 if (shouldPushForward()) {
                     changeState(State.FORWARD);
                     return;
                 }
                 if (FarmHelper.gameState.rightWalkable && FarmHelper.gameState.leftWalkable) {
-                    LogUtils.debugFullLog("Both sides are walkable, switching lane");
+                    if (!FarmHelper.gameState.frontWalkable) {
+                        LogUtils.debugFullLog("Both sides are walkable, switching lane");
+                    } else
+                        changeState(State.FORWARD);
                     return;
-                } else if (!FarmHelper.gameState.rightWalkable && FarmHelper.gameState.leftWalkable) {
-                    changeState(State.BACKWARD);
-                } else if (FarmHelper.gameState.rightWalkable) {
-                    changeState(State.FORWARD);
-                } else {
-                    unstuck();
                 }
                 break;
             }
@@ -165,6 +174,7 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
                         mc.gameSettings.keyBindAttack
                 );
                 break;
+            case SWITCHING_SIDE:
             case SWITCHING_LANE:
                 KeyBindUtils.holdThese(mc.gameSettings.keyBindRight);
                 break;
@@ -209,16 +219,16 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
             float yaw = AngleUtils.getClosest(mc.thePlayer.rotationYaw);
             yaw = (yaw % 360 + 360) % 360;
             if (yaw == 180f && decimalPartX > 0.488) { // North: X > 488
-                LogUtils.debugFullLog("North");
+//                LogUtils.debugFullLog("North");
                 return true;
             } else if (yaw == 270f && decimalPartZ > 0.488) { // East: Z > 488
-                LogUtils.debugFullLog("East");
+//                LogUtils.debugFullLog("East");
                 return true;
             } else if (yaw == 90f && decimalPartZ < 0.512) { // West: Z < 512
-                LogUtils.debugFullLog("West");
+//                LogUtils.debugFullLog("West");
                 return true;
             } else if (yaw == 0f && decimalPartX < 0.512) { // South: X < 512
-                LogUtils.debugFullLog("South");
+//                LogUtils.debugFullLog("South");
                 return true;
             }
         }

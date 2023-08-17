@@ -6,6 +6,8 @@ import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.utils.LocationUtils;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockDoor;
+import net.minecraft.block.BlockTrapDoor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -70,7 +72,7 @@ public class Antistuck {
             return;
         if (cooldown.passed()) {
             Block blockIn = BlockUtils.getRelativeBlock(0, 0, 0);
-            stuck = (!blockIn.equals(Blocks.end_portal_frame) && !BlockUtils.isWalkable(blockIn)) || (Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1 && Math.abs(mc.thePlayer.posY - lastY) < 1);
+            stuck = (!blockIn.equals(Blocks.end_portal_frame) && !BlockUtils.isWalkable(blockIn) && !(blockIn instanceof BlockDoor || blockIn instanceof BlockTrapDoor)) || (Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1 && Math.abs(mc.thePlayer.posY - lastY) < 1);
             lastX = mc.thePlayer.posX;
             lastZ = mc.thePlayer.posZ;
             lastY = mc.thePlayer.posY;
