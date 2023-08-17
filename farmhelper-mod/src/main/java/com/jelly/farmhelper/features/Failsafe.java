@@ -424,7 +424,7 @@ public class Failsafe {
         }
 
         // Rotation check
-        if (!config.newRotationCheck) return;
+        if (config.oldRotationCheck) return;
         if (event.packet instanceof S08PacketPlayerPosLook) {
             if (config.pingServer && (Pinger.dontRotationCheck.isScheduled() && !Pinger.dontRotationCheck.passed() || Pinger.isOffline)) {
                 LogUtils.debugFullLog("Got rotation packet while having bad connection to the server, ignoring");

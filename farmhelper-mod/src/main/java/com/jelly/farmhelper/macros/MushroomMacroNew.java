@@ -80,7 +80,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             return;
         }
 
-        if (currentState != State.NONE && currentState != State.DROPPING && !FailsafeNew.emergency && !rotation.rotating && !FarmHelper.config.newRotationCheck) {
+        if (currentState != State.NONE && currentState != State.DROPPING && !FailsafeNew.emergency && !rotation.rotating && FarmHelper.config.oldRotationCheck) {
             System.out.println("AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) = " + AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw));
             System.out.println("Math.abs(mc.thePlayer.rotationPitch - pitch) = " + Math.abs(mc.thePlayer.rotationPitch - pitch));
             System.out.println("FarmHelper.config.rotationCheckSensitivity = " + FarmHelper.config.rotationCheckSensitivity);
