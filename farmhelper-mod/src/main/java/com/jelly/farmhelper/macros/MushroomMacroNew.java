@@ -128,7 +128,8 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
     }
 
     private void updateState() {
-        System.out.println("Updating state");
+        if (currentState == null)
+            changeState(State.NONE);
         switch (currentState) {
             case LEFT:
                 if (FarmHelper.gameState.rightWalkable) {

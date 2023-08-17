@@ -112,7 +112,8 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
     }
 
     private void updateState() {
-        if (currentState == null) return;
+        if (currentState == null)
+            changeState(State.NONE);
         switch (currentState) {
             case LEFT:
             case RIGHT: {
@@ -150,6 +151,7 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
     }
 
     private void invokeState() {
+        if (currentState == null) return;
         switch (currentState) {
             case LEFT:
                 KeyBindUtils.holdThese(
