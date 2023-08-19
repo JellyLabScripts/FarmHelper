@@ -80,7 +80,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             return;
         }
 
-        if (currentState != State.NONE && currentState != State.DROPPING && !FailsafeNew.emergency && !rotation.rotating && !FarmHelper.config.newRotationCheck) {
+        if (currentState != State.NONE && currentState != State.DROPPING && !FailsafeNew.emergency && !rotation.rotating && FarmHelper.config.oldRotationCheck) {
             System.out.println("AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) = " + AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw));
             System.out.println("Math.abs(mc.thePlayer.rotationPitch - pitch) = " + Math.abs(mc.thePlayer.rotationPitch - pitch));
             System.out.println("FarmHelper.config.rotationCheckSensitivity = " + FarmHelper.config.rotationCheckSensitivity);
@@ -128,7 +128,8 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
     }
 
     private void updateState() {
-        System.out.println("Updating state");
+        if (currentState == null)
+            changeState(State.NONE);
         switch (currentState) {
             case LEFT:
                 if (FarmHelper.gameState.rightWalkable) {
@@ -186,6 +187,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
     }
 
     private void invokeState() {
+        if (currentState == null) return;
         switch (currentState) {
             case RIGHT: {
                 if (FarmHelper.config.SShapeMacroType == Config.SMacroEnum.MUSHROOM_ROTATE.ordinal()) {

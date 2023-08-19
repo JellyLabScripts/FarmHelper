@@ -118,6 +118,8 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
     }
 
     private void updateState() {
+        if (currentState == null)
+            changeState(State.NONE);
         switch (currentState) {
             case LEFT:
             case RIGHT: {
@@ -185,6 +187,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
     }
 
     private void invokeState() {
+        if (currentState == null) return;
         switch (currentState) {
             case LEFT:
                 KeyBindUtils.holdThese(
@@ -203,6 +206,16 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                 );
                 break;
             case SWITCHING_LANE:
+                if (changeLaneDirection == null) {
+                    if (FarmHelper.gameState.frontWalkable) {
+                        changeLaneDirection = ChangeLaneDirection.FORWARD;
+                    } else if (FarmHelper.gameState.backWalkable) {
+                        changeLaneDirection = ChangeLaneDirection.BACKWARD;
+                    } else {
+                        unstuck();
+                        return;
+                    }
+                }
                 switch (changeLaneDirection) {
                     case FORWARD:
                         KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, FarmHelper.config.holdLeftClickWhenChangingRow ? mc.gameSettings.keyBindAttack : null);

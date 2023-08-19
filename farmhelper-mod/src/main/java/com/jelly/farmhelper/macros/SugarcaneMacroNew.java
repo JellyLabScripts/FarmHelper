@@ -96,6 +96,8 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
     }
 
     private void updateState() {
+        if (currentState == null)
+            changeState(State.NONE);
         switch (currentState) {
             case S: {
                 if (hasWall(0, -1, yaw - 45f) &&
@@ -140,6 +142,7 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
     }
 
     private void invokeState() {
+        if (currentState == null) return;
         switch (currentState) {
             case NONE:
                 break;

@@ -7,6 +7,7 @@ import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
+import com.jelly.farmhelper.world.JacobsContestHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
@@ -313,7 +314,8 @@ public class FailsafeNew {
                 if (!cooldown.passed() || cooldown.isScheduled()) return;
                 if (Autosell.isEnabled()) return;
                 if (MacroHandler.startingUp) return;
-                if (!Scheduler.isFarming()) return;
+                if (!Scheduler.isFarming() && !JacobsContestHandler.jacobsContestTriggered) return;
+                if (!FarmHelper.config.pauseSchedulerDuringJacobsContest && JacobsContestHandler.jacobsContestTriggered) return;
                 if (AutoCookie.isEnabled()) return;
                 if (AutoPot.isEnabled()) return;
                 if (BanwaveChecker.banwaveOn && FarmHelper.config.enableLeaveOnBanwave) return;
@@ -524,7 +526,7 @@ public class FailsafeNew {
 //        }
 
         // Rotation check
-        if (!config.newRotationCheck) return;
+        if (config.oldRotationCheck) return;
         if (event.packet instanceof S08PacketPlayerPosLook) {
             if (config.pingServer && (Pinger.dontRotationCheck.isScheduled() && !Pinger.dontRotationCheck.passed() || Pinger.isOffline)) {
                 LogUtils.debugFullLog("Got rotation packet while having bad connection to the server, ignoring");

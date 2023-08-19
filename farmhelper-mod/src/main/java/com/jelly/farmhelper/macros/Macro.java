@@ -155,7 +155,7 @@ public abstract class Macro<T> {
         }
         if (closest == null) return false;
         BlockPos currentPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
-        return Math.sqrt(currentPos.distanceSqToCenter(closest.getX(), closest.getY(), closest.getZ())) < 1.5;
+        return Math.sqrt(currentPos.distanceSqToCenter(closest.getX(), closest.getY(), closest.getZ())) < FarmHelper.config.rewarpMaxDistance;
     }
 
     public boolean isSpawnLocationSet() {
@@ -214,8 +214,9 @@ public abstract class Macro<T> {
         }
     }
 
+    // Old rotation check
     public void checkForRotationFailsafe() {
-        if (FarmHelper.config.newRotationCheck) return;
+        if (!FarmHelper.config.oldRotationCheck) return;
         if (!rotatedAfterStart) return;
         // Check for rotation check failsafe
         boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FarmHelper.config.rotationCheckSensitivity

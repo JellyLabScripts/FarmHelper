@@ -935,14 +935,21 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public int autoAltTabMode = 0;
 
 	@Switch(
-			name = "New rotation check method", category = EXPERIMENTAL, subcategory = "Experimental"
+			name = "Old rotation check method (depreciated)", category = EXPERIMENTAL, subcategory = "Experimental"
 	)
-	public boolean newRotationCheck = false;
+	public boolean oldRotationCheck = false;
 
 	@Switch(
 			name = "Ping server to decrease potential false rotation checks", category = EXPERIMENTAL, subcategory = "Experimental"
 	)
-	public boolean pingServer = false;
+	public boolean pingServer = true;
+
+	@Slider(
+			name = "Maximum rewarp trigger distance", category = EXPERIMENTAL, subcategory = "Experimental",
+			description = "The maximum distance from the center of the rewarp point to the player that will trigger a rewarp",
+			min = 0.2f, max = 1.75f
+	)
+	public float rewarpMaxDistance = 1;
 
 	// END EXPERIMENTAL
 

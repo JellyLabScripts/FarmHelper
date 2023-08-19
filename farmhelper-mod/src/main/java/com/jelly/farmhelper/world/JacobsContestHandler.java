@@ -17,7 +17,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 public class JacobsContestHandler {
-    private boolean jacobsContestTriggered = false;
+    public static boolean jacobsContestTriggered = false;
     private static final Clock jacobsContestDelay = new Clock();
 
     @SubscribeEvent
@@ -63,6 +63,8 @@ public class JacobsContestHandler {
             DebugHUD.jacobsContestTriggered = false;
             jacobsContestDelay.reset();
             jacobsContestDelay.schedule(10000L);
+            if (!Scheduler.isFarming())
+                MacroHandler.disableCurrentMacro(true);
             if (FarmHelper.config.enablePetSwapper) {
                 if (PetSwapper.isEnabled()) return;
                 if (PetSwapper.currentState != PetSwapper.State.NONE) return;
