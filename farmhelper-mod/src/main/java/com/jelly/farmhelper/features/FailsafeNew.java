@@ -792,7 +792,7 @@ public class FailsafeNew {
             LogUtils.scriptLog("Stop the macro if you see this!");
             Thread.sleep(3000);
 
-            if (config.leaveAfterFailSafe && said) {
+            if (!config.leaveAfterFailSafe) {
                 mc.thePlayer.sendChatMessage("/hub");
                 Thread.sleep(3000);
                 KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
@@ -930,7 +930,7 @@ public class FailsafeNew {
             // stage 3: come hub or quit game
             stopMovement();
             Thread.sleep((long) (500 + Math.random() * 3_000));
-            if (config.leaveAfterFailSafe && said) {
+            if (!config.leaveAfterFailSafe) {
                 mc.thePlayer.sendChatMessage("/hub");
                 Thread.sleep(5000);
                 if (LocationUtils.currentIsland == LocationUtils.Island.THE_HUB) {
