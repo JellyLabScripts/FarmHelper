@@ -967,7 +967,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("VerticalMacroType", "Macro Type", () -> (!this.macroType && !MacroHandler.isMacroing));
 		this.addDependency("SShapeMacroType", "Macro Type", () -> (this.macroType && !MacroHandler.isMacroing));
 
-		this.addDependency("rotateAfterDrop", "Vertical Macro Type", () -> (this.macroType && !MacroHandler.isMacroing));
 		this.addDependency("ladderDesign", "S Shape Macro Type", () -> (!this.macroType && !MacroHandler.isMacroing));
 
 		this.addDependency("holdLeftClickWhenChangingRow", "macroType");
