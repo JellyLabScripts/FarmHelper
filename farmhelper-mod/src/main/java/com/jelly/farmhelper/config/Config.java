@@ -584,6 +584,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = 1, max = 10
 	)
 	public float rotationCheckSensitivity = 2;
+	@Slider(
+		name = "Teleport Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
+		description = "The minimum distance between the previous and teleported position to trigger failsafe",
+		min = 4, max = 20
+	)
+	public float teleportCheckSensitivity = 6;
 	@Switch(
 			name = "Enable Failsafe Trigger Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound", size = OptionSize.DUAL,
 			description = "Makes a sound when a failsafe has been triggered"
