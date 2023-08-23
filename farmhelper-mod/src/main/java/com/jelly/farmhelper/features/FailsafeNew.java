@@ -14,6 +14,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Tuple;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -48,6 +49,7 @@ public class FailsafeNew {
         DIRT("You may have been dirt checked"),
         BEDROCK("You have been bedrock checked"),
         ROTATION("You may have been rotation checked or you may have moved your mouse"),
+        TELEPORTATION("You may have been teleported by a staff member"),
         DESYNC("You are desynced. You might be lagging or there might be a staff spectating. If this is happening frequently, disable check desync"),
         ITEM_CHANGE("Your item has been probably changed."),
         TEST("Its just a test failsafe. (Its Safe to Ignore)");
@@ -542,6 +544,14 @@ public class FailsafeNew {
             if (Math.abs(yaw - previousYaw) > threshold || Math.abs(pitch - previousPitch) > threshold) {
                 emergencyFailsafe(FailsafeType.ROTATION);
             }
+
+            // Teleportation check
+            Vec3 playerPos = mc.thePlayer.getPositionVector();
+            Vec3 teleportPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
+            if ((float) playerPos.distanceTo(teleportPos) >= config.teleportCheckSensitivity) {
+                LogUtils.debugLog("Teleportation check distance: " + playerPos.distanceTo(teleportPos));
+                emergencyFailsafe(FailsafeType.TELEPORTATION);
+            }
         }
     }
 
@@ -605,6 +615,7 @@ public class FailsafeNew {
                     emergencyThreadExecutor.submit(cagedActing);
                     return;
                 case DIRT:
+                case TELEPORTATION:
                 case ROTATION:
                     emergencyThreadExecutor.submit(rotationMovement);
                     return;

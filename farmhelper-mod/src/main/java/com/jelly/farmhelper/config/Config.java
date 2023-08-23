@@ -584,6 +584,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = 1, max = 10
 	)
 	public float rotationCheckSensitivity = 2;
+	@Slider(
+		name = "Teleport Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
+		description = "The minimum distance between the previous and teleported position to trigger failsafe",
+		min = 0.5f, max = 20f
+	)
+	public float teleportCheckSensitivity = 2;
 	@Switch(
 			name = "Enable Failsafe Trigger Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound", size = OptionSize.DUAL,
 			description = "Makes a sound when a failsafe has been triggered"
@@ -949,7 +955,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			description = "The maximum distance from the center of the rewarp point to the player that will trigger a rewarp",
 			min = 0.2f, max = 1.75f
 	)
-	public float rewarpMaxDistance = 1;
+	public float rewarpMaxDistance = 0.75f;
 
 	// END EXPERIMENTAL
 
@@ -961,7 +967,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("VerticalMacroType", "Macro Type", () -> (!this.macroType && !MacroHandler.isMacroing));
 		this.addDependency("SShapeMacroType", "Macro Type", () -> (this.macroType && !MacroHandler.isMacroing));
 
-		this.addDependency("rotateAfterDrop", "Vertical Macro Type", () -> (this.macroType && !MacroHandler.isMacroing));
 		this.addDependency("ladderDesign", "S Shape Macro Type", () -> (!this.macroType && !MacroHandler.isMacroing));
 
 		this.addDependency("holdLeftClickWhenChangingRow", "macroType");

@@ -15,6 +15,7 @@ import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 public abstract class Macro<T> {
@@ -154,8 +155,9 @@ public abstract class Macro<T> {
             }
         }
         if (closest == null) return false;
-        BlockPos currentPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
-        return Math.sqrt(currentPos.distanceSqToCenter(closest.getX(), closest.getY(), closest.getZ())) < FarmHelper.config.rewarpMaxDistance;
+        Vec3 playerPos = mc.thePlayer.getPositionVector();
+        Vec3 rewarpPos = new Vec3(closest.getX() + 0.5, closest.getY() + 0.5, closest.getZ() + 0.5);
+        return playerPos.distanceTo(rewarpPos) <= FarmHelper.config.rewarpMaxDistance;
     }
 
     public boolean isSpawnLocationSet() {
