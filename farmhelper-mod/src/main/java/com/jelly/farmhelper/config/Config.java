@@ -587,9 +587,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	@Slider(
 		name = "Teleport Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
 		description = "The minimum distance between the previous and teleported position to trigger failsafe",
-		min = 4, max = 20
+		min = 0.5f, max = 20f
 	)
-	public float teleportCheckSensitivity = 6;
+	public float teleportCheckSensitivity = 2;
 	@Switch(
 			name = "Enable Failsafe Trigger Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound", size = OptionSize.DUAL,
 			description = "Makes a sound when a failsafe has been triggered"
@@ -955,7 +955,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			description = "The maximum distance from the center of the rewarp point to the player that will trigger a rewarp",
 			min = 0.2f, max = 1.75f
 	)
-	public float rewarpMaxDistance = 1;
+	public float rewarpMaxDistance = 0.5;
 
 	// END EXPERIMENTAL
 
