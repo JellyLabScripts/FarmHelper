@@ -955,7 +955,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			description = "The maximum distance from the center of the rewarp point to the player that will trigger a rewarp",
 			min = 0.2f, max = 1.75f
 	)
-	public float rewarpMaxDistance = 0.5;
+	public float rewarpMaxDistance = 0.75f;
 
 	// END EXPERIMENTAL
 
