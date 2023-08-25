@@ -74,7 +74,7 @@ jobs:
                       \"description\": \"FarmHelper has been updated with the following changes:\",
                       \"color\": 3447003,
                       \"thumbnail\": {
-                        \"url\": \"https://cdn.discordapp.com/icons/997464259170680923/b8bec7454dd1d7a9ce5e1bb8f6106173.png\"
+                        \"url\": \"https://cdn.discordapp.com/attachments/861700235890130986/1144673641951395982/icon.png\"
                       },
                       \"fields\": [
                         {
@@ -83,7 +83,7 @@ jobs:
                         },
                         {
                           \"name\": \"Commit ID\",
-                          \"value\": \"[View Commit (${SHORT_COMMIT_SHA})](${COMMIT_URL})\\n_Click the hyperlink to learn more about the changes._\"
+                          \"value\": \"[View Commit (${SHORT_COMMIT_SHA})](${COMMIT_URL})\\n_To learn more about the changes, click on the link!_\"
                         }
                       ],
                       \"footer\": {
