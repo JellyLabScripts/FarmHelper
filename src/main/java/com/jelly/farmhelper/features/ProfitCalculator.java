@@ -396,7 +396,6 @@ public class ProfitCalculator {
                 double buyPrice = json3.get("buyPrice").getAsDouble();
                 if (bazaarPrices.get(item.localizedName) == null || (buyPrice < bazaarPrices.get(item.localizedName) * 3.0)) {
                     bazaarPrices.put(item.localizedName, buyPrice);
-                    LogUtils.debugLog("Price for item - " + item.localizedName + buyPrice);
                 } else {
                     LogUtils.debugLog("Bazaar price for " + item.localizedName + " has been market manipulated. Skipping...");
                 }
@@ -409,7 +408,6 @@ public class ProfitCalculator {
                 double buyPrice = json3.get("buyPrice").getAsDouble();
                 if (bazaarPrices.get(bazaarItem.localizedName) == null || (buyPrice < bazaarPrices.get(bazaarItem.localizedName) * 3.0)) {
                     bazaarPrices.put(bazaarItem.localizedName, buyPrice);
-                    LogUtils.debugLog("Price for item - " + bazaarItem.localizedName + buyPrice);
                 } else {
                     LogUtils.debugLog("Bazaar price for " + bazaarItem.localizedName + " has been market manipulated. Skipping...");
                 }
