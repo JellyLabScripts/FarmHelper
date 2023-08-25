@@ -98,14 +98,15 @@ tasks {
             expand(mapOf("version" to version))
         }
     }
-    // would have put this into the root build script but it complained that it couldn't find the task
-    build {
+
+    build.configure {
+        dependsOn("removeShadowArtifact")
+    }
+    register("removeShadowArtifact", Delete::class) {
         doLast {
-            copy {
-                from("${project.rootProject.rootDir}/${project.name}/build/libs/${project.name}-${project.version}-remap.jar")
-                into("${project.rootProject.rootDir}/build")
-                rename("${project.name}-${project.version}-remap.jar", "${project.name}-${project.version}.jar")
-            }
+            project.file("build/libs/${project.name}-${project.version}.jar").delete()
+            project.file("build/libs/${project.name}-${project.version}-all.jar").delete()
+            project.file("build/libs/${project.name}-${project.version}-remap.jar").renameTo(file("build/libs/${project.name}-${project.version}.jar"))
         }
     }
 }
