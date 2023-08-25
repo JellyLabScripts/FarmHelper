@@ -1,7 +1,7 @@
 package com.jelly.farmhelper.network;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 
 public class APIHelper {
-    public static JSONObject readJsonFromUrl(String urlToRead, String requestKey, String requestValue) throws Exception {
+    public static JsonObject readJsonFromUrl(String urlToRead, String requestKey, String requestValue) throws Exception {
         try {
             StringBuilder result = new StringBuilder();
             URL url = new URL(urlToRead);
@@ -28,8 +28,7 @@ public class APIHelper {
                 }
             }
 
-            JSONParser parser = new org.json.simple.parser.JSONParser();
-            return (JSONObject) parser.parse(result.toString());
+            return (JsonObject) JsonParser.parseString(result.toString());
         } catch (Exception e) {
 //            StringBuilder result = new StringBuilder();
 //            URL url = new URL(urlToRead);
@@ -68,8 +67,8 @@ public class APIHelper {
 //                }
 //            }
 //
-//            JSONParser parser = new org.json.simple.parser.JSONParser();
-//            return (JSONObject) parser.parse(result.toString());
+//            JsonParser parser = new org.json.simple.parser.JsonParser();
+//            return (JsonObject) parser.parse(result.toString());
             return null;
         }
     }

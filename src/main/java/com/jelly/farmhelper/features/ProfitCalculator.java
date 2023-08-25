@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.features;
 
 
+import com.google.gson.JsonObject;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config.SMacroEnum;
 import com.jelly.farmhelper.config.Config.VerticalMacroEnum;
@@ -22,7 +23,6 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.json.simple.JSONObject;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -384,25 +384,37 @@ public class ProfitCalculator {
 
     public static void fetchBazaarPrices() {
         try {
-            JSONObject json = APIHelper.readJsonFromUrl("https://api.hypixel.net/skyblock/bazaar","User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
-            JSONObject json1 = (JSONObject) json.get("products");
+            String url = "https://api.hypixel.net/skyblock/bazaar";
+            String userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36";
+            JsonObject json = APIHelper.readJsonFromUrl(url, "User-Agent", userAgent).getAsJsonObject();
+            JsonObject json1 = json.getAsJsonObject("products");
 
             for (BazaarItem item : cropsToCount) {
-                JSONObject json2 = (JSONObject) json1.get(item.bazaarId);
-                JSONObject json3 = (JSONObject) json2.get("quick_status");
-                if ((bazaarPrices.get(item.localizedName) == null) || ((Double) json3.get("buyPrice") < bazaarPrices.get(item.localizedName) * 3.0f))
-                    bazaarPrices.put(item.localizedName, (Double) (json3).get("buyPrice"));
-                else
+                JsonObject json2 = json1.getAsJsonObject(item.bazaarId);
+                JsonObject json3 = json2.getAsJsonObject("quick_status");
+
+                double buyPrice = json3.get("buyPrice").getAsDouble();
+                if (bazaarPrices.get(item.localizedName) == null || (buyPrice < bazaarPrices.get(item.localizedName) * 3.0)) {
+                    bazaarPrices.put(item.localizedName, buyPrice);
+                    LogUtils.debugLog("Price for item - " + item.localizedName + buyPrice);
+                } else {
                     LogUtils.debugLog("Bazaar price for " + item.localizedName + " has been market manipulated. Skipping...");
+                }
             }
+
             for (BazaarItem bazaarItem : rngDropToCount) {
-                JSONObject json2 = (JSONObject) json1.get(bazaarItem.bazaarId);
-                JSONObject json3 = (JSONObject) json2.get("quick_status");
-                if ((bazaarPrices.get(bazaarItem.localizedName) == null) || ((Double) json3.get("buyPrice") < bazaarPrices.get(bazaarItem.localizedName) * 3.0f))
-                    bazaarPrices.put(bazaarItem.localizedName, (Double) (json3).get("buyPrice"));
-                else
+                JsonObject json2 = json1.getAsJsonObject(bazaarItem.bazaarId);
+                JsonObject json3 = json2.getAsJsonObject("quick_status");
+
+                double buyPrice = json3.get("buyPrice").getAsDouble();
+                if (bazaarPrices.get(bazaarItem.localizedName) == null || (buyPrice < bazaarPrices.get(bazaarItem.localizedName) * 3.0)) {
+                    bazaarPrices.put(bazaarItem.localizedName, buyPrice);
+                    LogUtils.debugLog("Price for item - " + bazaarItem.localizedName + buyPrice);
+                } else {
                     LogUtils.debugLog("Bazaar price for " + bazaarItem.localizedName + " has been market manipulated. Skipping...");
+                }
             }
+
             LogUtils.debugLog("Bazaar prices updated");
             cantConnectToApi = false;
 

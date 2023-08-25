@@ -12,8 +12,8 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.util.LinkedList;
 
@@ -35,8 +35,7 @@ public class BanwaveChecker {
                 try {
                     String s = APIHelper.readJsonFromUrl("https://api.plancke.io/hypixel/v1/punishmentStats", "User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36")
                             .get("record").toString();
-                    JSONParser parser = new JSONParser();
-                    JSONObject record = (JSONObject) parser.parse(s);
+                    JsonObject record = (JsonObject) JsonParser.parseString(s);
 
                     staffBanLast15Mins.addLast((Integer.parseInt(record.get("staff_total").toString())));
                     if(staffBanLast15Mins.size() == 17) staffBanLast15Mins.removeFirst();

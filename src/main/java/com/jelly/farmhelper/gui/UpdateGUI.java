@@ -6,7 +6,7 @@ import com.jelly.farmhelper.utils.MarkdownFormatter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import org.apache.commons.io.FileUtils;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonObject;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
@@ -275,7 +275,7 @@ public class UpdateGUI extends GuiScreen {
 
     private static String getReleaseMessage() {
         try {
-            JSONObject j = APIHelper.readJsonFromUrl("https://api.github.com/repos/JellyLabScripts/FarmHelper/releases/latest",
+            JsonObject j = APIHelper.readJsonFromUrl("https://api.github.com/repos/JellyLabScripts/FarmHelper/releases/latest",
                             "User-Agent",
                             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
             return "\n" + j.get("body").toString() + " \n \n"; // fix for top and bottom padding

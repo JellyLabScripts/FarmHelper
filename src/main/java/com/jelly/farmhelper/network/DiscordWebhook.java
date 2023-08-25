@@ -47,8 +47,8 @@ public class DiscordWebhook {
         this.tts = tts;
     }
 
-    public static JSONObject toJson(EmbedObject embed) {
-        JSONObject jsonEmbed = new JSONObject();
+    public static JsonObject toJson(EmbedObject embed) {
+        JsonObject jsonEmbed = new JsonObject();
         jsonEmbed.put("title", embed.getTitle());
         jsonEmbed.put("description", embed.getDescription());
         jsonEmbed.put("url", embed.getUrl());
@@ -69,7 +69,7 @@ public class DiscordWebhook {
         List<EmbedObject.Field> fields = embed.getFields();
 
         if (footer != null) {
-            JSONObject jsonFooter = new JSONObject();
+            JsonObject jsonFooter = new JsonObject();
 
             jsonFooter.put("text", footer.getText());
             jsonFooter.put("icon_url", footer.getIconUrl());
@@ -77,21 +77,21 @@ public class DiscordWebhook {
         }
 
         if (image != null) {
-            JSONObject jsonImage = new JSONObject();
+            JsonObject jsonImage = new JsonObject();
 
             jsonImage.put("url", image.getUrl());
             jsonEmbed.put("image", jsonImage);
         }
 
         if (thumbnail != null) {
-            JSONObject jsonThumbnail = new JSONObject();
+            JsonObject jsonThumbnail = new JsonObject();
 
             jsonThumbnail.put("url", thumbnail.getUrl());
             jsonEmbed.put("thumbnail", jsonThumbnail);
         }
 
         if (author != null) {
-            JSONObject jsonAuthor = new JSONObject();
+            JsonObject jsonAuthor = new JsonObject();
 
             jsonAuthor.put("name", author.getName());
             jsonAuthor.put("url", author.getUrl());
@@ -99,9 +99,9 @@ public class DiscordWebhook {
             jsonEmbed.put("author", jsonAuthor);
         }
 
-        List<JSONObject> jsonFields = new ArrayList<>();
+        List<JsonObject> jsonFields = new ArrayList<>();
         for (EmbedObject.Field field : fields) {
-            JSONObject jsonField = new JSONObject();
+            JsonObject jsonField = new JsonObject();
 
             jsonField.put("name", field.getName());
             jsonField.put("value", field.getValue());
@@ -124,7 +124,7 @@ public class DiscordWebhook {
             throw new IllegalArgumentException("Set content or add at least one EmbedObject");
         }
 
-        JSONObject json = new JSONObject();
+        JsonObject json = new JsonObject();
 
         json.put("content", this.content);
         json.put("username", this.username);
@@ -132,10 +132,10 @@ public class DiscordWebhook {
         json.put("tts", this.tts);
 
         if (!this.embeds.isEmpty()) {
-            List<JSONObject> embedObjects = new ArrayList<>();
+            List<JsonObject> embedObjects = new ArrayList<>();
 
             for (EmbedObject embed : this.embeds) {
-                JSONObject jsonEmbed = new JSONObject();
+                JsonObject jsonEmbed = new JsonObject();
 
                 jsonEmbed.put("title", embed.getTitle());
                 jsonEmbed.put("description", embed.getDescription());
@@ -157,7 +157,7 @@ public class DiscordWebhook {
                 List<EmbedObject.Field> fields = embed.getFields();
 
                 if (footer != null) {
-                    JSONObject jsonFooter = new JSONObject();
+                    JsonObject jsonFooter = new JsonObject();
 
                     jsonFooter.put("text", footer.getText());
                     jsonFooter.put("icon_url", footer.getIconUrl());
@@ -165,21 +165,21 @@ public class DiscordWebhook {
                 }
 
                 if (image != null) {
-                    JSONObject jsonImage = new JSONObject();
+                    JsonObject jsonImage = new JsonObject();
 
                     jsonImage.put("url", image.getUrl());
                     jsonEmbed.put("image", jsonImage);
                 }
 
                 if (thumbnail != null) {
-                    JSONObject jsonThumbnail = new JSONObject();
+                    JsonObject jsonThumbnail = new JsonObject();
 
                     jsonThumbnail.put("url", thumbnail.getUrl());
                     jsonEmbed.put("thumbnail", jsonThumbnail);
                 }
 
                 if (author != null) {
-                    JSONObject jsonAuthor = new JSONObject();
+                    JsonObject jsonAuthor = new JsonObject();
 
                     jsonAuthor.put("name", author.getName());
                     jsonAuthor.put("url", author.getUrl());
@@ -187,9 +187,9 @@ public class DiscordWebhook {
                     jsonEmbed.put("author", jsonAuthor);
                 }
 
-                List<JSONObject> jsonFields = new ArrayList<>();
+                List<JsonObject> jsonFields = new ArrayList<>();
                 for (EmbedObject.Field field : fields) {
-                    JSONObject jsonField = new JSONObject();
+                    JsonObject jsonField = new JsonObject();
 
                     jsonField.put("name", field.getName());
                     jsonField.put("value", field.getValue());
@@ -407,7 +407,7 @@ public class DiscordWebhook {
         }
     }
 
-    static class JSONObject {
+    static class JsonObject {
 
         private final HashMap<String, Object> map = new HashMap<>();
 
@@ -434,7 +434,7 @@ public class DiscordWebhook {
                     builder.append(Integer.valueOf(String.valueOf(val)));
                 } else if (val instanceof Boolean) {
                     builder.append(val);
-                } else if (val instanceof JSONObject) {
+                } else if (val instanceof JsonObject) {
                     builder.append(val);
                 } else if (val.getClass().isArray()) {
                     builder.append("[");

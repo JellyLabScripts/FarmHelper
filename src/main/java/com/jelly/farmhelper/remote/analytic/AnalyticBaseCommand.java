@@ -8,7 +8,7 @@ import com.jelly.farmhelper.remote.RemoteControlHandler;
 import com.jelly.farmhelper.utils.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonObject;
 
 abstract public class AnalyticBaseCommand {
     private static Minecraft mc = Minecraft.getMinecraft();
@@ -33,7 +33,7 @@ abstract public class AnalyticBaseCommand {
         RemoteControlHandler.analytic.send(content.toString());
     }
 
-    private static JsonObject sanitizeConfig(JSONObject obj) {
+    private static JsonObject sanitizeConfig(JsonObject obj) {
         // removes any sensitive data
 
         // remotecontrolconfig
