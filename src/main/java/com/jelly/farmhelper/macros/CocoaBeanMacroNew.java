@@ -3,10 +3,12 @@ package com.jelly.farmhelper.macros;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.features.FailsafeNew;
+import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDoor;
 import net.minecraft.block.BlockTrapDoor;
+import net.minecraft.init.Blocks;
 
 import static com.jelly.farmhelper.FarmHelper.gameState;
 import static com.jelly.farmhelper.utils.BlockUtils.*;
@@ -19,11 +21,6 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
         SWITCHING_SIDE,
         SWITCHING_LANE,
         NONE
-    }
-
-    private enum ChangeLaneDirection {
-        RIGHT,
-        LEFT
     }
 
     @Override
@@ -92,13 +89,11 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
             return;
         }
 
-//        if (hasLineChanged() && currentState == State.SWITCHING_SIDE) {
-//            changeState(State.FORWARD);
-//            return;
-//        }
+        DebugHUD.hasLineChanged = hasLineChanged();
+        DebugHUD.isHuggingAWall = isHuggingAWall();
 
         // Update or invoke state, based on if player is moving or not
-        if (FarmHelper.gameState.canChangeDirection()) {
+        if (FarmHelper.gameState.canChangeDirection() || hasLineChanged()) {
             KeyBindUtils.stopMovement(FarmHelper.config.holdLeftClickWhenChangingRow);
             FarmHelper.gameState.scheduleNotMoving();
             updateState();
@@ -122,7 +117,7 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
                     changeState(State.SWITCHING_SIDE);
                     return;
                 } else {
-                    LogUtils.debugLog("Can't go left or right!");
+                    LogUtils.debugLog("Can't go forward or backward!");
                     if (FarmHelper.gameState.backWalkable) {
                         changeState(State.BACKWARD);
                     } else if (FarmHelper.gameState.frontWalkable) {
@@ -139,7 +134,7 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
                 }
                 break;
             case SWITCHING_LANE: {
-                if (shouldPushForward()) {
+                if (shouldPushForward() || hasLineChanged()) {
                     changeState(State.FORWARD);
                     return;
                 }
@@ -171,7 +166,8 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
             case FORWARD:
                 KeyBindUtils.holdThese(
                         mc.gameSettings.keyBindForward,
-                        mc.gameSettings.keyBindAttack
+                        mc.gameSettings.keyBindAttack,
+                        ((!isHuggingAWall() || BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air)) && BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.air)) ? mc.gameSettings.keyBindLeft : null
                 );
                 break;
             case SWITCHING_SIDE:
@@ -228,6 +224,29 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
 //                LogUtils.debugFullLog("West");
                 return true;
             } else if (yaw == 0f && decimalPartX < 0.512) { // South: X < 512
+//                LogUtils.debugFullLog("South");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isHuggingAWall() {
+        if (BlockUtils.getRelativeBlock(-1, 0, 0).getMaterial().isSolid() && !BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air)) {
+            double decimalPartX = Math.abs(mc.thePlayer.getPositionVector().xCoord) % 1;
+            double decimalPartZ = Math.abs(mc.thePlayer.getPositionVector().zCoord) % 1;
+            float yaw = AngleUtils.getClosest(mc.thePlayer.rotationYaw);
+            yaw = (yaw % 360 + 360) % 360;
+            if (yaw == 180f && decimalPartX < 0.5) { // North: X > 488
+//                LogUtils.debugFullLog("North");
+                return true;
+            } else if (yaw == 270f && decimalPartZ < 0.5) { // East: Z > 488
+//                LogUtils.debugFullLog("East");
+                return true;
+            } else if (yaw == 90f && decimalPartZ > 0.5) { // West: Z < 512
+//                LogUtils.debugFullLog("West");
+                return true;
+            } else if (yaw == 0f && decimalPartX > 0.5) { // South: X < 512
 //                LogUtils.debugFullLog("South");
                 return true;
             }
