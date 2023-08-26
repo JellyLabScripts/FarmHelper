@@ -1,26 +1,38 @@
 name: Build Gradle project
+
 on:
   push:
   pull_request:
+
 jobs:
   build-gradle-project:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/setup-java@v3
+      # Step 1: Set up Java environment using Zulu JDK 17
+      - uses: actions/setup-java@v3.12.0
         with:
           distribution: 'zulu'
           java-version: '17'
+
+      # Step 2: Check out the source code of the repository
       - name: Checkout project sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.6.0
+
+      # Step 3: Set up Gradle and build the project
       - name: Setup Gradle and build
-        uses: gradle/gradle-build-action@v2.4.0
+        uses: gradle/gradle-build-action@v2.7.1
         with:
           arguments: build
+
+      # Step 4: Upload built JAR files as artifacts
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v3.1.2
         with:
           name: artifacts
-          path: build/*.jar
+          path: build/libs/*.jar
+
+      # Step 5: Check for required secret variables
       - name: Check for GH_TOKEN and DISCORD_WEBHOOK_URL
         id: check_secrets
         run: |
@@ -31,6 +43,7 @@ jobs:
             echo "::set-output name=result::success"
           fi
 
+      # Step 6: Fetch details of the latest commit using GitHub API
       - name: Fetch latest commit details
         id: latest_commit
         if: steps.check_secrets.outputs.result == 'success'
@@ -44,6 +57,7 @@ jobs:
           echo "::set-output name=commit_url::$COMMIT_URL"
           echo "::set-output name=short_commit_sha::$SHORT_COMMIT_SHA"
 
+      # Step 7: Send an embed message with commit details to Discord
       - name: Send embed message with timestamp and footer
         if: steps.check_secrets.outputs.result == 'success'
         run: |
@@ -60,7 +74,7 @@ jobs:
                       \"description\": \"FarmHelper has been updated with the following changes:\",
                       \"color\": 3447003,
                       \"thumbnail\": {
-                        \"url\": \"https://cdn.discordapp.com/icons/997464259170680923/b8bec7454dd1d7a9ce5e1bb8f6106173.png\"
+                        \"url\": \"https://cdn.discordapp.com/attachments/861700235890130986/1144673641951395982/icon.png\"
                       },
                       \"fields\": [
                         {
@@ -69,7 +83,7 @@ jobs:
                         },
                         {
                           \"name\": \"Commit ID\",
-                          \"value\": \"[View Commit (${SHORT_COMMIT_SHA})](${COMMIT_URL})\\n_Click the hyperlink to learn more about the changes._\"
+                          \"value\": \"[View Commit (${SHORT_COMMIT_SHA})](${COMMIT_URL})\\n_To learn more about the changes, click on the link!_\"
                         }
                       ],
                       \"footer\": {
@@ -80,6 +94,7 @@ jobs:
                 }" \
             ${{ secrets.DISCORD_WEBHOOK_URL }}
 
+      # Step 8: Send built JAR files to Discord webhook
       - name: Send build artifacts to Discord webhook
         if: steps.check_secrets.outputs.result == 'success'
         run: |
