@@ -30,7 +30,7 @@ jobs:
         uses: actions/upload-artifact@v3.1.2
         with:
           name: artifacts
-          path: build/*.jar
+          path: build/libs/*.jar
 
       # Step 5: Check for required secret variables
       - name: Check for GH_TOKEN and DISCORD_WEBHOOK_URL

@@ -10,5 +10,3 @@ pluginManagement {
 }
 
 rootProject.name = "FarmHelper"
-include("farmhelper-bot")
-include("farmhelper-mod")
