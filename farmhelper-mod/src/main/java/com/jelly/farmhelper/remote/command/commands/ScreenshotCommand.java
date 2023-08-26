@@ -1,56 +1,66 @@
 package com.jelly.farmhelper.remote.command.commands;
 
 import com.google.gson.JsonObject;
-import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.command.BaseCommand;
-import com.jelly.farmhelper.remote.command.RemoteCommandContext;
-import com.jelly.farmhelper.remote.event.MessageEvent;
-import com.jelly.farmhelper.utils.PlayerUtils;
-import dev.volix.lib.brigadier.command.Command;
-import dev.volix.lib.brigadier.context.CommandContext;
-import dev.volix.lib.brigadier.parameter.ParameterSet;
+import com.jelly.farmhelper.remote.command.Command;
+import com.jelly.farmhelper.remote.event.WebsocketMessage;
 
-import java.io.IOException;
-
+@Command(label = "screenshot")
 
 public class ScreenshotCommand extends BaseCommand {
 
-    @Command(label = "screenshot")
-    public void screenshot(MessageEvent event, CommandContext<RemoteCommandContext> context, ParameterSet parameter) throws InterruptedException, IOException {
-        JsonObject obj = event.obj;
-        String screenshot = getScreenshot();
-        obj.addProperty("embed", toJson(embed()
-                .setDescription("Sent a screenshot")));
-        obj.addProperty("image", screenshot);
-        send(obj);
+    @Override
+    public void execute(WebsocketMessage message) {
+        String command = message.command;
+        JsonObject args = message.args;
+        try {
+            String subCommand = args.get("subCommand").getAsString();
+            if (subCommand.equalsIgnoreCase("screenshot")) {
+                screenshot(message);
+            } else if (subCommand.equalsIgnoreCase("inventory")) {
+                inventory(message);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            screenshot(message);
+        }
     }
 
-    @Command(label = "inventory", parent = "screenshot")
-    public void inventory(MessageEvent event, CommandContext<RemoteCommandContext> context, ParameterSet parameter) throws InterruptedException, IOException {
-        JsonObject obj = event.obj;
-        boolean wasMacroing = false;
-        if (nullCheck() && !MacroHandler.randomizing) {
-            if (MacroHandler.isMacroing) {
-                wasMacroing = true;
-                MacroHandler.isMacroing = false;
-                MacroHandler.disableCurrentMacro();
-            }
+    public void screenshot(WebsocketMessage event) {
+//        JsonObject obj = event.obj;
+//        String screenshot = getScreenshot();
+//        obj.addProperty("embed", toJson(embed()
+//                .setDescription("Sent a screenshot")));
+//        obj.addProperty("image", screenshot);
+//        send(obj);
+    }
 
-            PlayerUtils.openInventory();
-            String screenshot = getScreenshot();
-            mc.thePlayer.closeScreen();
-            obj.addProperty("embed", toJson(embed()
-                    .setDescription("Sent a screenshot")));
-            obj.addProperty("image", screenshot);
-            if (wasMacroing) {
-                MacroHandler.isMacroing = true;
-                MacroHandler.enableCurrentMacro();
-            }
-        } else {
-            obj.addProperty("embed", toJson(embed()
-                    .setDescription("I'm not in a world, therefore I can't do that"))
-            );
-        }
-        send(obj);
+    public void inventory(WebsocketMessage event) {
+//        JsonObject obj = event.obj;
+//        boolean wasMacroing = false;
+//        if (nullCheck() && !MacroHandler.randomizing) {
+//            if (MacroHandler.isMacroing) {
+//                wasMacroing = true;
+//                MacroHandler.isMacroing = false;
+//                MacroHandler.disableCurrentMacro();
+//            }
+//
+//            PlayerUtils.openInventory();
+//            String screenshot = getScreenshot();
+//            mc.thePlayer.closeScreen();
+//            obj.addProperty("embed", toJson(embed()
+//                    .setDescription("Sent a screenshot")));
+//            obj.addProperty("image", screenshot);
+//            if (wasMacroing) {
+//                MacroHandler.isMacroing = true;
+//                MacroHandler.enableCurrentMacro();
+//            }
+//        } else {
+//            obj.addProperty("embed", toJson(embed()
+//                    .setDescription("I'm not in a world, therefore I can't do that"))
+//            );
+//        }
+//        send(obj);
     }
 }

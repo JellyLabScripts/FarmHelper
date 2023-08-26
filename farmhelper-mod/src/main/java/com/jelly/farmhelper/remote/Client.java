@@ -1,18 +1,14 @@
 package com.jelly.farmhelper.remote;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.remote.event.MessageEvent;
+import com.jelly.farmhelper.remote.command.BaseCommand;
+import com.jelly.farmhelper.remote.event.WebsocketMessage;
 import com.jelly.farmhelper.utils.LogUtils;
-import dev.volix.lib.brigadier.Brigadier;
-import lombok.SneakyThrows;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Optional;
 
 import static com.jelly.farmhelper.utils.StatusUtils.connecting;
 
@@ -23,24 +19,29 @@ public class Client extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
-
+        System.out.println("Connected to websocket");
     }
 
     @Override
-    @SneakyThrows
+//    @SneakyThrows
     public void onMessage(String message) {
+        System.out.println(message);
         if (message.equals("VERSIONERROR")) {
             LogUtils.scriptLog("RemoteControl wont work on this instance as mod/bot versions don't match. Download latest version from discord.");
             FarmHelper.config.enableRemoteControl = false;
             FarmHelper.config.save();
             this.close(-1);
         }
-        MessageEvent ctx = new MessageEvent(this, new Gson().fromJson(message, JsonObject.class));
-        List<String> c = Arrays.asList( ctx.obj.get("metadata").getAsJsonObject().get("args").getAsString().split(" "));
-        if (c.size() == 1) {
-            Brigadier.getInstance().executeCommand(ctx, c.get(0), c.toArray(new String[0]));
-        } else if (c.size() > 1) {
-            Brigadier.getInstance().executeCommand(ctx, c.get(0), c.subList(1, c.size()).toArray(new String[0]));
+        try {
+            WebsocketMessage websocketMessage = FarmHelper.gson.fromJson(message, WebsocketMessage.class);
+            String command = websocketMessage.command;
+            System.out.println("Command: " + command);
+
+            Optional<BaseCommand> commandInstance = RemoteControlHandler.getCommand(command);
+            System.out.println(commandInstance);
+            commandInstance.ifPresent(baseCommand -> baseCommand.execute(websocketMessage));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

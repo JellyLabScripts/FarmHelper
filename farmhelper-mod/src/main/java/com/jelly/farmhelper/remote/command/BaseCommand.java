@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
+import com.jelly.farmhelper.remote.event.WebsocketMessage;
 import com.jelly.farmhelper.utils.Clock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ScreenShotHelper;
@@ -17,9 +18,18 @@ import java.util.Base64;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+@com.jelly.farmhelper.remote.command.Command(label = "base")
 abstract public class BaseCommand {
     public static final Minecraft mc = Minecraft.getMinecraft();
     private static boolean patcherEnabled = false;
+    public final String label;
+    public BaseCommand() {
+        com.jelly.farmhelper.remote.command.Command command = this.getClass().getAnnotation(com.jelly.farmhelper.remote.command.Command.class);
+        this.label = command.label();
+    }
+    public void execute(WebsocketMessage message) {
+
+    }
     public boolean nullCheck() {
         return mc.thePlayer != null && mc.theWorld != null;
     }
@@ -28,7 +38,11 @@ abstract public class BaseCommand {
     }
 
     public static void send(JsonObject content) {
-        RemoteControlHandler.client.send(content.toString());
+        RemoteControlHandler.client.send(FarmHelper.gson.toJson(content));
+    }
+
+    public static void send(WebsocketMessage content) {
+        RemoteControlHandler.client.send(FarmHelper.gson.toJson(content));
     }
 
     public static String toJson(DiscordWebhook.EmbedObject embed) {

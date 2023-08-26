@@ -4,11 +4,9 @@ import com.google.gson.JsonObject;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.AutoReconnect;
 import com.jelly.farmhelper.features.BanwaveChecker;
-import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.remote.RemoteControlHandler;
-import com.jelly.farmhelper.remote.analytic.AnalyticBaseCommand;
 import com.jelly.farmhelper.remote.command.commands.ReconnectCommand;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
@@ -40,7 +38,6 @@ public class MixinGuiDisconnected {
             json.addProperty("duration", duration);
             json.addProperty("reason", reason);
             json.addProperty("username", Minecraft.getMinecraft().getSession().getUsername());
-            json.add("otherData", AnalyticBaseCommand.gatherMacroingData());
             RemoteControlHandler.analytic.send(json.toString());
         }
 

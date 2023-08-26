@@ -2,10 +2,8 @@ package com.jelly.farmhelper.remote;
 
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.remote.analytic.AnalyticBaseCommand;
-import com.jelly.farmhelper.remote.command.Adapter;
 import com.jelly.farmhelper.remote.command.BaseCommand;
-import dev.volix.lib.brigadier.Brigadier;
+import com.jelly.farmhelper.remote.command.Command;
 import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -15,7 +13,9 @@ import org.reflections.Reflections;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.jelly.farmhelper.utils.StatusUtils.connecting;
@@ -25,6 +25,8 @@ public class RemoteControlHandler {
     public static Client client;
     public static Client analytic;
     static Minecraft mc = Minecraft.getMinecraft();
+    public static final ArrayList<BaseCommand> commands = new ArrayList<>();
+
     public RemoteControlHandler() {
         registerCommands();
     }
@@ -47,25 +49,22 @@ public class RemoteControlHandler {
     }
 
     public void registerCommands() {
-        Brigadier.getInstance().setAdapter(new Adapter());
         Set<Class<? extends BaseCommand>> classes = new Reflections("com.jelly.farmhelper.remote.command.commands").getSubTypesOf(BaseCommand.class);
-        Set<Class<? extends AnalyticBaseCommand>> analyticClasses = new Reflections("com.jelly.farmhelper.remote.analytic.commands").getSubTypesOf(AnalyticBaseCommand.class);
 
-        for (Class<?> clazz : analyticClasses) {
+        for (Class<?> clazz : classes) {
             try {
-                Brigadier.getInstance().register(clazz.newInstance()).execute();
+                commands.add((BaseCommand) clazz.newInstance());
+                System.out.println("Registered command " + clazz.getName());
+                System.out.println("Annotation: " + clazz.getAnnotation(Command.class).label());
             } catch (Exception e) {
+                System.out.println("Failed to register command " + clazz.getName());
                 e.printStackTrace();
             }
         }
+    }
 
-        for (Class<?> clazz: classes) {
-            try {
-                Brigadier.getInstance().register(clazz.newInstance()).execute();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+    public static Optional<BaseCommand> getCommand(String command) {
+        return commands.stream().filter(clazz -> clazz.getClass().getAnnotation(Command.class).label().equalsIgnoreCase(command)).findFirst();
     }
 
     @SneakyThrows
