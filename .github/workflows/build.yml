@@ -98,7 +98,7 @@ jobs:
       - name: Send build artifacts to Discord webhook
         if: steps.check_secrets.outputs.result == 'success'
         run: |
-          cd build
+          cd build/libs
           for file in *.jar; do
             curl -X POST -H "Content-Type: multipart/form-data" \
               -F "file=@$file" \
