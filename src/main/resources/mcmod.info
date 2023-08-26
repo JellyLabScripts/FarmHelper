@@ -5,15 +5,15 @@
     "description": "A mod that helps with stonks",
     "version": "${version}",
     "mcversion": "1.8.9",
-    "url": "",
-    "updateUrl": "",
+    "url": "https://github.com/JellyLabScripts/FarmHelper",
+    "updateUrl": "https://github.com/JellyLabScripts/FarmHelper/releases",
     "authorList": [
       "Jelly",
       "Polycrylate",
       "Yonezu"
     ],
     "credits": "",
-    "logoFile": "",
+    "logoFile": "assets/farmhelper/icon/icon.png",
     "screenshots": [],
     "dependencies": []
   }
