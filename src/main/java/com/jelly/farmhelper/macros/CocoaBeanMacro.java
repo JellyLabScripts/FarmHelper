@@ -124,7 +124,7 @@ public class CocoaBeanMacro extends Macro {
             return;
         }
 
-        if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) {
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) {
             LogUtils.debugLog("You are not on the island nor in the garden!");
             updateKeys(false, false, false, false, false);
             enabled = false;
@@ -313,7 +313,7 @@ public class CocoaBeanMacro extends Macro {
             waitForChangeDirection.schedule(waitTime);
             beforeTeleportationPos = mc.thePlayer.getPosition();
         } else if (waitForChangeDirection.passed()) {
-            mc.thePlayer.sendChatMessage(FarmHelper.gameState.wasInGarden ? "/warp garden" : "/is");
+            mc.thePlayer.sendChatMessage("/warp garden");
             isTping = true;
             waitForChangeDirection.reset();
         }

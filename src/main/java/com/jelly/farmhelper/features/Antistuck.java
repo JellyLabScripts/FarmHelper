@@ -60,7 +60,7 @@ public class Antistuck {
         if(event.phase == TickEvent.Phase.END)
             return;
 
-        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled || mc.thePlayer == null || mc.theWorld == null || (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) || mc.currentScreen != null) {
+        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled || mc.thePlayer == null || mc.theWorld == null || LocationUtils.currentIsland != LocationUtils.Island.GARDEN || mc.currentScreen != null) {
             lastX = 10000;
             lastZ = 10000;
             lastY = 10000;

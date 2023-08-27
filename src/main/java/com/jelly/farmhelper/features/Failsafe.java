@@ -45,7 +45,6 @@ public class Failsafe {
     private static final Clock afterEvacuateCooldown = new Clock();
     public static Clock restartAfterFailsafeCooldown = new Clock();
     private static String formattedTime;
-    private static boolean wasInGarden = false;
     private static final String[] FAILSAFE_MESSAGES = new String[]
             {"What", "what?", "what", "what??", "What???", "Wut?", "?", "what???", "yo huh", "yo huh?", "yo?", "bedrock??", "bedrock?",
                     "ehhhhh??", "eh", "yo", "ahmm", "ehh", "LOL what", "Lol", "lol", "lmao", "Lmfao", "lmfao"
@@ -184,14 +183,14 @@ public class Failsafe {
                 } else if (afterEvacuateCooldown.isScheduled() && afterEvacuateCooldown.passed()) {
                     LogUtils.debugLog("After evacuate cooldown passed");
                     LogUtils.webhookLog("Teleporting back to island after evacuate");
-                    mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
+                    mc.thePlayer.sendChatMessage("/warp garden");
                     afterEvacuateCooldown.schedule(6_000);
                     return;
                 }
                 if (cooldown.passed() && jacobWait.isScheduled() && jacobWait.passed() && !AutoCookie.isEnabled() && !AutoPot.isEnabled()) {
                     LogUtils.debugLog("Not at island - teleporting back");
                     LogUtils.webhookLog("Not at island - teleporting back");
-                    mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
+                    mc.thePlayer.sendChatMessage("/warp garden");
                     cooldown.schedule(6_000);
                 }
                 if (emergency && FarmHelper.config.enableRestartAfterFailSafe) {
@@ -201,7 +200,6 @@ public class Failsafe {
                 return;
             case PRIVATE_ISLAND:
             case GARDEN:
-                checkInGarden();
                 if (evacuateCooldown.isScheduled() && evacuateCooldown.getRemainingTime() < 2_500 && MacroHandler.currentMacro.enabled) {
                     MacroHandler.disableCurrentMacro(true);
                 }
@@ -246,7 +244,7 @@ public class Failsafe {
                 }
                 return;
             default:
-                LogUtils.scriptLog("You are outside the garden/island! Disabling the script...", EnumChatFormatting.RED);
+                LogUtils.scriptLog("You are outside the garden! Disabling the script...", EnumChatFormatting.RED);
                 MacroHandler.disableMacro();
                 return;
                 // DEBUG MESSAGES IN CASE SOMETHING IS BROKEN AGAIN
@@ -302,16 +300,6 @@ public class Failsafe {
 //                        LogUtils.debugLog("Condition not met: (!MiscConfig.visitorsMacro || !VisitorsMacro.isEnabled())");
 //                    }
 //                }
-        }
-    }
-
-    public static void checkInGarden(){
-        for (String line : ScoreboardUtils.getScoreboardLines()) {
-            String cleanedLine = ScoreboardUtils.cleanSB(line);
-            if (cleanedLine.contains("Island")) {
-                wasInGarden = false;
-            } else if(cleanedLine.contains("Garden") || cleanedLine.contains("Plot:"))
-                wasInGarden = true;
         }
     }
 
@@ -402,7 +390,7 @@ public class Failsafe {
     public void checkReceivedPacket(ReceivePacketEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (evacuateCooldown.isScheduled() || afterEvacuateCooldown.isScheduled()) return;
-        if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (MacroHandler.currentMacro.isTping) return;
         if (VisitorsMacro.isEnabled()) return;
         if (AutoReconnect.currentState != AutoReconnect.reconnectingState.NONE) return;

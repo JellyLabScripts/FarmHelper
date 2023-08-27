@@ -35,7 +35,7 @@ public class JacobsContestHandler {
                 jacobsContestDelay.reset();
                 jacobsContestDelay.schedule(10000L);
                 if (FarmHelper.config.enablePetSwapper) {
-                    if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
+                    if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
                     if (PetSwapper.isEnabled()) return;
                     if (PetSwapper.currentState != PetSwapper.State.NONE) return;
                     if (FailsafeNew.emergency) return;

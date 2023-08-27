@@ -66,7 +66,6 @@ public class FailsafeNew {
     public static final Clock cooldown = new Clock();
     public static Clock restartAfterFailsafeCooldown = new Clock();
     private static EvacuateState evacuateState = EvacuateState.NONE;
-    private static boolean wasInGarden = false;
 
     private static ExecutorService emergencyThreadExecutor = Executors.newScheduledThreadPool(5);
 
@@ -229,7 +228,7 @@ public class FailsafeNew {
                     if (cooldown.passed()) {
                         LogUtils.debugLog("Not at island - teleporting back from Evacuating");
                         LogUtils.webhookLog("Not at island - teleporting back from Evacuating");
-                        mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
+                        mc.thePlayer.sendChatMessage("/warp garden");
                         cooldown.schedule((long) (5000 + Math.random() * 5000));
                     }
                     return;
@@ -237,7 +236,7 @@ public class FailsafeNew {
                 if (cooldown.isScheduled() && cooldown.passed()) {
                     LogUtils.webhookLog("Not at island - teleporting back from The Hub");
                     LogUtils.debugFullLog("Not at island - teleporting back from The Hub");
-                    mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
+                    mc.thePlayer.sendChatMessage("/warp garden");
                     cooldown.schedule((long) (5000 + Math.random() * 5000));
                     if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
                         restartAfterFailsafeCooldown.schedule(FarmHelper.config.restartAfterFailSafeDelay * 1000L);
@@ -246,7 +245,6 @@ public class FailsafeNew {
             }
             case PRIVATE_ISLAND:
             case GARDEN: {
-                wasInGarden = location == LocationUtils.Island.GARDEN;
                 if (evacuateState == EvacuateState.EVACUATE_FROM_ISLAND) {
                     if (!cooldown.isScheduled()) {
                         if (MacroHandler.currentMacro.enabled) {
@@ -343,7 +341,7 @@ public class FailsafeNew {
     private static ItemStack previousTickItemStack = null;
 
     public boolean changeItemCheck() {
-        if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN)
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN)
             return false;
 
         if (previousTickItemStack == null) {
@@ -440,7 +438,7 @@ public class FailsafeNew {
     private static final ArrayList<BlockPos> dirtPos = new ArrayList<>();
 
     private boolean dirtCheck() {
-        if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN)
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN)
             return false;
 
         if (!dirtToCheck.isEmpty()) {
@@ -511,7 +509,7 @@ public class FailsafeNew {
     public void onReceivePacket(ReceivePacketEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (evacuateState != EvacuateState.NONE) return;
-        if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN)
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN)
             return;
         if (MacroHandler.currentMacro.isTping) return;
         if (VisitorsMacro.isEnabled()) return;
