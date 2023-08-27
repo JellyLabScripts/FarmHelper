@@ -161,7 +161,7 @@ public class UpdateGUI extends GuiScreen {
                     if (displayGUI == 2) {
                         mc.addScheduledTask(() -> {
                             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                                File fileToDelete = new File(mc.mcDataDir + "/mods/farmhelper-mod-v" + VERSION + ".jar");
+                                File fileToDelete = new File(mc.mcDataDir + "/mods/FarmHelper-v" + VERSION + ".jar");
                                 if (fileToDelete.exists()) {
                                     try {
                                         FileUtils.forceDelete(fileToDelete);
