@@ -585,7 +585,7 @@ public class FailsafeNew {
         }
 
         if (FarmHelper.config.enableFailsafeSound) {
-            if (FarmHelper.config.failsafeSoundType)
+            if (!FarmHelper.config.failsafeSoundType)
                 Utils.playMcFailsafeSound();
             else
                 Utils.playFailsafeSound();
