@@ -548,6 +548,7 @@ public class FailsafeNew {
             // Teleportation check
             Vec3 playerPos = mc.thePlayer.getPositionVector();
             Vec3 teleportPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
+            if ((float) playerPos.distanceTo(teleportPos) >= 100) return;
             if ((float) playerPos.distanceTo(teleportPos) >= config.teleportCheckSensitivity) {
                 LogUtils.debugLog("Teleportation check distance: " + playerPos.distanceTo(teleportPos));
                 emergencyFailsafe(FailsafeType.TELEPORTATION);
@@ -695,7 +696,6 @@ public class FailsafeNew {
 
             long rotationTime;
             String messageChosen;
-            boolean said;
 
             // stage 1: look around and move to back (bonus random crouch)
             LogUtils.debugLog("rotationMovement: stage 1");
@@ -776,7 +776,6 @@ public class FailsafeNew {
                 Thread.sleep((long) ((messageChosen.length() * 250) + Math.random() * 500));
             }
             mc.thePlayer.sendChatMessage(messageChosen);
-            said = true;
 
             // stage 3: look around again and jump
             LogUtils.debugLog("rotationMovement: stage 3");
@@ -932,7 +931,7 @@ public class FailsafeNew {
                 }
             }
 
-            // stage 3: come hub or quit game
+            // stage 3: start the macro again
             stopMovement();
             Thread.sleep((long) (12_000 + Math.random() * 5_000));
             if (!config.leaveAfterFailSafe) {
