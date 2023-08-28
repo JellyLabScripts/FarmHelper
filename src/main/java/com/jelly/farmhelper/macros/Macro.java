@@ -230,7 +230,7 @@ public abstract class Macro<T> {
     }
 
     public boolean isStuck() {
-        if (Antistuck.stuck) {
+        if (Antistuck.stuck && !FailsafeNew.emergency) {
             unstuck();
             return true;
         }
