@@ -584,10 +584,10 @@ public class FailsafeNew {
         }
 
         if (FarmHelper.config.enableFailsafeSound) {
-            if (FarmHelper.config.failsafeSoundSelected == 0)
-                Utils.playPingFailsafeSound();
+            if (FarmHelper.config.failsafeSoundType)
+                Utils.playMcFailsafeSound();
             else
-                Utils.playFailsafeSound(FarmHelper.config.failsafeSoundSelected);
+                Utils.playFailsafeSound();
         }
 
         if (config.autoAltTab) {

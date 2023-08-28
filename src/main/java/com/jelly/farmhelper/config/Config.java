@@ -595,29 +595,54 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			description = "Makes a sound when a failsafe has been triggered"
 	)
 	public boolean enableFailsafeSound = true;
-	@Dropdown(
-			name = "Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
-			description = "The sound to play when a failsafe has been triggered",
-			options = {
-					"Ping", // 0
-					"Voice", // 1
-					"Metal Pipe", // 2
-					"AAAAAAAAAA", // 3
-					"Loud Buzz" // 4
-			}
+	@DualOption(
+			name = "Failsafe Sound Type", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
+			description = "The failsafe sound type to play when a failsafe has been triggered",
+			left = "Minecraft",
+			right = "Custom"
 	)
-	public int failsafeSoundSelected = 0;
+	public boolean failsafeSoundType = false;
 	@Button(
 			name = "", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
 			description = "Plays the selected sound",
 			text = "Play"
 	)
 	Runnable _playFailsafeSoundButton = () -> {
-		if (failsafeSoundSelected == 0)
-			Utils.playPingFailsafeSound();
+		if (!failsafeSoundType)
+			Utils.playMcFailsafeSound();
 		else
-			Utils.playFailsafeSound(failsafeSoundSelected);
+			Utils.playFailsafeSound();
 	};
+	@Button(
+			name = "", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
+			description = "Stops playing the failsafe sound",
+			text = "Stop"
+	)
+	Runnable _stopFailsafeSoundButton = () -> {
+		Utils.stopFailsafeSound();
+		Utils.stopMcFailsafeSound();
+	};
+	@Dropdown(
+			name = "Minecraft Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
+			description = "The Minecraft sound to play when a failsafe has been triggered",
+			options = {
+					"Ping", // 0
+					"Anvil" // 1
+			}
+	)
+	public int failsafeMcSoundSelected = 1;
+	@Dropdown(
+			name = "Custom Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
+			description = "The custom sound to play when a failsafe has been triggered",
+			options = {
+					"Custom", // 0
+					"Voice", // 1
+					"Metal Pipe", // 2
+					"AAAAAAAAAA", // 3
+					"Loud Buzz", // 4
+			}
+	)
+	public int failsafeSoundSelected = 1;
 	@Slider(
 			name = "Failsafe Sound Volume (in dB)", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
 			description = "The volume of the failsafe sound",
@@ -981,9 +1006,14 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("petSwapperName", "enablePetSwapper");
 		this.addDependency("petSwapperDelay", "enablePetSwapper");
 
-		this.addDependency("failsafeSoundSelected", "enableFailsafeSound");
+		this.addDependency("failsafeSoundType", "enableFailsafeSound");
+		this.hideIf("_playFailsafeSoundButton", () -> Utils.isFailsafeSoundPlaying() || Utils.pingAlertPlaying);
+		this.hideIf("_stopFailsafeSoundButton", () -> !Utils.isFailsafeSoundPlaying() && !Utils.pingAlertPlaying);
+		this.addDependency("failsafeMcSoundSelected", "Minecraft Sound", () -> !this.failsafeSoundType && this.enableFailsafeSound);
+		this.addDependency("failsafeSoundSelected", "Custom Sound", () -> this.failsafeSoundType && this.enableFailsafeSound);
 		this.addDependency("_playFailsafeSoundButton", "enableFailsafeSound");
 		this.addDependency("failsafeSoundVolume", "enableFailsafeSound");
+		this.addDependency("customFailsafeSoundPath", "enableFailsafeSound");
 
 		this.addDependency("schedulerFarmingTime", "enableScheduler");
 		this.addDependency("schedulerFarmingTimeRandomness", "enableScheduler");

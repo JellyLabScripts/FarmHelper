@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.utils;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.Config;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import dorkbox.notify.Notify;
@@ -14,14 +15,12 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.Display;
 
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.FloatControl;
+import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.net.URI;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -59,8 +58,13 @@ public class Utils{
         numPings = 15;
     }
 
-    public static void playPingFailsafeSound() {
+    public static void playMcFailsafeSound() {
         pingAlertPlaying = true;
+        numPings = 15;
+    }
+
+    public static void stopMcFailsafeSound() {
+        pingAlertPlaying = false;
         numPings = 15;
     }
 
@@ -77,7 +81,14 @@ public class Utils{
         }
 
         if (pingAlertClock.isScheduled() && pingAlertClock.passed()) {
-            mc.theWorld.playSound(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, "random.orb", 10.0F, 1.0F, false);
+            switch (FarmHelper.config.failsafeMcSoundSelected) {
+                case 0:
+                    mc.theWorld.playSound(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, "random.orb", 10.0F, 1.0F, false);
+                    break;
+                case 1:
+                    mc.theWorld.playSound(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, "random.anvil_land", 10.0F, 1.0F, false);
+                    break;
+            }
             pingAlertClock.schedule(100);
             numPings--;
         } else if (!pingAlertClock.isScheduled()) {
@@ -198,12 +209,19 @@ public class Utils{
         return r.nextInt(upperbound);
     }
 
-    public static synchronized void playFailsafeSound(int soundSelected) {
+    private static Clip clip;
+
+    public static synchronized void playFailsafeSound() {
         new Thread(new Runnable() {
             public void run() {
                 try {
                     AudioInputStream inputStream = null;
-                    switch (soundSelected) {
+                    switch (FarmHelper.config.failsafeSoundSelected) {
+                        case 0:
+                            File audioFile = new File(mc.mcDataDir.getAbsolutePath() + "/farmhelper_sound.wav");
+                            if (audioFile.exists() && audioFile.isFile())
+                                inputStream = AudioSystem.getAudioInputStream(audioFile);
+                            break;
                         case 1:
                             inputStream = AudioSystem.getAudioInputStream(Main.class.getResourceAsStream("/assets/farmhelper/sounds/staff_check_voice_notification.wav"));
                             break;
@@ -217,15 +235,31 @@ public class Utils{
                             inputStream = AudioSystem.getAudioInputStream(Main.class.getResourceAsStream("/assets/farmhelper/sounds/loud_buzz.wav"));
                             break;
                     }
-                    Clip clip = AudioSystem.getClip();
+                    clip = AudioSystem.getClip();
                     clip.open(inputStream);
                     FloatControl volume = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
                     volume.setValue(FarmHelper.config.failsafeSoundVolume);
                     clip.start();
+                    clip.addLineListener(event -> {
+                        if (event.getType() == LineEvent.Type.STOP) {
+                            clip.close();
+                        }
+                    });
                 } catch (Exception e) {
                     System.err.println(e.getMessage());
                 }
             }
         }).start();
+    }
+
+    public static boolean isFailsafeSoundPlaying() {
+        return clip != null && clip.isRunning();
+    }
+
+    public static void stopFailsafeSound() {
+        if (clip != null && clip.isRunning()) {
+            clip.stop();
+            clip.close();
+        }
     }
 }
