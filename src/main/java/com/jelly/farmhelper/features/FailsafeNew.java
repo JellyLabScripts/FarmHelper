@@ -548,7 +548,7 @@ public class FailsafeNew {
             // Teleportation check
             Vec3 playerPos = mc.thePlayer.getPositionVector();
             Vec3 teleportPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
-            if ((float) playerPos.distanceTo(teleportPos) >= 100) return;
+            if ((float) playerPos.distanceTo(teleportPos) >= 150) return;
             if ((float) playerPos.distanceTo(teleportPos) >= config.teleportCheckSensitivity) {
                 LogUtils.debugLog("Teleportation check distance: " + playerPos.distanceTo(teleportPos));
                 emergencyFailsafe(FailsafeType.TELEPORTATION);
