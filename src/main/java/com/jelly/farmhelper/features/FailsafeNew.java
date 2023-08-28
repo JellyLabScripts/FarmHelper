@@ -5,6 +5,7 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
+import com.jelly.farmhelper.macros.Macro;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -798,18 +799,14 @@ public class FailsafeNew {
             // final stage: come hub or quit game
             LogUtils.debugLog("rotationMovement: final stage");
             LogUtils.scriptLog("Stop the macro if you see this!");
-            Thread.sleep(3000);
+            Thread.sleep((long) (3_000 + Math.random() * 2_000));
 
             if (!config.leaveAfterFailSafe) {
-                mc.thePlayer.sendChatMessage("/hub");
-                Thread.sleep(3000);
+                emergency = false;
+                MacroHandler.currentMacro.triggerWarpGarden();
+                Thread.sleep((long) (1_000 + Math.random() * 1_000));
                 KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
-                if (LocationUtils.currentIsland == LocationUtils.Island.THE_HUB) {
-                    emergencyThreadExecutor.submit(bazaarChilling);
-                } else {
-                    Thread.sleep(1000 * 60 * 5);
-                    MacroHandler.enableMacro();
-                }
+                MacroHandler.enableMacro();
             } else {
                 mc.theWorld.sendQuittingDisconnectingPacket();
             }
@@ -937,16 +934,13 @@ public class FailsafeNew {
 
             // stage 3: come hub or quit game
             stopMovement();
-            Thread.sleep((long) (500 + Math.random() * 3_000));
+            Thread.sleep((long) (12_000 + Math.random() * 5_000));
             if (!config.leaveAfterFailSafe) {
-                mc.thePlayer.sendChatMessage("/hub");
-                Thread.sleep(5000);
-                if (LocationUtils.currentIsland == LocationUtils.Island.THE_HUB) {
-                    emergencyThreadExecutor.submit(bazaarChilling);
-                } else {
-                    Thread.sleep(1000 * 60 * 5);
-                    MacroHandler.enableMacro();
-                }
+                emergency = false;
+                MacroHandler.currentMacro.triggerWarpGarden();
+                Thread.sleep((long) (1_000 + Math.random() * 1_000));
+                KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
+                MacroHandler.enableMacro();
             } else {
                 mc.theWorld.sendQuittingDisconnectingPacket();
             }
