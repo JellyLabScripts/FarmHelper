@@ -5,7 +5,6 @@ import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Antistuck;
-import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.player.Rotation;
@@ -189,7 +188,7 @@ public abstract class Macro<T> {
         isTping = true;
         if (FarmHelper.gameState.canChangeDirection() && beforeTeleportationPos == null) {
             LogUtils.debugLog("Warping to spawn point");
-            mc.thePlayer.sendChatMessage(FarmHelper.gameState.wasInGarden ? "/warp garden" : "/is");
+            mc.thePlayer.sendChatMessage("/warp garden");
             beforeTeleportationPos = mc.thePlayer.getPosition();
         }
     }
@@ -227,7 +226,6 @@ public abstract class Macro<T> {
         if(!FailsafeNew.emergency && flag && lastTp.passed() && !rotation.rotating) {
             rotation.reset();
             FailsafeNew.emergencyFailsafe(FailsafeNew.FailsafeType.ROTATION);
-            return;
         }
     }
 

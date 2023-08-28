@@ -54,7 +54,7 @@ public class Resync {
             }
         }
         cachedPos.clear();
-        if (desync && (LocationUtils.currentIsland == LocationUtils.Island.PRIVATE_ISLAND || LocationUtils.currentIsland == LocationUtils.Island.GARDEN)) {
+        if (desync && LocationUtils.currentIsland == LocationUtils.Island.GARDEN) {
             FailsafeNew.emergencyFailsafe(FailsafeNew.FailsafeType.DESYNC);
         }
 

@@ -25,7 +25,7 @@ public abstract class MixinInventoryPlayer {
     @Inject(method = "setInventorySlotContents", at = @At("HEAD"))
     public void onInventoryChange(int index, ItemStack stack, CallbackInfo ci) {
         if (!MacroHandler.isMacroing) return;
-        if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (stack != null && stack.getItem() != null) {
             preAddInventory = PlayerUtils.copyInventory(mainInventory).toArray(new ItemStack[0]);
         }
@@ -34,7 +34,7 @@ public abstract class MixinInventoryPlayer {
     @Inject(method = "setInventorySlotContents", at = @At("RETURN"))
     public void onInventoryChangeReturn(int index, ItemStack stack, CallbackInfo ci) {
         if (!MacroHandler.isMacroing) return;
-        if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (stack != null && stack.getItem() != null) {
             postAddInventory = PlayerUtils.copyInventory(mainInventory).toArray(new ItemStack[0]);
             for (int i = 0; i < 36; i++) {

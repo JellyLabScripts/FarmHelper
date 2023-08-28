@@ -5,9 +5,7 @@ import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.AutoReconnect;
-import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.FailsafeNew;
-import com.jelly.farmhelper.macros.CocoaBeanMacroNew;
 import com.jelly.farmhelper.utils.LocationUtils;
 
 import java.awt.*;

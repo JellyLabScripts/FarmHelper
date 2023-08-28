@@ -2,8 +2,10 @@ package com.jelly.farmhelper.features;
 
 import akka.japi.Pair;
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
+import com.jelly.farmhelper.macros.Macro;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -66,7 +68,6 @@ public class FailsafeNew {
     public static final Clock cooldown = new Clock();
     public static Clock restartAfterFailsafeCooldown = new Clock();
     private static EvacuateState evacuateState = EvacuateState.NONE;
-    private static boolean wasInGarden = false;
 
     private static ExecutorService emergencyThreadExecutor = Executors.newScheduledThreadPool(5);
 
@@ -229,7 +230,7 @@ public class FailsafeNew {
                     if (cooldown.passed()) {
                         LogUtils.debugLog("Not at island - teleporting back from Evacuating");
                         LogUtils.webhookLog("Not at island - teleporting back from Evacuating");
-                        mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
+                        mc.thePlayer.sendChatMessage("/warp garden");
                         cooldown.schedule((long) (5000 + Math.random() * 5000));
                     }
                     return;
@@ -237,7 +238,7 @@ public class FailsafeNew {
                 if (cooldown.isScheduled() && cooldown.passed()) {
                     LogUtils.webhookLog("Not at island - teleporting back from The Hub");
                     LogUtils.debugFullLog("Not at island - teleporting back from The Hub");
-                    mc.thePlayer.sendChatMessage(wasInGarden ? "/warp garden" : "/is");
+                    mc.thePlayer.sendChatMessage("/warp garden");
                     cooldown.schedule((long) (5000 + Math.random() * 5000));
                     if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
                         restartAfterFailsafeCooldown.schedule(FarmHelper.config.restartAfterFailSafeDelay * 1000L);
@@ -246,7 +247,6 @@ public class FailsafeNew {
             }
             case PRIVATE_ISLAND:
             case GARDEN: {
-                wasInGarden = location == LocationUtils.Island.GARDEN;
                 if (evacuateState == EvacuateState.EVACUATE_FROM_ISLAND) {
                     if (!cooldown.isScheduled()) {
                         if (MacroHandler.currentMacro.enabled) {
@@ -343,7 +343,7 @@ public class FailsafeNew {
     private static ItemStack previousTickItemStack = null;
 
     public boolean changeItemCheck() {
-        if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN)
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN)
             return false;
 
         if (previousTickItemStack == null) {
@@ -440,7 +440,7 @@ public class FailsafeNew {
     private static final ArrayList<BlockPos> dirtPos = new ArrayList<>();
 
     private boolean dirtCheck() {
-        if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN)
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN)
             return false;
 
         if (!dirtToCheck.isEmpty()) {
@@ -511,7 +511,7 @@ public class FailsafeNew {
     public void onReceivePacket(ReceivePacketEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (evacuateState != EvacuateState.NONE) return;
-        if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN)
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN)
             return;
         if (MacroHandler.currentMacro.isTping) return;
         if (VisitorsMacro.isEnabled()) return;
@@ -548,6 +548,7 @@ public class FailsafeNew {
             // Teleportation check
             Vec3 playerPos = mc.thePlayer.getPositionVector();
             Vec3 teleportPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
+            if ((float) playerPos.distanceTo(teleportPos) >= 150) return;
             if ((float) playerPos.distanceTo(teleportPos) >= config.teleportCheckSensitivity) {
                 LogUtils.debugLog("Teleportation check distance: " + playerPos.distanceTo(teleportPos));
                 emergencyFailsafe(FailsafeType.TELEPORTATION);
@@ -586,10 +587,10 @@ public class FailsafeNew {
         }
 
         if (FarmHelper.config.enableFailsafeSound) {
-            if (FarmHelper.config.failsafeSoundSelected == 0)
-                Utils.playPingFailsafeSound();
+            if (!FarmHelper.config.failsafeSoundType)
+                Utils.playMcFailsafeSound();
             else
-                Utils.playFailsafeSound(FarmHelper.config.failsafeSoundSelected);
+                Utils.playFailsafeSound();
         }
 
         if (config.autoAltTab) {
@@ -621,7 +622,6 @@ public class FailsafeNew {
                     return;
                 case ITEM_CHANGE:
                     emergencyThreadExecutor.submit(itemChange);
-                    return;
             }
         }
     }
@@ -696,7 +696,6 @@ public class FailsafeNew {
 
             long rotationTime;
             String messageChosen;
-            boolean said;
 
             // stage 1: look around and move to back (bonus random crouch)
             LogUtils.debugLog("rotationMovement: stage 1");
@@ -723,7 +722,6 @@ public class FailsafeNew {
 
                     float yaw = (float) Math.atan2(z, -x);
                     float pitch = (float) Math.atan2(-y, Math.sqrt(x * x + z * z));
-                    ;
 
                     rotation.easeTo(yaw, pitch, 450);
 
@@ -763,22 +761,21 @@ public class FailsafeNew {
 
             // stage 2: send a message
             LogUtils.debugLog("rotationMovement: stage 2");
-            if (!config.customRotationMessages.isEmpty()) {
-                String[] messages = config.customRotationMessages.split("\\|");
+            if (!Config.customRotationMessages.isEmpty()) {
+                String[] messages = Config.customRotationMessages.split("\\|");
                 if (messages.length > 1) {
                     messageChosen = messages[(int) Math.floor(Math.random() * (messages.length - 1))];
                     Thread.sleep((long) ((messageChosen.length() * 250L) + Math.random() * 500));
 
                 } else {
-                    messageChosen = config.customRotationMessages;
-                    Thread.sleep((long) ((config.customRotationMessages.length() * 250) + Math.random() * 500));
+                    messageChosen = Config.customRotationMessages;
+                    Thread.sleep((long) ((Config.customRotationMessages.length() * 250L) + Math.random() * 500));
                 }
             } else {
                 messageChosen = FAILSAFE_MESSAGES[(int) Math.floor(Math.random() * (FAILSAFE_MESSAGES.length - 1))];
                 Thread.sleep((long) ((messageChosen.length() * 250) + Math.random() * 500));
             }
             mc.thePlayer.sendChatMessage(messageChosen);
-            said = true;
 
             // stage 3: look around again and jump
             LogUtils.debugLog("rotationMovement: stage 3");
@@ -801,18 +798,14 @@ public class FailsafeNew {
             // final stage: come hub or quit game
             LogUtils.debugLog("rotationMovement: final stage");
             LogUtils.scriptLog("Stop the macro if you see this!");
-            Thread.sleep(3000);
+            Thread.sleep((long) (3_000 + Math.random() * 2_000));
 
             if (!config.leaveAfterFailSafe) {
-                mc.thePlayer.sendChatMessage("/hub");
-                Thread.sleep(3000);
+                emergency = false;
+                MacroHandler.currentMacro.triggerWarpGarden();
+                Thread.sleep((long) (1_000 + Math.random() * 1_000));
                 KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
-                if (LocationUtils.currentIsland == LocationUtils.Island.THE_HUB) {
-                    emergencyThreadExecutor.submit(bazaarChilling);
-                } else {
-                    Thread.sleep(1000 * 60 * 5);
-                    MacroHandler.enableMacro();
-                }
+                MacroHandler.enableMacro();
             } else {
                 mc.theWorld.sendQuittingDisconnectingPacket();
             }
@@ -906,15 +899,15 @@ public class FailsafeNew {
                     KeyBindUtils.stopMovement();
                     Thread.sleep(rotationTime + 1_500);
 
-                    if (!config.customBedrockMessages.isEmpty()) {
-                        String[] messages = config.customBedrockMessages.split("\\|");
+                    if (!Config.customBedrockMessages.isEmpty()) {
+                        String[] messages = Config.customBedrockMessages.split("\\|");
                         if (messages.length > 1) {
                             messageChosen = messages[(int) Math.floor(Math.random() * (messages.length - 1))];
-                            Thread.sleep((long) ((messageChosen.length() * 250) + Math.random() * 500));
+                            Thread.sleep((long) ((messageChosen.length() * 250L) + Math.random() * 500));
 
                         } else {
-                            messageChosen = config.customBedrockMessages;
-                            Thread.sleep((long) ((config.customBedrockMessages.length() * 250) + Math.random() * 500));
+                            messageChosen = Config.customBedrockMessages;
+                            Thread.sleep((long) ((Config.customBedrockMessages.length() * 250L) + Math.random() * 500));
                         }
                     } else {
                         messageChosen = FAILSAFE_MESSAGES[(int) Math.floor(Math.random() * (FAILSAFE_MESSAGES.length - 1))];
@@ -938,18 +931,15 @@ public class FailsafeNew {
                 }
             }
 
-            // stage 3: come hub or quit game
+            // stage 3: start the macro again
             stopMovement();
-            Thread.sleep((long) (500 + Math.random() * 3_000));
+            Thread.sleep((long) (12_000 + Math.random() * 5_000));
             if (!config.leaveAfterFailSafe) {
-                mc.thePlayer.sendChatMessage("/hub");
-                Thread.sleep(5000);
-                if (LocationUtils.currentIsland == LocationUtils.Island.THE_HUB) {
-                    emergencyThreadExecutor.submit(bazaarChilling);
-                } else {
-                    Thread.sleep(1000 * 60 * 5);
-                    MacroHandler.enableMacro();
-                }
+                emergency = false;
+                MacroHandler.currentMacro.triggerWarpGarden();
+                Thread.sleep((long) (1_000 + Math.random() * 1_000));
+                KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
+                MacroHandler.enableMacro();
             } else {
                 mc.theWorld.sendQuittingDisconnectingPacket();
             }

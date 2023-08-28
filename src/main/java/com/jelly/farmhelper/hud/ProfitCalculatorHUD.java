@@ -67,7 +67,7 @@ public class ProfitCalculatorHUD extends BasicHud {
 
     @Override
     protected boolean shouldShow() {
-        return (LocationUtils.currentIsland == LocationUtils.Island.PRIVATE_ISLAND || LocationUtils.currentIsland == LocationUtils.Island.GARDEN);
+        return LocationUtils.currentIsland == LocationUtils.Island.GARDEN;
     }
 
     protected void drawLine(long vg, String text, String iconPath, float x, float y, float scale) {

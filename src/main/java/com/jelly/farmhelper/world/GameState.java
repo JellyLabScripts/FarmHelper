@@ -39,7 +39,6 @@ public class GameState {
     public EffectState godPot;
 
     public location currentLocation = location.ISLAND;
-    public boolean wasInGarden = false;
 
     private static final Pattern PATTERN_ACTIVE_EFFECTS = Pattern.compile(
       "§r§r§7You have a §r§cGod Potion §r§7active! §r§d([0-9]*?:?[0-9]*?:?[0-9]*)§r");
@@ -49,7 +48,7 @@ public class GameState {
     public boolean backWalkable;
     public boolean leftWalkable;
     private final Timer notMovingTimer = new Timer();
-    private long randomValueToWait = (long) (Math.random() * (FarmHelper.config.maxTimeBetweenChangingRows - FarmHelper.config.minTimeBetweenChangingRows) + FarmHelper.config.minTimeBetweenChangingRows);;
+    private long randomValueToWait = (long) (Math.random() * (FarmHelper.config.maxTimeBetweenChangingRows - FarmHelper.config.minTimeBetweenChangingRows) + FarmHelper.config.minTimeBetweenChangingRows);
 
     public String serverIP;
 
@@ -75,14 +74,6 @@ public class GameState {
             }
         }
         currentLocation = getLocation();
-        for (String line : ScoreboardUtils.getScoreboardLines()) {
-            String cleanedLine = ScoreboardUtils.cleanSB(line);
-            if (cleanedLine.contains("Island")) {
-                wasInGarden = false;
-            } else if (cleanedLine.contains("Garden") || cleanedLine.contains("Plot:")) {
-                wasInGarden = true;
-            }
-        }
         checkFooter();
         updateWalkables();
         dx = Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX);
@@ -171,7 +162,7 @@ public class GameState {
                     cookie = EffectState.OFF;
                 } else if (foundCookieText) {
                     foundCookieText = false;
-                    cookie = EffectState.ON;;
+                    cookie = EffectState.ON;
                 }
                 if(line.contains("Active")) {
                     loaded = true;
