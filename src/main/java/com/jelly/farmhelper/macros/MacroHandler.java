@@ -137,7 +137,7 @@ public class MacroHandler {
     }
     public static void enableMacro() {
         if ((LocationUtils.currentIsland != LocationUtils.Island.GARDEN && LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND)) {
-            LogUtils.scriptLog("You must be on your island/garden to start the macro!", EnumChatFormatting.RED);
+            LogUtils.scriptLog("You must be in the garden to start the macro!", EnumChatFormatting.RED);
             return;
         }
         if(!FarmHelper.config.macroType) {
