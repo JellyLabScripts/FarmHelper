@@ -48,7 +48,7 @@ public class GameState {
     public boolean backWalkable;
     public boolean leftWalkable;
     private final Timer notMovingTimer = new Timer();
-    private long randomValueToWait = (long) (Math.random() * (FarmHelper.config.maxTimeBetweenChangingRows - FarmHelper.config.minTimeBetweenChangingRows) + FarmHelper.config.minTimeBetweenChangingRows);;
+    private long randomValueToWait = (long) (Math.random() * (FarmHelper.config.maxTimeBetweenChangingRows - FarmHelper.config.minTimeBetweenChangingRows) + FarmHelper.config.minTimeBetweenChangingRows);
 
     public String serverIP;
 
@@ -162,7 +162,7 @@ public class GameState {
                     cookie = EffectState.OFF;
                 } else if (foundCookieText) {
                     foundCookieText = false;
-                    cookie = EffectState.ON;;
+                    cookie = EffectState.ON;
                 }
                 if(line.contains("Active")) {
                     loaded = true;

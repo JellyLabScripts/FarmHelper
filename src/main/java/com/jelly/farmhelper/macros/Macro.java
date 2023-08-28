@@ -226,7 +226,6 @@ public abstract class Macro<T> {
         if(!FailsafeNew.emergency && flag && lastTp.passed() && !rotation.rotating) {
             rotation.reset();
             FailsafeNew.emergencyFailsafe(FailsafeNew.FailsafeType.ROTATION);
-            return;
         }
     }
 

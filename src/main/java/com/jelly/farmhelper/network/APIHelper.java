@@ -28,7 +28,7 @@ public class APIHelper {
                 }
             }
 
-            return (JsonObject) JsonParser.parseString(result.toString());
+            return (JsonObject) new JsonParser().parse(result.toString());
         } catch (Exception e) {
 //            StringBuilder result = new StringBuilder();
 //            URL url = new URL(urlToRead);

@@ -51,10 +51,10 @@ public class PlayerUtils {
             }
             if (clock.isScheduled() && clock.passed()) {
                 mc.thePlayer.sendChatMessage("/setspawn");
-                long time = (long) (new Random().nextInt((int) (diff)) + (FarmHelper.config.autoSetSpawnMinDelay * 1000L));
+                long time = new Random().nextInt((int) (diff)) + (FarmHelper.config.autoSetSpawnMinDelay * 1000L);
                 clock.schedule(time);
             } else if (!clock.isScheduled()) {
-                long time = (long) (new Random().nextInt((int) (diff)) + (FarmHelper.config.autoSetSpawnMinDelay * 1000L));
+                long time = new Random().nextInt((int) (diff)) + (FarmHelper.config.autoSetSpawnMinDelay * 1000L);
                 clock.schedule(time);
             }
         }

@@ -2,6 +2,7 @@ package com.jelly.farmhelper.features;
 
 import akka.japi.Pair;
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.macros.MacroHandler;
@@ -619,7 +620,6 @@ public class FailsafeNew {
                     return;
                 case ITEM_CHANGE:
                     emergencyThreadExecutor.submit(itemChange);
-                    return;
             }
         }
     }
@@ -721,7 +721,6 @@ public class FailsafeNew {
 
                     float yaw = (float) Math.atan2(z, -x);
                     float pitch = (float) Math.atan2(-y, Math.sqrt(x * x + z * z));
-                    ;
 
                     rotation.easeTo(yaw, pitch, 450);
 
@@ -761,15 +760,15 @@ public class FailsafeNew {
 
             // stage 2: send a message
             LogUtils.debugLog("rotationMovement: stage 2");
-            if (!config.customRotationMessages.isEmpty()) {
-                String[] messages = config.customRotationMessages.split("\\|");
+            if (!Config.customRotationMessages.isEmpty()) {
+                String[] messages = Config.customRotationMessages.split("\\|");
                 if (messages.length > 1) {
                     messageChosen = messages[(int) Math.floor(Math.random() * (messages.length - 1))];
                     Thread.sleep((long) ((messageChosen.length() * 250L) + Math.random() * 500));
 
                 } else {
-                    messageChosen = config.customRotationMessages;
-                    Thread.sleep((long) ((config.customRotationMessages.length() * 250) + Math.random() * 500));
+                    messageChosen = Config.customRotationMessages;
+                    Thread.sleep((long) ((Config.customRotationMessages.length() * 250L) + Math.random() * 500));
                 }
             } else {
                 messageChosen = FAILSAFE_MESSAGES[(int) Math.floor(Math.random() * (FAILSAFE_MESSAGES.length - 1))];
@@ -904,15 +903,15 @@ public class FailsafeNew {
                     KeyBindUtils.stopMovement();
                     Thread.sleep(rotationTime + 1_500);
 
-                    if (!config.customBedrockMessages.isEmpty()) {
-                        String[] messages = config.customBedrockMessages.split("\\|");
+                    if (!Config.customBedrockMessages.isEmpty()) {
+                        String[] messages = Config.customBedrockMessages.split("\\|");
                         if (messages.length > 1) {
                             messageChosen = messages[(int) Math.floor(Math.random() * (messages.length - 1))];
-                            Thread.sleep((long) ((messageChosen.length() * 250) + Math.random() * 500));
+                            Thread.sleep((long) ((messageChosen.length() * 250L) + Math.random() * 500));
 
                         } else {
-                            messageChosen = config.customBedrockMessages;
-                            Thread.sleep((long) ((config.customBedrockMessages.length() * 250) + Math.random() * 500));
+                            messageChosen = Config.customBedrockMessages;
+                            Thread.sleep((long) ((Config.customBedrockMessages.length() * 250L) + Math.random() * 500));
                         }
                     } else {
                         messageChosen = FAILSAFE_MESSAGES[(int) Math.floor(Math.random() * (FAILSAFE_MESSAGES.length - 1))];

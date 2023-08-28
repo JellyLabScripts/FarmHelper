@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.config.Config.CropEnum;
 import com.jelly.farmhelper.config.Config.SMacroEnum;
 import com.jelly.farmhelper.config.structs.Rewarp;
@@ -67,11 +68,11 @@ public class MacroHandler {
         if (currentMacro != null && currentMacro.enabled) {
             currentMacro.onLastRender();
         }
-        if (FarmHelper.config.highlightRewarp && FarmHelper.config.rewarpList != null && LocationUtils.currentIsland == LocationUtils.Island.GARDEN) {
+        if (FarmHelper.config.highlightRewarp && Config.rewarpList != null && LocationUtils.currentIsland == LocationUtils.Island.GARDEN) {
             Color chroma = Color.getHSBColor((float) ((System.currentTimeMillis() / 10) % 2000) / 2000, 1, 1);
             Color chromaLowerAlpha = new Color(chroma.getRed(), chroma.getGreen(), chroma.getBlue(), 120);
 
-            for (Rewarp rewarp : FarmHelper.config.rewarpList) {
+            for (Rewarp rewarp : Config.rewarpList) {
                 RenderUtils.drawBlockBox(new BlockPos(rewarp.x, rewarp.y, rewarp.z), chromaLowerAlpha);
             }
         }

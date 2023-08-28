@@ -214,19 +214,13 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
             double decimalPartZ = Math.abs(mc.thePlayer.getPositionVector().zCoord) % 1;
             float yaw = AngleUtils.getClosest(mc.thePlayer.rotationYaw);
             yaw = (yaw % 360 + 360) % 360;
-            if (yaw == 180f && decimalPartX > 0.488) { // North: X > 488
-//                LogUtils.debugFullLog("North");
+            if (yaw == 180f && decimalPartX > 0.488) {
                 return true;
-            } else if (yaw == 270f && decimalPartZ > 0.488) { // East: Z > 488
-//                LogUtils.debugFullLog("East");
+            } else if (yaw == 270f && decimalPartZ > 0.488) {
                 return true;
-            } else if (yaw == 90f && decimalPartZ < 0.512) { // West: Z < 512
-//                LogUtils.debugFullLog("West");
+            } else if (yaw == 90f && decimalPartZ < 0.512) {
                 return true;
-            } else if (yaw == 0f && decimalPartX < 0.512) { // South: X < 512
-//                LogUtils.debugFullLog("South");
-                return true;
-            }
+            } else return yaw == 0f && decimalPartX < 0.512;
         }
         return false;
     }
@@ -237,19 +231,13 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
             double decimalPartZ = Math.abs(mc.thePlayer.getPositionVector().zCoord) % 1;
             float yaw = AngleUtils.getClosest(mc.thePlayer.rotationYaw);
             yaw = (yaw % 360 + 360) % 360;
-            if (yaw == 180f && decimalPartX < 0.5) { // North: X > 488
-//                LogUtils.debugFullLog("North");
+            if (yaw == 180f && decimalPartX < 0.5) {
                 return true;
-            } else if (yaw == 270f && decimalPartZ < 0.5) { // East: Z > 488
-//                LogUtils.debugFullLog("East");
+            } else if (yaw == 270f && decimalPartZ < 0.5) {
                 return true;
-            } else if (yaw == 90f && decimalPartZ > 0.5) { // West: Z < 512
-//                LogUtils.debugFullLog("West");
+            } else if (yaw == 90f && decimalPartZ > 0.5) {
                 return true;
-            } else if (yaw == 0f && decimalPartX > 0.5) { // South: X < 512
-//                LogUtils.debugFullLog("South");
-                return true;
-            }
+            } else return yaw == 0f && decimalPartX > 0.5;
         }
         return false;
     }

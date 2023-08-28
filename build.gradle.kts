@@ -34,7 +34,6 @@ dependencies {
     embed("com.github.ronmamo:reflections:0.10.2")
     embed("org.java-websocket:Java-WebSocket:1.5.3")
     embed("com.dorkbox:Notify:3.7")
-    embed("com.google.code.gson:gson:2.10.1")
 
     // required for intellij debug mode to work for some reason
     runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2")

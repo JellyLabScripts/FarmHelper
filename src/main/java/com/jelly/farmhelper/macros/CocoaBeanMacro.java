@@ -202,7 +202,6 @@ public class CocoaBeanMacro extends Macro {
             case SWITCH_SIDE:
                 LogUtils.debugLog("Switching sides");
                 updateKeys(false, false, true, false, false);
-                return;
         }
     }
 
