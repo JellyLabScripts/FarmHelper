@@ -72,13 +72,16 @@ public class FailsafeNew {
     private static ExecutorService emergencyThreadExecutor = Executors.newScheduledThreadPool(5);
 
 
-    private static final String[] FAILSAFE_MESSAGES = new String[]
-            {"What", "what?", "what", "what??", "What???", "Wut?", "?", "what???", "yo huh", "yo huh?", "yo?",
-                    "ehhhhh??", "eh", "yo", "ahmm", "ehh", "LOL what", "Lol", "lol", "lmao", "Lmfao", "lmfao"
-                    , "wtf is this", "wtf", "WTF", "wtf is this?", "wtf???", "tf", "tf?", "wth",
-                    "lmao what?", "????", "??", "???????", "???", "UMMM???", "Umm", "ummm???", "damn wth", "Dang it", "Damn", "damn wtf", "damn",
-                    "hmmm", "hm", "sus", "hmm", "Ok?", "ok?", "again lol", "again??", "ok damn"};
-
+    private static final String[] FAILSAFE_MESSAGES = new String[] {
+            "WHAT", "what?", "what", "what??", "what???", "wut?", "?", "what???", "yo huh", "yo huh?", "yo?",
+            "ehhhhh??", "eh", "yo", "ahmm", "ehh", "LOL what", "lol :skull:", "bro wtf was that?", "lmao",
+            "lmfao :sob:", "lmfao", "wtf is this", "wtf", "WTF", "wtf is this?", "wtf???", "tf", "tf?", "wth",
+            "lmao what?", "????", "??", "???????", "???", "UMMM???", "umm", "ummm???", "damn wth",
+            "dang it", "Damn", "damn wtf", "damn", "hmmm", "hm", "sus", "hmm", "ok??", "ok?", "give me a rest", "im done",
+            "again lol", "again??", "ok damn", "seriously?", "seriously????", "seriously", "really?", "really",
+            "are you kidding me?", "are you serious?", "are you fr???", "oh come on", "oh come on :sob:",
+            "not again", "not again :sob:", "give me a break", "youre kidding right?", "youre joking", "youre kidding me",
+            "you must be joking", "seriously bro?", "cmon now", "cmon", "this is too much", "stop messing with me :sob:"};
 
     public static void resetFailsafes() {
         cooldown.reset();
