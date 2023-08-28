@@ -30,7 +30,6 @@ public class AutoReconnect {
         ENABLING_MACRO
     }
     public static reconnectingState currentState = reconnectingState.NONE;
-    public static boolean reconnecting = false;
 
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
@@ -60,7 +59,6 @@ public class AutoReconnect {
                     Utils.disablePingAlert();
                 }
                 try {
-                    reconnecting = true;
                     FMLClientHandler.instance().connectToServer(new GuiMultiplayer(new GuiMainMenu()), new ServerData("bozo", FarmHelper.gameState.serverIP != null ? FarmHelper.gameState.serverIP : "mc.hypixel.net", false));
 //                    cooldown.schedule(6500);
 //                    currentState = reconnectingState.JOINING_LOBBY;

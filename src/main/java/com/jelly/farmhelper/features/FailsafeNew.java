@@ -196,10 +196,6 @@ public class FailsafeNew {
                     if (MacroHandler.currentMacro.enabled) {
                         MacroHandler.disableCurrentMacro(true);
                     }
-                    if (AutoReconnect.reconnecting) {
-                        LogUtils.debugLog("Came back after reconnecting");
-                        AutoReconnect.reconnecting = false;
-                    }
                     return;
                 }
                 if (cooldown.isScheduled() && cooldown.passed()) {
@@ -517,7 +513,6 @@ public class FailsafeNew {
         if (VisitorsMacro.isEnabled()) return;
         if (AutoReconnect.currentState != AutoReconnect.reconnectingState.NONE) return;
         if (emergency) return;
-        if (AutoReconnect.reconnecting) return;
 
         // Item check
 //        if (event.packet instanceof S09PacketHeldItemChange) {
@@ -527,7 +522,6 @@ public class FailsafeNew {
 //            return;
 //        }
 
-        // Rotation check
         if (config.oldRotationCheck) return;
         if (event.packet instanceof S08PacketPlayerPosLook) {
             if (config.pingServer && (Pinger.dontRotationCheck.isScheduled() && !Pinger.dontRotationCheck.passed() || Pinger.isOffline)) {
@@ -536,15 +530,6 @@ public class FailsafeNew {
             }
 
             S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
-            double yaw = packet.getYaw();
-            double pitch = packet.getPitch();
-            double threshold = config.rotationCheckSensitivity;
-            double previousYaw = mc.thePlayer.rotationYaw;
-            double previousPitch = mc.thePlayer.rotationPitch;
-            if (Math.abs(yaw - previousYaw) > threshold || Math.abs(pitch - previousPitch) > threshold) {
-                emergencyFailsafe(FailsafeType.ROTATION);
-            }
-
             // Teleportation check
             Vec3 playerPos = mc.thePlayer.getPositionVector();
             Vec3 teleportPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
@@ -552,6 +537,16 @@ public class FailsafeNew {
             if ((float) playerPos.distanceTo(teleportPos) >= config.teleportCheckSensitivity) {
                 LogUtils.debugLog("Teleportation check distance: " + playerPos.distanceTo(teleportPos));
                 emergencyFailsafe(FailsafeType.TELEPORTATION);
+            }
+
+            // Rotation check
+            double yaw = packet.getYaw();
+            double pitch = packet.getPitch();
+            double threshold = config.rotationCheckSensitivity;
+            double previousYaw = mc.thePlayer.rotationYaw;
+            double previousPitch = mc.thePlayer.rotationPitch;
+            if (Math.abs(yaw - previousYaw) > threshold || Math.abs(pitch - previousPitch) > threshold) {
+                emergencyFailsafe(FailsafeType.ROTATION);
             }
         }
     }

@@ -696,7 +696,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		name = "Enable Restart After FailSafe", category = FAILSAFE, subcategory = "Restart After FailSafe",
 		description = "Restarts the macro after a while when a failsafe has been triggered"
 	)
-	public boolean enableRestartAfterFailSafe = false;
+	public boolean enableRestartAfterFailSafe = true;
 	@Switch(
 		name = "Leave after failsafe triggered", category = FAILSAFE, subcategory = "Restart After FailSafe",
 		description = "Leaves the server after a failsafe has been triggered"
