@@ -643,6 +643,14 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			}
 	)
 	public int failsafeSoundSelected = 1;
+	@Info(
+			text = "If you want to use your own WAV file, rename it to 'farmhelper_sound.wav' and put it in your Minecraft directory.",
+			type = InfoType.WARNING,
+			size = 2,
+			category = FAILSAFE,
+			subcategory = "Failsafe Trigger Sound"
+	)
+	public static boolean customFailsafeSoundWarning;
 	@Slider(
 			name = "Failsafe Sound Volume (in dB)", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
 			description = "The volume of the failsafe sound",
@@ -1011,8 +1019,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.hideIf("_stopFailsafeSoundButton", () -> !Utils.isFailsafeSoundPlaying() && !Utils.pingAlertPlaying);
 		this.addDependency("failsafeMcSoundSelected", "Minecraft Sound", () -> !this.failsafeSoundType && this.enableFailsafeSound);
 		this.addDependency("failsafeSoundSelected", "Custom Sound", () -> this.failsafeSoundType && this.enableFailsafeSound);
+		this.addDependency("failsafeSoundVolume", "Custom Sound", () -> this.failsafeSoundType && this.enableFailsafeSound);
+		this.hideIf("customFailsafeSoundWarning", () -> !this.failsafeSoundType || !this.enableFailsafeSound || this.failsafeSoundSelected != 0);
 		this.addDependency("_playFailsafeSoundButton", "enableFailsafeSound");
-		this.addDependency("failsafeSoundVolume", "enableFailsafeSound");
 		this.addDependency("customFailsafeSoundPath", "enableFailsafeSound");
 
 		this.addDependency("schedulerFarmingTime", "enableScheduler");
