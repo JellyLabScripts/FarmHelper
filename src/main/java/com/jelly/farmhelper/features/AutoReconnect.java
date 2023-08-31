@@ -16,18 +16,14 @@ import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
-import javax.rmi.CORBA.Util;
-
 public class AutoReconnect {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public static double waitTime = 0;
-    private static final Clock cooldown = new Clock();
+    public static final Clock reconnectingCooldown = new Clock();
     enum reconnectingState {
         NONE,
-        JOINING_SKYBLOCK,
-        JOINING_LOBBY,
-        ENABLING_MACRO
+        JOINING_LOBBY
     }
     public static reconnectingState currentState = reconnectingState.NONE;
 
@@ -48,20 +44,18 @@ public class AutoReconnect {
             return;
         if (FailsafeNew.isJacobFailsafeExceeded && FarmHelper.config.enableJacobFailsafes)
             return;
-        if ((mc.currentScreen instanceof GuiDisconnected)) {
+        if (mc.currentScreen instanceof GuiDisconnected) {
             MacroHandler.disableCurrentMacro(true);
             if (waitTime >= (FarmHelper.config.delayBeforeReconnecting * 20)) {
                 waitTime = 0;
                 if (FailsafeNew.emergency) {
-                    FailsafeNew.emergency = false;
-                    FailsafeNew.restartAfterFailsafeCooldown.reset();
-                    FailsafeNew.stopAllFailsafeThreads();
+                    FailsafeNew.resetFailsafes();
                     Utils.disablePingAlert();
                 }
                 try {
                     FMLClientHandler.instance().connectToServer(new GuiMultiplayer(new GuiMainMenu()), new ServerData("bozo", FarmHelper.gameState.serverIP != null ? FarmHelper.gameState.serverIP : "mc.hypixel.net", false));
-//                    cooldown.schedule(6500);
-//                    currentState = reconnectingState.JOINING_LOBBY;
+                    reconnectingCooldown.schedule(3000);
+                    currentState = reconnectingState.JOINING_LOBBY;
                 } catch (Exception e) {
                     e.printStackTrace();
                     System.out.println("Failed to reconnect to server!");
@@ -70,39 +64,14 @@ public class AutoReconnect {
                 waitTime++;
             }
         }
-//        if (cooldown.isScheduled() && cooldown.passed()) {
-//            if (mc.thePlayer == null || mc.theWorld == null) return;
-//            if (mc.currentScreen == null) {
-//                switch (currentState) {
-//                    case JOINING_LOBBY:
-//                        if (LocationUtils.currentIsland != LocationUtils.Island.LOBBY) return;
-//                        final ItemStack held = mc.thePlayer.inventory.getCurrentItem();
-//                        if (held != null) {
-//                            final String displayName = held.getDisplayName();
-//                            if (displayName.equals("§aGame Menu §7(Right Click)")) {
-//                                mc.thePlayer.sendChatMessage("/skyblock");
-//                            }
-//                        }
-//                        currentState = reconnectingState.JOINING_SKYBLOCK;
-//                        cooldown.schedule(3500);
-//                        break;
-//                    case JOINING_SKYBLOCK:
-//                        cooldown.schedule(3500);
-//                        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN && LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND) {
-//                            mc.thePlayer.sendChatMessage("/skyblock"); // if it gets stuck in the lobby
-//                            return;
-//                        }
-//                        currentState = reconnectingState.ENABLING_MACRO;
-//                        break;
-//                    case ENABLING_MACRO:
-//                        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN && LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND) return;
-//                        currentState = reconnectingState.NONE;
-//                        if (FarmHelper.config.enableScheduler) Scheduler.start();
-//                        MacroHandler.enableCurrentMacro();
-//                        break;
-//                }
-//            }
-//        }
+        if (reconnectingCooldown.isScheduled() && reconnectingCooldown.passed()) {
+            if (mc.thePlayer == null || mc.theWorld == null) return;
+            if (mc.currentScreen == null) return;
+            if (currentState != reconnectingState.JOINING_LOBBY) return;
+//            if (LocationUtils.currentIsland != LocationUtils.Island.LOBBY) return;
+            currentState = reconnectingState.NONE;
+            reconnectingCooldown.reset();
+        }
     }
 
     @SubscribeEvent
@@ -110,5 +79,6 @@ public class AutoReconnect {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (currentState == reconnectingState.NONE) return;
         if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
+        if (FarmHelper.config.enableScheduler) Scheduler.pause();
     }
 }

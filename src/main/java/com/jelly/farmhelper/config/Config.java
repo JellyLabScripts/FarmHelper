@@ -147,6 +147,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public boolean autoUngrabMouse = true;
 	@Switch(
+			name = "Hold left click when changing row", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Hold left click when change row"
+	)
+	public boolean holdLeftClickWhenChangingRow = true;
+	@Switch(
 		name = "Custom pitch", category = GENERAL, subcategory = "Macro",
 		description = "Set pitch to custom level after starting the macro"
 	)
@@ -272,16 +277,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Automatically purchases and consumes a booster cookie"
 	)
 	public boolean autoCookie = false;
-	@Switch(
-		name = "Fast Change Direction Cane", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-		description = "Fast change direction cane"
-	)
-	public boolean fastChangeDirectionCane = false;
-	@Switch(
-		name = "Hold left click when changing row", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-		description = "Hold left click when change row"
-	)
-	public boolean holdLeftClickWhenChangingRow = true;
 	@Switch(
 		name = "Count RNG to $/Hr in Profit Calculator", category = MISCELLANEOUS, subcategory = "Miscellaneous",
 		description = "Count RNG to $/Hr"
@@ -690,7 +685,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			name = "Pause the scheduler during Jacob's Contest", category = FAILSAFE, subcategory = "Scheduler", size = OptionSize.DUAL,
 			description = "Pauses and delays the scheduler during Jacob's Contest"
 	)
-	public boolean pauseSchedulerDuringJacobsContest = false;
+	public boolean pauseSchedulerDuringJacobsContest = true;
 
 	@Switch(
 		name = "Enable Restart After FailSafe", category = FAILSAFE, subcategory = "Restart After FailSafe",
@@ -705,9 +700,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	@Slider(
 		name = "Restart Delay", category = FAILSAFE, subcategory = "Restart After FailSafe",
 		description = "The delay to restart after failsafe (in seconds)",
-		min = 0, max = 600
+		min = 1, max = 120
 	)
-	public int restartAfterFailSafeDelay = 30;
+	public int restartAfterFailSafeDelay = 5;
 	@Switch(
 		name = "Enable Auto Set Spawn", category = FAILSAFE, subcategory = "Auto Set Spawn",
 		description = "Enables auto set spawn"
@@ -875,10 +870,15 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 //	)
 //	public OneKeyBind debugKeybind2 = new OneKeyBind(Keyboard.KEY_J);
 	@Switch(
-			name = "Debug Mode", category = DEBUG,
+			name = "Debug Mode", category = DEBUG, subcategory = "Debug",
 			description = "Prints to chat what the bot is currently executing. Useful if you are having issues."
 	)
 	public boolean debugMode = false;
+	@Switch(
+			name = "Hide Logs (Not Recommended)", category = DEBUG, subcategory = "Debug",
+			description = "Hides all logs from the console. Not recommended."
+	)
+	public boolean hideLogs = false;
 	@HUD(
 			name = "Debug HUD", category = DEBUG, subcategory = " "
 	)
@@ -1065,6 +1065,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("autoSetSpawnMinDelay", "enableAutoSetSpawn");
 		this.addDependency("autoSetSpawnMaxDelay", "enableAutoSetSpawn");
 
+		this.addDependency("hideLogs", "Hide Logs (Not Recommended)", () -> !this.debugMode);
+		this.addDependency("debugMode", "Debug Mode", () -> !this.hideLogs);
 		this.addDependency("SpawnPosX", "debugMode");
 		this.addDependency("SpawnPosY", "debugMode");
 		this.addDependency("SpawnPosZ", "debugMode");

@@ -57,7 +57,7 @@ loom {
              * uncomment the following if you want to authenticate into you minecraft account
              * while in the dev env. https://github.com/DJtheRedstoner/DevAuth read this
              */
-            //property("devauth.enabled", "true")
+            property("devauth.enabled", "false")
         }
     }
 

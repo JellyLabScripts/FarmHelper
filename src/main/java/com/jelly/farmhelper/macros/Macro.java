@@ -90,7 +90,7 @@ public abstract class Macro<T> {
         }
         if (!isRewarpLocationSet()) {
             LogUtils.scriptLog("Your rewarp position is not set!");
-            MacroHandler.disableCurrentMacro();
+            MacroHandler.disableMacro();
         }
         if (lastTp.isScheduled() && lastTp.passed()) {
             lastTp.reset();
@@ -116,7 +116,7 @@ public abstract class Macro<T> {
     private T stateBeforeFailsafe = null;
 
     public void saveLastStateBeforeDisable() {
-        LogUtils.debugLog("Saving last state before disabling macro");
+        LogUtils.debugFullLog("Saving last state before disabling macro");
         stateBeforeFailsafe = currentState;
         savedLastState = true;
         if (MacroHandler.isMacroing && MacroHandler.currentMacro.enabled) {
@@ -126,7 +126,7 @@ public abstract class Macro<T> {
     }
 
     public void restoreState() {
-        LogUtils.debugLog("Restoring last state before disabling macro");
+        LogUtils.debugFullLog("Restoring last rotation before enabling macro");
         if (stateBeforeFailsafe != null) {
             changeState(stateBeforeFailsafe);
             stateBeforeFailsafe = null;

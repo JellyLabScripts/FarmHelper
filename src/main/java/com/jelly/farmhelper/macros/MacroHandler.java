@@ -9,6 +9,7 @@ import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
+import com.jelly.farmhelper.world.GameState;
 import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
@@ -125,8 +126,8 @@ public class MacroHandler {
     }
     public static void toggleMacro() {
         FailsafeNew.restartAfterFailsafeCooldown.reset();
-        if(FailsafeNew.emergency) {
-            FailsafeNew.stopAllFailsafeThreads();
+        if (FailsafeNew.emergency) {
+            FailsafeNew.resetFailsafes();
             disableMacro();
             LogUtils.scriptLog("Do not restart macro too soon and farm yourself. The staff might still be spectating for 1-2 minutes");
         } else if (isMacroing) {
@@ -167,9 +168,9 @@ public class MacroHandler {
         if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
         if (FarmHelper.config.enableScheduler) Scheduler.start();
         if (FarmHelper.config.visitorsMacro && FarmHelper.config.onlyAcceptProfitableVisitors) LogUtils.scriptLog("Macro will only accept offers containing any of these products: " + String.join(", ", VisitorsMacro.profitRewards));
-//        if (FarmHelper.config.enablePetSwapper && GameState.inJacobContest() && !PetSwapper.hasPetChangedDuringThisContest) {
-//            PetSwapper.startMacro(false);
-//        }
+        if (FarmHelper.config.enablePetSwapper && GameState.inJacobContest() && !PetSwapper.hasPetChangedDuringThisContest) {
+            PetSwapper.startMacro(false);
+        }
 
         startTime = System.currentTimeMillis();
         ProfitCalculator.resetProfit();
@@ -189,8 +190,10 @@ public class MacroHandler {
         UngrabUtils.regrabMouse();
         StatusUtils.updateStateString();
         VisitorsMacro.stopMacro();
+        Autosell.disableOnly();
         PetSwapper.reset();
         FailsafeNew.resetFailsafes();
+        Utils.disablePingAlert();
     }
 
     public static void disableCurrentMacro() {
