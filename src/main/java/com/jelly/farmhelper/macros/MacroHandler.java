@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.macros;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.config.Config.CropEnum;
 import com.jelly.farmhelper.config.Config.SMacroEnum;
 import com.jelly.farmhelper.config.structs.Rewarp;
@@ -8,6 +9,7 @@ import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
+import com.jelly.farmhelper.world.GameState;
 import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
@@ -36,7 +38,7 @@ public class MacroHandler {
     public static SugarcaneMacroNew sugarcaneMacro = new SugarcaneMacroNew();
     public static SShapeCropMacroNew sShapeCropMacro = new SShapeCropMacroNew();
     public static VerticalCropMacroNew verticalCropMacro = new VerticalCropMacroNew();
-    public static CocoaBeanMacro cocoaBeanMacro = new CocoaBeanMacro();
+    public static CocoaBeanMacroNew cocoaBeanMacro = new CocoaBeanMacroNew();
     public static CocoaBeanRGMacro cocoaBeanRGMacro = new CocoaBeanRGMacro();
     public static MushroomMacroNew mushroomMacro = new MushroomMacroNew();
 
@@ -67,11 +69,11 @@ public class MacroHandler {
         if (currentMacro != null && currentMacro.enabled) {
             currentMacro.onLastRender();
         }
-        if (FarmHelper.config.highlightRewarp && FarmHelper.config.rewarpList != null && LocationUtils.currentIsland == LocationUtils.Island.GARDEN) {
+        if (FarmHelper.config.highlightRewarp && Config.rewarpList != null && LocationUtils.currentIsland == LocationUtils.Island.GARDEN) {
             Color chroma = Color.getHSBColor((float) ((System.currentTimeMillis() / 10) % 2000) / 2000, 1, 1);
             Color chromaLowerAlpha = new Color(chroma.getRed(), chroma.getGreen(), chroma.getBlue(), 120);
 
-            for (Rewarp rewarp : FarmHelper.config.rewarpList) {
+            for (Rewarp rewarp : Config.rewarpList) {
                 RenderUtils.drawBlockBox(new BlockPos(rewarp.x, rewarp.y, rewarp.z), chromaLowerAlpha);
             }
         }
@@ -124,8 +126,8 @@ public class MacroHandler {
     }
     public static void toggleMacro() {
         FailsafeNew.restartAfterFailsafeCooldown.reset();
-        if(FailsafeNew.emergency) {
-            FailsafeNew.stopAllFailsafeThreads();
+        if (FailsafeNew.emergency) {
+            FailsafeNew.resetFailsafes();
             disableMacro();
             LogUtils.scriptLog("Do not restart macro too soon and farm yourself. The staff might still be spectating for 1-2 minutes");
         } else if (isMacroing) {
@@ -136,7 +138,7 @@ public class MacroHandler {
     }
     public static void enableMacro() {
         if ((LocationUtils.currentIsland != LocationUtils.Island.GARDEN && LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND)) {
-            LogUtils.scriptLog("You must be on your island/garden to start the macro!", EnumChatFormatting.RED);
+            LogUtils.scriptLog("You must be in the garden to start the macro!", EnumChatFormatting.RED);
             return;
         }
         if(!FarmHelper.config.macroType) {
@@ -166,9 +168,9 @@ public class MacroHandler {
         if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
         if (FarmHelper.config.enableScheduler) Scheduler.start();
         if (FarmHelper.config.visitorsMacro && FarmHelper.config.onlyAcceptProfitableVisitors) LogUtils.scriptLog("Macro will only accept offers containing any of these products: " + String.join(", ", VisitorsMacro.profitRewards));
-//        if (FarmHelper.config.enablePetSwapper && GameState.inJacobContest() && !PetSwapper.hasPetChangedDuringThisContest) {
-//            PetSwapper.startMacro(false);
-//        }
+        if (FarmHelper.config.enablePetSwapper && GameState.inJacobContest() && !PetSwapper.hasPetChangedDuringThisContest) {
+            PetSwapper.startMacro(false);
+        }
 
         startTime = System.currentTimeMillis();
         ProfitCalculator.resetProfit();
@@ -188,8 +190,10 @@ public class MacroHandler {
         UngrabUtils.regrabMouse();
         StatusUtils.updateStateString();
         VisitorsMacro.stopMacro();
+        Autosell.disableOnly();
         PetSwapper.reset();
         FailsafeNew.resetFailsafes();
+        Utils.disablePingAlert();
     }
 
     public static void disableCurrentMacro() {

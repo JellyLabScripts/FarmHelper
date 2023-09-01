@@ -1,6 +1,5 @@
 package com.jelly.farmhelper.world;
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.features.PetSwapper;
 import com.jelly.farmhelper.features.Scheduler;
@@ -27,15 +26,14 @@ public class JacobsContestHandler {
             if (!jacobsContestTriggered && (!jacobsContestDelay.isScheduled() || jacobsContestDelay.passed()) && GameState.inJacobContest()) {
                 if (FarmHelper.config.pauseSchedulerDuringJacobsContest) {
                     LogUtils.debugLog("Jacob's contest start detected, pausing scheduler");
-                    Scheduler.farmClock.pause();
-                    Scheduler.breakClock.pause();
+                    Scheduler.pause();
                 }
                 jacobsContestTriggered = true;
                 DebugHUD.jacobsContestTriggered = true;
                 jacobsContestDelay.reset();
                 jacobsContestDelay.schedule(10000L);
                 if (FarmHelper.config.enablePetSwapper) {
-                    if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
+                    if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
                     if (PetSwapper.isEnabled()) return;
                     if (PetSwapper.currentState != PetSwapper.State.NONE) return;
                     if (FailsafeNew.emergency) return;
@@ -76,9 +74,8 @@ public class JacobsContestHandler {
                 PetSwapper.startMacro(true);
                 PetSwapper.hasPetChangedDuringThisContest = false;
             } else {
-                Scheduler.farmClock.resume();
-                Scheduler.breakClock.resume();
                 LogUtils.debugLog("Jacob's contest end detected, resuming scheduler");
+                Scheduler.resume();
             }
         }
     }

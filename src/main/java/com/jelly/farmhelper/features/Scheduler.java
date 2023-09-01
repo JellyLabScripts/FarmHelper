@@ -46,6 +46,18 @@ public class Scheduler {
         }
     }
 
+    public static void pause() {
+        LogUtils.debugLog("[Scheduler] Pausing");
+        farmClock.pause();
+        breakClock.pause();
+    }
+
+    public static void resume() {
+        LogUtils.debugLog("[Scheduler] Resuming");
+        farmClock.resume();
+        breakClock.resume();
+    }
+
     @SubscribeEvent
     public final void tick(TickEvent.ClientTickEvent event) {
         if (!FarmHelper.config.enableScheduler || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || FarmHelper.tickCount % 5 != 0 || MacroHandler.currentMacro == null || MacroHandler.currentMacro.cantPauseNow())

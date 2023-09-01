@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 
 public class APIHelper {
+    static JsonParser jsonParser = new JsonParser();
     public static JsonObject readJsonFromUrl(String urlToRead, String requestKey, String requestValue) throws Exception {
         try {
             StringBuilder result = new StringBuilder();
@@ -28,7 +29,7 @@ public class APIHelper {
                 }
             }
 
-            return (JsonObject) JsonParser.parseString(result.toString());
+            return (JsonObject) jsonParser.parse(result.toString());
         } catch (Exception e) {
 //            StringBuilder result = new StringBuilder();
 //            URL url = new URL(urlToRead);

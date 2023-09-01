@@ -19,7 +19,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -289,18 +288,6 @@ public class ProfitCalculator {
         } else {
             itemsDropped.put(itemName, amount);
         }
-    }
-
-    @SubscribeEvent
-    public void onRenderGui(RenderGameOverlayEvent event) {
-        if (!MacroHandler.isMacroing) return;
-        if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
-        if (!FarmHelper.config.debugMode) return;
-        if (mc.theWorld == null || mc.thePlayer == null) return;
-
-        int x = 210;
-
-        mc.fontRendererObj.drawStringWithShadow("Bountiful: " + checkForBountiful(), x, 2, 0xFFFFFF);
     }
 
     public static void onInventoryChanged(ItemStack item, int size) {

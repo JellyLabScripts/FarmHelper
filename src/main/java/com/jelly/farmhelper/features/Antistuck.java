@@ -60,7 +60,7 @@ public class Antistuck {
         if(event.phase == TickEvent.Phase.END)
             return;
 
-        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled || mc.thePlayer == null || mc.theWorld == null || (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) || mc.currentScreen != null) {
+        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled || mc.thePlayer == null || mc.theWorld == null || LocationUtils.currentIsland != LocationUtils.Island.GARDEN || mc.currentScreen != null) {
             lastX = 10000;
             lastZ = 10000;
             lastY = 10000;
@@ -72,7 +72,7 @@ public class Antistuck {
             return;
         if (cooldown.passed()) {
             Block blockIn = BlockUtils.getRelativeBlock(0, 0, 0);
-            stuck = (!blockIn.equals(Blocks.end_portal_frame) && !BlockUtils.isWalkable(blockIn) && !(blockIn instanceof BlockDoor || blockIn instanceof BlockTrapDoor)) || (Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1 && Math.abs(mc.thePlayer.posY - lastY) < 1);
+            stuck = (!blockIn.equals(Blocks.end_portal_frame) && !BlockUtils.isWalkable(blockIn) && !(blockIn instanceof BlockDoor || blockIn instanceof BlockTrapDoor)) || (Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1 && Math.abs(mc.thePlayer.posY - lastY) < 1 && !FailsafeNew.emergency);
             lastX = mc.thePlayer.posX;
             lastZ = mc.thePlayer.posZ;
             lastY = mc.thePlayer.posY;

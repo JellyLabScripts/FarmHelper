@@ -5,8 +5,8 @@ import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.AutoReconnect;
-import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.FailsafeNew;
+import com.jelly.farmhelper.features.Scheduler;
 import com.jelly.farmhelper.utils.LocationUtils;
 
 import java.awt.*;
@@ -32,6 +32,8 @@ public class DebugHUD extends TextHud {
     public static boolean farmClockisPaused = false;
     public static long breakClockremainingTime = 0;
     public static boolean breakClockisPaused = false;
+    public static boolean hasLineChanged = false;
+    public static boolean isHuggingAWall = false;
 
     @Override
     protected void getLines(List<String> lines, boolean example) {
@@ -50,6 +52,7 @@ public class DebugHUD extends TextHud {
             lines.add("rotating: " + rotating);
             lines.add("Failsafe.emergency: " + FailsafeNew.emergency);
             lines.add("jacobsContestTriggered: " + jacobsContestTriggered);
+            lines.add("Scheduler.isFarming(): " + Scheduler.isFarming());
             lines.add("farmClock remainingTime: " + farmClockremainingTime);
             lines.add("farmClock isPaused: " + farmClockisPaused);
             lines.add("breakClock remainingTime: " + breakClockremainingTime);
@@ -57,6 +60,8 @@ public class DebugHUD extends TextHud {
             lines.add("gameState.currentLocation: " + gameState.currentLocation);
             lines.add("LocationUtils.currentIsland: " + LocationUtils.currentIsland);
             lines.add("AutoReconnect.currentState: " + AutoReconnect.currentState);
+            lines.add("hasLineChanged: " + hasLineChanged);
+            lines.add("isHuggingAWall: " + isHuggingAWall);
         }
     }
 }

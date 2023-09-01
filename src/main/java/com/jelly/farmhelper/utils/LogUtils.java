@@ -5,6 +5,7 @@ import com.jelly.farmhelper.features.BanwaveChecker;
 import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.DiscordWebhook;
+import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
@@ -39,11 +40,13 @@ public class LogUtils {
     }
 
     public static void debugLog(String message) {
-        if (FarmHelper.config.debugMode) {
-            sendLog(new ChatComponentText(
-                EnumChatFormatting.GREEN + "Log " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + message
-            ));
+        if ((FarmHelper.config.hideLogs && !FarmHelper.config.debugMode) || (lastDebug != null && lastDebug.equals(message))) {
+            System.out.println("Log × " + message);
+            return;
         }
+        sendLog(new ChatComponentText(
+            EnumChatFormatting.GREEN + "Log " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + message
+        ));
         lastDebug = message;
     }
 
@@ -74,7 +77,7 @@ public class LogUtils {
             }
             long timeDiff = TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - statusMsgTime);
             if (timeDiff > FarmHelper.config.statusUpdateInterval && FarmHelper.config.sendStatusUpdates) {
-                FarmHelper.gameState.webhook.addEmbed(new DiscordWebhook.EmbedObject()
+                GameState.webhook.addEmbed(new DiscordWebhook.EmbedObject()
                         .setTitle("Farm Helper")
                         .setDescription("```" + "I'm still alive!" + "```")
                         .setColor(Color.decode("#ff3b3b"))
@@ -89,7 +92,7 @@ public class LogUtils {
                 );
                 new Thread(() -> {
                     try {
-                        FarmHelper.gameState.webhook.execute();
+                        GameState.webhook.execute();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -103,16 +106,16 @@ public class LogUtils {
 
     public static void webhookLog(String message) {
         long timeDiff = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - logMsgTime);
-        debugFullLog("Last webhook message: " + timeDiff);
+        System.out.println("Last webhook message: " + timeDiff);
         if (FarmHelper.config.sendLogs && (timeDiff > 20 || !Objects.equals(lastWebhook, message))) {
-            FarmHelper.gameState.webhook.addEmbed(new DiscordWebhook.EmbedObject()
+            GameState.webhook.addEmbed(new DiscordWebhook.EmbedObject()
                 .setDescription("**Farm Helper Log** ```" + message + "```")
                 .setColor(Color.decode("#741010"))
                 .setFooter(mc.thePlayer.getName(), "")
             );
             new Thread(() -> {
                 try {
-                    FarmHelper.gameState.webhook.execute();
+                    GameState.webhook.execute();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

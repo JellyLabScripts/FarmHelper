@@ -77,11 +77,19 @@ public class Autosell {
     }
 
     public static void disable() {
-        LogUtils.debugLog("[AutoSell] Finished auto sell");
+        LogUtils.debugLog("[AutoSell] Finished");
         mc.thePlayer.closeScreen();
         mc.thePlayer.inventory.currentItem = hoeSlot;
         enabled = false;
         MacroHandler.enableCurrentMacro();
+    }
+
+    public static void disableOnly() {
+        if (!enabled) return;
+        LogUtils.debugLog("[AutoSell] Disabled");
+        mc.thePlayer.closeScreen();
+        mc.thePlayer.inventory.currentItem = hoeSlot;
+        enabled = false;
     }
 
     @SubscribeEvent
@@ -93,7 +101,7 @@ public class Autosell {
             if (mc.thePlayer.inventory.getFirstEmptyStack() == -1 && !fullCheck) {
                 LogUtils.debugLog("[AutoSell] Started inventory full watch");
                 fullCheck = true;
-                checkTimer.schedule(TimeUnit.SECONDS.toMillis((long) FarmHelper.config.inventoryFullTime));
+                checkTimer.schedule(TimeUnit.SECONDS.toMillis(FarmHelper.config.inventoryFullTime));
                 fullCount = 1;
                 totalCount = 1;
             } else if (fullCheck && !checkTimer.passed()) {

@@ -54,7 +54,10 @@ public class Resync {
             }
         }
         cachedPos.clear();
-        if (desync && (LocationUtils.currentIsland == LocationUtils.Island.PRIVATE_ISLAND || LocationUtils.currentIsland == LocationUtils.Island.GARDEN)) {
+        if (desync) {
+            if (!MacroHandler.isMacroing) return;
+            if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
+            if (MacroHandler.currentMacro.isTping) return;
             FailsafeNew.emergencyFailsafe(FailsafeNew.FailsafeType.DESYNC);
         }
 

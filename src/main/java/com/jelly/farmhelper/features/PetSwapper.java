@@ -44,7 +44,7 @@ public class PetSwapper {
         if (!FarmHelper.config.enablePetSwapper) return;
         if (!MacroHandler.isMacroing) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (FailsafeNew.emergency) return;
         if (!enabled) return;
         if (delay.isScheduled() && !delay.passed()) return;
@@ -146,8 +146,7 @@ public class PetSwapper {
                 stopMacro();
                 mc.thePlayer.closeScreen();
                 FarmHelper.config.enablePetSwapper = false;
-                Scheduler.farmClock.resume();
-                Scheduler.breakClock.resume();
+                Scheduler.resume();
                 LogUtils.debugLog("[PetSwapper] pet swapped, resuming scheduler");
                 break;
             case WAITING_FOR_SPAWN:
@@ -172,7 +171,7 @@ public class PetSwapper {
     }
 
     public static void startMacro(boolean getPreviousPet) {
-        if (FarmHelper.config.petSwapperName.trim().equals("")) {
+        if (FarmHelper.config.petSwapperName.trim().isEmpty()) {
             LogUtils.scriptLog("[PetSwapper] no pet name specified");
             return;
         }

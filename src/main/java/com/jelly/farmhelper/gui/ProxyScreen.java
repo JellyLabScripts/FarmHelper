@@ -166,7 +166,7 @@ public class ProxyScreen extends GuiScreen {
     protected void actionPerformed(GuiButton button) {
         switch (button.id) {
             case 1: // typeBtn
-                long type = (long) FarmHelper.config.proxyType;
+                long type = FarmHelper.config.proxyType;
                 type = type == 0 ? 1 : 0;
                 this.proxyPasswordTf.setEnabled(type == 1);
                 FarmHelper.config.proxyType = (int) type;

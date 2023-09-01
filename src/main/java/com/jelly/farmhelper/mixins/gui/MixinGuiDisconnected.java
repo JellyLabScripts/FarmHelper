@@ -58,8 +58,9 @@ public class MixinGuiDisconnected {
                 multilineMessage.set(0, "Seconds till reconnect: " + Math.floor(((FarmHelper.config.delayBeforeReconnecting * 20) - AutoReconnect.waitTime) / 20));
                 multilineMessage = multilineMessage.subList(0, 1);
             }
+            if (MacroHandler.currentMacro.enabled) {
+                MacroHandler.disableCurrentMacro(true);
+            }
         }
-
-
     }
 }

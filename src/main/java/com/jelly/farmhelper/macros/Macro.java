@@ -5,7 +5,6 @@ import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Antistuck;
-import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.player.Rotation;
@@ -91,7 +90,7 @@ public abstract class Macro<T> {
         }
         if (!isRewarpLocationSet()) {
             LogUtils.scriptLog("Your rewarp position is not set!");
-            MacroHandler.disableCurrentMacro();
+            MacroHandler.disableMacro();
         }
         if (lastTp.isScheduled() && lastTp.passed()) {
             lastTp.reset();
@@ -117,7 +116,7 @@ public abstract class Macro<T> {
     private T stateBeforeFailsafe = null;
 
     public void saveLastStateBeforeDisable() {
-        LogUtils.debugLog("Saving last state before disabling macro");
+        LogUtils.debugFullLog("Saving last state before disabling macro");
         stateBeforeFailsafe = currentState;
         savedLastState = true;
         if (MacroHandler.isMacroing && MacroHandler.currentMacro.enabled) {
@@ -127,7 +126,7 @@ public abstract class Macro<T> {
     }
 
     public void restoreState() {
-        LogUtils.debugLog("Restoring last state before disabling macro");
+        LogUtils.debugFullLog("Restoring last rotation before enabling macro");
         if (stateBeforeFailsafe != null) {
             changeState(stateBeforeFailsafe);
             stateBeforeFailsafe = null;
@@ -189,7 +188,7 @@ public abstract class Macro<T> {
         isTping = true;
         if (FarmHelper.gameState.canChangeDirection() && beforeTeleportationPos == null) {
             LogUtils.debugLog("Warping to spawn point");
-            mc.thePlayer.sendChatMessage(FarmHelper.gameState.wasInGarden ? "/warp garden" : "/is");
+            mc.thePlayer.sendChatMessage("/warp garden");
             beforeTeleportationPos = mc.thePlayer.getPosition();
         }
     }
@@ -227,12 +226,11 @@ public abstract class Macro<T> {
         if(!FailsafeNew.emergency && flag && lastTp.passed() && !rotation.rotating) {
             rotation.reset();
             FailsafeNew.emergencyFailsafe(FailsafeNew.FailsafeType.ROTATION);
-            return;
         }
     }
 
     public boolean isStuck() {
-        if (Antistuck.stuck) {
+        if (Antistuck.stuck && !FailsafeNew.emergency) {
             unstuck();
             return true;
         }

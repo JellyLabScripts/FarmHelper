@@ -3,7 +3,6 @@ package com.jelly.farmhelper.macros;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.features.Antistuck;
-import com.jelly.farmhelper.features.Failsafe;
 import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -101,7 +100,7 @@ public class CocoaBeanRGMacro extends Macro {
     public void onOverlayRender(RenderGameOverlayEvent event) {
         if (!enabled) return;
         if (event.type == RenderGameOverlayEvent.ElementType.ALL && currentState != null) {
-            FontUtils.drawScaledString("State: " + currentState.name(), 1, 300, 100, true);
+            mc.fontRendererObj.drawString("State: " + currentState.name(), 1, 300, 100, true);
         }
     }
 
@@ -118,7 +117,7 @@ public class CocoaBeanRGMacro extends Macro {
             return;
         }
 
-        if (LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND && LocationUtils.currentIsland != LocationUtils.Island.GARDEN) {
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) {
             LogUtils.debugLog("You are not on the island nor in the garden!");
             updateKeys(false, false, false, false, false);
             enabled = false;
@@ -168,7 +167,7 @@ public class CocoaBeanRGMacro extends Macro {
 
         updateState();
 
-        if (FailsafeNew.emergency) {
+        if (FailsafeNew.emergency && FailsafeNew.findHighestPriorityElement() != FailsafeNew.FailsafeType.DESYNC) {
             LogUtils.debugFullLog("Blocking changing movement due to emergency");
             return;
         }
@@ -252,7 +251,7 @@ public class CocoaBeanRGMacro extends Macro {
             waitForChangeDirection.schedule(waitTime);
             beforeTeleportationPos = mc.thePlayer.getPosition();
         } else if (waitForChangeDirection.passed()) {
-            mc.thePlayer.sendChatMessage(FarmHelper.gameState.wasInGarden ? "/warp garden" : "/is");
+            mc.thePlayer.sendChatMessage("/warp garden");
             isTping = true;
             waitForChangeDirection.reset();
         }
