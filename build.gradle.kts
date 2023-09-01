@@ -98,10 +98,7 @@ tasks {
         }
     }
 
-    build.configure {
-        dependsOn("removeShadowArtifact")
-    }
-    register("removeShadowArtifact", Delete::class) {
+    build {
         doLast {
             project.file("build/libs/${project.name}-${project.version}.jar").delete()
             project.file("build/libs/${project.name}-${project.version}-all.jar").delete()
