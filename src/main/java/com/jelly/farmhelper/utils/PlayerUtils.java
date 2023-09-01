@@ -2,6 +2,7 @@ package com.jelly.farmhelper.utils;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config.CropEnum;
+import com.jelly.farmhelper.features.FailsafeNew;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDoor;
 import net.minecraft.block.BlockSlab;
@@ -402,6 +403,7 @@ public class PlayerUtils {
     }
 
     public static boolean shouldWalkForwards() {
+        if (FailsafeNew.emergency) return false;
         float angle = AngleUtils.getClosest();
         double x = mc.thePlayer.posX % 1;
         double z = mc.thePlayer.posZ % 1;
@@ -418,6 +420,7 @@ public class PlayerUtils {
     }
 
     public static boolean shouldPushBack() {
+        if (FailsafeNew.emergency) return false;
         float angle = AngleUtils.getClosest();
         double x = mc.thePlayer.posX % 1;
         double z = mc.thePlayer.posZ % 1;

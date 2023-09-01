@@ -40,11 +40,13 @@ public class LogUtils {
     }
 
     public static void debugLog(String message) {
-        if (FarmHelper.config.debugMode) {
-            sendLog(new ChatComponentText(
-                EnumChatFormatting.GREEN + "Log " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + message
-            ));
+        if ((FarmHelper.config.hideLogs && !FarmHelper.config.debugMode) || (lastDebug != null && lastDebug.equals(message))) {
+            System.out.println("Log × " + message);
+            return;
         }
+        sendLog(new ChatComponentText(
+            EnumChatFormatting.GREEN + "Log " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + message
+        ));
         lastDebug = message;
     }
 
@@ -104,7 +106,7 @@ public class LogUtils {
 
     public static void webhookLog(String message) {
         long timeDiff = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - logMsgTime);
-        debugFullLog("Last webhook message: " + timeDiff);
+        System.out.println("Last webhook message: " + timeDiff);
         if (FarmHelper.config.sendLogs && (timeDiff > 20 || !Objects.equals(lastWebhook, message))) {
             GameState.webhook.addEmbed(new DiscordWebhook.EmbedObject()
                 .setDescription("**Farm Helper Log** ```" + message + "```")

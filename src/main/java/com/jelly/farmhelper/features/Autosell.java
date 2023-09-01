@@ -77,11 +77,19 @@ public class Autosell {
     }
 
     public static void disable() {
-        LogUtils.debugLog("[AutoSell] Finished auto sell");
+        LogUtils.debugLog("[AutoSell] Finished");
         mc.thePlayer.closeScreen();
         mc.thePlayer.inventory.currentItem = hoeSlot;
         enabled = false;
         MacroHandler.enableCurrentMacro();
+    }
+
+    public static void disableOnly() {
+        if (!enabled) return;
+        LogUtils.debugLog("[AutoSell] Disabled");
+        mc.thePlayer.closeScreen();
+        mc.thePlayer.inventory.currentItem = hoeSlot;
+        enabled = false;
     }
 
     @SubscribeEvent

@@ -26,8 +26,7 @@ public class JacobsContestHandler {
             if (!jacobsContestTriggered && (!jacobsContestDelay.isScheduled() || jacobsContestDelay.passed()) && GameState.inJacobContest()) {
                 if (FarmHelper.config.pauseSchedulerDuringJacobsContest) {
                     LogUtils.debugLog("Jacob's contest start detected, pausing scheduler");
-                    Scheduler.farmClock.pause();
-                    Scheduler.breakClock.pause();
+                    Scheduler.pause();
                 }
                 jacobsContestTriggered = true;
                 DebugHUD.jacobsContestTriggered = true;
@@ -75,9 +74,8 @@ public class JacobsContestHandler {
                 PetSwapper.startMacro(true);
                 PetSwapper.hasPetChangedDuringThisContest = false;
             } else {
-                Scheduler.farmClock.resume();
-                Scheduler.breakClock.resume();
                 LogUtils.debugLog("Jacob's contest end detected, resuming scheduler");
+                Scheduler.resume();
             }
         }
     }

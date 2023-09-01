@@ -100,7 +100,7 @@ public class CocoaBeanRGMacro extends Macro {
     public void onOverlayRender(RenderGameOverlayEvent event) {
         if (!enabled) return;
         if (event.type == RenderGameOverlayEvent.ElementType.ALL && currentState != null) {
-            FontUtils.drawScaledString("State: " + currentState.name(), 1, 300, 100, true);
+            mc.fontRendererObj.drawString("State: " + currentState.name(), 1, 300, 100, true);
         }
     }
 
@@ -167,7 +167,7 @@ public class CocoaBeanRGMacro extends Macro {
 
         updateState();
 
-        if (FailsafeNew.emergency) {
+        if (FailsafeNew.emergency && FailsafeNew.findHighestPriorityElement() != FailsafeNew.FailsafeType.DESYNC) {
             LogUtils.debugFullLog("Blocking changing movement due to emergency");
             return;
         }

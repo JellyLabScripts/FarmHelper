@@ -146,8 +146,7 @@ public class PetSwapper {
                 stopMacro();
                 mc.thePlayer.closeScreen();
                 FarmHelper.config.enablePetSwapper = false;
-                Scheduler.farmClock.resume();
-                Scheduler.breakClock.resume();
+                Scheduler.resume();
                 LogUtils.debugLog("[PetSwapper] pet swapped, resuming scheduler");
                 break;
             case WAITING_FOR_SPAWN:
@@ -172,7 +171,7 @@ public class PetSwapper {
     }
 
     public static void startMacro(boolean getPreviousPet) {
-        if (FarmHelper.config.petSwapperName.trim().equals("")) {
+        if (FarmHelper.config.petSwapperName.trim().isEmpty()) {
             LogUtils.scriptLog("[PetSwapper] no pet name specified");
             return;
         }

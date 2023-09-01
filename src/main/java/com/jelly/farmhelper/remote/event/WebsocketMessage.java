@@ -2,7 +2,6 @@ package com.jelly.farmhelper.remote.event;
 
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
-import com.jelly.farmhelper.network.DiscordWebhook;
 
 public class WebsocketMessage {
     @Expose

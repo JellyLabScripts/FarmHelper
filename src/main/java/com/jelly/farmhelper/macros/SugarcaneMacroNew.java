@@ -74,7 +74,7 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
             return;
         }
 
-        if (FailsafeNew.emergency) {
+        if (FailsafeNew.emergency && FailsafeNew.findHighestPriorityElement() != FailsafeNew.FailsafeType.DESYNC) {
             LogUtils.debugFullLog("Blocking changing movement due to emergency");
             return;
         }

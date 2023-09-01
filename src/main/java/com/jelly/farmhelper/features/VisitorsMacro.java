@@ -111,7 +111,7 @@ public class VisitorsMacro {
     }
 
     public static void stopMacro() {
-        System.out.println("Stopping macro");
+        System.out.println("Stopping visitors macro");
         currentEdge = null;
         currentState = State.NONE;
         aotvTpCooldown.reset();
@@ -1019,16 +1019,16 @@ public class VisitorsMacro {
 
         int x = 120;
 
-        FontUtils.drawString("State: " + currentState, x, 2, Color.WHITE.hashCode(), true);
-        FontUtils.drawString("Buy state: " + currentBuyState, x, 12, Color.WHITE.hashCode(), true);
-        FontUtils.drawString("Stuck timer: " + (stuckClock.getRemainingTime() > 0 ? stuckClock.getRemainingTime() : "None"), x, 22, Color.WHITE.hashCode(), true);
-        FontUtils.drawString("Distance to check: " + previousDistanceToCheck, x, 32, Color.WHITE.hashCode(), true);
-        FontUtils.drawString("Items to buy: ", x, 42, Color.WHITE.hashCode(), true);
+        mc.fontRendererObj.drawString("State: " + currentState, x, 2, Color.WHITE.hashCode(), true);
+        mc.fontRendererObj.drawString("Buy state: " + currentBuyState, x, 12, Color.WHITE.hashCode(), true);
+        mc.fontRendererObj.drawString("Stuck timer: " + (stuckClock.getRemainingTime() > 0 ? stuckClock.getRemainingTime() : "None"), x, 22, Color.WHITE.hashCode(), true);
+        mc.fontRendererObj.drawString("Distance to check: " + previousDistanceToCheck, x, 32, Color.WHITE.hashCode(), true);
+        mc.fontRendererObj.drawString("Items to buy: ", x, 42, Color.WHITE.hashCode(), true);
         for (Pair<String, Integer> item : itemsToBuyCopy) {
-            FontUtils.drawString(item.getLeft() + " x" + item.getRight(), x + 5, 52 + (itemsToBuyCopy.indexOf(item) * 10), Color.WHITE.hashCode(), true);
+            mc.fontRendererObj.drawString(item.getLeft() + " x" + item.getRight(), x + 5, 52 + (itemsToBuyCopy.indexOf(item) * 10), Color.WHITE.hashCode(), true);
         }
         if (!itemsToBuyCopy.isEmpty())
-            FontUtils.drawString("Have items in inventory: " + haveRequiredItemsInInventory(), x, 52 + (itemsToBuyCopy.size() * 10), Color.WHITE.hashCode(), true);
+            mc.fontRendererObj.drawString("Have items in inventory: " + haveRequiredItemsInInventory(), x, 52 + (itemsToBuyCopy.size() * 10), Color.WHITE.hashCode(), true);
 
     }
 }

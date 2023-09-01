@@ -1,7 +1,6 @@
 package com.jelly.farmhelper.utils;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.Config;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import dorkbox.notify.Notify;
@@ -46,8 +45,7 @@ public class Utils{
                     runtime.exec("xdg-open " + url);
                 }
             }
-        } catch (Exception e) {
-
+        } catch (Exception ignored) {
         }
     }
 

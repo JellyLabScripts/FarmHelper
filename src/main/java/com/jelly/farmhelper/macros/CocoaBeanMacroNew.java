@@ -5,7 +5,6 @@ import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.utils.*;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockDoor;
 import net.minecraft.block.BlockTrapDoor;
 import net.minecraft.init.Blocks;
@@ -84,7 +83,7 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
             return;
         }
 
-        if (FailsafeNew.emergency) {
+        if (FailsafeNew.emergency && FailsafeNew.findHighestPriorityElement() != FailsafeNew.FailsafeType.DESYNC) {
             LogUtils.debugFullLog("Blocking changing movement due to emergency");
             return;
         }

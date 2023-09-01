@@ -57,8 +57,6 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
         }
 
         if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating) {
-//            System.out.println(lastTp.getRemainingTime());
-//            System.out.println(lastTp.isScheduled());
             yaw = AngleUtils.getClosestDiagonal();
             closest90Yaw = AngleUtils.getClosest();
             pitch = (float) (Math.random() * 2 - 1); // -1 - 1
@@ -105,7 +103,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             return;
         }
 
-        if (FailsafeNew.emergency) {
+        if (FailsafeNew.emergency && FailsafeNew.findHighestPriorityElement() != FailsafeNew.FailsafeType.DESYNC) {
             LogUtils.debugFullLog("Blocking changing movement due to emergency");
             return;
         }
