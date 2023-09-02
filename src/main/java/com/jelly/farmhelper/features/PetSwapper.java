@@ -6,6 +6,7 @@ import com.jelly.farmhelper.utils.Clock;
 import com.jelly.farmhelper.utils.LocationUtils;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.PlayerUtils;
+import com.jelly.farmhelper.world.JacobsContestHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.item.ItemStack;
@@ -189,6 +190,8 @@ public class PetSwapper {
         LogUtils.debugLog("Disabling petswapper and enabling macro");
         currentState = State.NONE;
         enabled = false;
+        if (FarmHelper.config.enableScheduler && !JacobsContestHandler.jacobsContestTriggered)
+            Scheduler.resume();
         MacroHandler.enableCurrentMacro();
     }
 
