@@ -160,15 +160,17 @@ public class PetSwapper {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onChatMsgReceive(ClientChatReceivedEvent event) {
-        if (!enabled || currentState != State.WAITING_FOR_SPAWN) return;
         if (event.type != 0) return;
         String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());
         String respawnMessage = "you summoned your " + (getPreviousPet ? previousPet : FarmHelper.config.petSwapperName).toLowerCase();
-        if (msg.toLowerCase().contains(respawnMessage)) {
-            currentState = State.NONE;
-            LogUtils.debugLog("[PetSwapper] pet spawned");
-            delay.schedule(1000);
+        if (!msg.toLowerCase().contains(respawnMessage)) return;
+        if (!enabled || currentState != State.WAITING_FOR_SPAWN) {
+            hasPetChangedDuringThisContest = false;
+            return;
         }
+        currentState = State.NONE;
+        LogUtils.debugLog("[PetSwapper] pet spawned");
+        delay.schedule(1000);
     }
 
     public static void startMacro(boolean getPreviousPet) {

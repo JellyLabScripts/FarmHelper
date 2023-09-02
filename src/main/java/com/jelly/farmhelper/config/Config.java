@@ -143,16 +143,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
     public int SShapeMacroType = 0;
 	@Switch(
-		name = "Auto Ungrab Mouse", category = GENERAL, subcategory = "Macro",
-		description = "Automatically unfocuses your mouse, so you can safely alt-tab"
-	)
-	public boolean autoUngrabMouse = true;
-	@Switch(
-			name = "Hold left click when changing row", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-			description = "Hold left click when change row"
-	)
-	public boolean holdLeftClickWhenChangingRow = true;
-	@Switch(
 		name = "Custom pitch", category = GENERAL, subcategory = "Macro",
 		description = "Set pitch to custom level after starting the macro"
 	)
@@ -173,6 +163,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Rotates after the player falls down"
 	)
 	public boolean rotateAfterDrop = false;
+	@Switch(
+			name = "Auto Ungrab Mouse", category = GENERAL, subcategory = "Macro",
+			description = "Automatically unfocuses your mouse, so you can safely alt-tab"
+	)
+	public boolean autoUngrabMouse = true;
 
 	@KeyBind(
 		name = "Toggle Farm Helper", category = GENERAL, subcategory = "Keybinds",
@@ -278,6 +273,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Automatically purchases and consumes a booster cookie"
 	)
 	public boolean autoCookie = false;
+	@Switch(
+			name = "Hold left click when changing row", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Hold left click when change row"
+	)
+	public boolean holdLeftClickWhenChangingRow = true;
 	@Switch(
 		name = "Count RNG to $/Hr in Profit Calculator", category = MISCELLANEOUS, subcategory = "Miscellaneous",
 		description = "Count RNG to $/Hr"
