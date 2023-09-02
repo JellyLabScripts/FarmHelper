@@ -91,10 +91,9 @@ public class PetSwapper {
                     if (petLore.stream().anyMatch(s -> s.toLowerCase().contains("click to despawn"))) {
                         if (petName.toLowerCase().trim().contains(FarmHelper.config.petSwapperName.toLowerCase())) {
                             LogUtils.scriptLog("Current pet is already the one we want");
-                            stopMacro();
-                            mc.thePlayer.closeScreen();
-                            enabled = false;
                             hasPetChangedDuringThisContest = false;
+                            mc.thePlayer.closeScreen();
+                            stopMacro();
                             return;
                         }
                         previousPet = petName.toLowerCase().trim();
@@ -113,9 +112,9 @@ public class PetSwapper {
                 }
                 if (previousPet == null) {
                     LogUtils.scriptLog("[PetSwapper] no previous pet found");
-                    stopMacro();
+                    hasPetChangedDuringThisContest = false;
                     mc.thePlayer.closeScreen();
-                    enabled = false;
+                    stopMacro();
                     return;
                 }
                 break;
@@ -145,9 +144,9 @@ public class PetSwapper {
                 }
 
                 LogUtils.scriptLog("[PetSwapper] no new pet found");
-                stopMacro();
+                hasPetChangedDuringThisContest = false;
                 mc.thePlayer.closeScreen();
-                enabled = false;
+                stopMacro();
                 Scheduler.resume();
                 LogUtils.debugLog("[PetSwapper] pet swapped, resuming scheduler");
                 break;
@@ -186,8 +185,9 @@ public class PetSwapper {
 
     public static void stopMacro() {
         LogUtils.debugLog("Disabling petswapper and enabling macro");
+        currentState = State.NONE;
+        enabled = false;
         MacroHandler.enableCurrentMacro();
-        reset();
     }
 
     public static void reset() {
