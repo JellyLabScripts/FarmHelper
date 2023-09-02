@@ -111,7 +111,8 @@ public class PetSwapper {
                     }
                 }
                 if (previousPet == null) {
-                    LogUtils.scriptLog("[PetSwapper] no previous pet found");
+                    LogUtils.scriptLog("[PetSwapper] no previous pet found, disabling...");
+                    FarmHelper.config.enablePetSwapper = false;
                     hasPetChangedDuringThisContest = false;
                     mc.thePlayer.closeScreen();
                     stopMacro();
@@ -143,12 +144,11 @@ public class PetSwapper {
                     }
                 }
 
-                LogUtils.scriptLog("[PetSwapper] no new pet found");
+                LogUtils.scriptLog("[PetSwapper] no new pet found, disabling...");
+                FarmHelper.config.enablePetSwapper = false;
                 hasPetChangedDuringThisContest = false;
                 mc.thePlayer.closeScreen();
                 stopMacro();
-                Scheduler.resume();
-                LogUtils.debugLog("[PetSwapper] pet swapped, resuming scheduler");
                 break;
             case WAITING_FOR_SPAWN:
                 break;
