@@ -116,7 +116,7 @@ public class MacroHandler {
 
                 StatusUtils.updateStateString();
             }
-            if (currentMacro != null && currentMacro.enabled && (LocationUtils.currentIsland == LocationUtils.Island.GARDEN || LocationUtils.currentIsland == LocationUtils.Island.PRIVATE_ISLAND)) {
+            if (currentMacro != null && currentMacro.enabled && LocationUtils.currentIsland == LocationUtils.Island.GARDEN) {
                 if (!VisitorsMacro.isEnabled() && !PetSwapper.isEnabled()) {
                     currentMacro.onTick();
                 }
@@ -137,7 +137,7 @@ public class MacroHandler {
         }
     }
     public static void enableMacro() {
-        if ((LocationUtils.currentIsland != LocationUtils.Island.GARDEN && LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND)) {
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) {
             LogUtils.scriptLog("You must be in the garden to start the macro!", EnumChatFormatting.RED);
             return;
         }
@@ -170,6 +170,10 @@ public class MacroHandler {
         if (FarmHelper.config.visitorsMacro && FarmHelper.config.onlyAcceptProfitableVisitors) LogUtils.scriptLog("Macro will only accept offers containing any of these products: " + String.join(", ", VisitorsMacro.profitRewards));
         if (FarmHelper.config.enablePetSwapper && GameState.inJacobContest() && !PetSwapper.hasPetChangedDuringThisContest) {
             PetSwapper.startMacro(false);
+            PetSwapper.hasPetChangedDuringThisContest = true;
+        } else if (FarmHelper.config.enablePetSwapper && !GameState.inJacobContest() && PetSwapper.hasPetChangedDuringThisContest) {
+            PetSwapper.startMacro(true);
+            PetSwapper.hasPetChangedDuringThisContest = false;
         }
 
         startTime = System.currentTimeMillis();

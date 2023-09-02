@@ -83,8 +83,6 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
             return;
         }
 
-        checkForRotationFailsafe();
-
         if (isStuck()) return;
 
         CropUtils.getTool();

@@ -55,8 +55,8 @@ public class JacobsContestHandler {
     public void onChatMessage(ClientChatReceivedEvent event) {
 //        if (event.type != 0) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());
-        if (msg.contains("The Farming Contest is over!")) {
+        String msg = StringUtils.stripControlCodes(event.message.getUnformattedText().toLowerCase());
+        if (msg.contains("the farming contest is over")) {
             jacobsContestTriggered = false;
             DebugHUD.jacobsContestTriggered = false;
             jacobsContestDelay.reset();

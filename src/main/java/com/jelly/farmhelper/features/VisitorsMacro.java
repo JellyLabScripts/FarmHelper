@@ -103,6 +103,7 @@ public class VisitorsMacro {
     public static float randomValue = 0;
 
     public static float purseBeforeVisitors = 0;
+    public static float directionBeforeStart = 1337;
 
     public static final List<String> profitRewards = Arrays.asList("Dedication", "Cultivating", "Delicate", "Replenish", "Music Rune", "Green Bandana", "Overgrown Grass", "Space Helmet");
 
@@ -135,6 +136,7 @@ public class VisitorsMacro {
         enabled = false;
         firstTimeOpen = true;
         retriesToGettingCloser = 0;
+        directionBeforeStart = 1337;
         if (disableMacro) {
             FarmHelper.config.visitorsMacro = false;
             FarmHelper.config.save();
@@ -194,25 +196,42 @@ public class VisitorsMacro {
             clock.reset();
         }
 
-        if (!MacroHandler.currentMacro.isSpawnLocationSet()) {
-            LogUtils.debugLog("Spawn pos is not yet determined, will run after rewarping or setting spawn.");
+        if (!MacroHandler.currentMacro.isSpawnLocationSet() || !MacroHandler.currentMacro.isStandingOnSpawnLocation()) {
             return;
         }
 
-        if (!MacroHandler.currentMacro.isStandingOnSpawnLocation()) {
-            LogUtils.debugLog("Not standing on spawn location, will run after rewarping or setting spawn.");
+        if (FarmHelper.gameState.cookie != GameState.EffectState.ON) {
+            LogUtils.debugLog("Cookie buff is not active, skipping...");
+            clock.schedule(5000);
+            enabled = false;
+            return;
+        }
+
+        if (FarmHelper.config.pauseVisitorsMacroDuringJacobsContest && GameState.inJacobContest()) {
+            LogUtils.debugLog("Player is in Jacob's contest, skipping...");
+            clock.schedule(5000);
+            enabled = false;
+            return;
+        }
+
+        if (PetSwapper.isEnabled()) {
+            LogUtils.debugLog("Pet swapper is working, skipping...");
+            clock.schedule(5000);
+            enabled = false;
             return;
         }
 
         if (ProfitCalculator.getCurrentPurse() < FarmHelper.config.visitorsMacroCoinsThreshold * 1_000_000) {
-            LogUtils.debugLog("Not enough coins to start visitors macro, waiting...");
+            LogUtils.debugLog("Not enough coins to start visitors macro, skipping...");
             clock.schedule(5000);
+            enabled = false;
             return;
         }
 
         if (TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
-            LogUtils.debugLog("Queue is not full, waiting...");
-            clock.schedule(1000);
+            LogUtils.debugLog("Queue is not full, skipping...");
+            clock.schedule(5000);
+            enabled = false;
             return;
         }
 
@@ -230,19 +249,12 @@ public class VisitorsMacro {
             return;
         }
 
-
         int aspectOfTheVoid = PlayerUtils.getItemInHotbar("Aspect of the");
         if (aspectOfTheVoid == -1) {
             LogUtils.debugLog("Player doesn't have AOTE nor AOTV)");
             haveAotv = false;
         } else {
             haveAotv = true;
-        }
-
-        if (FarmHelper.config.pauseVisitorsMacroDuringJacobsContest && GameState.inJacobContest()) {
-            LogUtils.debugLog("Player is in Jacob's contest, waiting...");
-            clock.schedule(5000);
-            return;
         }
 
         if (FarmHelper.config.visitorsDeskPosX == 0 && FarmHelper.config.visitorsDeskPosY == 0 && FarmHelper.config.visitorsDeskPosZ == 0) {
@@ -255,16 +267,12 @@ public class VisitorsMacro {
         }
 
         if (currentState == State.NONE && clock.passed()) {
-//            if ((!FarmHelper.config.ladderDesign || FarmHelper.config.macroType)) {
-                currentState = State.ROTATE_TO_EDGE;
-                clock.schedule(1500L);
-                LogUtils.debugLog("Visitors macro can be started");
-                KeyBindUtils.stopMovement();
-                enabled = true;
-//            } else {
-//                currentState = State.TRY_TO_SET_SPAWN;
-//                PlayerUtils.setSpawn();
-//            }
+            directionBeforeStart = AngleUtils.get360RotationYaw();
+            currentState = State.ROTATE_TO_EDGE;
+            clock.schedule(1500L);
+            LogUtils.debugLog("Visitors macro can be started");
+            KeyBindUtils.stopMovement();
+            enabled = true;
             rotation.reset();
             rotation.completed = true;
             clock.schedule(1_500);
@@ -841,6 +849,10 @@ public class VisitorsMacro {
             case TELEPORT_TO_GARDEN:
                 LogUtils.scriptLog("Spent: " + (purseBeforeVisitors - ProfitCalculator.getCurrentPurse()) + " coins on visitors");
                 mc.thePlayer.sendChatMessage("/warp garden");
+                if (FarmHelper.config.rotateAfterWarped && directionBeforeStart != 1337) {
+                    rotation.reset();
+                    rotation.easeTo(AngleUtils.get360RotationYaw(directionBeforeStart + 180), 0, 500);
+                }
                 currentState = State.CHANGE_TO_NONE;
                 delayClock.schedule(2500);
                 break;

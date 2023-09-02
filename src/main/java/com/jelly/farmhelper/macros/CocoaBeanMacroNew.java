@@ -70,8 +70,6 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
             return;
         }
 
-        checkForRotationFailsafe();
-
         if (isStuck()) return;
 
         CropUtils.getTool();

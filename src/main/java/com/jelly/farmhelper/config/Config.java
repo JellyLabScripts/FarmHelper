@@ -16,6 +16,7 @@ import com.jelly.farmhelper.hud.StatusHUD;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.utils.BlockUtils;
+import com.jelly.farmhelper.utils.LocationUtils;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.Utils;
 import com.jelly.farmhelper.world.GameState;
@@ -142,16 +143,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
     public int SShapeMacroType = 0;
 	@Switch(
-		name = "Auto Ungrab Mouse", category = GENERAL, subcategory = "Macro",
-		description = "Automatically unfocuses your mouse, so you can safely alt-tab"
-	)
-	public boolean autoUngrabMouse = true;
-	@Switch(
-			name = "Hold left click when changing row", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-			description = "Hold left click when change row"
-	)
-	public boolean holdLeftClickWhenChangingRow = true;
-	@Switch(
 		name = "Custom pitch", category = GENERAL, subcategory = "Macro",
 		description = "Set pitch to custom level after starting the macro"
 	)
@@ -172,6 +163,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Rotates after the player falls down"
 	)
 	public boolean rotateAfterDrop = false;
+	@Switch(
+			name = "Auto Ungrab Mouse", category = GENERAL, subcategory = "Macro",
+			description = "Automatically unfocuses your mouse, so you can safely alt-tab"
+	)
+	public boolean autoUngrabMouse = true;
 
 	@KeyBind(
 		name = "Toggle Farm Helper", category = GENERAL, subcategory = "Keybinds",
@@ -278,6 +274,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public boolean autoCookie = false;
 	@Switch(
+			name = "Hold left click when changing row", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+			description = "Hold left click when change row"
+	)
+	public boolean holdLeftClickWhenChangingRow = true;
+	@Switch(
 		name = "Count RNG to $/Hr in Profit Calculator", category = MISCELLANEOUS, subcategory = "Miscellaneous",
 		description = "Count RNG to $/Hr"
 	)
@@ -327,7 +328,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public int petSwapperDelay = 1000;
 	@Text(
-			name = "Pet Name", placeholder = "Mushroom Cow", secure = false, multiline = false,
+			name = "Pet Name", placeholder = "Type your pet name here",
 			category = MISCELLANEOUS, subcategory = "Pet Swapper"
 	)
 	public String petSwapperName = null;
@@ -415,6 +416,20 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = 1, max = 20
 	)
 	public int visitorsMacroCoinsThreshold = 1;
+	@Info(
+		text = "Cookie buff is required!",
+		type = InfoType.ERROR,
+		category = VISITORS_MACRO,
+		subcategory = "Visitors Macro"
+	)
+	public static boolean infoCookieBuffRequired;
+	@Info(
+		text = "Desk position must be set before using the visitors macro!",
+		type = InfoType.ERROR,
+		category = VISITORS_MACRO,
+		subcategory = "Visitors Macro"
+	)
+	public static boolean infoDeskNotSet;
 
 	@Button(
 		name = "Set Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
@@ -464,6 +479,53 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Visitors desk keybind"
 	)
 	public OneKeyBind visitorsDeskKeybind = new OneKeyBind(0);
+
+	@Number(
+			name = "SpawnPos X", category = VISITORS_MACRO, subcategory = "Spawn Position",
+			description = "The X coordinate of the spawn",
+			min = -30000000, max = 30000000
+
+	)
+	public int spawnPosX = 0;
+	@Button(
+			name = "Set SpawnPos", category = VISITORS_MACRO, subcategory = "Spawn Position",
+			description = "Sets the spawn position to your current position",
+			text = "Set SpawnPos"
+	)
+	Runnable _setSpawnPos = () -> {
+		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
+		spawnPosX = pos.getX();
+		spawnPosY = pos.getY() + 1;
+		spawnPosZ = pos.getZ();
+		isSpawnpointSet = true;
+		save();
+		LogUtils.scriptLog("Spawn position has been set to " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
+	};
+	@Number(
+			name = "SpawnPos Y", category = VISITORS_MACRO, subcategory = "Spawn Position",
+			description = "The Y coordinate of the spawn",
+			min = -30000000, max = 30000000
+	)
+	public int spawnPosY = 0;
+	@Button(
+			name = "Reset SpawnPos", category = VISITORS_MACRO, subcategory = "Spawn Position",
+			description = "Resets the spawn position",
+			text = "Reset SpawnPos"
+	)
+	Runnable _resetSpawnPos = () -> {
+		spawnPosX = 0;
+		spawnPosY = 0;
+		spawnPosZ = 0;
+		isSpawnpointSet = false;
+		save();
+		LogUtils.scriptLog("Spawn position has been reset");
+	};
+	@Number(
+			name = "SpawnPos Z", category = VISITORS_MACRO, subcategory = "Spawn Position",
+			description = "The Z coordinate of the spawn",
+			min = -30000000, max = 30000000
+	)
+	public int spawnPosZ = 0;
 
 	// END VISITORS_MACRO
 
@@ -883,55 +945,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			name = "Debug HUD", category = DEBUG, subcategory = " "
 	)
 	public DebugHUD debugHUD = new DebugHUD();
-	@Number(
-		name = "SpawnPos X", category = DEBUG, subcategory = "SpawnPos",
-		description = "The X coordinate of the spawn",
-		min = -30000000, max = 30000000
-
-	)
-	public int spawnPosX = 0;
-	@Number(
-		name = "SpawnPos Y", category = DEBUG, subcategory = "SpawnPos",
-		description = "The Y coordinate of the spawn",
-		min = -30000000, max = 30000000
-	)
-	public int spawnPosY = 0;
-	@Number(
-		name = "SpawnPos Z", category = DEBUG, subcategory = "SpawnPos",
-		description = "The Z coordinate of the spawn",
-		min = -30000000, max = 30000000,
-		size = OptionSize.DUAL
-	)
-	public int spawnPosZ = 0;
-	@Switch(name = "Is Spawnpoint set", category = DEBUG, subcategory = "SpawnPos")
+	@Switch(name = "Is Spawnpoint set (DON'T TOUCH)", category = DEBUG, subcategory = "SpawnPos")
 	public boolean isSpawnpointSet = false;
-	@Button(
-		name = "Set SpawnPos", category = DEBUG, subcategory = "SpawnPos",
-		description = "Sets the spawn position to your current position",
-		text = "Set SpawnPos"
-	)
-	Runnable _setSpawnPos = () -> {
-		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
-		spawnPosX = pos.getX();
-		spawnPosY = pos.getY() + 1;
-		spawnPosZ = pos.getZ();
-		isSpawnpointSet = true;
-		save();
-		LogUtils.scriptLog("Spawn position has been set to " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
-	};
-	@Button(
-		name = "Reset SpawnPos", category = DEBUG, subcategory = "SpawnPos",
-		description = "Resets the spawn position",
-		text = "Reset SpawnPos"
-	)
-	Runnable _resetSpawnPos = () -> {
-		spawnPosX = 0;
-		spawnPosY = 0;
-		spawnPosZ = 0;
-		isSpawnpointSet = false;
-		save();
-		LogUtils.scriptLog("Spawn position has been reset");
-	};
 
 	// END DEBUG
 
@@ -1044,6 +1059,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("onlyAcceptProfitableVisitors", "visitorsMacro");
 		this.addDependency("visitorsMacroCoinsThreshold", "visitorsMacro");
 		this.addDependency("pauseVisitorsMacroDuringJacobsContest", "visitorsMacro");
+		this.hideIf("infoCookieBuffRequired", () -> LocationUtils.currentIsland != LocationUtils.Island.GARDEN || FarmHelper.gameState.cookie == GameState.EffectState.ON);
+		this.hideIf("infoDeskNotSet", () -> LocationUtils.currentIsland != LocationUtils.Island.GARDEN || FarmHelper.config.visitorsDeskPosX != 0 || FarmHelper.config.visitorsDeskPosY != 0 || FarmHelper.config.visitorsDeskPosZ != 0);
 
 		this.addDependency("sendLogs", "enableWebHook");
 		this.addDependency("sendStatusUpdates", "enableWebHook");
@@ -1067,13 +1084,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 		this.addDependency("hideLogs", "Hide Logs (Not Recommended)", () -> !this.debugMode);
 		this.addDependency("debugMode", "Debug Mode", () -> !this.hideLogs);
-		this.addDependency("SpawnPosX", "debugMode");
-		this.addDependency("SpawnPosY", "debugMode");
-		this.addDependency("SpawnPosZ", "debugMode");
-		this.addDependency("_setSpawnPos", "debugMode");
-		this.addDependency("_resetSpawnPos", "debugMode");
 		this.addDependency("isSpawnpointSet", "debugMode");
 		this.addDependency("customPitchLevel", "customPitch");
+		this.hideIf("isSpawnpointSet", () -> true);
 		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
 //		registerKeyBind(debugKeybind, () -> FarmHelper.petSwapper.startMacro(false));
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));

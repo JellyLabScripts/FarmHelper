@@ -48,7 +48,7 @@ public class RewarpCommand extends CommandBase {
             }
             case "remove": {
                 Rewarp closest = null;
-                if (Config.rewarpList.size() == 0) {
+                if (Config.rewarpList.isEmpty()) {
                     LogUtils.scriptLog("No rewarp locations set");
                     return;
                 }

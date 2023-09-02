@@ -27,7 +27,7 @@ public abstract class MixinGuiEditSign extends GuiScreen {
 
     @Inject(method = "initGui", at = @At("RETURN"))
     private void initGui(CallbackInfo ci) {
-        if (VisitorsMacro.signText.equals("")) return;
+        if (VisitorsMacro.signText.isEmpty()) return;
 
         tileSign.signText[0] = new ChatComponentText(VisitorsMacro.signText);
 

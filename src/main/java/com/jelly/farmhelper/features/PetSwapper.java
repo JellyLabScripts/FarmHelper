@@ -46,6 +46,7 @@ public class PetSwapper {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (FailsafeNew.emergency) return;
+        if (VisitorsMacro.isEnabled()) return;
         if (!enabled) return;
         if (delay.isScheduled() && !delay.passed()) return;
 
@@ -90,9 +91,9 @@ public class PetSwapper {
                     if (petLore.stream().anyMatch(s -> s.toLowerCase().contains("click to despawn"))) {
                         if (petName.toLowerCase().trim().contains(FarmHelper.config.petSwapperName.toLowerCase())) {
                             LogUtils.scriptLog("Current pet is already the one we want");
-                            stopMacro();
+                            hasPetChangedDuringThisContest = false;
                             mc.thePlayer.closeScreen();
-                            FarmHelper.config.enablePetSwapper = false;
+                            stopMacro();
                             return;
                         }
                         previousPet = petName.toLowerCase().trim();
@@ -110,10 +111,11 @@ public class PetSwapper {
                     }
                 }
                 if (previousPet == null) {
-                    LogUtils.scriptLog("[PetSwapper] no previous pet found");
-                    stopMacro();
-                    mc.thePlayer.closeScreen();
+                    LogUtils.scriptLog("[PetSwapper] no previous pet found, disabling...");
                     FarmHelper.config.enablePetSwapper = false;
+                    hasPetChangedDuringThisContest = false;
+                    mc.thePlayer.closeScreen();
+                    stopMacro();
                     return;
                 }
                 break;
@@ -142,12 +144,11 @@ public class PetSwapper {
                     }
                 }
 
-                LogUtils.scriptLog("[PetSwapper] no new pet found");
-                stopMacro();
-                mc.thePlayer.closeScreen();
+                LogUtils.scriptLog("[PetSwapper] no new pet found, disabling...");
                 FarmHelper.config.enablePetSwapper = false;
-                Scheduler.resume();
-                LogUtils.debugLog("[PetSwapper] pet swapped, resuming scheduler");
+                hasPetChangedDuringThisContest = false;
+                mc.thePlayer.closeScreen();
+                stopMacro();
                 break;
             case WAITING_FOR_SPAWN:
                 break;
@@ -159,20 +160,22 @@ public class PetSwapper {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onChatMsgReceive(ClientChatReceivedEvent event) {
-        if (!enabled || currentState != State.WAITING_FOR_SPAWN) return;
         if (event.type != 0) return;
         String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());
         String respawnMessage = "you summoned your " + (getPreviousPet ? previousPet : FarmHelper.config.petSwapperName).toLowerCase();
-        if (msg.toLowerCase().contains(respawnMessage)) {
-            currentState = State.NONE;
-            LogUtils.debugLog("[PetSwapper] pet spawned");
-            delay.schedule(1000);
+        if (!msg.toLowerCase().contains(respawnMessage)) return;
+        if (!enabled || currentState != State.WAITING_FOR_SPAWN) {
+            hasPetChangedDuringThisContest = false;
+            return;
         }
+        currentState = State.NONE;
+        LogUtils.debugLog("[PetSwapper] pet spawned");
+        delay.schedule(1000);
     }
 
     public static void startMacro(boolean getPreviousPet) {
         if (FarmHelper.config.petSwapperName.trim().isEmpty()) {
-            LogUtils.scriptLog("[PetSwapper] no pet name specified");
+            LogUtils.scriptLog("[PetSwapper] no pet name specified, disabling");
             return;
         }
         LogUtils.debugLog("Disabling macro and enabling petswapper");
@@ -184,8 +187,9 @@ public class PetSwapper {
 
     public static void stopMacro() {
         LogUtils.debugLog("Disabling petswapper and enabling macro");
+        currentState = State.NONE;
+        enabled = false;
         MacroHandler.enableCurrentMacro();
-        reset();
     }
 
     public static void reset() {
