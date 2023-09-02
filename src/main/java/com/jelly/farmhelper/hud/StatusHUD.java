@@ -63,7 +63,7 @@ public class StatusHUD extends TextHud {
             if (FarmHelper.config.enableRemoteControl)
                 lines.add(StatusUtils.connecting);
 
-            lines.set(0, (centerText(StatusUtils.status, scale, example)));
+            lines.set(0, (centerText(StatusUtils.status, scale, false)));
         }
     }
 }

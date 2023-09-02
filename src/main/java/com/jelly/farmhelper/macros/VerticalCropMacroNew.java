@@ -77,8 +77,6 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
             return;
         }
 
-        checkForRotationFailsafe();
-
         if (isStuck()) return;
 
         CropUtils.getTool();

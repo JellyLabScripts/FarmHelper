@@ -61,8 +61,6 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
             return;
         }
 
-        checkForRotationFailsafe();
-
         if (isStuck()) return;
 
         CropUtils.getTool();

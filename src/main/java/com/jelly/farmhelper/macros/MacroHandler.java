@@ -116,7 +116,7 @@ public class MacroHandler {
 
                 StatusUtils.updateStateString();
             }
-            if (currentMacro != null && currentMacro.enabled && (LocationUtils.currentIsland == LocationUtils.Island.GARDEN || LocationUtils.currentIsland == LocationUtils.Island.PRIVATE_ISLAND)) {
+            if (currentMacro != null && currentMacro.enabled && LocationUtils.currentIsland == LocationUtils.Island.GARDEN) {
                 if (!VisitorsMacro.isEnabled() && !PetSwapper.isEnabled()) {
                     currentMacro.onTick();
                 }
@@ -137,7 +137,7 @@ public class MacroHandler {
         }
     }
     public static void enableMacro() {
-        if ((LocationUtils.currentIsland != LocationUtils.Island.GARDEN && LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND)) {
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) {
             LogUtils.scriptLog("You must be in the garden to start the macro!", EnumChatFormatting.RED);
             return;
         }

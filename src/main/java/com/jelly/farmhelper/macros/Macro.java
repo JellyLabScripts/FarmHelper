@@ -126,7 +126,7 @@ public abstract class Macro<T> {
     }
 
     public void restoreState() {
-        LogUtils.debugFullLog("Restoring last rotation before enabling macro");
+        LogUtils.debugFullLog("Restoring last state before enabling macro");
         if (stateBeforeFailsafe != null) {
             changeState(stateBeforeFailsafe);
             stateBeforeFailsafe = null;
@@ -216,18 +216,18 @@ public abstract class Macro<T> {
     }
 
     // Old rotation check
-    public void checkForRotationFailsafe() {
-        if (!FarmHelper.config.oldRotationCheck) return;
-        if (!rotatedAfterStart) return;
-        // Check for rotation check failsafe
-        boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FarmHelper.config.rotationCheckSensitivity
-                || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity;
-
-        if(!FailsafeNew.emergency && flag && lastTp.passed() && !rotation.rotating) {
-            rotation.reset();
-            FailsafeNew.emergencyFailsafe(FailsafeNew.FailsafeType.ROTATION);
-        }
-    }
+//    public void checkForRotationFailsafe() {
+//        if (!FarmHelper.config.oldRotationCheck) return;
+//        if (!rotatedAfterStart) return;
+//        // Check for rotation check failsafe
+//        boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FarmHelper.config.rotationCheckSensitivity
+//                || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity;
+//
+//        if(!FailsafeNew.emergency && flag && lastTp.passed() && !rotation.rotating) {
+//            rotation.reset();
+//            FailsafeNew.emergencyFailsafe(FailsafeNew.FailsafeType.ROTATION);
+//        }
+//    }
 
     public boolean isStuck() {
         if (Antistuck.stuck && !FailsafeNew.emergency) {

@@ -292,7 +292,6 @@ public class CocoaBeanMacro extends Macro {
         }
 
         if (lastState != currentState) {
-            //TODO: Further test set spawn
             if(currentState == State.KEEP_RIGHT || currentState == State.LEFT_KEEP) {
                 PlayerUtils.attemptSetSpawn();
             }
