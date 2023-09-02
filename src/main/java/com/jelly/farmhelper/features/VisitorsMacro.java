@@ -196,32 +196,41 @@ public class VisitorsMacro {
             clock.reset();
         }
 
+        if (!MacroHandler.currentMacro.isSpawnLocationSet() || !MacroHandler.currentMacro.isStandingOnSpawnLocation()) {
+            return;
+        }
+
         if (FarmHelper.gameState.cookie != GameState.EffectState.ON) {
             LogUtils.debugLog("Cookie buff is not active, skipping...");
+            clock.schedule(5000);
             enabled = false;
             return;
         }
 
-        if (!MacroHandler.currentMacro.isSpawnLocationSet()) {
-            LogUtils.debugLog("Spawn pos is not yet determined, will run after rewarping or setting spawn.");
+        if (FarmHelper.config.pauseVisitorsMacroDuringJacobsContest && GameState.inJacobContest()) {
+            LogUtils.debugLog("Player is in Jacob's contest, skipping...");
+            clock.schedule(5000);
             enabled = false;
             return;
         }
 
-        if (!MacroHandler.currentMacro.isStandingOnSpawnLocation()) {
-            LogUtils.debugLog("Not standing on spawn location, will run after rewarping or setting spawn.");
+        if (PetSwapper.isEnabled()) {
+            LogUtils.debugLog("Pet swapper is working, skipping...");
+            clock.schedule(5000);
             enabled = false;
             return;
         }
 
         if (ProfitCalculator.getCurrentPurse() < FarmHelper.config.visitorsMacroCoinsThreshold * 1_000_000) {
             LogUtils.debugLog("Not enough coins to start visitors macro, skipping...");
+            clock.schedule(5000);
             enabled = false;
             return;
         }
 
         if (TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
             LogUtils.debugLog("Queue is not full, skipping...");
+            clock.schedule(5000);
             enabled = false;
             return;
         }
@@ -246,12 +255,6 @@ public class VisitorsMacro {
             haveAotv = false;
         } else {
             haveAotv = true;
-        }
-
-        if (FarmHelper.config.pauseVisitorsMacroDuringJacobsContest && GameState.inJacobContest()) {
-            LogUtils.debugLog("Player is in Jacob's contest, skipping...");
-            enabled = false;
-            return;
         }
 
         if (FarmHelper.config.visitorsDeskPosX == 0 && FarmHelper.config.visitorsDeskPosY == 0 && FarmHelper.config.visitorsDeskPosZ == 0) {

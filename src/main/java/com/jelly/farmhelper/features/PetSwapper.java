@@ -46,6 +46,7 @@ public class PetSwapper {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
         if (FailsafeNew.emergency) return;
+        if (VisitorsMacro.isEnabled()) return;
         if (!enabled) return;
         if (delay.isScheduled() && !delay.passed()) return;
 
@@ -92,7 +93,8 @@ public class PetSwapper {
                             LogUtils.scriptLog("Current pet is already the one we want");
                             stopMacro();
                             mc.thePlayer.closeScreen();
-                            FarmHelper.config.enablePetSwapper = false;
+                            enabled = false;
+                            hasPetChangedDuringThisContest = false;
                             return;
                         }
                         previousPet = petName.toLowerCase().trim();
@@ -113,7 +115,7 @@ public class PetSwapper {
                     LogUtils.scriptLog("[PetSwapper] no previous pet found");
                     stopMacro();
                     mc.thePlayer.closeScreen();
-                    FarmHelper.config.enablePetSwapper = false;
+                    enabled = false;
                     return;
                 }
                 break;
@@ -145,7 +147,7 @@ public class PetSwapper {
                 LogUtils.scriptLog("[PetSwapper] no new pet found");
                 stopMacro();
                 mc.thePlayer.closeScreen();
-                FarmHelper.config.enablePetSwapper = false;
+                enabled = false;
                 Scheduler.resume();
                 LogUtils.debugLog("[PetSwapper] pet swapped, resuming scheduler");
                 break;
