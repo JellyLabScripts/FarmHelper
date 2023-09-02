@@ -170,6 +170,10 @@ public class MacroHandler {
         if (FarmHelper.config.visitorsMacro && FarmHelper.config.onlyAcceptProfitableVisitors) LogUtils.scriptLog("Macro will only accept offers containing any of these products: " + String.join(", ", VisitorsMacro.profitRewards));
         if (FarmHelper.config.enablePetSwapper && GameState.inJacobContest() && !PetSwapper.hasPetChangedDuringThisContest) {
             PetSwapper.startMacro(false);
+            PetSwapper.hasPetChangedDuringThisContest = true;
+        } else if (FarmHelper.config.enablePetSwapper && !GameState.inJacobContest() && PetSwapper.hasPetChangedDuringThisContest) {
+            PetSwapper.startMacro(true);
+            PetSwapper.hasPetChangedDuringThisContest = false;
         }
 
         startTime = System.currentTimeMillis();
