@@ -158,18 +158,20 @@ public class PetSwapper {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
-    public void onChatMsgReceive(ClientChatReceivedEvent event) {
-        if (event.type != 0) return;
-        String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());
-        String respawnMessage = "you summoned your " + (getPreviousPet ? previousPet : FarmHelper.config.petSwapperName).toLowerCase();
-        if (!msg.toLowerCase().contains(respawnMessage)) return;
-        if (!enabled || currentState != State.WAITING_FOR_SPAWN) {
-            hasPetChangedDuringThisContest = false;
-            return;
+    public void onPetSummon(ClientChatReceivedEvent event) {
+        if (event.type == 0 && event.message != null && previousPet != null && FarmHelper.config.petSwapperName != null) {
+            String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());
+            String respawnMessage = "you summoned your " + (getPreviousPet ? previousPet : FarmHelper.config.petSwapperName).toLowerCase();
+            if (msg.toLowerCase().contains(respawnMessage)) {
+                if (!enabled || currentState != State.WAITING_FOR_SPAWN) {
+                    hasPetChangedDuringThisContest = false;
+                    return;
+                }
+                currentState = State.NONE;
+                LogUtils.sendDebug("[PetSwapper] pet spawned");
+                delay.schedule(1000);
+            }
         }
-        currentState = State.NONE;
-        LogUtils.sendDebug("[PetSwapper] pet spawned");
-        delay.schedule(1000);
     }
 
     public static void startMacro(boolean getPreviousPet) {
