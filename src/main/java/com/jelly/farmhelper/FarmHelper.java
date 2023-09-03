@@ -81,6 +81,9 @@ public class FarmHelper {
         ClientCommandHandler.instance.registerCommand(new FarmHelperCommand());
 
         gameState = new GameState();
+
+        if (FarmHelper.config.SShapeMacroType > 6) // fix for old config
+            FarmHelper.config.SShapeMacroType = 6;
     }
 
     @SubscribeEvent

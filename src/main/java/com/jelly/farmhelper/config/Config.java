@@ -389,6 +389,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = 0.2f, max = 10
 	)
 	public float rotationTimeRandomness = 0.2f;
+	@Slider(
+		name = "Visitors Macro GUI delay", category = DELAYS, subcategory = "Delays",
+		description = "The delay between clicking GUI during visitors macro (in seconds)",
+		min = 0.15f, max = 2f
+	)
+	public float visitorsMacroGuiDelay = 0.35f;
 
 	// END DELAYS
 
@@ -993,11 +999,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			options = {"Using keys", "Using WINAPI (Windows only)"}
 	)
 	public int autoAltTabMode = 0;
-
-	@Switch(
-			name = "Old rotation check method (depreciated)", category = EXPERIMENTAL, subcategory = "Experimental"
-	)
-	public boolean oldRotationCheck = false;
 
 	@Switch(
 			name = "Ping server to decrease potential false rotation checks", category = EXPERIMENTAL, subcategory = "Experimental"

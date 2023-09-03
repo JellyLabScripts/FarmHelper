@@ -5,6 +5,7 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
+import lombok.Getter;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockSlab;
 import net.minecraft.block.BlockStairs;
@@ -59,8 +60,9 @@ public class VisitorsMacro {
     public enum BuyState {
         IDLE,
         CLICK_CROP,
-        CLICK_SIGN,
         CLICK_BUY,
+        CLICK_SIGN,
+        CLICK_CONFIRM,
         SETUP_VISITOR_HAND_IN,
         HAND_IN_CROPS,
     }
@@ -74,6 +76,7 @@ public class VisitorsMacro {
         CLOSE_COMPACTOR
     }
 
+    @Getter
     private static boolean enabled = false;
 
     private static State currentState = State.NONE;
@@ -119,10 +122,6 @@ public class VisitorsMacro {
     public static float directionBeforeStart = 1337;
 
     public static final List<String> profitRewards = Arrays.asList("Dedication", "Cultivating", "Delicate", "Replenish", "Music Rune", "Green Bandana", "Overgrown Grass", "Space Helmet");
-
-    public static boolean isEnabled() {
-        return enabled;
-    }
 
     public static void stopMacro() {
         LogUtils.sendDebug("Stopping visitors macro");
@@ -353,7 +352,7 @@ public class VisitorsMacro {
 
         switch (currentState) {
             case TRY_TO_SET_SPAWN:
-                // idle to wait for chatmessage
+                // waiting for chat message
                 break;
             case ROTATE_TO_EDGE:
                 if ((mc.thePlayer.openContainer instanceof ContainerChest)) break;
@@ -578,18 +577,13 @@ public class VisitorsMacro {
                             LogUtils.sendDebug("No compactors found in the hotbar, skipping...");
                             currentCompactorState = CompactorState.IDLE;
                             currentState = State.MANAGING_VISITORS;
-                            delayClock.schedule(250);
+                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                         } else {
                             currentCompactorState = CompactorState.HOLD_COMPACTOR;
-                            delayClock.schedule(250);
+                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                         }
                         break;
                     case HOLD_COMPACTOR:
-//                        for (Integer slot : compactorSlots) {
-//                            mc.thePlayer.inventory.currentItem = slot;
-//                            LogUtils.sendDebug("Switching slot to compactor");
-//                            delayClock.schedule(250);
-//                        }
                         LogUtils.sendDebug("Compactor slots: " + compactorSlots);
                         if (compactorSlots.isEmpty()) {
                             LogUtils.sendDebug("compactorSlots array is empty");
@@ -598,7 +592,7 @@ public class VisitorsMacro {
                         mc.thePlayer.inventory.currentItem = compactorSlots.get(0);
                         LogUtils.sendDebug("Switching slot to compactor");
                         currentCompactorState = CompactorState.OPEN_COMPACTOR;
-                        delayClock.schedule(250);
+                        delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                         break;
                     case OPEN_COMPACTOR:
                         LogUtils.sendDebug("Opening compactor");
@@ -612,7 +606,7 @@ public class VisitorsMacro {
                             currentCompactorState = CompactorState.IDLE;
                             currentState = State.MANAGING_VISITORS;
                         }
-                        delayClock.schedule(250);
+                        delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                         break;
                     case TOGGLE_COMPACTOR:
                         if (!(mc.thePlayer.openContainer instanceof ContainerChest)) break;
@@ -643,7 +637,7 @@ public class VisitorsMacro {
                             currentCompactorState = CompactorState.IDLE;
                             currentState = State.MANAGING_VISITORS;
                         }
-                        delayClock.schedule(250);
+                        delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                         break;
                 }
                 break;
@@ -672,7 +666,7 @@ public class VisitorsMacro {
                 if (noMoreVisitors()) {
                     currentState = State.ENABLE_COMPACTORS;
                     currentCompactorState = CompactorState.GET_LIST;
-                    delayClock.schedule(250);
+                    delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                     return;
                 }
 
@@ -725,10 +719,10 @@ public class VisitorsMacro {
                 mc.playerController.interactWithEntitySendPacket(mc.thePlayer, currentVisitor);
                 if (boughtAllItems) {
                     currentState = State.GIVE_ITEMS;
-                    delayClock.schedule(250);
+                    delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                 } else
                     currentState = State.BUY_ITEMS;
-                delayClock.schedule(250);
+                delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                 break;
             case BUY_ITEMS:
                 String chestName = mc.thePlayer.openContainer.inventorySlots.get(0).inventory.getName();
@@ -773,7 +767,7 @@ public class VisitorsMacro {
                                             signText = "";
                                             boughtAllItems = true;
                                             currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
-                                            delayClock.schedule(250);
+                                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                                             return;
                                         }
                                     }
@@ -817,9 +811,9 @@ public class VisitorsMacro {
                                     if (!slot.getHasStack()) continue;
                                     if (StringUtils.stripControlCodes(slot.getStack().getDisplayName()).trim().equals(itemToBuy.getLeft().trim())) {
                                         clickSlot(slot.slotNumber, 0);
-                                        currentBuyState = BuyState.CLICK_SIGN;
+                                        currentBuyState = BuyState.CLICK_BUY;
                                         rejectOffer = false;
-                                        delayClock.schedule(250);
+                                        delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                                         return;
                                     }
                                 }
@@ -831,21 +825,33 @@ public class VisitorsMacro {
                                 currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
                             }
                             break;
-                        case CLICK_SIGN:
+                        case CLICK_BUY:
                             if (itemToBuy == null) {
                                 currentState = State.MANAGING_VISITORS;
                                 break;
                             }
                             if (chestName.contains("➜") && !chestName.contains("Bazaar")) {
                                 clickSlot(10, 0);
-                                clickSlot(16, 1);
 
                                 signText = String.valueOf(itemToBuy.getRight());
-                                currentBuyState = BuyState.CLICK_BUY;
-                                delayClock.schedule(250);
+                                currentBuyState = BuyState.CLICK_SIGN;
+                                delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                             }
                             break;
-                        case CLICK_BUY:
+                        case CLICK_SIGN:
+                            if (itemToBuy == null) {
+                                currentState = State.MANAGING_VISITORS;
+                                break;
+                            }
+                            if (chestName.contains("➜") && !chestName.contains("Bazaar")) {
+                                clickSlot(16, 0);
+
+                                signText = String.valueOf(itemToBuy.getRight());
+                                currentBuyState = BuyState.CLICK_CONFIRM;
+                                delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
+                            }
+                            break;
+                        case CLICK_CONFIRM:
                             if (itemToBuy == null) {
                                 currentState = State.MANAGING_VISITORS;
                                 break;
@@ -859,7 +865,7 @@ public class VisitorsMacro {
                                 } else {
                                     currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
                                 }
-                                delayClock.schedule(250);
+                                delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                             }
                             break;
                         case SETUP_VISITOR_HAND_IN:
@@ -908,7 +914,7 @@ public class VisitorsMacro {
                         currentBuyState = BuyState.IDLE;
                         break;
                     }
-                    delayClock.schedule(250);
+                    delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                     break;
                 } else if (haveRequiredItemsInInventory() && !rejectOffer) {
                     if (!haveItemsClock.isScheduled()) {
@@ -947,10 +953,10 @@ public class VisitorsMacro {
                             LogUtils.sendDebug("No compactors found in the hotbar, skipping...");
                             currentCompactorState = CompactorState.IDLE;
                             currentState = State.BACK_TO_FARMING;
-                            delayClock.schedule(250);
+                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                         } else {
                             currentCompactorState = CompactorState.HOLD_COMPACTOR;
-                            delayClock.schedule(250);
+                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                         }
                         break;
                     case HOLD_COMPACTOR:
@@ -962,7 +968,7 @@ public class VisitorsMacro {
                         mc.thePlayer.inventory.currentItem = compactorSlots.get(0);
                         LogUtils.sendDebug("Switching slot to compactor");
                         currentCompactorState = CompactorState.OPEN_COMPACTOR;
-                        delayClock.schedule(250);
+                        delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                         break;
                     case OPEN_COMPACTOR:
                         LogUtils.sendDebug("Opening compactor");
@@ -976,7 +982,7 @@ public class VisitorsMacro {
                             currentCompactorState = CompactorState.IDLE;
                             currentState = State.BACK_TO_FARMING;
                         }
-                        delayClock.schedule(250);
+                        delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                         break;
                     case TOGGLE_COMPACTOR:
                         if (!(mc.thePlayer.openContainer instanceof ContainerChest)) break;
@@ -1007,7 +1013,7 @@ public class VisitorsMacro {
                             currentCompactorState = CompactorState.IDLE;
                             currentState = State.BACK_TO_FARMING;
                         }
-                        delayClock.schedule(250);
+                        delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                         break;
                 }
                 break;
@@ -1015,7 +1021,7 @@ public class VisitorsMacro {
                 if (mc.currentScreen != null) {
                     mc.thePlayer.closeScreen();
                     if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
-                    delayClock.schedule(250);
+                    delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                     break;
                 }
                 if (noMoreVisitors() || disableMacro) {
@@ -1066,7 +1072,7 @@ public class VisitorsMacro {
         itemsToBuy.clear();
         itemsToBuyForCheck.clear();
         itemToBuy = null;
-        delayClock.schedule(250);
+        delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
         haveItemsClock.reset();
     }
 
