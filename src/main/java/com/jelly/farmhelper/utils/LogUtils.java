@@ -8,7 +8,6 @@ import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting;
 
 import java.awt.*;
 import java.io.IOException;
@@ -16,7 +15,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class LogUtils {
-    private static String lastDebug;
+    private static String lastDebugMessage;
     private static String lastWebhook;
     private static long logMsgTime = 1000;
     private static long statusMsgTime = -1;
@@ -27,39 +26,28 @@ public class LogUtils {
            mc.thePlayer.addChatMessage(chat);
     }
 
-    public static void scriptLog(String message) {
-        sendLog(new ChatComponentText(
-            EnumChatFormatting.DARK_GREEN + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + message
-        ));
+    public static void sendSuccess(String message) {
+        sendLog(new ChatComponentText("§2§lFarm Helper §8» §a" + message));
     }
-
-    public static void scriptLog(String message, EnumChatFormatting color) {
-        sendLog(new ChatComponentText(
-            EnumChatFormatting.DARK_GREEN + "" + EnumChatFormatting.BOLD + "Farm Helper " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + color + EnumChatFormatting.BOLD + message
-        ));
+    public static void sendWarning(String message) {
+        sendLog(new ChatComponentText("§6§lFarm Helper §8» §e" + message));
     }
-
-    public static void debugLog(String message) {
-        if ((FarmHelper.config.hideLogs && !FarmHelper.config.debugMode) || (lastDebug != null && lastDebug.equals(message))) {
-            System.out.println("Log × " + message);
-            return;
-        }
-        sendLog(new ChatComponentText(
-            EnumChatFormatting.GREEN + "Log " + EnumChatFormatting.RESET + EnumChatFormatting.DARK_GRAY + "» " + EnumChatFormatting.GRAY + message
-        ));
-        lastDebug = message;
+    public static void sendError(String message) {
+        sendLog(new ChatComponentText("§4§lFarm Helper §8» §c" + message));
     }
-
-    public static void debugFullLog(String message) {
-        if (FarmHelper.config.debugMode) {
-            debugLog(message);
-        }
+    public static void sendDebug(String message) {
+        if (lastDebugMessage != null && lastDebugMessage.equals(message)) return;
+        if (FarmHelper.config.debugMode)
+            sendLog(new ChatComponentText("§3§lFarm Helper §8» §7" + message));
+        lastDebugMessage = message;
+    }
+    public static void sendFailsafeMessage(String message) {
+        sendLog(new ChatComponentText("§5§lFarm Helper §8» §d§l" + message));
     }
 
     public static String getRuntimeFormat() {
-        if (MacroHandler.startTime == 0) {
+        if (MacroHandler.startTime == 0)
             return "0h 0m 0s";
-        }
         long millis = System.currentTimeMillis() - MacroHandler.startTime;
         return String.format("%dh %dm %ds",
             TimeUnit.MILLISECONDS.toHours(millis),
@@ -106,7 +94,7 @@ public class LogUtils {
 
     public static void webhookLog(String message) {
         long timeDiff = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - logMsgTime);
-        System.out.println("Last webhook message: " + timeDiff);
+        sendDebug("Last webhook message: " + timeDiff);
         if (FarmHelper.config.sendLogs && (timeDiff > 20 || !Objects.equals(lastWebhook, message))) {
             GameState.webhook.addEmbed(new DiscordWebhook.EmbedObject()
                 .setDescription("**Farm Helper Log** ```" + message + "```")

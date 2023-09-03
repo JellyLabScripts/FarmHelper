@@ -232,7 +232,7 @@ public class ProfitCalculator {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (updateBazaarClock.passed()) {
             updateBazaarClock.schedule(1000 * 60 * 5);
-            System.out.println("Updating Bazaar Prices");
+            LogUtils.sendDebug("Updating Bazaar Prices");
             new Thread(ProfitCalculator::fetchBazaarPrices).start();
         }
     }
@@ -281,7 +281,7 @@ public class ProfitCalculator {
     }
 
     private void addRngDrop(String itemName, int amount) {
-        LogUtils.debugLog("Rng drop detected: " + itemName + " " + amount + "x");
+        LogUtils.sendDebug("Rng drop detected: " + itemName + " " + amount + "x");
         if (itemsDropped.containsKey(itemName)) {
             int currentAmount = itemsDropped.get(itemName);
             itemsDropped.put(itemName, currentAmount + amount);
@@ -292,7 +292,7 @@ public class ProfitCalculator {
 
     public static void onInventoryChanged(ItemStack item, int size) {
         if (rngDropItemsList.stream().anyMatch(item.getDisplayName()::contains)) {
-            LogUtils.debugLog("Rng drop detected: " + item.getDisplayName());
+            LogUtils.sendDebug("Rng drop detected: " + item.getDisplayName());
             return;
         }
         if (itemsDropped.containsKey(StringUtils.stripControlCodes(item.getDisplayName()))) {
@@ -381,10 +381,10 @@ public class ProfitCalculator {
                 JsonObject json3 = json2.getAsJsonObject("quick_status");
 
                 double buyPrice = json3.get("buyPrice").getAsDouble();
-                if (bazaarPrices.get(item.localizedName) == null || (buyPrice < bazaarPrices.get(item.localizedName) * 3.0)) {
+                if (bazaarPrices.get(item.localizedName) == null || (buyPrice < bazaarPrices.get(item.localizedName) * 2.5)) {
                     bazaarPrices.put(item.localizedName, buyPrice);
                 } else {
-                    LogUtils.debugLog("Bazaar price for " + item.localizedName + " has been market manipulated. Skipping...");
+                    LogUtils.sendDebug("Bazaar price for §f" + item.localizedName + "§7 has been market manipulated. Skipping...");
                 }
             }
 
@@ -393,19 +393,19 @@ public class ProfitCalculator {
                 JsonObject json3 = json2.getAsJsonObject("quick_status");
 
                 double buyPrice = json3.get("buyPrice").getAsDouble();
-                if (bazaarPrices.get(bazaarItem.localizedName) == null || (buyPrice < bazaarPrices.get(bazaarItem.localizedName) * 3.0)) {
+                if (bazaarPrices.get(bazaarItem.localizedName) == null || (buyPrice < bazaarPrices.get(bazaarItem.localizedName) * 2.5)) {
                     bazaarPrices.put(bazaarItem.localizedName, buyPrice);
                 } else {
-                    LogUtils.debugLog("Bazaar price for " + bazaarItem.localizedName + " has been market manipulated. Skipping...");
+                    LogUtils.sendDebug("Bazaar price for §f" + bazaarItem.localizedName + "§7 has been market manipulated. Skipping...");
                 }
             }
 
-            LogUtils.debugLog("Bazaar prices updated");
+            LogUtils.sendDebug("Bazaar prices updated");
             cantConnectToApi = false;
 
         } catch (Exception e) {
             e.printStackTrace();
-            LogUtils.debugLog("Failed to update bazaar prices");
+            LogUtils.sendDebug("Failed to update bazaar prices");
             cantConnectToApi = true;
         }
     }

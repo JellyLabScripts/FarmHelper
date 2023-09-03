@@ -92,7 +92,7 @@ public class FarmHelper {
             config.visitorsDeskPosZ = pos.getZ();
             config.save();
 
-            LogUtils.scriptLog("Visitors Desk Position Set. BlockPos: " + pos);
+            LogUtils.sendSuccess("Visitors desk position has been set.");
         }
     }
 

@@ -47,13 +47,13 @@ public class Scheduler {
     }
 
     public static void pause() {
-        LogUtils.debugLog("[Scheduler] Pausing");
+        LogUtils.sendDebug("[Scheduler] Pausing");
         farmClock.pause();
         breakClock.pause();
     }
 
     public static void resume() {
-        LogUtils.debugLog("[Scheduler] Resuming");
+        LogUtils.sendDebug("[Scheduler] Resuming");
         farmClock.resume();
         breakClock.resume();
     }
@@ -64,12 +64,12 @@ public class Scheduler {
             return;
 
         if (!MacroHandler.randomizing && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && currentState == State.FARMING && !farmClock.isPaused() && farmClock.passed()) {
-            LogUtils.debugLog("[Scheduler] Farming time has passed, stopping");
+            LogUtils.sendDebug("[Scheduler] Farming time has passed, stopping");
             MacroHandler.disableCurrentMacro(true);
             currentState = State.BREAK;
             breakClock.schedule(TimeUnit.MINUTES.toMillis((long)(FarmHelper.config.schedulerBreakTime + (Math.random() * FarmHelper.config.schedulerBreakTimeRandomness))));
         } else if (!MacroHandler.randomizing && MacroHandler.isMacroing && currentState == State.BREAK && !breakClock.isPaused() && breakClock.passed()) {
-            LogUtils.debugLog("[Scheduler] Break time has passed, starting");
+            LogUtils.sendDebug("[Scheduler] Break time has passed, starting");
             currentState = State.FARMING;
             farmClock.schedule(TimeUnit.MINUTES.toMillis((long)(FarmHelper.config.schedulerFarmingTime + (Math.random() * FarmHelper.config.schedulerFarmingTimeRandomness))));
         }

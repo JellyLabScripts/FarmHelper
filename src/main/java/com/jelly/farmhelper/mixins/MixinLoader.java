@@ -11,7 +11,7 @@ import java.util.Map;
 public class MixinLoader implements IFMLLoadingPlugin {
 
     public MixinLoader() {
-        System.out.println("mixins initialized");
+        System.out.println("FarmHelper mixins initialized!");
         MixinBootstrap.init();
         Mixins.addConfiguration("mixins.farmhelper.json");
     }

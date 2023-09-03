@@ -67,13 +67,13 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
 
         // Waiting for teleportation, don't move
         if (beforeTeleportationPos != null) {
-            LogUtils.debugFullLog("Waiting for tp...");
+            LogUtils.sendDebug("Waiting for tp...");
             KeyBindUtils.stopMovement();
             return;
         }
 
         if (FailsafeNew.emergency && FailsafeNew.findHighestPriorityElement() != FailsafeNew.FailsafeType.DESYNC) {
-            LogUtils.debugFullLog("Blocking changing movement due to emergency");
+            LogUtils.sendDebug("Blocking changing movement due to emergency");
             return;
         }
 
@@ -115,10 +115,10 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
                 break;
             }
             case DROPPING: {
-                LogUtils.debugFullLog("On Ground: " + mc.thePlayer.onGround);
+                LogUtils.sendDebug("On Ground: " + mc.thePlayer.onGround);
                 if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) > 1.5) {
                     if (FarmHelper.config.rotateAfterDrop && !rotation.rotating) {
-                        LogUtils.debugLog("Rotating 180");
+                        LogUtils.sendDebug("Rotating 180");
                         rotation.reset();
                         yaw = yaw + 180;
                         rotation.easeTo(yaw, pitch, (long) (400 + Math.random() * 300));
@@ -163,7 +163,7 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
                 break;
             case DROPPING:
                 if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) <= 1.5) {
-                    LogUtils.debugLog("Dropping done, but didn't drop high enough to rotate!");
+                    LogUtils.sendDebug("Dropping done, but didn't drop high enough to rotate!");
                     layerY = mc.thePlayer.getPosition().getY();
                     changeState(State.NONE);
                 }
