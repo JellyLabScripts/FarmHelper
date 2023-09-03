@@ -31,15 +31,15 @@ public class Pinger {
 
         if (dontRotationCheck.isScheduled() && dontRotationCheck.passed()) {
             dontRotationCheck.reset();
-            LogUtils.debugLog("Checking for rotation packets again");
+            LogUtils.sendDebug("Checking for rotation packets again");
         }
 
         if (!isOffline && noConnection()) {
             isOffline = true;
-            LogUtils.debugLog("Lag spike?");
+            LogUtils.sendDebug("Lag spike?");
         } else if (isOffline && !noConnection()) {
             isOffline = false;
-            LogUtils.debugLog("Lag spike ended");
+            LogUtils.sendDebug("Lag spike ended");
             dontRotationCheck.schedule(1_500);
         }
     }

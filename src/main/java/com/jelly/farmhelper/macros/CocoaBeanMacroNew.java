@@ -28,7 +28,7 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
         if (currentState == null)
             changeState(State.NONE);
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
-        LogUtils.debugFullLog("Crop: " + crop);
+        LogUtils.sendDebug("Crop: " + crop);
         MacroHandler.crop = crop;
         CropUtils.getTool();
         if (FarmHelper.config.customPitch) {
@@ -76,13 +76,13 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
 
         // Waiting for teleportation, don't move
         if (beforeTeleportationPos != null) {
-            LogUtils.debugFullLog("Waiting for tp...");
+            LogUtils.sendDebug("Waiting for tp...");
             KeyBindUtils.stopMovement();
             return;
         }
 
         if (FailsafeNew.emergency && FailsafeNew.findHighestPriorityElement() != FailsafeNew.FailsafeType.DESYNC) {
-            LogUtils.debugFullLog("Blocking changing movement due to emergency");
+            LogUtils.sendDebug("Blocking changing movement due to emergency");
             return;
         }
 
@@ -114,7 +114,7 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
                     changeState(State.SWITCHING_SIDE);
                     return;
                 } else {
-                    LogUtils.debugLog("Can't go forward or backward!");
+                    LogUtils.sendDebug("Can't go forward or backward!");
                     if (FarmHelper.gameState.backWalkable) {
                         changeState(State.BACKWARD);
                     } else if (FarmHelper.gameState.frontWalkable) {
@@ -137,7 +137,7 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
                 }
                 if (FarmHelper.gameState.rightWalkable && FarmHelper.gameState.leftWalkable) {
                     if (!FarmHelper.gameState.frontWalkable) {
-                        LogUtils.debugFullLog("Both sides are walkable, switching lane");
+                        LogUtils.sendDebug("Both sides are walkable, switching lane");
                     } else
                         changeState(State.FORWARD);
                     return;
@@ -178,25 +178,25 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
 
     @Override
     public State calculateDirection() {
-        LogUtils.debugFullLog("Calculating direction");
+        LogUtils.sendDebug("Calculating direction");
         for (int i = 1; i < 180; i++) {
             if (isWalkable(BlockUtils.getRelativeBlock(0, 0, i))) {
                 if (isWalkable(BlockUtils.getRelativeBlock(1, 1, i - 1))) {
                     return State.FORWARD;
                 } else {
-                    LogUtils.debugFullLog("Failed forward: " + BlockUtils.getRelativeBlock(1, 1, i - 1));
+                    LogUtils.sendDebug("Failed forward: " + BlockUtils.getRelativeBlock(1, 1, i - 1));
                     return State.BACKWARD;
                 }
             } else if (isWalkable(BlockUtils.getRelativeBlock(0, 0, -i))) {
                 if (isWalkable(BlockUtils.getRelativeBlock(-1, 0, -i + 1))) {
                     return State.BACKWARD;
                 } else {
-                    LogUtils.debugFullLog("Failed backward: " + isWalkable(BlockUtils.getRelativeBlock(-1, 0, i - 1)));
+                    LogUtils.sendDebug("Failed backward: " + isWalkable(BlockUtils.getRelativeBlock(-1, 0, i - 1)));
                     return State.FORWARD;
                 }
             }
         }
-        LogUtils.debugLog("Cannot find direction. Length > 180");
+        LogUtils.sendDebug("Cannot find direction. Length > 180");
         return State.NONE;
     }
 

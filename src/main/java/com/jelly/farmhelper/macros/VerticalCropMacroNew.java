@@ -26,7 +26,7 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
         if (currentState == null)
             changeState(State.NONE);
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
-        LogUtils.debugFullLog("Crop: " + crop);
+        LogUtils.sendDebug("Crop: " + crop);
         MacroHandler.crop = crop;
         CropUtils.getTool();
         if (FarmHelper.config.customPitch) {
@@ -83,13 +83,13 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
 
         // Waiting for teleportation, don't move
         if (beforeTeleportationPos != null) {
-            LogUtils.debugFullLog("Waiting for tp...");
+            LogUtils.sendDebug("Waiting for tp...");
             KeyBindUtils.stopMovement();
             return;
         }
 
         if (FailsafeNew.emergency && FailsafeNew.findHighestPriorityElement() != FailsafeNew.FailsafeType.DESYNC) {
-            LogUtils.debugFullLog("Blocking changing movement due to emergency");
+            LogUtils.sendDebug("Blocking changing movement due to emergency");
             return;
         }
 
@@ -124,10 +124,10 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
                 }
                 break;
             case DROPPING: {
-                LogUtils.debugFullLog("On Ground: " + mc.thePlayer.onGround);
+                LogUtils.sendDebug("On Ground: " + mc.thePlayer.onGround);
                 if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) > 1.5) {
                     if (FarmHelper.config.rotateAfterDrop && !rotation.rotating) {
-                        LogUtils.debugLog("Rotating 180");
+                        LogUtils.sendDebug("Rotating 180");
                         rotation.reset();
                         yaw = yaw + 180;
                         rotation.easeTo(yaw, pitch, (long) (400 + Math.random() * 300));
@@ -166,7 +166,7 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
                 break;
             case DROPPING:
                 if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) <= 1.5) {
-                    LogUtils.debugLog("Dropping done, but didn't drop high enough to rotate!");
+                    LogUtils.sendDebug("Dropping done, but didn't drop high enough to rotate!");
                     layerY = mc.thePlayer.getPosition().getY();
                     changeState(State.NONE);
                 }
@@ -191,19 +191,19 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
                 if (isWalkable(BlockUtils.getRelativeBlock(i - 1, -1, 1)) || isWalkable(BlockUtils.getRelativeBlock(i - 1, -1, 0))) {
                     return State.RIGHT;
                 } else {
-                    LogUtils.debugFullLog("Failed right: " + BlockUtils.getRelativeBlock(i - 1, 0, 1));
+                    LogUtils.sendDebug("Failed right: " + BlockUtils.getRelativeBlock(i - 1, 0, 1));
                     return State.LEFT;
                 }
             } else if (!isWalkable(BlockUtils.getRelativeBlock(-i, 0, 0))) {
                 if (isWalkable(BlockUtils.getRelativeBlock(-i + 1, 0, 1)) || isWalkable(BlockUtils.getRelativeBlock(-i + 1, -1, 0))) {
                     return State.LEFT;
                 } else {
-                    LogUtils.debugFullLog("Failed left: " + isWalkable(BlockUtils.getRelativeBlock(i - 1, 0, 1)));
+                    LogUtils.sendDebug("Failed left: " + isWalkable(BlockUtils.getRelativeBlock(i - 1, 0, 1)));
                     return State.RIGHT;
                 }
             }
         }
-        LogUtils.debugLog("Cannot find direction. Length > 180");
+        LogUtils.sendDebug("Cannot find direction. Length > 180");
         return State.NONE;
     }
 }

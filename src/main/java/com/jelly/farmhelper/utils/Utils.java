@@ -97,9 +97,9 @@ public class Utils{
     public static void clickWindow(int windowID, int slotID, int mouseButtonClicked, int mode) throws Exception {
         if (Minecraft.getMinecraft().thePlayer.openContainer instanceof ContainerChest || Minecraft.getMinecraft().currentScreen instanceof GuiInventory) {
             Minecraft.getMinecraft().playerController.windowClick(windowID, slotID, mouseButtonClicked, mode, Minecraft.getMinecraft().thePlayer);
-            LogUtils.scriptLog("Pressing slot : " + slotID);
+            LogUtils.sendDebug("Pressing slot : " + slotID);
         } else {
-            LogUtils.scriptLog(EnumChatFormatting.RED + "Didn't open window! This shouldn't happen and the script has been disabled. Please immediately report to the developer.");
+            LogUtils.sendError("Didn't open window! This shouldn't never happen! Please immediately report to the developer. Disabling the script...");
             updateKeys(false, false, false, false, false, false, false);
             throw new Exception();
         }

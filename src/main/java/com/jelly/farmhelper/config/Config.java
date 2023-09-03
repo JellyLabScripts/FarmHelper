@@ -87,19 +87,19 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	public static void addRewarp(Rewarp rewarp) {
 		rewarpList.add(rewarp);
-		LogUtils.scriptLog("Added rewarp: " + rewarp.toString());
+		LogUtils.sendSuccess("Added rewarp: " + rewarp.toString());
 		saveRewarpConfig();
 	}
 
 	public static void removeRewarp(Rewarp rewarp) {
 		rewarpList.remove(rewarp);
-		LogUtils.scriptLog("Removed the closest rewarp: " + rewarp.toString());
+		LogUtils.sendSuccess("Removed the closest rewarp: " + rewarp.toString());
 		saveRewarpConfig();
 	}
 
 	public static void removeAllRewarps() {
 		rewarpList.clear();
-		LogUtils.scriptLog("Removed all saved rewarp positions");
+		LogUtils.sendSuccess("Removed all saved rewarp positions");
 		saveRewarpConfig();
 	}
 
@@ -136,9 +136,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			"Sugar Cane", // 2
 			"Cactus", // 3
 			"Cocoa Beans", // 4
-			"Cocoa Beans (RoseGold version)", // 5
-			"Mushroom (45°)", // 6
-			"Mushroom (30° with rotations)", // 7
+			"Mushroom (45°)", // 5
+			"Mushroom (30° with rotations)", // 6
 		}
 	)
     public int SShapeMacroType = 0;
@@ -207,7 +206,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
 		rewarpList.add(new Rewarp(pos.getX(), pos.getY(), pos.getZ()));
 		save();
-		LogUtils.scriptLog("Rewarp position has been added. BlockPos: " + pos);
+		LogUtils.sendSuccess("Rewarp position has been added.");
 	};
 	@Info(
 		text = "Don't forget to add rewarp points!",
@@ -224,7 +223,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	Runnable _removeRewarp = () -> {
 		Rewarp closest = null;
 		if (rewarpList.size() == 0) {
-			LogUtils.scriptLog("No rewarp locations set");
+			LogUtils.sendSuccess("No rewarp locations set");
 			return;
 		}
 		double closestDistance = Double.MAX_VALUE;
@@ -246,7 +245,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	Runnable _removeAllRewarps = () -> {
 		removeAllRewarps();
-		LogUtils.scriptLog("All rewarp positions has been removed");
+		LogUtils.sendSuccess("All rewarp positions has been removed");
 	};
 
 	// END GENERAL
@@ -274,8 +273,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public boolean autoCookie = false;
 	@Switch(
-			name = "Hold left click when changing row", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-			description = "Hold left click when change row"
+		name = "Hold left click when changing row", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+		description = "Hold left click when change row"
 	)
 	public boolean holdLeftClickWhenChangingRow = true;
 	@Switch(
@@ -317,19 +316,19 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	};
 
 	@Switch(
-			name = "Swap pet during Jacob's contest", category = MISCELLANEOUS, subcategory = "Pet Swapper",
-			description = "Swaps pet to the selected pet during Jacob's contest. Selects the first one from the pet list."
+		name = "Swap pet during Jacob's contest", category = MISCELLANEOUS, subcategory = "Pet Swapper",
+		description = "Swaps pet to the selected pet during Jacob's contest. Selects the first one from the pet list."
 	)
 	public boolean enablePetSwapper = false;
 	@Slider(
-			name = "Pet Swap Delay", category = MISCELLANEOUS, subcategory = "Pet Swapper",
-			description = "The delay between clicking GUI during swapping the pet (in milliseconds)",
-			min = 200, max = 3000
+		name = "Pet Swap Delay", category = MISCELLANEOUS, subcategory = "Pet Swapper",
+		description = "The delay between clicking GUI during swapping the pet (in milliseconds)",
+		min = 200, max = 3000
 	)
 	public int petSwapperDelay = 1000;
 	@Text(
-			name = "Pet Name", placeholder = "Type your pet name here",
-			category = MISCELLANEOUS, subcategory = "Pet Swapper"
+		name = "Pet Name", placeholder = "Type your pet name here",
+		category = MISCELLANEOUS, subcategory = "Pet Swapper"
 	)
 	public String petSwapperName = null;
 
@@ -430,6 +429,13 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		subcategory = "Visitors Macro"
 	)
 	public static boolean infoDeskNotSet;
+	@Info(
+		text = "If you put your compactors in the hotbar, they will be temporarily disabled.",
+		type = InfoType.INFO,
+		category = VISITORS_MACRO,
+		subcategory = "Visitors Macro"
+	)
+	public static boolean infoCompactors;
 
 	@Button(
 		name = "Set Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
@@ -442,7 +448,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		visitorsDeskPosY = pos.getY();
 		visitorsDeskPosZ = pos.getZ();
 		save();
-		LogUtils.scriptLog("Visitors desk position has been set. BlockPos: " + pos);
+		LogUtils.sendSuccess("Visitors desk position has been set.");
 	};
 	@Button(
 		name = "Reset Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
@@ -454,7 +460,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		visitorsDeskPosY = 0;
 		visitorsDeskPosZ = 0;
 		save();
-		LogUtils.scriptLog("Visitors desk position has been reset");
+		LogUtils.sendSuccess("Visitors desk position has been reset");
 	};
 	@Number(
 		name = "Visitors Desk X", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
@@ -499,7 +505,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		spawnPosZ = pos.getZ();
 		isSpawnpointSet = true;
 		save();
-		LogUtils.scriptLog("Spawn position has been set to " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
+		LogUtils.sendSuccess("Spawn position has been set");
 	};
 	@Number(
 			name = "SpawnPos Y", category = VISITORS_MACRO, subcategory = "Spawn Position",
@@ -518,7 +524,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		spawnPosZ = 0;
 		isSpawnpointSet = false;
 		save();
-		LogUtils.scriptLog("Spawn position has been reset");
+		LogUtils.sendSuccess("Spawn position has been reset");
 	};
 	@Number(
 			name = "SpawnPos Z", category = VISITORS_MACRO, subcategory = "Spawn Position",
@@ -566,17 +572,17 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	Runnable _applyWebhook = () -> {
 		if (webHookURL.isEmpty()) {
-			LogUtils.scriptLog("Webhook URL is empty");
+			LogUtils.sendError("Webhook URL is empty!");
 			return;
 		}
 		if (!webHookURL.startsWith("https://discord.com/api/webhooks/")) {
-			LogUtils.scriptLog("Invalid webhook URL");
+			LogUtils.sendError("Invalid webhook URL!");
 			return;
 		}
 		GameState.webhook = new DiscordWebhook(FarmHelper.config.webHookURL);
 		GameState.webhook.setUsername("Jelly - Farm Helper");
 		GameState.webhook.setAvatarUrl("https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png");
-		LogUtils.scriptLog("Webhook URL has been applied");
+		LogUtils.sendSuccess("Webhook URL has been applied.");
 		save();
 	};
 

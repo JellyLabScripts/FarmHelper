@@ -47,7 +47,7 @@ public class PlayerUtils {
         if(FarmHelper.config.enableAutoSetSpawn) {
             double diff = (FarmHelper.config.autoSetSpawnMaxDelay * 1000) - (FarmHelper.config.autoSetSpawnMinDelay * 1000);
             if (diff <= 0) {
-                LogUtils.scriptLog("autoSetSpawnMaxDelay must be greater than autoSetSpawnMinDelay", EnumChatFormatting.RED);
+                LogUtils.sendError("autoSetSpawnMaxDelay must be greater than autoSetSpawnMinDelay!");
                 return;
             }
             if (clock.isScheduled() && clock.passed()) {
@@ -245,7 +245,7 @@ public class PlayerUtils {
                     }
                 }
             }
-            LogUtils.scriptLog("Can't find counter on held item", EnumChatFormatting.RED);
+            LogUtils.sendError("Can't find counter on held item!");
         }
         return 0L;
     }

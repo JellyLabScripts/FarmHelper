@@ -47,7 +47,7 @@ public class AutoCookie {
     }
 
     public static void enable() {
-        LogUtils.debugLog("[AutoCookie] Going to buy cookie");
+        LogUtils.sendDebug("[AutoCookie] Going to buy cookie");
         mc.thePlayer.sendChatMessage("/hub");
         hoeSlot = mc.thePlayer.inventory.currentItem;
         currentState = State.WALKING;
@@ -57,7 +57,7 @@ public class AutoCookie {
     }
 
     public static void disable() {
-        LogUtils.debugLog("[AutoCookie] Finished auto cookie");
+        LogUtils.sendDebug("[AutoCookie] Finished auto cookie");
         mc.thePlayer.closeScreen();
         mc.thePlayer.inventory.currentItem = hoeSlot;
         KeyBindUtils.stopMovement();
@@ -73,7 +73,7 @@ public class AutoCookie {
             return;
 
         if (!enabled && MacroHandler.isMacroing && MacroHandler.currentMacro.enabled && cooldown.passed() && FarmHelper.config.autoCookie && FarmHelper.gameState.cookie == GameState.EffectState.OFF) {
-            LogUtils.debugFullLog("[AutoCookie] Detected no cookie buff");
+            LogUtils.sendDebug("[AutoCookie] Detected no cookie buff");
             MacroHandler.disableCurrentMacro();
             enable();
         }
@@ -82,11 +82,11 @@ public class AutoCookie {
         KeyBindUtils.stopMovement();
 
         if (timeout.passed()) {
-            LogUtils.debugFullLog("[AutoCookie] Timed out, exiting");
+            LogUtils.sendDebug("[AutoCookie] Timed out, exiting");
             cooldown.schedule(5000);
             failCount++;
             if (failCount == 3) {
-                LogUtils.debugFullLog("[AutoCookie] Disabling auto cookie, too many fails");
+                LogUtils.sendDebug("[AutoCookie] Disabling auto cookie, too many fails");
                 FarmHelper.config.autoCookie = false;
             }
             disable();
@@ -94,20 +94,20 @@ public class AutoCookie {
         }
 
         if (LocationUtils.currentIsland != LocationUtils.Island.THE_HUB) {
-            LogUtils.debugFullLog("[AutoCookie] Waiting for hub");
+            LogUtils.sendDebug("[AutoCookie] Waiting for hub");
             return;
         }
 
         if (rotation.rotating) {
-            LogUtils.debugFullLog("[AutoCookie] Waiting for rotate");
+            LogUtils.sendDebug("[AutoCookie] Waiting for rotate");
             return;
         }
 
         if (!buyWait.passed()) {
-            LogUtils.debugFullLog("[AutoCookie] Waiting after purchase");
+            LogUtils.sendDebug("[AutoCookie] Waiting after purchase");
             for (Slot item : PlayerUtils.getInventorySlots()) {
                 if (item.getStack().getDisplayName().contains("Booster Cookie") && currentState == State.BUYING) {
-                    LogUtils.debugFullLog("[AutoCookie] Detected cookie purchase");
+                    LogUtils.sendDebug("[AutoCookie] Detected cookie purchase");
                     currentState = State.BOUGHT;
                     pickupState = PickupState.LIFT;
                 }
@@ -119,50 +119,50 @@ public class AutoCookie {
             case WALKING:
                 // Target: -33, -77, Yaw: 103
                 if (mc.currentScreen != null) {
-                    LogUtils.debugFullLog("[AutoCookie] Closing GUI");
+                    LogUtils.sendDebug("[AutoCookie] Closing GUI");
                     mc.thePlayer.closeScreen();
                 } else if (distanceToBazaar() < 3) {
-                    LogUtils.debugFullLog("[AutoCookie] Close to bazaar");
+                    LogUtils.sendDebug("[AutoCookie] Close to bazaar");
                     currentState = State.BUYING;
                 } else if (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), 103) > 2) {
-                    LogUtils.debugFullLog("[AutoCookie] Rotating to bazaar");
+                    LogUtils.sendDebug("[AutoCookie] Rotating to bazaar");
                     rotation.easeTo(103, mc.thePlayer.rotationPitch, 1000);
                 } else {
-                    LogUtils.debugFullLog("[AutoCookie] Walking to bazaar");
+                    LogUtils.sendDebug("[AutoCookie] Walking to bazaar");
                     KeyBindUtils.updateKeys(true, false, false, false, false);
                 }
                 break;
             case BUYING:
                 if (mc.currentScreen == null) {
-                    LogUtils.debugFullLog("[AutoCookie] Attempting to open bazaar");
+                    LogUtils.sendDebug("[AutoCookie] Attempting to open bazaar");
                     final Entity bazaarNPC = getBazaarNPC();
                     if (bazaarNPC == null) {
-                        LogUtils.debugFullLog("[AutoCookie] Cannot find bazaar NPC, retrying");
+                        LogUtils.sendDebug("[AutoCookie] Cannot find bazaar NPC, retrying");
                     } else {
-                        LogUtils.debugFullLog("[AutoCookie] Sending interact packet");
+                        LogUtils.sendDebug("[AutoCookie] Sending interact packet");
                         mc.playerController.interactWithEntitySendPacket(mc.thePlayer, bazaarNPC);
                     }
                 } else if (PlayerUtils.inventoryNameContains("Bazaar") && PlayerUtils.inventoryNameContains("Oddities")) {
-                    LogUtils.debugFullLog("[AutoCookie] Found oddities menu, opening cookie menu");
+                    LogUtils.sendDebug("[AutoCookie] Found oddities menu, opening cookie menu");
                     PlayerUtils.clickOpenContainerSlot(11);
                 } else if (PlayerUtils.inventoryNameContains("Bazaar")) {
-                    LogUtils.debugFullLog("[AutoCookie] Found bazaar menu, opening oddities");
+                    LogUtils.sendDebug("[AutoCookie] Found bazaar menu, opening oddities");
                     PlayerUtils.clickOpenContainerSlot(36);
                 } else if (PlayerUtils.inventoryNameContains("Oddities") && PlayerUtils.inventoryNameContains("Booster Cookie")) {
-                    LogUtils.debugFullLog("[AutoCookie] Found booster cookie menu, opening instant buy");
+                    LogUtils.sendDebug("[AutoCookie] Found booster cookie menu, opening instant buy");
                     PlayerUtils.clickOpenContainerSlot(10);
                 } else if (PlayerUtils.inventoryNameContains("Oddities")) {
-                    LogUtils.debugFullLog("[AutoCookie] Found unknown oddity menu, closing");
+                    LogUtils.sendDebug("[AutoCookie] Found unknown oddity menu, closing");
                     mc.thePlayer.closeScreen();
                 } else if (PlayerUtils.inventoryNameContains("Booster Cookie") && PlayerUtils.inventoryNameContains("Instant Buy")) {
-                    LogUtils.debugFullLog("[AutoCookie] Found instant buy menu, buying");
+                    LogUtils.sendDebug("[AutoCookie] Found instant buy menu, buying");
                     PlayerUtils.clickOpenContainerSlot(10);
                     buyWait.schedule(2000);
                 } else if (PlayerUtils.inventoryNameContains("Booster Cookie")) {
-                    LogUtils.debugFullLog("[AutoCookie] Found unknown booster cookie menu, closing");
+                    LogUtils.sendDebug("[AutoCookie] Found unknown booster cookie menu, closing");
                     mc.thePlayer.closeScreen();
                 } else {
-                    LogUtils.debugFullLog("[AutoCookie] Unknown menu " + PlayerUtils.getInventoryName() + ", closing");
+                    LogUtils.sendDebug("[AutoCookie] Unknown menu " + PlayerUtils.getInventoryName() + ", closing");
                     mc.thePlayer.closeScreen();
                 }
                 break;
@@ -170,47 +170,47 @@ public class AutoCookie {
             case BOUGHT:
                 if (mc.currentScreen == null) {
                     if (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), 270) > 5) {
-                        LogUtils.debugFullLog("[AutoCookie] Looking away from bazaar");
+                        LogUtils.sendDebug("[AutoCookie] Looking away from bazaar");
                         rotation.easeTo(270, mc.thePlayer.rotationPitch, 1000);
                     } else if (PlayerUtils.getItemInHotbar("Booster Cookie") == 6 && pickupState != PickupState.DROP) {
-                        LogUtils.debugFullLog("[AutoCookie] Detected booster cookie in hotbar");
+                        LogUtils.sendDebug("[AutoCookie] Detected booster cookie in hotbar");
                         if (mc.thePlayer.inventory.currentItem == 6) {
-                            LogUtils.debugFullLog("[AutoCookie] Opening consume cookie menu");
+                            LogUtils.sendDebug("[AutoCookie] Opening consume cookie menu");
                             KeyBindUtils.rightClick();
                         } else {
-                            LogUtils.debugFullLog("[AutoCookie] Switching to cookie");
+                            LogUtils.sendDebug("[AutoCookie] Switching to cookie");
                             mc.thePlayer.inventory.currentItem = 6;
                         }
                     } else if (PlayerUtils.getSlotForItem("Booster Cookie") != -1 || pickupState != PickupState.LIFT) {
                         switch (pickupState) {
                             case LIFT:
-                                LogUtils.debugFullLog("[AutoCookie] Picking up cookie");
+                                LogUtils.sendDebug("[AutoCookie] Picking up cookie");
                                 cookieSlot = PlayerUtils.getSlotForItem("Booster Cookie");
                                 PlayerUtils.clickOpenContainerSlot(cookieSlot);
                                 pickupState = PickupState.SWAP;
                                 break;
 
                             case SWAP:
-                                LogUtils.debugFullLog("[AutoCookie] Swapping cookie with slot 7");
+                                LogUtils.sendDebug("[AutoCookie] Swapping cookie with slot 7");
                                 PlayerUtils.clickOpenContainerSlot(35 + 7);
                                 pickupState = PickupState.DROP;
                                 break;
 
                             case DROP:
-                                LogUtils.debugFullLog("[AutoCookie] Dropping slot 7 to cookie slot");
+                                LogUtils.sendDebug("[AutoCookie] Dropping slot 7 to cookie slot");
                                 PlayerUtils.clickOpenContainerSlot(cookieSlot);
                                 pickupState = PickupState.LIFT;
                                 break;
                         }
                     } else {
-                        LogUtils.debugFullLog("[AutoCookie] No cookie in inventory, quitting");
+                        LogUtils.sendDebug("[AutoCookie] No cookie in inventory, quitting");
                         disable();
                     }
                 } else if (PlayerUtils.inventoryNameContains("Consume Booster Cookie?")) {
-                    LogUtils.debugFullLog("[AutoCookie] Detected consume cookie menu, consuming");
+                    LogUtils.sendDebug("[AutoCookie] Detected consume cookie menu, consuming");
                     PlayerUtils.clickOpenContainerSlot(11);
                 } else {
-                    LogUtils.debugFullLog("[AutoCookie] Unknown menu " + PlayerUtils.getInventoryName() + ", closing");
+                    LogUtils.sendDebug("[AutoCookie] Unknown menu " + PlayerUtils.getInventoryName() + ", closing");
                     mc.thePlayer.closeScreen();
                 }
         }
@@ -228,26 +228,26 @@ public class AutoCookie {
         if (!enabled) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains("Bazaar!") && message.contains("Bought") && message.contains("Booster Cookie") && currentState == State.BUYING) {
-            LogUtils.debugFullLog("[AutoCookie] Detected cookie purchase");
+            LogUtils.sendDebug("[AutoCookie] Detected cookie purchase");
             currentState = State.BOUGHT;
             pickupState = PickupState.LIFT;
         }
         if (message.contains("Consumed") && message.contains("Booster Cookie") && currentState == State.BOUGHT) {
-            LogUtils.debugFullLog("[AutoCookie] Detected cookie consume");
+            LogUtils.sendDebug("[AutoCookie] Detected cookie consume");
             disable();
         }
         if (message.contains("You cannot afford this!") && currentState == State.BUYING) {
-            LogUtils.debugFullLog("[AutoCookie] Not enough coins for a cookie");
+            LogUtils.sendDebug("[AutoCookie] Not enough coins for a cookie");
             cooldown.schedule(3000);
             failCount++;
             if (failCount == 3) {
-                LogUtils.debugFullLog("[AutoCookie] Disabling auto cookie, too many fails");
+                LogUtils.sendDebug("[AutoCookie] Disabling auto cookie, too many fails");
                 FarmHelper.config.autoCookie = false;
             }
             disable();
         }
         if (message.contains("This server is too laggy") && currentState == State.BUYING) {
-            LogUtils.debugFullLog("[AutoCookie] Server too laggy for bazaar");
+            LogUtils.sendDebug("[AutoCookie] Server too laggy for bazaar");
             disable();
         }
     }
@@ -256,7 +256,7 @@ public class AutoCookie {
     public void OnKeyPress(InputEvent.KeyInputEvent event) {
         if (Keyboard.getEventKey() == Keyboard.KEY_ESCAPE) {
             if (enabled) {
-                LogUtils.debugFullLog("[AutoCookie] Interrupting cookie purchase");
+                LogUtils.sendDebug("[AutoCookie] Interrupting cookie purchase");
                 disable();
             }
         }

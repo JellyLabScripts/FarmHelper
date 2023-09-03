@@ -37,7 +37,7 @@ public abstract class Macro<T> {
     private void checkForTeleport() {
         if (beforeTeleportationPos == null) return;
         if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos) > 2) {
-            LogUtils.debugLog("Teleported!");
+            LogUtils.sendDebug("Teleported!");
             currentState = changeState(calculateDirection());
             beforeTeleportationPos = null;
             isTping = false;
@@ -89,7 +89,7 @@ public abstract class Macro<T> {
             return;
         }
         if (!isRewarpLocationSet()) {
-            LogUtils.scriptLog("Your rewarp position is not set!");
+            LogUtils.sendError("Your rewarp position is not set!");
             MacroHandler.disableMacro();
         }
         if (lastTp.isScheduled() && lastTp.passed()) {
@@ -116,7 +116,7 @@ public abstract class Macro<T> {
     private T stateBeforeFailsafe = null;
 
     public void saveLastStateBeforeDisable() {
-        LogUtils.debugFullLog("Saving last state before disabling macro");
+        LogUtils.sendDebug("Saving last state before disabling macro");
         stateBeforeFailsafe = currentState;
         savedLastState = true;
         if (MacroHandler.isMacroing && MacroHandler.currentMacro.enabled) {
@@ -126,7 +126,7 @@ public abstract class Macro<T> {
     }
 
     public void restoreState() {
-        LogUtils.debugFullLog("Restoring last state before enabling macro");
+        LogUtils.sendDebug("Restoring last state before enabling macro");
         if (stateBeforeFailsafe != null) {
             changeState(stateBeforeFailsafe);
             stateBeforeFailsafe = null;
@@ -187,14 +187,14 @@ public abstract class Macro<T> {
         KeyBindUtils.stopMovement();
         isTping = true;
         if (FarmHelper.gameState.canChangeDirection() && beforeTeleportationPos == null) {
-            LogUtils.debugLog("Warping to spawn point");
+            LogUtils.sendDebug("Warping to spawn point");
             mc.thePlayer.sendChatMessage("/warp garden");
             beforeTeleportationPos = mc.thePlayer.getPosition();
         }
     }
 
     public T changeState(T newState) {
-        LogUtils.debugFullLog("Changing state from " + currentState + " to " + newState);
+        LogUtils.sendDebug("Changing state from " + currentState + " to " + newState);
         DebugHUD.prevState = String.valueOf(currentState);
         currentState = newState;
         DebugHUD.currentState = String.valueOf(currentState);
@@ -211,7 +211,7 @@ public abstract class Macro<T> {
                 rotation.easeTo(yaw, pitch, (long) (500 + Math.random() * 200));
             }
             rotated = true;
-            LogUtils.debugLog("Rotating");
+            LogUtils.sendDebug("Rotating");
         }
     }
 
@@ -246,11 +246,11 @@ public abstract class Macro<T> {
             Antistuck.stuck = true;
             Antistuck.unstuckLastMoveBack = lastMoveBack;
             Antistuck.unstuckThreadIsRunning = true;
-            LogUtils.debugLog("Stuck!");
+            LogUtils.sendDebug("Stuck!");
             Antistuck.unstuckThreadInstance = new Thread(Antistuck.unstuckRunnable, "antistuck");
             Antistuck.unstuckThreadInstance.start();
         } else {
-            LogUtils.debugLog("Unstuck thread is alive!");
+            LogUtils.sendDebug("Unstuck thread is alive!");
         }
     }
 
