@@ -15,6 +15,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.*;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -29,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -191,7 +194,7 @@ public class VisitorsMacro {
         if (newVisitors.equals(visitors)) return;
         visitors.clear();
         visitors.addAll(newVisitors);
-        System.out.println("Visitors: " + visitors.size());
+        LogUtils.sendDebug("Visitors: " + visitors.size());
     }
 
     @SubscribeEvent
@@ -228,7 +231,7 @@ public class VisitorsMacro {
         }
 
         if (PetSwapper.isEnabled()) {
-            LogUtils.sendDebug("Pet swapper is working, skipping...");
+            LogUtils.sendDebug("Pet swapper is working, stopping visitors macro...");
             clock.schedule(5000);
             enabled = false;
             return;
@@ -309,7 +312,7 @@ public class VisitorsMacro {
         if (clock.isScheduled() && !clock.passed()) {
             return;
         } else if (clock.isScheduled() && clock.passed()) {
-            System.out.println("Clock passed");
+            LogUtils.sendDebug("Clock passed");
             clock.reset();
             if (MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled)
                 MacroHandler.disableCurrentMacro(true);
@@ -359,7 +362,7 @@ public class VisitorsMacro {
 
                 BlockPos closestEdge = barnEdges.stream().min(Comparator.comparingInt(edge -> (int) mc.thePlayer.getDistance(edge.getX(), edge.getY(), edge.getZ()))).orElse(null);
 
-                System.out.println("Closest edge: " + closestEdge);
+                LogUtils.sendDebug("Closest edge: " + closestEdge);
                 if (closestEdge != null) {
                     if (mc.thePlayer.getDistanceSq(barnCenter) < mc.thePlayer.getDistanceSq(closestEdge)) {
                         closestEdge = barnCenter;
@@ -384,7 +387,7 @@ public class VisitorsMacro {
 
                 int aspectOfTheVoid = PlayerUtils.getItemInHotbar("Aspect of the");
                 if (aspectOfTheVoid == -1) {
-                    LogUtils.sendDebug("Player doesn't have AOTE nor AOTV)");
+                    LogUtils.sendDebug("Player doesn't have AOTE nor AOTV");
                     haveAotv = false;
                 } else {
                     mc.thePlayer.inventory.currentItem = aspectOfTheVoid;
@@ -404,7 +407,7 @@ public class VisitorsMacro {
                     delayClock.schedule(2000);
                     previousDistanceToCheck = Integer.MAX_VALUE;
                     if (retriesToGettingCloser >= 2) {
-                        LogUtils.sendError("Player is not getting closer to the desk! Set the desk position in more open to sight area. Stopping Visitors Macro...");
+                        LogUtils.sendError("Player is not getting closer to the desk! Set the desk position in more open to sight area. Stopping visitors macro...");
                         disableMacro = true;
                         currentState = State.BACK_TO_FARMING;
                         break;
@@ -498,7 +501,7 @@ public class VisitorsMacro {
                     delayClock.schedule(2000);
                     previousDistanceToCheck = Integer.MAX_VALUE;
                     if (retriesToGettingCloser >= 2) {
-                        LogUtils.sendError("Player is not getting closer to the desk! Set the desk position in more open to sight area. Stopping Visitors Macro...");
+                        LogUtils.sendError("Player is not getting closer to the desk! Set the desk position in more open to sight area. Stopping visitors macro...");
                         disableMacro = true;
                         currentState = State.BACK_TO_FARMING;
                         break;
@@ -730,7 +733,7 @@ public class VisitorsMacro {
                     mc.playerController.interactWithEntitySendPacket(mc.thePlayer, currentVisitor);
                     firstTimeOpen = false;
                 }
-                System.out.println(chestName);
+                LogUtils.sendDebug("Chest opened: " + chestName);
 
                 if (chestName != null) {
                     switch (currentBuyState) {
@@ -830,26 +833,37 @@ public class VisitorsMacro {
                                 currentState = State.MANAGING_VISITORS;
                                 break;
                             }
-                            if (chestName.contains("➜") && !chestName.contains("Bazaar")) {
-                                clickSlot(10, 0);
+                            if (PlayerUtils.getSlotFromGui("Buy Instantly") == -1) break;
 
-                                signText = String.valueOf(itemToBuy.getRight());
-                                currentBuyState = BuyState.CLICK_SIGN;
+                            String itemName1 = getLoreFromGuiByItemName("Buy Instantly").get(2).toString();
+                            String itemName2 = getLoreFromGuiByItemName("Create Buy Offer").get(2).toString();
+
+                            if (itemName1 != null && itemName2 != null && (extractPrice(itemName1) > extractPrice(itemName2) * 2)) {
+                                LogUtils.sendWarning("The price for " + itemToBuy.getLeft() + " has been manipulated. Rejecting...");
+                                rejectOffer = true;
+                                signText = "";
+                                boughtAllItems = true;
+                                currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
                                 delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
+                                break;
                             }
+                            clickSlot(PlayerUtils.getSlotFromGui("Buy Instantly"), 0);
+
+                            signText = String.valueOf(itemToBuy.getRight());
+                            currentBuyState = BuyState.CLICK_SIGN;
+                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                             break;
                         case CLICK_SIGN:
                             if (itemToBuy == null) {
                                 currentState = State.MANAGING_VISITORS;
                                 break;
                             }
-                            if (chestName.contains("➜") && !chestName.contains("Bazaar")) {
-                                clickSlot(16, 0);
+                            if (PlayerUtils.getSlotFromGui("Custom Amount") == -1) return;
+                            clickSlot(PlayerUtils.getSlotFromGui("Custom Amount"), 0);
 
-                                signText = String.valueOf(itemToBuy.getRight());
-                                currentBuyState = BuyState.CLICK_CONFIRM;
-                                delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
-                            }
+                            signText = String.valueOf(itemToBuy.getRight());
+                            currentBuyState = BuyState.CLICK_CONFIRM;
+                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                             break;
                         case CLICK_CONFIRM:
                             if (itemToBuy == null) {
@@ -1156,6 +1170,22 @@ public class VisitorsMacro {
             }
         }
         return -1;
+    }
+
+    private float extractPrice(String input) {
+        Pattern pattern = Pattern.compile("§6(\\d+(?:,\\d+)*(?:\\.\\d+)?)");
+        Matcher matcher = pattern.matcher(input);
+        if (matcher.find()) {
+            String numberString = matcher.group(1);
+            String cleanNumberString = numberString.replaceAll(",", "");
+            return Float.parseFloat(cleanNumberString);
+        } else {
+            return -1;
+        }
+    }
+
+    private NBTTagList getLoreFromGuiByItemName(String name) {
+        return PlayerUtils.getLore(PlayerUtils.getStackInOpenContainerSlot(PlayerUtils.getSlotFromGui(name)));
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)

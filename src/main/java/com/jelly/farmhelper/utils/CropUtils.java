@@ -125,8 +125,7 @@ public class CropUtils {
         if (!FarmHelper.config.macroType) {
             mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
         } else {
-            if (FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS.ordinal() ||
-                    FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS_RG.ordinal()) {
+            if (FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS.ordinal()) {
                 mc.thePlayer.inventory.currentItem = PlayerUtils.getAxeSlot(MacroHandler.crop);
             } else if (FarmHelper.config.SShapeMacroType == SMacroEnum.PUMPKIN_MELON.ordinal()) {
                 mc.thePlayer.inventory.currentItem = PlayerUtils.getAxeSlot(MacroHandler.crop);

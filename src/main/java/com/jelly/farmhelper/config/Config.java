@@ -67,7 +67,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
          SUGAR_CANE,
 		 CACTUS,
 		 COCOA_BEANS,
-		 COCOA_BEANS_RG,
 		 MUSHROOM,
 		 MUSHROOM_ROTATE
      }
@@ -206,7 +205,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
 		rewarpList.add(new Rewarp(pos.getX(), pos.getY(), pos.getZ()));
 		save();
-		LogUtils.sendSuccess("Rewarp position has been added.");
+		LogUtils.sendSuccess("Rewarp position has been added");
 	};
 	@Info(
 		text = "Don't forget to add rewarp points!",
@@ -222,8 +221,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	Runnable _removeRewarp = () -> {
 		Rewarp closest = null;
-		if (rewarpList.size() == 0) {
-			LogUtils.sendSuccess("No rewarp locations set");
+		if (rewarpList.isEmpty()) {
+			LogUtils.sendError("You don't have any rewarp points set!");
 			return;
 		}
 		double closestDistance = Double.MAX_VALUE;
@@ -454,7 +453,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		visitorsDeskPosY = pos.getY();
 		visitorsDeskPosZ = pos.getZ();
 		save();
-		LogUtils.sendSuccess("Visitors desk position has been set.");
+		LogUtils.sendSuccess("Visitors desk position has been set");
 	};
 	@Button(
 		name = "Reset Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
@@ -588,7 +587,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		GameState.webhook = new DiscordWebhook(FarmHelper.config.webHookURL);
 		GameState.webhook.setUsername("Jelly - Farm Helper");
 		GameState.webhook.setAvatarUrl("https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png");
-		LogUtils.sendSuccess("Webhook URL has been applied.");
+		LogUtils.sendSuccess("Webhook URL has been applied");
 		save();
 	};
 

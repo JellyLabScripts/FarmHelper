@@ -177,8 +177,7 @@ public class ProfitCalculator {
                     blocksBroken++;
                 }
             }
-            if (FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS.ordinal() ||
-                FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS_RG.ordinal()) {
+            if (FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS.ordinal()) {
                 if (event.old.getBlock() == Blocks.reeds && event.update.getBlock() != Blocks.reeds) {
                     blocksBroken++;
                 }
