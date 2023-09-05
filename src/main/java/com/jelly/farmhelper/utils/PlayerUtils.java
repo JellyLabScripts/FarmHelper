@@ -19,6 +19,7 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 
@@ -437,5 +438,14 @@ public class PlayerUtils {
             return (x > -0.65 && x < -0.1) || (x < 0.9 && x > 0.35);
         }
         return false;
+    }
+
+    public static void setSpawnLocation() {
+        if (mc.thePlayer == null) return;
+        BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
+        FarmHelper.config.spawnPosX = pos.getX();
+        FarmHelper.config.spawnPosY = pos.getY() + 1;
+        FarmHelper.config.spawnPosZ = pos.getZ();
+        FarmHelper.config.save();
     }
 }

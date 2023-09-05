@@ -15,10 +15,7 @@ import com.jelly.farmhelper.hud.ProfitCalculatorHUD;
 import com.jelly.farmhelper.hud.StatusHUD;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.DiscordWebhook;
-import com.jelly.farmhelper.utils.BlockUtils;
-import com.jelly.farmhelper.utils.LocationUtils;
-import com.jelly.farmhelper.utils.LogUtils;
-import com.jelly.farmhelper.utils.Utils;
+import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
@@ -504,13 +501,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			text = "Set SpawnPos"
 	)
 	Runnable _setSpawnPos = () -> {
-		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
-		spawnPosX = pos.getX();
-		spawnPosY = pos.getY() + 1;
-		spawnPosZ = pos.getZ();
-		isSpawnpointSet = true;
-		save();
-		LogUtils.sendSuccess("Spawn position has been set");
+		PlayerUtils.setSpawnLocation();
+		LogUtils.sendSuccess("Your spawn location has been set!");
 	};
 	@Number(
 			name = "SpawnPos Y", category = VISITORS_MACRO, subcategory = "Spawn Position",
@@ -527,7 +519,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		spawnPosX = 0;
 		spawnPosY = 0;
 		spawnPosZ = 0;
-		isSpawnpointSet = false;
 		save();
 		LogUtils.sendSuccess("Spawn position has been reset");
 	};
@@ -956,8 +947,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			name = "Debug HUD", category = DEBUG, subcategory = " "
 	)
 	public DebugHUD debugHUD = new DebugHUD();
-	@Switch(name = "Is Spawnpoint set (DON'T TOUCH)", category = DEBUG, subcategory = "SpawnPos")
-	public boolean isSpawnpointSet = false;
 
 	// END DEBUG
 
@@ -1090,9 +1079,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 		this.addDependency("hideLogs", "Hide Logs (Not Recommended)", () -> !this.debugMode);
 		this.addDependency("debugMode", "Debug Mode", () -> !this.hideLogs);
-		this.addDependency("isSpawnpointSet", "debugMode");
 		this.addDependency("customPitchLevel", "customPitch");
-		this.hideIf("isSpawnpointSet", () -> true);
 		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
 //		registerKeyBind(debugKeybind, () -> FarmHelper.petSwapper.startMacro(false));
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));

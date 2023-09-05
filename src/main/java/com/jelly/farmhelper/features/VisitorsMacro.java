@@ -1190,10 +1190,9 @@ public class VisitorsMacro {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onChatSetSpawn(ClientChatReceivedEvent event) {
-        if (event.type != 0) return;
-        String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
-        if (message.contains("Your spawn location has been set!")) {
-            MacroHandler.currentMacro.setSpawnLocation();
+        if (event.type != 0 || event.message == null) return;
+        if (event.message.getUnformattedText().contains("Your spawn location has been set!")) {
+            PlayerUtils.setSpawnLocation();
         }
     }
 

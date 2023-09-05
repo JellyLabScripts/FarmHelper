@@ -8,10 +8,7 @@ import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.player.Rotation;
-import com.jelly.farmhelper.utils.AngleUtils;
-import com.jelly.farmhelper.utils.Clock;
-import com.jelly.farmhelper.utils.KeyBindUtils;
-import com.jelly.farmhelper.utils.LogUtils;
+import com.jelly.farmhelper.utils.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
@@ -48,7 +45,7 @@ public abstract class Macro<T> {
             Antistuck.cooldown.schedule(3500);
             lastTp.schedule(1_500);
             if (!isSpawnLocationSet()) {
-                setSpawnLocation();
+                PlayerUtils.setSpawnLocation();
             }
         }
     }
@@ -160,22 +157,13 @@ public abstract class Macro<T> {
     }
 
     public boolean isSpawnLocationSet() {
-        return FarmHelper.config.isSpawnpointSet;
+        return FarmHelper.config.spawnPosX != 0 && FarmHelper.config.spawnPosY != 0 && FarmHelper.config.spawnPosZ != 0;
     }
 
     public boolean isStandingOnSpawnLocation() {
         BlockPos currentPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
         BlockPos spawnPos = new BlockPos(FarmHelper.config.spawnPosX, FarmHelper.config.spawnPosY, FarmHelper.config.spawnPosZ);
         return Math.sqrt(currentPos.distanceSqToCenter(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ())) < 1;
-    }
-
-    public void setSpawnLocation() {
-        if (mc.thePlayer == null) return;
-        FarmHelper.config.spawnPosX = mc.thePlayer.getPosition().getX();
-        FarmHelper.config.spawnPosY = mc.thePlayer.getPosition().getY();
-        FarmHelper.config.spawnPosZ = mc.thePlayer.getPosition().getZ();
-        FarmHelper.config.isSpawnpointSet = true;
-        FarmHelper.config.save();
     }
 
     public boolean cantPauseNow() {
