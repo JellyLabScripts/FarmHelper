@@ -5,6 +5,7 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
+import com.jelly.farmhelper.world.JacobsContestHandler;
 import lombok.Getter;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockSlab;
@@ -160,6 +161,8 @@ public class VisitorsMacro {
         ProfitCalculator.startingPurse = ProfitCalculator.getCurrentPurse() - (purseBeforeVisitors - ProfitCalculator.startingPurse);
         randomValue = 0;
         purseBeforeVisitors = 0;
+        if (FarmHelper.config.enableScheduler && !JacobsContestHandler.jacobsContestTriggered)
+            Scheduler.resume();
         if (FarmHelper.config.visitorsMacro)
             LogUtils.sendDebug("Stopped visitors macro");
     }
@@ -211,6 +214,8 @@ public class VisitorsMacro {
         if (!MacroHandler.currentMacro.isSpawnLocationSet() || !MacroHandler.currentMacro.isStandingOnSpawnLocation()) {
             return;
         }
+        if (FarmHelper.config.enableScheduler)
+            Scheduler.pause();
 
         if (FarmHelper.gameState.cookie != GameState.EffectState.ON) {
             LogUtils.sendDebug("Cookie buff is not active, skipping...");
@@ -221,7 +226,7 @@ public class VisitorsMacro {
 
         if (FarmHelper.config.pauseVisitorsMacroDuringJacobsContest && GameState.inJacobContest()) {
             LogUtils.sendDebug("Player is in Jacob's contest, skipping...");
-            clock.schedule(5000);
+            clock.schedule(3000);
             enabled = false;
             return;
         }
@@ -830,12 +835,13 @@ public class VisitorsMacro {
                                 break;
                             }
                             if (PlayerUtils.getSlotFromGui("Buy Instantly") == -1) break;
+                            if (PlayerUtils.getSlotFromGui("Sell Instantly") == -1) break;
 
                             String itemName1 = getLoreFromGuiByItemName("Buy Instantly");
-                            String itemName2 = getLoreFromGuiByItemName("Buy Instantly");
+                            String itemName2 = getLoreFromGuiByItemName("Sell Instantly");
                             if (itemName1 == null || itemName2 == null) break;
 
-                            if (extractPrice(itemName1) * 2 > extractPrice(itemName2)) {
+                            if (extractPrice(itemName1) > extractPrice(itemName2) * 2) {
                                 LogUtils.sendWarning("The price for " + itemToBuy.getLeft() + " has been manipulated. Rejecting...");
                                 rejectOffer = true;
                                 signText = "";
