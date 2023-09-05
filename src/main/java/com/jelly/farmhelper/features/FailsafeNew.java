@@ -131,7 +131,7 @@ public class FailsafeNew {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(receiveCanceled = true)
     public void onMessageReceived(ClientChatReceivedEvent event) {
         if (event.type != 0 || event.message == null) return;
         if (!MacroHandler.isMacroing) return;

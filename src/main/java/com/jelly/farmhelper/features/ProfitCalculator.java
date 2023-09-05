@@ -236,7 +236,7 @@ public class ProfitCalculator {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(receiveCanceled = true)
     public void onChatReceived(ClientChatReceivedEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (event.type != 0 || event.message == null) return;

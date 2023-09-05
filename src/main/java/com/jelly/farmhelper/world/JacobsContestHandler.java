@@ -51,7 +51,7 @@ public class JacobsContestHandler {
 
     Minecraft mc = Minecraft.getMinecraft();
 
-    @SubscribeEvent
+    @SubscribeEvent(receiveCanceled = true)
     public void onChatMessage(ClientChatReceivedEvent event) {
         if (event.type != 0 || event.message == null) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;

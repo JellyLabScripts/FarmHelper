@@ -1188,7 +1188,7 @@ public class VisitorsMacro {
         return PlayerUtils.getLore(PlayerUtils.getStackInOpenContainerSlot(PlayerUtils.getSlotFromGui(name)));
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(receiveCanceled = true)
     public void onChatSetSpawn(ClientChatReceivedEvent event) {
         if (event.type != 0 || event.message == null) return;
         if (event.message.getUnformattedText().contains("Your spawn location has been set!")) {
@@ -1196,7 +1196,7 @@ public class VisitorsMacro {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(receiveCanceled = true)
     public void onChat(ClientChatReceivedEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
