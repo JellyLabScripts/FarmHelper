@@ -236,10 +236,10 @@ public class ProfitCalculator {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    @SubscribeEvent
     public void onChatReceived(ClientChatReceivedEvent event) {
         if (!MacroHandler.isMacroing) return;
-        if (event.type != 0) return;
+        if (event.type != 0 || event.message == null) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         rngArmorDrop(message);
         rngDicerDrop(message);

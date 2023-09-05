@@ -1188,7 +1188,7 @@ public class VisitorsMacro {
         return PlayerUtils.getLore(PlayerUtils.getStackInOpenContainerSlot(PlayerUtils.getSlotFromGui(name)));
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    @SubscribeEvent
     public void onChatSetSpawn(ClientChatReceivedEvent event) {
         if (event.type != 0 || event.message == null) return;
         if (event.message.getUnformattedText().contains("Your spawn location has been set!")) {
@@ -1196,13 +1196,13 @@ public class VisitorsMacro {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    @SubscribeEvent
     public void onChat(ClientChatReceivedEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
         if (!FarmHelper.config.visitorsMacro) return;
         if (currentState != State.TRY_TO_SET_SPAWN) return;
-        if (event.type != 0) return;
+        if (event.type != 0 || event.message == null) return;
         String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains("You cannot set your spawn here!")) {
             currentState = State.NONE;

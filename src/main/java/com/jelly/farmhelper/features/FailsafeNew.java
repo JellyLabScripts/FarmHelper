@@ -133,7 +133,7 @@ public class FailsafeNew {
 
     @SubscribeEvent
     public void onMessageReceived(ClientChatReceivedEvent event) {
-        if (event.type != 0) return;
+        if (event.type != 0 || event.message == null) return;
         if (!MacroHandler.isMacroing) return;
         String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing") || message.contains("You cannot join SkyBlock from here!")) {

@@ -157,7 +157,7 @@ public class PetSwapper {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    @SubscribeEvent
     public void onPetSummon(ClientChatReceivedEvent event) {
         if (event.type == 0 && event.message != null && previousPet != null && FarmHelper.config.petSwapperName != null) {
             String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());

@@ -49,7 +49,7 @@ public class LocationUtils {
 
     public static Island currentIsland;
 
-    @SubscribeEvent(receiveCanceled = true, priority = EventPriority.HIGHEST)
+    @SubscribeEvent
     public void onChat(ClientChatReceivedEvent event) {
         // Check locraw message
         String unformatted = event.message.getUnformattedText();

@@ -51,9 +51,9 @@ public class JacobsContestHandler {
 
     Minecraft mc = Minecraft.getMinecraft();
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    @SubscribeEvent
     public void onChatMessage(ClientChatReceivedEvent event) {
-//        if (event.type != 0) return;
+        if (event.type != 0 || event.message == null) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         String msg = StringUtils.stripControlCodes(event.message.getUnformattedText().toLowerCase());
         if (msg.contains("the farming contest is over")) {

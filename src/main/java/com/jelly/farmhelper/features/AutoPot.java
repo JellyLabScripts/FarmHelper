@@ -247,6 +247,7 @@ public class AutoPot {
     @SubscribeEvent
     public void onMessageReceived(ClientChatReceivedEvent event) {
         if (!enabled) return;
+        if (event.type != 0 || event.message == null) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains("You don't have enough Bits!") && currentState == State.BUYING) {
             LogUtils.sendDebug("[AutoPot] Not enough bits for a god potion");
