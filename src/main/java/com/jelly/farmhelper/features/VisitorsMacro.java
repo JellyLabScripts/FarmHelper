@@ -15,20 +15,16 @@ import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.*;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -835,10 +831,11 @@ public class VisitorsMacro {
                             }
                             if (PlayerUtils.getSlotFromGui("Buy Instantly") == -1) break;
 
-                            String itemName1 = getLoreFromGuiByItemName("Buy Instantly").get(2).toString();
-                            String itemName2 = getLoreFromGuiByItemName("Create Buy Offer").get(2).toString();
+                            String itemName1 = getLoreFromGuiByItemName("Buy Instantly");
+                            String itemName2 = getLoreFromGuiByItemName("Buy Instantly");
+                            if (itemName1 == null || itemName2 == null) break;
 
-                            if (itemName1 != null && itemName2 != null && (extractPrice(itemName1) > extractPrice(itemName2) * 2)) {
+                            if (extractPrice(itemName1) * 2 > extractPrice(itemName2)) {
                                 LogUtils.sendWarning("The price for " + itemToBuy.getLeft() + " has been manipulated. Rejecting...");
                                 rejectOffer = true;
                                 signText = "";
@@ -1173,7 +1170,8 @@ public class VisitorsMacro {
     }
 
     private float extractPrice(String input) {
-        Pattern pattern = Pattern.compile("§6(\\d+(?:,\\d+)*(?:\\.\\d+)?)");
+//        Pattern pattern = Pattern.compile("§6(\\d+(?:,\\d+)*(?:\\.\\d+)?)");
+        Pattern pattern = Pattern.compile("Price per unit: ([\\d,.]+)");
         Matcher matcher = pattern.matcher(input);
         if (matcher.find()) {
             String numberString = matcher.group(1);
@@ -1184,8 +1182,12 @@ public class VisitorsMacro {
         }
     }
 
-    private NBTTagList getLoreFromGuiByItemName(String name) {
-        return PlayerUtils.getLore(PlayerUtils.getStackInOpenContainerSlot(PlayerUtils.getSlotFromGui(name)));
+    private String getLoreFromGuiByItemName(String name) {
+        if (!(mc.thePlayer.openContainer instanceof ContainerChest)) return null;
+        if (PlayerUtils.getSlotFromGui(name) == -1) return null;
+        if (PlayerUtils.getStackInOpenContainerSlot(PlayerUtils.getSlotFromGui(name)) == null) return null;
+        if (PlayerUtils.getLore(PlayerUtils.getStackInOpenContainerSlot(PlayerUtils.getSlotFromGui(name))) == null) return null;
+        return StringUtils.stripControlCodes(Objects.requireNonNull(PlayerUtils.getLore(PlayerUtils.getStackInOpenContainerSlot(PlayerUtils.getSlotFromGui(name)))).toString());
     }
 
     @SubscribeEvent(receiveCanceled = true)
