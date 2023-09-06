@@ -832,7 +832,7 @@ public class VisitorsMacro {
                             if (chestName.contains("➜") && !chestName.contains("Bazaar")) {
                                 clickSlot(10, 0);
 
-                                signText = String.valueOf(itemToBuy.getRight());
+                                Utils.signText = String.valueOf(itemToBuy.getRight());
                                 currentBuyState = BuyState.CLICK_SIGN;
                                 delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                             }
