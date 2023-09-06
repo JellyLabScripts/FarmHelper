@@ -12,7 +12,7 @@ import java.util.List;
 
 public class StatusHUD extends TextHud {
     public StatusHUD() {
-        super(true, -1f, -1f, 1, true, true, 1, 5, 5, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
+        super(true, -1f, -1f, 1, true, true, 2.5f, 5, 5, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
     }
 
     @Switch(

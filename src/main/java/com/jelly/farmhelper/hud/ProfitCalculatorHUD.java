@@ -20,7 +20,7 @@ public class ProfitCalculatorHUD extends BasicHud {
     private final float iconWidth = 12 * scale;
     private final float iconHeight = 12 * scale;
     public ProfitCalculatorHUD() {
-        super(true, 1f, 1f, 1, true, true, 1, 5, 5, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
+        super(true, 1f, 1f, 1, true, true, 2.5f, 2.5f, 2.5f, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 240));
         addLines();
     }
 
@@ -69,7 +69,7 @@ public class ProfitCalculatorHUD extends BasicHud {
 
     protected void drawLine(String text, float x, float y, float scale) {
         if (text != null) {
-            TextRenderer.drawScaledString(text, x + iconWidth * scale + (5 * scale) + paddingX * scale, y + paddingY * scale + iconHeight * scale / 2 - getLineHeight(scale) / 2, color.getRGB(), TextRenderer.TextType.toType(textType), scale);
+            TextRenderer.drawScaledString(text, x + iconWidth * scale + (3.5f * scale) + paddingX * scale, y + paddingY * scale + iconHeight * scale / 2 - getLineHeight(scale) / 2.5f, color.getRGB(), TextRenderer.TextType.toType(textType), scale);
         }
     }
     protected float getLineWidth(String line, float scale) {
