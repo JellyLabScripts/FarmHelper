@@ -91,13 +91,13 @@ public class FailsafeNew {
     private static final String[] FAILSAFE_MESSAGES = new String[] {
             "WHAT", "what?", "what", "what??", "what???", "wut?", "?", "what???", "yo huh", "yo huh?", "yo?",
             "ehhhhh??", "eh", "yo", "ahmm", "ehh", "LOL what", "lol :skull:", "bro wtf was that?", "lmao",
-            "lmfao :sob:", "lmfao", "wtf is this", "wtf", "WTF", "wtf is this?", "wtf???", "tf", "tf?", "wth",
+            "lmfao", "wtf is this", "wtf", "WTF", "wtf is this?", "wtf???", "tf", "tf?", "wth",
             "lmao what?", "????", "??", "???????", "???", "UMMM???", "umm", "ummm???", "damn wth",
-            "dang it", "Damn", "damn wtf", "damn", "hmmm", "hm", "sus", "hmm", "ok??", "ok?", "give me a rest", "im done",
+            "Damn", "damn wtf", "damn", "hmmm", "hm", "sus", "hmm", "ok??", "ok?", "give me a rest",
             "again lol", "again??", "ok damn", "seriously?", "seriously????", "seriously", "really?", "really",
-            "are you kidding me?", "are you serious?", "are you fr???", "oh come on", "oh come on :sob:",
-            "not again", "not again :sob:", "give me a break", "youre kidding right?", "youre joking", "youre kidding me",
-            "you must be joking", "seriously bro?", "cmon now", "cmon", "this is too much", "stop messing with me :sob:"};
+            "are you kidding me?", "are you serious?", "are you fr???", "not again",
+            "give me a break", "youre kidding right?", "youre joking", "youre kidding me",
+            "you must be joking", "seriously bro?", "cmon now", "cmon", "this is too much", "stop messing with me"};
 
     public static void resetFailsafes() {
         LogUtils.sendDebug("Resetting failsafes");

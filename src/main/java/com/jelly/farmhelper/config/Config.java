@@ -412,11 +412,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public boolean onlyAcceptProfitableVisitors = false;
 	@Number(
-		name = "Visitors Macro Coins Threshold", category = VISITORS_MACRO, subcategory = "Visitors Macro",
-		description = "The maximum amount of coins to be considered profitable",
+		name = "The minimum amount of coins to start the macro (in millions)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+		description = "The minimum amount of coins you need to have in your purse to start the visitors macro (in millions)",
 		min = 1, max = 20
 	)
-	public int visitorsMacroCoinsThreshold = 1;
+	public int visitorsMacroCoinsThreshold = 3;
 	@Info(
 			text = "If you put your compactors in the hotbar, they will be temporarily disabled.",
 			type = InfoType.INFO,
@@ -649,7 +649,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "The minimum distance between the previous and teleported position to trigger failsafe",
 		min = 0.5f, max = 20f
 	)
-	public float teleportCheckSensitivity = 2;
+	public float teleportCheckSensitivity = 4;
 	@Switch(
 		name = "Check Y coords only", category = FAILSAFE, subcategory = "Miscellaneous",
 		description = "Checks only Y coords changes before triggering failsafe"
