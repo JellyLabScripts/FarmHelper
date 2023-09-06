@@ -37,8 +37,8 @@ public class ProfitCalculatorHUD extends BasicHud {
 
     @Override
     protected void draw(UMatrixStack matrices, float x, float y, float scale, boolean example) {
-        if (lines == null || lines.isEmpty() || example) return;
-        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
+        if (lines == null || lines.isEmpty()) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN && !example) return;
 
         float textX = position.getX() + 1 * scale;
         addLines();
