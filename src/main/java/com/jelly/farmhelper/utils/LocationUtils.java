@@ -52,6 +52,7 @@ public class LocationUtils {
     @SubscribeEvent(receiveCanceled = true)
     public void onChat(ClientChatReceivedEvent event) {
         // Check locraw message
+        if (event.message == null) return;
         String unformatted = event.message.getUnformattedText();
         if (!unformatted.startsWith("{") || !unformatted.endsWith("}")) return;
 
