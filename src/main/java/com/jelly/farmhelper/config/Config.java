@@ -418,6 +418,14 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public int visitorsMacroCoinsThreshold = 1;
 	@Info(
+			text = "If you put your compactors in the hotbar, they will be temporarily disabled.",
+			type = InfoType.INFO,
+			category = VISITORS_MACRO,
+			subcategory = "Visitors Macro",
+			size = 2
+	)
+	public static boolean infoCompactors;
+	@Info(
 		text = "Cookie buff is required!",
 		type = InfoType.ERROR,
 		category = VISITORS_MACRO,
@@ -431,13 +439,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		subcategory = "Visitors Macro"
 	)
 	public static boolean infoDeskNotSet;
-	@Info(
-		text = "If you put your compactors in the hotbar, they will be temporarily disabled.",
-		type = InfoType.INFO,
-		category = VISITORS_MACRO,
-		subcategory = "Visitors Macro"
-	)
-	public static boolean infoCompactors;
 
 	@Button(
 		name = "Set Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
