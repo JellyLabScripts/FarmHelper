@@ -15,8 +15,6 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
-import static com.jelly.farmhelper.FarmHelper.config;
-
 public abstract class Macro<T> {
     public static final Minecraft mc = Minecraft.getMinecraft();
     public boolean enabled = false;
