@@ -650,6 +650,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public float teleportCheckSensitivity = 2;
 	@Switch(
+		name = "Check Y coords only", category = FAILSAFE, subcategory = "Miscellaneous",
+		description = "Checks only Y coords changes before triggering failsafe"
+	)
+	public boolean teleportCheckYCoordsOnly = false;
+	@Switch(
 			name = "Enable Failsafe Trigger Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound", size = OptionSize.DUAL,
 			description = "Makes a sound when a failsafe has been triggered"
 	)
@@ -999,6 +1004,18 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			min = 0.2f, max = 1.75f
 	)
 	public float rewarpMaxDistance = 0.75f;
+
+	@Switch(
+			name = "Enable New Lag Detection", category = EXPERIMENTAL, subcategory = "Experimental",
+			description = "Enables the new lag detection system to prevent false positives"
+	)
+	public boolean enableNewLagDetection = false;
+	@Slider(
+			name = "Lag Detection Sensitivity", category = EXPERIMENTAL, subcategory = "Experimental",
+			description = "The maximum time between received packets to trigger a lag detection",
+			min = 50, max = 1500, step = 50
+	)
+	public int lagDetectionSensitivity = 250;
 
 	// END EXPERIMENTAL
 

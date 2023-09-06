@@ -582,6 +582,7 @@ public class FailsafeNew {
                 LogUtils.sendDebug("Got rotation packet while having bad connection to the server, ignoring");
                 return;
             }
+            if (config.enableNewLagDetection && LagDetection.lagging) return;
 
             S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
 
@@ -589,6 +590,12 @@ public class FailsafeNew {
             Vec3 playerPos = mc.thePlayer.getPositionVector();
             Vec3 teleportPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
             if (packet.getY() >= 80) return;
+            float yDifference = Math.abs((float) (playerPos.yCoord - teleportPos.yCoord));
+            if (config.teleportCheckYCoordsOnly && yDifference >= config.teleportCheckSensitivity) {
+                LogUtils.sendDebug("Teleportation check Y coords difference: " + yDifference);
+                emergencyFailsafe(FailsafeType.TELEPORTATION);
+                return;
+            }
             if ((float) playerPos.distanceTo(teleportPos) >= config.teleportCheckSensitivity) {
                 LogUtils.sendDebug("Teleportation check distance: " + playerPos.distanceTo(teleportPos));
                 emergencyFailsafe(FailsafeType.TELEPORTATION);

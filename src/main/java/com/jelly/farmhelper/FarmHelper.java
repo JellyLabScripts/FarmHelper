@@ -76,6 +76,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new Pinger());
         MinecraftForge.EVENT_BUS.register(new JacobsContestHandler());
         MinecraftForge.EVENT_BUS.register(new LocationUtils());
+        MinecraftForge.EVENT_BUS.register(new LagDetection());
         MinecraftForge.EVENT_BUS.register(petSwapper);
         ClientCommandHandler.instance.registerCommand(new RewarpCommand());
         ClientCommandHandler.instance.registerCommand(new FarmHelperCommand());

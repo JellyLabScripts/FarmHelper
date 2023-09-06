@@ -4,10 +4,7 @@ import cc.polyfrost.oneconfig.config.annotations.Switch;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.features.AutoReconnect;
-import com.jelly.farmhelper.features.FailsafeNew;
-import com.jelly.farmhelper.features.PetSwapper;
-import com.jelly.farmhelper.features.Scheduler;
+import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.utils.LocationUtils;
 
 import java.awt.*;
@@ -64,6 +61,7 @@ public class DebugHUD extends TextHud {
             lines.add("AutoReconnect.currentState: " + AutoReconnect.currentState);
             lines.add("hasLineChanged: " + hasLineChanged);
             lines.add("isHuggingAWall: " + isHuggingAWall);
+            lines.add("lagging: " + LagDetection.lagging);
         }
     }
 }
