@@ -3,8 +3,10 @@ package com.jelly.farmhelper.macros;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.features.FailsafeNew;
+import com.jelly.farmhelper.features.LagDetection;
 import com.jelly.farmhelper.utils.*;
 
+import static com.jelly.farmhelper.FarmHelper.config;
 import static com.jelly.farmhelper.utils.BlockUtils.*;
 
 public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
@@ -98,6 +100,8 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
             LogUtils.sendDebug("Blocking changing movement due to emergency");
             return;
         }
+
+        if (LagDetection.isLagging()) return;
 
         // Update or invoke state, based on if player is moving or not
         if (FarmHelper.gameState.canChangeDirection()) {

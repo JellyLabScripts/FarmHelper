@@ -1015,7 +1015,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			description = "The maximum time between received packets to trigger a lag detection",
 			min = 50, max = 1500, step = 50
 	)
-	public int lagDetectionSensitivity = 250;
+	public int lagDetectionSensitivity = 300;
 
 	// END EXPERIMENTAL
 

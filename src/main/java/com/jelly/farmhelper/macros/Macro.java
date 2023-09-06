@@ -6,6 +6,7 @@ import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.FailsafeNew;
+import com.jelly.farmhelper.features.LagDetection;
 import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -13,6 +14,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
+
+import static com.jelly.farmhelper.FarmHelper.config;
 
 public abstract class Macro<T> {
     public static final Minecraft mc = Minecraft.getMinecraft();
@@ -218,6 +221,7 @@ public abstract class Macro<T> {
 //    }
 
     public boolean isStuck() {
+        if (LagDetection.isLagging() || LagDetection.wasJustLagging()) return false;
         if (Antistuck.stuck && !FailsafeNew.emergency) {
             unstuck();
             return true;

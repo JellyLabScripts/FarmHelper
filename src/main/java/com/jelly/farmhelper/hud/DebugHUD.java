@@ -5,6 +5,7 @@ import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.*;
+import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.LocationUtils;
 
 import java.awt.*;
@@ -62,6 +63,9 @@ public class DebugHUD extends TextHud {
             lines.add("hasLineChanged: " + hasLineChanged);
             lines.add("isHuggingAWall: " + isHuggingAWall);
             lines.add("lagging: " + LagDetection.lagging);
+            lines.add("lastPacket: " + LagDetection.lastPacket);
+            if (MacroHandler.currentMacro != null)
+                lines.add("isStuck: " + MacroHandler.currentMacro.isStuck());
         }
     }
 }

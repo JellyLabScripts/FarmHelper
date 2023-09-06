@@ -578,11 +578,14 @@ public class FailsafeNew {
 
         if (VisitorsMacro.isEnabled()) return;
         if (event.packet instanceof S08PacketPlayerPosLook) {
+            if (LagDetection.isLagging()) {
+                LogUtils.sendDebug("Lag detected, ignoring teleport and rotation check");
+                return;
+            }
             if (config.pingServer && (Pinger.dontRotationCheck.isScheduled() && !Pinger.dontRotationCheck.passed() || Pinger.isOffline)) {
                 LogUtils.sendDebug("Got rotation packet while having bad connection to the server, ignoring");
                 return;
             }
-            if (config.enableNewLagDetection && LagDetection.lagging) return;
 
             S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
 

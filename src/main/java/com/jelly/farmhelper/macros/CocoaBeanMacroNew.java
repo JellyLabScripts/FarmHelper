@@ -3,6 +3,7 @@ package com.jelly.farmhelper.macros;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.features.FailsafeNew;
+import com.jelly.farmhelper.features.LagDetection;
 import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.block.BlockDoor;
@@ -88,6 +89,8 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
 
         DebugHUD.hasLineChanged = hasLineChanged();
         DebugHUD.isHuggingAWall = isHuggingAWall();
+
+        if (LagDetection.isLagging()) return;
 
         // Update or invoke state, based on if player is moving or not
         if (FarmHelper.gameState.canChangeDirection() || hasLineChanged()) {
