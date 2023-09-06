@@ -18,11 +18,6 @@ public class DebugHUD extends TextHud {
         super(true, 1f, 10f, 1, true, true, 1, 5, 5, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
     }
 
-    @Switch(
-        name = "Rainbow Text", category = "HUD",
-        description = "Rainbow text for the debug HUD"
-    )
-    public static boolean rainbowStatusText = false;
     public static String prevState = "";
     public static String currentState = "";
     public static boolean rotating = false;
@@ -37,14 +32,6 @@ public class DebugHUD extends TextHud {
     @Override
     protected void getLines(List<String> lines, boolean example) {
 
-        if (rainbowStatusText) {
-            Color chroma = Color.getHSBColor((float) ((System.currentTimeMillis() / 10) % 500) / 500, 1, 1);
-            color.setFromOneColor(new OneColor(chroma.getRed(), chroma.getGreen(), chroma.getBlue(), 255));
-        } else {
-            Color chroma = Color.WHITE;
-            color.setFromOneColor(new OneColor(chroma.getRed(), chroma.getGreen(), chroma.getBlue(), 255));
-
-        }
         if (FarmHelper.config.debugMode) {
             lines.add("prevState: " + prevState);
             lines.add("currentState: " + currentState);

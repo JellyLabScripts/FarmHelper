@@ -45,7 +45,7 @@ public class PlayerUtils {
     }
 
     public static void attemptSetSpawn() {
-        if(FarmHelper.config.enableAutoSetSpawn) {
+        if (FarmHelper.config.enableAutoSetSpawn) {
             double diff = (FarmHelper.config.autoSetSpawnMaxDelay * 1000) - (FarmHelper.config.autoSetSpawnMinDelay * 1000);
             if (diff <= 0) {
                 LogUtils.sendError("autoSetSpawnMaxDelay must be greater than autoSetSpawnMinDelay!");
@@ -71,12 +71,13 @@ public class PlayerUtils {
             final Matcher matcher = pattern.matcher(tag.toString());
             while (matcher.find()) {
                 if (matcher.group(0) != null) {
-                    speed = parseInt((matcher.group(0).replaceAll("Current Speed Cap: §a" ,"")));
+                    speed = parseInt((matcher.group(0).replaceAll("Current Speed Cap: §a", "")));
                 }
             }
         }
         return speed;
     }
+
     public static String getInventoryName() {
         if (PlayerUtils.mc.currentScreen instanceof GuiChest) {
             final ContainerChest chest = (ContainerChest) PlayerUtils.mc.thePlayer.openContainer;
@@ -95,8 +96,9 @@ public class PlayerUtils {
     }
 
     public static void openInventory() {
-            mc.displayGuiScreen(new GuiInventory(mc.thePlayer));
+        mc.displayGuiScreen(new GuiInventory(mc.thePlayer));
     }
+
     public static ItemStack getStackInSlot(final int slot) {
         return PlayerUtils.mc.thePlayer.inventory.getStackInSlot(slot);
     }
@@ -130,8 +132,8 @@ public class PlayerUtils {
     }
 
     public static int getSlotFromGui(final String itemName) {
-        List < ItemStack > inventory = mc.thePlayer.openContainer.getInventory();
-        for (ItemStack itemStack: inventory) {
+        List<ItemStack> inventory = mc.thePlayer.openContainer.getInventory();
+        for (ItemStack itemStack : inventory) {
             if (itemStack == null) continue;
             if (StringUtils.stripControlCodes(itemStack.getDisplayName()).toLowerCase().contains(itemName.toLowerCase())) {
                 return inventory.indexOf(itemStack);
@@ -142,7 +144,7 @@ public class PlayerUtils {
     }
 
     public static String matchFromString(final String pattern, final String item) {
-        List < ItemStack > inventory = mc.thePlayer.openContainer.getInventory();
+        List<ItemStack> inventory = mc.thePlayer.openContainer.getInventory();
         int slot = getSlotFromGui(item);
         if (slot == -1) return null;
         String lore = PlayerUtils.getItemLoreString(inventory.get(slot));
@@ -285,11 +287,11 @@ public class PlayerUtils {
         return copy;
     }
 
-    public static int getHoeSlot(CropEnum crop) {
-        if (crop == null) return 0;
-        for (int i = 36; i < 44; i++) {
+    public static int getFarmingTool(CropEnum crop, boolean withError, boolean fullInventory) {
+        if (crop == null) return withError ? -1 : 0;
+        for (int i = fullInventory ? 0 : 36; i < 44; i++) {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
-                switch (crop){
+                switch (crop) {
                     case NETHER_WART:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Newton")) {
                             return i - 36;
@@ -325,24 +327,25 @@ public class PlayerUtils {
                             return i - 36;
                         }
                         continue;
+                    case MELON:
+                    case PUMPKIN:
+                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Dicer")) {
+                            return i - 36;
+                        }
+                        continue;
+                    case COCOA_BEANS:
+                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Chopper")) {
+                            return i - 36;
+                        }
+                        continue;
                 }
             }
         }
-        return 0;
+        return withError ? -1 : 0;
     }
 
-    public static int getAxeSlot(CropEnum crop) {
-        for (int i = 36; i < 44; i++) {
-            if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
-                if ((crop == CropEnum.MELON || crop == CropEnum.PUMPKIN) && mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Dicer")) {
-                    return i - 36;
-                }
-                if (crop == CropEnum.COCOA_BEANS && mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Chopper")) {
-                    return i - 36;
-                }
-            }
-        }
-        return 0;
+    public static int getFarmingTool(CropEnum crop) {
+        return getFarmingTool(crop, false, false);
     }
 
     public static Entity getEntityCuttingOtherEntity(Entity e) {
@@ -370,11 +373,11 @@ public class PlayerUtils {
     public static String getItemLoreString(ItemStack itemStack) {
         NBTTagList loreTag = itemStack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8);
         StringBuilder lore = new StringBuilder();
-        ArrayList < String > loreList = new ArrayList < > ();
+        ArrayList<String> loreList = new ArrayList<>();
         for (int i = 0; i < loreTag.tagCount(); i++) {
             loreList.add(StringUtils.stripControlCodes(loreTag.getStringTagAt(i)));
         }
-        for (String text: loreList) {
+        for (String text : loreList) {
             lore.append(text).append(" ");
         }
         return lore.toString().toLowerCase();

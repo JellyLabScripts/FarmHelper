@@ -84,7 +84,7 @@ public class RemoteControlHandler {
             return;
         }
 
-        if (tick % 20 == 0) {
+        if (tick % 100 == 0) {
             connect();
             tick = 1;
         } else {

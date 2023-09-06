@@ -23,7 +23,6 @@ public class Client extends WebSocketClient {
     }
 
     @Override
-//    @SneakyThrows
     public void onMessage(String message) {
         System.out.println(message);
         if (message.equals("VERSIONERROR")) {

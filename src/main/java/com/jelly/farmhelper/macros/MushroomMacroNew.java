@@ -38,7 +38,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
         } else {
             rotation.easeTo(closest90Yaw + (currentState == State.LEFT ? -30 : 30), pitch, 400);
         }
-        mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(Config.CropEnum.MUSHROOM);
+        mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(Config.CropEnum.MUSHROOM);
     }
 
     @Override
