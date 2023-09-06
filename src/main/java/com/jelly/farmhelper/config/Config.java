@@ -376,13 +376,13 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	@Slider(
 		name = "Rotation Time", category = DELAYS, subcategory = "Delays",
 		description = "The time it takes to rotate the player (in seconds)",
-		min = 0.2f, max = 10
+		min = 0.2f, max = 4f
 	)
 	public float rotationTime = 0.4f;
 	@Slider(
 		name = "Rotation Random Time", category = DELAYS, subcategory = "Delays",
 		description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
-		min = 0.2f, max = 10
+		min = 0.2f, max = 2f
 	)
 	public float rotationTimeRandomness = 0.2f;
 	@Slider(
@@ -412,11 +412,17 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public boolean onlyAcceptProfitableVisitors = false;
 	@Number(
-		name = "The minimum amount of coins to start the macro (in millions)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
-		description = "The minimum amount of coins you need to have in your purse to start the visitors macro (in millions)",
-		min = 1, max = 20
+			name = "The minimum amount of coins to start the macro (in millions)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+			description = "The minimum amount of coins you need to have in your purse to start the visitors macro (in millions)",
+			min = 1, max = 20
 	)
 	public int visitorsMacroCoinsThreshold = 3;
+	@Slider(
+			name = "Price Manipulation Detection Multiplier", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+			description = "How much does Instant Buy price need to be higher than Instant Sell price to detect price manipulation",
+			min = 1.25f, max = 4f
+	)
+	public float visitorsMacroPriceManipulationMultiplier = 2;
 	@Info(
 			text = "If you put your compactors in the hotbar, they will be temporarily disabled.",
 			type = InfoType.INFO,

@@ -840,7 +840,7 @@ public class VisitorsMacro {
                             String itemName2 = getLoreFromGuiByItemName("Sell Instantly");
                             if (itemName1 == null || itemName2 == null) break;
 
-                            if (extractPrice(itemName1) > extractPrice(itemName2) * 2) {
+                            if (extractPrice(itemName1) > extractPrice(itemName2) * FarmHelper.config.visitorsMacroPriceManipulationMultiplier) {
                                 LogUtils.sendWarning("The price for " + itemToBuy.getLeft() + " has been manipulated. Rejecting...");
                                 rejectOffer = true;
                                 Utils.signText = "";
