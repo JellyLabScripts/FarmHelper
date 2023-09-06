@@ -94,7 +94,6 @@ public class VisitorsMacro {
     public static final Clock giveBackItemsClock = new Clock();
     public static final Clock haveItemsClock = new Clock();
     public static boolean rejectOffer = false;
-    public static String signText = "";
 
     public static final ArrayList<String> visitors = new ArrayList<>();
     public static final ArrayList<Pair<String, Long>> visitorsFinished = new ArrayList<>();
@@ -142,7 +141,7 @@ public class VisitorsMacro {
         itemToBuy = null;
         currentBuyState = BuyState.IDLE;
         currentVisitor = null;
-        signText = "";
+        Utils.signText = "";
         stuckClock.reset();
         previousState = State.NONE;
         previousBuyState = BuyState.IDLE;
@@ -342,7 +341,7 @@ public class VisitorsMacro {
             itemsToBuy.clear();
             itemToBuy = null;
             currentVisitor = null;
-            signText = "";
+            Utils.signText = "";
             stuckClock.reset();
             mc.thePlayer.closeScreen();
             if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
@@ -768,7 +767,7 @@ public class VisitorsMacro {
                                         if (!foundProfit) {
                                             LogUtils.sendDebug("Visitor offers a reward that is not in the profit rewards list, skipping...");
                                             rejectOffer = true;
-                                            signText = "";
+                                            Utils.signText = "";
                                             boughtAllItems = true;
                                             currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
                                             delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
@@ -824,7 +823,7 @@ public class VisitorsMacro {
                                 LogUtils.sendError("Item not found on Bazaar. Rejecting...");
                                 LogUtils.sendDebug(itemToBuy.getLeft());
                                 rejectOffer = true;
-                                signText = "";
+                                Utils.signText = "";
                                 boughtAllItems = true;
                                 currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
                             }
@@ -844,7 +843,7 @@ public class VisitorsMacro {
                             if (extractPrice(itemName1) > extractPrice(itemName2) * 2) {
                                 LogUtils.sendWarning("The price for " + itemToBuy.getLeft() + " has been manipulated. Rejecting...");
                                 rejectOffer = true;
-                                signText = "";
+                                Utils.signText = "";
                                 boughtAllItems = true;
                                 currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
                                 delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
@@ -852,7 +851,7 @@ public class VisitorsMacro {
                             }
                             clickSlot(PlayerUtils.getSlotFromGui("Buy Instantly"), 0);
 
-                            signText = String.valueOf(itemToBuy.getRight());
+                            Utils.signText = String.valueOf(itemToBuy.getRight());
                             currentBuyState = BuyState.CLICK_SIGN;
                             delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                             break;
@@ -864,7 +863,7 @@ public class VisitorsMacro {
                             if (PlayerUtils.getSlotFromGui("Custom Amount") == -1) return;
                             clickSlot(PlayerUtils.getSlotFromGui("Custom Amount"), 0);
 
-                            signText = String.valueOf(itemToBuy.getRight());
+                            Utils.signText = String.valueOf(itemToBuy.getRight());
                             currentBuyState = BuyState.CLICK_CONFIRM;
                             delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                             break;
@@ -874,7 +873,7 @@ public class VisitorsMacro {
                                 break;
                             }
                             if (chestName.equals("Confirm Instant Buy")) {
-                                signText = "";
+                                Utils.signText = "";
                                 clickSlot(13, 0);
                                 itemsToBuy.remove(itemToBuy);
                                 if (!itemsToBuy.isEmpty()) {
