@@ -337,7 +337,7 @@ public class CocoaBeanMacro extends Macro {
     };
 
     public boolean findAndEquipAxe() {
-        int axeSlot = PlayerUtils.getAxeSlot(MacroHandler.crop);
+        int axeSlot = PlayerUtils.getFarmingTool(MacroHandler.crop);
         if (axeSlot == -1) {
             axeEquipFails = axeEquipFails + 1;
             if (axeEquipFails > 10) {

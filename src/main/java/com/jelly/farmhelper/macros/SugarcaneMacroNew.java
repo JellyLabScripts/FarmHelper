@@ -31,7 +31,7 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
         MacroHandler.crop = MacroHandler.getFarmingCrop();
         if (currentState == null)
             changeState(State.NONE);
-        mc.thePlayer.inventory.currentItem = PlayerUtils.getHoeSlot(MacroHandler.crop);
+        mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.crop);
         rotation.easeTo(yaw, pitch, 500);
         rowStartX = mc.thePlayer.posX;
         rowStartZ = mc.thePlayer.posZ;

@@ -28,6 +28,7 @@ import static com.jelly.farmhelper.utils.KeyBindUtils.updateKeys;
 
 public class Utils{
     static Minecraft mc = Minecraft.getMinecraft();
+    public static String signText = "";
 
     public static boolean pingAlertPlaying = false;
 
