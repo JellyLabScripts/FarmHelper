@@ -32,15 +32,14 @@ public class RewarpCommand extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         if (args.length != 1) {
-            LogUtils.scriptLog("Invalid arguments");
-            LogUtils.scriptLog("Use /fhrewarp [add|remove|removeall]");
+            LogUtils.sendError("Invalid arguments. Use /fhrewarp [add|remove|removeall]");
             return;
         }
 
         switch (args[0]) {
             case "add": {
                 if (Config.rewarpList.stream().anyMatch(rewarp -> rewarp.isTheSameAs(BlockUtils.getRelativeBlockPos(0, 0, 0)))) {
-                    LogUtils.scriptLog("Rewarp location already set");
+                    LogUtils.sendError("Rewarp location has already been set!");
                     return;
                 }
                 Config.addRewarp(new Rewarp(BlockUtils.getRelativeBlockPos(0, 0, 0)));
@@ -48,8 +47,8 @@ public class RewarpCommand extends CommandBase {
             }
             case "remove": {
                 Rewarp closest = null;
-                if (Config.rewarpList.size() == 0) {
-                    LogUtils.scriptLog("No rewarp locations set");
+                if (Config.rewarpList.isEmpty()) {
+                    LogUtils.sendError("No rewarp locations set!");
                     return;
                 }
                 double closestDistance = Double.MAX_VALUE;

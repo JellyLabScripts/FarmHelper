@@ -27,11 +27,6 @@ public class ProfitCalculatorHUD extends BasicHud {
             description = "Rainbow text for the status HUD"
     )
     public static boolean rainbowProfitText = false;
-    @Switch(
-            name = "Don't show Profit Calculator HUD while on the island", category = "HUD", subcategory = "ProfitCalculatorHUD",
-            description = "Rainbow text for the status HUD"
-    )
-    public static boolean dontShowProfitWhileOnTheIsland = true;
 
     @Exclude
     protected OneColor color = new OneColor(0, 0, 0, 255);
@@ -39,10 +34,7 @@ public class ProfitCalculatorHUD extends BasicHud {
     @Override
     protected void draw(UMatrixStack matrices, float x, float y, float scale, boolean example) {
         if (lines == null || lines.isEmpty()) return;
-        if (LocationUtils.currentIsland == LocationUtils.Island.PRIVATE_ISLAND) {
-            if (dontShowProfitWhileOnTheIsland)
-                return;
-        } else if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) return;
 
         if (rainbowProfitText) {
             Color chroma = Color.getHSBColor((float) ((System.currentTimeMillis() / 10) % 500) / 500, 1, 1);

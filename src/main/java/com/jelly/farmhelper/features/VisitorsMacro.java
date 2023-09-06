@@ -5,6 +5,7 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
+import lombok.Getter;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockSlab;
 import net.minecraft.block.BlockStairs;
@@ -44,10 +45,12 @@ public class VisitorsMacro {
         MOVE_TO_CENTER,
         ROTATE_TO_DESK,
         MOVE_TOWARDS_DESK,
+        DISABLE_COMPACTORS,
         MANAGING_VISITORS,
         OPEN_VISITOR,
         BUY_ITEMS,
         GIVE_ITEMS,
+        ENABLE_COMPACTORS,
         BACK_TO_FARMING,
         TELEPORT_TO_GARDEN,
         CHANGE_TO_NONE,
@@ -57,18 +60,30 @@ public class VisitorsMacro {
     public enum BuyState {
         IDLE,
         CLICK_CROP,
-        CLICK_SIGN,
         CLICK_BUY,
+        CLICK_SIGN,
+        CLICK_CONFIRM,
         SETUP_VISITOR_HAND_IN,
         HAND_IN_CROPS,
     }
 
+    public enum CompactorState {
+        IDLE,
+        GET_LIST,
+        HOLD_COMPACTOR,
+        OPEN_COMPACTOR,
+        TOGGLE_COMPACTOR,
+        CLOSE_COMPACTOR
+    }
+
+    @Getter
     private static boolean enabled = false;
 
     private static State currentState = State.NONE;
     private static State previousState = State.NONE;
     private static BuyState currentBuyState = BuyState.IDLE;
     private static BuyState previousBuyState = BuyState.IDLE;
+    private static CompactorState currentCompactorState = CompactorState.GET_LIST;
     private static Entity currentVisitor = null;
 
     private static final Clock clock = new Clock();
@@ -84,6 +99,7 @@ public class VisitorsMacro {
     public static final ArrayList<Pair<String, Long>> visitorsFinished = new ArrayList<>();
     public static final ArrayList<Pair<String, Integer>> itemsToBuy = new ArrayList<>();
     public static final ArrayList<Pair<String, Integer>> itemsToBuyForCheck = new ArrayList<>();
+    public static final ArrayList<Integer> compactorSlots = new ArrayList<>();
     public static Pair<String, Integer> itemToBuy = null;
     public static boolean boughtAllItems = false;
     public static double previousDistanceToCheck = 0;
@@ -102,15 +118,12 @@ public class VisitorsMacro {
     public static float randomValue = 0;
 
     public static float purseBeforeVisitors = 0;
+    public static float directionBeforeStart = 1337;
 
     public static final List<String> profitRewards = Arrays.asList("Dedication", "Cultivating", "Delicate", "Replenish", "Music Rune", "Green Bandana", "Overgrown Grass", "Space Helmet");
 
-    public static boolean isEnabled() {
-        return enabled;
-    }
-
     public static void stopMacro() {
-        System.out.println("Stopping visitors macro");
+        LogUtils.sendDebug("Stopping visitors macro");
         currentEdge = null;
         currentState = State.NONE;
         aotvTpCooldown.reset();
@@ -124,6 +137,7 @@ public class VisitorsMacro {
         visitorsFinished.clear();
         itemsToBuy.clear();
         itemsToBuyForCheck.clear();
+        compactorSlots.clear();
         itemToBuy = null;
         currentBuyState = BuyState.IDLE;
         currentVisitor = null;
@@ -134,6 +148,7 @@ public class VisitorsMacro {
         enabled = false;
         firstTimeOpen = true;
         retriesToGettingCloser = 0;
+        directionBeforeStart = 1337;
         if (disableMacro) {
             FarmHelper.config.visitorsMacro = false;
             FarmHelper.config.save();
@@ -146,7 +161,7 @@ public class VisitorsMacro {
         randomValue = 0;
         purseBeforeVisitors = 0;
         if (FarmHelper.config.visitorsMacro)
-            LogUtils.scriptLog("Stopped visitors macro");
+            LogUtils.sendDebug("Stopped visitors macro");
     }
 
     @SubscribeEvent
@@ -193,59 +208,69 @@ public class VisitorsMacro {
             clock.reset();
         }
 
-        if (!MacroHandler.currentMacro.isSpawnLocationSet()) {
-            LogUtils.debugLog("Spawn pos is not yet determined, will run after rewarping or setting spawn.");
+        if (!MacroHandler.currentMacro.isSpawnLocationSet() || !MacroHandler.currentMacro.isStandingOnSpawnLocation()) {
             return;
         }
 
-        if (!MacroHandler.currentMacro.isStandingOnSpawnLocation()) {
-            LogUtils.debugLog("Not standing on spawn location, will run after rewarping or setting spawn.");
+        if (FarmHelper.gameState.cookie != GameState.EffectState.ON) {
+            LogUtils.sendDebug("Cookie buff is not active, skipping...");
+            clock.schedule(5000);
+            enabled = false;
+            return;
+        }
+
+        if (FarmHelper.config.pauseVisitorsMacroDuringJacobsContest && GameState.inJacobContest()) {
+            LogUtils.sendDebug("Player is in Jacob's contest, skipping...");
+            clock.schedule(5000);
+            enabled = false;
+            return;
+        }
+
+        if (PetSwapper.isEnabled()) {
+            LogUtils.sendDebug("Pet swapper is working, skipping...");
+            clock.schedule(5000);
+            enabled = false;
             return;
         }
 
         if (ProfitCalculator.getCurrentPurse() < FarmHelper.config.visitorsMacroCoinsThreshold * 1_000_000) {
-            LogUtils.debugLog("Not enough coins to start visitors macro, waiting...");
+            LogUtils.sendDebug("Not enough coins to start visitors macro, skipping...");
             clock.schedule(5000);
+            enabled = false;
             return;
         }
 
         if (TablistUtils.getTabList().stream().noneMatch(line -> StringUtils.stripControlCodes(line).contains("Queue Full!"))) {
-            LogUtils.debugLog("Queue is not full, waiting...");
-            clock.schedule(1000);
+            LogUtils.sendDebug("Queue is not full, skipping...");
+            clock.schedule(5000);
+            enabled = false;
             return;
         }
 
         if (!canSeeClosestEdgeOfBarn()) {
-            LogUtils.debugLog("Can't see any edge of barn, still going.");
+            LogUtils.sendDebug("Can't see any edge of barn, still going.");
             clock.schedule(1000);
             enabled = false;
             return;
         }
 
         if (!isAboveHeadClear()) {
-            LogUtils.debugLog("Player doesn't have clear space above their head, still going.");
+            LogUtils.sendDebug("Player doesn't have clear space above their head, still going.");
             clock.schedule(5000);
             enabled = false;
             return;
         }
 
-
         int aspectOfTheVoid = PlayerUtils.getItemInHotbar("Aspect of the");
         if (aspectOfTheVoid == -1) {
-            LogUtils.debugLog("Player doesn't have AOTE nor AOTV)");
+            LogUtils.sendDebug("Player doesn't have AOTE nor AOTV)");
             haveAotv = false;
         } else {
             haveAotv = true;
         }
 
-        if (FarmHelper.config.pauseVisitorsMacroDuringJacobsContest && GameState.inJacobContest()) {
-            LogUtils.debugLog("Player is in Jacob's contest, waiting...");
-            clock.schedule(5000);
-            return;
-        }
-
         if (FarmHelper.config.visitorsDeskPosX == 0 && FarmHelper.config.visitorsDeskPosY == 0 && FarmHelper.config.visitorsDeskPosZ == 0) {
-            LogUtils.scriptLog("Desk position is not set, disabling this feature. Please set it up with the keybind");
+            LogUtils.sendError("Desk position is not set! Disabling this feature...");
             FarmHelper.config.visitorsMacro = false;
             FarmHelper.config.save();
 
@@ -254,16 +279,12 @@ public class VisitorsMacro {
         }
 
         if (currentState == State.NONE && clock.passed()) {
-//            if ((!FarmHelper.config.ladderDesign || FarmHelper.config.macroType)) {
-                currentState = State.ROTATE_TO_EDGE;
-                clock.schedule(1500L);
-                LogUtils.debugLog("Visitors macro can be started");
-                KeyBindUtils.stopMovement();
-                enabled = true;
-//            } else {
-//                currentState = State.TRY_TO_SET_SPAWN;
-//                PlayerUtils.setSpawn();
-//            }
+            directionBeforeStart = AngleUtils.get360RotationYaw();
+            currentState = State.ROTATE_TO_EDGE;
+            clock.schedule(1500);
+            LogUtils.sendDebug("Visitors macro can be started");
+            KeyBindUtils.stopMovement();
+            enabled = true;
             rotation.reset();
             rotation.completed = true;
             clock.schedule(1_500);
@@ -302,11 +323,12 @@ public class VisitorsMacro {
             return;
         }
 
-        System.out.println("Current state: " + currentState);
-        System.out.println("Current buy state: " + currentBuyState);
+//        System.out.println("Current state: " + currentState);
+//        System.out.println("Current buy state: " + currentBuyState);
+//        System.out.println("Current compactor state: " + currentCompactorState);
 
         if (stuckClock.isScheduled() && stuckClock.passed()) {
-            LogUtils.scriptLog("Player is stuck, resetting macro");
+            LogUtils.sendError("Player is stuck! Resetting the macro...");
             clock.reset();
             rotation.reset();
             waitAfterTpClock.reset();
@@ -329,7 +351,7 @@ public class VisitorsMacro {
 
         switch (currentState) {
             case TRY_TO_SET_SPAWN:
-                // idle to wait for chatmessage
+                // waiting for chat message
                 break;
             case ROTATE_TO_EDGE:
                 if ((mc.thePlayer.openContainer instanceof ContainerChest)) break;
@@ -350,7 +372,7 @@ public class VisitorsMacro {
                     currentEdge = closestEdge;
                     previousDistanceToCheck = Integer.MAX_VALUE;
                 } else {
-                    LogUtils.debugLog("Can't find closest edge, waiting...");
+                    LogUtils.sendDebug("Can't find closest edge, waiting...");
                     delayClock.schedule(1000);
                 }
 
@@ -361,7 +383,7 @@ public class VisitorsMacro {
 
                 int aspectOfTheVoid = PlayerUtils.getItemInHotbar("Aspect of the");
                 if (aspectOfTheVoid == -1) {
-                    LogUtils.debugLog("Player doesn't have AOTE nor AOTV)");
+                    LogUtils.sendDebug("Player doesn't have AOTE nor AOTV)");
                     haveAotv = false;
                 } else {
                     mc.thePlayer.inventory.currentItem = aspectOfTheVoid;
@@ -381,7 +403,7 @@ public class VisitorsMacro {
                     delayClock.schedule(2000);
                     previousDistanceToCheck = Integer.MAX_VALUE;
                     if (retriesToGettingCloser >= 2) {
-                        LogUtils.scriptLog("Player is not getting closer to the desk, stopping Visitors Macro. Set the desk position in more open to sight area.");
+                        LogUtils.sendError("Player is not getting closer to the desk! Set the desk position in more open to sight area. Stopping Visitors Macro...");
                         disableMacro = true;
                         currentState = State.BACK_TO_FARMING;
                         break;
@@ -396,7 +418,6 @@ public class VisitorsMacro {
                             mc.thePlayer.capabilities.allowFlying = true;
                             mc.thePlayer.sendPlayerAbilities();
                         }
-                        System.out.println("Flying");
                         KeyBindUtils.updateKeys(false, false, false, false, false, false, true, false);
                     } else if (playerY > 78) {
                         KeyBindUtils.updateKeys(true, false, false, false, false, false, playerY < 85, true);
@@ -476,7 +497,7 @@ public class VisitorsMacro {
                     delayClock.schedule(2000);
                     previousDistanceToCheck = Integer.MAX_VALUE;
                     if (retriesToGettingCloser >= 2) {
-                        LogUtils.scriptLog("Player is not getting closer to the desk, stopping Visitors Macro. Set the desk position in more open to sight area.");
+                        LogUtils.sendError("Player is not getting closer to the desk! Set the desk position in more open to sight area. Stopping Visitors Macro...");
                         disableMacro = true;
                         currentState = State.BACK_TO_FARMING;
                         break;
@@ -530,7 +551,8 @@ public class VisitorsMacro {
                 if (distance > 4.5f) {
                     KeyBindUtils.updateKeys(distance2 > 1f, false, false, false, false, mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround, shouldJump(), !mc.thePlayer.capabilities.isFlying);
                 } else if (distance <= 1.5f) {
-                    currentState = State.MANAGING_VISITORS;
+                    currentState = State.DISABLE_COMPACTORS;
+                    currentCompactorState = CompactorState.GET_LIST;
                     rotation.reset();
                     KeyBindUtils.stopMovement();
                 } else
@@ -538,6 +560,85 @@ public class VisitorsMacro {
 
                 previousDistanceToCheck = distance;
 
+                break;
+            case DISABLE_COMPACTORS:
+                switch (currentCompactorState) {
+                    case IDLE:
+                        break;
+                    case GET_LIST:
+                        LogUtils.sendDebug("Getting list of compactors");
+                        for (int i = 0; i < 9; i++) {
+                            if (mc.thePlayer.inventory.getStackInSlot(i) != null && mc.thePlayer.inventory.getStackInSlot(i).getDisplayName().contains("Compactor")) {
+                                compactorSlots.add(i);
+                            }
+                        }
+                        if (compactorSlots.isEmpty()) {
+                            LogUtils.sendDebug("No compactors found in the hotbar, skipping...");
+                            currentCompactorState = CompactorState.IDLE;
+                            currentState = State.MANAGING_VISITORS;
+                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
+                        } else {
+                            currentCompactorState = CompactorState.HOLD_COMPACTOR;
+                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
+                        }
+                        break;
+                    case HOLD_COMPACTOR:
+                        LogUtils.sendDebug("Compactor slots: " + compactorSlots);
+                        if (compactorSlots.isEmpty()) {
+                            LogUtils.sendDebug("compactorSlots array is empty");
+                            return;
+                        }
+                        mc.thePlayer.inventory.currentItem = compactorSlots.get(0);
+                        LogUtils.sendDebug("Switching slot to compactor");
+                        currentCompactorState = CompactorState.OPEN_COMPACTOR;
+                        delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
+                        break;
+                    case OPEN_COMPACTOR:
+                        LogUtils.sendDebug("Opening compactor");
+                        if (mc.thePlayer.inventory.getStackInSlot(mc.thePlayer.inventory.currentItem) != null && mc.thePlayer.inventory.getStackInSlot(mc.thePlayer.inventory.currentItem).getDisplayName().contains("Compactor")) {
+                            LogUtils.sendDebug("Right clicking compactor");
+                            KeyBindUtils.rightClick();
+                            currentCompactorState = CompactorState.TOGGLE_COMPACTOR;
+                        } else {
+                            LogUtils.sendDebug("Compactor not found in the hand, skipping...");
+                            compactorSlots.clear();
+                            currentCompactorState = CompactorState.IDLE;
+                            currentState = State.MANAGING_VISITORS;
+                        }
+                        delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
+                        break;
+                    case TOGGLE_COMPACTOR:
+                        if (!(mc.thePlayer.openContainer instanceof ContainerChest)) break;
+                        if (PlayerUtils.getSlotFromGui("Compactor Currently") == -1) break;
+                        if (PlayerUtils.getSlotFromGui("Compactor Currently ON!") != -1) {
+                            LogUtils.sendDebug("Disabling compactor");
+                            PlayerUtils.clickOpenContainerSlot(PlayerUtils.getSlotFromGui("Compactor Currently ON!"));
+                        } else {
+                            LogUtils.sendDebug("Compactor is already OFF, skipping...");
+                        }
+                        LogUtils.sendDebug("Compactor slots: " + compactorSlots);
+                        if (compactorSlots.isEmpty())
+                            LogUtils.sendError("compactorSlots is empty! This should never happen. Report this to the developers.");
+                        else
+                            compactorSlots.remove(0);
+                        currentCompactorState = CompactorState.CLOSE_COMPACTOR;
+                        delayClock.schedule(750);
+                        break;
+                    case CLOSE_COMPACTOR:
+                        LogUtils.sendDebug("Closing compactor");
+                        mc.thePlayer.closeScreen();
+                        if (!compactorSlots.isEmpty()) {
+                            currentCompactorState = CompactorState.HOLD_COMPACTOR;
+                            LogUtils.sendDebug("Holding next compactor");
+                        } else {
+                            LogUtils.sendDebug("All compactors disabled, managing visitors");
+                            compactorSlots.clear();
+                            currentCompactorState = CompactorState.IDLE;
+                            currentState = State.MANAGING_VISITORS;
+                        }
+                        delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
+                        break;
+                }
                 break;
             case MANAGING_VISITORS:
                 if ((mc.thePlayer.openContainer instanceof ContainerChest)) {
@@ -547,10 +648,10 @@ public class VisitorsMacro {
                 if (delayClock.isScheduled() && !delayClock.passed()) break;
                 if (rotation.rotating) break;
                 KeyBindUtils.stopMovement();
-                LogUtils.scriptLog("Looking for a visitor...");
+                LogUtils.sendDebug("Looking for a visitor...");
 
                 if (getNonToolItem() == -1) {
-                    LogUtils.scriptLog("You don't have any free (non tool) slot in your hotbar, that would be less sus if you had one." +
+                    LogUtils.sendWarning("You don't have any free (non tool) slot in your hotbar, that would be less sus if you had one." +
                             "Clicking with AOTV or hoe in your hand will be more sus, but it will still work.");
                 } else {
                     mc.thePlayer.inventory.currentItem = getNonToolItem();
@@ -562,8 +663,9 @@ public class VisitorsMacro {
                 }
 
                 if (noMoreVisitors()) {
-                    currentState = State.BACK_TO_FARMING;
-                    delayClock.schedule(250L);
+                    currentState = State.ENABLE_COMPACTORS;
+                    currentCompactorState = CompactorState.GET_LIST;
+                    delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                     return;
                 }
 
@@ -585,15 +687,15 @@ public class VisitorsMacro {
                 }
 
                 if (closest == null) {
-                    LogUtils.scriptLog("No visitors found, waiting...");
-                    delayClock.schedule(2500L);
+                    LogUtils.sendWarning("No visitors found, waiting...");
+                    delayClock.schedule(2500);
                     return;
                 }
 
                 Entity character = PlayerUtils.getEntityCuttingOtherEntity(closest);
 
                 if (character != null) {
-                    LogUtils.scriptLog("Found a visitor...");
+                    LogUtils.sendDebug("Found a visitor...");
                     currentVisitor = closest;
                     currentState = State.OPEN_VISITOR;
                     rotation.reset();
@@ -616,10 +718,10 @@ public class VisitorsMacro {
                 mc.playerController.interactWithEntitySendPacket(mc.thePlayer, currentVisitor);
                 if (boughtAllItems) {
                     currentState = State.GIVE_ITEMS;
-                    delayClock.schedule(250);
+                    delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                 } else
                     currentState = State.BUY_ITEMS;
-                delayClock.schedule(250);
+                delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                 break;
             case BUY_ITEMS:
                 String chestName = mc.thePlayer.openContainer.inventorySlots.get(0).inventory.getName();
@@ -659,12 +761,12 @@ public class VisitorsMacro {
                                             }
                                         }
                                         if (!foundProfit) {
-                                            LogUtils.scriptLog("Visitor offers a reward that is not in the profit rewards list, skipping...");
+                                            LogUtils.sendDebug("Visitor offers a reward that is not in the profit rewards list, skipping...");
                                             rejectOffer = true;
                                             Utils.signText = "";
                                             boughtAllItems = true;
                                             currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
-                                            delayClock.schedule(250);
+                                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                                             return;
                                         }
                                     }
@@ -686,7 +788,7 @@ public class VisitorsMacro {
                                         }
                                     }
                                     if (cropsToBuy.isEmpty()) {
-                                        LogUtils.scriptLog("No items to buy");
+                                        LogUtils.sendDebug("No items to buy");
                                         stopMacro();
                                         return;
                                     }
@@ -708,18 +810,31 @@ public class VisitorsMacro {
                                     if (!slot.getHasStack()) continue;
                                     if (StringUtils.stripControlCodes(slot.getStack().getDisplayName()).trim().equals(itemToBuy.getLeft().trim())) {
                                         clickSlot(slot.slotNumber, 0);
-                                        currentBuyState = BuyState.CLICK_SIGN;
+                                        currentBuyState = BuyState.CLICK_BUY;
                                         rejectOffer = false;
-                                        delayClock.schedule(250);
+                                        delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                                         return;
                                     }
                                 }
-                                LogUtils.debugLog("Item not found in BZ. Rejecting");
-                                System.out.println(itemToBuy.getLeft());
+                                LogUtils.sendError("Item not found on Bazaar. Rejecting...");
+                                LogUtils.sendDebug(itemToBuy.getLeft());
                                 rejectOffer = true;
                                 Utils.signText = "";
                                 boughtAllItems = true;
                                 currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
+                            }
+                            break;
+                        case CLICK_BUY:
+                            if (itemToBuy == null) {
+                                currentState = State.MANAGING_VISITORS;
+                                break;
+                            }
+                            if (chestName.contains("➜") && !chestName.contains("Bazaar")) {
+                                clickSlot(10, 0);
+
+                                signText = String.valueOf(itemToBuy.getRight());
+                                currentBuyState = BuyState.CLICK_SIGN;
+                                delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                             }
                             break;
                         case CLICK_SIGN:
@@ -728,15 +843,14 @@ public class VisitorsMacro {
                                 break;
                             }
                             if (chestName.contains("➜") && !chestName.contains("Bazaar")) {
-                                clickSlot(10, 0);
-                                clickSlot(16, 1);
+                                clickSlot(16, 0);
 
                                 Utils.signText = String.valueOf(itemToBuy.getRight());
-                                currentBuyState = BuyState.CLICK_BUY;
-                                delayClock.schedule(250);
+                                currentBuyState = BuyState.CLICK_CONFIRM;
+                                delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                             }
                             break;
-                        case CLICK_BUY:
+                        case CLICK_CONFIRM:
                             if (itemToBuy == null) {
                                 currentState = State.MANAGING_VISITORS;
                                 break;
@@ -750,7 +864,7 @@ public class VisitorsMacro {
                                 } else {
                                     currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
                                 }
-                                delayClock.schedule(250);
+                                delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                             }
                             break;
                         case SETUP_VISITOR_HAND_IN:
@@ -760,13 +874,13 @@ public class VisitorsMacro {
                                     ).filter(
                                             entity -> entity.getDistanceToEntity(mc.thePlayer) < 4
                                     ).findAny().ifPresent(visitorEntity -> {
-                                        System.out.println("Found visitor to give items");
+                                        LogUtils.sendDebug("Found visitor to give items");
                                         currentVisitor = visitorEntity;
 
                                         Entity characterr = PlayerUtils.getEntityCuttingOtherEntity(currentVisitor);
 
                                         if (characterr != null) {
-                                            LogUtils.scriptLog("Found a visitor and going to give items to him");
+                                            LogUtils.sendDebug("Found a visitor and going to give items to him");
                                             rotation.reset();
                                             Pair<Float, Float> rotationTo = AngleUtils.getRotation(characterr, true);
                                             rotation.easeTo(rotationTo.getLeft(), rotationTo.getRight(), (long) (350 + Math.random() * 200));
@@ -775,7 +889,7 @@ public class VisitorsMacro {
                                             mc.thePlayer.closeScreen();
                                             if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
                                         } else {
-                                            LogUtils.scriptLog("Visitor might a bit too far away, going to wait for him to get closer");
+                                            LogUtils.sendDebug("Visitor might a bit too far away, going to wait for him to get closer");
                                         }
                                         delayClock.schedule(750);
                                     });
@@ -787,19 +901,19 @@ public class VisitorsMacro {
 
                 break;
             case GIVE_ITEMS:
-                LogUtils.debugLog("Have items: " + haveRequiredItemsInInventory());
+                LogUtils.sendDebug("Have items: " + haveRequiredItemsInInventory());
                 if (!haveRequiredItemsInInventory() && !rejectOffer) {
                     if (!giveBackItemsClock.isScheduled()) {
                         giveBackItemsClock.schedule(15_000);
                     } else if (giveBackItemsClock.passed()) {
-                        LogUtils.scriptLog("Can't give items to visitor, going to buy again");
+                        LogUtils.sendError("Can't give items to visitor! Going to buy again...");
                         visitorsFinished.clear();
                         delayClock.schedule(3_000);
                         currentState = State.MANAGING_VISITORS;
                         currentBuyState = BuyState.IDLE;
                         break;
                     }
-                    delayClock.schedule(250);
+                    delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                     break;
                 } else if (haveRequiredItemsInInventory() && !rejectOffer) {
                     if (!haveItemsClock.isScheduled()) {
@@ -823,11 +937,90 @@ public class VisitorsMacro {
                     }
                 }
                 break;
+            case ENABLE_COMPACTORS:
+                switch (currentCompactorState) {
+                    case IDLE:
+                        break;
+                    case GET_LIST:
+                        LogUtils.sendDebug("Getting list of compactors");
+                        for (int i = 0; i < 9; i++) {
+                            if (mc.thePlayer.inventory.getStackInSlot(i) != null && mc.thePlayer.inventory.getStackInSlot(i).getDisplayName().contains("Compactor")) {
+                                compactorSlots.add(i);
+                            }
+                        }
+                        if (compactorSlots.isEmpty()) {
+                            LogUtils.sendDebug("No compactors found in the hotbar, skipping...");
+                            currentCompactorState = CompactorState.IDLE;
+                            currentState = State.BACK_TO_FARMING;
+                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
+                        } else {
+                            currentCompactorState = CompactorState.HOLD_COMPACTOR;
+                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
+                        }
+                        break;
+                    case HOLD_COMPACTOR:
+                        LogUtils.sendDebug("Compactor slots: " + compactorSlots);
+                        if (compactorSlots.isEmpty()) {
+                            LogUtils.sendDebug("compactorSlots array is empty");
+                            return;
+                        }
+                        mc.thePlayer.inventory.currentItem = compactorSlots.get(0);
+                        LogUtils.sendDebug("Switching slot to compactor");
+                        currentCompactorState = CompactorState.OPEN_COMPACTOR;
+                        delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
+                        break;
+                    case OPEN_COMPACTOR:
+                        LogUtils.sendDebug("Opening compactor");
+                        if (mc.thePlayer.inventory.getStackInSlot(mc.thePlayer.inventory.currentItem) != null && mc.thePlayer.inventory.getStackInSlot(mc.thePlayer.inventory.currentItem).getDisplayName().contains("Compactor")) {
+                            LogUtils.sendDebug("Right clicking compactor");
+                            KeyBindUtils.rightClick();
+                            currentCompactorState = CompactorState.TOGGLE_COMPACTOR;
+                        } else {
+                            LogUtils.sendDebug("Compactor not found in the hand, skipping...");
+                            compactorSlots.clear();
+                            currentCompactorState = CompactorState.IDLE;
+                            currentState = State.BACK_TO_FARMING;
+                        }
+                        delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
+                        break;
+                    case TOGGLE_COMPACTOR:
+                        if (!(mc.thePlayer.openContainer instanceof ContainerChest)) break;
+                        if (PlayerUtils.getSlotFromGui("Compactor Currently") == -1) break;
+                        if (PlayerUtils.getSlotFromGui("Compactor Currently OFF!") != -1) {
+                            LogUtils.sendDebug("Disabling compactor");
+                            PlayerUtils.clickOpenContainerSlot(PlayerUtils.getSlotFromGui("Compactor Currently OFF!"));
+                        } else {
+                            LogUtils.sendDebug("Compactor is already ON, skipping...");
+                        }
+                        LogUtils.sendDebug("Compactor slots: " + compactorSlots);
+                        if (compactorSlots.isEmpty())
+                            LogUtils.sendError("compactorSlots is empty! This should never happen. Report this to the developers.");
+                        else
+                            compactorSlots.remove(0);
+                        currentCompactorState = CompactorState.CLOSE_COMPACTOR;
+                        delayClock.schedule(750);
+                        break;
+                    case CLOSE_COMPACTOR:
+                        LogUtils.sendDebug("Closing compactor");
+                        mc.thePlayer.closeScreen();
+                        if (!compactorSlots.isEmpty()) {
+                            currentCompactorState = CompactorState.HOLD_COMPACTOR;
+                            LogUtils.sendDebug("Holding next compactor");
+                        } else {
+                            LogUtils.sendDebug("All compactors enabled, managing visitors");
+                            compactorSlots.clear();
+                            currentCompactorState = CompactorState.IDLE;
+                            currentState = State.BACK_TO_FARMING;
+                        }
+                        delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
+                        break;
+                }
+                break;
             case BACK_TO_FARMING:
                 if (mc.currentScreen != null) {
                     mc.thePlayer.closeScreen();
                     if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
-                    delayClock.schedule(250);
+                    delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                     break;
                 }
                 if (noMoreVisitors() || disableMacro) {
@@ -838,8 +1031,12 @@ public class VisitorsMacro {
                 delayClock.schedule(2000);
                 break;
             case TELEPORT_TO_GARDEN:
-                LogUtils.scriptLog("Spent: " + (purseBeforeVisitors - ProfitCalculator.getCurrentPurse()) + " coins on visitors");
+                LogUtils.sendSuccess("Spent " + (purseBeforeVisitors - ProfitCalculator.getCurrentPurse()) + " coins on visitors.");
                 mc.thePlayer.sendChatMessage("/warp garden");
+                if (FarmHelper.config.rotateAfterWarped && directionBeforeStart != 1337) {
+                    rotation.reset();
+                    rotation.easeTo(AngleUtils.get360RotationYaw(directionBeforeStart + 180), 0, 500);
+                }
                 currentState = State.CHANGE_TO_NONE;
                 delayClock.schedule(2500);
                 break;
@@ -852,12 +1049,12 @@ public class VisitorsMacro {
         }
 
         if (previousState != currentState) {
-            System.out.println("State changed from " + previousState + " to " + currentState);
+            LogUtils.sendDebug("State changed from " + previousState + " to " + currentState);
             stuckClock.schedule(25_000);
             previousState = currentState;
         }
         if (previousBuyState != currentBuyState) {
-            System.out.println("Buy state changed from " + previousBuyState + " to " + currentBuyState);
+            LogUtils.sendDebug("Buy state changed from " + previousBuyState + " to " + currentBuyState);
             stuckClock.schedule(25_000);
             previousBuyState = currentBuyState;
         }
@@ -874,7 +1071,7 @@ public class VisitorsMacro {
         itemsToBuy.clear();
         itemsToBuyForCheck.clear();
         itemToBuy = null;
-        delayClock.schedule(250);
+        delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
         haveItemsClock.reset();
     }
 
@@ -883,7 +1080,7 @@ public class VisitorsMacro {
         EnumFacing playerFacing = mc.thePlayer.getHorizontalFacing();
         BlockPos blockInFront = playerPos.offset(playerFacing);
         Block block = mc.theWorld.getBlockState(blockInFront).getBlock();
-        LogUtils.debugLog("Block in front: " + block);
+        LogUtils.sendDebug("Block in front: " + block);
         if (mc.thePlayer.onGround && !block.equals(Blocks.air) && !(block instanceof BlockSlab) && !(block instanceof BlockStairs)) {
             rotation.reset();
             return true;
@@ -980,12 +1177,12 @@ public class VisitorsMacro {
         if (message.contains("You cannot set your spawn here!")) {
             currentState = State.NONE;
             if (!clock.isScheduled()) {
-                clock.schedule(5_000L);
+                clock.schedule(5000);
             }
         } else if (message.contains("Your spawn location has been set!")) {
             currentState = State.ROTATE_TO_EDGE;
-            clock.schedule(1500L);
-            LogUtils.debugLog("Visitors macro can be started");
+            clock.schedule(1500);
+            LogUtils.sendDebug("Visitors macro can be started");
             KeyBindUtils.stopMovement();
             enabled = true;
         }

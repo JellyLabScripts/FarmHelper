@@ -25,7 +25,7 @@ public class JacobsContestHandler {
         if (event.phase == TickEvent.Phase.END) {
             if (!jacobsContestTriggered && (!jacobsContestDelay.isScheduled() || jacobsContestDelay.passed()) && GameState.inJacobContest()) {
                 if (FarmHelper.config.pauseSchedulerDuringJacobsContest) {
-                    LogUtils.debugLog("Jacob's contest start detected, pausing scheduler");
+                    LogUtils.sendDebug("Jacob's contest start detected, pausing scheduler");
                     Scheduler.pause();
                 }
                 jacobsContestTriggered = true;
@@ -40,7 +40,7 @@ public class JacobsContestHandler {
                     if (!MacroHandler.isMacroing) return;
                     if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
                     if (GameState.inJacobContest() && !PetSwapper.hasPetChangedDuringThisContest) {
-                        LogUtils.debugLog("Jacob's contest start detected, swapping pet");
+                        LogUtils.sendDebug("Jacob's contest start detected, swapping pet");
                         PetSwapper.startMacro(false);
                         PetSwapper.hasPetChangedDuringThisContest = true;
                     }
@@ -55,8 +55,8 @@ public class JacobsContestHandler {
     public void onChatMessage(ClientChatReceivedEvent event) {
 //        if (event.type != 0) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());
-        if (msg.contains("The Farming Contest is over!")) {
+        String msg = StringUtils.stripControlCodes(event.message.getUnformattedText().toLowerCase());
+        if (msg.contains("the farming contest is over")) {
             jacobsContestTriggered = false;
             DebugHUD.jacobsContestTriggered = false;
             jacobsContestDelay.reset();
@@ -70,11 +70,11 @@ public class JacobsContestHandler {
                 if (!MacroHandler.isMacroing) return;
                 if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
                 if (!PetSwapper.hasPetChangedDuringThisContest) return;
-                LogUtils.debugLog("Jacob's contest end detected, swapping pet");
+                LogUtils.sendDebug("Jacob's contest end detected, swapping pet");
                 PetSwapper.startMacro(true);
                 PetSwapper.hasPetChangedDuringThisContest = false;
             } else {
-                LogUtils.debugLog("Jacob's contest end detected, resuming scheduler");
+                LogUtils.sendDebug("Jacob's contest end detected, resuming scheduler");
                 Scheduler.resume();
             }
         }

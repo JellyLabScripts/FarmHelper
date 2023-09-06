@@ -14,7 +14,6 @@ import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -39,7 +38,6 @@ public class MacroHandler {
     public static SShapeCropMacroNew sShapeCropMacro = new SShapeCropMacroNew();
     public static VerticalCropMacroNew verticalCropMacro = new VerticalCropMacroNew();
     public static CocoaBeanMacroNew cocoaBeanMacro = new CocoaBeanMacroNew();
-    public static CocoaBeanRGMacro cocoaBeanRGMacro = new CocoaBeanRGMacro();
     public static MushroomMacroNew mushroomMacro = new MushroomMacroNew();
 
     private final Rotation rotation = new Rotation();
@@ -116,7 +114,7 @@ public class MacroHandler {
 
                 StatusUtils.updateStateString();
             }
-            if (currentMacro != null && currentMacro.enabled && (LocationUtils.currentIsland == LocationUtils.Island.GARDEN || LocationUtils.currentIsland == LocationUtils.Island.PRIVATE_ISLAND)) {
+            if (currentMacro != null && currentMacro.enabled && LocationUtils.currentIsland == LocationUtils.Island.GARDEN) {
                 if (!VisitorsMacro.isEnabled() && !PetSwapper.isEnabled()) {
                     currentMacro.onTick();
                 }
@@ -129,7 +127,7 @@ public class MacroHandler {
         if (FailsafeNew.emergency) {
             FailsafeNew.resetFailsafes();
             disableMacro();
-            LogUtils.scriptLog("Do not restart macro too soon and farm yourself. The staff might still be spectating for 1-2 minutes");
+            LogUtils.sendWarning("Farm manually and DO NOT restart the macro too soon! The staff might still be spectating you for a while!");
         } else if (isMacroing) {
             disableMacro();
         } else {
@@ -137,8 +135,8 @@ public class MacroHandler {
         }
     }
     public static void enableMacro() {
-        if ((LocationUtils.currentIsland != LocationUtils.Island.GARDEN && LocationUtils.currentIsland != LocationUtils.Island.PRIVATE_ISLAND)) {
-            LogUtils.scriptLog("You must be in the garden to start the macro!", EnumChatFormatting.RED);
+        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) {
+            LogUtils.sendError("You must be in the garden to start the macro!");
             return;
         }
         if(!FarmHelper.config.macroType) {
@@ -148,8 +146,6 @@ public class MacroHandler {
                 currentMacro = sugarcaneMacro;
             } else if (FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS.ordinal()) {
                 currentMacro = cocoaBeanMacro;
-            } else if (FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS_RG.ordinal()) {
-                currentMacro = cocoaBeanRGMacro;
             } else if (FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal() ||
                 FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal()) {
                 currentMacro = mushroomMacro;
@@ -162,14 +158,18 @@ public class MacroHandler {
         isMacroing = true;
         mc.thePlayer.closeScreen();
 
-        LogUtils.scriptLog("Starting script");
+        LogUtils.sendSuccess("Starting script");
         LogUtils.webhookLog("Starting script");
-        if (FarmHelper.config.enableAutoSell) LogUtils.scriptLog("Auto Sell is in BETA, lock important slots just in case");
+        if (FarmHelper.config.enableAutoSell) LogUtils.sendWarning("Auto Sell is in BETA, lock important slots just in case");
         if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
         if (FarmHelper.config.enableScheduler) Scheduler.start();
-        if (FarmHelper.config.visitorsMacro && FarmHelper.config.onlyAcceptProfitableVisitors) LogUtils.scriptLog("Macro will only accept offers containing any of these products: " + String.join(", ", VisitorsMacro.profitRewards));
+        if (FarmHelper.config.visitorsMacro && FarmHelper.config.onlyAcceptProfitableVisitors) LogUtils.sendDebug("Visitors macro will only accept offers containing any of these products: " + String.join(", ", VisitorsMacro.profitRewards));
         if (FarmHelper.config.enablePetSwapper && GameState.inJacobContest() && !PetSwapper.hasPetChangedDuringThisContest) {
             PetSwapper.startMacro(false);
+            PetSwapper.hasPetChangedDuringThisContest = true;
+        } else if (FarmHelper.config.enablePetSwapper && !GameState.inJacobContest() && PetSwapper.hasPetChangedDuringThisContest) {
+            PetSwapper.startMacro(true);
+            PetSwapper.hasPetChangedDuringThisContest = false;
         }
 
         startTime = System.currentTimeMillis();
@@ -185,7 +185,7 @@ public class MacroHandler {
         if (currentMacro != null)
             currentMacro.savedLastState = false;
         disableCurrentMacro();
-        LogUtils.scriptLog("Disabling script");
+        LogUtils.sendSuccess("Disabling script");
         LogUtils.webhookLog("Disabling script");
         UngrabUtils.regrabMouse();
         StatusUtils.updateStateString();
@@ -201,7 +201,7 @@ public class MacroHandler {
     }
 
     public static void disableCurrentMacro(boolean saveLastState) {
-        LogUtils.debugLog("Disabling current macro");
+        LogUtils.sendDebug("Disabling current macro");
         if (currentMacro != null && currentMacro.enabled) {
             if (saveLastState) {
                 currentMacro.saveLastStateBeforeDisable();
@@ -301,7 +301,7 @@ public class MacroHandler {
                 return CropEnum.CACTUS;
             }
         }
-        LogUtils.scriptLog("Can't detect crop type, defaulting to wheat", EnumChatFormatting.RED);
+        LogUtils.sendError("Can't detect crop type! Defaulting to wheat.");
         return CropEnum.WHEAT;
     }
 }

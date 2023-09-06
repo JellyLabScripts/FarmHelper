@@ -73,7 +73,7 @@ public class MixinNetHandlerPlayClient {
 
     @Inject(method = "handlePlayerListHeaderFooter", at = @At("HEAD"))
     public void handlePlayerListHeaderFooter(S47PacketPlayerListHeaderFooter packetIn, CallbackInfo ci) {
-        FarmHelper.gameState.header = packetIn.getHeader().getFormattedText().length() == 0 ? null : packetIn.getHeader();
-        FarmHelper.gameState.footer = packetIn.getFooter().getFormattedText().length() == 0 ? null : packetIn.getFooter();
+        FarmHelper.gameState.header = packetIn.getHeader().getFormattedText().isEmpty() ? null : packetIn.getHeader();
+        FarmHelper.gameState.footer = packetIn.getFooter().getFormattedText().isEmpty() ? null : packetIn.getFooter();
     }
 }

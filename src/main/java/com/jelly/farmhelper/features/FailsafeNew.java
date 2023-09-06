@@ -100,7 +100,7 @@ public class FailsafeNew {
             "you must be joking", "seriously bro?", "cmon now", "cmon", "this is too much", "stop messing with me :sob:"};
 
     public static void resetFailsafes() {
-        LogUtils.debugFullLog("Resetting failsafes");
+        LogUtils.sendDebug("Resetting failsafes");
         emergency = false;
         rotation.rotating = false;
         bedrockCheckSent = false;
@@ -137,7 +137,7 @@ public class FailsafeNew {
         if (!MacroHandler.isMacroing) return;
         String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing") || message.contains("You cannot join SkyBlock from here!")) {
-            LogUtils.debugLog("Failed teleport - waiting");
+            LogUtils.sendDebug("Failed teleport - waiting");
             cooldown.schedule(10000);
         }
         if (message.contains("to warp out! CLICK to warp now!")) {
@@ -145,7 +145,7 @@ public class FailsafeNew {
             VisitorsMacro.stopMacro();
             if (config.setSpawnBeforeEvacuate)
                 PlayerUtils.setSpawn();
-            LogUtils.debugLog("Update or restart is required - Evacuating in 3s");
+            LogUtils.sendDebug("Update or restart is required - Evacuating in 3s");
             cooldown.schedule(3_000);
             evacuateState = EvacuateState.EVACUATE_FROM_ISLAND;
             if (config.enableScheduler)
@@ -162,7 +162,7 @@ public class FailsafeNew {
 
         if (restartAfterFailsafeCooldown.isScheduled()) {
             if (restartAfterFailsafeCooldown.passed()) {
-                LogUtils.debugLog("Restarting macro after failsafe is passed");
+                LogUtils.sendDebug("Restarting macro after failsafe is passed");
                 restartAfterFailsafeCooldown.reset();
                 if (config.enableScheduler)
                     Scheduler.start();
@@ -193,7 +193,7 @@ public class FailsafeNew {
 
         getAllEmergencies.reset();
         takeAction(findHighestPriorityElement());
-        LogUtils.debugFullLog("Chosen emergency: " + findHighestPriorityElement());
+        LogUtils.sendDebug("Chosen emergency: " + findHighestPriorityElement());
         detectedFailsafes.clear();
     }
 
@@ -226,7 +226,7 @@ public class FailsafeNew {
                 }
                 if (cooldown.isScheduled() && cooldown.passed()) {
                     LogUtils.webhookLog("Not at island - teleporting back from Limbo");
-                    LogUtils.debugFullLog("Not at island - teleporting back from Limbo");
+                    LogUtils.sendDebug("Not at island - teleporting back from Limbo");
                     mc.thePlayer.sendChatMessage("/lobby");
                     cooldown.schedule((long) (5000 + Math.random() * 5000));
                     if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
@@ -245,7 +245,7 @@ public class FailsafeNew {
                 }
                 if (cooldown.isScheduled() && cooldown.passed()) {
                     LogUtils.webhookLog("Not at island - teleporting back from Lobby");
-                    LogUtils.debugFullLog("Not at island - teleporting back from Lobby");
+                    LogUtils.sendDebug("Not at island - teleporting back from Lobby");
                     mc.thePlayer.sendChatMessage("/skyblock");
                     cooldown.schedule((long) (5000 + Math.random() * 5000));
                     if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
@@ -264,11 +264,11 @@ public class FailsafeNew {
                 }
                 if (evacuateState == EvacuateState.RETURN_TO_ISLAND) {
                     if (!cooldown.passed()) {
-                        LogUtils.debugFullLog("Waiting after evacuate cooldown in hub: " + (String.format("%.1f", cooldown.getRemainingTime() / 1000f)));
+                        LogUtils.sendDebug("Waiting after evacuate cooldown in hub: " + (String.format("%.1f", cooldown.getRemainingTime() / 1000f)));
                         return;
                     }
                     if (cooldown.passed()) {
-                        LogUtils.debugFullLog("Not at island - teleporting back from Evacuating");
+                        LogUtils.sendDebug("Not at island - teleporting back from Evacuating");
                         LogUtils.webhookLog("Not at island - teleporting back from Evacuating");
                         mc.thePlayer.sendChatMessage("/warp garden");
                         cooldown.schedule((long) (5000 + Math.random() * 5000));
@@ -276,7 +276,7 @@ public class FailsafeNew {
                     return;
                 }
                 if (cooldown.isScheduled() && cooldown.passed()) {
-                    LogUtils.debugFullLog("Not at island - teleporting back from The Hub");
+                    LogUtils.sendDebug("Not at island - teleporting back from The Hub");
                     LogUtils.webhookLog("Not at island - teleporting back from The Hub");
                     mc.thePlayer.sendChatMessage("/warp garden");
                     cooldown.schedule((long) (5000 + Math.random() * 5000));
@@ -296,11 +296,11 @@ public class FailsafeNew {
                         return;
                     }
                     if (!cooldown.passed()) {
-                        LogUtils.debugFullLog("Waiting before evacuate cooldown: " + (String.format("%.1f", cooldown.getRemainingTime() / 1000f)));
+                        LogUtils.sendDebug("Waiting before evacuate cooldown: " + (String.format("%.1f", cooldown.getRemainingTime() / 1000f)));
                         return;
                     }
                     if (cooldown.passed()) {
-                        LogUtils.debugLog("Evacuating");
+                        LogUtils.sendDebug("Evacuating");
                         LogUtils.webhookLog("Evacuating");
                         mc.thePlayer.sendChatMessage("/evacuate");
                         cooldown.schedule((long) (5000 + Math.random() * 5000));
@@ -316,21 +316,21 @@ public class FailsafeNew {
                         return;
                     }
                     if (!cooldown.passed()) {
-                        LogUtils.debugFullLog("Waiting after evacuate cooldown on island: " + (String.format("%.1f", cooldown.getRemainingTime() / 1000f)));
+                        LogUtils.sendDebug("Waiting after evacuate cooldown on island: " + (String.format("%.1f", cooldown.getRemainingTime() / 1000f)));
                         return;
                     }
                     if (cooldown.passed()) {
-                        LogUtils.debugLog("Came back from evacuate");
+                        LogUtils.sendDebug("Came back from evacuate");
                         resetFailsafes();
                     }
                     return;
                 } else {
                     if (cooldown.isScheduled() && !cooldown.passed()) {
-                        LogUtils.debugFullLog("Waiting after teleportation: " + (String.format("%.1f", cooldown.getRemainingTime() / 1000f)));
+                        LogUtils.sendDebug("Waiting after teleportation: " + (String.format("%.1f", cooldown.getRemainingTime() / 1000f)));
                         return;
                     }
                     if (cooldown.isScheduled() && cooldown.passed()) {
-                        LogUtils.debugLog("Came back to island");
+                        LogUtils.sendDebug("Came back to island");
                         if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
                             restartAfterFailsafeCooldown.schedule(config.restartAfterFailSafeDelay * 1000L);
                         cooldown.reset();
@@ -340,13 +340,13 @@ public class FailsafeNew {
                 if (config.enableJacobFailsafes && jacobExceeded()) {
                     if (!cooldown.isScheduled()) {
                         long remainingTime = getJacobRemaining() + 3_000;
-                        LogUtils.debugLog("Exceeded Jacob limit - waiting " + (String.format("%.1f", remainingTime / 1000f)));
+                        LogUtils.sendDebug("Exceeded Jacob limit - waiting " + (String.format("%.1f", remainingTime / 1000f)));
                         LogUtils.webhookLog("Exceeded Jacob limit - waiting " + (String.format("%.1f", remainingTime / 1000f)));
                         cooldown.schedule(remainingTime);
                         MacroHandler.disableCurrentMacro(true);
                         isJacobFailsafeExceeded = true;
                     } else {
-                        LogUtils.debugLog("Unknown state, report to #yuro1337 :troll:");
+                        LogUtils.sendDebug("Unknown state, report to #yuro1337 :troll:");
                         LogUtils.webhookLog("Unknown state, report to #yuro1337 :troll:");
                         cooldown.reset();
                     }
@@ -368,12 +368,12 @@ public class FailsafeNew {
                 if (evacuateState != EvacuateState.NONE) return;
                 if (!MacroHandler.currentMacro.isRewarpLocationSet()) return;
 
-                LogUtils.debugLog("Resuming the macro...");
+                LogUtils.sendDebug("Resuming the macro...");
                 MacroHandler.enableCurrentMacro();
                 break;
             }
             default: {
-                LogUtils.debugLog("You are outside the garden! Disabling the macro...");
+                LogUtils.sendDebug("You are outside the garden! Disabling the macro...");
                 MacroHandler.disableMacro();
             }
         }
@@ -392,7 +392,7 @@ public class FailsafeNew {
 //        if (previousTickItemStack == null) {
 //            int idOfHoe = PlayerUtils.getHoeSlot(MacroHandler.crop);
 //            if (idOfHoe == -1) {
-//                LogUtils.debugLog("You don't have a hoe in your inventory");
+//                LogUtils.sendDebug("You don't have a hoe in your inventory");
 //                return false;
 //            }
 //            previousTickItemStack = mc.thePlayer.inventory.getStackInSlot(idOfHoe);
@@ -419,12 +419,12 @@ public class FailsafeNew {
         if (!isJacobFailsafeExceeded) return false;
 
         if (cooldown.isScheduled() && !cooldown.passed()) {
-            LogUtils.debugFullLog("Waiting after Jacob failsafe cooldown: " + (String.format("%.1f", cooldown.getRemainingTime() / 1000f)));
+            LogUtils.sendDebug("Waiting after Jacob failsafe cooldown: " + (String.format("%.1f", cooldown.getRemainingTime() / 1000f)));
             return true;
         }
 
         if (cooldown.isScheduled() && cooldown.passed()) {
-            LogUtils.debugLog("Jacob failsafe cooldown passed");
+            LogUtils.sendDebug("Jacob failsafe cooldown passed");
             isJacobFailsafeExceeded = false;
             cooldown.reset();
             MacroHandler.enableMacro();
@@ -470,7 +470,7 @@ public class FailsafeNew {
                 return TimeUnit.MINUTES.toMillis(Long.parseLong(matcher.group(1))) + TimeUnit.SECONDS.toMillis(Long.parseLong(matcher.group(2)));
             }
         }
-        LogUtils.debugLog("Failed to get Jacob remaining time");
+        LogUtils.sendDebug("Failed to get Jacob remaining time");
         return 0;
     }
 
@@ -513,7 +513,7 @@ public class FailsafeNew {
         if (event.update.getBlock().equals(Blocks.dirt)) {
             if (dirtToCheck.stream().noneMatch(pair -> pair.first().equals(event.pos))) {
                 dirtToCheck.add(new Pair<>(event.pos, System.currentTimeMillis()));
-                LogUtils.debugLog("Dirt has been put in the world near you");
+                LogUtils.sendDebug("Dirt has been put in the world near you");
             }
         }
     }
@@ -546,7 +546,7 @@ public class FailsafeNew {
             if (restartAfterFailsafeCooldown.isScheduled() && !restartAfterFailsafeCooldown.passed()) return; // to avoid double messages
             if (event.packet instanceof S08PacketPlayerPosLook && isDuringBedrockCheck) {
                 if (config.pingServer && (Pinger.dontRotationCheck.isScheduled() && !Pinger.dontRotationCheck.passed() || Pinger.isOffline)) {
-                    LogUtils.debugFullLog("Got rotation packet while having bad connection to the server, ignoring");
+                    LogUtils.sendDebug("Got rotation packet while having bad connection to the server, ignoring");
                     return;
                 }
 
@@ -557,13 +557,13 @@ public class FailsafeNew {
                     MacroHandler.disableCurrentMacro();
                     KeyBindUtils.stopMovement();
                     resetFailsafes();
-                    LogUtils.scriptLog("You have just left the bedrock check! You will probably get banned!", EnumChatFormatting.RED);
+                    LogUtils.sendError("You have just left the bedrock check! You will probably get banned!");
                     LogUtils.webhookLog("You have just left the bedrock check! You will probably get banned!");
                     return;
                 }
                 rotation.easeTo(MacroHandler.currentMacro.yaw, MacroHandler.currentMacro.pitch, 750);
                 restartAfterFailsafeCooldown.schedule(config.restartAfterFailSafeDelay * 1_000L);
-                LogUtils.scriptLog("You have just passed the bedrock check! Congratulations!", EnumChatFormatting.DARK_GREEN);
+                LogUtils.sendSuccess("You have just passed the bedrock check! Congratulations!");
                 LogUtils.webhookLog("You have just passed the bedrock check! Congratulations!");
             }
             return;
@@ -576,10 +576,10 @@ public class FailsafeNew {
             return;
         }
 
-        if (config.oldRotationCheck) return;
+        if (VisitorsMacro.isEnabled()) return;
         if (event.packet instanceof S08PacketPlayerPosLook) {
             if (config.pingServer && (Pinger.dontRotationCheck.isScheduled() && !Pinger.dontRotationCheck.passed() || Pinger.isOffline)) {
-                LogUtils.debugFullLog("Got rotation packet while having bad connection to the server, ignoring");
+                LogUtils.sendDebug("Got rotation packet while having bad connection to the server, ignoring");
                 return;
             }
 
@@ -590,7 +590,7 @@ public class FailsafeNew {
             Vec3 teleportPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
             if (packet.getY() >= 80) return;
             if ((float) playerPos.distanceTo(teleportPos) >= config.teleportCheckSensitivity) {
-                LogUtils.debugLog("Teleportation check distance: " + playerPos.distanceTo(teleportPos));
+                LogUtils.sendDebug("Teleportation check distance: " + playerPos.distanceTo(teleportPos));
                 emergencyFailsafe(FailsafeType.TELEPORTATION);
                 return;
             }
@@ -616,7 +616,7 @@ public class FailsafeNew {
         getAllEmergencies.schedule(1000);
         if (detectedFailsafes.contains(type)) return;
         detectedFailsafes.add(type);
-        LogUtils.debugFullLog("Emergency added: " + type.toString());
+        LogUtils.sendDebug("Emergency added: " + type.toString());
         if (!emergency && type != FailsafeType.DESYNC) { // we want to execute it only once
             if (config.enableFailsafeSound) {
                 if (!FarmHelper.config.failsafeSoundType)
@@ -640,7 +640,7 @@ public class FailsafeNew {
 
     // take action based on the failsafe with the highest priority
     public static void takeAction(FailsafeType type) {
-        LogUtils.scriptLog(type.label);
+        LogUtils.sendFailsafeMessage(type.label);
         LogUtils.webhookLog(type.label);
 
         if (config.popUpNotification) {
@@ -648,7 +648,7 @@ public class FailsafeNew {
                 SystemTray tray = SystemTray.getSystemTray();
                 Utils.createNotification(type.label, tray, TrayIcon.MessageType.WARNING);
             } catch (UnsupportedOperationException e) {
-                LogUtils.scriptLog("Notifications are not supported on this system");
+                LogUtils.sendError("Notifications are not supported on this system!");
             }
         }
 
@@ -662,11 +662,10 @@ public class FailsafeNew {
                     Scheduler.pause();
                 MacroHandler.disableCurrentMacro(config.setSpawnBeforeEvacuate);
                 KeyBindUtils.stopMovement();
-//                emergencyThreadExecutor.submit(pauseAndRestart);
                 return;
             default:
                 emergencyThreadExecutor.submit(delayedStopScript);
-                LogUtils.scriptLog("Act like a normal player and stop the script!");
+                LogUtils.sendFailsafeMessage("Act like a normal player and stop the script!");
 
         }
 
@@ -697,10 +696,10 @@ public class FailsafeNew {
 
     private static final Runnable delayedStopScript = () -> {
         try {
-            LogUtils.debugLog("delayedStopScript: waiting");
+            LogUtils.sendDebug("delayedStopScript: waiting");
             Thread.sleep((long) ((config.delayedStopScriptTime * 1_000) + Math.random() * (config.delayedStopScriptTimeRandomness * 1_000)));
             MacroHandler.disableCurrentMacro(true);
-            LogUtils.debugLog("delayedStopScript: done, stopping macro");
+            LogUtils.sendDebug("delayedStopScript: done, stopping macro");
         } catch (Exception ignored) {
 //            e.printStackTrace();
         }
@@ -709,7 +708,7 @@ public class FailsafeNew {
     private static final Runnable bazaarChilling = () -> {
         try {
             UngrabUtils.ungrabMouse();
-            LogUtils.scriptLog("Gonna chill for a bit (we don't want to get banned)");
+            LogUtils.sendWarning("Gonna chill for a bit (we don't want to get banned)");
             LogUtils.webhookLog("Gonna chill in hub for about 5 minutes");
 
             rotation.reset();
@@ -720,7 +719,7 @@ public class FailsafeNew {
             boolean timedOut = false;
             while (BlockUtils.getRelativeBlock(0, 0, 1) != Blocks.spruce_stairs) {
                 if ((System.currentTimeMillis() - timeout) > 10000) {
-                    LogUtils.scriptLog("Couldn't find bz, gonna chill here");
+                    LogUtils.sendWarning("Couldn't find bz, gonna chill here");
                     timedOut = true;
                     break;
                 }
@@ -754,7 +753,7 @@ public class FailsafeNew {
 
     private static final Runnable gameMenuChilling = () -> {
         try {
-            LogUtils.scriptLog("Gonna chill for a bit in game menu");
+            LogUtils.sendWarning("Gonna chill for a bit in game menu");
             LogUtils.webhookLog("Gonna chill for a bit in game menu");
             PlayerUtils.getItemInHotbar("Game Menu");
             if (mc.thePlayer.inventory.currentItem != 8)
@@ -767,14 +766,14 @@ public class FailsafeNew {
 
     private static final Runnable rotationMovement = () -> {
         try {
-            LogUtils.debugLog("rotationMovement: waiting");
+            LogUtils.sendDebug("rotationMovement: waiting");
             Thread.sleep((long) (1000 + Math.random() * 1000));
 
             long rotationTime;
             String messageChosen;
 
             // stage 1: look around and move to back (bonus random crouch)
-            LogUtils.debugLog("rotationMovement: stage 1");
+            LogUtils.sendDebug("rotationMovement: stage 1");
             if (dirtPos.size() == 0) {
                 rotationTime = (long) ((Math.random() * FarmHelper.config.rotationTimeRandomness * 1_000) + FarmHelper.config.rotationTime * 1_000);
                 rotation.easeTo((float) (300 * (Math.random())), (float) (20 * (Math.random() - 1)), rotationTime);
@@ -787,9 +786,9 @@ public class FailsafeNew {
 
             // exeception stage: if have a dirt check then get pos of dirt and look at it
             if (dirtPos.size() > 0) {
-                LogUtils.debugLog("rotationMovement: stage 1.5");
+                LogUtils.sendDebug("rotationMovement: stage 1.5");
                 for (BlockPos dirt : dirtPos) {
-                    LogUtils.debugLog("rotationMovement: stage 1.5: dirt found");
+                    LogUtils.sendDebug("rotationMovement: stage 1.5: dirt found");
 
                     // get yaw and pitch to dirt
                     double x = mc.thePlayer.posX - dirt.getX();
@@ -836,7 +835,7 @@ public class FailsafeNew {
             }
 
             // stage 2: send a message
-            LogUtils.debugLog("rotationMovement: stage 2");
+            LogUtils.sendDebug("rotationMovement: stage 2");
             if (!Config.customRotationMessages.isEmpty()) {
                 String[] messages = Config.customRotationMessages.split("\\|");
                 if (messages.length > 1) {
@@ -854,7 +853,7 @@ public class FailsafeNew {
             mc.thePlayer.sendChatMessage(messageChosen);
 
             // stage 3: look around again and jump
-            LogUtils.debugLog("rotationMovement: stage 3");
+            LogUtils.sendDebug("rotationMovement: stage 3");
             for (int i = 0; i < config.rotationActingTimes; i++) {
                 rotationTime = (long) ((Math.random() * FarmHelper.config.rotationTimeRandomness * 1_000) + FarmHelper.config.rotationTime * 1_000);
                 rotation.easeTo((float) (340 * (Math.random())), (float) (20 * (Math.random() - 1)), rotationTime);
@@ -872,8 +871,8 @@ public class FailsafeNew {
             }
 
             // final stage: come hub or quit game
-            LogUtils.debugLog("rotationMovement: final stage");
-            LogUtils.scriptLog("Stop the macro if you see this!");
+            LogUtils.sendDebug("rotationMovement: final stage");
+            LogUtils.sendFailsafeMessage("Stop the macro if you see this!");
             finishEmergency(true);
         } catch (InterruptedException ignored) {
 //            e.printStackTrace();
@@ -882,9 +881,9 @@ public class FailsafeNew {
 
     private static final Runnable pauseAndRestartLong = () -> {
         try {
-            LogUtils.debugLog("pauseAndRestartLong: waiting");
+            LogUtils.sendDebug("pauseAndRestartLong: waiting");
             Thread.sleep((long) (25_000 + Math.random() * (config.delayedStopScriptTimeRandomness * 1_000)));
-            LogUtils.debugLog("pauseAndRestartLong: done, restarting the macro");
+            LogUtils.sendDebug("pauseAndRestartLong: done, restarting the macro");
             finishEmergency(false);
         } catch (Exception e) {
             e.printStackTrace();
@@ -932,7 +931,7 @@ public class FailsafeNew {
     };
 
     private static final Runnable cagedActing = () -> {
-        LogUtils.debugLog("You just got caged bozo! Buy a lottery ticket!");
+        LogUtils.sendDebug("You just got caged bozo! Buy a lottery ticket!");
         LogUtils.webhookLog("You just got caged bozo! Buy a lottery ticket! @everyone");
 
         try {
@@ -1009,7 +1008,7 @@ public class FailsafeNew {
         resetFailsafes();
         if (!config.leaveAfterFailSafe) {
             if (shouldRestoreRotation) {
-                LogUtils.debugLog("Restoring rotation before failsafe");
+                LogUtils.sendDebug("Restoring rotation before failsafe");
                 rotation.easeTo(MacroHandler.currentMacro.yaw, MacroHandler.currentMacro.pitch, 750);
             } else {
                 MacroHandler.currentMacro.isTping = true;

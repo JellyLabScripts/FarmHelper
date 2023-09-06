@@ -81,6 +81,9 @@ public class FarmHelper {
         ClientCommandHandler.instance.registerCommand(new FarmHelperCommand());
 
         gameState = new GameState();
+
+        if (FarmHelper.config.SShapeMacroType > 6) // fix for old config
+            FarmHelper.config.SShapeMacroType = 6;
     }
 
     @SubscribeEvent
@@ -92,7 +95,7 @@ public class FarmHelper {
             config.visitorsDeskPosZ = pos.getZ();
             config.save();
 
-            LogUtils.scriptLog("Visitors Desk Position Set. BlockPos: " + pos);
+            LogUtils.sendSuccess("Visitors desk position has been set.");
         }
     }
 

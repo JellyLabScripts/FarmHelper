@@ -30,7 +30,7 @@ public abstract class MixinGuiEditSign extends GuiScreen {
 
     @Inject(method = "initGui", at = @At("RETURN"))
     private void initGui(CallbackInfo ci) {
-        if (Utils.signText.equals("")) return;
+        if (Utils.signText.isEmpty()) return;
 
         System.out.println("Sign text: " + Utils.signText);
         tileSign.signText[0] = new ChatComponentText(Utils.signText);

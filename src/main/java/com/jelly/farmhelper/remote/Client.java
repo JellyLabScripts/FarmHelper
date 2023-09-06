@@ -26,7 +26,7 @@ public class Client extends WebSocketClient {
     public void onMessage(String message) {
         System.out.println(message);
         if (message.equals("VERSIONERROR")) {
-            LogUtils.scriptLog("RemoteControl wont work on this instance as mod/bot versions don't match. Download latest version from discord.");
+            LogUtils.sendError("Remote Control Bot does not match the mod version! Please download the latest version from our Discord server.");
             FarmHelper.config.enableRemoteControl = false;
             FarmHelper.config.save();
             this.close(-1);

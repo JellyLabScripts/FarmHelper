@@ -26,7 +26,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             pitch = (float) (Math.random() * 2 - 1); // -1 - 1
         }
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
-        LogUtils.debugFullLog("Crop: " + crop);
+        LogUtils.sendDebug("Crop: " + crop);
         MacroHandler.crop = crop;
         yaw = AngleUtils.getClosestDiagonal();
         closest90Yaw = AngleUtils.getClosest();
@@ -77,34 +77,19 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             return;
         }
 
-        if (currentState != State.NONE && currentState != State.DROPPING && !FailsafeNew.emergency && !rotation.rotating && FarmHelper.config.oldRotationCheck) {
-            System.out.println("AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) = " + AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw));
-            System.out.println("Math.abs(mc.thePlayer.rotationPitch - pitch) = " + Math.abs(mc.thePlayer.rotationPitch - pitch));
-            System.out.println("FarmHelper.config.rotationCheckSensitivity = " + FarmHelper.config.rotationCheckSensitivity);
-            if ((FarmHelper.config.SShapeMacroType == Config.SMacroEnum.MUSHROOM.ordinal()) && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FarmHelper.config.rotationCheckSensitivity || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity)) {
-                rotation.reset();
-                FailsafeNew.emergencyFailsafe(FailsafeNew.FailsafeType.ROTATION);
-                return;
-            } else if ((FarmHelper.config.SShapeMacroType == Config.SMacroEnum.MUSHROOM_ROTATE.ordinal()) && (AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), closest90Yaw + (currentState == State.LEFT ? -30 : 30)) > FarmHelper.config.rotationCheckSensitivity || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity)) {
-                rotation.reset();
-                FailsafeNew.emergencyFailsafe(FailsafeNew.FailsafeType.ROTATION);
-                return;
-            }
-        }
-
         if (isStuck()) return;
 
         CropUtils.getTool();
 
         // Waiting for teleportation, don't move
         if (beforeTeleportationPos != null) {
-            LogUtils.debugFullLog("Waiting for tp...");
+            LogUtils.sendDebug("Waiting for tp...");
             KeyBindUtils.stopMovement();
             return;
         }
 
         if (FailsafeNew.emergency && FailsafeNew.findHighestPriorityElement() != FailsafeNew.FailsafeType.DESYNC) {
-            LogUtils.debugFullLog("Blocking changing movement due to emergency");
+            LogUtils.sendDebug("Blocking changing movement due to emergency");
             return;
         }
 
@@ -118,7 +103,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75) {
                 changeState(State.DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
-                System.out.println("Dropping");
+                LogUtils.sendDebug("Dropping");
             }
             invokeState();
         }
@@ -134,7 +119,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
                 } else if (!FarmHelper.gameState.leftWalkable) {
                     currentState = changeState(State.LEFT);
                 } else {
-                    LogUtils.debugLog("No direction found");
+                    LogUtils.sendDebug("No direction found");
                 }
 
                 if (FarmHelper.config.SShapeMacroType == Config.SMacroEnum.MUSHROOM_ROTATE.ordinal()) {
@@ -148,7 +133,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
                 } else if (!FarmHelper.gameState.rightWalkable) {
                     currentState = changeState(State.RIGHT);
                 } else {
-                    LogUtils.debugLog("No direction found");
+                    LogUtils.sendDebug("No direction found");
                 }
                 if (FarmHelper.config.SShapeMacroType == Config.SMacroEnum.MUSHROOM_ROTATE.ordinal()) {
                     pitch = (float) (Math.random() * 2 - 1); // -1 - 1
@@ -156,10 +141,10 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
                 }
                 break;
             case DROPPING: {
-                LogUtils.debugFullLog("On Ground: " + mc.thePlayer.onGround);
+                LogUtils.sendDebug("On Ground: " + mc.thePlayer.onGround);
                 if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) > 1.5) {
                     if (FarmHelper.config.rotateAfterDrop && !rotation.rotating) {
-                        LogUtils.debugLog("Rotating 180");
+                        LogUtils.sendDebug("Rotating 180");
                         rotation.reset();
                         yaw = yaw + 180;
                         closest90Yaw = AngleUtils.getClosest(closest90Yaw + 180);
@@ -216,13 +201,13 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             }
             case DROPPING:
                 if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) <= 1.5) {
-                    LogUtils.debugLog("Dropping done, but didn't drop high enough to rotate!");
+                    LogUtils.sendDebug("Dropping done, but didn't drop high enough to rotate!");
                     layerY = mc.thePlayer.getPosition().getY();
                     changeState(State.NONE);
                 }
                 break;
             case NONE: {
-                LogUtils.debugLog("No direction found");
+                LogUtils.sendDebug("No direction found");
                 break;
             }
         }
@@ -262,7 +247,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             if (!isWalkable(getRelativeBlock(-i, 1, 0, closest90Yaw)))
                 f2 = false;
         }
-        System.out.println("No direction found");
+        LogUtils.sendDebug("No direction found");
         return State.NONE;
     }
 }

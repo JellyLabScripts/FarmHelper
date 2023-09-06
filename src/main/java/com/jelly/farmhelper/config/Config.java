@@ -16,6 +16,7 @@ import com.jelly.farmhelper.hud.StatusHUD;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.utils.BlockUtils;
+import com.jelly.farmhelper.utils.LocationUtils;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.Utils;
 import com.jelly.farmhelper.world.GameState;
@@ -86,19 +87,19 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	public static void addRewarp(Rewarp rewarp) {
 		rewarpList.add(rewarp);
-		LogUtils.scriptLog("Added rewarp: " + rewarp.toString());
+		LogUtils.sendSuccess("Added rewarp: " + rewarp.toString());
 		saveRewarpConfig();
 	}
 
 	public static void removeRewarp(Rewarp rewarp) {
 		rewarpList.remove(rewarp);
-		LogUtils.scriptLog("Removed the closest rewarp: " + rewarp.toString());
+		LogUtils.sendSuccess("Removed the closest rewarp: " + rewarp.toString());
 		saveRewarpConfig();
 	}
 
 	public static void removeAllRewarps() {
 		rewarpList.clear();
-		LogUtils.scriptLog("Removed all saved rewarp positions");
+		LogUtils.sendSuccess("Removed all saved rewarp positions");
 		saveRewarpConfig();
 	}
 
@@ -135,22 +136,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			"Sugar Cane", // 2
 			"Cactus", // 3
 			"Cocoa Beans", // 4
-			"Cocoa Beans (RoseGold version)", // 5
-			"Mushroom (45°)", // 6
-			"Mushroom (30° with rotations)", // 7
+			"Mushroom (45°)", // 5
+			"Mushroom (30° with rotations)", // 6
 		}
 	)
     public int SShapeMacroType = 0;
-	@Switch(
-		name = "Auto Ungrab Mouse", category = GENERAL, subcategory = "Macro",
-		description = "Automatically unfocuses your mouse, so you can safely alt-tab"
-	)
-	public boolean autoUngrabMouse = true;
-	@Switch(
-			name = "Hold left click when changing row", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-			description = "Hold left click when change row"
-	)
-	public boolean holdLeftClickWhenChangingRow = true;
 	@Switch(
 		name = "Custom pitch", category = GENERAL, subcategory = "Macro",
 		description = "Set pitch to custom level after starting the macro"
@@ -172,6 +162,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Rotates after the player falls down"
 	)
 	public boolean rotateAfterDrop = false;
+	@Switch(
+			name = "Auto Ungrab Mouse", category = GENERAL, subcategory = "Macro",
+			description = "Automatically unfocuses your mouse, so you can safely alt-tab"
+	)
+	public boolean autoUngrabMouse = true;
 
 	@KeyBind(
 		name = "Toggle Farm Helper", category = GENERAL, subcategory = "Keybinds",
@@ -211,7 +206,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
 		rewarpList.add(new Rewarp(pos.getX(), pos.getY(), pos.getZ()));
 		save();
-		LogUtils.scriptLog("Rewarp position has been added. BlockPos: " + pos);
+		LogUtils.sendSuccess("Rewarp position has been added.");
 	};
 	@Info(
 		text = "Don't forget to add rewarp points!",
@@ -228,7 +223,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	Runnable _removeRewarp = () -> {
 		Rewarp closest = null;
 		if (rewarpList.size() == 0) {
-			LogUtils.scriptLog("No rewarp locations set");
+			LogUtils.sendSuccess("No rewarp locations set");
 			return;
 		}
 		double closestDistance = Double.MAX_VALUE;
@@ -250,7 +245,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	Runnable _removeAllRewarps = () -> {
 		removeAllRewarps();
-		LogUtils.scriptLog("All rewarp positions has been removed");
+		LogUtils.sendSuccess("All rewarp positions has been removed");
 	};
 
 	// END GENERAL
@@ -277,6 +272,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Automatically purchases and consumes a booster cookie"
 	)
 	public boolean autoCookie = false;
+	@Switch(
+		name = "Hold left click when changing row", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+		description = "Hold left click when change row"
+	)
+	public boolean holdLeftClickWhenChangingRow = true;
 	@Switch(
 		name = "Count RNG to $/Hr in Profit Calculator", category = MISCELLANEOUS, subcategory = "Miscellaneous",
 		description = "Count RNG to $/Hr"
@@ -316,19 +316,19 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	};
 
 	@Switch(
-			name = "Swap pet during Jacob's contest", category = MISCELLANEOUS, subcategory = "Pet Swapper",
-			description = "Swaps pet to the selected pet during Jacob's contest. Selects the first one from the pet list."
+		name = "Swap pet during Jacob's contest", category = MISCELLANEOUS, subcategory = "Pet Swapper",
+		description = "Swaps pet to the selected pet during Jacob's contest. Selects the first one from the pet list."
 	)
 	public boolean enablePetSwapper = false;
 	@Slider(
-			name = "Pet Swap Delay", category = MISCELLANEOUS, subcategory = "Pet Swapper",
-			description = "The delay between clicking GUI during swapping the pet (in milliseconds)",
-			min = 200, max = 3000
+		name = "Pet Swap Delay", category = MISCELLANEOUS, subcategory = "Pet Swapper",
+		description = "The delay between clicking GUI during swapping the pet (in milliseconds)",
+		min = 200, max = 3000
 	)
 	public int petSwapperDelay = 1000;
 	@Text(
-			name = "Pet Name", placeholder = "Mushroom Cow", secure = false, multiline = false,
-			category = MISCELLANEOUS, subcategory = "Pet Swapper"
+		name = "Pet Name", placeholder = "Type your pet name here",
+		category = MISCELLANEOUS, subcategory = "Pet Swapper"
 	)
 	public String petSwapperName = null;
 
@@ -389,6 +389,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = 0.2f, max = 10
 	)
 	public float rotationTimeRandomness = 0.2f;
+	@Slider(
+		name = "Visitors Macro GUI delay", category = DELAYS, subcategory = "Delays",
+		description = "The delay between clicking GUI during visitors macro (in seconds)",
+		min = 0.15f, max = 2f
+	)
+	public float visitorsMacroGuiDelay = 0.35f;
 
 	// END DELAYS
 
@@ -415,6 +421,27 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = 1, max = 20
 	)
 	public int visitorsMacroCoinsThreshold = 1;
+	@Info(
+		text = "Cookie buff is required!",
+		type = InfoType.ERROR,
+		category = VISITORS_MACRO,
+		subcategory = "Visitors Macro"
+	)
+	public static boolean infoCookieBuffRequired;
+	@Info(
+		text = "Desk position must be set before using the visitors macro!",
+		type = InfoType.ERROR,
+		category = VISITORS_MACRO,
+		subcategory = "Visitors Macro"
+	)
+	public static boolean infoDeskNotSet;
+	@Info(
+		text = "If you put your compactors in the hotbar, they will be temporarily disabled.",
+		type = InfoType.INFO,
+		category = VISITORS_MACRO,
+		subcategory = "Visitors Macro"
+	)
+	public static boolean infoCompactors;
 
 	@Button(
 		name = "Set Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
@@ -427,7 +454,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		visitorsDeskPosY = pos.getY();
 		visitorsDeskPosZ = pos.getZ();
 		save();
-		LogUtils.scriptLog("Visitors desk position has been set. BlockPos: " + pos);
+		LogUtils.sendSuccess("Visitors desk position has been set.");
 	};
 	@Button(
 		name = "Reset Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
@@ -439,7 +466,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		visitorsDeskPosY = 0;
 		visitorsDeskPosZ = 0;
 		save();
-		LogUtils.scriptLog("Visitors desk position has been reset");
+		LogUtils.sendSuccess("Visitors desk position has been reset");
 	};
 	@Number(
 		name = "Visitors Desk X", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
@@ -464,6 +491,53 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Visitors desk keybind"
 	)
 	public OneKeyBind visitorsDeskKeybind = new OneKeyBind(0);
+
+	@Number(
+			name = "SpawnPos X", category = VISITORS_MACRO, subcategory = "Spawn Position",
+			description = "The X coordinate of the spawn",
+			min = -30000000, max = 30000000
+
+	)
+	public int spawnPosX = 0;
+	@Button(
+			name = "Set SpawnPos", category = VISITORS_MACRO, subcategory = "Spawn Position",
+			description = "Sets the spawn position to your current position",
+			text = "Set SpawnPos"
+	)
+	Runnable _setSpawnPos = () -> {
+		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
+		spawnPosX = pos.getX();
+		spawnPosY = pos.getY() + 1;
+		spawnPosZ = pos.getZ();
+		isSpawnpointSet = true;
+		save();
+		LogUtils.sendSuccess("Spawn position has been set");
+	};
+	@Number(
+			name = "SpawnPos Y", category = VISITORS_MACRO, subcategory = "Spawn Position",
+			description = "The Y coordinate of the spawn",
+			min = -30000000, max = 30000000
+	)
+	public int spawnPosY = 0;
+	@Button(
+			name = "Reset SpawnPos", category = VISITORS_MACRO, subcategory = "Spawn Position",
+			description = "Resets the spawn position",
+			text = "Reset SpawnPos"
+	)
+	Runnable _resetSpawnPos = () -> {
+		spawnPosX = 0;
+		spawnPosY = 0;
+		spawnPosZ = 0;
+		isSpawnpointSet = false;
+		save();
+		LogUtils.sendSuccess("Spawn position has been reset");
+	};
+	@Number(
+			name = "SpawnPos Z", category = VISITORS_MACRO, subcategory = "Spawn Position",
+			description = "The Z coordinate of the spawn",
+			min = -30000000, max = 30000000
+	)
+	public int spawnPosZ = 0;
 
 	// END VISITORS_MACRO
 
@@ -504,17 +578,17 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	Runnable _applyWebhook = () -> {
 		if (webHookURL.isEmpty()) {
-			LogUtils.scriptLog("Webhook URL is empty");
+			LogUtils.sendError("Webhook URL is empty!");
 			return;
 		}
 		if (!webHookURL.startsWith("https://discord.com/api/webhooks/")) {
-			LogUtils.scriptLog("Invalid webhook URL");
+			LogUtils.sendError("Invalid webhook URL!");
 			return;
 		}
 		GameState.webhook = new DiscordWebhook(FarmHelper.config.webHookURL);
 		GameState.webhook.setUsername("Jelly - Farm Helper");
 		GameState.webhook.setAvatarUrl("https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png");
-		LogUtils.scriptLog("Webhook URL has been applied");
+		LogUtils.sendSuccess("Webhook URL has been applied.");
 		save();
 	};
 
@@ -883,55 +957,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			name = "Debug HUD", category = DEBUG, subcategory = " "
 	)
 	public DebugHUD debugHUD = new DebugHUD();
-	@Number(
-		name = "SpawnPos X", category = DEBUG, subcategory = "SpawnPos",
-		description = "The X coordinate of the spawn",
-		min = -30000000, max = 30000000
-
-	)
-	public int spawnPosX = 0;
-	@Number(
-		name = "SpawnPos Y", category = DEBUG, subcategory = "SpawnPos",
-		description = "The Y coordinate of the spawn",
-		min = -30000000, max = 30000000
-	)
-	public int spawnPosY = 0;
-	@Number(
-		name = "SpawnPos Z", category = DEBUG, subcategory = "SpawnPos",
-		description = "The Z coordinate of the spawn",
-		min = -30000000, max = 30000000,
-		size = OptionSize.DUAL
-	)
-	public int spawnPosZ = 0;
-	@Switch(name = "Is Spawnpoint set", category = DEBUG, subcategory = "SpawnPos")
+	@Switch(name = "Is Spawnpoint set (DON'T TOUCH)", category = DEBUG, subcategory = "SpawnPos")
 	public boolean isSpawnpointSet = false;
-	@Button(
-		name = "Set SpawnPos", category = DEBUG, subcategory = "SpawnPos",
-		description = "Sets the spawn position to your current position",
-		text = "Set SpawnPos"
-	)
-	Runnable _setSpawnPos = () -> {
-		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
-		spawnPosX = pos.getX();
-		spawnPosY = pos.getY() + 1;
-		spawnPosZ = pos.getZ();
-		isSpawnpointSet = true;
-		save();
-		LogUtils.scriptLog("Spawn position has been set to " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
-	};
-	@Button(
-		name = "Reset SpawnPos", category = DEBUG, subcategory = "SpawnPos",
-		description = "Resets the spawn position",
-		text = "Reset SpawnPos"
-	)
-	Runnable _resetSpawnPos = () -> {
-		spawnPosX = 0;
-		spawnPosY = 0;
-		spawnPosZ = 0;
-		isSpawnpointSet = false;
-		save();
-		LogUtils.scriptLog("Spawn position has been reset");
-	};
 
 	// END DEBUG
 
@@ -972,11 +999,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			options = {"Using keys", "Using WINAPI (Windows only)"}
 	)
 	public int autoAltTabMode = 0;
-
-	@Switch(
-			name = "Old rotation check method (depreciated)", category = EXPERIMENTAL, subcategory = "Experimental"
-	)
-	public boolean oldRotationCheck = false;
 
 	@Switch(
 			name = "Ping server to decrease potential false rotation checks", category = EXPERIMENTAL, subcategory = "Experimental"
@@ -1044,6 +1066,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("onlyAcceptProfitableVisitors", "visitorsMacro");
 		this.addDependency("visitorsMacroCoinsThreshold", "visitorsMacro");
 		this.addDependency("pauseVisitorsMacroDuringJacobsContest", "visitorsMacro");
+		this.hideIf("infoCookieBuffRequired", () -> LocationUtils.currentIsland != LocationUtils.Island.GARDEN || FarmHelper.gameState.cookie == GameState.EffectState.ON);
+		this.hideIf("infoDeskNotSet", () -> LocationUtils.currentIsland != LocationUtils.Island.GARDEN || FarmHelper.config.visitorsDeskPosX != 0 || FarmHelper.config.visitorsDeskPosY != 0 || FarmHelper.config.visitorsDeskPosZ != 0);
 
 		this.addDependency("sendLogs", "enableWebHook");
 		this.addDependency("sendStatusUpdates", "enableWebHook");
@@ -1067,13 +1091,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 		this.addDependency("hideLogs", "Hide Logs (Not Recommended)", () -> !this.debugMode);
 		this.addDependency("debugMode", "Debug Mode", () -> !this.hideLogs);
-		this.addDependency("SpawnPosX", "debugMode");
-		this.addDependency("SpawnPosY", "debugMode");
-		this.addDependency("SpawnPosZ", "debugMode");
-		this.addDependency("_setSpawnPos", "debugMode");
-		this.addDependency("_resetSpawnPos", "debugMode");
 		this.addDependency("isSpawnpointSet", "debugMode");
 		this.addDependency("customPitchLevel", "customPitch");
+		this.hideIf("isSpawnpointSet", () -> true);
 		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
 //		registerKeyBind(debugKeybind, () -> FarmHelper.petSwapper.startMacro(false));
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));

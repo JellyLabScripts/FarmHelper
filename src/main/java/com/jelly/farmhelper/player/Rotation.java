@@ -58,12 +58,12 @@ public class Rotation {
         }
         else if (!completed) {
 //            if (shouldRotateClockwise()) {
-//                LogUtils.debugLog("Rotation final st - " + start.left + ", " + mc.thePlayer.rotationYaw);
+//                LogUtils.sendDebug("Rotation final st - " + start.left + ", " + mc.thePlayer.rotationYaw);
 //                mc.thePlayer.rotationYaw = target.left;
-//                LogUtils.debugLog("Rotation final - " + start.left + difference.left);
+//                LogUtils.sendDebug("Rotation final - " + start.left + difference.left);
 //            } else {
 //                mc.thePlayer.rotationYaw = target.left;
-//                LogUtils.debugLog("Rotation final - " + (start.left - difference.left));
+//                LogUtils.sendDebug("Rotation final - " + (start.left - difference.left));
 //            }
             mc.thePlayer.rotationYaw = target.left;
             mc.thePlayer.rotationPitch = target.right;
