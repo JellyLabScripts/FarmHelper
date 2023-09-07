@@ -2,12 +2,22 @@ package com.jelly.farmhelper.remote.command.commands;
 
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.macros.MacroHandler;
+import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.remote.command.BaseCommand;
 import com.jelly.farmhelper.remote.command.Command;
 import com.jelly.farmhelper.remote.event.WebsocketMessage;
 import com.jelly.farmhelper.utils.*;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.Arrays;
 
 @Command(label = "setspeed")
 public class SetSpeedCommand extends BaseCommand {
@@ -43,6 +53,8 @@ public class SetSpeedCommand extends BaseCommand {
     private static boolean enabled = false;
     private static State currentState = State.NONE;
     private static final Clock clock = new Clock();
+    private static final Rotation rotation = new Rotation();
+    private static Pair<Float, Float> lastRotation = new MutablePair<>(0f, 0f);
     int freeSlot = -1;
     boolean wasMacroing = false;
     public enum State {
@@ -51,9 +63,11 @@ public class SetSpeedCommand extends BaseCommand {
         OPEN_INVENTORY,
         TAKE_OFF_BOOTS,
         CLOSE_INVENTORY,
+        LOOK_IN_THE_AIR,
         HOLD_RANCHER_BOOTS,
         CLICK_RANCHER_BOOTS,
         TYPE_IN_SPEED,
+        LOOK_BACK,
         OPEN_INVENTORY_AGAIN,
         PUT_ON_BOOTS,
         CLOSE_INVENTORY_AGAIN,
@@ -114,6 +128,12 @@ public class SetSpeedCommand extends BaseCommand {
                 break;
             case CLOSE_INVENTORY:
                 mc.currentScreen = null;
+                lastRotation = Pair.of(AngleUtils.get360RotationYaw(), mc.thePlayer.rotationPitch);
+                currentState = State.LOOK_IN_THE_AIR;
+                clock.schedule(500);
+                break;
+            case LOOK_IN_THE_AIR:
+                lookInTheAir();
                 currentState = State.HOLD_RANCHER_BOOTS;
                 clock.schedule(500);
                 break;
@@ -153,12 +173,13 @@ public class SetSpeedCommand extends BaseCommand {
                 currentState = State.OPEN_INVENTORY_AGAIN;
                 clock.schedule(500);
                 break;
+            case LOOK_BACK:
+                rotation.reset();
+                rotation.easeTo(lastRotation.getLeft(), lastRotation.getRight(), 300);
+                currentState = State.OPEN_INVENTORY_AGAIN;
+                clock.schedule(500);
+                break;
             case OPEN_INVENTORY_AGAIN:
-                if (mc.thePlayer.openContainer != null) {
-                    currentState = State.TYPE_IN_SPEED;
-                    clock.schedule(500);
-                    break;
-                }
                 PlayerUtils.openInventory();
                 currentState = State.PUT_ON_BOOTS;
                 clock.schedule(500);
@@ -201,5 +222,39 @@ public class SetSpeedCommand extends BaseCommand {
         data.addProperty("error", message);
         WebsocketMessage response = new WebsocketMessage(label, data);
         send(response);
+    }
+
+    private final float[][] vectors = {
+            {0.5F, 3.5F, 3.5F},
+            {-6.5F, 1.5F, 0F},
+            {6.5F, 1.5F, 0F},
+            {0.5F, 7.5F, 0F}
+    };
+    private void lookInTheAir() {
+        LogUtils.sendDebug("Looking in the air...");
+        for (float[] vector : vectors) {
+            Vec3 target = new Vec3(BlockUtils.getRelativeBlockPos(vector[0], vector[1], vector[2]));
+            MovingObjectPosition rayTraceResult = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionEyes(1), target, false, false, true);
+
+            if (rayTraceResult != null) {
+                if (rayTraceResult.typeOfHit == MovingObjectPosition.MovingObjectType.MISS) {
+                    BlockPos blockPos = rayTraceResult.getBlockPos();
+                    if (mc.theWorld.getBlockState(blockPos).getBlock() == null || mc.theWorld.getBlockState(blockPos).getBlock() == Blocks.air) {
+                        LogUtils.sendDebug("Looking at " + Arrays.toString(vector));
+                        rotation.reset();
+                        rotation.easeTo(AngleUtils.getRotation(target, true).getLeft(), AngleUtils.getRotation(target, true).getRight(), 300);
+                        return;
+                    }
+                }
+            }
+            LogUtils.sendDebug("Couldn't find an empty space to look at! Trying next vector...");
+        }
+        disableWithError("Couldn't find an empty space to look at! Disabling...");
+    }
+    @SubscribeEvent
+    public void onLastRender(RenderWorldLastEvent event) {
+        if (rotation.rotating) {
+            rotation.update();
+        }
     }
 }
