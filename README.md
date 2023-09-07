@@ -1,8 +1,17 @@
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-![Downloads][downloads-shield]
+<p align="center">
+  <a href="https://github.com/JellyLabScripts/FarmHelper/graphs/contributors" alt="Contributors">
+    <img src="https://img.shields.io/github/contributors/JellyLabScripts/FarmHelper?color=blue" />
+  </a>
+  <a href="https://github.com/JellyLabScripts/FarmHelper/releases" target="_blank">
+    <img alt="release" src="https://img.shields.io/github/v/release/JellyLabScripts/FarmHelper?color=green" />
+  </a>
+  <a href="https://github.com/JellyLabScripts/FarmHelper/releases" target="_blank">
+    <img alt="downloads" src="https://img.shields.io/github/downloads/JellyLabScripts/FarmHelper/total?color=purple" />
+  </a>
+  <a href="https://discord.gg/6mSHC2Xd9y" target="_blank">
+    <img alt="discord" src="https://img.shields.io/discord/450878205294018560?color=orange&label=discord" />
+  </a>
+</p>
 
 <br />
 <div align="center">
@@ -22,7 +31,7 @@
 
 Imagine not having to stare at your computer for 12 hours a day just to press the A and D keys. Imagine, being able to skip all the repetitive processes of farming and do other things simultaneously. Farm Helper is a highly customizable skyblock quality of life (QOL) mod that automates boring farming processes, freeing up your time for other activities.
 
-Revolutionizing the farming meta of Hypixel skyblock, Farm Helper has already been downloaded over 20,000 times. Start your QOL journey by joining the Jellylab community!
+Revolutionizing the farming meta of Hypixel skyblock, Farm Helper has already been downloaded over 30,000 times. Start your QOL journey by joining the Jellylab community!
 
 ## Contributing
 
