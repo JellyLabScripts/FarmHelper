@@ -17,7 +17,7 @@ jobs:
 
       # Step 2: Check out the source code of the repository
       - name: Checkout project sources
-        uses: actions/checkout@v3.6.0
+        uses: actions/checkout@v4.0.0
 
       # Step 3: Set up Gradle and build the project
       - name: Setup Gradle and build
