@@ -11,6 +11,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -148,12 +149,7 @@ public class SetSpeedCommand extends BaseCommand {
                 clock.schedule(500);
                 break;
             case CLICK_RANCHER_BOOTS:
-                if (mc.thePlayer.inventory.currentItem != freeSlot) {
-                    currentState = State.HOLD_RANCHER_BOOTS;
-                    clock.schedule(500);
-                    break;
-                }
-                if (mc.thePlayer.inventory.getStackInSlot(freeSlot) == null) {
+                if (mc.thePlayer.inventory.currentItem != freeSlot || mc.thePlayer.inventory.getStackInSlot(freeSlot) == null) {
                     currentState = State.HOLD_RANCHER_BOOTS;
                     clock.schedule(500);
                     break;
@@ -170,7 +166,7 @@ public class SetSpeedCommand extends BaseCommand {
                 }
                 Utils.signText = String.valueOf(speed);
                 mc.currentScreen = null;
-                currentState = State.OPEN_INVENTORY_AGAIN;
+                currentState = State.LOOK_BACK;
                 clock.schedule(500);
                 break;
             case LOOK_BACK:
@@ -255,6 +251,14 @@ public class SetSpeedCommand extends BaseCommand {
     public void onLastRender(RenderWorldLastEvent event) {
         if (rotation.rotating) {
             rotation.update();
+        }
+    }
+    @SubscribeEvent
+    public void onChatMessage(ClientChatReceivedEvent event) {
+        if (event.type == 0 && event.message != null && event.message.getFormattedText().contains("§eClick in the air!")) {
+            lookInTheAir();
+            currentState = State.HOLD_RANCHER_BOOTS;
+            clock.schedule(500);
         }
     }
 }
