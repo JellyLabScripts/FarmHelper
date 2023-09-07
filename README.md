@@ -1,4 +1,4 @@
-<div style="text-align: center;">
+<p align="center">
   <a href="https://github.com/JellyLabScripts/FarmHelper/graphs/contributors" alt="Contributors">
     <img src="https://img.shields.io/github/contributors/JellyLabScripts/FarmHelper" />
   </a>
@@ -6,12 +6,12 @@
     <img alt="release" src="https://img.shields.io/github/v/release/JellyLabScripts/FarmHelper?color=00A6A6" />
   </a>
   <a href="https://github.com/JellyLabScripts/FarmHelper/releases" target="_blank">
-    <img alt="downloads" src="https://img.shields.io/github/downloads/JellyLabScripts/FarmHelper/total?color=E24E1B" />
+    <img alt="downloads" src="https://img.shields.io/github/downloads/JellyLabScripts/FarmHelper/total?color=5D5179" />
   </a>
   <a href="https://discord.gg/6mSHC2Xd9y" target="_blank">
     <img alt="discord" src="https://img.shields.io/discord/450878205294018560?color=677DB7&label=discord" />
   </a>
-</div>
+</p>
 
 <br />
 <div align="center">
