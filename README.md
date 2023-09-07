@@ -1,8 +1,17 @@
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-![Downloads][downloads-shield]
+<div style="text-align: center;">
+  <a href="https://github.com/JellyLabScripts/FarmHelper/graphs/contributors" alt="Contributors">
+    <img src="https://img.shields.io/github/contributors/JellyLabScripts/FarmHelper" />
+  </a>
+  <a href="https://github.com/JellyLabScripts/FarmHelper/releases" target="_blank">
+    <img alt="release" src="https://img.shields.io/github/v/release/JellyLabScripts/FarmHelper?color=00A6A6" />
+  </a>
+  <a href="https://github.com/JellyLabScripts/FarmHelper/releases" target="_blank">
+    <img alt="downloads" src="https://img.shields.io/github/downloads/JellyLabScripts/FarmHelper/total?color=E24E1B" />
+  </a>
+  <a href="https://discord.gg/6mSHC2Xd9y" target="_blank">
+    <img alt="discord" src="https://img.shields.io/discord/450878205294018560?color=677DB7&label=discord" />
+  </a>
+</div>
 
 <br />
 <div align="center">
