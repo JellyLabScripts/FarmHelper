@@ -1,15 +1,15 @@
 <p align="center">
   <a href="https://github.com/JellyLabScripts/FarmHelper/graphs/contributors" alt="Contributors">
-    <img src="https://img.shields.io/github/contributors/JellyLabScripts/FarmHelper" />
+    <img src="https://img.shields.io/github/contributors/JellyLabScripts/FarmHelper?color=blue" />
   </a>
   <a href="https://github.com/JellyLabScripts/FarmHelper/releases" target="_blank">
-    <img alt="release" src="https://img.shields.io/github/v/release/JellyLabScripts/FarmHelper?color=00A6A6" />
+    <img alt="release" src="https://img.shields.io/github/v/release/JellyLabScripts/FarmHelper?color=green" />
   </a>
   <a href="https://github.com/JellyLabScripts/FarmHelper/releases" target="_blank">
-    <img alt="downloads" src="https://img.shields.io/github/downloads/JellyLabScripts/FarmHelper/total?color=5D5179" />
+    <img alt="downloads" src="https://img.shields.io/github/downloads/JellyLabScripts/FarmHelper/total?color=purple" />
   </a>
   <a href="https://discord.gg/6mSHC2Xd9y" target="_blank">
-    <img alt="discord" src="https://img.shields.io/discord/450878205294018560?color=677DB7&label=discord" />
+    <img alt="discord" src="https://img.shields.io/discord/450878205294018560?color=orange&label=discord" />
   </a>
 </p>
 
