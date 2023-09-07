@@ -603,15 +603,14 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public static boolean ignored2;
 	@Text(
 		name = "WebSocket IP (DANGEROUS)", category = WEBHOOK, subcategory = "Remote Control",
-		description = "The IP to use for the WebSocket server",
-		secure = false, multiline = false
+		description = "The IP to use for the WebSocket server"
 
 	)
-	public String webSocketIP = "";
+	public String webSocketIP = "localhost";
 	@Text(
 		name = "WebSocket Password", category = WEBHOOK, subcategory = "Remote Control",
 		description = "The password to use for the WebSocket server",
-		secure = true, multiline = false
+		secure = true
 	)
 	public String webSocketPassword = "";
 
