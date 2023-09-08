@@ -1017,7 +1017,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public int configVersion = 1;
 
 	public Config() {
-		super(new Mod("Farm Helper", ModType.HYPIXEL), "/farmhelper/config.json");
+		super(new Mod("Farm Helper", ModType.HYPIXEL, "/assets/farmhelper/icon-mod/icon.png"), "/farmhelper/config.json");
 		initialize();
 
 		this.addDependency("macroType", "Macro Type", () -> !MacroHandler.isMacroing);
