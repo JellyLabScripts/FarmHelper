@@ -47,7 +47,7 @@ public class MacroHandler {
     public static boolean startingUp;
     public static CropEnum crop;
 
-    @SubscribeEvent
+    @SubscribeEvent(receiveCanceled = true)
     public void onChatMessageReceived(ClientChatReceivedEvent e) {
         if(isMacroing) {
             if(e.message == null)

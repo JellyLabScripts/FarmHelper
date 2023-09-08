@@ -158,7 +158,7 @@ public abstract class Macro<T> {
     }
 
     public boolean isSpawnLocationSet() {
-        return FarmHelper.config.spawnPosX != 0 && FarmHelper.config.spawnPosY != 0 && FarmHelper.config.spawnPosZ != 0;
+        return FarmHelper.config.spawnPosX != 0 || FarmHelper.config.spawnPosY != 0 || FarmHelper.config.spawnPosZ != 0;
     }
 
     public boolean isStandingOnSpawnLocation() {
