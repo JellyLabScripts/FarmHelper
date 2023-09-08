@@ -1025,6 +1025,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	// END EXPERIMENTAL
 
+	@Number(name = "Config Version", category = EXPERIMENTAL, subcategory = "Experimental", min = 0, max = 1337)
+	public int configVersion = 1;
+
 	public Config() {
 		super(new Mod("Farm Helper", ModType.HYPIXEL), "/farmhelper/config.json");
 		initialize();
@@ -1103,6 +1106,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("hideLogs", "Hide Logs (Not Recommended)", () -> !this.debugMode);
 		this.addDependency("debugMode", "Debug Mode", () -> !this.hideLogs);
 		this.addDependency("customPitchLevel", "customPitch");
+		this.hideIf("configVersion", () -> true);
 		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
 //		registerKeyBind(debugKeybind, () -> FarmHelper.petSwapper.startMacro(false));
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
