@@ -589,6 +589,14 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		save();
 	};
 
+	@Info(
+			text = "If you want to use the remote control feature, you need to have Farm Helper JDA Dependency inside your mods folder",
+			type = InfoType.WARNING,
+			category = WEBHOOK,
+			subcategory = "Remote Control"
+	)
+	public static boolean infoRemoteControl;
+
 	@Switch(
 		name = "Enable Remote Control (BROKEN)", category = WEBHOOK, subcategory = "Remote Control",
 		description = "Enables remote control via Discord messages"

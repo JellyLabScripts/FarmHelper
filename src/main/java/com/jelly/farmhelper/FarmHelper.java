@@ -22,6 +22,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -70,7 +71,9 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new AutoCookie());
         MinecraftForge.EVENT_BUS.register(new AutoPot());
         MinecraftForge.EVENT_BUS.register(new BanwaveChecker());
-        MinecraftForge.EVENT_BUS.register(new DiscordBotHandler());
+        if (Loader.isModLoaded("farmhelperjdadependency")) {
+            MinecraftForge.EVENT_BUS.register(new DiscordBotHandler());
+        }
         MinecraftForge.EVENT_BUS.register(new ProfitCalculator());
         MinecraftForge.EVENT_BUS.register(new Utils());
         MinecraftForge.EVENT_BUS.register(new VisitorsMacro());

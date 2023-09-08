@@ -3,7 +3,6 @@ package com.jelly.farmhelper.remote;
 import cc.polyfrost.oneconfig.utils.Notifications;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.remote.discordStruct.Command;
-import com.jelly.farmhelper.remote.struct.BaseCommand;
 import com.jelly.farmhelper.remote.event.InteractionAutoComplete;
 import com.jelly.farmhelper.remote.event.InteractionCreate;
 import com.jelly.farmhelper.remote.util.RemoteUtils;

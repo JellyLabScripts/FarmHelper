@@ -11,6 +11,7 @@ import com.jelly.farmhelper.remote.util.RemoteUtils;
 import com.jelly.farmhelper.remote.waiter.WaiterHandler;
 import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.java_websocket.enums.ReadyState;
@@ -66,6 +67,14 @@ public class WebsocketHandler {
     public void onTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!Loader.isModLoaded("farmhelperjdadependency")) {
+            if (FarmHelper.config.enableRemoteControl) {
+                FarmHelper.config.enableRemoteControl = false;
+                LogUtils.sendError("Farm Helper JDA Dependency is not installed, disabling remote control..");
+                Notifications.INSTANCE.send("Farm Helper", "Farm Helper JDA Dependency is not installed, disabling remote control..");
+            }
+            return;
+        }
         if (!DiscordBotHandler.finishedLoading) return;
 
         switch (websocketState) {

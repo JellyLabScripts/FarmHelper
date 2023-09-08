@@ -194,7 +194,9 @@ public class BlockUtils {
             return true;
         } else {
             crop = getRelativeBlock(1, 0, 1);
-            return crop.equals(Blocks.melon_block) || crop.equals(Blocks.pumpkin);
+            Block crop2 = getRelativeBlock(1, 1, 1); // melonkingdebil farm
+            Block crop3 = getRelativeBlock(1, 2, 1); // melonkingdebil farm
+            return crop.equals(Blocks.melon_block) || crop.equals(Blocks.pumpkin) || crop2.equals(Blocks.melon_block) || crop2.equals(Blocks.pumpkin) || crop3.equals(Blocks.melon_block) || crop3.equals(Blocks.pumpkin);
         }
     }
 
