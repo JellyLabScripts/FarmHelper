@@ -1,6 +1,5 @@
 package com.jelly.farmhelper.hud;
 
-import cc.polyfrost.oneconfig.config.annotations.Switch;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.jelly.farmhelper.FarmHelper;
@@ -8,7 +7,6 @@ import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.LocationUtils;
 
-import java.awt.*;
 import java.util.List;
 
 import static com.jelly.farmhelper.FarmHelper.gameState;

@@ -6,7 +6,6 @@ import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.features.LagDetection;
 import com.jelly.farmhelper.utils.*;
 
-import static com.jelly.farmhelper.FarmHelper.config;
 import static com.jelly.farmhelper.utils.BlockUtils.*;
 
 public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {

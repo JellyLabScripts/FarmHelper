@@ -11,7 +11,7 @@ import net.minecraft.block.BlockTrapDoor;
 import net.minecraft.init.Blocks;
 
 import static com.jelly.farmhelper.FarmHelper.gameState;
-import static com.jelly.farmhelper.utils.BlockUtils.*;
+import static com.jelly.farmhelper.utils.BlockUtils.isWalkable;
 
 public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
 

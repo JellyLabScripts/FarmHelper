@@ -1,7 +1,5 @@
 package com.jelly.farmhelper.mixins.gui;
 
-import com.jelly.farmhelper.features.VisitorsMacro;
-import com.jelly.farmhelper.remote.command.commands.SetSpeedCommand;
 import com.jelly.farmhelper.utils.Utils;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiEditSign;
@@ -11,7 +9,6 @@ import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.util.ChatComponentText;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;

@@ -6,8 +6,6 @@ import com.jelly.farmhelper.remote.command.BaseCommand;
 import com.jelly.farmhelper.remote.command.Command;
 import com.jelly.farmhelper.remote.event.WebsocketMessage;
 import com.jelly.farmhelper.utils.LocationUtils;
-import com.jelly.farmhelper.utils.LogUtils;
-import net.minecraft.util.EnumChatFormatting;
 
 
 @Command(label = "toggle")

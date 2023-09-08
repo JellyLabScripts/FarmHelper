@@ -1,4 +1,5 @@
 package com.jelly.farmhelper.world;
+
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.features.PetSwapper;
@@ -11,7 +12,6 @@ import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
