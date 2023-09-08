@@ -2,19 +2,17 @@ package com.jelly.farmhelper.remote.command.commands;
 
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.remote.command.BaseCommand;
-import com.jelly.farmhelper.remote.command.Command;
-import com.jelly.farmhelper.remote.event.WebsocketMessage;
+import com.jelly.farmhelper.remote.struct.BaseCommand;
+import com.jelly.farmhelper.remote.struct.Command;
+import com.jelly.farmhelper.remote.struct.RemoteMessage;
 import com.jelly.farmhelper.utils.LocationUtils;
-import com.jelly.farmhelper.utils.LogUtils;
-import net.minecraft.util.EnumChatFormatting;
 
 
 @Command(label = "toggle")
 public class ToggleCommand extends BaseCommand {
 
     @Override
-    public void execute(WebsocketMessage message) {
+    public void execute(RemoteMessage message) {
         JsonObject data = new JsonObject();
         data.addProperty("username", mc.getSession().getUsername());
         data.addProperty("uuid", mc.getSession().getPlayerID());
@@ -26,7 +24,7 @@ public class ToggleCommand extends BaseCommand {
             MacroHandler.toggleMacro();
         }
 
-        WebsocketMessage response = new WebsocketMessage(label, data);
+        RemoteMessage response = new RemoteMessage(label, data);
         send(response);
     }
 }

@@ -1,16 +1,14 @@
 package com.jelly.farmhelper.remote.command.commands;
 
 import com.google.gson.JsonObject;
-import com.jelly.farmhelper.features.VisitorsMacro;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.remote.command.BaseCommand;
-import com.jelly.farmhelper.remote.command.Command;
-import com.jelly.farmhelper.remote.event.WebsocketMessage;
+import com.jelly.farmhelper.remote.struct.BaseCommand;
+import com.jelly.farmhelper.remote.struct.Command;
+import com.jelly.farmhelper.remote.struct.RemoteMessage;
 import com.jelly.farmhelper.utils.PlayerUtils;
 import com.jelly.farmhelper.utils.Utils;
 import net.minecraft.client.settings.KeyBinding;
 
-import java.lang.reflect.Method;
 import java.util.Objects;
 
 import static com.jelly.farmhelper.utils.Utils.clickWindow;
@@ -21,7 +19,7 @@ public class SetSpeedCommand extends BaseCommand {
     private static JsonObject data;
 
     @Override
-    public void execute(WebsocketMessage message) {
+    public void execute(RemoteMessage message) {
         JsonObject args = message.args;
         speed = args.get("speed").getAsInt();
         data = new JsonObject();
@@ -41,7 +39,7 @@ public class SetSpeedCommand extends BaseCommand {
                 e.printStackTrace();
             }
         }
-        WebsocketMessage response = new WebsocketMessage(label, data);
+        RemoteMessage response = new RemoteMessage(label, data);
         send(response);
     }
 
@@ -107,7 +105,7 @@ public class SetSpeedCommand extends BaseCommand {
                 data.addProperty("error", "Critical error while setting Rancher's boots speed.");
             }
         }
-        WebsocketMessage response = new WebsocketMessage(label, data);
+        RemoteMessage response = new RemoteMessage(label, data);
         send(response);
     };
 }

@@ -6,7 +6,7 @@ import com.jelly.farmhelper.macros.MacroHandler;
 public class StatusUtils {
     public static  String status = "Idling";
     public static  String cookieFail ="AutoCookie Fail: 0";
-    public static  String connecting = "Connecting to Socket";
+    public static  String connecting = "Connecting to Socket...";
     public static  String potFail = "AutoPot Fail: 0";
 
     public static void updateStateString() {

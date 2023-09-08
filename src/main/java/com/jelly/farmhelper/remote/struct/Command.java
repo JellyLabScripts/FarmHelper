@@ -1,4 +1,4 @@
-package com.jelly.farmhelper.remote.command;
+package com.jelly.farmhelper.remote.struct;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

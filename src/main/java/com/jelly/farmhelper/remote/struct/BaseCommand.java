@@ -1,10 +1,8 @@
-package com.jelly.farmhelper.remote.command;
+package com.jelly.farmhelper.remote.struct;
 
-import com.google.gson.JsonObject;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.network.DiscordWebhook;
-import com.jelly.farmhelper.remote.RemoteControlHandler;
-import com.jelly.farmhelper.remote.event.WebsocketMessage;
+import com.jelly.farmhelper.remote.WebsocketHandler;
 import com.jelly.farmhelper.utils.Clock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ScreenShotHelper;
@@ -18,36 +16,28 @@ import java.util.Base64;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-@com.jelly.farmhelper.remote.command.Command(label = "base")
+@Command(label = "base")
 abstract public class BaseCommand {
     public static final Minecraft mc = Minecraft.getMinecraft();
     private static boolean patcherEnabled = false;
+    private static boolean essentialsEnabled = false;
     public final String label;
     public BaseCommand() {
-        com.jelly.farmhelper.remote.command.Command command = this.getClass().getAnnotation(com.jelly.farmhelper.remote.command.Command.class);
+        Command command = this.getClass().getAnnotation(Command.class);
         this.label = command.label();
     }
-    public void execute(WebsocketMessage message) {
+    public void execute(RemoteMessage message) {
 
     }
-    public boolean nullCheck() {
-        return mc.thePlayer != null && mc.theWorld != null;
+
+    public static void send(RemoteMessage message) {
+        WebsocketHandler.send(FarmHelper.gson.toJson(message));
     }
+
     public static void send(String content) {
-        RemoteControlHandler.client.send(content);
+        WebsocketHandler.send(content);
     }
 
-    public static void send(JsonObject content) {
-        RemoteControlHandler.client.send(FarmHelper.gson.toJson(content));
-    }
-
-    public static void send(WebsocketMessage content) {
-        RemoteControlHandler.client.send(FarmHelper.gson.toJson(content));
-    }
-
-    public static String toJson(DiscordWebhook.EmbedObject embed) {
-        return String.valueOf(DiscordWebhook.toJson(embed));
-    }
     public static String getScreenshot() {
         AtomicReference<String> base64img = new AtomicReference<>(null);
         disablePatcherShit();
@@ -74,12 +64,6 @@ abstract public class BaseCommand {
         }
         return base64img.get();
     }
-    public static DiscordWebhook.EmbedObject embed() {
-        return new DiscordWebhook.EmbedObject()
-                .setColor(new Color(9372933))
-                .setFooter("➤ FarmHelper Remote Control ↳ by yonezu#5542", "https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png")
-                .setAuthor("Instance name ↳ " + mc.getSession().getUsername(), "https://crafatar.com/avatars/" + mc.getSession().getPlayerID(), "https://crafatar.com/avatars/" + mc.getSession().getPlayerID());
-    }
 
     private static void disablePatcherShit() {
         if (patcherEnabled) {
@@ -96,13 +80,16 @@ abstract public class BaseCommand {
     }
 
     private static void disableEssentialsShit()  {
-        try {
-            Class<?> klazz = Class.forName("gg.essential.config.EssentialConfig");
-            Field field = klazz.getDeclaredField("essentialScreenshots");
-            field.setAccessible(true);
-            field.setBoolean(klazz, false);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (essentialsEnabled) {
+            try {
+                Class<?> klazz = Class.forName("gg.essential.config.EssentialConfig");
+                Field field = klazz.getDeclaredField("essentialScreenshots");
+                field.setAccessible(true);
+                field.setBoolean(klazz, false);
+            } catch (Exception e) {
+                e.printStackTrace();
+                essentialsEnabled = false;
+            }
         }
     }
 }

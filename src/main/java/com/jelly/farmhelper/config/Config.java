@@ -597,26 +597,13 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Enables remote control via Discord messages"
 	)
 	public boolean enableRemoteControl = false;
-	@Info(
-		text = "You don't need to configure this. It's for advanced users only.",
-		type = InfoType.INFO,
-		category = WEBHOOK,
-		subcategory = "Remote Control"
-	)
-	public static boolean ignored2;
 	@Text(
-		name = "WebSocket IP (DANGEROUS)", category = WEBHOOK, subcategory = "Remote Control",
-		description = "The IP to use for the WebSocket server",
-		secure = false, multiline = false
-
+			name = "Discord Remote Control Bot Token",
+			category = WEBHOOK, subcategory = "Remote Control",
+			description = "The bot token to use for remote control",
+			secure = true, multiline = false
 	)
-	public String webSocketIP = "";
-	@Text(
-		name = "WebSocket Password", category = WEBHOOK, subcategory = "Remote Control",
-		description = "The password to use for the WebSocket server",
-		secure = true, multiline = false
-	)
-	public String webSocketPassword = "";
+	public String discordRemoteControlToken;
 
 	// END WEBHOOK
 

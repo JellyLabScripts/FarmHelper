@@ -1,9 +1,9 @@
 package com.jelly.farmhelper.remote.command.commands;
 
 import com.google.gson.JsonObject;
-import com.jelly.farmhelper.remote.command.BaseCommand;
-import com.jelly.farmhelper.remote.command.Command;
-import com.jelly.farmhelper.remote.event.WebsocketMessage;
+import com.jelly.farmhelper.remote.struct.BaseCommand;
+import com.jelly.farmhelper.remote.struct.Command;
+import com.jelly.farmhelper.remote.struct.RemoteMessage;
 import com.jelly.farmhelper.utils.Clock;
 import net.minecraft.util.ChatComponentText;
 
@@ -16,7 +16,7 @@ public class ReconnectCommand extends BaseCommand {
     public static Clock reconnectClock = new Clock();
 
     @Override
-    public void execute(WebsocketMessage event) {
+    public void execute(RemoteMessage event) {
         JsonObject args = event.args;
         int delay = 5_000;
         if (args.has("delay")) {
@@ -30,7 +30,7 @@ public class ReconnectCommand extends BaseCommand {
         data.addProperty("image", getScreenshot());
         data.addProperty("delay", delay);
         data.addProperty("uuid", mc.getSession().getPlayerID());
-        WebsocketMessage response = new WebsocketMessage(label, data);
+        RemoteMessage response = new RemoteMessage(label, data);
         send(response);
     }
 }

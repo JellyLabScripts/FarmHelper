@@ -2,9 +2,9 @@ package com.jelly.farmhelper.remote.command.commands;
 
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.remote.command.BaseCommand;
-import com.jelly.farmhelper.remote.command.Command;
-import com.jelly.farmhelper.remote.event.WebsocketMessage;
+import com.jelly.farmhelper.remote.struct.BaseCommand;
+import com.jelly.farmhelper.remote.struct.Command;
+import com.jelly.farmhelper.remote.struct.RemoteMessage;
 import com.jelly.farmhelper.utils.PlayerUtils;
 
 @Command(label = "screenshot")
@@ -12,7 +12,7 @@ import com.jelly.farmhelper.utils.PlayerUtils;
 public class ScreenshotCommand extends BaseCommand {
 
     @Override
-    public void execute(WebsocketMessage message) {
+    public void execute(RemoteMessage message) {
         JsonObject args = message.args;
         try {
             boolean inventory = args.get("inventory").getAsBoolean();
@@ -33,7 +33,7 @@ public class ScreenshotCommand extends BaseCommand {
         data.addProperty("username", mc.getSession().getUsername());
         data.addProperty("image", getScreenshot());
         data.addProperty("uuid", mc.getSession().getPlayerID());
-        WebsocketMessage response = new WebsocketMessage(label, data);
+        RemoteMessage response = new RemoteMessage(label, data);
         send(response);
     }
 
@@ -57,7 +57,7 @@ public class ScreenshotCommand extends BaseCommand {
         data.addProperty("username", mc.getSession().getUsername());
         data.addProperty("image", screenshot);
         data.addProperty("uuid", mc.getSession().getPlayerID());
-        WebsocketMessage response = new WebsocketMessage(label, data);
+        RemoteMessage response = new RemoteMessage(label, data);
         send(response);
     }
 }

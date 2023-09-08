@@ -6,7 +6,6 @@ import com.jelly.farmhelper.features.AutoReconnect;
 import com.jelly.farmhelper.features.BanwaveChecker;
 import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.remote.RemoteControlHandler;
 import com.jelly.farmhelper.remote.command.commands.ReconnectCommand;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
@@ -29,7 +28,7 @@ public class MixinGuiDisconnected {
 
     @Inject(method={"drawScreen"}, at={@At(value="TAIL")})
     public void drawScreen(CallbackInfo ci) {
-        if (!isBanned && multilineMessage.get(0).contains("banned") && RemoteControlHandler.analytic != null && RemoteControlHandler.analytic.isOpen()) {
+        if (!isBanned && multilineMessage.get(0).contains("banned") && FarmHelper.config.enableWebHook) {
             isBanned = true;
             String duration = multilineMessage.get(0).replace("§r§cYou are temporarily banned for §r§f", "")
                     .replace("§r§c from this server!", "");
@@ -38,7 +37,7 @@ public class MixinGuiDisconnected {
             json.addProperty("duration", duration);
             json.addProperty("reason", reason);
             json.addProperty("username", Minecraft.getMinecraft().getSession().getUsername());
-            RemoteControlHandler.analytic.send(json.toString());
+//            RemoteControlHandler.analytic.send(json.toString());
         }
 
 

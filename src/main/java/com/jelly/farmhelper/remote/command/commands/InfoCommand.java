@@ -3,16 +3,16 @@ package com.jelly.farmhelper.remote.command.commands;
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.remote.command.BaseCommand;
-import com.jelly.farmhelper.remote.command.Command;
-import com.jelly.farmhelper.remote.event.WebsocketMessage;
+import com.jelly.farmhelper.remote.struct.BaseCommand;
+import com.jelly.farmhelper.remote.struct.Command;
+import com.jelly.farmhelper.remote.struct.RemoteMessage;
 
 import static com.jelly.farmhelper.utils.LogUtils.getRuntimeFormat;
 
 @Command(label = "info")
 public class InfoCommand extends BaseCommand {
     @Override
-    public void execute(WebsocketMessage message) {
+    public void execute(RemoteMessage message) {
         JsonObject data = new JsonObject();
 
         data.addProperty("username", mc.getSession().getUsername());
@@ -24,7 +24,7 @@ public class InfoCommand extends BaseCommand {
         data.addProperty("uuid", mc.getSession().getPlayerID());
         data.addProperty("image", getScreenshot());
 
-        WebsocketMessage response = new WebsocketMessage(label, data);
+        RemoteMessage response = new RemoteMessage(label, data);
         send(response);
     }
 }
