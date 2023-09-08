@@ -23,6 +23,8 @@ import java.util.ArrayList;
 
 import static com.jelly.farmhelper.utils.StatusUtils.connecting;
 
+// Big thanks to Cephetir for the idea of standalone JDA Dependency
+
 public class DiscordBotHandler extends ListenerAdapter {
     public static JDA jdaClient;
     private Thread tryConnectThread;
