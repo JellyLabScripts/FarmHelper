@@ -19,6 +19,7 @@ import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
+import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
 import java.io.File;
@@ -37,7 +38,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	private transient static final String FAILSAFE = "Fail Safes";
 	private transient static final String VISITORS_MACRO = "Visitors Macro";
 	private transient static final String DELAYS = "Delays";
-	private transient static final String WEBHOOK = "Webhook";
+	private transient static final String DISCORD_INTEGRATION = "Discord Integration";
 	private transient static final String DEBUG = "Debug";
 	private transient static final String EXPERIMENTAL = "Experimental";
 
@@ -425,7 +426,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public float visitorsMacroPriceManipulationMultiplier = 2;
 	@Info(
 			text = "If you put your compactors in the hotbar, they will be temporarily disabled.",
-			type = InfoType.INFO,
+			type = InfoType.WARNING,
 			category = VISITORS_MACRO,
 			subcategory = "Visitors Macro",
 			size = 2
@@ -538,38 +539,38 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	// END VISITORS_MACRO
 
-	// START WEBHOOK
+	// START DISCORD_INTEGRATION
 
 	@Switch(
-        name = "Enable webhook messages", category = WEBHOOK, subcategory = "Discord Webhook",
+        name = "Enable webhook messages", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
         description = "Allows to send messages via Discord webhooks"
 	)
 	public boolean enableWebHook = false;
 	@Switch(
-		name = "Send Logs", category = WEBHOOK, subcategory = "Discord Webhook",
+		name = "Send Logs", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
 		description = "Sends all messages about the macro, spams a lot of messages"
 	)
 	public boolean sendLogs = false;
 	@Switch(
-		name = "Send Status Updates", category = WEBHOOK, subcategory = "Discord Webhook",
+		name = "Send Status Updates", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
 		description = "Sends messages about the macro, such as when it started, stopped, etc"
 	)
 	public boolean sendStatusUpdates = false;
 	@Number(
-		name = "Status Update Interval (in minutes)", category = WEBHOOK, subcategory = "Discord Webhook",
+		name = "Status Update Interval (in minutes)", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
 		description = "The interval between sending messages about status updates",
 		min = 1, max = 60
 	)
 	public int statusUpdateInterval = 5;
 	@Text(
-		name = "WebHook URL", category = WEBHOOK, subcategory = "Discord Webhook",
+		name = "WebHook URL", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
 		description = "The URL to use for the webhook",
 		placeholder = "https://discord.com/api/webhooks/...",
 		secure = true, multiline = false
 	)
 	public String webHookURL = "";
 	@Button(
-		name = "Apply WebHook URL", category = WEBHOOK, subcategory = "Discord Webhook",
+		name = "Apply WebHook URL", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
 		description = "Applies the webhook URL",
 		text = "Apply WebHook URL"
 	)
@@ -589,28 +590,28 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		save();
 	};
 
-	@Info(
-			text = "If you want to use the remote control feature, you need to have Farm Helper JDA Dependency inside your mods folder",
-			type = InfoType.WARNING,
-			category = WEBHOOK,
-			subcategory = "Remote Control"
-	)
-	public static boolean infoRemoteControl;
-
 	@Switch(
-		name = "Enable Remote Control (BROKEN)", category = WEBHOOK, subcategory = "Remote Control",
+		name = "Enable Remote Control", category = DISCORD_INTEGRATION, subcategory = "Remote Control",
 		description = "Enables remote control via Discord messages"
 	)
 	public boolean enableRemoteControl = false;
 	@Text(
 			name = "Discord Remote Control Bot Token",
-			category = WEBHOOK, subcategory = "Remote Control",
+			category = DISCORD_INTEGRATION, subcategory = "Remote Control",
 			description = "The bot token to use for remote control",
-			secure = true, multiline = false
+			secure = true
 	)
 	public String discordRemoteControlToken;
+	@Info(
+			text = "If you want to use the remote control feature, you need to put Farm Helper JDA Dependency inside your mods folder.",
+			type = InfoType.ERROR,
+			category = DISCORD_INTEGRATION,
+			subcategory = "Remote Control",
+			size = 2
+	)
+	public static boolean infoRemoteControl;
 
-	// END WEBHOOK
+	// END DISCORD_INTEGRATION
 
 	// START FAILSAFE
 
@@ -1084,6 +1085,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("statusUpdateInterval", "enableWebHook");
 		this.addDependency("webHookURL", "enableWebHook");
 		this.addDependency("_applyWebhook", "enableWebHook");
+		this.addDependency("enableRemoteControl", "Enable Remote Control", () -> Loader.isModLoaded("farmhelperjdadependency"));
+		this.hideIf("infoRemoteControl", () -> Loader.isModLoaded("farmhelperjdadependency"));
 
 		this.addDependency("webSocketIP", "enableRemoteControl");
 		this.addDependency("webSocketPassword", "enableRemoteControl");
