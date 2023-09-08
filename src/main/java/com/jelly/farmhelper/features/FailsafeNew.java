@@ -136,6 +136,12 @@ public class FailsafeNew {
         if (event.type != 0 || event.message == null) return;
         if (!MacroHandler.isMacroing) return;
         String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
+        String formattedMessage = event.message.getFormattedText();
+        if (formattedMessage.contains("§cYou were spawned in Limbo.")) {
+            emergency = false;
+            getAllEmergencies.reset();
+            detectedFailsafes.clear();
+        }
         if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing") || message.contains("You cannot join SkyBlock from here!")) {
             LogUtils.sendDebug("Failed teleport - waiting");
             cooldown.schedule(10000);
@@ -161,9 +167,9 @@ public class FailsafeNew {
         if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
 
         if (restartAfterFailsafeCooldown.isScheduled()) {
-            if (restartAfterFailsafeCooldown.passed()) {
+            if (restartAfterFailsafeCooldown.passed() && LocationUtils.currentIsland == LocationUtils.Island.GARDEN) {
                 LogUtils.sendDebug("Restarting macro after failsafe is passed");
-                restartAfterFailsafeCooldown.reset();
+                resetFailsafes();
                 if (config.enableScheduler)
                     Scheduler.start();
                 MacroHandler.enableCurrentMacro();
@@ -216,6 +222,8 @@ public class FailsafeNew {
 
         switch (location) {
             case LIMBO: {
+                if (emergency)
+                    resetFailsafes();
                 if (!FarmHelper.config.autoTPOnWorldChange) return;
                 if (!cooldown.isScheduled()) {
                     cooldown.schedule((long) (5000 + Math.random() * 5000));
@@ -229,12 +237,12 @@ public class FailsafeNew {
                     LogUtils.sendDebug("Not at island - teleporting back from Limbo");
                     mc.thePlayer.sendChatMessage("/lobby");
                     cooldown.schedule((long) (5000 + Math.random() * 5000));
-                    if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
-                        restartAfterFailsafeCooldown.schedule(config.restartAfterFailSafeDelay * 1000L);
                 }
                 break;
             }
             case LOBBY: {
+                if (emergency)
+                    resetFailsafes();
                 if (!FarmHelper.config.autoTPOnWorldChange) return;
                 if (!cooldown.isScheduled()) {
                     cooldown.schedule((long) (5000 + Math.random() * 5000));
@@ -248,8 +256,6 @@ public class FailsafeNew {
                     LogUtils.sendDebug("Not at island - teleporting back from Lobby");
                     mc.thePlayer.sendChatMessage("/skyblock");
                     cooldown.schedule((long) (5000 + Math.random() * 5000));
-                    if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
-                        restartAfterFailsafeCooldown.schedule(config.restartAfterFailSafeDelay * 1000L);
                 }
                 break;
             }
@@ -280,8 +286,6 @@ public class FailsafeNew {
                     LogUtils.webhookLog("Not at island - teleporting back from The Hub");
                     mc.thePlayer.sendChatMessage("/warp garden");
                     cooldown.schedule((long) (5000 + Math.random() * 5000));
-                    if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
-                        restartAfterFailsafeCooldown.schedule(config.restartAfterFailSafeDelay * 1000L);
                 }
                 break;
             }
@@ -322,6 +326,9 @@ public class FailsafeNew {
                     if (cooldown.passed()) {
                         LogUtils.sendDebug("Came back from evacuate");
                         resetFailsafes();
+                        if (config.enableScheduler)
+                            Scheduler.start();
+                        MacroHandler.enableCurrentMacro();
                     }
                     return;
                 } else {
@@ -331,9 +338,10 @@ public class FailsafeNew {
                     }
                     if (cooldown.isScheduled() && cooldown.passed()) {
                         LogUtils.sendDebug("Came back to island");
-                        if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
-                            restartAfterFailsafeCooldown.schedule(config.restartAfterFailSafeDelay * 1000L);
-                        cooldown.reset();
+                        resetFailsafes();
+                        if (config.enableScheduler)
+                            Scheduler.start();
+                        MacroHandler.enableCurrentMacro();
                     }
                 }
 
