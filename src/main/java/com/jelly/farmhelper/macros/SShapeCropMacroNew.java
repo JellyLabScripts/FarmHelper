@@ -110,7 +110,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
             updateState();
             invokeState();
         } else {
-            if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75) {
+            if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75 && mc.thePlayer.posY < 80) {
                 changeState(State.DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
             }
