@@ -53,6 +53,7 @@ public class SetSpeedCommand extends BaseCommand {
                 e.printStackTrace();
             }
         }
+
         RemoteMessage response = new RemoteMessage(label, data);
         send(response);
     }
@@ -212,6 +213,8 @@ public class SetSpeedCommand extends BaseCommand {
                 currentState = State.NONE;
                 clock.reset();
                 enabled = false;
+                RemoteMessage response = new RemoteMessage(label, data);
+                send(response);
                 break;
         }
     }
