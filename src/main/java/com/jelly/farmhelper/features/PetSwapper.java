@@ -14,7 +14,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -157,7 +156,7 @@ public class PetSwapper {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    @SubscribeEvent(receiveCanceled = true)
     public void onPetSummon(ClientChatReceivedEvent event) {
         if (event.type == 0 && event.message != null && previousPet != null && FarmHelper.config.petSwapperName != null) {
             String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());

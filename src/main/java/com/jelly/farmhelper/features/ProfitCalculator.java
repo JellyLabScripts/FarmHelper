@@ -19,7 +19,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -177,8 +176,7 @@ public class ProfitCalculator {
                     blocksBroken++;
                 }
             }
-            if (FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS.ordinal() ||
-                FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS_RG.ordinal()) {
+            if (FarmHelper.config.SShapeMacroType == SMacroEnum.COCOA_BEANS.ordinal()) {
                 if (event.old.getBlock() == Blocks.reeds && event.update.getBlock() != Blocks.reeds) {
                     blocksBroken++;
                 }
@@ -237,10 +235,10 @@ public class ProfitCalculator {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    @SubscribeEvent(receiveCanceled = true)
     public void onChatReceived(ClientChatReceivedEvent event) {
         if (!MacroHandler.isMacroing) return;
-        if (event.type != 0) return;
+        if (event.type != 0 || event.message == null) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         rngArmorDrop(message);
         rngDicerDrop(message);

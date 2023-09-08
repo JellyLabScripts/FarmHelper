@@ -22,7 +22,7 @@ public class LogUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public synchronized static void sendLog(ChatComponentText chat) {
-        if(mc.thePlayer != null)
+        if (mc.thePlayer != null && !FarmHelper.config.hideLogs)
            mc.thePlayer.addChatMessage(chat);
     }
 

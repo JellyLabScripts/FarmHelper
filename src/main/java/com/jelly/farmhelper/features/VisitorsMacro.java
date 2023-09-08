@@ -5,6 +5,7 @@ import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
+import com.jelly.farmhelper.world.JacobsContestHandler;
 import lombok.Getter;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockSlab;
@@ -19,16 +20,15 @@ import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -160,6 +160,8 @@ public class VisitorsMacro {
         ProfitCalculator.startingPurse = ProfitCalculator.getCurrentPurse() - (purseBeforeVisitors - ProfitCalculator.startingPurse);
         randomValue = 0;
         purseBeforeVisitors = 0;
+        if (FarmHelper.config.enableScheduler && !JacobsContestHandler.jacobsContestTriggered)
+            Scheduler.resume();
         if (FarmHelper.config.visitorsMacro)
             LogUtils.sendDebug("Stopped visitors macro");
     }
@@ -190,7 +192,7 @@ public class VisitorsMacro {
         if (newVisitors.equals(visitors)) return;
         visitors.clear();
         visitors.addAll(newVisitors);
-        System.out.println("Visitors: " + visitors.size());
+        LogUtils.sendDebug("Visitors: " + visitors.size());
     }
 
     @SubscribeEvent
@@ -211,6 +213,8 @@ public class VisitorsMacro {
         if (!MacroHandler.currentMacro.isSpawnLocationSet() || !MacroHandler.currentMacro.isStandingOnSpawnLocation()) {
             return;
         }
+        if (FarmHelper.config.enableScheduler)
+            Scheduler.pause();
 
         if (FarmHelper.gameState.cookie != GameState.EffectState.ON) {
             LogUtils.sendDebug("Cookie buff is not active, skipping...");
@@ -221,13 +225,13 @@ public class VisitorsMacro {
 
         if (FarmHelper.config.pauseVisitorsMacroDuringJacobsContest && GameState.inJacobContest()) {
             LogUtils.sendDebug("Player is in Jacob's contest, skipping...");
-            clock.schedule(5000);
+            clock.schedule(3000);
             enabled = false;
             return;
         }
 
         if (PetSwapper.isEnabled()) {
-            LogUtils.sendDebug("Pet swapper is working, skipping...");
+            LogUtils.sendDebug("Pet swapper is working, stopping visitors macro...");
             clock.schedule(5000);
             enabled = false;
             return;
@@ -308,7 +312,7 @@ public class VisitorsMacro {
         if (clock.isScheduled() && !clock.passed()) {
             return;
         } else if (clock.isScheduled() && clock.passed()) {
-            System.out.println("Clock passed");
+            LogUtils.sendDebug("Clock passed");
             clock.reset();
             if (MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled)
                 MacroHandler.disableCurrentMacro(true);
@@ -358,7 +362,7 @@ public class VisitorsMacro {
 
                 BlockPos closestEdge = barnEdges.stream().min(Comparator.comparingInt(edge -> (int) mc.thePlayer.getDistance(edge.getX(), edge.getY(), edge.getZ()))).orElse(null);
 
-                System.out.println("Closest edge: " + closestEdge);
+                LogUtils.sendDebug("Closest edge: " + closestEdge);
                 if (closestEdge != null) {
                     if (mc.thePlayer.getDistanceSq(barnCenter) < mc.thePlayer.getDistanceSq(closestEdge)) {
                         closestEdge = barnCenter;
@@ -383,7 +387,7 @@ public class VisitorsMacro {
 
                 int aspectOfTheVoid = PlayerUtils.getItemInHotbar("Aspect of the");
                 if (aspectOfTheVoid == -1) {
-                    LogUtils.sendDebug("Player doesn't have AOTE nor AOTV)");
+                    LogUtils.sendDebug("Player doesn't have AOTE nor AOTV");
                     haveAotv = false;
                 } else {
                     mc.thePlayer.inventory.currentItem = aspectOfTheVoid;
@@ -403,7 +407,7 @@ public class VisitorsMacro {
                     delayClock.schedule(2000);
                     previousDistanceToCheck = Integer.MAX_VALUE;
                     if (retriesToGettingCloser >= 2) {
-                        LogUtils.sendError("Player is not getting closer to the desk! Set the desk position in more open to sight area. Stopping Visitors Macro...");
+                        LogUtils.sendError("Player is not getting closer to the desk! Set the desk position in more open to sight area. Stopping visitors macro...");
                         disableMacro = true;
                         currentState = State.BACK_TO_FARMING;
                         break;
@@ -497,7 +501,7 @@ public class VisitorsMacro {
                     delayClock.schedule(2000);
                     previousDistanceToCheck = Integer.MAX_VALUE;
                     if (retriesToGettingCloser >= 2) {
-                        LogUtils.sendError("Player is not getting closer to the desk! Set the desk position in more open to sight area. Stopping Visitors Macro...");
+                        LogUtils.sendError("Player is not getting closer to the desk! Set the desk position in more open to sight area. Stopping visitors macro...");
                         disableMacro = true;
                         currentState = State.BACK_TO_FARMING;
                         break;
@@ -729,7 +733,7 @@ public class VisitorsMacro {
                     mc.playerController.interactWithEntitySendPacket(mc.thePlayer, currentVisitor);
                     firstTimeOpen = false;
                 }
-                System.out.println(chestName);
+                LogUtils.sendDebug("Chest opened: " + chestName);
 
                 if (chestName != null) {
                     switch (currentBuyState) {
@@ -829,26 +833,39 @@ public class VisitorsMacro {
                                 currentState = State.MANAGING_VISITORS;
                                 break;
                             }
-                            if (chestName.contains("➜") && !chestName.contains("Bazaar")) {
-                                clickSlot(10, 0);
+                            if (PlayerUtils.getSlotFromGui("Buy Instantly") == -1) break;
+                            if (PlayerUtils.getSlotFromGui("Sell Instantly") == -1) break;
 
-                                Utils.signText = String.valueOf(itemToBuy.getRight());
-                                currentBuyState = BuyState.CLICK_SIGN;
+                            String itemName1 = getLoreFromGuiByItemName("Buy Instantly");
+                            String itemName2 = getLoreFromGuiByItemName("Sell Instantly");
+                            if (itemName1 == null || itemName2 == null) break;
+
+                            if (extractPrice(itemName1) > extractPrice(itemName2) * FarmHelper.config.visitorsMacroPriceManipulationMultiplier) {
+                                LogUtils.sendWarning("The price for " + itemToBuy.getLeft() + " has been manipulated. Rejecting...");
+                                rejectOffer = true;
+                                Utils.signText = "";
+                                boughtAllItems = true;
+                                currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
                                 delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
+                                break;
                             }
+                            clickSlot(PlayerUtils.getSlotFromGui("Buy Instantly"), 0);
+
+                            Utils.signText = String.valueOf(itemToBuy.getRight());
+                            currentBuyState = BuyState.CLICK_SIGN;
+                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                             break;
                         case CLICK_SIGN:
                             if (itemToBuy == null) {
                                 currentState = State.MANAGING_VISITORS;
                                 break;
                             }
-                            if (chestName.contains("➜") && !chestName.contains("Bazaar")) {
-                                clickSlot(16, 0);
+                            if (PlayerUtils.getSlotFromGui("Custom Amount") == -1) return;
+                            clickSlot(PlayerUtils.getSlotFromGui("Custom Amount"), 0);
 
-                                Utils.signText = String.valueOf(itemToBuy.getRight());
-                                currentBuyState = BuyState.CLICK_CONFIRM;
-                                delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
-                            }
+                            Utils.signText = String.valueOf(itemToBuy.getRight());
+                            currentBuyState = BuyState.CLICK_CONFIRM;
+                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
                             break;
                         case CLICK_CONFIRM:
                             if (itemToBuy == null) {
@@ -1157,22 +1174,42 @@ public class VisitorsMacro {
         return -1;
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
-    public void onChatSetSpawn(ClientChatReceivedEvent event) {
-        if (event.type != 0) return;
-        String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
-        if (message.contains("Your spawn location has been set!")) {
-            MacroHandler.currentMacro.setSpawnLocation();
+    private float extractPrice(String input) {
+//        Pattern pattern = Pattern.compile("§6(\\d+(?:,\\d+)*(?:\\.\\d+)?)");
+        Pattern pattern = Pattern.compile("Price per unit: ([\\d,.]+)");
+        Matcher matcher = pattern.matcher(input);
+        if (matcher.find()) {
+            String numberString = matcher.group(1);
+            String cleanNumberString = numberString.replaceAll(",", "");
+            return Float.parseFloat(cleanNumberString);
+        } else {
+            return -1;
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    private String getLoreFromGuiByItemName(String name) {
+        if (!(mc.thePlayer.openContainer instanceof ContainerChest)) return null;
+        if (PlayerUtils.getSlotFromGui(name) == -1) return null;
+        if (PlayerUtils.getStackInOpenContainerSlot(PlayerUtils.getSlotFromGui(name)) == null) return null;
+        if (PlayerUtils.getLore(PlayerUtils.getStackInOpenContainerSlot(PlayerUtils.getSlotFromGui(name))) == null) return null;
+        return StringUtils.stripControlCodes(Objects.requireNonNull(PlayerUtils.getLore(PlayerUtils.getStackInOpenContainerSlot(PlayerUtils.getSlotFromGui(name)))).toString());
+    }
+
+    @SubscribeEvent(receiveCanceled = true)
+    public void onChatSetSpawn(ClientChatReceivedEvent event) {
+        if (event.type != 0 || event.message == null) return;
+        if (event.message.getUnformattedText().contains("Your spawn location has been set!")) {
+            PlayerUtils.setSpawnLocation();
+        }
+    }
+
+    @SubscribeEvent(receiveCanceled = true)
     public void onChat(ClientChatReceivedEvent event) {
         if (!MacroHandler.isMacroing) return;
         if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled) return;
         if (!FarmHelper.config.visitorsMacro) return;
         if (currentState != State.TRY_TO_SET_SPAWN) return;
-        if (event.type != 0) return;
+        if (event.type != 0 || event.message == null) return;
         String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains("You cannot set your spawn here!")) {
             currentState = State.NONE;
