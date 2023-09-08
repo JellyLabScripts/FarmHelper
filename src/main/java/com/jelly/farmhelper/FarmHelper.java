@@ -7,6 +7,7 @@ import com.jelly.farmhelper.commands.RewarpCommand;
 import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.macros.MacroHandler;
+import com.jelly.farmhelper.remote.command.commands.SetSpeedCommand;
 import com.jelly.farmhelper.remote.DiscordBotHandler;
 import com.jelly.farmhelper.remote.WebsocketHandler;
 import com.jelly.farmhelper.utils.BlockUtils;
@@ -61,7 +62,6 @@ public class FarmHelper {
         config = new Config();
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(new MacroHandler());
-//        MinecraftForge.EVENT_BUS.register(new Failsafe());
         MinecraftForge.EVENT_BUS.register(new FailsafeNew());
         MinecraftForge.EVENT_BUS.register(new Antistuck());
         MinecraftForge.EVENT_BUS.register(new Autosell());
@@ -77,6 +77,8 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new Pinger());
         MinecraftForge.EVENT_BUS.register(new JacobsContestHandler());
         MinecraftForge.EVENT_BUS.register(new LocationUtils());
+        MinecraftForge.EVENT_BUS.register(new LagDetection());
+        MinecraftForge.EVENT_BUS.register(new SetSpeedCommand());
         MinecraftForge.EVENT_BUS.register(petSwapper);
         MinecraftForge.EVENT_BUS.register(new WebsocketHandler());
         ClientCommandHandler.instance.registerCommand(new RewarpCommand());

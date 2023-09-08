@@ -15,7 +15,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.network.play.server.S09PacketHeldItemChange;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -91,13 +90,13 @@ public class FailsafeNew {
     private static final String[] FAILSAFE_MESSAGES = new String[] {
             "WHAT", "what?", "what", "what??", "what???", "wut?", "?", "what???", "yo huh", "yo huh?", "yo?",
             "ehhhhh??", "eh", "yo", "ahmm", "ehh", "LOL what", "lol :skull:", "bro wtf was that?", "lmao",
-            "lmfao :sob:", "lmfao", "wtf is this", "wtf", "WTF", "wtf is this?", "wtf???", "tf", "tf?", "wth",
+            "lmfao", "wtf is this", "wtf", "WTF", "wtf is this?", "wtf???", "tf", "tf?", "wth",
             "lmao what?", "????", "??", "???????", "???", "UMMM???", "umm", "ummm???", "damn wth",
-            "dang it", "Damn", "damn wtf", "damn", "hmmm", "hm", "sus", "hmm", "ok??", "ok?", "give me a rest", "im done",
+            "Damn", "damn wtf", "damn", "hmmm", "hm", "sus", "hmm", "ok??", "ok?", "give me a rest",
             "again lol", "again??", "ok damn", "seriously?", "seriously????", "seriously", "really?", "really",
-            "are you kidding me?", "are you serious?", "are you fr???", "oh come on", "oh come on :sob:",
-            "not again", "not again :sob:", "give me a break", "youre kidding right?", "youre joking", "youre kidding me",
-            "you must be joking", "seriously bro?", "cmon now", "cmon", "this is too much", "stop messing with me :sob:"};
+            "are you kidding me?", "are you serious?", "are you fr???", "not again",
+            "give me a break", "youre kidding right?", "youre joking", "youre kidding me",
+            "you must be joking", "seriously bro?", "cmon now", "cmon", "this is too much", "stop messing with me"};
 
     public static void resetFailsafes() {
         LogUtils.sendDebug("Resetting failsafes");
@@ -131,11 +130,17 @@ public class FailsafeNew {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(receiveCanceled = true)
     public void onMessageReceived(ClientChatReceivedEvent event) {
-        if (event.type != 0) return;
+        if (event.type != 0 || event.message == null) return;
         if (!MacroHandler.isMacroing) return;
         String message = net.minecraft.util.StringUtils.stripControlCodes(event.message.getUnformattedText());
+        String formattedMessage = event.message.getFormattedText();
+        if (formattedMessage.contains("§cYou were spawned in Limbo.")) {
+            emergency = false;
+            getAllEmergencies.reset();
+            detectedFailsafes.clear();
+        }
         if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing") || message.contains("You cannot join SkyBlock from here!")) {
             LogUtils.sendDebug("Failed teleport - waiting");
             cooldown.schedule(10000);
@@ -161,9 +166,9 @@ public class FailsafeNew {
         if (event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
 
         if (restartAfterFailsafeCooldown.isScheduled()) {
-            if (restartAfterFailsafeCooldown.passed()) {
+            if (restartAfterFailsafeCooldown.passed() && LocationUtils.currentIsland == LocationUtils.Island.GARDEN) {
                 LogUtils.sendDebug("Restarting macro after failsafe is passed");
-                restartAfterFailsafeCooldown.reset();
+                resetFailsafes();
                 if (config.enableScheduler)
                     Scheduler.start();
                 MacroHandler.enableCurrentMacro();
@@ -216,6 +221,8 @@ public class FailsafeNew {
 
         switch (location) {
             case LIMBO: {
+                if (emergency)
+                    resetFailsafes();
                 if (!FarmHelper.config.autoTPOnWorldChange) return;
                 if (!cooldown.isScheduled()) {
                     cooldown.schedule((long) (5000 + Math.random() * 5000));
@@ -229,12 +236,12 @@ public class FailsafeNew {
                     LogUtils.sendDebug("Not at island - teleporting back from Limbo");
                     mc.thePlayer.sendChatMessage("/lobby");
                     cooldown.schedule((long) (5000 + Math.random() * 5000));
-                    if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
-                        restartAfterFailsafeCooldown.schedule(config.restartAfterFailSafeDelay * 1000L);
                 }
                 break;
             }
             case LOBBY: {
+                if (emergency)
+                    resetFailsafes();
                 if (!FarmHelper.config.autoTPOnWorldChange) return;
                 if (!cooldown.isScheduled()) {
                     cooldown.schedule((long) (5000 + Math.random() * 5000));
@@ -248,8 +255,6 @@ public class FailsafeNew {
                     LogUtils.sendDebug("Not at island - teleporting back from Lobby");
                     mc.thePlayer.sendChatMessage("/skyblock");
                     cooldown.schedule((long) (5000 + Math.random() * 5000));
-                    if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
-                        restartAfterFailsafeCooldown.schedule(config.restartAfterFailSafeDelay * 1000L);
                 }
                 break;
             }
@@ -280,8 +285,6 @@ public class FailsafeNew {
                     LogUtils.webhookLog("Not at island - teleporting back from The Hub");
                     mc.thePlayer.sendChatMessage("/warp garden");
                     cooldown.schedule((long) (5000 + Math.random() * 5000));
-                    if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
-                        restartAfterFailsafeCooldown.schedule(config.restartAfterFailSafeDelay * 1000L);
                 }
                 break;
             }
@@ -322,6 +325,9 @@ public class FailsafeNew {
                     if (cooldown.passed()) {
                         LogUtils.sendDebug("Came back from evacuate");
                         resetFailsafes();
+                        if (config.enableScheduler)
+                            Scheduler.start();
+                        MacroHandler.enableCurrentMacro();
                     }
                     return;
                 } else {
@@ -331,9 +337,10 @@ public class FailsafeNew {
                     }
                     if (cooldown.isScheduled() && cooldown.passed()) {
                         LogUtils.sendDebug("Came back to island");
-                        if (emergency && FarmHelper.config.enableRestartAfterFailSafe)
-                            restartAfterFailsafeCooldown.schedule(config.restartAfterFailSafeDelay * 1000L);
-                        cooldown.reset();
+                        resetFailsafes();
+                        if (config.enableScheduler)
+                            Scheduler.start();
+                        MacroHandler.enableCurrentMacro();
                     }
                 }
 
@@ -578,6 +585,10 @@ public class FailsafeNew {
 
         if (VisitorsMacro.isEnabled()) return;
         if (event.packet instanceof S08PacketPlayerPosLook) {
+            if (LagDetection.isLagging()) {
+                LogUtils.sendDebug("Lag detected, ignoring teleport and rotation check");
+                return;
+            }
             if (config.pingServer && (Pinger.dontRotationCheck.isScheduled() && !Pinger.dontRotationCheck.passed() || Pinger.isOffline)) {
                 LogUtils.sendDebug("Got rotation packet while having bad connection to the server, ignoring");
                 return;
@@ -589,6 +600,12 @@ public class FailsafeNew {
             Vec3 playerPos = mc.thePlayer.getPositionVector();
             Vec3 teleportPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
             if (packet.getY() >= 80) return;
+            float yDifference = Math.abs((float) (playerPos.yCoord - teleportPos.yCoord));
+            if (config.teleportCheckYCoordsOnly && yDifference >= config.teleportCheckSensitivity) {
+                LogUtils.sendDebug("Teleportation check Y coords difference: " + yDifference);
+                emergencyFailsafe(FailsafeType.TELEPORTATION);
+                return;
+            }
             if ((float) playerPos.distanceTo(teleportPos) >= config.teleportCheckSensitivity) {
                 LogUtils.sendDebug("Teleportation check distance: " + playerPos.distanceTo(teleportPos));
                 emergencyFailsafe(FailsafeType.TELEPORTATION);

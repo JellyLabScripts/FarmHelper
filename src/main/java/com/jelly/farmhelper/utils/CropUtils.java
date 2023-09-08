@@ -1,7 +1,5 @@
 package com.jelly.farmhelper.utils;
 
-import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.config.Config.SMacroEnum;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.mixins.block.IBlockAccessor;
 import net.minecraft.block.*;

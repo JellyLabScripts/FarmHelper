@@ -3,6 +3,7 @@ package com.jelly.farmhelper.macros;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.features.FailsafeNew;
+import com.jelly.farmhelper.features.LagDetection;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.client.Minecraft;
 
@@ -93,6 +94,8 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
             return;
         }
 
+        if (LagDetection.isLagging()) return;
+
         // Update or invoke state, based on if player is moving or not
         if (FarmHelper.gameState.canChangeDirection()) {
             KeyBindUtils.stopMovement(FarmHelper.config.holdLeftClickWhenChangingRow);
@@ -100,7 +103,7 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
             updateState();
             invokeState();
         } else {
-            if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75) {
+            if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75 && mc.thePlayer.posY < 80) {
                 changeState(State.DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
             }

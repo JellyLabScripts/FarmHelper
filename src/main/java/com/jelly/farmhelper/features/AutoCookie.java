@@ -223,9 +223,10 @@ public class AutoCookie {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(receiveCanceled = true)
     public void onMessageReceived(ClientChatReceivedEvent event) {
         if (!enabled) return;
+        if (event.type != 0 || event.message == null) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains("Bazaar!") && message.contains("Bought") && message.contains("Booster Cookie") && currentState == State.BUYING) {
             LogUtils.sendDebug("[AutoCookie] Detected cookie purchase");

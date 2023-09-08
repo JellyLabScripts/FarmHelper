@@ -2,7 +2,9 @@ package com.jelly.farmhelper.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.jelly.farmhelper.events.ReceivePacketEvent;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.play.server.S01PacketJoinGame;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -49,9 +51,10 @@ public class LocationUtils {
 
     public static Island currentIsland;
 
-    @SubscribeEvent(receiveCanceled = true, priority = EventPriority.HIGHEST)
+    @SubscribeEvent(receiveCanceled = true)
     public void onChat(ClientChatReceivedEvent event) {
         // Check locraw message
+        if (event.message == null) return;
         String unformatted = event.message.getUnformattedText();
         if (!unformatted.startsWith("{") || !unformatted.endsWith("}")) return;
 
@@ -79,13 +82,20 @@ public class LocationUtils {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onPacketReceive(ReceivePacketEvent event) {
+        if (event.packet instanceof S01PacketJoinGame) {
+            currentIsland = null;
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWorldLoad(WorldEvent.Load event)
     {
         currentIsland = null;
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWorldUnload(WorldEvent.Unload event)
     {
         currentIsland = null;

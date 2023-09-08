@@ -15,10 +15,7 @@ import com.jelly.farmhelper.hud.ProfitCalculatorHUD;
 import com.jelly.farmhelper.hud.StatusHUD;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.network.DiscordWebhook;
-import com.jelly.farmhelper.utils.BlockUtils;
-import com.jelly.farmhelper.utils.LocationUtils;
-import com.jelly.farmhelper.utils.LogUtils;
-import com.jelly.farmhelper.utils.Utils;
+import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
@@ -67,7 +64,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
          SUGAR_CANE,
 		 CACTUS,
 		 COCOA_BEANS,
-		 COCOA_BEANS_RG,
 		 MUSHROOM,
 		 MUSHROOM_ROTATE
      }
@@ -206,7 +202,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
 		rewarpList.add(new Rewarp(pos.getX(), pos.getY(), pos.getZ()));
 		save();
-		LogUtils.sendSuccess("Rewarp position has been added.");
+		LogUtils.sendSuccess("Rewarp position has been added");
 	};
 	@Info(
 		text = "Don't forget to add rewarp points!",
@@ -222,8 +218,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	Runnable _removeRewarp = () -> {
 		Rewarp closest = null;
-		if (rewarpList.size() == 0) {
-			LogUtils.sendSuccess("No rewarp locations set");
+		if (rewarpList.isEmpty()) {
+			LogUtils.sendError("You don't have any rewarp points set!");
 			return;
 		}
 		double closestDistance = Double.MAX_VALUE;
@@ -380,13 +376,13 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	@Slider(
 		name = "Rotation Time", category = DELAYS, subcategory = "Delays",
 		description = "The time it takes to rotate the player (in seconds)",
-		min = 0.2f, max = 10
+		min = 0.2f, max = 4f
 	)
 	public float rotationTime = 0.4f;
 	@Slider(
 		name = "Rotation Random Time", category = DELAYS, subcategory = "Delays",
 		description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
-		min = 0.2f, max = 10
+		min = 0.2f, max = 2f
 	)
 	public float rotationTimeRandomness = 0.2f;
 	@Slider(
@@ -416,11 +412,25 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public boolean onlyAcceptProfitableVisitors = false;
 	@Number(
-		name = "Visitors Macro Coins Threshold", category = VISITORS_MACRO, subcategory = "Visitors Macro",
-		description = "The maximum amount of coins to be considered profitable",
-		min = 1, max = 20
+			name = "The minimum amount of coins to start the macro (in millions)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+			description = "The minimum amount of coins you need to have in your purse to start the visitors macro (in millions)",
+			min = 1, max = 20
 	)
-	public int visitorsMacroCoinsThreshold = 1;
+	public int visitorsMacroCoinsThreshold = 3;
+	@Slider(
+			name = "Price Manipulation Detection Multiplier", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+			description = "How much does Instant Buy price need to be higher than Instant Sell price to detect price manipulation",
+			min = 1.25f, max = 4f
+	)
+	public float visitorsMacroPriceManipulationMultiplier = 2;
+	@Info(
+			text = "If you put your compactors in the hotbar, they will be temporarily disabled.",
+			type = InfoType.INFO,
+			category = VISITORS_MACRO,
+			subcategory = "Visitors Macro",
+			size = 2
+	)
+	public static boolean infoCompactors;
 	@Info(
 		text = "Cookie buff is required!",
 		type = InfoType.ERROR,
@@ -435,13 +445,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		subcategory = "Visitors Macro"
 	)
 	public static boolean infoDeskNotSet;
-	@Info(
-		text = "If you put your compactors in the hotbar, they will be temporarily disabled.",
-		type = InfoType.INFO,
-		category = VISITORS_MACRO,
-		subcategory = "Visitors Macro"
-	)
-	public static boolean infoCompactors;
 
 	@Button(
 		name = "Set Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
@@ -454,7 +457,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		visitorsDeskPosY = pos.getY();
 		visitorsDeskPosZ = pos.getZ();
 		save();
-		LogUtils.sendSuccess("Visitors desk position has been set.");
+		LogUtils.sendSuccess("Visitors desk position has been set");
 	};
 	@Button(
 		name = "Reset Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
@@ -505,13 +508,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			text = "Set SpawnPos"
 	)
 	Runnable _setSpawnPos = () -> {
-		BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
-		spawnPosX = pos.getX();
-		spawnPosY = pos.getY() + 1;
-		spawnPosZ = pos.getZ();
-		isSpawnpointSet = true;
-		save();
-		LogUtils.sendSuccess("Spawn position has been set");
+		PlayerUtils.setSpawnLocation();
+		LogUtils.sendSuccess("Your spawn location has been set!");
 	};
 	@Number(
 			name = "SpawnPos Y", category = VISITORS_MACRO, subcategory = "Spawn Position",
@@ -528,7 +526,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		spawnPosX = 0;
 		spawnPosY = 0;
 		spawnPosZ = 0;
-		isSpawnpointSet = false;
 		save();
 		LogUtils.sendSuccess("Spawn position has been reset");
 	};
@@ -588,7 +585,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		GameState.webhook = new DiscordWebhook(FarmHelper.config.webHookURL);
 		GameState.webhook.setUsername("Jelly - Farm Helper");
 		GameState.webhook.setAvatarUrl("https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png");
-		LogUtils.sendSuccess("Webhook URL has been applied.");
+		LogUtils.sendSuccess("Webhook URL has been applied");
 		save();
 	};
 
@@ -645,7 +642,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "The minimum distance between the previous and teleported position to trigger failsafe",
 		min = 0.5f, max = 20f
 	)
-	public float teleportCheckSensitivity = 2;
+	public float teleportCheckSensitivity = 4;
+	@Switch(
+		name = "Check Y coords only", category = FAILSAFE, subcategory = "Miscellaneous",
+		description = "Checks only Y coords changes before triggering failsafe"
+	)
+	public boolean teleportCheckYCoordsOnly = false;
 	@Switch(
 			name = "Enable Failsafe Trigger Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound", size = OptionSize.DUAL,
 			description = "Makes a sound when a failsafe has been triggered"
@@ -944,8 +946,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			name = "Debug HUD", category = DEBUG, subcategory = " "
 	)
 	public DebugHUD debugHUD = new DebugHUD();
-	@Switch(name = "Is Spawnpoint set (DON'T TOUCH)", category = DEBUG, subcategory = "SpawnPos")
-	public boolean isSpawnpointSet = false;
 
 	// END DEBUG
 
@@ -999,7 +999,22 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public float rewarpMaxDistance = 0.75f;
 
+	@Switch(
+			name = "Enable New Lag Detection", category = EXPERIMENTAL, subcategory = "Experimental",
+			description = "Enables the new lag detection system to prevent false positives"
+	)
+	public boolean enableNewLagDetection = false;
+	@Slider(
+			name = "Lag Detection Sensitivity", category = EXPERIMENTAL, subcategory = "Experimental",
+			description = "The maximum time between received packets to trigger a lag detection",
+			min = 50, max = 1500, step = 50
+	)
+	public int lagDetectionSensitivity = 300;
+
 	// END EXPERIMENTAL
+
+	@Number(name = "Config Version", category = EXPERIMENTAL, subcategory = "Experimental", min = 0, max = 1337)
+	public int configVersion = 1;
 
 	public Config() {
 		super(new Mod("Farm Helper", ModType.HYPIXEL), "/farmhelper/config.json");
@@ -1078,9 +1093,8 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 		this.addDependency("hideLogs", "Hide Logs (Not Recommended)", () -> !this.debugMode);
 		this.addDependency("debugMode", "Debug Mode", () -> !this.hideLogs);
-		this.addDependency("isSpawnpointSet", "debugMode");
 		this.addDependency("customPitchLevel", "customPitch");
-		this.hideIf("isSpawnpointSet", () -> true);
+		this.hideIf("configVersion", () -> true);
 		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
 //		registerKeyBind(debugKeybind, () -> FarmHelper.petSwapper.startMacro(false));
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
