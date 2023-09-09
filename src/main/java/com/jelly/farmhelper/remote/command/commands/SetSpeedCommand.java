@@ -7,7 +7,6 @@ import com.jelly.farmhelper.remote.struct.Command;
 import com.jelly.farmhelper.remote.struct.RemoteMessage;
 import com.jelly.farmhelper.utils.PlayerUtils;
 import com.jelly.farmhelper.utils.Utils;
-import net.minecraft.client.settings.KeyBinding;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.init.Blocks;
@@ -16,14 +15,11 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-
-import java.util.Objects;
-
-import static com.jelly.farmhelper.utils.Utils.clickWindow;
 import java.util.Arrays;
 
 @Command(label = "setspeed")
@@ -64,6 +60,7 @@ public class SetSpeedCommand extends BaseCommand {
     private static final Rotation rotation = new Rotation();
     private static Pair<Float, Float> lastRotation = new MutablePair<>(0f, 0f);
     int freeSlot = -1;
+    int freeHotbarSlot = -1;
     boolean wasMacroing = false;
     public enum State {
         NONE,
@@ -94,8 +91,8 @@ public class SetSpeedCommand extends BaseCommand {
                 enabled = false;
                 break;
             case START:
-                if (mc.thePlayer.inventory.getStackInSlot(8) == null || !mc.thePlayer.inventory.getStackInSlot(8).getDisplayName().equals("Rancher boots")) {
-                    disableWithError("You don't wear Rancher's boots! Disabling...");
+                if (mc.thePlayer.inventoryContainer.getSlot(8) == null || !mc.thePlayer.inventoryContainer.getSlot(8).getStack().getDisplayName().contains("Rancher's Boots")) {
+                    disableWithError("You don't wear Rancher's Boots! Disabling...");
                     break;
                 }
                 wasMacroing = MacroHandler.isMacroing;
@@ -119,14 +116,19 @@ public class SetSpeedCommand extends BaseCommand {
                     break;
                 }
                 for (int i = 36; i < 44; i++) {
-                    if (mc.thePlayer.inventory.getStackInSlot(i) == null) {
+                    if (mc.thePlayer.inventoryContainer.getSlot(i).getStack() == null) {
                         LogUtils.sendDebug("Found free slot: " + i);
                         freeSlot = i;
+                        freeHotbarSlot = i - 36;
                         break;
                     }
                 }
                 if (freeSlot == -1) {
                     disableWithError("You don't have any free slot in your hotbar! Disabling...");
+                    break;
+                }
+                if (freeHotbarSlot < 0 || freeHotbarSlot > 7) {
+                    disableWithError("Free hotbar slot is invalid! Disabling...");
                     break;
                 }
                 PlayerUtils.clickOpenContainerSlot(8);
@@ -151,16 +153,17 @@ public class SetSpeedCommand extends BaseCommand {
                     clock.schedule(500);
                     break;
                 }
-                mc.thePlayer.inventory.currentItem = freeSlot;
+                mc.thePlayer.inventory.currentItem = freeHotbarSlot;
                 currentState = State.CLICK_RANCHER_BOOTS;
                 clock.schedule(500);
                 break;
             case CLICK_RANCHER_BOOTS:
-                if (mc.thePlayer.inventory.currentItem != freeSlot || mc.thePlayer.inventory.getStackInSlot(freeSlot) == null) {
+                if (mc.thePlayer.inventoryContainer.getSlot(freeSlot).getStack() == null || mc.thePlayer.inventory.currentItem != freeHotbarSlot) {
                     currentState = State.HOLD_RANCHER_BOOTS;
                     clock.schedule(500);
                     break;
                 }
+                Utils.signText = String.valueOf(speed);
                 KeyBindUtils.leftClick();
                 currentState = State.TYPE_IN_SPEED;
                 clock.schedule(500);
@@ -171,7 +174,6 @@ public class SetSpeedCommand extends BaseCommand {
                     clock.schedule(500);
                     break;
                 }
-                Utils.signText = String.valueOf(speed);
                 mc.currentScreen = null;
                 currentState = State.LOOK_BACK;
                 clock.schedule(500);
@@ -209,7 +211,7 @@ public class SetSpeedCommand extends BaseCommand {
                     MacroHandler.isMacroing = true;
                     MacroHandler.enableCurrentMacro();
                 }
-                LogUtils.sendSuccess("Rancher's boots speed has been set to " + speed + ".");
+                LogUtils.sendSuccess("Rancher's Boots speed has been set to " + speed + ".");
                 currentState = State.NONE;
                 clock.reset();
                 enabled = false;
@@ -264,10 +266,16 @@ public class SetSpeedCommand extends BaseCommand {
     }
     @SubscribeEvent
     public void onChatMessage(ClientChatReceivedEvent event) {
-        if (event.type == 0 && event.message != null && event.message.getFormattedText().contains("§eClick in the air!")) {
+        if (enabled && event.type == 0 && event.message != null && event.message.getFormattedText().contains("§eClick in the air!")) {
             lookInTheAir();
             currentState = State.HOLD_RANCHER_BOOTS;
             clock.schedule(500);
+        }
+    }
+    @SubscribeEvent
+    public void onWorldChange(WorldEvent.Unload event) {
+        if (enabled) {
+            disableWithError("World change detected! Disabling...");
         }
     }
 }
