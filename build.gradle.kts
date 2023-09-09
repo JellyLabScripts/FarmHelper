@@ -90,6 +90,7 @@ tasks {
 
     shadowJar {
         configurations = listOf(embed)
+        relocate("org.apache.commons.collections4", "com.jelly.apache.commons.collections4")
     }
 
     processResources {

@@ -76,7 +76,6 @@ public class DiscordBotHandler extends ListenerAdapter {
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent e) {
         if (e.phase != TickEvent.Phase.START) return;
-        if (Minecraft.getMinecraft().theWorld == null || Minecraft.getMinecraft().thePlayer == null) return;
 
         if (!FarmHelper.config.enableRemoteControl) {
             if (jdaClient != null) {
