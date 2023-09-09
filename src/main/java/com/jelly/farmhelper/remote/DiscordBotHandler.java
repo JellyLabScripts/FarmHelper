@@ -2,6 +2,7 @@ package com.jelly.farmhelper.remote;
 
 import cc.polyfrost.oneconfig.utils.Notifications;
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.remote.command.discordCommands.*;
 import com.jelly.farmhelper.remote.discordStruct.Command;
 import com.jelly.farmhelper.remote.event.InteractionAutoComplete;
 import com.jelly.farmhelper.remote.event.InteractionCreate;
@@ -46,8 +47,17 @@ public class DiscordBotHandler extends ListenerAdapter {
             jdaClient = JDABuilder.createLight(FarmHelper.config.discordRemoteControlToken)
                     .disableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE, CacheFlag.ACTIVITY)
                     .enableIntents(GatewayIntent.MESSAGE_CONTENT)
+
                     .build();
             jdaClient.awaitReady();
+            jdaClient.updateCommands()
+                    .addCommands(
+                            Info.INSTANCE.getSlashCommand(),
+                            Toggle.INSTANCE.getSlashCommand(),
+                            Screenshot.INSTANCE.getSlashCommand(),
+                            SetSpeed.INSTANCE.getSlashCommand(),
+                            Reconnect.INSTANCE.getSlashCommand())
+                    .queue();
             jdaClient.addEventListener(new InteractionAutoComplete());
             jdaClient.addEventListener(new InteractionCreate());
             WebsocketHandler.websocketState = WebsocketHandler.WebsocketState.SERVER;
