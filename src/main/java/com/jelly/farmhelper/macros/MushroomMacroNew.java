@@ -60,7 +60,11 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
         if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating) {
             yaw = AngleUtils.getClosestDiagonal();
             closest90Yaw = AngleUtils.getClosest();
-            pitch = (float) (Math.random() * 2 - 1); // -1 - 1
+            if (FarmHelper.config.customPitch) {
+                pitch = FarmHelper.config.customPitchLevel;
+            } else {
+                pitch = (float) (Math.random() * 2 - 1); // -1 - 1
+            }
             if (FarmHelper.config.SShapeMacroType == Config.SMacroEnum.MUSHROOM.ordinal())
                 rotation.easeTo(yaw, pitch, (long) (600 + Math.random() * 200));
             else if (FarmHelper.config.SShapeMacroType == Config.SMacroEnum.MUSHROOM_ROTATE.ordinal()) {
