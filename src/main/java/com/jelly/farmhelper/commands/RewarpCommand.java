@@ -68,6 +68,10 @@ public class RewarpCommand extends CommandBase {
                 Config.removeAllRewarps();
                 break;
             }
+            default: {
+                LogUtils.sendError("Invalid arguments. Use /fhrewarp [add|remove|removeall]");
+                break;
+            }
         }
     }
 

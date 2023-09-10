@@ -446,7 +446,7 @@ public class PlayerUtils {
         if (mc.thePlayer == null) return;
         BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
         FarmHelper.config.spawnPosX = pos.getX();
-        FarmHelper.config.spawnPosY = pos.getY() + 1;
+        FarmHelper.config.spawnPosY = pos.getY();
         FarmHelper.config.spawnPosZ = pos.getZ();
         FarmHelper.config.save();
     }

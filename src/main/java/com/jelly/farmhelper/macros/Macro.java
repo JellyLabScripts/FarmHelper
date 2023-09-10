@@ -162,9 +162,9 @@ public abstract class Macro<T> {
     }
 
     public boolean isStandingOnSpawnLocation() {
-        BlockPos currentPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
-        BlockPos spawnPos = new BlockPos(FarmHelper.config.spawnPosX, FarmHelper.config.spawnPosY, FarmHelper.config.spawnPosZ);
-        return Math.sqrt(currentPos.distanceSqToCenter(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ())) < 1;
+        Vec3 playerPos = mc.thePlayer.getPositionVector();
+        Vec3 spawnPos = new Vec3(FarmHelper.config.spawnPosX + 0.5, FarmHelper.config.spawnPosY + 0.5, FarmHelper.config.spawnPosZ + 0.5);
+        return playerPos.distanceTo(spawnPos) < 1;
     }
 
     public boolean cantPauseNow() {
