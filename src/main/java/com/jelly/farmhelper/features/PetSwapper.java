@@ -178,7 +178,7 @@ public class PetSwapper {
             LogUtils.sendError("[PetSwapper] no pet name specified, disabling");
             return;
         }
-        LogUtils.sendDebug("Disabling macro and enabling petswapper");
+        LogUtils.sendDebug("Disabling the macro and enabling petswapper");
         MacroHandler.disableCurrentMacro(true);
         currentState = State.STARTING;
         enabled = true;
@@ -186,7 +186,7 @@ public class PetSwapper {
     }
 
     public static void stopMacro() {
-        LogUtils.sendDebug("Disabling petswapper and enabling macro");
+        LogUtils.sendDebug("Disabling petswapper and enabling the macro");
         currentState = State.NONE;
         enabled = false;
         if (FarmHelper.config.enableScheduler && !JacobsContestHandler.jacobsContestTriggered)

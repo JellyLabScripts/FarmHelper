@@ -72,7 +72,7 @@ public class Antistuck {
             return;
         if (cooldown.passed()) {
             Block blockIn = BlockUtils.getRelativeBlock(0, 0, 0);
-            stuck = (!blockIn.equals(Blocks.end_portal_frame) && !BlockUtils.isWalkable(blockIn) && !(blockIn instanceof BlockDoor || blockIn instanceof BlockTrapDoor)) || (Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1 && Math.abs(mc.thePlayer.posY - lastY) < 1 && !FailsafeNew.emergency);
+            stuck = (!BlockUtils.isWalkable(blockIn) && !(blockIn instanceof BlockDoor || blockIn instanceof BlockTrapDoor)) || (Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1 && Math.abs(mc.thePlayer.posY - lastY) < 1 && !FailsafeNew.emergency);
             lastX = mc.thePlayer.posX;
             lastZ = mc.thePlayer.posZ;
             lastY = mc.thePlayer.posY;
