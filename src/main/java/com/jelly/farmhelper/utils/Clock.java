@@ -17,6 +17,9 @@ public class Clock {
         if (paused) {
             return remainingTime;
         }
+        if (endTime - System.currentTimeMillis() < 0) {
+            return 0;
+        }
         return endTime - System.currentTimeMillis();
     }
 
