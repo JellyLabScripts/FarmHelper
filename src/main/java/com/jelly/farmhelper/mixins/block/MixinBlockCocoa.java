@@ -1,6 +1,5 @@
 package com.jelly.farmhelper.mixins.block;
 
-import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.utils.CropUtils;
 import net.minecraft.block.BlockCocoa;
 import net.minecraft.block.BlockDirectional;
@@ -21,21 +20,18 @@ public abstract class MixinBlockCocoa extends BlockDirectional {
 
     @Override
     public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos) {
-        if (FarmHelper.config.increasedCocoaBeans)
-            CropUtils.updateCocoaBeansHitbox(worldIn.getBlockState(pos));
+        CropUtils.updateCocoaBeansHitbox(worldIn.getBlockState(pos));
     }
 
     @Override
     public AxisAlignedBB getSelectedBoundingBox(World worldIn, BlockPos pos) {
-        if (FarmHelper.config.increasedCocoaBeans)
-            CropUtils.updateCocoaBeansHitbox(worldIn.getBlockState(pos));
+        CropUtils.updateCocoaBeansHitbox(worldIn.getBlockState(pos));
         return super.getSelectedBoundingBox(worldIn, pos);
     }
 
     @Override
     public MovingObjectPosition collisionRayTrace(World worldIn, BlockPos pos, Vec3 start, Vec3 end) {
-        if (FarmHelper.config.increasedCocoaBeans)
-            CropUtils.updateCocoaBeansHitbox(worldIn.getBlockState(pos));
+        CropUtils.updateCocoaBeansHitbox(worldIn.getBlockState(pos));
         return super.collisionRayTrace(worldIn, pos, start, end);
     }
 }

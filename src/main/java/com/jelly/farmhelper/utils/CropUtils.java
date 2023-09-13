@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.utils;
 
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.mixins.block.IBlockAccessor;
 import net.minecraft.block.*;
@@ -45,6 +46,7 @@ public class CropUtils {
     };
 
     public static void updateCropsMaxY(World world, BlockPos pos, Block block) {
+        if (FarmHelper.config.increasedCrops) return;
         final IBlockState blockState = world.getBlockState(pos);
         final Integer ageValue = blockState.getValue(BlockCrops.AGE);
         IBlockAccessor accessor = (IBlockAccessor) block;
@@ -56,6 +58,7 @@ public class CropUtils {
     }
 
     public static void updateWartMaxY(World world, BlockPos pos, Block block) {
+        if (FarmHelper.config.increasedNetherWarts) return;
         ((IBlockAccessor) block).setMaxY(NETHER_WART_BOX[world.getBlockState(pos).getValue(BlockNetherWart.AGE)].maxY);
     }
 
@@ -65,7 +68,7 @@ public class CropUtils {
         int j = 4 + age * 2;
         int k = 5 + age * 2;
 
-        if (MacroHandler.currentMacro == MacroHandler.cocoaBeanMacro && MacroHandler.isMacroing) {
+        if (MacroHandler.currentMacro == MacroHandler.cocoaBeanMacro && MacroHandler.isMacroing && FarmHelper.config.increasedCocoaBeans) {
             switch (enumFacing) {
                 case SOUTH: {
                     blockState.getBlock().setBlockBounds(0, (12.0f - (float) k) / 16.0f, (15.0f - (float) j) / 16.0f, 1, 0.75f, 0.9375f);
