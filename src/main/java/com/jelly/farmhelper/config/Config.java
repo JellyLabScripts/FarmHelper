@@ -446,10 +446,32 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public static boolean infoDeskNotSet;
 
+
+	@Switch(
+		name = "Accept uncommon visitors", category = VISITORS_MACRO, subcategory = "Rarity",
+		description = "Whether to accept visitors that are uncommon rarity"
+	)
+	public static boolean visitorsAcceptUncommon = true;
+	@Switch(
+		name = "Accept rare visitors", category = VISITORS_MACRO, subcategory = "Rarity",
+		description = "Whether to accept visitors that are rare rarity"
+	)
+	public static boolean visitorsAcceptRare = true;
+	@Switch(
+		name = "Accept legendary visitors", category = VISITORS_MACRO, subcategory = "Rarity",
+		description = "Whether to accept visitors that are legendary rarity"
+	)
+	public static boolean visitorsAcceptLegendary = true;
+	@Switch(
+		name = "Accept special visitors", category = VISITORS_MACRO, subcategory = "Rarity",
+		description = "Whether to accept visitors that are special rarity"
+	)
+	public static boolean visitorsAcceptSpecial = true;
+
 	@Number(
-			name = "Visitors Desk X", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-			description = "Visitors desk X coordinate",
-			min = -30000000, max = 30000000
+		name = "Visitors Desk X", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+		description = "Visitors desk X coordinate",
+		min = -30000000, max = 30000000
 	)
 	public int visitorsDeskPosX = 0;
 	@Button(
@@ -466,9 +488,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		LogUtils.sendSuccess("Visitors desk position has been set");
 	};
 	@Number(
-			name = "Visitors Desk Y", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-			description = "Visitors desk Y coordinate",
-			min = -30000000, max = 30000000
+		name = "Visitors Desk Y", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+		description = "Visitors desk Y coordinate",
+		min = -30000000, max = 30000000
 	)
 	public int visitorsDeskPosY = 0;
 	@Button(
@@ -491,31 +513,31 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public int visitorsDeskPosZ = 0;
 
 	@Number(
-			name = "SpawnPos X", category = VISITORS_MACRO, subcategory = "Spawn Position",
-			description = "The X coordinate of the spawn",
-			min = -30000000, max = 30000000
+		name = "SpawnPos X", category = VISITORS_MACRO, subcategory = "Spawn Position",
+		description = "The X coordinate of the spawn",
+		min = -30000000, max = 30000000
 
 	)
 	public int spawnPosX = 0;
 	@Button(
-			name = "Set SpawnPos", category = VISITORS_MACRO, subcategory = "Spawn Position",
-			description = "Sets the spawn position to your current position",
-			text = "Set SpawnPos"
+		name = "Set SpawnPos", category = VISITORS_MACRO, subcategory = "Spawn Position",
+		description = "Sets the spawn position to your current position",
+		text = "Set SpawnPos"
 	)
 	Runnable _setSpawnPos = () -> {
 		PlayerUtils.setSpawnLocation();
 		LogUtils.sendSuccess("Your spawn location has been set!");
 	};
 	@Number(
-			name = "SpawnPos Y", category = VISITORS_MACRO, subcategory = "Spawn Position",
-			description = "The Y coordinate of the spawn",
-			min = -30000000, max = 30000000
+		name = "SpawnPos Y", category = VISITORS_MACRO, subcategory = "Spawn Position",
+		description = "The Y coordinate of the spawn",
+		min = -30000000, max = 30000000
 	)
 	public int spawnPosY = 0;
 	@Button(
-			name = "Reset SpawnPos", category = VISITORS_MACRO, subcategory = "Spawn Position",
-			description = "Resets the spawn position",
-			text = "Reset SpawnPos"
+		name = "Reset SpawnPos", category = VISITORS_MACRO, subcategory = "Spawn Position",
+		description = "Resets the spawn position",
+		text = "Reset SpawnPos"
 	)
 	Runnable _resetSpawnPos = () -> {
 		spawnPosX = 0;
@@ -525,9 +547,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		LogUtils.sendSuccess("Spawn position has been reset");
 	};
 	@Number(
-			name = "SpawnPos Z", category = VISITORS_MACRO, subcategory = "Spawn Position",
-			description = "The Z coordinate of the spawn",
-			min = -30000000, max = 30000000
+		name = "SpawnPos Z", category = VISITORS_MACRO, subcategory = "Spawn Position",
+		description = "The Z coordinate of the spawn",
+		min = -30000000, max = 30000000
 	)
 	public int spawnPosZ = 0;
 
@@ -707,9 +729,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	@Info(
 			text = "If you want to use your own WAV file, rename it to 'farmhelper_sound.wav' and put it in your Minecraft directory.",
 			type = InfoType.WARNING,
-			size = 2,
 			category = FAILSAFE,
-			subcategory = "Failsafe Trigger Sound"
+			subcategory = "Failsafe Trigger Sound",
+			size = 2
 	)
 	public static boolean customFailsafeSoundWarning;
 	@Slider(
@@ -836,8 +858,13 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public int bedrockActingTimes = 6;
 
+	@Switch(
+		name = "Send Chat Message During Failsafe", category = FAILSAFE, subcategory = "Failsafe Messages",
+		description = "Sends a chat message when a failsafe has been triggered"
+	)
+	public boolean sendFailsafeMessage = true;
 	@Page(
-		name = "Custom Failsafe Messages", category = FAILSAFE, subcategory = "Custom Failsafe Messages", location = PageLocation.BOTTOM,
+		name = "Custom Failsafe Messages", category = FAILSAFE, subcategory = "Failsafe Messages", location = PageLocation.BOTTOM,
 		description = "Click here to edit custom failsafe messages"
 	)
 	public CustomFailsafeMessagesPage customFailsafeMessagesPage = new CustomFailsafeMessagesPage();
@@ -872,7 +899,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	@Slider(
 		name = "Wheat Cap", category = FAILSAFE, subcategory = "Jacob",
 		description = "The wheat cap",
-		min = 10000, max = 2000000
+		min = 10000, max = 2000000, step = 10000
 	)
 	public int jacobWheatCap = 265000;
 	@Slider(

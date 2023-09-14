@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -756,6 +757,32 @@ public class VisitorsMacro {
                                     ArrayList<Pair<String, Integer>> cropsToBuy = new ArrayList<>();
                                     boolean foundRequiredItems = false;
                                     boolean foundProfit = false;
+                                    ArrayList<String> rarity = PlayerUtils.getItemLore(mc.thePlayer.openContainer.inventorySlots.get(13).getStack());
+                                    if (mc.thePlayer.openContainer.inventorySlots.get(13).getHasStack()) {
+                                        if (!Config.visitorsAcceptUncommon && rarity.stream().anyMatch(l -> l.contains("Uncommon"))) {
+                                            LogUtils.sendDebug("Visitor is uncommon rarity, rejecting...");
+                                            rejectOffer = true;
+                                        }
+                                        if (!Config.visitorsAcceptRare && rarity.stream().anyMatch(l -> l.contains("Rare"))) {
+                                            LogUtils.sendDebug("Visitor is common rarity, rejecting...");
+                                            rejectOffer = true;
+                                        }
+                                        if (!Config.visitorsAcceptLegendary && rarity.stream().anyMatch(l -> l.contains("Legendary"))) {
+                                            LogUtils.sendDebug("Visitor is legendary rarity, rejecting...");
+                                            rejectOffer = true;
+                                        }
+                                        if (!Config.visitorsAcceptSpecial && rarity.stream().anyMatch(l -> l.contains("Special"))) {
+                                            LogUtils.sendDebug("Visitor is special rarity, rejecting...");
+                                            rejectOffer = true;
+                                        }
+                                        if (rejectOffer) {
+                                            Utils.signText = "";
+                                            boughtAllItems = true;
+                                            currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
+                                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
+                                            return;
+                                        }
+                                    }
                                     ArrayList<String> lore = PlayerUtils.getItemLore(slot.getStack());
                                     if (FarmHelper.config.onlyAcceptProfitableVisitors) {
                                         for (String line : lore) {
@@ -765,7 +792,7 @@ public class VisitorsMacro {
                                             }
                                         }
                                         if (!foundProfit) {
-                                            LogUtils.sendDebug("Visitor offers a reward that is not in the profit rewards list, skipping...");
+                                            LogUtils.sendDebug("Visitor offers a reward that is not in the profit rewards list, rejecting...");
                                             rejectOffer = true;
                                             Utils.signText = "";
                                             boughtAllItems = true;
