@@ -93,19 +93,6 @@ public class FarmHelper {
             FarmHelper.config.SShapeMacroType = 6;
     }
 
-    @SubscribeEvent
-    public void OnKeyPress(InputEvent.KeyInputEvent event) {
-        if (config.visitorsDeskKeybind.isActive()) {
-            BlockPos pos = BlockUtils.getRelativeBlockPos(0, -1, 0);
-            config.visitorsDeskPosX = pos.getX();
-            config.visitorsDeskPosY = pos.getY();
-            config.visitorsDeskPosZ = pos.getZ();
-            config.save();
-
-            LogUtils.sendSuccess("Visitors desk position has been set.");
-        }
-    }
-
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public final void tick(TickEvent.ClientTickEvent event) throws IOException {
         if (ticktask != null) {

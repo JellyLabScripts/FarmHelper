@@ -3,10 +3,7 @@ package com.jelly.farmhelper.config;
 import cc.polyfrost.oneconfig.config.annotations.Number;
 import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
-import cc.polyfrost.oneconfig.config.data.InfoType;
-import cc.polyfrost.oneconfig.config.data.Mod;
-import cc.polyfrost.oneconfig.config.data.ModType;
-import cc.polyfrost.oneconfig.config.data.OptionSize;
+import cc.polyfrost.oneconfig.config.data.*;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.features.Autosell;
@@ -139,12 +136,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
     public int SShapeMacroType = 0;
 	@Switch(
-		name = "Custom pitch", category = GENERAL, subcategory = "Macro",
+		name = "Custom Pitch", category = GENERAL, subcategory = "Macro",
 		description = "Set pitch to custom level after starting the macro"
 	)
 	public boolean customPitch = false;
 	@Number(
-		name = "Custom pitch level", category = GENERAL, subcategory = "Macro",
+		name = "Custom Pitch Level", category = GENERAL, subcategory = "Macro",
 		description = "Set custom pitch level after starting the macro",
 		min = -90, max = 90
 	)
@@ -176,17 +173,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 
 	public OneKeyBind openGuiKeybind = new OneKeyBind(Keyboard.KEY_F);
-
-	@Slider(
-			name = "Minimum time between changing rows", category = GENERAL, subcategory = "Delays",
-			description = "The minimum time to wait before changing rows (in milliseconds)", min = 300, max = 2000
-	)
-	public float minTimeBetweenChangingRows = 300f;
-	@Slider(
-			name = "Maximum time between changing rows", category = GENERAL, subcategory = "Delays",
-			description = "The maximum time to wait before changing rows (in milliseconds)", min = 300, max = 2000
-	)
-	public float maxTimeBetweenChangingRows = 700f;
 
 	@Switch(
 		name = "Highlight rewarp points", category = GENERAL, subcategory = "Rewarp",
@@ -363,6 +349,17 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	// START DELAYS
 
 	@Slider(
+			name = "Minimum time between changing rows", category = DELAYS, subcategory = "Delays",
+			description = "The minimum time to wait before changing rows (in milliseconds)", min = 300, max = 2000
+	)
+	public float minTimeBetweenChangingRows = 300f;
+	@Slider(
+			name = "Maximum time between changing rows", category = DELAYS, subcategory = "Delays",
+			description = "The maximum time to wait before changing rows (in milliseconds)", min = 300, max = 2000
+	)
+	public float maxTimeBetweenChangingRows = 700f;
+
+	@Slider(
 		name = "Stop Script Delay Time", category = DELAYS, subcategory = "Delays",
 		description = "The time to wait before stopping the script (in seconds)",
 		min = 1, max = 10
@@ -374,6 +371,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = 1, max = 5
 	)
 	public float delayedStopScriptTimeRandomness = 1f;
+
 	@Slider(
 		name = "Rotation Time", category = DELAYS, subcategory = "Delays",
 		description = "The time it takes to rotate the player (in seconds)",
@@ -386,6 +384,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = 0.2f, max = 2f
 	)
 	public float rotationTimeRandomness = 0.2f;
+
 	@Slider(
 		name = "Visitors Macro GUI delay", category = DELAYS, subcategory = "Delays",
 		description = "The delay between clicking GUI during visitors macro (in seconds)",
@@ -447,6 +446,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public static boolean infoDeskNotSet;
 
+	@Number(
+			name = "Visitors Desk X", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+			description = "Visitors desk X coordinate",
+			min = -30000000, max = 30000000
+	)
+	public int visitorsDeskPosX = 0;
 	@Button(
 		name = "Set Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
 		description = "Sets the visitor's desk position",
@@ -460,6 +465,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		save();
 		LogUtils.sendSuccess("Visitors desk position has been set");
 	};
+	@Number(
+			name = "Visitors Desk Y", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+			description = "Visitors desk Y coordinate",
+			min = -30000000, max = 30000000
+	)
+	public int visitorsDeskPosY = 0;
 	@Button(
 		name = "Reset Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
 		description = "Resets the visitor's desk position",
@@ -473,28 +484,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		LogUtils.sendSuccess("Visitors desk position has been reset");
 	};
 	@Number(
-		name = "Visitors Desk X", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-		description = "Visitors desk X coordinate",
-		min = -30000000, max = 30000000
-	)
-	public int visitorsDeskPosX = 0;
-	@Number(
-		name = "Visitors Desk Y", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-		description = "Visitors desk Y coordinate",
-		min = -30000000, max = 30000000
-	)
-	public int visitorsDeskPosY = 0;
-	@Number(
 		name = "Visitors Desk Z", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
 		description = "Visitors desk Z coordinate",
 		min = -30000000, max = 30000000
 	)
 	public int visitorsDeskPosZ = 0;
-	@KeyBind(
-		name = "Visitors Desk Keybind", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-		description = "Visitors desk keybind"
-	)
-	public OneKeyBind visitorsDeskKeybind = new OneKeyBind(0);
 
 	@Number(
 			name = "SpawnPos X", category = VISITORS_MACRO, subcategory = "Spawn Position",
@@ -842,21 +836,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public int bedrockActingTimes = 6;
 
-	@Text(
-		name = "Rotation messages", category = FAILSAFE, subcategory = "Custom Failsafe Messages",
-		description = "The messages to send to the chat when a rotation failsafe has been triggered (use '|' to split the messages)",
-		placeholder = "Leave empty to use a random message",
-		multiline = true
+	@Page(
+		name = "Custom Failsafe Messages", category = FAILSAFE, subcategory = "Custom Failsafe Messages", location = PageLocation.BOTTOM,
+		description = "Click here to edit custom failsafe messages"
 	)
-	public static String customRotationMessages = "";
-
-	@Text(
-		name = "Bedrock messages", category = FAILSAFE, subcategory = "Custom Failsafe Messages",
-		description = "The messages to send to the chat when a bedrock failsafe has been triggered (use '|' to split the messages)",
-		placeholder = "Leave empty to use a random message",
-		multiline = true
-	)
-	public static String customBedrockMessages = "";
+	public CustomFailsafeMessagesPage customFailsafeMessagesPage = new CustomFailsafeMessagesPage();
 
 	// END FAILSAFE
 

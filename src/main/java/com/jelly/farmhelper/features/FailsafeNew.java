@@ -3,6 +3,7 @@ package com.jelly.farmhelper.features;
 import akka.japi.Pair;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config;
+import com.jelly.farmhelper.config.CustomFailsafeMessagesPage;
 import com.jelly.farmhelper.events.BlockChangeEvent;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.macros.MacroHandler;
@@ -853,15 +854,15 @@ public class FailsafeNew {
 
             // stage 2: send a message
             LogUtils.sendDebug("rotationMovement: stage 2");
-            if (!Config.customRotationMessages.isEmpty()) {
-                String[] messages = Config.customRotationMessages.split("\\|");
+            if (!CustomFailsafeMessagesPage.customRotationMessages.isEmpty()) {
+                String[] messages = CustomFailsafeMessagesPage.customRotationMessages.split("\\|");
                 if (messages.length > 1) {
                     messageChosen = messages[(int) Math.floor(Math.random() * (messages.length - 1))];
                     Thread.sleep((long) ((messageChosen.length() * 250L) + Math.random() * 500));
 
                 } else {
-                    messageChosen = Config.customRotationMessages;
-                    Thread.sleep((long) ((Config.customRotationMessages.length() * 250L) + Math.random() * 500));
+                    messageChosen = CustomFailsafeMessagesPage.customRotationMessages;
+                    Thread.sleep((long) ((CustomFailsafeMessagesPage.customRotationMessages.length() * 250L) + Math.random() * 500));
                 }
             } else {
                 messageChosen = FAILSAFE_MESSAGES[(int) Math.floor(Math.random() * (FAILSAFE_MESSAGES.length - 1))];
@@ -978,15 +979,15 @@ public class FailsafeNew {
                     KeyBindUtils.stopMovement();
                     Thread.sleep(rotationTime + 1_500);
 
-                    if (!Config.customBedrockMessages.isEmpty()) {
-                        String[] messages = Config.customBedrockMessages.split("\\|");
+                    if (!CustomFailsafeMessagesPage.customBedrockMessages.isEmpty()) {
+                        String[] messages = CustomFailsafeMessagesPage.customBedrockMessages.split("\\|");
                         if (messages.length > 1) {
                             messageChosen = messages[(int) Math.floor(Math.random() * (messages.length - 1))];
                             Thread.sleep((long) ((messageChosen.length() * 250L) + Math.random() * 500));
 
                         } else {
-                            messageChosen = Config.customBedrockMessages;
-                            Thread.sleep((long) ((Config.customBedrockMessages.length() * 250L) + Math.random() * 500));
+                            messageChosen = CustomFailsafeMessagesPage.customBedrockMessages;
+                            Thread.sleep((long) ((CustomFailsafeMessagesPage.customBedrockMessages.length() * 250L) + Math.random() * 500));
                         }
                     } else {
                         messageChosen = FAILSAFE_MESSAGES[(int) Math.floor(Math.random() * (FAILSAFE_MESSAGES.length - 1))];
