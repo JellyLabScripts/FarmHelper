@@ -82,7 +82,7 @@ public class SetSpeedCommand extends BaseCommand {
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (!enabled) return;
-        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (BaseCommand.mc.thePlayer == null || BaseCommand.mc.theWorld == null) return;
         if (clock.isScheduled() && !clock.passed()) return;
 
         switch (currentState) {
@@ -91,7 +91,7 @@ public class SetSpeedCommand extends BaseCommand {
                 enabled = false;
                 break;
             case START:
-                if (mc.thePlayer.inventoryContainer.getSlot(8) == null || !mc.thePlayer.inventoryContainer.getSlot(8).getStack().getDisplayName().contains("Rancher's Boots")) {
+                if (BaseCommand.mc.thePlayer.inventoryContainer.getSlot(8) == null || !BaseCommand.mc.thePlayer.inventoryContainer.getSlot(8).getStack().getDisplayName().contains("Rancher's Boots")) {
                     disableWithError("You don't wear Rancher's Boots! Disabling...");
                     break;
                 }
@@ -110,13 +110,13 @@ public class SetSpeedCommand extends BaseCommand {
                 clock.schedule(500);
                 break;
             case TAKE_OFF_BOOTS:
-                if (mc.thePlayer.openContainer == null) {
+                if (BaseCommand.mc.thePlayer.openContainer == null) {
                     currentState = State.OPEN_INVENTORY;
                     clock.schedule(500);
                     break;
                 }
                 for (int i = 36; i < 44; i++) {
-                    if (mc.thePlayer.inventoryContainer.getSlot(i).getStack() == null) {
+                    if (BaseCommand.mc.thePlayer.inventoryContainer.getSlot(i).getStack() == null) {
                         LogUtils.sendDebug("Found free slot: " + i);
                         freeSlot = i;
                         freeHotbarSlot = i - 36;
@@ -137,8 +137,8 @@ public class SetSpeedCommand extends BaseCommand {
                 clock.schedule(500);
                 break;
             case CLOSE_INVENTORY:
-                mc.currentScreen = null;
-                lastRotation = Pair.of(AngleUtils.get360RotationYaw(), mc.thePlayer.rotationPitch);
+                BaseCommand.mc.currentScreen = null;
+                lastRotation = Pair.of(AngleUtils.get360RotationYaw(), BaseCommand.mc.thePlayer.rotationPitch);
                 currentState = State.LOOK_IN_THE_AIR;
                 clock.schedule(500);
                 break;
@@ -148,17 +148,17 @@ public class SetSpeedCommand extends BaseCommand {
                 clock.schedule(500);
                 break;
             case HOLD_RANCHER_BOOTS:
-                if (mc.currentScreen != null) {
+                if (BaseCommand.mc.currentScreen != null) {
                     currentState = State.CLOSE_INVENTORY;
                     clock.schedule(500);
                     break;
                 }
-                mc.thePlayer.inventory.currentItem = freeHotbarSlot;
+                BaseCommand.mc.thePlayer.inventory.currentItem = freeHotbarSlot;
                 currentState = State.CLICK_RANCHER_BOOTS;
                 clock.schedule(500);
                 break;
             case CLICK_RANCHER_BOOTS:
-                if (mc.thePlayer.inventoryContainer.getSlot(freeSlot).getStack() == null || mc.thePlayer.inventory.currentItem != freeHotbarSlot) {
+                if (BaseCommand.mc.thePlayer.inventoryContainer.getSlot(freeSlot).getStack() == null || BaseCommand.mc.thePlayer.inventory.currentItem != freeHotbarSlot) {
                     currentState = State.HOLD_RANCHER_BOOTS;
                     clock.schedule(500);
                     break;
@@ -169,12 +169,12 @@ public class SetSpeedCommand extends BaseCommand {
                 clock.schedule(500);
                 break;
             case TYPE_IN_SPEED:
-                if (mc.currentScreen == null) {
+                if (BaseCommand.mc.currentScreen == null) {
                     currentState = State.CLICK_RANCHER_BOOTS;
                     clock.schedule(500);
                     break;
                 }
-                mc.currentScreen = null;
+                BaseCommand.mc.currentScreen = null;
                 currentState = State.LOOK_BACK;
                 clock.schedule(500);
                 break;
@@ -190,7 +190,7 @@ public class SetSpeedCommand extends BaseCommand {
                 clock.schedule(500);
                 break;
             case PUT_ON_BOOTS:
-                if (mc.thePlayer.openContainer == null) {
+                if (BaseCommand.mc.thePlayer.openContainer == null) {
                     currentState = State.OPEN_INVENTORY_AGAIN;
                     clock.schedule(500);
                     break;
@@ -201,7 +201,7 @@ public class SetSpeedCommand extends BaseCommand {
                 clock.schedule(500);
                 break;
             case CLOSE_INVENTORY_AGAIN:
-                mc.currentScreen = null;
+                BaseCommand.mc.currentScreen = null;
                 currentState = State.END;
                 clock.schedule(500);
                 break;
@@ -241,12 +241,12 @@ public class SetSpeedCommand extends BaseCommand {
         LogUtils.sendDebug("Looking in the air...");
         for (float[] vector : vectors) {
             Vec3 target = new Vec3(BlockUtils.getRelativeBlockPos(vector[0], vector[1], vector[2]));
-            MovingObjectPosition rayTraceResult = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionEyes(1), target, false, false, true);
+            MovingObjectPosition rayTraceResult = BaseCommand.mc.theWorld.rayTraceBlocks(BaseCommand.mc.thePlayer.getPositionEyes(1), target, false, false, true);
 
             if (rayTraceResult != null) {
                 if (rayTraceResult.typeOfHit == MovingObjectPosition.MovingObjectType.MISS) {
                     BlockPos blockPos = rayTraceResult.getBlockPos();
-                    if (mc.theWorld.getBlockState(blockPos).getBlock() == null || mc.theWorld.getBlockState(blockPos).getBlock() == Blocks.air) {
+                    if (BaseCommand.mc.theWorld.getBlockState(blockPos).getBlock() == null || BaseCommand.mc.theWorld.getBlockState(blockPos).getBlock() == Blocks.air) {
                         LogUtils.sendDebug("Looking at " + Arrays.toString(vector));
                         rotation.reset();
                         rotation.easeTo(AngleUtils.getRotation(target, true).getLeft(), AngleUtils.getRotation(target, true).getRight(), 300);
