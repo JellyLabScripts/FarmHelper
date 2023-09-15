@@ -159,20 +159,20 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
         switch (currentState) {
             case BACKWARD:
                 KeyBindUtils.holdThese(
-                        mc.gameSettings.keyBindBack,
-                        mc.gameSettings.keyBindAttack
+                        Macro.mc.gameSettings.keyBindBack,
+                        Macro.mc.gameSettings.keyBindAttack
                 );
                 break;
             case FORWARD:
                 KeyBindUtils.holdThese(
-                        mc.gameSettings.keyBindForward,
-                        mc.gameSettings.keyBindAttack,
-                        ((!isHuggingAWall() || BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air)) && BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.air)) ? mc.gameSettings.keyBindLeft : null
+                        Macro.mc.gameSettings.keyBindForward,
+                        Macro.mc.gameSettings.keyBindAttack,
+                        ((!isHuggingAWall() || BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air)) && BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.air)) ? Macro.mc.gameSettings.keyBindLeft : null
                 );
                 break;
             case SWITCHING_SIDE:
             case SWITCHING_LANE:
-                KeyBindUtils.holdThese(mc.gameSettings.keyBindRight);
+                KeyBindUtils.holdThese(Macro.mc.gameSettings.keyBindRight);
                 break;
             case NONE:
                 break;
@@ -204,15 +204,15 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
     }
 
     private boolean shouldPushForward() {
-        return (mc.theWorld.getBlockState(BlockUtils.getRelativeBlockPos(0,0,0)).getBlock() instanceof BlockDoor
-                || mc.theWorld.getBlockState(BlockUtils.getRelativeBlockPos(0,0,0)).getBlock() instanceof BlockTrapDoor);
+        return (Macro.mc.theWorld.getBlockState(BlockUtils.getRelativeBlockPos(0,0,0)).getBlock() instanceof BlockDoor
+                || Macro.mc.theWorld.getBlockState(BlockUtils.getRelativeBlockPos(0,0,0)).getBlock() instanceof BlockTrapDoor);
     }
 
     private boolean hasLineChanged() {
         if (BlockUtils.getRelativeBlock(-1, 0, 1).getMaterial().isSolid() && gameState.frontWalkable) {
-            double decimalPartX = Math.abs(mc.thePlayer.getPositionVector().xCoord) % 1;
-            double decimalPartZ = Math.abs(mc.thePlayer.getPositionVector().zCoord) % 1;
-            float yaw = AngleUtils.getClosest(mc.thePlayer.rotationYaw);
+            double decimalPartX = Math.abs(Macro.mc.thePlayer.getPositionVector().xCoord) % 1;
+            double decimalPartZ = Math.abs(Macro.mc.thePlayer.getPositionVector().zCoord) % 1;
+            float yaw = AngleUtils.getClosest(Macro.mc.thePlayer.rotationYaw);
             yaw = (yaw % 360 + 360) % 360;
             if (yaw == 180f && decimalPartX > 0.488) {
                 return true;
@@ -227,9 +227,9 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
 
     private boolean isHuggingAWall() {
         if (BlockUtils.getRelativeBlock(-1, 0, 0).getMaterial().isSolid() && !BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air)) {
-            double decimalPartX = Math.abs(mc.thePlayer.getPositionVector().xCoord) % 1;
-            double decimalPartZ = Math.abs(mc.thePlayer.getPositionVector().zCoord) % 1;
-            float yaw = AngleUtils.getClosest(mc.thePlayer.rotationYaw);
+            double decimalPartX = Math.abs(Macro.mc.thePlayer.getPositionVector().xCoord) % 1;
+            double decimalPartZ = Math.abs(Macro.mc.thePlayer.getPositionVector().zCoord) % 1;
+            float yaw = AngleUtils.getClosest(Macro.mc.thePlayer.rotationYaw);
             yaw = (yaw % 360 + 360) % 360;
             if (yaw == 180f && decimalPartX < 0.5) {
                 return true;
