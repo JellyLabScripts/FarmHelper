@@ -239,15 +239,15 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
         }
 
         for (int i = 0; i < 180; i++) {
-            if (isWalkable(getRelativeBlock(i, 0, 0, closest90Yaw)) && f1) {
+            if (canWalkThrough(getRelativeBlockPos(i, 0, 0, closest90Yaw)) && f1) {
                 return State.RIGHT;
             }
-            if (!isWalkable(getRelativeBlock(i, 1, 0, closest90Yaw)))
+            if (!canWalkThrough(getRelativeBlockPos(i, 1, 0, closest90Yaw)))
                 f1 = false;
-            if (isWalkable(getRelativeBlock(-i, 0, 0, closest90Yaw)) && f2) {
+            if (canWalkThrough(getRelativeBlockPos(-i, 0, 0, closest90Yaw)) && f2) {
                 return State.LEFT;
             }
-            if (!isWalkable(getRelativeBlock(-i, 1, 0, closest90Yaw)))
+            if (!canWalkThrough(getRelativeBlockPos(-i, 1, 0, closest90Yaw)))
                 f2 = false;
         }
         LogUtils.sendDebug("No direction found");

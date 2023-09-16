@@ -46,20 +46,24 @@ public class CropUtils {
     };
 
     public static void updateCropsMaxY(World world, BlockPos pos, Block block) {
-        if (FarmHelper.config.increasedCrops) return;
         final IBlockState blockState = world.getBlockState(pos);
         final Integer ageValue = blockState.getValue(BlockCrops.AGE);
         IBlockAccessor accessor = (IBlockAccessor) block;
+        if (FarmHelper.config.increasedCrops)
             accessor.setMaxY(
                     blockState.getBlock() instanceof BlockPotato || blockState.getBlock() instanceof BlockCarrot
                             ? CARROT_POTATO_BOX[ageValue].maxY
                             : WHEAT_BOX[ageValue].maxY
             );
+        else
+            accessor.setMaxY(0.25D);
     }
 
     public static void updateWartMaxY(World world, BlockPos pos, Block block) {
-        if (FarmHelper.config.increasedNetherWarts) return;
-        ((IBlockAccessor) block).setMaxY(NETHER_WART_BOX[world.getBlockState(pos).getValue(BlockNetherWart.AGE)].maxY);
+        if (FarmHelper.config.increasedNetherWarts)
+            ((IBlockAccessor) block).setMaxY(NETHER_WART_BOX[world.getBlockState(pos).getValue(BlockNetherWart.AGE)].maxY);
+        else
+            ((IBlockAccessor) block).setMaxY(0.25D);
     }
 
     public static void updateCocoaBeansHitbox(IBlockState blockState) {
