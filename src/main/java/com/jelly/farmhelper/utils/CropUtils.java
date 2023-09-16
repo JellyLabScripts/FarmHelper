@@ -54,16 +54,16 @@ public class CropUtils {
                     blockState.getBlock() instanceof BlockPotato || blockState.getBlock() instanceof BlockCarrot
                             ? CARROT_POTATO_BOX[ageValue].maxY
                             : WHEAT_BOX[ageValue].maxY
-            );
+            ); // mc 1.12
         else
-            accessor.setMaxY(0.25D);
+            accessor.setMaxY(0.25D); // mc 1.8.9
     }
 
     public static void updateWartMaxY(World world, BlockPos pos, Block block) {
         if (FarmHelper.config.increasedNetherWarts)
-            ((IBlockAccessor) block).setMaxY(NETHER_WART_BOX[world.getBlockState(pos).getValue(BlockNetherWart.AGE)].maxY);
+            ((IBlockAccessor) block).setMaxY(NETHER_WART_BOX[world.getBlockState(pos).getValue(BlockNetherWart.AGE)].maxY); // mc 1.12
         else
-            ((IBlockAccessor) block).setMaxY(0.25D);
+            ((IBlockAccessor) block).setMaxY(0.25D); // mc 1.8.9
     }
 
     public static void updateCocoaBeansHitbox(IBlockState blockState) {
