@@ -32,6 +32,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static cc.polyfrost.oneconfig.libs.universal.UMath.wrapAngleTo180;
+
 
 // A lot of "inspiration" from GTC 🫡 Credits to RoseGold (got permission to use this code)
 public class VisitorsMacro {
@@ -451,7 +453,9 @@ public class VisitorsMacro {
                 Pair<Float, Float> rotationToEdge = AngleUtils.getRotation(currentEdge);
                 randomValue = playerY > 85 ? 5 + (float) (Math.random() * 1 - 0.5) : 1 + (float) (Math.random() * 1 - 0.5);
                 if ((Math.abs(mc.thePlayer.rotationYaw - rotationToEdge.getLeft()) > 0.5 || Math.abs(mc.thePlayer.rotationPitch - randomValue) > 0.5) && !rotation.rotating && !aotvTpCooldown.passed()) {
+                    rotation.reset();
                     rotation.easeTo(rotationToEdge.getLeft(), randomValue, 275 + (int) (Math.random() * 100));
+                    delayClock.schedule(500);
                 }
 
                 break;
@@ -692,7 +696,7 @@ public class VisitorsMacro {
                 }
 
                 if (closest == null) {
-                    LogUtils.sendWarning("No visitors found, waiting...");
+                    LogUtils.sendDebug("No visitors found, waiting...");
                     delayClock.schedule(2500);
                     return;
                 }
@@ -757,6 +761,25 @@ public class VisitorsMacro {
                                     ArrayList<Pair<String, Integer>> cropsToBuy = new ArrayList<>();
                                     boolean foundRequiredItems = false;
                                     boolean foundProfit = false;
+                                    ArrayList<String> lore = PlayerUtils.getItemLore(slot.getStack());
+                                    if (FarmHelper.config.onlyAcceptProfitableVisitors) {
+                                        for (String line : lore) {
+                                            if (profitRewards.stream().anyMatch(r -> StringUtils.stripControlCodes(line.toLowerCase()).contains(StringUtils.stripControlCodes(r.toLowerCase())))) {
+                                                foundProfit = true;
+                                                break;
+                                            }
+                                        }
+                                        if (!foundProfit) {
+                                            LogUtils.sendDebug("Visitor offers a reward that is not in the profit rewards list, rejecting...");
+                                            rejectOffer = true;
+                                            Utils.signText = "";
+                                            boughtAllItems = true;
+                                            currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
+                                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
+                                            return;
+                                        }
+                                    }
+
                                     ArrayList<String> rarity = PlayerUtils.getItemLore(mc.thePlayer.openContainer.inventorySlots.get(13).getStack());
                                     if (mc.thePlayer.openContainer.inventorySlots.get(13).getHasStack()) {
                                         if (!Config.visitorsAcceptUncommon && rarity.stream().anyMatch(l -> l.contains("UNCOMMON"))) {
@@ -783,24 +806,7 @@ public class VisitorsMacro {
                                             return;
                                         }
                                     }
-                                    ArrayList<String> lore = PlayerUtils.getItemLore(slot.getStack());
-                                    if (FarmHelper.config.onlyAcceptProfitableVisitors) {
-                                        for (String line : lore) {
-                                            if (profitRewards.stream().anyMatch(r -> StringUtils.stripControlCodes(line.toLowerCase()).contains(StringUtils.stripControlCodes(r.toLowerCase())))) {
-                                                foundProfit = true;
-                                                break;
-                                            }
-                                        }
-                                        if (!foundProfit) {
-                                            LogUtils.sendDebug("Visitor offers a reward that is not in the profit rewards list, rejecting...");
-                                            rejectOffer = true;
-                                            Utils.signText = "";
-                                            boughtAllItems = true;
-                                            currentBuyState = BuyState.SETUP_VISITOR_HAND_IN;
-                                            delayClock.schedule((long) (FarmHelper.config.visitorsMacroGuiDelay * 1000 + Math.random() * 100));
-                                            return;
-                                        }
-                                    }
+
                                     for (String line : lore) {
                                         if (line.contains("Required:")) {
                                             foundRequiredItems = true;
@@ -1079,7 +1085,7 @@ public class VisitorsMacro {
                 mc.thePlayer.sendChatMessage("/warp garden");
                 if (FarmHelper.config.rotateAfterWarped && directionBeforeStart != 1337) {
                     rotation.reset();
-                    rotation.easeTo(AngleUtils.get360RotationYaw(directionBeforeStart + 180), 0, 500);
+                    rotation.easeTo(directionBeforeStart + 180, 0, 500);
                 }
                 currentState = State.CHANGE_TO_NONE;
                 delayClock.schedule(2500);

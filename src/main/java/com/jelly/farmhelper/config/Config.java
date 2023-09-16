@@ -422,7 +422,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			description = "How much does Instant Buy price need to be higher than Instant Sell price to detect price manipulation",
 			min = 1.25f, max = 4f
 	)
-	public float visitorsMacroPriceManipulationMultiplier = 2;
+	public float visitorsMacroPriceManipulationMultiplier = 1.75f;
 	@Info(
 			text = "If you put your compactors in the hotbar, they will be temporarily disabled.",
 			type = InfoType.WARNING,
