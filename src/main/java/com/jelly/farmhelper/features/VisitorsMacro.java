@@ -213,8 +213,6 @@ public class VisitorsMacro {
         if (!MacroHandler.currentMacro.isSpawnLocationSet() || !MacroHandler.currentMacro.isStandingOnSpawnLocation()) {
             return;
         }
-        if (FarmHelper.config.enableScheduler)
-            Scheduler.pause();
 
         if (FarmHelper.gameState.cookie != GameState.EffectState.ON) {
             LogUtils.sendDebug("Cookie buff is not active, skipping...");
@@ -288,6 +286,8 @@ public class VisitorsMacro {
             clock.schedule(1500);
             LogUtils.sendDebug("Visitors macro can be started");
             KeyBindUtils.stopMovement();
+            if (FarmHelper.config.enableScheduler)
+                Scheduler.pause();
             enabled = true;
             rotation.reset();
             rotation.completed = true;

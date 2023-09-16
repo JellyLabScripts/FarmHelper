@@ -109,7 +109,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
             updateState();
             invokeState();
         } else {
-            if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75 && mc.thePlayer.posY < 80) {
+            if (!Macro.mc.thePlayer.onGround && Math.abs(layerY - Macro.mc.thePlayer.posY) > 0.75 && Macro.mc.thePlayer.posY < 80) {
                 changeState(State.DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
             }
@@ -162,8 +162,8 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                 break;
             }
             case DROPPING: {
-                LogUtils.sendDebug("On Ground: " + mc.thePlayer.onGround);
-                if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) > 1.5) {
+                LogUtils.sendDebug("On Ground: " + Macro.mc.thePlayer.onGround);
+                if (Macro.mc.thePlayer.onGround && Math.abs(layerY - Macro.mc.thePlayer.getPosition().getY()) > 1.5) {
                     changeLaneDirection = null;
                     if (FarmHelper.config.rotateAfterDrop && !rotation.rotating) {
                         LogUtils.sendDebug("Rotating 180");
@@ -172,7 +172,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                         rotation.easeTo(yaw, pitch, (long) (400 + Math.random() * 300));
                     }
                     KeyBindUtils.stopMovement();
-                    layerY = mc.thePlayer.getPosition().getY();
+                    layerY = Macro.mc.thePlayer.getPosition().getY();
                     changeState(State.NONE);
                 } else  {
                     FarmHelper.gameState.scheduleNotMoving();
@@ -191,18 +191,18 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
         switch (currentState) {
             case LEFT:
                 KeyBindUtils.holdThese(
-                        mc.gameSettings.keyBindLeft,
-                        mc.gameSettings.keyBindAttack,
-                        MacroHandler.crop == Config.CropEnum.CACTUS && PlayerUtils.shouldPushBack() ? mc.gameSettings.keyBindBack : null,
-                        MacroHandler.crop != Config.CropEnum.CACTUS && MacroHandler.crop != Config.CropEnum.PUMPKIN && MacroHandler.crop != Config.CropEnum.MELON && PlayerUtils.shouldWalkForwards() ? mc.gameSettings.keyBindForward : null
+                        Macro.mc.gameSettings.keyBindLeft,
+                        Macro.mc.gameSettings.keyBindAttack,
+                        MacroHandler.crop == Config.CropEnum.CACTUS && PlayerUtils.shouldPushBack() ? Macro.mc.gameSettings.keyBindBack : null,
+                        MacroHandler.crop != Config.CropEnum.CACTUS && MacroHandler.crop != Config.CropEnum.PUMPKIN && MacroHandler.crop != Config.CropEnum.MELON && PlayerUtils.shouldWalkForwards() ? Macro.mc.gameSettings.keyBindForward : null
                 );
                 break;
             case RIGHT:
                 KeyBindUtils.holdThese(
-                        mc.gameSettings.keyBindRight,
-                        mc.gameSettings.keyBindAttack,
-                        MacroHandler.crop == Config.CropEnum.CACTUS && PlayerUtils.shouldPushBack() ? mc.gameSettings.keyBindBack : null,
-                        MacroHandler.crop != Config.CropEnum.CACTUS && MacroHandler.crop != Config.CropEnum.PUMPKIN && MacroHandler.crop != Config.CropEnum.MELON && PlayerUtils.shouldWalkForwards() ? mc.gameSettings.keyBindForward : null
+                        Macro.mc.gameSettings.keyBindRight,
+                        Macro.mc.gameSettings.keyBindAttack,
+                        MacroHandler.crop == Config.CropEnum.CACTUS && PlayerUtils.shouldPushBack() ? Macro.mc.gameSettings.keyBindBack : null,
+                        MacroHandler.crop != Config.CropEnum.CACTUS && MacroHandler.crop != Config.CropEnum.PUMPKIN && MacroHandler.crop != Config.CropEnum.MELON && PlayerUtils.shouldWalkForwards() ? Macro.mc.gameSettings.keyBindForward : null
                 );
                 break;
             case SWITCHING_LANE:
@@ -218,10 +218,10 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                 }
                 switch (changeLaneDirection) {
                     case FORWARD:
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, FarmHelper.config.holdLeftClickWhenChangingRow ? mc.gameSettings.keyBindAttack : null);
+                        KeyBindUtils.holdThese(Macro.mc.gameSettings.keyBindForward, FarmHelper.config.holdLeftClickWhenChangingRow ? Macro.mc.gameSettings.keyBindAttack : null);
                         break;
                     case BACKWARD:
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, FarmHelper.config.holdLeftClickWhenChangingRow ? mc.gameSettings.keyBindAttack : null);
+                        KeyBindUtils.holdThese(Macro.mc.gameSettings.keyBindBack, FarmHelper.config.holdLeftClickWhenChangingRow ? Macro.mc.gameSettings.keyBindAttack : null);
                         break;
                     default: {
                         LogUtils.sendDebug("I can't decide which direction to go!");
@@ -230,9 +230,9 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                 }
                 break;
             case DROPPING:
-                if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) <= 1.5) {
+                if (Macro.mc.thePlayer.onGround && Math.abs(layerY - Macro.mc.thePlayer.getPosition().getY()) <= 1.5) {
                     LogUtils.sendDebug("Dropping done, but didn't drop high enough to rotate!");
-                    layerY = mc.thePlayer.getPosition().getY();
+                    layerY = Macro.mc.thePlayer.getPosition().getY();
                     changeState(State.NONE);
                 }
                 break;

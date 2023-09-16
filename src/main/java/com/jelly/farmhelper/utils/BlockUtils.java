@@ -3,26 +3,23 @@ package com.jelly.farmhelper.utils;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config.SMacroEnum;
 import com.jelly.farmhelper.macros.MushroomMacroNew;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockCarpet;
-import net.minecraft.block.BlockCrops;
-import net.minecraft.block.BlockNetherWart;
+import net.minecraft.block.*;
+import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
-import net.minecraft.util.Vec3i;
+import net.minecraft.util.*;
 
 import java.util.Arrays;
 
 import static com.jelly.farmhelper.utils.AngleUtils.get360RotationYaw;
+import static net.minecraft.block.BlockSlab.HALF;
 
 public class BlockUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final Block[] walkables = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs, Blocks.carpet, Blocks.stone_slab, Blocks.stone_slab2, Blocks.wooden_slab, Blocks.snow_layer, Blocks.trapdoor };
+    private static final Block[] initialWalkables = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.waterlily, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem };
     private static final Block[] walkablesMushroom = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs, Blocks.carpet, Blocks.stone_slab, Blocks.stone_slab2, Blocks.wooden_slab, Blocks.snow_layer, Blocks.trapdoor, Blocks.red_mushroom, Blocks.brown_mushroom };
     private static final Block[] walkablesCactus = { Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs, Blocks.snow_layer, Blocks.trapdoor };
 
@@ -32,7 +29,6 @@ public class BlockUtils {
 
     public static int getUnitZ(){
         return getUnitZ((mc.thePlayer.rotationYaw % 360 + 360) % 360);
-
     }
 
     public static int getUnitX(float modYaw) {
@@ -163,6 +159,82 @@ public class BlockUtils {
                 return Arrays.asList(walkablesCactus).contains(block);
             } else return Arrays.asList(walkables).contains(block);
         }
+    }
+
+    public static boolean canWalkThrough(BlockPos blockPos) {
+        IBlockState state = mc.theWorld.getBlockState(blockPos);
+        Block block = state.getBlock();
+
+        // blocks that are always walkable, no matter what the position is
+
+        if (Arrays.asList(initialWalkables).contains(block))
+            return true;
+
+        if (block instanceof BlockFenceGate)
+            return state.getValue(BlockFenceGate.OPEN);
+
+        if (block instanceof BlockTrapDoor)
+            return state.getValue(BlockTrapDoor.OPEN);
+
+        if (block instanceof BlockSnow)
+            return state.getValue(BlockSnow.LAYERS) <= 5;
+
+        return canWalkThroughBottom(blockPos) && canWalkThroughAbove(blockPos.add(0, 1, 0));
+    }
+
+    private static boolean canWalkThroughBottom(BlockPos blockPos) {
+        IBlockState state = mc.theWorld.getBlockState(blockPos);
+        Block block = state.getBlock();
+        if (mc.thePlayer.posY % 1 >= 0.5)
+            return true;
+
+        if (block instanceof BlockSlab) {
+            // if the player is on the bottom half of the slab, all slabs are walkable (top, bottom and double)
+            if (mc.thePlayer.posY % 1 < 0.5) {
+                if (((BlockSlab) block).isDouble())
+                    return false;
+                return state.getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.BOTTOM;
+            }
+        }
+
+        if (block instanceof BlockCarpet)
+            return true;
+
+        if (block instanceof BlockStairs) {
+            // check if the stairs are rotated in the direction the player is coming from
+            EnumFacing facing = state.getValue(BlockStairs.FACING);
+            BlockPos posDiff = blockPos.subtract(mc.thePlayer.getPosition());
+            if (state.getValue(BlockStairs.HALF) == BlockStairs.EnumHalf.TOP)
+                return false;
+            if (facing == EnumFacing.NORTH && posDiff.getZ() < 0)
+                return true;
+            if (facing == EnumFacing.SOUTH && posDiff.getZ() > 0)
+                return true;
+            if (facing == EnumFacing.WEST && posDiff.getX() < 0)
+                return true;
+            if (facing == EnumFacing.EAST && posDiff.getX() > 0)
+                return true;
+            return false;
+        }
+
+        return block.isPassable(mc.theWorld, blockPos);
+    }
+
+    private static boolean canWalkThroughAbove(BlockPos blockPos) {
+        IBlockState state = mc.theWorld.getBlockState(blockPos);
+        Block block = state.getBlock();
+
+        if (block instanceof BlockCarpet)
+            return false;
+
+        return block.isPassable(mc.theWorld, blockPos);
+    }
+
+    public static BlockPos getBlockPosLookingAt() {
+        MovingObjectPosition mop = mc.thePlayer.rayTrace(5, 1);
+        if (mop == null)
+            return null;
+        return mop.getBlockPos();
     }
 
     public static boolean leftCropIsReady(){

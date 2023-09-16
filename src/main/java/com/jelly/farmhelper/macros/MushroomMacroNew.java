@@ -38,7 +38,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
         } else {
             rotation.easeTo(closest90Yaw + (currentState == State.LEFT ? -30 : 30), pitch, 400);
         }
-        mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(Config.CropEnum.MUSHROOM);
+        Macro.mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(Config.CropEnum.MUSHROOM);
     }
 
     @Override
@@ -107,7 +107,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             updateState();
             invokeState();
         } else {
-            if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75 && mc.thePlayer.posY < 80) {
+            if (!Macro.mc.thePlayer.onGround && Math.abs(layerY - Macro.mc.thePlayer.posY) > 0.75 && Macro.mc.thePlayer.posY < 80) {
                 changeState(State.DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
                 LogUtils.sendDebug("Dropping");
@@ -148,8 +148,8 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
                 }
                 break;
             case DROPPING: {
-                LogUtils.sendDebug("On Ground: " + mc.thePlayer.onGround);
-                if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) > 1.5) {
+                LogUtils.sendDebug("On Ground: " + Macro.mc.thePlayer.onGround);
+                if (Macro.mc.thePlayer.onGround && Math.abs(layerY - Macro.mc.thePlayer.getPosition().getY()) > 1.5) {
                     if (FarmHelper.config.rotateAfterDrop && !rotation.rotating) {
                         LogUtils.sendDebug("Rotating 180");
                         rotation.reset();
@@ -163,7 +163,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
                         KeyBindUtils.stopMovement();
                     }
                     changeState(State.NONE);
-                    layerY = mc.thePlayer.getPosition().getY();
+                    layerY = Macro.mc.thePlayer.getPosition().getY();
                 } else  {
                     FarmHelper.gameState.scheduleNotMoving();
                 }
@@ -181,13 +181,13 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             case RIGHT: {
                 if (FarmHelper.config.SShapeMacroType == Config.SMacroEnum.MUSHROOM_ROTATE.ordinal()) {
                     KeyBindUtils.holdThese(
-                            mc.gameSettings.keyBindForward,
-                            mc.gameSettings.keyBindAttack
+                            Macro.mc.gameSettings.keyBindForward,
+                            Macro.mc.gameSettings.keyBindAttack
                     );
                 } else if (FarmHelper.config.SShapeMacroType == Config.SMacroEnum.MUSHROOM.ordinal()) {
                     KeyBindUtils.holdThese(
-                            mushroom45DegreeLeftSide() ? mc.gameSettings.keyBindRight : mc.gameSettings.keyBindForward,
-                            mc.gameSettings.keyBindAttack
+                            mushroom45DegreeLeftSide() ? Macro.mc.gameSettings.keyBindRight : Macro.mc.gameSettings.keyBindForward,
+                            Macro.mc.gameSettings.keyBindAttack
                     );
                 }
                 break;
@@ -195,21 +195,21 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             case LEFT: {
                 if (FarmHelper.config.SShapeMacroType == Config.SMacroEnum.MUSHROOM_ROTATE.ordinal()) {
                     KeyBindUtils.holdThese(
-                            mc.gameSettings.keyBindForward,
-                            mc.gameSettings.keyBindAttack
+                            Macro.mc.gameSettings.keyBindForward,
+                            Macro.mc.gameSettings.keyBindAttack
                     );
                 } else if (FarmHelper.config.SShapeMacroType == Config.SMacroEnum.MUSHROOM.ordinal()) {
                     KeyBindUtils.holdThese(
-                            mushroom45DegreeLeftSide() ? mc.gameSettings.keyBindForward : mc.gameSettings.keyBindLeft,
-                            mc.gameSettings.keyBindAttack
+                            mushroom45DegreeLeftSide() ? Macro.mc.gameSettings.keyBindForward : Macro.mc.gameSettings.keyBindLeft,
+                            Macro.mc.gameSettings.keyBindAttack
                     );
                 }
                 break;
             }
             case DROPPING:
-                if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) <= 1.5) {
+                if (Macro.mc.thePlayer.onGround && Math.abs(layerY - Macro.mc.thePlayer.getPosition().getY()) <= 1.5) {
                     LogUtils.sendDebug("Dropping done, but didn't drop high enough to rotate!");
-                    layerY = mc.thePlayer.getPosition().getY();
+                    layerY = Macro.mc.thePlayer.getPosition().getY();
                     changeState(State.NONE);
                 }
                 break;
