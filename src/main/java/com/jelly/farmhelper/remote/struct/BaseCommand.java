@@ -4,6 +4,7 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.remote.WebsocketHandler;
 import com.jelly.farmhelper.utils.Clock;
+import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ScreenShotHelper;
 
@@ -19,8 +20,6 @@ import java.util.concurrent.atomic.AtomicReference;
 @Command(label = "base")
 abstract public class BaseCommand {
     public static final Minecraft mc = Minecraft.getMinecraft();
-    private static boolean patcherEnabled = false;
-    private static boolean essentialsEnabled = false;
     public final String label;
     public BaseCommand() {
         Command command = this.getClass().getAnnotation(Command.class);
@@ -66,30 +65,29 @@ abstract public class BaseCommand {
     }
 
     private static void disablePatcherShit() {
-        if (patcherEnabled) {
-            try {
-                Class<?> klazz = Class.forName("club.sk1er.patcher.config.PatcherConfig");
-                patcherEnabled = true;
-                Field field = klazz.getDeclaredField("screenshotManager");
+        try {
+            Class<?> klazz = Class.forName("club.sk1er.patcher.config.PatcherConfig");
+            Field field = klazz.getDeclaredField("screenshotManager");
+            if (field.getBoolean(klazz)) {
+                LogUtils.sendWarning("Disabling Patcher Mod's Screenshot Manager.");
                 field.setBoolean(klazz, false);
-            } catch (Exception e) {
-                e.printStackTrace();
-                patcherEnabled = false;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     private static void disableEssentialsShit()  {
-        if (essentialsEnabled) {
-            try {
-                Class<?> klazz = Class.forName("gg.essential.config.EssentialConfig");
-                Field field = klazz.getDeclaredField("essentialScreenshots");
-                field.setAccessible(true);
+        try {
+            Class<?> klazz = Class.forName("gg.essential.config.EssentialConfig");
+            Field field = klazz.getDeclaredField("essentialScreenshots");
+            field.setAccessible(true);
+            if (field.getBoolean(klazz)) {
+                LogUtils.sendWarning("Disabling Essential Mod's Screenshot Manager");
                 field.setBoolean(klazz, false);
-            } catch (Exception e) {
-                e.printStackTrace();
-                essentialsEnabled = false;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
