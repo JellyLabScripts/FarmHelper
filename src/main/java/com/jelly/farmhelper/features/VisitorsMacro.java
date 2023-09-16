@@ -759,19 +759,19 @@ public class VisitorsMacro {
                                     boolean foundProfit = false;
                                     ArrayList<String> rarity = PlayerUtils.getItemLore(mc.thePlayer.openContainer.inventorySlots.get(13).getStack());
                                     if (mc.thePlayer.openContainer.inventorySlots.get(13).getHasStack()) {
-                                        if (!Config.visitorsAcceptUncommon && rarity.stream().anyMatch(l -> l.contains("Uncommon"))) {
+                                        if (!Config.visitorsAcceptUncommon && rarity.stream().anyMatch(l -> l.contains("UNCOMMON"))) {
                                             LogUtils.sendDebug("Visitor is uncommon rarity, rejecting...");
                                             rejectOffer = true;
                                         }
-                                        if (!Config.visitorsAcceptRare && rarity.stream().anyMatch(l -> l.contains("Rare"))) {
+                                        if (!Config.visitorsAcceptRare && rarity.stream().anyMatch(l -> l.contains("RARE"))) {
                                             LogUtils.sendDebug("Visitor is common rarity, rejecting...");
                                             rejectOffer = true;
                                         }
-                                        if (!Config.visitorsAcceptLegendary && rarity.stream().anyMatch(l -> l.contains("Legendary"))) {
+                                        if (!Config.visitorsAcceptLegendary && rarity.stream().anyMatch(l -> l.contains("LEGENDARY"))) {
                                             LogUtils.sendDebug("Visitor is legendary rarity, rejecting...");
                                             rejectOffer = true;
                                         }
-                                        if (!Config.visitorsAcceptSpecial && rarity.stream().anyMatch(l -> l.contains("Special"))) {
+                                        if (!Config.visitorsAcceptSpecial && rarity.stream().anyMatch(l -> l.contains("SPECIAL"))) {
                                             LogUtils.sendDebug("Visitor is special rarity, rejecting...");
                                             rejectOffer = true;
                                         }
