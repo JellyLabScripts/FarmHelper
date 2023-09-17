@@ -193,9 +193,6 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
             return State.LEFT;
         }
 
-        new AxisAlignedBB()
-
-
         for (int i = 1; i < 180; i++) {
             if (!isWalkable(BlockUtils.getRelativeBlock(i, 0, 0))) {
                 if (isWalkable(BlockUtils.getRelativeBlock(i - 1, -1, 1)) || isWalkable(BlockUtils.getRelativeBlock(i - 1, -1, 0))) {

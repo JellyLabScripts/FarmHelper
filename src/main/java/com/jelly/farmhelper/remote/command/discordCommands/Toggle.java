@@ -27,12 +27,12 @@ public class Toggle extends DiscordCommand {
                     String username = action.args.get("username").getAsString();
                     boolean toggled = action.args.get("toggled").getAsBoolean();
                     String uuid = action.args.get("uuid").getAsString();
-                    boolean error = action.args.has("error");
+                    boolean error = action.args.has("info");
 
                     EmbedBuilder embedBuilder = new EmbedBuilder();
                     embedBuilder.addField("Username", username, false);
                     if (error) {
-                        embedBuilder.addField("Error", action.args.get("error").getAsString(), false);
+                        embedBuilder.addField("Info", action.args.get("info").getAsString(), false);
                     }
                     embedBuilder.addField("Turned macro", (toggled && !error) ? "On" : "Off", false);
                     int random = (int) (Math.random() * 0xFFFFFF);
