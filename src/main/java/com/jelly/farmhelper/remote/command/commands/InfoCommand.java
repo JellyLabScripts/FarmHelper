@@ -3,14 +3,14 @@ package com.jelly.farmhelper.remote.command.commands;
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.remote.struct.BaseCommand;
+import com.jelly.farmhelper.remote.struct.ClientCommand;
 import com.jelly.farmhelper.remote.struct.Command;
 import com.jelly.farmhelper.remote.struct.RemoteMessage;
 
 import static com.jelly.farmhelper.utils.LogUtils.getRuntimeFormat;
 
 @Command(label = "info")
-public class InfoCommand extends BaseCommand {
+public class InfoCommand extends ClientCommand {
     @Override
     public void execute(RemoteMessage message) {
         JsonObject data = new JsonObject();

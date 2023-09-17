@@ -2,7 +2,7 @@ package com.jelly.farmhelper.remote.command.commands;
 
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.remote.struct.BaseCommand;
+import com.jelly.farmhelper.remote.struct.ClientCommand;
 import com.jelly.farmhelper.remote.struct.Command;
 import com.jelly.farmhelper.remote.struct.RemoteMessage;
 import com.jelly.farmhelper.utils.PlayerUtils;
@@ -23,7 +23,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.Arrays;
 
 @Command(label = "setspeed")
-public class SetSpeedCommand extends BaseCommand {
+public class SetSpeedCommand extends ClientCommand {
     private static int speed = -1;
     private static JsonObject data;
 

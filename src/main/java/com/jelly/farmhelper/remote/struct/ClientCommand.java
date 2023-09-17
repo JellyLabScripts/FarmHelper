@@ -1,13 +1,11 @@
 package com.jelly.farmhelper.remote.struct;
 
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.remote.WebsocketHandler;
 import com.jelly.farmhelper.utils.Clock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ScreenShotHelper;
 
-import java.awt.*;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
@@ -17,12 +15,12 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Command(label = "base")
-abstract public class BaseCommand {
+abstract public class ClientCommand {
     public static final Minecraft mc = Minecraft.getMinecraft();
     private static boolean patcherEnabled = false;
     private static boolean essentialsEnabled = false;
     public final String label;
-    public BaseCommand() {
+    public ClientCommand() {
         Command command = this.getClass().getAnnotation(Command.class);
         this.label = command.label();
     }

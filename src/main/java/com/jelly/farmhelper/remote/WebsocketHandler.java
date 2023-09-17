@@ -3,7 +3,7 @@ package com.jelly.farmhelper.remote;
 import cc.polyfrost.oneconfig.utils.Notifications;
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.FarmHelper;
-import com.jelly.farmhelper.remote.struct.BaseCommand;
+import com.jelly.farmhelper.remote.struct.ClientCommand;
 import com.jelly.farmhelper.remote.struct.RemoteMessage;
 import com.jelly.farmhelper.remote.struct.WebsocketClient;
 import com.jelly.farmhelper.remote.struct.WebsocketServer;
@@ -33,10 +33,10 @@ public class WebsocketHandler {
     public final Minecraft mc = Minecraft.getMinecraft();
     private int reconnectAttempts = 0;
 
-    public static final ArrayList<BaseCommand> commands = new ArrayList<>();
+    public static final ArrayList<ClientCommand> commands = new ArrayList<>();
 
     public WebsocketHandler() {
-        commands.addAll(RemoteUtils.registerCommands("com.jelly.farmhelper.remote.command.commands", BaseCommand.class));
+        commands.addAll(RemoteUtils.registerCommands("com.jelly.farmhelper.remote.command.commands", ClientCommand.class));
     }
 
     public static boolean isServerAlive() {

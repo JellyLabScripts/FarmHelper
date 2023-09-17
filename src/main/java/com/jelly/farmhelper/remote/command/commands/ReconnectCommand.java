@@ -1,7 +1,7 @@
 package com.jelly.farmhelper.remote.command.commands;
 
 import com.google.gson.JsonObject;
-import com.jelly.farmhelper.remote.struct.BaseCommand;
+import com.jelly.farmhelper.remote.struct.ClientCommand;
 import com.jelly.farmhelper.remote.struct.Command;
 import com.jelly.farmhelper.remote.struct.RemoteMessage;
 import com.jelly.farmhelper.utils.Clock;
@@ -10,7 +10,7 @@ import net.minecraft.util.ChatComponentText;
 import static com.jelly.farmhelper.utils.Utils.formatTime;
 
 @Command(label = "reconnect")
-public class ReconnectCommand extends BaseCommand {
+public class ReconnectCommand extends ClientCommand {
     public static boolean isEnabled = false;
 
     public static Clock reconnectClock = new Clock();

@@ -2,14 +2,14 @@ package com.jelly.farmhelper.remote.command.commands;
 
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.remote.struct.BaseCommand;
+import com.jelly.farmhelper.remote.struct.ClientCommand;
 import com.jelly.farmhelper.remote.struct.Command;
 import com.jelly.farmhelper.remote.struct.RemoteMessage;
 import com.jelly.farmhelper.utils.LocationUtils;
 
 
 @Command(label = "toggle")
-public class ToggleCommand extends BaseCommand {
+public class ToggleCommand extends ClientCommand {
 
     @Override
     public void execute(RemoteMessage message) {

@@ -3,7 +3,7 @@ package com.jelly.farmhelper.remote;
 import cc.polyfrost.oneconfig.utils.Notifications;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.remote.command.discordCommands.*;
-import com.jelly.farmhelper.remote.discordStruct.Command;
+import com.jelly.farmhelper.remote.discordStruct.DiscordCommand;
 import com.jelly.farmhelper.remote.event.InteractionAutoComplete;
 import com.jelly.farmhelper.remote.event.InteractionCreate;
 import com.jelly.farmhelper.remote.util.RemoteUtils;
@@ -28,11 +28,11 @@ import static com.jelly.farmhelper.utils.StatusUtils.connecting;
 public class DiscordBotHandler extends ListenerAdapter {
     public static JDA jdaClient;
     private Thread tryConnectThread;
-    public static final ArrayList<Command> commands = new ArrayList<>();
+    public static final ArrayList<DiscordCommand> commands = new ArrayList<>();
     public static boolean finishedLoading = false;
 
     public DiscordBotHandler() {
-        commands.addAll(RemoteUtils.registerCommands("com.jelly.farmhelper.remote.command.discordCommands", Command.class));
+        commands.addAll(RemoteUtils.registerCommands("com.jelly.farmhelper.remote.command.discordCommands", DiscordCommand.class));
     }
 
     public void connect() {
@@ -56,7 +56,8 @@ public class DiscordBotHandler extends ListenerAdapter {
                             Toggle.INSTANCE.getSlashCommand(),
                             Screenshot.INSTANCE.getSlashCommand(),
                             SetSpeed.INSTANCE.getSlashCommand(),
-                            Reconnect.INSTANCE.getSlashCommand())
+                            Reconnect.INSTANCE.getSlashCommand(),
+                            Help.INSTANCE.getSlashCommand())
                     .queue();
             jdaClient.addEventListener(new InteractionAutoComplete());
             jdaClient.addEventListener(new InteractionCreate());

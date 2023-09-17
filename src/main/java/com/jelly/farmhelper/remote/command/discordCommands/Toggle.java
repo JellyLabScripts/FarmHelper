@@ -1,17 +1,15 @@
 package com.jelly.farmhelper.remote.command.discordCommands;
 
-import com.google.gson.JsonObject;
 import com.jelly.farmhelper.remote.WebsocketHandler;
-import com.jelly.farmhelper.remote.discordStruct.Command;
+import com.jelly.farmhelper.remote.discordStruct.DiscordCommand;
 import com.jelly.farmhelper.remote.waiter.Waiter;
 import com.jelly.farmhelper.remote.waiter.WaiterHandler;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
 import java.util.Objects;
 
-public class Toggle extends Command {
+public class Toggle extends DiscordCommand {
     public static final Toggle INSTANCE = new Toggle();
     public static final String name = "toggle";
     public static final String description = "Toggle the bot";

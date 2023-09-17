@@ -2,21 +2,19 @@ package com.jelly.farmhelper.remote.command.discordCommands;
 
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.remote.WebsocketHandler;
-import com.jelly.farmhelper.remote.discordStruct.Command;
+import com.jelly.farmhelper.remote.discordStruct.DiscordCommand;
 import com.jelly.farmhelper.remote.discordStruct.Option;
 import com.jelly.farmhelper.remote.waiter.Waiter;
 import com.jelly.farmhelper.remote.waiter.WaiterHandler;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.utils.FileUpload;
-import org.java_websocket.WebSocket;
 
 import java.util.Objects;
 
-public class Screenshot extends Command {
+public class Screenshot extends DiscordCommand {
     public static final Screenshot INSTANCE = new Screenshot();
     public static final String name = "screenshot";
     public static final String description = "Take a screenshot";

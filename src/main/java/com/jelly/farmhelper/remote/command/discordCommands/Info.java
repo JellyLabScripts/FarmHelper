@@ -1,7 +1,7 @@
 package com.jelly.farmhelper.remote.command.discordCommands;
 
 import com.jelly.farmhelper.remote.WebsocketHandler;
-import com.jelly.farmhelper.remote.discordStruct.Command;
+import com.jelly.farmhelper.remote.discordStruct.DiscordCommand;
 import com.jelly.farmhelper.remote.discordStruct.Option;
 import com.jelly.farmhelper.remote.waiter.Waiter;
 import com.jelly.farmhelper.remote.waiter.WaiterHandler;
@@ -14,7 +14,7 @@ import net.dv8tion.jda.api.utils.FileUpload;
 
 import java.util.Objects;
 
-public class Info extends Command {
+public class Info extends DiscordCommand {
     public static final Info INSTANCE = new Info();
     public static final String name = "info";
     public static final String description = "Get information about the bot";
