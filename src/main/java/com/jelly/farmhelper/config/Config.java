@@ -7,7 +7,6 @@ import cc.polyfrost.oneconfig.config.data.*;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.features.Autosell;
-import com.jelly.farmhelper.features.ProfitCalculator;
 import com.jelly.farmhelper.features.VisitorsMacro;
 import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.hud.ProfitCalculatorHUD;
@@ -18,7 +17,6 @@ import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.StringUtils;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
@@ -615,7 +613,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		name = "WebHook URL", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
 		description = "The URL to use for the webhook",
 		placeholder = "https://discord.com/api/webhooks/...",
-		secure = true, multiline = false
+		secure = true
 	)
 	public String webHookURL = "";
 	@Button(
@@ -878,16 +876,14 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	@Number(
 		name = "Rotation Acting times", category = FAILSAFE, subcategory = "Custom Failsafe times",
 		description = "The number of rotations when failsafe is triggered (recommended from 4 to 8)",
-		min = 4, max = 20,
-		step = 1
+		min = 4, max = 20
 	)
 	public int rotationActingTimes = 6;
 
 	@Number(
 		name = "Bedrock Acting times", category = FAILSAFE, subcategory = "Custom Failsafe times",
 		description = "When the Bedrock failsafe is triggered, the number of times to act before leaving (recommended from 8 to 10)",
-		min = 4, max = 20,
-		step = 1
+		min = 4, max = 20
 	)
 	public int bedrockActingTimes = 6;
 
