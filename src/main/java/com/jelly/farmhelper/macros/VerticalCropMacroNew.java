@@ -194,18 +194,18 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
         }
 
         for (int i = 1; i < 180; i++) {
-            if (!isWalkable(BlockUtils.getRelativeBlock(i, 0, 0))) {
-                if (isWalkable(BlockUtils.getRelativeBlock(i - 1, -1, 1)) || isWalkable(BlockUtils.getRelativeBlock(i - 1, -1, 0))) {
+            if (!canWalkThrough(BlockUtils.getRelativeBlockPos(i, 0, 0))) {
+                if (canWalkThrough(BlockUtils.getRelativeBlockPos(i - 1, -1, 1)) || canWalkThrough(BlockUtils.getRelativeBlockPos(i - 1, -1, 0))) {
                     return State.RIGHT;
                 } else {
-                    LogUtils.sendDebug("Failed right: " + BlockUtils.getRelativeBlock(i - 1, 0, 1));
+                    LogUtils.sendDebug("Failed right: " + BlockUtils.getRelativeBlockPos(i - 1, 0, 1));
                     return State.LEFT;
                 }
-            } else if (!isWalkable(BlockUtils.getRelativeBlock(-i, 0, 0))) {
-                if (isWalkable(BlockUtils.getRelativeBlock(-i + 1, 0, 1)) || isWalkable(BlockUtils.getRelativeBlock(-i + 1, -1, 0))) {
+            } else if (!canWalkThrough(BlockUtils.getRelativeBlockPos(-i, 0, 0))) {
+                if (canWalkThrough(BlockUtils.getRelativeBlockPos(-i + 1, 0, 1)) || canWalkThrough(BlockUtils.getRelativeBlockPos(-i + 1, -1, 0))) {
                     return State.LEFT;
                 } else {
-                    LogUtils.sendDebug("Failed left: " + isWalkable(BlockUtils.getRelativeBlock(i - 1, 0, 1)));
+                    LogUtils.sendDebug("Failed left: " + canWalkThrough(BlockUtils.getRelativeBlockPos(i - 1, 0, 1)));
                     return State.RIGHT;
                 }
             }

@@ -3,13 +3,11 @@ package com.jelly.farmhelper.config;
 import cc.polyfrost.oneconfig.config.annotations.Number;
 import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
-import cc.polyfrost.oneconfig.config.data.InfoType;
-import cc.polyfrost.oneconfig.config.data.Mod;
-import cc.polyfrost.oneconfig.config.data.ModType;
-import cc.polyfrost.oneconfig.config.data.OptionSize;
+import cc.polyfrost.oneconfig.config.data.*;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.features.Autosell;
+import com.jelly.farmhelper.features.VisitorsMacro;
 import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.hud.ProfitCalculatorHUD;
 import com.jelly.farmhelper.hud.StatusHUD;
@@ -139,12 +137,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
     public int SShapeMacroType = 0;
 	@Switch(
-		name = "Custom pitch", category = GENERAL, subcategory = "Macro",
+		name = "Custom Pitch", category = GENERAL, subcategory = "Macro",
 		description = "Set pitch to custom level after starting the macro"
 	)
 	public boolean customPitch = false;
 	@Number(
-		name = "Custom pitch level", category = GENERAL, subcategory = "Macro",
+		name = "Custom Pitch Level", category = GENERAL, subcategory = "Macro",
 		description = "Set custom pitch level after starting the macro",
 		min = -90, max = 90
 	)
@@ -187,17 +185,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 
 	public OneKeyBind openGuiKeybind = new OneKeyBind(Keyboard.KEY_F);
-
-	@Slider(
-			name = "Minimum time between changing rows", category = GENERAL, subcategory = "Delays",
-			description = "The minimum time to wait before changing rows (in milliseconds)", min = 300, max = 2000
-	)
-	public float minTimeBetweenChangingRows = 300f;
-	@Slider(
-			name = "Maximum time between changing rows", category = GENERAL, subcategory = "Delays",
-			description = "The maximum time to wait before changing rows (in milliseconds)", min = 300, max = 2000
-	)
-	public float maxTimeBetweenChangingRows = 700f;
 
 	@Switch(
 		name = "Highlight rewarp points", category = GENERAL, subcategory = "Rewarp",
@@ -374,6 +361,17 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	// START DELAYS
 
 	@Slider(
+			name = "Minimum time between changing rows", category = DELAYS, subcategory = "Delays",
+			description = "The minimum time to wait before changing rows (in milliseconds)", min = 300, max = 2000
+	)
+	public float minTimeBetweenChangingRows = 300f;
+	@Slider(
+			name = "Maximum time between changing rows", category = DELAYS, subcategory = "Delays",
+			description = "The maximum time to wait before changing rows (in milliseconds)", min = 300, max = 2000
+	)
+	public float maxTimeBetweenChangingRows = 700f;
+
+	@Slider(
 		name = "Stop Script Delay Time", category = DELAYS, subcategory = "Delays",
 		description = "The time to wait before stopping the script (in seconds)",
 		min = 1, max = 10
@@ -385,6 +383,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = 1, max = 5
 	)
 	public float delayedStopScriptTimeRandomness = 1f;
+
 	@Slider(
 		name = "Rotation Time", category = DELAYS, subcategory = "Delays",
 		description = "The time it takes to rotate the player (in seconds)",
@@ -397,6 +396,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = 0.2f, max = 2f
 	)
 	public float rotationTimeRandomness = 0.2f;
+
 	@Slider(
 		name = "Visitors Macro GUI delay", category = DELAYS, subcategory = "Delays",
 		description = "The delay between clicking GUI during visitors macro (in seconds)",
@@ -423,10 +423,29 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Only accepts visitors that are profitable"
 	)
 	public boolean onlyAcceptProfitableVisitors = false;
+	@Button(
+			name = "Start the macro manually", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+			description = "Triggers the visitors macro",
+			text = "Trigger now"
+	)
+	public static Runnable triggerVisitorsMacro = () -> {
+		VisitorsMacro.triggerManually();
+	};
+	@Button(
+			name = "Stop the macro", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+			description = "Stops the visitors macro",
+			text = "Stop"
+	)
+	public static Runnable stopVisitorsMacro = () -> {
+		if (!VisitorsMacro.isEnabled()) return;
+		VisitorsMacro.stopMacro();
+		UngrabUtils.regrabMouse();
+		LogUtils.sendSuccess("Visitors macro has been stopped");
+	};
 	@Number(
 			name = "The minimum amount of coins to start the macro (in millions)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
 			description = "The minimum amount of coins you need to have in your purse to start the visitors macro (in millions)",
-			min = 1, max = 20
+			min = 1, max = 20, size = 2
 	)
 	public int visitorsMacroCoinsThreshold = 3;
 	@Slider(
@@ -434,7 +453,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			description = "How much does Instant Buy price need to be higher than Instant Sell price to detect price manipulation",
 			min = 1.25f, max = 4f
 	)
-	public float visitorsMacroPriceManipulationMultiplier = 2;
+	public float visitorsMacroPriceManipulationMultiplier = 1.75f;
 	@Info(
 			text = "If you put your compactors in the hotbar, they will be temporarily disabled.",
 			type = InfoType.WARNING,
@@ -458,6 +477,34 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public static boolean infoDeskNotSet;
 
+
+	@Switch(
+		name = "Accept uncommon visitors", category = VISITORS_MACRO, subcategory = "Rarity",
+		description = "Whether to accept visitors that are uncommon rarity"
+	)
+	public static boolean visitorsAcceptUncommon = true;
+	@Switch(
+		name = "Accept rare visitors", category = VISITORS_MACRO, subcategory = "Rarity",
+		description = "Whether to accept visitors that are rare rarity"
+	)
+	public static boolean visitorsAcceptRare = true;
+	@Switch(
+		name = "Accept legendary visitors", category = VISITORS_MACRO, subcategory = "Rarity",
+		description = "Whether to accept visitors that are legendary rarity"
+	)
+	public static boolean visitorsAcceptLegendary = true;
+	@Switch(
+		name = "Accept special visitors", category = VISITORS_MACRO, subcategory = "Rarity",
+		description = "Whether to accept visitors that are special rarity"
+	)
+	public static boolean visitorsAcceptSpecial = true;
+
+	@Number(
+		name = "Visitors Desk X", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+		description = "Visitors desk X coordinate",
+		min = -30000000, max = 30000000
+	)
+	public int visitorsDeskPosX = 0;
 	@Button(
 		name = "Set Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
 		description = "Sets the visitor's desk position",
@@ -471,6 +518,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		save();
 		LogUtils.sendSuccess("Visitors desk position has been set");
 	};
+	@Number(
+		name = "Visitors Desk Y", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
+		description = "Visitors desk Y coordinate",
+		min = -30000000, max = 30000000
+	)
+	public int visitorsDeskPosY = 0;
 	@Button(
 		name = "Reset Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
 		description = "Resets the visitor's desk position",
@@ -484,55 +537,38 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		LogUtils.sendSuccess("Visitors desk position has been reset");
 	};
 	@Number(
-		name = "Visitors Desk X", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-		description = "Visitors desk X coordinate",
-		min = -30000000, max = 30000000
-	)
-	public int visitorsDeskPosX = 0;
-	@Number(
-		name = "Visitors Desk Y", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-		description = "Visitors desk Y coordinate",
-		min = -30000000, max = 30000000
-	)
-	public int visitorsDeskPosY = 0;
-	@Number(
 		name = "Visitors Desk Z", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
 		description = "Visitors desk Z coordinate",
 		min = -30000000, max = 30000000
 	)
 	public int visitorsDeskPosZ = 0;
-	@KeyBind(
-		name = "Visitors Desk Keybind", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-		description = "Visitors desk keybind"
-	)
-	public OneKeyBind visitorsDeskKeybind = new OneKeyBind(0);
 
 	@Number(
-			name = "SpawnPos X", category = VISITORS_MACRO, subcategory = "Spawn Position",
-			description = "The X coordinate of the spawn",
-			min = -30000000, max = 30000000
+		name = "SpawnPos X", category = VISITORS_MACRO, subcategory = "Spawn Position",
+		description = "The X coordinate of the spawn",
+		min = -30000000, max = 30000000
 
 	)
 	public int spawnPosX = 0;
 	@Button(
-			name = "Set SpawnPos", category = VISITORS_MACRO, subcategory = "Spawn Position",
-			description = "Sets the spawn position to your current position",
-			text = "Set SpawnPos"
+		name = "Set SpawnPos", category = VISITORS_MACRO, subcategory = "Spawn Position",
+		description = "Sets the spawn position to your current position",
+		text = "Set SpawnPos"
 	)
 	Runnable _setSpawnPos = () -> {
 		PlayerUtils.setSpawnLocation();
 		LogUtils.sendSuccess("Your spawn location has been set!");
 	};
 	@Number(
-			name = "SpawnPos Y", category = VISITORS_MACRO, subcategory = "Spawn Position",
-			description = "The Y coordinate of the spawn",
-			min = -30000000, max = 30000000
+		name = "SpawnPos Y", category = VISITORS_MACRO, subcategory = "Spawn Position",
+		description = "The Y coordinate of the spawn",
+		min = -30000000, max = 30000000
 	)
 	public int spawnPosY = 0;
 	@Button(
-			name = "Reset SpawnPos", category = VISITORS_MACRO, subcategory = "Spawn Position",
-			description = "Resets the spawn position",
-			text = "Reset SpawnPos"
+		name = "Reset SpawnPos", category = VISITORS_MACRO, subcategory = "Spawn Position",
+		description = "Resets the spawn position",
+		text = "Reset SpawnPos"
 	)
 	Runnable _resetSpawnPos = () -> {
 		spawnPosX = 0;
@@ -542,9 +578,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		LogUtils.sendSuccess("Spawn position has been reset");
 	};
 	@Number(
-			name = "SpawnPos Z", category = VISITORS_MACRO, subcategory = "Spawn Position",
-			description = "The Z coordinate of the spawn",
-			min = -30000000, max = 30000000
+		name = "SpawnPos Z", category = VISITORS_MACRO, subcategory = "Spawn Position",
+		description = "The Z coordinate of the spawn",
+		min = -30000000, max = 30000000
 	)
 	public int spawnPosZ = 0;
 
@@ -577,7 +613,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		name = "WebHook URL", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
 		description = "The URL to use for the webhook",
 		placeholder = "https://discord.com/api/webhooks/...",
-		secure = true, multiline = false
+		secure = true
 	)
 	public String webHookURL = "";
 	@Button(
@@ -724,9 +760,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	@Info(
 			text = "If you want to use your own WAV file, rename it to 'farmhelper_sound.wav' and put it in your Minecraft directory.",
 			type = InfoType.WARNING,
-			size = 2,
 			category = FAILSAFE,
-			subcategory = "Failsafe Trigger Sound"
+			subcategory = "Failsafe Trigger Sound",
+			size = 2
 	)
 	public static boolean customFailsafeSoundWarning;
 	@Slider(
@@ -840,34 +876,27 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	@Number(
 		name = "Rotation Acting times", category = FAILSAFE, subcategory = "Custom Failsafe times",
 		description = "The number of rotations when failsafe is triggered (recommended from 4 to 8)",
-		min = 4, max = 20,
-		step = 1
+		min = 4, max = 20
 	)
 	public int rotationActingTimes = 6;
 
 	@Number(
 		name = "Bedrock Acting times", category = FAILSAFE, subcategory = "Custom Failsafe times",
 		description = "When the Bedrock failsafe is triggered, the number of times to act before leaving (recommended from 8 to 10)",
-		min = 4, max = 20,
-		step = 1
+		min = 4, max = 20
 	)
 	public int bedrockActingTimes = 6;
 
-	@Text(
-		name = "Rotation messages", category = FAILSAFE, subcategory = "Custom Failsafe Messages",
-		description = "The messages to send to the chat when a rotation failsafe has been triggered (use '|' to split the messages)",
-		placeholder = "Leave empty to use a random message",
-		multiline = true
+	@Switch(
+		name = "Send Chat Message During Failsafe", category = FAILSAFE, subcategory = "Failsafe Messages",
+		description = "Sends a chat message when a failsafe has been triggered"
 	)
-	public static String customRotationMessages = "";
-
-	@Text(
-		name = "Bedrock messages", category = FAILSAFE, subcategory = "Custom Failsafe Messages",
-		description = "The messages to send to the chat when a bedrock failsafe has been triggered (use '|' to split the messages)",
-		placeholder = "Leave empty to use a random message",
-		multiline = true
+	public boolean sendFailsafeMessage = true;
+	@Page(
+		name = "Custom Failsafe Messages", category = FAILSAFE, subcategory = "Failsafe Messages", location = PageLocation.BOTTOM,
+		description = "Click here to edit custom failsafe messages"
 	)
-	public static String customBedrockMessages = "";
+	public CustomFailsafeMessagesPage customFailsafeMessagesPage = new CustomFailsafeMessagesPage();
 
 	// END FAILSAFE
 
@@ -899,7 +928,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	@Slider(
 		name = "Wheat Cap", category = FAILSAFE, subcategory = "Jacob",
 		description = "The wheat cap",
-		min = 10000, max = 2000000
+		min = 10000, max = 2000000, step = 10000
 	)
 	public int jacobWheatCap = 265000;
 	@Slider(
@@ -1085,11 +1114,14 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("jacobCocoaBeansCap", "enableJacobFailsafes");
 		this.addDependency("jacobCactusCap", "enableJacobFailsafes");
 
+		this.addDependency("triggerVisitorsMacro", "visitorsMacro");
+		this.hideIf("triggerVisitorsMacro", () -> VisitorsMacro.isEnabled());
+		this.hideIf("stopVisitorsMacro", () -> !VisitorsMacro.isEnabled());
 		this.addDependency("onlyAcceptProfitableVisitors", "visitorsMacro");
 		this.addDependency("visitorsMacroCoinsThreshold", "visitorsMacro");
 		this.addDependency("pauseVisitorsMacroDuringJacobsContest", "visitorsMacro");
 		this.hideIf("infoCookieBuffRequired", () -> LocationUtils.currentIsland != LocationUtils.Island.GARDEN || FarmHelper.gameState.cookie == GameState.EffectState.ON);
-		this.hideIf("infoDeskNotSet", () -> LocationUtils.currentIsland != LocationUtils.Island.GARDEN || FarmHelper.config.visitorsDeskPosX != 0 || FarmHelper.config.visitorsDeskPosY != 0 || FarmHelper.config.visitorsDeskPosZ != 0);
+		this.hideIf("infoDeskNotSet", () -> LocationUtils.currentIsland != LocationUtils.Island.GARDEN || VisitorsMacro.isDeskPosSet());
 
 		this.addDependency("sendLogs", "enableWebHook");
 		this.addDependency("sendStatusUpdates", "enableWebHook");

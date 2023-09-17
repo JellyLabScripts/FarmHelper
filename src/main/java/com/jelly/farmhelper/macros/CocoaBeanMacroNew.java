@@ -101,8 +101,8 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
             KeyBindUtils.stopMovement(FarmHelper.config.holdLeftClickWhenChangingRow);
             FarmHelper.gameState.scheduleNotMoving();
             updateState();
-            invokeState();
         }
+        invokeState();
     }
 
     private void updateState() {

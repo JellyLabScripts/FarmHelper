@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.utils;
 
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.mixins.block.IBlockAccessor;
 import net.minecraft.block.*;
@@ -48,15 +49,21 @@ public class CropUtils {
         final IBlockState blockState = world.getBlockState(pos);
         final Integer ageValue = blockState.getValue(BlockCrops.AGE);
         IBlockAccessor accessor = (IBlockAccessor) block;
+        if (FarmHelper.config.increasedCrops)
             accessor.setMaxY(
                     blockState.getBlock() instanceof BlockPotato || blockState.getBlock() instanceof BlockCarrot
                             ? CARROT_POTATO_BOX[ageValue].maxY
                             : WHEAT_BOX[ageValue].maxY
-            );
+            ); // mc 1.12
+        else
+            accessor.setMaxY(0.25D); // mc 1.8.9
     }
 
     public static void updateWartMaxY(World world, BlockPos pos, Block block) {
-        ((IBlockAccessor) block).setMaxY(NETHER_WART_BOX[world.getBlockState(pos).getValue(BlockNetherWart.AGE)].maxY);
+        if (FarmHelper.config.increasedNetherWarts)
+            ((IBlockAccessor) block).setMaxY(NETHER_WART_BOX[world.getBlockState(pos).getValue(BlockNetherWart.AGE)].maxY); // mc 1.12
+        else
+            ((IBlockAccessor) block).setMaxY(0.25D); // mc 1.8.9
     }
 
     public static void updateCocoaBeansHitbox(IBlockState blockState) {
@@ -65,7 +72,7 @@ public class CropUtils {
         int j = 4 + age * 2;
         int k = 5 + age * 2;
 
-        if (MacroHandler.currentMacro == MacroHandler.cocoaBeanMacro && MacroHandler.isMacroing) {
+        if (MacroHandler.currentMacro == MacroHandler.cocoaBeanMacro && MacroHandler.isMacroing && FarmHelper.config.increasedCocoaBeans) {
             switch (enumFacing) {
                 case SOUTH: {
                     blockState.getBlock().setBlockBounds(0, (12.0f - (float) k) / 16.0f, (15.0f - (float) j) / 16.0f, 1, 0.75f, 0.9375f);

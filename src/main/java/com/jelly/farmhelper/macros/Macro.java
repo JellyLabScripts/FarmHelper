@@ -82,7 +82,7 @@ public abstract class Macro<T> {
 
     public void onTick() {
         checkForTeleport();
-        if (isStandingOnRewarpLocation()) {
+        if (isStandingOnRewarpLocation() && !FailsafeNew.emergency) {
             triggerWarpGarden();
             return;
         }

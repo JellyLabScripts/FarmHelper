@@ -6,7 +6,7 @@ plugins {
     id("net.kyori.blossom") version "1.3.1"
 }
 
-version = "4.5.27-pre"
+version = "4.5.28-pre"
 
 repositories {
     maven("https://jitpack.io")
@@ -59,7 +59,7 @@ loom {
              * uncomment the following if you want to authenticate into you minecraft account
              * while in the dev env. https://github.com/DJtheRedstoner/DevAuth read this
              */
-            property("devauth.enabled", "false")
+            property("devauth.enabled", "true")
         }
     }
 
