@@ -13,7 +13,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import java.util.Objects;
 
 public class SetSpeed extends DiscordCommand {
-    public static final SetSpeed INSTANCE = new SetSpeed();
     public static final String name = "setspeed";
     public static final String description = "Set speed of rancher boots";
 

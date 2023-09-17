@@ -2,14 +2,11 @@ package com.jelly.farmhelper.remote.command.discordCommands;
 
 import com.jelly.farmhelper.remote.DiscordBotHandler;
 import com.jelly.farmhelper.remote.discordStruct.DiscordCommand;
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.utils.FileUpload;
 
 public class Help extends DiscordCommand {
-    public static final Help INSTANCE = new Help();
     public static final String name = "help";
     public static final String description = "Get information about commands";
 

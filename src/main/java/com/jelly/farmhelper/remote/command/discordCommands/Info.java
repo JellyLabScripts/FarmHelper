@@ -15,7 +15,6 @@ import net.dv8tion.jda.api.utils.FileUpload;
 import java.util.Objects;
 
 public class Info extends DiscordCommand {
-    public static final Info INSTANCE = new Info();
     public static final String name = "info";
     public static final String description = "Get information about the bot";
 

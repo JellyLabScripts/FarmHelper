@@ -46,7 +46,11 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                 pitch = (float) (2.8f + Math.random() * 0.5f);
             }
         }
-        yaw = AngleUtils.getClosest();
+        if (FarmHelper.config.customYaw) {
+            yaw = FarmHelper.config.customYawLevel;
+        } else {
+            yaw = AngleUtils.getClosest();
+        }
         rotation.easeTo(yaw, pitch, 500);
     }
 

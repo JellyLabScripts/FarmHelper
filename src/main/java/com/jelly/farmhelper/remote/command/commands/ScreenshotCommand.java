@@ -48,7 +48,7 @@ public class ScreenshotCommand extends ClientCommand {
 
         PlayerUtils.openInventory();
         String screenshot = getScreenshot();
-        BaseCommand.mc.thePlayer.closeScreen();
+        ClientCommand.mc.thePlayer.closeScreen();
 
         if (wasMacroing) {
             MacroHandler.enableCurrentMacro();

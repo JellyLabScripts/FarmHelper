@@ -37,6 +37,7 @@ public class WebsocketHandler {
 
     public WebsocketHandler() {
         commands.addAll(RemoteUtils.registerCommands("com.jelly.farmhelper.remote.command.commands", ClientCommand.class));
+        System.out.println("Registered " + commands.size() + " commands");
     }
 
     public static boolean isServerAlive() {

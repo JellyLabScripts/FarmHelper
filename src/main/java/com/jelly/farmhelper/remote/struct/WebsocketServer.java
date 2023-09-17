@@ -27,6 +27,7 @@ public class WebsocketServer extends WebSocketServer {
 
     public WebsocketServer(int port) {
         super(new InetSocketAddress(port));
+        minecraftInstances.clear();
         websocketServerState = WebsocketServerState.CONNECTING;
         minecraftInstances.put(null, Minecraft.getMinecraft().getSession().getUsername());
     }

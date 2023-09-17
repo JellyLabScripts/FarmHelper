@@ -15,7 +15,6 @@ import net.dv8tion.jda.api.utils.FileUpload;
 import java.util.Objects;
 
 public class Screenshot extends DiscordCommand {
-    public static final Screenshot INSTANCE = new Screenshot();
     public static final String name = "screenshot";
     public static final String description = "Take a screenshot";
 

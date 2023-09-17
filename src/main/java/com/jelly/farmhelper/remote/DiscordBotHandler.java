@@ -20,6 +20,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import static com.jelly.farmhelper.utils.StatusUtils.connecting;
 
@@ -33,6 +34,7 @@ public class DiscordBotHandler extends ListenerAdapter {
 
     public DiscordBotHandler() {
         commands.addAll(RemoteUtils.registerCommands("com.jelly.farmhelper.remote.command.discordCommands", DiscordCommand.class));
+        System.out.println("Registered " + commands.size() + " commands");
     }
 
     public void connect() {
@@ -47,17 +49,10 @@ public class DiscordBotHandler extends ListenerAdapter {
             jdaClient = JDABuilder.createLight(FarmHelper.config.discordRemoteControlToken)
                     .disableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE, CacheFlag.ACTIVITY)
                     .enableIntents(GatewayIntent.MESSAGE_CONTENT)
-
                     .build();
             jdaClient.awaitReady();
             jdaClient.updateCommands()
-                    .addCommands(
-                            Info.INSTANCE.getSlashCommand(),
-                            Toggle.INSTANCE.getSlashCommand(),
-                            Screenshot.INSTANCE.getSlashCommand(),
-                            SetSpeed.INSTANCE.getSlashCommand(),
-                            Reconnect.INSTANCE.getSlashCommand(),
-                            Help.INSTANCE.getSlashCommand())
+                    .addCommands(commands.stream().map(DiscordCommand::getSlashCommand).collect(Collectors.toList()))
                     .queue();
             jdaClient.addEventListener(new InteractionAutoComplete());
             jdaClient.addEventListener(new InteractionCreate());
@@ -92,6 +87,14 @@ public class DiscordBotHandler extends ListenerAdapter {
             if (jdaClient != null) {
                 jdaClient.shutdownNow();
                 jdaClient = null;
+            }
+            if (WebsocketHandler.websocketServer != null) {
+                try {
+                    WebsocketHandler.websocketServer.stop();
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                }
+                WebsocketHandler.websocketServer = null;
             }
             WebsocketHandler.websocketState = WebsocketHandler.WebsocketState.NONE;
             finishedLoading = false;

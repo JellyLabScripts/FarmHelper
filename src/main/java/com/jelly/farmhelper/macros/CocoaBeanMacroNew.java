@@ -37,7 +37,11 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
         } else {
             pitch = -70f + (float) (Math.random() * 0.6);
         }
-        yaw = AngleUtils.getClosest();
+        if (FarmHelper.config.customYaw) {
+            yaw = FarmHelper.config.customYawLevel;
+        } else {
+            yaw = AngleUtils.getClosest();
+        }
         rotation.easeTo(yaw, pitch, 500);
     }
 

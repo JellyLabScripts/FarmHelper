@@ -16,7 +16,6 @@ import net.dv8tion.jda.api.utils.FileUpload;
 import java.util.Objects;
 
 public class Reconnect extends DiscordCommand {
-    public static final Reconnect INSTANCE = new Reconnect();
     public static final String name = "reconnect";
     public static final String description = "Reconnect to the server";
 

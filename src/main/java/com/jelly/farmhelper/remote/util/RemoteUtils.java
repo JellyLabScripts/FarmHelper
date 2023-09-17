@@ -1,6 +1,8 @@
 package com.jelly.farmhelper.remote.util;
 
 import org.reflections.Reflections;
+import org.reflections.scanners.Scanners;
+import org.reflections.scanners.SubTypesScanner;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -9,12 +11,16 @@ import java.util.function.Predicate;
 
 public class RemoteUtils {
     public static <T> ArrayList<T> registerCommands(String packageName, Class<T> baseClass) {
-        Reflections reflections = new Reflections(packageName);
+        Reflections reflections = new Reflections(packageName, Scanners.SubTypes);
         Set<Class<? extends T>> classes = reflections.getSubTypesOf(baseClass);
+        System.out.println("Found " + classes.size() + " classes in package " + packageName);
         ArrayList<T> commands = new ArrayList<>();
         for (Class<? extends T> clazz : classes) {
             try {
-                T command = clazz.getDeclaredConstructor().newInstance();
+                if (!baseClass.isAssignableFrom(clazz)) {
+                    continue;
+                }
+                T command = clazz.asSubclass(baseClass).getDeclaredConstructor().newInstance();
                 commands.add(command);
                 System.out.println("Registered command " + clazz.getName());
             } catch (Exception e) {

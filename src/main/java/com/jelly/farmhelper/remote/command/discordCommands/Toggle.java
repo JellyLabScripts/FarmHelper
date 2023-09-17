@@ -10,7 +10,6 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import java.util.Objects;
 
 public class Toggle extends DiscordCommand {
-    public static final Toggle INSTANCE = new Toggle();
     public static final String name = "toggle";
     public static final String description = "Toggle the bot";
 
