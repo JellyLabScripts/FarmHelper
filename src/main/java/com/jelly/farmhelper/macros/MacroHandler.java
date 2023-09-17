@@ -128,7 +128,7 @@ public class MacroHandler {
             FailsafeNew.resetFailsafes();
             disableMacro();
             LogUtils.sendWarning("Farm manually and DO NOT restart the macro too soon! The staff might still be spectating you for a while!");
-        } else if (isMacroing) {
+        } else if (isMacroing || (VisitorsMacro.triggeredManually && VisitorsMacro.isEnabled())) {
             disableMacro();
         } else {
             enableMacro();
@@ -139,7 +139,14 @@ public class MacroHandler {
             LogUtils.sendError("You must be in the garden to start the macro!");
             return;
         }
-        if(!FarmHelper.config.macroType) {
+        if (VisitorsMacro.isPlayerInsideBarn()) {
+            if (VisitorsMacro.isStandingOnDeskPos())
+                VisitorsMacro.triggerManually();
+            else
+                LogUtils.sendError("You must be outside the barn to start the macro!");
+            return;
+        }
+        if (!FarmHelper.config.macroType) {
             currentMacro = verticalCropMacro;
         } else {
             if (FarmHelper.config.SShapeMacroType == SMacroEnum.SUGAR_CANE.ordinal()) {

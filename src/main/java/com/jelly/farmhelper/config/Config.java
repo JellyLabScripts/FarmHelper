@@ -7,6 +7,8 @@ import cc.polyfrost.oneconfig.config.data.*;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.features.Autosell;
+import com.jelly.farmhelper.features.ProfitCalculator;
+import com.jelly.farmhelper.features.VisitorsMacro;
 import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.hud.ProfitCalculatorHUD;
 import com.jelly.farmhelper.hud.StatusHUD;
@@ -16,6 +18,7 @@ import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.StringUtils;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
@@ -411,10 +414,29 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Only accepts visitors that are profitable"
 	)
 	public boolean onlyAcceptProfitableVisitors = false;
+	@Button(
+			name = "Start the macro manually", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+			description = "Triggers the visitors macro",
+			text = "Trigger now"
+	)
+	public static Runnable triggerVisitorsMacro = () -> {
+		VisitorsMacro.triggerManually();
+	};
+	@Button(
+			name = "Stop the macro", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+			description = "Stops the visitors macro",
+			text = "Stop"
+	)
+	public static Runnable stopVisitorsMacro = () -> {
+		if (!VisitorsMacro.isEnabled()) return;
+		VisitorsMacro.stopMacro();
+		UngrabUtils.regrabMouse();
+		LogUtils.sendSuccess("Visitors macro has been stopped");
+	};
 	@Number(
 			name = "The minimum amount of coins to start the macro (in millions)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
 			description = "The minimum amount of coins you need to have in your purse to start the visitors macro (in millions)",
-			min = 1, max = 20
+			min = 1, max = 20, size = 2
 	)
 	public int visitorsMacroCoinsThreshold = 3;
 	@Slider(
@@ -1085,11 +1107,14 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("jacobCocoaBeansCap", "enableJacobFailsafes");
 		this.addDependency("jacobCactusCap", "enableJacobFailsafes");
 
+		this.addDependency("triggerVisitorsMacro", "visitorsMacro");
+		this.hideIf("triggerVisitorsMacro", () -> VisitorsMacro.isEnabled());
+		this.hideIf("stopVisitorsMacro", () -> !VisitorsMacro.isEnabled());
 		this.addDependency("onlyAcceptProfitableVisitors", "visitorsMacro");
 		this.addDependency("visitorsMacroCoinsThreshold", "visitorsMacro");
 		this.addDependency("pauseVisitorsMacroDuringJacobsContest", "visitorsMacro");
 		this.hideIf("infoCookieBuffRequired", () -> LocationUtils.currentIsland != LocationUtils.Island.GARDEN || FarmHelper.gameState.cookie == GameState.EffectState.ON);
-		this.hideIf("infoDeskNotSet", () -> LocationUtils.currentIsland != LocationUtils.Island.GARDEN || FarmHelper.config.visitorsDeskPosX != 0 || FarmHelper.config.visitorsDeskPosY != 0 || FarmHelper.config.visitorsDeskPosZ != 0);
+		this.hideIf("infoDeskNotSet", () -> LocationUtils.currentIsland != LocationUtils.Island.GARDEN || VisitorsMacro.isDeskPosSet());
 
 		this.addDependency("sendLogs", "enableWebHook");
 		this.addDependency("sendStatusUpdates", "enableWebHook");
