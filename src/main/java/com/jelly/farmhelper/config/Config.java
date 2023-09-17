@@ -137,28 +137,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
     public int SShapeMacroType = 0;
 	@Switch(
-		name = "Custom Pitch", category = GENERAL, subcategory = "Macro",
-		description = "Set pitch to custom level after starting the macro"
-	)
-	public boolean customPitch = false;
-	@Number(
-		name = "Custom Pitch Level", category = GENERAL, subcategory = "Macro",
-		description = "Set custom pitch level after starting the macro",
-		min = -90, max = 90
-	)
-	public int customPitchLevel = 0;
-	@Switch(
-		name = "Custom Yaw", category = GENERAL, subcategory = "Macro",
-		description = "Set yaw to custom level after starting the macro"
-	)
-	public boolean customYaw = false;
-	@Number(
-		name = "Custom Yaw Level", category = GENERAL, subcategory = "Macro",
-		description = "Set custom yaw level after starting the macro",
-		min = -180, max = 180
-	)
-	public int customYawLevel = 0;
-	@Switch(
 		name = "Rotate After Warped", category = GENERAL, subcategory = "Macro",
 		description = "Rotates the player after re-warping"
 	)
@@ -1001,7 +979,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	// START EXPERIMENTAL
 
 	@Switch(
-			name = "Enable Fast Break (DANGEROUS)", category = EXPERIMENTAL, subcategory = "Experimental",
+			name = "Enable Fast Break (DANGEROUS)", category = EXPERIMENTAL, subcategory = "Fast Break",
 			description = "Fast break is very risky and most likely will result in a ban"
 	)
 	public boolean fastBreak = false;
@@ -1009,56 +987,79 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			text = "Fastbreak will most likely ban you. Proceed with caution.",
 			type = InfoType.ERROR,
 			category = EXPERIMENTAL,
-			subcategory = "Experimental"
+			subcategory = "Fast Break"
 	)
 	public static boolean ignored3;
 	@Slider(
-			name = "Fast Break Speed", category = EXPERIMENTAL, subcategory = "Experimental",
+			name = "Fast Break Speed", category = EXPERIMENTAL, subcategory = "Fast Break",
 			description = "Fast break speed",
 			min = 1, max = 3
 	)
 	public int fastBreakSpeed = 1;
 	@Switch(
-			name = "Disable Fast Break during banwave", category = EXPERIMENTAL, subcategory = "Experimental",
+			name = "Disable Fast Break during banwave", category = EXPERIMENTAL, subcategory = "Fast Break",
 			description = "Disables Fast Break during banwave"
 	)
 	public boolean disableFastBreakDuringBanWave = true;
 	@Switch(
-			name = "Disable Fast Break during Jacob's contest", category = EXPERIMENTAL, subcategory = "Experimental",
+			name = "Disable Fast Break during Jacob's contest", category = EXPERIMENTAL, subcategory = "Fast Break",
 			description = "Disables Fast Break during Jacob's contest"
 	)
 	public boolean disableFastBreakDuringJacobsContest = true;
 
+	@Switch(
+			name = "Enable New Lag Detection", category = EXPERIMENTAL, subcategory = "Lag Detection",
+			description = "Enables the new lag detection system to prevent false positives"
+	)
+	public boolean enableNewLagDetection = false;
+	@Slider(
+			name = "Lag Detection Sensitivity", category = EXPERIMENTAL, subcategory = "Lag Detection",
+			description = "The maximum time between received packets to trigger a lag detection",
+			min = 50, max = 1500, step = 50
+	)
+	public int lagDetectionSensitivity = 300;
+
+	@Switch(
+			name = "Custom Pitch", category = EXPERIMENTAL, subcategory = "Custom Pitch/Yaw",
+			description = "Set pitch to custom level after starting the macro"
+	)
+	public boolean customPitch = false;
+	@Slider(
+			name = "Custom Pitch Level", category = EXPERIMENTAL, subcategory = "Custom Pitch/Yaw",
+			description = "Set custom pitch level after starting the macro",
+			min = -90, max = 90
+	)
+	public float customPitchLevel = 0;
+	@Switch(
+			name = "Custom Yaw", category = EXPERIMENTAL, subcategory = "Custom Pitch/Yaw",
+			description = "Set yaw to custom level after starting the macro"
+	)
+	public boolean customYaw = false;
+	@Slider(
+			name = "Custom Yaw Level", category = EXPERIMENTAL, subcategory = "Custom Pitch/Yaw",
+			description = "Set custom yaw level after starting the macro",
+			min = -180, max = 180
+	)
+	public float customYawLevel = 0;
+
 	@Dropdown(
-			name = "Alt-tab mode", category = EXPERIMENTAL, subcategory = "Experimental",
+			name = "Alt-tab mode", category = EXPERIMENTAL, subcategory = "Miscellaneous",
 			description = "The mode to use when alt-tabbing. Using keys is more reliable, but it's slower. Using WINAPI is faster, but it's less reliable and Windows only. It also maximizes the game window.",
 			options = {"Using keys", "Using WINAPI (Windows only)"}
 	)
 	public int autoAltTabMode = 0;
 
 	@Switch(
-			name = "Ping server to decrease potential false rotation checks", category = EXPERIMENTAL, subcategory = "Experimental"
+			name = "Ping server to decrease potential false rotation checks", category = EXPERIMENTAL, subcategory = "Miscellaneous"
 	)
 	public boolean pingServer = true;
 
 	@Slider(
-			name = "Maximum rewarp trigger distance", category = EXPERIMENTAL, subcategory = "Experimental",
+			name = "Maximum rewarp trigger distance", category = EXPERIMENTAL, subcategory = "Miscellaneous",
 			description = "The maximum distance from the center of the rewarp point to the player that will trigger a rewarp",
 			min = 0.2f, max = 1.75f
 	)
 	public float rewarpMaxDistance = 0.75f;
-
-	@Switch(
-			name = "Enable New Lag Detection", category = EXPERIMENTAL, subcategory = "Experimental",
-			description = "Enables the new lag detection system to prevent false positives"
-	)
-	public boolean enableNewLagDetection = false;
-	@Slider(
-			name = "Lag Detection Sensitivity", category = EXPERIMENTAL, subcategory = "Experimental",
-			description = "The maximum time between received packets to trigger a lag detection",
-			min = 50, max = 1500, step = 50
-	)
-	public int lagDetectionSensitivity = 300;
 
 	// END EXPERIMENTAL
 
@@ -1147,7 +1148,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 		this.addDependency("hideLogs", "Hide Logs (Not Recommended)", () -> !this.debugMode);
 		this.addDependency("debugMode", "Debug Mode", () -> !this.hideLogs);
+		this.addDependency("lagDetectionSensitivity", "enableNewLagDetection");
 		this.addDependency("customPitchLevel", "customPitch");
+		this.addDependency("customYawLevel", "customYaw");
 		this.hideIf("configVersion", () -> true);
 		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
 //		registerKeyBind(debugKeybind, () -> FarmHelper.petSwapper.startMacro(false));
