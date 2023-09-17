@@ -150,6 +150,17 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public int customPitchLevel = 0;
 	@Switch(
+		name = "Custom yaw", category = GENERAL, subcategory = "Macro",
+		description = "Set yaw to custom level after starting the macro"
+	)
+	public boolean customYaw = false;
+	@Number(
+		name = "Custom yaw level", category = GENERAL, subcategory = "Macro",
+		description = "Set custom yaw level after starting the macro",
+		min = -180, max = 180
+	)
+	public int customYawLevel = 0;
+	@Switch(
 		name = "Rotate After Warped", category = GENERAL, subcategory = "Macro",
 		description = "Rotates the player after re-warping"
 	)

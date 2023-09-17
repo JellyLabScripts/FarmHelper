@@ -26,10 +26,14 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
         } else {
             pitch = (float) (Math.random() * 2 - 1); // -1 - 1
         }
+        if (FarmHelper.config.customYaw) {
+            yaw = FarmHelper.config.customYawLevel;
+        } else {
+            yaw = AngleUtils.getClosestDiagonal();
+        }
         Config.CropEnum crop = MacroHandler.getFarmingCrop();
         LogUtils.sendDebug("Crop: " + crop);
         MacroHandler.crop = crop;
-        yaw = AngleUtils.getClosestDiagonal();
         closest90Yaw = AngleUtils.getClosest();
         if (currentState == null)
             currentState = calculateDirection();

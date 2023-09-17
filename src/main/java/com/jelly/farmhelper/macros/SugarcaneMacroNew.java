@@ -23,11 +23,15 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
     @Override
     public void onEnable() {
         super.onEnable();
-        yaw = AngleUtils.getClosestDiagonal();
         if (FarmHelper.config.customPitch) {
             pitch = FarmHelper.config.customPitchLevel;
         } else {
             pitch = (float) (Math.random() * 1) - 0.5f; // -0.5 to 0.5
+        }
+        if (FarmHelper.config.customYaw) {
+            yaw = FarmHelper.config.customYawLevel;
+        } else {
+            yaw = AngleUtils.getClosestDiagonal();
         }
         MacroHandler.crop = MacroHandler.getFarmingCrop();
         if (currentState == null)

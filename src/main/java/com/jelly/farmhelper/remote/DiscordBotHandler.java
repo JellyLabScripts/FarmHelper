@@ -3,7 +3,7 @@ package com.jelly.farmhelper.remote;
 import cc.polyfrost.oneconfig.utils.Notifications;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.remote.command.discordCommands.*;
-import com.jelly.farmhelper.remote.discordStruct.Command;
+import com.jelly.farmhelper.remote.discordStruct.DiscordCommand;
 import com.jelly.farmhelper.remote.event.InteractionAutoComplete;
 import com.jelly.farmhelper.remote.event.InteractionCreate;
 import com.jelly.farmhelper.remote.util.RemoteUtils;
@@ -20,6 +20,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import static com.jelly.farmhelper.utils.StatusUtils.connecting;
 
@@ -28,11 +29,12 @@ import static com.jelly.farmhelper.utils.StatusUtils.connecting;
 public class DiscordBotHandler extends ListenerAdapter {
     public static JDA jdaClient;
     private Thread tryConnectThread;
-    public static final ArrayList<Command> commands = new ArrayList<>();
+    public static final ArrayList<DiscordCommand> commands = new ArrayList<>();
     public static boolean finishedLoading = false;
 
     public DiscordBotHandler() {
-        commands.addAll(RemoteUtils.registerCommands("com.jelly.farmhelper.remote.command.discordCommands", Command.class));
+        commands.addAll(RemoteUtils.registerCommands("com.jelly.farmhelper.remote.command.discordCommands", DiscordCommand.class));
+        System.out.println("Registered " + commands.size() + " commands");
     }
 
     public void connect() {
@@ -47,16 +49,10 @@ public class DiscordBotHandler extends ListenerAdapter {
             jdaClient = JDABuilder.createLight(FarmHelper.config.discordRemoteControlToken)
                     .disableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE, CacheFlag.ACTIVITY)
                     .enableIntents(GatewayIntent.MESSAGE_CONTENT)
-
                     .build();
             jdaClient.awaitReady();
             jdaClient.updateCommands()
-                    .addCommands(
-                            Info.INSTANCE.getSlashCommand(),
-                            Toggle.INSTANCE.getSlashCommand(),
-                            Screenshot.INSTANCE.getSlashCommand(),
-                            SetSpeed.INSTANCE.getSlashCommand(),
-                            Reconnect.INSTANCE.getSlashCommand())
+                    .addCommands(commands.stream().map(DiscordCommand::getSlashCommand).collect(Collectors.toList()))
                     .queue();
             jdaClient.addEventListener(new InteractionAutoComplete());
             jdaClient.addEventListener(new InteractionCreate());
@@ -91,6 +87,14 @@ public class DiscordBotHandler extends ListenerAdapter {
             if (jdaClient != null) {
                 jdaClient.shutdownNow();
                 jdaClient = null;
+            }
+            if (WebsocketHandler.websocketServer != null) {
+                try {
+                    WebsocketHandler.websocketServer.stop();
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                }
+                WebsocketHandler.websocketServer = null;
             }
             WebsocketHandler.websocketState = WebsocketHandler.WebsocketState.NONE;
             finishedLoading = false;

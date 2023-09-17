@@ -2,9 +2,8 @@ package com.jelly.farmhelper.remote.command.discordCommands;
 
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.remote.WebsocketHandler;
-import com.jelly.farmhelper.remote.discordStruct.Command;
+import com.jelly.farmhelper.remote.discordStruct.DiscordCommand;
 import com.jelly.farmhelper.remote.discordStruct.Option;
-import com.jelly.farmhelper.remote.struct.RemoteMessage;
 import com.jelly.farmhelper.remote.waiter.Waiter;
 import com.jelly.farmhelper.remote.waiter.WaiterHandler;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
@@ -16,8 +15,7 @@ import net.dv8tion.jda.api.utils.FileUpload;
 
 import java.util.Objects;
 
-public class Reconnect extends Command {
-    public static final Reconnect INSTANCE = new Reconnect();
+public class Reconnect extends DiscordCommand {
     public static final String name = "reconnect";
     public static final String description = "Reconnect to the server";
 

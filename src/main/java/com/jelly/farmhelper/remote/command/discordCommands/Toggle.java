@@ -1,18 +1,15 @@
 package com.jelly.farmhelper.remote.command.discordCommands;
 
-import com.google.gson.JsonObject;
 import com.jelly.farmhelper.remote.WebsocketHandler;
-import com.jelly.farmhelper.remote.discordStruct.Command;
+import com.jelly.farmhelper.remote.discordStruct.DiscordCommand;
 import com.jelly.farmhelper.remote.waiter.Waiter;
 import com.jelly.farmhelper.remote.waiter.WaiterHandler;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
 import java.util.Objects;
 
-public class Toggle extends Command {
-    public static final Toggle INSTANCE = new Toggle();
+public class Toggle extends DiscordCommand {
     public static final String name = "toggle";
     public static final String description = "Toggle the bot";
 
@@ -30,12 +27,12 @@ public class Toggle extends Command {
                     String username = action.args.get("username").getAsString();
                     boolean toggled = action.args.get("toggled").getAsBoolean();
                     String uuid = action.args.get("uuid").getAsString();
-                    boolean error = action.args.has("error");
+                    boolean error = action.args.has("info");
 
                     EmbedBuilder embedBuilder = new EmbedBuilder();
                     embedBuilder.addField("Username", username, false);
                     if (error) {
-                        embedBuilder.addField("Error", action.args.get("error").getAsString(), false);
+                        embedBuilder.addField("Info", action.args.get("info").getAsString(), false);
                     }
                     embedBuilder.addField("Turned macro", (toggled && !error) ? "On" : "Off", false);
                     int random = (int) (Math.random() * 0xFFFFFF);

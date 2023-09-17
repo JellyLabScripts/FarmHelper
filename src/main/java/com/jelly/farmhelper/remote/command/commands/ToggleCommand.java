@@ -2,14 +2,15 @@ package com.jelly.farmhelper.remote.command.commands;
 
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.macros.MacroHandler;
-import com.jelly.farmhelper.remote.struct.BaseCommand;
+import com.jelly.farmhelper.remote.struct.ClientCommand;
 import com.jelly.farmhelper.remote.struct.Command;
 import com.jelly.farmhelper.remote.struct.RemoteMessage;
 import com.jelly.farmhelper.utils.LocationUtils;
+import com.jelly.farmhelper.utils.PlayerUtils;
 
 
 @Command(label = "toggle")
-public class ToggleCommand extends BaseCommand {
+public class ToggleCommand extends ClientCommand {
 
     @Override
     public void execute(RemoteMessage message) {
@@ -19,10 +20,11 @@ public class ToggleCommand extends BaseCommand {
         data.addProperty("toggled", !MacroHandler.isMacroing);
 
         if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN && !MacroHandler.isMacroing) {
-            data.addProperty("error", "You must be in the garden to start the macro!");
-        } else {
-            MacroHandler.toggleMacro();
+            data.addProperty("info", "You are not in garden! Teleporting");
+            mc.thePlayer.sendChatMessage("/warp garden");
         }
+
+        MacroHandler.toggleMacro();
 
         RemoteMessage response = new RemoteMessage(label, data);
         send(response);

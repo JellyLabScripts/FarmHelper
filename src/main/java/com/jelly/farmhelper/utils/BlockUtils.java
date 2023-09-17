@@ -2,6 +2,7 @@ package com.jelly.farmhelper.utils;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config.SMacroEnum;
+import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.macros.MushroomMacroNew;
 import net.minecraft.block.*;
 import net.minecraft.block.state.BlockState;
@@ -14,6 +15,7 @@ import net.minecraft.util.*;
 import java.util.Arrays;
 
 import static com.jelly.farmhelper.utils.AngleUtils.get360RotationYaw;
+import static com.jelly.farmhelper.utils.AngleUtils.getClosest;
 import static net.minecraft.block.BlockSlab.HALF;
 
 public class BlockUtils {
@@ -255,7 +257,18 @@ public class BlockUtils {
     }
     public static boolean rightCropIsReady(){
         if (!FarmHelper.gameState.rightWalkable) return false;
-        Block crop = getRelativeBlock(1, (FarmHelper.config.macroType && (FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal())) ? 2 : 1, 1, (FarmHelper.config.macroType && (FarmHelper.config.SShapeMacroType ==  SMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal())) ? MushroomMacroNew.closest90Yaw : mc.thePlayer.rotationYaw);
+        float yaw;
+        if (FarmHelper.config.macroType && (FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal())) {
+            yaw = MushroomMacroNew.closest90Yaw;
+        } else {
+            if (FarmHelper.config.customYaw) {
+                yaw = getClosest(FarmHelper.config.customYawLevel);
+            } else {
+                yaw = MacroHandler.currentMacro.yaw;
+            }
+        }
+
+        Block crop = getRelativeBlock(1, (FarmHelper.config.macroType && (FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal())) ? 2 : 1, 1, yaw);
         if (crop.equals(Blocks.nether_wart)) {
             return mc.theWorld.getBlockState(getRelativeBlockPos(1, 1, 1)).getValue(BlockNetherWart.AGE) == 3;
         } else if (crop.equals(Blocks.wheat) || crop.equals(Blocks.carrots) || crop.equals(Blocks.potatoes))

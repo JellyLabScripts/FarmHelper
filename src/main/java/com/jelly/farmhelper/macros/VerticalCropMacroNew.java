@@ -6,6 +6,7 @@ import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.features.LagDetection;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.AxisAlignedBB;
 
 import static com.jelly.farmhelper.utils.BlockUtils.*;
 
@@ -41,7 +42,11 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
                 pitch = 2.8f + (float) (Math.random() * 0.6); // 2.8-3.4
             }
         }
-        yaw = AngleUtils.getClosest();
+        if (FarmHelper.config.customYaw) {
+            yaw = FarmHelper.config.customYawLevel;
+        } else {
+            yaw = AngleUtils.getClosest();
+        }
         rotation.easeTo(yaw, pitch, 500);
     }
 
@@ -187,7 +192,6 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
         } else if (leftCropIsReady()) {
             return State.LEFT;
         }
-
 
         for (int i = 1; i < 180; i++) {
             if (!canWalkThrough(BlockUtils.getRelativeBlockPos(i, 0, 0))) {
