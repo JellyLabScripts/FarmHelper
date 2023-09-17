@@ -19,12 +19,55 @@ public class ToggleCommand extends ClientCommand {
         data.addProperty("uuid", mc.getSession().getPlayerID());
         data.addProperty("toggled", !MacroHandler.isMacroing);
 
-        if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN && !MacroHandler.isMacroing) {
+        if (LocationUtils.currentIsland == LocationUtils.Island.LOBBY && !MacroHandler.isMacroing) {
+            data.addProperty("info", "You are in lobby! Teleporting");
+            mc.thePlayer.sendChatMessage("/skyblock");
+            new Thread(() -> {
+                try {
+                    Thread.sleep(2500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) {
+                    mc.thePlayer.sendChatMessage("/warp garden");
+                }
+
+                try {
+                    Thread.sleep(2500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) {
+                    data.addProperty("info", "Can't teleport to garden!");
+                } else {
+                    MacroHandler.toggleMacro(true);
+                    data.addProperty("info", "You are in garden! Macroing");
+                }
+                RemoteMessage response = new RemoteMessage(label, data);
+                send(response);
+            }).start();
+        } else if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN && !MacroHandler.isMacroing) {
             data.addProperty("info", "You are not in garden! Teleporting");
             mc.thePlayer.sendChatMessage("/warp garden");
+            new Thread(() -> {
+                try {
+                    Thread.sleep(2500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) {
+                    data.addProperty("info", "Can't teleport to garden!");
+                } else {
+                    MacroHandler.toggleMacro(true);
+                    data.addProperty("info", "You are in garden! Macroing");
+                }
+                RemoteMessage response = new RemoteMessage(label, data);
+                send(response);
+            }).start();
+        } else {
+            MacroHandler.toggleMacro();
         }
 
-        MacroHandler.toggleMacro();
 
         RemoteMessage response = new RemoteMessage(label, data);
         send(response);
