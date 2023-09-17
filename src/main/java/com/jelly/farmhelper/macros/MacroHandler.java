@@ -122,7 +122,12 @@ public class MacroHandler {
         }
 
     }
+
     public static void toggleMacro() {
+        toggleMacro(false);
+    }
+
+    public static void toggleMacro(boolean force) {
         FailsafeNew.restartAfterFailsafeCooldown.reset();
         if (FailsafeNew.emergency) {
             FailsafeNew.resetFailsafes();
@@ -131,13 +136,19 @@ public class MacroHandler {
         } else if (isMacroing) {
             disableMacro();
         } else {
-            enableMacro();
+            enableMacro(force);
         }
     }
+
     public static void enableMacro() {
+        enableMacro(false);
+    }
+
+    public static void enableMacro(boolean force) {
         if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN) {
             LogUtils.sendError("You must be in the garden to start the macro!");
-            return;
+            if (!force)
+                return;
         }
         if(!FarmHelper.config.macroType) {
             currentMacro = verticalCropMacro;
