@@ -32,10 +32,10 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
         MacroHandler.crop = MacroHandler.getFarmingCrop();
         if (currentState == null)
             changeState(State.NONE);
-        mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.crop);
+        Macro.mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.crop);
         rotation.easeTo(yaw, pitch, 500);
-        rowStartX = mc.thePlayer.posX;
-        rowStartZ = mc.thePlayer.posZ;
+        rowStartX = Macro.mc.thePlayer.posX;
+        rowStartZ = Macro.mc.thePlayer.posZ;
     }
 
     @Override
@@ -87,7 +87,7 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
             updateState();
             invokeState();
         } else {
-            if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75 && mc.thePlayer.posY < 80) {
+            if (!Macro.mc.thePlayer.onGround && Math.abs(layerY - Macro.mc.thePlayer.posY) > 0.75 && Macro.mc.thePlayer.posY < 80) {
                 changeState(State.DROPPING);
                 FarmHelper.gameState.scheduleNotMoving();
             }
@@ -118,8 +118,8 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
                 break;
             }
             case DROPPING: {
-                LogUtils.sendDebug("On Ground: " + mc.thePlayer.onGround);
-                if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) > 1.5) {
+                LogUtils.sendDebug("On Ground: " + Macro.mc.thePlayer.onGround);
+                if (Macro.mc.thePlayer.onGround && Math.abs(layerY - Macro.mc.thePlayer.getPosition().getY()) > 1.5) {
                     if (FarmHelper.config.rotateAfterDrop && !rotation.rotating) {
                         LogUtils.sendDebug("Rotating 180");
                         rotation.reset();
@@ -128,7 +128,7 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
                     }
                     KeyBindUtils.stopMovement();
                     changeState(State.NONE);
-                    layerY = mc.thePlayer.getPosition().getY();
+                    layerY = Macro.mc.thePlayer.getPosition().getY();
                 } else  {
                     FarmHelper.gameState.scheduleNotMoving();
                 }
@@ -148,26 +148,26 @@ public class SugarcaneMacroNew extends Macro<SugarcaneMacroNew.State> {
                 break;
             case A:
                 KeyBindUtils.holdThese(
-                        mc.gameSettings.keyBindLeft,
-                        mc.gameSettings.keyBindAttack
+                        Macro.mc.gameSettings.keyBindLeft,
+                        Macro.mc.gameSettings.keyBindAttack
                 );
                 break;
             case D:
                 KeyBindUtils.holdThese(
-                        mc.gameSettings.keyBindRight,
-                        mc.gameSettings.keyBindAttack
+                        Macro.mc.gameSettings.keyBindRight,
+                        Macro.mc.gameSettings.keyBindAttack
                 );
                 break;
             case S:
                 KeyBindUtils.holdThese(
-                        mc.gameSettings.keyBindBack,
-                        mc.gameSettings.keyBindAttack
+                        Macro.mc.gameSettings.keyBindBack,
+                        Macro.mc.gameSettings.keyBindAttack
                 );
                 break;
             case DROPPING:
-                if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) <= 1.5) {
+                if (Macro.mc.thePlayer.onGround && Math.abs(layerY - Macro.mc.thePlayer.getPosition().getY()) <= 1.5) {
                     LogUtils.sendDebug("Dropping done, but didn't drop high enough to rotate!");
-                    layerY = mc.thePlayer.getPosition().getY();
+                    layerY = Macro.mc.thePlayer.getPosition().getY();
                     changeState(State.NONE);
                 }
                 break;

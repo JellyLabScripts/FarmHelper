@@ -112,6 +112,10 @@ public class DiscordBotHandler extends ListenerAdapter {
                 WebsocketHandler.websocketState = WebsocketHandler.WebsocketState.CLIENT;
             }
             return;
+        } else if (FarmHelper.config.discordRemoteControlToken.startsWith("https")) {
+            LogUtils.sendError("You have put a webhook link in the Discord Remote Control Token field! Read the guide before using this feature, dummy! Disabling remote control...");
+            FarmHelper.config.enableRemoteControl = false;
+            return;
         }
 
         if (jdaClient == null && WebsocketHandler.websocketState == WebsocketHandler.WebsocketState.NONE) {

@@ -90,6 +90,12 @@ public abstract class Macro<T> {
             LogUtils.sendError("Your rewarp position is not set!");
             MacroHandler.disableMacro();
         }
+        if (mc.thePlayer.getPosition().getY() < -5) {
+            LogUtils.sendError("Build a wall between rewarp point and the void to prevent falling out of the garden! Disabling the macro...");
+            MacroHandler.disableMacro();
+            triggerWarpGarden();
+            return;
+        }
         if (lastTp.isScheduled() && lastTp.passed()) {
             lastTp.reset();
         }
@@ -114,7 +120,7 @@ public abstract class Macro<T> {
     private T stateBeforeFailsafe = null;
 
     public void saveLastStateBeforeDisable() {
-        LogUtils.sendDebug("Saving last state before disabling macro");
+        LogUtils.sendDebug("Saving last state before disabling the macro");
         stateBeforeFailsafe = currentState;
         savedLastState = true;
         if (MacroHandler.isMacroing && MacroHandler.currentMacro.enabled) {
