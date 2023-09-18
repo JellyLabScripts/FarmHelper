@@ -13,7 +13,8 @@ public abstract class MixinGuiInventory extends MixinInventoryEffectRenderer {
     private final Minecraft mc = Minecraft.getMinecraft();
 
     /**
-     * @author
+     * @author ignoreCompilationWarning
+     * @reason ignoreCompilationWarning
      */
     @Final
     @Overwrite

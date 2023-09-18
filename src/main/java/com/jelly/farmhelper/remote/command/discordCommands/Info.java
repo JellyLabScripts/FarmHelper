@@ -5,7 +5,7 @@ import com.jelly.farmhelper.remote.discordStruct.DiscordCommand;
 import com.jelly.farmhelper.remote.discordStruct.Option;
 import com.jelly.farmhelper.remote.waiter.Waiter;
 import com.jelly.farmhelper.remote.waiter.WaiterHandler;
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import java.util.Base64;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -56,9 +56,9 @@ public class Info extends DiscordCommand {
 
                     MessageEmbed embed = embedBuilder.build();
                     try {
-                        event.getHook().sendMessageEmbeds(embed).addFiles(FileUpload.fromData(Base64.decode(image), "image.png")).queue();
+                        event.getHook().sendMessageEmbeds(embed).addFiles(FileUpload.fromData(Base64.getDecoder().decode(image), "image.png")).queue();
                     } catch (Exception e) {
-                        event.getChannel().sendMessageEmbeds(embed).addFiles(FileUpload.fromData(Base64.decode(image), "image.png")).queue();
+                        event.getChannel().sendMessageEmbeds(embed).addFiles(FileUpload.fromData(Base64.getDecoder().decode(image), "image.png")).queue();
                     }
                 },
                 timeoutAction -> {
