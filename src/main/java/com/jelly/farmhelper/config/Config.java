@@ -142,13 +142,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			description = "Rotates the player after re-warping"
 	)
 	public boolean rotateAfterWarped = false;
-
-    @Switch(
-            name = "Don't fix rotation after warping", category = GENERAL, subcategory = "Macro",
-            description = "Macro be default fixes the rotation, which might result in micro rotation at the start"
-    )
-    public boolean dontRotateAfterWarping = false;
-
 	@Switch(
 			name = "Rotate After Drop", category = GENERAL, subcategory = "Macro",
 			description = "Rotates after the player falls down"
@@ -170,7 +163,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			description = "Set custom pitch level after starting the macro",
 			min = -90, max = 90
 	)
-	public OneKeyBind openGuiKeybind = new OneKeyBind(Keyboard.KEY_F);
 	public float customPitchLevel = 0;
 	@Switch(
 			name = "Custom Yaw", category = GENERAL, subcategory = "Custom Pitch/Yaw",
@@ -191,6 +183,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			size = 2
 	)
 	public static boolean customYawWarning;
+
+	@Switch(
+			name = "Don't fix rotation after warp", category = GENERAL, subcategory = "Rotation",
+			description = "Don't fix rotation after warp"
+	)
+	public boolean dontRotateAfterWarping = false;
 
 	@Switch(
 			name = "Highlight rewarp points", category = GENERAL, subcategory = "Rewarp",
@@ -1021,7 +1019,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	@KeyBind(
 			name = "Debug Keybind", category = DEBUG
 	)
-	public OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
+	public OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_H);
 
 //	@KeyBind(
 //			name = "Debug Keybind 2", category = DEBUG
@@ -1210,7 +1208,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
 		registerKeyBind(debugKeybind, () -> {
-			if (MacroHandler.currentMacro != null) MacroHandler.currentMacro.unstuck(false);
+			if (MacroHandler.currentMacro != null) {
+				MacroHandler.currentMacro.unstuck(false);
+			}
 		});
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
 		save();

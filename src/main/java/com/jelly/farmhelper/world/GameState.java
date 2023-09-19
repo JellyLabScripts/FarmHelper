@@ -2,6 +2,7 @@ package com.jelly.farmhelper.world;
 
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config.SMacroEnum;
+import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.macros.MushroomMacroNew;
 import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.utils.BlockUtils;
@@ -76,12 +77,12 @@ public class GameState {
         currentLocation = getLocation();
         checkFooter();
         updateWalkables();
-        dx = Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX);
-        dz = Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ);
-        dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
         blockInPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
         blockStandingOn = mc.theWorld.getBlockState(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1, mc.thePlayer.posZ)).getBlock();
         jacobCounter = getJacobCounter();
+        dx = Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX);
+        dz = Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ);
+        dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
         if (dx < 0.01 && dz < 0.01 && dy < 0.01) {
             if (hasPassedSinceStopped()) {
                 notMovingTimer.reset();
@@ -102,7 +103,7 @@ public class GameState {
     }
 
     public boolean canChangeDirection() {
-        return !notMovingTimer.isScheduled();
+        return !Antistuck.stuck && !notMovingTimer.isScheduled();
     }
 
     public void scheduleNotMoving() {

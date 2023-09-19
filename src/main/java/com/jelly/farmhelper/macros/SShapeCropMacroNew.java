@@ -125,16 +125,15 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
         if (currentState == null)
             changeState(State.NONE);
         switch (currentState) {
-            case LEFT: {
-                if (FarmHelper.gameState.leftWalkable) {
+            case LEFT:
+            case RIGHT: {
+                if (FarmHelper.gameState.leftWalkable && currentState == State.LEFT) {
                     // Probably stuck in dirt, continue going left
                     unstuck(false);
                     changeState(State.LEFT);
                     return;
                 }
-            }
-            case RIGHT: {
-                if (FarmHelper.gameState.rightWalkable) {
+                if (FarmHelper.gameState.rightWalkable && currentState == State.RIGHT) {
                     // Probably stuck in dirt, continue going right
                     unstuck(true);
                     changeState(State.RIGHT);

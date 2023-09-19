@@ -410,7 +410,7 @@ public class PlayerUtils {
         float angle = AngleUtils.getClosest();
         double x = mc.thePlayer.posX % 1;
         double z = mc.thePlayer.posZ % 1;
-        if (!BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1))) {
+        if (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1))) {
             return false;
         }
         if (angle == 0) {

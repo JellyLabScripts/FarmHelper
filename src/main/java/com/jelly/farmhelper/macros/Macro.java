@@ -243,6 +243,7 @@ public abstract class Macro<T> {
             Antistuck.unstuckThreadIsRunning = true;
             LogUtils.sendDebug("Stuck!");
             Antistuck.unstuckThreadInstance = new Thread(Antistuck.unstuckRunnable, "antistuck");
+            KeyBindUtils.stopMovement();
             Antistuck.unstuckThreadInstance.start();
         } else {
             LogUtils.sendDebug("Unstuck thread is alive!");
