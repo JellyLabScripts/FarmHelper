@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.features;
 
+import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.utils.BlockUtils;
 import com.jelly.farmhelper.utils.Clock;
@@ -25,6 +26,7 @@ public class Antistuck {
     public static boolean unstuckLastMoveBack = false;
     public static final Runnable unstuckRunnable = () -> {
         try {
+            Antistuck.stuck = true;
             KeyBindUtils.stopMovement();
             Thread.sleep(20);
             KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
@@ -46,7 +48,7 @@ public class Antistuck {
             KeyBindUtils.stopMovement();
             Thread.sleep(200);
             Antistuck.stuck = false;
-            Antistuck.cooldown.schedule(3500);
+            Antistuck.cooldown.schedule((long) (FarmHelper.config.maxTimeBetweenChangingRows * 2));
             unstuckThreadIsRunning = false;
             unstuckThreadInstance = null;
         } catch (Throwable e) {
@@ -60,7 +62,7 @@ public class Antistuck {
         if(event.phase == TickEvent.Phase.END)
             return;
 
-        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled || mc.thePlayer == null || mc.theWorld == null || LocationUtils.currentIsland != LocationUtils.Island.GARDEN || mc.currentScreen != null) {
+        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled || mc.thePlayer == null || mc.theWorld == null || LocationUtils.currentIsland != LocationUtils.Island.GARDEN || mc.currentScreen != null || stuck) {
             lastX = 10000;
             lastZ = 10000;
             lastY = 10000;
@@ -71,12 +73,11 @@ public class Antistuck {
         if(!MacroHandler.isMacroing)
             return;
         if (cooldown.passed()) {
-            Block blockIn = BlockUtils.getRelativeBlock(0, 0, 0);
-            stuck = (!BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 0)) && !(blockIn instanceof BlockDoor || blockIn instanceof BlockTrapDoor)) || (Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1 && Math.abs(mc.thePlayer.posY - lastY) < 1 && !FailsafeNew.emergency);
+            stuck = (Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1 && Math.abs(mc.thePlayer.posY - lastY) < 1 && !FailsafeNew.emergency);
             lastX = mc.thePlayer.posX;
             lastZ = mc.thePlayer.posZ;
             lastY = mc.thePlayer.posY;
-            cooldown.schedule(3000);
+            cooldown.schedule((long) (FarmHelper.config.maxTimeBetweenChangingRows * 2));
         }
     }
 }

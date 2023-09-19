@@ -82,7 +82,7 @@ public class MushroomMacroNew extends Macro<MushroomMacroNew.State> {
             return;
         }
 
-        if (isStuck()) return;
+        if (needAntistuck(false)) return;
 
         CropUtils.getTool();
 

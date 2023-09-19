@@ -6,7 +6,6 @@ import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.features.LagDetection;
 import com.jelly.farmhelper.utils.*;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.AxisAlignedBB;
 
 import static com.jelly.farmhelper.utils.BlockUtils.*;
 
@@ -83,7 +82,7 @@ public class VerticalCropMacroNew extends Macro<VerticalCropMacroNew.State> {
             return;
         }
 
-        if (isStuck()) return;
+        if (needAntistuck(false)) return;
 
         CropUtils.getTool();
 

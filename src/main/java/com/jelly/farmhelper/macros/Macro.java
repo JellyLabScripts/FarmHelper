@@ -43,7 +43,7 @@ public abstract class Macro<T> {
             rotated = false;
             FarmHelper.gameState.scheduleNotMoving(750);
             Antistuck.stuck = false;
-            Antistuck.cooldown.schedule(3500);
+            Antistuck.cooldown.schedule((long) FarmHelper.config.maxTimeBetweenChangingRows * 2);
             lastTp.schedule(1_500);
             if (!isSpawnLocationSet()) {
                 PlayerUtils.setSpawnLocation();
@@ -59,7 +59,7 @@ public abstract class Macro<T> {
         beforeTeleportationPos = null;
         FarmHelper.gameState.scheduleNotMoving(750);
         Antistuck.stuck = false;
-        Antistuck.cooldown.schedule(3500);
+        Antistuck.cooldown.schedule((long) FarmHelper.config.maxTimeBetweenChangingRows * 2);
         Antistuck.unstuckThreadIsRunning = false;
         layerY = mc.thePlayer.getPosition().getY();
         rotation.reset();
@@ -198,8 +198,11 @@ public abstract class Macro<T> {
 
     public void checkForRotationAfterTp() {
         // Check for rotation after teleporting back to spawn point
+        if (FarmHelper.config.dontRotateAfterWarping) {
+            LogUtils.sendDebug("Not rotating after warping");
+            return;
+        }
         if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && !rotated) {
-//            yaw = AngleUtils.getClosest(yaw);
             if (FarmHelper.config.rotateAfterWarped)
                 yaw = AngleUtils.get360RotationYaw(yaw + 180);
             if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
@@ -224,17 +227,13 @@ public abstract class Macro<T> {
 //        }
 //    }
 
-    public boolean isStuck() {
+    public boolean needAntistuck(boolean lastMoveBack) {
         if (LagDetection.isLagging() || LagDetection.wasJustLagging()) return false;
         if (Antistuck.stuck && !FailsafeNew.emergency) {
-            unstuck();
+            unstuck(lastMoveBack);
             return true;
         }
         return false;
-    }
-
-    public void unstuck() {
-        unstuck(true);
     }
 
     public void unstuck(boolean lastMoveBack) {

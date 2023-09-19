@@ -75,7 +75,7 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
             return;
         }
 
-        if (isStuck()) return;
+        if (needAntistuck(true)) return;
 
         CropUtils.getTool();
 

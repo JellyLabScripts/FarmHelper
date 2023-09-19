@@ -158,6 +158,13 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		min = -180, max = 180
 	)
 	public int customYawLevel = 0;
+
+	@Switch(
+			name = "Don't rotate after warping", category = GENERAL, subcategory = "Macro",
+			description = "Don't rotate after warping"
+	)
+	public boolean dontRotateAfterWarping = false;
+
 	@Switch(
 		name = "Rotate After Warped", category = GENERAL, subcategory = "Macro",
 		description = "Rotates the player after re-warping"
@@ -183,7 +190,6 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			name = "Open GUI", category = GENERAL, subcategory = "Keybinds",
 			description = "Open's the main FarmHelper GUI"
 	)
-
 	public OneKeyBind openGuiKeybind = new OneKeyBind(Keyboard.KEY_F);
 
 	@Switch(
@@ -980,11 +986,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	// START DEBUG
 
-//	@KeyBind(
-//			name = "Debug Keybind", category = DEBUG
-//	)
-//	public OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_H);
-//
+	@KeyBind(
+			name = "Debug Keybind", category = DEBUG
+	)
+	public OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
+
 //	@KeyBind(
 //			name = "Debug Keybind 2", category = DEBUG
 //	)
@@ -1158,7 +1164,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("customPitchLevel", "customPitch");
 		this.hideIf("configVersion", () -> true);
 		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
-//		registerKeyBind(debugKeybind, () -> FarmHelper.petSwapper.startMacro(false));
+		registerKeyBind(debugKeybind, () -> {
+			if (MacroHandler.currentMacro != null) MacroHandler.currentMacro.unstuck(false);
+		});
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
 		save();
 	}

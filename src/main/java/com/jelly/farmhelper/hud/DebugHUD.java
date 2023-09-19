@@ -50,7 +50,7 @@ public class DebugHUD extends TextHud {
             lines.add("lagging: " + LagDetection.lagging);
             lines.add("lastPacket: " + LagDetection.lastPacket);
             if (MacroHandler.currentMacro != null)
-                lines.add("isStuck: " + MacroHandler.currentMacro.isStuck());
+                lines.add("isStuck: " + Antistuck.stuck);
         }
     }
 }

@@ -88,7 +88,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
             return;
         }
 
-        if (isStuck()) return;
+        if (needAntistuck(changeLaneDirection != null && changeLaneDirection == ChangeLaneDirection.BACKWARD)) return;
 
         CropUtils.getTool();
 
@@ -125,8 +125,21 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
         if (currentState == null)
             changeState(State.NONE);
         switch (currentState) {
-            case LEFT:
+            case LEFT: {
+                if (FarmHelper.gameState.leftWalkable) {
+                    // Probably stuck in dirt, continue going left
+                    unstuck(false);
+                    changeState(State.LEFT);
+                    return;
+                }
+            }
             case RIGHT: {
+                if (FarmHelper.gameState.rightWalkable) {
+                    // Probably stuck in dirt, continue going right
+                    unstuck(true);
+                    changeState(State.RIGHT);
+                    return;
+                }
                 if (FarmHelper.gameState.frontWalkable) {
                     if (changeLaneDirection == ChangeLaneDirection.BACKWARD) {
                         // Probably stuck in dirt
@@ -144,6 +157,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                     changeState(State.SWITCHING_LANE);
                     changeLaneDirection = ChangeLaneDirection.BACKWARD;
                 } else {
+                    LogUtils.sendDebug("This shouldn't happen, but it did...");
                     LogUtils.sendDebug("Can't go forward or backward!");
                     if (FarmHelper.gameState.leftWalkable) {
                         changeState(State.LEFT);
@@ -216,7 +230,7 @@ public class SShapeCropMacroNew extends Macro<SShapeCropMacroNew.State> {
                     } else if (FarmHelper.gameState.backWalkable) {
                         changeLaneDirection = ChangeLaneDirection.BACKWARD;
                     } else {
-                        unstuck();
+                        unstuck(false);
                         return;
                     }
                 }
