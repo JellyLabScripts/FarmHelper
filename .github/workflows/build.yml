@@ -21,13 +21,13 @@ jobs:
 
       # Step 3: Set up Gradle and build the project
       - name: Setup Gradle and build
-        uses: gradle/gradle-build-action@v2.7.1
+        uses: gradle/gradle-build-action@v2.8.0
         with:
           arguments: build
 
       # Step 4: Upload built JAR files as artifacts
       - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: artifacts
           path: build/libs/*.jar
