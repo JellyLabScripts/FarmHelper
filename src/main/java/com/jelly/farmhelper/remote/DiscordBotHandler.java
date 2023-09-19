@@ -6,7 +6,6 @@ import com.jelly.farmhelper.remote.command.discordCommands.*;
 import com.jelly.farmhelper.remote.discordStruct.DiscordCommand;
 import com.jelly.farmhelper.remote.event.InteractionAutoComplete;
 import com.jelly.farmhelper.remote.event.InteractionCreate;
-import com.jelly.farmhelper.remote.util.RemoteUtils;
 import com.jelly.farmhelper.utils.LogUtils;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -20,6 +19,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import static com.jelly.farmhelper.utils.StatusUtils.connecting;
@@ -33,7 +33,13 @@ public class DiscordBotHandler extends ListenerAdapter {
     public static boolean finishedLoading = false;
 
     public DiscordBotHandler() {
-        commands.addAll(RemoteUtils.registerCommands("com.jelly.farmhelper.remote.command.discordCommands", DiscordCommand.class));
+        commands.addAll(Arrays.asList(
+                new Help(),
+                new Toggle(),
+                new Reconnect(),
+                new Screenshot(),
+                new SetSpeed(),
+                new Info()));
         System.out.println("Registered " + commands.size() + " commands");
     }
 

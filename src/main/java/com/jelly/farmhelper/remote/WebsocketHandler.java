@@ -3,11 +3,11 @@ package com.jelly.farmhelper.remote;
 import cc.polyfrost.oneconfig.utils.Notifications;
 import com.google.gson.JsonObject;
 import com.jelly.farmhelper.FarmHelper;
+import com.jelly.farmhelper.remote.command.commands.*;
 import com.jelly.farmhelper.remote.struct.ClientCommand;
 import com.jelly.farmhelper.remote.struct.RemoteMessage;
 import com.jelly.farmhelper.remote.struct.WebsocketClient;
 import com.jelly.farmhelper.remote.struct.WebsocketServer;
-import com.jelly.farmhelper.remote.util.RemoteUtils;
 import com.jelly.farmhelper.remote.waiter.WaiterHandler;
 import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.client.Minecraft;
@@ -18,6 +18,7 @@ import org.java_websocket.enums.ReadyState;
 
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class WebsocketHandler {
     public enum WebsocketState {
@@ -26,7 +27,6 @@ public class WebsocketHandler {
         NONE
     }
 
-    public static int PORT = 2137;
     public static WebsocketState websocketState = WebsocketState.NONE;
     public static WebsocketServer websocketServer;
     public static WebsocketClient websocketClient;
@@ -36,13 +36,19 @@ public class WebsocketHandler {
     public static final ArrayList<ClientCommand> commands = new ArrayList<>();
 
     public WebsocketHandler() {
-        commands.addAll(RemoteUtils.registerCommands("com.jelly.farmhelper.remote.command.commands", ClientCommand.class));
+        commands.addAll(Arrays.asList(
+                new InfoCommand(),
+                new ReconnectCommand(),
+                new ScreenshotCommand(),
+                new SetSpeedCommand(),
+                new ToggleCommand()
+        ));
         System.out.println("Registered " + commands.size() + " commands");
     }
 
     public static boolean isServerAlive() {
         try {
-            URI uri = new URI("ws://localhost:" + PORT);
+            URI uri = new URI("ws://localhost:" + FarmHelper.config.remoteControlPort);
             websocketClient = new WebsocketClient(uri);
             JsonObject data = new JsonObject();
             data.addProperty("name", Minecraft.getMinecraft().getSession().getUsername());
@@ -102,7 +108,7 @@ public class WebsocketHandler {
             case CLIENT: {
                 if (websocketClient == null) {
                     try {
-                        URI uri = new URI("ws://localhost:" + PORT);
+                        URI uri = new URI("ws://localhost:" + FarmHelper.config.remoteControlPort);
                         websocketClient = new WebsocketClient(uri);
                         JsonObject data = new JsonObject();
                         data.addProperty("name", mc.getSession().getUsername());
@@ -134,9 +140,9 @@ public class WebsocketHandler {
             }
             case SERVER: {
                 if (websocketServer == null) {
-                    websocketServer = new WebsocketServer(PORT);
+                    websocketServer = new WebsocketServer(FarmHelper.config.remoteControlPort);
                     websocketServer.start();
-                    Notifications.INSTANCE.send("Farm Helper", "Started websocket server on port " + PORT);
+                    Notifications.INSTANCE.send("Farm Helper", "Started websocket server on port " + FarmHelper.config.remoteControlPort);
                 } else if (websocketServer.websocketServerState == WebsocketServer.WebsocketServerState.NOT_CONNECTED) {
                     try {
                         websocketServer.stop();

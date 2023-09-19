@@ -642,6 +642,14 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		description = "Enables remote control via Discord messages"
 	)
 	public boolean enableRemoteControl = false;
+
+	@Number(
+			name = "Remote Control Port", category = DISCORD_INTEGRATION, subcategory = "Remote Control",
+			description = "The port to use for remote control, change this if you have port conflicts",
+			min = 1, max = 65535
+	)
+	public int remoteControlPort = 2137;
+
 	@Text(
 			name = "Discord Remote Control Bot Token",
 			category = DISCORD_INTEGRATION, subcategory = "Remote Control",
