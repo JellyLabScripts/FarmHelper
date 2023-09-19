@@ -12,8 +12,8 @@ public class MixinGuiContainer {
     @Shadow public Container inventorySlots;
 
     /**
-     * @author ?
-     * @reason I have no clue lol, just removing errors in console
+     * @author ignoreCompilationWarning
+     * @reason ignoreCompilationWarning
      */
     @Overwrite
     public void onGuiClosed() {

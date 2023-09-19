@@ -27,6 +27,7 @@ public abstract class MixinGuiEditSign extends GuiScreen {
 
     @Inject(method = "initGui", at = @At("RETURN"))
     private void initGui(CallbackInfo ci) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
         if (Utils.signText.isEmpty()) return;
 
         System.out.println("Sign text: " + Utils.signText);

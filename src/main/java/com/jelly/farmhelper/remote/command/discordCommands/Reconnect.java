@@ -6,6 +6,7 @@ import com.jelly.farmhelper.remote.discordStruct.DiscordCommand;
 import com.jelly.farmhelper.remote.discordStruct.Option;
 import com.jelly.farmhelper.remote.waiter.Waiter;
 import com.jelly.farmhelper.remote.waiter.WaiterHandler;
+import java.util.Base64;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -46,12 +47,10 @@ public class Reconnect extends DiscordCommand {
                     embedBuilder.setAuthor("Instance name -> " + username, avatar, avatar);
 
                     MessageEmbed em = embedBuilder.build();
-                    byte[] bytesImage = java.util.Base64.getDecoder().decode(image);
-
                     try {
-                        event.getHook().sendMessageEmbeds(em).addFiles(FileUpload.fromData(bytesImage, "image.png")).queue();
+                        event.getHook().sendMessageEmbeds(em).addFiles(FileUpload.fromData(Base64.getDecoder().decode(image), "image.png")).queue();
                     } catch (Exception e) {
-                        event.getChannel().sendMessageEmbeds(em).addFiles(FileUpload.fromData(bytesImage, "image.png")).queue();
+                        event.getChannel().sendMessageEmbeds(em).addFiles(FileUpload.fromData(Base64.getDecoder().decode(image), "image.png")).queue();
                     }
                 },
                 timeoutAction -> {
