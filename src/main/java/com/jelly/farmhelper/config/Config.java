@@ -912,6 +912,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			secure = true
 	)
 	public String discordRemoteControlToken;
+	@Number(
+			name = "Remote Control Port", category = DISCORD_INTEGRATION, subcategory = "Remote Control",
+			description = "The port to use for remote control. Change this if you have port conflicts.",
+			min = 1, max = 65535
+	)
+	public int remoteControlPort = 2137;
 	@Info(
 			text = "If you want to use the remote control feature, you need to put Farm Helper JDA Dependency inside your mods folder.",
 			type = InfoType.ERROR,
