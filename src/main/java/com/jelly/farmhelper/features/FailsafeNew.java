@@ -805,7 +805,7 @@ public class FailsafeNew {
 
         } catch (InterruptedException ignored) {
         }
-    };
+    }
 
     private static final Runnable pauseAndRestartLong = () -> {
         try {

@@ -29,18 +29,18 @@ import java.util.List;
 
 // THIS IS RAT - CatalizCS
 public class Config extends cc.polyfrost.oneconfig.config.Config {
-	private transient static final Minecraft mc = Minecraft.getMinecraft();
-	private transient static final String GENERAL = "General";
-	private transient static final String MISCELLANEOUS = "Miscellaneous";
-	private transient static final String HUD = "HUD";
-	private transient static final String FAILSAFE = "Fail Safes";
-	private transient static final String VISITORS_MACRO = "Visitors Macro";
-	private transient static final String DELAYS = "Delays";
-	private transient static final String DISCORD_INTEGRATION = "Discord Integration";
-	private transient static final String DEBUG = "Debug";
-	private transient static final String EXPERIMENTAL = "Experimental";
+	private static final Minecraft mc = Minecraft.getMinecraft();
+	private static final String GENERAL = "General";
+	private static final String MISCELLANEOUS = "Miscellaneous";
+	private static final String HUD = "HUD";
+	private static final String FAILSAFE = "Fail Safes";
+	private static final String VISITORS_MACRO = "Visitors Macro";
+	private static final String DELAYS = "Delays";
+	private static final String DISCORD_INTEGRATION = "Discord Integration";
+	private static final String DEBUG = "Debug";
+	private static final String EXPERIMENTAL = "Experimental";
 
-	private transient static final File configRewarpFile = new File("farmhelper_rewarp.json");
+	private static final File configRewarpFile = new File("farmhelper_rewarp.json");
 
 	public static List<Rewarp> rewarpList = new ArrayList<>();
 

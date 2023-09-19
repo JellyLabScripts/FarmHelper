@@ -13,7 +13,8 @@ public abstract class MixinGuiInventory extends MixinInventoryEffectRenderer {
     private final Minecraft mc = Minecraft.getMinecraft();
 
     /**
-     * @author
+     * @author ?
+     * @reason I have no clue lol, just removing errors in console
      */
     @Final
     @Overwrite

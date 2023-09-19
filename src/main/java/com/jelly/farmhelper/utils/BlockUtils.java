@@ -214,9 +214,7 @@ public class BlockUtils {
                 return true;
             if (facing == EnumFacing.WEST && posDiff.getX() < 0)
                 return true;
-            if (facing == EnumFacing.EAST && posDiff.getX() > 0)
-                return true;
-            return false;
+            return facing == EnumFacing.EAST && posDiff.getX() > 0;
         }
 
         return block.isPassable(mc.theWorld, blockPos);
