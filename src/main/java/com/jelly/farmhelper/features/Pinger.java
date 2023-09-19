@@ -53,7 +53,7 @@ public class Pinger {
         if (System.currentTimeMillis() - lastTry > 1.5 * 1_000L && !pinging) {
             try {
                 pinging = true;
-                mc.thePlayer.sendQueue.getNetworkManager().sendPacket(new C16PacketClientStatus(C16PacketClientStatus.EnumState.REQUEST_STATS), future -> {
+                mc.getNetHandler().getNetworkManager().sendPacket(new C16PacketClientStatus(C16PacketClientStatus.EnumState.REQUEST_STATS), future -> {
                     if (future.isSuccess()) {
                         lastTry = System.currentTimeMillis();
                     }
