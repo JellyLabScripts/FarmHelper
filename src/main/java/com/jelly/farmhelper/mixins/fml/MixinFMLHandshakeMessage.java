@@ -14,9 +14,9 @@ import java.util.Map;
 
 @Mixin(value = FMLHandshakeMessage.ModList.class, remap = false)
 public abstract class MixinFMLHandshakeMessage {
-    @Shadow private Map<String, String> modTags;
+    @Shadow(remap = false) private Map<String, String> modTags;
 
-    @Inject(method = "<init>(Ljava/util/List;)V", at = @At("RETURN"))
+    @Inject(method = "<init>(Ljava/util/List;)V", at = @At("RETURN"), remap = false)
     private void init(List<ModContainer> modList, CallbackInfo ci) {
         if (Minecraft.getMinecraft().isIntegratedServerRunning()) return;
         modTags.keySet().removeIf(c -> !c.matches("FML|Forge|mcp"));

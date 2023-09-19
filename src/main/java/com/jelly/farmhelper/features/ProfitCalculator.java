@@ -203,7 +203,8 @@ public class ProfitCalculator {
         if (startingPurse == -1) {
             startingPurse = currentPurse;
         } else {
-            return (currentPurse - startingPurse);
+            if (currentPurse - startingPurse > 0)
+                return (currentPurse - startingPurse);
         }
         return 0;
     }
