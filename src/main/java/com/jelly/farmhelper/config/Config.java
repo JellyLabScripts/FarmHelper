@@ -969,11 +969,29 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	public float rotationTimeRandomness = 0.2f;
 
 	@Slider(
-			name = "Visitors Macro GUI delay", category = DELAYS, subcategory = "Delays",
+			name = "Visitors Macro GUI Delay", category = DELAYS, subcategory = "Delays",
 			description = "The delay between clicking GUI during visitors macro (in seconds)",
 			min = 0.15f, max = 2f
 	)
 	public float visitorsMacroGuiDelay = 0.35f;
+	@Slider(
+			name = "Visitors Macro GUI Delay Random Time", category = DELAYS, subcategory = "Delays",
+			description = "The maximum random time added to the delay time between clicking GUI during visitors macro (in seconds)",
+			min = 0.15f, max = 2f
+	)
+	public float visitorsMacroGuiDelayRandomness = 0.35f;
+	@Slider(
+			name = "Visitors Rotation Time", category = DELAYS, subcategory = "Delays",
+			description = "The time it takes to rotate the player and look at the visitor (in seconds)",
+			min = 0.2f, max = 4f
+	)
+	public float visitorsRotationTime = 0.4f;
+	@Slider(
+			name = "Visitors Rotation Random Time", category = DELAYS, subcategory = "Delays",
+			description = "The maximum random time added to the delay time it takes to rotate the player and look at the visitor (in seconds)",
+			min = 0.2f, max = 2f
+	)
+	public float visitorsRotationTimeRandomness = 0.2f;
 
 	// END DELAYS
 
