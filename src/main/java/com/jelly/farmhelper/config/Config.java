@@ -1131,6 +1131,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	)
 	public float rewarpMaxDistance = 0.75f;
 
+	@Switch(
+			name = "Warp at spawn point after failing antistuck 3 times", category = EXPERIMENTAL, subcategory = "Miscellaneous",
+			description = "Warp at spawn point after failing antistuck 3 times"
+	)
+	public boolean rewarpAt3FailesAntistuck = true;
+
 	// END EXPERIMENTAL
 
 	@Number(name = "Config Version", category = EXPERIMENTAL, subcategory = "Experimental", min = 0, max = 1337)

@@ -182,9 +182,21 @@ public class ProfitCalculator {
                 }
             }
 
-            if (FarmHelper.config.SShapeMacroType == VerticalMacroEnum.NORMAL_TYPE.ordinal()) {
+            if (FarmHelper.config.SShapeMacroType == SMacroEnum.NORMAL_TYPE.ordinal()) {
                 if ((event.old.getBlock() instanceof BlockCrops && !(event.update.getBlock() instanceof BlockCrops)) ||
                     (event.old.getBlock() instanceof BlockNetherWart && !(event.update.getBlock() instanceof BlockNetherWart))) {
+                    blocksBroken++;
+                }
+            }
+
+            if (FarmHelper.config.SShapeMacroType == SMacroEnum.SUGAR_CANE.ordinal()) {
+                if (event.old.getBlock() == Blocks.reeds && event.update.getBlock() != Blocks.reeds) {
+                    blocksBroken++;
+                }
+            }
+
+            if (FarmHelper.config.SShapeMacroType == SMacroEnum.CACTUS.ordinal()) {
+                if (event.old.getBlock() == Blocks.cactus && event.update.getBlock() != Blocks.cactus) {
                     blocksBroken++;
                 }
             }

@@ -64,6 +64,7 @@ public abstract class Macro<T> {
         FarmHelper.gameState.scheduleNotMoving(750);
         Antistuck.stuck = false;
         Antistuck.notMovingTimer.schedule();
+        Antistuck.unstuckTries = 0;
         Antistuck.unstuckThreadIsRunning = false;
         layerY = mc.thePlayer.getPosition().getY();
         rotation.reset();
@@ -236,6 +237,11 @@ public abstract class Macro<T> {
             Antistuck.unstuckLastMoveBack = lastMoveBack;
             Antistuck.unstuckThreadIsRunning = true;
             LogUtils.sendDebug("Stuck!");
+            if (Antistuck.unstuckTries == 2 && FarmHelper.config.rewarpAt3FailesAntistuck) {
+                triggerWarpGarden();
+                Antistuck.unstuckTries = 0;
+                return;
+            }
             Antistuck.unstuckThreadInstance = new Thread(Antistuck.unstuckRunnable, "antistuck");
             KeyBindUtils.stopMovement();
             Antistuck.unstuckThreadInstance.start();

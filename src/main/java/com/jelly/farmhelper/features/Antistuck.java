@@ -20,6 +20,7 @@ public class Antistuck {
 
     public static boolean unstuckThreadIsRunning = false;
     public static boolean unstuckLastMoveBack = false;
+    public static int unstuckTries = 0;
     public static final Runnable unstuckRunnable = () -> {
         try {
             Antistuck.stuck = true;
@@ -43,6 +44,7 @@ public class Antistuck {
             Thread.sleep(200);
             KeyBindUtils.stopMovement();
             Thread.sleep(200);
+            unstuckTries++;
             Antistuck.stuck = false;
             Antistuck.notMovingTimer.schedule();
             unstuckThreadIsRunning = false;
