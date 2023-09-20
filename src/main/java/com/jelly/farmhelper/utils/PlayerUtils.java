@@ -21,6 +21,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.StringUtils;
+import net.minecraft.util.Vec3;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -348,9 +349,13 @@ public class PlayerUtils {
     }
 
     public static Entity getEntityCuttingOtherEntity(Entity e) {
+        return getEntityCuttingOtherEntity(e, false);
+    }
+
+    public static Entity getEntityCuttingOtherEntity(Entity e, boolean armorStand) {
         List<Entity> possible = mc.theWorld.getEntitiesInAABBexcluding(e, e.getEntityBoundingBox().expand(0.3D, 2.0D, 0.3D), a -> {
             boolean flag1 = (!a.isDead && !a.equals(mc.thePlayer));
-            boolean flag2 = !(a instanceof EntityArmorStand);
+            boolean flag2 = armorStand == (a instanceof EntityArmorStand);
             boolean flag3 = !(a instanceof net.minecraft.entity.projectile.EntityFireball);
             boolean flag4 = !(a instanceof net.minecraft.entity.projectile.EntityFishHook);
             return flag1 && flag2 && flag3 && flag4;
@@ -452,5 +457,19 @@ public class PlayerUtils {
         FarmHelper.config.spawnPosY = pos.getY();
         FarmHelper.config.spawnPosZ = pos.getZ();
         FarmHelper.config.save();
+    }
+
+    public static boolean isSpawnLocationSet() {
+        return FarmHelper.config.spawnPosX != 0 || FarmHelper.config.spawnPosY != 0 || FarmHelper.config.spawnPosZ != 0;
+    }
+
+    public static boolean isStandingOnSpawnLocation() {
+        Vec3 playerPos = mc.thePlayer.getPositionVector();
+        Vec3 spawnPos = new Vec3(FarmHelper.config.spawnPosX + 0.5, FarmHelper.config.spawnPosY + 0.5, FarmHelper.config.spawnPosZ + 0.5);
+        return playerPos.distanceTo(spawnPos) < 1;
+    }
+
+    public static Vec3 getSpawnLocation() {
+        return new Vec3(FarmHelper.config.spawnPosX + 0.5, FarmHelper.config.spawnPosY + 0.5, FarmHelper.config.spawnPosZ + 0.5);
     }
 }

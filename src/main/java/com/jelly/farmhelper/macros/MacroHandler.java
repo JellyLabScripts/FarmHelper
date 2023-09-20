@@ -91,16 +91,6 @@ public class MacroHandler {
         }
     }
 
-    @SubscribeEvent
-    public void OnKeyPress(InputEvent.KeyInputEvent event) {
-        Keyboard.enableRepeatEvents(false);
-        if (FarmHelper.config.toggleMacro.isActive()) {
-            toggleMacro();
-        } else if (Keyboard.isKeyDown(Keyboard.KEY_J)) {
-            //debug
-        }
-    }
-
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public final void tick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
@@ -136,7 +126,17 @@ public class MacroHandler {
         } else if (isMacroing || (VisitorsMacro.triggeredManually && VisitorsMacro.isEnabled())) {
             disableMacro();
         } else {
-            enableMacro(force);
+            if (VisitorsMacro.isPlayerInsideBarn()) {
+                if (VisitorsMacro.isEnabled()) {
+                    VisitorsMacro.stopMacro();
+                } else if (VisitorsMacro.canEnableMacro(true)) {
+                    VisitorsMacro.enableMacro(true);
+                } else {
+                    LogUtils.sendError("You are inside barn, but not on desk position. Can't run visitors macro!");
+                }
+            } else {
+                enableMacro(force);
+            }
         }
     }
 
@@ -149,13 +149,6 @@ public class MacroHandler {
             LogUtils.sendError("You must be in the garden to start the macro!");
             if (!force)
                 return;
-        }
-        if (VisitorsMacro.isPlayerInsideBarn()) {
-            if (VisitorsMacro.isStandingOnDeskPos())
-                VisitorsMacro.triggerManually();
-            else
-                LogUtils.sendError("You must be outside the barn to start the macro!");
-            return;
         }
         if (!FarmHelper.config.macroType) {
             currentMacro = verticalCropMacro;
@@ -194,7 +187,7 @@ public class MacroHandler {
         ProfitCalculator.resetProfit();
         ProfitCalculator.startingPurse = -1;
 
-        startCounter = PlayerUtils.getCounter();
+//        startCounter = PlayerUtils.getCounter();
         enableCurrentMacro();
     }
 

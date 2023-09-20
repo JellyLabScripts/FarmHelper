@@ -7,6 +7,7 @@ import com.jelly.farmhelper.events.ReceivePacketEvent;
 import com.jelly.farmhelper.features.Antistuck;
 import com.jelly.farmhelper.features.FailsafeNew;
 import com.jelly.farmhelper.features.LagDetection;
+import com.jelly.farmhelper.features.VisitorsMacro;
 import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -45,8 +46,11 @@ public abstract class Macro<T> {
             Antistuck.stuck = false;
             Antistuck.cooldown.schedule((long) FarmHelper.config.maxTimeBetweenChangingRows * 2);
             lastTp.schedule(1_500);
-            if (!isSpawnLocationSet()) {
+            if (!PlayerUtils.isSpawnLocationSet() || (mc.thePlayer.getPositionVector().distanceTo(PlayerUtils.getSpawnLocation()) > 1.5)) {
                 PlayerUtils.setSpawnLocation();
+            }
+            if (VisitorsMacro.canEnableMacro(false)) {
+                VisitorsMacro.enableMacro(false);
             }
         }
     }
@@ -66,6 +70,9 @@ public abstract class Macro<T> {
         if (mc.thePlayer.capabilities.isFlying) {
             mc.thePlayer.capabilities.isFlying = false;
             mc.thePlayer.sendPlayerAbilities();
+        }
+        if (VisitorsMacro.canEnableMacro(false)) {
+            VisitorsMacro.enableMacro(false);
         }
     }
 
@@ -143,11 +150,11 @@ public abstract class Macro<T> {
     }
 
     public boolean isRewarpLocationSet() {
-        return Config.rewarpList.size() > 0;
+        return !Config.rewarpList.isEmpty();
     }
 
     public boolean isStandingOnRewarpLocation() {
-        if (Config.rewarpList.size() == 0) return false;
+        if (Config.rewarpList.isEmpty()) return false;
         Rewarp closest = null;
         double closestDistance = Double.MAX_VALUE;
         for (Rewarp rewarp : Config.rewarpList) {
@@ -162,21 +169,6 @@ public abstract class Macro<T> {
         Vec3 rewarpPos = new Vec3(closest.getX() + 0.5, closest.getY() + 0.5, closest.getZ() + 0.5);
         return playerPos.distanceTo(rewarpPos) <= FarmHelper.config.rewarpMaxDistance;
     }
-
-    public boolean isSpawnLocationSet() {
-        return FarmHelper.config.spawnPosX != 0 || FarmHelper.config.spawnPosY != 0 || FarmHelper.config.spawnPosZ != 0;
-    }
-
-    public boolean isStandingOnSpawnLocation() {
-        Vec3 playerPos = mc.thePlayer.getPositionVector();
-        Vec3 spawnPos = new Vec3(FarmHelper.config.spawnPosX + 0.5, FarmHelper.config.spawnPosY + 0.5, FarmHelper.config.spawnPosZ + 0.5);
-        return playerPos.distanceTo(spawnPos) < 1;
-    }
-
-    public boolean cantPauseNow() {
-        return false;
-    }
-
 
     public void triggerWarpGarden() {
         KeyBindUtils.stopMovement();
@@ -198,13 +190,15 @@ public abstract class Macro<T> {
 
     public void checkForRotationAfterTp() {
         // Check for rotation after teleporting back to spawn point
-        if (FarmHelper.config.dontRotateAfterWarping) {
-            LogUtils.sendDebug("Not rotating after warping");
-            return;
-        }
         if (lastTp.isScheduled() && lastTp.getRemainingTime() < 500 && !rotation.rotating && !rotated) {
-            if (FarmHelper.config.rotateAfterWarped)
+            if (FarmHelper.config.rotateAfterWarped) {
                 yaw = AngleUtils.get360RotationYaw(yaw + 180);
+            } else {
+                if (FarmHelper.config.dontRotateAfterWarping) {
+                    LogUtils.sendDebug("Not rotating after warping");
+                    return;
+                }
+            }
             if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
                 rotation.easeTo(yaw, pitch, (long) (500 + Math.random() * 200));
             }

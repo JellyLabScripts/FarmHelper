@@ -46,11 +46,6 @@ public class CocoaBeanMacroNew extends Macro<CocoaBeanMacroNew.State> {
     }
 
     @Override
-    public void triggerTpCooldown() {
-        super.triggerTpCooldown();
-    }
-
-    @Override
     public void onTick() {
         super.onTick();
 
