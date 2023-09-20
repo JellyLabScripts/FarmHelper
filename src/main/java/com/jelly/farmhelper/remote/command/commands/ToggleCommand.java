@@ -20,7 +20,7 @@ public class ToggleCommand extends ClientCommand {
         data.addProperty("toggled", !MacroHandler.isMacroing);
 
         if (LocationUtils.currentIsland == LocationUtils.Island.LOBBY && !MacroHandler.isMacroing) {
-            data.addProperty("info", "You are in lobby! Teleporting");
+            data.addProperty("info", "You are in the lobby! Teleporting");
             mc.thePlayer.sendChatMessage("/skyblock");
             new Thread(() -> {
                 try {
@@ -47,7 +47,7 @@ public class ToggleCommand extends ClientCommand {
                 send(response);
             }).start();
         } else if (LocationUtils.currentIsland != LocationUtils.Island.GARDEN && !MacroHandler.isMacroing) {
-            data.addProperty("info", "You are not in garden! Teleporting");
+            data.addProperty("info", "You are outside the garden! Teleporting");
             mc.thePlayer.sendChatMessage("/warp garden");
             new Thread(() -> {
                 try {
