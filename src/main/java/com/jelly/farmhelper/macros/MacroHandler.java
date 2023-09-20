@@ -205,6 +205,12 @@ public class MacroHandler {
         PetSwapper.reset();
         FailsafeNew.resetFailsafes();
         Utils.disablePingAlert();
+        if (Antistuck.unstuckThreadIsRunning) {
+            Antistuck.unstuckThreadIsRunning = false;
+            if (Antistuck.unstuckThreadInstance != null) {
+                Antistuck.unstuckThreadInstance.interrupt();
+            }
+        }
     }
 
     public static void disableCurrentMacro() {

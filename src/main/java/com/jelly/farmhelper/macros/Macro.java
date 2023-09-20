@@ -44,7 +44,7 @@ public abstract class Macro<T> {
             rotated = false;
             FarmHelper.gameState.scheduleNotMoving(750);
             Antistuck.stuck = false;
-            Antistuck.cooldown.schedule((long) FarmHelper.config.maxTimeBetweenChangingRows * 2);
+            Antistuck.notMovingTimer.schedule();
             lastTp.schedule(1_500);
             if (!PlayerUtils.isSpawnLocationSet() || (mc.thePlayer.getPositionVector().distanceTo(PlayerUtils.getSpawnLocation()) > 1.5)) {
                 PlayerUtils.setSpawnLocation();
@@ -63,7 +63,7 @@ public abstract class Macro<T> {
         beforeTeleportationPos = null;
         FarmHelper.gameState.scheduleNotMoving(750);
         Antistuck.stuck = false;
-        Antistuck.cooldown.schedule((long) FarmHelper.config.maxTimeBetweenChangingRows * 2);
+        Antistuck.notMovingTimer.schedule();
         Antistuck.unstuckThreadIsRunning = false;
         layerY = mc.thePlayer.getPosition().getY();
         rotation.reset();

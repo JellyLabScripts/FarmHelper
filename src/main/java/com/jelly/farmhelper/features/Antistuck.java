@@ -17,7 +17,6 @@ public class Antistuck {
     private static double lastX;
     private static double lastZ;
     private static double lastY;
-    public static final Clock cooldown = new Clock();
 
     public static boolean unstuckThreadIsRunning = false;
     public static boolean unstuckLastMoveBack = false;
@@ -45,7 +44,7 @@ public class Antistuck {
             KeyBindUtils.stopMovement();
             Thread.sleep(200);
             Antistuck.stuck = false;
-            Antistuck.cooldown.schedule((long) (FarmHelper.config.maxTimeBetweenChangingRows * 2));
+            Antistuck.notMovingTimer.schedule();
             unstuckThreadIsRunning = false;
             unstuckThreadInstance = null;
         } catch (Throwable e) {
@@ -60,7 +59,7 @@ public class Antistuck {
         if (event.phase == TickEvent.Phase.END)
             return;
 
-        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled || mc.thePlayer == null || mc.theWorld == null || LocationUtils.currentIsland != LocationUtils.Island.GARDEN || mc.currentScreen != null || unstuckThreadIsRunning) {
+        if (!MacroHandler.isMacroing || MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled || mc.thePlayer == null || mc.theWorld == null || LocationUtils.currentIsland != LocationUtils.Island.GARDEN || mc.currentScreen != null || unstuckThreadIsRunning || VisitorsMacro.isEnabled()) {
             notMovingTimer.schedule();
             lastX = 10000;
             lastZ = 10000;
@@ -71,7 +70,6 @@ public class Antistuck {
         double dx = Math.abs(mc.thePlayer.posX - lastX);
         double dz = Math.abs(mc.thePlayer.posZ - lastZ);
         double dy = Math.abs(mc.thePlayer.posY - lastY);
-        System.out.println(dx + " " + dz + " " + dy);
         if (dx < 1 && dz < 1 && dy < 1 && !FailsafeNew.emergency && notMovingTimer.isScheduled()) {
             if (notMovingTimer.hasPassed(3000L)) {
                 notMovingTimer.reset();
@@ -85,28 +83,4 @@ public class Antistuck {
             lastY = mc.thePlayer.posY;
         }
     }
-
-//    @SubscribeEvent
-//    public final void tick(TickEvent.ClientTickEvent event) {
-//        if(event.phase == TickEvent.Phase.END)
-//            return;
-//
-//        if (MacroHandler.currentMacro == null || !MacroHandler.currentMacro.enabled || mc.thePlayer == null || mc.theWorld == null || LocationUtils.currentIsland != LocationUtils.Island.GARDEN || mc.currentScreen != null) {
-//            lastX = 10000;
-//            lastZ = 10000;
-//            lastY = 10000;
-//            stuck = false;
-//            cooldown.reset();
-//            return;
-//        }
-//        if(!MacroHandler.isMacroing || stuck)
-//            return;
-//        if (cooldown.passed()) {
-//            stuck = (Math.abs(mc.thePlayer.posX - lastX) < 1 && Math.abs(mc.thePlayer.posZ - lastZ) < 1 && Math.abs(mc.thePlayer.posY - lastY) < 1 && !FailsafeNew.emergency);
-//            lastX = mc.thePlayer.posX;
-//            lastZ = mc.thePlayer.posZ;
-//            lastY = mc.thePlayer.posY;
-//            cooldown.schedule((long) (FarmHelper.config.maxTimeBetweenChangingRows * 2));
-//        }
-//    }
 }
