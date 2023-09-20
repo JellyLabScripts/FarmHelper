@@ -142,8 +142,10 @@ public class FailsafeNew {
             detectedFailsafes.clear();
         }
         if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing") || message.contains("You cannot join SkyBlock from here!")) {
-            LogUtils.sendDebug("Failed teleport - waiting");
-            cooldown.schedule(10000);
+            if (MacroHandler.currentMacro.isTping) {
+                LogUtils.sendDebug("Failed teleport - waiting");
+                cooldown.schedule(10000);
+            }
         }
         if (message.contains("to warp out! CLICK to warp now!")) {
             Autosell.disableOnly();
@@ -275,6 +277,7 @@ public class FailsafeNew {
                     if (cooldown.passed()) {
                         LogUtils.sendDebug("Not at island - teleporting back from Evacuating");
                         LogUtils.webhookLog("Not at island - teleporting back from Evacuating");
+                        MacroHandler.currentMacro.isTping = true;
                         mc.thePlayer.sendChatMessage("/warp garden");
                         cooldown.schedule((long) (5000 + Math.random() * 5000));
                     }
