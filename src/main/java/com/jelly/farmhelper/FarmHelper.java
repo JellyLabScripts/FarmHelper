@@ -93,6 +93,7 @@ public class FarmHelper {
             FarmHelper.config.SShapeMacroType = 6;
 
         mc.gameSettings.pauseOnLostFocus = false;
+        mc.gameSettings.gammaSetting = 1000;
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
