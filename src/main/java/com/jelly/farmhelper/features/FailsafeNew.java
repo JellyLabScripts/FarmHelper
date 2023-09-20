@@ -286,6 +286,7 @@ public class FailsafeNew {
                 if (cooldown.isScheduled() && cooldown.passed()) {
                     LogUtils.sendDebug("Not at island - teleporting back from The Hub");
                     LogUtils.webhookLog("Not at island - teleporting back from The Hub");
+                    MacroHandler.currentMacro.isTping = true;
                     mc.thePlayer.sendChatMessage("/warp garden");
                     cooldown.schedule((long) (5000 + Math.random() * 5000));
                 }
