@@ -366,7 +366,7 @@ public class VisitorsMacro {
                     LogUtils.sendDebug("[Visitors Macro] Player doesn't have AOTE nor AOTV");
                     haveAotv = false;
                 } else {
-                    mc.thePlayer.inventory.currentItem = aspectOfTheVoid;
+                    mc.thePlayer.inventory.currentItem = aspectOfTheVoid != -1 ? aspectOfTheVoid : aspectOfTheEnd;
                     haveAotv = true;
                 }
 
