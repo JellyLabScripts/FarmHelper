@@ -4,10 +4,7 @@ import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.Config;
 import com.jelly.farmhelper.config.structs.Rewarp;
 import com.jelly.farmhelper.events.ReceivePacketEvent;
-import com.jelly.farmhelper.features.Antistuck;
-import com.jelly.farmhelper.features.FailsafeNew;
-import com.jelly.farmhelper.features.LagDetection;
-import com.jelly.farmhelper.features.VisitorsMacro;
+import com.jelly.farmhelper.features.*;
 import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.player.Rotation;
 import com.jelly.farmhelper.utils.*;
@@ -66,6 +63,7 @@ public abstract class Macro<T> {
         Antistuck.notMovingTimer.schedule();
         Antistuck.unstuckTries = 0;
         Antistuck.unstuckThreadIsRunning = false;
+        Desync.clickedBlocks.clear();
         layerY = mc.thePlayer.getPosition().getY();
         rotation.reset();
         if (mc.thePlayer.capabilities.isFlying) {
@@ -207,20 +205,6 @@ public abstract class Macro<T> {
             LogUtils.sendDebug("Rotating");
         }
     }
-
-    // Old rotation check
-//    public void checkForRotationFailsafe() {
-//        if (!FarmHelper.config.oldRotationCheck) return;
-//        if (!rotatedAfterStart) return;
-//        // Check for rotation check failsafe
-//        boolean flag = AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), yaw) > FarmHelper.config.rotationCheckSensitivity
-//                || Math.abs(mc.thePlayer.rotationPitch - pitch) > FarmHelper.config.rotationCheckSensitivity;
-//
-//        if(!FailsafeNew.emergency && flag && lastTp.passed() && !rotation.rotating) {
-//            rotation.reset();
-//            FailsafeNew.emergencyFailsafe(FailsafeNew.FailsafeType.ROTATION);
-//        }
-//    }
 
     public boolean needAntistuck(boolean lastMoveBack) {
         if (LagDetection.isLagging() || LagDetection.wasJustLagging()) return false;

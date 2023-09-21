@@ -645,7 +645,8 @@ public class FailsafeNew {
 
         switch (type) {
             case DESYNC:
-                cooldown.schedule(3_000);
+                LogUtils.sendFailsafeMessage("Desync detected, will solve this issue soon");
+                cooldown.schedule(1_500);
                 evacuateState = EvacuateState.EVACUATE_FROM_ISLAND;
                 Autosell.disableOnly();
                 VisitorsMacro.stopMacro();

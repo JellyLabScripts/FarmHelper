@@ -9,8 +9,6 @@ import com.jelly.farmhelper.utils.LocationUtils;
 
 import java.util.List;
 
-import static com.jelly.farmhelper.FarmHelper.gameState;
-
 public class DebugHUD extends TextHud {
     public DebugHUD() {
         super(true, 1f, 10f, 1, true, true, 1, 5, 5, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
@@ -42,13 +40,14 @@ public class DebugHUD extends TextHud {
             lines.add("farmClock isPaused: " + farmClockisPaused);
             lines.add("breakClock remainingTime: " + breakClockremainingTime);
             lines.add("breakClock isPaused: " + breakClockisPaused);
-            lines.add("gameState.currentLocation: " + gameState.currentLocation);
             lines.add("LocationUtils.currentIsland: " + LocationUtils.currentIsland);
             lines.add("AutoReconnect.currentState: " + AutoReconnect.currentState);
             lines.add("hasLineChanged: " + hasLineChanged);
             lines.add("isHuggingAWall: " + isHuggingAWall);
             lines.add("lagging: " + LagDetection.lagging);
             lines.add("lastPacket: " + LagDetection.lastPacket);
+            lines.add("desyncSize: " + Desync.clickedBlocks.size());
+            lines.add("desync: " + Desync.isDesync());
             if (MacroHandler.currentMacro != null)
                 lines.add("isStuck: " + Antistuck.stuck);
         }
