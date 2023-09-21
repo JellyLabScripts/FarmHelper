@@ -79,14 +79,15 @@ public class MinecraftMixin {
                 Block blockTryBreak = this.theWorld.getBlockState(newBlock).getBlock();
 
                 if (!newBlock.equals(clickedBlock)
-                    && (blockTryBreak instanceof BlockCrops ||
-                    blockTryBreak instanceof BlockNetherWart ||
-                    blockTryBreak == Blocks.reeds ||
-                    blockTryBreak == Blocks.cactus ||
-                    blockTryBreak == Blocks.brown_mushroom_block ||
-                    blockTryBreak == Blocks.red_mushroom_block ||
-                    blockTryBreak == Blocks.pumpkin ||
-                    blockTryBreak == Blocks.melon_block)
+                        && (blockTryBreak instanceof BlockCrops ||
+                        blockTryBreak instanceof BlockNetherWart ||
+                        blockTryBreak == Blocks.reeds ||
+                        blockTryBreak == Blocks.cactus ||
+                        blockTryBreak == Blocks.brown_mushroom_block ||
+                        blockTryBreak == Blocks.red_mushroom_block ||
+                        blockTryBreak == Blocks.pumpkin ||
+                        blockTryBreak == Blocks.melon_block ||
+                        blockTryBreak == Blocks.cocoa)
                 ) {
                     this.playerController.clickBlock(newBlock, this.objectMouseOver.sideHit);
                 }
