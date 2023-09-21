@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.features;
 
 import com.jelly.farmhelper.macros.MacroHandler;
+import com.jelly.farmhelper.struct.CircularFifoQueue;
 import lombok.Getter;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
@@ -8,7 +9,6 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
-import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 import java.util.ArrayList;
 import java.util.List;
