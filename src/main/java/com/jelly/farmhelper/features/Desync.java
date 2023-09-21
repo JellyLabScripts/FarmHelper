@@ -50,7 +50,7 @@ public class Desync {
 
             switch (MacroHandler.crop) {
                 case NETHER_WART:
-                    if (state.getValue(BlockNetherWart.AGE) == 3) count++;
+                    if (!state.getBlock().equals(Blocks.air) && state.getValue(BlockNetherWart.AGE) == 3) count++;
                     break;
                 case SUGAR_CANE:
                     if (state.getBlock().equals(Blocks.reeds)) count++;
