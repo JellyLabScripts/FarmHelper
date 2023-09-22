@@ -66,10 +66,12 @@ public class Desync {
                     break;
                 case COCOA_BEANS:
                     if (state.getBlock().equals(Blocks.cocoa) && state.getValue(BlockCocoa.AGE) == 2) count++;
+                    break;
                 case CARROT:
                 case POTATO:
                 case WHEAT:
                     if (!state.getBlock().equals(Blocks.air) && state.getValue(BlockCrops.AGE) == 7) count++;
+                    break;
                 default:
                     // Unknown crop
                     continue;
