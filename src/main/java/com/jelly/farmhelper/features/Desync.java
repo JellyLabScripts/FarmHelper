@@ -3,6 +3,7 @@ package com.jelly.farmhelper.features;
 import com.jelly.farmhelper.macros.MacroHandler;
 import com.jelly.farmhelper.struct.CircularFifoQueue;
 import lombok.Getter;
+import net.minecraft.block.BlockCocoa;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
 import net.minecraft.block.state.IBlockState;
@@ -63,8 +64,15 @@ public class Desync {
                 case MUSHROOM:
                     if (state.getBlock().equals(Blocks.brown_mushroom_block) || state.getBlock().equals(Blocks.red_mushroom_block)) count++;
                     break;
-                default:
+                case COCOA_BEANS:
+                    if (state.getBlock().equals(Blocks.cocoa) && state.getValue(BlockCocoa.AGE) == 2) count++;
+                case CARROT:
+                case POTATO:
+                case WHEAT:
                     if (!state.getBlock().equals(Blocks.air) && state.getValue(BlockCrops.AGE) == 7) count++;
+                default:
+                    // Unknown crop
+                    continue;
             }
         }
         System.out.println(count + " / " + list.size());
