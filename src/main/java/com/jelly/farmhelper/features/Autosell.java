@@ -305,7 +305,7 @@ public class Autosell {
             name.startsWith("Nether Wart") || name.startsWith("Enchanted Nether Wart") || name.startsWith("Mutant Nether Wart") ||
             name.startsWith("Sugar Cane") || name.startsWith("Enchanted Sugar") || name.startsWith("Enchanted Sugar Cane") ||
             name.startsWith("Cropie") || name.startsWith("Squash") || name.startsWith("Fermento") ||
-            name.startsWith("Stone")) && !name.contains("Hoe");
+            name.startsWith("Stone") || name.contains("Iron Hoe"));
     }
 
     private static int getSack() {

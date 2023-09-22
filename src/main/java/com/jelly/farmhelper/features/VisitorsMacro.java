@@ -116,8 +116,6 @@ public class VisitorsMacro {
     private static float randomValue = 0;
 
     private static float purseBeforeVisitors = 0;
-    private static float directionBeforeStart = 1337;
-
     public static boolean triggeredManually = false;
     private static boolean autoSellInvoked = false;
 
@@ -145,7 +143,6 @@ public class VisitorsMacro {
         compactorSlots.clear();
         Utils.signText = "";
         retriesToGettingCloser = 0;
-        directionBeforeStart = 1337;
         currentEdge = null;
         itemToBuy = null;
         currentVisitor = null;
@@ -268,7 +265,6 @@ public class VisitorsMacro {
     }
 
     public static void enableMacro(boolean manual) {
-        directionBeforeStart = AngleUtils.get360RotationYaw();
         if (manual) {
             triggeredManually = true;
             currentState = State.DISABLE_COMPACTORS;
@@ -285,7 +281,6 @@ public class VisitorsMacro {
         stuckClock.schedule(25_000);
         mc.thePlayer.closeScreen();
         if (FarmHelper.config.autoUngrabMouse) UngrabUtils.ungrabMouse();
-        purseBeforeVisitors = ProfitCalculator.getCurrentPurse();
         if (!manual && MacroHandler.currentMacro != null && MacroHandler.currentMacro.enabled)
             MacroHandler.disableCurrentMacro(true);
         delayClock.schedule(1000);
@@ -294,8 +289,6 @@ public class VisitorsMacro {
     public static boolean isEnabled() {
         return currentState != State.NONE;
     }
-
-    private long aotvCoold = 0;
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
@@ -405,7 +398,7 @@ public class VisitorsMacro {
                         if (distanceToEdge > 14) {
                             if ((aotvTpCooldown.passed() || !aotvTpCooldown.isScheduled()) && haveAotv && !rotation.rotating) {
                                 PlayerUtils.rightClick();
-                                aotvCoold = (long) (120 + Math.random() * 100);
+                                long aotvCoold = (long) (120 + Math.random() * 100);
                                 aotvTpCooldown.schedule(aotvCoold);
                                 rotation.reset();
                             }
@@ -635,6 +628,10 @@ public class VisitorsMacro {
                             break;
                         }
                     }
+                }
+
+                if (purseBeforeVisitors == 0) {
+                    purseBeforeVisitors = ProfitCalculator.getCurrentPurse();
                 }
 
                 if ((mc.thePlayer.openContainer instanceof ContainerChest)) {
@@ -1063,7 +1060,7 @@ public class VisitorsMacro {
                             currentCompactorState = CompactorState.HOLD_COMPACTOR;
                             LogUtils.sendDebug("[Visitors Macro] Holding next compactor");
                         } else {
-                            LogUtils.sendDebug("[Visitors Macro] All compactors enabled, managing visitors");
+                            LogUtils.sendDebug("[Visitors Macro] All compactors enabled, going back to farm");
                             compactorSlots.clear();
                             currentCompactorState = CompactorState.IDLE;
                             currentState = State.BACK_TO_FARMING;
@@ -1091,12 +1088,6 @@ public class VisitorsMacro {
                 delayClock.schedule(1500);
                 break;
             case TELEPORT_TO_GARDEN:
-//                mc.thePlayer.sendChatMessage("/warp garden");
-//                long rotationTime = getRandomRotationDelay();
-//                if (FarmHelper.config.rotateAfterWarped && directionBeforeStart != 1337) {
-//                    rotation.reset();
-//                    rotation.easeTo(directionBeforeStart + 180, 0, rotationTime);
-//                }
                 MacroHandler.currentMacro.triggerWarpGarden();
                 currentState = State.CHANGE_TO_NONE;
                 delayClock.schedule(2000);
@@ -1301,7 +1292,8 @@ public class VisitorsMacro {
         if (!isEnabled()) return;
         if (event.type != 0 || event.message == null) return;
         if (event.message.getUnformattedText().contains("[Bazaar] You cannot afford this!")) {
-            currentState = State.CHANGE_TO_NONE;
+            disableMacro = true;
+            currentState = State.ENABLE_COMPACTORS;
             LogUtils.sendError("[Visitors Macro] You cannot afford this! Stopping visitors macro...");
         }
     }
