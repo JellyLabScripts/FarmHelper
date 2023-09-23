@@ -51,12 +51,14 @@ public class Desync {
 
             switch (MacroHandler.crop) {
                 case NETHER_WART:
-                    if (!state.getBlock().equals(Blocks.air) && state.getValue(BlockNetherWart.AGE) == 3) count++;
+                    if (state.getBlock() instanceof BlockNetherWart && state.getValue(BlockNetherWart.AGE) == 3) count++;
                     break;
                 case SUGAR_CANE:
                     if (state.getBlock().equals(Blocks.reeds)) count++;
                     break;
                 case CACTUS:
+                    if (state.getBlock().equals(Blocks.cactus)) count++;
+                    break;
                 case MELON:
                 case PUMPKIN:
                     if (!state.getBlock().equals(Blocks.air)) count++;
@@ -70,7 +72,7 @@ public class Desync {
                 case CARROT:
                 case POTATO:
                 case WHEAT:
-                    if (!state.getBlock().equals(Blocks.air) && state.getValue(BlockCrops.AGE) == 7) count++;
+                    if (state.getBlock() instanceof BlockCrops && state.getValue(BlockCrops.AGE) == 7) count++;
                     break;
                 default:
                     // Unknown crop
