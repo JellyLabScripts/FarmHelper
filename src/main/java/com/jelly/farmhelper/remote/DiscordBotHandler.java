@@ -40,7 +40,7 @@ public class DiscordBotHandler extends ListenerAdapter {
                 new Screenshot(),
                 new SetSpeed(),
                 new Info()));
-        System.out.println("Registered " + commands.size() + " commands");
+        LogUtils.sendDebug("Registered " + commands.size() + " commands");
     }
 
     public void connect() {
@@ -72,7 +72,6 @@ public class DiscordBotHandler extends ListenerAdapter {
             WebsocketHandler.websocketState = WebsocketHandler.WebsocketState.NONE;
         } catch (IllegalStateException e) {
             Notifications.INSTANCE.send("Farm Helper", "Discord Bot is already connected, connecting as a client...");
-            System.out.println("Discord Bot is already connected, connecting as a client...");
             LogUtils.sendWarning("Discord Bot is already connected, connecting as a client...");
             WebsocketHandler.websocketState = WebsocketHandler.WebsocketState.CLIENT;
         } catch (InterruptedException e) {
@@ -110,7 +109,7 @@ public class DiscordBotHandler extends ListenerAdapter {
 
         if (!Loader.isModLoaded("farmhelperjdadependency")) {
             Notifications.INSTANCE.send("Farm Helper", "FarmHelperJDA is not loaded, disabling remote control..");
-            System.out.println("FarmHelperJDA is not loaded, disabling remote control..");
+            LogUtils.sendDebug("FarmHelperJDA is not loaded, disabling remote control..");
             FarmHelper.config.enableRemoteControl = false;
             return;
         }

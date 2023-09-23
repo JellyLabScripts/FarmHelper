@@ -143,6 +143,15 @@ public class PlayerUtils {
         return -1;
     }
 
+    public static String getLoreFromGuiByItemName(String name) {
+        if (!(mc.thePlayer.openContainer instanceof ContainerChest)) return null;
+        if (getSlotFromGui(name) == -1) return null;
+        if (getStackInOpenContainerSlot(getSlotFromGui(name)) == null) return null;
+        if (getLore(getStackInOpenContainerSlot(getSlotFromGui(name))) == null)
+            return null;
+        return StringUtils.stripControlCodes(Objects.requireNonNull(getLore(getStackInOpenContainerSlot(getSlotFromGui(name)))).toString());
+    }
+
     public static String matchFromString(final String pattern, final String item) {
         List<ItemStack> inventory = mc.thePlayer.openContainer.getInventory();
         int slot = getSlotFromGui(item);

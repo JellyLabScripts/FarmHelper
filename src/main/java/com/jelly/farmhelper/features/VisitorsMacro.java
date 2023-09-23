@@ -903,8 +903,8 @@ public class VisitorsMacro {
                             if (PlayerUtils.getSlotFromGui("Buy Instantly") == -1) break;
                             if (PlayerUtils.getSlotFromGui("Sell Instantly") == -1) break;
 
-                            String itemName1 = getLoreFromGuiByItemName("Buy Instantly");
-                            String itemName2 = getLoreFromGuiByItemName("Sell Instantly");
+                            String itemName1 = PlayerUtils.getLoreFromGuiByItemName("Buy Instantly");
+                            String itemName2 = PlayerUtils.getLoreFromGuiByItemName("Sell Instantly");
                             if (itemName1 == null || itemName2 == null) break;
 
                             if (extractPrice(itemName1) > extractPrice(itemName2) * FarmHelper.config.visitorsMacroPriceManipulationMultiplier) {
@@ -1267,15 +1267,6 @@ public class VisitorsMacro {
         } else {
             return -1;
         }
-    }
-
-    private String getLoreFromGuiByItemName(String name) {
-        if (!(mc.thePlayer.openContainer instanceof ContainerChest)) return null;
-        if (PlayerUtils.getSlotFromGui(name) == -1) return null;
-        if (PlayerUtils.getStackInOpenContainerSlot(PlayerUtils.getSlotFromGui(name)) == null) return null;
-        if (PlayerUtils.getLore(PlayerUtils.getStackInOpenContainerSlot(PlayerUtils.getSlotFromGui(name))) == null)
-            return null;
-        return StringUtils.stripControlCodes(Objects.requireNonNull(PlayerUtils.getLore(PlayerUtils.getStackInOpenContainerSlot(PlayerUtils.getSlotFromGui(name)))).toString());
     }
 
     @SubscribeEvent(receiveCanceled = true)

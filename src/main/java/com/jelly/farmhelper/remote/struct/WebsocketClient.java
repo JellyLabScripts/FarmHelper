@@ -25,7 +25,7 @@ public class WebsocketClient extends WebSocketClient {
         try {
             RemoteMessage remoteMessage = FarmHelper.gson.fromJson(message, RemoteMessage.class);
             String command = remoteMessage.command;
-            System.out.println("Command: " + command);
+            LogUtils.sendDebug("Command: " + command);
 
             Optional<ClientCommand> commandInstance = RemoteUtils.getCommand(WebsocketHandler.commands, (cmd) -> cmd.label.equalsIgnoreCase(command));
             System.out.println(commandInstance);

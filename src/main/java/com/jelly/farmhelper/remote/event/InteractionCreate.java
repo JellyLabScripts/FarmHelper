@@ -30,10 +30,8 @@ public class InteractionCreate extends ListenerAdapter {
             return;
         }
 
-        System.out.println("Command not found");
-        System.out.println(command);
-        System.out.println("Commands list: " + Arrays.toString(commands.toArray()));
-        LogUtils.sendDebug("Command not found");
+        LogUtils.sendDebug("Command not found: " + command);
+        LogUtils.sendDebug("Commands list: " + Arrays.toString(commands.toArray()));
         event.reply("Command not found").queue();
     }
 }

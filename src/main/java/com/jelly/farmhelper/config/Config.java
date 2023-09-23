@@ -6,6 +6,7 @@ import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.*;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.structs.Rewarp;
+import com.jelly.farmhelper.features.AutoSellNew;
 import com.jelly.farmhelper.features.Autosell;
 import com.jelly.farmhelper.features.VisitorsMacro;
 import com.jelly.farmhelper.hud.DebugHUD;
@@ -1252,11 +1253,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		registerKeyBind(toggleMacro, () -> {
 			MacroHandler.toggleMacro();
 		});
-//		registerKeyBind(debugKeybind, () -> {
-//			if (MacroHandler.currentMacro != null) {
-//				MacroHandler.currentMacro.unstuck(false);
-//			}
-//		});
+		registerKeyBind(debugKeybind, () -> {
+			AutoSellNew.enableMacro(AutoSellNew.marketType.BZ, false);
+		});
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
 		save();
 	}
