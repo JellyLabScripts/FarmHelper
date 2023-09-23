@@ -678,6 +678,15 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	// START VISITORS_MACRO
 
+	@Info(
+			text = "Visitors Macro tend to move your mouse, because of opening GUI's frequently. Be aware of that.",
+			type = InfoType.WARNING,
+			category = VISITORS_MACRO,
+			subcategory = "Visitors Macro",
+			size = 2
+	)
+	public static boolean visitorsMacroWarning;
+
 	@Switch(
 			name = "Enable visitors macro", category = VISITORS_MACRO, subcategory = "Visitors Macro",
 			description = "Enables visitors macro"
@@ -1243,11 +1252,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		registerKeyBind(toggleMacro, () -> {
 			MacroHandler.toggleMacro();
 		});
-		registerKeyBind(debugKeybind, () -> {
-			if (MacroHandler.currentMacro != null) {
-				MacroHandler.currentMacro.unstuck(false);
-			}
-		});
+//		registerKeyBind(debugKeybind, () -> {
+//			if (MacroHandler.currentMacro != null) {
+//				MacroHandler.currentMacro.unstuck(false);
+//			}
+//		});
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
 		save();
 	}

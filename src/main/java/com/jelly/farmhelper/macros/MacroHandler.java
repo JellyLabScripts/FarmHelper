@@ -20,10 +20,8 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
-import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
 
@@ -43,7 +41,6 @@ public class MacroHandler {
     private final Rotation rotation = new Rotation();
     public static long startTime = 0;
     public static boolean randomizing = false;
-    public static long startCounter = 0;
     public static boolean startingUp;
     public static CropEnum crop;
 

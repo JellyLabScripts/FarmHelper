@@ -7,7 +7,6 @@ import com.jelly.farmhelper.utils.KeyBindUtils;
 import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.PlayerUtils;
 import com.jelly.farmhelper.world.GameState;
-import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Slot;
@@ -28,7 +27,6 @@ import java.util.regex.Pattern;
 
 public class Autosell {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    @Getter
     private static boolean enabled;
     private static int hoeSlot;
     private static int sackSlot;
@@ -43,6 +41,7 @@ public class Autosell {
     private static int totalCount;
 
     private static final Clock sellClock = new Clock();
+    private static final Clock waitAfterDisable = new Clock();
 
     private static boolean soldToBZ = false;
     private static boolean soldSacks = false;
@@ -56,6 +55,10 @@ public class Autosell {
     public static final Clock stuckClock = new Clock();
 
     public static boolean disableOnlyFlag = false;
+
+    public static boolean isEnabled() {
+        return (waitAfterDisable.isScheduled() && !waitAfterDisable.passed()) || enabled;
+    }
 
     public static void enable() {
         enable(false);
@@ -76,19 +79,21 @@ public class Autosell {
         enabled = true;
         soldToBZ = false;
         soldSacks = false;
-        waitBeforeSellClock.schedule(3_500);
+        waitBeforeSellClock.schedule((long) (1_500 + Math.random() * 1_000));
         stuckClock.schedule(10_000);
         Autosell.disableOnlyFlag = disableOnlyFlag;
-        MacroHandler.disableCurrentMacro();
+        if (!disableOnlyFlag)
+            MacroHandler.disableCurrentMacro();
     }
 
     public static void disableAndRestart() {
         LogUtils.sendDebug("[AutoSell] Finished");
         mc.thePlayer.closeScreen();
         mc.thePlayer.inventory.currentItem = hoeSlot;
-        enabled = false;
         disableOnlyFlag = false;
         MacroHandler.enableCurrentMacro();
+        waitAfterDisable.schedule(2_500);
+        enabled = false;
     }
 
     public static void disableOnly() {
@@ -96,6 +101,7 @@ public class Autosell {
         LogUtils.sendDebug("[AutoSell] Disabled");
         mc.thePlayer.closeScreen();
         mc.thePlayer.inventory.currentItem = hoeSlot;
+        waitAfterDisable.schedule(2_500);
         enabled = false;
     }
 
