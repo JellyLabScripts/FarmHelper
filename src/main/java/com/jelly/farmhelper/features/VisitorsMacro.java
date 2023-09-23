@@ -138,6 +138,7 @@ public class VisitorsMacro {
         aotvTpCooldown.reset();
         clock.reset();
         rotation.reset();
+        delayClock.reset();
         waitAfterTpClock.reset();
         stuckClock.reset();
         visitorsFinished.clear();
@@ -1129,6 +1130,13 @@ public class VisitorsMacro {
                 LogUtils.sendSuccess("[Visitors Macro] Spent §2" + currencyFormatter.format(purseBeforeVisitors - ProfitCalculator.getCurrentPurse()) + "§a on visitors.");
                 currentState = State.NONE;
                 stopMacro();
+                if (triggeredManually) {
+                    MacroHandler.disableMacro();
+                    if (config.autoUngrabMouse) {
+                        UngrabUtils.regrabMouse();
+                    }
+                    return;
+                }
                 delayClock.schedule(10_000);
                 if (FarmHelper.config.autoUngrabMouse) {
                     UngrabUtils.regrabMouse();
