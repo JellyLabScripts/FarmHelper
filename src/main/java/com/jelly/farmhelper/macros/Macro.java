@@ -34,6 +34,9 @@ public abstract class Macro<T> {
         if (beforeTeleportationPos == null) return;
         if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos) > 2) {
             LogUtils.sendDebug("Teleported!");
+            if (yaw == -2137 && pitch == -2137) {
+                onEnable();
+            }
             currentState = changeState(calculateDirection());
             beforeTeleportationPos = null;
             isTping = false;
@@ -99,7 +102,7 @@ public abstract class Macro<T> {
         if (mc.thePlayer.getPosition().getY() < -5) {
             LogUtils.sendError("Build a wall between rewarp point and the void to prevent falling out of the garden! Disabling the macro...");
             MacroHandler.disableMacro();
-            triggerWarpGarden();
+            triggerWarpGarden(true);
             return;
         }
         if (lastTp.isScheduled() && lastTp.passed()) {
@@ -170,9 +173,13 @@ public abstract class Macro<T> {
     }
 
     public void triggerWarpGarden() {
+        triggerWarpGarden(false);
+    }
+
+    public void triggerWarpGarden(boolean force) {
         KeyBindUtils.stopMovement();
         isTping = true;
-        if (FarmHelper.gameState.canChangeDirection() && beforeTeleportationPos == null) {
+        if (force || FarmHelper.gameState.canChangeDirection() && beforeTeleportationPos == null) {
             LogUtils.sendDebug("Warping to spawn point");
             mc.thePlayer.sendChatMessage("/warp garden");
             beforeTeleportationPos = mc.thePlayer.getPosition();
@@ -220,12 +227,15 @@ public abstract class Macro<T> {
             Antistuck.stuck = true;
             Antistuck.unstuckLastMoveBack = lastMoveBack;
             Antistuck.unstuckThreadIsRunning = true;
-            LogUtils.sendDebug("Stuck!");
-            if (Antistuck.unstuckTries == 2 && FarmHelper.config.rewarpAt3FailesAntistuck) {
-                triggerWarpGarden();
+            if (Antistuck.unstuckTries >= 2 && FarmHelper.config.rewarpAt3FailesAntistuck) {
+                LogUtils.sendWarning("Macro was continuously getting stuck! Warping to garden...");
+                triggerWarpGarden(true);
+                yaw = -2137;
+                pitch = -2137;
                 Antistuck.unstuckTries = 0;
                 return;
             }
+            LogUtils.sendWarning("Macro is stuck! Turning on antistuck procedure...");
             Antistuck.unstuckThreadInstance = new Thread(Antistuck.unstuckRunnable, "antistuck");
             KeyBindUtils.stopMovement();
             Antistuck.unstuckThreadInstance.start();

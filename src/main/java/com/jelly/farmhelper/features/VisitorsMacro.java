@@ -1122,7 +1122,7 @@ public class VisitorsMacro {
                 delayClock.schedule(1500);
                 break;
             case TELEPORT_TO_GARDEN:
-                MacroHandler.currentMacro.triggerWarpGarden();
+                MacroHandler.currentMacro.triggerWarpGarden(true);
                 currentState = State.CHANGE_TO_NONE;
                 delayClock.schedule(2000);
                 break;

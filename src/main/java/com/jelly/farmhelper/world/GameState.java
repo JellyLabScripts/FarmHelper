@@ -39,7 +39,7 @@ public class GameState {
     public EffectState cookie;
     public EffectState godPot;
 
-    public location currentLocation = location.ISLAND;
+//    public location currentLocation = location.ISLAND;
 
     private static final Pattern PATTERN_ACTIVE_EFFECTS = Pattern.compile(
       "§r§r§7You have a §r§cGod Potion §r§7active! §r§d([0-9]*?:?[0-9]*?:?[0-9]*)§r");
@@ -74,7 +74,7 @@ public class GameState {
                 serverIP = mc.getCurrentServerData().serverIP;
             }
         }
-        currentLocation = getLocation();
+//        currentLocation = getLocation();
         checkFooter();
         updateWalkables();
         blockInPos = new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
@@ -83,7 +83,7 @@ public class GameState {
         dx = Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX);
         dz = Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ);
         dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
-        if (dx < 0.01 && dz < 0.01 && dy < 0.01) {
+        if (dx < 0.01 && dz < 0.01 && dy < 0.01 && mc.currentScreen == null) {
             if (hasPassedSinceStopped()) {
                 notMovingTimer.reset();
             }
