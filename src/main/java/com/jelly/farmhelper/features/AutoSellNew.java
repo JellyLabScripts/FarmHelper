@@ -156,8 +156,13 @@ public class AutoSellNew {
                     LogUtils.sendDebug("[AutoSell] Sack is empty, stopping...");
                     stopMacro();
                 }
-                else if (shouldSellSacks)
+                else if (shouldSellSacks) {
+                    if (mc.thePlayer.openContainer instanceof ContainerChest)
+                        mc.thePlayer.closeScreen();
+                    if (FarmHelper.config.autoUngrabMouse)
+                        UngrabUtils.ungrabMouse();
                     isPickingSackNow = true;
+                }
                 break;
         }
     }
@@ -194,8 +199,13 @@ public class AutoSellNew {
                     LogUtils.sendDebug("[AutoSell] Sack is empty, stopping...");
                     stopMacro();
                 }
-                else if (shouldSellSacks)
+                else if (shouldSellSacks) {
+                    if (mc.thePlayer.openContainer instanceof ContainerChest)
+                        mc.thePlayer.closeScreen();
+                    if (FarmHelper.config.autoUngrabMouse)
+                        UngrabUtils.ungrabMouse();
                     isPickingSackNow = true;
+                }
                 break;
         }
     }
@@ -250,9 +260,11 @@ public class AutoSellNew {
                 break;
             case CLOSE_MENU:
                 LogUtils.sendDebug("[AutoSell] Closing Sacks menu");
-                if (mc.thePlayer.openContainer instanceof ContainerChest)
+                if (mc.thePlayer.openContainer instanceof ContainerChest) {
                     mc.thePlayer.closeScreen();
-                UngrabUtils.regrabMouse();
+                    if (FarmHelper.config.autoUngrabMouse)
+                        UngrabUtils.ungrabMouse();
+                }
                 isPickingSackNow = false;
                 break;
         }
