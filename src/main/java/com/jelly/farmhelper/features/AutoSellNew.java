@@ -238,13 +238,13 @@ public class AutoSellNew {
                     isSackEmpty = true;
                     currentStateSacks = StateSacks.CLOSE_MENU;
                 } else {
-                    if (mc.thePlayer.inventory.getFirstEmptyStack() == -1) {
+                    if (mc.thePlayer.inventory.getFirstEmptyStack() != -1) {
+                        LogUtils.sendDebug("[AutoSell] Picking up items");
+                        PlayerUtils.clickOpenContainerSlot(pickupSlot);
+                    } else {
                         LogUtils.sendError("[AutoSell] Inventory is full, selling soon...");
                         currentStateSacks = StateSacks.CLOSE_MENU;
-                        break;
                     }
-                    LogUtils.sendDebug("[AutoSell] Picking up items");
-                    PlayerUtils.clickOpenContainerSlot(pickupSlot);
                 }
                 delayClock.schedule(getRandomGuiDelay());
                 break;
