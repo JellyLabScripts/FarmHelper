@@ -23,4 +23,4 @@ plugins {
 }
 
 
-rootProject.name = "FarmHelpeV2"
+rootProject.name = "FarmHelperV2"

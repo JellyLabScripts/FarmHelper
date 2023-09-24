@@ -1,11 +1,11 @@
 [
   {
     "modid": "${modid}",
-    "name": "Xample Mod",
-    "description": "A mod that is used as an example.",
+    "name": "FarmHelper V2",
+    "description": "A helper for every farmer",
     "version": "${version}",
     "mcversion": "${mcversion}",
-    "url": "https://github.com/romangraef/Forge1.8.9Template/",
+    "url": "https://github.com/May2Beez/FarmHelperV2",
     "updateUrl": "",
     "authorList": [
       "You"

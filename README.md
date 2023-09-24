@@ -1,34 +1,63 @@
-# Architectury Loom based template for 1.8.9 forge mods
+<p align="center">
+  <a href="https://github.com/JellyLabScripts/FarmHelper/graphs/contributors" alt="Contributors">
+    <img src="https://img.shields.io/github/contributors/JellyLabScripts/FarmHelper?color=blue" />
+  </a>
+  <a href="https://github.com/JellyLabScripts/FarmHelper/releases" target="_blank">
+    <img alt="release" src="https://img.shields.io/github/v/release/JellyLabScripts/FarmHelper?color=green" />
+  </a>
+  <a href="https://github.com/JellyLabScripts/FarmHelper/releases" target="_blank">
+    <img alt="downloads" src="https://img.shields.io/github/downloads/JellyLabScripts/FarmHelper/total?color=purple" />
+  </a>
+  <a href="https://discord.gg/6mSHC2Xd9y" target="_blank">
+    <img alt="discord" src="https://img.shields.io/discord/450878205294018560?color=orange&label=discord" />
+  </a>
+</p>
 
-**For other templates, do check out the [other branches of this repository](https://github.com/romangraef/Forge1.8.9Template/branches/all)**
+<br />
+<div align="center">
+  <a href="https://github.com/JellyLabScripts/FarmHelper">
+    <img src="images/logo.png" alt="Logo" width="80" height="80">
+  </a>
 
-To get started, clone this repository.
-In `build.gradle.kts`, replace the values of `baseGroup` and `group` with your own names.
-In `settings.gradle.kts` change `rootProject.name` to your desired mod id.
+<h3 align="center">FarmHelper V2</h3>
+  <p align="center">
+    <a href="https://discord.gg/6mSHC2Xd9y">Report Bug</a>
+    ·
+    <a href="https://discord.gg/6mSHC2Xd9y">Request Feature</a>
+  </p>
+</div>
 
-The `com.example` package needs to be renamed to match the value of `baseGroup`.
+## About The Project
 
-If you don't want mixins (which allow for modifying vanilla code), then you can remove the references to mixins from
-the `build.gradle.kts` at the lines specified with comments and the `com.example.mixin` package.
+Imagine not having to stare at your computer for 12 hours a day just to press the A and D keys. Imagine, being able to skip all the repetitive processes of farming and do other things simultaneously. Farm Helper is a highly customizable skyblock quality of life (QOL) mod that automates boring farming processes, freeing up your time for other activities.
 
-This project uses [DevAuth](https://github.com/DJtheRedstoner/DevAuth) per default, so you can log in using your real
-minecraft account. If you don't need that, you can remove it from the buildscript.
+Revolutionizing the farming meta of Hypixel skyblock, Farm Helper has already been downloaded over 30,000 times. Start your QOL journey by joining the Jellylab community!
 
-To run the mod you will need two JDKs, one Java 17 jdk and one Java 1.8 jdk. You can download those
-from [here](https://adoptium.net/temurin/releases) (or use your own downloads).
+## Contributing
 
-When you import your project into IntelliJ, you need to set the gradle jvm to the Java 17 JDK in the gradle tab, and the
-Project SDK to the Java 1.8 JDK. Then click on the sync button in IntelliJ, and it should create a run task
-called `Minecraft Client`. If it doesn't then try relaunching your IntelliJ. **Warning for Mac users**: You might have to remove the `-XStartOnFirstThread` vm argument from your run configuration. In the future, that should be handled by the plugin, but for now you'll probably have to do that manually.
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-To export your project, run the `gradle build` task, and give other people the
-file `build/libs/<modid>-<version>.jar`. Ignore the jars in the `build/badjars` folder. Those are intermediary jars that
-are used by the build system but *do not work* in a normal forge installation.
+If you have a suggestion that would make this better, please fork the repo and create a pull request.
+Don't forget to give the project a star! Thanks again!
 
-### For those who have not an attention span
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-[![Youtube Tutorial](https://i.ytimg.com/vi/nWzHlomdCgc/maxresdefault.jpg)](https://www.youtube.com/watch?v=nWzHlomdCgc)
+## License
 
-## Licensing
+Distributed under a custom license. See `LICENSE` for more information.
 
-This template is licensed under the Unlicense (license copy present in this repository), or alternatively under [Creative Commons 1.0 Universal (CC0 1.0)](https://creativecommons.org/publicdomain/zero/1.0/), and all contributions and PR to this template are expected to follow this. This means your mod, based on this template can be licensed whatever way you want, and does not need to reference back to this template in any way.
+[contributors-shield]: https://img.shields.io/github/contributors/JellyLabScripts/FarmHelper.svg?style=for-the-badge
+[contributors-url]: https://github.com/JellyLabScripts/FarmHelper/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/JellyLabScripts/FarmHelper.svg?style=for-the-badge
+[forks-url]: https://github.com/JellyLabScripts/FarmHelper/network/members
+[stars-shield]: https://img.shields.io/github/stars/JellyLabScripts/FarmHelper.svg?style=for-the-badge
+[stars-url]: https://github.com/JellyLabScripts/FarmHelper/stargazers
+[issues-shield]: https://img.shields.io/github/issues/JellyLabScripts/FarmHelper.svg?style=for-the-badge
+[issues-url]: https://github.com/JellyLabScripts/FarmHelper/issues
+[license-shield]: https://img.shields.io/github/license/JellyLabScripts/FarmHelper.svg?style=for-the-badge
+[license-url]: https://github.com/JellyLabScripts/FarmHelper/blob/master/LICENSE
+[downloads-shield]: https://img.shields.io/github/downloads/JellyLabScripts/FarmHelper/total.svg?style=for-the-badge

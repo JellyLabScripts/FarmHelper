@@ -1,0 +1,17 @@
+{
+  "package": "com.github.may2beez.farmhelperv2.mixin",
+  "refmap": "mixins.${modid}.refmap.json",
+  "minVersion": "0.7",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "block.IBlockAccessor",
+    "block.MixinBlockCocoa",
+    "block.MixinBlockCrops",
+    "block.MixinBlockMushroom",
+    "block.MixinBlockNetherWart",
+    "fml.MixinFMLHandshakeMessage"
+  ],
+  "client": [
+    "block.MixinBlockRendererDispatcher"
+  ]
+}
