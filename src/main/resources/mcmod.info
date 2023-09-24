@@ -1,0 +1,18 @@
+[
+  {
+    "modid": "${modid}",
+    "name": "Xample Mod",
+    "description": "A mod that is used as an example.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "https://github.com/romangraef/Forge1.8.9Template/",
+    "updateUrl": "",
+    "authorList": [
+      "You"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
