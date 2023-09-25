@@ -6,7 +6,7 @@ import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 import com.github.may2beez.farmhelperv2.util.*;
 
-public class SShapeCropMacroNew extends AbstractMacro {
+public class SShapeVerticalCropMacro extends AbstractMacro {
     public enum ChangeLaneDirection {
         FORWARD,
         BACKWARD
@@ -159,7 +159,6 @@ public class SShapeCropMacroNew extends AbstractMacro {
     @Override
     public void onEnable() {
         changeLaneDirection = null;
-        changeState(State.NONE);
         FarmHelperConfig.CropEnum crop = PlayerUtils.getFarmingCrop();
         LogUtils.sendDebug("Crop: " + crop);
         MacroHandler.getInstance().setCrop(crop);
@@ -181,7 +180,7 @@ public class SShapeCropMacroNew extends AbstractMacro {
             setYaw(AngleUtils.getClosest());
         }
         getRotation().reset();
-        getRotation().easeTo(getYaw(), getPitch(), 500);
+        getRotation().easeTo(getYaw(), getPitch(), FarmHelperConfig.getRandomRotationTime());
         super.onEnable();
     }
 
@@ -199,24 +198,31 @@ public class SShapeCropMacroNew extends AbstractMacro {
             return State.LEFT;
         }
 
+        float yaw;
+        if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg() != -1337) {
+            yaw = MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg();
+        } else {
+            yaw = mc.thePlayer.rotationYaw;
+        }
+
         for (int i = 1; i < 180; i++) {
-            if (!BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(i, 0, 0))) {
-                if (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(i - 1, -1, 1)) || BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(i - 1, -1, 0))) {
+            if (!BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(i, 0, 0, yaw))) {
+                if (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(i - 1, -1, 1, yaw)) || BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(i - 1, -1, 0, yaw))) {
                     return State.RIGHT;
                 } else {
-                    LogUtils.sendDebug("Failed right: " + BlockUtils.getRelativeBlockPos(i - 1, 0, 1));
+                    LogUtils.sendDebug("Failed right: " + BlockUtils.getRelativeBlockPos(i - 1, 0, 1, yaw));
                     return State.LEFT;
                 }
-            } else if (!BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-i, 0, 0))) {
-                if (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-i + 1, 0, 1)) || BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-i + 1, -1, 0))) {
+            } else if (!BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-i, 0, 0, yaw))) {
+                if (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-i + 1, 0, 1, yaw)) || BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-i + 1, -1, 0, yaw))) {
                     return State.LEFT;
                 } else {
-                    LogUtils.sendDebug("Failed left: " + BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(i - 1, 0, 1)));
+                    LogUtils.sendDebug("Failed left: " + BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(i - 1, 0, 1, yaw)));
                     return State.RIGHT;
                 }
             }
         }
-        LogUtils.sendDebug("Cannot find direction. Length > 180");
-        return State.NONE;
+        LogUtils.sendDebug("Cannot find direction. Length > 180. Defaulting to RIGHT");
+        return State.RIGHT;
     }
 }

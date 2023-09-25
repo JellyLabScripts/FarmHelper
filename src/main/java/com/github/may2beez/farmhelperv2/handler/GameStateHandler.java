@@ -1,6 +1,7 @@
 package com.github.may2beez.farmhelperv2.handler;
 
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.util.BlockUtils;
 import com.github.may2beez.farmhelperv2.util.PlayerUtils;
 import com.github.may2beez.farmhelperv2.util.ScoreboardUtils;
 import com.github.may2beez.farmhelperv2.util.TablistUtils;
@@ -75,7 +76,7 @@ public class GameStateHandler {
     @Getter
     private String serverIP;
     private final Timer notMovingTimer = new Timer();
-    private long randomValueToWait = (long) (Math.random() * (FarmHelperConfig.maxTimeBetweenChangingRows - FarmHelperConfig.minTimeBetweenChangingRows) + FarmHelperConfig.minTimeBetweenChangingRows);
+    private long randomValueToWait = FarmHelperConfig.getRandomTimeBetweenChangingRows();
 
     @SubscribeEvent
     public void onWorldChange(WorldEvent.Unload event) {
@@ -119,19 +120,33 @@ public class GameStateHandler {
         dz = Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ);
         dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
 
-        if (dx < 0.01 && dz < 0.01 && dy < 0.01 && mc.currentScreen == null) {
+        if (notMoving()) {
             if (hasPassedSinceStopped()) {
                 notMovingTimer.reset();
             }
         } else {
             if (!notMovingTimer.isScheduled())
-                newRandomValueToWait();
+                randomValueToWait = FarmHelperConfig.getRandomTimeBetweenChangingRows();
             notMovingTimer.schedule();
         }
+        float yaw;
+        if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg() != -1337) {
+            yaw = MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg();
+        } else {
+            yaw = mc.thePlayer.rotationYaw;
+        }
+        frontWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 0, 1, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 1, 1, yaw)));
+        rightWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 0, 0, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 1, 0, yaw)));
+        backWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 0, -1, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 1, -1, yaw)));
+        leftWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 0, 0, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 1, 0, yaw)));
     }
 
     public boolean hasPassedSinceStopped() {
         return notMovingTimer.hasPassed(randomValueToWait);
+    }
+
+    public boolean notMoving() {
+        return dx < 0.01 && dz < 0.01 && dy < 0.01 && mc.currentScreen == null;
     }
 
     public boolean canChangeDirection() {
@@ -142,14 +157,20 @@ public class GameStateHandler {
         notMovingTimer.schedule();
     }
     public void scheduleNotMoving() {
-        newRandomValueToWait();
+        randomValueToWait = FarmHelperConfig.getRandomTimeBetweenChangingRows();
         notMovingTimer.schedule();
-    }
-    public void newRandomValueToWait() {
-        randomValueToWait = (long) (Math.random() * (FarmHelperConfig.maxTimeBetweenChangingRows - FarmHelperConfig.minTimeBetweenChangingRows) + FarmHelperConfig.minTimeBetweenChangingRows);
     }
     public boolean inGarden() {
         return location == Location.GARDEN;
     }
 
+    public boolean inJacobContest() {
+        for (String line : ScoreboardUtils.getScoreboardLines()) {
+            String cleanedLine = ScoreboardUtils.cleanSB(line);
+            if ((cleanedLine.toLowerCase()).contains("jacob's contest")) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

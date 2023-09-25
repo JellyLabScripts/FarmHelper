@@ -1,11 +1,8 @@
 package com.github.may2beez.farmhelperv2.macro.impl;
 
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
-import net.minecraft.block.BlockDoor;
-import net.minecraft.block.BlockTrapDoor;
-import net.minecraft.init.Blocks;
 
-public class CocoaBeanMacroNew extends AbstractMacro {
+public class SShapeCocoaBeanMacro extends AbstractMacro {
 
     @Override
     public void updateState() {

@@ -11,6 +11,7 @@ import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.hud.DebugHUD;
 import com.github.may2beez.farmhelperv2.util.BlockUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
+import com.github.may2beez.farmhelperv2.util.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.fml.common.Loader;
@@ -24,21 +25,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 // THIS IS RAT - CatalizCS
+@SuppressWarnings("unused")
 public class FarmHelperConfig extends Config {
-    private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final String GENERAL = "General";
-    private static final String MISCELLANEOUS = "Miscellaneous";
-    private static final String FAILSAFE = "Failsafe";
-    private static final String SCHEDULER = "Scheduler";
-    private static final String JACOBS_CONTEST = "Jacob's Contest";
-    private static final String VISITORS_MACRO = "Visitors Macro";
-    private static final String DISCORD_INTEGRATION = "Discord Integration";
-    private static final String DELAYS = "Delays";
-    private static final String HUD = "HUD";
-    private static final String DEBUG = "Debug";
-    private static final String EXPERIMENTAL = "Experimental";
+    private transient static final Minecraft mc = Minecraft.getMinecraft();
+    private transient static final String GENERAL = "General";
+    private transient static final String MISCELLANEOUS = "Miscellaneous";
+    private transient static final String FAILSAFE = "Failsafe";
+    private transient static final String SCHEDULER = "Scheduler";
+    private transient static final String JACOBS_CONTEST = "Jacob's Contest";
+    private transient static final String VISITORS_MACRO = "Visitors Macro";
+    private transient static final String DISCORD_INTEGRATION = "Discord Integration";
+    private transient static final String DELAYS = "Delays";
+    private transient static final String HUD = "HUD";
+    private transient static final String DEBUG = "Debug";
+    private transient static final String EXPERIMENTAL = "Experimental";
 
-    private static final File configRewarpFile = new File("farmhelper_rewarp.json");
+    private transient static final File configRewarpFile = new File("farmhelper_rewarp.json");
 
     public static List<Rewarp> rewarpList = new ArrayList<>();
 
@@ -48,18 +50,14 @@ public class FarmHelperConfig extends Config {
     public static int proxyType = 0;
     public static boolean connectAtStartup = false;
 
-    public enum VerticalMacroEnum {
-        NORMAL_TYPE
-    }
-
-    public enum SMacroEnum {
-        NORMAL_TYPE,
-        PUMPKIN_MELON,
-        SUGAR_CANE,
-        CACTUS,
-        COCOA_BEANS,
-        MUSHROOM,
-        MUSHROOM_ROTATE
+    public enum MacroEnum {
+        S_V_NORMAL_TYPE,
+        S_PUMPKIN_MELON,
+        S_SUGAR_CANE,
+        S_CACTUS,
+        S_COCOA_BEANS,
+        S_MUSHROOM,
+        S_MUSHROOM_ROTATE
     }
 
     public enum CropEnum {
@@ -75,16 +73,36 @@ public class FarmHelperConfig extends Config {
         MUSHROOM,
     }
 
-    public static void addRewarp(Rewarp rewarp) {
-        rewarpList.add(rewarp);
-        LogUtils.sendSuccess("Added rewarp: " + rewarp.toString());
+    public static void addRewarp() {
+        if (FarmHelperConfig.rewarpList.stream().anyMatch(rewarp -> rewarp.isTheSameAs(BlockUtils.getRelativeBlockPos(0, 0, 0)))) {
+            LogUtils.sendError("Rewarp location has already been set!");
+            return;
+        }
+        Rewarp newRewarp = new Rewarp(BlockUtils.getRelativeBlockPos(0, 0, 0));
+        rewarpList.add(newRewarp);
+        LogUtils.sendSuccess("Added rewarp: " + newRewarp.toString());
         saveRewarpConfig();
     }
 
-    public static void removeRewarp(Rewarp rewarp) {
-        rewarpList.remove(rewarp);
-        LogUtils.sendSuccess("Removed the closest rewarp: " + rewarp.toString());
-        saveRewarpConfig();
+    public static void removeRewarp() {
+        Rewarp closest = null;
+        if (rewarpList.isEmpty()) {
+            LogUtils.sendError("No rewarp locations set!");
+            return;
+        }
+        double closestDistance = Double.MAX_VALUE;
+        for (Rewarp rewarp : rewarpList) {
+            double distance = rewarp.getDistance(BlockUtils.getRelativeBlockPos(0, 0, 0));
+            if (distance < closestDistance) {
+                closest = rewarp;
+                closestDistance = distance;
+            }
+        }
+        if (closest != null) {
+            rewarpList.remove(closest);
+            LogUtils.sendSuccess("Removed the closest rewarp: " + closest.toString());
+            saveRewarpConfig();
+        }
     }
 
     public static void removeAllRewarps() {
@@ -95,6 +113,9 @@ public class FarmHelperConfig extends Config {
 
     public static void saveRewarpConfig() {
         try {
+            if (!configRewarpFile.exists())
+                Files.createFile(configRewarpFile.toPath());
+
             Files.write(configRewarpFile.toPath(), FarmHelper.gson.toJson(rewarpList).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             e.printStackTrace();
@@ -103,36 +124,36 @@ public class FarmHelperConfig extends Config {
 
     // START GENERAL
 
-    @DualOption(
+//    @DualOption(
+//            name = "Macro Type", category = GENERAL, subcategory = "Macro",
+//            description = "The macro to use for farming",
+//            left = "Vertical",
+//            right = "S Shape",
+//            size = OptionSize.DUAL
+//    )
+//    public static boolean macroType = false;
+//    @Dropdown(
+//            name = "Vertical Farm", category = GENERAL, subcategory = "Macro",
+//            description = "Vertical farm type",
+//            options = {
+//                    "Wheat/Potato/Carrot/Nether Wart" // 0
+//            }
+//    )
+//    public static int VerticalMacroType = 0;
+    @Dropdown(
             name = "Macro Type", category = GENERAL, subcategory = "Macro",
-            description = "The macro to use for farming",
-            left = "Vertical",
-            right = "S Shape",
-            size = OptionSize.DUAL
-    )
-    public static boolean macroType = false;
-    @Dropdown(
-            name = "Vertical Farm", category = GENERAL, subcategory = "Macro",
-            description = "Vertical farm type",
+            description = "Farm Types",
             options = {
-                    "Wheat/Potato/Carrot/Nether Wart" // 0
-            }
+                    "S Shape / Vertical - Crops (Wheat, Carrot, Potato, NW)", // 0
+                    "S Shape - Pumpkin/Melon", // 1
+                    "S Shape - Sugar Cane", // 2
+                    "S Shape - Cactus", // 3
+                    "S Shape - Cocoa Beans", // 4
+                    "S Shape - Mushroom (45°)", // 5
+                    "S Shape - Mushroom (30° with rotations)", // 6
+            }, size = 2
     )
-    public static int VerticalMacroType = 0;
-    @Dropdown(
-            name = "S Shape Farm", category = GENERAL, subcategory = "Macro",
-            description = "S Shape farm type",
-            options = {
-                    "Wheat/Potato/Carrot/Nether Wart", // 0
-                    "Pumpkin/Melon", // 1
-                    "Sugar Cane", // 2
-                    "Cactus", // 3
-                    "Cocoa Beans", // 4
-                    "Mushroom (45°)", // 5
-                    "Mushroom (30° with rotations)", // 6
-            }
-    )
-    public static int SShapeMacroType = 0;
+    public static int macroType = 0;
     @Switch(
             name = "Rotate After Warped", category = GENERAL, subcategory = "Macro",
             description = "Rotates the player after re-warping"
@@ -150,23 +171,23 @@ public class FarmHelperConfig extends Config {
     public static boolean autoUngrabMouse = true;
 
     @Switch(
-            name = "Custom Pitch", category = GENERAL, subcategory = "Custom Pitch/Yaw",
+            name = "Custom Pitch", category = GENERAL, subcategory = "Rotation",
             description = "Set pitch to custom level after starting the macro"
     )
     public static boolean customPitch = false;
     @Slider(
-            name = "Custom Pitch Level", category = GENERAL, subcategory = "Custom Pitch/Yaw",
+            name = "Custom Pitch Level", category = GENERAL, subcategory = "Rotation",
             description = "Set custom pitch level after starting the macro",
             min = -90, max = 90
     )
     public static float customPitchLevel = 0;
     @Switch(
-            name = "Custom Yaw", category = GENERAL, subcategory = "Custom Pitch/Yaw",
+            name = "Custom Yaw", category = GENERAL, subcategory = "Rotation",
             description = "Set yaw to custom level after starting the macro"
     )
     public static boolean customYaw = false;
     @Slider(
-            name = "Custom Yaw Level", category = GENERAL, subcategory = "Custom Pitch/Yaw",
+            name = "Custom Yaw Level", category = GENERAL, subcategory = "Rotation",
             description = "Set custom yaw level after starting the macro",
             min = -180, max = 180
     )
@@ -175,16 +196,16 @@ public class FarmHelperConfig extends Config {
             text = "Custom yaw will most likely break the macro. Use at your own risk.",
             type = InfoType.WARNING,
             category = GENERAL,
-            subcategory = "Custom Pitch/Yaw",
+            subcategory = "Rotation",
             size = 2
     )
     public static boolean customYawWarning;
 
     @Switch(
             name = "Don't fix rotation after warp", category = GENERAL, subcategory = "Rotation",
-            description = "Don't fix rotation after warp"
+            description = "Macro doesn't do micro rotations after rewarp, if current yaw and target yaw are the same", size = 2
     )
-    public static boolean dontRotateAfterWarping = false;
+    public static boolean dontFixAfterWarping = false;
 
     @Switch(
             name = "Highlight rewarp points", category = GENERAL, subcategory = "Rewarp",
@@ -197,12 +218,7 @@ public class FarmHelperConfig extends Config {
             description = "Adds a rewarp position",
             text = "Add Rewarp"
     )
-    Runnable _addRewarp = () -> {
-        BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
-        rewarpList.add(new Rewarp(pos.getX(), pos.getY(), pos.getZ()));
-        save();
-        LogUtils.sendSuccess("Rewarp position has been added");
-    };
+    Runnable _addRewarp = FarmHelperConfig::addRewarp;
     @Info(
             text = "Don't forget to add rewarp points!",
             type = InfoType.WARNING,
@@ -215,33 +231,13 @@ public class FarmHelperConfig extends Config {
             description = "Removes a rewarp position",
             text = "Remove Rewarp"
     )
-    Runnable _removeRewarp = () -> {
-        Rewarp closest = null;
-        if (rewarpList.isEmpty()) {
-            LogUtils.sendError("You don't have any rewarp points set!");
-            return;
-        }
-        double closestDistance = Double.MAX_VALUE;
-        for (Rewarp rewarp : rewarpList) {
-            double distance = rewarp.getDistance(BlockUtils.getRelativeBlockPos(0, 0, 0));
-            if (distance < closestDistance) {
-                closest = rewarp;
-                closestDistance = distance;
-            }
-        }
-        if (closest != null) {
-            removeRewarp(closest);
-        }
-    };
+    Runnable _removeRewarp = FarmHelperConfig::removeRewarp;
     @Button(
             name = "Remove All Rewarps", category = GENERAL, subcategory = "Rewarp",
             description = "Removes all rewarp positions",
             text = "Remove All Rewarps"
     )
-    Runnable _removeAllRewarps = () -> {
-        removeAllRewarps();
-        LogUtils.sendSuccess("All rewarp positions has been removed");
-    };
+    Runnable _removeAllRewarps = FarmHelperConfig::removeAllRewarps;
 
     // END GENERAL
 
@@ -491,29 +487,6 @@ public class FarmHelperConfig extends Config {
             min = 1, max = 120
     )
     public static int restartAfterFailSafeDelay = 5;
-    @Switch(
-            name = "Enable Auto Set Spawn", category = FAILSAFE, subcategory = "Auto Set Spawn",
-            description = "Enables auto set spawn"
-    )
-    public static boolean enableAutoSetSpawn = false;
-    @Switch(
-            name = "Set Spawn Before Evacuation", category = FAILSAFE, subcategory = "Auto Set Spawn",
-            description = "Set spawn before evacuate"
-    )
-    public static boolean setSpawnBeforeEvacuate = false;
-    @cc.polyfrost.oneconfig.config.annotations.Number(
-            name = "Set Spawn min delay", category = FAILSAFE, subcategory = "Auto Set Spawn",
-            description = "The minimum delay between setting a new spawn (in seconds)",
-            min = 1, max = 120
-    )
-    public static int autoSetSpawnMinDelay = 15;
-    @cc.polyfrost.oneconfig.config.annotations.Number(
-            name = "Set Spawn max delay", category = FAILSAFE, subcategory = "Auto Set Spawn",
-            description = "The maximum delay between setting a new (in seconds)",
-            min = 1, max = 120
-    )
-    public static int autoSetSpawnMaxDelay = 25;
-
     @Switch(
             name = "Enable Banwave Checker", category = FAILSAFE, subcategory = "Banwave Checker",
             description = "Checks for banwave and shows you the number of players banned in the last 15 minutes"
@@ -849,10 +822,7 @@ public class FarmHelperConfig extends Config {
             description = "Sets the spawn position to your current position",
             text = "Set SpawnPos"
     )
-    Runnable _setSpawnPos = () -> {
-//        PlayerUtils.setSpawnLocation();
-        LogUtils.sendSuccess("Your spawn location has been set!");
-    };
+    Runnable _setSpawnPos = PlayerUtils::setSpawnLocation;
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "SpawnPos Y", category = VISITORS_MACRO, subcategory = "Spawn Position",
             description = "The Y coordinate of the spawn",
@@ -869,7 +839,7 @@ public class FarmHelperConfig extends Config {
         spawnPosY = 0;
         spawnPosZ = 0;
         save();
-        LogUtils.sendSuccess("Spawn position has been reset");
+        LogUtils.sendSuccess("Spawn position has been reset!");
     };
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "SpawnPos Z", category = VISITORS_MACRO, subcategory = "Spawn Position",
@@ -960,7 +930,7 @@ public class FarmHelperConfig extends Config {
             description = "The port to use for remote control. Change this if you have port conflicts.",
             min = 1, max = 65535
     )
-    public static int remoteControlPort = 2137;
+    public static int remoteControlPort = 21370;
     @Info(
             text = "If you want to use the remote control feature, you need to put Farm Helper JDA Dependency inside your mods folder.",
             type = InfoType.ERROR,
@@ -975,66 +945,55 @@ public class FarmHelperConfig extends Config {
     // START DELAYS
 
     @Slider(
-            name = "Minimum time between changing rows", category = DELAYS, subcategory = "Delays",
-            description = "The minimum time to wait before changing rows (in milliseconds)", min = 300, max = 2000
+            name = "Minimum time between changing rows", category = DELAYS, subcategory = "Changing rows",
+            description = "The minimum time to wait before changing rows (in milliseconds)",
+            min = 300, max = 2000
     )
     public static float minTimeBetweenChangingRows = 300f;
     @Slider(
-            name = "Maximum time between changing rows", category = DELAYS, subcategory = "Delays",
-            description = "The maximum time to wait before changing rows (in milliseconds)", min = 300, max = 2000
+            name = "Maximum time between changing rows", category = DELAYS, subcategory = "Changing rows",
+            description = "The maximum time to wait before changing rows (in milliseconds)",
+            min = 300, max = 2000
     )
     public static float maxTimeBetweenChangingRows = 700f;
 
-    @Slider(
-            name = "Stop Script Delay Time", category = DELAYS, subcategory = "Delays",
-            description = "The time to wait before stopping the script (in seconds)",
-            min = 1, max = 10
-    )
-    public static float delayedStopScriptTime = 3f;
-    @Slider(
-            name = "Stop Script Delay Random Time", category = DELAYS, subcategory = "Delays",
-            description = "The maximum random time added to the delay time before stopping the script (in seconds)",
-            min = 1, max = 5
-    )
-    public static float delayedStopScriptTimeRandomness = 1f;
+    public static long getRandomTimeBetweenChangingRows() {
+        return (long) (minTimeBetweenChangingRows + (float) Math.random() * Math.max(0, (maxTimeBetweenChangingRows - minTimeBetweenChangingRows)));
+    }
 
     @Slider(
-            name = "Rotation Time", category = DELAYS, subcategory = "Delays",
+            name = "Rotation Time", category = DELAYS, subcategory = "Rotations",
             description = "The time it takes to rotate the player (in seconds)",
-            min = 0.2f, max = 4f
+            min = 200f, max = 2000f
     )
-    public static float rotationTime = 0.4f;
+    public static float rotationTime = 400f;
     @Slider(
-            name = "Rotation Random Time", category = DELAYS, subcategory = "Delays",
+            name = "Rotation Random Time", category = DELAYS, subcategory = "Rotations",
             description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
-            min = 0.2f, max = 2f
+            min = 200f, max = 2000f
     )
-    public static float rotationTimeRandomness = 0.2f;
+    public static float rotationTimeRandomness = 200;
+
+    public static long getRandomRotationTime() {
+        return (long) (rotationTime + (float) Math.random() * rotationTimeRandomness);
+    }
 
     @Slider(
-            name = "Visitors Macro GUI Delay", category = DELAYS, subcategory = "Delays",
+            name = "Visitors Macro GUI Delay", category = DELAYS, subcategory = "Visitors Delays",
             description = "The delay between clicking GUI during visitors macro (in seconds)",
-            min = 0.15f, max = 2f
+            min = 150f, max = 2000f
     )
-    public static float visitorsMacroGuiDelay = 0.35f;
+    public static float visitorsMacroGuiDelay = 250f;
     @Slider(
-            name = "Visitors Macro GUI Delay Random Time", category = DELAYS, subcategory = "Delays",
+            name = "Visitors Macro GUI Delay Random Time", category = DELAYS, subcategory = "Visitors Delays",
             description = "The maximum random time added to the delay time between clicking GUI during visitors macro (in seconds)",
-            min = 0.15f, max = 2f
+            min = 150f, max = 2000f
     )
-    public static float visitorsMacroGuiDelayRandomness = 0.35f;
-    @Slider(
-            name = "Visitors Rotation Time", category = DELAYS, subcategory = "Delays",
-            description = "The time it takes to rotate the player and look at the visitor (in seconds)",
-            min = 0.2f, max = 4f
-    )
-    public static float visitorsRotationTime = 0.4f;
-    @Slider(
-            name = "Visitors Rotation Random Time", category = DELAYS, subcategory = "Delays",
-            description = "The maximum random time added to the delay time it takes to rotate the player and look at the visitor (in seconds)",
-            min = 0.2f, max = 2f
-    )
-    public static float visitorsRotationTimeRandomness = 0.2f;
+    public static float visitorsMacroGuiDelayRandomness = 250f;
+
+    public static long getRandomVisitorsMacroGuiDelay() {
+        return (long) (visitorsMacroGuiDelay + (float) Math.random() * visitorsMacroGuiDelayRandomness);
+    }
 
     // END DELAYS
 
@@ -1158,13 +1117,10 @@ public class FarmHelperConfig extends Config {
         initialize();
 
         this.addDependency("macroType", "Macro Type", () -> !MacroHandler.getInstance().isMacroing());
-        this.addDependency("VerticalMacroType", "Macro Type", () -> (!macroType && !MacroHandler.getInstance().isMacroing()));
-        this.addDependency("SShapeMacroType", "Macro Type", () -> (macroType && !MacroHandler.getInstance().isMacroing()));
 
         this.addDependency("customPitchLevel", "customPitch");
         this.addDependency("customYawLevel", "customYaw");
-
-        this.addDependency("holdLeftClickWhenChangingRow", "macroType");
+        this.addDependency("dontFixAfterWarping", "rotateAfterWarped");
 
         this.addDependency("sellToNPC", "enableAutoSell");
         this.addDependency("inventoryFullTime", "enableAutoSell");

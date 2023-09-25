@@ -1,5 +1,6 @@
 package com.github.may2beez.farmhelperv2.util;
 
+import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
 import com.github.may2beez.farmhelperv2.feature.Failsafe;
@@ -41,11 +42,11 @@ public class PlayerUtils {
 
         if (!foundCropUnderMouse) {
             for (int x = -3; x < 3; x++) {
-                for (int y = -3; y < 3; y++) {
-                    for (int z = 0; z < 3; z++) {
-                        BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, 1 + z,
-                                ((FarmHelperConfig.macroType && FarmHelperConfig.SShapeMacroType == FarmHelperConfig.SMacroEnum.MUSHROOM.ordinal()) ||
-                                        (FarmHelperConfig.macroType && FarmHelperConfig.SShapeMacroType == FarmHelperConfig.SMacroEnum.SUGAR_CANE.ordinal()) ?
+                for (int y = -1; y < 5; y++) {
+                    for (int z = -3; z < 3; z++) {
+                        BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, z,
+                                (FarmHelperConfig.macroType == FarmHelperConfig.MacroEnum.S_MUSHROOM.ordinal() ||
+                                        FarmHelperConfig.macroType == FarmHelperConfig.MacroEnum.S_SUGAR_CANE.ordinal() ?
                                         AngleUtils.getClosestDiagonal() - 45 :
                                         AngleUtils.getClosest()));
                         Block block = mc.theWorld.getBlockState(pos).getBlock();
@@ -161,7 +162,6 @@ public class PlayerUtils {
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Chopper")) {
                             return i - 36;
                         }
-                        continue;
                 }
             }
         }
@@ -213,7 +213,13 @@ public class PlayerUtils {
         float angle = AngleUtils.getClosest();
         double x = mc.thePlayer.posX % 1;
         double z = mc.thePlayer.posZ % 1;
-        if (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1))) {
+        float yaw;
+        if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg() != -1337) {
+            yaw = MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg();
+        } else {
+            yaw = mc.thePlayer.rotationYaw;
+        }
+        if (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1, yaw))) {
             return false;
         }
         if (angle == 0) {
@@ -226,5 +232,26 @@ public class PlayerUtils {
             return (x > -0.9 && x < -0.35) || (x < 0.65 && x > 0.1);
         }
         return false;
+    }
+
+    public static boolean isSpawnLocationSet() {
+        return FarmHelperConfig.spawnPosX != 0 || FarmHelperConfig.spawnPosY != 0 || FarmHelperConfig.spawnPosZ != 0;
+    }
+
+    public static Vec3 getSpawnLocation() {
+        return new Vec3(FarmHelperConfig.spawnPosX + 0.5, FarmHelperConfig.spawnPosY + 0.5, FarmHelperConfig.spawnPosZ + 0.5);
+    }
+
+    public static void setSpawnLocation() {
+        if (mc.thePlayer == null) return;
+        BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
+        FarmHelperConfig.spawnPosX = pos.getX();
+        FarmHelperConfig.spawnPosY = pos.getY();
+        FarmHelperConfig.spawnPosZ = pos.getZ();
+        FarmHelper.config.save();
+    }
+
+    public static boolean isDeskPosSet() {
+        return FarmHelperConfig.visitorsDeskPosX != 0 || FarmHelperConfig.visitorsDeskPosY != 0 || FarmHelperConfig.visitorsDeskPosZ != 0;
     }
 }

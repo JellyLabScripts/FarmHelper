@@ -12,6 +12,7 @@
     "fml.MixinFMLHandshakeMessage"
   ],
   "client": [
-    "block.MixinBlockRendererDispatcher"
+    "block.MixinBlockRendererDispatcher",
+    "render.MixinEffectRenderer"
   ]
 }

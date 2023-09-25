@@ -5,14 +5,12 @@ import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.mixin.block.IBlockAccessor;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 
 public class CropUtils {
-    private static final Minecraft mc = Minecraft.getMinecraft();
 
     public static final AxisAlignedBB[] CARROT_POTATO_BOX = {
             new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 0.125D, 1.0D),
@@ -70,7 +68,7 @@ public class CropUtils {
         int j = 4 + age * 2;
         int k = 5 + age * 2;
 
-        if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().equals(MacroHandler.Macros.COCOA_BEAN_MACRO.getMacro()) && MacroHandler.getInstance().isMacroing() && FarmHelperConfig.increasedCocoaBeans) {
+        if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().equals(MacroHandler.Macros.S_SHAPE_COCOA_BEAN_MACRO.getMacro()) && MacroHandler.getInstance().isMacroing() && FarmHelperConfig.increasedCocoaBeans) {
             switch (enumFacing) {
                 case SOUTH: {
                     blockState.getBlock().setBlockBounds(0, (12.0f - (float) k) / 16.0f, (15.0f - (float) j) / 16.0f, 1, 0.75f, 0.9375f);

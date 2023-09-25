@@ -2,7 +2,7 @@ package com.github.may2beez.farmhelperv2.macro.impl;
 
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 
-public class MushroomMacroNew extends AbstractMacro {
+public class SShapeMushroomMacro extends AbstractMacro {
     @Override
     public void updateState() {
 
@@ -19,8 +19,6 @@ public class MushroomMacroNew extends AbstractMacro {
         DROPPING,
         NONE
     }
-
-    public static float closest90Yaw = 0;
 
 //    @Override
 //    public void onEnable() {

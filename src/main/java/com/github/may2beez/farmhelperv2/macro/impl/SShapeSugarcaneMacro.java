@@ -2,7 +2,8 @@ package com.github.may2beez.farmhelperv2.macro.impl;
 
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 
-public class VerticalCropMacroNew extends AbstractMacro {
+public class SShapeSugarcaneMacro extends AbstractMacro {
+
     @Override
     public void updateState() {
 
@@ -13,49 +14,37 @@ public class VerticalCropMacroNew extends AbstractMacro {
 
     }
 
-    public enum State {
-        LEFT,
-        RIGHT,
-        DROPPING,
-        NONE
+    enum State {
+        NONE,
+        A,
+        D,
+        S,
+        DROPPING
     }
 
-//    public State prevState;
+    public double rowStartX = 0;
+    public double rowStartZ = 0;
 //
 //    @Override
 //    public void onEnable() {
 //        super.onEnable();
-//        if (currentState == null)
-//            changeState(State.NONE);
-//        Config.CropEnum crop = MacroHandler.getFarmingCrop();
-//        LogUtils.sendDebug("Crop: " + crop);
-//        MacroHandler.crop = crop;
-//        CropUtils.getTool();
 //        if (FarmHelper.config.customPitch) {
 //            pitch = FarmHelper.config.customPitchLevel;
 //        } else {
-//            if (crop == Config.CropEnum.SUGAR_CANE) {
-//                pitch = (float) (Math.random() * 2); // 0 - 2
-//            } else if (crop == Config.CropEnum.COCOA_BEANS) {
-//                pitch = -90;
-//            } else {
-//                pitch = 2.8f + (float) (Math.random() * 0.6); // 2.8-3.4
-//            }
+//            pitch = (float) (Math.random() * 1) - 0.5f; // -0.5 to 0.5
 //        }
 //        if (FarmHelper.config.customYaw) {
 //            yaw = FarmHelper.config.customYawLevel;
 //        } else {
-//            yaw = AngleUtils.getClosest();
+//            yaw = AngleUtils.getClosestDiagonal();
 //        }
+//        MacroHandler.crop = MacroHandler.getFarmingCrop();
+//        if (currentState == null)
+//            changeState(State.NONE);
+//        Macro.mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.crop);
 //        rotation.easeTo(yaw, pitch, 500);
-//    }
-//
-//    @Override
-//    public void triggerTpCooldown() {
-//        super.triggerTpCooldown();
-//        if (currentState == State.DROPPING) {
-//            currentState = calculateDirection();
-//        }
+//        rowStartX = Macro.mc.thePlayer.posX;
+//        rowStartZ = Macro.mc.thePlayer.posZ;
 //    }
 //
 //    @Override
@@ -74,7 +63,6 @@ public class VerticalCropMacroNew extends AbstractMacro {
 //            rotatedAfterStart = true;
 //        }
 //
-//        // Check for rotation after teleporting back to spawn point
 //        checkForRotationAfterTp();
 //
 //        // Don't do anything if macro is after teleportation for few seconds
@@ -108,7 +96,7 @@ public class VerticalCropMacroNew extends AbstractMacro {
 //            updateState();
 //            invokeState();
 //        } else {
-//            if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75 && mc.thePlayer.posY < 80) {
+//            if (!Macro.mc.thePlayer.onGround && Math.abs(layerY - Macro.mc.thePlayer.posY) > 0.75 && Macro.mc.thePlayer.posY < 80) {
 //                changeState(State.DROPPING);
 //                FarmHelper.gameState.scheduleNotMoving();
 //            }
@@ -120,20 +108,27 @@ public class VerticalCropMacroNew extends AbstractMacro {
 //        if (currentState == null)
 //            changeState(State.NONE);
 //        switch (currentState) {
-//            case LEFT:
-//            case RIGHT: {
-//                    if (FarmHelper.gameState.leftWalkable) {
-//                        changeState(State.LEFT);
-//                    } else if (FarmHelper.gameState.rightWalkable) {
-//                        changeState(State.RIGHT);
-//                    } else {
-//                        changeState(State.NONE);
+//            case S: {
+//                if (hasWall(0, -1, yaw - 45f) &&
+//                        hasWall(0, -1, yaw + 45f)) {
+//
+//                    if (getNearestSideWall(yaw + 45, -1) == -999) {
+//                        changeState(State.A);
+//                    }
+//                    if (getNearestSideWall(yaw - 45, 1) == -999) {
+//                        changeState(State.D);
 //                    }
 //                }
 //                break;
+//            }
+//            case A:
+//            case D: {
+//                changeState(State.S);
+//                break;
+//            }
 //            case DROPPING: {
-//                LogUtils.sendDebug("On Ground: " + mc.thePlayer.onGround);
-//                if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) > 1.5) {
+//                LogUtils.sendDebug("On Ground: " + Macro.mc.thePlayer.onGround);
+//                if (Macro.mc.thePlayer.onGround && Math.abs(layerY - Macro.mc.thePlayer.getPosition().getY()) > 1.5) {
 //                    if (FarmHelper.config.rotateAfterDrop && !rotation.rotating) {
 //                        LogUtils.sendDebug("Rotating 180");
 //                        rotation.reset();
@@ -141,9 +136,9 @@ public class VerticalCropMacroNew extends AbstractMacro {
 //                        rotation.easeTo(yaw, pitch, (long) (400 + Math.random() * 300));
 //                    }
 //                    KeyBindUtils.stopMovement();
-//                    layerY = mc.thePlayer.getPosition().getY();
 //                    changeState(State.NONE);
-//                } else {
+//                    layerY = Macro.mc.thePlayer.getPosition().getY();
+//                } else  {
 //                    FarmHelper.gameState.scheduleNotMoving();
 //                }
 //                break;
@@ -158,59 +153,58 @@ public class VerticalCropMacroNew extends AbstractMacro {
 //    private void invokeState() {
 //        if (currentState == null) return;
 //        switch (currentState) {
-//            case LEFT:
+//            case NONE:
+//                break;
+//            case A:
 //                KeyBindUtils.holdThese(
-//                        mc.gameSettings.keyBindLeft,
-//                        mc.gameSettings.keyBindAttack,
-//                        PlayerUtils.shouldWalkForwards() ? mc.gameSettings.keyBindForward : null
+//                        Macro.mc.gameSettings.keyBindLeft,
+//                        Macro.mc.gameSettings.keyBindAttack
 //                );
 //                break;
-//            case RIGHT:
+//            case D:
 //                KeyBindUtils.holdThese(
-//                        mc.gameSettings.keyBindRight,
-//                        mc.gameSettings.keyBindAttack,
-//                        PlayerUtils.shouldWalkForwards() ? mc.gameSettings.keyBindForward : null
+//                        Macro.mc.gameSettings.keyBindRight,
+//                        Macro.mc.gameSettings.keyBindAttack
+//                );
+//                break;
+//            case S:
+//                KeyBindUtils.holdThese(
+//                        Macro.mc.gameSettings.keyBindBack,
+//                        Macro.mc.gameSettings.keyBindAttack
 //                );
 //                break;
 //            case DROPPING:
-//                if (mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.getPosition().getY()) <= 1.5) {
+//                if (Macro.mc.thePlayer.onGround && Math.abs(layerY - Macro.mc.thePlayer.getPosition().getY()) <= 1.5) {
 //                    LogUtils.sendDebug("Dropping done, but didn't drop high enough to rotate!");
-//                    layerY = mc.thePlayer.getPosition().getY();
+//                    layerY = Macro.mc.thePlayer.getPosition().getY();
 //                    changeState(State.NONE);
 //                }
-//                break;
-//            case NONE:
 //                break;
 //        }
 //    }
 //
 //    @Override
 //    public State calculateDirection() {
+//        if(isWater(getRelativeBlock(2, -1, 1, yaw - 45f)) || isWater(getRelativeBlock(2, 0, 1, yaw - 45f))
+//                || isWater(getRelativeBlock(-1, -1, 1, yaw - 45f)) || isWater(getRelativeBlock(-1, 0, 1, yaw - 45f)))
+//            if(!(hasWall(0, 1, yaw - 45f) && hasWall(-1, 0, yaw - 45f)))
+//                return State.A;
+//            else if(isWater(getRelativeBlock(2, -1, 1, yaw + 45f)) || isWater(getRelativeBlock(2, 0, 1, yaw + 45f))
+//                    || isWater(getRelativeBlock(-1, -1, 1, yaw + 45f)) ||isWater(getRelativeBlock(-1, 0, 1, yaw + 45f)))
+//                if(!(hasWall(0, 1, yaw + 45f) && hasWall(11, 0, yaw + 45f)))
+//                    return State.D;
+//        return State.S;
+//    }
 //
-//        if (rightCropIsReady()) {
-//            return State.RIGHT;
-//        } else if (leftCropIsReady()) {
-//            return State.LEFT;
+//    boolean hasWall(int rightOffset, int frontOffset, float yaw) {
+//        boolean f1 = !isWalkable(getRelativeBlock(rightOffset, 1, frontOffset, yaw));
+//        boolean f2 = !isWalkable(getRelativeBlock(rightOffset, 0, frontOffset, yaw));
+//        return f1 || f2;
+//    }
+//    int getNearestSideWall(float yaw, int dir) { // right = 1; left = -1
+//        for(int i = 0; i < 8; i++) {
+//            if(hasWall(i * dir, 0, yaw)) return i;
 //        }
-//
-//        for (int i = 1; i < 180; i++) {
-//            if (!canWalkThrough(BlockUtils.getRelativeBlockPos(i, 0, 0))) {
-//                if (canWalkThrough(BlockUtils.getRelativeBlockPos(i - 1, -1, 1)) || canWalkThrough(BlockUtils.getRelativeBlockPos(i - 1, -1, 0))) {
-//                    return State.RIGHT;
-//                } else {
-//                    LogUtils.sendDebug("Failed right: " + BlockUtils.getRelativeBlockPos(i - 1, 0, 1));
-//                    return State.LEFT;
-//                }
-//            } else if (!canWalkThrough(BlockUtils.getRelativeBlockPos(-i, 0, 0))) {
-//                if (canWalkThrough(BlockUtils.getRelativeBlockPos(-i + 1, 0, 1)) || canWalkThrough(BlockUtils.getRelativeBlockPos(-i + 1, -1, 0))) {
-//                    return State.LEFT;
-//                } else {
-//                    LogUtils.sendDebug("Failed left: " + canWalkThrough(BlockUtils.getRelativeBlockPos(i - 1, 0, 1)));
-//                    return State.RIGHT;
-//                }
-//            }
-//        }
-//        LogUtils.sendDebug("Cannot find direction. Length > 180");
-//        return State.NONE;
+//        return -999;
 //    }
 }
