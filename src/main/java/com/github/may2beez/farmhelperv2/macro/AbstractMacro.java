@@ -2,7 +2,8 @@ package com.github.may2beez.farmhelperv2.macro;
 
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
-import com.github.may2beez.farmhelperv2.feature.Failsafe;
+import com.github.may2beez.farmhelperv2.feature.FeatureManager;
+import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.*;
@@ -64,6 +65,10 @@ public abstract class AbstractMacro {
     private RewarpState rewarpState = RewarpState.NONE;
 
     private final Clock rewarpDelay = new Clock();
+
+    public boolean isEnabled() {
+        return enabled && !FeatureManager.getInstance().shouldPauseMacroExecution();
+    }
 
     public void onTick() {
         checkForTeleport();

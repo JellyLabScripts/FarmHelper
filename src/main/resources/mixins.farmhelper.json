@@ -13,6 +13,7 @@
   ],
   "client": [
     "block.MixinBlockRendererDispatcher",
+    "gui.IGuiPlayerTabOverlayAccessor",
     "render.MixinEffectRenderer"
   ]
 }

@@ -3,7 +3,7 @@ package com.github.may2beez.farmhelperv2.util;
 import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
-import com.github.may2beez.farmhelperv2.feature.Failsafe;
+import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import net.minecraft.block.*;

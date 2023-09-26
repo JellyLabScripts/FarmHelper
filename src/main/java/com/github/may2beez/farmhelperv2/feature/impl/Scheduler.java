@@ -1,6 +1,7 @@
-package com.github.may2beez.farmhelperv2.feature;
+package com.github.may2beez.farmhelperv2.feature.impl;
 
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
@@ -12,7 +13,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.concurrent.TimeUnit;
 
-public class Scheduler {
+public class Scheduler implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
     private static Scheduler instance;
     public static Scheduler getInstance() {
@@ -24,6 +25,32 @@ public class Scheduler {
 
     @Getter
     private final Clock schedulerClock = new Clock();
+
+    @Override
+    public String getName() {
+        return "Scheduler";
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return schedulerClock.isScheduled();
+    }
+
+    @Override
+    public boolean shouldPauseMacroExecution() {
+        return false;
+    }
+
+    @Override
+    public void stop() {
+        schedulerState = SchedulerState.NONE;
+        schedulerClock.reset();
+    }
+
+    @Override
+    public boolean isActivated() {
+        return FarmHelperConfig.enableScheduler;
+    }
 
     public enum SchedulerState {
         NONE,
@@ -53,11 +80,6 @@ public class Scheduler {
         if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) {
             schedulerClock.pause();
         }
-    }
-
-    public void stop() {
-        schedulerState = SchedulerState.NONE;
-        schedulerClock.reset();
     }
 
     public void pause() {

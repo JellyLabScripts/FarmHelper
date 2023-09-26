@@ -77,6 +77,7 @@ dependencies {
     annotationProcessor("org.spongepowered:mixin:0.8.5-SNAPSHOT")
 
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.1.2")
+    shadowImpl("org.reflections:reflections:0.10.2")
 }
 
 // Tasks:

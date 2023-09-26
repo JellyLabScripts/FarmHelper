@@ -25,4 +25,14 @@ public class ReflectionUtils {
         return null;
     }
 
+    public static boolean hasFeatherClient() {
+        Package[] packages = Package.getPackages();
+
+        for (Package pack : packages) {
+            if (pack.getName().contains("feather")) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

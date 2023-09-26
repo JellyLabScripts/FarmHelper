@@ -1,6 +1,7 @@
 package com.github.may2beez.farmhelperv2.handler;
 
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.mixin.gui.IGuiPlayerTabOverlayAccessor;
 import com.github.may2beez.farmhelperv2.util.BlockUtils;
 import com.github.may2beez.farmhelperv2.util.PlayerUtils;
 import com.github.may2beez.farmhelperv2.util.ScoreboardUtils;
@@ -8,6 +9,8 @@ import com.github.may2beez.farmhelperv2.util.TablistUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Timer;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.util.StringUtils;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -78,9 +81,52 @@ public class GameStateHandler {
     private final Timer notMovingTimer = new Timer();
     private long randomValueToWait = FarmHelperConfig.getRandomTimeBetweenChangingRows();
 
+    @Getter
+    private boolean cookieBuffActive;
+
+    @Getter
+    private boolean godPotActive;
+
     @SubscribeEvent
     public void onWorldChange(WorldEvent.Unload event) {
         location = Location.TELEPORTING;
+    }
+
+    @SubscribeEvent
+    public void onTickCheckBuffs(TickEvent.ClientTickEvent event) {
+        if (mc.theWorld == null || mc.thePlayer == null) return;
+
+        boolean foundGodPotBuff = false;
+        boolean foundCookieBuff = false;
+        boolean loaded = false;
+
+        String[] footer = (((IGuiPlayerTabOverlayAccessor) mc.ingameGUI.getTabList()).getFooter().getFormattedText()).split("\n");
+
+        for (String line : footer) {
+            String unformattedLine = StringUtils.stripControlCodes(line);
+            if (unformattedLine.contains("Active Effects")) {
+                loaded = true;
+            }
+            if (unformattedLine.contains("You have a God Potion active!")) {
+                foundGodPotBuff = true;
+                continue;
+            }
+            if (unformattedLine.contains("Cookie Buff")) {
+                foundCookieBuff = true;
+                continue;
+            }
+            if (foundCookieBuff) {
+                if (unformattedLine.contains("Not active")) {
+                    foundCookieBuff = false;
+                }
+                break;
+            }
+        }
+
+        if (!loaded) return;
+
+        cookieBuffActive = foundCookieBuff;
+        godPotActive = foundGodPotBuff;
     }
 
     @SubscribeEvent

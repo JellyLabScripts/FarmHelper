@@ -3,7 +3,7 @@ package com.github.may2beez.farmhelperv2.hud;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
-import com.github.may2beez.farmhelperv2.feature.Scheduler;
+import com.github.may2beez.farmhelperv2.feature.impl.Scheduler;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.BlockUtils;
@@ -41,5 +41,8 @@ public class DebugHUD extends TextHud {
         lines.add("   RightWalkable:" + GameStateHandler.getInstance().isRightWalkable());
         lines.add("   FrontWalkable:" + GameStateHandler.getInstance().isFrontWalkable());
         lines.add("   BackWalkable:" + GameStateHandler.getInstance().isBackWalkable());
+        lines.add("Buffs");
+        lines.add("   Cookie: " + GameStateHandler.getInstance().isCookieBuffActive());
+        lines.add("   God Pot: " + GameStateHandler.getInstance().isGodPotActive());
     }
 }

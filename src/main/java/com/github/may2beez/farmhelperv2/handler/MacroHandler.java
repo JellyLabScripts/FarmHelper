@@ -1,16 +1,19 @@
 package com.github.may2beez.farmhelperv2.handler;
 
+import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
 import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
-import com.github.may2beez.farmhelperv2.feature.Failsafe;
-import com.github.may2beez.farmhelperv2.feature.Scheduler;
+import com.github.may2beez.farmhelperv2.feature.FeatureManager;
+import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
+import com.github.may2beez.farmhelperv2.feature.impl.Scheduler;
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 import com.github.may2beez.farmhelperv2.macro.impl.*;
 import com.github.may2beez.farmhelperv2.util.KeyBindUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.PlayerUtils;
 import com.github.may2beez.farmhelperv2.util.RenderUtils;
+import com.github.may2beez.farmhelperv2.feature.impl.UngrabMouse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -134,6 +137,9 @@ public class MacroHandler {
         if (FarmHelperConfig.enableScheduler) {
             Scheduler.getInstance().start();
         }
+        if (FarmHelperConfig.autoUngrabMouse) {
+            UngrabMouse.getInstance().ungrabMouse();
+        }
 
         setMacroing(true);
         enableCurrentMacro();
@@ -150,9 +156,7 @@ public class MacroHandler {
 
         setCrop(null);
 
-        if (FarmHelperConfig.enableScheduler) {
-            Scheduler.getInstance().stop();
-        }
+        FeatureManager.getInstance().disableAll();
         disableCurrentMacro();
     }
 
@@ -189,7 +193,7 @@ public class MacroHandler {
     Runnable startCurrent = () -> {
         try {
             Thread.sleep(300);
-            KeyBindUtils.updateKeys(false, false, false, false, false, false, false);
+            KeyBindUtils.stopMovement();
             if (isMacroing()) {
                 currentMacro.ifPresent(AbstractMacro::onEnable);
             }
