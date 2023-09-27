@@ -3,6 +3,7 @@ package com.github.may2beez.farmhelperv2.hud;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.feature.impl.AutoCookie;
 import com.github.may2beez.farmhelperv2.feature.impl.Scheduler;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
@@ -25,24 +26,20 @@ public class DebugHUD extends TextHud {
             lines.add("Current state: " + macro.getCurrentState());
             lines.add("Rotating: " + macro.getRotation().rotating);
         });
-        lines.add("Scheduler: " + FarmHelperConfig.enableScheduler);
-        if (FarmHelperConfig.enableScheduler) {
+        lines.add("Scheduler: " + Scheduler.getInstance().isActivated());
+        if (Scheduler.getInstance().isActivated()) {
             lines.add("  State: " + LogUtils.capitalize(Scheduler.getInstance().getSchedulerState().toString()));
             lines.add("  Clock: " + Scheduler.getInstance().getSchedulerClock().getRemainingTime());
             lines.add("  isFarming: " + Scheduler.getInstance().isFarming());
         }
-        if (MacroHandler.getInstance().getCrop() != null) {
-            lines.add("Crop: " + LogUtils.capitalize(MacroHandler.getInstance().getCrop().toString()));
-            lines.add("   LeftCropReady:" + BlockUtils.leftCropIsReady());
-            lines.add("   RightCropReady:" + BlockUtils.rightCropIsReady());
-        }
-        lines.add("Walkables");
-        lines.add("   LeftWalkable:" + GameStateHandler.getInstance().isLeftWalkable());
-        lines.add("   RightWalkable:" + GameStateHandler.getInstance().isRightWalkable());
-        lines.add("   FrontWalkable:" + GameStateHandler.getInstance().isFrontWalkable());
-        lines.add("   BackWalkable:" + GameStateHandler.getInstance().isBackWalkable());
         lines.add("Buffs");
         lines.add("   Cookie: " + GameStateHandler.getInstance().isCookieBuffActive());
         lines.add("   God Pot: " + GameStateHandler.getInstance().isGodPotActive());
+        if (AutoCookie.getInstance().isActivated()) {
+            lines.add("AutoCookie");
+            lines.add("   Main State: " + AutoCookie.getInstance().getMainState());
+            lines.add("   Movie Cookie State: " + AutoCookie.getInstance().getMoveCookieState());
+            lines.add("   Clock: " + AutoCookie.getInstance().getAutoCookieDelay().getRemainingTime());
+        }
     }
 }

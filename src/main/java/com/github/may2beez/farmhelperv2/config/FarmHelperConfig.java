@@ -7,6 +7,7 @@ import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.*;
 import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
+import com.github.may2beez.farmhelperv2.feature.impl.AutoCookie;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.hud.DebugHUD;
 import com.github.may2beez.farmhelperv2.util.BlockUtils;
@@ -263,6 +264,7 @@ public class FarmHelperConfig extends Config {
             description = "Automatically purchases and consumes a booster cookie"
     )
     public static boolean autoCookie = false;
+
     @Switch(
             name = "Hold left click when changing row", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "Hold left click when change row"
@@ -979,19 +981,19 @@ public class FarmHelperConfig extends Config {
     }
 
     @Slider(
-            name = "Visitors Macro GUI Delay", category = DELAYS, subcategory = "Visitors Delays",
-            description = "The delay between clicking GUI during visitors macro (in seconds)",
+            name = "GUI Delay", category = DELAYS, subcategory = "GUI Delays",
+            description = "The delay between clicking during GUI macros (in miliseconds)",
             min = 150f, max = 2000f
     )
     public static float visitorsMacroGuiDelay = 250f;
     @Slider(
-            name = "Visitors Macro GUI Delay Random Time", category = DELAYS, subcategory = "Visitors Delays",
-            description = "The maximum random time added to the delay time between clicking GUI during visitors macro (in seconds)",
+            name = "GUI Delay Random Time", category = DELAYS, subcategory = "GUI Delays",
+            description = "The maximum random time added to the delay time between clicking during GUI macros (in miliseconds)",
             min = 150f, max = 2000f
     )
     public static float visitorsMacroGuiDelayRandomness = 250f;
 
-    public static long getRandomVisitorsMacroGuiDelay() {
+    public static long getRandomGUIMacroDelay() {
         return (long) (visitorsMacroGuiDelay + (float) Math.random() * visitorsMacroGuiDelayRandomness);
     }
 
@@ -1210,11 +1212,9 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(toggleMacro, () -> {
             MacroHandler.getInstance().toggleMacro();
         });
-//		registerKeyBind(debugKeybind, () -> {
-//			if (MacroHandler.currentMacro != null) {
-//				MacroHandler.currentMacro.unstuck(false);
-//			}
-//		});
+		registerKeyBind(debugKeybind, () -> {
+            AutoCookie.getInstance().enable();
+		});
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
         save();
     }

@@ -29,7 +29,7 @@ public class GameStateHandler {
     }
 
     @Getter
-    enum Location {
+    public enum Location {
         PRIVATE_ISLAND("Private Island"),
         HUB("Hub"),
         THE_PARK("The Park"),
@@ -100,9 +100,13 @@ public class GameStateHandler {
         boolean foundCookieBuff = false;
         boolean loaded = false;
 
-        String[] footer = (((IGuiPlayerTabOverlayAccessor) mc.ingameGUI.getTabList()).getFooter().getFormattedText()).split("\n");
+        IGuiPlayerTabOverlayAccessor tabOverlay = (IGuiPlayerTabOverlayAccessor) mc.ingameGUI.getTabList();
+        if (tabOverlay == null) return;
+        IChatComponent footer = tabOverlay.getFooter();
+        if (footer == null || footer.getFormattedText().isEmpty()) return;
+        String[] footerString = footer.getFormattedText().split("\n");
 
-        for (String line : footer) {
+        for (String line : footerString) {
             String unformattedLine = StringUtils.stripControlCodes(line);
             if (unformattedLine.contains("Active Effects")) {
                 loaded = true;
@@ -154,8 +158,11 @@ public class GameStateHandler {
                 }
             }
         }
-
-        location = Location.LOBBY;
+        if (ScoreboardUtils.getScoreboardTitle().contains("PROTOTYPE") || ScoreboardUtils.getScoreboardTitle().contains("HYPIXEL")) {
+            location = Location.LOBBY;
+            return;
+        }
+        location = Location.TELEPORTING;
     }
 
     @SubscribeEvent

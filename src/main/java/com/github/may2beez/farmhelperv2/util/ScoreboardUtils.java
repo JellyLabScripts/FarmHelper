@@ -46,6 +46,17 @@ public class ScoreboardUtils {
         return lines;
     }
 
+    public static String getScoreboardTitle() {
+        if (mc.theWorld == null) return "";
+        Scoreboard scoreboard = mc.theWorld.getScoreboard();
+        if (scoreboard == null) return "";
+
+        ScoreObjective objective = scoreboard.getObjectiveInDisplaySlot(1);
+        if (objective == null) return "";
+
+        return StringUtils.stripControlCodes(objective.getDisplayName());
+    }
+
     public static String cleanSB(String scoreboard) {
         char[] nvString = StringUtils.stripControlCodes(scoreboard).toCharArray();
         StringBuilder cleaned = new StringBuilder();
