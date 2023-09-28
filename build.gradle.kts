@@ -73,8 +73,8 @@ dependencies {
     compileOnly("cc.polyfrost:oneconfig-1.8.9-forge:0.2.0-alpha+")
     shadowImpl("cc.polyfrost:oneconfig-wrapper-launchwrapper:1.0.0-beta+")
 
-    compileOnly("org.spongepowered:mixin:0.8.5-SNAPSHOT")
-    annotationProcessor("org.spongepowered:mixin:0.8.5-SNAPSHOT")
+    compileOnly("org.spongepowered:mixin:0.8.5")
+    annotationProcessor("org.spongepowered:mixin:0.8.5")
 
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.1.2")
     shadowImpl("org.reflections:reflections:0.10.2")
