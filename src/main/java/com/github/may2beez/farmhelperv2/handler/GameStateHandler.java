@@ -81,11 +81,17 @@ public class GameStateHandler {
     private final Timer notMovingTimer = new Timer();
     private long randomValueToWait = FarmHelperConfig.getRandomTimeBetweenChangingRows();
 
-    @Getter
-    private boolean cookieBuffActive;
+    public enum BuffState {
+        ACTIVE,
+        NOT_ACTIVE,
+        UNKNOWN
+    }
 
     @Getter
-    private boolean godPotActive;
+    private BuffState cookieBuffState = BuffState.UNKNOWN;
+
+    @Getter
+    private BuffState godPotState = BuffState.UNKNOWN;
 
     @SubscribeEvent
     public void onWorldChange(WorldEvent.Unload event) {
@@ -127,10 +133,14 @@ public class GameStateHandler {
             }
         }
 
-        if (!loaded) return;
+        if (!loaded) {
+            cookieBuffState = BuffState.UNKNOWN;
+            godPotState = BuffState.UNKNOWN;
+            return;
+        }
 
-        cookieBuffActive = foundCookieBuff;
-        godPotActive = foundGodPotBuff;
+        cookieBuffState = foundCookieBuff ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
+        godPotState = foundGodPotBuff ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
     }
 
     @SubscribeEvent

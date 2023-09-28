@@ -970,7 +970,7 @@ public class FarmHelperConfig extends Config {
     )
     public static float rotationTime = 400f;
     @Slider(
-            name = "Rotation Random Time", category = DELAYS, subcategory = "Rotations",
+            name = "Additional random Rotation Time", category = DELAYS, subcategory = "Rotations",
             description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
             min = 200f, max = 2000f
     )
@@ -987,7 +987,7 @@ public class FarmHelperConfig extends Config {
     )
     public static float visitorsMacroGuiDelay = 250f;
     @Slider(
-            name = "GUI Delay Random Time", category = DELAYS, subcategory = "GUI Delays",
+            name = "Additional random GUI Delay", category = DELAYS, subcategory = "GUI Delays",
             description = "The maximum random time added to the delay time between clicking during GUI macros (in miliseconds)",
             min = 150f, max = 2000f
     )
@@ -1213,7 +1213,11 @@ public class FarmHelperConfig extends Config {
             MacroHandler.getInstance().toggleMacro();
         });
 		registerKeyBind(debugKeybind, () -> {
-            AutoCookie.getInstance().enable();
+            if (AutoCookie.getInstance().isEnabled()) {
+                AutoCookie.getInstance().stop();
+            } else {
+                AutoCookie.getInstance().enable();
+            }
 		});
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
         save();

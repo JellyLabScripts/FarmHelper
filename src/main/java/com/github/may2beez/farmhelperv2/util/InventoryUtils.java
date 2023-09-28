@@ -92,6 +92,10 @@ public class InventoryUtils {
         SWAP
     }
 
+    public static void clickContainerSlot(int slot, ClickType mouseButton, ClickMode mode) {
+        mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, slot, mouseButton.ordinal(), mode.ordinal(), mc.thePlayer);
+    }
+
     public static void clickSlot(int slot, ClickType mouseButton, ClickMode mode) {
         mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, slot, mouseButton.ordinal(), mode.ordinal(), mc.thePlayer);
     }

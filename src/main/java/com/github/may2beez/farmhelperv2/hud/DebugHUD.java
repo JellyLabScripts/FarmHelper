@@ -7,7 +7,6 @@ import com.github.may2beez.farmhelperv2.feature.impl.AutoCookie;
 import com.github.may2beez.farmhelperv2.feature.impl.Scheduler;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
-import com.github.may2beez.farmhelperv2.util.BlockUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 
 import java.util.List;
@@ -33,13 +32,15 @@ public class DebugHUD extends TextHud {
             lines.add("  isFarming: " + Scheduler.getInstance().isFarming());
         }
         lines.add("Buffs");
-        lines.add("   Cookie: " + GameStateHandler.getInstance().isCookieBuffActive());
-        lines.add("   God Pot: " + GameStateHandler.getInstance().isGodPotActive());
+        lines.add("   Cookie: " + GameStateHandler.getInstance().getCookieBuffState());
+        lines.add("   God Pot: " + GameStateHandler.getInstance().getGodPotState());
         if (AutoCookie.getInstance().isActivated()) {
             lines.add("AutoCookie");
             lines.add("   Main State: " + AutoCookie.getInstance().getMainState());
             lines.add("   Movie Cookie State: " + AutoCookie.getInstance().getMoveCookieState());
+            lines.add("   Bazaar State: " + AutoCookie.getInstance().getBazaarState());
             lines.add("   Clock: " + AutoCookie.getInstance().getAutoCookieDelay().getRemainingTime());
+            lines.add("   Timout clock: " + AutoCookie.getInstance().getTimeoutClock().getRemainingTime());
         }
     }
 }
