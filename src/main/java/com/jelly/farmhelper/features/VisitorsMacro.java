@@ -625,13 +625,13 @@ public class VisitorsMacro {
                 break;
             case MANAGING_VISITORS:
                 if (config.visitorsMacroAutosellBeforeServing) {
-                    if (Autosell.isEnabled()) {
+                    if (AutoSellNew.isEnabled()) {
                         stuckClock.schedule(STUCK_DELAY);
                         break;
                     } else {
                         if (!autoSellInvoked) {
-                            stuckClock.schedule(STUCK_DELAY);
-                            Autosell.enable(true);
+                            stuckClock.schedule(30000);
+                            AutoSellNew.enableMacro(AutoSellNew.marketType.NPC, false);
                             autoSellInvoked = true;
                             delayClock.schedule(1500);
                             break;
@@ -795,8 +795,7 @@ public class VisitorsMacro {
                                             return;
                                         }
                                     }
-
-                                    if (mc.thePlayer.openContainer.inventorySlots.get(13).getHasStack()) {
+                                    if (mc.thePlayer.openContainer.inventorySlots.get(13).getHasStack() && !foundProfit) {
                                         if (!Config.visitorsAcceptUncommon && lore.stream().anyMatch(l -> l.contains("UNCOMMON"))) {
                                             LogUtils.sendDebug("[Visitors Macro] Visitor is uncommon rarity, rejecting...");
                                             rejectOffer = true;
@@ -1348,7 +1347,7 @@ public class VisitorsMacro {
     }
 
     private static long getRandomRotationDelay() {
-        return (long) ((random.nextDouble() * config.rotationTimeRandomness * 1000) + (config.rotationTime * 1000));
+        return (long) ((random.nextDouble() * config.visitorsMacroRotationTimeRandomness * 1000) + (config.visitorsMacroRotationTime * 1000));
     }
 
     private static long getRandomGuiDelay() {

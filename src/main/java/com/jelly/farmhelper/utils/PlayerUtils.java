@@ -403,6 +403,13 @@ public class PlayerUtils {
         return null;
     }
 
+    public static void closeGuiAndUngrabMouse() {
+        if (mc.thePlayer.openContainer instanceof ContainerChest)
+            mc.thePlayer.closeScreen();
+        if (FarmHelper.config.autoUngrabMouse)
+            UngrabUtils.ungrabMouse();
+    }
+
     public static void rightClick() {
         try {
             Method rightClick = mc.getClass().getDeclaredMethod("func_147121_ag");

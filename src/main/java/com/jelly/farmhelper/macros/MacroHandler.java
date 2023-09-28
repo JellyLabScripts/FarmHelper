@@ -198,7 +198,7 @@ public class MacroHandler {
         UngrabUtils.regrabMouse();
         StatusUtils.updateStateString();
         VisitorsMacro.stopMacro();
-        Autosell.disableOnly();
+        AutoSellNew.stopMacro();
         PetSwapper.reset();
         FailsafeNew.resetFailsafes();
         Utils.disablePingAlert();

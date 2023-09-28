@@ -150,7 +150,7 @@ public class Autosell {
                     return;
 
                 if (mc.currentScreen == null) {
-                    if (FarmHelper.config.sellToNPC) {
+                    if (FarmHelper.config.autoSellMarketType) {
                         LogUtils.sendDebug("[AutoSell] Opening Trades menu");
                         mc.thePlayer.sendChatMessage("/trades");
                     } else {
@@ -158,7 +158,7 @@ public class Autosell {
                         mc.thePlayer.sendChatMessage("/bz");
                     }
                     sellClock.schedule(250);
-                } else if (PlayerUtils.getInventoryName() != null && FarmHelper.config.sellToNPC && PlayerUtils.getInventoryName().contains("Trades")) {
+                } else if (PlayerUtils.getInventoryName() != null && FarmHelper.config.autoSellMarketType && PlayerUtils.getInventoryName().contains("Trades")) {
                     LogUtils.sendDebug("[AutoSell] Detected trade menu, selling item");
                     List<Slot> sellList = PlayerUtils.getInventorySlots();
                     sellList.removeIf(item -> !shouldSell(item.getStack()));
@@ -180,7 +180,7 @@ public class Autosell {
                             }
                         }
                     }
-                } else if (PlayerUtils.getInventoryName() != null && !soldToBZ && !FarmHelper.config.sellToNPC && PlayerUtils.getInventoryName().contains("Bazaar")) {
+                } else if (PlayerUtils.getInventoryName() != null && !soldToBZ && !FarmHelper.config.autoSellMarketType && PlayerUtils.getInventoryName().contains("Bazaar")) {
                     if (mc.thePlayer.openContainer.getSlot(47) != null &&
                             mc.thePlayer.openContainer.getSlot(47).getStack() != null &&
                             mc.thePlayer.openContainer.getSlot(47).getStack().getDisplayName().contains("Sell Inventory Now")) {
@@ -193,7 +193,7 @@ public class Autosell {
                         PlayerUtils.clickOpenContainerSlot(47);
                         sellClock.schedule(250);
                     }
-                } else if (PlayerUtils.getInventoryName() != null && soldToBZ && !FarmHelper.config.sellToNPC && PlayerUtils.getInventoryName().contains("Bazaar")) {
+                } else if (PlayerUtils.getInventoryName() != null && soldToBZ && !FarmHelper.config.autoSellMarketType && PlayerUtils.getInventoryName().contains("Bazaar")) {
                     if (mc.thePlayer.openContainer.getSlot(48) != null &&
                             mc.thePlayer.openContainer.getSlot(48).getStack() != null) {
                         if (mc.thePlayer.openContainer.getSlot(48).getStack().getItem() == Item.getItemFromBlock(Blocks.glass_pane) && mc.thePlayer.openContainer.getSlot(48).getStack().getDisplayName().isEmpty()) {
@@ -224,12 +224,12 @@ public class Autosell {
                             }
                         }
                     }
-                } else if (PlayerUtils.getInventoryName() != null && !soldToBZ && !FarmHelper.config.sellToNPC && PlayerUtils.getInventoryName().contains("Are you sure?")) {
+                } else if (PlayerUtils.getInventoryName() != null && !soldToBZ && !FarmHelper.config.autoSellMarketType && PlayerUtils.getInventoryName().contains("Are you sure?")) {
                     LogUtils.sendDebug("[AutoSell] Detected Bazaar confirmation, selling item");
                     PlayerUtils.clickOpenContainerSlot(11);
                     sellClock.schedule(250);
                     soldToBZ = true;
-                } else if (PlayerUtils.getInventoryName() != null && soldToBZ && !FarmHelper.config.sellToNPC && PlayerUtils.getInventoryName().contains("Are you sure?")) {
+                } else if (PlayerUtils.getInventoryName() != null && soldToBZ && !FarmHelper.config.autoSellMarketType && PlayerUtils.getInventoryName().contains("Are you sure?")) {
                     mc.thePlayer.closeScreen();
                     if (soldSacks)
                         if (disableOnlyFlag) {
