@@ -38,13 +38,11 @@ public class AutoCookie implements IFeature {
 
     @Setter
     private boolean enabled;
-
     @Setter
     private boolean activating;
 
     private final Clock autoCookieDelay = new Clock();
     private final Clock dontEnableClock = new Clock();
-    private final Clock disableClock = new Clock();
 
     @Override
     public String getName() {
@@ -53,7 +51,7 @@ public class AutoCookie implements IFeature {
 
     @Override
     public boolean isEnabled() {
-        return disableClock.isScheduled() && !disableClock.passed() || enabled || activating;
+        return enabled || activating;
     }
 
     @Override
@@ -63,6 +61,8 @@ public class AutoCookie implements IFeature {
 
     @Override
     public void stop() {
+        if (enabled)
+            LogUtils.sendWarning("Auto Cookie is now disabled!");
         enabled = false;
         mainState = State.GET_COOKIE;
         bazaarState = BazaarState.NONE;
@@ -72,10 +72,8 @@ public class AutoCookie implements IFeature {
         autoCookieDelay.reset();
         dontEnableClock.reset();
         timeoutClock.reset();
-        disableClock.reset();
         mc.thePlayer.closeScreen();
         KeyBindUtils.stopMovement();
-        LogUtils.sendWarning("Auto Cookie is now disabled!");
     }
 
     @Override
@@ -158,10 +156,6 @@ public class AutoCookie implements IFeature {
         if (!isActivated()) return;
 
         if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.ACTIVE && mainState == State.GET_COOKIE || (dontEnableClock.isScheduled() && !dontEnableClock.passed())) {
-            if (disableClock.isScheduled() && disableClock.passed()) {
-                // should resume main macro and disable this
-                stop();
-            }
             return;
         }
 
@@ -378,7 +372,7 @@ public class AutoCookie implements IFeature {
                         if (dontEnableClock.isScheduled()) {
                             stop();
                             dontEnableClock.schedule(30_000 * 60);
-                            disableClock.schedule(3_000);
+                            Multithreading.schedule(this::stop, 3_000, TimeUnit.MILLISECONDS);
                             return;
                         } else if (InventoryUtils.hasItemInHotbar("Booster Cookie")) {
                             setMainState(State.SELECT_COOKIE);
@@ -543,7 +537,7 @@ public class AutoCookie implements IFeature {
                     setMoveCookieState(MoveCookieState.PUT_ITEM_BACK_PICKUP);
                 }
                 autoCookieDelay.schedule(getRandomDelay());
-                disableClock.schedule(3_000);
+                Multithreading.schedule(this::stop, 3_000, TimeUnit.MILLISECONDS);
             }
         }
 
