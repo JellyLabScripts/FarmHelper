@@ -169,6 +169,7 @@ public class AutoCookie implements IFeature {
             if (!enabled && !activating && (!dontEnableClock.isScheduled() || dontEnableClock.passed())) {
                 LogUtils.sendWarning("Your Cookie Buff is not active! Activating Auto Cookie in 1.5 second!");
                 activating = true;
+                KeyBindUtils.stopMovement();
                 Multithreading.schedule(() -> {
                     if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
                         enable();
