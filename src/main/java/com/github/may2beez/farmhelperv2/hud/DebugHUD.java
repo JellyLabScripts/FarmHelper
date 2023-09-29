@@ -34,6 +34,11 @@ public class DebugHUD extends TextHud {
         lines.add("Buffs");
         lines.add("   Cookie: " + GameStateHandler.getInstance().getCookieBuffState());
         lines.add("   God Pot: " + GameStateHandler.getInstance().getGodPotState());
+        lines.add("Walkables:");
+        lines.add("   Front: " + GameStateHandler.getInstance().isFrontWalkable());
+        lines.add("   Back: " + GameStateHandler.getInstance().isBackWalkable());
+        lines.add("   Left: " + GameStateHandler.getInstance().isLeftWalkable());
+        lines.add("   Right: " + GameStateHandler.getInstance().isRightWalkable());
         if (AutoCookie.getInstance().isActivated()) {
             lines.add("AutoCookie");
             lines.add("   Main State: " + AutoCookie.getInstance().getMainState());

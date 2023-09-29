@@ -54,6 +54,7 @@ public class FarmHelperConfig extends Config {
     public enum MacroEnum {
         S_V_NORMAL_TYPE,
         S_PUMPKIN_MELON,
+        S_PUMPKIN_MELON_MELONGKINGDE,
         S_SUGAR_CANE,
         S_CACTUS,
         S_COCOA_BEANS,
@@ -147,11 +148,12 @@ public class FarmHelperConfig extends Config {
             options = {
                     "S Shape / Vertical - Crops (Wheat, Carrot, Potato, NW)", // 0
                     "S Shape - Pumpkin/Melon", // 1
-                    "S Shape - Sugar Cane", // 2
-                    "S Shape - Cactus", // 3
-                    "S Shape - Cocoa Beans", // 4
-                    "S Shape - Mushroom (45°)", // 5
-                    "S Shape - Mushroom (30° with rotations)", // 6
+                    "S Shape - Pumpkin/Melon Melongkingde", // 2
+                    "S Shape - Sugar Cane", // 3
+                    "S Shape - Cactus", // 4
+                    "S Shape - Cocoa Beans", // 5
+                    "S Shape - Mushroom (45°)", // 6
+                    "S Shape - Mushroom (30° with rotations)", // 7
             }, size = 2
     )
     public static int macroType = 0;

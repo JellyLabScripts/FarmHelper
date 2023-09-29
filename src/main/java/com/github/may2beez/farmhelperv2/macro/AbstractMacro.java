@@ -227,6 +227,7 @@ public abstract class AbstractMacro {
             rotated = false;
             GameStateHandler.getInstance().scheduleNotMoving(750);
             rewarpDelay.schedule(1_250);
+            KeyBindUtils.holdThese(mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindSneak : null);
 //            Antistuck.stuck = false;
 //            Antistuck.notMovingTimer.schedule();
             if (!PlayerUtils.isSpawnLocationSet() || (mc.thePlayer.getPositionVector().distanceTo(PlayerUtils.getSpawnLocation()) > 1)) {

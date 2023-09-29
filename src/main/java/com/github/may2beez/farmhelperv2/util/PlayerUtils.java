@@ -43,7 +43,7 @@ public class PlayerUtils {
         if (!foundCropUnderMouse) {
             for (int x = -3; x < 3; x++) {
                 for (int y = -1; y < 5; y++) {
-                    for (int z = -3; z < 3; z++) {
+                    for (int z = -1; z < 3; z++) {
                         BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, z,
                                 (FarmHelperConfig.macroType == FarmHelperConfig.MacroEnum.S_MUSHROOM.ordinal() ||
                                         FarmHelperConfig.macroType == FarmHelperConfig.MacroEnum.S_SUGAR_CANE.ordinal() ?

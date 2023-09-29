@@ -166,9 +166,11 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
         if (FarmHelperConfig.customPitch) {
             setPitch(FarmHelperConfig.customPitchLevel);
         } else {
-            if (crop == FarmHelperConfig.CropEnum.NETHER_WART || crop == FarmHelperConfig.CropEnum.CACTUS) {
+            if (FarmHelperConfig.macroType == FarmHelperConfig.MacroEnum.S_PUMPKIN_MELON_MELONGKINGDE.ordinal()) {
+                setPitch((float) (-58.5f + Math.random() * 1f));
+            } else if (crop == FarmHelperConfig.CropEnum.NETHER_WART || crop == FarmHelperConfig.CropEnum.CACTUS) {
                 setPitch((float) (0f + Math.random() * 0.5f));
-            } else if (crop == FarmHelperConfig.CropEnum.MELON || crop == FarmHelperConfig.CropEnum.PUMPKIN) {
+            } else if (FarmHelperConfig.macroType == FarmHelperConfig.MacroEnum.S_PUMPKIN_MELON.ordinal()) {
                 setPitch(28 + (float) (Math.random() * 2)); //28-30
             } else {
                 setPitch((float) (2.8f + Math.random() * 0.5f));

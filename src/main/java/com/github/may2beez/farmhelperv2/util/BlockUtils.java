@@ -20,10 +20,7 @@ import static cc.polyfrost.oneconfig.libs.universal.UMath.wrapAngleTo180;
 
 public class BlockUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final Block[] walkables = {Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs, Blocks.carpet, Blocks.stone_slab, Blocks.stone_slab2, Blocks.wooden_slab, Blocks.snow_layer, Blocks.trapdoor};
     private static final Block[] initialWalkables = {Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.waterlily, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem};
-    private static final Block[] walkablesMushroom = {Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs, Blocks.carpet, Blocks.stone_slab, Blocks.stone_slab2, Blocks.wooden_slab, Blocks.snow_layer, Blocks.trapdoor, Blocks.red_mushroom, Blocks.brown_mushroom};
-    private static final Block[] walkablesCactus = {Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.dark_oak_fence_gate, Blocks.acacia_fence_gate, Blocks.birch_fence_gate, Blocks.oak_fence_gate, Blocks.jungle_fence_gate, Blocks.spruce_fence_gate, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem, Blocks.iron_trapdoor, Blocks.stone_stairs, Blocks.snow_layer, Blocks.trapdoor};
 
     public static int getUnitX() {
         return getUnitX((mc.thePlayer.rotationYaw % 360 + 360) % 360);
@@ -61,10 +58,6 @@ public class BlockUtils {
         return mc.theWorld.getBlockState(blockPos).getBlock();
     }
 
-    public static boolean isRelativeBlockPassable(float x, float y, float z) {
-        return BlockUtils.getRelativeBlock(x, y, z).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(x, y, z));
-    }
-
     public static Block getRelativeBlock(float x, float y, float z) {
         return mc.theWorld.getBlockState(
                 new BlockPos(
@@ -99,22 +92,6 @@ public class BlockUtils {
         );
     }
 
-    public static int countCarpet() {
-        int r = 2;
-        int count = 0;
-        BlockPos playerPos = mc.thePlayer.getPosition();
-        playerPos.add(0, 1, 0);
-        Vec3i vec3i = new Vec3i(r, r, r);
-        Vec3i vec3i2 = new Vec3i(r, r, r);
-        for (BlockPos blockPos : BlockPos.getAllInBox(playerPos.add(vec3i), playerPos.subtract(vec3i2))) {
-            IBlockState blockState = mc.theWorld.getBlockState(blockPos);
-            if (blockState.getBlock() == Blocks.carpet && blockState.getValue(BlockCarpet.COLOR) == EnumDyeColor.BROWN) {
-                count++;
-            }
-        }
-        return count;
-    }
-
     public static int bedrockCount() {
         int count = 0;
         for (int i = 0; i < 10; i++) {
@@ -124,43 +101,6 @@ public class BlockUtils {
             }
         }
         return count;
-    }
-
-    public static boolean isWater(Block b) {
-        return b.equals(Blocks.water) || b.equals(Blocks.flowing_water);
-    }
-
-    public static Block getLeftBlock() {
-        return getRelativeBlock(-1, 0, 0, mc.thePlayer.rotationYaw);
-    }
-
-    public static Block getRightBlock() {
-        return getRelativeBlock(1, 0, 0, mc.thePlayer.rotationYaw);
-    }
-
-    public static Block getLeftTopBlock() {
-        return getRelativeBlock(-1, 1, 0, mc.thePlayer.rotationYaw);
-    }
-
-    public static Block getRightTopBlock() {
-        return getRelativeBlock(1, 1, 0, mc.thePlayer.rotationYaw);
-    }
-
-    public static Block getBackBlock() {
-        return getRelativeBlock(0, 0, -1);
-    }
-
-    public static Block getFrontBlock() {
-        return getRelativeBlock(0, 0, 1);
-    }
-
-    public static boolean isWalkable(Block block) {
-        if (FarmHelperConfig.macroType == FarmHelperConfig.MacroEnum.S_MUSHROOM_ROTATE.ordinal() ||
-                FarmHelperConfig.macroType == FarmHelperConfig.MacroEnum.S_MUSHROOM.ordinal()) {
-            return Arrays.asList(walkablesMushroom).contains(block);
-        } else if (FarmHelperConfig.macroType == FarmHelperConfig.MacroEnum.S_CACTUS.ordinal()) {
-            return Arrays.asList(walkablesCactus).contains(block);
-        } else return Arrays.asList(walkables).contains(block);
     }
 
     public static boolean canWalkThrough(BlockPos blockPos) {
@@ -187,7 +127,7 @@ public class BlockUtils {
     private static boolean canWalkThroughBottom(BlockPos blockPos) {
         IBlockState state = mc.theWorld.getBlockState(blockPos);
         Block block = state.getBlock();
-        if (mc.thePlayer.posY % 1 >= 0.5)
+        if (mc.thePlayer.posY % 1 >= 0.5 && mc.thePlayer.posY % 1 <= 0.75)
             return true;
 
         if (block instanceof BlockSlab) {
@@ -226,6 +166,10 @@ public class BlockUtils {
 
         if (block instanceof BlockCarpet)
             return false;
+
+        if (block instanceof BlockGlass || block instanceof BlockStainedGlass || block instanceof BlockStainedGlassPane) {
+            return false;
+        }
 
         return block.isPassable(mc.theWorld, blockPos);
     }

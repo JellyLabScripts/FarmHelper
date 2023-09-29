@@ -85,14 +85,15 @@ public class MacroHandler {
         switch (type) {
             case 0: // crops
             case 1: // pumpkin/melon
-            case 3: // cactus
+            case 2: // melonkingdebil
+            case 4: // cactus
                 return Macros.S_SHAPE_VERTICAL_CROP_MACRO.getMacro();
-            case 2: // sugarcane
+            case 3: // sugarcane
                 return Macros.S_SHAPE_SUGARCANE_MACRO.getMacro();
-            case 4: // cocoa
+            case 5: // cocoa
                 return Macros.S_SHAPE_COCOA_BEAN_MACRO.getMacro();
-            case 5: // mushroom 45
-            case 6: // mushroom 30
+            case 6: // mushroom 45
+            case 7: // mushroom 30
                 return Macros.S_SHAPE_MUSHROOM_MACRO.getMacro();
             default:
                 throw new IllegalArgumentException("Invalid crop type: " + type);

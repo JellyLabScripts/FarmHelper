@@ -198,10 +198,10 @@ public class GameStateHandler {
         } else {
             yaw = mc.thePlayer.rotationYaw;
         }
-        frontWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 0, 1, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 1, 1, yaw)));
-        rightWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 0, 0, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(1, 1, 0, yaw)));
-        backWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 0, -1, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(0, 1, -1, yaw)));
-        leftWalkable = (BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 0, 0, yaw)) && BlockUtils.isWalkable(BlockUtils.getRelativeBlock(-1, 1, 0, yaw)));
+        frontWalkable = BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1, yaw));
+        rightWalkable = (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(1, 0, 0, yaw)));
+        backWalkable = (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, -1, yaw)));
+        leftWalkable = (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-1, 0, 0, yaw)));
     }
 
     public boolean hasPassedSinceStopped() {
