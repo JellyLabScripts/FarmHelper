@@ -1,5 +1,6 @@
 package com.github.may2beez.farmhelperv2.util;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.config.struct.DiscordWebhook;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
@@ -87,13 +88,13 @@ public class LogUtils {
                         .addField("Crop Type", capitalize(String.valueOf(MacroHandler.getInstance().getCrop())), true)
 //                        .addField(BanwaveChecker.getBanDisplay(), "", false)
                 );
-                new Thread(() -> {
+                Multithreading.schedule(() -> {
                     try {
                         webhook.execute();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        throw new RuntimeException(e);
                     }
-                }).start();
+                }, 0, TimeUnit.MILLISECONDS);
                 statusMsgTime = System.currentTimeMillis();
             }
         } catch (Exception e) {
@@ -113,13 +114,13 @@ public class LogUtils {
                 .setColor(Color.decode("#741010"))
                 .setFooter(mc.thePlayer.getName(), "")
             );
-            new Thread(() -> {
+            Multithreading.schedule(() -> {
                 try {
                     webhook.execute();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    throw new RuntimeException(e);
                 }
-            }).start();
+            }, 0, TimeUnit.MILLISECONDS);
             logMsgTime = System.currentTimeMillis();
         }
         lastWebhook = message;

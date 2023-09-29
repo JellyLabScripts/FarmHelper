@@ -1,5 +1,6 @@
 package com.github.may2beez.farmhelperv2.handler;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
@@ -29,6 +30,7 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 public class MacroHandler {
     private final Minecraft mc = Minecraft.getMinecraft();
@@ -183,7 +185,7 @@ public class MacroHandler {
             PlayerUtils.itemChangedByStaff = false;
             PlayerUtils.changeItemEveryClock.reset();
             KeyBindUtils.updateKeys(false, false, false, false, false, mc.thePlayer.capabilities.isFlying, false);
-            new Thread(startCurrent).start();
+            Multithreading.schedule(startCurrent, 300, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -192,16 +194,11 @@ public class MacroHandler {
     }
 
     Runnable startCurrent = () -> {
-        try {
-            Thread.sleep(300);
-            KeyBindUtils.stopMovement();
-            if (isMacroing()) {
-                currentMacro.ifPresent(AbstractMacro::onEnable);
-            }
-            startingUp = false;
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        KeyBindUtils.stopMovement();
+        if (isMacroing()) {
+            currentMacro.ifPresent(AbstractMacro::onEnable);
         }
+        startingUp = false;
     };
 
     @SubscribeEvent

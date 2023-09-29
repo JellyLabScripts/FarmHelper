@@ -1,5 +1,6 @@
 package com.github.may2beez.farmhelperv2.feature.impl;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
@@ -21,6 +22,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Getter
 public class AutoCookie implements IFeature {
@@ -37,6 +39,9 @@ public class AutoCookie implements IFeature {
     @Setter
     private boolean enabled;
 
+    @Setter
+    private boolean activating;
+
     private final Clock autoCookieDelay = new Clock();
     private final Clock dontEnableClock = new Clock();
     private final Clock disableClock = new Clock();
@@ -48,7 +53,7 @@ public class AutoCookie implements IFeature {
 
     @Override
     public boolean isEnabled() {
-        return disableClock.isScheduled() && !disableClock.passed() || enabled;
+        return disableClock.isScheduled() && !disableClock.passed() || enabled || activating;
     }
 
     @Override
@@ -63,6 +68,7 @@ public class AutoCookie implements IFeature {
         bazaarState = BazaarState.NONE;
         moveCookieState = MoveCookieState.SWAP_COOKIE_TO_HOTBAR_PICKUP;
         hotbarSlot = -1;
+        activating = false;
         autoCookieDelay.reset();
         dontEnableClock.reset();
         timeoutClock.reset();
@@ -160,12 +166,16 @@ public class AutoCookie implements IFeature {
         }
 
         if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LOBBY && GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
-            if (!enabled && !autoCookieDelay.isScheduled() && (!dontEnableClock.isScheduled() || dontEnableClock.passed())) {
+            if (!enabled && !activating && (!dontEnableClock.isScheduled() || dontEnableClock.passed())) {
                 LogUtils.sendWarning("Your Cookie Buff is not active! Activating Auto Cookie in 1.5 second!");
-                autoCookieDelay.schedule(1_500);
+                activating = true;
+                Multithreading.schedule(() -> {
+                    if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
+                        enable();
+                        activating = false;
+                    }
+                }, 1_500, TimeUnit.MILLISECONDS);
                 dontEnableClock.reset();
-            } else if (!enabled && autoCookieDelay.isScheduled() && autoCookieDelay.passed()) {
-                enable();
             }
             return;
         }
