@@ -154,31 +154,31 @@ public class AutoCookie implements IFeature {
         if (event.phase == TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isActivated()) return;
-//        if (!MacroHandler.getInstance().isMacroing()) return;
+        if (!MacroHandler.getInstance().isMacroing()) return;
         if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING) {
             timeoutClock.schedule(bazaarState != BazaarState.NONE ? 30_000 : 7_500);
             return;
         }
 
-//        if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.ACTIVE && mainState == State.NONE || (dontEnableClock.isScheduled() && !dontEnableClock.passed())) {
-//            return;
-//        }
+        if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.ACTIVE && mainState == State.NONE || (dontEnableClock.isScheduled() && !dontEnableClock.passed())) {
+            return;
+        }
 
-//        if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LOBBY && GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
-//            if (!enabled && !activating && (!dontEnableClock.isScheduled() || dontEnableClock.passed())) {
-//                LogUtils.sendWarning("[Auto Cookie] Your Cookie Buff is not active! Activating Auto Cookie in 1.5 second!");
-//                activating = true;
-//                KeyBindUtils.stopMovement();
-//                Multithreading.schedule(() -> {
-//                    if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
-//                        enable();
-//                        activating = false;
-//                    }
-//                }, 1_500, TimeUnit.MILLISECONDS);
-//                dontEnableClock.reset();
-//            }
-//            return;
-//        }
+        if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LOBBY && GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
+            if (!enabled && !activating && (!dontEnableClock.isScheduled() || dontEnableClock.passed())) {
+                LogUtils.sendWarning("[Auto Cookie] Your Cookie Buff is not active! Activating Auto Cookie in 1.5 second!");
+                activating = true;
+                KeyBindUtils.stopMovement();
+                Multithreading.schedule(() -> {
+                    if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
+                        enable();
+                        activating = false;
+                    }
+                }, 1_500, TimeUnit.MILLISECONDS);
+                dontEnableClock.reset();
+            }
+            return;
+        }
 
         if (!enabled) return;
         if (autoCookieDelay.isScheduled() && !autoCookieDelay.passed()) return;
