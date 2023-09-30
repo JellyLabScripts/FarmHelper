@@ -52,4 +52,8 @@ public class FeatureManager {
             }
         });
     }
+
+    public void resetAllStates() {
+        features.forEach(IFeature::resetStatesAfterMacroDisabled);
+    }
 }

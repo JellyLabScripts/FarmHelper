@@ -5,5 +5,6 @@ public interface IFeature {
     boolean isEnabled();
     boolean shouldPauseMacroExecution();
     void stop();
+    void resetStatesAfterMacroDisabled();
     boolean isActivated();
 }

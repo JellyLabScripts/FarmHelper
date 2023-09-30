@@ -70,10 +70,14 @@ public class AutoCookie implements IFeature {
         hotbarSlot = -1;
         activating = false;
         autoCookieDelay.reset();
-        dontEnableClock.reset();
         timeoutClock.reset();
         mc.thePlayer.closeScreen();
         KeyBindUtils.stopMovement();
+    }
+
+    @Override
+    public void resetStatesAfterMacroDisabled() {
+        dontEnableClock.reset();
     }
 
     @Override
@@ -135,7 +139,6 @@ public class AutoCookie implements IFeature {
     }
 
     private final BlockPos hubWaypoint = new BlockPos(-31, 69, -77);
-
 
     private final Clock timeoutClock = new Clock();
 
@@ -275,7 +278,7 @@ public class AutoCookie implements IFeature {
                             setBazaarState(BazaarState.OPEN_BAZAAR);
                             break;
                         }
-                        int odditiesSlot = InventoryUtils.getContainerSlotOf("Oddities");
+                        int odditiesSlot = InventoryUtils.getSlotOfItemInContainer("Oddities");
                         if (odditiesSlot == -1) {
                             LogUtils.sendError("Something went wrong while trying to get the slot of the oddities!");
                             stop();
@@ -305,7 +308,7 @@ public class AutoCookie implements IFeature {
                             break;
                         }
 
-                        int cookieSlot = InventoryUtils.getContainerSlotOf("Booster Cookie");
+                        int cookieSlot = InventoryUtils.getSlotOfItemInContainer("Booster Cookie");
                         if (cookieSlot == -1) {
                             LogUtils.sendError("Something went wrong while trying to get the slot of the cookie!");
                             stop();
@@ -328,7 +331,7 @@ public class AutoCookie implements IFeature {
                             break;
                         }
 
-                        int buyInstantlySlot = InventoryUtils.getContainerSlotOf("Buy Instantly");
+                        int buyInstantlySlot = InventoryUtils.getSlotOfItemInContainer("Buy Instantly");
                         if (buyInstantlySlot == -1) {
                             LogUtils.sendError("Something went wrong while trying to get the slot of the buy instantly!");
                             stop();
@@ -351,7 +354,7 @@ public class AutoCookie implements IFeature {
                             break;
                         }
 
-                        int buyOnlyOneSlot = InventoryUtils.getContainerSlotOf("Buy only one!");
+                        int buyOnlyOneSlot = InventoryUtils.getSlotOfItemInContainer("Buy only one!");
                         if (buyOnlyOneSlot == -1) {
                             LogUtils.sendError("Something went wrong while trying to get the slot of the buy only one!");
                             stop();
@@ -381,10 +384,7 @@ public class AutoCookie implements IFeature {
                             break;
                         }
                         if (dontEnableClock.isScheduled()) {
-                            Multithreading.schedule(() -> {
-                                this.stop();
-                                dontEnableClock.schedule(30_000 * 60);
-                            }, 3_000, TimeUnit.MILLISECONDS);
+                            Multithreading.schedule(this::stop, 3_000, TimeUnit.MILLISECONDS);
                             return;
                         } else if (InventoryUtils.hasItemInHotbar("Booster Cookie")) {
                             setMainState(State.SELECT_COOKIE);
@@ -502,7 +502,7 @@ public class AutoCookie implements IFeature {
                 if (InventoryUtils.getInventoryName() == null || !InventoryUtils.getInventoryName().contains("Consume Booster Cookie?"))
                     break;
 
-                int slotOfConsumeCookie = InventoryUtils.getContainerSlotOf("Consume Cookie");
+                int slotOfConsumeCookie = InventoryUtils.getSlotOfItemInContainer("Consume Cookie");
                 if (slotOfConsumeCookie == -1) {
                     LogUtils.sendError("Something went wrong while trying to get the slot of the consume cookie!");
                     stop();

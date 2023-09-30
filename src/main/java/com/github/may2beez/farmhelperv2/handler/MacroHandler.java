@@ -160,6 +160,7 @@ public class MacroHandler {
         setCrop(null);
 
         FeatureManager.getInstance().disableAll();
+        FeatureManager.getInstance().resetAllStates();
         disableCurrentMacro();
     }
 

@@ -70,6 +70,11 @@ public class UngrabMouse implements IFeature {
     }
 
     @Override
+    public void resetStatesAfterMacroDisabled() {
+
+    }
+
+    @Override
     public boolean isActivated() {
         return FarmHelperConfig.autoUngrabMouse;
     }

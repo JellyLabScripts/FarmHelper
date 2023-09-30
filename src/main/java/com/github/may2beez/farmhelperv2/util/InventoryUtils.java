@@ -11,7 +11,7 @@ import net.minecraft.util.StringUtils;
 
 public class InventoryUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public static int getContainerSlotOf(String item) {
+    public static int getSlotOfItemInContainer(String item) {
         for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
             if (slot.getHasStack()) {
                 String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
