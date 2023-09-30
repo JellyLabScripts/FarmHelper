@@ -56,4 +56,8 @@ public class FeatureManager {
     public void resetAllStates() {
         features.forEach(IFeature::resetStatesAfterMacroDisabled);
     }
+
+    public boolean isAnyOtherFeatureEnabled(IFeature sender) {
+        return features.stream().anyMatch(feature -> feature.shouldPauseMacroExecution() && feature.isEnabled() && feature != sender);
+    }
 }

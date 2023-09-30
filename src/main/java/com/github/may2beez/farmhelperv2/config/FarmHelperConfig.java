@@ -7,7 +7,7 @@ import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.*;
 import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
-import com.github.may2beez.farmhelperv2.feature.impl.AutoCookie;
+import com.github.may2beez.farmhelperv2.feature.impl.AntiStuck;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.hud.DebugHUD;
 import com.github.may2beez.farmhelperv2.util.BlockUtils;
@@ -82,7 +82,7 @@ public class FarmHelperConfig extends Config {
         }
         Rewarp newRewarp = new Rewarp(BlockUtils.getRelativeBlockPos(0, 0, 0));
         rewarpList.add(newRewarp);
-        LogUtils.sendSuccess("Added rewarp: " + newRewarp.toString());
+        LogUtils.sendSuccess("Added rewarp: " + newRewarp);
         saveRewarpConfig();
     }
 
@@ -102,7 +102,7 @@ public class FarmHelperConfig extends Config {
         }
         if (closest != null) {
             rewarpList.remove(closest);
-            LogUtils.sendSuccess("Removed the closest rewarp: " + closest.toString());
+            LogUtils.sendSuccess("Removed the closest rewarp: " + closest);
             saveRewarpConfig();
         }
     }
@@ -1211,14 +1211,12 @@ public class FarmHelperConfig extends Config {
         this.hideIf("configVersion", () -> true);
 
         registerKeyBind(openGuiKeybind, this::openGui);
-        registerKeyBind(toggleMacro, () -> {
-            MacroHandler.getInstance().toggleMacro();
-        });
+        registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
 		registerKeyBind(debugKeybind, () -> {
-            if (AutoCookie.getInstance().isEnabled()) {
-                AutoCookie.getInstance().stop();
+            if (AntiStuck.getInstance().isEnabled()) {
+                AntiStuck.getInstance().stop();
             } else {
-                AutoCookie.getInstance().enable();
+                AntiStuck.getInstance().enable();
             }
 		});
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));

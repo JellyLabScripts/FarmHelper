@@ -1,6 +1,7 @@
 package com.github.may2beez.farmhelperv2.feature.impl;
 
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
@@ -101,6 +102,7 @@ public class Scheduler implements IFeature {
     public void onTick(TickEvent.ClientTickEvent event) {
         if (!FarmHelperConfig.enableScheduler || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || !MacroHandler.getInstance().getCurrentMacro().isPresent())
             return;
+        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
 
         if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().inJacobContest() && !schedulerClock.isPaused()) {
             schedulerClock.pause();

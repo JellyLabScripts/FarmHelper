@@ -2,6 +2,7 @@ package com.github.may2beez.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
@@ -143,6 +144,7 @@ public class AutoCookie implements IFeature {
     private final Clock timeoutClock = new Clock();
 
     public void enable() {
+        if (enabled) return;
         enabled = true;
         LogUtils.sendWarning("[Auto Cookie] Enabled!");
         autoCookieDelay.reset();
@@ -158,6 +160,7 @@ public class AutoCookie implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isActivated()) return;
         if (!MacroHandler.getInstance().isMacroing()) return;
+        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING) {
             timeoutClock.schedule(bazaarState != BazaarState.NONE ? 30_000 : 7_500);
             return;
