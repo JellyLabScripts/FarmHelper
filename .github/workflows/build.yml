@@ -41,24 +41,26 @@ jobs:
         with:
           name: mod-jar
           path: build/libs/*.jar
-      - name: release
-        uses: actions/create-release@v1
+      - name: Create release with files
+        uses: softprops/action-gh-release@v1
         id: create_release
         with:
           draft: false
           prerelease: ${{ steps.check-release-type.outputs.RELEASE_TYPE == 'pre-release' }}
-          release_name: ${{ steps.get_version.outputs.VERSION }}
+          name: FarmHelperV2 ${{ steps.get_version.outputs.VERSION }}
           tag_name: ${{ steps.get_version.outputs.VERSION }}.${{ steps.short_sha.outputs.sha_short }}
+          files: |
+            build/libs/*.jar
           body: |
             Changelog:
             ${{ github.event.head_commit.message }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
-      - name: upload artifacts
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/libs/*.jar
-          asset_content_type: application/java-archive
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+#      - name: upload artifacts
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          upload_url: ${{ steps.create_release.outputs.upload_url }}
+#          files: build/libs/*.jar
+#          asset_content_type: application/java-archive
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
