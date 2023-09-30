@@ -54,7 +54,6 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: build/libs/*.jar
-          asset_name: ${{ steps.version.outputs.version }}.jar
           asset_content_type: application/java-archive
         env:
           GITHUB_TOKEN: ${{ github.token }}
