@@ -6,17 +6,11 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v3
-      - name: Get Gradle version
+      - name: Get Gradle version and check if it's pre release
         run: |
           VERSION=$(grep -Po '^version = .*' gradle.properties | cut -d= -f2)
           echo "$VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-        id: get_version
-      - name: Get short commit sha
-        id: short_sha
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: Check if version is pre-release
-        run: |
           if [[ $VERSION == *-pre ]]
           then
             echo "Version is pre-release"
@@ -27,7 +21,10 @@ jobs:
           fi
           echo "Version is $VERSION and release type is $RELEASE_TYPE"
           echo "RELEASE_TYPE=$RELEASE_TYPE" >> $GITHUB_OUTPUT
-        id: check-release-type
+        id: get_version
+      - name: Get short commit sha
+        id: short_sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - uses: actions/setup-java@v3
         name: Setup Java
         with:
@@ -42,18 +39,18 @@ jobs:
         with:
           name: mod-jar
           path: build/libs/*.jar
-#      - name: Create release with files
-#        uses: softprops/action-gh-release@v1
-#        id: create_release
-#        with:
-#          draft: false
-#          prerelease: ${{ steps.check-release-type.outputs.RELEASE_TYPE == 'pre-release' }}
-#          name: FarmHelperV2 ${{ steps.get_version.outputs.VERSION }}
-#          tag_name: ${{ steps.get_version.outputs.VERSION }}.${{ steps.short_sha.outputs.sha_short }}
-#          files: |
-#            build/libs/*.jar
-#          body: |
-#            Changelog:
-#            ${{ github.event.head_commit.message }}
-#        env:
-#          GITHUB_TOKEN: ${{ github.token }}
+      - name: Create release with files
+        uses: softprops/action-gh-release@v1
+        id: create_release
+        with:
+          draft: false
+          prerelease: ${{ steps.get_version.outputs.RELEASE_TYPE == 'pre-release' }}
+          name: FarmHelperV2 ${{ steps.get_version.outputs.VERSION }}
+          tag_name: ${{ steps.get_version.outputs.VERSION }}.${{ steps.short_sha.outputs.sha_short }}
+          files: |
+            build/libs/*.jar
+          body: |
+            Changelog:
+            ${{ github.event.head_commit.message }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
