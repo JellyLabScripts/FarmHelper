@@ -6,13 +6,27 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v3
+      - name: Get Gradle version
+        run: |
+          VERSION=$(grep -Po '^version=.*' gradle.properties | cut -d= -f2)
+        id: get-version
+      - name: Check if version is pre-release
+        run: |
+          if [[ "$VERSION" =~ "-pre" ]]; then
+            echo "Version is pre-release"
+            RELEASE_TYPE="pre-release"
+          else
+            echo "Version is full release"
+            RELEASE_TYPE="full"
+          fi
+        id: check-release-type
       - uses: actions/setup-java@v3
         name: Setup Java
         with:
           distribution: temurin
           java-version: 17
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+      - uses: gradle/gradle-build-action@v2
+        name: Setup Gradle
       - name: Execute Gradle build
         run: ./gradlew build
       - uses: actions/upload-artifact@v3
@@ -20,3 +34,23 @@ jobs:
         with:
           name: mod-jar
           path: build/libs/*.jar
+      - name: release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: false
+          prerelease: ${{ steps.check-release-type.outputs.RELEASE_TYPE == 'pre-release' }}
+          release_name: ${{ steps.version.outputs.version }}
+          tag_name: ${{ github.ref }}
+          body_path: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: upload artifacts
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/libs/*.jar
+          asset_name: ${{ steps.version.outputs.version }}.jar
+          asset_content_type: application/java-archive
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
