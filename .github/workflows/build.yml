@@ -8,16 +8,16 @@ jobs:
         uses: actions/checkout@v3
       - name: Get Gradle version
         run: |
-          VERSION=$(grep -Po '^version=.*' gradle.properties | cut -d= -f2)
+          VERSION=$(grep -Po '^version=.*' gradle.properties | cut -d= -f2) >> $GITHUB_OUTPUT
         id: get_version
       - name: Check if version is pre-release
         run: |
           if [[ "$VERSION" =~ "-pre" ]]; then
             echo "Version is pre-release"
-            RELEASE_TYPE="pre-release"
+            RELEASE_TYPE="pre-release" >> $GITHUB_OUTPUT
           else
             echo "Version is full release"
-            RELEASE_TYPE="full"
+            RELEASE_TYPE="full" >> >> $GITHUB_OUTPUT
           fi
         id: check-release-type
       - uses: actions/setup-java@v3
