@@ -60,12 +60,13 @@ jobs:
       - name: Check for GH_TOKEN and DISCORD_WEBHOOK_URL
         id: check_secrets
         run: |
-            if [[ -z "${{ GITHUB_TOKEN }}" || -z "${{ secrets.DISCORD_WEBHOOK_URL }}" ]]; then
+          if [[ -z "${{ GITHUB_TOKEN }}" || -z "${{ secrets.DISCORD_WEBHOOK_URL }}" ]]
+          then
             echo "Secrets GITHUB_TOKEN or DISCORD_WEBHOOK_URL not provided, skipping tasks"
             echo "::set-output name=result::failure"
-            else
+          else
             echo "::set-output name=result::success"
-            fi
+          fi
         env:
             GITHUB_TOKEN: ${{ github.token }}
 
