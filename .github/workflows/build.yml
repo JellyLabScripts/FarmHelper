@@ -12,9 +12,12 @@ jobs:
           echo "$VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
         id: get_version
+      - name: Get short commit sha
+        id: short_sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: Check if version is pre-release
         run: |
-          if [[ "$VERSION" == *-pre ]]; then
+          if [[ "$VERSION" == *-pre* ]] then
             echo "Version is pre-release"
             RELEASE_TYPE="pre-release"
           else
@@ -44,7 +47,7 @@ jobs:
           draft: false
           prerelease: ${{ steps.check-release-type.outputs.RELEASE_TYPE == 'pre-release' }}
           release_name: ${{ steps.get_version.outputs.VERSION }}
-          tag_name: ${{ steps.get_version.outputs.VERSION }} - ${{ github.sha }}
+          tag_name: ${{ steps.get_version.outputs.VERSION }}.${{ steps.short_sha.outputs.sha_short }}
           body: |
             Changelog:
             ${{ github.event.head_commit.message }}
