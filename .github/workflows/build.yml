@@ -14,7 +14,7 @@ jobs:
         id: get_version
       - name: Check if version is pre-release
         run: |
-          if [[ "$VERSION" =~ "-pre" ]]; then
+          if [[ "$VERSION" == *-pre ]]; then
             echo "Version is pre-release"
             RELEASE_TYPE="pre-release"
           else
