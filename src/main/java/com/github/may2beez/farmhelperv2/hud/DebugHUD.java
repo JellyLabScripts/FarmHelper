@@ -45,7 +45,7 @@ public class DebugHUD extends TextHud {
             lines.add("   Movie Cookie State: " + AutoCookie.getInstance().getMoveCookieState());
             lines.add("   Bazaar State: " + AutoCookie.getInstance().getBazaarState());
             lines.add("   Clock: " + AutoCookie.getInstance().getAutoCookieDelay().getRemainingTime());
-            lines.add("   Timout clock: " + AutoCookie.getInstance().getTimeoutClock().getRemainingTime());
+            lines.add("   Timeout clock: " + AutoCookie.getInstance().getTimeoutClock().getRemainingTime());
         }
     }
 }

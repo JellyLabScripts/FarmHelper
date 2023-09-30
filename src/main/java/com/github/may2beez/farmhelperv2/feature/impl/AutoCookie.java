@@ -62,9 +62,9 @@ public class AutoCookie implements IFeature {
     @Override
     public void stop() {
         if (enabled)
-            LogUtils.sendWarning("Auto Cookie is now disabled!");
+            LogUtils.sendWarning("[Auto Cookie] Disabled!");
         enabled = false;
-        mainState = State.GET_COOKIE;
+        mainState = State.NONE;
         bazaarState = BazaarState.NONE;
         moveCookieState = MoveCookieState.SWAP_COOKIE_TO_HOTBAR_PICKUP;
         hotbarSlot = -1;
@@ -82,6 +82,7 @@ public class AutoCookie implements IFeature {
     }
 
     enum State {
+        NONE,
         GET_COOKIE,
         MOVE_COOKIE_TO_HOTBAR,
         SELECT_COOKIE,
@@ -90,7 +91,7 @@ public class AutoCookie implements IFeature {
         WAIT_FOR_CONSUME
     }
 
-    private State mainState = State.GET_COOKIE;
+    private State mainState = State.NONE;
 
     private void setMainState(State state) {
         mainState = state;
@@ -140,8 +141,9 @@ public class AutoCookie implements IFeature {
 
     public void enable() {
         enabled = true;
-        LogUtils.sendWarning("Auto Cookie is now enabled!");
+        LogUtils.sendWarning("[Auto Cookie] Enabled!");
         autoCookieDelay.reset();
+        setMainState(State.GET_COOKIE);
         timeoutClock.schedule(7_500);
     }
 
@@ -151,48 +153,52 @@ public class AutoCookie implements IFeature {
     public void onTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING) return;
-        if (!MacroHandler.getInstance().isMacroing()) return;
         if (!isActivated()) return;
-
-        if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.ACTIVE && mainState == State.GET_COOKIE || (dontEnableClock.isScheduled() && !dontEnableClock.passed())) {
+//        if (!MacroHandler.getInstance().isMacroing()) return;
+        if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING) {
+            timeoutClock.schedule(bazaarState != BazaarState.NONE ? 30_000 : 7_500);
             return;
         }
 
-        if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LOBBY && GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
-            if (!enabled && !activating && (!dontEnableClock.isScheduled() || dontEnableClock.passed())) {
-                LogUtils.sendWarning("Your Cookie Buff is not active! Activating Auto Cookie in 1.5 second!");
-                activating = true;
-                KeyBindUtils.stopMovement();
-                Multithreading.schedule(() -> {
-                    if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
-                        enable();
-                        activating = false;
-                    }
-                }, 1_500, TimeUnit.MILLISECONDS);
-                dontEnableClock.reset();
-            }
-            return;
-        }
+//        if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.ACTIVE && mainState == State.NONE || (dontEnableClock.isScheduled() && !dontEnableClock.passed())) {
+//            return;
+//        }
+
+//        if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LOBBY && GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
+//            if (!enabled && !activating && (!dontEnableClock.isScheduled() || dontEnableClock.passed())) {
+//                LogUtils.sendWarning("[Auto Cookie] Your Cookie Buff is not active! Activating Auto Cookie in 1.5 second!");
+//                activating = true;
+//                KeyBindUtils.stopMovement();
+//                Multithreading.schedule(() -> {
+//                    if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
+//                        enable();
+//                        activating = false;
+//                    }
+//                }, 1_500, TimeUnit.MILLISECONDS);
+//                dontEnableClock.reset();
+//            }
+//            return;
+//        }
 
         if (!enabled) return;
         if (autoCookieDelay.isScheduled() && !autoCookieDelay.passed()) return;
 
         switch (mainState) {
+            case NONE:
+                break;
             case GET_COOKIE:
-                if (InventoryUtils.hasItemInHotbar("Booster Cookie")) {
-                    setMainState(State.SELECT_COOKIE);
-                    autoCookieDelay.schedule(getRandomDelay());
-                    break;
-                }
-                if (InventoryUtils.hasItemInInventory("Booster Cookie")) {
-                    setMainState(State.MOVE_COOKIE_TO_HOTBAR);
-                    autoCookieDelay.schedule(getRandomDelay());
-                    break;
-                }
-
                 switch (bazaarState) {
                     case NONE:
+                        if (InventoryUtils.hasItemInHotbar("Booster Cookie")) {
+                            setMainState(State.SELECT_COOKIE);
+                            autoCookieDelay.schedule(getRandomDelay());
+                            break;
+                        }
+                        if (InventoryUtils.hasItemInInventory("Booster Cookie")) {
+                            setMainState(State.MOVE_COOKIE_TO_HOTBAR);
+                            autoCookieDelay.schedule(getRandomDelay());
+                            break;
+                        }
                         mc.thePlayer.sendChatMessage("/hub");
                         setBazaarState(BazaarState.GO_BAZAAR);
                         autoCookieDelay.schedule(3_000);
@@ -362,17 +368,23 @@ public class AutoCookie implements IFeature {
                         if (mc.currentScreen == null) {
                             mc.thePlayer.sendChatMessage("/warp garden");
                             setBazaarState(BazaarState.TELEPORT_TO_GARDEN);
+                            autoCookieDelay.schedule(3_000);
                             break;
                         }
                         mc.thePlayer.closeScreen();
                         autoCookieDelay.schedule(getRandomDelay());
                         break;
                     case TELEPORT_TO_GARDEN:
-                        if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.GARDEN) break;
+                        if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.GARDEN) {
+                            setBazaarState(BazaarState.CLOSE_GUI);
+                            autoCookieDelay.schedule(getRandomDelay());
+                            break;
+                        }
                         if (dontEnableClock.isScheduled()) {
-                            stop();
-                            dontEnableClock.schedule(30_000 * 60);
-                            Multithreading.schedule(this::stop, 3_000, TimeUnit.MILLISECONDS);
+                            Multithreading.schedule(() -> {
+                                this.stop();
+                                dontEnableClock.schedule(30_000 * 60);
+                            }, 3_000, TimeUnit.MILLISECONDS);
                             return;
                         } else if (InventoryUtils.hasItemInHotbar("Booster Cookie")) {
                             setMainState(State.SELECT_COOKIE);
@@ -529,9 +541,9 @@ public class AutoCookie implements IFeature {
 
         if (mainState == State.WAIT_FOR_CONSUME) {
             if (message.startsWith("You consumed a Booster Cookie!")) {
-                LogUtils.sendWarning("Successfully consumed a cookie!");
+                LogUtils.sendDebug("Successfully consumed a cookie!");
                 if (this.hotbarSlot == -1) {
-                    setMainState(State.GET_COOKIE);
+                    setMainState(State.NONE);
                 } else {
                     setMainState(State.MOVE_COOKIE_TO_HOTBAR);
                     setMoveCookieState(MoveCookieState.PUT_ITEM_BACK_PICKUP);
