@@ -10,6 +10,8 @@ jobs:
         run: |
           VERSION=$(grep -Po '^version = .*' gradle.properties | cut -d= -f2)
           VERSION=${VERSION#[[:space:]]}
+          SHOULD_RELEASE=$(grep -Po '^shouldRelease = .*' gradle.properties | cut -d= -f2)
+          SHOULD_RELEASE=${SHOULD_RELEASE#[[:space:]]}
           echo "$VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           if [[ $VERSION == *-pre ]]
@@ -22,6 +24,7 @@ jobs:
           fi
           echo "Version is $VERSION and release type is $RELEASE_TYPE"
           echo "RELEASE_TYPE=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+          echo "shouldRelease=$SHOULD_RELEASE" >> $GITHUB_OUTPUT
         id: get_version
       - name: Get short commit sha
         id: short_sha
@@ -43,6 +46,7 @@ jobs:
       - name: Create release with files
         uses: softprops/action-gh-release@v1
         id: create_release
+        if: steps.get_version.outputs.shouldRelease == 'true'
         with:
           draft: false
           prerelease: ${{ steps.get_version.outputs.RELEASE_TYPE == 'pre-release' }}
@@ -57,15 +61,15 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       # Step 5: Check for required secret variables
-      - name: Check for GH_TOKEN and DISCORD_WEBHOOK_URL
+      - name: Check for DISCORD_WEBHOOK_URL
         id: check_secrets
         run: |
           if [[ -z "${{ secrets.DISCORD_WEBHOOK_URL }}" ]]
           then
             echo "Secret DISCORD_WEBHOOK_URL not provided, skipping tasks"
-            echo "::set-output name=result::failure"
+            echo "result=failure" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=result::success"
+            echo "result=success" >> $GITHUB_OUTPUT
           fi
 
       # Step 6: Send an embed message with commit details to Discord
