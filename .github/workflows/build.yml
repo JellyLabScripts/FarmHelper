@@ -9,6 +9,7 @@ jobs:
       - name: Get Gradle version and check if it's pre release
         run: |
           VERSION=$(grep -Po '^version = .*' gradle.properties | cut -d= -f2)
+          VERSION=${VERSION#[[:space:]]}
           echo "$VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           if [[ $VERSION == *-pre ]]
