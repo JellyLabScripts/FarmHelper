@@ -1,5 +1,5 @@
 name: Run Gradle Build
-on: [push, pull_request]
+on: [ push, pull_request ]
 jobs:
   gradle:
     runs-on: ubuntu-latest
@@ -55,3 +55,64 @@ jobs:
             ${{ github.event.head_commit.message }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      # Step 5: Check for required secret variables
+      - name: Check for GH_TOKEN and DISCORD_WEBHOOK_URL
+        id: check_secrets
+        run: |
+            if [[ -z "${{ GITHUB_TOKEN }}" || -z "${{ secrets.DISCORD_WEBHOOK_URL }}" ]]; then
+            echo "Secrets GITHUB_TOKEN or DISCORD_WEBHOOK_URL not provided, skipping tasks"
+            echo "::set-output name=result::failure"
+            else
+            echo "::set-output name=result::success"
+            fi
+        env:
+            GITHUB_TOKEN: ${{ github.token }}
+
+      # Step 6: Send an embed message with commit details to Discord
+      - name: Send embed message with timestamp and footer
+        if: steps.check_secrets.outputs.result == 'success'
+        run: |
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
+          LONG_DATE=$(date -u +"%A, %B %-d, %Y at %T")
+          COMMIT_MESSAGE="${{ github.event.head_commit.message }}"
+          COMMIT_URL="${{ github.event.head_commit.url
+          SHORT_COMMIT_SHA="${{ steps.short_sha.outputs.sha_short }}"
+          curl -X POST -H "Content-Type: application/json" \
+            -d "{
+                  \"embeds\": [
+                    {
+                      \"title\": \"FarmHelper Update\",
+                      \"description\": \"FarmHelper has been updated with the following changes:\",
+                      \"color\": 3447003,
+                      \"thumbnail\": {
+                        \"url\": \"https://cdn.discordapp.com/attachments/861700235890130986/1144673641951395982/icon.png\"
+                      },
+                      \"fields\": [
+                        {
+                          \"name\": \"Latest Commit\",
+                          \"value\": \"**${COMMIT_MESSAGE}**\"
+                        },
+                        {
+                          \"name\": \"Commit ID\",
+                          \"value\": \"[View Commit (${SHORT_COMMIT_SHA})](${COMMIT_URL})\\n_To learn more about the changes, click on the link!_\"
+                        }
+                      ],
+                      \"footer\": {
+                        \"text\": \"Updated: ${LONG_DATE}\"
+                      }
+                    }
+                  ]
+                }" \
+            ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      # Step 7: Send built JAR files to Discord webhook
+      - name: Send build artifacts to Discord webhook
+        if: steps.check_secrets.outputs.result == 'success'
+        run: |
+          cd build/libs
+          for file in *.jar; do
+            curl -X POST -H "Content-Type: multipart/form-data" \
+              -F "file=@$file" \
+              ${{ secrets.DISCORD_WEBHOOK_URL }}
+          done
