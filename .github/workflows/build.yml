@@ -19,6 +19,7 @@ jobs:
             echo "Version is full release"
             RELEASE_TYPE="full"
           fi
+          VERSION=$(echo $VERSION)
         id: check-release-type
       - uses: actions/setup-java@v3
         name: Setup Java
@@ -40,8 +41,8 @@ jobs:
         with:
           draft: false
           prerelease: ${{ steps.check-release-type.outputs.RELEASE_TYPE == 'pre-release' }}
-          release_name: ${{ steps.version.outputs.version }}
-          tag_name: ${{ steps.version.outputs.version }} - ${{ github.sha }}
+          release_name: ${{ steps.version.outputs.VERSION }}
+          tag_name: ${{ steps.version.outputs.VERSION }} - ${{ github.sha }}
           body: |
             Changelog:
             ${{ github.event.head_commit.message }}
