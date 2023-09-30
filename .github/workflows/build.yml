@@ -44,7 +44,7 @@ jobs:
           draft: false
           prerelease: ${{ steps.check-release-type.outputs.RELEASE_TYPE == 'pre-release' }}
           release_name: ${{ steps.get_version.outputs.VERSION }}
-          tag_name: ${{ steps.get_version.outputs.VERSION }} - ${{ github.event.after }}
+          tag_name: ${{ steps.get_version.outputs.VERSION }} - ${{ github.sha }}
           body: |
             Changelog:
             ${{ github.event.head_commit.message }}
