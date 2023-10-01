@@ -75,7 +75,7 @@ public class AutoSellNew {
         if (mc.thePlayer.openContainer instanceof ContainerChest)
             mc.thePlayer.closeScreen();
         UngrabUtils.regrabMouse();
-        if (!isTriggeredManually) {
+        if (!isTriggeredManually && !VisitorsMacro.isEnabled()) {
             MacroHandler.enableCurrentMacro();
         }
         isTriggeredManually = false;
