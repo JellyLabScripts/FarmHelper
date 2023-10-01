@@ -43,7 +43,7 @@ public class WebsocketHandler {
                 new SetSpeedCommand(),
                 new ToggleCommand()
         ));
-        System.out.println("Registered " + commands.size() + " commands");
+        LogUtils.sendDebug("Registered " + commands.size() + " commands");
     }
 
     public static boolean isServerAlive() {
@@ -53,11 +53,11 @@ public class WebsocketHandler {
             JsonObject data = new JsonObject();
             data.addProperty("name", Minecraft.getMinecraft().getSession().getUsername());
             websocketClient.addHeader("auth", FarmHelper.gson.toJson(data));
-            System.out.println("Connecting to websocket server..");
+            LogUtils.sendDebug("Connecting to websocket server..");
             return websocketClient.connectBlocking();
         } catch (URISyntaxException | InterruptedException e) {
             websocketClient = null;
-            System.out.println("Failed to connect to websocket server..");
+            LogUtils.sendDebug("Failed to connect to websocket server..");
             return false;
         }
     }
@@ -113,11 +113,11 @@ public class WebsocketHandler {
                         JsonObject data = new JsonObject();
                         data.addProperty("name", mc.getSession().getUsername());
                         websocketClient.addHeader("auth", FarmHelper.gson.toJson(data));
-                        System.out.println("Connecting to websocket server..");
+                        LogUtils.sendDebug("Connecting to websocket server..");
                         websocketClient.connectBlocking();
                         Notifications.INSTANCE.send("Farm Helper", "Connected to websocket server as a client!");
                     } catch (URISyntaxException | InterruptedException e) {
-                        System.out.println("Failed to connect to websocket server..");
+                        LogUtils.sendDebug("Failed to connect to websocket server..");
                         e.printStackTrace();
                     }
                 } else if (!websocketClient.isOpen() && websocketClient.getReadyState() != ReadyState.NOT_YET_CONNECTED) {

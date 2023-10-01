@@ -6,7 +6,7 @@ import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.*;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.structs.Rewarp;
-import com.jelly.farmhelper.features.Autosell;
+import com.jelly.farmhelper.features.AutoSellNew;
 import com.jelly.farmhelper.features.VisitorsMacro;
 import com.jelly.farmhelper.hud.DebugHUD;
 import com.jelly.farmhelper.hud.ProfitCalculatorHUD;
@@ -16,6 +16,7 @@ import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.SoundCategory;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
@@ -287,11 +288,18 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			description = "Enables auto sell"
 	)
 	public boolean enableAutoSell = false;
-	@Switch(
-			name = "Sell To NPC", category = MISCELLANEOUS, subcategory = "Auto Sell",
-			description = "Automatically sells crops to NPC or Bazaar"
+	@DualOption(
+			name = "Market type", category = MISCELLANEOUS, subcategory = "Auto Sell",
+			description = "The market type to sell crops to",
+			left = "BZ",
+			right = "NPC"
 	)
-	public boolean sellToNPC = false;
+	public boolean autoSellMarketType = false;
+	@Switch(
+			name = "Sell Items In Sacks", category = MISCELLANEOUS, subcategory = "Auto Sell",
+			description = "Sells items in your sacks and inventory"
+	)
+	public boolean autoSellSacks = false;
 	@Number(
 			name = "Inventory Full Time", category = MISCELLANEOUS, subcategory = "Auto Sell",
 			description = "The time to wait for inventory to be full (in seconds)",
@@ -303,16 +311,21 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			description = "The ratio to wait for inventory to be full (in percentage)",
 			min = 1, max = 100
 	)
-	public int inventoryFullRatio = 65;
+	public int inventoryFullRatio = 80;
 	@Button(
 			name = "Sell Inventory Now", category = MISCELLANEOUS, subcategory = "Auto Sell",
 			description = "Sells crops in your inventory",
 			text = "Sell Inventory Now"
 	)
 	Runnable autoSellFunction = () -> {
-		mc.thePlayer.closeScreen();
-		Autosell.enable();
+		AutoSellNew.isTriggeredManually = true;
+		AutoSellNew.enableMacro((autoSellMarketType ? AutoSellNew.marketType.NPC : AutoSellNew.marketType.BZ), this.autoSellSacks);
 	};
+	@Page(
+			name = "Customize items sold to NPC", category = MISCELLANEOUS, subcategory = "Auto Sell", location = PageLocation.BOTTOM,
+			description = "Click here to customize items that are sold to NPC automatically"
+	)
+	public AutoSellNPCItemsPage autoSellNPCItemsPage = new AutoSellNPCItemsPage();
 
 	@Switch(
 			name = "Swap pet during Jacob's contest", category = MISCELLANEOUS, subcategory = "Pet Swapper",
@@ -458,6 +471,14 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			}
 	)
 	public int failsafeSoundSelected = 1;
+	@Info(
+			text = "Your Minecraft volume is set to 0% which means you won't hear the failsafe sound! Use Mute The Game feature instead.",
+			type = InfoType.ERROR,
+			category = FAILSAFE,
+			subcategory = "Failsafe Trigger Sound",
+			size = 2
+	)
+	public static boolean minecraftVolumeError;
 	@Info(
 			text = "If you want to use your own WAV file, rename it to 'farmhelper_sound.wav' and put it in your Minecraft directory.",
 			type = InfoType.WARNING,
@@ -1026,13 +1047,26 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			description = "The time it takes to rotate the player and look at the visitor (in seconds)",
 			min = 0.2f, max = 4f
 	)
-	public float visitorsRotationTime = 0.4f;
+	public float visitorsMacroRotationTime = 0.4f;
 	@Slider(
 			name = "Visitors Rotation Random Time", category = DELAYS, subcategory = "Delays",
 			description = "The maximum random time added to the delay time it takes to rotate the player and look at the visitor (in seconds)",
 			min = 0.2f, max = 2f
 	)
-	public float visitorsRotationTimeRandomness = 0.2f;
+	public float visitorsMacroRotationTimeRandomness = 0.2f;
+
+	@Slider(
+			name = "Auto Sell GUI Delay", category = DELAYS, subcategory = "Delays",
+			description = "The delay between clicking GUI when selling an item (in seconds)",
+			min = 0.15f, max = 2f
+	)
+	public float autoSellGuiDelay = 0.35f;
+	@Slider(
+			name = "Auto Sell GUI Delay Random Time", category = DELAYS, subcategory = "Delays",
+			description = "The maximum random time added to the delay time between clicking GUI when selling an item (in seconds)",
+			min = 0.15f, max = 2f
+	)
+	public float autoSellGuiDelayRandomness = 0.35f;
 
 	// END DELAYS
 
@@ -1051,11 +1085,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 	// START DEBUG
 
-	@KeyBind(
-			name = "Debug Keybind", category = DEBUG
-	)
-	public OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_H);
-
+//	@KeyBind(
+//			name = "Debug Keybind", category = DEBUG
+//	)
+//	public OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_H);
+//
 //	@KeyBind(
 //			name = "Debug Keybind 2", category = DEBUG
 //	)
@@ -1164,9 +1198,11 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 
 		this.addDependency("holdLeftClickWhenChangingRow", "macroType");
 
-		this.addDependency("sellToNPC", "enableAutoSell");
+		this.addDependency("autoSellMarketType", "enableAutoSell");
+		this.addDependency("autoSellSacks", "enableAutoSell");
 		this.addDependency("inventoryFullTime", "enableAutoSell");
 		this.addDependency("inventoryFullRatio", "enableAutoSell");
+		this.addDependency("autoSellFunction", "enableAutoSell");
 
 		this.addDependency("petSwapperDelay", "enablePetSwapper");
 		this.addDependency("petSwapperName", "enablePetSwapper");
@@ -1178,6 +1214,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("failsafeMcSoundSelected", "Minecraft Sound", () -> !this.failsafeSoundType && this.enableFailsafeSound);
 		this.addDependency("failsafeSoundSelected", "Custom Sound", () -> this.failsafeSoundType && this.enableFailsafeSound);
 		this.addDependency("failsafeSoundVolume", "Custom Sound", () -> this.failsafeSoundType && this.enableFailsafeSound);
+		this.hideIf("minecraftVolumeError", () -> !this.enableFailsafeSound || (mc.gameSettings.getSoundLevel(SoundCategory.MASTER) != 0));
 		this.hideIf("customFailsafeSoundWarning", () -> !this.failsafeSoundType || !this.enableFailsafeSound || this.failsafeSoundSelected != 0);
 		this.addDependency("leaveAfterFailSafe", "enableRestartAfterFailSafe");
 		this.addDependency("restartAfterFailSafeDelay", "enableRestartAfterFailSafe");
@@ -1230,7 +1267,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("webHookURL", "enableWebHook");
 		this.addDependency("_applyWebhook", "enableWebHook");
 		this.addDependency("enableRemoteControl", "Enable Remote Control", () -> Loader.isModLoaded("farmhelperjdadependency"));
-		this.addDependency("discordRemoteControlToken", "enableRemoteControl");
+//		this.addDependency("discordRemoteControlToken", "enableRemoteControl");
 		this.hideIf("infoRemoteControl", () -> Loader.isModLoaded("farmhelperjdadependency"));
 
 		this.addDependency("setSpawnBeforeEvacuate", "enableAutoSetSpawn");
@@ -1253,11 +1290,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			MacroHandler.toggleMacro();
 		});
 //		registerKeyBind(debugKeybind, () -> {
-//			if (MacroHandler.currentMacro != null) {
-//				MacroHandler.currentMacro.unstuck(false);
-//			}
+//			AutoSellNew.enableMacro(AutoSellNew.marketType.BZ, true);
 //		});
-//		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
+//		registerKeyBind(debugKeybind2, AutoSellNew::stopMacro);
 		save();
 	}
 }

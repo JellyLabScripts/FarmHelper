@@ -1,6 +1,7 @@
 package com.jelly.farmhelper.remote.waiter;
 
 import com.jelly.farmhelper.remote.struct.RemoteMessage;
+import com.jelly.farmhelper.utils.LogUtils;
 import net.minecraft.util.Tuple;
 
 import java.util.HashMap;
@@ -38,7 +39,7 @@ public class WaiterHandler {
 
     public static void onMessage(RemoteMessage websocketMessage) {
         String command = websocketMessage.command;
-        System.out.println("Received message: " + command);
+        LogUtils.sendDebug("Received message: " + command);
         Set<Waiter> waiters = waiterMap.keySet();
         for (Waiter waiter : waiters) {
             if (waiter.getCommand().equalsIgnoreCase(command)) {
@@ -47,6 +48,6 @@ public class WaiterHandler {
                 return;
             }
         }
-        System.out.println("No waiter found for command: " + command);
+        LogUtils.sendDebug("No waiter found for command: " + command);
     }
 }
