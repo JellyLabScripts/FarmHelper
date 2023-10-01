@@ -1,5 +1,6 @@
 package com.jelly.farmhelper.mixins.gui;
 
+import com.jelly.farmhelper.utils.LogUtils;
 import com.jelly.farmhelper.utils.Utils;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiEditSign;
@@ -30,14 +31,14 @@ public abstract class MixinGuiEditSign extends GuiScreen {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (Utils.signText.isEmpty()) return;
 
-        System.out.println("Sign text: " + Utils.signText);
+        LogUtils.sendDebug("Sign text: " + Utils.signText);
         tileSign.signText[0] = new ChatComponentText(Utils.signText);
 
         NetHandlerPlayClient netHandlerPlayClient = mc.getNetHandler();
         if (netHandlerPlayClient != null) {
             netHandlerPlayClient.addToSendQueue(new C12PacketUpdateSign(tileSign.getPos(), tileSign.signText));
             Utils.signText = "";
-            System.out.println("Sign text set to empty");
+            LogUtils.sendDebug("Sign text set to empty");
         }
     }
 }

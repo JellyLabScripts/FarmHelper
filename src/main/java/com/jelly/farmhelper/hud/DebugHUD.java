@@ -50,6 +50,15 @@ public class DebugHUD extends TextHud {
             lines.add("desync: " + Desync.isDesync());
             if (MacroHandler.currentMacro != null)
                 lines.add("isStuck: " + Antistuck.stuck);
+            lines.add("AutoSellNew.isEnabled(): " + AutoSellNew.isEnabled());
+            lines.add("selectedMarketType: " + AutoSellNew.selectedMarketType);
+            lines.add("currentStateNPC: " + AutoSellNew.currentStateNPC);
+            lines.add("currentStateBZ: " + AutoSellNew.currentStateBZ);
+            lines.add("currentStateSacks: " + AutoSellNew.currentStateSacks);
+            lines.add("delayClock: " + AutoSellNew.delayClock.getRemainingTime());
+            lines.add("shouldSellSacks: " + AutoSellNew.shouldSellSacks);
+            lines.add("isPickingSackNow: " + AutoSellNew.isPickingSackNow);
+            lines.add("isSackEmpty: " + AutoSellNew.isSackEmpty);
         }
     }
 }
