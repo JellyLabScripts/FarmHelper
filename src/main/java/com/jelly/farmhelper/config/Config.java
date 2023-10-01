@@ -16,6 +16,7 @@ import com.jelly.farmhelper.network.DiscordWebhook;
 import com.jelly.farmhelper.utils.*;
 import com.jelly.farmhelper.world.GameState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.SoundCategory;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
@@ -470,6 +471,14 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			}
 	)
 	public int failsafeSoundSelected = 1;
+	@Info(
+			text = "Your Minecraft volume is set to 0% which means you won't hear the failsafe sound! Use Mute The Game feature instead.",
+			type = InfoType.ERROR,
+			category = FAILSAFE,
+			subcategory = "Failsafe Trigger Sound",
+			size = 2
+	)
+	public static boolean minecraftVolumeError;
 	@Info(
 			text = "If you want to use your own WAV file, rename it to 'farmhelper_sound.wav' and put it in your Minecraft directory.",
 			type = InfoType.WARNING,
@@ -1205,6 +1214,7 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.addDependency("failsafeMcSoundSelected", "Minecraft Sound", () -> !this.failsafeSoundType && this.enableFailsafeSound);
 		this.addDependency("failsafeSoundSelected", "Custom Sound", () -> this.failsafeSoundType && this.enableFailsafeSound);
 		this.addDependency("failsafeSoundVolume", "Custom Sound", () -> this.failsafeSoundType && this.enableFailsafeSound);
+		this.hideIf("minecraftVolumeError", () -> !this.enableFailsafeSound || (mc.gameSettings.getSoundLevel(SoundCategory.MASTER) != 0));
 		this.hideIf("customFailsafeSoundWarning", () -> !this.failsafeSoundType || !this.enableFailsafeSound || this.failsafeSoundSelected != 0);
 		this.addDependency("leaveAfterFailSafe", "enableRestartAfterFailSafe");
 		this.addDependency("restartAfterFailSafeDelay", "enableRestartAfterFailSafe");
