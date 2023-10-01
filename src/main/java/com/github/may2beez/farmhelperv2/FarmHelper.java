@@ -5,9 +5,7 @@ import com.github.may2beez.farmhelperv2.command.FarmHelperCommand;
 import com.github.may2beez.farmhelperv2.command.RewarpCommand;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
-import com.github.may2beez.farmhelperv2.feature.impl.AntiStuck;
-import com.github.may2beez.farmhelperv2.feature.impl.AutoCookie;
-import com.github.may2beez.farmhelperv2.feature.impl.Scheduler;
+import com.github.may2beez.farmhelperv2.feature.impl.*;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
@@ -62,6 +60,8 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(Scheduler.getInstance());
         MinecraftForge.EVENT_BUS.register(AutoCookie.getInstance());
         MinecraftForge.EVENT_BUS.register(AntiStuck.getInstance());
+        MinecraftForge.EVENT_BUS.register(LagDetector.getInstance());
+        MinecraftForge.EVENT_BUS.register(DesyncChecker.getInstance());
     }
 
     private void initializeFields() {

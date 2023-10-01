@@ -381,10 +381,18 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean autoAltTab = true;
     @Switch(
-            name = "Check Desync", category = FAILSAFE, subcategory = "Miscellaneous",
+            name = "Check Desync", category = FAILSAFE, subcategory = "Desync",
             description = "If client desynchronization is detected, it activates a failsafe. Turn this off if the network is weak or if it happens frequently."
     )
     public static boolean checkDesync = true;
+
+    @Slider(
+            name = "Pause for X milliseconds after desync triggered", category = FAILSAFE, subcategory = "Desync",
+            description = "The delay to pause after desync triggered (in milliseconds)",
+            min = 3_000, max = 10_000
+    )
+    public static int desyncPauseDelay = 5_000;
+
     @Switch(
             name = "Auto TP On World Change", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Automatically warps back to garden on server reboot, server update, etc"

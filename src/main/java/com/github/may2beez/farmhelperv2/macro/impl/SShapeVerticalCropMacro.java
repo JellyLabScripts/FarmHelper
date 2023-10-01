@@ -50,14 +50,14 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                     changeState(State.SWITCHING_LANE);
                     changeLaneDirection = ChangeLaneDirection.BACKWARD;
                 } else {
-                    LogUtils.sendDebug("This shouldn't happen, but it did...");
-                    LogUtils.sendDebug("Can't go forward or backward!");
                     if (GameStateHandler.getInstance().isLeftWalkable()) {
                         changeState(State.LEFT);
                     } else if (GameStateHandler.getInstance().isRightWalkable()) {
                         changeState(State.RIGHT);
                     } else {
                         changeState(State.NONE);
+                        LogUtils.sendDebug("This shouldn't happen, but it did...");
+                        LogUtils.sendDebug("Can't go forward or backward!");
                     }
                 }
                 break;

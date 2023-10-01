@@ -3,9 +3,7 @@ package com.github.may2beez.farmhelperv2.hud;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
-import com.github.may2beez.farmhelperv2.feature.impl.AntiStuck;
-import com.github.may2beez.farmhelperv2.feature.impl.AutoCookie;
-import com.github.may2beez.farmhelperv2.feature.impl.Scheduler;
+import com.github.may2beez.farmhelperv2.feature.impl.*;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
@@ -54,6 +52,15 @@ public class DebugHUD extends TextHud {
             lines.add("   Delay between change state: " + AntiStuck.getInstance().getDelayBetweenMovementsClock().getRemainingTime());
             lines.add("   Attempts: " + AntiStuck.getInstance().getUnstuckAttempts());
             lines.add("   Unstuck Attempts reset in: " + AntiStuck.getInstance().getUnstuckAttemptsClock().getRemainingTime());
+        }
+        if (LagDetector.getInstance().isLagging()) {
+            lines.add("LagDetector");
+            lines.add("   Lagging for: " + LagDetector.getInstance().getLaggingTime());
+        }
+        if (DesyncChecker.getInstance().isActivated()) {
+            lines.add("DesyncChecker");
+            lines.add("   Clicked blocks: " + DesyncChecker.getInstance().getClickedBlocks().size());
+            lines.add("   Desync: " + DesyncChecker.getInstance().isEnabled());
         }
      }
 }

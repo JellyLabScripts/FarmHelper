@@ -9,10 +9,13 @@
     "block.MixinBlockCrops",
     "block.MixinBlockMushroom",
     "block.MixinBlockNetherWart",
-    "fml.MixinFMLHandshakeMessage"
+    "client.MixinChunk",
+    "fml.MixinFMLHandshakeMessage",
+    "network.MixinNetworkManager"
   ],
   "client": [
     "block.MixinBlockRendererDispatcher",
+    "client.MixinPlayerControllerMP",
     "gui.IGuiPlayerTabOverlayAccessor",
     "render.MixinEffectRenderer"
   ]
