@@ -42,6 +42,7 @@ public abstract class Macro<T> {
             isTping = false;
             lastTp.reset();
             rotated = false;
+            layerY = mc.thePlayer.getPosition().getY();
             FarmHelper.gameState.scheduleNotMoving(750);
             Antistuck.stuck = false;
             Antistuck.notMovingTimer.schedule();

@@ -407,7 +407,7 @@ public class VisitorsMacro {
                     }
                 }
 
-                if (distanceToEdge <= 3 || (distanceToEdge > previousDistanceToCheck && distanceToEdge < 6)) {
+                if (distanceToEdge <= 4.5 || (distanceToEdge > previousDistanceToCheck && distanceToEdge < 6)) {
                     KeyBindUtils.stopMovement();
                     if (goingToCenterFirst) {
                         currentState = State.ROTATE_TO_DESK;
@@ -850,6 +850,7 @@ public class VisitorsMacro {
                                     currentBuyState = BuyState.OPEN_BZ;
                                     boughtAllItems = false;
                                     mc.thePlayer.closeScreen();
+                                    delayClock.schedule(getRandomGuiDelay());
                                     break;
                                 }
                             }
