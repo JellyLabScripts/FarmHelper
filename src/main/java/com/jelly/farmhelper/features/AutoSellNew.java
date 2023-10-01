@@ -47,8 +47,10 @@ public class AutoSellNew {
     public enum StateBZ {
         NONE,
         OPEN_MENU,
-        SELL,
-        SELL_CONFIRM,
+        SELL_INV,
+        SELL_INV_CONFIRM,
+        SELL_SACKS,
+        SELL_SACKS_CONFIRM,
         CLOSE_MENU
     }
     public enum StateSacks {
@@ -104,10 +106,10 @@ public class AutoSellNew {
             Scheduler.pause();
         PlayerUtils.closeGuiAndUngrabMouse();
 
-        if (shouldSellSacks && isPickingSackNow && !isSackEmpty)
-            currentStateSacks = StateSacks.OPEN_MENU;
-        else if (selectedMarketType == marketType.BZ)
+        if (selectedMarketType == marketType.BZ)
             currentStateBZ = StateBZ.OPEN_MENU;
+        else if (shouldSellSacks && isPickingSackNow && !isSackEmpty)
+            currentStateSacks = StateSacks.OPEN_MENU;
         else if (selectedMarketType == marketType.NPC)
             currentStateNPC = StateNPC.OPEN_MENU;
 
@@ -189,49 +191,78 @@ public class AutoSellNew {
                 if (mc.thePlayer.openContainer instanceof ContainerChest) break;
                 LogUtils.sendDebug("[AutoSell] Opening Bazaar menu");
                 mc.thePlayer.sendChatMessage("/bz");
-                currentStateBZ = StateBZ.SELL;
+                currentStateBZ = StateBZ.SELL_INV;
                 delayClock.schedule(getRandomGuiDelay());
                 break;
-            case SELL:
+            case SELL_INV:
                 if (PlayerUtils.getInventoryName() == null || !PlayerUtils.getInventoryName().contains("Bazaar")) break;
                 int sellSlot = PlayerUtils.getSlotFromGui("Sell Inventory Now");
+                isSackEmpty = (PlayerUtils.getSlotFromGui("Sell Sacks Now") == -1);
                 if (sellSlot == -1) break;
                 String sellItemsLore = PlayerUtils.getLoreFromGuiByItemName("Sell Inventory Now");
                 if (sellItemsLore == null) break;
                 if (sellItemsLore.contains("You don't have anything")) {
-                    LogUtils.sendError("[AutoSell] You don't have anything to sell, stopping...");
-                    stopMacro();
+                    if (shouldSellSacks && PlayerUtils.getSlotFromGui("Sell Sacks Now") != -1) {
+                        LogUtils.sendWarning("[AutoSell] You don't have anything to sell, selling sacks...");
+                        currentStateBZ = StateBZ.SELL_SACKS;
+                    }
+                    else {
+                        LogUtils.sendError("[AutoSell] You don't have anything to sell, stopping...");
+                        stopMacro();
+                    }
                     delayClock.schedule(getRandomGuiDelay());
                 } else {
                     LogUtils.sendDebug("[AutoSell] Detected Bazaar menu, selling item");
                     PlayerUtils.clickOpenContainerSlot(sellSlot);
-                    currentStateBZ = StateBZ.SELL_CONFIRM;
+                    currentStateBZ = StateBZ.SELL_INV_CONFIRM;
                     delayClock.schedule(getRandomGuiDelay());
                 }
                 break;
-            case SELL_CONFIRM:
+            case SELL_INV_CONFIRM:
                 if (PlayerUtils.getInventoryName() == null || !PlayerUtils.getInventoryName().contains("Are you sure?")) break;
                 int sellConfirmSlot = PlayerUtils.getSlotFromGui("Selling whole inventory");
                 if (sellConfirmSlot == -1) break;
                 LogUtils.sendDebug("[AutoSell] Detected Sell Confirmation menu, selling item");
                 PlayerUtils.clickOpenContainerSlot(sellConfirmSlot);
+                if (shouldSellSacks && !isSackEmpty)
+                    currentStateBZ = StateBZ.SELL_SACKS;
+                else
+                    currentStateBZ = StateBZ.CLOSE_MENU;
+                delayClock.schedule(getRandomGuiDelay());
+                break;
+            case SELL_SACKS:
+                if (PlayerUtils.getInventoryName() == null || !PlayerUtils.getInventoryName().contains("Bazaar")) break;
+                int sellSacksSlot = PlayerUtils.getSlotFromGui("Sell Sacks Now");
+                if (sellSacksSlot == -1) break;
+                String sellSacksLore = PlayerUtils.getLoreFromGuiByItemName("Sell Sacks Now");
+                if (sellSacksLore == null) break;
+                if (sellSacksLore.contains("You don't have anything")) {
+                    LogUtils.sendError("[AutoSell] You don't have anything to sell, stopping...");
+                    stopMacro();
+                    delayClock.schedule(getRandomGuiDelay());
+                } else {
+                    LogUtils.sendDebug("[AutoSell] Detected Bazaar menu, selling item");
+                    PlayerUtils.clickOpenContainerSlot(sellSacksSlot);
+                    currentStateBZ = StateBZ.SELL_SACKS_CONFIRM;
+                    delayClock.schedule(getRandomGuiDelay());
+                }
+                break;
+            case SELL_SACKS_CONFIRM:
+                if (PlayerUtils.getInventoryName() == null || !PlayerUtils.getInventoryName().contains("Are you sure?")) break;
+                int sellSacksConfirmSlot = PlayerUtils.getSlotFromGui("Selling whole inventory");
+                if (sellSacksConfirmSlot == -1) break;
+                LogUtils.sendDebug("[AutoSell] Detected Sell Confirmation menu, selling item");
+                PlayerUtils.clickOpenContainerSlot(sellSacksConfirmSlot);
                 currentStateBZ = StateBZ.CLOSE_MENU;
                 delayClock.schedule(getRandomGuiDelay());
                 break;
             case CLOSE_MENU:
                 LogUtils.sendDebug("[AutoSell] Closing Bazaar menu");
-                if (shouldSellSacks) {
-                    isPickingSackNow = true;
-                    PlayerUtils.closeGuiAndUngrabMouse();
-                    currentStateBZ = StateBZ.NONE;
-                    delayClock.schedule(getRandomGuiDelay());
-                } else {
-                    if (isSackEmpty)
-                        LogUtils.sendDebug("[AutoSell] Sack is empty, stopping...");
-                    else
-                        LogUtils.sendDebug("[AutoSell] Stopping...");
-                    stopMacro();
-                }
+                if (isSackEmpty)
+                    LogUtils.sendDebug("[AutoSell] Sack is empty, stopping...");
+                else
+                    LogUtils.sendDebug("[AutoSell] Stopping...");
+                stopMacro();
                 break;
         }
     }
