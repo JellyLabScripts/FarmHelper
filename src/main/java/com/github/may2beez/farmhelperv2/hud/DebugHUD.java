@@ -33,11 +33,6 @@ public class DebugHUD extends TextHud {
         lines.add("Buffs");
         lines.add("   Cookie: " + GameStateHandler.getInstance().getCookieBuffState());
         lines.add("   God Pot: " + GameStateHandler.getInstance().getGodPotState());
-        lines.add("Walkables:");
-        lines.add("   Front: " + GameStateHandler.getInstance().isFrontWalkable());
-        lines.add("   Back: " + GameStateHandler.getInstance().isBackWalkable());
-        lines.add("   Left: " + GameStateHandler.getInstance().isLeftWalkable());
-        lines.add("   Right: " + GameStateHandler.getInstance().isRightWalkable());
         if (AutoCookie.getInstance().isActivated()) {
             lines.add("AutoCookie");
             lines.add("   Main State: " + AutoCookie.getInstance().getMainState());
@@ -58,9 +53,13 @@ public class DebugHUD extends TextHud {
             lines.add("   Lagging for: " + LagDetector.getInstance().getLaggingTime());
         }
         if (DesyncChecker.getInstance().isActivated()) {
-            lines.add("DesyncChecker");
+            lines.add("Desync Checker");
             lines.add("   Clicked blocks: " + DesyncChecker.getInstance().getClickedBlocks().size());
             lines.add("   Desync: " + DesyncChecker.getInstance().isEnabled());
         }
+        lines.add("Currency");
+        lines.add("   Purse: " + GameStateHandler.getInstance().getCurrentPurse());
+        lines.add("   Bits: " + GameStateHandler.getInstance().getBits());
+        lines.add("   Copper: " + GameStateHandler.getInstance().getCopper());
      }
 }

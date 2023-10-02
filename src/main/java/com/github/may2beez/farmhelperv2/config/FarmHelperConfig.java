@@ -257,10 +257,11 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean muteTheGame = false;
     @Switch(
-            name = "Auto GodPot", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+            name = "Auto God Pot", category = MISCELLANEOUS, subcategory = "God Pot",
             description = "Automatically purchases and consumes a God Pot"
     )
     public static boolean autoGodPot = false;
+
     @Switch(
             name = "Auto Cookie", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "Automatically purchases and consumes a booster cookie"

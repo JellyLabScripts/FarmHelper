@@ -59,6 +59,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(MacroHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(Scheduler.getInstance());
         MinecraftForge.EVENT_BUS.register(AutoCookie.getInstance());
+        MinecraftForge.EVENT_BUS.register(AutoGodPot.getInstance());
         MinecraftForge.EVENT_BUS.register(AntiStuck.getInstance());
         MinecraftForge.EVENT_BUS.register(LagDetector.getInstance());
         MinecraftForge.EVENT_BUS.register(DesyncChecker.getInstance());

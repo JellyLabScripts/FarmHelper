@@ -15,6 +15,7 @@ import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -93,9 +94,66 @@ public class GameStateHandler {
     @Getter
     private BuffState godPotState = BuffState.UNKNOWN;
 
+    @Getter
+    private long currentPurse = 0;
+
+    @Getter
+    private long previousPurse = 0;
+
+    @Getter
+    private long bits = 0;
+
+    @Getter
+    private long copper = 0;
+
     @SubscribeEvent
     public void onWorldChange(WorldEvent.Unload event) {
         location = Location.TELEPORTING;
+    }
+
+    @SubscribeEvent
+    public void onTickCheckCoins(TickEvent.PlayerTickEvent event) {
+        if (mc.theWorld == null || mc.thePlayer == null) return;
+
+        List<String> scoreboardLines = ScoreboardUtils.getScoreboardLines();
+        if (scoreboardLines.isEmpty()) return;
+
+        for (String line : scoreboardLines) {
+            String cleanedLine = StringUtils.stripControlCodes(ScoreboardUtils.cleanSB(line));
+            if (cleanedLine.contains("Purse:") || cleanedLine.contains("Piggy:")) {
+                try {
+                    String stringPurse = cleanedLine.split(" ")[1].replace(",", "").trim();
+                    if (stringPurse.contains("(+")) {
+                        stringPurse = stringPurse.substring(0, stringPurse.indexOf("("));
+                    }
+                    long tempCurrentPurse = Long.parseLong(stringPurse);
+                    previousPurse = currentPurse;
+                    currentPurse = tempCurrentPurse;
+                } catch (NumberFormatException e) {
+                    continue;
+                }
+            } else if (cleanedLine.contains("Bits:")) {
+                try {
+                    String stringBits = cleanedLine.split(" ")[1].replace(",", "").trim();
+                    if (stringBits.contains("(+")) {
+                        stringBits = stringBits.substring(0, stringBits.indexOf("("));
+                    }
+                    bits = Long.parseLong(stringBits);
+                } catch (NumberFormatException e) {
+                    continue;
+                }
+            } else if (cleanedLine.contains("Copper:")) {
+                try {
+                    String stringCopper = cleanedLine.split(" ")[1].replace(",", "").trim();
+                    if (stringCopper.contains("(+")) {
+                        stringCopper = stringCopper.substring(0, stringCopper.indexOf("("));
+                    }
+                    copper = Long.parseLong(stringCopper);
+                } catch (NumberFormatException e) {
+                    continue;
+                }
+            }
+        }
     }
 
     @SubscribeEvent
