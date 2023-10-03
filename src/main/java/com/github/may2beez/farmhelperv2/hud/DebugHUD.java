@@ -57,9 +57,11 @@ public class DebugHUD extends TextHud {
             lines.add("   Clicked blocks: " + DesyncChecker.getInstance().getClickedBlocks().size());
             lines.add("   Desync: " + DesyncChecker.getInstance().isEnabled());
         }
-        lines.add("Currency");
-        lines.add("   Purse: " + GameStateHandler.getInstance().getCurrentPurse());
-        lines.add("   Bits: " + GameStateHandler.getInstance().getBits());
-        lines.add("   Copper: " + GameStateHandler.getInstance().getCopper());
-     }
+        if (AutoSell.getInstance().isEnabled()) {
+            lines.add("AutoSell");
+            lines.add("   Sacks State: " + AutoSell.getInstance().getSacksState());
+            lines.add("   Bazaar State: " + AutoSell.getInstance().getBazaarState());
+            lines.add("   NPC State: " + AutoSell.getInstance().getNpcState());
+        }
+    }
 }

@@ -6,8 +6,11 @@ import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.*;
 import com.github.may2beez.farmhelperv2.FarmHelper;
+import com.github.may2beez.farmhelperv2.config.page.AutoSellNPCItemsPage;
+import com.github.may2beez.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
 import com.github.may2beez.farmhelperv2.feature.impl.AntiStuck;
+import com.github.may2beez.farmhelperv2.feature.impl.AutoSell;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.hud.DebugHUD;
 import com.github.may2beez.farmhelperv2.util.BlockUtils;
@@ -279,28 +282,56 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean countRNGToProfitCalc = false;
 
+    @Info(
+            text = "Click ESC during Auto Sell, to stop it and pause for the next 15 minutes",
+            category = MISCELLANEOUS, subcategory = "Auto Sell", type = InfoType.INFO, size = 2
+    )
+    public static boolean autoSellInfo;
+
     @Switch(
             name = "Enable Auto Sell", category = MISCELLANEOUS, subcategory = "Auto Sell",
             description = "Enables auto sell"
     )
     public static boolean enableAutoSell = false;
-    @Switch(
-            name = "Sell To NPC", category = MISCELLANEOUS, subcategory = "Auto Sell",
-            description = "Automatically sells crops to NPC or Bazaar"
+    @DualOption(
+            name = "Market type", category = MISCELLANEOUS, subcategory = "Auto Sell",
+            description = "The market type to sell crops to",
+            left = "BZ",
+            right = "NPC"
     )
-    public static boolean sellToNPC = false;
+    public static boolean autoSellMarketType = false;
+    @Switch(
+            name = "Sell Items In Sacks", category = MISCELLANEOUS, subcategory = "Auto Sell",
+            description = "Sells items in your sacks and inventory"
+    )
+    public static boolean autoSellSacks = false;
+
+    @DualOption(
+            name = "Sacks placement",
+            category = MISCELLANEOUS, subcategory = "Auto Sell",
+            description = "The sacks placement",
+            left = "Inventory",
+            right = "Sack of sacks"
+    )
+    public static boolean autoSellSacksPlacement = true;
+
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "Inventory Full Time", category = MISCELLANEOUS, subcategory = "Auto Sell",
-            description = "The time to wait for inventory to be full (in seconds)",
+            description = "The time to wait to test, if inventory fullness ratio is still the same (or higher)",
             min = 1, max = 20
     )
     public static int inventoryFullTime = 6;
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "Inventory Full Ratio", category = MISCELLANEOUS, subcategory = "Auto Sell",
-            description = "The ratio to wait for inventory to be full (in percentage)",
+            description = "After reaching this ratio, macro will start counting from 0 to Inventory Full Time. If the fullness ratio is still the same (or higher) after the time has passed, it will start selling items",
             min = 1, max = 100
     )
     public static int inventoryFullRatio = 65;
+    @Page(
+            name = "Customize items sold to NPC", category = MISCELLANEOUS, subcategory = "Auto Sell", location = PageLocation.BOTTOM,
+            description = "Click here to customize items that are sold to NPC automatically"
+    )
+    public AutoSellNPCItemsPage autoSellNPCItemsPage = new AutoSellNPCItemsPage();
     @Button(
             name = "Sell Inventory Now", category = MISCELLANEOUS, subcategory = "Auto Sell",
             description = "Sells crops in your inventory",
@@ -308,7 +339,7 @@ public class FarmHelperConfig extends Config {
     )
     Runnable autoSellFunction = () -> {
         mc.thePlayer.closeScreen();
-//        Autosell.enable();
+        AutoSell.getInstance().enable(true);
     };
 
     @Switch(
@@ -994,15 +1025,15 @@ public class FarmHelperConfig extends Config {
     @Slider(
             name = "GUI Delay", category = DELAYS, subcategory = "GUI Delays",
             description = "The delay between clicking during GUI macros (in miliseconds)",
-            min = 150f, max = 2000f
+            min = 250f, max = 2000f
     )
-    public static float visitorsMacroGuiDelay = 250f;
+    public static float visitorsMacroGuiDelay = 400f;
     @Slider(
             name = "Additional random GUI Delay", category = DELAYS, subcategory = "GUI Delays",
             description = "The maximum random time added to the delay time between clicking during GUI macros (in miliseconds)",
-            min = 150f, max = 2000f
+            min = 250f, max = 2000f
     )
-    public static float visitorsMacroGuiDelayRandomness = 250f;
+    public static float visitorsMacroGuiDelayRandomness = 350f;
 
     public static long getRandomGUIMacroDelay() {
         return (long) (visitorsMacroGuiDelay + (float) Math.random() * visitorsMacroGuiDelayRandomness);

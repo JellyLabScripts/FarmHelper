@@ -7,7 +7,12 @@ import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
 
 public class InventoryUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -82,6 +87,32 @@ public class InventoryUtils {
         return false;
     }
 
+    public static ArrayList<Slot> getIndexesOfItemsFromInventory(Predicate<Slot> predicate) {
+        ArrayList<Slot> indexes = new ArrayList<>();
+        for (int i = 0; i < 36; i++) {
+            Slot slot = mc.thePlayer.inventoryContainer.getSlot(i);
+            if (slot != null && slot.getHasStack()) {
+                if (predicate.test(slot)) {
+                    indexes.add(slot);
+                }
+            }
+        }
+        return indexes;
+    }
+
+    public static ArrayList<Slot> getIndexesOfItemsFromContainer(Predicate<Slot> predicate) {
+        ArrayList<Slot> indexes = new ArrayList<>();
+        for (int i = 0; i < mc.thePlayer.openContainer.inventorySlots.size(); i++) {
+            Slot slot = mc.thePlayer.openContainer.getSlot(i);
+            if (slot != null && slot.getHasStack()) {
+                if (predicate.test(slot)) {
+                    indexes.add(slot);
+                }
+            }
+        }
+        return indexes;
+    }
+
     public static enum ClickType {
         LEFT,
         RIGHT
@@ -90,6 +121,10 @@ public class InventoryUtils {
         PICKUP,
         QUICK_MOVE,
         SWAP
+    }
+
+    public static void clickSlotWithId(int id, ClickType mouseButton, ClickMode mode, int windowId) {
+        mc.playerController.windowClick(windowId, id, mouseButton.ordinal(), mode.ordinal(), mc.thePlayer);
     }
 
     public static void clickContainerSlot(int slot, ClickType mouseButton, ClickMode mode) {
@@ -115,5 +150,21 @@ public class InventoryUtils {
             }
         }
         return null;
+    }
+
+    public static ArrayList<String> getItemLore(ItemStack itemStack) {
+        NBTTagList loreTag = itemStack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8);
+        ArrayList<String> loreList = new ArrayList<>();
+        for (int i = 0; i < loreTag.tagCount(); i++) {
+            loreList.add(StringUtils.stripControlCodes(loreTag.getStringTagAt(i)));
+        }
+        return loreList;
+    }
+
+    public static List<String> getLoreOfItemInContainer(int slot) {
+        if (slot == -1) return new ArrayList<>();
+        ItemStack itemStack = mc.thePlayer.openContainer.getSlot(slot).getStack();
+        if (itemStack == null) return new ArrayList<>();
+        return getItemLore(itemStack);
     }
 }

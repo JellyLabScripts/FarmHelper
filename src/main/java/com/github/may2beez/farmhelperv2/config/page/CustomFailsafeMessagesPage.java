@@ -1,4 +1,4 @@
-package com.github.may2beez.farmhelperv2.config;
+package com.github.may2beez.farmhelperv2.config.page;
 
 import cc.polyfrost.oneconfig.config.annotations.Text;
 

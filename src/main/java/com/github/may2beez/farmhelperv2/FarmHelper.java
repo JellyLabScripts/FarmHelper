@@ -63,6 +63,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(AntiStuck.getInstance());
         MinecraftForge.EVENT_BUS.register(LagDetector.getInstance());
         MinecraftForge.EVENT_BUS.register(DesyncChecker.getInstance());
+        MinecraftForge.EVENT_BUS.register(AutoSell.getInstance());
     }
 
     private void initializeFields() {
