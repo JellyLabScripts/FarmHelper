@@ -1162,7 +1162,7 @@ public class FarmHelperConfig extends Config {
         super(new Mod("Farm Helper", ModType.HYPIXEL, "/farmhelper/icon-mod/icon.png"), "/farmhelper/config.json");
         initialize();
 
-        this.addDependency("macroType", "Macro Type", () -> !MacroHandler.getInstance().isMacroing());
+        this.addDependency("macroType", "Macro Type", () -> !MacroHandler.getInstance().isMacroToggled());
 
         this.addDependency("customPitchLevel", "customPitch");
         this.addDependency("customYawLevel", "customYaw");

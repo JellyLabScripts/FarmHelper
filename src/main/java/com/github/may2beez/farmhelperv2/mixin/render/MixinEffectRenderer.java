@@ -14,7 +14,7 @@ public class MixinEffectRenderer {
 
     @Inject(method = "addBlockDestroyEffects", at = @At("HEAD"), cancellable = true)
     private void addBlockDestroyEffects(BlockPos pos, IBlockState state, CallbackInfo ci) {
-        if (MacroHandler.getInstance().isMacroing()) {
+        if (MacroHandler.getInstance().isMacroToggled()) {
             ci.cancel();
         }
     }

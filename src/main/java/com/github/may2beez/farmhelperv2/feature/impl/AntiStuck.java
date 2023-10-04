@@ -19,6 +19,7 @@ public class AntiStuck implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
 
     private static AntiStuck instance;
+
     public static AntiStuck getInstance() {
         if (instance == null) {
             instance = new AntiStuck();
@@ -34,6 +35,7 @@ public class AntiStuck implements IFeature {
         BACKWARD,
         DISABLE
     }
+
     private UnstuckState unstuckState = UnstuckState.NONE;
 
     private boolean enabled = false;
@@ -100,8 +102,8 @@ public class AntiStuck implements IFeature {
         if (event.phase == TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isActivated()) return;
-        if (!MacroHandler.getInstance().isMacroing() ||
-                (MacroHandler.getInstance().getCurrentMacro().isPresent() && !MacroHandler.getInstance().getCurrentMacro().get().isEnabled()) ||
+        if (!MacroHandler.getInstance().isMacroToggled() ||
+                (!MacroHandler.getInstance().isCurrentMacroEnabled()) ||
                 FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) {
             notMovingTimer.reset();
             lastX = 10000;
@@ -155,12 +157,12 @@ public class AntiStuck implements IFeature {
         if (event.phase == TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isActivated()) return;
-        if (!MacroHandler.getInstance().isMacroing()) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (mc.currentScreen != null) return;
         if (!enabled) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
-        if (!MacroHandler.getInstance().getCurrentMacro().get().isEnabled()) return;
+        if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
 
         if (delayBetweenMovementsClock.isScheduled() && !delayBetweenMovementsClock.passed()) return;
 

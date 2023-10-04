@@ -7,7 +7,6 @@ import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.helper.CircularFifoQueue;
-import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import lombok.Getter;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCocoa;
@@ -69,7 +68,7 @@ public class DesyncChecker implements IFeature {
 
     @SubscribeEvent
     public void onClickedBlock(ClickedBlockEvent event) {
-        if (!MacroHandler.getInstance().isMacroing()) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!isCrop(mc.theWorld.getBlockState(event.getPos()).getBlock())) return;
         clickedBlocks.add(event);
         if (!clickedBlocks.isAtFullCapacity()) return;
@@ -80,7 +79,7 @@ public class DesyncChecker implements IFeature {
         LogUtils.sendWarning("[Desync Checker] Desync detected, pausing macro for " + Math.floor((double) FarmHelperConfig.desyncPauseDelay / 1_000) + " seconds to prevent further desync");
         MacroHandler.getInstance().pauseMacro();
         Multithreading.schedule(() -> {
-            if (!MacroHandler.getInstance().isMacroing()) return;
+            if (!MacroHandler.getInstance().isMacroToggled()) return;
             enabled = false;
             LogUtils.sendWarning("[Desync Checker] Desync should be over, resuming macro execution");
             MacroHandler.getInstance().resumeMacro();

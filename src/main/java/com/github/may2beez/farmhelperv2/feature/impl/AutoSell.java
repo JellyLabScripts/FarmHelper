@@ -150,7 +150,7 @@ public class AutoSell implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isActivated()) return;
         if (isEnabled()) return;
-        if (!MacroHandler.getInstance().isMacroing() && !manually) return;
+        if (!MacroHandler.getInstance().isMacroToggled() && !manually) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;

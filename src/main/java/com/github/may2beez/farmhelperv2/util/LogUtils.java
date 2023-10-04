@@ -48,8 +48,8 @@ public class LogUtils {
     public static String getRuntimeFormat() {
         if (!MacroHandler.getInstance().getMacroingTimer().isScheduled())
             return "0h 0m 0s";
-        long millis = System.currentTimeMillis() - MacroHandler.getInstance().getMacroingTimer().startedAt;
-        return formatTime(millis);
+        long millis = MacroHandler.getInstance().getMacroingTimer().getElapsedTime();
+        return formatTime(millis) + (MacroHandler.getInstance().getMacroingTimer().paused ? " (Paused)" : "");
     }
 
     public static String formatTime(long millis) {

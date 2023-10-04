@@ -48,11 +48,7 @@ public class MacroHandler {
     private Optional<AbstractMacro> currentMacro = Optional.empty();
     @Getter
     @Setter
-    private boolean isMacroing = false;
-
-    @Getter
-    @Setter
-    private long startTime = 0;
+    private boolean isMacroToggled = false;
 
     @Getter
     private final Timer macroingTimer = new Timer();
@@ -88,6 +84,10 @@ public class MacroHandler {
         }
     }
 
+    public boolean isCurrentMacroEnabled() {
+        return currentMacro.isPresent() && currentMacro.get().isEnabled();
+    }
+
     public <T extends AbstractMacro> T getMacro(int type) {
         switch (type) {
             case 0: // crops
@@ -118,7 +118,7 @@ public class MacroHandler {
             LogUtils.sendWarning("Farm manually and DO NOT restart the macro too soon! The staff might still be spectating you for a while!");
             return;
         }
-        if (isMacroing()) {
+        if (isMacroToggled()) {
             this.disableMacro();
         } else {
             this.enableMacro();
@@ -140,13 +140,14 @@ public class MacroHandler {
         mc.thePlayer.closeScreen();
         LogUtils.sendSuccess("Macro enabled!");
         LogUtils.webhookLog("Macro enabled!");
-        setStartTime(System.currentTimeMillis());
 
-        if (ProfitCalculatorHUD.resetStatsBetweenDisabling || !macroingTimer.isScheduled()) {
+        if (ProfitCalculatorHUD.resetStatsBetweenDisabling) {
             macroingTimer.schedule();
             ProfitCalculator.getInstance().resetProfits();
         } else if (macroingTimer.isScheduled() && !ProfitCalculatorHUD.resetStatsBetweenDisabling) {
             macroingTimer.resume();
+        } else if (!ProfitCalculatorHUD.resetStatsBetweenDisabling) {
+            macroingTimer.schedule();
         }
 
         if (FarmHelperConfig.enableScheduler) {
@@ -156,12 +157,12 @@ public class MacroHandler {
             UngrabMouse.getInstance().ungrabMouse();
         }
 
-        setMacroing(true);
+        setMacroToggled(true);
         enableCurrentMacro();
     }
 
     public void disableMacro() {
-        setMacroing(false);
+        setMacroToggled(false);
         LogUtils.sendSuccess("Macro disabled!");
         LogUtils.webhookLog("Macro disabled!");
         currentMacro.ifPresent(m -> {
@@ -170,6 +171,7 @@ public class MacroHandler {
         });
 
         setCrop(null);
+        macroingTimer.pause();
 
         FeatureManager.getInstance().disableAll();
         FeatureManager.getInstance().resetAllStates();
@@ -208,7 +210,7 @@ public class MacroHandler {
 
     Runnable startCurrent = () -> {
         KeyBindUtils.stopMovement();
-        if (isMacroing()) {
+        if (isMacroToggled()) {
             currentMacro.ifPresent(AbstractMacro::onEnable);
         }
         startingUp = false;
@@ -216,7 +218,7 @@ public class MacroHandler {
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.END || !isMacroing()) {
+        if (event.phase == TickEvent.Phase.END || !isMacroToggled()) {
             return;
         }
         currentMacro.ifPresent(cm -> {
@@ -234,7 +236,7 @@ public class MacroHandler {
             }
         }
 
-        if (!isMacroing()) {
+        if (!isMacroToggled()) {
             return;
         }
 
@@ -267,7 +269,7 @@ public class MacroHandler {
             RenderUtils.drawBlockBox(spawnLocation, new Color(Color.orange.getRed(), Color.orange.getGreen(), Color.orange.getBlue(), 80));
         }
 
-        if (!isMacroing()) {
+        if (!isMacroToggled()) {
             return;
         }
         currentMacro.ifPresent(m -> {
@@ -278,7 +280,7 @@ public class MacroHandler {
 
     @SubscribeEvent
     public void onRenderGameOverlay(RenderGameOverlayEvent event) {
-        if (!isMacroing()) {
+        if (!isMacroToggled()) {
             return;
         }
         currentMacro.ifPresent(m -> {
@@ -289,7 +291,7 @@ public class MacroHandler {
 
     @SubscribeEvent
     public void onReceivePacket(ReceivePacketEvent event) {
-        if (!isMacroing()) {
+        if (!isMacroToggled()) {
             return;
         }
         currentMacro.ifPresent(m -> {

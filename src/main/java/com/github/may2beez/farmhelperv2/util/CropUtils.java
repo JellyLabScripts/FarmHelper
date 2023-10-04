@@ -68,7 +68,7 @@ public class CropUtils {
         int j = 4 + age * 2;
         int k = 5 + age * 2;
 
-        if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().equals(MacroHandler.Macros.S_SHAPE_COCOA_BEAN_MACRO.getMacro()) && MacroHandler.getInstance().isMacroing() && FarmHelperConfig.increasedCocoaBeans) {
+        if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().equals(MacroHandler.Macros.S_SHAPE_COCOA_BEAN_MACRO.getMacro()) && MacroHandler.getInstance().isMacroToggled() && FarmHelperConfig.increasedCocoaBeans) {
             switch (enumFacing) {
                 case SOUTH: {
                     blockState.getBlock().setBlockBounds(0, (12.0f - (float) k) / 16.0f, (15.0f - (float) j) / 16.0f, 1, 0.75f, 0.9375f);

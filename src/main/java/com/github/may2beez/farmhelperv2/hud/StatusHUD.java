@@ -44,7 +44,7 @@ public class StatusHUD extends TextHud {
     }
 
     public String getStatusString() {
-        if (!MacroHandler.getInstance().isMacroing()) {
+        if (!MacroHandler.getInstance().isMacroToggled()) {
             return "Idling";
         }
 //        else if (FailsafeNew.restartAfterFailsafeCooldown.isScheduled() && !FailsafeNew.restartAfterFailsafeCooldown.passed()) {

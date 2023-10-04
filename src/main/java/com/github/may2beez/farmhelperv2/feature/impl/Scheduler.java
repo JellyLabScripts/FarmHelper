@@ -108,12 +108,12 @@ public class Scheduler implements IFeature {
             schedulerClock.pause();
         }
 
-        if (MacroHandler.getInstance().isMacroing() && MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().isEnabled() && schedulerState == SchedulerState.FARMING && !schedulerClock.isPaused() && schedulerClock.passed()) {
+        if (MacroHandler.getInstance().isMacroToggled() && MacroHandler.getInstance().isCurrentMacroEnabled() && schedulerState == SchedulerState.FARMING && !schedulerClock.isPaused() && schedulerClock.passed()) {
             LogUtils.sendDebug("[Scheduler] Farming time has passed, stopping");
             MacroHandler.getInstance().pauseMacro();
             schedulerState = SchedulerState.BREAK;
             schedulerClock.schedule(TimeUnit.MINUTES.toMillis((long)(FarmHelperConfig.schedulerBreakTime + (Math.random() * FarmHelperConfig.schedulerBreakTimeRandomness))));
-        } else if (MacroHandler.getInstance().isMacroing() && schedulerState == SchedulerState.BREAK && !schedulerClock.isPaused() && schedulerClock.passed()) {
+        } else if (MacroHandler.getInstance().isMacroToggled() && schedulerState == SchedulerState.BREAK && !schedulerClock.isPaused() && schedulerClock.passed()) {
             LogUtils.sendDebug("[Scheduler] Break time has passed, starting");
             schedulerState = SchedulerState.FARMING;
             schedulerClock.schedule(TimeUnit.MINUTES.toMillis((long)(FarmHelperConfig.schedulerFarmingTime + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness))));

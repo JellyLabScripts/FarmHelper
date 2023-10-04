@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MixinBlockRendererDispatcher {
     @Inject(method = "renderBlock", at = @At("HEAD"), cancellable = true)
     private void renderBlock(IBlockState state, BlockPos pos, IBlockAccess blockAccess, WorldRenderer worldRendererIn, CallbackInfoReturnable<Boolean> cir) {
-        if (FarmHelperConfig.xrayMode && (MacroHandler.getInstance().isMacroing())) {
+        if (FarmHelperConfig.xrayMode && (MacroHandler.getInstance().isMacroToggled())) {
             cir.setReturnValue(false);
         }
     }

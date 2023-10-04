@@ -9,7 +9,9 @@ import cc.polyfrost.oneconfig.libs.universal.UMatrixStack;
 import cc.polyfrost.oneconfig.platform.Platform;
 import cc.polyfrost.oneconfig.renderer.NanoVGHelper;
 import cc.polyfrost.oneconfig.renderer.TextRenderer;
+import com.github.may2beez.farmhelperv2.feature.impl.ProfitCalculator;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
+import com.github.may2beez.farmhelperv2.util.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Tuple;
 
@@ -21,7 +23,7 @@ public class ProfitCalculatorHUD extends BasicHud {
     private final float iconHeight = 12 * scale;
 
     public ProfitCalculatorHUD() {
-        super(true, 1f, 1f, 1, true, true, 4, 5, 5, new OneColor(0, 0, 150), true, 2, new OneColor(0, 0, 0, 127));
+        super(true, 1f, 1f, 1, true, true, 4, 5, 5, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
     }
 
     @Switch(
@@ -44,10 +46,8 @@ public class ProfitCalculatorHUD extends BasicHud {
 
     @Override
     protected void draw(UMatrixStack matrices, float x, float y, float scale, boolean example) {
-        if (lines == null || lines.isEmpty()) return;
-
-        float textX = position.getX() + 1 * scale;
         addLines();
+        float textX = position.getX() + 1 * scale;
         NanoVGHelper.INSTANCE.setupAndDraw(true, (vg) -> {
             float textY = position.getY() + 1 * scale;
             for (Tuple<String, String> line : lines) {
@@ -104,12 +104,16 @@ public class ProfitCalculatorHUD extends BasicHud {
     }
 
     public void addLines() {
+        if (ProfitCalculator.getInstance().getUpdateClock().isScheduled() && !ProfitCalculator.getInstance().getUpdateClock().passed()) {
+            return;
+        }
+        ProfitCalculator.getInstance().getUpdateClock().schedule(100);
         lines.clear();
 
-//        lines.add(new Tuple<>(ProfitCalculator.profit, "/assets/farmhelper/textures/gui/profit.png"));
-//        lines.add(new Tuple<>(ProfitCalculator.profitHr, "/assets/farmhelper/textures/gui/profithr.png"));
-//        lines.add(new Tuple<>(ProfitCalculator.blocksPerSecond, "/assets/farmhelper/textures/gui/bps.png"));
-//        lines.add(new Tuple<>(ProfitCalculator.runtime, "/assets/farmhelper/textures/gui/runtime.png"));
+        lines.add(new Tuple<>(ProfitCalculator.getInstance().getRealProfitString(), "/farmhelper/textures/gui/profit.png"));
+        lines.add(new Tuple<>(ProfitCalculator.getInstance().getProfitPerHourString(), "/farmhelper/textures/gui/profithr.png"));
+        lines.add(new Tuple<>(ProfitCalculator.getInstance().getBPS(), "/farmhelper/textures/gui/bps.png"));
+        lines.add(new Tuple<>(LogUtils.getRuntimeFormat(), "/farmhelper/textures/gui/runtime.png"));
 //        HashMap<String, ProfitCalculator.BazaarItem> linesCopy = new HashMap<>(ProfitCalculator.ListCropsToShow);
 //        LinkedHashMap<String, ProfitCalculator.BazaarItem> sorted = new LinkedHashMap<>();
 //        linesCopy.entrySet()

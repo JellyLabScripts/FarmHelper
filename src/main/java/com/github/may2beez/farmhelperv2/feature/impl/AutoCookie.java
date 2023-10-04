@@ -159,7 +159,7 @@ public class AutoCookie implements IFeature {
         if (event.phase == TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isActivated()) return;
-        if (!MacroHandler.getInstance().isMacroing()) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING) {
             timeoutClock.schedule(bazaarState != BazaarState.NONE ? 30_000 : 7_500);
