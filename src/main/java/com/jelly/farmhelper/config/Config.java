@@ -6,6 +6,7 @@ import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.*;
 import com.jelly.farmhelper.FarmHelper;
 import com.jelly.farmhelper.config.structs.Rewarp;
+import com.jelly.farmhelper.features.AntiAfk;
 import com.jelly.farmhelper.features.AutoSellNew;
 import com.jelly.farmhelper.features.VisitorsMacro;
 import com.jelly.farmhelper.hud.DebugHUD;
@@ -560,6 +561,12 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 			description = "Prevents the macro from leaving during Jacob's Contest even when banwave detected"
 	)
 	public boolean banwaveDontLeaveDuringJacobsContest = true;
+
+	@Switch(
+			name = "Anti AFK", category = FAILSAFE, subcategory = "Anti AFK",
+			description = "Moves camera after getting message about being afk"
+	)
+	public boolean antiAFK = true;
 
 	@Number(
 			name = "Rotation Acting times", category = FAILSAFE, subcategory = "Custom Failsafe times",
@@ -1286,11 +1293,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 		this.hideIf("configVersion", () -> true);
 
 		registerKeyBind(openGuiKeybind, () -> FarmHelper.config.openGui());
-		registerKeyBind(toggleMacro, () -> {
-			MacroHandler.toggleMacro();
-		});
+		registerKeyBind(toggleMacro, MacroHandler::toggleMacro);
 //		registerKeyBind(debugKeybind, () -> {
-//			AutoSellNew.enableMacro(AutoSellNew.marketType.BZ, true);
+//			AntiAfk.getInstance().enable();
 //		});
 //		registerKeyBind(debugKeybind2, AutoSellNew::stopMacro);
 		save();

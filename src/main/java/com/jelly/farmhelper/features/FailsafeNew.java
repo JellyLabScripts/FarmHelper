@@ -378,6 +378,7 @@ public class FailsafeNew {
                 if (PetSwapper.isEnabled()) return;
                 if (evacuateState != EvacuateState.NONE) return;
                 if (!MacroHandler.currentMacro.isRewarpLocationSet()) return;
+                if (AntiAfk.getInstance().isEnabled()) return;
 
                 LogUtils.sendDebug("Resuming the macro...");
                 MacroHandler.enableCurrentMacro();

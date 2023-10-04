@@ -80,6 +80,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(new SetSpeedCommand());
         MinecraftForge.EVENT_BUS.register(petSwapper);
         MinecraftForge.EVENT_BUS.register(new WebsocketHandler());
+        MinecraftForge.EVENT_BUS.register(AntiAfk.getInstance());
         ClientCommandHandler.instance.registerCommand(new RewarpCommand());
         ClientCommandHandler.instance.registerCommand(new FarmHelperCommand());
 
