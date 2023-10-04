@@ -1,13 +1,14 @@
 package com.github.may2beez.farmhelperv2.handler;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
-import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
 import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
+import com.github.may2beez.farmhelperv2.feature.impl.ProfitCalculator;
 import com.github.may2beez.farmhelperv2.feature.impl.Scheduler;
+import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 import com.github.may2beez.farmhelperv2.macro.impl.*;
 import com.github.may2beez.farmhelperv2.util.KeyBindUtils;
@@ -15,6 +16,7 @@ import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.PlayerUtils;
 import com.github.may2beez.farmhelperv2.util.RenderUtils;
 import com.github.may2beez.farmhelperv2.feature.impl.UngrabMouse;
+import com.github.may2beez.farmhelperv2.util.helper.Timer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -51,6 +53,9 @@ public class MacroHandler {
     @Getter
     @Setter
     private long startTime = 0;
+
+    @Getter
+    private final Timer macroingTimer = new Timer();
 
     @Getter
     @Setter
@@ -136,6 +141,13 @@ public class MacroHandler {
         LogUtils.sendSuccess("Macro enabled!");
         LogUtils.webhookLog("Macro enabled!");
         setStartTime(System.currentTimeMillis());
+
+        if (ProfitCalculatorHUD.resetStatsBetweenDisabling || !macroingTimer.isScheduled()) {
+            macroingTimer.schedule();
+            ProfitCalculator.getInstance().resetProfits();
+        } else if (macroingTimer.isScheduled() && !ProfitCalculatorHUD.resetStatsBetweenDisabling) {
+            macroingTimer.resume();
+        }
 
         if (FarmHelperConfig.enableScheduler) {
             Scheduler.getInstance().start();

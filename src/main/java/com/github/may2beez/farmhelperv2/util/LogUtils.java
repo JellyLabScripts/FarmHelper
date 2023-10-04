@@ -46,15 +46,19 @@ public class LogUtils {
     }
 
     public static String getRuntimeFormat() {
-        if (MacroHandler.getInstance().getStartTime() == 0)
+        if (!MacroHandler.getInstance().getMacroingTimer().isScheduled())
             return "0h 0m 0s";
-        long millis = System.currentTimeMillis() - MacroHandler.getInstance().getStartTime();
+        long millis = System.currentTimeMillis() - MacroHandler.getInstance().getMacroingTimer().startedAt;
+        return formatTime(millis);
+    }
+
+    public static String formatTime(long millis) {
         return String.format("%dh %dm %ds",
-            TimeUnit.MILLISECONDS.toHours(millis),
-            TimeUnit.MILLISECONDS.toMinutes(millis) -
-                TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),
-            TimeUnit.MILLISECONDS.toSeconds(millis) -
-                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis))
+                TimeUnit.MILLISECONDS.toHours(millis),
+                TimeUnit.MILLISECONDS.toMinutes(millis) -
+                        TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),
+                TimeUnit.MILLISECONDS.toSeconds(millis) -
+                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis))
         );
     }
 

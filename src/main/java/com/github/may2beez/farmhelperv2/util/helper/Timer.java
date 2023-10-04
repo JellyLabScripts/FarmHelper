@@ -2,6 +2,7 @@ package com.github.may2beez.farmhelperv2.util.helper;
 
 public class Timer {
     public long startedAt = 0;
+    public boolean paused = false;
 
     public boolean hasPassed(long ms) {
         return System.currentTimeMillis() - startedAt > ms;
@@ -13,6 +14,20 @@ public class Timer {
 
     public void schedule() {
         startedAt = System.currentTimeMillis();
+    }
+
+    public void pause() {
+        if (startedAt != 0 && !paused) {
+            startedAt = System.currentTimeMillis() - startedAt;
+            paused = true;
+        }
+    }
+
+    public void resume() {
+        if (startedAt != 0 && paused) {
+            startedAt = System.currentTimeMillis() + startedAt;
+            paused = false;
+        }
     }
 
     public boolean isScheduled() {

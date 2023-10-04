@@ -74,7 +74,7 @@ public class Scheduler implements IFeature {
     public String getStatusString() {
         if (FarmHelperConfig.enableScheduler) {
             return (schedulerState == SchedulerState.FARMING ? "Farming" : "Break") + " for "
-                    + Math.max(schedulerClock.getRemainingTime(), 0) + (schedulerClock.isPaused() ? " (Paused)" : "");
+                    + LogUtils.formatTime(Math.max(schedulerClock.getRemainingTime(), 0)) + (schedulerClock.isPaused() ? " (Paused)" : "");
         } else {
             return "Farming";
         }

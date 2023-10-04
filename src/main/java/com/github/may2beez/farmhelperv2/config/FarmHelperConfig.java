@@ -13,6 +13,8 @@ import com.github.may2beez.farmhelperv2.feature.impl.AntiStuck;
 import com.github.may2beez.farmhelperv2.feature.impl.AutoSell;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.hud.DebugHUD;
+import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
+import com.github.may2beez.farmhelperv2.hud.StatusHUD;
 import com.github.may2beez.farmhelperv2.util.BlockUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.PlayerUtils;
@@ -1043,14 +1045,14 @@ public class FarmHelperConfig extends Config {
 
     // START HUD
 
-//    @HUD(
-//            name = "Status HUD", category = HUD
-//    )
-//    public static StatusHUD statusHUD = new StatusHUD();
-//    @HUD(
-//            name = "Profit Calculator HUD", category = HUD, subcategory = " "
-//    )
-//    public static ProfitCalculatorHUD profitHUD = new ProfitCalculatorHUD();
+    @HUD(
+            name = "Status HUD", category = HUD
+    )
+    public static StatusHUD statusHUD = new StatusHUD();
+    @HUD(
+            name = "Profit Calculator HUD", category = HUD, subcategory = " "
+    )
+    public static ProfitCalculatorHUD profitHUD = new ProfitCalculatorHUD();
 
     // END HUD
 
