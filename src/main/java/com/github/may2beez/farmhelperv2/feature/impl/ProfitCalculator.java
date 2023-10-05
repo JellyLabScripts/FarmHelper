@@ -96,13 +96,25 @@ public class ProfitCalculator implements IFeature {
     }
 
     @Override
-    public boolean isEnabled() {
+    public boolean isRunning() {
         return true;
     }
 
     @Override
     public boolean shouldPauseMacroExecution() {
         return false;
+    }
+
+    @Override
+    public boolean shouldStartAtMacroStart() {
+        return true;
+    }
+
+    @Override
+    public void start() {
+        if (ProfitCalculatorHUD.resetStatsBetweenDisabling) {
+            resetProfits();
+        }
     }
 
     @Override
@@ -117,7 +129,7 @@ public class ProfitCalculator implements IFeature {
     }
 
     @Override
-    public boolean isActivated() {
+    public boolean isToggled() {
         return true;
     }
 

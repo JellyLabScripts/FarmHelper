@@ -82,13 +82,23 @@ public class AutoSell implements IFeature {
     }
 
     @Override
-    public boolean isEnabled() {
+    public boolean isRunning() {
         return enabled;
     }
 
     @Override
     public boolean shouldPauseMacroExecution() {
         return true;
+    }
+
+    @Override
+    public boolean shouldStartAtMacroStart() {
+        return false;
+    }
+
+    @Override
+    public void start() {
+        this.enable(false);
     }
 
     @Override
@@ -116,12 +126,8 @@ public class AutoSell implements IFeature {
     }
 
     @Override
-    public boolean isActivated() {
+    public boolean isToggled() {
         return FarmHelperConfig.enableAutoSell || FarmHelperConfig.visitorsMacroAutosellBeforeServing;
-    }
-
-    public void enable() {
-        this.enable(false);
     }
 
     public void enable(boolean manually) {
@@ -148,8 +154,8 @@ public class AutoSell implements IFeature {
     @SubscribeEvent
     public void onTickShouldEnable(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!isActivated()) return;
-        if (isEnabled()) return;
+        if (!isToggled()) return;
+        if (isRunning()) return;
         if (!MacroHandler.getInstance().isMacroToggled() && !manually) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) return;
@@ -158,7 +164,7 @@ public class AutoSell implements IFeature {
 
         if (inventoryFilledClock.isScheduled() && inventoryFilledClock.passed()) {
             if (getInventoryFilledPercentage() >= FarmHelperConfig.inventoryFullRatio / 100f) {
-                enable();
+                start();
             } else {
                 inventoryFilledClock.reset();
                 LogUtils.sendDebug("[Auto Sell] Inventory is not full anymore, resetting inventoryFilledClock");
@@ -174,8 +180,8 @@ public class AutoSell implements IFeature {
     @SubscribeEvent
     public void onTickEnabled(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!isActivated()) return;
-        if (!isEnabled()) return;
+        if (!isToggled()) return;
+        if (!isRunning()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
@@ -485,8 +491,8 @@ public class AutoSell implements IFeature {
     @SubscribeEvent
     public void onKeypress(InputEvent.KeyInputEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!isActivated()) return;
-        if (!isEnabled()) return;
+        if (!isToggled()) return;
+        if (!isRunning()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
 
         if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {

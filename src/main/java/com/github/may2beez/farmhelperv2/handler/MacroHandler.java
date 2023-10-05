@@ -6,7 +6,6 @@ import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
 import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
-import com.github.may2beez.farmhelperv2.feature.impl.ProfitCalculator;
 import com.github.may2beez.farmhelperv2.feature.impl.Scheduler;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
@@ -15,7 +14,6 @@ import com.github.may2beez.farmhelperv2.util.KeyBindUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.PlayerUtils;
 import com.github.may2beez.farmhelperv2.util.RenderUtils;
-import com.github.may2beez.farmhelperv2.feature.impl.UngrabMouse;
 import com.github.may2beez.farmhelperv2.util.helper.Timer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -141,21 +139,13 @@ public class MacroHandler {
         LogUtils.sendSuccess("Macro enabled!");
         LogUtils.webhookLog("Macro enabled!");
 
-        if (ProfitCalculatorHUD.resetStatsBetweenDisabling) {
-            macroingTimer.schedule();
-            ProfitCalculator.getInstance().resetProfits();
-        } else if (macroingTimer.isScheduled() && !ProfitCalculatorHUD.resetStatsBetweenDisabling) {
+        if (macroingTimer.isScheduled() && !ProfitCalculatorHUD.resetStatsBetweenDisabling) {
             macroingTimer.resume();
-        } else if (!ProfitCalculatorHUD.resetStatsBetweenDisabling) {
+        } else {
             macroingTimer.schedule();
         }
 
-        if (FarmHelperConfig.enableScheduler) {
-            Scheduler.getInstance().start();
-        }
-        if (FarmHelperConfig.autoUngrabMouse) {
-            UngrabMouse.getInstance().ungrabMouse();
-        }
+        FeatureManager.getInstance().enableAll();
 
         setMacroToggled(true);
         enableCurrentMacro();

@@ -21,13 +21,23 @@ public class Failsafe implements IFeature {
     }
 
     @Override
-    public boolean isEnabled() {
+    public boolean isRunning() {
         return emergency;
     }
 
     @Override
     public boolean shouldPauseMacroExecution() {
         return true;
+    }
+
+    @Override
+    public boolean shouldStartAtMacroStart() {
+        return true;
+    }
+
+    @Override
+    public void start() {
+        emergency = false;
     }
 
     @Override
@@ -41,7 +51,7 @@ public class Failsafe implements IFeature {
     }
 
     @Override
-    public boolean isActivated() {
+    public boolean isToggled() {
         return true;
     }
 

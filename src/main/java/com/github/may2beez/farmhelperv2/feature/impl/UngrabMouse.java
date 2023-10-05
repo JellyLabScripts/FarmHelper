@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.MouseHelper;
 import org.lwjgl.input.Mouse;
 
+@SuppressWarnings("unused")
 public class UngrabMouse implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
     private static UngrabMouse instance;
@@ -55,13 +56,23 @@ public class UngrabMouse implements IFeature {
     }
 
     @Override
-    public boolean isEnabled() {
+    public boolean isRunning() {
         return mouseUngrabbed;
     }
 
     @Override
     public boolean shouldPauseMacroExecution() {
         return false;
+    }
+
+    @Override
+    public boolean shouldStartAtMacroStart() {
+        return isToggled();
+    }
+
+    @Override
+    public void start() {
+        ungrabMouse();
     }
 
     @Override
@@ -75,7 +86,7 @@ public class UngrabMouse implements IFeature {
     }
 
     @Override
-    public boolean isActivated() {
+    public boolean isToggled() {
         return FarmHelperConfig.autoUngrabMouse;
     }
 }

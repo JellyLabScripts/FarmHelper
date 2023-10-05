@@ -39,13 +39,23 @@ public class DesyncChecker implements IFeature {
     }
 
     @Override
-    public boolean isEnabled() {
+    public boolean isRunning() {
         return enabled;
     }
 
     @Override
     public boolean shouldPauseMacroExecution() {
         return true;
+    }
+
+    @Override
+    public boolean shouldStartAtMacroStart() {
+        return isToggled();
+    }
+
+    @Override
+    public void start() {
+
     }
 
     @Override
@@ -59,7 +69,7 @@ public class DesyncChecker implements IFeature {
     }
 
     @Override
-    public boolean isActivated() {
+    public boolean isToggled() {
         return FarmHelperConfig.checkDesync;
     }
 
@@ -133,10 +143,8 @@ public class DesyncChecker implements IFeature {
                     break;
                 default:
                     // Unknown crop
-                    continue;
             }
         }
-        System.out.println(count + " / " + list.size());
         return count / (float) list.size() >= RATIO;
     }
 }

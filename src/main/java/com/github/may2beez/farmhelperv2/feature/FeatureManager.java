@@ -37,7 +37,7 @@ public class FeatureManager {
 
     public boolean shouldPauseMacroExecution() {
         return features.stream().anyMatch(feature -> {
-            if (feature.isEnabled()) {
+            if (feature.isRunning()) {
                 return feature.shouldPauseMacroExecution();
             }
             return false;
@@ -46,7 +46,7 @@ public class FeatureManager {
 
     public void disableAll() {
         features.forEach(feature -> {
-            if (feature.isActivated() && feature.isEnabled()) {
+            if (feature.isToggled() && feature.isRunning()) {
                 feature.stop();
                 LogUtils.sendDebug("Disabled feature: " + feature.getName());
             }
@@ -58,6 +58,15 @@ public class FeatureManager {
     }
 
     public boolean isAnyOtherFeatureEnabled(IFeature sender) {
-        return features.stream().anyMatch(feature -> feature.shouldPauseMacroExecution() && feature.isEnabled() && feature != sender);
+        return features.stream().anyMatch(feature -> feature.shouldPauseMacroExecution() && feature.isRunning() && feature != sender);
+    }
+
+    public void enableAll() {
+        features.forEach(feature -> {
+            if (feature.shouldStartAtMacroStart() && feature.isToggled()) {
+                feature.start();
+                LogUtils.sendDebug("Enabled feature: " + feature.getName());
+            }
+        });
     }
 }

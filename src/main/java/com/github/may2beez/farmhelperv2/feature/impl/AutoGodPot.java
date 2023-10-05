@@ -19,13 +19,23 @@ public class AutoGodPot implements IFeature {
     }
 
     @Override
-    public boolean isEnabled() {
+    public boolean isRunning() {
         return false;
     }
 
     @Override
     public boolean shouldPauseMacroExecution() {
         return false;
+    }
+
+    @Override
+    public boolean shouldStartAtMacroStart() {
+        return false;
+    }
+
+    @Override
+    public void start() {
+
     }
 
     @Override
@@ -39,7 +49,7 @@ public class AutoGodPot implements IFeature {
     }
 
     @Override
-    public boolean isActivated() {
+    public boolean isToggled() {
         return false;
     }
 }

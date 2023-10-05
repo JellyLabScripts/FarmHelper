@@ -1255,10 +1255,10 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
 		registerKeyBind(debugKeybind, () -> {
-            if (AntiStuck.getInstance().isEnabled()) {
+            if (AntiStuck.getInstance().isRunning()) {
                 AntiStuck.getInstance().stop();
             } else {
-                AntiStuck.getInstance().enable();
+                AntiStuck.getInstance().start();
             }
 		});
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));

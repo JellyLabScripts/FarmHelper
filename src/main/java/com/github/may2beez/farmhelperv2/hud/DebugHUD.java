@@ -24,8 +24,8 @@ public class DebugHUD extends TextHud {
             lines.add("Current state: " + macro.getCurrentState());
             lines.add("Rotating: " + macro.getRotation().rotating);
         });
-        lines.add("Scheduler: " + Scheduler.getInstance().isActivated());
-        if (Scheduler.getInstance().isActivated()) {
+        lines.add("Scheduler: " + Scheduler.getInstance().isToggled());
+        if (Scheduler.getInstance().isToggled()) {
             lines.add("  State: " + LogUtils.capitalize(Scheduler.getInstance().getSchedulerState().toString()));
             lines.add("  Clock: " + Scheduler.getInstance().getSchedulerClock().getRemainingTime());
             lines.add("  isFarming: " + Scheduler.getInstance().isFarming());
@@ -33,7 +33,7 @@ public class DebugHUD extends TextHud {
         lines.add("Buffs");
         lines.add("   Cookie: " + GameStateHandler.getInstance().getCookieBuffState());
         lines.add("   God Pot: " + GameStateHandler.getInstance().getGodPotState());
-        if (AutoCookie.getInstance().isActivated()) {
+        if (AutoCookie.getInstance().isToggled()) {
             lines.add("AutoCookie");
             lines.add("   Main State: " + AutoCookie.getInstance().getMainState());
             lines.add("   Movie Cookie State: " + AutoCookie.getInstance().getMoveCookieState());
@@ -41,7 +41,7 @@ public class DebugHUD extends TextHud {
             lines.add("   Clock: " + AutoCookie.getInstance().getAutoCookieDelay().getRemainingTime());
             lines.add("   Timeout clock: " + AutoCookie.getInstance().getTimeoutClock().getRemainingTime());
         }
-        if (AntiStuck.getInstance().isEnabled()) {
+        if (AntiStuck.getInstance().isRunning()) {
             lines.add("AntiStuck");
             lines.add("   State: " + AntiStuck.getInstance().getUnstuckState());
             lines.add("   Delay between change state: " + AntiStuck.getInstance().getDelayBetweenMovementsClock().getRemainingTime());
@@ -52,12 +52,12 @@ public class DebugHUD extends TextHud {
             lines.add("LagDetector");
             lines.add("   Lagging for: " + LagDetector.getInstance().getLaggingTime());
         }
-        if (DesyncChecker.getInstance().isActivated()) {
+        if (DesyncChecker.getInstance().isToggled()) {
             lines.add("Desync Checker");
             lines.add("   Clicked blocks: " + DesyncChecker.getInstance().getClickedBlocks().size());
-            lines.add("   Desync: " + DesyncChecker.getInstance().isEnabled());
+            lines.add("   Desync: " + DesyncChecker.getInstance().isRunning());
         }
-        if (AutoSell.getInstance().isEnabled()) {
+        if (AutoSell.getInstance().isRunning()) {
             lines.add("AutoSell");
             lines.add("   Sacks State: " + AutoSell.getInstance().getSacksState());
             lines.add("   Bazaar State: " + AutoSell.getInstance().getBazaarState());

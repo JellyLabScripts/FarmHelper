@@ -53,13 +53,27 @@ public class AntiStuck implements IFeature {
     }
 
     @Override
-    public boolean isEnabled() {
+    public boolean isRunning() {
         return enabled;
     }
 
     @Override
     public boolean shouldPauseMacroExecution() {
         return true;
+    }
+
+    @Override
+    public boolean shouldStartAtMacroStart() {
+        return true;
+    }
+
+    @Override
+    public void start() {
+        if (enabled) return;
+        LogUtils.sendWarning("[Anti Stuck] Enabled");
+        enabled = true;
+        unstuckState = UnstuckState.NONE;
+        notMovingTimer.schedule();
     }
 
     @Override
@@ -81,16 +95,8 @@ public class AntiStuck implements IFeature {
     }
 
     @Override
-    public boolean isActivated() {
+    public boolean isToggled() {
         return true;
-    }
-
-    public void enable() {
-        if (enabled) return;
-        LogUtils.sendWarning("[Anti Stuck] Enabled");
-        enabled = true;
-        unstuckState = UnstuckState.NONE;
-        notMovingTimer.schedule();
     }
 
     private double lastX = 10000;
@@ -101,7 +107,7 @@ public class AntiStuck implements IFeature {
     public void onTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!isActivated()) return;
+        if (!isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled() ||
                 (!MacroHandler.getInstance().isCurrentMacroEnabled()) ||
                 FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) {
@@ -141,7 +147,7 @@ public class AntiStuck implements IFeature {
                     dontCheckForAntistuckClock.schedule(2_500);
                     return;
                 }
-                enable();
+                start();
                 unstuckAttemptsClock.schedule(30_000);
             }
         } else {
@@ -156,7 +162,7 @@ public class AntiStuck implements IFeature {
     public void onTickUnstuck(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!isActivated()) return;
+        if (!isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (mc.currentScreen != null) return;

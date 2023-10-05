@@ -23,13 +23,22 @@ public class LagDetector implements IFeature {
     }
 
     @Override
-    public boolean isEnabled() {
+    public boolean isRunning() {
         return true;
     }
 
     @Override
     public boolean shouldPauseMacroExecution() {
         return false;
+    }
+
+    @Override
+    public boolean shouldStartAtMacroStart() {
+        return false; // that one is always running, no need to start
+    }
+
+    @Override
+    public void start() {
     }
 
     @Override
@@ -43,7 +52,7 @@ public class LagDetector implements IFeature {
     }
 
     @Override
-    public boolean isActivated() {
+    public boolean isToggled() {
         return true;
     }
 

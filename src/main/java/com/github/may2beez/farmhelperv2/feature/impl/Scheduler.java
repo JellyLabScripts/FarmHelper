@@ -33,13 +33,27 @@ public class Scheduler implements IFeature {
     }
 
     @Override
-    public boolean isEnabled() {
+    public boolean isRunning() {
         return schedulerClock.isScheduled();
     }
 
     @Override
     public boolean shouldPauseMacroExecution() {
         return false;
+    }
+
+    @Override
+    public boolean shouldStartAtMacroStart() {
+        return isToggled();
+    }
+
+    @Override
+    public void start() {
+        schedulerState = SchedulerState.FARMING;
+        schedulerClock.schedule(TimeUnit.MINUTES.toMillis(FarmHelperConfig.schedulerFarmingTime));
+        if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) {
+            schedulerClock.pause();
+        }
     }
 
     @Override
@@ -54,7 +68,7 @@ public class Scheduler implements IFeature {
     }
 
     @Override
-    public boolean isActivated() {
+    public boolean isToggled() {
         return FarmHelperConfig.enableScheduler;
     }
 
@@ -77,14 +91,6 @@ public class Scheduler implements IFeature {
                     + LogUtils.formatTime(Math.max(schedulerClock.getRemainingTime(), 0)) + (schedulerClock.isPaused() ? " (Paused)" : "");
         } else {
             return "Farming";
-        }
-    }
-
-    public void start() {
-        schedulerState = SchedulerState.FARMING;
-        schedulerClock.schedule(TimeUnit.MINUTES.toMillis(FarmHelperConfig.schedulerFarmingTime));
-        if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) {
-            schedulerClock.pause();
         }
     }
 

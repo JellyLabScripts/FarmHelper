@@ -51,13 +51,28 @@ public class AutoCookie implements IFeature {
     }
 
     @Override
-    public boolean isEnabled() {
+    public boolean isRunning() {
         return enabled || activating;
     }
 
     @Override
     public boolean shouldPauseMacroExecution() {
         return true;
+    }
+
+    @Override
+    public boolean shouldStartAtMacroStart() {
+        return false;
+    }
+
+    @Override
+    public void start() {
+        if (enabled) return;
+        enabled = true;
+        LogUtils.sendWarning("[Auto Cookie] Enabled!");
+        autoCookieDelay.reset();
+        setMainState(State.GET_COOKIE);
+        timeoutClock.schedule(7_500);
     }
 
     @Override
@@ -82,7 +97,7 @@ public class AutoCookie implements IFeature {
     }
 
     @Override
-    public boolean isActivated() {
+    public boolean isToggled() {
         return FarmHelperConfig.autoCookie;
     }
 
@@ -143,32 +158,17 @@ public class AutoCookie implements IFeature {
 
     private final Clock timeoutClock = new Clock();
 
-    public void enable() {
-        if (enabled) return;
-        enabled = true;
-        LogUtils.sendWarning("[Auto Cookie] Enabled!");
-        autoCookieDelay.reset();
-        setMainState(State.GET_COOKIE);
-        timeoutClock.schedule(7_500);
-    }
-
     private final RotationUtils rotation = new RotationUtils();
 
     @SubscribeEvent
-    public void onTick(TickEvent.ClientTickEvent event) {
+    public void onTickShouldEnable(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!isActivated()) return;
+        if (!isToggled()) return;
+        if (isEnabled()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
-        if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING) {
-            timeoutClock.schedule(bazaarState != BazaarState.NONE ? 30_000 : 7_500);
-            return;
-        }
-
-        if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.ACTIVE && mainState == State.NONE || (dontEnableClock.isScheduled() && !dontEnableClock.passed())) {
-            return;
-        }
+        if (!GameStateHandler.getInstance().inGarden()) return;
 
         if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LOBBY && GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
             if (!enabled && !activating && (!dontEnableClock.isScheduled() || dontEnableClock.passed())) {
@@ -177,16 +177,33 @@ public class AutoCookie implements IFeature {
                 KeyBindUtils.stopMovement();
                 Multithreading.schedule(() -> {
                     if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
-                        enable();
+                        start();
                         activating = false;
                     }
                 }, 1_500, TimeUnit.MILLISECONDS);
                 dontEnableClock.reset();
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onTickUpdate(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.START) return;
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!isToggled()) return;
+        if (!isEnabled()) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
+
+        if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.ACTIVE && mainState == State.NONE || (dontEnableClock.isScheduled() && !dontEnableClock.passed())) {
             return;
         }
 
-        if (!enabled) return;
+        if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING) {
+            timeoutClock.schedule(bazaarState != BazaarState.NONE ? 30_000 : 7_500);
+            return;
+        }
+
         if (autoCookieDelay.isScheduled() && !autoCookieDelay.passed()) return;
 
         switch (mainState) {
@@ -537,7 +554,7 @@ public class AutoCookie implements IFeature {
 
     @SubscribeEvent(receiveCanceled = true)
     public void onMessageReceived(ClientChatReceivedEvent event) {
-        if (!isEnabled()) return;
+        if (!isRunning()) return;
         if (event.type != 0) return;
 
         String message = event.message.getUnformattedText().trim();

@@ -41,13 +41,23 @@ public class PetSwapper implements IFeature {
     }
 
     @Override
-    public boolean isEnabled() {
+    public boolean isRunning() {
         return enabled;
     }
 
     @Override
     public boolean shouldPauseMacroExecution() {
         return true;
+    }
+
+    @Override
+    public boolean shouldStartAtMacroStart() {
+        return false;
+    }
+
+    @Override
+    public void start() {
+        start(false);
     }
 
     @Override
@@ -71,15 +81,17 @@ public class PetSwapper implements IFeature {
     }
 
     @Override
-    public boolean isActivated() {
+    public boolean isToggled() {
         return FarmHelperConfig.enablePetSwapper;
     }
+
     public static State currentState = State.NONE;
     static Clock delayClock = new Clock();
     static String previousPet = null;
     private static boolean getPreviousPet = false;
     public static boolean hasPetChangedDuringThisContest = false;
     List<ItemStack> inventory;
+
     public enum State {
         NONE,
         STARTING,
@@ -100,8 +112,8 @@ public class PetSwapper implements IFeature {
     @SubscribeEvent
     public void onTickShouldEnable(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!isActivated()) return;
-        if (isEnabled()) return;
+        if (!isToggled()) return;
+        if (isRunning()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
@@ -113,14 +125,14 @@ public class PetSwapper implements IFeature {
             FarmHelperConfig.enablePetSwapper = false;
             return;
         }
-        start(false);
+        start();
     }
 
     @SubscribeEvent
     public void onTickEnabled(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!isActivated()) return;
-        if (!isEnabled()) return;
+        if (!isToggled()) return;
+        if (!isRunning()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
 
@@ -239,7 +251,7 @@ public class PetSwapper implements IFeature {
             String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());
             String spawnMessage = "you summoned your " + (getPreviousPet ? previousPet : FarmHelperConfig.petSwapperName).toLowerCase();
             if (msg.toLowerCase().contains(spawnMessage)) {
-                if (!isEnabled() || currentState != State.WAITING_FOR_SPAWN) {
+                if (!isRunning() || currentState != State.WAITING_FOR_SPAWN) {
                     hasPetChangedDuringThisContest = false;
                     return;
                 }

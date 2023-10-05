@@ -62,7 +62,7 @@ public class StatusHUD extends TextHud {
 //        else if (FailsafeNew.emergency) {
 //            setStateString("Emergency");
 //        }
-        else if (Scheduler.getInstance().isEnabled()) {
+        else if (Scheduler.getInstance().isRunning()) {
             return Scheduler.getInstance().getStatusString();
         }
         else {
