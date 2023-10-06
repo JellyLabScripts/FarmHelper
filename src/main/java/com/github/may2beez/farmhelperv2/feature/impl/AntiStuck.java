@@ -64,7 +64,7 @@ public class AntiStuck implements IFeature {
 
     @Override
     public boolean shouldStartAtMacroStart() {
-        return true;
+        return false;
     }
 
     @Override

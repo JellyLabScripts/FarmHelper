@@ -1,8 +1,11 @@
 package com.github.may2beez.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
-import com.github.may2beez.farmhelperv2.event.BlockChangeEvent;
+import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.event.ClickedBlockEvent;
+import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
+import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.github.may2beez.farmhelperv2.util.APIUtils;
@@ -17,16 +20,30 @@ import net.minecraft.block.BlockNetherWart;
 import net.minecraft.block.BlockReed;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
+import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.server.S2FPacketSetSlot;
+import net.minecraft.util.StringUtils;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ProfitCalculator implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
     private final NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "US"));
+    {
+        formatter.setMaximumFractionDigits(0);
+    }
+    private final NumberFormat oneDecimalDigitFormatter = NumberFormat.getNumberInstance(Locale.US);
+    {
+        oneDecimalDigitFormatter.setMaximumFractionDigits(1);
+    }
     private static ProfitCalculator instance;
 
     public static ProfitCalculator getInstance() {
@@ -36,7 +53,9 @@ public class ProfitCalculator implements IFeature {
         return instance;
     }
 
-    public long realProfit = 0;
+    public double realProfit = 0;
+    public double realHourlyProfit = 0;
+    public double bountifulProfit = 0;
     public double blocksBroken = 0;
 
     public String getRealProfitString() {
@@ -44,22 +63,20 @@ public class ProfitCalculator implements IFeature {
     }
 
     public String getProfitPerHourString() {
-        if (!MacroHandler.getInstance().getMacroingTimer().isScheduled()) return formatter.format(0);
-        return formatter.format(realProfit * 3_600_000 / MacroHandler.getInstance().getMacroingTimer().getElapsedTime()) + "/hr";
+        return formatter.format(realHourlyProfit) + "/hr";
     }
 
     public String getBPS() {
         if (!MacroHandler.getInstance().getMacroingTimer().isScheduled()) return "0.0 BPS";
-        return Math.round(blocksBroken / MacroHandler.getInstance().getMacroingTimer().getElapsedTime() * 10000f) / 10f + " BPS";
+        return oneDecimalDigitFormatter.format(blocksBroken / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f)) + " BPS";
     }
 
     public final HashMap<String, Integer> itemsDropped = new HashMap<>();
 
     public final List<BazaarItem> cropsToCount = new ArrayList<BazaarItem>() {{
-        // enchanted hay bale
-        int HAY_ENCHANTED_TIER_1 = 144;
-        int ENCHANTED_TIER_1 = 160;
-        int ENCHANTED_TIER_2 = 25600;
+        final int HAY_ENCHANTED_TIER_1 = 144;
+        final int ENCHANTED_TIER_1 = 160;
+        final int ENCHANTED_TIER_2 = 25600;
 
         add(new BazaarItem("Hay Bale", "ENCHANTED_HAY_BLOCK", HAY_ENCHANTED_TIER_1, 54).setImage());
         add(new BazaarItem("Seeds", "ENCHANTED_SEEDS", ENCHANTED_TIER_1, 3).setImage());
@@ -88,7 +105,7 @@ public class ProfitCalculator implements IFeature {
     private final Clock updateClock = new Clock();
     @Getter
     private final Clock updateBazaarClock = new Clock();
-    public static final List<String> rngDropItemsList = Arrays.asList("Cropie", "Squash", "Fermento", "Burrowing Spores");
+    public static final List<String> cropsToCountList = Arrays.asList("Hay Bale", "Seeds", "Carrot", "Potato", "Melon", "Pumpkin", "Sugar Cane", "Cocoa Beans", "Nether Wart", "Cactus Green", "Red Mushroom", "Brown Mushroom");
 
     @Override
     public String getName() {
@@ -134,24 +151,75 @@ public class ProfitCalculator implements IFeature {
     }
 
     public void resetProfits() {
-        if (!ProfitCalculatorHUD.resetStatsBetweenDisabling) {
-            realProfit = 0;
-            blocksBroken = 0;
-            itemsDropped.clear();
-            cropsToCount.forEach(crop -> crop.currentAmount = 0);
-            rngDropToCount.forEach(drop -> drop.currentAmount = 0);
-        }
+        realProfit = 0;
+        realHourlyProfit = 0;
+        bountifulProfit = 0;
+        blocksBroken = 0;
+        itemsDropped.clear();
+        cropsToCount.forEach(crop -> crop.currentAmount = 0);
+        rngDropToCount.forEach(drop -> drop.currentAmount = 0);
     }
 
     @SubscribeEvent
     public void onTickUpdateProfit(TickEvent.ClientTickEvent event) {
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
+        if (!GameStateHandler.getInstance().inGarden()) return;
 
+        double profit = 0;
+        for (BazaarItem item : cropsToCount) {
+            if (cantConnectToApi) {
+                profit += item.currentAmount / item.amountToEnchanted * item.npcPrice;
+            } else {
+                double price = 0;
+                if (!bazaarPrices.containsKey(item.localizedName)) {
+                    LogUtils.sendDebug("No price for " + item.localizedName);
+                    profit = item.npcPrice;
+                } else if (bazaarPrices.get(item.localizedName).isManipulated()) {
+                    price = bazaarPrices.get(item.localizedName).getMedian();
+                } else {
+                    price = bazaarPrices.get(item.localizedName).currentPrice;
+                }
+                profit += (float) (item.currentAmount / item.amountToEnchanted * price);
+            }
+        }
+        double rngPrice = 0;
+        for (BazaarItem item : rngDropToCount) {
+            if (cantConnectToApi) {
+                rngPrice += item.currentAmount * item.npcPrice;
+            } else {
+                double price = 0;
+                if (!bazaarPrices.containsKey(item.localizedName)) {
+                    LogUtils.sendDebug("No price for " + item.localizedName);
+                    profit = item.npcPrice;
+                } else if (bazaarPrices.get(item.localizedName).isManipulated()) {
+                    price = bazaarPrices.get(item.localizedName).getMedian();
+                } else {
+                    price = bazaarPrices.get(item.localizedName).currentPrice;
+                }
+                rngPrice += (float) (item.currentAmount * price);
+            }
+        }
+
+        ItemStack currentItem = mc.thePlayer.inventory.getCurrentItem();
+        if (currentItem != null && StringUtils.stripControlCodes(currentItem.getDisplayName()).startsWith("Bountiful")) {
+            bountifulProfit += GameStateHandler.getInstance().getCurrentPurse() - GameStateHandler.getInstance().getPreviousPurse();
+        }
+        profit += bountifulProfit;
+        realProfit = profit * 0.95d; // it counts too much, because of compactors, so we delete ~5% of false profit
+        realProfit += rngPrice;
+
+        if (FarmHelperConfig.countRNGToProfitCalc) {
+            realHourlyProfit = (realProfit / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f / 60 / 60));
+        } else {
+            realHourlyProfit = profit / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f / 60 / 60);
+        }
     }
 
     @SubscribeEvent
-    public void onBlockChange(BlockChangeEvent event) {
+    public void onBlockChange(ClickedBlockEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (event.pos.distanceSq(mc.thePlayer.getPositionVector().xCoord, mc.thePlayer.getPositionVector().yCoord, mc.thePlayer.getPositionVector().zCoord) > 20) return;
+        if (!GameStateHandler.getInstance().inGarden()) return;
 
         switch (MacroHandler.getInstance().getCrop()) {
             case NETHER_WART:
@@ -159,43 +227,122 @@ public class ProfitCalculator implements IFeature {
             case CARROT:
             case POTATO:
             case WHEAT:
-                if (event.old.getBlock() instanceof BlockCrops && !(event.update.getBlock() instanceof BlockCrops) ||
-                        event.old.getBlock() instanceof BlockNetherWart && !(event.update.getBlock() instanceof BlockNetherWart)) {
+                if (event.getBlock() instanceof BlockCrops ||
+                        event.getBlock() instanceof BlockNetherWart) {
                     blocksBroken++;
                 }
                 break;
             case SUGAR_CANE:
-                if (event.old.getBlock() instanceof BlockReed && !(event.update.getBlock() instanceof BlockReed)) {
+                if (event.getBlock() instanceof BlockReed) {
                     blocksBroken += 0.5;
                 }
                 break;
             case MELON:
-                if (event.old.getBlock().equals(Blocks.melon_block) && !event.update.getBlock().equals(Blocks.melon_block)) {
+                if (event.getBlock().equals(Blocks.melon_block)) {
                     blocksBroken++;
                 }
                 break;
             case PUMPKIN:
-                if (event.old.getBlock().equals(Blocks.pumpkin) && !event.update.getBlock().equals(Blocks.pumpkin)) {
+                if (event.getBlock().equals(Blocks.pumpkin)) {
                     blocksBroken++;
                 }
                 break;
             case CACTUS:
-                if (event.old.getBlock().equals(Blocks.cactus) && !event.update.getBlock().equals(Blocks.cactus)) {
+                if (event.getBlock().equals(Blocks.cactus)) {
                     blocksBroken += 0.5;
                 }
                 break;
             case COCOA_BEANS:
-                if (event.old.getBlock().equals(Blocks.cocoa) && !event.update.getBlock().equals(Blocks.cocoa)) {
+                if (event.getBlock().equals(Blocks.cocoa)) {
                     blocksBroken++;
                 }
                 break;
             case MUSHROOM:
-                if (event.old.getBlock().equals(Blocks.red_mushroom_block) && !event.update.getBlock().equals(Blocks.red_mushroom_block) ||
-                        event.old.getBlock().equals(Blocks.brown_mushroom_block) && !event.update.getBlock().equals(Blocks.brown_mushroom_block)) {
+                if (event.getBlock().equals(Blocks.red_mushroom_block) ||
+                        event.getBlock().equals(Blocks.brown_mushroom_block)) {
                     blocksBroken++;
                 }
                 break;
         }
+    }
+
+    @SubscribeEvent
+    public void onReceivedPacket(ReceivePacketEvent event) {
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
+        if (!GameStateHandler.getInstance().inGarden()) return;
+
+        if (event.packet instanceof S2FPacketSetSlot) {
+            S2FPacketSetSlot packet = (S2FPacketSetSlot) event.packet;
+            int slotNumber = packet.func_149173_d();
+            if (slotNumber < 0 || slotNumber > 44) return; // not in inventory (armor, offhand, etc)
+            Slot currentSlot = mc.thePlayer.inventoryContainer.getSlot(slotNumber);
+            ItemStack newItem = packet.func_149174_e();
+            ItemStack oldItem = currentSlot.getStack();
+            if (newItem == null) return;
+            if (oldItem == null || !oldItem.getItem().equals(newItem.getItem())) {
+                int newStackSize = newItem.stackSize;
+                String name = StringUtils.stripControlCodes(newItem.getDisplayName());
+                addDroppedItem(name, newStackSize);
+            } else if (oldItem.getItem().equals(newItem.getItem())) {
+                int newStackSize = newItem.stackSize;
+                int oldStackSize = oldItem.stackSize;
+                String name = StringUtils.stripControlCodes(newItem.getDisplayName());
+                int amount = (newStackSize - oldStackSize) <= 0 ? 1 : (newStackSize - oldStackSize);
+                addDroppedItem(name, amount);
+            }
+        }
+    }
+
+    private final Pattern regex = Pattern.compile("Dicer dropped (\\d+)x ([\\w\\s]+)!");
+
+    @SubscribeEvent
+    public void onReceivedChat(ClientChatReceivedEvent event) {
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
+        if (!GameStateHandler.getInstance().inGarden()) return;
+        if (event.type != 0) return;
+
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        Optional<String> optional = cropsToCountList.stream().filter(message::contains).findFirst();
+        if (optional.isPresent()) {
+            String name = optional.get();
+            addRngDrop(name);
+            return;
+        }
+
+        if (message.contains("Dicer dropped")) {
+            String itemDropped;
+            int amountDropped;
+            Matcher matcher = regex.matcher(message);
+            if (matcher.find()) {
+                amountDropped = Integer.parseInt(matcher.group(1));
+                if (matcher.group(2).contains("Melon")) {
+                    itemDropped = "Melon";
+                } else if (matcher.group(2).contains("Pumpkin")) {
+                    itemDropped = "Pumpkin";
+                } else {
+                    return;
+                }
+            } else {
+                return;
+            }
+            amountDropped *= 160;
+            if (matcher.group(2).contains("Block") || matcher.group(2).contains("Polished")) {
+                amountDropped *= 160;
+            }
+            addDroppedItem(itemDropped, amountDropped);
+        }
+    }
+
+    private void addDroppedItem(String name, int amount) {
+        if (cropsToCountList.contains(name)) {
+            cropsToCount.stream().filter(crop -> crop.localizedName.equals(name)).forEach(crop -> crop.currentAmount += amount);
+        }
+    }
+
+    private void addRngDrop(String name) {
+        rngDropToCount.stream().filter(drop -> drop.localizedName.equals(name)).forEach(drop -> drop.currentAmount += 1);
     }
 
     private boolean cantConnectToApi = false;
@@ -244,16 +391,15 @@ public class ProfitCalculator implements IFeature {
             JsonObject json4 = json3.size() > 1 ? json3.get(1).getAsJsonObject() : json3.get(0).getAsJsonObject();
 
             double buyPrice = json4.get("pricePerUnit").getAsDouble();
-            if (bazaarPrices.get(item.localizedName) == null) {
-                APICrop apiCrop = new APICrop();
-                apiCrop.currentPrice = buyPrice;
-                apiCrop.previousPrices = new CircularFifoQueue<>(10);
-                bazaarPrices.put(item.localizedName, apiCrop);
-            } else {
-                APICrop apiCrop = bazaarPrices.get(item.localizedName);
+            APICrop apiCrop;
+            if (bazaarPrices.containsKey(item.localizedName)) {
+                apiCrop = bazaarPrices.get(item.localizedName);
                 apiCrop.previousPrices.add(apiCrop.currentPrice);
-                apiCrop.currentPrice = buyPrice;
+            } else {
+                apiCrop = new APICrop();
             }
+            apiCrop.currentPrice = buyPrice;
+            bazaarPrices.put(item.localizedName, apiCrop);
         }
     }
 
@@ -303,7 +449,7 @@ public class ProfitCalculator implements IFeature {
         public int amountToEnchanted;
         public float currentAmount;
         public String imageURL;
-        public int npcPrice;
+        public int npcPrice = 0;
 
         public BazaarItem(String localizedName, String bazaarId, int amountToEnchanted, int npcPrice) {
             this.localizedName = localizedName;
@@ -320,11 +466,17 @@ public class ProfitCalculator implements IFeature {
     }
 
     public static class APICrop {
-        public double currentPrice;
-        public CircularFifoQueue<Double> previousPrices;
+        public double currentPrice = 0;
+        public CircularFifoQueue<Double> previousPrices = new CircularFifoQueue<>(10);
         public boolean isManipulated() {
+            if (previousPrices.size() < 5) return false;
             double average = previousPrices.stream().mapToDouble(a -> a).average().orElse(currentPrice);
             return currentPrice > average * 2;
+        }
+        public double getMedian() {
+            List<Double> list = new ArrayList<>(previousPrices);
+            Collections.sort(list);
+            return list.get(list.size() / 2);
         }
     }
 }

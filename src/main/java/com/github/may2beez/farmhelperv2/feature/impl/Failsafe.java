@@ -32,12 +32,11 @@ public class Failsafe implements IFeature {
 
     @Override
     public boolean shouldStartAtMacroStart() {
-        return true;
+        return false;
     }
 
     @Override
     public void start() {
-        emergency = false;
     }
 
     @Override

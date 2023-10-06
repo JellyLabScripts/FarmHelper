@@ -114,7 +114,19 @@ public class ProfitCalculatorHUD extends BasicHud {
         lines.add(new Tuple<>(ProfitCalculator.getInstance().getProfitPerHourString(), "/farmhelper/textures/gui/profithr.png"));
         lines.add(new Tuple<>(ProfitCalculator.getInstance().getBPS(), "/farmhelper/textures/gui/bps.png"));
         lines.add(new Tuple<>(LogUtils.getRuntimeFormat(), "/farmhelper/textures/gui/runtime.png"));
-//        HashMap<String, ProfitCalculator.BazaarItem> linesCopy = new HashMap<>(ProfitCalculator.ListCropsToShow);
+        List<ProfitCalculator.BazaarItem> linesCopy = new ArrayList<>(ProfitCalculator.getInstance().cropsToCount);
+        linesCopy.stream().filter(crop -> crop.currentAmount > 0).sorted(
+                Comparator.comparing(
+                        (ProfitCalculator.BazaarItem item) -> -item.currentAmount
+                )
+        ).forEachOrdered(
+                item -> lines.add(
+                        new Tuple<>(
+                                String.format("%,.2f", item.currentAmount / item.amountToEnchanted),
+                                item.imageURL
+                        )
+                )
+        );
 //        LinkedHashMap<String, ProfitCalculator.BazaarItem> sorted = new LinkedHashMap<>();
 //        linesCopy.entrySet()
 //                .stream()

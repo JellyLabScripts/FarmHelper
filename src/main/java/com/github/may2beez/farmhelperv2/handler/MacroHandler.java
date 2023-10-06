@@ -139,11 +139,13 @@ public class MacroHandler {
         LogUtils.sendSuccess("Macro enabled!");
         LogUtils.webhookLog("Macro enabled!");
 
-        if (macroingTimer.isScheduled() && !ProfitCalculatorHUD.resetStatsBetweenDisabling) {
-            macroingTimer.resume();
-        } else {
-            macroingTimer.schedule();
-        }
+        Multithreading.schedule(() -> {
+            if (macroingTimer.isScheduled() && !ProfitCalculatorHUD.resetStatsBetweenDisabling) {
+                macroingTimer.resume();
+            } else {
+                macroingTimer.schedule();
+            }
+        }, 300, TimeUnit.MILLISECONDS);
 
         FeatureManager.getInstance().enableAll();
 

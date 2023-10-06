@@ -10,8 +10,10 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 public class ClickedBlockEvent extends Event {
     private final BlockPos pos;
     private final EnumFacing facing;
-    public ClickedBlockEvent(BlockPos pos, EnumFacing facing) {
+    private final Block block;
+    public ClickedBlockEvent(BlockPos pos, EnumFacing facing, Block block) {
         this.pos = pos;
         this.facing = facing;
+        this.block = block;
     }
 }

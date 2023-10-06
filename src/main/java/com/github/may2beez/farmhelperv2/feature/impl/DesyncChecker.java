@@ -55,12 +55,11 @@ public class DesyncChecker implements IFeature {
 
     @Override
     public void start() {
-
+        clickedBlocks.clear();
     }
 
     @Override
     public void stop() {
-        clickedBlocks.clear();
     }
 
     @Override

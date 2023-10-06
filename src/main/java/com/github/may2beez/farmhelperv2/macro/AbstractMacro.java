@@ -103,6 +103,7 @@ public abstract class AbstractMacro {
             if (rotated) {
                 LogUtils.sendDebug("Rotated");
                 rewarpState = RewarpState.NONE;
+                changeState(calculateDirection());
                 return;
             }
 

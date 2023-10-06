@@ -95,10 +95,10 @@ public class GameStateHandler {
     private BuffState godPotState = BuffState.UNKNOWN;
 
     @Getter
-    private long currentPurse = 0;
+    private double currentPurse = 0;
 
     @Getter
-    private long previousPurse = 0;
+    private double previousPurse = 0;
 
     @Getter
     private long bits = 0;
