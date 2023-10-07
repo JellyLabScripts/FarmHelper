@@ -1,6 +1,7 @@
 package com.github.may2beez.farmhelperv2.config;
 
 import cc.polyfrost.oneconfig.config.Config;
+import cc.polyfrost.oneconfig.config.annotations.Button;
 import cc.polyfrost.oneconfig.config.annotations.Number;
 import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
@@ -131,7 +132,7 @@ public class FarmHelperConfig extends Config {
 
     // START GENERAL
 
-//    @DualOption(
+    //    @DualOption(
 //            name = "Macro Type", category = GENERAL, subcategory = "Macro",
 //            description = "The macro to use for farming",
 //            left = "Vertical",
@@ -1254,13 +1255,13 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-		registerKeyBind(debugKeybind, () -> {
+        registerKeyBind(debugKeybind, () -> {
             if (AntiStuck.getInstance().isRunning()) {
                 AntiStuck.getInstance().stop();
             } else {
                 AntiStuck.getInstance().start();
             }
-		});
+        });
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
         save();
     }

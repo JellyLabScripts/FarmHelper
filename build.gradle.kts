@@ -78,6 +78,9 @@ dependencies {
 
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.1.2")
     shadowImpl("org.reflections:reflections:0.10.2")
+
+    implementation("io.humble:humble-video-all:0.3.0")
+    shadowImpl("io.humble:humble-video-all:0.3.0")
 }
 
 // Tasks:
