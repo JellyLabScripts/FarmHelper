@@ -74,7 +74,7 @@ jobs:
 
       # Step 6: Send an embed message with commit details to Discord
       - name: Send embed message with timestamp and footer
-        if: steps.check_secrets.outputs.result == 'success' && steps.get_version.outputs.shouldRelease == 'true'
+        if: ${{ (steps.check_secrets.outputs.result == 'success') && (steps.get_version.outputs.shouldRelease == 'true') }}
         run: |
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
           LONG_DATE=$(date -u +"%A, %B %-d, %Y at %T")
@@ -111,7 +111,7 @@ jobs:
 
       # Step 7: Send built JAR files to Discord webhook
       - name: Send build artifacts to Discord webhook
-        if: steps.check_secrets.outputs.result == 'success' && steps.get_version.outputs.shouldRelease == 'true'
+        if: ${{ (steps.check_secrets.outputs.result == 'success') && (steps.get_version.outputs.shouldRelease == 'true') }}
         run: |
           cd build/libs
           for file in *.jar; do
