@@ -251,6 +251,27 @@ public class FarmHelperConfig extends Config {
 
     // START MISCELLANEOUS
 
+    @KeyBind(
+            name = "Toggle Farm Helper", category = MISCELLANEOUS, subcategory = "Keybinds",
+            description = "Toggles the macro on/off"
+    )
+    public static OneKeyBind toggleMacro = new OneKeyBind(Keyboard.KEY_GRAVE);
+    @KeyBind(
+            name = "Open GUI", category = MISCELLANEOUS, subcategory = "Keybinds",
+            description = "Opens Farm Helper configuration menu"
+    )
+
+    public static OneKeyBind openGuiKeybind = new OneKeyBind(Keyboard.KEY_F);
+
+    @DualOption(
+            name = "AutoUpdater Download Beta Versions", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+            description = "The version type to use",
+            left = "Release",
+            right = "Pre-release",
+            size = OptionSize.DUAL
+    )
+    public static boolean autoUpdaterDownloadBetaVersions = false;
+
     @Switch(
             name = "Xray Mode", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "Hides blocks to reduce resource usage"
@@ -382,18 +403,6 @@ public class FarmHelperConfig extends Config {
             description = "Allows you to farm mushrooms more efficient on higher speeds by making the hitboxes bigger"
     )
     public static boolean increasedMushrooms = true;
-
-    @KeyBind(
-            name = "Toggle Farm Helper", category = MISCELLANEOUS, subcategory = "Keybinds",
-            description = "Toggles the macro on/off"
-    )
-    public static OneKeyBind toggleMacro = new OneKeyBind(Keyboard.KEY_GRAVE);
-    @KeyBind(
-            name = "Open GUI", category = MISCELLANEOUS, subcategory = "Keybinds",
-            description = "Opens Farm Helper configuration menu"
-    )
-
-    public static OneKeyBind openGuiKeybind = new OneKeyBind(Keyboard.KEY_F);
 
     // END MISCELLANEOUS
 

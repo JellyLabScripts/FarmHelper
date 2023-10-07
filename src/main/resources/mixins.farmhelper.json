@@ -17,6 +17,7 @@
     "block.MixinBlockRendererDispatcher",
     "client.MixinPlayerControllerMP",
     "gui.IGuiPlayerTabOverlayAccessor",
+    "gui.MixinGuiMainMenu",
     "render.MixinEffectRenderer"
   ]
 }
