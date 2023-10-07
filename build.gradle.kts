@@ -15,6 +15,7 @@ val mcVersion: String by project
 val version: String by project
 val mixinGroup = "$baseGroup.mixin"
 val modid: String by project
+val modName: String by project
 
 // Toolchains:
 java {
@@ -87,7 +88,7 @@ tasks.withType(JavaCompile::class) {
 }
 
 tasks.withType(Jar::class) {
-    archiveBaseName.set(modid)
+    archiveBaseName.set(modName)
     manifest.attributes.run {
         this["FMLCorePluginContainsFMLMod"] = "true"
         this["ForceLoadAsMod"] = "true"
@@ -104,6 +105,7 @@ tasks.processResources {
     inputs.property("version", project.version)
     inputs.property("mcversion", mcVersion)
     inputs.property("modid", modid)
+    inputs.property("modName", modName)
     inputs.property("mixinGroup", mixinGroup)
 
     filesMatching(listOf("mcmod.info", "mixins.$modid.json")) {
