@@ -4,6 +4,7 @@ import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
+import com.github.may2beez.farmhelperv2.feature.impl.LagDetector;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.*;
@@ -131,10 +132,6 @@ public abstract class AbstractMacro {
             return;
         }
 
-        if (needAntistuck(additionalCheck())) {
-            return;
-        }
-
 //        if (Failsafe.getInstance().isEmergency() && FailsafeNew.findHighestPriorityElement() != FailsafeNew.FailsafeType.DESYNC) {
 //            LogUtils.sendDebug("Blocking changing movement due to emergency");
 //            return false;
@@ -145,7 +142,10 @@ public abstract class AbstractMacro {
             return;
         }
 
-//        if (LagDetection.isLagging()) return false;
+        if (LagDetector.getInstance().isLagging()) {
+            LogUtils.sendDebug("Blocking changing movement due to lag");
+            return;
+        }
 
         PlayerUtils.getTool();
 
@@ -262,36 +262,5 @@ public abstract class AbstractMacro {
 
     public State calculateDirection() {
         return State.NONE;
-    }
-
-    public boolean needAntistuck(boolean lastMoveBack) {
-//        if (LagDetection.isLagging() || LagDetection.wasJustLagging()) return false;
-//        if (Antistuck.stuck && !FailsafeNew.emergency) {
-//            unstuck(lastMoveBack);
-//            return true;
-//        }
-        return false;
-    }
-
-    public void unstuck(boolean lastMoveBack) {
-//        if (!Antistuck.unstuckThreadIsRunning) {
-//            Antistuck.stuck = true;
-//            Antistuck.unstuckLastMoveBack = lastMoveBack;
-//            Antistuck.unstuckThreadIsRunning = true;
-//            if (Antistuck.unstuckTries >= 2 && FarmHelper.config.rewarpAt3FailesAntistuck) {
-//                LogUtils.sendWarning("Macro was continuously getting stuck! Warping to garden...");
-//                triggerWarpGarden(true);
-//                yaw = -2137;
-//                pitch = -2137;
-//                Antistuck.unstuckTries = 0;
-//                return;
-//            }
-//            LogUtils.sendWarning("Macro is stuck! Turning on antistuck procedure...");
-//            Antistuck.unstuckThreadInstance = new Thread(Antistuck.unstuckRunnable, "antistuck");
-//            KeyBindUtils.stopMovement();
-//            Antistuck.unstuckThreadInstance.start();
-//        } else {
-//            LogUtils.sendDebug("Unstuck thread is alive!");
-//        }
     }
 }
