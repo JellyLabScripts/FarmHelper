@@ -283,7 +283,6 @@ public class AutoUpdaterGUI extends GuiScreen {
             URL url = new URL(GITHUB_API_URL);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
-            connection.setRequestProperty("Authorization", "Bearer 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");
 
             int responseCode = connection.getResponseCode();
 
