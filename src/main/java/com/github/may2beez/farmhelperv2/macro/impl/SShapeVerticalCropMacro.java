@@ -1,6 +1,7 @@
 package com.github.may2beez.farmhelperv2.macro.impl;
 
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.feature.impl.AntiStuck;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
@@ -23,20 +24,20 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
             case RIGHT: {
                 if (GameStateHandler.getInstance().isLeftWalkable() && getCurrentState() == State.LEFT) {
                     // Probably stuck in dirt, continue going left
-                    unstuck(false);
+                    AntiStuck.getInstance().start();
                     changeState(State.LEFT);
                     return;
                 }
                 if (GameStateHandler.getInstance().isRightWalkable() && getCurrentState() == State.RIGHT) {
                     // Probably stuck in dirt, continue going right
-                    unstuck(true);
+                    AntiStuck.getInstance().start();
                     changeState(State.RIGHT);
                     return;
                 }
                 if (GameStateHandler.getInstance().isFrontWalkable()) {
                     if (changeLaneDirection == ChangeLaneDirection.BACKWARD) {
                         // Probably stuck in dirt
-                        unstuck(true);
+                        AntiStuck.getInstance().start();
                         return;
                     }
                     changeState(State.SWITCHING_LANE);
@@ -44,7 +45,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 } else if (GameStateHandler.getInstance().isBackWalkable()) {
                     if (changeLaneDirection == ChangeLaneDirection.FORWARD) {
                         // Probably stuck in dirt
-                        unstuck(false);
+                        AntiStuck.getInstance().start();
                         return;
                     }
                     changeState(State.SWITCHING_LANE);
@@ -68,7 +69,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 } else if (GameStateHandler.getInstance().isRightWalkable()) {
                     changeState(State.RIGHT);
                 } else {
-                    unstuck(changeLaneDirection == ChangeLaneDirection.BACKWARD);
+                    AntiStuck.getInstance().start();
                 }
                 break;
             }
@@ -127,7 +128,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                     } else if (GameStateHandler.getInstance().isBackWalkable()) {
                         changeLaneDirection = ChangeLaneDirection.BACKWARD;
                     } else {
-                        unstuck(false);
+                        AntiStuck.getInstance().start();
                         return;
                     }
                 }
