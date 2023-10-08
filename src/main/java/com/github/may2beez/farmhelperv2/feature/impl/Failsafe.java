@@ -17,7 +17,7 @@ public class Failsafe implements IFeature {
 
     @Override
     public String getName() {
-        return "Failsafes";
+        return "Failsafe";
     }
 
     @Override

@@ -28,13 +28,13 @@ public class SShapeSugarcaneMacro extends AbstractMacro {
 //    @Override
 //    public void onEnable() {
 //        super.onEnable();
-//        if (FarmHelper.config.customPitch) {
-//            pitch = FarmHelper.config.customPitchLevel;
+//        if (FarmHelperConfig.customPitch) {
+//            setPitch(FarmHelperConfig.customPitchLevel);
 //        } else {
 //            pitch = (float) (Math.random() * 1) - 0.5f; // -0.5 to 0.5
 //        }
-//        if (FarmHelper.config.customYaw) {
-//            yaw = FarmHelper.config.customYawLevel;
+//        if (FarmHelperConfig.customYaw) {
+//            yaw = FarmHelperConfig.customYawLevel;
 //        } else {
 //            yaw = AngleUtils.getClosestDiagonal();
 //        }
@@ -73,7 +73,7 @@ public class SShapeSugarcaneMacro extends AbstractMacro {
 //
 //        if (needAntistuck(false)) return;
 //
-//        CropUtils.getTool();
+//        PlayerUtils.getTool();
 //
 //        // Waiting for teleportation, don't move
 //        if (beforeTeleportationPos != null) {
@@ -91,7 +91,7 @@ public class SShapeSugarcaneMacro extends AbstractMacro {
 //
 //        // Update or invoke state, based on if player is moving or not
 //        if (FarmHelper.gameState.canChangeDirection()) {
-//            KeyBindUtils.stopMovement(FarmHelper.config.holdLeftClickWhenChangingRow);
+//            KeyBindUtils.stopMovement(FarmHelperConfig.holdLeftClickWhenChangingRow);
 //            FarmHelper.gameState.scheduleNotMoving();
 //            updateState();
 //            invokeState();
@@ -129,7 +129,7 @@ public class SShapeSugarcaneMacro extends AbstractMacro {
 //            case DROPPING: {
 //                LogUtils.sendDebug("On Ground: " + Macro.mc.thePlayer.onGround);
 //                if (Macro.mc.thePlayer.onGround && Math.abs(layerY - Macro.mc.thePlayer.getPosition().getY()) > 1.5) {
-//                    if (FarmHelper.config.rotateAfterDrop && !rotation.rotating) {
+//                    if (FarmHelperConfig.rotateAfterDrop && !rotation.rotating) {
 //                        LogUtils.sendDebug("Rotating 180");
 //                        rotation.reset();
 //                        yaw = yaw + 180;

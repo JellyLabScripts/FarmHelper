@@ -79,6 +79,7 @@ public class FarmHelperConfig extends Config {
         CACTUS,
         COCOA_BEANS,
         MUSHROOM,
+        MUSHROOM_ROTATE,
     }
 
     public static void addRewarp() {
@@ -962,7 +963,7 @@ public class FarmHelperConfig extends Config {
             LogUtils.sendError("Invalid webhook URL!");
             return;
         }
-//        GameState.webhook = new DiscordWebhook(FarmHelper.config.webHookURL);
+//        GameState.webhook = new DiscordWebhook(FarmHelperConfig.webHookURL);
 //        GameState.webhook.setUsername("Jelly - Farm Helper");
 //        GameState.webhook.setAvatarUrl("https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png");
         LogUtils.sendSuccess("Webhook URL has been applied");

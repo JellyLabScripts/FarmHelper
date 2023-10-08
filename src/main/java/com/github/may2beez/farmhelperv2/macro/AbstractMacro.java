@@ -109,8 +109,7 @@ public abstract class AbstractMacro {
             }
 
             if (FarmHelperConfig.rotateAfterWarped) {
-                yaw = AngleUtils.get360RotationYaw(yaw + 180);
-                setClosest90Deg(AngleUtils.getClosest(yaw));
+                doAfterRewarpRotation();
             }
 
             if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
@@ -262,5 +261,10 @@ public abstract class AbstractMacro {
 
     public State calculateDirection() {
         return State.NONE;
+    }
+
+    public void doAfterRewarpRotation() {
+        yaw = AngleUtils.get360RotationYaw(yaw + 180);
+        setClosest90Deg(AngleUtils.getClosest(yaw));
     }
 }

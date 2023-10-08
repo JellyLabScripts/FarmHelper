@@ -112,7 +112,7 @@ public class LogUtils {
         if (FarmHelperConfig.sendLogs && (timeDiff > 20 || !Objects.equals(lastWebhook, message))) {
             DiscordWebhook webhook = new DiscordWebhook(FarmHelperConfig.webHookURL);
             webhook.setUsername("Jelly - Farm Helper");
-            webhook.setAvatarUrl("https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png");
+            webhook.setAvatarUrl("https://cdn.discordapp.com/attachments/1152966451406327858/1160577992876109884/icon.png");
             webhook.addEmbed(new DiscordWebhook.EmbedObject()
                 .setDescription("**Farm Helper Log** ```" + message + "```")
                 .setColor(Color.decode("#741010"))
