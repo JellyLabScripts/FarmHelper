@@ -7,6 +7,7 @@ import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
 import com.github.may2beez.farmhelperv2.feature.impl.Scheduler;
+import com.github.may2beez.farmhelperv2.feature.impl.WebSocketConnector;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 import com.github.may2beez.farmhelperv2.macro.impl.*;
@@ -50,6 +51,9 @@ public class MacroHandler {
 
     @Getter
     private final Timer macroingTimer = new Timer();
+
+    @Getter
+    private final Timer analyticsTimer = new Timer();
 
     @Getter
     @Setter
@@ -145,6 +149,7 @@ public class MacroHandler {
             } else {
                 macroingTimer.schedule();
             }
+            analyticsTimer.schedule();
         }, 300, TimeUnit.MILLISECONDS);
 
         FeatureManager.getInstance().enableAll();
@@ -162,9 +167,18 @@ public class MacroHandler {
             m.getRotation().reset();
         });
 
-        setCrop(null);
         macroingTimer.pause();
+        analyticsTimer.pause();
+        if (FarmHelperConfig.sendAnalyticData) {
+            try {
+                WebSocketConnector.getInstance().sendAnalyticsData();
+            } catch (Exception e) {
+                LogUtils.sendDebug("Failed to send analytics data!");
+                e.printStackTrace();
+            }
+        }
 
+        setCrop(null);
         FeatureManager.getInstance().disableAll();
         FeatureManager.getInstance().resetAllStates();
         disableCurrentMacro();

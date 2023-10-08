@@ -133,22 +133,6 @@ public class FarmHelperConfig extends Config {
 
     // START GENERAL
 
-    //    @DualOption(
-//            name = "Macro Type", category = GENERAL, subcategory = "Macro",
-//            description = "The macro to use for farming",
-//            left = "Vertical",
-//            right = "S Shape",
-//            size = OptionSize.DUAL
-//    )
-//    public static boolean macroType = false;
-//    @Dropdown(
-//            name = "Vertical Farm", category = GENERAL, subcategory = "Macro",
-//            description = "Vertical farm type",
-//            options = {
-//                    "Wheat/Potato/Carrot/Nether Wart" // 0
-//            }
-//    )
-//    public static int VerticalMacroType = 0;
     @Dropdown(
             name = "Macro Type", category = GENERAL, subcategory = "Macro",
             description = "Farm Types",
@@ -405,6 +389,12 @@ public class FarmHelperConfig extends Config {
             description = "Allows you to farm mushrooms more efficient on higher speeds by making the hitboxes bigger"
     )
     public static boolean increasedMushrooms = true;
+
+    @Switch(
+            name = "Send analytic data", category = MISCELLANEOUS, subcategory = "Analytics",
+            description = "Sends analytic data to the server to improve the macro"
+    )
+    public static boolean sendAnalyticData = true;
 
     // END MISCELLANEOUS
 
