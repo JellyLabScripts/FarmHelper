@@ -157,7 +157,7 @@ public class WebSocketConnector implements IFeature {
 
     public void sendAnalyticsData() {
         System.out.println("Sending analytics data");
-//        if (MacroHandler.getInstance().getAnalyticsTimer().getElapsedTime() <= 60_000) return; // ignore if macroing for less than 60 seconds
+        if (MacroHandler.getInstance().getAnalyticsTimer().getElapsedTime() <= 60_000) return; // ignore if macroing for less than 60 seconds
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("message", "analyticsData");
         jsonObject.addProperty("mod", "farmHelper");
