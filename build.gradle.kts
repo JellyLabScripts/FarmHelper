@@ -77,11 +77,10 @@ dependencies {
     compileOnly("org.spongepowered:mixin:0.8.5")
     annotationProcessor("org.spongepowered:mixin:0.8.5")
 
+    shadowImpl("org.java-websocket:Java-WebSocket:1.5.3")
+
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.1.2")
     shadowImpl("org.reflections:reflections:0.10.2")
-
-    implementation("io.humble:humble-video-all:0.3.0")
-    shadowImpl("io.humble:humble-video-all:0.3.0")
 }
 
 // Tasks:

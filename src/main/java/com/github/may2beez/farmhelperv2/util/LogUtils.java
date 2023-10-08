@@ -35,7 +35,7 @@ public class LogUtils {
     }
     public static void sendDebug(String message) {
         if (lastDebugMessage != null && lastDebugMessage.equals(message)) return;
-        if (FarmHelperConfig.debugMode)
+        if (FarmHelperConfig.debugMode && mc.thePlayer != null)
             sendLog(new ChatComponentText("§3§lFarm Helper §8» §7" + message));
         else
             System.out.println("[Farm Helper] " + message);

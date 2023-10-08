@@ -2,6 +2,8 @@ package com.github.may2beez.farmhelperv2.hud;
 
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
+import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.feature.impl.BanwaveChecker;
 import com.github.may2beez.farmhelperv2.feature.impl.Scheduler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import net.minecraft.client.Minecraft;
@@ -13,6 +15,7 @@ public class StatusHUD extends TextHud {
     public StatusHUD() {
         super(true, Minecraft.getMinecraft().displayWidth - 100, Minecraft.getMinecraft().displayHeight - 100, 1, true, true, 4f, 5, 5, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
     }
+
     @Override
     protected void getLines(List<String> lines, boolean example) {
         if (example) {
@@ -24,9 +27,10 @@ public class StatusHUD extends TextHud {
         } else {
             lines.add(getStatusString());
 
-//            if (!BanwaveChecker.staffBan.isEmpty() && FarmHelperConfig.banwaveCheckerEnabled) {
-//                lines.add(BanwaveChecker.staffBan);
-//        }
+            if (BanwaveChecker.getInstance().isRunning() && FarmHelperConfig.banwaveCheckerEnabled && BanwaveChecker.getInstance().isConnected()) {
+                lines.add("Staff bans in last " + BanwaveChecker.getInstance().getMinutes() + " minutes: " + BanwaveChecker.getInstance().getBans());
+                lines.add("FarmHelper's bans in last 15 minutes: " + BanwaveChecker.getInstance().getBansByMod());
+            }
 
 //            if (FarmHelperConfig.enableRemoteControl)
 //                lines.add(RemoteControl.getInstance().getStatusString());
@@ -39,7 +43,7 @@ public class StatusHUD extends TextHud {
         float maxTextLength = getLineWidth(text, scale);
         float maxLongestLine = getWidth(scale, example);
 
-        int difference = (int)(((maxLongestLine - maxTextLength) / 3.5f) / (2 * scale)) - 1;
+        int difference = (int) (((maxLongestLine - maxTextLength) / 3.5f) / (2 * scale)) - 1;
         return (difference > 0) ? new String(new char[difference]).replace("\0", " ") + text : text;
     }
 
@@ -64,8 +68,7 @@ public class StatusHUD extends TextHud {
 //        }
         else if (Scheduler.getInstance().isRunning()) {
             return Scheduler.getInstance().getStatusString();
-        }
-        else {
+        } else {
             return "Macroing";
         }
     }
