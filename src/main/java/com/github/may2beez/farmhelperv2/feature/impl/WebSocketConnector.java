@@ -1,11 +1,13 @@
 package com.github.may2beez.farmhelperv2.feature.impl;
 
+import cc.polyfrost.oneconfig.utils.Notifications;
 import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.Getter;
@@ -129,8 +131,8 @@ public class WebSocketConnector implements IFeature {
                 for (Map.Entry<String, JsonElement> header : getHeaders().entrySet()) {
                     client.addHeader(header.getKey(), header.getValue().getAsString());
                 }
-                client.connect();
-            } catch (URISyntaxException e) {
+                client.connectBlocking();
+            } catch (URISyntaxException | InterruptedException e) {
                 e.printStackTrace();
                 client = null;
                 reconnectDelay.schedule(5_000);
@@ -138,17 +140,22 @@ public class WebSocketConnector implements IFeature {
         }
     }
 
-    public void playerBanned(int days, String banId) {
+    public void playerBanned(int days, String reason, String banId) {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("message", "gotBanned");
         jsonObject.addProperty("mod", "farmHelper");
+        jsonObject.addProperty("username", Minecraft.getMinecraft().getSession().getUsername());
         JsonObject additionalInfo = new JsonObject();
-        additionalInfo.addProperty("days", days);
+        additionalInfo.addProperty("days", days + 1);
         additionalInfo.addProperty("banId", banId);
-        String config = FarmHelper.gson.toJson(FarmHelper.config);
+        additionalInfo.addProperty("reason", reason);
+        String config = FarmHelper.config.getJson();
         JsonObject configJson = FarmHelper.gson.fromJson(config, JsonObject.class);
-        configJson.remove("webHookURL"); // remove webhook url from config
-        configJson.remove("discordRemoteControlToken"); // remove discord remote control token from config
+        configJson.remove("proxyAddress");
+        configJson.remove("proxyUsername");
+        configJson.remove("proxyPassword");
+        configJson.remove("webHookURL");
+        configJson.remove("discordRemoteControlToken");
         String configJsonString = FarmHelper.gson.toJson(configJson);
         additionalInfo.addProperty("config", configJsonString);
         jsonObject.add("additionalInfo", additionalInfo);
@@ -208,7 +215,8 @@ public class WebSocketConnector implements IFeature {
                         String username = jsonObject.get("username").getAsString();
                         String days = jsonObject.get("days").getAsString();
                         String mod = jsonObject.get("mod").getAsString();
-                        LogUtils.sendWarning("Player " + username + " got banned for " + days + " days by using " + mod);
+                        LogUtils.sendWarning("Player " + username + " got banned for " + days + " days while using " + mod);
+                        Notifications.INSTANCE.send("FarmHelper INFO", "Player " + username + " got banned for " + days + " days while using " + mod);
                         break;
                     }
                 }
