@@ -35,6 +35,7 @@ loom {
             property("mixin.debug", "true")
             property("asmhelper.verbose", "true")
             arg("--tweakClass", "cc.polyfrost.oneconfig.loader.stage0.LaunchWrapperTweaker")
+            arg("-Dfml.coreMods.load", "com.github.may2beez.farmhelperv2.transformer.FMLCore")
         }
     }
     forge {
@@ -92,6 +93,7 @@ tasks.withType(JavaCompile::class) {
 tasks.withType(Jar::class) {
     archiveBaseName.set(modName)
     manifest.attributes.run {
+        this["FMLCorePlugin"] = "com.github.may2beez.farmhelperv2.transformer.FMLCore"
         this["FMLCorePluginContainsFMLMod"] = "true"
         this["ForceLoadAsMod"] = "true"
         this["TweakOrder"] = "0"

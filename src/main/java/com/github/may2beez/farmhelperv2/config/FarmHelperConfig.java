@@ -12,6 +12,7 @@ import com.github.may2beez.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
 import com.github.may2beez.farmhelperv2.feature.impl.AntiStuck;
 import com.github.may2beez.farmhelperv2.feature.impl.AutoSell;
+import com.github.may2beez.farmhelperv2.feature.impl.Proxy;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.hud.DebugHUD;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
@@ -51,10 +52,11 @@ public class FarmHelperConfig extends Config {
 
     public static List<Rewarp> rewarpList = new ArrayList<>();
 
+    public static boolean proxyEnabled = false;
     public static String proxyAddress = "";
     public static String proxyUsername = "";
     public static String proxyPassword = "";
-    public static int proxyType = 0;
+    public static Proxy.ProxyType proxyType = Proxy.ProxyType.HTTP;
     public static boolean connectAtStartup = false;
 
     public enum MacroEnum {
