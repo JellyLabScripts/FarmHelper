@@ -78,7 +78,7 @@ dependencies {
     compileOnly("org.spongepowered:mixin:0.8.5")
     annotationProcessor("org.spongepowered:mixin:0.8.5")
 
-    shadowImpl("org.java-websocket:Java-WebSocket:1.5.3")
+    shadowImpl("org.java-websocket:Java-WebSocket:1.5.4")
 
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.1.2")
     shadowImpl("org.reflections:reflections:0.10.2")
