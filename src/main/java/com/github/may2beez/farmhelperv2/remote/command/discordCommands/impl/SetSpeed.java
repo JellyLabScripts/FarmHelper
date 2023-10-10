@@ -54,9 +54,7 @@ public class SetSpeed extends DiscordCommand {
                         event.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
                     }
                 },
-                timeoutAction -> {
-                    event.getHook().sendMessage("Can't set speed").queue();
-                },
+                timeoutAction -> event.getHook().sendMessage("Can't set speed").queue(),
                 event
         ));
 
@@ -75,9 +73,7 @@ public class SetSpeed extends DiscordCommand {
                 event.getHook().sendMessage("There isn't any instances connected with that IGN").queue();
             }
         } else {
-            WebsocketHandler.getInstance().getWebsocketServer().minecraftInstances.forEach((webSocket, s) -> {
-                sendMessage(webSocket, args);
-            });
+            WebsocketHandler.getInstance().getWebsocketServer().minecraftInstances.forEach((webSocket, s) -> sendMessage(webSocket, args));
         }
     }
 }

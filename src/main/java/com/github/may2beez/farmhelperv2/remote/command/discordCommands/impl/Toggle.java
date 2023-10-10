@@ -51,9 +51,7 @@ public class Toggle extends DiscordCommand {
                         event.getChannel().sendMessageEmbeds(embedBuilder.build()).queue();
                     }
                 },
-                timeoutAction -> {
-                    event.getHook().sendMessage("Can't toggle the bot").queue();
-                },
+                timeoutAction -> event.getHook().sendMessage("Can't toggle the bot").queue(),
                 event
         ));
 
@@ -69,9 +67,7 @@ public class Toggle extends DiscordCommand {
                 event.getHook().sendMessage("There isn't any instances connected with that IGN").queue();
             }
         } else {
-            WebsocketHandler.getInstance().getWebsocketServer().minecraftInstances.forEach((webSocket, s) -> {
-                sendMessage(webSocket);
-            });
+            WebsocketHandler.getInstance().getWebsocketServer().minecraftInstances.forEach((webSocket, s) -> sendMessage(webSocket));
         }
     }
 }

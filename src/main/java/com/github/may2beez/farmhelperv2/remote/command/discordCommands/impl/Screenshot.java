@@ -52,9 +52,7 @@ public class Screenshot extends DiscordCommand {
                         event.getChannel().sendMessageEmbeds(embedBuilder.build()).addFiles(FileUpload.fromData(Base64.getDecoder().decode(image), "image.png")).queue();
                     }
                 },
-                timeoutAction -> {
-                    event.getHook().sendMessage("Can't take a screenshot").queue();
-                },
+                timeoutAction -> event.getHook().sendMessage("Can't take a screenshot").queue(),
                 event
         ));
 
@@ -73,9 +71,7 @@ public class Screenshot extends DiscordCommand {
                 event.getHook().sendMessage("There isn't any instances connected with that IGN").queue();
             }
         } else {
-            WebsocketHandler.getInstance().getWebsocketServer().minecraftInstances.forEach((webSocket, s) -> {
-                sendMessage(webSocket, args);
-            });
+            WebsocketHandler.getInstance().getWebsocketServer().minecraftInstances.forEach((webSocket, s) -> sendMessage(webSocket, args));
         }
     }
 }

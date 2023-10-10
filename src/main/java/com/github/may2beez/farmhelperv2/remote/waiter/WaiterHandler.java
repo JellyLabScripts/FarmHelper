@@ -33,10 +33,6 @@ public class WaiterHandler {
         }, waiterToRegister.getTimeout());
     }
 
-    public static void unregister(Waiter waiter) {
-        waiterMap.remove(waiter);
-    }
-
     public static void onMessage(RemoteMessage websocketMessage) {
         String command = websocketMessage.command;
         LogUtils.sendDebug("Received message: " + command);

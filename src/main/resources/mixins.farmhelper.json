@@ -19,6 +19,7 @@
     "client.MixinSoundManager",
     "gui.IGuiPlayerTabOverlayAccessor",
     "gui.MixinBanScreen",
+    "gui.MixinGuiEditSign",
     "gui.MixinGuiMainMenu",
     "gui.MixinGuiMultiplayer",
     "render.MixinEffectRenderer"

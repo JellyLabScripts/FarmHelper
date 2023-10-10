@@ -21,7 +21,7 @@ public class WebsocketServer extends WebSocketServer {
         CONNECTED
     }
 
-    public WebsocketServerState websocketServerState = WebsocketServerState.NOT_CONNECTED;
+    public WebsocketServerState websocketServerState;
 
     public WebsocketServer(int port) {
         super(new InetSocketAddress(port));
