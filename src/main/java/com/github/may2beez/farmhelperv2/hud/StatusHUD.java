@@ -3,9 +3,10 @@ package com.github.may2beez.farmhelperv2.hud;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
-import com.github.may2beez.farmhelperv2.feature.impl.WebSocketConnector;
+import com.github.may2beez.farmhelperv2.feature.impl.BanInfoWS;
 import com.github.may2beez.farmhelperv2.feature.impl.Scheduler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
+import com.github.may2beez.farmhelperv2.remote.DiscordBotHandler;
 import net.minecraft.client.Minecraft;
 
 import java.util.List;
@@ -27,13 +28,13 @@ public class StatusHUD extends TextHud {
         } else {
             lines.add(getStatusString());
 
-            if (WebSocketConnector.getInstance().isRunning() && FarmHelperConfig.banwaveCheckerEnabled && WebSocketConnector.getInstance().isConnected()) {
-                lines.add("Staff bans in last " + WebSocketConnector.getInstance().getMinutes() + " minutes: " + WebSocketConnector.getInstance().getBans());
-                lines.add("FarmHelper's bans in last 15 minutes: " + WebSocketConnector.getInstance().getBansByMod());
+            if (BanInfoWS.getInstance().isRunning() && FarmHelperConfig.banwaveCheckerEnabled && BanInfoWS.getInstance().isConnected()) {
+                lines.add("Staff bans in last " + BanInfoWS.getInstance().getMinutes() + " minutes: " + BanInfoWS.getInstance().getBans());
+                lines.add("FarmHelper's bans in last 15 minutes: " + BanInfoWS.getInstance().getBansByMod());
             }
 
-//            if (FarmHelperConfig.enableRemoteControl)
-//                lines.add(RemoteControl.getInstance().getStatusString());
+            if (FarmHelperConfig.enableRemoteControl)
+                lines.add(DiscordBotHandler.getInstance().getConnectingState());
 
             lines.set(0, centerText(lines.get(0), scale, false));
         }

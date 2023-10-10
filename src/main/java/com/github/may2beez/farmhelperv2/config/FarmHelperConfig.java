@@ -1,7 +1,6 @@
 package com.github.may2beez.farmhelperv2.config;
 
 import cc.polyfrost.oneconfig.config.Config;
-import cc.polyfrost.oneconfig.config.annotations.Button;
 import cc.polyfrost.oneconfig.config.annotations.Number;
 import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
@@ -10,7 +9,6 @@ import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.page.AutoSellNPCItemsPage;
 import com.github.may2beez.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
-import com.github.may2beez.farmhelperv2.feature.impl.AntiStuck;
 import com.github.may2beez.farmhelperv2.feature.impl.AutoSell;
 import com.github.may2beez.farmhelperv2.feature.impl.Proxy;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
@@ -18,12 +16,9 @@ import com.github.may2beez.farmhelperv2.hud.DebugHUD;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.github.may2beez.farmhelperv2.hud.StatusHUD;
 import com.github.may2beez.farmhelperv2.util.BlockUtils;
-import com.github.may2beez.farmhelperv2.util.KeyBindUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.PlayerUtils;
-import com.google.gson.annotations.Expose;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.fml.common.Loader;
@@ -37,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 // THIS IS RAT - CatalizCS
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "DefaultAnnotationParam"})
 public class FarmHelperConfig extends Config {
     private transient static final Minecraft mc = Minecraft.getMinecraft();
     private transient static final String GENERAL = "General";
@@ -1078,6 +1073,14 @@ public class FarmHelperConfig extends Config {
     )
     public static String discordRemoteControlToken;
 
+    @Text(
+            name = "Discord Remote Control Address",
+            category = DISCORD_INTEGRATION, subcategory = "Remote Control",
+            description = "The address to use for remote control. If you are unsure what to put there, leave \"localhost\".",
+            placeholder = "localhost"
+    )
+    public static String discordRemoteControlAddress = "localhost";
+
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "Remote Control Port", category = DISCORD_INTEGRATION, subcategory = "Remote Control",
             description = "The port to use for remote control. Change this if you have port conflicts.",
@@ -1383,11 +1386,11 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(debugKeybind, () -> {
             ChatComponentText component = new ChatComponentText("§r§cYou are temporarily banned for§r§f 29d 23h 59m 59s§r§c from this server!");
             component.appendText("\n");
-            component.appendText("\n\u00a77Reason: \u00a7rSuspicious account activity/Other");
-            component.appendText("\n\u00a77Find out more: \u00a7b\u00a7nhttps://www.hypixel.net/appeal");
+            component.appendText("\n§7Reason: §rSuspicious account activity/Other");
+            component.appendText("\n§7Find out more:§b§n https://www.hypixel.net/appeal");
             component.appendText("\n");
-            component.appendText("\n\u00a77Ban ID: \u00a7r#49871983");
-            component.appendText("\n\u00a77Sharing your Ban ID may affect the processing of your appeal!");
+            component.appendText("\n§7Ban ID: §r#49871983");
+            component.appendText("\n§7Sharing your Ban ID may affect the processing of your appeal!");
             Minecraft.getMinecraft().getNetHandler().getNetworkManager().closeChannel(component);
         });
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));

@@ -7,12 +7,17 @@ import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static java.lang.Integer.parseInt;
 
 public class InventoryUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -166,5 +171,21 @@ public class InventoryUtils {
         ItemStack itemStack = mc.thePlayer.openContainer.getSlot(slot).getStack();
         if (itemStack == null) return new ArrayList<>();
         return getItemLore(itemStack);
+    }
+
+    public static int getRancherBootSpeed() {
+        final ItemStack stack = mc.thePlayer.inventoryContainer.getSlot(8).getStack();
+        int speed = -1;
+        if (stack != null && stack.hasTagCompound()) {
+            final NBTTagCompound tag = stack.getTagCompound();
+            final Pattern pattern = Pattern.compile("(Current Speed Cap: §a\\d+)", Pattern.MULTILINE);
+            final Matcher matcher = pattern.matcher(tag.toString());
+            while (matcher.find()) {
+                if (matcher.group(0) != null) {
+                    speed = parseInt((matcher.group(0).replaceAll("Current Speed Cap: §a", "")));
+                }
+            }
+        }
+        return speed;
     }
 }

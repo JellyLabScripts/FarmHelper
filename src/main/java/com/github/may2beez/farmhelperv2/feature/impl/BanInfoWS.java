@@ -7,7 +7,6 @@ import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.Getter;
@@ -23,17 +22,17 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 
-public class WebSocketConnector implements IFeature {
-    private static WebSocketConnector instance;
+public class BanInfoWS implements IFeature {
+    private static BanInfoWS instance;
 
-    public static WebSocketConnector getInstance() {
+    public static BanInfoWS getInstance() {
         if (instance == null) {
-            instance = new WebSocketConnector();
+            instance = new BanInfoWS();
         }
         return instance;
     }
 
-    public WebSocketConnector() {
+    public BanInfoWS() {
         if (isConnected()) return;
         try {
             LogUtils.sendDebug("Connecting to analytics server...");
@@ -206,9 +205,9 @@ public class WebSocketConnector implements IFeature {
                         int bans = jsonObject.get("bansInLast15Minutes").getAsInt();
                         int minutes = jsonObject.get("bansInLast15MinutesTime").getAsInt();
                         int bansByMod = jsonObject.get("bansInLast15MinutesMod").getAsInt();
-                        WebSocketConnector.getInstance().setBans(bans);
-                        WebSocketConnector.getInstance().setMinutes(minutes);
-                        WebSocketConnector.getInstance().setBansByMod(bansByMod);
+                        BanInfoWS.getInstance().setBans(bans);
+                        BanInfoWS.getInstance().setMinutes(minutes);
+                        BanInfoWS.getInstance().setBansByMod(bansByMod);
                         break;
                     }
                     case "playerGotBanned": {

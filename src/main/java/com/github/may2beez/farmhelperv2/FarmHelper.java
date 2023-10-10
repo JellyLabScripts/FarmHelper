@@ -8,8 +8,11 @@ import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.impl.*;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
+import com.github.may2beez.farmhelperv2.remote.DiscordBotHandler;
+import com.github.may2beez.farmhelperv2.remote.WebsocketHandler;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.ReflectionUtils;
+import com.github.may2beez.farmhelperv2.util.helper.TickTask;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
@@ -65,7 +68,10 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(DesyncChecker.getInstance());
         MinecraftForge.EVENT_BUS.register(AutoSell.getInstance());
         MinecraftForge.EVENT_BUS.register(ProfitCalculator.getInstance());
-        MinecraftForge.EVENT_BUS.register(WebSocketConnector.getInstance());
+        MinecraftForge.EVENT_BUS.register(BanInfoWS.getInstance());
+        MinecraftForge.EVENT_BUS.register(TickTask.getInstance());
+        MinecraftForge.EVENT_BUS.register(WebsocketHandler.getInstance());
+        MinecraftForge.EVENT_BUS.register(DiscordBotHandler.getInstance());
     }
 
     private void initializeFields() {
