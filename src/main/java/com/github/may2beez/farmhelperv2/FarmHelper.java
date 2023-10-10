@@ -49,9 +49,13 @@ public class FarmHelper {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (sentInfoAboutShittyClient) return;
 
-        if (ReflectionUtils.hasFeatherClient()) {
-            Notifications.INSTANCE.send("FarmHelper", "You've got Feather Client! Be aware, you might have a lot of bugs because of this shitty client!", 15000);
-            LogUtils.sendError("You've got Feather Client! Be aware, you might have a lot of bugs because of this shitty client!");
+        if (ReflectionUtils.hasPackageInstalled("feather")) {
+            Notifications.INSTANCE.send("FarmHelper", "You've got Feather Client installed! Be aware, you might have a lot of bugs because of this shitty client!", 15000);
+            LogUtils.sendError("You've got §6§lFeather Client §cinstalled! Be aware, you might have a lot of bugs because of this shitty client!");
+        }
+        if (ReflectionUtils.hasPackageInstalled("cc.woverflow.hytils.HytilsReborn")) {
+            Notifications.INSTANCE.send("FarmHelper", "You've got Hytils installed in your mods folder! This will cause many issues with rewarping as it sends tons of commands every minute.", 15000);
+            LogUtils.sendError("You've got §6§lHytils §cinstalled in your mods folder! This will cause many issues with rewarping as it sends tons of commands every minute.");
         }
         sentInfoAboutShittyClient = true;
     }

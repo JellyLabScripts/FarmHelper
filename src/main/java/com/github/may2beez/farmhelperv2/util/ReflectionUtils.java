@@ -25,11 +25,11 @@ public class ReflectionUtils {
         return null;
     }
 
-    public static boolean hasFeatherClient() {
+    public static boolean hasPackageInstalled(String name) {
         Package[] packages = Package.getPackages();
 
         for (Package pack : packages) {
-            if (pack.getName().contains("feather")) {
+            if (pack.getName().contains(name)) {
                 return true;
             }
         }

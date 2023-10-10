@@ -4,7 +4,7 @@ plugins {
     id("gg.essential.loom") version "0.10.0.+"
     id("dev.architectury.architectury-pack200") version "0.1.3"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("io.freefair.lombok") version "8.1.0"
+    id("io.freefair.lombok") version "8.4"
     id("net.kyori.blossom") version "1.3.1"
 }
 
@@ -78,7 +78,7 @@ dependencies {
     compileOnly("org.spongepowered:mixin:0.8.5")
     annotationProcessor("org.spongepowered:mixin:0.8.5")
 
-    shadowImpl("org.java-websocket:Java-WebSocket:1.5.3")
+    shadowImpl("org.java-websocket:Java-WebSocket:1.5.4")
 
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.1.2")
     shadowImpl("org.reflections:reflections:0.10.2")
