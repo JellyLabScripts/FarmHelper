@@ -84,7 +84,8 @@ public class AutoReconnect implements IFeature {
         }
         state = State.CONNECTING;
         LogUtils.sendDebug("[Reconnect] Reconnecting to server...");
-        MacroHandler.getInstance().pauseMacro();
+        if (MacroHandler.getInstance().isMacroToggled())
+            MacroHandler.getInstance().pauseMacro();
     }
 
     @Override
@@ -94,9 +95,11 @@ public class AutoReconnect implements IFeature {
         state = State.NONE;
         reconnectDelay.reset();
         LogUtils.sendDebug("[Reconnect] Finished reconnecting to server!");
-        UngrabMouse.getInstance().regrabMouse();
-        UngrabMouse.getInstance().ungrabMouse();
-        MacroHandler.getInstance().resumeMacro();
+        if (MacroHandler.getInstance().isMacroToggled()) {
+            UngrabMouse.getInstance().regrabMouse();
+            UngrabMouse.getInstance().ungrabMouse();
+            MacroHandler.getInstance().resumeMacro();
+        }
     }
 
     @Override
