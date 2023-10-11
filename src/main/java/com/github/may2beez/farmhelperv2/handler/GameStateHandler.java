@@ -282,7 +282,7 @@ public class GameStateHandler {
         notMovingTimer.schedule();
     }
     public boolean inGarden() {
-        return location == Location.GARDEN;
+        return location != Location.TELEPORTING && location == Location.GARDEN;
     }
 
     public boolean inJacobContest() {

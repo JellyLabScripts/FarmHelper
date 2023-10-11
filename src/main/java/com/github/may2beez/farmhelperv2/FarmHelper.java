@@ -76,6 +76,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(TickTask.getInstance());
         MinecraftForge.EVENT_BUS.register(WebsocketHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(DiscordBotHandler.getInstance());
+        MinecraftForge.EVENT_BUS.register(AutoReconnect.getInstance());
     }
 
     private void initializeFields() {

@@ -18,7 +18,7 @@
     "client.MixinPlayerControllerMP",
     "client.MixinSoundManager",
     "gui.IGuiPlayerTabOverlayAccessor",
-    "gui.MixinBanScreen",
+    "gui.MixinGuiDisconnected",
     "gui.MixinGuiEditSign",
     "gui.MixinGuiMainMenu",
     "gui.MixinGuiMultiplayer",

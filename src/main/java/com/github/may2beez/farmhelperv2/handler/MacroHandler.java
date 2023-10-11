@@ -227,6 +227,8 @@ public class MacroHandler {
         if (event.phase == TickEvent.Phase.END || !isMacroToggled()) {
             return;
         }
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+
         currentMacro.ifPresent(cm -> {
             if (!cm.isEnabled()) return;
             cm.onTick();

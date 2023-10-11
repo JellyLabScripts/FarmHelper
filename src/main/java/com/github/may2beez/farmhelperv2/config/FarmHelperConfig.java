@@ -467,10 +467,16 @@ public class FarmHelperConfig extends Config {
 
     
     @Switch(
-            name = "Auto TP On World Change", category = FAILSAFE, subcategory = "Miscellaneous",
+            name = "Auto TP back on World Change", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Automatically warps back to garden on server reboot, server update, etc"
     )
     public static boolean autoTPOnWorldChange = true;
+
+    @Switch(
+            name = "Auto reconnect on disconnect", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "Automatically reconnects to the server when disconnected"
+    )
+    public static boolean autoReconnect = true;
     
     @Slider(
             name = "Rotation Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
@@ -1363,7 +1369,6 @@ public class FarmHelperConfig extends Config {
         this.addDependency("webHookURL", "enableWebHook");
         this.addDependency("_applyWebhook", "enableWebHook");
         this.addDependency("enableRemoteControl", "Enable Remote Control", () -> Loader.isModLoaded("farmhelperjdadependency"));
-        this.addDependency("discordRemoteControlToken", "enableRemoteControl");
         this.hideIf("infoRemoteControl", () -> Loader.isModLoaded("farmhelperjdadependency"));
 
         this.addDependency("setSpawnBeforeEvacuate", "enableAutoSetSpawn");

@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -89,10 +90,12 @@ public class DiscordBotHandler extends ListenerAdapter {
             WebsocketHandler.getInstance().setWebsocketState(WebsocketHandler.WebsocketState.SERVER);
             Notifications.INSTANCE.send("Farm Helper", "Connected to the Discord Bot!");
             LogUtils.sendSuccess("Connected to the Discord Bot!");
-        } catch (InvalidTokenException e) {
+        } catch (InvalidTokenException | ErrorResponseException e) {
+            e.printStackTrace();
             Notifications.INSTANCE.send("Farm Helper", "Failed to connect to the Discord Bot, check your token. Disabling remote control...");
             LogUtils.sendError("Failed to connect to the Discord Bot, check your token. Disabling remote control...");
             WebsocketHandler.getInstance().setWebsocketState(WebsocketHandler.WebsocketState.NONE);
+            FarmHelperConfig.enableRemoteControl = false;
         } catch (IllegalStateException e) {
             Notifications.INSTANCE.send("Farm Helper", "Discord Bot is already connected, connecting as a client...");
             LogUtils.sendWarning("Discord Bot is already connected, connecting as a client...");
