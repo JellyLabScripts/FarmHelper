@@ -114,9 +114,8 @@ public class MacroHandler {
     }
 
     public void toggleMacro() {
-        if (Failsafe.getInstance().isEmergency()) {
-            Failsafe.getInstance().resetFailSafe();
-            this.disableMacro();
+        if (Failsafe.getInstance().isHadEmergency()) {
+            Failsafe.getInstance().setHadEmergency(false);
             LogUtils.sendWarning("Farm manually and DO NOT restart the macro too soon! The staff might still be spectating you for a while!");
             return;
         }

@@ -1,5 +1,6 @@
 package com.github.may2beez.farmhelperv2.remote.command.commands.impl;
 
+import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.remote.command.commands.ClientCommand;
@@ -63,7 +64,10 @@ public class ToggleCommand extends ClientCommand {
                 send(response);
             }).start();
         } else {
-            MacroHandler.getInstance().toggleMacro();
+            if (Failsafe.getInstance().isHadEmergency()) {
+                MacroHandler.getInstance().toggleMacro(); // first one is only warning message
+                MacroHandler.getInstance().toggleMacro(); // second is actual toggle
+            }
         }
 
 

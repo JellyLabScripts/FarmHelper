@@ -10,8 +10,10 @@ import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.remote.DiscordBotHandler;
 import com.github.may2beez.farmhelperv2.remote.WebsocketHandler;
+import com.github.may2beez.farmhelperv2.util.FailsafeUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.ReflectionUtils;
+import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
 import com.github.may2beez.farmhelperv2.util.helper.TickTask;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,6 +31,7 @@ public class FarmHelper {
     private final Minecraft mc = Minecraft.getMinecraft();
     public static FarmHelperConfig config;
     public static final String VERSION = "%%VERSION%%";
+    public static final String MODID = "farmhelper";
     public static final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
     public static boolean sentInfoAboutShittyClient = false;
 
@@ -41,7 +44,8 @@ public class FarmHelper {
 
         mc.gameSettings.pauseOnLostFocus = false;
         mc.gameSettings.gammaSetting = 1000;
-        Display.setTitle("Farm Helper [v" + VERSION + "] Bing Chilling");
+        Display.setTitle("Farm Helper 〔v" + VERSION + "〕 Bing Chilling ☛ " + Minecraft.getMinecraft().getSession().getUsername());
+        FailsafeUtils.getInstance();
     }
 
     @SubscribeEvent
@@ -77,6 +81,8 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(WebsocketHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(DiscordBotHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(AutoReconnect.getInstance());
+        MinecraftForge.EVENT_BUS.register(AudioManager.getInstance());
+        MinecraftForge.EVENT_BUS.register(Failsafe.getInstance());
     }
 
     private void initializeFields() {

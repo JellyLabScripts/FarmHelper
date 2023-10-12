@@ -1,6 +1,7 @@
 package com.github.may2beez.farmhelperv2.util;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
@@ -8,6 +9,7 @@ import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
@@ -89,6 +91,19 @@ public class RenderUtils {
         GlStateManager.enableDepth();
         GlStateManager.disableBlend();
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.popMatrix();
+    }
+
+    public static void drawCenterTopText(String text, RenderGameOverlayEvent event, Color color) {
+        ScaledResolution scaledResolution = event.resolution;
+        int scaledWidth = scaledResolution.getScaledWidth();
+        int scaledHeight = scaledResolution.getScaledHeight();
+        GlStateManager.pushMatrix();
+        GlStateManager.translate((float) (scaledWidth / 2), (float) (scaledHeight / 10), 0.0F);
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.scale(4f, 4f, 4f);
+        Minecraft.getMinecraft().fontRendererObj.drawString(text, (-Minecraft.getMinecraft().fontRendererObj.getStringWidth(text) / 2f), 0, color.getRGB(), true);
         GlStateManager.popMatrix();
     }
 }

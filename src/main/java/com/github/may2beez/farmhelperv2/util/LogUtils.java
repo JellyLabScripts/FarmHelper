@@ -3,6 +3,7 @@ package com.github.may2beez.farmhelperv2.util;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.config.struct.DiscordWebhook;
+import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
@@ -44,7 +45,8 @@ public class LogUtils {
         lastDebugMessage = message;
     }
     public static void sendFailsafeMessage(String message) {
-        sendLog(new ChatComponentText("§5§lFarm Helper §8» §d§l" + message));
+        sendLog(new ChatComponentText("§5§lFarm Helper §8» §d" + message));
+        webhookLog(message);
     }
 
     public static String getRuntimeFormat() {

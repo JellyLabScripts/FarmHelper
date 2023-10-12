@@ -63,5 +63,6 @@ public class DebugHUD extends TextHud {
             lines.add("   Bazaar State: " + AutoSell.getInstance().getBazaarState());
             lines.add("   NPC State: " + AutoSell.getInstance().getNpcState());
         }
+        lines.add("Emergency: " + Failsafe.getInstance().getEmergency());
     }
 }

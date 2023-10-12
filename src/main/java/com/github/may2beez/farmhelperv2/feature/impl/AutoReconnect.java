@@ -6,22 +6,20 @@ import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
+import com.github.may2beez.farmhelperv2.util.RenderUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.multiplayer.ServerData;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 
@@ -176,16 +174,7 @@ public class AutoReconnect implements IFeature {
         if (!isRunning()) return;
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
 
-        ScaledResolution scaledResolution = event.resolution;
-        int scaledWidth = scaledResolution.getScaledWidth();
-        int scaledHeight = scaledResolution.getScaledHeight();
-        GlStateManager.pushMatrix();
-        GlStateManager.translate((float) (scaledWidth / 2), (float) (scaledHeight / 4), 0.0F);
-        GlStateManager.enableBlend();
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-        GlStateManager.scale(4.5f, 4.5f, 4.5f);
-        String text = "Delay: " + reconnectDelay.getRemainingTime() + "ms";
-        mc.fontRendererObj.drawString(text, (-mc.fontRendererObj.getStringWidth(text) / 2f), 0, new Color(255, 0, 0).getRGB(), true);
-        GlStateManager.popMatrix();
+        String text = "Delay: " + String.format("%.1f", reconnectDelay.getRemainingTime() / 1000.0) + "s";
+        RenderUtils.drawCenterTopText(text, event, Color.RED);
     }
 }

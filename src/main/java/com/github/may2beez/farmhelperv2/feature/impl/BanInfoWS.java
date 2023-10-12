@@ -61,9 +61,6 @@ public class BanInfoWS implements IFeature {
     @Setter
     private int bansByMod = 0;
 
-    @Getter
-    private boolean banwave = false;
-
     @Override
     public String getName() {
         return "Banwave Checker";
@@ -106,6 +103,21 @@ public class BanInfoWS implements IFeature {
 
     public boolean isConnected() {
         return client != null && client.isOpen();
+    }
+
+    public boolean isBanwave() {
+        switch (FarmHelperConfig.banwaveThresholdType) {
+            case 0: {
+                return bans >= FarmHelperConfig.banwaveThreshold;
+            }
+            case 1: {
+                return bansByMod >= FarmHelperConfig.banwaveThreshold;
+            }
+            case 2: {
+                return bans >= FarmHelperConfig.banwaveThreshold || bansByMod >= FarmHelperConfig.banwaveThreshold;
+            }
+        }
+        return false;
     }
 
     @SubscribeEvent

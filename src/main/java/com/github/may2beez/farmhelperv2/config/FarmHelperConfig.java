@@ -10,6 +10,7 @@ import com.github.may2beez.farmhelperv2.config.page.AutoSellNPCItemsPage;
 import com.github.may2beez.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
 import com.github.may2beez.farmhelperv2.feature.impl.AutoSell;
+import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
 import com.github.may2beez.farmhelperv2.feature.impl.Proxy;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.hud.DebugHUD;
@@ -18,6 +19,7 @@ import com.github.may2beez.farmhelperv2.hud.StatusHUD;
 import com.github.may2beez.farmhelperv2.util.BlockUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.PlayerUtils;
+import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
@@ -497,6 +499,16 @@ public class FarmHelperConfig extends Config {
             description = "Checks only Y coords changes before triggering failsafe"
     )
     public static boolean teleportCheckYCoordsOnly = false;
+
+    @Button(
+            name = "Test failsafe", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "Tests failsafe",
+            text = "Test failsafe", size = 2
+    )
+    Runnable _testFailsafe = () -> {
+        LogUtils.sendDebug("Testing failsafe...");
+        Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.TEST);
+    };
     
     @Switch(
             name = "Enable Failsafe Trigger Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound", size = OptionSize.DUAL,
@@ -517,19 +529,7 @@ public class FarmHelperConfig extends Config {
             text = "Play"
     )
     Runnable _playFailsafeSoundButton = () -> {
-//        if (!failsafeSoundType)
-//            Utils.playMcFailsafeSound();
-//        else
-//            Utils.playFailsafeSound();
-    };
-    @Button(
-            name = "", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
-            description = "Stops playing the failsafe sound",
-            text = "Stop"
-    )
-    Runnable _stopFailsafeSoundButton = () -> {
-//        Utils.stopFailsafeSound();
-//        Utils.stopMcFailsafeSound();
+        AudioManager.getInstance().playSound();
     };
     
     @Dropdown(
@@ -564,11 +564,17 @@ public class FarmHelperConfig extends Config {
     public static boolean customFailsafeSoundWarning;
     
     @Slider(
-            name = "Failsafe Sound Volume (in dB)", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
+            name = "Failsafe Sound Volume (in %)", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
             description = "The volume of the failsafe sound",
-            min = -6f, max = 6f
+            min = 0, max = 100
     )
-    public static float failsafeSoundVolume = 0.0f;
+    public static float failsafeSoundVolume = 50.0f;
+
+    @Switch(
+            name = "Max out Master category sounds while pinging", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
+            description = "Maxes out the sounds while failsafe"
+    )
+    public static boolean maxOutMinecraftSounds = false;
 
     
     @Switch(
@@ -597,10 +603,18 @@ public class FarmHelperConfig extends Config {
     public static boolean banwaveCheckerEnabled = true;
     
     @Switch(
-            name = "Leave during banwave", category = FAILSAFE, subcategory = "Banwave Checker",
-            description = "Automatically disconnects from the server when banwave detected"
+            name = "Leave/pause during banwave", category = FAILSAFE, subcategory = "Banwave Checker",
+            description = "Automatically disconnects from the server or pauses the macro when banwave detected"
     )
-    public static boolean enableLeaveOnBanwave = false;
+    public static boolean enableLavePauseOnBanwave = false;
+
+    @DualOption(
+            name = "Banwave Action", category = FAILSAFE, subcategory = "Banwave Checker",
+            description = "The banwave action",
+            left = "Leave",
+            right = "Pause"
+    )
+    public static boolean banwaveAction = false;
     
     @Slider(
             name = "Banwave Disconnect Threshold", category = FAILSAFE, subcategory = "Banwave Checker",
@@ -608,6 +622,12 @@ public class FarmHelperConfig extends Config {
             min = 1, max = 100
     )
     public static int banwaveThreshold = 50;
+
+    @Dropdown(
+            name = "Base Threshold on", category = FAILSAFE, subcategory = "Banwave Checker",
+            options = {"Global bans", "FarmHelper bans", "Both"}
+    )
+    public static int banwaveThresholdType = 0;
     
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "Delay Before Reconnecting", category = FAILSAFE, subcategory = "Banwave Checker",
@@ -1312,11 +1332,10 @@ public class FarmHelperConfig extends Config {
 
         this.addDependency("failsafeSoundType", "enableFailsafeSound");
         this.addDependency("_playFailsafeSoundButton", "enableFailsafeSound");
-//        this.hideIf("_playFailsafeSoundButton", () -> Utils.isFailsafeSoundPlaying() || Utils.pingAlertPlaying);
-//        this.hideIf("_stopFailsafeSoundButton", () -> !Utils.isFailsafeSoundPlaying() && !Utils.pingAlertPlaying);
         this.addDependency("failsafeMcSoundSelected", "Minecraft Sound", () -> !failsafeSoundType && enableFailsafeSound);
         this.addDependency("failsafeSoundSelected", "Custom Sound", () -> failsafeSoundType && enableFailsafeSound);
         this.addDependency("failsafeSoundVolume", "Custom Sound", () -> failsafeSoundType && enableFailsafeSound);
+        this.addDependency("maxOutMinecraftSounds", "Minecraft Sound", () -> !failsafeSoundType && enableFailsafeSound);
         this.hideIf("customFailsafeSoundWarning", () -> !failsafeSoundType || !enableFailsafeSound || failsafeSoundSelected != 0);
         this.addDependency("leaveAfterFailSafe", "enableRestartAfterFailSafe");
         this.addDependency("restartAfterFailSafeDelay", "enableRestartAfterFailSafe");
