@@ -1,10 +1,13 @@
 package com.github.may2beez.farmhelperv2.mixin.gui;
 
 import cc.polyfrost.oneconfig.utils.Notifications;
+import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.feature.impl.BanInfoWS;
 import com.github.may2beez.farmhelperv2.feature.impl.AutoReconnect;
+import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
+import com.github.may2beez.farmhelperv2.util.LogUtils;
 import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiMultiplayer;
@@ -39,6 +42,7 @@ public class MixinGuiDisconnected {
     @Inject(method = "initGui", at = @At("RETURN"))
     public void initGui(CallbackInfo ci) {
         if (multilineMessage.get(0).contains("banned")) return;
+        if (BanInfoWS.getInstance().isBanwave()) return;
 
         if (MacroHandler.getInstance().isMacroToggled() && !AutoReconnect.getInstance().isRunning() && AutoReconnect.getInstance().isToggled()) {
             System.out.println("[Reconnect] Disconnected from server! Trying to reconnect...");
@@ -66,10 +70,25 @@ public class MixinGuiDisconnected {
                 String banId = StringUtils.stripControlCodes(multilineMessage.get(5)).replace("Ban ID: ", "").trim();
                 System.out.println("Banned for " + durationDays + " days for " + reason + " with ban id " + banId);
                 BanInfoWS.getInstance().playerBanned(durationDays, reason, banId);
+                LogUtils.webhookLog("Banned for " + durationDays + " days for " + reason + " with ban id " + banId);
             } catch (Exception e) {
                 e.printStackTrace();
             }
             return;
+        }
+
+        if (Failsafe.getInstance().getEmergency() == Failsafe.EmergencyType.BANWAVE && !FarmHelperConfig.banwaveAction) {
+            if (BanInfoWS.getInstance().isBanwave()) {
+                multilineMessage = farmHelperV2$multilineMessageCopy;
+                multilineMessage.set(0, "Will reconnect after end of banwave!");
+                multilineMessage.set(1, "Current bans: " + BanInfoWS.getInstance().getBans() + " (threshold: " + FarmHelperConfig.banwaveThreshold + ")");
+            } else {
+                if (!AutoReconnect.getInstance().isRunning()) {
+                    AutoReconnect.getInstance().getReconnectDelay().schedule(FarmHelperConfig.delayBeforeReconnecting * 1_000L);
+                    AutoReconnect.getInstance().start();
+                    Failsafe.getInstance().stop();
+                }
+            }
         }
 
         if (AutoReconnect.getInstance().isRunning() && AutoReconnect.getInstance().getState() == AutoReconnect.State.CONNECTING) {

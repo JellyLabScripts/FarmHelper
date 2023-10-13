@@ -1,5 +1,6 @@
 package com.github.may2beez.farmhelperv2.feature.impl;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import cc.polyfrost.oneconfig.utils.Notifications;
 import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
@@ -21,6 +22,7 @@ import org.java_websocket.handshake.ServerHandshake;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class BanInfoWS implements IFeature {
     private static BanInfoWS instance;
@@ -106,32 +108,28 @@ public class BanInfoWS implements IFeature {
     }
 
     public boolean isBanwave() {
-        switch (FarmHelperConfig.banwaveThresholdType) {
-            case 0: {
-                return bans >= FarmHelperConfig.banwaveThreshold;
-            }
-            case 1: {
-                return bansByMod >= FarmHelperConfig.banwaveThreshold;
-            }
-            case 2: {
-                return bans >= FarmHelperConfig.banwaveThreshold || bansByMod >= FarmHelperConfig.banwaveThreshold;
-            }
-        }
-        return false;
+        return getBans() >= FarmHelperConfig.banwaveThreshold;
     }
 
-    @SubscribeEvent
-    public void onClientConnect(FMLNetworkEvent.ClientConnectedToServerEvent event) {
-        if (Minecraft.getMinecraft().thePlayer == null || Minecraft.getMinecraft().theWorld == null) return;
-
-        client.send("{\"message\":\"banwaveInfo\", \"mod\": \"farmHelper\"}");
+    public int getBans() {
+        switch (FarmHelperConfig.banwaveThresholdType) {
+            case 0: {
+                return bans;
+            }
+            case 1: {
+                return bansByMod;
+            }
+            case 2: {
+                return Math.max(bans, bansByMod);
+            }
+        }
+        return 0;
     }
 
     private final Clock reconnectDelay = new Clock();
 
     @SubscribeEvent
     public void onTickReconnect(TickEvent.ClientTickEvent event) {
-        if (Minecraft.getMinecraft().thePlayer == null || Minecraft.getMinecraft().theWorld == null) return;
         if (reconnectDelay.isScheduled() && !reconnectDelay.passed()) return;
 
         if (client == null || client.isClosed() || !client.isOpen()) {
@@ -143,6 +141,7 @@ public class BanInfoWS implements IFeature {
                     client.addHeader(header.getKey(), header.getValue().getAsString());
                 }
                 client.connectBlocking();
+                client.send("{\"message\":\"banwaveInfo\", \"mod\": \"farmHelper\"}");
             } catch (URISyntaxException | InterruptedException e) {
                 e.printStackTrace();
                 client = null;
@@ -174,8 +173,8 @@ public class BanInfoWS implements IFeature {
     }
 
     public void sendAnalyticsData() {
-        System.out.println("Sending analytics data");
         if (MacroHandler.getInstance().getAnalyticsTimer().getElapsedTime() <= 60_000) return; // ignore if macroing for less than 60 seconds
+        System.out.println("Sending analytics data");
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("message", "analyticsData");
         jsonObject.addProperty("mod", "farmHelper");
@@ -206,6 +205,7 @@ public class BanInfoWS implements IFeature {
             @Override
             public void onOpen(ServerHandshake handshakedata) {
                 LogUtils.sendDebug("Connected to analytics websocket server");
+                Multithreading.schedule(() -> client.send("{\"message\":\"banwaveInfo\", \"mod\": \"farmHelper\"}"), 1_000, TimeUnit.MILLISECONDS);
             }
 
             @Override
@@ -220,6 +220,7 @@ public class BanInfoWS implements IFeature {
                         BanInfoWS.getInstance().setBans(bans);
                         BanInfoWS.getInstance().setMinutes(minutes);
                         BanInfoWS.getInstance().setBansByMod(bansByMod);
+                        System.out.println("Banwave info received: " + bans + " bans in last " + minutes + " minutes, " + bansByMod + " by mod");
                         break;
                     }
                     case "playerGotBanned": {

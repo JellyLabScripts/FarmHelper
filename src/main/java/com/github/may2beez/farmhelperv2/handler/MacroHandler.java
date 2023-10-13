@@ -90,6 +90,11 @@ public class MacroHandler {
         return currentMacro.isPresent() && currentMacro.get().isEnabled();
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean isCurrentMacroPaused() {
+        return isMacroToggled() && currentMacro.isPresent() && currentMacro.get().isPaused();
+    }
+
     public <T extends AbstractMacro> T getMacro(int type) {
         switch (type) {
             case 0: // crops
@@ -114,14 +119,14 @@ public class MacroHandler {
     }
 
     public void toggleMacro() {
-        if (Failsafe.getInstance().isHadEmergency()) {
-            Failsafe.getInstance().setHadEmergency(false);
-            LogUtils.sendWarning("Farm manually and DO NOT restart the macro too soon! The staff might still be spectating you for a while!");
-            return;
-        }
         if (isMacroToggled()) {
             this.disableMacro();
         } else {
+            if (Failsafe.getInstance().isHadEmergency()) {
+                Failsafe.getInstance().setHadEmergency(false);
+                LogUtils.sendWarning("Farm manually and DO NOT restart the macro too soon! The staff might still be spectating you for a while!");
+                return;
+            }
             this.enableMacro();
         }
     }
@@ -185,15 +190,19 @@ public class MacroHandler {
 
     public void pauseMacro() {
         currentMacro.ifPresent(cm -> {
+            if (cm.isPaused()) return;
             cm.saveState();
             cm.onDisable();
+            Scheduler.getInstance().pause();
         });
-        Scheduler.getInstance().pause();
     }
 
     public void resumeMacro() {
-        currentMacro.ifPresent(AbstractMacro::onEnable);
-        Scheduler.getInstance().resume();
+        currentMacro.ifPresent(cm -> {
+            if (!cm.isPaused()) return;
+            cm.onEnable();
+            Scheduler.getInstance().resume();
+        });
     }
 
     public void enableCurrentMacro() {
@@ -227,6 +236,10 @@ public class MacroHandler {
             return;
         }
         if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (mc.currentScreen != null) {
+            KeyBindUtils.stopMovement();
+            return;
+        }
 
         currentMacro.ifPresent(cm -> {
             if (!cm.isEnabled()) return;

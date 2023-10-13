@@ -97,12 +97,11 @@ public class RenderUtils {
     public static void drawCenterTopText(String text, RenderGameOverlayEvent event, Color color) {
         ScaledResolution scaledResolution = event.resolution;
         int scaledWidth = scaledResolution.getScaledWidth();
-        int scaledHeight = scaledResolution.getScaledHeight();
         GlStateManager.pushMatrix();
-        GlStateManager.translate((float) (scaledWidth / 2), (float) (scaledHeight / 10), 0.0F);
+        GlStateManager.translate((float) (scaledWidth / 2), 50, 0.0F);
         GlStateManager.enableBlend();
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-        GlStateManager.scale(4f, 4f, 4f);
+        GlStateManager.scale(3f, 3f, 3f);
         Minecraft.getMinecraft().fontRendererObj.drawString(text, (-Minecraft.getMinecraft().fontRendererObj.getStringWidth(text) / 2f), 0, color.getRGB(), true);
         GlStateManager.popMatrix();
     }

@@ -71,6 +71,10 @@ public abstract class AbstractMacro {
         return enabled && !FeatureManager.getInstance().shouldPauseMacroExecution();
     }
 
+    public boolean isPaused() {
+        return !enabled;
+    }
+
     public void onTick() {
         checkForTeleport();
         if (!PlayerUtils.isRewarpLocationSet()) {

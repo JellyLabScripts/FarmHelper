@@ -598,7 +598,8 @@ public class FarmHelperConfig extends Config {
     
     @Switch(
             name = "Enable Banwave Checker", category = FAILSAFE, subcategory = "Banwave Checker",
-            description = "Checks for banwave and shows you the number of players banned in the last 15 minutes"
+            description = "Checks for banwave and shows you the number of players banned in the last 15 minutes",
+            size = 2
     )
     public static boolean banwaveCheckerEnabled = true;
     
@@ -1402,6 +1403,8 @@ public class FarmHelperConfig extends Config {
         this.addDependency("disableFastBreakDuringJacobsContest", "fastBreak");
 
         this.addDependency("lagDetectionSensitivity", "enableNewLagDetection");
+
+        this.addDependency("banwaveAction", "enableLavePauseOnBanwave");
 
         this.hideIf("configVersion", () -> true);
 

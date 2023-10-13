@@ -33,6 +33,14 @@ public class AudioManager {
     private int numSounds = 15;
     private float soundBeforeChange = 0;
 
+    public void resetSound() {
+        minecraftSoundEnabled = false;
+        if (FarmHelperConfig.maxOutMinecraftSounds) {
+            mc.gameSettings.setSoundLevel(SoundCategory.MASTER, soundBeforeChange);
+            soundBeforeChange = 0;
+        }
+    }
+
     public void playSound() {
         if (!FarmHelperConfig.failsafeSoundType) {
             if (minecraftSoundEnabled) return;

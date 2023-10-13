@@ -150,6 +150,9 @@ public class AutoReconnect implements IFeature {
                     System.out.println("Reconnected to garden!");
                     LogUtils.sendDebug("[Reconnect] Came back to garden!");
                     stop();
+                } else if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY) {
+                    state = State.LOBBY;
+                    reconnectDelay.schedule(5_000);
                 } else {
                     mc.thePlayer.sendChatMessage("/warp garden");
                     reconnectDelay.schedule(5_000);
@@ -174,7 +177,7 @@ public class AutoReconnect implements IFeature {
         if (!isRunning()) return;
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
 
-        String text = "Delay: " + String.format("%.1f", reconnectDelay.getRemainingTime() / 1000.0) + "s";
+        String text = "Reconnect delay: " + String.format("%.1f", reconnectDelay.getRemainingTime() / 1000.0) + "s";
         RenderUtils.drawCenterTopText(text, event, Color.RED);
     }
 }

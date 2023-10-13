@@ -4,9 +4,11 @@ import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.feature.impl.BanInfoWS;
+import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
 import com.github.may2beez.farmhelperv2.feature.impl.Scheduler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.remote.DiscordBotHandler;
+import com.github.may2beez.farmhelperv2.util.LogUtils;
 import net.minecraft.client.Minecraft;
 
 import java.util.List;
@@ -51,6 +53,8 @@ public class StatusHUD extends TextHud {
     public String getStatusString() {
         if (!MacroHandler.getInstance().isMacroToggled()) {
             return "Idling";
+        } else if (Failsafe.getInstance().isEmergency()) {
+            return "§l§5" + LogUtils.capitalize(Failsafe.getInstance().getEmergency().name()) + "§r";
         }
 //        else if (FailsafeNew.restartAfterFailsafeCooldown.isScheduled() && !FailsafeNew.restartAfterFailsafeCooldown.passed()) {
 //            setStateString("Restarting in " + Utils.formatTime(FailsafeNew.restartAfterFailsafeCooldown.getEndTime() - System.currentTimeMillis()));
@@ -64,9 +68,7 @@ public class StatusHUD extends TextHud {
 //        else if (FailsafeNew.isJacobFailsafeExceeded && FailsafeNew.cooldown.getEndTime() - System.currentTimeMillis() > 0) {
 //            setStateString("Jacob failsafe for " + Utils.formatTime(FailsafeNew.cooldown.getEndTime() - System.currentTimeMillis()));
 //        }
-//        else if (FailsafeNew.emergency) {
-//            setStateString("Emergency");
-//        }
+
         else if (Scheduler.getInstance().isRunning()) {
             return Scheduler.getInstance().getStatusString();
         } else {
