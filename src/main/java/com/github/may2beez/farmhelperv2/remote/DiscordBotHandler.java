@@ -77,7 +77,7 @@ public class DiscordBotHandler extends ListenerAdapter {
             return;
         }
         try {
-            jdaClient = JDABuilder.createLight(FarmHelperConfig.discordRemoteControlToken)
+            jdaClient = JDABuilder.createLight(FarmHelperConfig.discordRemoteControlToken.replace(" ", "").replace("\n", "").trim())
                     .disableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE, CacheFlag.ACTIVITY)
                     .enableIntents(GatewayIntent.MESSAGE_CONTENT)
                     .build();

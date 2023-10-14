@@ -558,6 +558,7 @@ public class AutoCookie implements IFeature {
         if (event.type != 0) return;
 
         String message = event.message.getUnformattedText().trim();
+        if (message.contains(":")) return;
 
         if (mainState == State.WAIT_FOR_CONSUME) {
             if (message.startsWith("You consumed a Booster Cookie!")) {

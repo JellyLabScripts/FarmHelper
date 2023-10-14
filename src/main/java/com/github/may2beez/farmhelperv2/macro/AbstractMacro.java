@@ -45,7 +45,7 @@ public abstract class AbstractMacro {
     @Setter
     public State currentState = State.NONE;
     @Setter
-    private Optional<State> savedState = Optional.empty();
+    private Optional<SavedState> savedState = Optional.empty();
     private final RotationUtils rotation = new RotationUtils();
     @Setter
     private int layerY = 0;
@@ -77,6 +77,7 @@ public abstract class AbstractMacro {
 
     public void onTick() {
         checkForTeleport();
+        LogUtils.webhookStatus();
         if (!PlayerUtils.isRewarpLocationSet()) {
             LogUtils.sendError("Your rewarp position is not set!");
             MacroHandler.getInstance().disableMacro();
@@ -177,7 +178,7 @@ public abstract class AbstractMacro {
     public void onChatMessageReceived(String msg) {
     }
 
-    public void onOverlayRender(RenderGameOverlayEvent event) {
+    public void onOverlayRender(RenderGameOverlayEvent.Post event) {
     }
 
     public void onPacketReceived(ReceivePacketEvent event) {
@@ -190,7 +191,10 @@ public abstract class AbstractMacro {
         setClosest90Deg(AngleUtils.getClosest());
         if (savedState.isPresent()) {
             LogUtils.sendDebug("Restoring state: " + savedState.get());
-            changeState(savedState.get());
+            changeState(savedState.get().getState());
+            setYaw(savedState.get().getYaw());
+            setPitch(savedState.get().getPitch());
+            setClosest90Deg(savedState.get().getClosest90Deg());
             savedState = Optional.empty();
         } else {
             changeState(calculateDirection());
@@ -209,7 +213,7 @@ public abstract class AbstractMacro {
     public void saveState() {
         if (!savedState.isPresent()) {
             LogUtils.sendDebug("Saving state: " + currentState);
-            savedState = Optional.ofNullable(currentState);
+            savedState = Optional.of(new SavedState(currentState, yaw, pitch, closest90Deg));
         }
     }
 
@@ -270,5 +274,29 @@ public abstract class AbstractMacro {
     public void doAfterRewarpRotation() {
         yaw = AngleUtils.get360RotationYaw(yaw + 180);
         setClosest90Deg(AngleUtils.getClosest(yaw));
+    }
+
+    @Getter
+    private static class SavedState {
+        private final State state;
+        private final float yaw;
+        private final float pitch;
+        private final float closest90Deg;
+
+        public SavedState(State state, float yaw, float pitch, float closest90Deg) {
+            this.state = state;
+            this.yaw = yaw;
+            this.pitch = pitch;
+            this.closest90Deg = closest90Deg;
+        }
+
+        @Override
+        public String toString() {
+            return "SavedState{" +
+                    "state=" + state +
+                    ", yaw=" + yaw +
+                    ", pitch=" + pitch +
+                    '}';
+        }
     }
 }

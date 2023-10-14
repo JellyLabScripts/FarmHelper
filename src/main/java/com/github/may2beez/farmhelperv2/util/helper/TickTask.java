@@ -21,6 +21,9 @@ public class TickTask {
     @Setter
     private Runnable task;
 
+    @Setter
+    private Runnable callback;
+
     public void schedule(int delay, Runnable task) {
         Multithreading.schedule(() -> this.task = task, delay, TimeUnit.MILLISECONDS);
     }
@@ -29,7 +32,12 @@ public class TickTask {
     public void onTick(TickEvent.ClientTickEvent event) {
         if (task != null) {
             task.run();
-            task = null;
+            if (callback != null) {
+                task = callback;
+                callback = null;
+            } else {
+                task = null;
+            }
         }
     }
 }

@@ -178,6 +178,6 @@ public class AutoReconnect implements IFeature {
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
 
         String text = "Reconnect delay: " + String.format("%.1f", reconnectDelay.getRemainingTime() / 1000.0) + "s";
-        RenderUtils.drawCenterTopText(text, event, Color.RED);
+        RenderUtils.drawCenterTopText(text, event, Color.RED, 1.5f);
     }
 }

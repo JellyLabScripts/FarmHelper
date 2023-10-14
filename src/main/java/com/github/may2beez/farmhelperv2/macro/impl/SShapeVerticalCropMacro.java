@@ -183,8 +183,8 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
             setYaw(AngleUtils.getClosest());
         }
         getRotation().reset();
-        getRotation().easeTo(getYaw(), getPitch(), FarmHelperConfig.getRandomRotationTime());
         super.onEnable();
+        getRotation().easeTo(getYaw(), getPitch(), FarmHelperConfig.getRandomRotationTime());
     }
 
     @Override

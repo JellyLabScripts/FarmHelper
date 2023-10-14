@@ -3,6 +3,7 @@ package com.github.may2beez.farmhelperv2.util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiInventory;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
@@ -145,7 +146,7 @@ public class InventoryUtils {
     }
 
     public static void openInventory() {
-        mc.displayGuiScreen(new GuiInventory(mc.thePlayer));
+        KeyBinding.onTick(mc.gameSettings.keyBindInventory.getKeyCode());
     }
 
     public static Slot getSlotOfId(int id) {

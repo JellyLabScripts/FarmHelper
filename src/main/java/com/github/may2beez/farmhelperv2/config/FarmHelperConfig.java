@@ -591,8 +591,8 @@ public class FarmHelperConfig extends Config {
     
     @Slider(
             name = "Restart Delay", category = FAILSAFE, subcategory = "Restart After FailSafe",
-            description = "The delay to restart after failsafe (in seconds)",
-            min = 1, max = 120
+            description = "The delay to restart after failsafe (in minutes)",
+            min = 1, max = 60
     )
     public static int restartAfterFailSafeDelay = 5;
     
@@ -1064,27 +1064,6 @@ public class FarmHelperConfig extends Config {
             secure = true
     )
     public static String webHookURL = "";
-    @Button(
-            name = "Apply WebHook URL", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
-            description = "Applies the webhook URL",
-            text = "Apply WebHook URL"
-    )
-    Runnable _applyWebhook = () -> {
-        if (webHookURL.isEmpty()) {
-            LogUtils.sendError("Webhook URL is empty!");
-            return;
-        }
-        if (!webHookURL.startsWith("https://discord.com/api/webhooks/")) {
-            LogUtils.sendError("Invalid webhook URL!");
-            return;
-        }
-//        GameState.webhook = new DiscordWebhook(FarmHelperConfig.webHookURL);
-//        GameState.webhook.setUsername("Jelly - Farm Helper");
-//        GameState.webhook.setAvatarUrl("https://media.discordapp.net/attachments/946792534544379924/965437127594749972/Jelly.png");
-        LogUtils.sendSuccess("Webhook URL has been applied");
-        save();
-    };
-
     
     @Switch(
             name = "Enable Remote Control", category = DISCORD_INTEGRATION, subcategory = "Remote Control",
@@ -1411,14 +1390,7 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
         registerKeyBind(debugKeybind, () -> {
-            ChatComponentText component = new ChatComponentText("§r§cYou are temporarily banned for§r§f 29d 23h 59m 59s§r§c from this server!");
-            component.appendText("\n");
-            component.appendText("\n§7Reason: §rSuspicious account activity/Other");
-            component.appendText("\n§7Find out more:§b§n https://www.hypixel.net/appeal");
-            component.appendText("\n");
-            component.appendText("\n§7Ban ID: §r#49871983");
-            component.appendText("\n§7Sharing your Ban ID may affect the processing of your appeal!");
-            Minecraft.getMinecraft().getNetHandler().getNetworkManager().closeChannel(component);
+            Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.ROTATION_CHECK);
         });
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
         save();

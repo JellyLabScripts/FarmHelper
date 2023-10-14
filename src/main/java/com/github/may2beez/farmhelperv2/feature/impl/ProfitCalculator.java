@@ -304,6 +304,8 @@ public class ProfitCalculator implements IFeature {
         if (event.type != 0) return;
 
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        if (message.contains(":")) return;
+
         Optional<String> optional = cropsToCountList.stream().filter(message::contains).findFirst();
         if (optional.isPresent()) {
             String name = optional.get();

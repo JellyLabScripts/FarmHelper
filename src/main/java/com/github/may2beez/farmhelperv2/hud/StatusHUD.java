@@ -51,10 +51,10 @@ public class StatusHUD extends TextHud {
     }
 
     public String getStatusString() {
-        if (!MacroHandler.getInstance().isMacroToggled()) {
-            return "Idling";
-        } else if (Failsafe.getInstance().isEmergency()) {
-            return "§l§5" + LogUtils.capitalize(Failsafe.getInstance().getEmergency().name()) + "§r";
+        if (Failsafe.getInstance().isEmergency()) {
+            return "Emergency §l§5" + LogUtils.capitalize(Failsafe.getInstance().getEmergency().name()) + "§r";
+        } else if (Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().isScheduled()) {
+            return "§l§6Restarting after failsafe in " + LogUtils.formatTime(Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().getRemainingTime()) + "§r";
         }
 //        else if (FailsafeNew.restartAfterFailsafeCooldown.isScheduled() && !FailsafeNew.restartAfterFailsafeCooldown.passed()) {
 //            setStateString("Restarting in " + Utils.formatTime(FailsafeNew.restartAfterFailsafeCooldown.getEndTime() - System.currentTimeMillis()));
@@ -68,8 +68,9 @@ public class StatusHUD extends TextHud {
 //        else if (FailsafeNew.isJacobFailsafeExceeded && FailsafeNew.cooldown.getEndTime() - System.currentTimeMillis() > 0) {
 //            setStateString("Jacob failsafe for " + Utils.formatTime(FailsafeNew.cooldown.getEndTime() - System.currentTimeMillis()));
 //        }
-
-        else if (Scheduler.getInstance().isRunning()) {
+        else if (!MacroHandler.getInstance().isMacroToggled()) {
+            return "Idling";
+        } else if (Scheduler.getInstance().isRunning()) {
             return Scheduler.getInstance().getStatusString();
         } else {
             return "Macroing";

@@ -3,10 +3,11 @@ package com.github.may2beez.farmhelperv2.util;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.config.struct.DiscordWebhook;
-import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
+import com.github.may2beez.farmhelperv2.feature.impl.ProfitCalculator;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.StringUtils;
 
 import java.awt.*;
 import java.io.IOException;
@@ -22,7 +23,7 @@ public class LogUtils {
 
     public synchronized static void sendLog(ChatComponentText chat) {
         if (mc.thePlayer != null && !FarmHelperConfig.hideLogs)
-           mc.thePlayer.addChatMessage(chat);
+            mc.thePlayer.addChatMessage(chat);
         else if (mc.thePlayer == null)
             System.out.println("[Farm Helper] " + chat.getUnformattedText());
     }
@@ -30,12 +31,15 @@ public class LogUtils {
     public static void sendSuccess(String message) {
         sendLog(new ChatComponentText("§2§lFarm Helper §8» §a" + message));
     }
+
     public static void sendWarning(String message) {
         sendLog(new ChatComponentText("§6§lFarm Helper §8» §e" + message));
     }
+
     public static void sendError(String message) {
         sendLog(new ChatComponentText("§4§lFarm Helper §8» §c" + message));
     }
+
     public static void sendDebug(String message) {
         if (lastDebugMessage != null && lastDebugMessage.equals(message)) return;
         if (FarmHelperConfig.debugMode && mc.thePlayer != null)
@@ -44,9 +48,10 @@ public class LogUtils {
             System.out.println("[Farm Helper] " + message);
         lastDebugMessage = message;
     }
+
     public static void sendFailsafeMessage(String message) {
         sendLog(new ChatComponentText("§5§lFarm Helper §8» §d" + message));
-        webhookLog(message);
+        webhookLog(StringUtils.stripControlCodes(message));
     }
 
     public static String getRuntimeFormat() {
@@ -57,13 +62,25 @@ public class LogUtils {
     }
 
     public static String formatTime(long millis) {
-        return String.format("%dh %dm %ds",
-                TimeUnit.MILLISECONDS.toHours(millis),
-                TimeUnit.MILLISECONDS.toMinutes(millis) -
-                        TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),
-                TimeUnit.MILLISECONDS.toSeconds(millis) -
-                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis))
-        );
+
+        if (TimeUnit.MILLISECONDS.toHours(millis) > 0) {
+            return String.format("%dh %dm %ds",
+                    TimeUnit.MILLISECONDS.toHours(millis),
+                    TimeUnit.MILLISECONDS.toMinutes(millis) -
+                            TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),
+                    TimeUnit.MILLISECONDS.toSeconds(millis) -
+                            TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis))
+            );
+        } else if (TimeUnit.MILLISECONDS.toMinutes(millis) > 0) {
+            return String.format("%dm %ds",
+                    TimeUnit.MILLISECONDS.toMinutes(millis),
+                    TimeUnit.MILLISECONDS.toSeconds(millis) -
+                            TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis))
+            );
+        } else {
+            return TimeUnit.MILLISECONDS.toSeconds(millis) + "." + (TimeUnit.MILLISECONDS.toMillis(millis) -
+                    TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS.toSeconds(millis))) / 100 + "s";
+        }
     }
 
     public static String capitalize(String message) {
@@ -76,51 +93,50 @@ public class LogUtils {
     }
 
     public static void webhookStatus() {
-        try {
-            if (statusMsgTime == -1) {
-                statusMsgTime = System.currentTimeMillis();
-            }
-            long timeDiff = TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - statusMsgTime);
-            if (timeDiff > FarmHelperConfig.statusUpdateInterval && FarmHelperConfig.sendStatusUpdates) {
-                DiscordWebhook webhook = new DiscordWebhook(FarmHelperConfig.webHookURL);
-                webhook.addEmbed(new DiscordWebhook.EmbedObject()
-                        .setTitle("Farm Helper")
-                        .setDescription("```" + "I'm still alive!" + "```")
-                        .setColor(Color.decode("#ff3b3b"))
-                        .setFooter("Jelly", "")
-                        .setThumbnail("https://crafatar.com/renders/head/" + mc.thePlayer.getUniqueID())
-                        .addField("Username", mc.thePlayer.getName(), true)
-                        .addField("Runtime", getRuntimeFormat(), true)
-//                        .addField("Total Profit", ProfitCalculator.profit, false)
-//                        .addField("Profit / hr", ProfitCalculator.profitHr, false)
-                        .addField("Crop Type", capitalize(String.valueOf(MacroHandler.getInstance().getCrop())), true)
-//                        .addField(BanwaveChecker.getBanDisplay(), "", false)
-                );
-                Multithreading.schedule(() -> {
-                    try {
-                        webhook.execute();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }, 0, TimeUnit.MILLISECONDS);
-                statusMsgTime = System.currentTimeMillis();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (!FarmHelperConfig.sendStatusUpdates) return;
+
+        if (statusMsgTime == -1) {
+            statusMsgTime = System.currentTimeMillis();
+        }
+        long timeDiff = TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - statusMsgTime);
+        if (timeDiff > FarmHelperConfig.statusUpdateInterval && FarmHelperConfig.sendStatusUpdates) {
+            DiscordWebhook webhook = new DiscordWebhook(FarmHelperConfig.webHookURL.replace(" ", "").replace("\n", "").trim());
+            webhook.addEmbed(new DiscordWebhook.EmbedObject()
+                    .setTitle("Farm Helper")
+                    .setDescription("```" + "I'm still alive!" + "```")
+                    .setColor(Color.decode("#ff3b3b"))
+                    .setFooter("Jelly", "")
+                    .setThumbnail("https://crafatar.com/renders/head/" + mc.thePlayer.getUniqueID())
+                    .addField("Username", mc.thePlayer.getName(), true)
+                    .addField("Runtime", getRuntimeFormat(), true)
+                    .addField("Total Profit", ProfitCalculator.getInstance().getRealProfitString(), false)
+                    .addField("Profit / hr", ProfitCalculator.getInstance().getProfitPerHourString(), false)
+                    .addField("Crop Type", capitalize(String.valueOf(MacroHandler.getInstance().getCrop())), true)
+            );
+            Multithreading.schedule(() -> {
+                try {
+                    webhook.execute();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }, 0, TimeUnit.MILLISECONDS);
+            statusMsgTime = System.currentTimeMillis();
         }
     }
 
     public static void webhookLog(String message) {
+        if (!FarmHelperConfig.sendStatusUpdates) return;
+
         long timeDiff = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - logMsgTime);
         sendDebug("Last webhook message: " + timeDiff);
         if (FarmHelperConfig.sendLogs && (timeDiff > 20 || !Objects.equals(lastWebhook, message))) {
-            DiscordWebhook webhook = new DiscordWebhook(FarmHelperConfig.webHookURL);
+            DiscordWebhook webhook = new DiscordWebhook(FarmHelperConfig.webHookURL.replace(" ", "").replace("\n", "").trim());
             webhook.setUsername("Jelly - Farm Helper");
             webhook.setAvatarUrl("https://cdn.discordapp.com/attachments/1152966451406327858/1160577992876109884/icon.png");
             webhook.addEmbed(new DiscordWebhook.EmbedObject()
-                .setDescription("**Farm Helper Log** ```" + message + "```")
-                .setColor(Color.decode("#741010"))
-                .setFooter(mc.thePlayer.getName(), "")
+                    .setDescription("**Farm Helper Log** ```" + message + "```")
+                    .setColor(Color.decode("#741010"))
+                    .setFooter(mc.thePlayer.getName(), "")
             );
             Multithreading.schedule(() -> {
                 try {

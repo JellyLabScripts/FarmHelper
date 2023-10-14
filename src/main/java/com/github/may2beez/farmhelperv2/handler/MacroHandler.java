@@ -95,6 +95,10 @@ public class MacroHandler {
         return isMacroToggled() && currentMacro.isPresent() && currentMacro.get().isPaused();
     }
 
+    public boolean isTeleporting() {
+        return currentMacro.isPresent() && currentMacro.get().getRewarpState() != AbstractMacro.RewarpState.NONE;
+    }
+
     public <T extends AbstractMacro> T getMacro(int type) {
         switch (type) {
             case 0: // crops
@@ -124,6 +128,7 @@ public class MacroHandler {
         } else {
             if (Failsafe.getInstance().isHadEmergency()) {
                 Failsafe.getInstance().setHadEmergency(false);
+                Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().reset();
                 LogUtils.sendWarning("Farm manually and DO NOT restart the macro too soon! The staff might still be spectating you for a while!");
                 return;
             }
@@ -155,6 +160,10 @@ public class MacroHandler {
             }
             analyticsTimer.schedule();
         }, 300, TimeUnit.MILLISECONDS);
+
+        if (mc.currentScreen != null) {
+            mc.thePlayer.closeScreen();
+        }
 
         FeatureManager.getInstance().enableAll();
 
@@ -193,6 +202,8 @@ public class MacroHandler {
             if (cm.isPaused()) return;
             cm.saveState();
             cm.onDisable();
+            macroingTimer.pause();
+            analyticsTimer.pause();
             Scheduler.getInstance().pause();
         });
     }
@@ -201,6 +212,8 @@ public class MacroHandler {
         currentMacro.ifPresent(cm -> {
             if (!cm.isPaused()) return;
             cm.onEnable();
+            macroingTimer.resume();
+            analyticsTimer.resume();
             Scheduler.getInstance().resume();
         });
     }
@@ -251,6 +264,7 @@ public class MacroHandler {
     public void onChatMessageReceived(ClientChatReceivedEvent event) {
         if (event.type == 0) {
             String message = event.message.getUnformattedText();
+            if (message.contains(":")) return;
             if (message.equals("Your spawn location has been set!")) {
                 PlayerUtils.setSpawnLocation();
             }
@@ -299,7 +313,7 @@ public class MacroHandler {
     }
 
     @SubscribeEvent
-    public void onRenderGameOverlay(RenderGameOverlayEvent event) {
+    public void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
         if (!isMacroToggled()) {
             return;
         }

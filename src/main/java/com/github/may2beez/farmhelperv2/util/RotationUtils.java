@@ -12,6 +12,7 @@ public class RotationUtils {
 
     private long startTime;
     private long endTime;
+    private long time;
 
     MutablePair<Float, Float> start = new MutablePair<>(0f, 0f);
     MutablePair<Float, Float> target = new MutablePair<>(0f, 0f);
@@ -21,6 +22,7 @@ public class RotationUtils {
         completed = false;
         rotating = true;
         startTime = System.currentTimeMillis();
+        this.time = time;
         endTime = System.currentTimeMillis() + time;
         start.setLeft(mc.thePlayer.rotationYaw);
         start.setRight(mc.thePlayer.rotationPitch);
@@ -44,6 +46,11 @@ public class RotationUtils {
     }
 
     public void update() {
+        if (mc.currentScreen != null) {
+            startTime = System.currentTimeMillis();
+            endTime = System.currentTimeMillis() + time;
+            return;
+        }
         if (System.currentTimeMillis() <= endTime) {
             mc.thePlayer.rotationYaw = interpolate(start.getLeft(), target.getLeft());
             mc.thePlayer.rotationPitch = interpolate(start.getRight(), target.getRight());

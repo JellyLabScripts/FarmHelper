@@ -15,7 +15,6 @@ import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
@@ -51,7 +50,6 @@ public class BanInfoWS implements IFeature {
 
     private WebSocketClient client;
 
-    @Getter
     @Setter
     private int bans = 0;
 

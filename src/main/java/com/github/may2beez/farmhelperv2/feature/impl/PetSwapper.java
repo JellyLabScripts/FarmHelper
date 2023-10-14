@@ -249,6 +249,7 @@ public class PetSwapper implements IFeature {
     public void onChatMessageReceived(ClientChatReceivedEvent event) {
         if (event.type == 0 && event.message != null && previousPet != null && FarmHelperConfig.petSwapperName != null) {
             String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());
+            if (msg.contains(":")) return;
             String spawnMessage = "you summoned your " + (getPreviousPet ? previousPet : FarmHelperConfig.petSwapperName).toLowerCase();
             if (msg.toLowerCase().contains(spawnMessage)) {
                 if (!isRunning() || currentState != State.WAITING_FOR_SPAWN) {
