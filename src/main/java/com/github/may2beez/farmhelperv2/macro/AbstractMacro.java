@@ -17,7 +17,7 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 import java.util.Optional;
 
-@SuppressWarnings("unused")
+@SuppressWarnings("ALL")
 @Getter
 public abstract class AbstractMacro {
     public static final Minecraft mc = Minecraft.getMinecraft();
@@ -136,11 +136,6 @@ public abstract class AbstractMacro {
             return;
         }
 
-//        if (Failsafe.getInstance().isEmergency() && FailsafeNew.findHighestPriorityElement() != FailsafeNew.FailsafeType.DESYNC) {
-//            LogUtils.sendDebug("Blocking changing movement due to emergency");
-//            return false;
-//        }
-
         if (Failsafe.getInstance().isEmergency()) {
             LogUtils.sendDebug("Blocking changing movement due to emergency");
             return;
@@ -236,8 +231,6 @@ public abstract class AbstractMacro {
             GameStateHandler.getInstance().scheduleNotMoving(750);
             rewarpDelay.schedule(1_250);
             KeyBindUtils.holdThese(mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindSneak : null);
-//            Antistuck.stuck = false;
-//            Antistuck.notMovingTimer.schedule();
             if (!PlayerUtils.isSpawnLocationSet() || (mc.thePlayer.getPositionVector().distanceTo(PlayerUtils.getSpawnLocation()) > 1)) {
                 PlayerUtils.setSpawnLocation();
             }
@@ -296,6 +289,7 @@ public abstract class AbstractMacro {
                     "state=" + state +
                     ", yaw=" + yaw +
                     ", pitch=" + pitch +
+                    ", closest90Deg=" + closest90Deg +
                     '}';
         }
     }

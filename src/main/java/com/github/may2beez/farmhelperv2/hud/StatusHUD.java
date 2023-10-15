@@ -25,7 +25,7 @@ public class StatusHUD extends TextHud {
             lines.add("Idling");
             lines.add("Break for 25m 35s");
             lines.add("Staff bans in last 15 minutes: 999");
-            lines.add("FarmHelper's bans in last 15 minute: 0");
+            lines.add("FarmHelper's bans in last 15 minutes: 0");
             lines.set(0, centerText(lines.get(0), scale, true));
         } else {
             lines.add(getStatusString());
@@ -35,8 +35,10 @@ public class StatusHUD extends TextHud {
                 lines.add("FarmHelper's bans in last 15 minutes: " + BanInfoWS.getInstance().getBansByMod());
             }
 
-            if (FarmHelperConfig.enableRemoteControl)
+            if (FarmHelperConfig.enableRemoteControl) {
+                lines.add("");
                 lines.add(DiscordBotHandler.getInstance().getConnectingState());
+            }
 
             lines.set(0, centerText(lines.get(0), scale, false));
         }
@@ -52,22 +54,10 @@ public class StatusHUD extends TextHud {
 
     public String getStatusString() {
         if (Failsafe.getInstance().isEmergency()) {
-            return "Emergency §l§5" + LogUtils.capitalize(Failsafe.getInstance().getEmergency().name()) + "§r";
+            return "Emergency: §l§5" + LogUtils.capitalize(Failsafe.getInstance().getEmergency().name()) + "§r";
         } else if (Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().isScheduled()) {
             return "§l§6Restarting after failsafe in " + LogUtils.formatTime(Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().getRemainingTime()) + "§r";
         }
-//        else if (FailsafeNew.restartAfterFailsafeCooldown.isScheduled() && !FailsafeNew.restartAfterFailsafeCooldown.passed()) {
-//            setStateString("Restarting in " + Utils.formatTime(FailsafeNew.restartAfterFailsafeCooldown.getEndTime() - System.currentTimeMillis()));
-//        }
-//        else if (FailsafeNew.cooldown.isScheduled() && !FailsafeNew.cooldown.passed()) {
-//            setStateString("Waiting for " + Utils.formatTime(FailsafeNew.cooldown.getEndTime() - System.currentTimeMillis()));
-//        }
-//        else if (!FailsafeNew.emergency && !FailsafeNew.isJacobFailsafeExceeded) {
-//            setStateString(Scheduler.getStatusString());
-//        }
-//        else if (FailsafeNew.isJacobFailsafeExceeded && FailsafeNew.cooldown.getEndTime() - System.currentTimeMillis() > 0) {
-//            setStateString("Jacob failsafe for " + Utils.formatTime(FailsafeNew.cooldown.getEndTime() - System.currentTimeMillis()));
-//        }
         else if (!MacroHandler.getInstance().isMacroToggled()) {
             return "Idling";
         } else if (Scheduler.getInstance().isRunning()) {

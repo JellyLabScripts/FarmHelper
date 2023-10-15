@@ -17,6 +17,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -129,7 +130,7 @@ public class DiscordBotHandler extends ListenerAdapter {
             }
             WebsocketHandler.getInstance().setWebsocketState(WebsocketHandler.WebsocketState.NONE);
             finishedLoading = false;
-            connectingState = "Connecting to Socket...";
+            connectingState = EnumChatFormatting.YELLOW + "Connecting to Socket...";
             return;
         }
 
@@ -168,17 +169,17 @@ public class DiscordBotHandler extends ListenerAdapter {
 
         if (WebsocketHandler.getInstance().getWebsocketState() == WebsocketHandler.WebsocketState.CLIENT) {
             if (WebsocketHandler.getInstance().getWebsocketClient() != null && WebsocketHandler.getInstance().getWebsocketClient().isOpen()) {
-                connectingState = "Connected to the Discord Bot as a client";
+                connectingState = EnumChatFormatting.GREEN + "Connected to the Discord Bot as a client";
             } else {
-                connectingState = "Connecting to the Discord Bot as a client...";
+                connectingState = EnumChatFormatting.GOLD + "Connecting to the Discord Bot as a client...";
             }
             return;
         }
 
         if (jdaClient != null && jdaClient.getStatus() == JDA.Status.CONNECTED) {
-            connectingState = "Connected to Discord Bot as a server";
+            connectingState = EnumChatFormatting.DARK_GREEN + "Connected to Discord Bot as a server";
         } else {
-            connectingState = "Connecting to the Discord Bot as a server...";
+            connectingState = EnumChatFormatting.GOLD + "Connecting to the Discord Bot as a server...";
         }
     }
 }

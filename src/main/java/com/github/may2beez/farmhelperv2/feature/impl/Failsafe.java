@@ -10,7 +10,6 @@ import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
-import com.github.may2beez.farmhelperv2.util.helper.TickTask;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -328,21 +327,24 @@ public class Failsafe implements IFeature {
                 break;
             case WAIT_BEFORE_START:
                 MacroHandler.getInstance().pauseMacro();
-                lookAroundTimes = (int) Math.round(2 + Math.random() * 2);
+                lookAroundTimes = (int) Math.round(3 + Math.random() * 3);
                 currentLookAroundTimes = 0;
                 rotationCheckState = RotationCheckState.LOOK_AROUND;
-                rotationCheckDelay.schedule((long) (500 + Math.random() * 1_000));
+                rotationCheckDelay.schedule((long) (500 + Math.random() * 500));
+                KeyBindUtils.stopMovement();
                 break;
             case LOOK_AROUND:
-                if (rotation.rotating) return;
                 if (currentLookAroundTimes >= lookAroundTimes) {
+                    rotation.reset();
                     KeyBindUtils.stopMovement();
                     if (FarmHelperConfig.sendFailsafeMessage) {
                         rotationCheckState = RotationCheckState.TYPE_SHIT;
+                        rotationCheckDelay.schedule((long) (500 + Math.random() * 1_000));
                     } else {
                         rotationCheckState = RotationCheckState.LOOK_AROUND_2;
+                        currentLookAroundTimes = 0;
+                        lookAroundTimes = (int) (2 + Math.random() * 2);
                     }
-                    rotationCheckDelay.schedule((long) (500 + Math.random() * 1_000));
                     rotation.reset();
                 } else {
                     randomMoveAndRotate();
@@ -361,11 +363,11 @@ public class Failsafe implements IFeature {
                 rotationCheckState = RotationCheckState.LOOK_AROUND_2;
                 rotationCheckDelay.schedule((long) (500 + Math.random() * 1_000));
                 currentLookAroundTimes = 0;
-                lookAroundTimes = (int) (1 + Math.random() * 1);
+                lookAroundTimes = (int) (2 + Math.random() * 2);
                 break;
             case LOOK_AROUND_2:
-                if (rotation.rotating) return;
                 if (currentLookAroundTimes >= lookAroundTimes) {
+                    rotation.reset();
                     KeyBindUtils.stopMovement();
                     rotationCheckState = RotationCheckState.END;
                     rotationCheckDelay.schedule((long) (500 + Math.random() * 1_000));
@@ -395,24 +397,35 @@ public class Failsafe implements IFeature {
     }
 
     private void randomMoveAndRotate() {
-        KeyBindUtils.stopMovement();
         long rotationTime = getRandomRotationDelay();
-        rotation.easeTo((float) (mc.thePlayer.rotationYaw + (Math.random() * 160 - 80)), (float) Math.random() * 60 - 30, rotationTime);
-        rotationCheckDelay.schedule((long) (rotationTime + 150 + Math.random() * 300));
+        rotation.easeTo(mc.thePlayer.rotationYaw + randomValueBetweenExt(-180, 180, 45), randomValueBetweenExt(-20, 40, 5), rotationTime);
+        rotationCheckDelay.schedule(rotationTime - 50);
         currentLookAroundTimes++;
+        if (!mc.thePlayer.onGround) return;
         double randomKey = Math.random();
-        if (randomKey <= 0.25) {
+        if (randomKey <= 0.2) {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), true);
-            Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false), (long) (150 + Math.random() * 300), TimeUnit.MILLISECONDS);
-        } else if (randomKey <= 0.5) {
+            Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+        } else if (randomKey <= 0.4) {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), true);
-            Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), false), (long) (150 + Math.random() * 300), TimeUnit.MILLISECONDS);
-        } else if (randomKey <= 0.75) {
+            Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+        } else if (randomKey <= 0.6) {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), true);
-            Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), false), (long) (150 + Math.random() * 300), TimeUnit.MILLISECONDS);
-        } else {
+            Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+        } else if (randomKey <= 0.8) {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), true);
-            Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), false), (long) (150 + Math.random() * 100), TimeUnit.MILLISECONDS);
+            Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+        }
+    }
+
+    private float randomValueBetweenExt(float min, float max, float minFromZero) {
+        double random = Math.random();
+        if (random < 0.5) {
+            // should return value between (min, -minFromZero)
+            return (float) (min + Math.random() * (minFromZero - min));
+        } else {
+            // should return value between (minFromZero, max)
+            return (float) (minFromZero + Math.random() * (max - minFromZero));
         }
     }
 
