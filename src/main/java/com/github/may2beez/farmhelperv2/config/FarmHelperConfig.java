@@ -493,12 +493,6 @@ public class FarmHelperConfig extends Config {
             min = 0.5f, max = 20f
     )
     public static float teleportCheckSensitivity = 4;
-    
-    @Switch(
-            name = "Check Y coords only", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Checks only Y coords changes before triggering failsafe"
-    )
-    public static boolean teleportCheckYCoordsOnly = false;
 
     @Button(
             name = "Test failsafe", category = FAILSAFE, subcategory = "Miscellaneous",
@@ -1125,7 +1119,6 @@ public class FarmHelperConfig extends Config {
         return (long) (minTimeBetweenChangingRows + (float) Math.random() * Math.max(0, (maxTimeBetweenChangingRows - minTimeBetweenChangingRows)));
     }
 
-    
     @Slider(
             name = "Rotation Time", category = DELAYS, subcategory = "Rotations",
             description = "The time it takes to rotate the player (in seconds)",

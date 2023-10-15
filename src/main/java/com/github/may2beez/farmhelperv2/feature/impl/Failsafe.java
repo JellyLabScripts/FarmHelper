@@ -3,6 +3,7 @@ package com.github.may2beez.farmhelperv2.feature.impl;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.config.page.CustomFailsafeMessagesPage;
+import com.github.may2beez.farmhelperv2.event.BlockChangeEvent;
 import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
@@ -14,7 +15,9 @@ import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.Vec3;
@@ -113,7 +116,8 @@ public class Failsafe implements IFeature {
         emergencyQueue.clear();
         chooseEmergencyDelay.reset();
         AudioManager.getInstance().resetSound();
-        resetRotationStates();
+        resetRotationCheck();
+        resetDirtCheck();
     }
 
     @Override
@@ -188,12 +192,11 @@ public class Failsafe implements IFeature {
                 Failsafe.getInstance().stop();
                 break;
             case ROTATION_CHECK:
-                onRotationCheck();
-                break;
             case TELEPORT_CHECK:
-                onTeleportCheck();
+                onRotationTeleportCheck();
                 break;
             case DIRT_CHECK:
+                onDirtCheck();
                 break;
             case ITEM_CHANGE_CHECK:
                 break;
@@ -316,7 +319,7 @@ public class Failsafe implements IFeature {
     private int lookAroundTimes = 0;
     private int currentLookAroundTimes = 0;
 
-    public void onRotationCheck() {
+    public void onRotationTeleportCheck() {
         if (fakeMovementCheck()) return;
         if (rotationCheckDelay.isScheduled() && !rotationCheckDelay.passed()) return;
 
@@ -355,7 +358,15 @@ public class Failsafe implements IFeature {
                 if (CustomFailsafeMessagesPage.customRotationMessages.isEmpty()) {
                     randomMessage = getRandomMessage(FAILSAFE_MESSAGES);
                 } else {
-                    String[] messages = CustomFailsafeMessagesPage.customRotationMessages.split("\\|");
+                    String[] messages = new String[0];
+                    switch (emergency) {
+                        case ROTATION_CHECK:
+                            messages = CustomFailsafeMessagesPage.customRotationMessages.split("\\|");
+                            break;
+                        case TELEPORT_CHECK:
+                            messages = CustomFailsafeMessagesPage.customTeleportationMessages.split("\\|");
+                            break;
+                    }
                     randomMessage = getRandomMessage(messages);
                 }
                 LogUtils.sendDebug("[Failsafe] Chosen message: " + randomMessage);
@@ -397,7 +408,7 @@ public class Failsafe implements IFeature {
     }
 
     private void randomMoveAndRotate() {
-        long rotationTime = getRandomRotationDelay();
+        long rotationTime = FarmHelperConfig.getRandomRotationTime();
         rotation.easeTo(mc.thePlayer.rotationYaw + randomValueBetweenExt(-180, 180, 45), randomValueBetweenExt(-20, 40, 5), rotationTime);
         rotationCheckDelay.schedule(rotationTime - 50);
         currentLookAroundTimes++;
@@ -429,15 +440,11 @@ public class Failsafe implements IFeature {
         }
     }
 
-    private void resetRotationStates() {
+    private void resetRotationCheck() {
         rotationCheckState = RotationCheckState.NONE;
         rotationCheckDelay.reset();
         lookAroundTimes = 0;
         currentLookAroundTimes = 0;
-    }
-
-    public void onTeleportCheck() {
-        if (fakeMovementCheck()) return;
     }
 
     private boolean fakeMovementCheck() {
@@ -456,6 +463,69 @@ public class Failsafe implements IFeature {
         return false;
     }
 
+
+    // endregion
+
+    // region DIRT check
+
+    private final ArrayList<BlockPos> dirtBlocks = new ArrayList<>();
+
+    @SubscribeEvent
+    public void onBlockChange(BlockChangeEvent event) {
+        if (firstCheckReturn()) return;
+        if (event.update.getBlock() == null) return;
+        if (!event.update.getBlock().equals(Blocks.dirt)) return;
+
+        boolean blockOnPath = blockIsOnPath(event.pos);
+        if (blockOnPath) {
+            LogUtils.sendWarning("[Failsafe] Someone put dirt on your path! Dirt block: " + event.pos);
+            dirtBlocks.add(event.pos);
+        }
+    }
+
+    private void onDirtCheck() {
+        if (fakeMovementCheck()) return;
+
+    }
+
+    public boolean isTouchingDirtBlock() {
+        for (BlockPos dirtBlock : dirtBlocks) {
+            double distance = Math.sqrt(mc.thePlayer.getPosition().distanceSq(dirtBlock));
+            LogUtils.sendDebug(distance + " " + dirtBlock);
+            if (distance <= 1.5) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasDirtBlocks() {
+        return !dirtBlocks.isEmpty();
+    }
+
+    private boolean blockIsOnPath(BlockPos blockPos) {
+        BlockPos playerPosition = BlockUtils.getRelativeBlockPos(0, 0, 0);
+        int playerX = playerPosition.getX();
+        int playerZ = playerPosition.getZ();
+        int blockX = blockPos.getX();
+        int blockZ = blockPos.getZ();
+        BlockPos movableLane = BlockUtils.getRelativeBlockPos(1, 0, 0);
+        int movableLaneX = movableLane.getX();
+        if (movableLaneX == playerX) {
+            // moves on Z
+            return blockX == playerX;
+        } else {
+            // moves on X
+            return blockZ == playerZ;
+        }
+    }
+
+    private void resetDirtCheck() {
+        dirtBlocks.clear();
+    }
+
+    // endregion
+
     private static String getRandomMessage(String[] messages) {
         if (messages.length > 1) {
             return messages[(int) (Math.random() * (messages.length - 1))];
@@ -463,12 +533,6 @@ public class Failsafe implements IFeature {
             return messages[0];
         }
     }
-
-    private static long getRandomRotationDelay() {
-        return (long) ((Math.random() * FarmHelperConfig.rotationTimeRandomness + FarmHelperConfig.rotationTime));
-    }
-
-    // endregion
 
     private boolean firstCheckReturn() {
         if (mc.thePlayer == null || mc.theWorld == null) return true;
@@ -479,6 +543,8 @@ public class Failsafe implements IFeature {
     }
 
     public void addEmergency(EmergencyType emergencyType) {
+        if (emergencyQueue.contains(emergencyType)) return;
+
         emergencyQueue.add(emergencyType);
         if (!chooseEmergencyDelay.isScheduled())
             chooseEmergencyDelay.schedule(1_000);

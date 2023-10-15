@@ -60,6 +60,7 @@ public class DesyncChecker implements IFeature {
 
     @Override
     public void stop() {
+        clickedBlocks.clear();
     }
 
     @Override
@@ -77,6 +78,7 @@ public class DesyncChecker implements IFeature {
 
     @SubscribeEvent
     public void onClickedBlock(ClickedBlockEvent event) {
+        if (!isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!isCrop(mc.theWorld.getBlockState(event.getPos()).getBlock())) return;
         clickedBlocks.add(event);

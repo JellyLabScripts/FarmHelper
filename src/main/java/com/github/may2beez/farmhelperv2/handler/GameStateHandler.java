@@ -1,6 +1,7 @@
 package com.github.may2beez.farmhelperv2.handler;
 
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
 import com.github.may2beez.farmhelperv2.mixin.gui.IGuiPlayerTabOverlayAccessor;
 import com.github.may2beez.farmhelperv2.util.BlockUtils;
 import com.github.may2beez.farmhelperv2.util.PlayerUtils;
@@ -243,6 +244,10 @@ public class GameStateHandler {
 
         if (notMoving()) {
             if (hasPassedSinceStopped()) {
+                if (Failsafe.getInstance().hasDirtBlocks() && Failsafe.getInstance().isTouchingDirtBlock()) {
+                    Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.DIRT_CHECK);
+                    return;
+                }
                 notMovingTimer.reset();
             }
         } else {

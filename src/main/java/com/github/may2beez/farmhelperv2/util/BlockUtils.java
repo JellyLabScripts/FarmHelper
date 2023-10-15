@@ -104,10 +104,14 @@ public class BlockUtils {
     }
 
     public static boolean canWalkThrough(BlockPos blockPos) {
+        return canWalkThroughBottom(blockPos) && canWalkThroughAbove(blockPos.add(0, 1, 0));
+    }
+
+    private static boolean canWalkThroughBottom(BlockPos blockPos) {
         IBlockState state = mc.theWorld.getBlockState(blockPos);
         Block block = state.getBlock();
-
-        // blocks that are always walkable, no matter what the position is
+        if (mc.thePlayer.posY % 1 >= 0.5 && mc.thePlayer.posY % 1 <= 0.75)
+            return true;
 
         if (Arrays.asList(initialWalkables).contains(block))
             return true;
@@ -120,15 +124,6 @@ public class BlockUtils {
 
         if (block instanceof BlockSnow)
             return state.getValue(BlockSnow.LAYERS) <= 5;
-
-        return canWalkThroughBottom(blockPos) && canWalkThroughAbove(blockPos.add(0, 1, 0));
-    }
-
-    private static boolean canWalkThroughBottom(BlockPos blockPos) {
-        IBlockState state = mc.theWorld.getBlockState(blockPos);
-        Block block = state.getBlock();
-        if (mc.thePlayer.posY % 1 >= 0.5 && mc.thePlayer.posY % 1 <= 0.75)
-            return true;
 
         if (block instanceof BlockSlab) {
             // if the player is on the bottom half of the slab, all slabs are walkable (top, bottom and double)
@@ -166,10 +161,6 @@ public class BlockUtils {
 
         if (block instanceof BlockCarpet)
             return false;
-
-        if (block instanceof BlockGlass || block instanceof BlockStainedGlass || block instanceof BlockStainedGlassPane) {
-            return false;
-        }
 
         return block.isPassable(mc.theWorld, blockPos);
     }

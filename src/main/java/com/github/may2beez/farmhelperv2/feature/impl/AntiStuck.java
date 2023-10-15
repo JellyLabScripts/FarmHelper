@@ -136,7 +136,7 @@ public class AntiStuck implements IFeature {
         double dy = Math.abs(mc.thePlayer.posY - lastY);
 
         if (dx < 1 && dz < 1 && dy < 1 && !Failsafe.getInstance().isEmergency() && notMovingTimer.isScheduled() && mc.currentScreen == null) {
-            if (notMovingTimer.hasPassed(2_500L)) {
+            if (notMovingTimer.hasPassed((long) (FarmHelperConfig.maxTimeBetweenChangingRows + 2_000)) && !Failsafe.getInstance().isTouchingDirtBlock()) {
                 notMovingTimer.reset();
                 unstuckAttempts++;
                 if (unstuckAttempts > 2 && FarmHelperConfig.rewarpAt3FailesAntistuck) {
