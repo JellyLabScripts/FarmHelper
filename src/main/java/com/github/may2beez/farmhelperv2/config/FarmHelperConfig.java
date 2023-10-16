@@ -1383,7 +1383,7 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
         registerKeyBind(debugKeybind, () -> {
-            Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.ROTATION_CHECK);
+            Failsafe.getInstance().getDirtBlocks().add(BlockUtils.getRelativeBlockPos(1, 1, 0));
         });
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
         save();
