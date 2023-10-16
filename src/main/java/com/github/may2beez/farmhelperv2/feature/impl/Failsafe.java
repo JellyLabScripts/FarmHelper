@@ -474,6 +474,7 @@ public class Failsafe implements IFeature {
     @SubscribeEvent
     public void onBlockChange(BlockChangeEvent event) {
         if (firstCheckReturn()) return;
+        if (isEmergency()) return;
         if (event.update.getBlock() == null) return;
         if (!event.old.getBlock().equals(Blocks.air)) return;
         if (event.update.getBlock() instanceof BlockCrops) return;
@@ -564,7 +565,7 @@ public class Failsafe implements IFeature {
                     this.rotation.reset();
                     KeyBindUtils.stopMovement();
                     dirtCheckState = DirtCheckState.ROTATE_INTO_DIRT_2;
-                    failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                    failsafeDelay.schedule((long) (150 + Math.random() * 150));
                 } else {
                     randomMoveAndRotate();
                 }
