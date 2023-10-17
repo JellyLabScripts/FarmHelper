@@ -2,10 +2,13 @@ package com.jelly.farmhelper.remote.command.discordCommands;
 
 import com.jelly.farmhelper.remote.WebsocketHandler;
 import com.jelly.farmhelper.remote.discordStruct.DiscordCommand;
+import com.jelly.farmhelper.remote.discordStruct.Option;
 import com.jelly.farmhelper.remote.waiter.Waiter;
 import com.jelly.farmhelper.remote.waiter.WaiterHandler;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+
 
 import java.util.Objects;
 
@@ -15,6 +18,10 @@ public class Toggle extends DiscordCommand {
 
     public Toggle() {
         super(Toggle.name, Toggle.description);
+        addOptions(
+                new Option(OptionType.STRING, "ign", "The IGN of the player you want to toggle this account", false, true)
+        );
+
     }
 
     @Override
