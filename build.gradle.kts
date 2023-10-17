@@ -90,6 +90,7 @@ tasks {
 
     shadowJar {
         configurations = listOf(embed)
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         relocate("org.apache.commons.collections4", "com.jelly.apache.commons.collections4")
     }
 

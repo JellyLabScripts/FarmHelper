@@ -241,9 +241,9 @@ public class BlockUtils {
         if (!FarmHelper.gameState.leftWalkable) return false;
         Block crop = getRelativeBlock(-1, (FarmHelper.config.macroType && (FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal())) ? 2 : 1, 1, (FarmHelper.config.macroType && (FarmHelper.config.SShapeMacroType ==  SMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal())) ? MushroomMacroNew.closest90Yaw : mc.thePlayer.rotationYaw);
         if (crop.equals(Blocks.nether_wart)) {
-            return mc.theWorld.getBlockState(getRelativeBlockPos(-1, 1, 1)).getValue(BlockNetherWart.AGE) == 3;
+            return crop.getBlockState().getBaseState().getValue(BlockNetherWart.AGE) == 3;
         } else if (crop.equals(Blocks.wheat) || crop.equals(Blocks.carrots) || crop.equals(Blocks.potatoes))
-            return mc.theWorld.getBlockState(getRelativeBlockPos(-1, 1, 1)).getValue(BlockCrops.AGE) == 7;
+            return crop.getBlockState().getBaseState().getValue(BlockCrops.AGE) == 7;
         else if (crop.equals(Blocks.brown_mushroom) || crop.equals(Blocks.red_mushroom)) {
             return true;
         } else if (crop.equals(Blocks.cactus)) {
@@ -268,9 +268,9 @@ public class BlockUtils {
 
         Block crop = getRelativeBlock(1, (FarmHelper.config.macroType && (FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM.ordinal() || FarmHelper.config.SShapeMacroType == SMacroEnum.MUSHROOM_ROTATE.ordinal())) ? 2 : 1, 1, yaw);
         if (crop.equals(Blocks.nether_wart)) {
-            return mc.theWorld.getBlockState(getRelativeBlockPos(1, 1, 1)).getValue(BlockNetherWart.AGE) == 3;
+            return crop.getBlockState().getBaseState().getValue(BlockNetherWart.AGE) == 3;
         } else if (crop.equals(Blocks.wheat) || crop.equals(Blocks.carrots) || crop.equals(Blocks.potatoes))
-            return mc.theWorld.getBlockState(getRelativeBlockPos(1, 1, 1)).getValue(BlockCrops.AGE) == 7;
+            return crop.getBlockState().getBaseState().getValue(BlockCrops.AGE) == 7;
         else if (crop.equals(Blocks.brown_mushroom) || crop.equals(Blocks.red_mushroom)) {
             return true;
         } else if (crop.equals(Blocks.cactus)) {

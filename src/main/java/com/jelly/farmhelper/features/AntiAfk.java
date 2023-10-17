@@ -38,7 +38,6 @@ public class AntiAfk {
     public enum Mode {
         NONE,
         ROTATE_START,
-        ROTATE_BACK
     }
 
     @Getter
@@ -93,15 +92,8 @@ public class AntiAfk {
                 Multithreading.schedule(() -> {
                     LogUtils.sendWarning("Anti-AFK mode disabled");
                     MacroHandler.enableCurrentMacro();
-                }, (long) (750 + Math.random() * 500), TimeUnit.MILLISECONDS);;
+                }, (long) (750 + Math.random() * 500), TimeUnit.MILLISECONDS);
                 break;
-//            case ROTATE_BACK:
-//                if (MacroHandler.currentMacro == null) return;
-//                float yaw = MacroHandler.currentMacro.yaw;
-//                float pitch = MacroHandler.currentMacro.pitch;
-//                rotation.easeTo(yaw, pitch, (long) (FarmHelper.config.rotationTime * 1000 + Math.random() * FarmHelper.config.rotationTimeRandomness * 1000));
-//
-//                break;
         }
     }
 }
