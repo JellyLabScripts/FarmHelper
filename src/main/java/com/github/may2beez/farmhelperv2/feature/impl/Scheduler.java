@@ -64,7 +64,7 @@ public class Scheduler implements IFeature {
 
     @Override
     public void resetStatesAfterMacroDisabled() {
-
+        GameStateHandler.getInstance().setWasInJacobContest(false);
     }
 
     @Override
@@ -112,6 +112,10 @@ public class Scheduler implements IFeature {
 
         if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().inJacobContest() && !schedulerClock.isPaused()) {
             schedulerClock.pause();
+            GameStateHandler.getInstance().setWasInJacobContest(true);
+        } else if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().isWasInJacobContest() && !GameStateHandler.getInstance().inJacobContest() && schedulerClock.isPaused()) {
+            schedulerClock.resume();
+            GameStateHandler.getInstance().setWasInJacobContest(false);
         }
 
         if (MacroHandler.getInstance().isMacroToggled() && MacroHandler.getInstance().isCurrentMacroEnabled() && schedulerState == SchedulerState.FARMING && !schedulerClock.isPaused() && schedulerClock.passed()) {

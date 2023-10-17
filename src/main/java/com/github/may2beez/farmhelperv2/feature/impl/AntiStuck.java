@@ -110,7 +110,8 @@ public class AntiStuck implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled() ||
-                (!MacroHandler.getInstance().isCurrentMacroEnabled()) ||
+                !MacroHandler.getInstance().isCurrentMacroEnabled() ||
+                MacroHandler.getInstance().isTeleporting() ||
                 FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) {
             notMovingTimer.reset();
             lastX = 10000;

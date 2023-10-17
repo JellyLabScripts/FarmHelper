@@ -7,6 +7,7 @@ import com.github.may2beez.farmhelperv2.event.BlockChangeEvent;
 import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
+import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
@@ -16,9 +17,11 @@ import lombok.Setter;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.event.ClickEvent;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.*;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -122,6 +125,7 @@ public class Failsafe implements IFeature {
         currentLookAroundTimes = 0;
         resetRotationCheck();
         resetDirtCheck();
+        resetEvacuateCheck();
     }
 
     @Override
@@ -209,6 +213,7 @@ public class Failsafe implements IFeature {
             case BEDROCK_CAGE_CHECK:
                 break;
             case EVACUATE:
+                onEvacuate();
                 break;
             case BANWAVE:
                 onBanwave();
@@ -217,6 +222,10 @@ public class Failsafe implements IFeature {
                 break;
         }
     }
+
+    private final Clock failsafeDelay = new Clock();
+    private int lookAroundTimes = 0;
+    private int currentLookAroundTimes = 0;
 
     // region BANWAVE
 
@@ -260,10 +269,6 @@ public class Failsafe implements IFeature {
     }
 
     // endregion
-
-    private final Clock failsafeDelay = new Clock();
-    private int lookAroundTimes = 0;
-    private int currentLookAroundTimes = 0;
 
     // region ROTATION and TELEPORT check
 
@@ -479,11 +484,8 @@ public class Failsafe implements IFeature {
         if (!event.old.getBlock().equals(Blocks.air)) return;
         if (event.update.getBlock() instanceof BlockCrops) return;
 
-        boolean blockOnPath = blockIsOnPath(event.pos);
-        if (blockOnPath) {
-            LogUtils.sendWarning("[Failsafe] Someone put block on your path! Block pos: " + event.pos);
-            dirtBlocks.add(event.pos);
-        }
+        LogUtils.sendWarning("[Failsafe] Someone put block on your garden! Block pos: " + event.pos);
+        dirtBlocks.add(event.pos);
     }
 
     enum DirtCheckState {
@@ -617,26 +619,82 @@ public class Failsafe implements IFeature {
         return !dirtBlocks.isEmpty();
     }
 
-    private boolean blockIsOnPath(BlockPos blockPos) {
-        BlockPos playerPosition = BlockUtils.getRelativeBlockPos(0, 0, 0);
-        int playerX = playerPosition.getX();
-        int playerZ = playerPosition.getZ();
-        int blockX = blockPos.getX();
-        int blockZ = blockPos.getZ();
-        BlockPos movableLane = BlockUtils.getRelativeBlockPos(1, 0, 0);
-        int movableLaneX = movableLane.getX();
-        if (movableLaneX == playerX) {
-            // moves on Z
-            return blockX == playerX;
-        } else {
-            // moves on X
-            return blockZ == playerZ;
-        }
-    }
-
     private void resetDirtCheck() {
         dirtBlocks.clear();
         dirtCheckState = DirtCheckState.NONE;
+    }
+
+    // endregion
+
+    // region EVACUATE
+
+    enum EvacuateState {
+        NONE,
+        EVACUATE_FROM_ISLAND,
+        TP_BACK_TO_ISLAND,
+        END
+    }
+
+    private EvacuateState evacuateState = EvacuateState.NONE;
+
+    @SubscribeEvent
+    public void onChatReceived(ClientChatReceivedEvent event) {
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (event.type != 0) return;
+        if (!FarmHelperConfig.autoEvacuateOnWorldUpdate) return;
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        LogUtils.sendDebug(message);
+
+        // TODO: Further test on real hypixel
+        if (message.contains("to warp out! CLICK to warp now!")) {
+            for (IChatComponent component : event.message.getSiblings()) {
+                ClickEvent clickEvent = component.getChatStyle().getChatClickEvent();
+                LogUtils.sendDebug(clickEvent + "");
+                if (component.getUnformattedText().contains("CLICK") && clickEvent != null && clickEvent.getValue() != null) {
+                    evacuateState = EvacuateState.EVACUATE_FROM_ISLAND;
+                    break;
+                }
+            }
+        }
+    }
+
+    private void onEvacuate() {
+        if (failsafeDelay.isScheduled() && !failsafeDelay.passed()) return;
+
+        switch (evacuateState) {
+            case NONE:
+                MacroHandler.getInstance().pauseMacro();
+                evacuateState = EvacuateState.EVACUATE_FROM_ISLAND;
+                failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                break;
+            case EVACUATE_FROM_ISLAND:
+                if (GameStateHandler.getInstance().inGarden()) {
+                    mc.thePlayer.sendChatMessage("/evacuate");
+                    failsafeDelay.schedule((long) (2_500 + Math.random() * 2_000));
+                } else {
+                    evacuateState = EvacuateState.TP_BACK_TO_ISLAND;
+                    failsafeDelay.schedule((long) (3_000 + Math.random() * 3_000));
+                }
+                break;
+            case TP_BACK_TO_ISLAND:
+                if (GameStateHandler.getInstance().inGarden()) {
+                    evacuateState = EvacuateState.END;
+                    failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                } else {
+                    mc.thePlayer.sendChatMessage("/warp garden");
+                    failsafeDelay.schedule((long) (2_500 + Math.random() * 2_000));
+                }
+                break;
+            case END:
+                Failsafe.getInstance().stop();
+                MacroHandler.getInstance().resumeMacro();
+                LogUtils.sendFailsafeMessage("[Failsafe] Came back from evacuation!");
+                break;
+        }
+    }
+
+    private void resetEvacuateCheck() {
+        evacuateState = EvacuateState.NONE;
     }
 
     // endregion

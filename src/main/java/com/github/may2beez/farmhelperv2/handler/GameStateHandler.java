@@ -9,6 +9,7 @@ import com.github.may2beez.farmhelperv2.util.ScoreboardUtils;
 import com.github.may2beez.farmhelperv2.util.TablistUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Timer;
 import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StringUtils;
@@ -289,6 +290,10 @@ public class GameStateHandler {
     public boolean inGarden() {
         return location != Location.TELEPORTING && location == Location.GARDEN;
     }
+
+    @Getter
+    @Setter
+    private boolean wasInJacobContest = false;
 
     public boolean inJacobContest() {
         for (String line : ScoreboardUtils.getScoreboardLines()) {

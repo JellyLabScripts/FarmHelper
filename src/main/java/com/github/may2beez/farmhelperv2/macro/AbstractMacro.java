@@ -3,6 +3,7 @@ package com.github.may2beez.farmhelperv2.macro;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
+import com.github.may2beez.farmhelperv2.feature.impl.AntiStuck;
 import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
 import com.github.may2beez.farmhelperv2.feature.impl.LagDetector;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
@@ -129,6 +130,7 @@ public abstract class AbstractMacro {
             }
             rotated = true;
             LogUtils.sendDebug("Rotating");
+            setLayerY(mc.thePlayer.getPosition().getY());
             rewarpDelay.schedule(FarmHelperConfig.getRandomTimeBetweenChangingRows());
             return;
         } else if (rewarpState == RewarpState.TELEPORTING) {

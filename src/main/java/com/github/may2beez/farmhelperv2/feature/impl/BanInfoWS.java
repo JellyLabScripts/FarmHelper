@@ -203,6 +203,7 @@ public class BanInfoWS implements IFeature {
             @Override
             public void onOpen(ServerHandshake handshakedata) {
                 LogUtils.sendDebug("Connected to analytics websocket server");
+                Notifications.INSTANCE.send("FarmHelper INFO", "Connected to analytics websocket server");
                 Multithreading.schedule(() -> client.send("{\"message\":\"banwaveInfo\", \"mod\": \"farmHelper\"}"), 1_000, TimeUnit.MILLISECONDS);
             }
 

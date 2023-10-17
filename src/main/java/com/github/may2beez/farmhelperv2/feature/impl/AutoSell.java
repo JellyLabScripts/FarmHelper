@@ -156,7 +156,7 @@ public class AutoSell implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isToggled()) return;
         if (isRunning()) return;
-        if (!MacroHandler.getInstance().isMacroToggled() && !manually) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
@@ -180,7 +180,7 @@ public class AutoSell implements IFeature {
     @SubscribeEvent
     public void onTickEnabled(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!isToggled()) return;
+        if (!isToggled() && !manually) return;
         if (!isRunning()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) return;

@@ -115,6 +115,7 @@ public class ProfitCalculatorHUD extends BasicHud {
         lines.add(new Tuple<>(ProfitCalculator.getInstance().getBPS(), "/farmhelper/textures/gui/bps.png"));
         lines.add(new Tuple<>(LogUtils.getRuntimeFormat(), "/farmhelper/textures/gui/runtime.png"));
         List<ProfitCalculator.BazaarItem> linesCopy = new ArrayList<>(ProfitCalculator.getInstance().cropsToCount);
+        linesCopy.addAll(ProfitCalculator.getInstance().rngDropToCount);
         linesCopy.stream().filter(crop -> crop.currentAmount > 0).sorted(
                 Comparator.comparing(
                         (ProfitCalculator.BazaarItem item) -> -item.currentAmount
@@ -127,13 +128,5 @@ public class ProfitCalculatorHUD extends BasicHud {
                         )
                 )
         );
-//        LinkedHashMap<String, ProfitCalculator.BazaarItem> sorted = new LinkedHashMap<>();
-//        linesCopy.entrySet()
-//                .stream()
-//                .sorted(Comparator.comparingDouble(e -> -e.getValue().currentAmount))
-//                .forEachOrdered(x -> sorted.put(x.getKey(), x.getValue()));
-//        for (Map.Entry<String, ProfitCalculator.BazaarItem> entry : sorted.entrySet()) {
-//            lines.add(new Tuple<>(String.format("%,.2f", entry.getValue().currentAmount), entry.getValue().imageURL));
-//        }
     }
 }

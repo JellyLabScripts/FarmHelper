@@ -22,7 +22,6 @@ import com.github.may2beez.farmhelperv2.util.PlayerUtils;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
@@ -473,6 +472,12 @@ public class FarmHelperConfig extends Config {
             description = "Automatically warps back to garden on server reboot, server update, etc"
     )
     public static boolean autoTPOnWorldChange = true;
+
+    @Switch(
+            name = "Auto Evacuate on World update", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "Automatically evacuates the island on server reboot, server update, etc"
+    )
+    public static boolean autoEvacuateOnWorldUpdate = false;
 
     @Switch(
             name = "Auto reconnect on disconnect", category = FAILSAFE, subcategory = "Miscellaneous",
@@ -1312,9 +1317,6 @@ public class FarmHelperConfig extends Config {
         this.hideIf("customFailsafeSoundWarning", () -> !failsafeSoundType || !enableFailsafeSound || failsafeSoundSelected != 0);
         this.addDependency("leaveAfterFailSafe", "enableRestartAfterFailSafe");
         this.addDependency("restartAfterFailSafeDelay", "enableRestartAfterFailSafe");
-        this.addDependency("setSpawnBeforeEvacuate", "enableAutoSetSpawn");
-        this.addDependency("autoSetSpawnMinDelay", "enableAutoSetSpawn");
-        this.addDependency("autoSetSpawnMaxDelay", "enableAutoSetSpawn");
         this.addDependency("enableLeaveOnBanwave", "banwaveCheckerEnabled");
         this.addDependency("banwaveThreshold", "enableLeaveOnBanwave");
         this.addDependency("delayBeforeReconnecting", "enableLeaveOnBanwave");
@@ -1362,10 +1364,6 @@ public class FarmHelperConfig extends Config {
         this.addDependency("_applyWebhook", "enableWebHook");
         this.addDependency("enableRemoteControl", "Enable Remote Control", () -> Loader.isModLoaded("farmhelperjdadependency"));
         this.hideIf("infoRemoteControl", () -> Loader.isModLoaded("farmhelperjdadependency"));
-
-        this.addDependency("setSpawnBeforeEvacuate", "enableAutoSetSpawn");
-        this.addDependency("autoSetSpawnMinDelay", "enableAutoSetSpawn");
-        this.addDependency("autoSetSpawnMaxDelay", "enableAutoSetSpawn");
 
         this.addDependency("debugMode", "Debug Mode", () -> !hideLogs);
         this.addDependency("hideLogs", "Hide Logs (Not Recommended)", () -> !debugMode);

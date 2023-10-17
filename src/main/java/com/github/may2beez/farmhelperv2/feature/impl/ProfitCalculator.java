@@ -105,8 +105,8 @@ public class ProfitCalculator implements IFeature {
     private final Clock updateClock = new Clock();
     @Getter
     private final Clock updateBazaarClock = new Clock();
-    public static final List<String> cropsToCountList = Arrays.asList("Hay Bale", "Seeds", "Carrot", "Potato", "Melon", "Pumpkin", "Sugar Cane", "Cocoa Beans", "Nether Wart", "Cactus Green", "Red Mushroom", "Brown Mushroom");
-
+    public final List<String> cropsToCountList = Arrays.asList("Hay Bale", "Seeds", "Carrot", "Potato", "Melon", "Pumpkin", "Sugar Cane", "Cocoa Beans", "Nether Wart", "Cactus Green", "Red Mushroom", "Brown Mushroom");
+    public final List<String> rngToCountList = Arrays.asList("Cropie", "Squash", "Fermento", "Burrowing Spores");
     @Override
     public String getName() {
         return "Profit Calculator";
@@ -174,7 +174,7 @@ public class ProfitCalculator implements IFeature {
                 double price = 0;
                 if (!bazaarPrices.containsKey(item.localizedName)) {
                     LogUtils.sendDebug("No price for " + item.localizedName);
-                    profit = item.npcPrice;
+                    price = item.npcPrice;
                 } else if (bazaarPrices.get(item.localizedName).isManipulated()) {
                     price = bazaarPrices.get(item.localizedName).getMedian();
                 } else {
@@ -188,10 +188,10 @@ public class ProfitCalculator implements IFeature {
             if (cantConnectToApi) {
                 rngPrice += item.currentAmount * item.npcPrice;
             } else {
-                double price = 0;
+                double price;
                 if (!bazaarPrices.containsKey(item.localizedName)) {
                     LogUtils.sendDebug("No price for " + item.localizedName);
-                    profit = item.npcPrice;
+                    price = item.npcPrice;
                 } else if (bazaarPrices.get(item.localizedName).isManipulated()) {
                     price = bazaarPrices.get(item.localizedName).getMedian();
                 } else {
@@ -299,16 +299,16 @@ public class ProfitCalculator implements IFeature {
     @SubscribeEvent
     public void onReceivedChat(ClientChatReceivedEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (event.type != 0) return;
 
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains(":")) return;
 
-        Optional<String> optional = cropsToCountList.stream().filter(message::contains).findFirst();
+        Optional<String> optional = rngToCountList.stream().filter(message::contains).findFirst();
         if (optional.isPresent()) {
             String name = optional.get();
+            LogUtils.sendDebug("RNG DROP. Adding " + name + " to rng drops");
             addRngDrop(name);
             return;
         }
@@ -333,6 +333,7 @@ public class ProfitCalculator implements IFeature {
             if (matcher.group(2).contains("Block") || matcher.group(2).contains("Polished")) {
                 amountDropped *= 160;
             }
+            LogUtils.sendDebug("RNG DROP. Adding " + amountDropped + " " + itemDropped + " to drops");
             addDroppedItem(itemDropped, amountDropped);
         }
     }
