@@ -10,6 +10,7 @@
     "block.MixinBlockMushroom",
     "block.MixinBlockNetherWart",
     "client.MixinChunk",
+    "client.MixinMouse",
     "fml.MixinFMLHandshakeMessage",
     "network.MixinNetworkManager"
   ],

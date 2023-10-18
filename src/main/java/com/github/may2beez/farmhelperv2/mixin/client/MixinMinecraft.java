@@ -93,11 +93,4 @@ public class MixinMinecraft {
                 if (i % 3 == 0) this.thePlayer.swingItem();
             }
     }
-
-    @Inject(method = "runTick", at = @At(value = "INVOKE", target = "Lorg/lwjgl/input/Mouse;getEventDWheel()I"), cancellable = true)
-    private void runTick(CallbackInfo ci) {
-        if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().isMacroToggled()) {
-            ci.cancel();
-        }
-    }
 }
