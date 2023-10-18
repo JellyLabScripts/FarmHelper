@@ -15,6 +15,7 @@
   ],
   "client": [
     "block.MixinBlockRendererDispatcher",
+    "client.MixinMinecraft",
     "client.MixinPlayerControllerMP",
     "client.MixinSoundManager",
     "gui.IGuiPlayerTabOverlayAccessor",
