@@ -122,11 +122,11 @@ public class Scheduler implements IFeature {
             LogUtils.sendDebug("[Scheduler] Farming time has passed, stopping");
             MacroHandler.getInstance().pauseMacro();
             schedulerState = SchedulerState.BREAK;
-            schedulerClock.schedule(TimeUnit.MINUTES.toMillis((long)(FarmHelperConfig.schedulerBreakTime + (Math.random() * FarmHelperConfig.schedulerBreakTimeRandomness))));
+            schedulerClock.schedule((long) (FarmHelperConfig.schedulerBreakTime + (Math.random() * FarmHelperConfig.schedulerBreakTimeRandomness)));
         } else if (MacroHandler.getInstance().isMacroToggled() && schedulerState == SchedulerState.BREAK && !schedulerClock.isPaused() && schedulerClock.passed()) {
             LogUtils.sendDebug("[Scheduler] Break time has passed, starting");
             schedulerState = SchedulerState.FARMING;
-            schedulerClock.schedule(TimeUnit.MINUTES.toMillis((long)(FarmHelperConfig.schedulerFarmingTime + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness))));
+            schedulerClock.schedule((long)(FarmHelperConfig.schedulerFarmingTime + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness)));
             MacroHandler.getInstance().resumeMacro();
         }
     }
