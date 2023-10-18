@@ -203,7 +203,9 @@ public class ProfitCalculator implements IFeature {
 
         ItemStack currentItem = mc.thePlayer.inventory.getCurrentItem();
         if (currentItem != null && StringUtils.stripControlCodes(currentItem.getDisplayName()).startsWith("Bountiful")) {
-            bountifulProfit += GameStateHandler.getInstance().getCurrentPurse() - GameStateHandler.getInstance().getPreviousPurse();
+            double value = GameStateHandler.getInstance().getCurrentPurse() - GameStateHandler.getInstance().getPreviousPurse();
+            if (value > 0)
+                bountifulProfit += value;
         }
         profit += bountifulProfit;
         realProfit = profit * 0.95d; // it counts too much, because of compactors, so we delete ~5% of false profit

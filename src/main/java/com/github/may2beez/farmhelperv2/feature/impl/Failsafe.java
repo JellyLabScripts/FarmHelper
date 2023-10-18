@@ -20,6 +20,7 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
+import net.minecraft.network.play.server.S09PacketHeldItemChange;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -126,6 +127,7 @@ public class Failsafe implements IFeature {
         resetRotationCheck();
         resetDirtCheck();
         resetEvacuateCheck();
+        resetItemChangeCheck();
     }
 
     @Override
@@ -207,6 +209,7 @@ public class Failsafe implements IFeature {
                 onDirtCheck();
                 break;
             case ITEM_CHANGE_CHECK:
+                onItemChange();
                 break;
             case WORLD_CHANGE_CHECK:
                 break;
@@ -270,7 +273,7 @@ public class Failsafe implements IFeature {
 
     // endregion
 
-    // region ROTATION and TELEPORT check
+    // region ROTATION and TELEPORT
 
     @SubscribeEvent
     public void onPacketReceived(ReceivePacketEvent event) {
@@ -695,6 +698,78 @@ public class Failsafe implements IFeature {
 
     private void resetEvacuateCheck() {
         evacuateState = EvacuateState.NONE;
+    }
+
+    // endregion
+
+    // region ITEM CHANGE
+
+    enum ItemChangeState {
+        NONE,
+        WAIT_BEFORE_START,
+        LOOK_AROUND,
+        SWAP_BACK_ITEM,
+        END
+    }
+
+    private ItemChangeState itemChangeState = ItemChangeState.NONE;
+
+    @SubscribeEvent
+    public void onPacketReceive(ReceivePacketEvent event) {
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (!MacroHandler.getInstance().isTeleporting()) return;
+
+        if (!(event.packet instanceof S09PacketHeldItemChange)) return;
+
+        S09PacketHeldItemChange packet = (S09PacketHeldItemChange) event.packet;
+        int slot = packet.getHeldItemHotbarIndex();
+        LogUtils.sendDebug(slot + "");
+    }
+
+    private void onItemChange() {
+        if (fakeMovementCheck()) return;
+
+        switch (itemChangeState) {
+            case NONE:
+                failsafeDelay.schedule((long) (500f + Math.random() * 1_000f));
+                itemChangeState = ItemChangeState.WAIT_BEFORE_START;
+                break;
+            case WAIT_BEFORE_START:
+                MacroHandler.getInstance().pauseMacro();
+                lookAroundTimes = (int) Math.round(3 + Math.random() * 3);
+                currentLookAroundTimes = 0;
+                failsafeDelay.schedule((long) (500 + Math.random() * 500));
+                KeyBindUtils.stopMovement();
+                itemChangeState = ItemChangeState.LOOK_AROUND;
+                break;
+            case LOOK_AROUND:
+                if (currentLookAroundTimes >= lookAroundTimes) {
+                    rotation.reset();
+                    KeyBindUtils.stopMovement();
+                    itemChangeState = ItemChangeState.SWAP_BACK_ITEM;
+                    failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                } else {
+                    randomMoveAndRotate();
+                }
+                break;
+            case SWAP_BACK_ITEM:
+                if (this.rotation.rotating) return;
+                failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                itemChangeState = ItemChangeState.END;
+                break;
+            case END:
+                PlayerUtils.getTool();
+                Failsafe.getInstance().stop();
+                Multithreading.schedule(() -> {
+                    LogUtils.sendDebug("[Failsafe] Finished item change failsafe. Continuing macro...");
+                    MacroHandler.getInstance().resumeMacro();
+                }, 500, TimeUnit.MILLISECONDS);
+                break;
+        }
+    }
+
+    private void resetItemChangeCheck() {
+        itemChangeState = ItemChangeState.NONE;
     }
 
     // endregion
