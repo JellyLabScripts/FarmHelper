@@ -1044,13 +1044,13 @@ public class FarmHelperConfig extends Config {
     
     @Switch(
             name = "Send Logs", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
-            description = "Sends all messages about the macro, spams a lot of messages"
+            description = "Sends all messages about the macro, staff checks, etc"
     )
     public static boolean sendLogs = false;
     
     @Switch(
             name = "Send Status Updates", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
-            description = "Sends messages about the macro, such as when it started, stopped, etc"
+            description = "Sends messages about the macro, such as profits, harvesting crops, etc"
     )
     public static boolean sendStatusUpdates = false;
     
@@ -1385,7 +1385,7 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
         registerKeyBind(debugKeybind, () -> {
-            Failsafe.getInstance().getDirtBlocks().add(BlockUtils.getRelativeBlockPos(1, 1, 0));
+            Minecraft.getMinecraft().thePlayer.sendChatMessage("/warp hub");
         });
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
         save();

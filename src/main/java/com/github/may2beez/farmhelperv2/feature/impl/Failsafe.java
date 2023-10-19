@@ -9,18 +9,21 @@ import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
+import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import lombok.Getter;
 import lombok.Setter;
-import net.minecraft.block.BlockCrops;
+import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.event.ClickEvent;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemAxe;
+import net.minecraft.item.ItemHoe;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
-import net.minecraft.network.play.server.S09PacketHeldItemChange;
+import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -81,7 +84,7 @@ public class Failsafe implements IFeature {
     private EmergencyType emergency = EmergencyType.NONE;
     private final ArrayList<EmergencyType> emergencyQueue = new ArrayList<>();
 
-    private static final String[] FAILSAFE_MESSAGES = new String[] {
+    private static final String[] FAILSAFE_MESSAGES = new String[]{
             "WHAT", "what?", "what", "what??", "what???", "wut?", "?", "what???", "yo huh", "yo huh?", "yo?",
             "ehhhhh??", "eh", "yo", "ahmm", "ehh", "LOL what", "lol :skull:", "bro wtf was that?", "lmao",
             "lmfao", "wtf is this", "wtf", "WTF", "wtf is this?", "wtf???", "tf", "tf?", "wth",
@@ -129,6 +132,8 @@ public class Failsafe implements IFeature {
         resetDirtCheck();
         resetEvacuateCheck();
         resetItemChangeCheck();
+        resetWorldChangeCheck();
+        resetBedrockCageCheck();
     }
 
     @Override
@@ -195,6 +200,7 @@ public class Failsafe implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!isEmergency()) return;
+        if (failsafeDelay.isScheduled() && !failsafeDelay.passed()) return;
 
         switch (emergency) {
             case NONE:
@@ -216,6 +222,7 @@ public class Failsafe implements IFeature {
                 onWorldChange();
                 break;
             case BEDROCK_CAGE_CHECK:
+                onBedrockCage();
                 break;
             case EVACUATE:
                 onEvacuate();
@@ -336,7 +343,6 @@ public class Failsafe implements IFeature {
 
     public void onRotationTeleportCheck() {
         if (fakeMovementCheck()) return;
-        if (failsafeDelay.isScheduled() && !failsafeDelay.passed()) return;
 
         switch (rotationCheckState) {
             case NONE:
@@ -486,8 +492,12 @@ public class Failsafe implements IFeature {
         if (firstCheckReturn()) return;
         if (isEmergency()) return;
         if (event.update.getBlock() == null) return;
-        if (!event.old.getBlock().equals(Blocks.air)) return;
+        if (event.update.getBlock().equals(Blocks.air)) return;
         if (event.update.getBlock() instanceof BlockCrops) return;
+        if (event.update.getBlock() instanceof BlockNetherWart) return;
+        if (event.update.getBlock() instanceof BlockCactus) return;
+        if (event.update.getBlock() instanceof BlockReed) return;
+        if (event.update.getBlock().isPassable(mc.theWorld, event.pos)) return;
 
         LogUtils.sendWarning("[Failsafe] Someone put block on your garden! Block pos: " + event.pos);
         dirtBlocks.add(event.pos);
@@ -509,7 +519,6 @@ public class Failsafe implements IFeature {
 
     private void onDirtCheck() {
         if (fakeMovementCheck()) return;
-        if (failsafeDelay.isScheduled() && !failsafeDelay.passed()) return;
 
         switch (dirtCheckState) {
             case NONE:
@@ -648,24 +657,22 @@ public class Failsafe implements IFeature {
         if (event.type != 0) return;
         if (!FarmHelperConfig.autoEvacuateOnWorldUpdate) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
-        LogUtils.sendDebug(message);
+        if (getNumberOfCharactersInString(message) > 1) return;
 
-        // TODO: Further test on real hypixel
         if (message.contains("to warp out! CLICK to warp now!")) {
-            for (IChatComponent component : event.message.getSiblings()) {
-                ClickEvent clickEvent = component.getChatStyle().getChatClickEvent();
-                LogUtils.sendDebug(clickEvent + "");
-                if (component.getUnformattedText().contains("CLICK") && clickEvent != null && clickEvent.getValue() != null) {
-                    evacuateState = EvacuateState.EVACUATE_FROM_ISLAND;
-                    break;
-                }
-            }
+            evacuateState = EvacuateState.EVACUATE_FROM_ISLAND;
         }
     }
 
-    private void onEvacuate() {
-        if (failsafeDelay.isScheduled() && !failsafeDelay.passed()) return;
+    private int getNumberOfCharactersInString(String string) {
+        int count = 0;
+        for (char c : string.toCharArray()) {
+            if (c == ':') count++;
+        }
+        return count;
+    }
 
+    private void onEvacuate() {
         switch (evacuateState) {
             case NONE:
                 MacroHandler.getInstance().pauseMacro();
@@ -719,13 +726,21 @@ public class Failsafe implements IFeature {
     @SubscribeEvent
     public void onPacketReceive(ReceivePacketEvent event) {
         if (firstCheckReturn()) return;
-        if (!MacroHandler.getInstance().isTeleporting()) return;
+        if (MacroHandler.getInstance().isTeleporting()) return;
 
-        if (!(event.packet instanceof S09PacketHeldItemChange)) return;
+        if (!(event.packet instanceof S2FPacketSetSlot)) return;
 
-        S09PacketHeldItemChange packet = (S09PacketHeldItemChange) event.packet;
-        int slot = packet.getHeldItemHotbarIndex();
-        LogUtils.sendDebug(slot + "");
+        S2FPacketSetSlot packet = (S2FPacketSetSlot) event.packet;
+        int slot = packet.func_149173_d();
+        int farmingToolSlot = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop());
+        ItemStack farmingTool = mc.thePlayer.inventory.getStackInSlot(farmingToolSlot);
+        if (slot == 36 + farmingToolSlot &&
+                farmingTool != null &&
+                !(farmingTool.getItem() instanceof ItemHoe) &&
+                !(farmingTool.getItem() instanceof ItemAxe)) {
+            LogUtils.sendDebug("[Failsafe] No farming tool in hand! Slot: " + slot);
+            addEmergency(EmergencyType.ITEM_CHANGE_CHECK);
+        }
     }
 
     private void onItemChange() {
@@ -784,6 +799,7 @@ public class Failsafe implements IFeature {
         LOOK_AROUND,
         END
     }
+
     private WorldChangeState worldChangeState = WorldChangeState.NONE;
 
     @SubscribeEvent
@@ -791,6 +807,19 @@ public class Failsafe implements IFeature {
         if (firstCheckReturn()) return;
 
         addEmergency(EmergencyType.WORLD_CHANGE_CHECK);
+    }
+
+    @SubscribeEvent
+    public void onReceiveChatWhileWorldChange(ClientChatReceivedEvent event) {
+        if (event.type != 0) return;
+        if (emergency != EmergencyType.WORLD_CHANGE_CHECK) return;
+
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        if (message.contains(":")) return;
+        if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing") || message.contains("You cannot join SkyBlock from here!")) {
+            LogUtils.sendWarning("[Failsafe] Can't warp to garden! Will try again in a moment.");
+            failsafeDelay.schedule(10_000);
+        }
     }
 
     private void onWorldChange() {
@@ -810,11 +839,11 @@ public class Failsafe implements IFeature {
 
         switch (worldChangeState) {
             case NONE:
+                MacroHandler.getInstance().pauseMacro();
                 failsafeDelay.schedule((long) (250f + Math.random() * 500f));
                 worldChangeState = WorldChangeState.WAIT_BEFORE_START;
                 break;
             case WAIT_BEFORE_START:
-                MacroHandler.getInstance().pauseMacro();
                 if (FarmHelperConfig.fakeMovements) {
                     lookAroundTimes = (int) Math.round(2 + Math.random() * 2);
                     currentLookAroundTimes = 0;
@@ -837,19 +866,20 @@ public class Failsafe implements IFeature {
                 }
                 break;
             case END:
-                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING) {
+                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING || LagDetector.getInstance().isLagging()) {
+                    failsafeDelay.schedule(1_000);
                     return;
                 }
                 if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY) {
                     LogUtils.sendDebug("[Failsafe] In lobby, sending /skyblock command...");
                     mc.thePlayer.sendChatMessage("/skyblock");
-                    failsafeDelay.schedule((long) (1_500 + Math.random() * 1_000));
+                    failsafeDelay.schedule((long) (4_500 + Math.random() * 1_000));
                     return;
                 }
                 if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
                     LogUtils.sendDebug("[Failsafe] In Limbo, sending /l command...");
                     mc.thePlayer.sendChatMessage("/l");
-                    failsafeDelay.schedule((long) (1_500 + Math.random() * 1_000));
+                    failsafeDelay.schedule((long) (4_500 + Math.random() * 1_000));
                     return;
                 }
                 if (GameStateHandler.getInstance().inGarden()) {
@@ -860,10 +890,45 @@ public class Failsafe implements IFeature {
                 } else {
                     LogUtils.sendDebug("[Failsafe] Sending /warp garden command...");
                     mc.thePlayer.sendChatMessage("/warp garden");
-                    failsafeDelay.schedule((long) (1_500 + Math.random() * 1_000));
+                    failsafeDelay.schedule((long) (4_500 + Math.random() * 1_000));
                 }
                 break;
         }
+    }
+
+    private void resetWorldChangeCheck() {
+        worldChangeState = WorldChangeState.NONE;
+    }
+
+    // endregion
+
+    // region BEDROCK CAGE
+
+    enum BedrockCageState {
+        NONE,
+        WAIT_BEFORE_START,
+
+        END,
+    }
+    private BedrockCageState bedrockCageState = BedrockCageState.NONE;
+
+
+    @SubscribeEvent
+    public void onTickBedrockCageCheck(TickEvent.ClientTickEvent event) {
+        if (firstCheckReturn()) return;
+
+        if (mc.thePlayer.getPosition().getY() < 50) return;
+        if (BlockUtils.bedrockCount() <= 2) return;
+
+        addEmergency(EmergencyType.BEDROCK_CAGE_CHECK);
+    }
+
+    private void onBedrockCage() {
+
+    }
+
+    private void resetBedrockCageCheck() {
+        bedrockCageState = BedrockCageState.NONE;
     }
 
     // endregion
@@ -880,13 +945,13 @@ public class Failsafe implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return true;
         if (!MacroHandler.getInstance().isMacroToggled()) return true;
         if (isEmergency()) return true;
-        if (chooseEmergencyDelay.isScheduled()) return true;
         return FeatureManager.getInstance().isAnyOtherFeatureEnabled(this); // we don't want to leave while serving visitors or doing other stuff
     }
 
     public void addEmergency(EmergencyType emergencyType) {
         if (emergencyQueue.contains(emergencyType)) return;
 
+        MacroHandler.getInstance().getCurrentMacro().ifPresent(AbstractMacro::saveState);
         emergencyQueue.add(emergencyType);
         if (!chooseEmergencyDelay.isScheduled())
             chooseEmergencyDelay.schedule(1_000);
@@ -921,6 +986,9 @@ public class Failsafe implements IFeature {
             RenderUtils.drawCenterTopText(text, event, Color.MAGENTA);
         } else if (restartMacroAfterFailsafeDelay.isScheduled()) {
             String text = "Restarting macro in: " + LogUtils.formatTime(restartMacroAfterFailsafeDelay.getRemainingTime());
+            RenderUtils.drawCenterTopText(text, event, Color.MAGENTA);
+        } else if (failsafeDelay.isScheduled()) {
+            String text = "Failsafe delay: " + LogUtils.formatTime(failsafeDelay.getRemainingTime());
             RenderUtils.drawCenterTopText(text, event, Color.MAGENTA);
         }
     }

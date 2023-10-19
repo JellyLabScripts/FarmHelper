@@ -68,9 +68,8 @@ public class MixinGuiDisconnected {
                 String reason = StringUtils.stripControlCodes(multilineMessage.get(2)).replace("Reason: ", "").trim();
                 int durationDays = Integer.parseInt(duration.split(" ")[0].replace("d", ""));
                 String banId = StringUtils.stripControlCodes(multilineMessage.get(5)).replace("Ban ID: ", "").trim();
-                System.out.println("Banned for " + durationDays + " days for " + reason + " with ban id " + banId);
-                BanInfoWS.getInstance().playerBanned(durationDays, reason, banId);
-                LogUtils.webhookLog("Banned for " + durationDays + " days for " + reason + " with ban id " + banId);
+//                BanInfoWS.getInstance().playerBanned(durationDays, reason, banId);
+                LogUtils.webhookLog("Banned for " + durationDays + " days for " + reason, true);
             } catch (Exception e) {
                 e.printStackTrace();
             }

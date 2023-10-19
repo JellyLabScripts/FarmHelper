@@ -4,6 +4,7 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.config.struct.DiscordWebhook;
 import com.github.may2beez.farmhelperv2.feature.impl.ProfitCalculator;
+import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
@@ -51,7 +52,7 @@ public class LogUtils {
 
     public static void sendFailsafeMessage(String message) {
         sendLog(new ChatComponentText("§5§lFarm Helper §8» §d" + message));
-        webhookLog(StringUtils.stripControlCodes(message));
+        webhookLog(StringUtils.stripControlCodes(message), true);
     }
 
     public static String getRuntimeFormat() {
@@ -93,25 +94,31 @@ public class LogUtils {
     }
 
     public static void webhookStatus() {
-        if (!FarmHelperConfig.sendStatusUpdates) return;
+        if (!FarmHelperConfig.enableWebHook) return;
 
         if (statusMsgTime == -1) {
             statusMsgTime = System.currentTimeMillis();
         }
         long timeDiff = TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - statusMsgTime);
-        if (timeDiff > FarmHelperConfig.statusUpdateInterval && FarmHelperConfig.sendStatusUpdates) {
+        System.out.println(timeDiff);
+        if (timeDiff >= FarmHelperConfig.statusUpdateInterval && FarmHelperConfig.sendStatusUpdates) {
             DiscordWebhook webhook = new DiscordWebhook(FarmHelperConfig.webHookURL.replace(" ", "").replace("\n", "").trim());
+            String randomColor = String.format("#%06x", (int) (Math.random() * 0xFFFFFF));
+            webhook.setUsername("Jelly - Farm Helper");
+            webhook.setAvatarUrl("https://cdn.discordapp.com/attachments/1152966451406327858/1160577992876109884/icon.png");
             webhook.addEmbed(new DiscordWebhook.EmbedObject()
                     .setTitle("Farm Helper")
-                    .setDescription("```" + "I'm still alive!" + "```")
-                    .setColor(Color.decode("#ff3b3b"))
-                    .setFooter("Jelly", "")
-                    .setThumbnail("https://crafatar.com/renders/head/" + mc.thePlayer.getUniqueID())
-                    .addField("Username", mc.thePlayer.getName(), true)
-                    .addField("Runtime", getRuntimeFormat(), true)
+                    .setAuthor("Instance name -> " + mc.getSession().getUsername(), "https://crafatar.com/avatars/" + mc.getSession().getPlayerID(), "https://crafatar.com/avatars/" + mc.getSession().getPlayerID())
+                    .setDescription("## I'm still alive!")
+                    .setColor(Color.decode(randomColor))
+                    .setFooter("Farm Helper Webhook Status", "https://cdn.discordapp.com/attachments/861700235890130986/1144673641951395982/icon.png")
+                    .setThumbnail("https://crafatar.com/renders/body/" + mc.getSession().getPlayerID())
+                    .addField("Username", mc.getSession().getUsername(), false)
+                    .addField("Runtime", getRuntimeFormat(), false)
                     .addField("Total Profit", ProfitCalculator.getInstance().getRealProfitString(), false)
                     .addField("Profit / hr", ProfitCalculator.getInstance().getProfitPerHourString(), false)
-                    .addField("Crop Type", capitalize(String.valueOf(MacroHandler.getInstance().getCrop())), true)
+                    .addField("Crop Type", capitalize(String.valueOf(MacroHandler.getInstance().getCrop())), false)
+                    .addField("Location", capitalize(GameStateHandler.getInstance().getLocation().getName()), false)
             );
             Multithreading.schedule(() -> {
                 try {
@@ -125,28 +132,35 @@ public class LogUtils {
     }
 
     public static void webhookLog(String message) {
-        if (!FarmHelperConfig.sendStatusUpdates) return;
+        webhookLog(message, false);
+    }
 
-        long timeDiff = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - logMsgTime);
-        sendDebug("Last webhook message: " + timeDiff);
-        if (FarmHelperConfig.sendLogs && (timeDiff > 20 || !Objects.equals(lastWebhook, message))) {
-            DiscordWebhook webhook = new DiscordWebhook(FarmHelperConfig.webHookURL.replace(" ", "").replace("\n", "").trim());
-            webhook.setUsername("Jelly - Farm Helper");
-            webhook.setAvatarUrl("https://cdn.discordapp.com/attachments/1152966451406327858/1160577992876109884/icon.png");
-            webhook.addEmbed(new DiscordWebhook.EmbedObject()
-                    .setDescription("**Farm Helper Log** ```" + message + "```")
-                    .setColor(Color.decode("#741010"))
-                    .setFooter(mc.thePlayer.getName(), "")
-            );
-            Multithreading.schedule(() -> {
-                try {
-                    webhook.execute();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }, 0, TimeUnit.MILLISECONDS);
-            logMsgTime = System.currentTimeMillis();
+    public static void webhookLog(String message, boolean mentionAll) {
+        if (!FarmHelperConfig.enableWebHook) return;
+        if (!FarmHelperConfig.sendLogs) return;
+
+        DiscordWebhook webhook = new DiscordWebhook(FarmHelperConfig.webHookURL.replace(" ", "").replace("\n", "").trim());
+        webhook.setUsername("Jelly - Farm Helper");
+        webhook.setAvatarUrl("https://cdn.discordapp.com/attachments/1152966451406327858/1160577992876109884/icon.png");
+        String randomColor = String.format("#%06x", (int) (Math.random() * 0xFFFFFF));
+        if (mentionAll) {
+            webhook.setContent("@everyone");
         }
-        lastWebhook = message;
+        webhook.addEmbed(new DiscordWebhook.EmbedObject()
+                .setTitle("Farm Helper")
+                .setThumbnail("https://crafatar.com/renders/body/" + mc.getSession().getPlayerID())
+                .setDescription("### " + message)
+                .setColor(Color.decode(randomColor))
+                .setAuthor("Instance name -> " + mc.getSession().getUsername(), "https://crafatar.com/avatars/" + mc.getSession().getPlayerID(), "https://crafatar.com/avatars/" + mc.getSession().getPlayerID())
+                .setFooter("Farm Helper Webhook Status", "https://cdn.discordapp.com/attachments/861700235890130986/1144673641951395982/icon.png")
+        );
+        Multithreading.schedule(() -> {
+            try {
+                webhook.execute();
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }, 0, TimeUnit.MILLISECONDS);
     }
 }

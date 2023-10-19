@@ -131,9 +131,7 @@ public class GameStateHandler {
                     long tempCurrentPurse = Long.parseLong(stringPurse);
                     previousPurse = currentPurse;
                     currentPurse = tempCurrentPurse;
-                } catch (NumberFormatException e) {
-                    continue;
-                }
+                } catch (NumberFormatException ignored) {}
             } else if (cleanedLine.contains("Bits:")) {
                 try {
                     String stringBits = cleanedLine.split(" ")[1].replace(",", "").trim();
@@ -141,9 +139,7 @@ public class GameStateHandler {
                         stringBits = stringBits.substring(0, stringBits.indexOf("("));
                     }
                     bits = Long.parseLong(stringBits);
-                } catch (NumberFormatException e) {
-                    continue;
-                }
+                } catch (NumberFormatException ignored) {}
             } else if (cleanedLine.contains("Copper:")) {
                 try {
                     String stringCopper = cleanedLine.split(" ")[1].replace(",", "").trim();
@@ -151,9 +147,7 @@ public class GameStateHandler {
                         stringCopper = stringCopper.substring(0, stringCopper.indexOf("("));
                     }
                     copper = Long.parseLong(stringCopper);
-                } catch (NumberFormatException e) {
-                    continue;
-                }
+                } catch (NumberFormatException ignored) {}
             }
         }
     }

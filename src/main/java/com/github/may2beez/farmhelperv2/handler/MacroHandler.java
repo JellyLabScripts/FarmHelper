@@ -197,6 +197,7 @@ public class MacroHandler {
         FeatureManager.getInstance().disableAll();
         FeatureManager.getInstance().resetAllStates();
         disableCurrentMacro();
+        setCurrentMacro(Optional.empty());
     }
 
     public void pauseMacro() {
