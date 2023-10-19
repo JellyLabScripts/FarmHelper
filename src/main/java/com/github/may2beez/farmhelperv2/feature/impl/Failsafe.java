@@ -25,6 +25,7 @@ import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
@@ -212,6 +213,7 @@ public class Failsafe implements IFeature {
                 onItemChange();
                 break;
             case WORLD_CHANGE_CHECK:
+                onWorldChange();
                 break;
             case BEDROCK_CAGE_CHECK:
                 break;
@@ -716,7 +718,7 @@ public class Failsafe implements IFeature {
 
     @SubscribeEvent
     public void onPacketReceive(ReceivePacketEvent event) {
-        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (firstCheckReturn()) return;
         if (!MacroHandler.getInstance().isTeleporting()) return;
 
         if (!(event.packet instanceof S09PacketHeldItemChange)) return;
@@ -770,6 +772,98 @@ public class Failsafe implements IFeature {
 
     private void resetItemChangeCheck() {
         itemChangeState = ItemChangeState.NONE;
+    }
+
+    // endregion
+
+    // region WORLD CHANGE
+
+    enum WorldChangeState {
+        NONE,
+        WAIT_BEFORE_START,
+        LOOK_AROUND,
+        END
+    }
+    private WorldChangeState worldChangeState = WorldChangeState.NONE;
+
+    @SubscribeEvent
+    public void onWorldChange(WorldEvent.Unload event) {
+        if (firstCheckReturn()) return;
+
+        addEmergency(EmergencyType.WORLD_CHANGE_CHECK);
+    }
+
+    private void onWorldChange() {
+        if (!FarmHelperConfig.autoTPOnWorldChange) {
+            LogUtils.sendDebug("[Failsafe] Auto tp on world change is disabled! Disabling macro and disconnecting");
+            MacroHandler.getInstance().disableMacro();
+            Multithreading.schedule(() -> {
+                try {
+                    mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText("Your world has been changed and you've got \"Auto TP On world is disabled\""));
+                    AudioManager.getInstance().resetSound();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }, 1_500, TimeUnit.MILLISECONDS);
+            return;
+        }
+
+        switch (worldChangeState) {
+            case NONE:
+                failsafeDelay.schedule((long) (250f + Math.random() * 500f));
+                worldChangeState = WorldChangeState.WAIT_BEFORE_START;
+                break;
+            case WAIT_BEFORE_START:
+                MacroHandler.getInstance().pauseMacro();
+                if (FarmHelperConfig.fakeMovements) {
+                    lookAroundTimes = (int) Math.round(2 + Math.random() * 2);
+                    currentLookAroundTimes = 0;
+                    failsafeDelay.schedule((long) (500 + Math.random() * 500));
+                    KeyBindUtils.stopMovement();
+                    worldChangeState = WorldChangeState.LOOK_AROUND;
+                } else {
+                    failsafeDelay.schedule((long) (500 + Math.random() * 500));
+                    worldChangeState = WorldChangeState.END;
+                }
+                break;
+            case LOOK_AROUND:
+                if (currentLookAroundTimes >= lookAroundTimes) {
+                    rotation.reset();
+                    KeyBindUtils.stopMovement();
+                    worldChangeState = WorldChangeState.END;
+                    failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                } else {
+                    randomMoveAndRotate();
+                }
+                break;
+            case END:
+                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING) {
+                    return;
+                }
+                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY) {
+                    LogUtils.sendDebug("[Failsafe] In lobby, sending /skyblock command...");
+                    mc.thePlayer.sendChatMessage("/skyblock");
+                    failsafeDelay.schedule((long) (1_500 + Math.random() * 1_000));
+                    return;
+                }
+                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
+                    LogUtils.sendDebug("[Failsafe] In Limbo, sending /l command...");
+                    mc.thePlayer.sendChatMessage("/l");
+                    failsafeDelay.schedule((long) (1_500 + Math.random() * 1_000));
+                    return;
+                }
+                if (GameStateHandler.getInstance().inGarden()) {
+                    LogUtils.sendDebug("[Failsafe] Went back to garden. Continuing macro...");
+                    Failsafe.getInstance().stop();
+                    MacroHandler.getInstance().resumeMacro();
+                    return;
+                } else {
+                    LogUtils.sendDebug("[Failsafe] Sending /warp garden command...");
+                    mc.thePlayer.sendChatMessage("/warp garden");
+                    failsafeDelay.schedule((long) (1_500 + Math.random() * 1_000));
+                }
+                break;
+        }
     }
 
     // endregion
