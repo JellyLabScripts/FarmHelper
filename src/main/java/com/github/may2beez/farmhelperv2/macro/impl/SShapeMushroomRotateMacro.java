@@ -8,7 +8,8 @@ import com.github.may2beez.farmhelperv2.util.*;
 
 import static com.github.may2beez.farmhelperv2.util.BlockUtils.getRelativeBlockPos;
 
-public class SShapeMushroomMacro extends AbstractMacro {
+@SuppressWarnings("DuplicatedCode")
+public class SShapeMushroomRotateMacro extends AbstractMacro {
 
     @Override
     public void onEnable() {
@@ -27,7 +28,7 @@ public class SShapeMushroomMacro extends AbstractMacro {
             setYaw(AngleUtils.getClosestDiagonal());
         }
 
-        getRotation().easeTo(getYaw(), getPitch(), 500);
+        getRotation().easeTo((float) (AngleUtils.getClosest() + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
         super.onEnable();
     }
 
@@ -35,7 +36,11 @@ public class SShapeMushroomMacro extends AbstractMacro {
     public void doAfterRewarpRotation() {
         if (!getRotation().rotating) {
             setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
-            getRotation().easeTo(getYaw(), getPitch(), (long) (600 + Math.random() * 200));
+            if (getCurrentState() == State.RIGHT) {
+                getRotation().easeTo((float) (AngleUtils.getClosest() + 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
+            } else if (getCurrentState() == State.LEFT) {
+                getRotation().easeTo((float) (AngleUtils.getClosest() - 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
+            }
         }
     }
 
@@ -52,6 +57,9 @@ public class SShapeMushroomMacro extends AbstractMacro {
                 } else {
                     LogUtils.sendDebug("No direction found");
                 }
+
+                setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
+                getRotation().easeTo((float) (AngleUtils.getClosest() + 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
                 break;
             case RIGHT:
                 if (GameStateHandler.getInstance().isLeftWalkable()) {
@@ -61,6 +69,9 @@ public class SShapeMushroomMacro extends AbstractMacro {
                 } else {
                     LogUtils.sendDebug("No direction found");
                 }
+
+                setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
+                getRotation().easeTo((float) (AngleUtils.getClosest() - 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
                 break;
             case DROPPING: {
                 LogUtils.sendDebug("On Ground: " + mc.thePlayer.onGround);
@@ -70,12 +81,12 @@ public class SShapeMushroomMacro extends AbstractMacro {
                         getRotation().reset();
                         setYaw(getYaw() + 180);
 
-                        getRotation().easeTo(getYaw(), getPitch(), (long) (400 + Math.random() * 300));
+                        getRotation().easeTo((float) (AngleUtils.getClosest() + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
                     }
                     KeyBindUtils.stopMovement();
                     setLayerY(mc.thePlayer.getPosition().getY());
                     changeState(State.NONE);
-                } else  {
+                } else {
                     GameStateHandler.getInstance().scheduleNotMoving();
                 }
                 break;
@@ -90,16 +101,10 @@ public class SShapeMushroomMacro extends AbstractMacro {
     public void invokeState() {
         if (getCurrentState() == null) return;
         switch (getCurrentState()) {
-            case RIGHT: {
-                KeyBindUtils.holdThese(
-                        mushroom45DegreeLeftSide() ? mc.gameSettings.keyBindRight : mc.gameSettings.keyBindForward,
-                        mc.gameSettings.keyBindAttack
-                );
-                break;
-            }
+            case RIGHT:
             case LEFT: {
                 KeyBindUtils.holdThese(
-                        mushroom45DegreeLeftSide() ? mc.gameSettings.keyBindForward : mc.gameSettings.keyBindLeft,
+                        mc.gameSettings.keyBindForward,
                         mc.gameSettings.keyBindAttack
                 );
                 break;
@@ -117,18 +122,6 @@ public class SShapeMushroomMacro extends AbstractMacro {
             }
         }
     }
-
-    private boolean mushroom45DegreeLeftSide() {
-        float targetAngle = 45f; // Angle around 45 degrees
-        float counterClockwiseThreshold = -315f; // Angle around -315 degrees
-        float tolerance = 2f; // Tolerance of 2 degrees
-
-        float angleDifference = AngleUtils.normalizeAngle(AngleUtils.getClosest() - getYaw());
-
-        return Math.abs(angleDifference - targetAngle) < tolerance ||
-                Math.abs(angleDifference - counterClockwiseThreshold) < tolerance;
-    }
-
 
     @Override
     public State calculateDirection() {

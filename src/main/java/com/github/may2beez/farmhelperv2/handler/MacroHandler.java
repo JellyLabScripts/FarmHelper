@@ -65,6 +65,7 @@ public class MacroHandler {
 
     @AllArgsConstructor
     public enum Macros {
+        S_SHAPE_MUSHROOM_ROTATE_MACRO(SShapeMushroomRotateMacro.class),
         S_SHAPE_MUSHROOM_MACRO(SShapeMushroomMacro.class),
         S_SHAPE_COCOA_BEAN_MACRO(SShapeCocoaBeanMacro.class),
         S_SHAPE_SUGARCANE_MACRO(SShapeSugarcaneMacro.class),
@@ -111,6 +112,7 @@ public class MacroHandler {
             case 5: // cocoa
                 return Macros.S_SHAPE_COCOA_BEAN_MACRO.getMacro();
             case 6: // mushroom 45
+                return Macros.S_SHAPE_MUSHROOM_ROTATE_MACRO.getMacro();
             case 7: // mushroom 30
                 return Macros.S_SHAPE_MUSHROOM_MACRO.getMacro();
             default:

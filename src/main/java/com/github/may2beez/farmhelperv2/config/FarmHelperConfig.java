@@ -150,6 +150,11 @@ public class FarmHelperConfig extends Config {
             }, size = 2
     )
     public static int macroType = 0;
+
+    public static MacroEnum getMacroType() {
+        return MacroEnum.values()[macroType];
+    }
+
     
     @Switch(
             name = "Rotate After Warped", category = GENERAL, subcategory = "Macro",
@@ -206,7 +211,7 @@ public class FarmHelperConfig extends Config {
     public static boolean customYawWarning;
     
     @Switch(
-            name = "Don't fix rotation after warp", category = GENERAL, subcategory = "Rotation",
+            name = "Don't fix micro rotations after warp", category = GENERAL, subcategory = "Rotation",
             description = "Macro doesn't do micro rotations after rewarp, if current yaw and target yaw are the same", size = 2
     )
     public static boolean dontFixAfterWarping = false;
@@ -1299,7 +1304,6 @@ public class FarmHelperConfig extends Config {
 
         this.addDependency("customPitchLevel", "customPitch");
         this.addDependency("customYawLevel", "customYaw");
-        this.addDependency("dontFixAfterWarping", "rotateAfterWarped");
 
         this.addDependency("sellToNPC", "enableAutoSell");
         this.addDependency("inventoryFullTime", "enableAutoSell");
