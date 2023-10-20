@@ -5,6 +5,7 @@ import cc.polyfrost.oneconfig.hud.TextHud;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.feature.impl.BanInfoWS;
 import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
+import com.github.may2beez.farmhelperv2.feature.impl.LeaveTimer;
 import com.github.may2beez.farmhelperv2.feature.impl.Scheduler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.remote.DiscordBotHandler;
@@ -34,6 +35,8 @@ public class StatusHUD extends TextHud {
                 lines.add("Staff bans in last " + BanInfoWS.getInstance().getMinutes() + " minutes: " + BanInfoWS.getInstance().getBans());
                 lines.add("FarmHelper's bans in last 15 minutes: " + BanInfoWS.getInstance().getBansByMod());
             }
+            if (LeaveTimer.getInstance().isRunning())
+                lines.add("Leaving in " + LogUtils.formatTime(Math.max(LeaveTimer.leaveClock.getRemainingTime(), 0)));
 
             if (FarmHelperConfig.enableRemoteControl) {
                 lines.add("");
