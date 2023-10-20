@@ -11,6 +11,7 @@ import com.github.may2beez.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
 import com.github.may2beez.farmhelperv2.feature.impl.AutoSell;
 import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
+import com.github.may2beez.farmhelperv2.feature.impl.Freelock;
 import com.github.may2beez.farmhelperv2.feature.impl.Proxy;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.hud.DebugHUD;
@@ -265,6 +266,11 @@ public class FarmHelperConfig extends Config {
 
     public static OneKeyBind openGuiKeybind = new OneKeyBind(Keyboard.KEY_F);
 
+    @KeyBind(
+            name = "Freelock", category = MISCELLANEOUS, subcategory = "Keybinds",
+            description = "Locks rotation, lets you freely look"
+    )
+    public static OneKeyBind freelockKeybind = new OneKeyBind(Keyboard.KEY_L);
     
     @DualOption(
             name = "AutoUpdater Download Beta Versions", category = MISCELLANEOUS, subcategory = "Miscellaneous",
@@ -611,7 +617,7 @@ public class FarmHelperConfig extends Config {
             name = "Leave/pause during banwave", category = FAILSAFE, subcategory = "Banwave Checker",
             description = "Automatically disconnects from the server or pauses the macro when banwave detected"
     )
-    public static boolean enableLavePauseOnBanwave = false;
+    public static boolean enableLeavePauseOnBanwave = false;
 
     @DualOption(
             name = "Banwave Action", category = FAILSAFE, subcategory = "Banwave Checker",
@@ -730,6 +736,14 @@ public class FarmHelperConfig extends Config {
             description = "Stops farming once a crop threshold has been met"
     )
     public static boolean enableJacobFailsafes = false;
+
+    @DualOption(
+            name = "Jacob Failsafe Action", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
+            description = "The action to take when a failsafe has been triggered",
+            left = "Leave",
+            right = "Pause"
+    )
+    public static boolean jacobFailsafeAction = true;
     
     @Slider(
             name = "Nether Wart Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
@@ -1387,6 +1401,7 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(debugKeybind, () -> {
             Minecraft.getMinecraft().thePlayer.sendChatMessage("/warp hub");
         });
+        registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
         save();
     }

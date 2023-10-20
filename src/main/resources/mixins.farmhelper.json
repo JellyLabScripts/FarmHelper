@@ -24,6 +24,7 @@
     "gui.MixinGuiEditSign",
     "gui.MixinGuiMainMenu",
     "gui.MixinGuiMultiplayer",
-    "render.MixinEffectRenderer"
+    "render.MixinEffectRenderer",
+    "render.MixinEntityRenderer"
   ]
 }

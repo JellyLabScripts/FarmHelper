@@ -4,13 +4,6 @@ import cc.polyfrost.oneconfig.config.annotations.Text;
 
 public class CustomFailsafeMessagesPage {
     @Text(
-            name = "Item change failsafe messages",
-            description = "The messages to send to the chat when item change failsafe has been triggered (use '|' to split the messages)",
-            placeholder = "Leave empty to use a random message",
-            multiline = true
-    )
-    public static String customItemChangeMessages = "";
-    @Text(
             name = "Rotation failsafe messages",
             description = "The messages to send to the chat when rotation failsafe has been triggered (use '|' to split the messages)",
             placeholder = "Leave empty to use a random message",

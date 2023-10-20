@@ -83,6 +83,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(AutoReconnect.getInstance());
         MinecraftForge.EVENT_BUS.register(AudioManager.getInstance());
         MinecraftForge.EVENT_BUS.register(Failsafe.getInstance());
+        MinecraftForge.EVENT_BUS.register(Freelock.getInstance());
     }
 
     private void initializeFields() {

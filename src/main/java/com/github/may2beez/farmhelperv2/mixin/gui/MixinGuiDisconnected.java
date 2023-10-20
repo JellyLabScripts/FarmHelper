@@ -68,7 +68,7 @@ public class MixinGuiDisconnected {
                 String reason = StringUtils.stripControlCodes(multilineMessage.get(2)).replace("Reason: ", "").trim();
                 int durationDays = Integer.parseInt(duration.split(" ")[0].replace("d", ""));
                 String banId = StringUtils.stripControlCodes(multilineMessage.get(5)).replace("Ban ID: ", "").trim();
-//                BanInfoWS.getInstance().playerBanned(durationDays, reason, banId);
+                BanInfoWS.getInstance().playerBanned(durationDays, reason, banId);
                 LogUtils.webhookLog("Banned for " + durationDays + " days for " + reason, true);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -81,6 +81,20 @@ public class MixinGuiDisconnected {
                 multilineMessage = farmHelperV2$multilineMessageCopy;
                 multilineMessage.set(0, "Will reconnect after end of banwave!");
                 multilineMessage.set(1, "Current bans: " + BanInfoWS.getInstance().getBans() + " (threshold: " + FarmHelperConfig.banwaveThreshold + ")");
+            } else {
+                if (!AutoReconnect.getInstance().isRunning()) {
+                    AutoReconnect.getInstance().getReconnectDelay().schedule(FarmHelperConfig.delayBeforeReconnecting * 1_000L);
+                    AutoReconnect.getInstance().start();
+                    Failsafe.getInstance().stop();
+                }
+            }
+        }
+
+        if (Failsafe.getInstance().getEmergency() == Failsafe.EmergencyType.JACOB && !FarmHelperConfig.jacobFailsafeAction) {
+            if (GameStateHandler.getInstance().inJacobContest() || (GameStateHandler.getInstance().getJacobContestLeftClock().isScheduled() && !GameStateHandler.getInstance().getJacobContestLeftClock().passed())) {
+                multilineMessage = farmHelperV2$multilineMessageCopy;
+                multilineMessage.set(0, "Will reconnect after end of Jacob's contest!");
+                multilineMessage.set(1, "Time left: " + LogUtils.formatTime(GameStateHandler.getInstance().getJacobContestLeftClock().getRemainingTime()));
             } else {
                 if (!AutoReconnect.getInstance().isRunning()) {
                     AutoReconnect.getInstance().getReconnectDelay().schedule(FarmHelperConfig.delayBeforeReconnecting * 1_000L);

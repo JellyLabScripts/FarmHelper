@@ -7,6 +7,7 @@ import com.github.may2beez.farmhelperv2.util.BlockUtils;
 import com.github.may2beez.farmhelperv2.util.PlayerUtils;
 import com.github.may2beez.farmhelperv2.util.ScoreboardUtils;
 import com.github.may2beez.farmhelperv2.util.TablistUtils;
+import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import com.github.may2beez.farmhelperv2.util.helper.Timer;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,6 +19,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -108,6 +110,27 @@ public class GameStateHandler {
     @Getter
     private long copper = 0;
 
+    @Getter
+    private Optional<FarmHelperConfig.CropEnum> jacobsContestCrop = Optional.empty();
+
+    @Getter
+    private int jacobsContestCropNumber = 0;
+
+    private enum JacobMedal {
+        NONE,
+        BRONZE,
+        SILVER,
+        GOLD
+    }
+
+    @Getter
+    private JacobMedal jacobMedal = JacobMedal.NONE;
+
+    @Getter
+    private final Clock jacobContestLeftClock = new Clock();
+
+    private final Pattern jacobsRemainingTimePattern = Pattern.compile("([0-9]|[1-2][0-9])m([0-9]|[1-5][0-9])s");
+
     @SubscribeEvent
     public void onWorldChange(WorldEvent.Unload event) {
         location = Location.TELEPORTING;
@@ -148,6 +171,56 @@ public class GameStateHandler {
                     }
                     copper = Long.parseLong(stringCopper);
                 } catch (NumberFormatException ignored) {}
+            }
+            if (inJacobContest()) {
+                try {
+                    if (cleanedLine.contains("with")) {
+                        jacobsContestCropNumber = Integer.parseInt(cleanedLine.substring(cleanedLine.lastIndexOf(" ") + 1).replace(",", ""));
+                    }
+                } catch (NumberFormatException ignored) {
+                    jacobsContestCropNumber = 0;
+                }
+                if (!jacobContestLeftClock.isScheduled()) {
+                    Matcher matcher = jacobsRemainingTimePattern.matcher(cleanedLine);
+                    if (matcher.find()) {
+                        if (cleanedLine.contains("Wheat")) {
+                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.WHEAT);
+                        } else if (cleanedLine.contains("Carrot")) {
+                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.CARROT);
+                        } else if (cleanedLine.contains("Potato")) {
+                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.POTATO);
+                        } else if (cleanedLine.contains("Nether") || cleanedLine.contains("Wart")) {
+                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.NETHER_WART);
+                        } else if (cleanedLine.contains("Sugar") || cleanedLine.contains("Cane")) {
+                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.SUGAR_CANE);
+                        } else if (cleanedLine.contains("Mushroom")) {
+                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.MUSHROOM);
+                        } else if (cleanedLine.contains("Melon")) {
+                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.MELON);
+                        } else if (cleanedLine.contains("Pumpkin")) {
+                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.PUMPKIN);
+                        } else if (cleanedLine.contains("Cocoa") || cleanedLine.contains("Bean")) {
+                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.COCOA_BEANS);
+                        } else if (cleanedLine.contains("Cactus")) {
+                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.CACTUS);
+                        }
+
+                        String minutes = matcher.group(1);
+                        String seconds = matcher.group(2);
+                        jacobContestLeftClock.schedule((Long.parseLong(minutes) * 60 + Long.parseLong(seconds)) * 1_000L);
+                    }
+                }
+                if (cleanedLine.contains("BRONZE with")) {
+                    jacobMedal = JacobMedal.BRONZE;
+                } else if (cleanedLine.contains("SILVER with")) {
+                    jacobMedal = JacobMedal.SILVER;
+                } else if (cleanedLine.contains("GOLD with")) {
+                    jacobMedal = JacobMedal.GOLD;
+                }
+            } else {
+                jacobsContestCrop = Optional.empty();
+                jacobsContestCropNumber = 0;
+                jacobMedal = JacobMedal.NONE;
             }
         }
     }

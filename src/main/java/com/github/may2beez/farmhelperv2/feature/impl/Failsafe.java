@@ -231,6 +231,7 @@ public class Failsafe implements IFeature {
                 onBanwave();
                 break;
             case JACOB:
+                onJacobCheck();
                 break;
         }
     }
@@ -245,7 +246,8 @@ public class Failsafe implements IFeature {
     public void onTickBanwave(TickEvent.ClientTickEvent event) {
         if (firstCheckReturn()) return;
         if (!BanInfoWS.getInstance().isBanwave()) return;
-        if (!FarmHelperConfig.enableLavePauseOnBanwave) return;
+        if (!FarmHelperConfig.enableLeavePauseOnBanwave) return;
+        if (FarmHelperConfig.banwaveDontLeaveDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) return;
 
         addEmergency(EmergencyType.BANWAVE);
     }
@@ -907,7 +909,9 @@ public class Failsafe implements IFeature {
     enum BedrockCageState {
         NONE,
         WAIT_BEFORE_START,
-
+        LOOK_AROUND,
+        TYPE_SHIT,
+        LOOK_AROUND_2,
         END,
     }
     private BedrockCageState bedrockCageState = BedrockCageState.NONE;
@@ -924,11 +928,183 @@ public class Failsafe implements IFeature {
     }
 
     private void onBedrockCage() {
+        if (fakeMovementCheck()) return;
 
+        switch (bedrockCageState) {
+            case NONE:
+                failsafeDelay.schedule((long) (500f + Math.random() * 1_000f));
+                bedrockCageState = BedrockCageState.WAIT_BEFORE_START;
+                break;
+            case WAIT_BEFORE_START:
+                MacroHandler.getInstance().pauseMacro();
+                lookAroundTimes = (int) Math.round(3 + Math.random() * 3);
+                currentLookAroundTimes = 0;
+                bedrockCageState = BedrockCageState.LOOK_AROUND;
+                failsafeDelay.schedule((long) (500 + Math.random() * 500));
+                KeyBindUtils.stopMovement();
+                break;
+            case LOOK_AROUND:
+                if (currentLookAroundTimes >= lookAroundTimes) {
+                    rotation.reset();
+                    KeyBindUtils.stopMovement();
+                    if (FarmHelperConfig.sendFailsafeMessage) {
+                        bedrockCageState = BedrockCageState.TYPE_SHIT;
+                        failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                    } else {
+                        bedrockCageState = BedrockCageState.LOOK_AROUND_2;
+                        currentLookAroundTimes = 0;
+                        lookAroundTimes = (int) (2 + Math.random() * 2);
+                    }
+                    rotation.reset();
+                } else {
+                    if (Math.random() < 0.2) {
+                        mc.thePlayer.jump();
+                    }
+                    if (Math.random() < 0.5) {
+                        KeyBindUtils.leftClick();
+                    }
+                    randomMoveAndRotate();
+                }
+                break;
+            case TYPE_SHIT:
+                String randomMessage;
+                String customMessages = CustomFailsafeMessagesPage.customBedrockMessages;
+                if (customMessages.isEmpty()) {
+                    randomMessage = getRandomMessage(FAILSAFE_MESSAGES);
+                } else {
+                    randomMessage = getRandomMessage(customMessages.split("\\|"));
+                }
+                LogUtils.sendDebug("[Failsafe] Chosen message: " + randomMessage);
+                mc.thePlayer.sendChatMessage("/ac " + randomMessage);
+                bedrockCageState = BedrockCageState.LOOK_AROUND_2;
+                failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                currentLookAroundTimes = 0;
+                lookAroundTimes = (int) (2 + Math.random() * 2);
+                break;
+            case LOOK_AROUND_2:
+                if (currentLookAroundTimes >= lookAroundTimes) {
+                    rotation.reset();
+                    KeyBindUtils.stopMovement();
+                    bedrockCageState = BedrockCageState.END;
+                    failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                } else {
+                    if (Math.random() < 0.2) {
+                        mc.thePlayer.jump();
+                    }
+                    if (Math.random() < 0.5) {
+                        KeyBindUtils.leftClick();
+                    }
+                    randomMoveAndRotate();
+                }
+                break;
+            case END:
+                if (BlockUtils.bedrockCount() > 2) {
+                    failsafeDelay.schedule(2_000);
+                    randomMoveAndRotate();
+                    return;
+                }
+                float randomTime = FarmHelperConfig.getRandomRotationTime();
+                rotation.easeTo((float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30), (float) (30 + Math.random() * 20 - 10), (long) randomTime);
+                Failsafe.getInstance().stop();
+                if (FarmHelperConfig.enableRestartAfterFailSafe) {
+                    MacroHandler.getInstance().pauseMacro();
+                } else {
+                    MacroHandler.getInstance().disableMacro();
+                }
+                Multithreading.schedule(() -> {
+                    InventoryUtils.openInventory();
+                    LogUtils.sendDebug("[Failsafe] Finished bedrock cagbe failsafe");
+                    if (FarmHelperConfig.enableRestartAfterFailSafe) {
+                        LogUtils.sendDebug("[Failsafe] Restarting macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
+                        restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
+                    }
+                }, (int) randomTime + 250, TimeUnit.MILLISECONDS);
+                break;
+        }
     }
 
     private void resetBedrockCageCheck() {
         bedrockCageState = BedrockCageState.NONE;
+    }
+
+    // endregion
+
+    // region JACOB
+
+    @SubscribeEvent
+    public void onTickJacobFailsafe(TickEvent.ClientTickEvent event) {
+        if (firstCheckReturn()) return;
+        if (!FarmHelperConfig.enableJacobFailsafes) return;
+        if (!GameStateHandler.getInstance().getJacobsContestCrop().isPresent()) return;
+
+        int cropThreshold = Integer.MAX_VALUE;
+        switch (GameStateHandler.getInstance().getJacobsContestCrop().get()) {
+            case CARROT:
+                cropThreshold = FarmHelperConfig.jacobCarrotCap;
+                break;
+            case NETHER_WART:
+                cropThreshold = FarmHelperConfig.jacobNetherWartCap;
+                break;
+            case POTATO:
+                cropThreshold = FarmHelperConfig.jacobPotatoCap;
+                break;
+            case WHEAT:
+                cropThreshold = FarmHelperConfig.jacobWheatCap;
+                break;
+            case SUGAR_CANE:
+                cropThreshold = FarmHelperConfig.jacobSugarCaneCap;
+                break;
+            case MELON:
+                cropThreshold = FarmHelperConfig.jacobMelonCap;
+                break;
+            case PUMPKIN:
+                cropThreshold = FarmHelperConfig.jacobPumpkinCap;
+                break;
+            case CACTUS:
+                cropThreshold = FarmHelperConfig.jacobCactusCap;
+                break;
+            case COCOA_BEANS:
+                cropThreshold = FarmHelperConfig.jacobCocoaBeansCap;
+                break;
+            case MUSHROOM_ROTATE:
+            case MUSHROOM:
+                cropThreshold = FarmHelperConfig.jacobMushroomCap;
+                break;
+        }
+
+        if (GameStateHandler.getInstance().getJacobsContestCropNumber() >= cropThreshold) {
+            addEmergency(EmergencyType.JACOB);
+        }
+    }
+
+    private void onJacobCheck() {
+        if (FarmHelperConfig.jacobFailsafeAction) {
+            // pause
+            if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
+                LogUtils.sendFailsafeMessage("[Failsafe] Paused macro because of extending Jacob's Content!");
+                MacroHandler.getInstance().pauseMacro();
+            } else {
+                if (!GameStateHandler.getInstance().inJacobContest()) {
+                    LogUtils.sendFailsafeMessage("[Failsafe] Resuming macro because Jacob's Contest is over!");
+                    Failsafe.getInstance().stop();
+                    MacroHandler.getInstance().resumeMacro();
+                }
+            }
+        } else {
+            // leave
+            if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
+                LogUtils.sendFailsafeMessage("[Failsafe] Leaving because of extending Jacob's Contest!");
+                MacroHandler.getInstance().pauseMacro();
+                Multithreading.schedule(() -> {
+                    try {
+                        mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText("Will reconnect after end of Jacob's Contest!"));
+                        AudioManager.getInstance().resetSound();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }, 500, TimeUnit.MILLISECONDS);
+            }
+        }
     }
 
     // endregion
