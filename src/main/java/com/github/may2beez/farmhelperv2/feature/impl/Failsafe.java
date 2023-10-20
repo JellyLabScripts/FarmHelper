@@ -179,6 +179,7 @@ public class Failsafe implements IFeature {
         hadEmergency = true;
         LogUtils.sendDebug("[Failsafe] Emergency chosen: " + StringUtils.stripControlCodes(emergency.label));
         LogUtils.sendFailsafeMessage(emergency.label);
+        FeatureManager.getInstance().disableCurrentlyRunning(this);
         FailsafeUtils.getInstance().sendNotification(StringUtils.stripControlCodes(emergency.label), TrayIcon.MessageType.WARNING);
     }
 
@@ -960,7 +961,7 @@ public class Failsafe implements IFeature {
                     if (Math.random() < 0.2) {
                         mc.thePlayer.jump();
                     }
-                    if (Math.random() < 0.5) {
+                    if (Math.random() < 0.3) {
                         KeyBindUtils.leftClick();
                     }
                     randomMoveAndRotate();
@@ -991,7 +992,7 @@ public class Failsafe implements IFeature {
                     if (Math.random() < 0.2) {
                         mc.thePlayer.jump();
                     }
-                    if (Math.random() < 0.5) {
+                    if (Math.random() < 0.3) {
                         KeyBindUtils.leftClick();
                     }
                     randomMoveAndRotate();
@@ -1013,7 +1014,7 @@ public class Failsafe implements IFeature {
                 }
                 Multithreading.schedule(() -> {
                     InventoryUtils.openInventory();
-                    LogUtils.sendDebug("[Failsafe] Finished bedrock cagbe failsafe");
+                    LogUtils.sendDebug("[Failsafe] Finished bedrock cage failsafe");
                     if (FarmHelperConfig.enableRestartAfterFailSafe) {
                         LogUtils.sendDebug("[Failsafe] Restarting macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
                         restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);

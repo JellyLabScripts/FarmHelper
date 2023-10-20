@@ -8,6 +8,7 @@ import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
 import com.github.may2beez.farmhelperv2.feature.impl.Scheduler;
 import com.github.may2beez.farmhelperv2.feature.impl.BanInfoWS;
+import com.github.may2beez.farmhelperv2.feature.impl.VisitorsMacro;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 import com.github.may2beez.farmhelperv2.macro.impl.*;
@@ -128,6 +129,10 @@ public class MacroHandler {
         if (isMacroToggled()) {
             this.disableMacro();
         } else {
+            if (VisitorsMacro.getInstance().isRunning()) {
+                VisitorsMacro.getInstance().stop();
+                return;
+            }
             if (Failsafe.getInstance().isHadEmergency()) {
                 Failsafe.getInstance().setHadEmergency(false);
                 Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().reset();

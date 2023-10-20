@@ -9,10 +9,7 @@ import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.page.AutoSellNPCItemsPage;
 import com.github.may2beez.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
-import com.github.may2beez.farmhelperv2.feature.impl.AutoSell;
-import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
-import com.github.may2beez.farmhelperv2.feature.impl.Freelock;
-import com.github.may2beez.farmhelperv2.feature.impl.Proxy;
+import com.github.may2beez.farmhelperv2.feature.impl.*;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.hud.DebugHUD;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
@@ -835,13 +832,20 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean visitorsMacro = false;
 
+    @DualOption(
+            name = "Visitors Macro Action", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+            description = "The action to take when a Visitors Macro has been triggered",
+            left = "Fly from farm",
+            right = "Teleport to plot and fly"
+    )
+    public static boolean visitorsMacroAction = false;
     
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "Teleport to plot number: ", category = VISITORS_MACRO, subcategory = "Visitors Macro",
-            description = "Teleports to selected plot and tries to move to the visitors desk. Type 0 to disable",
+            description = "Teleports to selected plot and tries to move to the visitors desk.",
             min = 0, max = 50, size = 2
     )
-    public static int visitorsMacroTeleportToPlot = 0;
+    public static int visitorsMacroTeleportToPlot = 4;
 
     
     @Switch(
@@ -868,26 +872,16 @@ public class FarmHelperConfig extends Config {
             text = "Trigger now"
     )
     public static Runnable triggerVisitorsMacro = () -> {
-//        VisitorsMacro.enableMacro(true);
-    };
-    @Button(
-            name = "Stop the macro", category = VISITORS_MACRO, subcategory = "Visitors Macro",
-            description = "Stops the visitors macro",
-            text = "Stop"
-    )
-    public static Runnable stopVisitorsMacro = () -> {
-//        if (!VisitorsMacro.isEnabled()) return;
-//        VisitorsMacro.stopMacro();
-//        UngrabUtils.regrabMouse();
-        LogUtils.sendSuccess("Visitors macro has been stopped");
+        VisitorsMacro.getInstance().setManuallyStarted(true);
+        VisitorsMacro.getInstance().start();
     };
     
-    @cc.polyfrost.oneconfig.config.annotations.Number(
-            name = "The minimum amount of coins to start the macro (in millions)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
-            description = "The minimum amount of coins you need to have in your purse to start the visitors macro (in millions)",
-            min = 1, max = 20, size = 2
+    @Slider(
+            name = "The minimum amount of coins to start the macro", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+            description = "The minimum amount of coins you need to have in your purse to start the visitors macro",
+            min = 100_000, max = 20_000_000, step = 10_000
     )
-    public static int visitorsMacroCoinsThreshold = 3;
+    public static int visitorsMacroMinMoney = 3;
     
     @Slider(
             name = "Price Manipulation Detection Multiplier", category = VISITORS_MACRO, subcategory = "Visitors Macro",
@@ -1393,6 +1387,7 @@ public class FarmHelperConfig extends Config {
         this.addDependency("lagDetectionSensitivity", "enableNewLagDetection");
 
         this.addDependency("banwaveAction", "enableLavePauseOnBanwave");
+        this.addDependency("visitorsMacroTeleportToPlot", "visitorsMacroAction");
 
         this.hideIf("configVersion", () -> true);
 

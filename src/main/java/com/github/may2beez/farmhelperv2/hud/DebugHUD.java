@@ -64,5 +64,15 @@ public class DebugHUD extends TextHud {
             lines.add("   NPC State: " + AutoSell.getInstance().getNpcState());
         }
         lines.add("Emergency: " + Failsafe.getInstance().getEmergency());
+        if (VisitorsMacro.getInstance().isRunning()) {
+            lines.add("Visitors Macro");
+            lines.add("   State: " + VisitorsMacro.getInstance().getVisitorsState());
+            lines.add("   Travel State: " + VisitorsMacro.getInstance().getTravelState());
+            lines.add("   Compactor State: " + VisitorsMacro.getInstance().getCompactorState());
+            lines.add("   Visitors State: " + VisitorsMacro.getInstance().getVisitorsState());
+            lines.add("   Buy State: " + VisitorsMacro.getInstance().getBuyState());
+            lines.add("   Clock: " + VisitorsMacro.getInstance().getDelayClock().getRemainingTime());
+            lines.add("   Stuck: " + VisitorsMacro.getInstance().getStuckClock().getRemainingTime());
+        }
     }
 }

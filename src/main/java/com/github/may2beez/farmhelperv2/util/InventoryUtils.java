@@ -13,6 +13,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -34,12 +35,12 @@ public class InventoryUtils {
         return -1;
     }
 
-    public static int getSlotOfItemInHotbar(String item) {
+    public static int getSlotOfItemInHotbar(String ...items) {
         for (int i = 0; i < 9; i++) {
             ItemStack slot = mc.thePlayer.inventory.getStackInSlot(i);
             if (slot != null && slot.getItem() != null) {
                 String itemName = StringUtils.stripControlCodes(slot.getDisplayName());
-                if (itemName.contains(item)) {
+                if (Arrays.stream(items).anyMatch(itemName::contains)) {
                     return i;
                 }
             }

@@ -69,4 +69,13 @@ public class FeatureManager {
             }
         });
     }
+
+    public void disableCurrentlyRunning(IFeature sender) {
+        features.forEach(feature -> {
+            if (feature.isRunning() && feature != sender) {
+                feature.stop();
+                LogUtils.sendDebug("Disabled feature: " + feature.getName());
+            }
+        });
+    }
 }
