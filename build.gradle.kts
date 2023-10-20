@@ -61,6 +61,7 @@ repositories {
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
     maven("https://repo.polyfrost.cc/releases")
     maven("https://repo.essential.gg/repository/maven-public")
+    maven ("https://jitpack.io")
 }
 
 val shadowImpl: Configuration by configurations.creating {
@@ -86,6 +87,8 @@ dependencies {
     implementation("net.dv8tion:JDA:5.0.0-beta.13")
 
     shadowImpl("com.dorkbox:Notify:3.7")
+
+    implementation("com.github.onixiya1337:MovementRecorder:-SNAPSHOT")
 
 }
 

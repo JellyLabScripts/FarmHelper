@@ -32,8 +32,10 @@ import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
+import xyz.yuro.movementrecorder.MovementRecorder;
 
 import java.awt.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
@@ -343,6 +345,8 @@ public class Failsafe implements IFeature {
     }
 
     private RotationCheckState rotationCheckState = RotationCheckState.NONE;
+    private int playingState = 0;
+    private boolean shouldPlayRecording = false;
 
     public void onRotationTeleportCheck() {
         if (fakeMovementCheck()) return;
@@ -351,30 +355,52 @@ public class Failsafe implements IFeature {
             case NONE:
                 failsafeDelay.schedule((long) (500f + Math.random() * 1_000f));
                 rotationCheckState = RotationCheckState.WAIT_BEFORE_START;
+                playingState = 0;
                 break;
             case WAIT_BEFORE_START:
                 MacroHandler.getInstance().pauseMacro();
                 lookAroundTimes = (int) Math.round(3 + Math.random() * 3);
                 currentLookAroundTimes = 0;
                 rotationCheckState = RotationCheckState.LOOK_AROUND;
+                shouldPlayRecording = movementFileExists();
                 failsafeDelay.schedule((long) (500 + Math.random() * 500));
                 KeyBindUtils.stopMovement();
                 break;
             case LOOK_AROUND:
-                if (currentLookAroundTimes >= lookAroundTimes) {
-                    rotation.reset();
-                    KeyBindUtils.stopMovement();
-                    if (FarmHelperConfig.sendFailsafeMessage) {
-                        rotationCheckState = RotationCheckState.TYPE_SHIT;
-                        failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
-                    } else {
-                        rotationCheckState = RotationCheckState.LOOK_AROUND_2;
-                        currentLookAroundTimes = 0;
-                        lookAroundTimes = (int) (2 + Math.random() * 2);
+                if (shouldPlayRecording) {
+                    if (MovementRecorder.isPlaying())
+                        break;
+                    switch (playingState) {
+                        case 0:
+                            MovementRecorder.playRecording("failsafe");
+                            playingState = 1;
+                            break;
+                        case 1:
+                            if (FarmHelperConfig.sendFailsafeMessage) {
+                                rotationCheckState = RotationCheckState.TYPE_SHIT;
+                                failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                            } else {
+                                rotationCheckState = RotationCheckState.LOOK_AROUND_2;
+                            }
+                            playingState = 2;
+                            break;
                     }
-                    rotation.reset();
                 } else {
-                    randomMoveAndRotate();
+                    if (currentLookAroundTimes >= lookAroundTimes) {
+                        rotation.reset();
+                        KeyBindUtils.stopMovement();
+                        if (FarmHelperConfig.sendFailsafeMessage) {
+                            rotationCheckState = RotationCheckState.TYPE_SHIT;
+                            failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                        } else {
+                            rotationCheckState = RotationCheckState.LOOK_AROUND_2;
+                            currentLookAroundTimes = 0;
+                            lookAroundTimes = (int) (2 + Math.random() * 2);
+                        }
+                        rotation.reset();
+                    } else {
+                        randomMoveAndRotate();
+                    }
                 }
                 break;
             case TYPE_SHIT:
@@ -401,13 +427,30 @@ public class Failsafe implements IFeature {
                 lookAroundTimes = (int) (2 + Math.random() * 2);
                 break;
             case LOOK_AROUND_2:
-                if (currentLookAroundTimes >= lookAroundTimes) {
-                    rotation.reset();
-                    KeyBindUtils.stopMovement();
-                    rotationCheckState = RotationCheckState.END;
-                    failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
-                } else {
-                    randomMoveAndRotate();
+                if (shouldPlayRecording) {
+                    if (MovementRecorder.isPlaying())
+                        break;
+                    switch (playingState) {
+                        case 2:
+                            MovementRecorder.playRecording("failsafe2");
+                            playingState = 3;
+                            break;
+                        case 3:
+                            rotationCheckState = RotationCheckState.END;
+                            failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                            playingState = 0;
+                            break;
+                    }
+                }
+                else {
+                    if (currentLookAroundTimes >= lookAroundTimes) {
+                        rotation.reset();
+                        KeyBindUtils.stopMovement();
+                        rotationCheckState = RotationCheckState.END;
+                        failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                    } else {
+                        randomMoveAndRotate();
+                    }
                 }
                 break;
             case END:
@@ -453,6 +496,18 @@ public class Failsafe implements IFeature {
         }
     }
 
+    private boolean movementFileExists() {
+        if (ReflectionUtils.hasPackageInstalled("xyz.yuro.movementrecorder")) {
+            File recordingDir = new File(mc.mcDataDir, "movementrecorder");
+            if (recordingDir.exists()) {
+                File recordingFile = new File(recordingDir, "failsafe.movement");
+                File recordingFile2 = new File(recordingDir, "failsafe2.movement");
+                return recordingFile.exists() && recordingFile2.exists();
+            }
+        }
+        return false;
+    }
+
     private float randomValueBetweenExt(float min, float max, float minFromZero) {
         double random = Math.random();
         if (random < 0.5) {
@@ -466,6 +521,8 @@ public class Failsafe implements IFeature {
 
     private void resetRotationCheck() {
         rotationCheckState = RotationCheckState.NONE;
+        playingState = 0;
+        shouldPlayRecording = false;
     }
 
     private boolean fakeMovementCheck() {
