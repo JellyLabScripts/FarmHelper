@@ -723,6 +723,20 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean pauseSchedulerDuringJacobsContest = true;
 
+    @Switch(
+            name = "Enable leave timer", category = SCHEDULER, subcategory = "Scheduler",
+            description = "Leaves the server after the timer has ended"
+    )
+    public static boolean leaveTimer = false;
+
+    @Slider(
+            name = "Leave time", category = SCHEDULER, subcategory = "Scheduler",
+            description = "The time to leave the server (in minutes)",
+//            min = 15, max = 720, step = 15
+            min = 1, max = 20, step = 1
+    )
+    public static int leaveTime = 60;
+
     // END SCHEDULER
 
     // START JACOB
