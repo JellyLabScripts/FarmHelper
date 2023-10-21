@@ -31,24 +31,33 @@ public class RotationUtils {
         target.setYaw(start.getYaw() + neededChange.getYaw());
         target.setPitch(start.getPitch() + neededChange.getPitch());
 
-        if (neededChange.getYaw() < 15 && neededChange.getPitch() < 15) {
+        LogUtils.sendDebug("[Rotation] Needed change: " + neededChange.getYaw() + " " + neededChange.getPitch());
+        int absYaw = Math.abs((int) neededChange.getYaw());
+        int absPitch = Math.abs((int) neededChange.getPitch());
+        int pythagoras = (int) pythagoras(absYaw, absPitch);
+        LogUtils.sendDebug("[Rotation] Pythagoras: " + pythagoras);
+        if (pythagoras < 25) {
             LogUtils.sendDebug("[Rotation] Very close rotation, speeding up by 0.5");
             this.time = (long) (time * 0.5);
-        } else if (neededChange.getYaw() < 30 && neededChange.getPitch() < 30) {
+        } else if (pythagoras < 45) {
             this.time = (long) (time * 0.65);
             LogUtils.sendDebug("[Rotation] Close rotation, speeding up by 0.65");
-        } else if (neededChange.getYaw() < 80 && neededChange.getPitch() < 60) {
+        } else if (pythagoras < 80) {
             this.time = (long) (time * 0.9);
             LogUtils.sendDebug("[Rotation] Not so close, but not that far rotation, speeding up by 0.9");
-        } else if (neededChange.getYaw() > 180 || neededChange.getPitch() > 100) {
+        } else if (pythagoras > 100) {
             this.time = (long) (time * 1.5);
             LogUtils.sendDebug("[Rotation] Far rotation, slowing down by 1.5");
         } else {
             this.time = time;
             LogUtils.sendDebug("[Rotation] Normal rotation");
         }
-        endTime = System.currentTimeMillis() + time;
+        endTime = System.currentTimeMillis() + this.time;
         getDifference();
+    }
+
+    private float pythagoras(float a, float b) {
+        return (float) Math.sqrt(a * a + b * b);
     }
 
     public static Rotation getNeededChange(Rotation startRot, Rotation endRot) {

@@ -8,12 +8,18 @@ import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class PlayerUtils {
     
@@ -257,5 +263,22 @@ public class PlayerUtils {
 
     public static boolean isDeskPosSet() {
         return FarmHelperConfig.visitorsDeskPosX != 0 || FarmHelperConfig.visitorsDeskPosY != 0 || FarmHelperConfig.visitorsDeskPosZ != 0;
+    }
+
+    public static Entity getEntityCuttingOtherEntity(Entity e) {
+        return getEntityCuttingOtherEntity(e, false);
+    }
+
+    public static Entity getEntityCuttingOtherEntity(Entity e, boolean armorStand) {
+        List<Entity> possible = mc.theWorld.getEntitiesInAABBexcluding(e, e.getEntityBoundingBox().expand(0.3D, 2.0D, 0.3D), a -> {
+            boolean flag1 = (!a.isDead && !a.equals(mc.thePlayer));
+            boolean flag2 = armorStand == (a instanceof EntityArmorStand);
+            boolean flag3 = !(a instanceof net.minecraft.entity.projectile.EntityFireball);
+            boolean flag4 = !(a instanceof net.minecraft.entity.projectile.EntityFishHook);
+            return flag1 && flag2 && flag3 && flag4;
+        });
+        if (!possible.isEmpty())
+            return Collections.min(possible, Comparator.comparing(e2 -> e2.getDistanceToEntity(e)));
+        return null;
     }
 }

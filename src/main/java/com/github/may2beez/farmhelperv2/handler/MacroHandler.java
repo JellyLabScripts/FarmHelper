@@ -133,6 +133,11 @@ public class MacroHandler {
                 VisitorsMacro.getInstance().stop();
                 return;
             }
+            if (VisitorsMacro.getInstance().isInBarn()) {
+                VisitorsMacro.getInstance().setManuallyStarted(true);
+                VisitorsMacro.getInstance().start();
+                return;
+            }
             if (Failsafe.getInstance().isHadEmergency()) {
                 Failsafe.getInstance().setHadEmergency(false);
                 Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().reset();

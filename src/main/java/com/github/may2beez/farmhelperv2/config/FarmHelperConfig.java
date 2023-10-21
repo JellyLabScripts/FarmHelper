@@ -651,23 +651,6 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean banwaveDontLeaveDuringJacobsContest = true;
 
-    
-    @cc.polyfrost.oneconfig.config.annotations.Number(
-            name = "Rotation Acting times", category = FAILSAFE, subcategory = "Custom Failsafe times",
-            description = "The number of rotations when failsafe is triggered (recommended from 4 to 8)",
-            min = 4, max = 20
-    )
-    public static int rotationActingTimes = 6;
-
-    
-    @cc.polyfrost.oneconfig.config.annotations.Number(
-            name = "Bedrock Acting times", category = FAILSAFE, subcategory = "Custom Failsafe times",
-            description = "When the Bedrock failsafe is triggered, the number of times to act before leaving (recommended from 8 to 10)",
-            min = 4, max = 20
-    )
-    public static int bedrockActingTimes = 6;
-
-    
     @Switch(
             name = "Send Chat Message During Failsafe", category = FAILSAFE, subcategory = "Failsafe Messages",
             description = "Sends a chat message when a failsafe has been triggered"
@@ -1128,21 +1111,21 @@ public class FarmHelperConfig extends Config {
 
     
     @Slider(
-            name = "Minimum time between changing rows", category = DELAYS, subcategory = "Changing rows",
+            name = "Time between changing rows", category = DELAYS, subcategory = "Changing rows",
             description = "The minimum time to wait before changing rows (in milliseconds)",
             min = 300, max = 2000
     )
-    public static float minTimeBetweenChangingRows = 300f;
+    public static float timeBetweenChangingRows = 400f;
     
     @Slider(
-            name = "Maximum time between changing rows", category = DELAYS, subcategory = "Changing rows",
+            name = "Additional random time between changing rows", category = DELAYS, subcategory = "Changing rows",
             description = "The maximum time to wait before changing rows (in milliseconds)",
-            min = 300, max = 2000
+            min = 0, max = 2000
     )
-    public static float maxTimeBetweenChangingRows = 700f;
+    public static float randomTimeBetweenChangingRows = 200f;
 
     public static long getRandomTimeBetweenChangingRows() {
-        return (long) (minTimeBetweenChangingRows + (float) Math.random() * Math.max(0, (maxTimeBetweenChangingRows - minTimeBetweenChangingRows)));
+        return (long) (timeBetweenChangingRows + (float) Math.random() * randomTimeBetweenChangingRows);
     }
 
     @Slider(
@@ -1150,14 +1133,14 @@ public class FarmHelperConfig extends Config {
             description = "The time it takes to rotate the player (in seconds)",
             min = 200f, max = 2000f
     )
-    public static float rotationTime = 400f;
+    public static float rotationTime = 500f;
     
     @Slider(
             name = "Additional random Rotation Time", category = DELAYS, subcategory = "Rotations",
             description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
-            min = 200f, max = 2000f
+            min = 0f, max = 2000f
     )
-    public static float rotationTimeRandomness = 200;
+    public static float rotationTimeRandomness = 300;
 
     public static long getRandomRotationTime() {
         return (long) (rotationTime + (float) Math.random() * rotationTimeRandomness);
@@ -1174,7 +1157,7 @@ public class FarmHelperConfig extends Config {
     @Slider(
             name = "Additional random GUI Delay", category = DELAYS, subcategory = "GUI Delays",
             description = "The maximum random time added to the delay time between clicking during GUI macros (in miliseconds)",
-            min = 250f, max = 2000f
+            min = 0f, max = 2000f
     )
     public static float visitorsMacroGuiDelayRandomness = 350f;
 
@@ -1372,7 +1355,7 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
         registerKeyBind(debugKeybind, () -> {
-            Minecraft.getMinecraft().thePlayer.sendChatMessage("/warp hub");
+            LogUtils.sendDebug("dupa");
         });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
