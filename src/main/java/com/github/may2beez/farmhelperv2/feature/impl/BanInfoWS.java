@@ -34,7 +34,6 @@ public class BanInfoWS implements IFeature {
     }
 
     public BanInfoWS() {
-        if (isConnected()) return;
         try {
             LogUtils.sendDebug("Connecting to analytics server...");
             client = createNewWebSocketClient();

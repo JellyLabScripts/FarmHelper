@@ -159,6 +159,15 @@ public class InventoryUtils {
         return null;
     }
 
+    public static Slot getSlotOfIdInContainer(int id) {
+        for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
+            if (slot.slotNumber == id) {
+                return slot;
+            }
+        }
+        return null;
+    }
+
     public static ArrayList<String> getItemLore(ItemStack itemStack) {
         NBTTagList loreTag = itemStack.getTagCompound().getCompoundTag("display").getTagList("Lore", 8);
         ArrayList<String> loreList = new ArrayList<>();

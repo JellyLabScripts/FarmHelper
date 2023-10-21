@@ -43,13 +43,14 @@ public class MixinGuiDisconnected {
     public void initGui(CallbackInfo ci) {
         if (multilineMessage.get(0).contains("banned")) return;
         if (BanInfoWS.getInstance().isBanwave()) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
 
-        if (MacroHandler.getInstance().isMacroToggled() && !AutoReconnect.getInstance().isRunning() && AutoReconnect.getInstance().isToggled()) {
+        if (!AutoReconnect.getInstance().isRunning() && AutoReconnect.getInstance().isToggled()) {
             System.out.println("[Reconnect] Disconnected from server! Trying to reconnect...");
             Notifications.INSTANCE.send("Farm Helper", "Disconnected from server! Trying to reconnect...");
             AutoReconnect.getInstance().getReconnectDelay().schedule(5_000);
             AutoReconnect.getInstance().start();
-        } else if (MacroHandler.getInstance().isMacroToggled() && !AutoReconnect.getInstance().isRunning() && !AutoReconnect.getInstance().isToggled()) {
+        } else if (!AutoReconnect.getInstance().isRunning() && !AutoReconnect.getInstance().isToggled()) {
             System.out.println("[Reconnect] Disconnected from server! Stopping macro...");
             Notifications.INSTANCE.send("Farm Helper", "Disconnected from server! Stopping macro...");
             MacroHandler.getInstance().disableMacro();

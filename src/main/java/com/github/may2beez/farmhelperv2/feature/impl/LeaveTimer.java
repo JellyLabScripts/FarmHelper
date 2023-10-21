@@ -54,7 +54,6 @@ public class LeaveTimer implements IFeature {
 
     @Override
     public void start() {
-        LogUtils.sendDebug("Starting leave timer");
         leaveClock.schedule(FarmHelperConfig.leaveTime * 60 * 1000L);
     }
 

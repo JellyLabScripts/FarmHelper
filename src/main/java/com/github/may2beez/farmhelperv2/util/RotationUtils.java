@@ -1,7 +1,8 @@
 package com.github.may2beez.farmhelperv2.util;
 
+import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.client.Minecraft;
-import org.apache.commons.lang3.tuple.MutablePair;
 
 import java.util.function.Function;
 
@@ -16,27 +17,30 @@ public class RotationUtils {
     private long endTime;
     private long time;
 
-    MutablePair<Float, Float> start = new MutablePair<>(0f, 0f);
-    MutablePair<Float, Float> target = new MutablePair<>(0f, 0f);
-    MutablePair<Float, Float> difference = new MutablePair<>(0f, 0f);
+    Rotation start = new Rotation(0f, 0f);
+    Rotation target = new Rotation(0f, 0f);
+    Rotation difference = new Rotation(0f, 0f);
 
     public void easeTo(float yaw, float pitch, long time) {
         completed = false;
         rotating = true;
         startTime = System.currentTimeMillis();
-        start.setLeft(mc.thePlayer.rotationYaw);
-        start.setRight(mc.thePlayer.rotationPitch);
-        MutablePair<Float, Float> neededChange = getNeededChange(start, new MutablePair<>(yaw, pitch));
-        target.setLeft(start.left + neededChange.left);
-        target.setRight(start.right + neededChange.right);
+        start.setYaw(mc.thePlayer.rotationYaw);
+        start.setPitch(mc.thePlayer.rotationPitch);
+        Rotation neededChange = getNeededChange(start, new Rotation(yaw, pitch));
+        target.setYaw(start.getYaw() + neededChange.getYaw());
+        target.setPitch(start.getPitch() + neededChange.getPitch());
 
-        if (neededChange.left < 30 && neededChange.right < 30) {
+        if (neededChange.getYaw() < 15 && neededChange.getPitch() < 15) {
+            LogUtils.sendDebug("[Rotation] Very close rotation, speeding up by 0.5");
+            this.time = (long) (time * 0.5);
+        } else if (neededChange.getYaw() < 30 && neededChange.getPitch() < 30) {
             this.time = (long) (time * 0.65);
-            LogUtils.sendDebug("[Rotation] Close rotation, speeding up by 0.7");
-        } else if (neededChange.left < 80 && neededChange.right < 60) {
+            LogUtils.sendDebug("[Rotation] Close rotation, speeding up by 0.65");
+        } else if (neededChange.getYaw() < 80 && neededChange.getPitch() < 60) {
             this.time = (long) (time * 0.9);
             LogUtils.sendDebug("[Rotation] Not so close, but not that far rotation, speeding up by 0.9");
-        } else if (neededChange.left > 180 || neededChange.right > 100) {
+        } else if (neededChange.getYaw() > 180 || neededChange.getPitch() > 100) {
             this.time = (long) (time * 1.5);
             LogUtils.sendDebug("[Rotation] Far rotation, slowing down by 1.5");
         } else {
@@ -47,17 +51,12 @@ public class RotationUtils {
         getDifference();
     }
 
-    public static MutablePair<Float, Float> getNeededChange(MutablePair<Float, Float> startRot, MutablePair<Float, Float> endRot) {
-        float yawDiff = (float) (wrapAngleTo180(endRot.getLeft()) - wrapAngleTo180(startRot.getLeft()));
+    public static Rotation getNeededChange(Rotation startRot, Rotation endRot) {
+        float yawDiff = (float) (wrapAngleTo180(endRot.getYaw()) - wrapAngleTo180(startRot.getYaw()));
 
         yawDiff = AngleUtils.normalizeAngle(yawDiff);
 
-        return new MutablePair<>(yawDiff, endRot.getRight() - startRot.right);
-    }
-
-    public void lockAngle(float yaw, float pitch) {
-        if (mc.thePlayer.rotationYaw != yaw || mc.thePlayer.rotationPitch != pitch && !rotating)
-            easeTo(yaw, pitch, 1000);
+        return new Rotation(yawDiff, endRot.getPitch() - startRot.getPitch());
     }
 
     public void update() {
@@ -67,19 +66,15 @@ public class RotationUtils {
             return;
         }
         if (System.currentTimeMillis() <= endTime) {
-            mc.thePlayer.rotationYaw = interpolate(start.getLeft(), target.getLeft(), this::easeOutCubic);
-            mc.thePlayer.rotationPitch = interpolate(start.getRight(), target.getRight(), this::easeOutQuint);
+            mc.thePlayer.rotationYaw = interpolate(start.getYaw(), target.getYaw(), this::easeOutCubic);
+            mc.thePlayer.rotationPitch = interpolate(start.getPitch(), target.getPitch(), this::easeOutQuint);
         }
         else if (!completed) {
-            mc.thePlayer.rotationYaw = target.left;
-            mc.thePlayer.rotationPitch = target.right;
+            mc.thePlayer.rotationYaw = target.getYaw();
+            mc.thePlayer.rotationPitch = target.getPitch();
             completed = true;
             rotating = false;
         }
-    }
-
-    private boolean shouldRotateClockwise() {
-        return AngleUtils.clockwiseDifference(AngleUtils.get360RotationYaw(start.left), target.left) < 180;
     }
 
     public void reset() {
@@ -88,8 +83,8 @@ public class RotationUtils {
     }
 
     private void getDifference() {
-        difference.setLeft(AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), target.left));
-        difference.setRight(target.right - start.right);
+        difference.setYaw(AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), target.getYaw()));
+        difference.setPitch(target.getPitch() - start.getPitch());
     }
 
     private float interpolate(float start, float end, Function<Float, Float> function) {
@@ -103,5 +98,17 @@ public class RotationUtils {
 
     public float easeOutQuint(float x) {
         return (float) (1 - Math.pow(1 - x, 5));
+    }
+
+    @Getter
+    @Setter
+    public static class Rotation {
+        private float yaw;
+        private float pitch;
+
+        public Rotation(float yaw, float pitch) {
+            this.yaw = yaw;
+            this.pitch = pitch;
+        }
     }
 }

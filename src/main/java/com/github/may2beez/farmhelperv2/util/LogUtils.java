@@ -100,7 +100,6 @@ public class LogUtils {
             statusMsgTime = System.currentTimeMillis();
         }
         long timeDiff = TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - statusMsgTime);
-        System.out.println(timeDiff);
         if (timeDiff >= FarmHelperConfig.statusUpdateInterval && FarmHelperConfig.sendStatusUpdates) {
             DiscordWebhook webhook = new DiscordWebhook(FarmHelperConfig.webHookURL.replace(" ", "").replace("\n", "").trim());
             String randomColor = String.format("#%06x", (int) (Math.random() * 0xFFFFFF));

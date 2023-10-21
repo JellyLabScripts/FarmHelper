@@ -238,10 +238,10 @@ public class AutoCookie implements IFeature {
 
                         if (rotation.rotating) break;
 
-                        Pair<Float, Float> rotationNeeded2 = AngleUtils.getRotation(new Vec3(hubWaypoint.up().up()).add(new Vec3(0.5, 0.5, 0.5)), true);
-                        if (AngleUtils.smallestAngleDifference(mc.thePlayer.rotationYaw, rotationNeeded2.getLeft()) > 4 ||
-                                AngleUtils.smallestAngleDifference(mc.thePlayer.rotationPitch, rotationNeeded2.getRight()) > 4) {
-                            rotation.easeTo(rotationNeeded2.getLeft(), rotationNeeded2.getRight(), FarmHelperConfig.getRandomRotationTime());
+                        RotationUtils.Rotation rotationNeeded2 = AngleUtils.getRotation(new Vec3(hubWaypoint.up().up()).add(new Vec3(0.5, 0.5, 0.5)), true);
+                        if (AngleUtils.smallestAngleDifference(mc.thePlayer.rotationYaw, rotationNeeded2.getYaw()) > 4 ||
+                                AngleUtils.smallestAngleDifference(mc.thePlayer.rotationPitch, rotationNeeded2.getPitch()) > 4) {
+                            rotation.easeTo(rotationNeeded2.getYaw(), rotationNeeded2.getPitch(), FarmHelperConfig.getRandomRotationTime());
                             break;
                         }
 
@@ -267,12 +267,12 @@ public class AutoCookie implements IFeature {
                             autoCookieDelay.schedule(getRandomDelay());
                             break;
                         }
-                        Pair<Float, Float> rotationNeeded3 = AngleUtils.getRotation(bazaarNpc.get(), true);
+                        RotationUtils.Rotation rotationNeeded3 = AngleUtils.getRotation(bazaarNpc.get(), true);
 
-                        if (AngleUtils.smallestAngleDifference(mc.thePlayer.rotationYaw, rotationNeeded3.getLeft()) > 5 ||
-                                AngleUtils.smallestAngleDifference(mc.thePlayer.rotationPitch, rotationNeeded3.getRight()) > 5) {
+                        if (AngleUtils.smallestAngleDifference(mc.thePlayer.rotationYaw, rotationNeeded3.getYaw()) > 5 ||
+                                AngleUtils.smallestAngleDifference(mc.thePlayer.rotationPitch, rotationNeeded3.getPitch()) > 5) {
                             KeyBindUtils.stopMovement();
-                            rotation.easeTo(rotationNeeded3.getLeft(), rotationNeeded3.getRight(), FarmHelperConfig.getRandomRotationTime());
+                            rotation.easeTo(rotationNeeded3.getYaw(), rotationNeeded3.getPitch(), FarmHelperConfig.getRandomRotationTime());
                             break;
                         }
 

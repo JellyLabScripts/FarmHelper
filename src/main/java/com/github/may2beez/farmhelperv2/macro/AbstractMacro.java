@@ -3,9 +3,9 @@ package com.github.may2beez.farmhelperv2.macro;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
-import com.github.may2beez.farmhelperv2.feature.impl.AntiStuck;
 import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
 import com.github.may2beez.farmhelperv2.feature.impl.LagDetector;
+import com.github.may2beez.farmhelperv2.feature.impl.VisitorsMacro;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.*;
@@ -197,6 +197,9 @@ public abstract class AbstractMacro {
             changeState(calculateDirection());
         }
         setEnabled(true);
+        if (VisitorsMacro.getInstance().isToggled()) {
+            VisitorsMacro.getInstance().start();
+        }
     }
 
     public void onDisable() {
@@ -236,9 +239,8 @@ public abstract class AbstractMacro {
             if (!PlayerUtils.isSpawnLocationSet() || (mc.thePlayer.getPositionVector().distanceTo(PlayerUtils.getSpawnLocation()) > 1)) {
                 PlayerUtils.setSpawnLocation();
             }
-//            if (VisitorsMacro.canEnableMacro(false)) {
-//                VisitorsMacro.enableMacro(false);
-//            }
+            if (VisitorsMacro.getInstance().isToggled())
+                VisitorsMacro.getInstance().start();
         }
     }
 

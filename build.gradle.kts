@@ -88,7 +88,7 @@ dependencies {
 
     shadowImpl("com.dorkbox:Notify:3.7")
 
-    implementation("com.github.onixiya1337:MovementRecorder:-SNAPSHOT")
+//    implementation("com.github.onixiya1337:MovementRecorder:-SNAPSHOT")
 
 }
 

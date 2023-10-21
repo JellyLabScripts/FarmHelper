@@ -10,6 +10,7 @@ import com.github.may2beez.farmhelperv2.config.page.AutoSellNPCItemsPage;
 import com.github.may2beez.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
 import com.github.may2beez.farmhelperv2.feature.impl.*;
+import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.hud.DebugHUD;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
@@ -850,18 +851,11 @@ public class FarmHelperConfig extends Config {
             name = "Visitors Macro Action", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "The action to take when a Visitors Macro has been triggered",
             left = "Fly from farm",
-            right = "Teleport to plot and fly"
+            right = "Teleport to plot 4 and fly",
+            size = 2
     )
     public static boolean visitorsMacroAction = false;
-    
-    @cc.polyfrost.oneconfig.config.annotations.Number(
-            name = "Teleport to plot number: ", category = VISITORS_MACRO, subcategory = "Visitors Macro",
-            description = "Teleports to selected plot and tries to move to the visitors desk.",
-            min = 0, max = 50, size = 2
-    )
-    public static int visitorsMacroTeleportToPlot = 4;
 
-    
     @Switch(
             name = "Autosell before serving visitors", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "Automatically sells crops before serving visitors"
@@ -1268,21 +1262,6 @@ public class FarmHelperConfig extends Config {
             description = "Disables Fast Break during Jacob's contest"
     )
     public static boolean disableFastBreakDuringJacobsContest = true;
-
-    
-    @Switch(
-            name = "Enable New Lag Detection", category = EXPERIMENTAL, subcategory = "Lag Detection",
-            description = "Enables the new lag detection system to prevent false positives"
-    )
-    public static boolean enableNewLagDetection = false;
-    
-    @Slider(
-            name = "Lag Detection Sensitivity", category = EXPERIMENTAL, subcategory = "Lag Detection",
-            description = "The maximum time between received packets to trigger a lag detection",
-            min = 50, max = 1500, step = 50
-    )
-    public static int lagDetectionSensitivity = 300;
-
     
     @Dropdown(
             name = "Alt-tab mode", category = EXPERIMENTAL, subcategory = "Miscellaneous",
@@ -1290,21 +1269,6 @@ public class FarmHelperConfig extends Config {
             options = {"Using keys", "Using WINAPI (Windows only)"}
     )
     public static int autoAltTabMode = 0;
-
-    
-    @Switch(
-            name = "Ping server to decrease potential false rotation checks", category = EXPERIMENTAL, subcategory = "Miscellaneous"
-    )
-    public static boolean pingServer = true;
-
-    
-    @Slider(
-            name = "Maximum rewarp trigger distance", category = EXPERIMENTAL, subcategory = "Miscellaneous",
-            description = "The maximum distance from the center of the rewarp point to the player that will trigger a rewarp",
-            min = 0.2f, max = 1.75f
-    )
-    public static float rewarpMaxDistance = 0.75f;
-
     
     @Switch(
             name = "Warp at spawn point after failing antistuck 3 times", category = EXPERIMENTAL, subcategory = "Miscellaneous",
@@ -1380,8 +1344,8 @@ public class FarmHelperConfig extends Config {
         this.addDependency("visitorsAcceptLegendary", "visitorsMacro");
         this.addDependency("visitorsAcceptSpecial", "visitorsMacro");
         this.hideIf("visitorsMacroTeleportToPlot", () -> true);
-//            this.hideIf("infoCookieBuffRequired", () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().hasCookie());
-//            this.hideIf("infoDeskNotSet", () -> GameStateHandler.getInstance().inGarden() || VisitorsMacro.isDeskPosSet());
+            this.hideIf("infoCookieBuffRequired", () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE);
+            this.hideIf("infoDeskNotSet", () -> GameStateHandler.getInstance().inGarden() || PlayerUtils.isDeskPosSet());
 
         this.addDependency("sendLogs", "enableWebHook");
         this.addDependency("sendStatusUpdates", "enableWebHook");

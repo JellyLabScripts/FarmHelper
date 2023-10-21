@@ -58,7 +58,7 @@ public class SetSpeedCommand extends ClientCommand {
     private static State currentState = State.NONE;
     private static final Clock clock = new Clock();
     private static final RotationUtils rotation = new RotationUtils();
-    private static Pair<Float, Float> lastRotation = new MutablePair<>(0f, 0f);
+    private static RotationUtils.Rotation lastRotation = new RotationUtils.Rotation(0f, 0f);
     int freeSlot = -1;
     int freeHotbarSlot = -1;
     boolean wasMacroing = false;
@@ -138,7 +138,7 @@ public class SetSpeedCommand extends ClientCommand {
                 break;
             case CLOSE_INVENTORY:
                 ClientCommand.mc.currentScreen = null;
-                lastRotation = Pair.of(AngleUtils.get360RotationYaw(), ClientCommand.mc.thePlayer.rotationPitch);
+                lastRotation = new RotationUtils.Rotation(AngleUtils.get360RotationYaw(), ClientCommand.mc.thePlayer.rotationPitch);
                 currentState = State.LOOK_IN_THE_AIR;
                 clock.schedule(500);
                 break;
@@ -180,7 +180,7 @@ public class SetSpeedCommand extends ClientCommand {
                 break;
             case LOOK_BACK:
                 rotation.reset();
-                rotation.easeTo(lastRotation.getLeft(), lastRotation.getRight(), 300);
+                rotation.easeTo(lastRotation.getYaw(), lastRotation.getPitch(), 300);
                 currentState = State.OPEN_INVENTORY_AGAIN;
                 clock.schedule(500);
                 break;
@@ -249,7 +249,7 @@ public class SetSpeedCommand extends ClientCommand {
                     if (ClientCommand.mc.theWorld.getBlockState(blockPos).getBlock() == null || ClientCommand.mc.theWorld.getBlockState(blockPos).getBlock() == Blocks.air) {
                         LogUtils.sendDebug("Looking at " + Arrays.toString(vector));
                         rotation.reset();
-                        rotation.easeTo(AngleUtils.getRotation(target, true).getLeft(), AngleUtils.getRotation(target, true).getRight(), 300);
+                        rotation.easeTo(AngleUtils.getRotation(target, true).getYaw(), AngleUtils.getRotation(target, true).getPitch(), 300);
                         return;
                     }
                 }

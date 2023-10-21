@@ -183,9 +183,8 @@ public class PlayerUtils {
             }
         }
         if (closest == null) return false;
-        Vec3 playerPos = mc.thePlayer.getPositionVector();
-        Vec3 rewarpPos = new Vec3(closest.getX() + 0.5, closest.getY() + 0.5, closest.getZ() + 0.5);
-        return playerPos.distanceTo(rewarpPos) <= FarmHelperConfig.rewarpMaxDistance;
+        BlockPos playerPos = BlockUtils.getRelativeBlockPos(0, 0, 0);
+        return playerPos.getX() == closest.getX() && playerPos.getY() == closest.getY() && playerPos.getZ() == closest.getZ();
     }
 
     public static boolean shouldPushBack() {
@@ -236,6 +235,11 @@ public class PlayerUtils {
 
     public static boolean isSpawnLocationSet() {
         return FarmHelperConfig.spawnPosX != 0 || FarmHelperConfig.spawnPosY != 0 || FarmHelperConfig.spawnPosZ != 0;
+    }
+
+    public static boolean isStandingOnSpawnPoint() {
+        BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
+        return pos.getX() == FarmHelperConfig.spawnPosX && pos.getY() == FarmHelperConfig.spawnPosY && pos.getZ() == FarmHelperConfig.spawnPosZ;
     }
 
     public static Vec3 getSpawnLocation() {
