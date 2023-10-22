@@ -203,6 +203,11 @@ public class Failsafe implements IFeature {
         if (!isEmergency()) return;
         if (failsafeDelay.isScheduled() && !failsafeDelay.passed()) return;
 
+        if (shouldPlayRecording(emergency)) {
+            playMovementRecording(emergency.label);
+            return;
+        }
+
         switch (emergency) {
             case NONE:
                 break;
@@ -343,8 +348,6 @@ public class Failsafe implements IFeature {
     }
 
     private RotationCheckState rotationCheckState = RotationCheckState.NONE;
-    private int playingState = 0;
-    private boolean shouldPlayRecording = false;
 
     public void onRotationTeleportCheck() {
         if (fakeMovementCheck()) return;
@@ -353,52 +356,30 @@ public class Failsafe implements IFeature {
             case NONE:
                 failsafeDelay.schedule((long) (500f + Math.random() * 1_000f));
                 rotationCheckState = RotationCheckState.WAIT_BEFORE_START;
-                playingState = 0;
                 break;
             case WAIT_BEFORE_START:
                 MacroHandler.getInstance().pauseMacro();
                 lookAroundTimes = (int) Math.round(3 + Math.random() * 3);
                 currentLookAroundTimes = 0;
                 rotationCheckState = RotationCheckState.LOOK_AROUND;
-                shouldPlayRecording = movementFileExists();
                 failsafeDelay.schedule((long) (500 + Math.random() * 500));
                 KeyBindUtils.stopMovement();
                 break;
             case LOOK_AROUND:
-                if (shouldPlayRecording) {
-                    if (MovRecReader.isReading() || MovRecReader.isPlaying())
-                        break;
-                    switch (playingState) {
-                        case 0:
-                            MovRecReader.playRecording("failsafe");
-                            playingState = 1;
-                            break;
-                        case 1:
-                            if (FarmHelperConfig.sendFailsafeMessage) {
-                                rotationCheckState = RotationCheckState.TYPE_SHIT;
-                                failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
-                            } else {
-                                rotationCheckState = RotationCheckState.LOOK_AROUND_2;
-                            }
-                            playingState = 2;
-                            break;
-                    }
-                } else {
-                    if (currentLookAroundTimes >= lookAroundTimes) {
-                        rotation.reset();
-                        KeyBindUtils.stopMovement();
-                        if (FarmHelperConfig.sendFailsafeMessage) {
-                            rotationCheckState = RotationCheckState.TYPE_SHIT;
-                            failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
-                        } else {
-                            rotationCheckState = RotationCheckState.LOOK_AROUND_2;
-                            currentLookAroundTimes = 0;
-                            lookAroundTimes = (int) (2 + Math.random() * 2);
-                        }
-                        rotation.reset();
+                if (currentLookAroundTimes >= lookAroundTimes) {
+                    rotation.reset();
+                    KeyBindUtils.stopMovement();
+                    if (FarmHelperConfig.sendFailsafeMessage) {
+                        rotationCheckState = RotationCheckState.TYPE_SHIT;
+                        failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
                     } else {
-                        randomMoveAndRotate();
+                        rotationCheckState = RotationCheckState.LOOK_AROUND_2;
+                        currentLookAroundTimes = 0;
+                        lookAroundTimes = (int) (2 + Math.random() * 2);
                     }
+                    rotation.reset();
+                } else {
+                    randomMoveAndRotate();
                 }
                 break;
             case TYPE_SHIT:
@@ -425,30 +406,13 @@ public class Failsafe implements IFeature {
                 lookAroundTimes = (int) (2 + Math.random() * 2);
                 break;
             case LOOK_AROUND_2:
-                if (shouldPlayRecording) {
-                    if (MovRecReader.isReading() || MovRecReader.isPlaying())
-                        break;
-                    switch (playingState) {
-                        case 2:
-                            MovRecReader.playRecording("failsafe2");
-                            playingState = 3;
-                            break;
-                        case 3:
-                            rotationCheckState = RotationCheckState.END;
-                            failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
-                            playingState = 0;
-                            break;
-                    }
-                }
-                else {
-                    if (currentLookAroundTimes >= lookAroundTimes) {
-                        rotation.reset();
-                        KeyBindUtils.stopMovement();
-                        rotationCheckState = RotationCheckState.END;
-                        failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
-                    } else {
-                        randomMoveAndRotate();
-                    }
+                if (currentLookAroundTimes >= lookAroundTimes) {
+                    rotation.reset();
+                    KeyBindUtils.stopMovement();
+                    rotationCheckState = RotationCheckState.END;
+                    failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                } else {
+                    randomMoveAndRotate();
                 }
                 break;
             case END:
@@ -494,16 +458,6 @@ public class Failsafe implements IFeature {
         }
     }
 
-    private boolean movementFileExists() {
-        File recordingDir = new File(mc.mcDataDir, "MovRecReader");
-        if (recordingDir.exists()) {
-            File recordingFile = new File(recordingDir, "failsafe.movement");
-            File recordingFile2 = new File(recordingDir, "failsafe2.movement");
-            return recordingFile.exists() && recordingFile2.exists();
-        }
-        return false;
-    }
-
     private float randomValueBetweenExt(float min, float max, float minFromZero) {
         double random = Math.random();
         if (random < 0.5) {
@@ -517,8 +471,6 @@ public class Failsafe implements IFeature {
 
     private void resetRotationCheck() {
         rotationCheckState = RotationCheckState.NONE;
-        playingState = 0;
-        shouldPlayRecording = false;
     }
 
     private boolean fakeMovementCheck() {
@@ -1081,6 +1033,141 @@ public class Failsafe implements IFeature {
 
     private void resetBedrockCageCheck() {
         bedrockCageState = BedrockCageState.NONE;
+    }
+
+    // endregion
+
+    // region CUSTOM_MOVEMENT
+
+    enum CustomMovementState {
+        NONE,
+        WAIT_BEFORE_START,
+        LOOK_AROUND,
+        TYPE_SHIT,
+        LOOK_AROUND_2,
+        END
+    }
+
+    private CustomMovementState recordingCheckState = CustomMovementState.NONE;
+    private int playingState = 0;
+
+    public boolean shouldPlayRecording(EmergencyType emergency) {
+        switch (emergency) {
+            case TEST:
+            case DIRT_CHECK:
+            case ROTATION_CHECK:
+            case TELEPORT_CHECK:
+            case ITEM_CHANGE_CHECK:
+            case BEDROCK_CAGE_CHECK:
+            if (movementFileExists(emergency.label))
+                return true;
+        }
+        return false;
+    }
+
+    private boolean movementFileExists(String emergencyName) {
+        File recordingDir = new File(mc.mcDataDir, "movementrecorder");
+        if (recordingDir.exists()) {
+            File recordingFile = new File(recordingDir, emergencyName + "_1.movement");
+            File recordingFile2 = new File(recordingDir, emergencyName + "_2.movement");
+            return recordingFile.exists() && recordingFile2.exists();
+        }
+        return false;
+    }
+
+    public void playMovementRecording(String emergencyName) {
+        if (fakeMovementCheck()) return;
+
+        switch (recordingCheckState) {
+            case NONE:
+                failsafeDelay.schedule((long) (500f + Math.random() * 1_000f));
+                recordingCheckState = CustomMovementState.WAIT_BEFORE_START;
+                playingState = 0;
+                break;
+            case WAIT_BEFORE_START:
+                MacroHandler.getInstance().pauseMacro();
+                lookAroundTimes = (int) Math.round(3 + Math.random() * 3);
+                currentLookAroundTimes = 0;
+                recordingCheckState = CustomMovementState.LOOK_AROUND;
+                failsafeDelay.schedule((long) (500 + Math.random() * 500));
+                KeyBindUtils.stopMovement();
+                break;
+            case LOOK_AROUND:
+                if (MovRecReader.isReading() || MovRecReader.isPlaying())
+                    break;
+                switch (playingState) {
+                    case 0:
+                        MovRecReader.playRecording(emergencyName + "_1");
+                        playingState = 1;
+                        break;
+                    case 1:
+                        if (FarmHelperConfig.sendFailsafeMessage) {
+                            recordingCheckState = CustomMovementState.TYPE_SHIT;
+                            failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                        } else {
+                            recordingCheckState = CustomMovementState.LOOK_AROUND_2;
+                        }
+                        playingState = 2;
+                        break;
+                }
+                break;
+            case TYPE_SHIT:
+                String randomMessage;
+                String customMessages = "";
+                switch (emergency) {
+                    case ROTATION_CHECK:
+                        customMessages = CustomFailsafeMessagesPage.customRotationMessages;
+                        break;
+                    case TELEPORT_CHECK:
+                        customMessages = CustomFailsafeMessagesPage.customTeleportationMessages;
+                        break;
+                }
+                if (customMessages.isEmpty()) {
+                    randomMessage = getRandomMessage(FAILSAFE_MESSAGES);
+                } else {
+                    randomMessage = getRandomMessage(customMessages.split("\\|"));
+                }
+                LogUtils.sendDebug("[Failsafe] Chosen message: " + randomMessage);
+                mc.thePlayer.sendChatMessage("/ac " + randomMessage);
+                recordingCheckState = CustomMovementState.LOOK_AROUND_2;
+                failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                currentLookAroundTimes = 0;
+                lookAroundTimes = (int) (2 + Math.random() * 2);
+                break;
+            case LOOK_AROUND_2:
+                if (MovRecReader.isReading() || MovRecReader.isPlaying())
+                    break;
+                switch (playingState) {
+                    case 2:
+                        MovRecReader.playRecording(emergencyName + "_2");
+                        playingState = 3;
+                        break;
+                    case 3:
+                        recordingCheckState = CustomMovementState.END;
+                        failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                        playingState = 0;
+                        break;
+                }
+                break;
+            case END:
+                float randomTime = FarmHelperConfig.getRandomRotationTime();
+                rotation.easeTo((float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30), (float) (30 + Math.random() * 20 - 10), (long) randomTime);
+                Failsafe.getInstance().stop();
+                if (FarmHelperConfig.enableRestartAfterFailSafe) {
+                    MacroHandler.getInstance().pauseMacro();
+                } else {
+                    MacroHandler.getInstance().disableMacro();
+                }
+                Multithreading.schedule(() -> {
+                    InventoryUtils.openInventory();
+                    LogUtils.sendDebug("[Failsafe] Finished playing custom movement recording");
+                    if (FarmHelperConfig.enableRestartAfterFailSafe) {
+                        LogUtils.sendDebug("[Failsafe] Restarting macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
+                        restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
+                    }
+                }, (int) randomTime + 250, TimeUnit.MILLISECONDS);
+                break;
+        }
     }
 
     // endregion
