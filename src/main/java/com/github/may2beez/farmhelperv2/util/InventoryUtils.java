@@ -2,7 +2,6 @@ package com.github.may2beez.farmhelperv2.util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
-import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
@@ -23,7 +22,7 @@ import static java.lang.Integer.parseInt;
 
 public class InventoryUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public static int getSlotOfItemInContainer(String item) {
+    public static int getSlotIdOfItemInContainer(String item) {
         for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
             if (slot.getHasStack()) {
                 String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
@@ -35,7 +34,28 @@ public class InventoryUtils {
         return -1;
     }
 
-    public static int getSlotOfItemInHotbar(String ...items) {
+    public static Slot getSlotOfItemInContainer(String item) {
+        return getSlotOfItemInContainer(item, false);
+    }
+    public static Slot getSlotOfItemInContainer(String item, boolean equals) {
+        for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
+            if (slot.getHasStack()) {
+                String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
+                if (equals) {
+                    if (itemName.equalsIgnoreCase(item)) {
+                        return slot;
+                    }
+                } else {
+                    if (itemName.contains(item)) {
+                        return slot;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public static int getSlotIdOfItemInHotbar(String ...items) {
         for (int i = 0; i < 9; i++) {
             ItemStack slot = mc.thePlayer.inventory.getStackInSlot(i);
             if (slot != null && slot.getItem() != null) {
@@ -48,7 +68,20 @@ public class InventoryUtils {
         return -1;
     }
 
-    public static int getSlotOfItemInInventory(String item) {
+    public static Slot getSlotOfItemInHotbar(String item) {
+        for (int i = 0; i < 9; i++) {
+            ItemStack slot = mc.thePlayer.inventory.getStackInSlot(i);
+            if (slot != null && slot.getItem() != null) {
+                String itemName = StringUtils.stripControlCodes(slot.getDisplayName());
+                if (itemName.contains(item)) {
+                    return mc.thePlayer.inventoryContainer.getSlot(i);
+                }
+            }
+        }
+        return null;
+    }
+
+    public static int getSlotIdOfItemInInventory(String item) {
         for (Slot slot : mc.thePlayer.inventoryContainer.inventorySlots) {
             if (slot.getHasStack()) {
                 String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
@@ -58,6 +91,18 @@ public class InventoryUtils {
             }
         }
         return -1;
+    }
+
+    public static Slot getSlotOfItemInInventory(String item) {
+        for (Slot slot : mc.thePlayer.inventoryContainer.inventorySlots) {
+            if (slot.getHasStack()) {
+                String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
+                if (itemName.contains(item)) {
+                    return slot;
+                }
+            }
+        }
+        return null;
     }
 
     public static String getInventoryName() {
@@ -182,6 +227,19 @@ public class InventoryUtils {
         ItemStack itemStack = mc.thePlayer.openContainer.getSlot(slot).getStack();
         if (itemStack == null) return new ArrayList<>();
         return getItemLore(itemStack);
+    }
+
+    public static int getAmountOfItemInInventory(String item) {
+        int amount = 0;
+        for (Slot slot : mc.thePlayer.inventoryContainer.inventorySlots) {
+            if (slot.getHasStack()) {
+                String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
+                if (itemName.contains(item)) {
+                    amount += slot.getStack().stackSize;
+                }
+            }
+        }
+        return amount;
     }
 
     public static int getRancherBootSpeed() {

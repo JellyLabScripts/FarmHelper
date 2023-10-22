@@ -120,12 +120,12 @@ public class AngleUtils {
     }
 
     public static RotationUtils.Rotation getRotation(Entity entity, boolean randomness) {
-        return getRotation(new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), randomness);
+        return getRotation(entity.getPositionEyes(1).add(new Vec3(0, -0.25, 0)), randomness);
 
     }
 
     public static RotationUtils.Rotation getRotation(Entity entity) {
-        return getRotation(entity, false);
+        return getRotation(entity.getPositionEyes(1), false);
     }
 
     public static RotationUtils.Rotation getRotation(Vec3 vec3, boolean randomness) {
@@ -144,8 +144,8 @@ public class AngleUtils {
 
         float pitch = (float) -Math.atan2(dist, diffY);
         float yaw = (float) Math.atan2(diffZ, diffX);
-        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90) * -1) + (randomness ? (float) (Math.random() * 5 - 2.5f) : 0);
-        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90) + (randomness ? (float) (Math.random() * 5 - 2.5f) : 0);
+        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90) * -1) + (randomness ? (float) (Math.random() * 8 - 4f) : 0);
+        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90) + (randomness ? (float) (Math.random() * 8 - 4f) : 0);
 
         return new RotationUtils.Rotation(yaw, pitch);
     }

@@ -226,6 +226,7 @@ public abstract class AbstractMacro {
         if (!beforeTeleportationPos.isPresent()) return;
         if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos.get()) > 2) {
             LogUtils.sendDebug("Teleported!");
+            actionAfterTeleport();
             if (yaw == -2137 && pitch == -2137) {
                 onEnable();
             }
@@ -243,6 +244,8 @@ public abstract class AbstractMacro {
                 VisitorsMacro.getInstance().start();
         }
     }
+
+    public abstract void actionAfterTeleport();
 
     public void triggerWarpGarden() {
         triggerWarpGarden(false);

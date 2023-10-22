@@ -20,7 +20,6 @@ import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -298,7 +297,7 @@ public class AutoCookie implements IFeature {
                             setBazaarState(BazaarState.OPEN_BAZAAR);
                             break;
                         }
-                        int odditiesSlot = InventoryUtils.getSlotOfItemInContainer("Oddities");
+                        int odditiesSlot = InventoryUtils.getSlotIdOfItemInContainer("Oddities");
                         if (odditiesSlot == -1) {
                             LogUtils.sendError("Something went wrong while trying to get the slot of the oddities!");
                             stop();
@@ -328,7 +327,7 @@ public class AutoCookie implements IFeature {
                             break;
                         }
 
-                        int cookieSlot = InventoryUtils.getSlotOfItemInContainer("Booster Cookie");
+                        int cookieSlot = InventoryUtils.getSlotIdOfItemInContainer("Booster Cookie");
                         if (cookieSlot == -1) {
                             LogUtils.sendError("Something went wrong while trying to get the slot of the cookie!");
                             stop();
@@ -351,7 +350,7 @@ public class AutoCookie implements IFeature {
                             break;
                         }
 
-                        int buyInstantlySlot = InventoryUtils.getSlotOfItemInContainer("Buy Instantly");
+                        int buyInstantlySlot = InventoryUtils.getSlotIdOfItemInContainer("Buy Instantly");
                         if (buyInstantlySlot == -1) {
                             LogUtils.sendError("Something went wrong while trying to get the slot of the buy instantly!");
                             stop();
@@ -374,7 +373,7 @@ public class AutoCookie implements IFeature {
                             break;
                         }
 
-                        int buyOnlyOneSlot = InventoryUtils.getSlotOfItemInContainer("Buy only one!");
+                        int buyOnlyOneSlot = InventoryUtils.getSlotIdOfItemInContainer("Buy only one!");
                         if (buyOnlyOneSlot == -1) {
                             LogUtils.sendError("Something went wrong while trying to get the slot of the buy only one!");
                             stop();
@@ -429,7 +428,7 @@ public class AutoCookie implements IFeature {
                             autoCookieDelay.schedule(getRandomDelay());
                             break;
                         }
-                        int cookieSlot = InventoryUtils.getSlotOfItemInInventory("Booster Cookie");
+                        int cookieSlot = InventoryUtils.getSlotIdOfItemInInventory("Booster Cookie");
                         if (cookieSlot == -1) {
                             LogUtils.sendError("Something went wrong while trying to get the slot of the cookie!");
                             stop();
@@ -496,7 +495,7 @@ public class AutoCookie implements IFeature {
                     autoCookieDelay.schedule(getRandomDelay());
                     break;
                 }
-                int cookieSlot = InventoryUtils.getSlotOfItemInHotbar("Booster Cookie");
+                int cookieSlot = InventoryUtils.getSlotIdOfItemInHotbar("Booster Cookie");
                 LogUtils.sendDebug("Cookie Slot: " + cookieSlot);
                 if (cookieSlot == -1 || cookieSlot > 8) {
                     LogUtils.sendError("Something went wrong while trying to get the slot of the cookie!");
@@ -522,7 +521,7 @@ public class AutoCookie implements IFeature {
                 if (InventoryUtils.getInventoryName() == null || !InventoryUtils.getInventoryName().contains("Consume Booster Cookie?"))
                     break;
 
-                int slotOfConsumeCookie = InventoryUtils.getSlotOfItemInContainer("Consume Cookie");
+                int slotOfConsumeCookie = InventoryUtils.getSlotIdOfItemInContainer("Consume Cookie");
                 if (slotOfConsumeCookie == -1) {
                     LogUtils.sendError("Something went wrong while trying to get the slot of the consume cookie!");
                     stop();

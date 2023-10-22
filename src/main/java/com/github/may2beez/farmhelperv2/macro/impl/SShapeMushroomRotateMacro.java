@@ -33,6 +33,11 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
     }
 
     @Override
+    public void actionAfterTeleport() {
+
+    }
+
+    @Override
     public void doAfterRewarpRotation() {
         if (!getRotation().rotating) {
             setPitch((float) (Math.random() * 2 - 1)); // -1 - 1

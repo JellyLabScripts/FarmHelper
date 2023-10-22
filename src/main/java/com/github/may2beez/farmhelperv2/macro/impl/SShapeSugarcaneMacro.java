@@ -14,6 +14,11 @@ public class SShapeSugarcaneMacro extends AbstractMacro {
 
     }
 
+    @Override
+    public void actionAfterTeleport() {
+
+    }
+
     enum State {
         NONE,
         A,

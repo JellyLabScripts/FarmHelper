@@ -164,13 +164,13 @@ public class PetSwapper implements IFeature {
                     if (getPreviousPet) {
                         if (petName.toLowerCase().trim().contains(previousPet.toLowerCase())) {
                             LogUtils.sendDebug("[Pet Swapper] found previous pet: " + petName);
-                            InventoryUtils.clickSlot(InventoryUtils.getSlotOfItemInContainer(petName), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                            InventoryUtils.clickSlot(InventoryUtils.getSlotIdOfItemInContainer(petName), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                             currentState = State.WAITING_FOR_SPAWN;
                             delayClock.schedule(FarmHelperConfig.petSwapperDelay);
                             return;
                         }
                         if (petName.toLowerCase().contains("next page")) {
-                            InventoryUtils.clickSlot(InventoryUtils.getSlotOfItemInContainer("next page"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                            InventoryUtils.clickSlot(InventoryUtils.getSlotIdOfItemInContainer("next page"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                             delayClock.schedule(FarmHelperConfig.petSwapperDelay);
                             return;
                         }
@@ -193,7 +193,7 @@ public class PetSwapper implements IFeature {
                         break;
                     }
                     if (petName.toLowerCase().contains("next page")) {
-                        InventoryUtils.clickSlot(InventoryUtils.getSlotOfItemInContainer("next page"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        InventoryUtils.clickSlot(InventoryUtils.getSlotIdOfItemInContainer("next page"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         delayClock.schedule(FarmHelperConfig.petSwapperDelay);
                         return;
                     }
@@ -220,13 +220,13 @@ public class PetSwapper implements IFeature {
                     }
                     if (petName.toLowerCase().trim().contains(FarmHelperConfig.petSwapperName.toLowerCase())) {
                         LogUtils.sendDebug("[Pet Swapper] found new pet: " + petName);
-                        InventoryUtils.clickSlot(InventoryUtils.getSlotOfItemInContainer(petName), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        InventoryUtils.clickSlot(InventoryUtils.getSlotIdOfItemInContainer(petName), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         currentState = State.WAITING_FOR_SPAWN;
                         delayClock.schedule(FarmHelperConfig.petSwapperDelay);
                         return;
                     }
                     if (petName.toLowerCase().contains("next page")) {
-                        InventoryUtils.clickSlot(InventoryUtils.getSlotOfItemInContainer("next page"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        InventoryUtils.clickSlot(InventoryUtils.getSlotIdOfItemInContainer("next page"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         delayClock.schedule(FarmHelperConfig.petSwapperDelay);
                         return;
                     }

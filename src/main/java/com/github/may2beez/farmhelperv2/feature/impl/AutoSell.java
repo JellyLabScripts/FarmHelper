@@ -218,7 +218,7 @@ public class AutoSell implements IFeature {
                 }
 
                 LogUtils.sendDebug("[Auto Sell] Detected Sacks menu");
-                int sacksSlot = InventoryUtils.getSlotOfItemInContainer("Agronomy Sack");
+                int sacksSlot = InventoryUtils.getSlotIdOfItemInContainer("Agronomy Sack");
                 if (sacksSlot == -1) {
                     LogUtils.sendDebug("[Auto Sell] Couldn't find \"Agronomy Sack\" item in Sacks menu, closing Sacks menu");
                     mc.thePlayer.closeScreen();
@@ -247,7 +247,7 @@ public class AutoSell implements IFeature {
                 } else if (InventoryUtils.getInventoryName() == null) {
                     break;
                 }
-                int pickUpAll = InventoryUtils.getSlotOfItemInContainer("Pickup All");
+                int pickUpAll = InventoryUtils.getSlotIdOfItemInContainer("Pickup All");
                 if (pickUpAll != -1) {
                     if (mc.thePlayer.inventory.getFirstEmptyStack() != -1) {
                         LogUtils.sendDebug("[Auto Sell] Picking up all items from Agronomy Sack");
@@ -319,8 +319,8 @@ public class AutoSell implements IFeature {
                         }
                         LogUtils.sendDebug("[Auto Sell] Detected BZ menu");
 
-                        int sellInventorySlot = InventoryUtils.getSlotOfItemInContainer("Sell Inventory Now");
-                        int sellSacksSlot = InventoryUtils.getSlotOfItemInContainer("Sell Sacks Now");
+                        int sellInventorySlot = InventoryUtils.getSlotIdOfItemInContainer("Sell Inventory Now");
+                        int sellSacksSlot = InventoryUtils.getSlotIdOfItemInContainer("Sell Sacks Now");
                         if (sellInventorySlot == -1) {
                             LogUtils.sendDebug("[Auto Sell] Couldn't find \"Sell Inventory Now\" item in Bazaar menu, opening again menu");
                             mc.thePlayer.closeScreen();
@@ -358,7 +358,7 @@ public class AutoSell implements IFeature {
                             break;
                         }
                         LogUtils.sendDebug("[Auto Sell] Detected sell confirmation menu");
-                        int confirmSlot = InventoryUtils.getSlotOfItemInContainer("Selling whole inventory");
+                        int confirmSlot = InventoryUtils.getSlotIdOfItemInContainer("Selling whole inventory");
                         if (confirmSlot == -1) {
                             LogUtils.sendError("[Auto Sell] Couldn't find \"Selling whole inventory\" item in Bazaar menu, opening again menu");
                             mc.thePlayer.closeScreen();

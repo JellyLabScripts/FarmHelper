@@ -46,8 +46,8 @@ public class RotationUtils {
             this.time = (long) (time * 0.9);
             LogUtils.sendDebug("[Rotation] Not so close, but not that far rotation, speeding up by 0.9");
         } else if (pythagoras > 100) {
-            this.time = (long) (time * 1.5);
-            LogUtils.sendDebug("[Rotation] Far rotation, slowing down by 1.5");
+            this.time = (long) (time * 1.25);
+            LogUtils.sendDebug("[Rotation] Far rotation, slowing down by 1.25");
         } else {
             this.time = time;
             LogUtils.sendDebug("[Rotation] Normal rotation");

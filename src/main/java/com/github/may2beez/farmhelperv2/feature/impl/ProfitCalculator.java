@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 
 public class ProfitCalculator implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
+    @Getter
     private final NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "US"));
     {
         formatter.setMaximumFractionDigits(0);
@@ -72,6 +73,73 @@ public class ProfitCalculator implements IFeature {
     }
 
     public final HashMap<String, Integer> itemsDropped = new HashMap<>();
+
+    public final List<BazaarItem> visitorsMacroPrices = new ArrayList<BazaarItem>() {{
+        add(new BazaarItem("_Wheat", "WHEAT"));
+        add(new BazaarItem("_Enchanted Bread", "ENCHANTED_BREAD"));
+        add(new BazaarItem("_Hay Bale", "HAY_BLOCK"));
+        add(new BazaarItem("_Enchanted Hay Bale", "ENCHANTED_HAY_BLOCK"));
+        add(new BazaarItem("_Tightly-Tied Hay Bale", "TIGHTLY_TIED_HAY_BALE"));
+
+        add(new BazaarItem("-Potato", "POTATO_ITEM"));
+        add(new BazaarItem("-Enchanted Potato", "ENCHANTED_POTATO"));
+        add(new BazaarItem("-Enchanted Baked Potato", "ENCHANTED_BAKED_POTATO"));
+
+        add(new BazaarItem("_Nether Wart", "NETHER_STALK"));
+        add(new BazaarItem("_Enchanted Nether Wart", "ENCHANTED_NETHER_STALK"));
+        add(new BazaarItem("_Mutant Nether Wart", "MUTANT_NETHER_STALK"));
+
+        add(new BazaarItem("_Carrot", "CARROT_ITEM"));
+        add(new BazaarItem("_Enchanted Carrot", "ENCHANTED_CARROT"));
+        add(new BazaarItem("_Enchanted Golden Carrot", "ENCHANTED_GOLDEN_CARROT"));
+
+        add(new BazaarItem("_Cactus", "CACTUS"));
+        add(new BazaarItem("_Enchanted Cactus Green", "ENCHANTED_CACTUS_GREEN"));
+        add(new BazaarItem("_Enchanted Cactus", "ENCHANTED_CACTUS"));
+
+        add(new BazaarItem("_Sugar Cane", "SUGAR_CANE"));
+        add(new BazaarItem("_Enchanted Sugar", "ENCHANTED_SUGAR"));
+        add(new BazaarItem("_Enchanted Sugar Cane", "ENCHANTED_SUGAR_CANE"));
+
+        add(new BazaarItem("_Melon", "MELON"));
+        add(new BazaarItem("_Enchanted Melon", "ENCHANTED_MELON"));
+        add(new BazaarItem("_Melon Block", "MELON_BLOCK"));
+        add(new BazaarItem("_Enchanted Melon Block", "ENCHANTED_MELON_BLOCK"));
+
+        add(new BazaarItem("_Cocoa Beans", "INK_SACK:3"));
+        add(new BazaarItem("_Enchanted Cocoa Beans", "ENCHANTED_COCOA"));
+        add(new BazaarItem("_Enchanted Cookie", "ENCHANTED_COOKIE"));
+
+        add(new BazaarItem("_Red Mushroom", "RED_MUSHROOM"));
+        add(new BazaarItem("_Enchanted Red Mushroom", "ENCHANTED_RED_MUSHROOM"));
+        add(new BazaarItem("_Red Mushroom Block", "HUGE_MUSHROOM_1"));
+        add(new BazaarItem("_Enchanted Red Mushroom Block", "ENCHANTED_HUGE_MUSHROOM_1"));
+
+        add(new BazaarItem("_Brown Mushroom", "BROWN_MUSHROOM"));
+        add(new BazaarItem("_Enchanted Brown Mushroom", "ENCHANTED_BROWN_MUSHROOM"));
+        add(new BazaarItem("_Brown Mushroom Block", "HUGE_MUSHROOM_2"));
+        add(new BazaarItem("_Enchanted Brown Mushroom Block", "ENCHANTED_HUGE_MUSHROOM_2"));
+
+        add(new BazaarItem("_Pumpkin", "PUMPKIN"));
+        add(new BazaarItem("_Enchanted Pumpkin", "ENCHANTED_PUMPKIN"));
+        add(new BazaarItem("_Polished Pumpkin", "POLISHED_PUMPKIN"));
+
+        add(new BazaarItem("_Raw Porkchop", "PORK"));
+        add(new BazaarItem("_Enchanted Pork", "ENCHANTED_PORK"));
+        add(new BazaarItem("_Enchanted Grilled Pork", "ENCHANTED_GRILLED_PORK"));
+
+        add(new BazaarItem("_Raw Rabbit", "RABBIT"));
+        add(new BazaarItem("_Enchanted Raw Rabbit", "ENCHANTED_RABBIT"));
+
+        add(new BazaarItem("_Compost", "COMPOST"));
+        add(new BazaarItem("_Mutton", "MUTTON"));
+        add(new BazaarItem("_Enchanted Mutton", "ENCHANTED_MUTTON"));
+        add(new BazaarItem("_Enchanted Cookied Mutton", "ENCHANTED_COOKED_MUTTON"));
+
+        add(new BazaarItem("_Seeds", "SEEDS"));
+        add(new BazaarItem("_Enchanted Seeds", "ENCHANTED_SEEDS"));
+        add(new BazaarItem("_Box of Seeds", "BOX_OF_SEEDS"));
+    }};
 
     public final List<BazaarItem> cropsToCount = new ArrayList<BazaarItem>() {{
         final int HAY_ENCHANTED_TIER_1 = 144;
@@ -390,7 +458,12 @@ public class ProfitCalculator implements IFeature {
     }
 
     private void getPrices(JsonObject json1, List<BazaarItem> cropsToCount) {
-        for (BazaarItem item : cropsToCount) {
+        getPricesPerList(json1, cropsToCount);
+        getPricesPerList(json1, visitorsMacroPrices);
+    }
+
+    private void getPricesPerList(JsonObject json1, List<BazaarItem> list) {
+        for (BazaarItem item : list) {
             JsonObject json2 = json1.getAsJsonObject(item.bazaarId);
             JsonArray json3 = json2.getAsJsonArray("buy_summary");
             JsonObject json4 = json3.size() > 1 ? json3.get(1).getAsJsonObject() : json3.get(0).getAsJsonObject();
@@ -455,6 +528,7 @@ public class ProfitCalculator implements IFeature {
         public float currentAmount;
         public String imageURL;
         public int npcPrice = 0;
+        public boolean dontCount = false;
 
         public BazaarItem(String localizedName, String bazaarId, int amountToEnchanted, int npcPrice) {
             this.localizedName = localizedName;
@@ -462,6 +536,12 @@ public class ProfitCalculator implements IFeature {
             this.amountToEnchanted = amountToEnchanted;
             this.npcPrice = npcPrice;
             this.currentAmount = 0;
+        }
+
+        public BazaarItem(String localizedName, String bazaarId) {
+            this.localizedName = localizedName;
+            this.bazaarId = bazaarId;
+            this.dontCount = true;
         }
 
         public BazaarItem setImage() {
@@ -476,7 +556,7 @@ public class ProfitCalculator implements IFeature {
         public boolean isManipulated() {
             if (previousPrices.size() < 5) return false;
             double average = previousPrices.stream().mapToDouble(a -> a).average().orElse(currentPrice);
-            return currentPrice > average * 2;
+            return currentPrice > average * FarmHelperConfig.visitorsMacroPriceManipulationMultiplier;
         }
         public double getMedian() {
             List<Double> list = new ArrayList<>(previousPrices);

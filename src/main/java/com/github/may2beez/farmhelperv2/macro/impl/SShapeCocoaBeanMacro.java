@@ -35,6 +35,11 @@ public class SShapeCocoaBeanMacro extends AbstractMacro {
     }
 
     @Override
+    public void actionAfterTeleport() {
+
+    }
+
+    @Override
     public void updateState() {
         if (getCurrentState() == null)
             changeState(State.NONE);

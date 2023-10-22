@@ -93,6 +93,10 @@ public class AntiStuck implements IFeature {
         unstuckAttempts = 0;
         unstuckAttemptsClock.reset();
         dontCheckForAntistuckClock.reset();
+        lastX = 10000;
+        lastZ = 10000;
+        lastY = 10000;
+        notMovingTimer.reset();
     }
 
     @Override

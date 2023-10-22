@@ -193,6 +193,11 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
     }
 
     @Override
+    public void actionAfterTeleport() {
+        changeLaneDirection = null;
+    }
+
+    @Override
     public State calculateDirection() {
 
         if (BlockUtils.rightCropIsReady()) {
