@@ -1,6 +1,7 @@
 package com.github.may2beez.farmhelperv2.feature.impl;
 
 import com.github.may2beez.farmhelperv2.feature.IFeature;
+import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -17,6 +18,7 @@ public class Freelock implements IFeature {
         }
         return instance;
     }
+
     @Override
     public String getName() {
         return "Freelock";
@@ -53,7 +55,7 @@ public class Freelock implements IFeature {
         cameraYaw = mc.thePlayer.rotationYaw + 180f;
         cameraPitch = mc.thePlayer.rotationPitch;
         mc.gameSettings.thirdPersonView = 1;
-        if (UngrabMouse.getInstance().isRunning()) {
+        if (UngrabMouse.getInstance().isRunning() && MacroHandler.getInstance().isCurrentMacroEnabled()) {
             UngrabMouse.getInstance().regrabMouse();
             mouseWasGrabbed = true;
         }
@@ -65,10 +67,10 @@ public class Freelock implements IFeature {
         mc.gameSettings.thirdPersonView = 0;
         cameraPitch = mc.thePlayer.rotationPitch;
         cameraYaw = mc.thePlayer.rotationYaw;
-        if (UngrabMouse.getInstance().isToggled() && mouseWasGrabbed) {
+        if (UngrabMouse.getInstance().isToggled() && mouseWasGrabbed && MacroHandler.getInstance().isCurrentMacroEnabled()) {
             UngrabMouse.getInstance().ungrabMouse();
-            mouseWasGrabbed = false;
         }
+        mouseWasGrabbed = false;
     }
 
     @Override

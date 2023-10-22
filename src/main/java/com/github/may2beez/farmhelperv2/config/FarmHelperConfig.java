@@ -1115,7 +1115,7 @@ public class FarmHelperConfig extends Config {
     @Slider(
             name = "Time between changing rows", category = DELAYS, subcategory = "Changing rows",
             description = "The minimum time to wait before changing rows (in milliseconds)",
-            min = 300, max = 2000
+            min = 150, max = 2000
     )
     public static float timeBetweenChangingRows = 400f;
     

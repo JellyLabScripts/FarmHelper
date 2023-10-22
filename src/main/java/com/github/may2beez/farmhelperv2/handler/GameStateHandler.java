@@ -3,10 +3,7 @@ package com.github.may2beez.farmhelperv2.handler;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
 import com.github.may2beez.farmhelperv2.mixin.gui.IGuiPlayerTabOverlayAccessor;
-import com.github.may2beez.farmhelperv2.util.BlockUtils;
-import com.github.may2beez.farmhelperv2.util.PlayerUtils;
-import com.github.may2beez.farmhelperv2.util.ScoreboardUtils;
-import com.github.may2beez.farmhelperv2.util.TablistUtils;
+import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import com.github.may2beez.farmhelperv2.util.helper.Timer;
 import lombok.Getter;
@@ -316,6 +313,7 @@ public class GameStateHandler {
                     Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.DIRT_CHECK);
                     return;
                 }
+                randomValueToWaitNextTime = -1;
                 notMovingTimer.reset();
             }
         } else {
@@ -336,7 +334,7 @@ public class GameStateHandler {
     }
 
     public boolean hasPassedSinceStopped() {
-        return notMovingTimer.hasPassed(randomValueToWait);
+        return notMovingTimer.hasPassed(randomValueToWaitNextTime != -1 ? randomValueToWaitNextTime : randomValueToWait);
     }
 
     public boolean notMoving() {
@@ -346,8 +344,11 @@ public class GameStateHandler {
     public boolean canChangeDirection() {
         return !notMovingTimer.isScheduled();
     }
+
+    private long randomValueToWaitNextTime = -1;
+
     public void scheduleNotMoving(int time) {
-        randomValueToWait = time;
+        randomValueToWaitNextTime = time;
         notMovingTimer.schedule();
     }
     public void scheduleNotMoving() {

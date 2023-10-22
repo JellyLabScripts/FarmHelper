@@ -10,6 +10,7 @@ import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 
+import static com.github.may2beez.farmhelperv2.util.BlockUtils.getRelativeBlock;
 import static com.github.may2beez.farmhelperv2.util.BlockUtils.getRelativeBlockPos;
 
 public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
@@ -111,6 +112,20 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                     delayAfterChangingRow.schedule(1_000);
                     setPitch(50 + (float) (Math.random() * 6 - 3)); // -3 - 3
                     getRotation().easeTo((float) (getClosest90Deg() - (ROTATION_DEGREE + (Math.random() * 2))), getPitch(), FarmHelperConfig.getRandomRotationTime());
+                } else if (GameStateHandler.getInstance().isFrontWalkable()) {
+                    if (changeLaneDirection == ChangeLaneDirection.BACKWARD) {
+                        // Probably stuck in dirt
+                        AntiStuck.getInstance().start();
+                        return;
+                    }
+                    changeState(State.SWITCHING_LANE);
+                } else if (GameStateHandler.getInstance().isBackWalkable()) {
+                    if (changeLaneDirection == ChangeLaneDirection.FORWARD) {
+                        // Probably stuck in dirt
+                        AntiStuck.getInstance().start();
+                        return;
+                    }
+                    changeState(State.SWITCHING_LANE);
                 } else {
                     changeState(State.NONE);
                     LogUtils.sendDebug("This shouldn't happen, but it did...");
@@ -169,6 +184,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                         mc.gameSettings.keyBindForward,
                         mc.gameSettings.keyBindSprint
                 );
+                GameStateHandler.getInstance().scheduleNotMoving(25);
                 break;
             case DROPPING:
                 if (mc.thePlayer.onGround && Math.abs(getLayerY() - mc.thePlayer.getPosition().getY()) <= 1.5) {
@@ -196,29 +212,21 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
 
     @Override
     public State calculateDirection() {
-        Block blockleft = BlockUtils.getBlock(getRelativeBlockPos(-1, 0, 0, getClosest90Deg()));
-        Block blockright = BlockUtils.getBlock(getRelativeBlockPos(1, 0, 0, getClosest90Deg()));
-
-        if (blockleft.equals(Blocks.melon_block) || blockleft.equals(Blocks.pumpkin)) {
-            return State.LEFT;
-        }
-        if (blockright.equals(Blocks.melon_block) || blockright.equals(Blocks.pumpkin)) {
-            return State.RIGHT;
-        }
-
-        boolean f1 = true, f2 = true;
-
-        for (int i = 1; i < 180; i++) {
-            if (BlockUtils.canWalkThrough(getRelativeBlockPos(i, 0, 0, AngleUtils.getClosest())) && f1) {
+        for (int i = 0; i < 180; i++) {
+            Block blockRight = getRelativeBlock(i, 0, 0);
+            Block blockLeft = getRelativeBlock(-i, 0, 0);
+            if (blockRight.equals(Blocks.pumpkin) || blockRight.equals(Blocks.melon_block)) {
                 return State.RIGHT;
             }
-            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(i, 0, 0, AngleUtils.getClosest())))
-                f1 = false;
-            if (BlockUtils.canWalkThrough(getRelativeBlockPos(-i, 0, 0, AngleUtils.getClosest())) && f2) {
+            if (blockLeft.equals(Blocks.pumpkin) || blockLeft.equals(Blocks.melon_block)) {
                 return State.LEFT;
             }
-            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(-i, 0, 0, AngleUtils.getClosest())))
-                f2 = false;
+            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(i, 0, 0, getClosest90Deg()))) {
+                return State.LEFT;
+            }
+            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(-i, 0, 0, getClosest90Deg()))) {
+                return State.RIGHT;
+            }
         }
         LogUtils.sendDebug("No direction found");
         return State.NONE;

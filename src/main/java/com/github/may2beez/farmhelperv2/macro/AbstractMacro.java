@@ -155,7 +155,6 @@ public abstract class AbstractMacro {
             KeyBindUtils.stopMovement(FarmHelperConfig.holdLeftClickWhenChangingRow);
             GameStateHandler.getInstance().scheduleNotMoving();
             updateState();
-//            invokeState();
         } else {
             if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75 && mc.thePlayer.posY < 80) {
                 changeState(State.DROPPING);
