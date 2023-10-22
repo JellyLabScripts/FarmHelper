@@ -553,6 +553,8 @@ public class Failsafe implements IFeature {
         if (event.update.getBlock() instanceof BlockNetherWart) return;
         if (event.update.getBlock() instanceof BlockCactus) return;
         if (event.update.getBlock() instanceof BlockReed) return;
+        if (event.update.getBlock() instanceof BlockMelon) return;
+        if (event.update.getBlock() instanceof BlockPumpkin) return;
         if (event.update.getBlock().isPassable(mc.theWorld, event.pos)) return;
 
         LogUtils.sendWarning("[Failsafe] Someone put block on your garden! Block pos: " + event.pos);

@@ -155,7 +155,7 @@ public abstract class AbstractMacro {
             KeyBindUtils.stopMovement(FarmHelperConfig.holdLeftClickWhenChangingRow);
             GameStateHandler.getInstance().scheduleNotMoving();
             updateState();
-            invokeState();
+//            invokeState();
         } else {
             if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75 && mc.thePlayer.posY < 80) {
                 changeState(State.DROPPING);
@@ -193,7 +193,7 @@ public abstract class AbstractMacro {
             setPitch(savedState.get().getPitch());
             setClosest90Deg(savedState.get().getClosest90Deg());
             savedState = Optional.empty();
-        } else {
+        } else if (currentState == State.NONE || currentState == null) {
             changeState(calculateDirection());
         }
         setEnabled(true);

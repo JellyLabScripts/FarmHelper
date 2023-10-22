@@ -23,7 +23,7 @@ public class MixinEntityRenderer {
     private void farmHelperV2$setPerspectiveAngles(float x, float y, int invert) {
         if (!Freelock.getInstance().isRunning()) return;
         Freelock.getInstance().setCameraPitch(Freelock.getInstance().getCameraPitch() + (y / 8f));
-        Freelock.getInstance().setCameraYaw(Freelock.getInstance().getCameraYaw() + (x / 8f));
+        Freelock.getInstance().setCameraYaw(Freelock.getInstance().getCameraYaw() * invert + (x / 8f));
         if (Math.abs(Freelock.getInstance().getCameraPitch()) > 90)
             Freelock.getInstance().setCameraPitch(Freelock.getInstance().getCameraPitch() > 0 ? 90 : -90);
     }

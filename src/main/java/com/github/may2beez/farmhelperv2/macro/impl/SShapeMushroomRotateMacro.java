@@ -17,19 +17,11 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
         LogUtils.sendDebug("Crop: " + crop);
         MacroHandler.getInstance().setCrop(crop);
         PlayerUtils.getTool();
-        if (FarmHelperConfig.customPitch) {
-            setPitch(FarmHelperConfig.customPitchLevel);
-        } else {
-            setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
-        }
-        if (FarmHelperConfig.customYaw) {
-            setYaw(FarmHelperConfig.customYawLevel);
-        } else {
-            setYaw(AngleUtils.getClosestDiagonal());
-        }
+        setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
+        setYaw(AngleUtils.getClosestDiagonal());
 
-        getRotation().easeTo((float) (AngleUtils.getClosest() + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
         super.onEnable();
+        getRotation().easeTo((float) (AngleUtils.getClosest() + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
     }
 
     @Override

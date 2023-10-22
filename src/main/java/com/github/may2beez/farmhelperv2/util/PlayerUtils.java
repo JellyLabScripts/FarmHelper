@@ -158,6 +158,7 @@ public class PlayerUtils {
                             return i - 36;
                         }
                         continue;
+                    case PUMPKIN_MELON_UNKOWN:
                     case MELON:
                     case PUMPKIN:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Dicer")) {

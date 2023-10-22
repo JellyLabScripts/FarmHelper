@@ -77,6 +77,7 @@ public class FarmHelperConfig extends Config {
         SUGAR_CANE,
         MELON,
         PUMPKIN,
+        PUMPKIN_MELON_UNKOWN,
         CACTUS,
         COCOA_BEANS,
         MUSHROOM,
@@ -141,11 +142,12 @@ public class FarmHelperConfig extends Config {
                     "S Shape / Vertical - Crops (Wheat, Carrot, Potato, NW)", // 0
                     "S Shape - Pumpkin/Melon", // 1
                     "S Shape - Pumpkin/Melon Melongkingde", // 2
-                    "S Shape - Sugar Cane", // 3
-                    "S Shape - Cactus", // 4
-                    "S Shape - Cocoa Beans", // 5
-                    "S Shape - Mushroom (45°)", // 6
-                    "S Shape - Mushroom (30° with rotations)", // 7
+                    "S Shape - Pumpkin/Melon Default Plot", // 3
+                    "S Shape - Sugar Cane", // 4
+                    "S Shape - Cactus", // 5
+                    "S Shape - Cocoa Beans", // 6
+                    "S Shape - Mushroom (45°)", // 7
+                    "S Shape - Mushroom (30° with rotations)", // 8
             }, size = 2
     )
     public static int macroType = 0;
@@ -1126,6 +1128,10 @@ public class FarmHelperConfig extends Config {
 
     public static long getRandomTimeBetweenChangingRows() {
         return (long) (timeBetweenChangingRows + (float) Math.random() * randomTimeBetweenChangingRows);
+    }
+
+    public static long getMaxTimeBetweenChangingRows() {
+        return (long) (timeBetweenChangingRows + randomTimeBetweenChangingRows);
     }
 
     @Slider(

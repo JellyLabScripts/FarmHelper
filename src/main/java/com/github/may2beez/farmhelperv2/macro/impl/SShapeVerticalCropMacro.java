@@ -86,8 +86,12 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                     KeyBindUtils.stopMovement();
                     setLayerY(mc.thePlayer.getPosition().getY());
                     changeState(State.NONE);
-                } else  {
-                    GameStateHandler.getInstance().scheduleNotMoving();
+                } else {
+                    if (mc.thePlayer.onGround) {
+                        changeState(State.NONE);
+                    } else {
+                        GameStateHandler.getInstance().scheduleNotMoving();
+                    }
                 }
                 break;
             }
