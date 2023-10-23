@@ -31,8 +31,21 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
         setYaw(AngleUtils.getClosestDiagonal());
         setClosest90Deg(AngleUtils.getClosest());
         changeState(calculateDirection());
-        getRotation().easeTo((float) (getClosest90Deg() + (getCurrentState() == State.LEFT ? (-ROTATION_DEGREE - (Math.random() * 2)) : ROTATION_DEGREE + (Math.random() * 2))), getPitch(), FarmHelperConfig.getRandomRotationTime());
+        float additionalRotation = 0;
+        switch (getCurrentState()) {
+            case LEFT:
+                additionalRotation = (float) (-ROTATION_DEGREE - (Math.random() * 2));
+                break;
+            case RIGHT:
+                additionalRotation = (float) (ROTATION_DEGREE + (Math.random() * 2));
+                break;
+            default:
+                additionalRotation = (float) (Math.random() * 2 - 1);
+                break;
+        }
+        getRotation().easeTo(getClosest90Deg() + additionalRotation, getPitch(), FarmHelperConfig.getRandomRotationTime());
         delayAfterChangingRow.schedule(1_000);
+        changeLaneDirection = null;
         super.onEnable();
     }
 
@@ -75,20 +88,32 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                         AntiStuck.getInstance().start();
                         return;
                     }
-                    changeState(State.SWITCHING_LANE);
                     changeLaneDirection = ChangeLaneDirection.FORWARD;
                     setPitch(50 + (float) (Math.random() * 6 - 3)); // -3 - 3
-                    getRotation().easeTo((float) (getClosest90Deg() + (Math.random() * 1 - 0.5)), getPitch(), FarmHelperConfig.getRandomRotationTime());
+                    float additionalRotation = 0;
+                    if (getCurrentState() == State.RIGHT) {
+                        additionalRotation = - ((float) (Math.random() * 0.4 + 0.2));
+                    } else if (getCurrentState() == State.LEFT) {
+                        additionalRotation = ((float) (Math.random() * 0.4 + 0.2));
+                    }
+                    changeState(State.SWITCHING_LANE);
+                    getRotation().easeTo(getClosest90Deg() + additionalRotation, getPitch(), FarmHelperConfig.getRandomRotationTime());
                 } else if (GameStateHandler.getInstance().isBackWalkable()) {
                     if (changeLaneDirection == ChangeLaneDirection.FORWARD) {
                         // Probably stuck in dirt
                         AntiStuck.getInstance().start();
                         return;
                     }
-                    changeState(State.SWITCHING_LANE);
                     changeLaneDirection = ChangeLaneDirection.BACKWARD;
                     setPitch(50 + (float) (Math.random() * 6 - 3)); // -3 - 3
-                    getRotation().easeTo((float) (getClosest90Deg() + (Math.random() * 1 - 0.5)), getPitch(), FarmHelperConfig.getRandomRotationTime());
+                    float additionalRotation = 0;
+                    if (getCurrentState() == State.RIGHT) {
+                        additionalRotation = - ((float) (Math.random() * 0.4 + 0.2));
+                    } else if (getCurrentState() == State.LEFT) {
+                        additionalRotation = ((float) (Math.random() * 0.4 + 0.2));
+                    }
+                    changeState(State.SWITCHING_LANE);
+                    getRotation().easeTo(getClosest90Deg() + additionalRotation, getPitch(), FarmHelperConfig.getRandomRotationTime());
                 } else {
                     if (GameStateHandler.getInstance().isLeftWalkable()) {
                         changeState(State.LEFT);
@@ -102,7 +127,13 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                 }
                 break;
             case SWITCHING_LANE:
-                if (GameStateHandler.getInstance().isRightWalkable()) {
+                if (GameStateHandler.getInstance().isFrontWalkable() && changeLaneDirection == ChangeLaneDirection.FORWARD && (GameStateHandler.getInstance().isRightWalkable() || GameStateHandler.getInstance().isLeftWalkable())) {
+                    AntiStuck.getInstance().start();
+                    changeState(State.SWITCHING_LANE);
+                } else if (GameStateHandler.getInstance().isBackWalkable() && changeLaneDirection == ChangeLaneDirection.BACKWARD && (GameStateHandler.getInstance().isRightWalkable() || GameStateHandler.getInstance().isLeftWalkable())) {
+                    AntiStuck.getInstance().start();
+                    changeState(State.SWITCHING_LANE);
+                } else if (GameStateHandler.getInstance().isRightWalkable()) {
                     changeState(State.RIGHT);
                     delayAfterChangingRow.schedule(1_000);
                     setPitch(50 + (float) (Math.random() * 6 - 3)); // -3 - 3

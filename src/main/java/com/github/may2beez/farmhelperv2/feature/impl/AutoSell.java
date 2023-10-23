@@ -116,6 +116,9 @@ public class AutoSell implements IFeature {
         timeoutClock.reset();
         inventoryFilledClock.reset();
         KeyBindUtils.stopMovement();
+        if (MacroHandler.getInstance().isMacroToggled()) {
+            MacroHandler.getInstance().resumeMacro();
+        }
         if (FarmHelperConfig.enableScheduler)
             Scheduler.getInstance().resume();
     }
@@ -148,6 +151,9 @@ public class AutoSell implements IFeature {
         KeyBindUtils.stopMovement();
         if (FarmHelperConfig.enableScheduler)
             Scheduler.getInstance().pause();
+        if (MacroHandler.getInstance().isMacroToggled()) {
+            MacroHandler.getInstance().pauseMacro();
+        }
     }
 
 
@@ -550,7 +556,7 @@ public class AutoSell implements IFeature {
 
     private float getInventoryFilledPercentage() {
         int filled = 0;
-        for (int i = 0; i < 36; i++) {
+        for (int i = 8; i < 45; i++) {
             if (mc.thePlayer.inventoryContainer.getSlot(i).getHasStack()) {
                 filled++;
             }

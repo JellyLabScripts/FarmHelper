@@ -39,7 +39,6 @@ public class WebsocketServer extends WebSocketServer {
         LogUtils.sendDebug("[Remote Control] Client connected: " + conn.getRemoteSocketAddress().getAddress());
         try {
             String base64Header = handshake.getFieldValue("auth");
-            System.out.println(base64Header);
             JsonObject decoded = FarmHelper.gson.fromJson(base64Header, JsonObject.class);
             if (minecraftInstances.containsValue(decoded.get("name").getAsString())) {
                 conn.close(4069);
