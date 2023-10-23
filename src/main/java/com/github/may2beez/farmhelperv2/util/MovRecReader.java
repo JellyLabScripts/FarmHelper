@@ -15,6 +15,7 @@ public class MovRecReader {
     private static List<Movement> movements = new ArrayList<>();
     private static boolean isMovementPlaying = false;
     private static boolean isMovementReading = false;
+    private static int currentDelay = 0;
     private static int playingIndex = 0;
     private static String recordingName = "";
     static Minecraft mc = Minecraft.getMinecraft();
@@ -32,9 +33,10 @@ public class MovRecReader {
         private final boolean attack;
         private final float yaw;
         private final float pitch;
+        private int delay;
 
         public Movement(boolean forward, boolean left, boolean backwards, boolean right, boolean sneak, boolean sprint, boolean jump,
-                        boolean attack, float yaw, float pitch) {
+                        boolean attack, float yaw, float pitch, int delay) {
             this.forward = forward;
             this.left = left;
             this.backwards = backwards;
@@ -45,6 +47,7 @@ public class MovRecReader {
             this.attack = attack;
             this.yaw = yaw;
             this.pitch = pitch;
+            this.delay = delay;
         }
     }
 
@@ -68,7 +71,12 @@ public class MovRecReader {
         setPlayerMovement(movement);
         rotateDuringPlaying.easeTo(movement.yaw, movement.pitch, 49);
 
+        if (currentDelay < movement.delay) {
+            currentDelay++;
+            return;
+        }
         playingIndex++;
+        currentDelay = 0;
         if (playingIndex >= movements.size()) {
             isMovementPlaying = false;
             resetTimers();
@@ -89,6 +97,7 @@ public class MovRecReader {
 
     public static void stopRecording() {
         playingIndex = 0;
+        currentDelay = 0;
         resetTimers();
         KeyBindUtils.stopMovement();
         if (isMovementPlaying || isMovementReading) {
@@ -115,6 +124,7 @@ public class MovRecReader {
                 if (!isMovementReading) return;
                 String[] split = line.split(";");
                 Movement movement = new Movement(
+                        Boolean.parseBoolean(split[0]),
                         Boolean.parseBoolean(split[1]),
                         Boolean.parseBoolean(split[2]),
                         Boolean.parseBoolean(split[3]),
@@ -122,9 +132,9 @@ public class MovRecReader {
                         Boolean.parseBoolean(split[5]),
                         Boolean.parseBoolean(split[6]),
                         Boolean.parseBoolean(split[7]),
-                        Boolean.parseBoolean(split[8]),
+                        Float.parseFloat(split[8]),
                         Float.parseFloat(split[9]),
-                        Float.parseFloat(split[10])
+                        Integer.parseInt(split[10])
                 );
                 movements.add(movement);
             }
