@@ -116,7 +116,8 @@ public class AntiStuck implements IFeature {
         if (!MacroHandler.getInstance().isMacroToggled() ||
                 !MacroHandler.getInstance().isCurrentMacroEnabled() ||
                 MacroHandler.getInstance().isTeleporting() ||
-                FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) {
+                FeatureManager.getInstance().isAnyOtherFeatureEnabled(this) ||
+                mc.currentScreen != null) {
             notMovingTimer.reset();
             lastX = 10000;
             lastZ = 10000;
@@ -142,7 +143,7 @@ public class AntiStuck implements IFeature {
         double dy = Math.abs(mc.thePlayer.posY - lastY);
 
         if (dx < 1 && dz < 1 && dy < 1 && !Failsafe.getInstance().isEmergency() && notMovingTimer.isScheduled() && mc.currentScreen == null) {
-            if (notMovingTimer.hasPassed((long) (FarmHelperConfig.timeBetweenChangingRows + FarmHelperConfig.randomTimeBetweenChangingRows + 2_500)) && !Failsafe.getInstance().isTouchingDirtBlock()) {
+            if (notMovingTimer.hasPassed((long) (FarmHelperConfig.timeBetweenChangingRows + FarmHelperConfig.randomTimeBetweenChangingRows + 3_500)) && !Failsafe.getInstance().isTouchingDirtBlock()) {
                 notMovingTimer.reset();
                 unstuckAttempts++;
                 if (unstuckAttempts > 2 && FarmHelperConfig.rewarpAt3FailesAntistuck) {
