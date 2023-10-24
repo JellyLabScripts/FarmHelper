@@ -15,6 +15,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemTool;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -429,6 +430,7 @@ public class AutoSell implements IFeature {
                         for (Slot slot : chest.inventorySlots) {
                             if (slot == null || !slot.getHasStack() || slot.slotNumber < inv.getSizeInventory()) continue;
                             String name = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
+                            if (slot.getStack().getItem() instanceof ItemTool) return;
                             if (!shouldSell(name)) continue;
                             LogUtils.sendDebug("[Auto Sell] Selling " + name);
                             InventoryUtils.clickSlotWithId(slot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP, chest.windowId);
@@ -552,6 +554,7 @@ public class AutoSell implements IFeature {
             "Pumpkin", "Enchanted Pumpkin", "Polished Pumpkin",
             "Melon", "Enchanted Melon", "Enchanted Melon Block",
             "Cocoa Beans", "Enchanted Cocoa Bean", "Enchanted Cookie",
+            "Cactus", "Cactus Green", "Enchanted Cactus Green", "Enchanted Cactus",
             "Cropie", "Squash", "Fermento", "Stone");
 
     private float getInventoryFilledPercentage() {

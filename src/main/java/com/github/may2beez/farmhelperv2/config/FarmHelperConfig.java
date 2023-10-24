@@ -409,29 +409,35 @@ public class FarmHelperConfig extends Config {
 
     
     @Switch(
-            name = "Increase Cocoa Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
+            name = "Increase Cocoa Hitboxes", category = MISCELLANEOUS, subcategory = "Crop Utils",
             description = "Allows you to farm cocoa beans more efficient on higher speeds by making the hitboxes bigger"
     )
     public static boolean increasedCocoaBeans = true;
     
     @Switch(
-            name = "Increase Crop Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
+            name = "Increase Crop Hitboxes", category = MISCELLANEOUS, subcategory = "Crop Utils",
             description = "Allows you to farm crops more efficient by making the hitboxes bigger"
     )
     public static boolean increasedCrops = true;
     
     @Switch(
-            name = "Increase Nether Wart Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
+            name = "Increase Nether Wart Hitboxes", category = MISCELLANEOUS, subcategory = "Crop Utils",
             description = "Allows you to farm nether warts more efficient on higher speeds by making the hitboxes bigger"
     )
     public static boolean increasedNetherWarts = true;
 
     
     @Switch(
-            name = "Increase Mushroom Hitboxes", category = MISCELLANEOUS, subcategory = "Bigger Hitboxes",
+            name = "Increase Mushroom Hitboxes", category = MISCELLANEOUS, subcategory = "Crop Utils",
             description = "Allows you to farm mushrooms more efficient on higher speeds by making the hitboxes bigger"
     )
     public static boolean increasedMushrooms = true;
+
+    @Switch(
+            name = "Pingless Cactus", category = MISCELLANEOUS, subcategory = "Crop Utils",
+            description = "Allows you to farm cactus more efficient on higher speeds by making the cactus pingless"
+    )
+    public static boolean pinglessCactus = true;
 
     
     @Switch(

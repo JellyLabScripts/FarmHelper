@@ -304,7 +304,7 @@ public class ProfitCalculator implements IFeature {
                 break;
             case SUGAR_CANE:
                 if (event.getBlock() instanceof BlockReed) {
-                    blocksBroken += 0.5;
+                    blocksBroken++;
                 }
                 break;
             case MELON:
@@ -319,7 +319,7 @@ public class ProfitCalculator implements IFeature {
                 break;
             case CACTUS:
                 if (event.getBlock().equals(Blocks.cactus)) {
-                    blocksBroken += 0.5;
+                    blocksBroken++;
                 }
                 break;
             case COCOA_BEANS:

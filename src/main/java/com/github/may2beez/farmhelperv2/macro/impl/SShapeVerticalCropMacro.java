@@ -113,7 +113,6 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 KeyBindUtils.holdThese(
                         mc.gameSettings.keyBindLeft,
                         mc.gameSettings.keyBindAttack,
-                        MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.CACTUS && PlayerUtils.shouldPushBack() ? mc.gameSettings.keyBindBack : null,
                         MacroHandler.getInstance().getCrop() != FarmHelperConfig.CropEnum.CACTUS && MacroHandler.getInstance().getCrop() != FarmHelperConfig.CropEnum.PUMPKIN && MacroHandler.getInstance().getCrop() != FarmHelperConfig.CropEnum.MELON && PlayerUtils.shouldWalkForwards() ? mc.gameSettings.keyBindForward : null
                 );
                 break;
@@ -121,7 +120,6 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 KeyBindUtils.holdThese(
                         mc.gameSettings.keyBindRight,
                         mc.gameSettings.keyBindAttack,
-                        MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.CACTUS && PlayerUtils.shouldPushBack() ? mc.gameSettings.keyBindBack : null,
                         MacroHandler.getInstance().getCrop() != FarmHelperConfig.CropEnum.CACTUS && MacroHandler.getInstance().getCrop() != FarmHelperConfig.CropEnum.PUMPKIN && MacroHandler.getInstance().getCrop() != FarmHelperConfig.CropEnum.MELON && PlayerUtils.shouldWalkForwards() ? mc.gameSettings.keyBindForward : null
                 );
                 break;

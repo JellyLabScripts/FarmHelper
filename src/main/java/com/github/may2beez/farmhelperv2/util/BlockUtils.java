@@ -12,6 +12,7 @@ import net.minecraft.util.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -187,6 +188,11 @@ public class BlockUtils {
                 getRelativeBlockPos(xOffset, 3, 1, yaw)
 
         ).toArray(new BlockPos[0]);
+
+        if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.CACTUS || MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.SUGAR_CANE) {
+            crops[0] = null;
+            crops = Arrays.stream(crops).filter(Objects::nonNull).toArray(BlockPos[]::new);
+        }
 
         List<BlockPos> cropList = Arrays.stream(crops).filter(c -> {
             IBlockState blockState = mc.theWorld.getBlockState(c);

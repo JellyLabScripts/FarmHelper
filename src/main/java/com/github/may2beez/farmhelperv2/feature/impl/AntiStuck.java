@@ -115,6 +115,7 @@ public class AntiStuck implements IFeature {
         if (!isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled() ||
                 !MacroHandler.getInstance().isCurrentMacroEnabled() ||
+                MacroHandler.getInstance().isCurrentMacroPaused() ||
                 MacroHandler.getInstance().isTeleporting() ||
                 FeatureManager.getInstance().isAnyOtherFeatureEnabled(this) ||
                 mc.currentScreen != null) {
