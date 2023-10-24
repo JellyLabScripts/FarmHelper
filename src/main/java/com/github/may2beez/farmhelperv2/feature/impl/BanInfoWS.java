@@ -159,7 +159,7 @@ public class BanInfoWS implements IFeature {
         String config = FarmHelper.config.getJson();
         JsonObject configJson = FarmHelper.gson.fromJson(config, JsonObject.class);
         configJson.addProperty("proxyAddress", "REMOVED");
-        configJson.addProperty("proxyUsername", "REMOVED");
+        configJson.addProperty("proxyUsername", "REM0VED");
         configJson.addProperty("proxyPassword", "REMOVED");
         configJson.addProperty("webHookURL", "REMOVED");
         configJson.addProperty("discordRemoteControlToken", "REMVOED");

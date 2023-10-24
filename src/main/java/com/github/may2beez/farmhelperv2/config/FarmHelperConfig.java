@@ -581,7 +581,7 @@ public class FarmHelperConfig extends Config {
             description = "The number of times to play custom sound when a failsafe has been triggered",
             min = 1, max = 10
     )
-    public static int failsafeSoundTimes = 12;
+    public static int failsafeSoundTimes = 13;
 
     @Info(
             text = "If you want to use your own WAV file, rename it to 'farmhelper_sound.wav' and put it in your Minecraft directory.",
