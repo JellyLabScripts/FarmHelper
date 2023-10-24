@@ -86,13 +86,13 @@ public class AntiStuck implements IFeature {
         delayBetweenMovementsClock.reset();
         unstuckState = UnstuckState.NONE;
         notMovingTimer.reset();
+        dontCheckForAntistuckClock.schedule(2_000);
     }
 
     @Override
     public void resetStatesAfterMacroDisabled() {
         unstuckAttempts = 0;
         unstuckAttemptsClock.reset();
-        dontCheckForAntistuckClock.reset();
         lastX = 10000;
         lastZ = 10000;
         lastY = 10000;
@@ -115,7 +115,6 @@ public class AntiStuck implements IFeature {
         if (!isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled() ||
                 !MacroHandler.getInstance().isCurrentMacroEnabled() ||
-                MacroHandler.getInstance().isCurrentMacroPaused() ||
                 MacroHandler.getInstance().isTeleporting() ||
                 FeatureManager.getInstance().isAnyOtherFeatureEnabled(this) ||
                 mc.currentScreen != null) {

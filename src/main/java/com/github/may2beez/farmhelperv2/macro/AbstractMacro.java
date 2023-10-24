@@ -13,6 +13,7 @@ import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
@@ -267,6 +268,12 @@ public abstract class AbstractMacro {
     }
 
     public State calculateDirection() {
+        if (BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air) && BlockUtils.getRelativeBlock(-1, 1, 0).equals(Blocks.air)) {
+            return State.RIGHT;
+        }
+        if (BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.air) && BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.air)) {
+            return State.LEFT;
+        }
         return State.NONE;
     }
 

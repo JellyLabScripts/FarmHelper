@@ -145,17 +145,13 @@ public class FarmHelperConfig extends Config {
                     "S Shape - Pumpkin/Melon Default Plot", // 3
                     "S Shape - Sugar Cane", // 4
                     "S Shape - Cactus", // 5
-                    "S Shape - Cocoa Beans", // 6
-                    "S Shape - Mushroom (45°)", // 7
-                    "S Shape - Mushroom (30° with rotations)", // 8
+                    "S Shape - Cactus SunTzu Black Cat", // 6
+                    "S Shape - Cocoa Beans", // 7
+                    "S Shape - Mushroom (45°)", // 8
+                    "S Shape - Mushroom (30° with rotations)", // 9
             }, size = 2
     )
     public static int macroType = 0;
-
-    public static MacroEnum getMacroType() {
-        return MacroEnum.values()[macroType];
-    }
-
     
     @Switch(
             name = "Rotate After Warped", category = GENERAL, subcategory = "Macro",

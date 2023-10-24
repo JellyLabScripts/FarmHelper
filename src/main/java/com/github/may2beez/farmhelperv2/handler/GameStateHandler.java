@@ -9,6 +9,7 @@ import com.github.may2beez.farmhelperv2.util.helper.Timer;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.event.world.WorldEvent;
@@ -327,9 +328,14 @@ public class GameStateHandler {
         } else {
             yaw = mc.thePlayer.rotationYaw;
         }
-        frontWalkable = BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1, yaw));
+        if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.CACTUS) {
+            frontWalkable = BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1, yaw)) && BlockUtils.getRelativeBlock(0, 0, 2, yaw) != Blocks.cactus;
+            backWalkable = BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, -1, yaw)) && BlockUtils.getRelativeBlock(0, 0, -2, yaw) != Blocks.cactus;
+        } else {
+            frontWalkable = BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1, yaw));
+            backWalkable = (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, -1, yaw)));
+        }
         rightWalkable = (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(1, 0, 0, yaw)));
-        backWalkable = (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, -1, yaw)));
         leftWalkable = (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-1, 0, 0, yaw)));
     }
 
