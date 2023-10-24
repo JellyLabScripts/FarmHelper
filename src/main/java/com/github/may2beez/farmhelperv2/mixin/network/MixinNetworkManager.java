@@ -2,6 +2,7 @@ package com.github.may2beez.farmhelperv2.mixin.network;
 
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
+import com.github.may2beez.farmhelperv2.event.SendPacketEvent;
 import com.github.may2beez.farmhelperv2.feature.impl.Proxy;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.netty.bootstrap.Bootstrap;
@@ -28,14 +29,16 @@ import java.net.InetAddress;
 public class MixinNetworkManager {
     @Inject(method = "channelRead0*", at = @At("HEAD"))
     private void read(ChannelHandlerContext context, Packet<?> packet, CallbackInfo callback) {
-        if(packet.getClass().getSimpleName().startsWith("S")) {
+        if (packet.getClass().getSimpleName().startsWith("S")) {
             MinecraftForge.EVENT_BUS.post(new ReceivePacketEvent(packet));
+        } else if (packet.getClass().getSimpleName().startsWith("C")) {
+            MinecraftForge.EVENT_BUS.post(new SendPacketEvent(packet));
         }
     }
 
     @Inject(method = "createNetworkManagerAndConnect", at = @At("HEAD"), cancellable = true)
     private static void createNetworkManagerAndConnect(InetAddress address, int serverPort, boolean useNativeTransport, CallbackInfoReturnable<NetworkManager> cir) {
-        if(!FarmHelperConfig.proxyEnabled) {
+        if (!FarmHelperConfig.proxyEnabled) {
             return;
         }
         final NetworkManager networkmanager = new NetworkManager(EnumPacketDirection.CLIENTBOUND);

@@ -16,6 +16,7 @@
   ],
   "client": [
     "block.MixinBlockRendererDispatcher",
+    "client.MixinEntityPlayerSP",
     "client.MixinMinecraft",
     "client.MixinPlayerControllerMP",
     "client.MixinSoundManager",
@@ -24,7 +25,9 @@
     "gui.MixinGuiEditSign",
     "gui.MixinGuiMainMenu",
     "gui.MixinGuiMultiplayer",
+    "render.MixinActiveRenderInfo",
     "render.MixinEffectRenderer",
-    "render.MixinEntityRenderer"
+    "render.MixinEntityRenderer",
+    "render.MixinRenderManager"
   ]
 }

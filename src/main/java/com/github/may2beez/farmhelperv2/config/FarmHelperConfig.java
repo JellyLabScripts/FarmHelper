@@ -266,6 +266,11 @@ public class FarmHelperConfig extends Config {
 
     public static OneKeyBind openGuiKeybind = new OneKeyBind(Keyboard.KEY_F);
 
+    @Info(
+            text = "Freelock doesn't work properly with Oringo!", type = InfoType.WARNING,
+            category = MISCELLANEOUS, subcategory = "Keybinds", size = 2
+    )
+
     @KeyBind(
             name = "Freelock", category = MISCELLANEOUS, subcategory = "Keybinds",
             description = "Locks rotation, lets you freely look"

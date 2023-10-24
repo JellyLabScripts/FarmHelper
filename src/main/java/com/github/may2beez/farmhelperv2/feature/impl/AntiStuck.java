@@ -123,6 +123,7 @@ public class AntiStuck implements IFeature {
             lastX = 10000;
             lastZ = 10000;
             lastY = 10000;
+            dontCheckForAntistuckClock.schedule(2_000);
             return;
         }
         if (!GameStateHandler.getInstance().inGarden()) return;
@@ -132,7 +133,13 @@ public class AntiStuck implements IFeature {
             unstuckAttemptsClock.reset();
         }
 
-        if (dontCheckForAntistuckClock.isScheduled() && !dontCheckForAntistuckClock.passed()) return;
+        if (dontCheckForAntistuckClock.isScheduled() && !dontCheckForAntistuckClock.passed()) {
+            notMovingTimer.reset();
+            lastX = 10000;
+            lastZ = 10000;
+            lastY = 10000;
+            return;
+        }
         if (dontCheckForAntistuckClock.isScheduled() && dontCheckForAntistuckClock.passed()) {
             dontCheckForAntistuckClock.reset();
         }
