@@ -169,23 +169,23 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
         if (FarmHelperConfig.customPitch) {
             setPitch(FarmHelperConfig.customPitchLevel);
         } else {
-            if (FarmHelperConfig.macroType == 0) {
+            if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_V_NORMAL_TYPE) {
                 setPitch((float) (2.8f + Math.random() * 0.5f));
             }
 
-            if (FarmHelperConfig.macroType == 1) {
+            if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_PUMPKIN_MELON) {
                 setPitch(28 + (float) (Math.random() * 2)); // 28 - 30
             }
 
-            if (FarmHelperConfig.macroType == 2) { // melonkingdebil
+            if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_PUMPKIN_MELON_MELONGKINGDE) { // melonkingdebil
                 setPitch((float) (-58.5f + Math.random() * 1f)); // -58.5 - -57.5
             }
 
-            if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.NETHER_WART || FarmHelperConfig.macroType == 5) {
+            if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.NETHER_WART || FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_CACTUS) {
                 setPitch((float) (0f + Math.random() * 0.5f)); // 0 - 0.5
             }
 
-            if (FarmHelperConfig.macroType == 6) {
+            if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_CACTUS_SUNTZU) {
                 setPitch((float) (-38 - Math.random() * 1.5f)); // -38 - -39.5
             }
         }

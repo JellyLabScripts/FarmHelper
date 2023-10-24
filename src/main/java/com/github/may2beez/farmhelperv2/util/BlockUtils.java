@@ -192,7 +192,7 @@ public class BlockUtils {
         if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.CACTUS || MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.SUGAR_CANE) {
             crops[0] = null;
             crops = Arrays.stream(crops).filter(Objects::nonNull).toArray(BlockPos[]::new);
-        } else if (FarmHelperConfig.macroType == 6) {
+        } else if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_CACTUS_SUNTZU) {
             crops[0] = null;
             crops[1] = null;
             crops = Arrays.stream(crops).filter(Objects::nonNull).toArray(BlockPos[]::new);

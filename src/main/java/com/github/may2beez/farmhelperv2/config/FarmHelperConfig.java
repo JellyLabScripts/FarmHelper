@@ -49,7 +49,7 @@ public class FarmHelperConfig extends Config {
 
     private transient static final File configRewarpFile = new File("farmhelper_rewarp.json");
 
-    
+
     public static List<Rewarp> rewarpList = new ArrayList<>();
 
     public static boolean proxyEnabled = false;
@@ -62,8 +62,10 @@ public class FarmHelperConfig extends Config {
         S_V_NORMAL_TYPE,
         S_PUMPKIN_MELON,
         S_PUMPKIN_MELON_MELONGKINGDE,
+        S_PUMPKIN_MELON_DEFAULT_PLOT,
         S_SUGAR_CANE,
         S_CACTUS,
+        S_CACTUS_SUNTZU,
         S_COCOA_BEANS,
         S_MUSHROOM,
         S_MUSHROOM_ROTATE
@@ -134,7 +136,7 @@ public class FarmHelperConfig extends Config {
     }
 
     // START GENERAL
-    
+
     @Dropdown(
             name = "Macro Type", category = GENERAL, subcategory = "Macro",
             description = "Farm Types",
@@ -152,45 +154,49 @@ public class FarmHelperConfig extends Config {
             }, size = 2
     )
     public static int macroType = 0;
-    
+
+    public static MacroEnum getMacro() {
+        return MacroEnum.values()[macroType];
+    }
+
     @Switch(
             name = "Rotate After Warped", category = GENERAL, subcategory = "Macro",
             description = "Rotates the player after re-warping"
     )
     public static boolean rotateAfterWarped = false;
-    
+
     @Switch(
             name = "Rotate After Drop", category = GENERAL, subcategory = "Macro",
             description = "Rotates after the player falls down"
     )
     public static boolean rotateAfterDrop = false;
-    
+
     @Switch(
             name = "Auto Ungrab Mouse", category = GENERAL, subcategory = "Macro",
             description = "Automatically unfocuses your mouse, so you can safely alt-tab"
     )
     public static boolean autoUngrabMouse = true;
 
-    
+
     @Switch(
             name = "Custom Pitch", category = GENERAL, subcategory = "Rotation",
             description = "Set pitch to custom level after starting the macro"
     )
     public static boolean customPitch = false;
-    
+
     @Slider(
             name = "Custom Pitch Level", category = GENERAL, subcategory = "Rotation",
             description = "Set custom pitch level after starting the macro",
             min = -90, max = 90
     )
     public static float customPitchLevel = 0;
-    
+
     @Switch(
             name = "Custom Yaw", category = GENERAL, subcategory = "Rotation",
             description = "Set yaw to custom level after starting the macro"
     )
     public static boolean customYaw = false;
-    
+
     @Slider(
             name = "Custom Yaw Level", category = GENERAL, subcategory = "Rotation",
             description = "Set custom yaw level after starting the macro",
@@ -206,13 +212,13 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static boolean customYawWarning;
-    
+
     @Switch(
             name = "Don't fix micro rotations after warp", category = GENERAL, subcategory = "Rotation",
             description = "Macro doesn't do micro rotations after rewarp, if current yaw and target yaw are the same", size = 2
     )
     public static boolean dontFixAfterWarping = false;
-    
+
     @Switch(
             name = "Highlight rewarp points", category = GENERAL, subcategory = "Rewarp",
             description = "Highlights all rewarp points you have added",
@@ -272,7 +278,7 @@ public class FarmHelperConfig extends Config {
             description = "Locks rotation, lets you freely look"
     )
     public static OneKeyBind freelockKeybind = new OneKeyBind(Keyboard.KEY_L);
-    
+
     @DualOption(
             name = "AutoUpdater Download Beta Versions", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "The version type to use",
@@ -282,39 +288,39 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean autoUpdaterDownloadBetaVersions = false;
 
-    
+
     @Switch(
             name = "Xray Mode", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "Hides blocks to reduce resource usage"
     )
     public static boolean xrayMode = false;
-    
+
     @Switch(
             name = "Mute The Game", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "Mutes the game while farming"
     )
     public static boolean muteTheGame = false;
-    
+
     @Switch(
             name = "Auto God Pot", category = MISCELLANEOUS, subcategory = "God Pot",
             description = "Automatically purchases and consumes a God Pot"
     )
     public static boolean autoGodPot = false;
 
-    
+
     @Switch(
             name = "Auto Cookie", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "Automatically purchases and consumes a booster cookie"
     )
     public static boolean autoCookie = false;
 
-    
+
     @Switch(
             name = "Hold left click when changing row", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "Hold left click when change row"
     )
     public static boolean holdLeftClickWhenChangingRow = true;
-    
+
     @Switch(
             name = "Count RNG to $/Hr in Profit Calculator", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "Count RNG to $/Hr"
@@ -327,13 +333,13 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean autoSellInfo;
 
-    
+
     @Switch(
             name = "Enable Auto Sell", category = MISCELLANEOUS, subcategory = "Auto Sell",
             description = "Enables auto sell"
     )
     public static boolean enableAutoSell = false;
-    
+
     @DualOption(
             name = "Market type", category = MISCELLANEOUS, subcategory = "Auto Sell",
             description = "The market type to sell crops to",
@@ -341,14 +347,14 @@ public class FarmHelperConfig extends Config {
             right = "NPC"
     )
     public static boolean autoSellMarketType = false;
-    
+
     @Switch(
             name = "Sell Items In Sacks", category = MISCELLANEOUS, subcategory = "Auto Sell",
             description = "Sells items in your sacks and inventory"
     )
     public static boolean autoSellSacks = false;
 
-    
+
     @DualOption(
             name = "Sacks placement",
             category = MISCELLANEOUS, subcategory = "Auto Sell",
@@ -358,14 +364,14 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean autoSellSacksPlacement = true;
 
-    
+
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "Inventory Full Time", category = MISCELLANEOUS, subcategory = "Auto Sell",
             description = "The time to wait to test, if inventory fullness ratio is still the same (or higher)",
             min = 1, max = 20
     )
     public static int inventoryFullTime = 6;
-    
+
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "Inventory Full Ratio", category = MISCELLANEOUS, subcategory = "Auto Sell",
             description = "After reaching this ratio, macro will start counting from 0 to Inventory Full Time. If the fullness ratio is still the same (or higher) after the time has passed, it will start selling items",
@@ -388,46 +394,46 @@ public class FarmHelperConfig extends Config {
         AutoSell.getInstance().enable(true);
     };
 
-    
+
     @Switch(
             name = "Swap pet during Jacob's contest", category = MISCELLANEOUS, subcategory = "Pet Swapper",
             description = "Swaps pet to the selected pet during Jacob's contest. Selects the first one from the pet list."
     )
     public static boolean enablePetSwapper = false;
-    
+
     @Slider(
             name = "Pet Swap Delay", category = MISCELLANEOUS, subcategory = "Pet Swapper",
             description = "The delay between clicking GUI during swapping the pet (in milliseconds)",
             min = 200, max = 3000
     )
     public static int petSwapperDelay = 1000;
-    
+
     @Text(
             name = "Pet Name", placeholder = "Type your pet name here",
             category = MISCELLANEOUS, subcategory = "Pet Swapper"
     )
     public static String petSwapperName = null;
 
-    
+
     @Switch(
             name = "Increase Cocoa Hitboxes", category = MISCELLANEOUS, subcategory = "Crop Utils",
             description = "Allows you to farm cocoa beans more efficient on higher speeds by making the hitboxes bigger"
     )
     public static boolean increasedCocoaBeans = true;
-    
+
     @Switch(
             name = "Increase Crop Hitboxes", category = MISCELLANEOUS, subcategory = "Crop Utils",
             description = "Allows you to farm crops more efficient by making the hitboxes bigger"
     )
     public static boolean increasedCrops = true;
-    
+
     @Switch(
             name = "Increase Nether Wart Hitboxes", category = MISCELLANEOUS, subcategory = "Crop Utils",
             description = "Allows you to farm nether warts more efficient on higher speeds by making the hitboxes bigger"
     )
     public static boolean increasedNetherWarts = true;
 
-    
+
     @Switch(
             name = "Increase Mushroom Hitboxes", category = MISCELLANEOUS, subcategory = "Crop Utils",
             description = "Allows you to farm mushrooms more efficient on higher speeds by making the hitboxes bigger"
@@ -440,7 +446,7 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean pinglessCactus = true;
 
-    
+
     @Switch(
             name = "Send analytic data", category = MISCELLANEOUS, subcategory = "Analytics",
             description = "Sends analytic data to the server to improve the macro"
@@ -451,32 +457,32 @@ public class FarmHelperConfig extends Config {
 
     // START FAILSAFE
 
-    
+
     @Switch(
             name = "Pop-up Notification", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Enable pop-up notification"
     )
     public static boolean popUpNotification = true;
-    
+
     @Switch(
             name = "Fake Movements", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Tries to act like a real player by moving around"
     )
     public static boolean fakeMovements = true;
-    
+
     @Switch(
             name = "Auto alt-tab when failsafe triggered", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Automatically alt-tabs to the game when the dark times come"
     )
     public static boolean autoAltTab = true;
-    
+
     @Switch(
             name = "Check Desync", category = FAILSAFE, subcategory = "Desync",
             description = "If client desynchronization is detected, it activates a failsafe. Turn this off if the network is weak or if it happens frequently."
     )
     public static boolean checkDesync = true;
 
-    
+
     @Slider(
             name = "Pause for X milliseconds after desync triggered", category = FAILSAFE, subcategory = "Desync",
             description = "The delay to pause after desync triggered (in milliseconds)",
@@ -484,7 +490,7 @@ public class FarmHelperConfig extends Config {
     )
     public static int desyncPauseDelay = 5_000;
 
-    
+
     @Switch(
             name = "Auto TP back on World Change", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Automatically warps back to garden on server reboot, server update, etc"
@@ -502,14 +508,14 @@ public class FarmHelperConfig extends Config {
             description = "Automatically reconnects to the server when disconnected"
     )
     public static boolean autoReconnect = true;
-    
+
     @Slider(
             name = "Rotation Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "The sensitivity of rotation check, the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives",
             min = 1, max = 10
     )
     public static float rotationCheckSensitivity = 2;
-    
+
     @Slider(
             name = "Teleport Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "The minimum distance between the previous and teleported position to trigger failsafe",
@@ -526,13 +532,13 @@ public class FarmHelperConfig extends Config {
         LogUtils.sendDebug("Testing failsafe...");
         Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.TEST);
     };
-    
+
     @Switch(
             name = "Enable Failsafe Trigger Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound", size = OptionSize.DUAL,
             description = "Makes a sound when a failsafe has been triggered"
     )
     public static boolean enableFailsafeSound = true;
-    
+
     @DualOption(
             name = "Failsafe Sound Type", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
             description = "The failsafe sound type to play when a failsafe has been triggered",
@@ -545,10 +551,8 @@ public class FarmHelperConfig extends Config {
             description = "Plays the selected sound",
             text = "Play"
     )
-    Runnable _playFailsafeSoundButton = () -> {
-        AudioManager.getInstance().playSound();
-    };
-    
+    Runnable _playFailsafeSoundButton = () -> AudioManager.getInstance().playSound();
+
     @Dropdown(
             name = "Minecraft Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
             description = "The Minecraft sound to play when a failsafe has been triggered",
@@ -558,7 +562,7 @@ public class FarmHelperConfig extends Config {
             }
     )
     public static int failsafeMcSoundSelected = 1;
-    
+
     @Dropdown(
             name = "Custom Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
             description = "The custom sound to play when a failsafe has been triggered",
@@ -571,6 +575,14 @@ public class FarmHelperConfig extends Config {
             }
     )
     public static int failsafeSoundSelected = 1;
+
+    @Number(
+            name = "Number of times to play custom sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
+            description = "The number of times to play custom sound when a failsafe has been triggered",
+            min = 1, max = 10
+    )
+    public static int failsafeSoundTimes = 12;
+
     @Info(
             text = "If you want to use your own WAV file, rename it to 'farmhelper_sound.wav' and put it in your Minecraft directory.",
             type = InfoType.WARNING,
@@ -579,7 +591,7 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static boolean customFailsafeSoundWarning;
-    
+
     @Slider(
             name = "Failsafe Sound Volume (in %)", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
             description = "The volume of the failsafe sound",
@@ -593,33 +605,33 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean maxOutMinecraftSounds = false;
 
-    
+
     @Switch(
             name = "Enable Restart After FailSafe", category = FAILSAFE, subcategory = "Restart After FailSafe",
             description = "Restarts the macro after a while when a failsafe has been triggered"
     )
     public static boolean enableRestartAfterFailSafe = true;
-    
+
     @Switch(
             name = "Leave after failsafe triggered", category = FAILSAFE, subcategory = "Restart After FailSafe",
             description = "Leaves the server after a failsafe has been triggered"
     )
     public static boolean leaveAfterFailSafe = false;
-    
+
     @Slider(
             name = "Restart Delay", category = FAILSAFE, subcategory = "Restart After FailSafe",
             description = "The delay to restart after failsafe (in minutes)",
             min = 1, max = 60
     )
     public static int restartAfterFailSafeDelay = 5;
-    
+
     @Switch(
             name = "Enable Banwave Checker", category = FAILSAFE, subcategory = "Banwave Checker",
             description = "Checks for banwave and shows you the number of players banned in the last 15 minutes",
             size = 2
     )
     public static boolean banwaveCheckerEnabled = true;
-    
+
     @Switch(
             name = "Leave/pause during banwave", category = FAILSAFE, subcategory = "Banwave Checker",
             description = "Automatically disconnects from the server or pauses the macro when banwave detected"
@@ -633,7 +645,7 @@ public class FarmHelperConfig extends Config {
             right = "Pause"
     )
     public static boolean banwaveAction = false;
-    
+
     @Slider(
             name = "Banwave Disconnect Threshold", category = FAILSAFE, subcategory = "Banwave Checker",
             description = "The threshold to disconnect from the server on banwave",
@@ -646,14 +658,14 @@ public class FarmHelperConfig extends Config {
             options = {"Global bans", "FarmHelper bans", "Both"}
     )
     public static int banwaveThresholdType = 0;
-    
+
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "Delay Before Reconnecting", category = FAILSAFE, subcategory = "Banwave Checker",
             description = "The delay before reconnecting after leaving on banwave (in seconds)",
             min = 1, max = 20
     )
     public static int delayBeforeReconnecting = 5;
-    
+
     @Switch(
             name = "Don't leave during Jacob's Contest", category = FAILSAFE, subcategory = "Banwave Checker",
             description = "Prevents the macro from leaving during Jacob's Contest even when banwave detected"
@@ -675,41 +687,41 @@ public class FarmHelperConfig extends Config {
 
     // START SCHEDULER
 
-    
+
     @Switch(
             name = "Enable Scheduler", category = SCHEDULER, subcategory = "Scheduler", size = OptionSize.DUAL,
             description = "Farms for X amount of minutes then takes a break for X amount of minutes"
     )
     public static boolean enableScheduler = false;
-    
+
     @Slider(
             name = "Farming time (in minutes)", category = SCHEDULER, subcategory = "Scheduler",
             description = "How long to farm",
             min = 1, max = 300, step = 1
     )
     public static int schedulerFarmingTime = 30;
-    
+
     @Slider(
             name = "Farming time randomness (in minutes)", category = SCHEDULER, subcategory = "Scheduler",
             description = "How much randomness to add to the farming time",
             min = 0, max = 15, step = 1
     )
     public static int schedulerFarmingTimeRandomness = 0;
-    
+
     @Slider(
             name = "Break time (in minutes)", category = SCHEDULER, subcategory = "Scheduler",
             description = "How long to take a break",
             min = 1, max = 120, step = 1
     )
     public static int schedulerBreakTime = 5;
-    
+
     @Slider(
             name = "Break time randomness (in minutes)", category = SCHEDULER, subcategory = "Scheduler",
             description = "How much randomness to add to the break time",
             min = 0, max = 15, step = 1
     )
     public static int schedulerBreakTimeRandomness = 0;
-    
+
     @Switch(
             name = "Pause the scheduler during Jacob's Contest", category = SCHEDULER, subcategory = "Scheduler", size = OptionSize.DUAL,
             description = "Pauses and delays the scheduler during Jacob's Contest"
@@ -734,7 +746,7 @@ public class FarmHelperConfig extends Config {
 
     // START JACOB
 
-    
+
     @Switch(
             name = "Enable Jacob Failsafes", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "Stops farming once a crop threshold has been met"
@@ -748,70 +760,70 @@ public class FarmHelperConfig extends Config {
             right = "Pause"
     )
     public static boolean jacobFailsafeAction = true;
-    
+
     @Slider(
             name = "Nether Wart Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "The nether wart cap",
             min = 10000, max = 2000000, step = 10000
     )
     public static int jacobNetherWartCap = 800000;
-    
+
     @Slider(
             name = "Potato Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "The potato cap",
             min = 10000, max = 2000000, step = 10000
     )
     public static int jacobPotatoCap = 830000;
-    
+
     @Slider(
             name = "Carrot Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "The carrot cap",
             min = 10000, max = 2000000, step = 10000
     )
     public static int jacobCarrotCap = 860000;
-    
+
     @Slider(
             name = "Wheat Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "The wheat cap",
             min = 10000, max = 2000000, step = 10000
     )
     public static int jacobWheatCap = 265000;
-    
+
     @Slider(
             name = "Sugar Cane Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "The sugar cane cap",
             min = 10000, max = 2000000, step = 10000
     )
     public static int jacobSugarCaneCap = 575000;
-    
+
     @Slider(
             name = "Mushroom Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "The mushroom cap",
             min = 10000, max = 2000000, step = 10000
     )
     public static int jacobMushroomCap = 250000;
-    
+
     @Slider(
             name = "Melon Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "The melon cap",
             min = 10000, max = 2000000, step = 10000
     )
     public static int jacobMelonCap = 1234000;
-    
+
     @Slider(
             name = "Pumpkin Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "The pumpkin cap",
             min = 10000, max = 2000000, step = 10000
     )
     public static int jacobPumpkinCap = 240000;
-    
+
     @Slider(
             name = "Cocoa Beans Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "The cocoa beans cap",
             min = 10000, max = 2000000, step = 10000
     )
     public static int jacobCocoaBeansCap = 725000;
-    
+
     @Slider(
             name = "Cactus Beans Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "The cactus cap",
@@ -832,7 +844,7 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean visitorsMacroWarning;
 
-    
+
     @Switch(
             name = "Enable visitors macro", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "Enables visitors macro"
@@ -854,13 +866,13 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean visitorsMacroAutosellBeforeServing = false;
 
-    
+
     @Switch(
             name = "Pause the visitors macro during Jacob's contests", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "Pauses the visitors macro during Jacob's contests"
     )
     public static boolean pauseVisitorsMacroDuringJacobsContest = true;
-    
+
     @Switch(
             name = "Only Accept Profitable Visitors", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "Only accepts visitors that are profitable"
@@ -875,14 +887,14 @@ public class FarmHelperConfig extends Config {
         VisitorsMacro.getInstance().setManuallyStarted(true);
         VisitorsMacro.getInstance().start();
     };
-    
+
     @Slider(
             name = "The minimum amount of coins to start the macro", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "The minimum amount of coins you need to have in your purse to start the visitors macro",
             min = 100_000, max = 20_000_000, step = 10_000
     )
     public static int visitorsMacroMinMoney = 3;
-    
+
     @Slider(
             name = "Price Manipulation Detection Multiplier", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "How much does Instant Buy price need to be higher than Instant Sell price to detect price manipulation",
@@ -912,32 +924,32 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean infoDeskNotSet;
 
-    
+
     @Switch(
             name = "Accept uncommon visitors", category = VISITORS_MACRO, subcategory = "Rarity",
             description = "Whether to accept visitors that are uncommon rarity"
     )
     public static boolean visitorsAcceptUncommon = true;
-    
+
     @Switch(
             name = "Accept rare visitors", category = VISITORS_MACRO, subcategory = "Rarity",
             description = "Whether to accept visitors that are rare rarity"
     )
     public static boolean visitorsAcceptRare = true;
-    
+
     @Switch(
             name = "Accept legendary visitors", category = VISITORS_MACRO, subcategory = "Rarity",
             description = "Whether to accept visitors that are legendary rarity"
     )
     public static boolean visitorsAcceptLegendary = true;
-    
+
     @Switch(
             name = "Accept special visitors", category = VISITORS_MACRO, subcategory = "Rarity",
             description = "Whether to accept visitors that are special rarity"
     )
     public static boolean visitorsAcceptSpecial = true;
 
-    
+
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "Visitors Desk X", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
             description = "Visitors desk X coordinate",
@@ -957,7 +969,7 @@ public class FarmHelperConfig extends Config {
         save();
         LogUtils.sendSuccess("Visitors desk position has been set");
     };
-    
+
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "Visitors Desk Y", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
             description = "Visitors desk Y coordinate",
@@ -976,7 +988,7 @@ public class FarmHelperConfig extends Config {
         save();
         LogUtils.sendSuccess("Visitors desk position has been reset");
     };
-    
+
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "Visitors Desk Z", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
             description = "Visitors desk Z coordinate",
@@ -984,7 +996,7 @@ public class FarmHelperConfig extends Config {
     )
     public static int visitorsDeskPosZ = 0;
 
-    
+
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "SpawnPos X", category = VISITORS_MACRO, subcategory = "Spawn Position",
             description = "The X coordinate of the spawn",
@@ -998,7 +1010,7 @@ public class FarmHelperConfig extends Config {
             text = "Set SpawnPos"
     )
     Runnable _setSpawnPos = PlayerUtils::setSpawnLocation;
-    
+
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "SpawnPos Y", category = VISITORS_MACRO, subcategory = "Spawn Position",
             description = "The Y coordinate of the spawn",
@@ -1017,7 +1029,7 @@ public class FarmHelperConfig extends Config {
         save();
         LogUtils.sendSuccess("Spawn position has been reset!");
     };
-    
+
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "SpawnPos Z", category = VISITORS_MACRO, subcategory = "Spawn Position",
             description = "The Z coordinate of the spawn",
@@ -1025,14 +1037,14 @@ public class FarmHelperConfig extends Config {
     )
     public static int spawnPosZ = 0;
 
-    
+
     @Switch(
             name = "Draw visitors desk location", category = VISITORS_MACRO, subcategory = "Drawings",
             description = "Draws the visitors desk location"
     )
     public static boolean drawVisitorsDeskLocation = true;
 
-    
+
     @Switch(
             name = "Draw spawn location", category = VISITORS_MACRO, subcategory = "Drawings",
             description = "Draws the spawn location"
@@ -1043,25 +1055,25 @@ public class FarmHelperConfig extends Config {
 
     // START DISCORD_INTEGRATION
 
-    
+
     @Switch(
             name = "Enable Webhook Messages", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
             description = "Allows to send messages via Discord webhooks"
     )
     public static boolean enableWebHook = false;
-    
+
     @Switch(
             name = "Send Logs", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
             description = "Sends all messages about the macro, staff checks, etc"
     )
     public static boolean sendLogs = false;
-    
+
     @Switch(
             name = "Send Status Updates", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
             description = "Sends messages about the macro, such as profits, harvesting crops, etc"
     )
     public static boolean sendStatusUpdates = false;
-    
+
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "Status Update Interval (in minutes)", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
             description = "The interval between sending messages about status updates",
@@ -1076,7 +1088,7 @@ public class FarmHelperConfig extends Config {
             secure = true
     )
     public static String webHookURL = "";
-    
+
     @Switch(
             name = "Enable Remote Control", category = DISCORD_INTEGRATION, subcategory = "Remote Control",
             description = "Enables remote control via Discord messages"
@@ -1118,14 +1130,14 @@ public class FarmHelperConfig extends Config {
 
     // START DELAYS
 
-    
+
     @Slider(
             name = "Time between changing rows", category = DELAYS, subcategory = "Changing rows",
             description = "The minimum time to wait before changing rows (in milliseconds)",
             min = 150, max = 2000
     )
     public static float timeBetweenChangingRows = 400f;
-    
+
     @Slider(
             name = "Additional random time between changing rows", category = DELAYS, subcategory = "Changing rows",
             description = "The maximum time to wait before changing rows (in milliseconds)",
@@ -1147,7 +1159,7 @@ public class FarmHelperConfig extends Config {
             min = 200f, max = 2000f
     )
     public static float rotationTime = 500f;
-    
+
     @Slider(
             name = "Additional random Rotation Time", category = DELAYS, subcategory = "Rotations",
             description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
@@ -1159,14 +1171,14 @@ public class FarmHelperConfig extends Config {
         return (long) (rotationTime + (float) Math.random() * rotationTimeRandomness);
     }
 
-    
+
     @Slider(
             name = "GUI Delay", category = DELAYS, subcategory = "GUI Delays",
             description = "The delay between clicking during GUI macros (in miliseconds)",
             min = 250f, max = 2000f
     )
     public static float visitorsMacroGuiDelay = 400f;
-    
+
     @Slider(
             name = "Additional random GUI Delay", category = DELAYS, subcategory = "GUI Delays",
             description = "The maximum random time added to the delay time between clicking during GUI macros (in miliseconds)",
@@ -1205,13 +1217,13 @@ public class FarmHelperConfig extends Config {
 //	)
 //	public static OneKeyBind debugKeybind2 = new OneKeyBind(Keyboard.KEY_J);
 
-    
+
     @Switch(
             name = "Debug Mode", category = DEBUG, subcategory = "Debug",
             description = "Prints to chat what the bot is currently executing. Useful if you are having issues."
     )
     public static boolean debugMode = false;
-    
+
     @Switch(
             name = "Hide Logs (Not Recommended)", category = DEBUG, subcategory = "Debug",
             description = "Hides all logs from the console. Not recommended."
@@ -1226,7 +1238,7 @@ public class FarmHelperConfig extends Config {
 
     // START EXPERIMENTAL
 
-    
+
     @Switch(
             name = "Enable Fast Break (DANGEROUS)", category = EXPERIMENTAL, subcategory = "Fast Break",
             description = "Fast Break is very risky and using it will most likely result in a ban. Proceed with caution."
@@ -1239,33 +1251,33 @@ public class FarmHelperConfig extends Config {
             subcategory = "Fast Break"
     )
     public static boolean fastBreakWarning;
-    
+
     @Slider(
             name = "Fast Break Speed", category = EXPERIMENTAL, subcategory = "Fast Break",
             description = "Fast Break speed",
             min = 1, max = 3
     )
     public static int fastBreakSpeed = 1;
-    
+
     @Switch(
             name = "Disable Fast Break during banwave", category = EXPERIMENTAL, subcategory = "Fast Break",
             description = "Disables Fast Break during banwave"
     )
     public static boolean disableFastBreakDuringBanWave = true;
-    
+
     @Switch(
             name = "Disable Fast Break during Jacob's contest", category = EXPERIMENTAL, subcategory = "Fast Break",
             description = "Disables Fast Break during Jacob's contest"
     )
     public static boolean disableFastBreakDuringJacobsContest = true;
-    
+
     @Dropdown(
             name = "Alt-tab mode", category = EXPERIMENTAL, subcategory = "Miscellaneous",
             description = "The mode to use when alt-tabbing. Using keys is more reliable, but it's slower. Using WINAPI is faster, but it's less reliable and Windows only. It also maximizes the game window.",
             options = {"Using keys", "Using WINAPI (Windows only)"}
     )
     public static int autoAltTabMode = 0;
-    
+
     @Switch(
             name = "Warp at spawn point after failing antistuck 3 times", category = EXPERIMENTAL, subcategory = "Miscellaneous",
             description = "Warp at spawn point after failing antistuck 3 times"
@@ -1274,7 +1286,7 @@ public class FarmHelperConfig extends Config {
 
     // END EXPERIMENTAL
 
-    
+
     @Number(name = "Config Version", category = EXPERIMENTAL, subcategory = "Experimental", min = 0, max = 1337)
     public static int configVersion = 1;
 
@@ -1331,17 +1343,14 @@ public class FarmHelperConfig extends Config {
         this.addDependency("pauseVisitorsMacroDuringJacobsContest", "visitorsMacro");
         this.addDependency("onlyAcceptProfitableVisitors", "visitorsMacro");
         this.addDependency("triggerVisitorsMacro", "visitorsMacro");
-//        this.hideIf("triggerVisitorsMacro", VisitorsMacro::isEnabled);
-//        this.hideIf("stopVisitorsMacro", () -> !VisitorsMacro.isEnabled());
         this.addDependency("visitorsMacroCoinsThreshold", "visitorsMacro");
         this.addDependency("visitorsMacroPriceManipulationMultiplier", "visitorsMacro");
         this.addDependency("visitorsAcceptUncommon", "visitorsMacro");
         this.addDependency("visitorsAcceptRare", "visitorsMacro");
         this.addDependency("visitorsAcceptLegendary", "visitorsMacro");
         this.addDependency("visitorsAcceptSpecial", "visitorsMacro");
-        this.hideIf("visitorsMacroTeleportToPlot", () -> true);
-            this.hideIf("infoCookieBuffRequired", () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE);
-            this.hideIf("infoDeskNotSet", () -> GameStateHandler.getInstance().inGarden() || PlayerUtils.isDeskPosSet());
+        this.hideIf("infoCookieBuffRequired", () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE);
+        this.hideIf("infoDeskNotSet", () -> GameStateHandler.getInstance().inGarden() || PlayerUtils.isDeskPosSet());
 
         this.addDependency("sendLogs", "enableWebHook");
         this.addDependency("sendStatusUpdates", "enableWebHook");
@@ -1350,6 +1359,7 @@ public class FarmHelperConfig extends Config {
         this.addDependency("_applyWebhook", "enableWebHook");
         this.addDependency("enableRemoteControl", "Enable Remote Control", () -> Loader.isModLoaded("farmhelperjdadependency"));
         this.hideIf("infoRemoteControl", () -> Loader.isModLoaded("farmhelperjdadependency"));
+        this.hideIf("failsafeSoundTimes", () -> true);
 
         this.addDependency("debugMode", "Debug Mode", () -> !hideLogs);
         this.addDependency("hideLogs", "Hide Logs (Not Recommended)", () -> !debugMode);
@@ -1367,14 +1377,14 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-        registerKeyBind(debugKeybind, () -> {
-            LogUtils.sendDebug("dupa");
-        });
+//        registerKeyBind(debugKeybind, () -> {
+//            LogUtils.sendDebug("dupa");
+//        });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
         save();
     }
-    
+
     public String getJson() {
         String json = gson.toJson(this);
         if (json == null || json.equals("{}")) {

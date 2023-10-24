@@ -103,23 +103,23 @@ public class MacroHandler {
     }
 
     public <T extends AbstractMacro> T getMacro() {
-        switch (FarmHelperConfig.macroType) {
-            case 0: // crops
-            case 1: // pumpkin/melon
-            case 2: // melonkingdebil
-            case 5: // cactus
-            case 6: // cactus suntzu black cat
+        switch (FarmHelperConfig.getMacro()) {
+            case S_V_NORMAL_TYPE:
+            case S_PUMPKIN_MELON:
+            case S_PUMPKIN_MELON_MELONGKINGDE:
+            case S_CACTUS:
+            case S_CACTUS_SUNTZU:
                 return Macros.S_SHAPE_VERTICAL_CROP_MACRO.getMacro();
-            case 3: // pumpkin/melon default
+            case S_PUMPKIN_MELON_DEFAULT_PLOT:
                 return Macros.S_SHAPE_MELON_PUMPKIN_DEFAULT_MACRO.getMacro();
-            case 4: // sugarcane
+            case S_SUGAR_CANE:
                 return Macros.S_SHAPE_SUGARCANE_MACRO.getMacro();
-            case 7: // cocoa
+            case S_COCOA_BEANS:
                 return Macros.S_SHAPE_COCOA_BEAN_MACRO.getMacro();
-            case 8: // mushroom 45
-                return Macros.S_SHAPE_MUSHROOM_ROTATE_MACRO.getMacro();
-            case 9: // mushroom 30
+            case S_MUSHROOM:
                 return Macros.S_SHAPE_MUSHROOM_MACRO.getMacro();
+            case S_MUSHROOM_ROTATE:
+                return Macros.S_SHAPE_MUSHROOM_ROTATE_MACRO.getMacro();
             default:
                 throw new IllegalArgumentException("Invalid crop type: " + FarmHelperConfig.macroType);
         }

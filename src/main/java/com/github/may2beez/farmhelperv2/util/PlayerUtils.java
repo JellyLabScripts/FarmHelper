@@ -51,8 +51,8 @@ public class PlayerUtils {
                 for (int y = -1; y < 5; y++) {
                     for (int z = -1; z < 3; z++) {
                         BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, z,
-                                (FarmHelperConfig.macroType == FarmHelperConfig.MacroEnum.S_MUSHROOM.ordinal() ||
-                                        FarmHelperConfig.macroType == FarmHelperConfig.MacroEnum.S_SUGAR_CANE.ordinal() ?
+                                (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_MUSHROOM ||
+                                        FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_SUGAR_CANE ?
                                         AngleUtils.getClosestDiagonal() - 45 :
                                         AngleUtils.getClosest()));
                         Block block = mc.theWorld.getBlockState(pos).getBlock();
