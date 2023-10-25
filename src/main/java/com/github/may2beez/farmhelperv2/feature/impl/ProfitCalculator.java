@@ -279,7 +279,7 @@ public class ProfitCalculator implements IFeature {
         realProfit = profit * 0.95d; // it counts too much, because of compactors, so we delete ~5% of false profit
         realProfit += rngPrice;
 
-        if (FarmHelperConfig.countRNGToProfitCalc) {
+        if (ProfitCalculatorHUD.countRNGToProfitCalc) {
             realHourlyProfit = (realProfit / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f / 60 / 60));
         } else {
             realHourlyProfit = profit / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f / 60 / 60);

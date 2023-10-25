@@ -27,8 +27,14 @@ public class ProfitCalculatorHUD extends BasicHud {
     }
 
     @Switch(
+            name = "Count RNG to $/Hr in Profit Calculator", category = "Miscellaneous",
+            description = "Count RNG to $/Hr"
+    )
+    public static boolean countRNGToProfitCalc = false;
+
+    @Switch(
             name = "Reset stats between disabling",
-            category = "Profit Calculator HUD",
+            category = "Miscellaneous",
             size = 2
     )
     public static boolean resetStatsBetweenDisabling = false;

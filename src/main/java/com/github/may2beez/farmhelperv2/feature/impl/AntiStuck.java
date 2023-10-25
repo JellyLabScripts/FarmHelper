@@ -101,7 +101,7 @@ public class AntiStuck implements IFeature {
 
     @Override
     public boolean isToggled() {
-        return true;
+        return FarmHelperConfig.enableAntiStuck;
     }
 
     private double lastX = 10000;
@@ -112,12 +112,12 @@ public class AntiStuck implements IFeature {
     public void onTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled() ||
                 !MacroHandler.getInstance().isCurrentMacroEnabled() ||
                 MacroHandler.getInstance().isTeleporting() ||
                 FeatureManager.getInstance().isAnyOtherFeatureEnabled(this) ||
-                mc.currentScreen != null) {
+                mc.currentScreen != null ||
+                !isToggled()) {
             notMovingTimer.reset();
             lastX = 10000;
             lastZ = 10000;
