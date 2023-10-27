@@ -34,6 +34,10 @@ public abstract class AbstractMacro {
         FORWARD,
         SWITCHING_SIDE,
         SWITCHING_LANE,
+
+        A,
+        D,
+        S
     }
 
     public enum RewarpState {
@@ -268,10 +272,10 @@ public abstract class AbstractMacro {
     }
 
     public State calculateDirection() {
-        if (BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air) && BlockUtils.getRelativeBlock(-1, 1, 0).equals(Blocks.air)) {
+        if (BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air) && BlockUtils.getRelativeBlock(-1, -1, 0).equals(Blocks.air)) {
             return State.RIGHT;
         }
-        if (BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.air) && BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.air)) {
+        if (BlockUtils.getRelativeBlock(1, 0, 0).equals(Blocks.air) && BlockUtils.getRelativeBlock(1, -1, 0).equals(Blocks.air)) {
             return State.LEFT;
         }
         return State.NONE;
