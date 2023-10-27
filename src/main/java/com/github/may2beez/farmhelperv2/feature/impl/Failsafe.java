@@ -38,6 +38,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Getter
@@ -670,6 +672,8 @@ public class Failsafe implements IFeature {
         }
     }
 
+    private final Pattern pattern = Pattern.compile("§cServer closing: (?<minutes>\\d+):(?<seconds>\\d+) §8.*");
+
     @SubscribeEvent
     public void onTickCheckScoreboard(TickEvent.ClientTickEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
@@ -678,10 +682,14 @@ public class Failsafe implements IFeature {
 
         List<String> scoreboard = ScoreboardUtils.getScoreboardLines();
         for (String line : scoreboard) {
-            String cleanLine = StringUtils.stripControlCodes(line);
-            if (cleanLine.startsWith("Server closing:")) {
-                evacuateState = EvacuateState.EVACUATE_FROM_ISLAND;
-                return;
+            Matcher matcher = pattern.matcher(line);
+            if (matcher.find()) {
+                int minutes = Integer.parseInt(matcher.group("minutes"));
+                int seconds = Integer.parseInt(matcher.group("seconds"));
+                System.out.println(minutes + " " + seconds);
+                if (minutes == 0 && seconds <= 30) {
+                    evacuateState = EvacuateState.EVACUATE_FROM_ISLAND;
+                }
             }
         }
     }

@@ -52,11 +52,6 @@ public class Freelock implements IFeature {
     @Override
     public void start() {
         enabled = true;
-//        cameraPrevYaw = mc.thePlayer.prevRotationYaw;
-//        cameraPrevPitch = mc.thePlayer.prevRotationPitch;
-//        cameraYaw = mc.thePlayer.rotationYaw;
-//        cameraPitch = mc.thePlayer.rotationPitch;
-//        mc.gameSettings.thirdPersonView = 1;
         if (UngrabMouse.getInstance().isRunning() && MacroHandler.getInstance().isCurrentMacroEnabled()) {
             UngrabMouse.getInstance().regrabMouse();
             mouseWasGrabbed = true;
@@ -66,7 +61,6 @@ public class Freelock implements IFeature {
     @Override
     public void stop() {
         enabled = false;
-        mc.gameSettings.thirdPersonView = 0;
         if (UngrabMouse.getInstance().isToggled() && mouseWasGrabbed && MacroHandler.getInstance().isCurrentMacroEnabled()) {
             UngrabMouse.getInstance().ungrabMouse();
         }
@@ -133,67 +127,11 @@ public class Freelock implements IFeature {
             cameraYaw = mc.thePlayer.rotationYaw + 180;
             cameraPitch = mc.thePlayer.rotationPitch;
             mc.gameSettings.thirdPersonView = 1;
+            start();
         } else {
             mc.gameSettings.thirdPersonView = 0;
+            stop();
         }
 
     }
-
-//    private RotationUtils.Rotation serverRotation;
-//
-//    private RotationUtils.Rotation prevRotation;
-//
-//    int ticks = 0;
-//
-//    @SubscribeEvent
-//    public void onTick(TickEvent.ClientTickEvent event) {
-//        if (event.phase == TickEvent.Phase.END) return;
-//
-//        if (ticks > 0) {
-//            ticks--;
-//            return;
-//        }
-//    }
-//
-//    @SubscribeEvent
-//    public void onPlayerUpdate(PlayerUpdateEvent event) {
-//
-//        switch (event.getState()) {
-//            case PRE: {
-//                this.prevRotation = new RotationUtils.Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
-//                final RotationUtils.Rotation actual = new RotationUtils.Rotation(cameraYaw, cameraPitch);
-//                mc.thePlayer.rotationYaw = actual.getYaw();
-//                mc.thePlayer.rotationPitch = actual.getPitch();
-//                break;
-//            }
-//            case POST: {
-//                if (this.prevRotation != null) {
-//                    mc.thePlayer.rotationYaw = prevRotation.getYaw();
-//                    mc.thePlayer.rotationPitch = prevRotation.getPitch();
-//
-//                    this.prevRotation = null;
-//                }
-//                break;
-//            }
-//            default: {
-//                break;
-//            }
-//        }
-//    }
-//
-//    @SubscribeEvent
-//    public void onSendPacket(SendPacketEvent event) {
-//        if (!(event.packet instanceof C03PacketPlayer)) {
-//            return;
-//        }
-//
-//        final C03PacketPlayer packet = (C03PacketPlayer) event.packet;
-//        if (packet instanceof C03PacketPlayer.C05PacketPlayerLook || packet instanceof C03PacketPlayer.C06PacketPlayerPosLook) {
-//            this.serverRotation = new RotationUtils.Rotation(packet.getYaw(), packet.getPitch());
-//        }
-//    }
-//
-//    public Optional<RotationUtils.Rotation> getEffectiveRotation() {
-//        return Optional.ofNullable(this.serverRotation);
-//    }
 }
