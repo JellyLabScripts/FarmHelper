@@ -274,10 +274,10 @@ public class FarmHelperConfig extends Config {
     public static boolean autoUpdaterDownloadBetaVersions = false;
 
     @Switch(
-            name = "Xray Mode", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-            description = "Hides blocks to reduce resource usage"
+            name = "Performance Mode", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+            description = "Set render distance to 2, set max fps to 15 and doesn't render crops"
     )
-    public static boolean xrayMode = false;
+    public static boolean performanceMode = false;
 
     @Switch(
             name = "Mute The Game", category = MISCELLANEOUS, subcategory = "Miscellaneous",
