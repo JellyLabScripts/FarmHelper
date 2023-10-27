@@ -36,6 +36,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -661,9 +662,27 @@ public class Failsafe implements IFeature {
         if (!FarmHelperConfig.autoEvacuateOnWorldUpdate) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (getNumberOfCharactersInString(message) > 1) return;
+        if (evacuateState != EvacuateState.NONE) return;
+
 
         if (message.contains("to warp out! CLICK to warp now!")) {
             evacuateState = EvacuateState.EVACUATE_FROM_ISLAND;
+        }
+    }
+
+    @SubscribeEvent
+    public void onTickCheckScoreboard(TickEvent.ClientTickEvent event) {
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (!FarmHelperConfig.autoEvacuateOnWorldUpdate) return;
+        if (evacuateState != EvacuateState.NONE) return;
+
+        List<String> scoreboard = ScoreboardUtils.getScoreboardLines();
+        for (String line : scoreboard) {
+            String cleanLine = StringUtils.stripControlCodes(line);
+            if (cleanLine.startsWith("Server closing:")) {
+                evacuateState = EvacuateState.EVACUATE_FROM_ISLAND;
+                return;
+            }
         }
     }
 

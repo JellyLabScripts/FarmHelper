@@ -111,22 +111,27 @@ public class Scheduler implements IFeature {
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
 
         if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().inJacobContest() && !schedulerClock.isPaused()) {
+            LogUtils.sendDebug("[Scheduler] Jacob contest started, pausing scheduler");
             schedulerClock.pause();
             GameStateHandler.getInstance().setWasInJacobContest(true);
+            return;
         } else if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().isWasInJacobContest() && !GameStateHandler.getInstance().inJacobContest() && schedulerClock.isPaused()) {
+            LogUtils.sendDebug("[Scheduler] Jacob contest ended, resuming scheduler");
+            LogUtils.sendDebug(GameStateHandler.getInstance().isWasInJacobContest() + " " + GameStateHandler.getInstance().inJacobContest());
             schedulerClock.resume();
             GameStateHandler.getInstance().setWasInJacobContest(false);
+            return;
         }
 
         if (MacroHandler.getInstance().isMacroToggled() && MacroHandler.getInstance().isCurrentMacroEnabled() && schedulerState == SchedulerState.FARMING && !schedulerClock.isPaused() && schedulerClock.passed()) {
             LogUtils.sendDebug("[Scheduler] Farming time has passed, stopping");
             MacroHandler.getInstance().pauseMacro();
             schedulerState = SchedulerState.BREAK;
-            schedulerClock.schedule((long) (FarmHelperConfig.schedulerBreakTime + (Math.random() * FarmHelperConfig.schedulerBreakTimeRandomness)));
+            schedulerClock.schedule(TimeUnit.MINUTES.toMillis((long) (FarmHelperConfig.schedulerBreakTime + (Math.random() * FarmHelperConfig.schedulerBreakTimeRandomness))));
         } else if (MacroHandler.getInstance().isMacroToggled() && schedulerState == SchedulerState.BREAK && !schedulerClock.isPaused() && schedulerClock.passed()) {
             LogUtils.sendDebug("[Scheduler] Break time has passed, starting");
             schedulerState = SchedulerState.FARMING;
-            schedulerClock.schedule((long)(FarmHelperConfig.schedulerFarmingTime + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness)));
+            schedulerClock.schedule(TimeUnit.MINUTES.toMillis((long)(FarmHelperConfig.schedulerFarmingTime + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness))));
             MacroHandler.getInstance().resumeMacro();
         }
     }
