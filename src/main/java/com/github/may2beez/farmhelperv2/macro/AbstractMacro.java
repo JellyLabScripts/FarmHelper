@@ -3,6 +3,7 @@ package com.github.may2beez.farmhelperv2.macro;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
+import com.github.may2beez.farmhelperv2.feature.impl.DesyncChecker;
 import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
 import com.github.may2beez.farmhelperv2.feature.impl.LagDetector;
 import com.github.may2beez.farmhelperv2.feature.impl.VisitorsMacro;
@@ -207,6 +208,7 @@ public abstract class AbstractMacro {
     }
 
     public void onDisable() {
+        DesyncChecker.getInstance().getClickedBlocks().clear();
         KeyBindUtils.stopMovement();
         changeState(State.NONE);
         setClosest90Deg(-1337);
