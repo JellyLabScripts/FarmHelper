@@ -1,13 +1,17 @@
 package com.github.may2beez.farmhelperv2.macro.impl;
 
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.feature.impl.LagDetector;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 import com.github.may2beez.farmhelperv2.util.*;
+import net.dv8tion.jda.api.hooks.SubscribeEvent;
 import net.minecraft.block.BlockDoor;
 import net.minecraft.block.BlockTrapDoor;
 import net.minecraft.init.Blocks;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.intellij.lang.annotations.Subst;
 
 public class SShapeCocoaBeanMacro extends AbstractMacro {
 
@@ -45,14 +49,24 @@ public class SShapeCocoaBeanMacro extends AbstractMacro {
             changeState(State.NONE);
         switch (getCurrentState()) {
             case BACKWARD: {
-                if (GameStateHandler.getInstance().isFrontWalkable() && !GameStateHandler.getInstance().isBackWalkable()) {
+                if (
+                    GameStateHandler.getInstance().isFrontWalkable()
+                    && !GameStateHandler.getInstance().isBackWalkable()
+                    && GameStateHandler.getInstance().isRightWalkable()
+                    && (GameStateHandler.getInstance().isLeftWalkable() || isStandingInDoorOrTrapdoor() || BlockUtils.getRelativeBlock(-1, 0, 0) instanceof BlockDoor)
+                ) {
                     changeState(State.SWITCHING_LANE);
                     return;
                 }
                 break;
             }
             case FORWARD: {
-                if (!GameStateHandler.getInstance().isFrontWalkable() && GameStateHandler.getInstance().isBackWalkable()) {
+                if (
+                    !GameStateHandler.getInstance().isFrontWalkable()
+                    && GameStateHandler.getInstance().isBackWalkable()
+                    && GameStateHandler.getInstance().isRightWalkable()
+                    && !GameStateHandler.getInstance().isLeftWalkable()
+                ) {
                     changeState(State.SWITCHING_SIDE);
                     return;
                 } else {
@@ -68,16 +82,26 @@ public class SShapeCocoaBeanMacro extends AbstractMacro {
                 break;
             }
             case SWITCHING_SIDE:
-                if (!GameStateHandler.getInstance().isRightWalkable() && GameStateHandler.getInstance().isLeftWalkable()) {
+                if (
+                    !GameStateHandler.getInstance().isFrontWalkable()
+                    && GameStateHandler.getInstance().isBackWalkable()
+                    && !GameStateHandler.getInstance().isRightWalkable()
+                    && GameStateHandler.getInstance().isLeftWalkable()
+                ) {
                     changeState(State.BACKWARD);
                 }
                 break;
             case SWITCHING_LANE: {
-                if (shouldPushForward() || hasLineChanged()) {
+                LogUtils.sendDebug("hasLineChanged(): " + hasLineChanged());
+                if ((isStandingInDoorOrTrapdoor() || hasLineChanged())
+                    && (GameStateHandler.getInstance().isFrontWalkable() || BlockUtils.getRelativeBlock(0, 1, 1) instanceof BlockTrapDoor)
+                    && !GameStateHandler.getInstance().isBackWalkable()
+                    && GameStateHandler.getInstance().isLeftWalkable()
+                ) {
                     changeState(State.FORWARD);
                     return;
                 }
-                if (GameStateHandler.getInstance().isRightWalkable() && GameStateHandler.getInstance().isLeftWalkable()) {
+                if (GameStateHandler.getInstance().isRightWalkable() && GameStateHandler.getInstance().isLeftWalkable() && !GameStateHandler.getInstance().isBackWalkable()) {
                     if (!GameStateHandler.getInstance().isFrontWalkable()) {
                         LogUtils.sendDebug("Both sides are walkable, switching lane");
                     } else
@@ -89,6 +113,23 @@ public class SShapeCocoaBeanMacro extends AbstractMacro {
             case NONE: {
                 changeState(calculateDirection());
                 break;
+            }
+        }
+    }
+
+    @Override
+    public void onTick() {
+        super.onTick();
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (LagDetector.getInstance().isLagging()) return;
+
+        if (getCurrentState() == State.SWITCHING_LANE) {
+            LogUtils.sendDebug("hasLineChanged(): " + hasLineChanged());
+            if (hasLineChanged()
+                    && !GameStateHandler.getInstance().isBackWalkable()
+                    && GameStateHandler.getInstance().isLeftWalkable()
+            ) {
+                changeState(State.FORWARD);
             }
         }
     }
@@ -122,28 +163,19 @@ public class SShapeCocoaBeanMacro extends AbstractMacro {
     @Override
     public State calculateDirection() {
         LogUtils.sendDebug("Calculating direction");
-        for (int i = 1; i < 180; i++) {
-            if (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, i))) {
-                if (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(1, 1, i - 1))) {
-                    return State.FORWARD;
-                } else {
-                    LogUtils.sendDebug("Failed forward: " + BlockUtils.getRelativeBlock(1, 1, i - 1));
-                    return State.BACKWARD;
-                }
-            } else if (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, -i))) {
-                if (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-1, 0, -i + 1))) {
-                    return State.BACKWARD;
-                } else {
-                    LogUtils.sendDebug("Failed backward: " + BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-1, 0, i - 1)));
-                    return State.FORWARD;
-                }
-            }
-        }
+        if (GameStateHandler.getInstance().isFrontWalkable() && GameStateHandler.getInstance().isRightWalkable())
+            return State.FORWARD;
+        if (GameStateHandler.getInstance().isBackWalkable())
+            return State.BACKWARD;
+        if (GameStateHandler.getInstance().isFrontWalkable())
+            return State.FORWARD;
+        if (GameStateHandler.getInstance().isBackWalkable() && GameStateHandler.getInstance().isLeftWalkable())
+            return State.BACKWARD;
         LogUtils.sendDebug("Cannot find direction. Length > 180");
         return State.NONE;
     }
 
-    private boolean shouldPushForward() {
+    private boolean isStandingInDoorOrTrapdoor() {
         return (mc.theWorld.getBlockState(BlockUtils.getRelativeBlockPos(0,0,0)).getBlock() instanceof BlockDoor
                 || mc.theWorld.getBlockState(BlockUtils.getRelativeBlockPos(0,0,0)).getBlock() instanceof BlockTrapDoor);
     }
