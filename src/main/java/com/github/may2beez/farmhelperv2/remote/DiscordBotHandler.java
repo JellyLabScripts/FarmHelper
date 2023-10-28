@@ -93,10 +93,10 @@ public class DiscordBotHandler extends ListenerAdapter {
             LogUtils.sendSuccess("Connected to the Discord Bot!");
         } catch (InvalidTokenException | ErrorResponseException e) {
             e.printStackTrace();
-            Notifications.INSTANCE.send("Farm Helper", "Failed to connect to the Discord Bot, check your token. Disabling remote control...");
+            Notifications.INSTANCE.send("Farm Helper", "Failed to connect to the Discord Bot, check your token. Removing token");
             LogUtils.sendError("Failed to connect to the Discord Bot, check your token. Disabling remote control...");
             WebsocketHandler.getInstance().setWebsocketState(WebsocketHandler.WebsocketState.NONE);
-            FarmHelperConfig.enableRemoteControl = false;
+            FarmHelperConfig.discordRemoteControlToken = "";
         } catch (IllegalStateException e) {
             Notifications.INSTANCE.send("Farm Helper", "Discord Bot is already connected, connecting as a client...");
             LogUtils.sendWarning("Discord Bot is already connected, connecting as a client...");
@@ -148,8 +148,8 @@ public class DiscordBotHandler extends ListenerAdapter {
             }
             return;
         } else if (FarmHelperConfig.discordRemoteControlToken.startsWith("https")) {
-            LogUtils.sendError("You have put a webhook link in the Discord Remote Control Token field! Read the guide before using this feature, dummy! Disabling remote control...");
-            FarmHelperConfig.enableRemoteControl = false;
+            LogUtils.sendError("You have put a webhook link in the Discord Remote Control Token field! Read the guide before using this feature, dummy! Clearing the field...");
+            FarmHelperConfig.discordRemoteControlToken = "";
             return;
         }
 

@@ -2,6 +2,7 @@ package com.github.may2beez.farmhelperv2.util.helper;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.util.LogUtils;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -61,17 +62,21 @@ public class AudioManager {
                                 inputStream = AudioSystem.getAudioInputStream(audioFile);
                             break;
                         case 1:
-                            inputStream = AudioSystem.getAudioInputStream(Main.class.getResourceAsStream("/farmhelper/sounds/staff_check_voice_notification.wav"));
+                            inputStream = AudioSystem.getAudioInputStream(getClass().getResource("/farmhelper/sounds/staff_check_voice_notification.wav"));
                             break;
                         case 2:
-                            inputStream = AudioSystem.getAudioInputStream(Main.class.getResourceAsStream("/farmhelper/sounds/metal_pipe.wav"));
+                            inputStream = AudioSystem.getAudioInputStream(getClass().getResource("/farmhelper/sounds/metal_pipe.wav"));
                             break;
                         case 3:
-                            inputStream = AudioSystem.getAudioInputStream(Main.class.getResourceAsStream("/farmhelper/sounds/AAAAAAAAAA.wav"));
+                            inputStream = AudioSystem.getAudioInputStream(getClass().getResource("/farmhelper/sounds/AAAAAAAAAA.wav"));
                             break;
                         case 4:
-                            inputStream = AudioSystem.getAudioInputStream(Main.class.getResourceAsStream("/farmhelper/sounds/loud_buzz.wav"));
+                            inputStream = AudioSystem.getAudioInputStream(getClass().getResource("/farmhelper/sounds/loud_buzz.wav"));
                             break;
+                    }
+                    if (inputStream == null) {
+                        LogUtils.sendError("[Audio Manager] Failed to load sound file!");
+                        return;
                     }
                     Clip clip = AudioSystem.getClip();
                     clip.open(inputStream);
