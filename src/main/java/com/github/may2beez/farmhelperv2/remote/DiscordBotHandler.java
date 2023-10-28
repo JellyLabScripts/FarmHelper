@@ -117,15 +117,18 @@ public class DiscordBotHandler extends ListenerAdapter {
 
         if (!FarmHelperConfig.enableRemoteControl) {
             if (jdaClient != null) {
+                System.out.println("[Remote Control] Removing jdaClient");
                 jdaClient.shutdownNow();
                 jdaClient = null;
             }
             if (WebsocketHandler.getInstance().getWebsocketServer() != null) {
                 try {
+                    System.out.println("[Remote Control] Stopping websocket server");
                     WebsocketHandler.getInstance().getWebsocketServer().stop();
                 } catch (InterruptedException ex) {
                     throw new RuntimeException(ex);
                 }
+                System.out.println("[Remote Control] Removing websocket server");
                 WebsocketHandler.getInstance().setWebsocketServer(null);
             }
             WebsocketHandler.getInstance().setWebsocketState(WebsocketHandler.WebsocketState.NONE);
@@ -157,6 +160,7 @@ public class DiscordBotHandler extends ListenerAdapter {
             if (tryConnectThread == null) {
                 tryConnectThread = new Thread(() -> {
                     try {
+                        System.out.println("[Remote Control] Connecting to Discord Bot...");
                         connect();
                     } catch (Exception ex) {
                         ex.printStackTrace();

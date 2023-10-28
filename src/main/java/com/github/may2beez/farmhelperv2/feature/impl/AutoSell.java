@@ -118,10 +118,10 @@ public class AutoSell implements IFeature {
         timeoutClock.reset();
         inventoryFilledClock.reset();
         KeyBindUtils.stopMovement();
-        if (MacroHandler.getInstance().isMacroToggled()) {
+        if (MacroHandler.getInstance().isMacroToggled() && !VisitorsMacro.getInstance().isRunning()) {
             MacroHandler.getInstance().resumeMacro();
         }
-        if (FarmHelperConfig.enableScheduler)
+        if (FarmHelperConfig.enableScheduler && !VisitorsMacro.getInstance().isRunning())
             Scheduler.getInstance().resume();
     }
 

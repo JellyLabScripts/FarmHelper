@@ -1,5 +1,6 @@
 package com.github.may2beez.farmhelperv2.remote.command.commands.impl;
 
+import com.github.may2beez.farmhelperv2.feature.impl.UngrabMouse;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.remote.command.commands.ClientCommand;
 import com.github.may2beez.farmhelperv2.remote.command.commands.Command;
@@ -17,8 +18,6 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.apache.commons.lang3.tuple.MutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Arrays;
 
@@ -30,6 +29,8 @@ public class SetSpeedCommand extends ClientCommand {
     @Override
     public void execute(RemoteMessage message) {
         JsonObject args = message.args;
+        freeSlot = -1;
+        freeHotbarSlot = -1;
         speed = args.get("speed").getAsInt();
         data = new JsonObject();
         data.addProperty("username", mc.getSession().getUsername());
@@ -41,6 +42,22 @@ public class SetSpeedCommand extends ClientCommand {
         } else if (InventoryUtils.getRancherBootSpeed() == speed) {
             data.addProperty("error", "Your Rancher's boots are already at " + speed + " speed.");
         } else {
+            for (int i = 36; i < 44; i++) {
+                if (ClientCommand.mc.thePlayer.inventoryContainer.getSlot(i).getStack() == null) {
+                    LogUtils.sendDebug("Found free slot: " + i);
+                    freeSlot = i;
+                    freeHotbarSlot = i - 36;
+                    break;
+                }
+            }
+            if (freeSlot == -1) {
+                disableWithError("You don't have any free slot in your hotbar! Disabling...");
+                return;
+            }
+            if (freeHotbarSlot < 0 || freeHotbarSlot > 7) {
+                disableWithError("Free hotbar slot is invalid! Disabling...");
+                return;
+            }
             try {
                 enabled = true;
                 currentState = State.START;
@@ -97,15 +114,13 @@ public class SetSpeedCommand extends ClientCommand {
                 }
                 wasMacroing = MacroHandler.getInstance().isMacroToggled();
                 if (wasMacroing) {
-                    MacroHandler.getInstance().disableCurrentMacro();
-                    MacroHandler.getInstance().setMacroToggled(false);
+                    MacroHandler.getInstance().pauseMacro();
                 }
                 currentState = State.OPEN_INVENTORY;
                 clock.schedule(500);
                 break;
             case OPEN_INVENTORY:
                 InventoryUtils.openInventory();
-                freeSlot = -1;
                 currentState = State.TAKE_OFF_BOOTS;
                 clock.schedule(500);
                 break;
@@ -113,22 +128,6 @@ public class SetSpeedCommand extends ClientCommand {
                 if (ClientCommand.mc.thePlayer.openContainer == null) {
                     currentState = State.OPEN_INVENTORY;
                     clock.schedule(500);
-                    break;
-                }
-                for (int i = 36; i < 44; i++) {
-                    if (ClientCommand.mc.thePlayer.inventoryContainer.getSlot(i).getStack() == null) {
-                        LogUtils.sendDebug("Found free slot: " + i);
-                        freeSlot = i;
-                        freeHotbarSlot = i - 36;
-                        break;
-                    }
-                }
-                if (freeSlot == -1) {
-                    disableWithError("You don't have any free slot in your hotbar! Disabling...");
-                    break;
-                }
-                if (freeHotbarSlot < 0 || freeHotbarSlot > 7) {
-                    disableWithError("Free hotbar slot is invalid! Disabling...");
                     break;
                 }
                 InventoryUtils.clickContainerSlot(8, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
@@ -208,8 +207,11 @@ public class SetSpeedCommand extends ClientCommand {
             case END:
                 PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), false, false);
                 if (wasMacroing) {
-                    MacroHandler.getInstance().setMacroToggled(true);
-                    MacroHandler.getInstance().enableCurrentMacro();
+                    MacroHandler.getInstance().resumeMacro();
+                    if (UngrabMouse.getInstance().isToggled()) {
+                        UngrabMouse.getInstance().regrabMouse();
+                        UngrabMouse.getInstance().ungrabMouse();
+                    }
                 }
                 LogUtils.sendSuccess("Rancher's Boots speed has been set to " + speed + ".");
                 currentState = State.NONE;

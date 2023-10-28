@@ -1,11 +1,16 @@
 package com.github.may2beez.farmhelperv2.remote.command.commands.impl;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
+import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.feature.impl.UngrabMouse;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.remote.command.commands.ClientCommand;
 import com.github.may2beez.farmhelperv2.remote.command.commands.Command;
 import com.github.may2beez.farmhelperv2.remote.struct.RemoteMessage;
 import com.github.may2beez.farmhelperv2.util.InventoryUtils;
 import com.google.gson.JsonObject;
+
+import java.util.concurrent.TimeUnit;
 
 @Command(label = "screenshot")
 
@@ -40,24 +45,37 @@ public class ScreenshotCommand extends ClientCommand {
     public void inventory() {
         JsonObject data = new JsonObject();
 
-        boolean wasMacroing = false;
+        boolean wasMacroing;
         if (MacroHandler.getInstance().isMacroToggled()) {
             wasMacroing = true;
             MacroHandler.getInstance().disableCurrentMacro();
+        } else {
+            wasMacroing = false;
         }
 
-        InventoryUtils.openInventory();
-        String screenshot = getScreenshot();
-        ClientCommand.mc.thePlayer.closeScreen();
+        Multithreading.schedule(() -> {
+            try {
+                InventoryUtils.openInventory();
+                Thread.sleep(1000);
+                String screenshot = getScreenshot();
+                Thread.sleep(1000);
+                mc.thePlayer.closeScreen();
+                if (wasMacroing) {
+                    if (UngrabMouse.getInstance().isToggled()) {
+                        UngrabMouse.getInstance().regrabMouse();
+                        UngrabMouse.getInstance().ungrabMouse();
+                    }
+                    MacroHandler.getInstance().enableCurrentMacro();
+                }
 
-        if (wasMacroing) {
-            MacroHandler.getInstance().enableCurrentMacro();
-        }
-
-        data.addProperty("username", mc.getSession().getUsername());
-        data.addProperty("image", screenshot);
-        data.addProperty("uuid", mc.getSession().getPlayerID());
-        RemoteMessage response = new RemoteMessage(label, data);
-        send(response);
+                data.addProperty("username", mc.getSession().getUsername());
+                data.addProperty("image", screenshot);
+                data.addProperty("uuid", mc.getSession().getPlayerID());
+                RemoteMessage response = new RemoteMessage(label, data);
+                send(response);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }, 0, TimeUnit.MILLISECONDS);
     }
 }

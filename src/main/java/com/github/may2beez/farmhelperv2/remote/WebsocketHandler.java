@@ -14,6 +14,7 @@ import com.github.may2beez.farmhelperv2.util.LogUtils;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -56,13 +57,15 @@ public class WebsocketHandler {
     public static final ArrayList<ClientCommand> commands = new ArrayList<>();
 
     public WebsocketHandler() {
+        SetSpeedCommand speedCommand = new SetSpeedCommand();
         commands.addAll(Arrays.asList(
                 new InfoCommand(),
                 new ReconnectCommand(),
                 new ScreenshotCommand(),
-                new SetSpeedCommand(),
+                speedCommand,
                 new ToggleCommand()
         ));
+        MinecraftForge.EVENT_BUS.register(speedCommand);
         LogUtils.sendDebug("[Remote Control] Registered " + commands.size() + " commands");
     }
 

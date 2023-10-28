@@ -2,6 +2,7 @@ package com.github.may2beez.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Notifications;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
@@ -74,14 +75,15 @@ public class AutoReconnect implements IFeature {
     @Override
     public void start() {
         if (enabled) return;
-        enabled = true;
         try {
             mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText("Reconnecting in " + LogUtils.formatTime(reconnectDelay.getRemainingTime())));
         } catch (Exception e) {
             e.printStackTrace();
         }
+        enabled = true;
         state = State.CONNECTING;
         LogUtils.sendDebug("[Reconnect] Reconnecting to server...");
+        FeatureManager.getInstance().disableAllExcept(this, Failsafe.getInstance());
         if (MacroHandler.getInstance().isMacroToggled())
             MacroHandler.getInstance().pauseMacro();
     }
@@ -115,8 +117,6 @@ public class AutoReconnect implements IFeature {
         if (event.phase == TickEvent.Phase.END) return;
         if (!isRunning()) return;
 
-        if (reconnectDelay.isScheduled() && !reconnectDelay.passed()) return;
-
         switch (state) {
             case NONE:
                 break;
@@ -137,6 +137,12 @@ public class AutoReconnect implements IFeature {
                 }
                 break;
             case LOBBY:
+                if (reconnectDelay.isScheduled() && !reconnectDelay.passed()) return;
+                if (mc.thePlayer == null) {
+                    state = State.CONNECTING;
+                    reconnectDelay.schedule(5_000);
+                    break;
+                }
                 if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY || !GameStateHandler.getInstance().inGarden()) {
                     System.out.println("Reconnected to lobby!");
                     LogUtils.sendDebug("[Reconnect] Came back to lobby!");
@@ -146,6 +152,12 @@ public class AutoReconnect implements IFeature {
                 }
                 break;
             case GARDEN:
+                if (reconnectDelay.isScheduled() && !reconnectDelay.passed()) return;
+                if (mc.thePlayer == null) {
+                    state = State.CONNECTING;
+                    reconnectDelay.schedule(5_000);
+                    break;
+                }
                 if (GameStateHandler.getInstance().inGarden()) {
                     System.out.println("Reconnected to garden!");
                     LogUtils.sendDebug("[Reconnect] Came back to garden!");

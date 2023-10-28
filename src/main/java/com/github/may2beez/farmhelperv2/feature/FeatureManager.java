@@ -72,6 +72,15 @@ public class FeatureManager {
         });
     }
 
+    public void disableAllExcept(IFeature ...sender) {
+        features.forEach(feature -> {
+            if (feature.isToggled() && feature.isRunning() && !Arrays.asList(sender).contains(feature)) {
+                feature.stop();
+                LogUtils.sendDebug("Disabled feature: " + feature.getName());
+            }
+        });
+    }
+
     public void resetAllStates() {
         features.forEach(IFeature::resetStatesAfterMacroDisabled);
     }

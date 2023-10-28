@@ -872,6 +872,13 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean visitorsMacro = false;
 
+    @Slider(
+            name = "Minimum Visitors to start the macro", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+            description = "The minimum amount of visitors to start the macro",
+            min = 1, max = 5
+    )
+    public static int visitorsMacroMinVisitors = 5;
+
     @DualOption(
             name = "Visitors Macro Action", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "The action to take when a Visitors Macro has been triggered",
@@ -1380,7 +1387,6 @@ public class FarmHelperConfig extends Config {
         this.addDependency("statusUpdateInterval", "enableWebHook");
         this.addDependency("webHookURL", "enableWebHook");
         this.addDependency("enableRemoteControl", "Enable Remote Control", () -> Loader.isModLoaded("farmhelperjdadependency"));
-        this.addDependency("discordRemoteControlToken", "enableRemoteControl");
         this.addDependency("discordRemoteControlAddress", "enableRemoteControl");
         this.addDependency("remoteControlPort", "enableRemoteControl");
 
