@@ -3,7 +3,6 @@ package com.github.may2beez.farmhelperv2.util;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-// Stolen from ShadyAddons
 public class ReflectionUtils {
 
     public static boolean invoke(Object object, String methodName) {

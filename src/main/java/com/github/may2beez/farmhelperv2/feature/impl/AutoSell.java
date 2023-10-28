@@ -136,6 +136,10 @@ public class AutoSell implements IFeature {
 
     public void enable(boolean manually) {
         if (enabled && !manually) return;
+        if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) {
+            LogUtils.sendError("[Auto Sell] You don't have cookie buff active!");
+            return;
+        }
         this.manually = manually;
         mc.thePlayer.closeScreen();
         LogUtils.sendWarning("[Auto Sell] Enabling Auto Sell");
@@ -190,7 +194,10 @@ public class AutoSell implements IFeature {
         if (!isToggled() && !manually) return;
         if (!isRunning()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
-        if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) return;
+        if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) {
+            stop();
+            return;
+        }
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
 
         if (delayClock.isScheduled() && !delayClock.passed()) return;
@@ -438,39 +445,10 @@ public class AutoSell implements IFeature {
                             return;
                         }
 
-//                        for (int i = inv.getSizeInventory(); i < chest.inventorySlots.size(); i++) {
-//                            if (inv.getStackInSlot(i) == null) continue;
-//                            ItemStack slot = inv.getStackInSlot(i);
-//                            String name = StringUtils.stripControlCodes(slot.getDisplayName());
-//                            if (!shouldSell(name)) continue;
-//                            LogUtils.sendDebug("[Auto Sell] Selling " + name);
-//                            InventoryUtils.clickSlotWithId(i, InventoryUtils.ClickType.RIGHT, InventoryUtils.ClickMode.PICKUP, chest.windowId);
-//                            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-//                            return;
-//                        }
-
                         LogUtils.sendDebug("[Auto Sell] Nothing to sell, closing Trades menu");
                         mc.thePlayer.closeScreen();
                         setNpcState(NPCState.CLOSE_MENU);
                         delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-
-//                        ArrayList<Slot> inventory = InventoryUtils.getIndexesOfItemsFromInventory(this::shouldSell);
-//                        LogUtils.sendDebug("[Auto Sell] Found " + inventory.size() + " items to sell");
-//                        if (inventory.isEmpty()) {
-//                            LogUtils.sendDebug("[Auto Sell] Nothing to sell, closing Trades menu");
-//                            mc.thePlayer.closeScreen();
-//                            setNpcState(NPCState.CLOSE_MENU);
-//                            if (FarmHelperConfig.autoSellSacks && !emptySacks)
-//                                setSacksState(SacksState.OPEN_MENU);
-//                            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-//                            break;
-//                        }
-//
-//                        Slot slot = inventory.get(0);
-//                        int slotNumber = mc.thePlayer.openContainer.inventorySlots.size() - 36 + slot.slotNumber;
-//                        LogUtils.sendDebug("[Auto Sell] Selling " + slot.getStack().getDisplayName() + " slotNumber: " + slotNumber);
-//                        InventoryUtils.clickContainerSlot(slotNumber, InventoryUtils.ClickType.RIGHT, InventoryUtils.ClickMode.PICKUP);
-//                        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                         break;
                     case CLOSE_MENU:
                         if (mc.currentScreen == null) {
@@ -499,14 +477,11 @@ public class AutoSell implements IFeature {
     @SubscribeEvent
     public void onKeypress(InputEvent.KeyInputEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!isToggled()) return;
         if (!isRunning()) return;
-        if (!GameStateHandler.getInstance().inGarden()) return;
 
         if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
             LogUtils.sendWarning("[Auto Sell] Stopping Auto Sell manually");
             stop();
-            event.setCanceled(true);
         }
     }
 
