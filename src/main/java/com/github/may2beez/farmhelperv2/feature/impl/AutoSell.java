@@ -199,7 +199,7 @@ public class AutoSell implements IFeature {
             stop();
             return;
         }
-        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
+        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this, VisitorsMacro.getInstance())) return;
 
         if (delayClock.isScheduled() && !delayClock.passed()) return;
 

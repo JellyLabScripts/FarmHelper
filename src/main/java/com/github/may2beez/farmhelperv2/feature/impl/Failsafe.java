@@ -122,10 +122,11 @@ public class Failsafe implements IFeature {
 
     @Override
     public void stop() {
+        if (emergency != EmergencyType.TEST)
+            AudioManager.getInstance().resetSound();
         emergency = EmergencyType.NONE;
         emergencyQueue.clear();
         chooseEmergencyDelay.reset();
-        AudioManager.getInstance().resetSound();
         failsafeDelay.reset();
         lookAroundTimes = 0;
         currentLookAroundTimes = 0;
@@ -161,7 +162,7 @@ public class Failsafe implements IFeature {
     @SubscribeEvent
     public void onTickChooseEmergency(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (!MacroHandler.getInstance().isMacroToggled() && !emergencyQueue.contains(EmergencyType.TEST)) return;
         if (isEmergency()) return;
         if (emergencyQueue.isEmpty()) return;
         if (chooseEmergencyDelay.isScheduled() && !chooseEmergencyDelay.passed()) return;
@@ -207,7 +208,7 @@ public class Failsafe implements IFeature {
     @SubscribeEvent
     public void onTickFailsafe(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (!MacroHandler.getInstance().isMacroToggled() && emergency != EmergencyType.TEST) return;
         if (!isEmergency()) return;
         if (failsafeDelay.isScheduled() && !failsafeDelay.passed()) return;
 
