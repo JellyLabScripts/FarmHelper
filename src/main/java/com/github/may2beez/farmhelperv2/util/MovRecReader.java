@@ -17,7 +17,6 @@ public class MovRecReader {
     private static boolean isMovementReading = false;
     private static int currentDelay = 0;
     private static int playingIndex = 0;
-    private static String recordingName = "";
     static Minecraft mc = Minecraft.getMinecraft();
     private static RotationUtils rotateBeforePlaying = new RotationUtils();
     private static RotationUtils rotateDuringPlaying = new RotationUtils();

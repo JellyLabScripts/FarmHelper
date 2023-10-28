@@ -86,7 +86,7 @@ public class AutoUpdaterGUI extends GuiScreen {
     private void drawOutdatedMessage() {
         float scale = 2;
         GL11.glScalef(scale, scale, 0.0F);
-        this.drawCenteredString(mc.fontRendererObj, "Outdated version of FarmHelper", (int) (this.width / 2f / scale),
+        this.drawCenteredString(mc.fontRendererObj, "Outdated version of Farm Helper", (int) (this.width / 2f / scale),
                 (int) (30 / scale), Color.RED.darker().getRGB());
         GL11.glScalef(1.0F / scale, 1.0F / scale, 0.0F);
     }
@@ -96,7 +96,7 @@ public class AutoUpdaterGUI extends GuiScreen {
         GL11.glScalef(scale, scale, 0.0F);
         Color chroma = Color.getHSBColor((float) ((System.currentTimeMillis() / 10) % 500) / 500, 1, 1);
         OneColor color = new OneColor(chroma.getRed(), chroma.getGreen(), chroma.getBlue(), 255);
-        this.drawCenteredString(mc.fontRendererObj, "Updating FarmHelper... (" + downloadProgress + "%) Please wait",
+        this.drawCenteredString(mc.fontRendererObj, "Updating Farm Helper... (" + downloadProgress + "%) Please wait",
                 (int) (this.width / 2f / scale), (int) (30 / scale),
                 OneColor.HSBAtoARGB(color.getHue(), color.getSaturation(), color.getBrightness(), color.getAlpha()));
         GL11.glScalef(1.0F / scale, 1.0F / scale, 0.0F);
@@ -105,7 +105,7 @@ public class AutoUpdaterGUI extends GuiScreen {
     private void drawUpdateCompletedMessage() {
         float scale = 2;
         GL11.glScalef(scale, scale, 0.0F);
-        this.drawCenteredString(mc.fontRendererObj, "FarmHelper has been updated!", (int) (this.width / 2f / scale),
+        this.drawCenteredString(mc.fontRendererObj, "Farm Helper has been updated!", (int) (this.width / 2f / scale),
                 (int) (30 / scale), Color.GREEN.getRGB());
         GL11.glScalef(1.0F / scale, 1.0F / scale, 0.0F);
     }
@@ -327,7 +327,7 @@ public class AutoUpdaterGUI extends GuiScreen {
                     String versionWithoutPre = versionWithoutCommit.replaceAll("-pre", "");
 
                     if (!versionWithoutCommit.contains("-pre") && FarmHelper.VERSION.equals(versionWithoutCommit + "-pre")) { // ignore Intellij warning
-                        System.out.println("This FarmHelper pre-release version is older than the latest release version.");
+                        System.out.println("This Farm Helper pre-release version is older than the latest release version.");
                         isOutdated = true;
                     }
 
@@ -348,10 +348,10 @@ public class AutoUpdaterGUI extends GuiScreen {
                         return;
                     }
                     if (compareVersions(versionWithoutPre) == 0) {
-                        System.out.println("FarmHelper is up to date.");
+                        System.out.println("Farm Helper is up to date.");
                     }
                     else if (compareVersions(versionWithoutPre) < 0) {
-                        System.out.println("FarmHelper is newer than the latest full release version.");
+                        System.out.println("Farm Helper is newer than the latest full release version.");
                     }
                 } else {
                     System.out.println("No releases found for the repository.");

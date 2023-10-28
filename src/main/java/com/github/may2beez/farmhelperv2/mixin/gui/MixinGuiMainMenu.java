@@ -1,6 +1,8 @@
 package com.github.may2beez.farmhelperv2.mixin.gui;
 
+import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.gui.AutoUpdaterGUI;
+import com.github.may2beez.farmhelperv2.gui.WelcomeGUI;
 import net.minecraft.client.gui.GuiMainMenu;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,6 +18,9 @@ public class MixinGuiMainMenu {
     @Final
     @Inject(method = "updateScreen", at = @At("RETURN"))
     private void initGui(CallbackInfo ci) {
+        if (!FarmHelperConfig.shownWelcomeGUI) {
+            WelcomeGUI.showGUI();
+        }
         if (!AutoUpdaterGUI.checkedForUpdates) {
             AutoUpdaterGUI.checkedForUpdates = true;
             AutoUpdaterGUI.getLatestVersion();

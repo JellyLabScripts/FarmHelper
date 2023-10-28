@@ -1305,6 +1305,11 @@ public class FarmHelperConfig extends Config {
     @Number(name = "Config Version", category = EXPERIMENTAL, subcategory = "Experimental", min = 0, max = 1337)
     public static int configVersion = 1;
 
+    @Switch(
+            name = "Shown Welcome GUI", category = EXPERIMENTAL, subcategory = "Experimental"
+    )
+    public static boolean shownWelcomeGUI = false;
+
     public FarmHelperConfig() {
         super(new Mod("Farm Helper", ModType.HYPIXEL, "/farmhelper/icon-mod/icon.png"), "/farmhelper/config.json");
         initialize();
