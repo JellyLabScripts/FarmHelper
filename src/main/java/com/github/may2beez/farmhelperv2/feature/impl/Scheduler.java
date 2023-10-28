@@ -56,7 +56,7 @@ public class Scheduler implements IFeature {
     @Override
     public void start() {
         schedulerState = SchedulerState.FARMING;
-        schedulerClock.schedule((long) (FarmHelperConfig.schedulerFarmingTime * 1_000f + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness * 1_000f)));
+        schedulerClock.schedule((long) (FarmHelperConfig.schedulerFarmingTime * 60_000f + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness * 60_000f)));
         if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) {
             schedulerClock.pause();
         }
@@ -133,7 +133,7 @@ public class Scheduler implements IFeature {
             LogUtils.sendDebug("[Scheduler] Farming time has passed, stopping");
             MacroHandler.getInstance().pauseMacro();
             schedulerState = SchedulerState.BREAK;
-            schedulerClock.schedule((long) ((FarmHelperConfig.schedulerBreakTime * 1_000f) + (Math.random() * (FarmHelperConfig.schedulerBreakTimeRandomness * 1_000f))));
+            schedulerClock.schedule((long) ((FarmHelperConfig.schedulerBreakTime * 60_000f) + (Math.random() * (FarmHelperConfig.schedulerBreakTimeRandomness * 60_000f))));
             if (FarmHelperConfig.openInventoryOnSchedulerBreaks) {
                 long randomTime4 = FarmHelperConfig.getRandomRotationTime();
                 this.rotation.easeTo((float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30), (float) (30 + Math.random() * 20 - 10), randomTime4);
@@ -145,7 +145,7 @@ public class Scheduler implements IFeature {
                 mc.thePlayer.closeScreen();
             }
             schedulerState = SchedulerState.FARMING;
-            schedulerClock.schedule((long)((FarmHelperConfig.schedulerFarmingTime * 1_000f) + (Math.random() * (FarmHelperConfig.schedulerFarmingTimeRandomness * 1_000f))));
+            schedulerClock.schedule((long)((FarmHelperConfig.schedulerFarmingTime * 60_000f) + (Math.random() * (FarmHelperConfig.schedulerFarmingTimeRandomness * 60_000f))));
             MacroHandler.getInstance().resumeMacro();
         }
     }
