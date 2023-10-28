@@ -17,6 +17,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemTool;
 import net.minecraft.util.StringUtils;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -482,6 +483,17 @@ public class AutoSell implements IFeature {
         if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
             LogUtils.sendWarning("[Auto Sell] Stopping Auto Sell manually");
             stop();
+        }
+    }
+
+    @SubscribeEvent
+    public void onChatReceived(ClientChatReceivedEvent event) {
+        if (!enabled) return;
+        if (event.type != 0) return;
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        if (message.contains("You do not have the Sack of Sacks unlocked!")) {
+            emptySacks = true;
+            sacksState = SacksState.CLOSE_MENU;
         }
     }
 
