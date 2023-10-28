@@ -738,10 +738,16 @@ public class FarmHelperConfig extends Config {
     public static int schedulerBreakTimeRandomness = 0;
 
     @Switch(
-            name = "Pause the scheduler during Jacob's Contest", category = SCHEDULER, subcategory = "Scheduler", size = OptionSize.DUAL,
+            name = "Pause the scheduler during Jacob's Contest", category = SCHEDULER, subcategory = "Scheduler",
             description = "Pauses and delays the scheduler during Jacob's Contest"
     )
     public static boolean pauseSchedulerDuringJacobsContest = true;
+
+    @Switch(
+            name = "Open inventory on scheduler breaks", category = SCHEDULER, subcategory = "Scheduler",
+            description = "Opens inventory on scheduler breaks"
+    )
+    public static boolean openInventoryOnSchedulerBreaks = true;
 
     @Switch(
             name = "Enable leave timer", category = SCHEDULER, subcategory = "Leave Timer",

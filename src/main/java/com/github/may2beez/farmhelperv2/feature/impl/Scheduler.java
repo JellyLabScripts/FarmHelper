@@ -1,14 +1,18 @@
 package com.github.may2beez.farmhelperv2.feature.impl;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
+import com.github.may2beez.farmhelperv2.util.InventoryUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
+import com.github.may2beez.farmhelperv2.util.RotationUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -23,6 +27,8 @@ public class Scheduler implements IFeature {
         }
         return instance;
     }
+
+    private final RotationUtils rotation = new RotationUtils();
 
     @Getter
     private final Clock schedulerClock = new Clock();
@@ -50,7 +56,7 @@ public class Scheduler implements IFeature {
     @Override
     public void start() {
         schedulerState = SchedulerState.FARMING;
-        schedulerClock.schedule(TimeUnit.MINUTES.toMillis(FarmHelperConfig.schedulerFarmingTime));
+        schedulerClock.schedule((long) (FarmHelperConfig.schedulerFarmingTime * 1_000f + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness * 1_000f)));
         if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) {
             schedulerClock.pause();
         }
@@ -127,12 +133,27 @@ public class Scheduler implements IFeature {
             LogUtils.sendDebug("[Scheduler] Farming time has passed, stopping");
             MacroHandler.getInstance().pauseMacro();
             schedulerState = SchedulerState.BREAK;
-            schedulerClock.schedule(TimeUnit.MINUTES.toMillis((long) (FarmHelperConfig.schedulerBreakTime + (Math.random() * FarmHelperConfig.schedulerBreakTimeRandomness))));
+            schedulerClock.schedule((long) ((FarmHelperConfig.schedulerBreakTime * 1_000f) + (Math.random() * (FarmHelperConfig.schedulerBreakTimeRandomness * 1_000f))));
+            if (FarmHelperConfig.openInventoryOnSchedulerBreaks) {
+                long randomTime4 = FarmHelperConfig.getRandomRotationTime();
+                this.rotation.easeTo((float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30), (float) (30 + Math.random() * 20 - 10), randomTime4);
+                Multithreading.schedule(InventoryUtils::openInventory, randomTime4 + 250, TimeUnit.MILLISECONDS);
+            }
         } else if (MacroHandler.getInstance().isMacroToggled() && schedulerState == SchedulerState.BREAK && !schedulerClock.isPaused() && schedulerClock.passed()) {
             LogUtils.sendDebug("[Scheduler] Break time has passed, starting");
+            if (mc.currentScreen != null) {
+                mc.thePlayer.closeScreen();
+            }
             schedulerState = SchedulerState.FARMING;
-            schedulerClock.schedule(TimeUnit.MINUTES.toMillis((long)(FarmHelperConfig.schedulerFarmingTime + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness))));
+            schedulerClock.schedule((long)((FarmHelperConfig.schedulerFarmingTime * 1_000f) + (Math.random() * (FarmHelperConfig.schedulerFarmingTimeRandomness * 1_000f))));
             MacroHandler.getInstance().resumeMacro();
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderWorldLast(RenderWorldLastEvent event) {
+        if (rotation.rotating) {
+            rotation.update();
         }
     }
 }
