@@ -192,6 +192,13 @@ public class Failsafe implements IFeature {
         if (!restartMacroAfterFailsafeDelay.isScheduled()) return;
 
         if (restartMacroAfterFailsafeDelay.passed()) {
+            if (mc.currentScreen != null) {
+                mc.thePlayer.closeScreen();
+                if (UngrabMouse.getInstance().isToggled()) {
+                    UngrabMouse.getInstance().regrabMouse();
+                    UngrabMouse.getInstance().ungrabMouse();
+                }
+            }
             LogUtils.sendDebug("[Failsafe] Restarting macro...");
             MacroHandler.getInstance().enableMacro();
             Failsafe.getInstance().setHadEmergency(false);
