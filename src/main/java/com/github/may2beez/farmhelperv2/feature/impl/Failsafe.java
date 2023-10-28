@@ -1151,7 +1151,7 @@ public class Failsafe implements IFeature {
                     break;
                 switch (playingState) {
                     case 0:
-                        MovRecReader.playRecording(selectRandomRecordingByName(emergencyName + "_1"));
+                        MovRecReader.playRecording(selectRandomRecordingByName(emergencyName + "_PreChat_"));
                         playingState = 1;
                         break;
                     case 1:
@@ -1193,7 +1193,7 @@ public class Failsafe implements IFeature {
                     break;
                 switch (playingState) {
                     case 2:
-                        MovRecReader.playRecording(selectRandomRecordingByName(emergencyName + "_2"));
+                        MovRecReader.playRecording(selectRandomRecordingByName(emergencyName + "_PostChat_"));
                         playingState = 3;
                         break;
                     case 3:

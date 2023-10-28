@@ -11,6 +11,7 @@ import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.remote.DiscordBotHandler;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.fml.common.Loader;
 
 import java.util.List;
 
@@ -40,7 +41,7 @@ public class StatusHUD extends TextHud {
             if (LeaveTimer.getInstance().isRunning())
                 lines.add("Leaving in " + LogUtils.formatTime(Math.max(LeaveTimer.leaveClock.getRemainingTime(), 0)));
 
-            if (FarmHelperConfig.enableRemoteControl) {
+            if (FarmHelperConfig.enableRemoteControl && Loader.isModLoaded("farmhelperjdadependency")) {
                 lines.add("");
                 lines.add(DiscordBotHandler.getInstance().getConnectingState());
             }

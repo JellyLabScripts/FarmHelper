@@ -20,6 +20,7 @@ import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -80,7 +81,8 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(BanInfoWS.getInstance());
         MinecraftForge.EVENT_BUS.register(TickTask.getInstance());
         MinecraftForge.EVENT_BUS.register(WebsocketHandler.getInstance());
-        MinecraftForge.EVENT_BUS.register(DiscordBotHandler.getInstance());
+        if (Loader.isModLoaded("farmhelperjdadependency"))
+            MinecraftForge.EVENT_BUS.register(DiscordBotHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(AutoReconnect.getInstance());
         MinecraftForge.EVENT_BUS.register(AudioManager.getInstance());
         MinecraftForge.EVENT_BUS.register(Failsafe.getInstance());

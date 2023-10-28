@@ -136,7 +136,7 @@ public class Scheduler implements IFeature {
             schedulerClock.schedule((long) ((FarmHelperConfig.schedulerBreakTime * 60_000f) + (Math.random() * FarmHelperConfig.schedulerBreakTimeRandomness * 60_000f)));
             if (FarmHelperConfig.openInventoryOnSchedulerBreaks) {
                 long randomTime4 = FarmHelperConfig.getRandomRotationTime();
-                this.rotation.easeTo((float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30), (float) (30 + Math.random() * 20 - 10), randomTime4);
+                this.rotation.easeTo((float) (mc.thePlayer.rotationYaw + Math.random() * 20 - 10), (float) (20 + Math.random() * 10 - 5), randomTime4);
                 Multithreading.schedule(InventoryUtils::openInventory, randomTime4 + 250, TimeUnit.MILLISECONDS);
             }
         } else if (MacroHandler.getInstance().isMacroToggled() && schedulerState == SchedulerState.BREAK && !schedulerClock.isPaused() && schedulerClock.passed()) {

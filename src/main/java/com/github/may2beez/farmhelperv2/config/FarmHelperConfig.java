@@ -1407,6 +1407,8 @@ public class FarmHelperConfig extends Config {
 
         this.addDependency("leaveTime", "leaveTimer");
 
+        this.hideIf("shownWelcomeGUI", () -> true);
+
         this.hideIf("configVersion", () -> true);
 
         registerKeyBind(openGuiKeybind, this::openGui);
