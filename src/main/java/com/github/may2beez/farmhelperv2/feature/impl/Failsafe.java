@@ -15,7 +15,6 @@ import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import lombok.Getter;
 import lombok.Setter;
-import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
@@ -34,8 +33,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -1086,20 +1084,49 @@ public class Failsafe implements IFeature {
             case TELEPORT_CHECK:
             case ITEM_CHANGE_CHECK:
             case BEDROCK_CAGE_CHECK:
-            if (movementFileExists(emergency.label))
+            if (movementFilesExist(emergency.label))
                 return true;
         }
         return false;
     }
 
-    private boolean movementFileExists(String emergencyName) {
+    private boolean movementFilesExist(String emergencyName) {
         File recordingDir = new File(mc.mcDataDir, "movementrecorder");
         if (recordingDir.exists()) {
-            File recordingFile = new File(recordingDir, emergencyName + "_1.movement");
-            File recordingFile2 = new File(recordingDir, emergencyName + "_2.movement");
-            return recordingFile.exists() && recordingFile2.exists();
+            File[] recordingFiles = recordingDir.listFiles();
+            boolean recordingFile = false;
+            boolean recordingFile2 = false;
+            if (recordingFiles != null) {
+                for (File file : recordingFiles) {
+                    if (file.getName().contains(emergencyName + "_1")) {
+                        recordingFile = true;
+                    } else if (file.getName().contains(emergencyName + "_2")) {
+                        recordingFile2 = true;
+                    }
+                    if (recordingFile && recordingFile2) {
+                        return true;
+                    }
+                }
+            }
         }
         return false;
+    }
+
+    public String selectRandomRecordingByName(String pattern) {
+        File recordingDir = new File(mc.mcDataDir, "movementrecorder");
+        File[] files = recordingDir.listFiles((dir, name) -> name.contains(pattern) && name.endsWith(".movement"));
+        System.out.println(Arrays.toString(files));
+
+        if (files != null && files.length > 0) {
+            List<File> matchingFiles = new ArrayList<>(Arrays.asList(files));
+
+            Random random = new Random();
+            int randomIndex = random.nextInt(matchingFiles.size());
+            System.out.println("Selected recording: " + matchingFiles.get(randomIndex).getName());
+            return matchingFiles.get(randomIndex).getName();
+        }
+
+        return null;
     }
 
     public void playMovementRecording(String emergencyName) {
@@ -1124,7 +1151,7 @@ public class Failsafe implements IFeature {
                     break;
                 switch (playingState) {
                     case 0:
-                        MovRecReader.playRecording(emergencyName + "_1");
+                        MovRecReader.playRecording(selectRandomRecordingByName(emergencyName + "_1"));
                         playingState = 1;
                         break;
                     case 1:
@@ -1166,7 +1193,7 @@ public class Failsafe implements IFeature {
                     break;
                 switch (playingState) {
                     case 2:
-                        MovRecReader.playRecording(emergencyName + "_2");
+                        MovRecReader.playRecording(selectRandomRecordingByName(emergencyName + "_2"));
                         playingState = 3;
                         break;
                     case 3:
