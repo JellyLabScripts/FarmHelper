@@ -143,6 +143,10 @@ public class Scheduler implements IFeature {
             LogUtils.sendDebug("[Scheduler] Break time has passed, starting");
             if (mc.currentScreen != null) {
                 mc.thePlayer.closeScreen();
+                if (UngrabMouse.getInstance().isToggled()) {
+                    UngrabMouse.getInstance().regrabMouse();
+                    UngrabMouse.getInstance().ungrabMouse();
+                }
             }
             schedulerState = SchedulerState.FARMING;
             schedulerClock.schedule((long)((FarmHelperConfig.schedulerFarmingTime * 60_000f) + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness * 60_000f)));
