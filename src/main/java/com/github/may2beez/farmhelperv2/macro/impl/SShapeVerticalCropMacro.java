@@ -190,7 +190,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
             }
 
             if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_COCOA_BEANS_LEFT_RIGHT) {
-                setPitch(90f);
+                setPitch(-90f);
             }
         }
         if (FarmHelperConfig.customYaw) {
