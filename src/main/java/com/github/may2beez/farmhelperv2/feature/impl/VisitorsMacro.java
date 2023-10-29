@@ -189,14 +189,26 @@ public class VisitorsMacro implements IFeature {
             setManuallyStarted(false);
             return;
         }
+        if (forceStart) {
+            if (enableCompactors) {
+                mainState = MainState.VISITORS;
+            } else {
+                mainState = MainState.NONE;
+            }
+            travelState = TravelState.NONE;
+            compactorState = CompactorState.NONE;
+            visitorsState = VisitorsState.NONE;
+            buyState = BuyState.NONE;
+        } else {
+            mainState = MainState.NONE;
+            travelState = TravelState.NONE;
+            compactorState = CompactorState.NONE;
+            visitorsState = VisitorsState.NONE;
+            buyState = BuyState.NONE;
+            enableCompactors = false;
+        }
         enabled = true;
         rejectVisitor = false;
-        enableCompactors = false;
-        mainState = MainState.NONE;
-        travelState = TravelState.NONE;
-        compactorState = CompactorState.NONE;
-        visitorsState = VisitorsState.NONE;
-        buyState = BuyState.NONE;
         if (manuallyStarted || forceStart) {
             setMainState(MainState.TRAVEL);
             setTravelState(TravelState.END);
@@ -866,6 +878,9 @@ public class VisitorsMacro implements IFeature {
                         setVisitorsState(VisitorsState.ROTATE_TO_VISITOR);
                     }
                     break;
+                } else {
+                    LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
+                    setVisitorsState(VisitorsState.ROTATE_TO_VISITOR);
                 }
                 break;
             case GET_LIST:
@@ -1073,6 +1088,9 @@ public class VisitorsMacro implements IFeature {
                         setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
                     }
                     break;
+                } else {
+                    LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
+                    setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
                 }
                 break;
             case FINISH_VISITOR:

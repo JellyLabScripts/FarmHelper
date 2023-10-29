@@ -14,8 +14,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.Loader;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class StatusHUD extends TextHud {
+
+    private boolean jdaDependencyPresent = Loader.isModLoaded("farmhelperjdadependency");
 
     public StatusHUD() {
         super(true, Minecraft.getMinecraft().displayWidth - 100, Minecraft.getMinecraft().displayHeight - 100, 1, true, true, 4f, 5, 5, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
@@ -24,11 +28,10 @@ public class StatusHUD extends TextHud {
     @Override
     protected void getLines(List<String> lines, boolean example) {
         if (example) {
-            lines.add("Idling");
             lines.add("Break for 25m 35s");
             lines.add("Staff bans in last 15 minutes: 999");
             lines.add("FarmHelper's bans in last 15 minutes: 0");
-            lines.set(0, centerText(lines.get(0), scale, true));
+            lines.set(0, centerText(lines.get(0), scale));
         } else {
             lines.add(getStatusString());
 
@@ -41,19 +44,21 @@ public class StatusHUD extends TextHud {
             if (LeaveTimer.getInstance().isRunning())
                 lines.add("Leaving in " + LogUtils.formatTime(Math.max(LeaveTimer.leaveClock.getRemainingTime(), 0)));
 
-            if (FarmHelperConfig.enableRemoteControl && Loader.isModLoaded("farmhelperjdadependency")) {
-                lines.add("");
-                lines.add(DiscordBotHandler.getInstance().getConnectingState());
+            if (FarmHelperConfig.enableRemoteControl && jdaDependencyPresent) {
+                if (!Objects.equals(DiscordBotHandler.getInstance().getConnectingState(), "")) {
+                    lines.add("");
+                    lines.add(DiscordBotHandler.getInstance().getConnectingState());
+                }
             }
 
-            lines.set(0, centerText(lines.get(0), scale, false));
+            lines.set(0, centerText(lines.get(0), scale));
         }
     }
 
-    private String centerText(String text, float scale, boolean example) {
+    private String centerText(String text, float scale) {
+        if (lines == null || lines.isEmpty()) return text;
         float maxTextLength = getLineWidth(text, scale);
-        float maxLongestLine = getWidth(scale, example);
-
+        float maxLongestLine = getWidth(scale, false);
         int difference = (int) (((maxLongestLine - maxTextLength) / 3.5f) / (2 * scale)) - 1;
         return (difference > 0) ? new String(new char[difference]).replace("\0", " ") + text : text;
     }

@@ -40,7 +40,7 @@ public class DiscordBotHandler extends ListenerAdapter {
 
     @Getter
     @Setter
-    private String connectingState;
+    private String connectingState = "";
 
     @Getter
     @Setter
