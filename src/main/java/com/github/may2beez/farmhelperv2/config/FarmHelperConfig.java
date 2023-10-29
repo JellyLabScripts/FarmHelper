@@ -1299,13 +1299,6 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean disableFastBreakDuringJacobsContest = true;
 
-    @Dropdown(
-            name = "Alt-tab mode", category = EXPERIMENTAL, subcategory = "Miscellaneous",
-            description = "The mode to use when alt-tabbing. Using keys is more reliable, but it's slower. Using WINAPI is faster, but it's less reliable and Windows only. It also maximizes the game window.",
-            options = {"Using keys", "Using WINAPI (Windows only)"}
-    )
-    public static int autoAltTabMode = 0;
-
     // END EXPERIMENTAL
 
 

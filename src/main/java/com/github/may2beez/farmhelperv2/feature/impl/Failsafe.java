@@ -178,6 +178,8 @@ public class Failsafe implements IFeature {
         }
 
         AudioManager.getInstance().playSound();
+        if (FarmHelperConfig.autoAltTab)
+            FailsafeUtils.bringWindowToFront();
         emergency = tempEmergency;
         emergencyQueue.clear();
         chooseEmergencyDelay.reset();
