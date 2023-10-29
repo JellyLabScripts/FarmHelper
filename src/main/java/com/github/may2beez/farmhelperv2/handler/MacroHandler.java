@@ -230,6 +230,7 @@ public class MacroHandler {
             analyticsTimer.resume();
             Scheduler.getInstance().resume();
             if (UngrabMouse.getInstance().isToggled()) {
+                System.out.println("Regrabbing mouse");
                 UngrabMouse.getInstance().regrabMouse();
                 UngrabMouse.getInstance().ungrabMouse();
             }

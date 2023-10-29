@@ -1,6 +1,7 @@
 package com.github.may2beez.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
+import cc.polyfrost.oneconfig.utils.Notifications;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.github.may2beez.farmhelperv2.event.BlockChangeEvent;
@@ -30,6 +31,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 
 import java.awt.*;
 import java.io.File;
@@ -65,6 +67,7 @@ public class Failsafe implements IFeature {
         BEDROCK_CAGE_CHECK("You've got§l BEDROCK CAGED§r§d by staff member!", 1),
         EVACUATE("Server is restarting! Evacuate!", 1),
         BANWAVE("Banwave has been detected!", 6),
+        DISCONNECT("You've been§l DISCONNECTED§r§d from the server!", 1),
         JACOB("You've extended the §lJACOB COUNTER§r§d!", 7);
 
         final String label;
@@ -161,7 +164,7 @@ public class Failsafe implements IFeature {
 
     @SubscribeEvent
     public void onTickChooseEmergency(TickEvent.ClientTickEvent event) {
-        if (mc.thePlayer == null || mc.theWorld == null) return;
+//        if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!MacroHandler.getInstance().isMacroToggled() && !emergencyQueue.contains(EmergencyType.TEST)) return;
         if (isEmergency()) return;
         if (emergencyQueue.isEmpty()) return;
@@ -203,7 +206,7 @@ public class Failsafe implements IFeature {
 
     @SubscribeEvent
     public void onTickFailsafe(TickEvent.ClientTickEvent event) {
-        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if ((mc.thePlayer == null || mc.theWorld == null) && emergency != EmergencyType.DISCONNECT) return;
         if (!MacroHandler.getInstance().isMacroToggled() && emergency != EmergencyType.TEST) return;
         if (!isEmergency()) return;
         if (failsafeDelay.isScheduled() && !failsafeDelay.passed()) return;
@@ -243,6 +246,9 @@ public class Failsafe implements IFeature {
                 break;
             case JACOB:
                 onJacobCheck();
+                break;
+            case DISCONNECT:
+                onDisconnect();
                 break;
         }
     }
@@ -665,12 +671,12 @@ public class Failsafe implements IFeature {
         if (event.type != 0) return;
         if (!FarmHelperConfig.autoEvacuateOnWorldUpdate) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        System.out.println(getNumberOfCharactersInString(message));
         if (getNumberOfCharactersInString(message) > 1) return;
         if (evacuateState != EvacuateState.NONE) return;
 
-
         if (message.contains("to warp out! CLICK to warp now!")) {
-            evacuateState = EvacuateState.EVACUATE_FROM_ISLAND;
+            addEmergency(EmergencyType.EVACUATE);
         }
     }
 
@@ -690,7 +696,7 @@ public class Failsafe implements IFeature {
                 int seconds = Integer.parseInt(matcher.group("seconds"));
                 System.out.println(minutes + " " + seconds);
                 if (minutes == 0 && seconds <= 30) {
-                    evacuateState = EvacuateState.EVACUATE_FROM_ISLAND;
+                    addEmergency(EmergencyType.EVACUATE);
                 }
             }
         }
@@ -1055,6 +1061,38 @@ public class Failsafe implements IFeature {
 
     private void resetBedrockCageCheck() {
         bedrockCageState = BedrockCageState.NONE;
+    }
+
+    // endregion
+
+    // region DISCONNECT
+
+    @SubscribeEvent
+    public void onDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+        if (firstCheckReturn()) return;
+        if (MacroHandler.getInstance().isTeleporting()) return;
+        if (emergency != EmergencyType.NONE) return;
+        if (BanInfoWS.getInstance().isBanwave() && FarmHelperConfig.enableLeavePauseOnBanwave && !FarmHelperConfig.banwaveAction) return;
+
+        addEmergency(EmergencyType.DISCONNECT);
+    }
+
+    private void onDisconnect() {
+        if (!AutoReconnect.getInstance().isRunning() && AutoReconnect.getInstance().isToggled()) {
+            System.out.println("[Reconnect] Disconnected from server! Trying to reconnect...");
+            Notifications.INSTANCE.send("Farm Helper", "Disconnected from server! Trying to reconnect...");
+            AutoReconnect.getInstance().getReconnectDelay().schedule(5_000);
+            AutoReconnect.getInstance().start();
+        } else if (!AutoReconnect.getInstance().isRunning() && !AutoReconnect.getInstance().isToggled()) {
+            System.out.println("[Reconnect] Disconnected from server! Stopping macro...");
+            Notifications.INSTANCE.send("Farm Helper", "Disconnected from server! Stopping macro...");
+            MacroHandler.getInstance().disableMacro();
+            stop();
+        } else if (AutoReconnect.getInstance().isRunning()) {
+            System.out.println("[Reconnect] Disconnected from server! Reconnect is already running!");
+            Notifications.INSTANCE.send("Farm Helper", "Disconnected from server! Reconnect is already running!");
+            stop();
+        }
     }
 
     // endregion

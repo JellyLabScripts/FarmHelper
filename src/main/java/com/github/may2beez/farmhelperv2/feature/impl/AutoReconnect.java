@@ -79,19 +79,20 @@ public class AutoReconnect implements IFeature {
     @Override
     public void start() {
         if (enabled) return;
+        Failsafe.getInstance().stop();
+        FeatureManager.getInstance().disableAllExcept(this);
+        if (MacroHandler.getInstance().isMacroToggled()) {
+            MacroHandler.getInstance().pauseMacro();
+            macroWasToggled = true;
+        }
+        enabled = true;
         try {
             mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText("Reconnecting in " + LogUtils.formatTime(reconnectDelay.getRemainingTime())));
         } catch (Exception e) {
             e.printStackTrace();
         }
-        enabled = true;
         state = State.CONNECTING;
         LogUtils.sendDebug("[Reconnect] Reconnecting to server...");
-        FeatureManager.getInstance().disableAllExcept(this, Failsafe.getInstance());
-        if (MacroHandler.getInstance().isMacroToggled()) {
-            MacroHandler.getInstance().pauseMacro();
-            macroWasToggled = true;
-        }
     }
 
     @Override
@@ -104,6 +105,10 @@ public class AutoReconnect implements IFeature {
         if (macroWasToggled) {
             MacroHandler.getInstance().resumeMacro();
             macroWasToggled = false;
+            if (UngrabMouse.getInstance().isToggled()) {
+                UngrabMouse.getInstance().regrabMouse(true);
+                UngrabMouse.getInstance().ungrabMouse();
+            }
         }
     }
 
@@ -184,6 +189,9 @@ public class AutoReconnect implements IFeature {
         if (!(mc.currentScreen instanceof GuiDisconnected)) return;
 
         if (Keyboard.getEventKey() == Keyboard.KEY_ESCAPE) {
+            macroWasToggled = false;
+            if (MacroHandler.getInstance().isMacroToggled())
+                MacroHandler.getInstance().disableMacro();
             stop();
             mc.displayGuiScreen(new GuiMainMenu());
         }

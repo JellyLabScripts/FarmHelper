@@ -3,10 +3,7 @@ package com.github.may2beez.farmhelperv2.macro;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
-import com.github.may2beez.farmhelperv2.feature.impl.DesyncChecker;
-import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
-import com.github.may2beez.farmhelperv2.feature.impl.LagDetector;
-import com.github.may2beez.farmhelperv2.feature.impl.VisitorsMacro;
+import com.github.may2beez.farmhelperv2.feature.impl.*;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.*;
@@ -205,6 +202,7 @@ public abstract class AbstractMacro {
         if (VisitorsMacro.getInstance().isToggled()) {
             VisitorsMacro.getInstance().start();
         }
+        AntiStuck.getInstance().getDontCheckForAntistuckClock().schedule(2_000);
     }
 
     public void onDisable() {

@@ -1420,7 +1420,8 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
 //        registerKeyBind(debugKeybind, () -> {
-//            LogUtils.sendDebug("dupa");
+//            Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.BANWAVE);
+//            BanInfoWS.getInstance().setBans(1000);
 //        });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
 //		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));

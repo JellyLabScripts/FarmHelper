@@ -7,6 +7,7 @@ import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.InventoryUtils;
+import com.github.may2beez.farmhelperv2.util.KeyBindUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.RotationUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
@@ -135,9 +136,12 @@ public class Scheduler implements IFeature {
             schedulerState = SchedulerState.BREAK;
             schedulerClock.schedule((long) ((FarmHelperConfig.schedulerBreakTime * 60_000f) + (Math.random() * FarmHelperConfig.schedulerBreakTimeRandomness * 60_000f)));
             if (FarmHelperConfig.openInventoryOnSchedulerBreaks) {
-                long randomTime4 = FarmHelperConfig.getRandomRotationTime();
-                this.rotation.easeTo((float) (mc.thePlayer.rotationYaw + Math.random() * 20 - 10), (float) (20 + Math.random() * 10 - 5), randomTime4);
-                Multithreading.schedule(InventoryUtils::openInventory, randomTime4 + 250, TimeUnit.MILLISECONDS);
+                KeyBindUtils.stopMovement();
+                Multithreading.schedule(() -> {
+                    long randomTime4 = FarmHelperConfig.getRandomRotationTime();
+                    this.rotation.easeTo((float) (mc.thePlayer.rotationYaw + Math.random() * 20 - 10), (float) (20 + Math.random() * 10 - 5), randomTime4);
+                    Multithreading.schedule(InventoryUtils::openInventory, randomTime4 + 250, TimeUnit.MILLISECONDS);
+                }, (long) (200 + Math.random() * 200), TimeUnit.MILLISECONDS);
             }
         } else if (MacroHandler.getInstance().isMacroToggled() && schedulerState == SchedulerState.BREAK && !schedulerClock.isPaused() && schedulerClock.passed()) {
             LogUtils.sendDebug("[Scheduler] Break time has passed, starting");

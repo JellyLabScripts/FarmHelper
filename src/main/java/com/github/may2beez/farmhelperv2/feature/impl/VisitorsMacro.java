@@ -232,6 +232,9 @@ public class VisitorsMacro implements IFeature {
         if (FarmHelperConfig.onlyAcceptProfitableVisitors) {
             LogUtils.sendDebug("[Visitors Macro] Only accepting profitable rewards. " + String.join(", ", profitRewards));
         }
+        if (MacroHandler.getInstance().isMacroToggled()) {
+            MacroHandler.getInstance().pauseMacro();
+        }
     }
 
     @Override

@@ -43,9 +43,15 @@ public class UngrabMouse implements IFeature {
     }
 
     public void regrabMouse() {
-        if (!mouseUngrabbed) return;
+        regrabMouse(false);
+    }
+
+    public void regrabMouse(boolean force) {
+        if (!mouseUngrabbed && !force) return;
         mc.mouseHelper = oldMouseHelper;
-        mc.mouseHelper.grabMouseCursor();
+        if (mc.currentScreen == null || force) {
+            mc.mouseHelper.grabMouseCursor();
+        }
         mouseUngrabbed = false;
     }
 
