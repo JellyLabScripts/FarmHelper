@@ -106,6 +106,7 @@ public class MacroHandler {
             case S_PUMPKIN_MELON_MELONGKINGDE:
             case S_CACTUS:
             case S_CACTUS_SUNTZU:
+            case S_COCOA_BEANS_LEFT_RIGHT:
                 return Macros.S_SHAPE_VERTICAL_CROP_MACRO.getMacro();
             case S_PUMPKIN_MELON_DEFAULT_PLOT:
                 return Macros.S_SHAPE_MELON_PUMPKIN_DEFAULT_MACRO.getMacro();

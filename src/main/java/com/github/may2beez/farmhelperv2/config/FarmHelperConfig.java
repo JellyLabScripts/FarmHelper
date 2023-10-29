@@ -67,6 +67,7 @@ public class FarmHelperConfig extends Config {
         S_CACTUS,
         S_CACTUS_SUNTZU,
         S_COCOA_BEANS,
+        S_COCOA_BEANS_LEFT_RIGHT,
         S_MUSHROOM,
         S_MUSHROOM_ROTATE
     }
@@ -149,8 +150,9 @@ public class FarmHelperConfig extends Config {
                     "S Shape - Cactus", // 5
                     "S Shape - Cactus SunTzu Black Cat", // 6
                     "S Shape - Cocoa Beans", // 7
-                    "S Shape - Mushroom (45°)", // 8
-                    "S Shape - Mushroom (30° with rotations)", // 9
+                    "S Shape - Cocoa Beans (Left/Right)", // 8
+                    "S Shape - Mushroom (45°)", // 9
+                    "S Shape - Mushroom (30° with rotations)", // 10
             }, size = 2
     )
     public static int macroType = 0;

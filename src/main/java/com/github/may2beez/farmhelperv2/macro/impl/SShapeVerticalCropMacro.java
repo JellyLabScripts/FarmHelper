@@ -188,6 +188,10 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
             if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_CACTUS_SUNTZU) {
                 setPitch((float) (-38 - Math.random() * 1.5f)); // -38 - -39.5
             }
+
+            if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_COCOA_BEANS_LEFT_RIGHT) {
+                setPitch(90f);
+            }
         }
         if (FarmHelperConfig.customYaw) {
             setYaw(FarmHelperConfig.customYawLevel);
