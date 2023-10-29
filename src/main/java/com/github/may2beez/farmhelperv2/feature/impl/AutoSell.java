@@ -15,6 +15,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemArmor;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemTool;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -404,6 +406,11 @@ public class AutoSell implements IFeature {
             case NPC:
                 switch (npcState) {
                     case NONE:
+                        if (!hasAnythingToSell()) {
+                            LogUtils.sendDebug("[Auto Sell] Nothing to sell, disabling Auto Sell");
+                            stop();
+                            break;
+                        }
                         setNpcState(NPCState.OPEN_MENU);
                         break;
                     case OPEN_MENU:
@@ -438,7 +445,7 @@ public class AutoSell implements IFeature {
                         for (Slot slot : chest.inventorySlots) {
                             if (slot == null || !slot.getHasStack() || slot.slotNumber < inv.getSizeInventory()) continue;
                             String name = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
-                            if (slot.getStack().getItem() instanceof ItemTool) return;
+                            if (slot.getStack().getItem() instanceof ItemTool) continue;
                             if (!shouldSell(name)) continue;
                             LogUtils.sendDebug("[Auto Sell] Selling " + name);
                             InventoryUtils.clickSlotWithId(slot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP, chest.windowId);
@@ -453,7 +460,7 @@ public class AutoSell implements IFeature {
                         break;
                     case CLOSE_MENU:
                         if (mc.currentScreen == null) {
-                            LogUtils.sendDebug("[Auto Sell] Closing Bazaar menu");
+                            LogUtils.sendDebug("[Auto Sell] Closing Trades menu");
                             setNpcState(NPCState.NONE);
                             if (FarmHelperConfig.autoSellSacks && !emptySacks) {
                                 setSacksState(SacksState.OPEN_MENU);
@@ -497,6 +504,23 @@ public class AutoSell implements IFeature {
         }
     }
 
+    private boolean hasAnythingToSell() {
+        for (int i = 0; i < mc.thePlayer.inventory.getSizeInventory(); i++) {
+            if (i > 38) break;
+            ItemStack itemStack = mc.thePlayer.inventory.getStackInSlot(i);
+            if (itemStack == null) continue;
+            String name = StringUtils.stripControlCodes(itemStack.getDisplayName());
+            if (itemStack.getItem() instanceof ItemTool) continue;
+            if (itemStack.getItem() instanceof ItemArmor) continue;
+            if (name.equals("Basket of Seeds")) continue;
+            if (shouldSell(name)) {
+                LogUtils.sendDebug("[Auto Sell] Found " + name + " at slot " + i);
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean hasShitItemsInInventory() {
         for (int i = 0; i < 36; i++) {
             if (mc.thePlayer.inventoryContainer.getSlot(i).getHasStack()) {
@@ -508,9 +532,6 @@ public class AutoSell implements IFeature {
     }
 
     private boolean shouldSell(String name) {
-//        ItemStack stack = slot.getStack();
-//        if (stack == null) return false;
-//        String name = stack.getDisplayName();
         if (shouldSellCustomItem(name)) return true;
         return crops.stream().anyMatch(crop -> StringUtils.stripControlCodes(name).startsWith(crop));
     }

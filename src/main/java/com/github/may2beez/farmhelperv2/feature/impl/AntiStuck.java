@@ -70,10 +70,20 @@ public class AntiStuck implements IFeature {
     @Override
     public void start() {
         if (enabled) return;
+        unstuckAttempts++;
+        notMovingTimer.schedule();
+        if (unstuckAttempts > 2 && FarmHelperConfig.rewarpAt3FailesAntistuck) {
+            LogUtils.sendWarning("[Anti Stuck] Failed to unstuck 3 times, returning on spawn");
+            MacroHandler.getInstance().getCurrentMacro().ifPresent(macro -> macro.triggerWarpGarden(true));
+            unstuckAttempts = 0;
+            dontCheckForAntistuckClock.schedule(2_500);
+            return;
+        }
         LogUtils.sendWarning("[Anti Stuck] Enabled");
         enabled = true;
         unstuckState = UnstuckState.NONE;
         notMovingTimer.schedule();
+        unstuckAttemptsClock.schedule(30_000);
         KeyBindUtils.stopMovement();
     }
 
@@ -150,18 +160,8 @@ public class AntiStuck implements IFeature {
         double dy = Math.abs(mc.thePlayer.posY - lastY);
 
         if (dx < 1 && dz < 1 && dy < 1 && !Failsafe.getInstance().isEmergency() && notMovingTimer.isScheduled() && mc.currentScreen == null) {
-            if (notMovingTimer.hasPassed((long) (FarmHelperConfig.timeBetweenChangingRows + FarmHelperConfig.randomTimeBetweenChangingRows + 3_500)) && !Failsafe.getInstance().isTouchingDirtBlock()) {
-                notMovingTimer.schedule();
-                unstuckAttempts++;
-                if (unstuckAttempts > 2 && FarmHelperConfig.rewarpAt3FailesAntistuck) {
-                    LogUtils.sendWarning("[Anti Stuck] Failed to unstuck 3 times, returning on spawn");
-                    MacroHandler.getInstance().getCurrentMacro().ifPresent(macro -> macro.triggerWarpGarden(true));
-                    unstuckAttempts = 0;
-                    dontCheckForAntistuckClock.schedule(2_500);
-                    return;
-                }
+            if (notMovingTimer.hasPassed((long) (FarmHelperConfig.timeBetweenChangingRows + FarmHelperConfig.randomTimeBetweenChangingRows + 2_250)) && !Failsafe.getInstance().isTouchingDirtBlock()) {
                 start();
-                unstuckAttemptsClock.schedule(30_000);
             }
         } else {
             notMovingTimer.schedule();

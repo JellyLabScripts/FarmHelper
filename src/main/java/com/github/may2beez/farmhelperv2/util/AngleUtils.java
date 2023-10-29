@@ -2,6 +2,7 @@ package com.github.may2beez.farmhelperv2.util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 
@@ -120,8 +121,11 @@ public class AngleUtils {
     }
 
     public static RotationUtils.Rotation getRotation(Entity entity, boolean randomness) {
-        return getRotation(entity.getPositionEyes(1).add(new Vec3(0, -0.25, 0)), randomness);
-
+        AxisAlignedBB boundingBox = entity.getEntityBoundingBox();
+        double diffX = boundingBox.minX + (boundingBox.maxX - boundingBox.minX) * 0.8 - mc.thePlayer.posX;
+        double diffY = boundingBox.minY + (boundingBox.maxY - boundingBox.minY) * 0.8 - mc.thePlayer.posY - mc.thePlayer.getEyeHeight() - 0.2;
+        double diffZ = boundingBox.minZ + (boundingBox.maxZ - boundingBox.minZ) * 0.8 - mc.thePlayer.posZ;
+        return getRotationTo(diffX, diffY, diffZ, randomness);
     }
 
     public static RotationUtils.Rotation getRotation(Entity entity) {
@@ -144,8 +148,8 @@ public class AngleUtils {
 
         float pitch = (float) -Math.atan2(dist, diffY);
         float yaw = (float) Math.atan2(diffZ, diffX);
-        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90) * -1) + (randomness ? (float) (Math.random() * 8 - 4f) : 0);
-        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90) + (randomness ? (float) (Math.random() * 8 - 4f) : 0);
+        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90) * -1) + (randomness ? (float) (Math.random() * 6 - 3f) : 0);
+        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90) + (randomness ? (float) (Math.random() * 6 - 3f) : 0);
 
         return new RotationUtils.Rotation(yaw, pitch);
     }

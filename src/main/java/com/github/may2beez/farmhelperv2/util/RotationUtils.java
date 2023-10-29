@@ -37,11 +37,11 @@ public class RotationUtils {
         int pythagoras = (int) pythagoras(absYaw, absPitch);
         LogUtils.sendDebug("[Rotation] Pythagoras: " + pythagoras);
         if (pythagoras < 25) {
-            LogUtils.sendDebug("[Rotation] Very close rotation, speeding up by 0.5");
-            this.time = (long) (time * 0.5);
-        } else if (pythagoras < 45) {
+            LogUtils.sendDebug("[Rotation] Very close rotation, speeding up by 0.65");
             this.time = (long) (time * 0.65);
-            LogUtils.sendDebug("[Rotation] Close rotation, speeding up by 0.65");
+        } else if (pythagoras < 45) {
+            this.time = (long) (time * 0.77);
+            LogUtils.sendDebug("[Rotation] Close rotation, speeding up by 0.77");
         } else if (pythagoras < 80) {
             this.time = (long) (time * 0.9);
             LogUtils.sendDebug("[Rotation] Not so close, but not that far rotation, speeding up by 0.9");

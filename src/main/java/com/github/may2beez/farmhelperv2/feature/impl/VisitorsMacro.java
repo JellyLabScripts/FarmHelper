@@ -112,6 +112,8 @@ public class VisitorsMacro implements IFeature {
     private Optional<Entity> currentVisitor = Optional.empty();
     @Getter
     private Optional<Entity> currentCharacter = Optional.empty();
+
+    private final ArrayList<Entity> servedCustomers = new ArrayList<>();
     private boolean rejectVisitor = false;
     private float spentMoney = 0;
 
@@ -223,6 +225,7 @@ public class VisitorsMacro implements IFeature {
         currentEdge = Optional.empty();
         itemsToBuy.clear();
         compactors.clear();
+        servedCustomers.clear();
         previousDistanceToCheck = Integer.MAX_VALUE;
         retriesGettingCloser = 0;
         spentMoney = 0;
@@ -702,11 +705,9 @@ public class VisitorsMacro implements IFeature {
     private void onCompactorState() {
         switch (compactorState) {
             case NONE:
-                rotation.easeTo(mc.thePlayer.rotationYaw, (float) (85 + (Math.random() * 10 - 5)), FarmHelperConfig.getRandomRotationTime());
                 setCompactorState(CompactorState.GET_LIST);
                 break;
             case GET_LIST:
-                if (rotation.rotating) return;
                 compactors.clear();
                 for (int i = 0; i < 9; i++) {
                     ItemStack itemStack = mc.thePlayer.inventory.getStackInSlot(i);
@@ -720,8 +721,10 @@ public class VisitorsMacro implements IFeature {
                     return;
                 }
                 setCompactorState(CompactorState.HOLD_COMPACTOR);
+                rotation.easeTo(mc.thePlayer.rotationYaw, (float) (85 + (Math.random() * 10 - 5)), FarmHelperConfig.getRandomRotationTime());
                 break;
             case HOLD_COMPACTOR:
+                if (rotation.rotating) return;
                 LogUtils.sendDebug("[Visitors Macro] Holding compactor");
                 if (compactors.isEmpty()) {
                     LogUtils.sendWarning("[Visitors Macro] All compactors has been disabled");
@@ -731,17 +734,17 @@ public class VisitorsMacro implements IFeature {
                 mc.thePlayer.inventory.currentItem = compactors.get(0);
                 compactors.remove(0);
                 setCompactorState(CompactorState.OPEN_COMPACTOR);
-                delayClock.schedule(getRandomDelay());
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case OPEN_COMPACTOR:
                 if (mc.currentScreen != null) {
                     mc.thePlayer.closeScreen();
-                    delayClock.schedule(getRandomDelay());
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
                 KeyBindUtils.rightClick();
                 setCompactorState(CompactorState.TOGGLE_COMPACTOR);
-                delayClock.schedule(getRandomDelay());
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case TOGGLE_COMPACTOR:
                 if (mc.currentScreen == null) break;
@@ -764,7 +767,7 @@ public class VisitorsMacro implements IFeature {
                     InventoryUtils.clickContainerSlot(slot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                 }
                 setCompactorState(CompactorState.CLOSE_COMPACTOR);
-                delayClock.schedule(getRandomDelay());
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case CLOSE_COMPACTOR:
                 LogUtils.sendDebug("[Visitors Macro] Closing compactor");
@@ -772,7 +775,7 @@ public class VisitorsMacro implements IFeature {
                     mc.thePlayer.closeScreen();
                 }
                 setCompactorState(CompactorState.HOLD_COMPACTOR);
-                delayClock.schedule(getRandomDelay());
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case END:
                 if (enableCompactors) {
@@ -819,7 +822,7 @@ public class VisitorsMacro implements IFeature {
                                                 v ->
                                                         StringUtils.stripControlCodes(v).contains(StringUtils.stripControlCodes(entity.getCustomNameTag()))))
                         .filter(entity -> entity.getDistanceToEntity(mc.thePlayer) < 4)
-                        .filter(entity -> currentVisitor.map(value -> !entity.equals(value)).orElse(true))
+                        .filter(entity -> servedCustomers.stream().noneMatch(s -> s.equals(entity)))
                         .min(Comparator.comparingDouble(entity -> entity.getDistanceToEntity(mc.thePlayer)))
                         .orElse(null);
                 if (closest == null) {
@@ -846,7 +849,8 @@ public class VisitorsMacro implements IFeature {
             case ROTATE_TO_VISITOR:
                 if (currentVisitor.isPresent()) {
                     if (rotation.rotating) return;
-                    RotationUtils.Rotation rotationToVisitor = AngleUtils.getRotation(currentVisitor.get().getPositionEyes(1).add(new Vec3(0, -0.25, 0)), true);
+                    LogUtils.sendDebug("Position of visitor: " + currentVisitor.get().getPositionEyes(1));
+                    RotationUtils.Rotation rotationToVisitor = AngleUtils.getRotation(currentVisitor.get(), true);
                     rotation.easeTo(rotationToVisitor.getYaw(), rotationToVisitor.getPitch(), FarmHelperConfig.getRandomRotationTime());
                     setVisitorsState(VisitorsState.OPEN_VISITOR);
                     delayClock.schedule(FarmHelperConfig.getRandomRotationTime());
@@ -875,15 +879,17 @@ public class VisitorsMacro implements IFeature {
                         LogUtils.sendDebug("[Visitors Macro] Looking at Visitor");
                         setVisitorsState(VisitorsState.GET_LIST);
                         KeyBindUtils.rightClick();
-                        delayClock.schedule(getRandomDelay());
+                        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     } else {
                         LogUtils.sendDebug("[Visitors Macro] Looking at something else");
+                        LogUtils.sendDebug("[Visitors Macro] Looking at: " + entity.getName());
+                        LogUtils.sendDebug("[Visitors Macro] Correct Entities: " + currentVisitor.get().getName() + " " + currentCharacter.get().getName());
                         setVisitorsState(VisitorsState.ROTATE_TO_VISITOR);
                     }
                     break;
                 } else {
                     LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
-                    setVisitorsState(VisitorsState.ROTATE_TO_VISITOR);
+                    setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
                 }
                 break;
             case GET_LIST:
@@ -1009,7 +1015,6 @@ public class VisitorsMacro implements IFeature {
                     }
                 }
                 setVisitorsState(VisitorsState.CLOSE_VISITOR);
-                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case CLOSE_VISITOR:
                 if (rejectVisitor) {
@@ -1032,6 +1037,7 @@ public class VisitorsMacro implements IFeature {
                         break;
                     }
                     InventoryUtils.clickContainerSlot(rejectOfferSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                    currentVisitor.ifPresent(servedCustomers::add);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
                     break;
@@ -1056,10 +1062,11 @@ public class VisitorsMacro implements IFeature {
                     if (entity.equals(currentVisitor.get()) || entity.equals(currentCharacter.get())) {
                         LogUtils.sendDebug("[Visitors Macro] Looking at Visitor");
                         setVisitorsState(VisitorsState.OPEN_VISITOR_2);
-                        delayClock.schedule(getRandomDelay());
+                        delayClock.schedule(FarmHelperConfig.getRandomRotationTime());
                         break;
                     }
                 }
+                LogUtils.sendDebug("Position of visitor: " + currentVisitor.get().getPositionEyes(1));
                 RotationUtils.Rotation rotationToVisitor = AngleUtils.getRotation(currentVisitor.get(), true);
                 rotation.easeTo(rotationToVisitor.getYaw(), rotationToVisitor.getPitch(), FarmHelperConfig.getRandomRotationTime());
                 setVisitorsState(VisitorsState.OPEN_VISITOR_2);
@@ -1093,7 +1100,7 @@ public class VisitorsMacro implements IFeature {
                     break;
                 } else {
                     LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
-                    setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
+                    setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
                 }
                 break;
             case FINISH_VISITOR:
@@ -1117,6 +1124,7 @@ public class VisitorsMacro implements IFeature {
                         break;
                     }
                     InventoryUtils.clickContainerSlot(rejectOfferSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                    currentVisitor.ifPresent(servedCustomers::add);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
                     break;
@@ -1144,10 +1152,12 @@ public class VisitorsMacro implements IFeature {
                     }
                 }
                 InventoryUtils.clickContainerSlot(acceptOfferSlot2.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                currentVisitor.ifPresent(servedCustomers::add);
                 setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case END:
+                servedCustomers.clear();
                 LogUtils.sendSuccess("[Visitors Macro] Spent §2" + ProfitCalculator.getInstance().getFormatter().format(spentMoney) + " on visitors");
                 if (!manuallyStarted) {
                     if (enableCompactors) {
