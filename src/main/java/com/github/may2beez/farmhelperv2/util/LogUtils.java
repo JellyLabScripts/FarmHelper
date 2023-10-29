@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public class LogUtils {
     private static String lastDebugMessage;
     private static String lastWebhook;
-    private static long logMsgTime = 1000;
+    private static final long logMsgTime = 1000;
     private static long statusMsgTime = -1;
     private static final Minecraft mc = Minecraft.getMinecraft();
 

@@ -6,7 +6,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.MouseHelper;
 import org.lwjgl.input.Mouse;
 
-@SuppressWarnings("unused")
 public class UngrabMouse implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
     private static UngrabMouse instance;

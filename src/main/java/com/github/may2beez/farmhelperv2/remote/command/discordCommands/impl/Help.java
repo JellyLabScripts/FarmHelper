@@ -21,7 +21,7 @@ public class Help extends DiscordCommand {
         builder.setTitle("FarmHelper Remote Control");
         builder.setDescription("Commands list");
         for (DiscordCommand command : DiscordBotHandler.getInstance().getCommands()) {
-            builder.addField(command.name, command.description, true);
+            builder.addField(command.name, command.description, false);
         }
         int random = (int) (Math.random() * 0xFFFFFF);
         builder.setColor(random);

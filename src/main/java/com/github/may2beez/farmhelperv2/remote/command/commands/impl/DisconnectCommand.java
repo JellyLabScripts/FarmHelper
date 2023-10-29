@@ -15,25 +15,20 @@ public class DisconnectCommand extends ClientCommand {
 
     @Override
     public void execute(RemoteMessage event) {
+        if (MacroHandler.getInstance().isMacroToggled())
+            MacroHandler.getInstance().disableMacro();
+        try {
+            mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText("Disconnected through Discord Remote Control bot"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         Multithreading.schedule(() -> {
-            if (MacroHandler.getInstance().isMacroToggled())
-                MacroHandler.getInstance().disableMacro();
-            try {
-                mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText("Disconnected through Discord Remote Control bot"));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
-                Thread.sleep(1_500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             JsonObject data = new JsonObject();
             data.addProperty("username", mc.getSession().getUsername());
             data.addProperty("image", getScreenshot());
             data.addProperty("uuid", mc.getSession().getPlayerID());
             RemoteMessage response = new RemoteMessage(label, data);
             send(response);
-        }, 0, TimeUnit.MILLISECONDS);
+        }, 1_500, TimeUnit.MILLISECONDS);
     }
 }

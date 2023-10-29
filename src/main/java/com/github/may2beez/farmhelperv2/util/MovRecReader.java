@@ -12,14 +12,14 @@ import java.util.List;
 
 // Credits: https://github.com/onixiya1337/MovementRecorder
 public class MovRecReader {
-    private static List<Movement> movements = new ArrayList<>();
+    private static final List<Movement> movements = new ArrayList<>();
     private static boolean isMovementPlaying = false;
     private static boolean isMovementReading = false;
     private static int currentDelay = 0;
     private static int playingIndex = 0;
     static Minecraft mc = Minecraft.getMinecraft();
-    private static RotationUtils rotateBeforePlaying = new RotationUtils();
-    private static RotationUtils rotateDuringPlaying = new RotationUtils();
+    private static final RotationUtils rotateBeforePlaying = new RotationUtils();
+    private static final RotationUtils rotateDuringPlaying = new RotationUtils();
 
     public static class Movement {
         private final boolean forward;
@@ -32,7 +32,7 @@ public class MovRecReader {
         private final boolean attack;
         private final float yaw;
         private final float pitch;
-        private int delay;
+        private final int delay;
 
         public Movement(boolean forward, boolean left, boolean backwards, boolean right, boolean sneak, boolean sprint, boolean jump,
                         boolean attack, float yaw, float pitch, int delay) {

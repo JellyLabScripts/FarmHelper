@@ -1,8 +1,6 @@
 package com.github.may2beez.farmhelperv2.remote.command.commands.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
-import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
-import com.github.may2beez.farmhelperv2.feature.impl.UngrabMouse;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.remote.command.commands.ClientCommand;
 import com.github.may2beez.farmhelperv2.remote.command.commands.Command;
@@ -48,7 +46,7 @@ public class ScreenshotCommand extends ClientCommand {
         boolean wasMacroing;
         if (MacroHandler.getInstance().isMacroToggled()) {
             wasMacroing = true;
-            MacroHandler.getInstance().disableCurrentMacro();
+            MacroHandler.getInstance().pauseMacro();
         } else {
             wasMacroing = false;
         }
@@ -61,11 +59,7 @@ public class ScreenshotCommand extends ClientCommand {
                 Thread.sleep(1000);
                 mc.thePlayer.closeScreen();
                 if (wasMacroing) {
-                    if (UngrabMouse.getInstance().isToggled()) {
-                        UngrabMouse.getInstance().regrabMouse();
-                        UngrabMouse.getInstance().ungrabMouse();
-                    }
-                    MacroHandler.getInstance().enableCurrentMacro();
+                    MacroHandler.getInstance().resumeMacro();
                 }
 
                 data.addProperty("username", mc.getSession().getUsername());

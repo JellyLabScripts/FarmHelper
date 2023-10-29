@@ -1,6 +1,5 @@
 package com.github.may2beez.farmhelperv2.remote.command.commands.impl;
 
-import com.github.may2beez.farmhelperv2.feature.impl.UngrabMouse;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.remote.command.commands.ClientCommand;
 import com.github.may2beez.farmhelperv2.remote.command.commands.Command;
@@ -208,10 +207,6 @@ public class SetSpeedCommand extends ClientCommand {
                 PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), false, false);
                 if (wasMacroing) {
                     MacroHandler.getInstance().resumeMacro();
-                    if (UngrabMouse.getInstance().isToggled()) {
-                        UngrabMouse.getInstance().regrabMouse();
-                        UngrabMouse.getInstance().ungrabMouse();
-                    }
                 }
                 LogUtils.sendSuccess("Rancher's Boots speed has been set to " + speed + ".");
                 currentState = State.NONE;

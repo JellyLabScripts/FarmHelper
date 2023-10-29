@@ -6,6 +6,8 @@ import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
+import com.github.may2beez.farmhelperv2.remote.command.commands.impl.ReconnectCommand;
+import com.github.may2beez.farmhelperv2.remote.command.commands.impl.ToggleCommand;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.RenderUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
@@ -72,6 +74,8 @@ public class AutoReconnect implements IFeature {
         return false;
     }
 
+    private boolean macroWasToggled = false;
+
     @Override
     public void start() {
         if (enabled) return;
@@ -84,8 +88,10 @@ public class AutoReconnect implements IFeature {
         state = State.CONNECTING;
         LogUtils.sendDebug("[Reconnect] Reconnecting to server...");
         FeatureManager.getInstance().disableAllExcept(this, Failsafe.getInstance());
-        if (MacroHandler.getInstance().isMacroToggled())
+        if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();
+            macroWasToggled = true;
+        }
     }
 
     @Override
@@ -95,10 +101,9 @@ public class AutoReconnect implements IFeature {
         state = State.NONE;
         reconnectDelay.reset();
         LogUtils.sendDebug("[Reconnect] Finished reconnecting to server!");
-        if (MacroHandler.getInstance().isMacroToggled()) {
-            UngrabMouse.getInstance().regrabMouse();
-            UngrabMouse.getInstance().ungrabMouse();
+        if (macroWasToggled) {
             MacroHandler.getInstance().resumeMacro();
+            macroWasToggled = false;
         }
     }
 

@@ -8,7 +8,7 @@ import java.util.*;
 public class CircularFifoQueue<E> extends AbstractCollection<E>
         implements Queue<E> {
 
-    private transient E[] elements;
+    private final transient E[] elements;
     private transient int start = 0;
 
     /**

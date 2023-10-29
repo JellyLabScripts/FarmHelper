@@ -5,10 +5,7 @@ import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
 import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
-import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
-import com.github.may2beez.farmhelperv2.feature.impl.Scheduler;
-import com.github.may2beez.farmhelperv2.feature.impl.BanInfoWS;
-import com.github.may2beez.farmhelperv2.feature.impl.VisitorsMacro;
+import com.github.may2beez.farmhelperv2.feature.impl.*;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 import com.github.may2beez.farmhelperv2.macro.impl.*;
@@ -232,6 +229,10 @@ public class MacroHandler {
             macroingTimer.resume();
             analyticsTimer.resume();
             Scheduler.getInstance().resume();
+            if (UngrabMouse.getInstance().isToggled()) {
+                UngrabMouse.getInstance().regrabMouse();
+                UngrabMouse.getInstance().ungrabMouse();
+            }
         });
     }
 
