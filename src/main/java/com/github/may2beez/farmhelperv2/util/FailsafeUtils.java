@@ -79,22 +79,20 @@ public class FailsafeUtils {
 
     public static void bringWindowToFrontUsingWinApi() {
         try {
-            if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-                User32 user32 = User32.INSTANCE;
-                WinDef.HWND hWnd = user32.FindWindow(null, Display.getTitle());
-                if (hWnd == null) {
-                    System.out.println("Window not found.");
-                    bringWindowToFrontUsingRobot();
-                    return;
-                }
-                if (!user32.IsWindowVisible(hWnd)) {
-                    user32.ShowWindow(hWnd, WinUser.SW_RESTORE);
-                    System.out.println("Window is not visible, restoring.");
-                }
-                user32.ShowWindow(hWnd, WinUser.SW_SHOWMAXIMIZED);
-                user32.SetForegroundWindow(hWnd);
-                user32.SetFocus(hWnd);
+            User32 user32 = User32.INSTANCE;
+            WinDef.HWND hWnd = user32.FindWindow(null, Display.getTitle());
+            if (hWnd == null) {
+                System.out.println("Window not found.");
+                bringWindowToFrontUsingRobot();
+                return;
             }
+            if (!user32.IsWindowVisible(hWnd)) {
+                user32.ShowWindow(hWnd, WinUser.SW_RESTORE);
+                System.out.println("Window is not visible, restoring.");
+            }
+            user32.ShowWindow(hWnd, WinUser.SW_SHOWMAXIMIZED);
+            user32.SetForegroundWindow(hWnd);
+            user32.SetFocus(hWnd);
         } catch (Exception e) {
             System.out.println("Failed to restore and maximize window.");
             e.printStackTrace();
