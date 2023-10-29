@@ -63,7 +63,8 @@ public class WebsocketHandler {
                 new ReconnectCommand(),
                 new ScreenshotCommand(),
                 speedCommand,
-                new ToggleCommand()
+                new ToggleCommand(),
+                new DisconnectCommand()
         ));
         MinecraftForge.EVENT_BUS.register(speedCommand);
         LogUtils.sendDebug("[Remote Control] Registered " + commands.size() + " commands");

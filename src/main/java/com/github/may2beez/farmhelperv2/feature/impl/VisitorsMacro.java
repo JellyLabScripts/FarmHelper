@@ -50,7 +50,8 @@ public class VisitorsMacro implements IFeature {
         AUTO_SELL,
         COMPACTORS,
         VISITORS,
-        END
+        END,
+        DISABLING
     }
 
     @Getter
@@ -438,11 +439,16 @@ public class VisitorsMacro implements IFeature {
                 onVisitorsState();
                 break;
             case END:
-                stop();
+                setMainState(MainState.DISABLING);
                 Multithreading.schedule(() -> {
                     mc.thePlayer.sendChatMessage("/warp garden");
-                    Multithreading.schedule(() -> MacroHandler.getInstance().resumeMacro(), 1_000, TimeUnit.MILLISECONDS);
+                    Multithreading.schedule(() -> {
+                        stop();
+                        MacroHandler.getInstance().resumeMacro();
+                    }, 1_000, TimeUnit.MILLISECONDS);
                 }, 500, TimeUnit.MILLISECONDS);
+                break;
+            case DISABLING:
                 break;
         }
     }
@@ -754,9 +760,14 @@ public class VisitorsMacro implements IFeature {
                 delayClock.schedule(getRandomDelay());
                 break;
             case END:
-                enableCompactors = true;
+                if (enableCompactors) {
+                    setMainState(MainState.END);
+                    enableCompactors = false;
+                } else {
+                    enableCompactors = true;
+                    setMainState(MainState.VISITORS);
+                }
                 setCompactorState(CompactorState.NONE);
-                setMainState(MainState.VISITORS);
                 delayClock.schedule(getRandomDelay());
                 break;
         }

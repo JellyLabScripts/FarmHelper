@@ -118,7 +118,7 @@ public class AntiStuck implements IFeature {
                 FeatureManager.getInstance().isAnyOtherFeatureEnabled(this) ||
                 mc.currentScreen != null ||
                 !isToggled()) {
-            notMovingTimer.reset();
+            notMovingTimer.schedule();
             lastX = 10000;
             lastZ = 10000;
             lastY = 10000;
@@ -133,7 +133,7 @@ public class AntiStuck implements IFeature {
         }
 
         if (dontCheckForAntistuckClock.isScheduled() && !dontCheckForAntistuckClock.passed()) {
-            notMovingTimer.reset();
+            notMovingTimer.schedule();
             lastX = 10000;
             lastZ = 10000;
             lastY = 10000;
@@ -151,7 +151,7 @@ public class AntiStuck implements IFeature {
 
         if (dx < 1 && dz < 1 && dy < 1 && !Failsafe.getInstance().isEmergency() && notMovingTimer.isScheduled() && mc.currentScreen == null) {
             if (notMovingTimer.hasPassed((long) (FarmHelperConfig.timeBetweenChangingRows + FarmHelperConfig.randomTimeBetweenChangingRows + 3_500)) && !Failsafe.getInstance().isTouchingDirtBlock()) {
-                notMovingTimer.reset();
+                notMovingTimer.schedule();
                 unstuckAttempts++;
                 if (unstuckAttempts > 2 && FarmHelperConfig.rewarpAt3FailesAntistuck) {
                     LogUtils.sendWarning("[Anti Stuck] Failed to unstuck 3 times, returning on spawn");

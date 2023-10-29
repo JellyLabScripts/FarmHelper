@@ -221,7 +221,7 @@ public class Failsafe implements IFeature {
             case NONE:
                 break;
             case TEST:
-                Failsafe.getInstance().stop();
+                onRotationTeleportCheck();
                 break;
             case ROTATION_CHECK:
             case TELEPORT_CHECK:

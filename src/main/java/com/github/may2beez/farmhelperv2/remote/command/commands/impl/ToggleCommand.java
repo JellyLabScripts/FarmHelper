@@ -45,6 +45,7 @@ public class ToggleCommand extends ClientCommand {
                 RemoteMessage response = new RemoteMessage(label, data);
                 send(response);
             }).start();
+            return;
         } else if (!GameStateHandler.getInstance().inGarden() && !MacroHandler.getInstance().isMacroToggled()) {
             data.addProperty("info", "You are outside the garden! Teleporting");
             mc.thePlayer.sendChatMessage("/warp garden");
@@ -63,11 +64,13 @@ public class ToggleCommand extends ClientCommand {
                 RemoteMessage response = new RemoteMessage(label, data);
                 send(response);
             }).start();
+            return;
         } else {
             if (Failsafe.getInstance().isHadEmergency()) {
-                MacroHandler.getInstance().toggleMacro(); // first one is only warning message
-                MacroHandler.getInstance().toggleMacro(); // second is actual toggle
+                Failsafe.getInstance().setHadEmergency(false);
+                Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().reset();
             }
+            MacroHandler.getInstance().toggleMacro();
         }
 
 
