@@ -166,7 +166,11 @@ public class BanInfoWS implements IFeature {
         String configJsonString = FarmHelper.gson.toJson(configJson);
         additionalInfo.addProperty("config", configJsonString);
         jsonObject.add("additionalInfo", additionalInfo);
-        client.send(jsonObject.toString());
+        try {
+            client.send(jsonObject.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void sendAnalyticsData() {
@@ -184,7 +188,11 @@ public class BanInfoWS implements IFeature {
         additionalInfo.addProperty("bps", ProfitCalculator.getInstance().getBPS());
         additionalInfo.addProperty("profit", ProfitCalculator.getInstance().getRealProfitString());
         jsonObject.add("additionalInfo", additionalInfo);
-        client.send(jsonObject.toString());
+        try {
+            client.send(jsonObject.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private JsonObject getHeaders() {

@@ -160,7 +160,7 @@ public class AntiStuck implements IFeature {
         double dy = Math.abs(mc.thePlayer.posY - lastY);
 
         if (dx < 1 && dz < 1 && dy < 1 && !Failsafe.getInstance().isEmergency() && notMovingTimer.isScheduled() && mc.currentScreen == null) {
-            if (notMovingTimer.hasPassed((long) (FarmHelperConfig.timeBetweenChangingRows + FarmHelperConfig.randomTimeBetweenChangingRows + 2_250)) && !Failsafe.getInstance().isTouchingDirtBlock()) {
+            if (notMovingTimer.hasPassed((long) (FarmHelperConfig.timeBetweenChangingRows + FarmHelperConfig.randomTimeBetweenChangingRows + 1_250)) && !Failsafe.getInstance().isTouchingDirtBlock()) {
                 start();
             }
         } else {

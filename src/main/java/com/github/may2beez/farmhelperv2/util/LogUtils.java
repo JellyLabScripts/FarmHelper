@@ -9,6 +9,7 @@ import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.StringUtils;
+import net.minecraft.util.Tuple;
 
 import java.awt.*;
 import java.io.IOException;
@@ -134,7 +135,13 @@ public class LogUtils {
         webhookLog(message, false);
     }
 
-    public static void webhookLog(String message, boolean mentionAll) {
+    @SafeVarargs
+    public static void webhookLog(String message, Tuple<String, String> ...fields) {
+        webhookLog(message, false, fields);
+    }
+
+    @SafeVarargs
+    public static void webhookLog(String message, boolean mentionAll, Tuple<String, String> ...fields) {
         if (!FarmHelperConfig.enableWebHook) return;
         if (!FarmHelperConfig.sendLogs) return;
 
@@ -145,18 +152,22 @@ public class LogUtils {
         if (mentionAll) {
             webhook.setContent("@everyone");
         }
-        webhook.addEmbed(new DiscordWebhook.EmbedObject()
+        DiscordWebhook.EmbedObject embedObject = new DiscordWebhook.EmbedObject()
                 .setTitle("Farm Helper")
                 .setThumbnail("https://crafatar.com/renders/body/" + mc.getSession().getPlayerID())
                 .setDescription("### " + message)
                 .setColor(Color.decode(randomColor))
                 .setAuthor("Instance name -> " + mc.getSession().getUsername(), "https://crafatar.com/avatars/" + mc.getSession().getPlayerID(), "https://crafatar.com/avatars/" + mc.getSession().getPlayerID())
-                .setFooter("Farm Helper Webhook Status", "https://cdn.discordapp.com/attachments/861700235890130986/1144673641951395982/icon.png")
-        );
+                .setFooter("Farm Helper Webhook Status", "https://cdn.discordapp.com/attachments/861700235890130986/1144673641951395982/icon.png");
+        for (Tuple<String, String> field : fields) {
+            embedObject.addField(field.getFirst(), field.getSecond(), true);
+        }
+        webhook.addEmbed(embedObject);
         Multithreading.schedule(() -> {
             try {
                 webhook.execute();
             } catch (IOException e) {
+                LogUtils.sendError("[Webhook Log] Error: " + e.getMessage());
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }

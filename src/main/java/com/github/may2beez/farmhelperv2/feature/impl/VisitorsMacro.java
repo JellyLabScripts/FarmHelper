@@ -20,10 +20,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.*;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.StringUtils;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -112,6 +109,8 @@ public class VisitorsMacro implements IFeature {
     private Optional<Entity> currentVisitor = Optional.empty();
     @Getter
     private Optional<Entity> currentCharacter = Optional.empty();
+    @Getter
+    private ArrayList<Tuple<String, String>> currentRewards = new ArrayList<>();
 
     private final ArrayList<Entity> servedCustomers = new ArrayList<>();
     private boolean rejectVisitor = false;
@@ -225,6 +224,7 @@ public class VisitorsMacro implements IFeature {
         currentEdge = Optional.empty();
         itemsToBuy.clear();
         compactors.clear();
+        currentRewards.clear();
         servedCustomers.clear();
         previousDistanceToCheck = Integer.MAX_VALUE;
         retriesGettingCloser = 0;
@@ -238,6 +238,7 @@ public class VisitorsMacro implements IFeature {
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();
         }
+        LogUtils.webhookLog("Visitors Macro started");
     }
 
     @Override
@@ -928,13 +929,19 @@ public class VisitorsMacro implements IFeature {
                 }
                 ArrayList<String> loreAcceptOffer = InventoryUtils.getItemLore(acceptOfferItemStack);
                 boolean foundRequiredItems = false;
+                boolean foundRewards = false;
                 for (String line : loreAcceptOffer) {
                     if (line.contains("Required:")) {
                         foundRequiredItems = true;
                         continue;
                     }
-                    if (line.trim().contains("Rewards:") || line.trim().isEmpty()) {
+                    if (foundRewards && !line.contains("+")) {
                         break;
+                    }
+                    if (line.trim().contains("Rewards:") || line.trim().isEmpty()) {
+                        foundRewards = true;
+                        foundRequiredItems = false;
+                        continue;
                     }
                     if (foundRequiredItems) {
                         if (line.contains("x")) {
@@ -945,6 +952,14 @@ public class VisitorsMacro implements IFeature {
                         } else {
                             String itemName = line.trim();
                             itemsToBuy.add(Pair.of(itemName, 1L));
+                        }
+                    }
+                    if (foundRewards) {
+                        if (line.contains("+")) {
+                            String[] split = StringUtils.stripControlCodes(line).trim().split(" ");
+                            String amount = split[0].trim();
+                            String item = String.join(" ", Arrays.copyOfRange(split, 1, split.length)).trim();
+                            currentRewards.add(new Tuple<>(item, amount));
                         }
                     }
                 }
@@ -1037,7 +1052,9 @@ public class VisitorsMacro implements IFeature {
                         break;
                     }
                     InventoryUtils.clickContainerSlot(rejectOfferSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                    LogUtils.webhookLog("Visitors Macro rejected visitor: " + currentVisitor.get().getCustomNameTag(), true, currentRewards.toArray(new Tuple[0]));
                     currentVisitor.ifPresent(servedCustomers::add);
+                    currentRewards.clear();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
                     break;
@@ -1124,7 +1141,9 @@ public class VisitorsMacro implements IFeature {
                         break;
                     }
                     InventoryUtils.clickContainerSlot(rejectOfferSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                    LogUtils.webhookLog("Visitors Macro rejected visitor: " + currentVisitor.get().getCustomNameTag(), true, currentRewards.toArray(new Tuple[0]));
                     currentVisitor.ifPresent(servedCustomers::add);
+                    currentRewards.clear();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
                     break;
@@ -1152,12 +1171,15 @@ public class VisitorsMacro implements IFeature {
                     }
                 }
                 InventoryUtils.clickContainerSlot(acceptOfferSlot2.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                LogUtils.webhookLog("Visitors Macro accepted visitor: " + currentVisitor.get().getCustomNameTag(), true, currentRewards.toArray(new Tuple[0]));
                 currentVisitor.ifPresent(servedCustomers::add);
+                currentRewards.clear();
                 setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case END:
                 servedCustomers.clear();
+                currentRewards.clear();
                 LogUtils.sendSuccess("[Visitors Macro] Spent §2" + ProfitCalculator.getInstance().getFormatter().format(spentMoney) + " on visitors");
                 if (!manuallyStarted) {
                     if (enableCompactors) {
