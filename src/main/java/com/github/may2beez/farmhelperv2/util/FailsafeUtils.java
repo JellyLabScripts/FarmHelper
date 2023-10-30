@@ -90,11 +90,11 @@ public class FailsafeUtils {
                 user32.ShowWindow(hWnd, WinUser.SW_RESTORE);
                 System.out.println("Window is not visible, restoring.");
             }
-            user32.ShowWindow(hWnd, WinUser.SW_SHOWMAXIMIZED);
+//            user32.ShowWindow(hWnd, WinUser.SW_SHOW);
             user32.SetForegroundWindow(hWnd);
-            user32.SetFocus(hWnd);
+//            user32.SetFocus(hWnd);
         } catch (Exception e) {
-            System.out.println("Failed to restore and maximize window.");
+            System.out.println("Failed to restore the game window.");
             e.printStackTrace();
             System.out.println("Trying to bring window to front using Robot instead.");
             bringWindowToFrontUsingRobot();

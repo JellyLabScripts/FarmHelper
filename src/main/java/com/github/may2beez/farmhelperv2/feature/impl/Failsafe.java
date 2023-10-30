@@ -344,6 +344,8 @@ public class Failsafe implements IFeature {
             double yawDiff = Math.abs(packetYaw - playerYaw);
             double pitchDiff = Math.abs(packetPitch - playerPitch);
             double threshold = FarmHelperConfig.rotationCheckSensitivity;
+            if (yawDiff == 360 && pitchDiff == 0) // prevents false checks
+                return;
             if (yawDiff >= threshold || pitchDiff >= threshold) {
                 LogUtils.sendDebug("[Failsafe] Rotation detected! Yaw diff: " + yawDiff + ", Pitch diff: " + pitchDiff);
                 addEmergency(EmergencyType.ROTATION_CHECK);
