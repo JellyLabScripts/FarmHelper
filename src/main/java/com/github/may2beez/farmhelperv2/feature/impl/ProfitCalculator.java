@@ -293,7 +293,6 @@ public class ProfitCalculator implements IFeature {
 
         switch (MacroHandler.getInstance().getCrop()) {
             case NETHER_WART:
-                break;
             case CARROT:
             case POTATO:
             case WHEAT:
@@ -328,8 +327,8 @@ public class ProfitCalculator implements IFeature {
                 }
                 break;
             case MUSHROOM:
-                if (event.getBlock().equals(Blocks.red_mushroom_block) ||
-                        event.getBlock().equals(Blocks.brown_mushroom_block)) {
+                if (event.getBlock().equals(Blocks.red_mushroom) ||
+                        event.getBlock().equals(Blocks.brown_mushroom)) {
                     blocksBroken++;
                 }
                 break;
