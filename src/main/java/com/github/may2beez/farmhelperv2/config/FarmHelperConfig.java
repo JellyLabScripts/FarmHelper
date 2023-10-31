@@ -689,6 +689,14 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean rewarpAt3FailesAntistuck = true;
 
+    @Slider(
+            name = "Delay to trigger AntiStuck after not moving",
+            category = FAILSAFE, subcategory = "AntiStuck",
+            description = "Cumulative delay of change lane delay + random change lane delay + this",
+            min = 350, max = 3000
+    )
+    public static int antiStuckDelay = 500;
+
     @Switch(
             name = "Send Chat Message During Failsafe", category = FAILSAFE, subcategory = "Failsafe Messages",
             description = "Sends a chat message when a failsafe has been triggered"

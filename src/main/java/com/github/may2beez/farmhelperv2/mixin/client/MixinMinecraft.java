@@ -82,8 +82,8 @@ public class MixinMinecraft {
                         blockTryBreak instanceof BlockNetherWart ||
                         blockTryBreak == Blocks.reeds ||
                         blockTryBreak == Blocks.cactus ||
-                        blockTryBreak == Blocks.brown_mushroom_block ||
-                        blockTryBreak == Blocks.red_mushroom_block ||
+                        blockTryBreak == Blocks.brown_mushroom ||
+                        blockTryBreak == Blocks.red_mushroom ||
                         blockTryBreak == Blocks.pumpkin ||
                         blockTryBreak == Blocks.melon_block ||
                         blockTryBreak == Blocks.cocoa)
