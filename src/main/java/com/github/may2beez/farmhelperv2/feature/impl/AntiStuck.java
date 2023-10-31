@@ -83,7 +83,7 @@ public class AntiStuck implements IFeature {
         enabled = true;
         unstuckState = UnstuckState.NONE;
         notMovingTimer.schedule();
-        unstuckAttemptsClock.schedule(30_000);
+        unstuckAttemptsClock.schedule(7_500);
         KeyBindUtils.stopMovement();
     }
 
