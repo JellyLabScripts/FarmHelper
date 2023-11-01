@@ -986,7 +986,9 @@ public class VisitorsMacro implements IFeature {
                             String name = StringUtils.stripControlCodes(item.getLeft());
                             return profitRewards.stream().anyMatch(reward -> reward.contains(name));
                         }).findFirst().get().getLeft();
-                        LogUtils.webhookLog("Visitors Macro found profitable item: " + profitableReward, true);
+
+                        if (FarmHelperConfig.sendVisitorsMacroLogs)
+                            LogUtils.webhookLog("Visitors Macro found profitable item: " + profitableReward, FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
                         LogUtils.sendDebug("[Visitors Macro] Accepting offer...");
                     } else {
                         LogUtils.sendWarning("[Visitors Macro] Visitor is not profitable, skipping...");
@@ -1016,7 +1018,8 @@ public class VisitorsMacro implements IFeature {
                         case LEGENDARY:
                             if (FarmHelperConfig.visitorsAcceptLegendary) {
                                 LogUtils.sendDebug("[Visitors Macro] Visitor is legendary rarity. Accepting offer...");
-                                LogUtils.webhookLog("Visitors Macro found legendary visitor", true);
+                                if (FarmHelperConfig.sendVisitorsMacroLogs)
+                                    LogUtils.webhookLog("Visitors Macro found legendary visitor", FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
                             } else {
                                 LogUtils.sendDebug("[Visitors Macro] Visitor is legendary rarity. Skipping...");
                                 rejectVisitor = true;
@@ -1025,7 +1028,8 @@ public class VisitorsMacro implements IFeature {
                         case SPECIAL:
                             if (FarmHelperConfig.visitorsAcceptSpecial) {
                                 LogUtils.sendDebug("[Visitors Macro] Visitor is special rarity. Accepting offer...");
-                                LogUtils.webhookLog("Visitors Macro found special visitor", true);
+                                if (FarmHelperConfig.sendVisitorsMacroLogs)
+                                    LogUtils.webhookLog("Visitors Macro found special visitor", FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
                             } else {
                                 LogUtils.sendDebug("[Visitors Macro] Visitor is special rarity. Skipping...");
                                 rejectVisitor = true;
@@ -1056,7 +1060,8 @@ public class VisitorsMacro implements IFeature {
                         break;
                     }
                     InventoryUtils.clickContainerSlot(rejectOfferSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                    LogUtils.webhookLog("Visitors Macro rejected visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), true, currentRewards.toArray(new Tuple[0]));
+                    if (FarmHelperConfig.sendVisitorsMacroLogs)
+                        LogUtils.webhookLog("Visitors Macro rejected visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
                     currentVisitor.ifPresent(servedCustomers::add);
                     currentRewards.clear();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
@@ -1145,7 +1150,8 @@ public class VisitorsMacro implements IFeature {
                         break;
                     }
                     InventoryUtils.clickContainerSlot(rejectOfferSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                    LogUtils.webhookLog("Visitors Macro rejected visitor: " + currentVisitor.get().getCustomNameTag(), true, currentRewards.toArray(new Tuple[0]));
+                    if (FarmHelperConfig.sendVisitorsMacroLogs)
+                        LogUtils.webhookLog("Visitors Macro rejected visitor: " + currentVisitor.get().getCustomNameTag(), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
                     currentVisitor.ifPresent(servedCustomers::add);
                     currentRewards.clear();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
@@ -1175,7 +1181,8 @@ public class VisitorsMacro implements IFeature {
                     }
                 }
                 InventoryUtils.clickContainerSlot(acceptOfferSlot2.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                LogUtils.webhookLog("Visitors Macro accepted visitor: " + currentVisitor.get().getCustomNameTag(), true, currentRewards.toArray(new Tuple[0]));
+                if (FarmHelperConfig.sendVisitorsMacroLogs)
+                    LogUtils.webhookLog("Visitors Macro accepted visitor: " + currentVisitor.get().getCustomNameTag(), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
                 currentVisitor.ifPresent(servedCustomers::add);
                 currentRewards.clear();
                 setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);

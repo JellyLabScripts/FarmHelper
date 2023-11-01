@@ -1115,6 +1115,18 @@ public class FarmHelperConfig extends Config {
     )
     public static int statusUpdateInterval = 5;
 
+    @Switch(
+            name = "Send Visitors Macro Logs", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
+            description = "Sends messages about the visitors macro, such as which visitor got rejected or accepted and with what items"
+    )
+    public static boolean sendVisitorsMacroLogs = true;
+
+    @Switch(
+            name = "Ping everyone on Visitors Macro Logs", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
+            description = "Pings everyone on Visitors Macro Logs"
+    )
+    public static boolean pingEveryoneOnVisitorsMacroLogs = false;
+
     @Text(
             name = "WebHook URL", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
             description = "The URL to use for the webhook",
@@ -1376,6 +1388,12 @@ public class FarmHelperConfig extends Config {
         this.addDependency("visitorsMacroAction", "visitorsMacro");
         this.addDependency("visitorsMacroAutosellBeforeServing", "visitorsMacro");
         this.addDependency("visitorsMacroMinMoney", "visitorsMacro");
+
+        this.addDependency("sendVisitorsMacroLogs", "visitorsMacro");
+        this.addDependency("sendVisitorsMacroLogs", "enableWebHook");
+        this.addDependency("pingEveryoneOnVisitorsMacroLogs", "visitorsMacro");
+        this.addDependency("pingEveryoneOnVisitorsMacroLogs", "sendVisitorsMacroLogs");
+        this.addDependency("pingEveryoneOnVisitorsMacroLogs", "enableWebHook");
 
 
         this.hideIf("infoCookieBuffRequired", () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE);

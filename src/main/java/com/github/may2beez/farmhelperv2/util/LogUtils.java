@@ -136,11 +136,6 @@ public class LogUtils {
     }
 
     @SafeVarargs
-    public static void webhookLog(String message, Tuple<String, String> ...fields) {
-        webhookLog(message, false, fields);
-    }
-
-    @SafeVarargs
     public static void webhookLog(String message, boolean mentionAll, Tuple<String, String> ...fields) {
         if (!FarmHelperConfig.enableWebHook) return;
         if (!FarmHelperConfig.sendLogs) return;
