@@ -8,6 +8,7 @@ import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import com.github.may2beez.farmhelperv2.util.helper.Timer;
+import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -52,6 +53,13 @@ public class AntiStuck implements IFeature {
             new Vec3(0.5, 0.5, 0), // North
             new Vec3(1, 0.5, 0.5)  // East
     };
+
+    private final Map<Integer, KeyBinding> keyBindMap = ImmutableMap.of(
+            0, mc.gameSettings.keyBindForward,
+            90, mc.gameSettings.keyBindLeft,
+            180, mc.gameSettings.keyBindBack,
+            -90, mc.gameSettings.keyBindRight
+    );
 
     private BlockPos intersectingBlockPos = null;
 
@@ -229,13 +237,6 @@ public class AntiStuck implements IFeature {
         return BlockUtils.getBlock(adjacentPos).isPassable(mc.theWorld, adjacentPos);
     }
 
-    private final HashMap<Integer, KeyBinding> keyBindMap = new HashMap<Integer, KeyBinding>() {{
-            put(0, mc.gameSettings.keyBindForward);
-            put(90, mc.gameSettings.keyBindLeft);
-            put(180, mc.gameSettings.keyBindBack);
-            put(-90, mc.gameSettings.keyBindRight);
-    }};
-
     private List<KeyBinding> getNeededKeyPresses(Vec3 orig, Vec3 dest) {
         List<KeyBinding> keys = new ArrayList<>();
 
@@ -244,9 +245,9 @@ public class AntiStuck implements IFeature {
 
         float angleDifference = normalizeYaw(requiredAngle - mc.thePlayer.rotationYaw) * -1;
 
-        keyBindMap.forEach((k, v) -> {
-            if (Math.abs(k - angleDifference) < 67.5 || Math.abs(k - (angleDifference + 360.0)) < 67.5) {
-                keys.add(v);
+        keyBindMap.forEach((yaw, key) -> {
+            if (Math.abs(yaw - angleDifference) < 67.5 || Math.abs(yaw - (angleDifference + 360.0)) < 67.5) {
+                keys.add(key);
             }
         });
         return keys;
