@@ -21,7 +21,10 @@ import net.minecraft.block.BlockReed;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemArmor;
+import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemTool;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -276,7 +279,7 @@ public class ProfitCalculator implements IFeature {
                 bountifulProfit += value;
         }
         profit += bountifulProfit;
-        realProfit = profit * 0.95d; // it counts too much, because of compactors, so we delete ~5% of false profit
+        realProfit = profit;
         realProfit += rngPrice;
 
         if (ProfitCalculatorHUD.countRNGToProfitCalc) {
@@ -344,21 +347,22 @@ public class ProfitCalculator implements IFeature {
         if (event.packet instanceof S2FPacketSetSlot) {
             S2FPacketSetSlot packet = (S2FPacketSetSlot) event.packet;
             int slotNumber = packet.func_149173_d();
-            if (slotNumber < 0 || slotNumber > 44) return; // not in inventory (armor, offhand, etc)
+            if (slotNumber < 0 || slotNumber > 44) return;
             Slot currentSlot = mc.thePlayer.inventoryContainer.getSlot(slotNumber);
             ItemStack newItem = packet.func_149174_e();
             ItemStack oldItem = currentSlot.getStack();
             if (newItem == null) return;
+            if (newItem.getItem() instanceof ItemTool || newItem.getItem() instanceof ItemArmor || newItem.getItem() instanceof ItemHoe) return;
             if (oldItem == null || !oldItem.getItem().equals(newItem.getItem())) {
                 int newStackSize = newItem.stackSize;
                 String name = StringUtils.stripControlCodes(newItem.getDisplayName());
-                addDroppedItem(name, newStackSize);
+                addDroppedItem(name, (int) Math.ceil(newStackSize * 0.98f));
             } else if (oldItem.getItem().equals(newItem.getItem())) {
                 int newStackSize = newItem.stackSize;
                 int oldStackSize = oldItem.stackSize;
                 String name = StringUtils.stripControlCodes(newItem.getDisplayName());
-                int amount = (newStackSize - oldStackSize) <= 0 ? 1 : (newStackSize - oldStackSize);
-                addDroppedItem(name, amount);
+                int amount = Math.max((newStackSize - oldStackSize), 0);
+                addDroppedItem(name, (int) Math.ceil(amount * 0.98f));
             }
         }
     }
@@ -465,7 +469,7 @@ public class ProfitCalculator implements IFeature {
     private void getPricesPerList(JsonObject json1, List<BazaarItem> list) {
         for (BazaarItem item : list) {
             JsonObject json2 = json1.getAsJsonObject(item.bazaarId);
-            JsonArray json3 = json2.getAsJsonArray("buy_summary");
+            JsonArray json3 = json2.getAsJsonArray("sell_summary");
             JsonObject json4 = json3.size() > 1 ? json3.get(1).getAsJsonObject() : json3.get(0).getAsJsonObject();
 
             double buyPrice = json4.get("pricePerUnit").getAsDouble();

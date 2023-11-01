@@ -10,7 +10,6 @@ import com.github.may2beez.farmhelperv2.util.KeyBindUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.RotationUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
-import com.github.may2beez.farmhelperv2.util.helper.Timer;
 import lombok.Getter;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -49,7 +48,6 @@ public class AntiStuck implements IFeature {
     private boolean enabled = false;
 
     private final Clock delayBetweenMovementsClock = new Clock();
-    private final Timer notMovingTimer = new Timer();
 
     @Override
     public String getName() {
@@ -74,11 +72,9 @@ public class AntiStuck implements IFeature {
     @Override
     public void start() {
         if (enabled) return;
-        notMovingTimer.schedule();
         LogUtils.sendWarning("[Anti Stuck] Enabled");
         enabled = true;
         unstuckState = UnstuckState.NONE;
-        notMovingTimer.schedule();
         KeyBindUtils.stopMovement();
     }
 
@@ -87,6 +83,11 @@ public class AntiStuck implements IFeature {
         if (enabled) {
             LogUtils.sendWarning("[Anti Stuck] Disabled");
         }
+        long randomTime = FarmHelperConfig.getRandomTimeBetweenChangingRows();
+        if (randomTime < 350) {
+            randomTime = 350;
+        }
+        GameStateHandler.getInstance().scheduleNotMoving((int) randomTime);
         enabled = false;
         unstuckState = UnstuckState.NONE;
         intersectingBlockPos = null;

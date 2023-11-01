@@ -117,14 +117,13 @@ public class Scheduler implements IFeature {
             return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
 
-        if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().inJacobContest() && !schedulerClock.isPaused()) {
+        if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().inJacobContest() && !GameStateHandler.getInstance().isWasInJacobContest()) {
             LogUtils.sendDebug("[Scheduler] Jacob contest started, pausing scheduler");
             schedulerClock.pause();
             GameStateHandler.getInstance().setWasInJacobContest(true);
             return;
-        } else if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().isWasInJacobContest() && !GameStateHandler.getInstance().inJacobContest() && schedulerClock.isPaused()) {
+        } else if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().isWasInJacobContest() && !GameStateHandler.getInstance().inJacobContest()) {
             LogUtils.sendDebug("[Scheduler] Jacob contest ended, resuming scheduler");
-            LogUtils.sendDebug(GameStateHandler.getInstance().isWasInJacobContest() + " " + GameStateHandler.getInstance().inJacobContest());
             schedulerClock.resume();
             GameStateHandler.getInstance().setWasInJacobContest(false);
             return;
@@ -140,8 +139,8 @@ public class Scheduler implements IFeature {
                 Multithreading.schedule(() -> {
                     long randomTime4 = FarmHelperConfig.getRandomRotationTime();
                     this.rotation.easeTo((float) (mc.thePlayer.rotationYaw + Math.random() * 20 - 10), (float) (20 + Math.random() * 10 - 5), randomTime4);
-                    Multithreading.schedule(InventoryUtils::openInventory, randomTime4 + 250, TimeUnit.MILLISECONDS);
-                }, (long) (200 + Math.random() * 200), TimeUnit.MILLISECONDS);
+                    Multithreading.schedule(InventoryUtils::openInventory, randomTime4 + 350, TimeUnit.MILLISECONDS);
+                }, (long) (600 + Math.random() * 400), TimeUnit.MILLISECONDS);
             }
         } else if (MacroHandler.getInstance().isMacroToggled() && schedulerState == SchedulerState.BREAK && !schedulerClock.isPaused() && schedulerClock.passed()) {
             LogUtils.sendDebug("[Scheduler] Break time has passed, starting");
