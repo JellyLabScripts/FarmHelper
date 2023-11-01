@@ -56,6 +56,16 @@ public class BlockUtils {
         }
     }
 
+    public static Vec3 getBlockPosCenter(BlockPos pos) {
+        return new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+    }
+
+    public static double getHorizontalDistance(Vec3 a, Vec3 b) {
+        double dx = a.xCoord - b.xCoord;
+        double dz = a.zCoord - b.zCoord;
+        return dx * dx + dz * dz;
+    }
+
     public static Block getBlock(BlockPos blockPos) {
         return mc.theWorld.getBlockState(blockPos).getBlock();
     }
