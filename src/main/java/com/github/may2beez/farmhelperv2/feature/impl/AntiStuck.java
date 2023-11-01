@@ -193,9 +193,6 @@ public class AntiStuck implements IFeature {
                 EnumFacing facing = closestSide.get();
                 Vec3 movementTarget = getMovementTarget(intersectingBlockPos, facing);
                 List<KeyBinding> keys = getNeededKeyPresses(mc.thePlayer.getPositionVector(), movementTarget);
-                for (KeyBinding keyBinding : keys) {
-                    LogUtils.sendWarning(keyBinding.getKeyDescription());
-                }
                 keys.add(mc.gameSettings.keyBindSneak);
                 KeyBindUtils.holdThese(keys.toArray(new KeyBinding[0]));
                 unstuckState = UnstuckState.RELEASE;
@@ -220,8 +217,6 @@ public class AntiStuck implements IFeature {
     }
 
     private Optional<EnumFacing> findClosestSide(BlockPos pos) {
-        LogUtils.sendWarning(Arrays.stream(EnumFacing.HORIZONTALS)
-                .filter(facing -> isSideClear(pos, facing)).collect(Collectors.toList()).toString());
         return Arrays.stream(EnumFacing.HORIZONTALS)
                 .filter(facing -> isSideClear(pos, facing))
                 .min(Comparator.comparingDouble(facing -> getDistanceToSide(pos, facing)));
