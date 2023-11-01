@@ -1,5 +1,6 @@
 package com.github.may2beez.farmhelperv2.macro.impl;
 
+import cc.polyfrost.oneconfig.libs.universal.UMath;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
@@ -26,6 +27,7 @@ public class SShapeMushroomMacro extends AbstractMacro {
         } else {
             setYaw(AngleUtils.getClosestDiagonal());
         }
+        setClosest90Deg(AngleUtils.getClosest());
 
         getRotation().easeTo(getYaw(), getPitch(), 500);
         super.onEnable();
@@ -33,15 +35,14 @@ public class SShapeMushroomMacro extends AbstractMacro {
 
     @Override
     public void actionAfterTeleport() {
-
+        setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
     }
 
     @Override
     public void doAfterRewarpRotation() {
-        if (!getRotation().rotating) {
-            setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
-            getRotation().easeTo(getYaw(), getPitch(), (long) (600 + Math.random() * 200));
-        }
+        setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
+        setClosest90Deg((float) UMath.wrapAngleTo180(AngleUtils.getClosest() + 180));
+        setYaw(AngleUtils.getClosestDiagonal(getYaw() + 180));
     }
 
     @Override
@@ -56,6 +57,7 @@ public class SShapeMushroomMacro extends AbstractMacro {
                     changeState(State.LEFT);
                 } else {
                     LogUtils.sendDebug("No direction found");
+                    changeState(calculateDirection());
                 }
                 break;
             case RIGHT:
@@ -65,6 +67,7 @@ public class SShapeMushroomMacro extends AbstractMacro {
                     changeState(State.RIGHT);
                 } else {
                     LogUtils.sendDebug("No direction found");
+                    changeState(calculateDirection());
                 }
                 break;
             case DROPPING: {
@@ -137,25 +140,18 @@ public class SShapeMushroomMacro extends AbstractMacro {
 
     @Override
     public State calculateDirection() {
-        boolean f1 = true, f2 = true;
-
         if (BlockUtils.rightCropIsReady()) {
             return State.RIGHT;
         } else if (BlockUtils.leftCropIsReady()) {
             return State.LEFT;
         }
 
-        for (int i = 0; i < 180; i++) {
-            if (BlockUtils.canWalkThrough(getRelativeBlockPos(i, 0, 0, AngleUtils.getClosest())) && f1) {
-                return State.RIGHT;
-            }
-            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(i, 1, 0, AngleUtils.getClosest())))
-                f1 = false;
-            if (BlockUtils.canWalkThrough(getRelativeBlockPos(-i, 0, 0, AngleUtils.getClosest())) && f2) {
+        for (int i = 1; i < 180; i++) {
+            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(i, 0, 0, getClosest90Deg()))) {
                 return State.LEFT;
             }
-            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(-i, 1, 0, AngleUtils.getClosest())))
-                f2 = false;
+            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(-i, 0, 0, getClosest90Deg())))
+                return State.RIGHT;
         }
         LogUtils.sendDebug("No direction found");
         return State.NONE;

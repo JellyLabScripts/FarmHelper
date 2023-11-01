@@ -3,6 +3,8 @@ package com.github.may2beez.farmhelperv2.util;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.Vec3;
 
 import java.util.function.Function;
 
@@ -77,8 +79,7 @@ public class RotationUtils {
         if (System.currentTimeMillis() <= endTime) {
             mc.thePlayer.rotationYaw = interpolate(start.getYaw(), target.getYaw(), this::easeOutCubic);
             mc.thePlayer.rotationPitch = interpolate(start.getPitch(), target.getPitch(), this::easeOutQuint);
-        }
-        else if (!completed) {
+        } else if (!completed) {
             mc.thePlayer.rotationYaw = target.getYaw();
             mc.thePlayer.rotationPitch = target.getPitch();
             completed = true;
@@ -118,6 +119,14 @@ public class RotationUtils {
         public Rotation(float yaw, float pitch) {
             this.yaw = yaw;
             this.pitch = pitch;
+        }
+
+        @Override
+        public String toString() {
+            return "Rotation{" +
+                    "yaw=" + yaw +
+                    ", pitch=" + pitch +
+                    '}';
         }
     }
 }

@@ -675,7 +675,6 @@ public class Failsafe implements IFeature {
         if (event.type != 0) return;
         if (!FarmHelperConfig.autoEvacuateOnWorldUpdate) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
-        System.out.println(getNumberOfCharactersInString(message));
         if (getNumberOfCharactersInString(message) > 1) return;
         if (evacuateState != EvacuateState.NONE) return;
 

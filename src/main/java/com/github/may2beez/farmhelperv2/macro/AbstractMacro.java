@@ -110,10 +110,11 @@ public abstract class AbstractMacro {
 
         if (rewarpState == RewarpState.TELEPORTED) {
             // rotate
-            if (rotated) {
-                LogUtils.sendDebug("Rotated");
+            if (rotated && !LagDetector.getInstance().isLagging() && mc.thePlayer.onGround) {
+                LogUtils.sendDebug("Rotated after warping");
                 rewarpState = RewarpState.NONE;
-                changeState(calculateDirection());
+                return;
+            } else if (rotated && (LagDetector.getInstance().isLagging() || !mc.thePlayer.onGround)) {
                 return;
             }
 
@@ -125,11 +126,12 @@ public abstract class AbstractMacro {
                 if (mc.thePlayer.rotationYaw == yaw) {
                     if (FarmHelperConfig.dontFixAfterWarping) {
                         LogUtils.sendDebug("Not rotating after warping");
-                        rewarpState = RewarpState.NONE;
+                        rotated = true;
                         return;
                     }
                 }
-                rotation.easeTo(yaw, pitch, FarmHelperConfig.getRandomRotationTime() * 2);
+                if (shouldRotateAfterWarp())
+                    rotation.easeTo(yaw, pitch, FarmHelperConfig.getRandomRotationTime() * 2);
             }
             rotated = true;
             LogUtils.sendDebug("Rotating");
@@ -202,7 +204,6 @@ public abstract class AbstractMacro {
         if (VisitorsMacro.getInstance().isToggled()) {
             VisitorsMacro.getInstance().start();
         }
-        AntiStuck.getInstance().getDontCheckForAntistuckClock().schedule(2_000);
     }
 
     public void onDisable() {
@@ -230,7 +231,6 @@ public abstract class AbstractMacro {
         if (!beforeTeleportationPos.isPresent()) return;
         if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos.get()) > 2) {
             LogUtils.sendDebug("Teleported!");
-            actionAfterTeleport();
             if (yaw == -2137 && pitch == -2137) {
                 onEnable();
             }
@@ -244,6 +244,7 @@ public abstract class AbstractMacro {
             if (!PlayerUtils.isSpawnLocationSet() || (mc.thePlayer.getPositionVector().distanceTo(PlayerUtils.getSpawnLocation()) > 1)) {
                 PlayerUtils.setSpawnLocation();
             }
+            actionAfterTeleport();
             if (VisitorsMacro.getInstance().isToggled())
                 VisitorsMacro.getInstance().start();
         }
@@ -284,6 +285,10 @@ public abstract class AbstractMacro {
     public void doAfterRewarpRotation() {
         yaw = AngleUtils.get360RotationYaw(yaw + 180);
         setClosest90Deg(AngleUtils.getClosest(yaw));
+    }
+
+    public boolean shouldRotateAfterWarp() {
+        return true;
     }
 
     @Getter

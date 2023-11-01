@@ -94,6 +94,14 @@ public class BlockUtils {
         );
     }
 
+    public static Vec3 getRelativeVec(float x, float y, float z, float yaw) {
+        return new Vec3(
+                mc.thePlayer.posX + getUnitX(yaw) * z + getUnitZ(yaw) * -1 * x,
+                (mc.thePlayer.posY % 1 > 0.7 ? Math.ceil(mc.thePlayer.posY) : mc.thePlayer.posY) + y,
+                mc.thePlayer.posZ + getUnitZ(yaw) * z + getUnitX(yaw) * x
+        );
+    }
+
     public static int bedrockCount() {
         int count = 0;
         for (int i = 0; i < 10; i++) {

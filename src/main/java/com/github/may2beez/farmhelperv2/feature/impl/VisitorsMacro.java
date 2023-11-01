@@ -29,6 +29,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class VisitorsMacro implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
@@ -190,6 +191,7 @@ public class VisitorsMacro implements IFeature {
             setManuallyStarted(false);
             return;
         }
+        MacroHandler.getInstance().getCurrentMacro().ifPresent(macro -> macro.getRotation().reset());
         if (forceStart) {
             if (enableCompactors) {
                 mainState = MainState.VISITORS;
@@ -935,10 +937,10 @@ public class VisitorsMacro implements IFeature {
                         foundRequiredItems = true;
                         continue;
                     }
-                    if (foundRewards && !line.contains("+")) {
+                    if (foundRewards && line.trim().isEmpty()) {
                         break;
                     }
-                    if (line.trim().contains("Rewards:") || line.trim().isEmpty()) {
+                    if (line.trim().contains("Rewards:") || line.trim().isEmpty() && foundRequiredItems) {
                         foundRewards = true;
                         foundRequiredItems = false;
                         continue;
@@ -963,6 +965,8 @@ public class VisitorsMacro implements IFeature {
                         }
                     }
                 }
+
+                System.out.println(currentRewards.stream().map(tuple -> tuple.getFirst() + " " + tuple.getSecond()).collect(Collectors.joining(", ")));
 
                 if (itemsToBuy.isEmpty()) {
                     LogUtils.sendDebug("[Visitors Macro] Something went wrong with collecting required items...");
@@ -1052,7 +1056,7 @@ public class VisitorsMacro implements IFeature {
                         break;
                     }
                     InventoryUtils.clickContainerSlot(rejectOfferSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                    LogUtils.webhookLog("Visitors Macro rejected visitor: " + currentVisitor.get().getCustomNameTag(), true, currentRewards.toArray(new Tuple[0]));
+                    LogUtils.webhookLog("Visitors Macro rejected visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), true, currentRewards.toArray(new Tuple[0]));
                     currentVisitor.ifPresent(servedCustomers::add);
                     currentRewards.clear();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());

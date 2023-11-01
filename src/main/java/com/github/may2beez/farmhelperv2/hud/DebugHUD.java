@@ -41,11 +41,11 @@ public class DebugHUD extends TextHud {
             lines.add("   Clock: " + AutoCookie.getInstance().getAutoCookieDelay().getRemainingTime());
             lines.add("   Timeout clock: " + AutoCookie.getInstance().getTimeoutClock().getRemainingTime());
         }
-        lines.add("AntiStuck");
-        lines.add("   State: " + AntiStuck.getInstance().getUnstuckState());
-        lines.add("   Delay between change state: " + AntiStuck.getInstance().getDelayBetweenMovementsClock().getRemainingTime());
-        lines.add("   Attempts: " + AntiStuck.getInstance().getUnstuckAttempts());
-        lines.add("   Unstuck Attempts reset in: " + AntiStuck.getInstance().getUnstuckAttemptsClock().getRemainingTime());
+        if (AntiStuck.getInstance().isRunning()) {
+            lines.add("AntiStuck");
+            lines.add("   State: " + AntiStuck.getInstance().getUnstuckState());
+            lines.add("   Delay between change state: " + AntiStuck.getInstance().getDelayBetweenMovementsClock().getRemainingTime());
+        }
         if (LagDetector.getInstance().isLagging()) {
             lines.add("LagDetector");
             lines.add("   Lagging for: " + LagDetector.getInstance().getLaggingTime());

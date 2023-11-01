@@ -62,11 +62,15 @@ public class AngleUtils {
     }
 
     public static float getClosestDiagonal() {
-        if (get360RotationYaw() < 90 && get360RotationYaw() > 0) {
+        return getClosestDiagonal(get360RotationYaw());
+    }
+
+    public static float getClosestDiagonal(float yaw) {
+        if (get360RotationYaw(yaw) < 90 && get360RotationYaw(yaw) > 0) {
             return 45;
-        } else if (get360RotationYaw() < 180) {
+        } else if (get360RotationYaw(yaw) < 180) {
             return 135f;
-        } else if (get360RotationYaw() < 270) {
+        } else if (get360RotationYaw(yaw) < 270) {
             return 225f;
         } else {
             return 315f;
@@ -126,6 +130,20 @@ public class AngleUtils {
         double diffY = boundingBox.minY + (boundingBox.maxY - boundingBox.minY) * 0.8 - mc.thePlayer.posY - mc.thePlayer.getEyeHeight() - 0.2;
         double diffZ = boundingBox.minZ + (boundingBox.maxZ - boundingBox.minZ) * 0.8 - mc.thePlayer.posZ;
         return getRotationTo(diffX, diffY, diffZ, randomness);
+    }
+
+    public static RotationUtils.Rotation getRotation(final Vec3 from, final Vec3 to) {
+        double diffX = to.xCoord - from.xCoord;
+        double diffY = to.yCoord - from.yCoord;
+        double diffZ = to.zCoord - from.zCoord;
+        double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
+
+        float pitch = (float) -Math.atan2(dist, diffY);
+        float yaw = (float) Math.atan2(diffZ, diffX);
+        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90) * -1);
+        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90);
+
+        return new RotationUtils.Rotation(pitch, yaw);
     }
 
     public static RotationUtils.Rotation getRotation(Entity entity) {

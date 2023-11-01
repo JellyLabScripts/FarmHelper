@@ -1,5 +1,6 @@
 package com.github.may2beez.farmhelperv2.macro.impl;
 
+import cc.polyfrost.oneconfig.libs.universal.UMath;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
@@ -18,27 +19,22 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
         MacroHandler.getInstance().setCrop(crop);
         PlayerUtils.getTool();
         setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
-        setYaw(AngleUtils.getClosestDiagonal());
+        setYaw(AngleUtils.getClosest());
+        setClosest90Deg(AngleUtils.getClosest());
 
         super.onEnable();
-        getRotation().easeTo((float) (AngleUtils.getClosest() + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
+        getRotation().easeTo((float) (getClosest90Deg() + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
     }
 
     @Override
     public void actionAfterTeleport() {
-
+        setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
     }
 
     @Override
     public void doAfterRewarpRotation() {
-        if (!getRotation().rotating) {
-            setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
-            if (getCurrentState() == State.RIGHT) {
-                getRotation().easeTo((float) (AngleUtils.getClosest() + 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
-            } else if (getCurrentState() == State.LEFT) {
-                getRotation().easeTo((float) (AngleUtils.getClosest() - 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
-            }
-        }
+        setClosest90Deg((float) UMath.wrapAngleTo180(AngleUtils.getClosest() + 180));
+        setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
     }
 
     @Override
@@ -49,26 +45,30 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
             case LEFT:
                 if (GameStateHandler.getInstance().isRightWalkable()) {
                     changeState(State.RIGHT);
-                } else if (!GameStateHandler.getInstance().isLeftWalkable()) {
+                    getRotation().easeTo((float) (getClosest90Deg() + 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
+                } else if (GameStateHandler.getInstance().isLeftWalkable()) {
                     changeState(State.LEFT);
+                    getRotation().easeTo((float) (getClosest90Deg() - 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
                 } else {
                     LogUtils.sendDebug("No direction found");
+                    changeState(calculateDirection());
                 }
 
                 setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
-                getRotation().easeTo((float) (AngleUtils.getClosest() + 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
                 break;
             case RIGHT:
                 if (GameStateHandler.getInstance().isLeftWalkable()) {
                     changeState(State.LEFT);
-                } else if (!GameStateHandler.getInstance().isRightWalkable()) {
+                    getRotation().easeTo((float) (getClosest90Deg() - 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
+                } else if (GameStateHandler.getInstance().isRightWalkable()) {
                     changeState(State.RIGHT);
+                    getRotation().easeTo((float) (getClosest90Deg() + 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
                 } else {
                     LogUtils.sendDebug("No direction found");
+                    changeState(calculateDirection());
                 }
 
                 setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
-                getRotation().easeTo((float) (AngleUtils.getClosest() - 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
                 break;
             case DROPPING: {
                 LogUtils.sendDebug("On Ground: " + mc.thePlayer.onGround);
@@ -78,7 +78,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                         getRotation().reset();
                         setYaw(getYaw() + 180);
 
-                        getRotation().easeTo((float) (AngleUtils.getClosest() + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
+                        getRotation().easeTo((float) (getClosest90Deg() + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
                     }
                     KeyBindUtils.stopMovement();
                     setLayerY(mc.thePlayer.getPosition().getY());
@@ -90,6 +90,14 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
             }
             case NONE:
                 changeState(calculateDirection());
+                switch (getCurrentState()) {
+                    case LEFT:
+                        getRotation().easeTo((float) (getClosest90Deg() - 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
+                        break;
+                    case RIGHT:
+                        getRotation().easeTo((float) (getClosest90Deg() + 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
+                        break;
+                }
                 break;
         }
     }
@@ -114,33 +122,30 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                 }
                 break;
             case NONE: {
-                LogUtils.sendDebug("No direction found");
                 break;
             }
         }
     }
 
     @Override
-    public State calculateDirection() {
-        boolean f1 = true, f2 = true;
+    public boolean shouldRotateAfterWarp() {
+        return false;
+    }
 
+    @Override
+    public State calculateDirection() {
         if (BlockUtils.rightCropIsReady()) {
             return State.RIGHT;
         } else if (BlockUtils.leftCropIsReady()) {
             return State.LEFT;
         }
 
-        for (int i = 0; i < 180; i++) {
-            if (BlockUtils.canWalkThrough(getRelativeBlockPos(i, 0, 0, AngleUtils.getClosest())) && f1) {
-                return State.RIGHT;
-            }
-            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(i, 1, 0, AngleUtils.getClosest())))
-                f1 = false;
-            if (BlockUtils.canWalkThrough(getRelativeBlockPos(-i, 0, 0, AngleUtils.getClosest())) && f2) {
+        for (int i = 1; i < 180; i++) {
+            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(i, 0, 0, getClosest90Deg()))) {
                 return State.LEFT;
             }
-            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(-i, 1, 0, AngleUtils.getClosest())))
-                f2 = false;
+            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(-i, 0, 0, getClosest90Deg())))
+                return State.RIGHT;
         }
         LogUtils.sendDebug("No direction found");
         return State.NONE;

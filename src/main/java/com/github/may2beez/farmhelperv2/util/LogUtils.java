@@ -160,7 +160,7 @@ public class LogUtils {
                 .setAuthor("Instance name -> " + mc.getSession().getUsername(), "https://crafatar.com/avatars/" + mc.getSession().getPlayerID(), "https://crafatar.com/avatars/" + mc.getSession().getPlayerID())
                 .setFooter("Farm Helper Webhook Status", "https://cdn.discordapp.com/attachments/861700235890130986/1144673641951395982/icon.png");
         for (Tuple<String, String> field : fields) {
-            embedObject.addField(field.getFirst(), field.getSecond(), true);
+            embedObject.addField(field.getFirst(), field.getSecond(), false);
         }
         webhook.addEmbed(embedObject);
         Multithreading.schedule(() -> {
