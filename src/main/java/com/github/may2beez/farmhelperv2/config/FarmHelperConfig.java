@@ -15,14 +15,12 @@ import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.hud.DebugHUD;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.github.may2beez.farmhelperv2.hud.StatusHUD;
-import com.github.may2beez.farmhelperv2.util.AngleUtils;
 import com.github.may2beez.farmhelperv2.util.BlockUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.PlayerUtils;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
