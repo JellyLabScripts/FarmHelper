@@ -71,6 +71,9 @@ public abstract class AbstractMacro {
 
     private final Clock rewarpDelay = new Clock();
 
+    @Getter
+    private final Clock analyticsClock = new Clock();
+
     public boolean isEnabled() {
         return enabled && !FeatureManager.getInstance().shouldPauseMacroExecution();
     }
@@ -82,6 +85,9 @@ public abstract class AbstractMacro {
     public void onTick() {
         checkForTeleport();
         LogUtils.webhookStatus();
+        if (analyticsClock.passed()) {
+            BanInfoWS.getInstance().sendAnalyticsData();
+        }
         if (!PlayerUtils.isRewarpLocationSet()) {
             LogUtils.sendError("Your rewarp position is not set!");
             MacroHandler.getInstance().disableMacro();
@@ -204,6 +210,7 @@ public abstract class AbstractMacro {
         if (VisitorsMacro.getInstance().isToggled()) {
             VisitorsMacro.getInstance().start();
         }
+        analyticsClock.reset();
     }
 
     public void onDisable() {

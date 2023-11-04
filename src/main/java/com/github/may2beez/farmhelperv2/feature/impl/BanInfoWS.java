@@ -174,19 +174,29 @@ public class BanInfoWS implements IFeature {
     }
 
     public void sendAnalyticsData() {
-        if (MacroHandler.getInstance().getAnalyticsTimer().getElapsedTime() <= 60_000) return; // ignore if macroing for less than 60 seconds
+        sendAnalyticsData(false);
+    }
+
+    public void sendAnalyticsData(boolean end) {
+        MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.getAnalyticsClock().schedule(60_000));
         System.out.println("Sending analytics data");
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("message", "analyticsData");
         jsonObject.addProperty("mod", "farmHelper");
         jsonObject.addProperty("username", Minecraft.getMinecraft().getSession().getUsername());
-        jsonObject.addProperty("id", Minecraft.getMinecraft().getSession().getPlayerID()); // that's public uuid bozos, not a token to login
+        String INFO_FOR_SKIDDERS = "that's public uuid bozos, not a token to login";
+        String INFO_FOR_SKIDDERS2 = "that's public uuid bozos, not a token to login";
+        String INFO_FOR_SKIDDERS3 = "that's public uuid bozos, not a token to login";
+        jsonObject.addProperty("id", Minecraft.getMinecraft().getSession().getPlayerID());
         jsonObject.addProperty("modVersion", FarmHelper.VERSION);
-        jsonObject.addProperty("timeMacroing", MacroHandler.getInstance().getAnalyticsTimer().getElapsedTime());
+        jsonObject.addProperty("analyticsTime", MacroHandler.getInstance().getAnalyticsTimer().getElapsedTime());
+        jsonObject.addProperty("timeMacroing", MacroHandler.getInstance().getMacroingTimer().getElapsedTime());
+        jsonObject.addProperty("type", end ? "END_SESSION" : "INFO");
         JsonObject additionalInfo = new JsonObject();
         additionalInfo.addProperty("cropType", MacroHandler.getInstance().getCrop().toString());
         additionalInfo.addProperty("bps", ProfitCalculator.getInstance().getBPS());
         additionalInfo.addProperty("profit", ProfitCalculator.getInstance().getRealProfitString());
+        additionalInfo.addProperty("profitPerHour", ProfitCalculator.getInstance().getProfitPerHourString());
         jsonObject.add("additionalInfo", additionalInfo);
         try {
             client.send(jsonObject.toString());

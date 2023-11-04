@@ -196,9 +196,10 @@ public class MacroHandler {
 
         macroingTimer.pause();
         analyticsTimer.pause();
+
         if (FarmHelperConfig.sendAnalyticData) {
             try {
-                BanInfoWS.getInstance().sendAnalyticsData();
+                BanInfoWS.getInstance().sendAnalyticsData(true);
             } catch (Exception e) {
                 LogUtils.sendDebug("Failed to send analytics data!");
                 e.printStackTrace();
@@ -210,6 +211,7 @@ public class MacroHandler {
         FeatureManager.getInstance().resetAllStates();
         disableCurrentMacro();
         setCurrentMacro(Optional.empty());
+
     }
 
     public void pauseMacro() {
