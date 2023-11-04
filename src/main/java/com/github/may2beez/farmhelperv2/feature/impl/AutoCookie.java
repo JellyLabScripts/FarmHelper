@@ -72,6 +72,8 @@ public class AutoCookie implements IFeature {
         autoCookieDelay.reset();
         setMainState(State.GET_COOKIE);
         timeoutClock.schedule(7_500);
+        if (MacroHandler.getInstance().isMacroToggled())
+            MacroHandler.getInstance().pauseMacro();
     }
 
     @Override
@@ -88,6 +90,8 @@ public class AutoCookie implements IFeature {
         timeoutClock.reset();
         mc.thePlayer.closeScreen();
         KeyBindUtils.stopMovement();
+        if (MacroHandler.getInstance().isMacroToggled())
+            MacroHandler.getInstance().resumeMacro();
     }
 
     @Override
@@ -159,6 +163,7 @@ public class AutoCookie implements IFeature {
 
     private final RotationUtils rotation = new RotationUtils();
 
+
     @SubscribeEvent
     public void onTickShouldEnable(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) return;
@@ -178,6 +183,8 @@ public class AutoCookie implements IFeature {
                     if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
                         start();
                         activating = false;
+                    } else {
+                        stop();
                     }
                 }, 1_500, TimeUnit.MILLISECONDS);
                 dontEnableClock.reset();
@@ -306,8 +313,9 @@ public class AutoCookie implements IFeature {
                         }
                         int odditiesSlot = InventoryUtils.getSlotIdOfItemInContainer("Oddities");
                         if (odditiesSlot == -1) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the oddities!");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the oddities! Restarting");
                             stop();
+                            enabled = true;
                             break;
                         }
                         InventoryUtils.clickContainerSlot(odditiesSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
@@ -336,8 +344,9 @@ public class AutoCookie implements IFeature {
 
                         int cookieSlot = InventoryUtils.getSlotIdOfItemInContainer("Booster Cookie");
                         if (cookieSlot == -1) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie!");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting");
                             stop();
+                            enabled = true;
                             break;
                         }
                         InventoryUtils.clickContainerSlot(cookieSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
@@ -359,8 +368,9 @@ public class AutoCookie implements IFeature {
 
                         int buyInstantlySlot = InventoryUtils.getSlotIdOfItemInContainer("Buy Instantly");
                         if (buyInstantlySlot == -1) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the buy instantly!");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the buy instantly! Restarting");
                             stop();
+                            enabled = true;
                             break;
                         }
                         InventoryUtils.clickContainerSlot(buyInstantlySlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
@@ -382,8 +392,9 @@ public class AutoCookie implements IFeature {
 
                         int buyOnlyOneSlot = InventoryUtils.getSlotIdOfItemInContainer("Buy only one!");
                         if (buyOnlyOneSlot == -1) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the buy only one!");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the buy only one! Restarting");
                             stop();
+                            enabled = true;
                             break;
                         }
                         InventoryUtils.clickContainerSlot(buyOnlyOneSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
@@ -437,8 +448,9 @@ public class AutoCookie implements IFeature {
                         }
                         int cookieSlot = InventoryUtils.getSlotIdOfItemInInventory("Booster Cookie");
                         if (cookieSlot == -1) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie!");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting");
                             stop();
+                            enabled = true;
                             break;
                         }
                         this.hotbarSlot = cookieSlot;
@@ -448,8 +460,9 @@ public class AutoCookie implements IFeature {
                         break;
                     case SWAP_COOKIE_TO_HOTBAR_PUT:
                         if (mc.currentScreen == null) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie!");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting");
                             stop();
+                            enabled = true;
                             break;
                         }
                         Slot newSlot = InventoryUtils.getSlotOfId(43);
@@ -464,8 +477,9 @@ public class AutoCookie implements IFeature {
                         break;
                     case SWAP_COOKIE_TO_HOTBAR_PUT_BACK:
                         if (mc.currentScreen == null) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie!");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting");
                             stop();
+                            enabled = true;
                             break;
                         }
                         InventoryUtils.clickSlot(this.hotbarSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
@@ -485,8 +499,9 @@ public class AutoCookie implements IFeature {
                         break;
                     case PUT_ITEM_BACK_PUT:
                         if (mc.currentScreen == null) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie!");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting");
                             stop();
+                            enabled = true;
                             break;
                         }
                         InventoryUtils.clickSlot(43, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
@@ -504,8 +519,9 @@ public class AutoCookie implements IFeature {
                 int cookieSlot = InventoryUtils.getSlotIdOfItemInHotbar("Booster Cookie");
                 LogUtils.sendDebug("Cookie Slot: " + cookieSlot);
                 if (cookieSlot == -1 || cookieSlot > 8) {
-                    LogUtils.sendError("Something went wrong while trying to get the slot of the cookie!");
+                    LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting");
                     stop();
+                    enabled = true;
                     break;
                 }
                 mc.thePlayer.inventory.currentItem = cookieSlot;
@@ -529,8 +545,9 @@ public class AutoCookie implements IFeature {
 
                 int slotOfConsumeCookie = InventoryUtils.getSlotIdOfItemInContainer("Consume Cookie");
                 if (slotOfConsumeCookie == -1) {
-                    LogUtils.sendError("Something went wrong while trying to get the slot of the consume cookie!");
+                    LogUtils.sendError("Something went wrong while trying to get the slot of the consume cookie! Restarting");
                     stop();
+                    enabled = true;
                     break;
                 }
 
@@ -568,28 +585,37 @@ public class AutoCookie implements IFeature {
         if (mainState == State.WAIT_FOR_CONSUME) {
             if (message.startsWith("You consumed a Booster Cookie!")) {
                 LogUtils.sendDebug("Successfully consumed a cookie!");
+                LogUtils.sendWarning("[Auto Cookie] Successfully consumed a cookie! Resuming macro in 1.5s");
                 if (this.hotbarSlot == -1) {
                     setMainState(State.NONE);
+                    Multithreading.schedule(this::stop, 1_500, TimeUnit.MILLISECONDS);
                 } else {
                     setMainState(State.MOVE_COOKIE_TO_HOTBAR);
                     setMoveCookieState(MoveCookieState.PUT_ITEM_BACK_PICKUP);
                 }
                 autoCookieDelay.schedule(getRandomDelay());
-//                Multithreading.schedule(this::stop, 3_000, TimeUnit.MILLISECONDS);
             }
         }
 
-        if (mainState == State.GET_COOKIE && bazaarState == BazaarState.WAIT_FOR_COOKIE_BUY) {
-            if (message.startsWith("[Bazaar] Bought 1x Booster Cookie for")) {
-                LogUtils.sendWarning("Successfully bought a cookie!");
-                setBazaarState(BazaarState.CLOSE_GUI);
-                autoCookieDelay.schedule(getRandomDelay());
-            } else if (message.startsWith("[Bazaar] You cannot afford this!")) {
-                LogUtils.sendError("You cannot afford a cookie! Disabling this feature for next 30 minutes");
+        if (mainState == State.GET_COOKIE) {
+            if (message.startsWith("This server is too laggy to use the Bazaar, sorry!")) {
+                LogUtils.sendError("This server is too laggy to use the Bazaar, sorry! Disabling this feature for next 30 minutes");
                 dontEnableClock.schedule(30_000 * 60);
                 setBazaarState(BazaarState.CLOSE_GUI);
             }
+            if (bazaarState == BazaarState.WAIT_FOR_COOKIE_BUY) {
+                if (message.startsWith("[Bazaar] Bought 1x Booster Cookie for")) {
+                    LogUtils.sendWarning("Successfully bought a cookie!");
+                    setBazaarState(BazaarState.CLOSE_GUI);
+                    autoCookieDelay.schedule(getRandomDelay());
+                } else if (message.startsWith("[Bazaar] You cannot afford this!")) {
+                    LogUtils.sendError("You cannot afford a cookie! Disabling this feature for next 30 minutes");
+                    dontEnableClock.schedule(30_000 * 60);
+                    setBazaarState(BazaarState.CLOSE_GUI);
+                }
+            }
         }
+
     }
 
     @SubscribeEvent

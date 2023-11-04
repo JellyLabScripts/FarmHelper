@@ -183,6 +183,14 @@ public class MacroHandler {
 
         setMacroToggled(true);
         enableCurrentMacro();
+        if (FarmHelperConfig.sendAnalyticData) {
+            try {
+                BanInfoWS.getInstance().sendAnalyticsData(BanInfoWS.AnalyticsState.START_SESSION);
+            } catch (Exception e) {
+                LogUtils.sendDebug("Failed to send analytics data!");
+                e.printStackTrace();
+            }
+        }
     }
 
     public void disableMacro() {
@@ -199,7 +207,7 @@ public class MacroHandler {
 
         if (FarmHelperConfig.sendAnalyticData) {
             try {
-                BanInfoWS.getInstance().sendAnalyticsData(true);
+                BanInfoWS.getInstance().sendAnalyticsData(BanInfoWS.AnalyticsState.END_SESSION);
             } catch (Exception e) {
                 LogUtils.sendDebug("Failed to send analytics data!");
                 e.printStackTrace();

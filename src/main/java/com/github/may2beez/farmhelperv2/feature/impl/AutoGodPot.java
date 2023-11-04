@@ -47,6 +47,8 @@ public class AutoGodPot implements IFeature {
 
     private final RotationUtils rotation = new RotationUtils();
 
+    private boolean shouldTpToGarden = true;
+
     @Override
     public String getName() {
         return "Auto God Pot";
@@ -73,15 +75,20 @@ public class AutoGodPot implements IFeature {
 
         if (InventoryUtils.hasItemInInventory("God Pot")) {
             godPotMode = GodPotMode.FROM_INVENTORY;
+            shouldTpToGarden = false;
         } else {
             if (FarmHelperConfig.autoGodPotFromBackpack) {
                 godPotMode = GodPotMode.FROM_BACKPACK;
+                shouldTpToGarden = false;
             } else if (FarmHelperConfig.autoGodPotFromBits) {
                 godPotMode = GodPotMode.FROM_BITS_SHOP;
+                shouldTpToGarden = true;
             } else if (FarmHelperConfig.autoGodPotFromAH && GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.ACTIVE) {
                 godPotMode = GodPotMode.FROM_AH_COOKIE;
+                shouldTpToGarden = false;
             } else if (FarmHelperConfig.autoGodPotFromAH) {
                 godPotMode = GodPotMode.FROM_AH_NO_COOKIE;
+                shouldTpToGarden = true;
             } else {
                 LogUtils.sendError("[Auto God Pot] You didn't activate any God Pot source! Disabling");
                 FarmHelperConfig.autoGodPot = false;
@@ -119,7 +126,9 @@ public class AutoGodPot implements IFeature {
         resetBitsShopState();
         godPotMode = GodPotMode.NONE;
         KeyBindUtils.stopMovement();
-        MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
+        if (shouldTpToGarden)
+            MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
+        shouldTpToGarden = true;
         Multithreading.schedule(() -> {
             LogUtils.sendWarning("[Auto God Pot] Disabled!");
             if (MacroHandler.getInstance().isMacroToggled()) {
@@ -829,6 +838,7 @@ public class AutoGodPot implements IFeature {
 
     private void noGodPotInInventory() {
         LogUtils.sendError("[Auto God Pot] Could not find any God Pot in Backpack! Going to buy one!");
+        shouldTpToGarden = true;
         if (FarmHelperConfig.autoGodPotFromBits) {
             setGodPotMode(GodPotMode.FROM_BITS_SHOP);
         } else if (FarmHelperConfig.autoGodPotFromAH && GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {

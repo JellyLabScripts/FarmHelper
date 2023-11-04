@@ -173,11 +173,17 @@ public class BanInfoWS implements IFeature {
         }
     }
 
-    public void sendAnalyticsData() {
-        sendAnalyticsData(false);
+    public enum AnalyticsState {
+        START_SESSION,
+        INFO,
+        END_SESSION,
     }
 
-    public void sendAnalyticsData(boolean end) {
+    public void sendAnalyticsData() {
+        sendAnalyticsData(AnalyticsState.INFO);
+    }
+
+    public void sendAnalyticsData(AnalyticsState state) {
         MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.getAnalyticsClock().schedule(60_000));
         System.out.println("Sending analytics data");
         JsonObject jsonObject = new JsonObject();
@@ -191,7 +197,7 @@ public class BanInfoWS implements IFeature {
         jsonObject.addProperty("modVersion", FarmHelper.VERSION);
         jsonObject.addProperty("analyticsTime", MacroHandler.getInstance().getAnalyticsTimer().getElapsedTime());
         jsonObject.addProperty("timeMacroing", MacroHandler.getInstance().getMacroingTimer().getElapsedTime());
-        jsonObject.addProperty("type", end ? "END_SESSION" : "INFO");
+        jsonObject.addProperty("type", state.name());
         JsonObject additionalInfo = new JsonObject();
         additionalInfo.addProperty("cropType", MacroHandler.getInstance().getCrop().toString());
         additionalInfo.addProperty("bps", ProfitCalculator.getInstance().getBPS());
