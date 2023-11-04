@@ -85,7 +85,7 @@ public abstract class AbstractMacro {
     public void onTick() {
         checkForTeleport();
         LogUtils.webhookStatus();
-        if (analyticsClock.passed()) {
+        if (analyticsClock.passed() && FarmHelperConfig.sendAnalyticData) {
             BanInfoWS.getInstance().sendAnalyticsData();
         }
         if (!PlayerUtils.isRewarpLocationSet()) {

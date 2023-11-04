@@ -5,6 +5,7 @@ import cc.polyfrost.oneconfig.config.annotations.Number;
 import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.*;
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.page.AutoSellNPCItemsPage;
 import com.github.may2beez.farmhelperv2.config.page.CustomFailsafeMessagesPage;
@@ -16,10 +17,12 @@ import com.github.may2beez.farmhelperv2.hud.DebugHUD;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.github.may2beez.farmhelperv2.hud.StatusHUD;
 import com.github.may2beez.farmhelperv2.util.BlockUtils;
+import com.github.may2beez.farmhelperv2.util.InventoryUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.PlayerUtils;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
 import net.minecraft.client.Minecraft;
+import net.minecraft.inventory.Slot;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
@@ -30,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 // THIS IS RAT - CatalizCS
 @SuppressWarnings({"unused", "DefaultAnnotationParam"})
@@ -1438,9 +1442,14 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-        registerKeyBind(debugKeybind, () -> {
-            AutoGodPot.getInstance().toggle();
-        });
+//        registerKeyBind(debugKeybind, () -> {
+//            InventoryUtils.openInventory();
+//            Multithreading.schedule(() -> {
+//                for (Slot slot : mc.thePlayer.inventoryContainer.inventorySlots) {
+//                    System.out.println(slot.slotNumber + ": " + slot.getStack());
+//                }
+//            }, 1_000, TimeUnit.MILLISECONDS);
+//        });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
         save();
     }
