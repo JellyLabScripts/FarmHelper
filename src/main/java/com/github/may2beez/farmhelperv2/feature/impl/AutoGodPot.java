@@ -12,6 +12,7 @@ import com.github.may2beez.farmhelperv2.util.helper.SignUtils;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
@@ -88,6 +89,10 @@ public class AutoGodPot implements IFeature {
             }
         }
         enabled = true;
+        KeyBindUtils.stopMovement();
+        if (MacroHandler.getInstance().isMacroToggled()) {
+            MacroHandler.getInstance().pauseMacro();
+        }
         LogUtils.sendWarning("[Auto God Pot] Enabled!");
         stuckClock.schedule(STUCK_DELAY);
     }
@@ -114,7 +119,13 @@ public class AutoGodPot implements IFeature {
         resetBitsShopState();
         godPotMode = GodPotMode.NONE;
         KeyBindUtils.stopMovement();
-        LogUtils.sendWarning("[Auto God Pot] Disabled!");
+        MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
+        Multithreading.schedule(() -> {
+            LogUtils.sendWarning("[Auto God Pot] Disabled!");
+            if (MacroHandler.getInstance().isMacroToggled()) {
+                MacroHandler.getInstance().resumeMacro();
+            }
+        }, 4_000, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -220,9 +231,13 @@ public class AutoGodPot implements IFeature {
         GO_TO_BITS_SHOP_1,
         ROTATE_TO_BITS_SHOP_2,
         GO_TO_BITS_SHOP_2,
+        ROTATE_TO_BITS_SHOP,
         OPEN_BITS_SHOP,
+        BITS_SHOP_TAB,
         CHECK_CONFIRM,
-        CLICK_CHECK_CONFIRM,
+        CLICK_GOD_POT,
+        WAITING_FOR_BUY,
+        END
     }
 
     @Getter
@@ -294,6 +309,7 @@ public class AutoGodPot implements IFeature {
                 onBackpackState();
                 break;
             case FROM_BITS_SHOP:
+                onBitsShop();
                 break;
         }
     }
@@ -601,10 +617,10 @@ public class AutoGodPot implements IFeature {
                     break;
                 }
                 KeyBindUtils.stopMovement();
-                randomTime = FarmHelperConfig.getRandomRotationTime();
-                rot = AngleUtils.getRotation(ahLocation2);
-                rotation.easeTo(rot.getYaw(), rot.getPitch(), randomTime);
-                delayClock.schedule(randomTime + 150);
+                long randomTime2 = FarmHelperConfig.getRandomRotationTime();
+                RotationUtils.Rotation rot2 = AngleUtils.getRotation(ahLocation2);
+                rotation.easeTo(rot2.getYaw(), rot2.getPitch(), randomTime2);
+                delayClock.schedule(randomTime2 + 150);
                 setGoingToAHState(GoingToAHState.GO_TO_AH_2);
                 break;
             case GO_TO_AH_2:
@@ -693,7 +709,7 @@ public class AutoGodPot implements IFeature {
                             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                             break;
                         }
-                        InventoryUtils.clickSlot(43, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        InventoryUtils.clickSlot(this.hotbarSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         setMovePotState(MovePotState.PUT_ITEM_BACK_PUT);
                         delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                         break;
@@ -703,7 +719,7 @@ public class AutoGodPot implements IFeature {
                             stop();
                             break;
                         }
-                        InventoryUtils.clickSlot(this.hotbarSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        InventoryUtils.clickSlot(43, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         delayClock.schedule(3_000);
                         Multithreading.schedule(this::stop, 1_500, TimeUnit.MILLISECONDS);
                         break;
@@ -827,6 +843,187 @@ public class AutoGodPot implements IFeature {
     }
 
 
+
+    private void onBitsShop() {
+        switch (bitsShopState) {
+            case NONE:
+                if (GameStateHandler.getInstance().getBits() < 1_500) {
+                    LogUtils.sendError("[Auto God Pot] You don't have enough bits to buy a God Pot! Disabling Auto God Pot!");
+                    FarmHelperConfig.autoGodPot = false;
+                    stop();
+                    return;
+                }
+                setBitsShopState(BitsShopState.TELEPORT_TO_HUB);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
+            case TELEPORT_TO_HUB:
+                if (mc.currentScreen != null) {
+                    mc.thePlayer.closeScreen();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                mc.thePlayer.sendChatMessage("/hub");
+                setBitsShopState(BitsShopState.ROTATE_TO_BITS_SHOP_1);
+                delayClock.schedule(5_000);
+                break;
+            case ROTATE_TO_BITS_SHOP_1:
+                if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.HUB) {
+                    setBitsShopState(BitsShopState.TELEPORT_TO_HUB);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                KeyBindUtils.stopMovement();
+                long randomTime = FarmHelperConfig.getRandomRotationTime();
+                RotationUtils.Rotation rot = AngleUtils.getRotation(bitsShopLocation1);
+                rotation.easeTo(rot.getYaw(), rot.getPitch(), randomTime);
+                delayClock.schedule(randomTime + 150);
+                setBitsShopState(BitsShopState.GO_TO_BITS_SHOP_1);
+                break;
+            case GO_TO_BITS_SHOP_1:
+                if (mc.currentScreen != null) {
+                    KeyBindUtils.stopMovement();
+                    setBitsShopState(BitsShopState.ROTATE_TO_BITS_SHOP_1);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (rotation.rotating) break;
+                if (mc.thePlayer.getPositionVector().distanceTo(bitsShopLocation1) < 1.5) {
+                    KeyBindUtils.stopMovement();
+                    setBitsShopState(BitsShopState.ROTATE_TO_BITS_SHOP_2);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                KeyBindUtils.holdThese(mc.gameSettings.keyBindSprint, mc.gameSettings.keyBindForward);
+                stuckClock.schedule(STUCK_DELAY);
+                break;
+            case ROTATE_TO_BITS_SHOP_2:
+                if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.HUB) {
+                    setBitsShopState(BitsShopState.TELEPORT_TO_HUB);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                KeyBindUtils.stopMovement();
+                long randomTime2 = FarmHelperConfig.getRandomRotationTime();
+                RotationUtils.Rotation rot2 = AngleUtils.getRotation(bitsShopLocation2);
+                rotation.easeTo(rot2.getYaw(), rot2.getPitch(), randomTime2);
+                delayClock.schedule(randomTime2 + 150);
+                setBitsShopState(BitsShopState.GO_TO_BITS_SHOP_2);
+                break;
+            case GO_TO_BITS_SHOP_2:
+                if (mc.currentScreen != null) {
+                    KeyBindUtils.stopMovement();
+                    setBitsShopState(BitsShopState.ROTATE_TO_BITS_SHOP_2);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (rotation.rotating) break;
+                if (mc.thePlayer.getPositionVector().distanceTo(bitsShopLocation2) < 1.5) {
+                    KeyBindUtils.stopMovement();
+                    setBitsShopState(BitsShopState.ROTATE_TO_BITS_SHOP);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                KeyBindUtils.holdThese(mc.gameSettings.keyBindSprint, mc.gameSettings.keyBindForward);
+                stuckClock.schedule(STUCK_DELAY);
+                break;
+            case ROTATE_TO_BITS_SHOP:
+                if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.HUB) {
+                    setBitsShopState(BitsShopState.TELEPORT_TO_HUB);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                Optional<Entity> elizabeth = mc.theWorld.loadedEntityList.stream().filter(entity -> entity instanceof EntityArmorStand).filter(entity -> entity.getDisplayName().getUnformattedText().contains("Elizabeth")).findFirst();
+                if (!elizabeth.isPresent()) {
+                    LogUtils.sendError("[Auto God Pot] Could not find Elizabeth! Trying again!");
+                    setBitsShopState(BitsShopState.TELEPORT_TO_HUB);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    return;
+                }
+                KeyBindUtils.stopMovement();
+                long randomTime3 = FarmHelperConfig.getRandomRotationTime();
+                RotationUtils.Rotation rot3 = AngleUtils.getRotation(elizabeth.get());
+                rotation.easeTo(rot3.getYaw(), rot3.getPitch(), randomTime3);
+                delayClock.schedule(randomTime3 + 150);
+                setBitsShopState(BitsShopState.OPEN_BITS_SHOP);
+                break;
+            case OPEN_BITS_SHOP:
+                if (mc.currentScreen != null) {
+                    mc.thePlayer.closeScreen();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                KeyBindUtils.rightClick();
+                setBitsShopState(BitsShopState.BITS_SHOP_TAB);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
+            case BITS_SHOP_TAB:
+                if (mc.currentScreen == null) {
+                    setBitsShopState(BitsShopState.OPEN_BITS_SHOP);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("Community Shop")) break;
+                Slot bitsShopTab = InventoryUtils.getSlotOfItemInContainer("Bits Shop");
+                if (bitsShopTab == null) break;
+                ArrayList<String> lore = InventoryUtils.getItemLore(bitsShopTab.getStack());
+                for (String line : lore) {
+                    if (line.contains("Click to view")) {
+                        InventoryUtils.clickContainerSlot(bitsShopTab.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        setBitsShopState(BitsShopState.CHECK_CONFIRM);
+                        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                        return;
+                    }
+                }
+                setBitsShopState(BitsShopState.CHECK_CONFIRM);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
+            case CHECK_CONFIRM:
+                if (mc.currentScreen == null) {
+                    setBitsShopState(BitsShopState.OPEN_BITS_SHOP);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("Community Shop")) break;
+                Slot confirm = InventoryUtils.getSlotOfItemInContainer("Purchase Confirmation");
+                if (confirm == null) break;
+                ArrayList<String> lore2 = InventoryUtils.getItemLore(confirm.getStack());
+                for (String line : lore2) {
+                    if (line.contains("Confirmation: Enabled!")) {
+                        InventoryUtils.clickContainerSlot(confirm.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        setBitsShopState(BitsShopState.CLICK_GOD_POT);
+                        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                        return;
+                    }
+                }
+                setBitsShopState(BitsShopState.CLICK_GOD_POT);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
+            case CLICK_GOD_POT:
+                if (mc.currentScreen == null) {
+                    setBitsShopState(BitsShopState.OPEN_BITS_SHOP);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("Community Shop")) break;
+                Slot godPot = InventoryUtils.getSlotOfItemInContainer("God Potion");
+                if (godPot == null) break;
+                setBitsShopState(BitsShopState.WAITING_FOR_BUY);
+                InventoryUtils.clickContainerSlot(godPot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                break;
+            case WAITING_FOR_BUY:
+                break;
+            case END:
+                if (mc.currentScreen != null) {
+                    mc.thePlayer.closeScreen();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                setBitsShopState(BitsShopState.NONE);
+                setGodPotMode(GodPotMode.FROM_INVENTORY);
+                break;
+        }
+    }
+
     @SubscribeEvent
     public void onChatReceived(ClientChatReceivedEvent event) {
         if (!isRunning()) return;
@@ -848,34 +1045,20 @@ public class AutoGodPot implements IFeature {
         }
         if (consumePotState == ConsumePotState.WAIT_FOR_CONSUME) {
             if (message.startsWith("GULP! The God Potion grants you powers for")) {
-                setMovePotState(MovePotState.PUT_ITEM_BACK_PICKUP);
-                setConsumePotState(ConsumePotState.MOVE_POT_TO_HOTBAR);
+                if (this.hotbarSlot != -1) {
+                    setMovePotState(MovePotState.PUT_ITEM_BACK_PICKUP);
+                    setConsumePotState(ConsumePotState.MOVE_POT_TO_HOTBAR);
+                } else {
+                    Multithreading.schedule(this::stop, 1_500, TimeUnit.MILLISECONDS);
+                }
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
             }
         }
-    }
-
-    private void onBitsShop() {
-        switch (bitsShopState) {
-
-            case NONE:
-                break;
-            case TELEPORT_TO_HUB:
-                break;
-            case ROTATE_TO_BITS_SHOP_1:
-                break;
-            case GO_TO_BITS_SHOP_1:
-                break;
-            case ROTATE_TO_BITS_SHOP_2:
-                break;
-            case GO_TO_BITS_SHOP_2:
-                break;
-            case OPEN_BITS_SHOP:
-                break;
-            case CHECK_CONFIRM:
-                break;
-            case CLICK_CHECK_CONFIRM:
-                break;
+        if (bitsShopState == BitsShopState.WAITING_FOR_BUY) {
+            if (message.startsWith("You bought God Potion!")) {
+                setBitsShopState(BitsShopState.END);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+            }
         }
     }
 
@@ -954,7 +1137,6 @@ public class AutoGodPot implements IFeature {
             return true;
         if (!InventoryUtils.getInventoryName().startsWith(inventoryNameStartsWith)) {
             LogUtils.sendError("[Auto God Pot] Opened wrong Auction Menu! Restarting...");
-            setAhState(AhState.OPEN_AH);
             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
             return true;
         }

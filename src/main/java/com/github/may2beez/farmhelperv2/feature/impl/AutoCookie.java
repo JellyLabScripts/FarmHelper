@@ -479,7 +479,7 @@ public class AutoCookie implements IFeature {
                             autoCookieDelay.schedule(getRandomDelay());
                             break;
                         }
-                        InventoryUtils.clickSlot(43, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        InventoryUtils.clickSlot(this.hotbarSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         setMoveCookieState(MoveCookieState.PUT_ITEM_BACK_PUT);
                         autoCookieDelay.schedule(getRandomDelay());
                         break;
@@ -489,7 +489,7 @@ public class AutoCookie implements IFeature {
                             stop();
                             break;
                         }
-                        InventoryUtils.clickSlot(this.hotbarSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        InventoryUtils.clickSlot(43, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         autoCookieDelay.schedule(3_000);
                         Multithreading.schedule(this::stop, 1_500, TimeUnit.MILLISECONDS);
                         break;
