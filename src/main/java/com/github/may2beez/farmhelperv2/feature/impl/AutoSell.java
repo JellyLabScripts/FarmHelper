@@ -28,6 +28,9 @@ import org.lwjgl.input.Keyboard;
 import java.util.Arrays;
 import java.util.List;
 
+/*
+    Credits to Yuro for this superb class
+*/
 public class AutoSell implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
     private static AutoSell instance;

@@ -39,19 +39,6 @@ public class FeatureManager {
                 VisitorsMacro.getInstance()
         );
         features.addAll(featuresList);
-//        features.addAll(new Reflections().getSubTypesOf(IFeature.class).stream()
-//                .map(c -> {
-//                    try {
-//                        return ((IFeature) c.getMethod("getInstance").invoke(null));
-//                    } catch (IllegalAccessException e) {
-//                        e.printStackTrace();
-//                    } catch (InvocationTargetException | NoSuchMethodException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                    return null;
-//                })
-//                .filter(Objects::nonNull)
-//                .collect(Collectors.toCollection(ArrayList::new)));
     }
 
     public boolean shouldPauseMacroExecution() {

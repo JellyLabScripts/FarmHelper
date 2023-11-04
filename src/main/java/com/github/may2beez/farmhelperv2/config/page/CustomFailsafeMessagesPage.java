@@ -2,6 +2,9 @@ package com.github.may2beez.farmhelperv2.config.page;
 
 import cc.polyfrost.oneconfig.config.annotations.Text;
 
+/*
+    Credits to Yuro for this superb class
+*/
 public class CustomFailsafeMessagesPage {
     @Text(
             name = "Rotation failsafe messages",

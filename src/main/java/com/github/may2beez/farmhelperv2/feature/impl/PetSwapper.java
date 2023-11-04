@@ -21,6 +21,9 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.List;
 
+/*
+    Credits to Yuro for this superb class
+*/
 public class PetSwapper implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
     private static PetSwapper instance;

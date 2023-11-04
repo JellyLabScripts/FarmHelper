@@ -19,6 +19,9 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import javax.crypto.Mac;
 import java.util.concurrent.TimeUnit;
 
+/*
+    Credits to Yuro for this superb class
+*/
 public class LeaveTimer implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
     private static LeaveTimer instance;

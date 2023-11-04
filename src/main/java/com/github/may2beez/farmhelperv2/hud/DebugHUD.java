@@ -72,5 +72,13 @@ public class DebugHUD extends TextHud {
             lines.add("   Clock: " + VisitorsMacro.getInstance().getDelayClock().getRemainingTime());
             lines.add("   Stuck: " + VisitorsMacro.getInstance().getStuckClock().getRemainingTime());
         }
+        if (AutoGodPot.getInstance().isRunning()) {
+            lines.add("AutoGodPot");
+            lines.add("   Mode: " + AutoGodPot.getInstance().getGodPotMode());
+            lines.add("   AH State: " + AutoGodPot.getInstance().getAhState());
+            lines.add("   Going To AH State: " + AutoGodPot.getInstance().getGoingToAHState());
+            lines.add("   Consume Pot State: " + AutoGodPot.getInstance().getConsumePotState());
+            lines.add("   Clock: " + AutoGodPot.getInstance().getDelayClock().getRemainingTime());
+        }
     }
 }

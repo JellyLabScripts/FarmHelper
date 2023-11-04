@@ -27,6 +27,9 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/*
+    Credits to Yuro for this superb class
+*/
 public class AutoUpdaterGUI extends GuiScreen {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final String GITHUB_API_URL = "https://api.github.com/repos/May2Beez/FarmHelperV2/releases";

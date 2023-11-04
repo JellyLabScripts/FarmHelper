@@ -1,25 +1,36 @@
 package com.github.may2beez.farmhelperv2.feature.impl;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
-import com.github.may2beez.farmhelperv2.util.InventoryUtils;
-import com.github.may2beez.farmhelperv2.util.LogUtils;
+import com.github.may2beez.farmhelperv2.handler.MacroHandler;
+import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import com.github.may2beez.farmhelperv2.util.helper.SignUtils;
 import lombok.Getter;
-import net.dv8tion.jda.api.hooks.SubscribeEvent;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.StringUtils;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.ArrayList;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 public class AutoGodPot implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
     private static AutoGodPot instance;
+
     public static AutoGodPot getInstance() {
         if (instance == null) {
             instance = new AutoGodPot();
@@ -32,20 +43,22 @@ public class AutoGodPot implements IFeature {
     @Getter
     private final Clock stuckClock = new Clock();
     private final int STUCK_DELAY = (int) (7_500 + FarmHelperConfig.visitorsMacroGuiDelay + FarmHelperConfig.visitorsMacroGuiDelayRandomness);
-    
+
+    private final RotationUtils rotation = new RotationUtils();
+
     @Override
     public String getName() {
-        return null;
+        return "Auto God Pot";
     }
 
     @Override
     public boolean isRunning() {
-        return false;
+        return enabled || activating;
     }
 
     @Override
     public boolean shouldPauseMacroExecution() {
-        return false;
+        return true;
     }
 
     @Override
@@ -55,32 +68,69 @@ public class AutoGodPot implements IFeature {
 
     @Override
     public void start() {
-        if (!canEnableMacro()) return;
-        if (FarmHelperConfig.autoGodPotFromAH) {
-            buyState = BuyState.OPEN_AH;
+        if (enabled) return;
+
+        if (InventoryUtils.hasItemInInventory("God Pot")) {
+            godPotMode = GodPotMode.FROM_INVENTORY;
+        } else {
+            if (FarmHelperConfig.autoGodPotFromBackpack) {
+                godPotMode = GodPotMode.FROM_BACKPACK;
+            } else if (FarmHelperConfig.autoGodPotFromBits) {
+                godPotMode = GodPotMode.FROM_BITS_SHOP;
+            } else if (FarmHelperConfig.autoGodPotFromAH && GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.ACTIVE) {
+                godPotMode = GodPotMode.FROM_AH_COOKIE;
+            } else if (FarmHelperConfig.autoGodPotFromAH) {
+                godPotMode = GodPotMode.FROM_AH_NO_COOKIE;
+            } else {
+                LogUtils.sendError("[Auto God Pot] You didn't activate any God Pot source! Disabling");
+                FarmHelperConfig.autoGodPot = false;
+                return;
+            }
+        }
+        enabled = true;
+        LogUtils.sendWarning("[Auto God Pot] Enabled!");
+        stuckClock.schedule(STUCK_DELAY);
+    }
+
+    public void toggle() {
+        if (isRunning()) {
+            stop();
+        } else {
+            start();
         }
     }
 
     @Override
     public void stop() {
-
+        if (!enabled) return;
+        enabled = false;
+        stuckClock.reset();
+        delayClock.reset();
+        rotation.reset();
+        resetAHState();
+        resetGoingToAHState();
+        resetConsumePotState();
+        resetBackpackState();
+        resetBitsShopState();
+        godPotMode = GodPotMode.NONE;
+        KeyBindUtils.stopMovement();
+        LogUtils.sendWarning("[Auto God Pot] Disabled!");
     }
 
     @Override
     public void resetStatesAfterMacroDisabled() {
-        buyState = BuyState.NONE;
-        delayClock.reset();
-        stuckClock.reset();
     }
 
     @Override
     public boolean isToggled() {
-        return false;
+        return FarmHelperConfig.autoGodPot;
     }
 
-    private BuyState buyState = BuyState.NONE;
+    private boolean enabled = false;
+    private boolean activating = false;
 
-    enum BuyState {
+
+    enum AhState {
         NONE,
         OPEN_AH,
         OPEN_BROWSER,
@@ -91,29 +141,172 @@ public class AutoGodPot implements IFeature {
         BUY_ITEM,
         CONFIRM_PURCHASE,
         WAIT_FOR_CONFIRMATION,
-        CLOSE_AH
+        COLLECT_ITEM_OPEN_AH,
+        COLLECT_ITEM_VIEW_BIDS,
+        COLLECT_ITEM_CLICK_ITEM,
+        COLLECT_ITEM_CLICK_COLLECT,
+        COLLECT_ITEM_WAIT_FOR_COLLECT,
+        CLOSE_AH,
     }
 
-    private boolean canEnableMacro() {
-        if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
-            LogUtils.sendError("[Auto God Pot] Cookie buff is not active, skipping...");
-            return false;
-        }
+    @Getter
+    private AhState ahState = AhState.NONE;
 
-        if (GameStateHandler.getInstance().getCurrentPurse() < 1_400_000) {
-            LogUtils.sendError("[Auto God Pot] Player's purse is too low, skipping...");
-            return false;
-        }
-
-        return true;
+    enum GodPotMode {
+        NONE,
+        FROM_AH_COOKIE,
+        FROM_AH_NO_COOKIE,
+        FROM_INVENTORY,
+        FROM_BACKPACK,
+        FROM_BITS_SHOP
     }
 
-    ArrayList<Integer> badItems = new ArrayList<>();
-    Slot godPotItem;
+    @Getter
+    private GodPotMode godPotMode = GodPotMode.NONE;
 
-    private void buyItem() {
-        switch (buyState) {
+    enum GoingToAHState {
+        NONE,
+        TELEPORT_TO_HUB,
+        ROTATE_TO_AH_1,
+        GO_TO_AH_1,
+        ROTATE_TO_AH_2,
+        GO_TO_AH_2,
+
+    }
+
+    @Getter
+    private GoingToAHState goingToAHState = GoingToAHState.NONE;
+
+    private final Vec3 ahLocation1 = new Vec3(-17.5, 72, -91.5);
+    private final Vec3 ahLocation2 = new Vec3(-30.5, 73, -87.5);
+
+    enum ConsumePotState {
+        NONE,
+        MOVE_POT_TO_HOTBAR,
+        SELECT_POT,
+        RIGHT_CLICK_POT,
+        WAIT_FOR_CONSUME
+    }
+
+    @Getter
+    private ConsumePotState consumePotState = ConsumePotState.NONE;
+
+    enum MovePotState {
+        SWAP_POT_TO_HOTBAR_PICKUP,
+        SWAP_POT_TO_HOTBAR_PUT,
+        SWAP_POT_TO_HOTBAR_PUT_BACK,
+        PUT_ITEM_BACK_PICKUP,
+        PUT_ITEM_BACK_PUT
+    }
+
+    @Getter
+    private MovePotState movePotState = MovePotState.SWAP_POT_TO_HOTBAR_PICKUP;
+    private int hotbarSlot = -1;
+
+    enum BackpackState {
+        NONE,
+        OPEN_STORAGE,
+        MOVE_POT_TO_INVENTORY,
+        END
+    }
+
+    @Getter
+    private BackpackState backpackState = BackpackState.NONE;
+
+    enum BitsShopState {
+        NONE,
+        TELEPORT_TO_HUB,
+        ROTATE_TO_BITS_SHOP_1,
+        GO_TO_BITS_SHOP_1,
+        ROTATE_TO_BITS_SHOP_2,
+        GO_TO_BITS_SHOP_2,
+        OPEN_BITS_SHOP,
+        CHECK_CONFIRM,
+        CLICK_CHECK_CONFIRM,
+    }
+
+    @Getter
+    private BitsShopState bitsShopState = BitsShopState.NONE;
+
+    private final Vec3 bitsShopLocation1 = new Vec3(5.5, 72, -97.5);
+    private final Vec3 bitsShopLocation2 = new Vec3(1.5, 72, -100.5);
+
+    @SubscribeEvent
+    public void onTickShouldEnable(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.START) return;
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!isToggled()) return;
+        if (isRunning()) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
+        if (!GameStateHandler.getInstance().inGarden()) return;
+
+        if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LOBBY && GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
+            if (!enabled && !activating) {
+                LogUtils.sendWarning("[Auto God Pot] Your God Pot Buff is not active! Activating Auto Cookie in 1.5 second!");
+                activating = true;
+                KeyBindUtils.stopMovement();
+                Multithreading.schedule(() -> {
+                    if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
+                        start();
+                        activating = false;
+                    }
+                }, 1_500, TimeUnit.MILLISECONDS);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onTickUpdate(TickEvent.ClientTickEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!isToggled()) return;
+        if (!isRunning()) return;
+//        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
+
+        if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING) {
+            stuckClock.schedule(STUCK_DELAY);
+            return;
+        }
+
+        if (delayClock.isScheduled() && !delayClock.passed()) return;
+
+        switch (godPotMode) {
+
             case NONE:
+                LogUtils.sendWarning("[Auto God Pot] You didn't activate any God Pot source! Disabling");
+                stop();
+                break;
+            case FROM_AH_COOKIE:
+                onAhState(false);
+                break;
+            case FROM_AH_NO_COOKIE:
+                if (isInAHArea()) {
+                    onAhState(true);
+                } else {
+                    onGoingToAHState();
+                }
+                break;
+            case FROM_INVENTORY:
+                onInventoryState();
+                break;
+            case FROM_BACKPACK:
+                onBackpackState();
+                break;
+            case FROM_BITS_SHOP:
+                break;
+        }
+    }
+
+    private final ArrayList<Integer> badItems = new ArrayList<>();
+    private Slot godPotItem;
+
+    private void onAhState(boolean rightClick) {
+        switch (ahState) {
+            case NONE:
+                KeyBindUtils.stopMovement();
+                setGoingToAHState(GoingToAHState.NONE);
+                setAhState(AhState.OPEN_AH);
                 break;
             case OPEN_AH:
                 if (mc.currentScreen != null) {
@@ -121,71 +314,141 @@ public class AutoGodPot implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                mc.thePlayer.sendChatMessage("/ah");
-                setBuyState(BuyState.OPEN_BROWSER);
+                if (rightClick) {
+                    if (rotation.rotating) return;
+                    long randomTime = FarmHelperConfig.getRandomRotationTime();
+                    Optional<Entity> entity = mc.theWorld.loadedEntityList.stream().filter(e -> {
+                        double distance = Math.sqrt(e.getDistanceSqToCenter(mc.thePlayer.getPosition()));
+                        String name = StringUtils.stripControlCodes(e.getCustomNameTag());
+                        return distance < 4.5 && name != null && name.equals("Auction Agent");
+                    }).findFirst();
+                    if (entity.isPresent()) {
+                        RotationUtils.Rotation rot = AngleUtils.getRotation(entity.get());
+                        rotation.easeTo(rot.getYaw(), rot.getPitch(), randomTime);
+                        delayClock.schedule(randomTime + 150);
+                        Multithreading.schedule(() -> {
+                            KeyBindUtils.rightClick();
+                            setAhState(AhState.OPEN_BROWSER);
+                        }, randomTime - 50, TimeUnit.MILLISECONDS);
+                    } else {
+                        LogUtils.sendError("[Auto God Pot] Could not find Auction House NPC!");
+                        setAhState(AhState.OPEN_AH);
+                        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                        break;
+                    }
+                } else {
+                    mc.thePlayer.sendChatMessage("/ah");
+                }
+                setAhState(AhState.OPEN_BROWSER);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case OPEN_BROWSER:
-                if (!checkIfGood("Co-op Auction House")) break;
+                if (mc.currentScreen == null) {
+                    setAhState(AhState.OPEN_AH);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("Auction House")) break;
                 Slot ahBrowserItem = InventoryUtils.getSlotOfItemInContainer("Auctions Browser");
                 if (ahBrowserItem == null) break;
                 InventoryUtils.clickContainerSlot(ahBrowserItem.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                setBuyState(BuyState.CLICK_SEARCH);
+                setAhState(AhState.CLICK_SEARCH);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case CLICK_SEARCH:
-                if (!checkIfGood("Auctions Browser")) break;
+                if (mc.currentScreen == null) {
+                    setAhState(AhState.OPEN_AH);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (Objects.requireNonNull(InventoryUtils.getInventoryName()).startsWith("Auctions: \"God Potion\"")) {
+                    setAhState(AhState.SORT_ITEMS);
+                    break;
+                }
+                if (checkIfWrongInventory("Auctions Browser") && !Objects.requireNonNull(InventoryUtils.getInventoryName()).startsWith("Auctions: \""))
+                    break;
                 Slot searchItem = InventoryUtils.getSlotOfItemInContainer("Search");
                 if (searchItem == null) break;
                 InventoryUtils.clickContainerSlot(searchItem.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                setBuyState(BuyState.SORT_ITEMS);
+                setAhState(AhState.SORT_ITEMS);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 SignUtils.getInstance().setTextToWriteOnString("God Potion");
                 break;
             case SORT_ITEMS:
-                if (!checkIfGood("Auctions: \"God Potion\"")) break;
-                Slot sortItem = InventoryUtils.getSlotOfItemInContainer("Sort");
-                if (sortItem == null) break;
-                InventoryUtils.clickContainerSlot(sortItem.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                setBuyState(BuyState.CHECK_IF_BIN);
-                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                break;
-            case CHECK_IF_BIN:
-                if (!checkIfGood("Auctions: \"God Potion\"")) break;
-                Slot binItem = InventoryUtils.getSlotOfItemInContainer("BIN Filter");
-                if (binItem == null) break;
-                ItemStack binItemStack = mc.thePlayer.inventoryContainer.getSlot(binItem.slotNumber).getStack();
-                if (!InventoryUtils.getItemLore(binItemStack).contains("▶ BIN Only")) {
-                    InventoryUtils.clickContainerSlot(binItem.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                    setBuyState(BuyState.CHECK_IF_BIN);
+                if (mc.currentScreen == null) {
+                    setAhState(AhState.OPEN_AH);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                setBuyState(BuyState.SELECT_ITEM);
+                if (checkIfWrongInventory("Auctions: \"God Potion\"")) break;
+                Slot sortItem = InventoryUtils.getSlotOfItemInContainer("Sort");
+                if (sortItem == null) break;
+                if (!InventoryUtils.getItemLore(sortItem.getStack()).contains("▶ Lowest Price")) {
+                    InventoryUtils.clickContainerSlot(sortItem.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                    setAhState(AhState.SORT_ITEMS);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                setAhState(AhState.CHECK_IF_BIN);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
+            case CHECK_IF_BIN:
+                if (mc.currentScreen == null) {
+                    setAhState(AhState.OPEN_AH);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (checkIfWrongInventory("Auctions: \"God Potion\"")) break;
+                Slot binItem = InventoryUtils.getSlotOfItemInContainer("BIN Filter");
+                if (binItem == null) break;
+                ItemStack binItemStack = binItem.getStack();
+                if (!InventoryUtils.getItemLore(binItemStack).contains("▶ BIN Only")) {
+                    InventoryUtils.clickContainerSlot(binItem.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                    setAhState(AhState.CHECK_IF_BIN);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                setAhState(AhState.SELECT_ITEM);
                 break;
             case SELECT_ITEM:
-                if (!checkIfGood("Auctions: \"God Potion\"")) break;
-                for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
-                    if (slot.getHasStack()) {
-                        String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
-                        if (itemName.contains("God Potion") && !badItems.contains(slot.slotNumber)) {
-                            ItemStack itemLore = mc.thePlayer.inventoryContainer.getSlot(slot.slotNumber).getStack();
-                            if (InventoryUtils.getItemLore(itemLore).contains("Status: Sold!")) {
-                                badItems.add(slot.slotNumber);
-                                break;
-                            }
-                            godPotItem = slot;
-                            break;
-                        }
-                    } else
-                        break;
+                if (mc.currentScreen == null) {
+                    setAhState(AhState.OPEN_AH);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
                 }
+                if (checkIfWrongInventory("Auctions: \"God Potion\"")) break;
+                for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
+                    if (!slot.getHasStack()) continue;
+
+                    String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
+                    if (itemName.contains("God Potion") && !badItems.contains(slot.slotNumber)) {
+                        ItemStack itemLore = slot.getStack();
+                        if (InventoryUtils.getItemLore(itemLore).contains("Status: Sold!")) {
+                            badItems.add(slot.slotNumber);
+                            continue;
+                        }
+                        godPotItem = slot;
+                        break;
+                    }
+                }
+                if (godPotItem == null) {
+                    LogUtils.sendError("[Auto God Pot] Could not find any God Pot in AH! Disabling Auto God Pot!");
+                    FarmHelperConfig.autoGodPot = false;
+                    stop();
+                    return;
+                }
+
                 InventoryUtils.clickContainerSlot(godPotItem.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                setBuyState(BuyState.BUY_ITEM);
+                setAhState(AhState.BUY_ITEM);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case BUY_ITEM:
-                if (!checkIfGood("BIN Auction View")) break;
+                if (mc.currentScreen == null) {
+                    setAhState(AhState.OPEN_AH);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (checkIfWrongInventory("BIN Auction View")) break;
                 Slot buyItem = InventoryUtils.getSlotOfItemInContainer("Buy Item Right Now");
                 if (buyItem == null) {
                     if (InventoryUtils.getSlotOfItemInContainer("Collect Auction") != null) {
@@ -193,80 +456,514 @@ public class AutoGodPot implements IFeature {
                         Slot goBack = InventoryUtils.getSlotOfItemInContainer("Go Back");
                         if (goBack == null) break;
                         InventoryUtils.clickContainerSlot(goBack.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                        setBuyState(BuyState.SELECT_ITEM);
+                        setAhState(AhState.SELECT_ITEM);
                         delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     }
                     break;
                 }
-                ItemStack buyItemLore = mc.thePlayer.inventoryContainer.getSlot(buyItem.slotNumber).getStack();
+                ItemStack buyItemLore = buyItem.getStack();
                 if (InventoryUtils.getItemLore(buyItemLore).contains("Cannot afford bid!")) {
                     LogUtils.sendError("[Auto God Pot] Cannot afford bid!");
-                    setBuyState(BuyState.CLOSE_AH);
+                    setAhState(AhState.CLOSE_AH);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
                 InventoryUtils.clickContainerSlot(buyItem.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                setBuyState(BuyState.CONFIRM_PURCHASE);
+                setAhState(AhState.CONFIRM_PURCHASE);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case CONFIRM_PURCHASE:
-                if (!checkIfGood("Confirm Purchase")) break;
+                if (mc.currentScreen == null) {
+                    setAhState(AhState.OPEN_AH);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (checkIfWrongInventory("Confirm Purchase")) break;
                 Slot confirmPurchase = InventoryUtils.getSlotOfItemInContainer("Confirm");
                 if (confirmPurchase == null) break;
                 InventoryUtils.clickContainerSlot(confirmPurchase.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                setBuyState(BuyState.WAIT_FOR_CONFIRMATION);
+                setAhState(AhState.WAIT_FOR_CONFIRMATION);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case WAIT_FOR_CONFIRMATION:
+            case COLLECT_ITEM_WAIT_FOR_COLLECT:
+                break;
+            case COLLECT_ITEM_OPEN_AH:
+                if (mc.currentScreen != null) {
+                    mc.thePlayer.closeScreen();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                mc.thePlayer.sendChatMessage("/ah");
+                setAhState(AhState.COLLECT_ITEM_VIEW_BIDS);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
+            case COLLECT_ITEM_VIEW_BIDS:
+                if (mc.currentScreen == null) {
+                    setAhState(AhState.COLLECT_ITEM_OPEN_AH);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (checkIfWrongInventory("Auctions House")) break;
+                Slot viewBids = InventoryUtils.getSlotOfItemInContainer("View Bids");
+                if (viewBids == null) break;
+                InventoryUtils.clickContainerSlot(viewBids.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                setAhState(AhState.COLLECT_ITEM_CLICK_ITEM);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
+            case COLLECT_ITEM_CLICK_ITEM:
+                if (mc.currentScreen == null) {
+                    setAhState(AhState.COLLECT_ITEM_OPEN_AH);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("Bids")) break;
+                Slot godPotSlot = InventoryUtils.getSlotOfItemInContainer("God Potion");
+                if (godPotSlot == null) break;
+                InventoryUtils.clickContainerSlot(godPotSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                setAhState(AhState.COLLECT_ITEM_CLICK_COLLECT);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
+            case COLLECT_ITEM_CLICK_COLLECT:
+                if (mc.currentScreen == null) {
+                    setAhState(AhState.COLLECT_ITEM_OPEN_AH);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("BIN Auction View")) break;
+                Slot collectItem = InventoryUtils.getSlotOfItemInContainer("Collect Auction");
+                if (collectItem == null) break;
+                InventoryUtils.clickContainerSlot(collectItem.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                setAhState(AhState.COLLECT_ITEM_WAIT_FOR_COLLECT);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case CLOSE_AH:
                 if (mc.currentScreen != null) {
                     mc.thePlayer.closeScreen();
                 }
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                setBuyState(BuyState.NONE);
+                setAhState(AhState.NONE);
+                setGodPotMode(GodPotMode.FROM_INVENTORY);
                 break;
         }
     }
+
+    private void onGoingToAHState() {
+        switch (goingToAHState) {
+            case NONE:
+                setGoingToAHState(GoingToAHState.TELEPORT_TO_HUB);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
+            case TELEPORT_TO_HUB:
+                if (mc.currentScreen != null) {
+                    mc.thePlayer.closeScreen();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                mc.thePlayer.sendChatMessage("/hub");
+                setGoingToAHState(GoingToAHState.ROTATE_TO_AH_1);
+                delayClock.schedule(5_000);
+                break;
+            case ROTATE_TO_AH_1:
+                if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.HUB) {
+                    setGoingToAHState(GoingToAHState.TELEPORT_TO_HUB);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                KeyBindUtils.stopMovement();
+                long randomTime = FarmHelperConfig.getRandomRotationTime();
+                RotationUtils.Rotation rot = AngleUtils.getRotation(ahLocation1);
+                rotation.easeTo(rot.getYaw(), rot.getPitch(), randomTime);
+                delayClock.schedule(randomTime + 150);
+                setGoingToAHState(GoingToAHState.GO_TO_AH_1);
+                break;
+            case GO_TO_AH_1:
+                if (mc.currentScreen != null) {
+                    KeyBindUtils.stopMovement();
+                    setGoingToAHState(GoingToAHState.ROTATE_TO_AH_1);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (rotation.rotating) break;
+                if (mc.thePlayer.getPositionVector().distanceTo(ahLocation1) < 1.5) {
+                    KeyBindUtils.stopMovement();
+                    setGoingToAHState(GoingToAHState.ROTATE_TO_AH_2);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                KeyBindUtils.holdThese(mc.gameSettings.keyBindSprint, mc.gameSettings.keyBindForward);
+                stuckClock.schedule(STUCK_DELAY);
+                break;
+            case ROTATE_TO_AH_2:
+                if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.HUB) {
+                    setGoingToAHState(GoingToAHState.TELEPORT_TO_HUB);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                KeyBindUtils.stopMovement();
+                randomTime = FarmHelperConfig.getRandomRotationTime();
+                rot = AngleUtils.getRotation(ahLocation2);
+                rotation.easeTo(rot.getYaw(), rot.getPitch(), randomTime);
+                delayClock.schedule(randomTime + 150);
+                setGoingToAHState(GoingToAHState.GO_TO_AH_2);
+                break;
+            case GO_TO_AH_2:
+                if (mc.currentScreen != null) {
+                    KeyBindUtils.stopMovement();
+                    setGoingToAHState(GoingToAHState.ROTATE_TO_AH_2);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (rotation.rotating) break;
+                if (mc.thePlayer.getPositionVector().distanceTo(ahLocation2) < 1.5) {
+                    KeyBindUtils.stopMovement();
+                    setGoingToAHState(GoingToAHState.NONE);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                KeyBindUtils.holdThese(mc.gameSettings.keyBindSprint, mc.gameSettings.keyBindForward);
+                stuckClock.schedule(STUCK_DELAY);
+                break;
+        }
+    }
+
+    private void onInventoryState() {
+        switch (consumePotState) {
+            case NONE:
+                if (InventoryUtils.hasItemInHotbar("God Potion")) {
+                    setConsumePotState(ConsumePotState.SELECT_POT);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                } else if (InventoryUtils.hasItemInInventory("God Potion")) {
+                    setConsumePotState(ConsumePotState.MOVE_POT_TO_HOTBAR);
+                    setMovePotState(MovePotState.SWAP_POT_TO_HOTBAR_PICKUP);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                } else {
+                    noGodPotInInventory();
+                }
+                break;
+            case MOVE_POT_TO_HOTBAR:
+                switch (movePotState) {
+                    case SWAP_POT_TO_HOTBAR_PICKUP:
+                        if (mc.currentScreen == null) {
+                            InventoryUtils.openInventory();
+                            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                            break;
+                        }
+                        int potSlot = InventoryUtils.getSlotIdOfItemInInventory("God Potion");
+                        if (potSlot == -1) {
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie!");
+                            stop();
+                            break;
+                        }
+                        this.hotbarSlot = potSlot;
+                        InventoryUtils.clickSlot(potSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        setMovePotState(MovePotState.SWAP_POT_TO_HOTBAR_PUT);
+                        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                        break;
+                    case SWAP_POT_TO_HOTBAR_PUT:
+                        if (mc.currentScreen == null) {
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie!");
+                            stop();
+                            break;
+                        }
+                        Slot newSlot = InventoryUtils.getSlotOfId(43);
+                        if (newSlot != null && newSlot.getHasStack()) {
+                            setMovePotState(MovePotState.SWAP_POT_TO_HOTBAR_PUT_BACK);
+                        } else {
+                            setMovePotState(MovePotState.PUT_ITEM_BACK_PICKUP);
+                            setConsumePotState(ConsumePotState.SELECT_POT);
+                        }
+                        InventoryUtils.clickSlot(43, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                        break;
+                    case SWAP_POT_TO_HOTBAR_PUT_BACK:
+                        if (mc.currentScreen == null) {
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie!");
+                            stop();
+                            break;
+                        }
+                        InventoryUtils.clickSlot(this.hotbarSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        setMovePotState(MovePotState.PUT_ITEM_BACK_PICKUP);
+                        setConsumePotState(ConsumePotState.SELECT_POT);
+                        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                        break;
+                    case PUT_ITEM_BACK_PICKUP:
+                        if (mc.currentScreen == null) {
+                            InventoryUtils.openInventory();
+                            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                            break;
+                        }
+                        InventoryUtils.clickSlot(43, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        setMovePotState(MovePotState.PUT_ITEM_BACK_PUT);
+                        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                        break;
+                    case PUT_ITEM_BACK_PUT:
+                        if (mc.currentScreen == null) {
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie!");
+                            stop();
+                            break;
+                        }
+                        InventoryUtils.clickSlot(this.hotbarSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        delayClock.schedule(3_000);
+                        Multithreading.schedule(this::stop, 1_500, TimeUnit.MILLISECONDS);
+                        break;
+                }
+                break;
+            case SELECT_POT:
+                if (mc.currentScreen != null) {
+                    mc.thePlayer.closeScreen();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                int potSlot = InventoryUtils.getSlotIdOfItemInHotbar("God Potion");
+                LogUtils.sendDebug("Pot Slot: " + potSlot);
+                if (potSlot == -1 || potSlot > 8) {
+                    LogUtils.sendError("Something went wrong while trying to get the slot of the cookie!");
+                    stop();
+                    break;
+                }
+                mc.thePlayer.inventory.currentItem = potSlot;
+                setConsumePotState(ConsumePotState.RIGHT_CLICK_POT);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
+            case RIGHT_CLICK_POT:
+                if (mc.currentScreen != null) {
+                    mc.thePlayer.closeScreen();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.getHeldItem());
+                setConsumePotState(ConsumePotState.WAIT_FOR_CONSUME);
+                delayClock.schedule(3_000);
+                break;
+            case WAIT_FOR_CONSUME:
+                break;
+        }
+    }
+
+    private void onBackpackState() {
+        switch (backpackState) {
+            case NONE:
+                if (InventoryUtils.hasItemInHotbar("God Potion")) {
+                    setGodPotMode(GodPotMode.FROM_INVENTORY);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                } else {
+                    setBackpackState(BackpackState.OPEN_STORAGE);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                }
+                break;
+            case OPEN_STORAGE:
+                if (mc.currentScreen != null) {
+                    mc.thePlayer.closeScreen();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (FarmHelperConfig.autoGodPotStorageType) {
+                    mc.thePlayer.sendChatMessage("/ec " + FarmHelperConfig.autoGodPotBackpackNumber);
+                } else {
+                    mc.thePlayer.sendChatMessage("/bp " + FarmHelperConfig.autoGodPotBackpackNumber);
+                }
+                setBackpackState(BackpackState.MOVE_POT_TO_INVENTORY);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
+            case MOVE_POT_TO_INVENTORY:
+                if (mc.currentScreen == null) {
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    setBackpackState(BackpackState.OPEN_STORAGE);
+                    break;
+                }
+                if (InventoryUtils.getInventoryName() == null) break;
+
+                for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
+                    if (!slot.getHasStack()) continue;
+
+                    String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
+                    if (itemName.contains("God Potion")) {
+                        InventoryUtils.clickContainerSlot(slot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.QUICK_MOVE);
+                        setBackpackState(BackpackState.END);
+                        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                        return;
+                    }
+                }
+                noGodPotInInventory();
+                break;
+            case END:
+                if (mc.currentScreen != null) {
+                    mc.thePlayer.closeScreen();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                if (InventoryUtils.hasItemInHotbar("God Potion") || InventoryUtils.hasItemInInventory("God Potion")) {
+                    setGodPotMode(GodPotMode.FROM_INVENTORY);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                } else {
+                    setBackpackState(BackpackState.OPEN_STORAGE);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                }
+                break;
+        }
+    }
+
+    private final AxisAlignedBB ahArea = new AxisAlignedBB(-31, 75, -87, -33, 70, -89);
+
+    private boolean isInAHArea() {
+        Vec3 playerPosition = mc.thePlayer.getPositionVector();
+        return ahArea.isVecInside(playerPosition) && GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.HUB;
+    }
+
+    private void noGodPotInInventory() {
+        LogUtils.sendError("[Auto God Pot] Could not find any God Pot in Backpack! Going to buy one!");
+        if (FarmHelperConfig.autoGodPotFromBits) {
+            setGodPotMode(GodPotMode.FROM_BITS_SHOP);
+        } else if (FarmHelperConfig.autoGodPotFromAH && GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
+            setGodPotMode(GodPotMode.FROM_AH_NO_COOKIE);
+        } else if (FarmHelperConfig.autoGodPotFromAH && GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.ACTIVE) {
+            setGodPotMode(GodPotMode.FROM_AH_COOKIE);
+        } else {
+            LogUtils.sendError("[Auto God Pot] You didn't activate any God Pot source! Disabling");
+            stop();
+            FarmHelperConfig.autoGodPot = false;
+        }
+    }
+
 
     @SubscribeEvent
     public void onChatReceived(ClientChatReceivedEvent event) {
         if (!isRunning()) return;
         if (event.type != 0) return;
-        if (buyState != BuyState.WAIT_FOR_CONFIRMATION) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
-        if (message.contains("You claimed God Potion from")) {
-            setBuyState(BuyState.CLOSE_AH);
-            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-        } else if (message.contains("NOT_FOUND_OR_ALREADY_CLAIMED")
-        || message.contains("There was an error with the auction house!")) {
-            badItems.add(godPotItem.slotNumber);
-            setBuyState(BuyState.SELECT_ITEM);
-            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+        if (ahState != AhState.NONE) {
+            if (message.startsWith("You claimed God Potion from")) {
+                setAhState(AhState.CLOSE_AH);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+            } else if (message.startsWith("You purchased God Potion")) {
+                setAhState(AhState.COLLECT_ITEM_OPEN_AH);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+            } else if (message.contains("NOT_FOUND_OR_ALREADY_CLAIMED")
+                    || message.contains("There was an error with the auction house!")) {
+                badItems.add(godPotItem.slotNumber);
+                setAhState(AhState.OPEN_AH);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+            }
+        }
+        if (consumePotState == ConsumePotState.WAIT_FOR_CONSUME) {
+            if (message.startsWith("GULP! The God Potion grants you powers for")) {
+                setMovePotState(MovePotState.PUT_ITEM_BACK_PICKUP);
+                setConsumePotState(ConsumePotState.MOVE_POT_TO_HOTBAR);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+            }
         }
     }
 
+    private void onBitsShop() {
+        switch (bitsShopState) {
 
-    private void setBuyState(BuyState state) {
-        buyState = state;
-        LogUtils.sendDebug("[Visitors Macro] Buy state: " + state.name());
+            case NONE:
+                break;
+            case TELEPORT_TO_HUB:
+                break;
+            case ROTATE_TO_BITS_SHOP_1:
+                break;
+            case GO_TO_BITS_SHOP_1:
+                break;
+            case ROTATE_TO_BITS_SHOP_2:
+                break;
+            case GO_TO_BITS_SHOP_2:
+                break;
+            case OPEN_BITS_SHOP:
+                break;
+            case CHECK_CONFIRM:
+                break;
+            case CLICK_CHECK_CONFIRM:
+                break;
+        }
+    }
+
+    private void setAhState(AhState state) {
+        ahState = state;
+        LogUtils.sendDebug("[Auto God Pot] Buy state: " + state.name());
         stuckClock.schedule(STUCK_DELAY);
     }
 
-    private boolean checkIfGood(String inventoryNameStartsWith) {
+    private void setGodPotMode(GodPotMode mode) {
+        godPotMode = mode;
+        LogUtils.sendDebug("[Auto God Pot] God Pot mode: " + mode.name());
+        stuckClock.schedule(STUCK_DELAY);
+    }
+
+    private void setConsumePotState(ConsumePotState state) {
+        consumePotState = state;
+        LogUtils.sendDebug("[Auto God Pot] Consume Pot state: " + state.name());
+        stuckClock.schedule(STUCK_DELAY);
+    }
+
+    private void setGoingToAHState(GoingToAHState state) {
+        goingToAHState = state;
+        LogUtils.sendDebug("[Auto God Pot] Going to AH state: " + state.name());
+        stuckClock.schedule(STUCK_DELAY);
+    }
+
+    private void setMovePotState(MovePotState state) {
+        movePotState = state;
+        LogUtils.sendDebug("[Auto God Pot] Move Pot state: " + state.name());
+        stuckClock.schedule(STUCK_DELAY);
+    }
+
+    private void setBackpackState(BackpackState state) {
+        backpackState = state;
+        LogUtils.sendDebug("[Auto God Pot] Backpack state: " + state.name());
+        stuckClock.schedule(STUCK_DELAY);
+    }
+
+    private void setBitsShopState(BitsShopState state) {
+        bitsShopState = state;
+        LogUtils.sendDebug("[Auto God Pot] Bits Shop state: " + state.name());
+        stuckClock.schedule(STUCK_DELAY);
+    }
+
+    private void resetAHState() {
+        badItems.clear();
+        godPotItem = null;
+        ahState = AhState.NONE;
+    }
+
+    private void resetGoingToAHState() {
+        goingToAHState = GoingToAHState.NONE;
+    }
+
+    private void resetConsumePotState() {
+        consumePotState = ConsumePotState.NONE;
+        hotbarSlot = -1;
+    }
+
+    private void resetBackpackState() {
+        backpackState = BackpackState.NONE;
+    }
+
+    private void resetBitsShopState() {
+        bitsShopState = BitsShopState.NONE;
+    }
+
+    private boolean checkIfWrongInventory(String inventoryNameStartsWith) {
         if (mc.currentScreen == null) {
-            setBuyState(BuyState.OPEN_AH);
+            setAhState(AhState.OPEN_AH);
             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-            return false;
+            return true;
         }
         if (InventoryUtils.getInventoryName() == null)
-            return false;
+            return true;
         if (!InventoryUtils.getInventoryName().startsWith(inventoryNameStartsWith)) {
             LogUtils.sendError("[Auto God Pot] Opened wrong Auction Menu! Restarting...");
-            setBuyState(BuyState.OPEN_AH);
+            setAhState(AhState.OPEN_AH);
             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-            return false;
+            return true;
         }
-        return true;
+        return false;
+    }
+
+    @SubscribeEvent
+    public void onLastRender(RenderWorldLastEvent event) {
+        if (rotation.rotating)
+            rotation.update();
     }
 }

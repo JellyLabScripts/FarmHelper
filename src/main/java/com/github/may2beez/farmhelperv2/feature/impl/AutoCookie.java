@@ -140,7 +140,7 @@ public class AutoCookie implements IFeature {
     enum MoveCookieState {
         SWAP_COOKIE_TO_HOTBAR_PICKUP,
         SWAP_COOKIE_TO_HOTBAR_PUT,
-        SWAP_COOKIE_TO_HORBAR_PUT_BACK,
+        SWAP_COOKIE_TO_HOTBAR_PUT_BACK,
         PUT_ITEM_BACK_PICKUP,
         PUT_ITEM_BACK_PUT
     }
@@ -164,7 +164,7 @@ public class AutoCookie implements IFeature {
         if (event.phase == TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isToggled()) return;
-        if (isEnabled()) return;
+        if (isRunning()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
@@ -226,6 +226,13 @@ public class AutoCookie implements IFeature {
                         autoCookieDelay.schedule(3_000);
                         break;
                     case GO_BAZAAR:
+                        if (mc.currentScreen != null) {
+                            KeyBindUtils.stopMovement();
+                            mc.thePlayer.closeScreen();
+                            autoCookieDelay.schedule(getRandomDelay());
+                            break;
+                        }
+
                         if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.HUB) break;
 
                         if (Math.sqrt(mc.thePlayer.getDistanceSqToCenter(hubWaypoint)) < 1) {
@@ -447,7 +454,7 @@ public class AutoCookie implements IFeature {
                         }
                         Slot newSlot = InventoryUtils.getSlotOfId(43);
                         if (newSlot != null && newSlot.getHasStack()) {
-                            setMoveCookieState(MoveCookieState.SWAP_COOKIE_TO_HORBAR_PUT_BACK);
+                            setMoveCookieState(MoveCookieState.SWAP_COOKIE_TO_HOTBAR_PUT_BACK);
                         } else {
                             setMoveCookieState(MoveCookieState.PUT_ITEM_BACK_PICKUP);
                             setMainState(State.SELECT_COOKIE);
@@ -455,7 +462,7 @@ public class AutoCookie implements IFeature {
                         InventoryUtils.clickSlot(43, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         autoCookieDelay.schedule(getRandomDelay());
                         break;
-                    case SWAP_COOKIE_TO_HORBAR_PUT_BACK:
+                    case SWAP_COOKIE_TO_HOTBAR_PUT_BACK:
                         if (mc.currentScreen == null) {
                             LogUtils.sendError("Something went wrong while trying to get the slot of the cookie!");
                             stop();
@@ -483,9 +490,8 @@ public class AutoCookie implements IFeature {
                             break;
                         }
                         InventoryUtils.clickSlot(this.hotbarSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                        setMoveCookieState(MoveCookieState.SWAP_COOKIE_TO_HOTBAR_PICKUP);
-                        setMainState(State.GET_COOKIE);
                         autoCookieDelay.schedule(3_000);
+                        Multithreading.schedule(this::stop, 1_500, TimeUnit.MILLISECONDS);
                         break;
                 }
                 break;
@@ -569,7 +575,7 @@ public class AutoCookie implements IFeature {
                     setMoveCookieState(MoveCookieState.PUT_ITEM_BACK_PICKUP);
                 }
                 autoCookieDelay.schedule(getRandomDelay());
-                Multithreading.schedule(this::stop, 3_000, TimeUnit.MILLISECONDS);
+//                Multithreading.schedule(this::stop, 3_000, TimeUnit.MILLISECONDS);
             }
         }
 

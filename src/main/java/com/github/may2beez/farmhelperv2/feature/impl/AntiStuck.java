@@ -5,9 +5,10 @@ import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
-import com.github.may2beez.farmhelperv2.util.*;
+import com.github.may2beez.farmhelperv2.util.BlockUtils;
+import com.github.may2beez.farmhelperv2.util.KeyBindUtils;
+import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
-import com.github.may2beez.farmhelperv2.util.helper.Timer;
 import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
 import net.minecraft.block.Block;
@@ -18,8 +19,10 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
+/*
+    Credits to Nirox for this superb class
+*/
 @Getter
 public class AntiStuck implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();

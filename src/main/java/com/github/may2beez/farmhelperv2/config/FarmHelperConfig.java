@@ -318,9 +318,24 @@ public class FarmHelperConfig extends Config {
     public static boolean autoGodPot = false;
 
     @Switch(
-            name = "Get God Pot from backpack", category = MISCELLANEOUS, subcategory = "God Pot"
+            name = "Get God Pot from Backpack", category = MISCELLANEOUS, subcategory = "God Pot", size = 2
     )
     public static boolean autoGodPotFromBackpack = true;
+
+    @DualOption(
+            name = "Storage Type", category = MISCELLANEOUS, subcategory = "God Pot",
+            description = "The storage type to get god pots from",
+            left = "Backpack",
+            right = "Ender Chest"
+    )
+    public static boolean autoGodPotStorageType = true;
+
+    @Number(
+            name = "Backpack Number", category = MISCELLANEOUS, subcategory = "God Pot",
+            description = "The backpack number, that contains god pots",
+            min = 1, max = 18
+    )
+    public static int autoGodPotBackpackNumber = 1;
 
     @Switch(
             name = "Get God Pot with Bits", category = MISCELLANEOUS, subcategory = "God Pot"
@@ -1248,12 +1263,6 @@ public class FarmHelperConfig extends Config {
     )
     public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_H);
 
-//	@KeyBind(
-//			name = "Debug Keybind 2", category = DEBUG
-//	)
-//	public static OneKeyBind debugKeybind2 = new OneKeyBind(Keyboard.KEY_J);
-
-
     @Switch(
             name = "Debug Mode", category = DEBUG, subcategory = "Debug",
             description = "Prints to chat what the bot is currently executing. Useful if you are having issues."
@@ -1412,6 +1421,9 @@ public class FarmHelperConfig extends Config {
         this.addDependency("autoGodPotFromBits", "autoGodPot");
         this.addDependency("autoGodPotFromAH", "autoGodPot");
 
+        this.hideIf("autoGodPotBackpackNumber", () -> !autoGodPotFromBackpack);
+        this.hideIf("autoGodPotStorageType", () -> !autoGodPotFromBackpack);
+
         this.addDependency("banwaveAction", "enableLeavePauseOnBanwave");
         this.addDependency("banwaveThreshold", "enableLeavePauseOnBanwave");
         this.addDependency("banwaveThresholdType", "enableLeavePauseOnBanwave");
@@ -1426,12 +1438,10 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-//        registerKeyBind(debugKeybind, () -> {
-//            Vec3 newVec = BlockUtils.getRelativeVec(0, 0, -0.1f, AngleUtils.getClosest());
-//            mc.thePlayer.setPosition(newVec.xCoord, newVec.yCoord, newVec.zCoord);
-//        });
+        registerKeyBind(debugKeybind, () -> {
+            AutoGodPot.getInstance().toggle();
+        });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
-//		registerKeyBind(debugKeybind2, () -> FarmHelper.petSwapper.startMacro(true));
         save();
     }
 

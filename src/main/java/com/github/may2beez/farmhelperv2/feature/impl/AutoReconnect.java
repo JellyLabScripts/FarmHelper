@@ -6,15 +6,15 @@ import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
-import com.github.may2beez.farmhelperv2.remote.command.commands.impl.ReconnectCommand;
-import com.github.may2beez.farmhelperv2.remote.command.commands.impl.ToggleCommand;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.RenderUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.*;
+import net.minecraft.client.gui.GuiDisconnected;
+import net.minecraft.client.gui.GuiMainMenu;
+import net.minecraft.client.gui.GuiMultiplayer;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.client.event.GuiScreenEvent;
@@ -26,6 +26,9 @@ import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
 
+/*
+    Credits to mostly Yuro with few changes by May2Bee for this superb class
+*/
 public class AutoReconnect implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
     private static AutoReconnect instance;

@@ -475,6 +475,13 @@ public class VisitorsMacro implements IFeature {
     }
 
     private void onTravelState() {
+        if (mc.currentScreen != null) {
+            KeyBindUtils.stopMovement();
+            mc.thePlayer.closeScreen();
+            delayClock.schedule(getRandomDelay());
+            return;
+        }
+
         switch (travelState) {
             case NONE:
                 if (FarmHelperConfig.visitorsMacroAction) {

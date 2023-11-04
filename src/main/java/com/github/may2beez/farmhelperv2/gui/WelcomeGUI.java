@@ -9,6 +9,9 @@ import org.lwjgl.opengl.GL11;
 import java.awt.*;
 import java.io.IOException;
 
+/*
+    Credits to Yuro for this superb class
+*/
 public class WelcomeGUI extends GuiScreen {
     private static final Minecraft mc = Minecraft.getMinecraft();
     static final int LIST_TOP_MARGIN = 80;

@@ -42,6 +42,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+/*
+    Credits to Yuro for this superb inspiration to make this class
+*/
 @Getter
 public class Failsafe implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
@@ -439,14 +442,33 @@ public class Failsafe implements IFeature {
                 } else {
                     MacroHandler.getInstance().disableMacro();
                 }
-                Multithreading.schedule(() -> {
-                    InventoryUtils.openInventory();
-                    LogUtils.sendDebug("[Failsafe] Finished rotation failsafe");
-                    if (FarmHelperConfig.enableRestartAfterFailSafe) {
-                        LogUtils.sendDebug("[Failsafe] Restarting macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
-                        restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
-                    }
-                }, (int) randomTime + 250, TimeUnit.MILLISECONDS);
+                if (emergency == EmergencyType.TELEPORT_CHECK) {
+                    Multithreading.schedule(() -> {
+                        InventoryUtils.openInventory();
+                        Multithreading.schedule(() -> {
+                            if (mc.currentScreen != null)
+                                mc.thePlayer.closeScreen();
+                            MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
+                            Multithreading.schedule(() -> {
+                                InventoryUtils.openInventory();
+                                LogUtils.sendDebug("[Failsafe] Finished rotation failsafe");
+                                if (FarmHelperConfig.enableRestartAfterFailSafe) {
+                                    LogUtils.sendDebug("[Failsafe] Restarting macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
+                                    restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
+                                }
+                            }, (long) (1_500 + Math.random() * 1_000), TimeUnit.MILLISECONDS);
+                        }, (long) (3_500 + Math.random() * 2_000), TimeUnit.MILLISECONDS);
+                    }, (int) randomTime + 250, TimeUnit.MILLISECONDS);
+                } else {
+                    Multithreading.schedule(() -> {
+                        InventoryUtils.openInventory();
+                        LogUtils.sendDebug("[Failsafe] Finished rotation failsafe");
+                        if (FarmHelperConfig.enableRestartAfterFailSafe) {
+                            LogUtils.sendDebug("[Failsafe] Restarting macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
+                            restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
+                        }
+                    }, (long) (randomTime + 250), TimeUnit.MILLISECONDS);
+                }
                 break;
         }
     }
@@ -672,6 +694,7 @@ public class Failsafe implements IFeature {
     @SubscribeEvent
     public void onChatReceived(ClientChatReceivedEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (MacroHandler.getInstance().isCurrentMacroPaused()) return;
         if (event.type != 0) return;
         if (!FarmHelperConfig.autoEvacuateOnWorldUpdate) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());

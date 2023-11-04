@@ -7,6 +7,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+/*
+    Credits to Yuro for this superb class
+*/
 public class LagDetector implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
 
