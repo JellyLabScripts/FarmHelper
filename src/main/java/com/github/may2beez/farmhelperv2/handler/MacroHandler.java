@@ -59,7 +59,7 @@ public class MacroHandler {
 
     @Getter
     @Setter
-    private FarmHelperConfig.CropEnum crop;
+    private FarmHelperConfig.CropEnum crop = FarmHelperConfig.CropEnum.NONE;
 
     @AllArgsConstructor
     public enum Macros {
@@ -214,7 +214,7 @@ public class MacroHandler {
             }
         }
 
-        setCrop(null);
+        setCrop(FarmHelperConfig.CropEnum.NONE);
         FeatureManager.getInstance().disableAll();
         FeatureManager.getInstance().resetAllStates();
         disableCurrentMacro();

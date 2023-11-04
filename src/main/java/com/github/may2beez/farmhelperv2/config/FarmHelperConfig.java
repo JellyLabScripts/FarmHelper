@@ -77,6 +77,7 @@ public class FarmHelperConfig extends Config {
     }
 
     public enum CropEnum {
+        NONE,
         CARROT,
         NETHER_WART,
         POTATO,
