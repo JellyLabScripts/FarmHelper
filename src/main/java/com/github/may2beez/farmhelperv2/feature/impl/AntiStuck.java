@@ -189,6 +189,10 @@ public class AntiStuck implements IFeature {
                 delayBetweenMovementsClock.schedule(300 + (int) (Math.random() * 250));
                 break;
             case PRESS:
+                if (intersectingBlockPos == null) {
+                    stop();
+                    return;
+                }
                 Optional<EnumFacing> closestSide = findClosestSide(intersectingBlockPos);
                 if (!closestSide.isPresent()) {
                     LogUtils.sendError("[Anti Stuck] Can't unstuck from this place. That's a rare occurrence. Warping back to spawn");

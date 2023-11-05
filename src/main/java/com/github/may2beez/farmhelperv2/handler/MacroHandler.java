@@ -166,13 +166,13 @@ public class MacroHandler {
         LogUtils.sendSuccess("Macro enabled!");
         LogUtils.webhookLog("Macro enabled!");
 
+        analyticsTimer.reset();
         Multithreading.schedule(() -> {
             if (macroingTimer.isScheduled() && !ProfitCalculatorHUD.resetStatsBetweenDisabling) {
                 macroingTimer.resume();
             } else {
                 macroingTimer.schedule();
             }
-            analyticsTimer.schedule();
         }, 300, TimeUnit.MILLISECONDS);
 
         if (mc.currentScreen != null) {
@@ -189,6 +189,8 @@ public class MacroHandler {
             } catch (Exception e) {
                 LogUtils.sendDebug("Failed to send analytics data!");
                 e.printStackTrace();
+            } finally {
+                analyticsTimer.schedule();
             }
         }
     }

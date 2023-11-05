@@ -210,7 +210,7 @@ public abstract class AbstractMacro {
         if (VisitorsMacro.getInstance().isToggled()) {
             VisitorsMacro.getInstance().start();
         }
-        analyticsClock.reset();
+        analyticsClock.schedule(60_000);
     }
 
     public void onDisable() {
