@@ -104,14 +104,6 @@ public class AutoGodPot implements IFeature {
         stuckClock.schedule(STUCK_DELAY);
     }
 
-    public void toggle() {
-        if (isRunning()) {
-            stop();
-        } else {
-            start();
-        }
-    }
-
     @Override
     public void stop() {
         if (!enabled) return;
@@ -265,13 +257,13 @@ public class AutoGodPot implements IFeature {
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
 
-        if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LOBBY && GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
+        if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LOBBY && GameStateHandler.getInstance().getGodPotState() == GameStateHandler.BuffState.NOT_ACTIVE) {
             if (!enabled && !activating) {
-                LogUtils.sendWarning("[Auto God Pot] Your God Pot Buff is not active! Activating Auto Cookie in 1.5 second!");
+                LogUtils.sendWarning("[Auto God Pot] Your God Pot Buff is not active! Activating Auto God Pot in 1.5 second!");
                 activating = true;
                 KeyBindUtils.stopMovement();
                 Multithreading.schedule(() -> {
-                    if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
+                    if (GameStateHandler.getInstance().getGodPotState() == GameStateHandler.BuffState.NOT_ACTIVE) {
                         start();
                         activating = false;
                     }
@@ -284,8 +276,8 @@ public class AutoGodPot implements IFeature {
     public void onTickUpdate(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isToggled()) return;
-        if (!isRunning()) return;
-//        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (!enabled) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
 
         if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING) {
@@ -529,7 +521,7 @@ public class AutoGodPot implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                if (checkIfWrongInventory("Auctions House")) break;
+                if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("Auction House")) break;
                 Slot viewBids = InventoryUtils.getSlotOfItemInContainer("View Bids");
                 if (viewBids == null) break;
                 InventoryUtils.clickContainerSlot(viewBids.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);

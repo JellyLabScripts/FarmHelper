@@ -268,6 +268,7 @@ public class Failsafe implements IFeature {
     public void onTickBanwave(TickEvent.ClientTickEvent event) {
         if (firstCheckReturn()) return;
         if (!BanInfoWS.getInstance().isBanwave()) return;
+        if (!FarmHelperConfig.banwaveCheckerEnabled) return;
         if (!FarmHelperConfig.enableLeavePauseOnBanwave) return;
         if (FarmHelperConfig.banwaveDontLeaveDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) return;
 
