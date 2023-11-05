@@ -20,6 +20,9 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.Arrays;
 
+/*
+    Credits to mostly Yuro with few changes by May2Bee for this superb class
+*/
 @Command(label = "setspeed")
 public class SetSpeedCommand extends ClientCommand {
     private static int speed = -1;
