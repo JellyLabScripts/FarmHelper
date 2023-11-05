@@ -101,6 +101,7 @@ public class VisitorsMacro {
     private static final ArrayList<Integer> compactorSlots = new ArrayList<>();
     private static Pair<String, Integer> itemToBuy = null;
     private static boolean boughtAllItems = false;
+    private static boolean hasSacksItems = false;
     private static double previousDistanceToCheck = 0;
     private static int retriesToGettingCloser = 0;
     private static boolean disableMacro = false;
@@ -735,8 +736,23 @@ public class VisitorsMacro {
                     delayClock.schedule(getRandomGuiDelay());
                     return;
                 }
+                for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
+                    if (slot.getHasStack() && slot.getStack().getDisplayName().contains("Accept Offer")) {
+                        ArrayList<String> checkLore = PlayerUtils.getItemLore(slot.getStack());
+                        for (String line : checkLore) {
+                            LogUtils.sendDebug(line);
+                            if(StringUtils.stripControlCodes(line.toLowerCase()).contains(StringUtils.stripControlCodes("click to give"))){
+                                LogUtils.sendDebug("[Visitors Macro] Sacks items found, auto accepting offers...");
+                                LogUtils.sendSuccess("[Visitors Macro] Sacks items found, auto accepting offers...");
+                                hasSacksItems = true;
+                                break;
+                            }
+                        }
+                    }
+                }
 
-                if (boughtAllItems) {
+
+                if (boughtAllItems || hasSacksItems) {
                     currentState = State.GIVE_ITEMS;
                     delayClock.schedule(getRandomGuiDelay());
                 } else
@@ -1164,6 +1180,7 @@ public class VisitorsMacro {
         currentState = State.BACK_TO_FARMING;
         currentBuyState = BuyState.GET_LIST;
         boughtAllItems = false;
+        hasSacksItems = false;
         rejectOffer = false;
         itemsToBuy.clear();
         itemsToBuyForCheck.clear();
