@@ -113,14 +113,14 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 KeyBindUtils.holdThese(
                         mc.gameSettings.keyBindLeft,
                         mc.gameSettings.keyBindAttack,
-                        MacroHandler.getInstance().getCrop() != FarmHelperConfig.CropEnum.CACTUS && MacroHandler.getInstance().getCrop() != FarmHelperConfig.CropEnum.PUMPKIN && MacroHandler.getInstance().getCrop() != FarmHelperConfig.CropEnum.MELON && PlayerUtils.shouldWalkForwards() ? mc.gameSettings.keyBindForward : null
+                        PlayerUtils.shouldWalkForwards() ? mc.gameSettings.keyBindForward : null
                 );
                 break;
             case RIGHT:
                 KeyBindUtils.holdThese(
                         mc.gameSettings.keyBindRight,
                         mc.gameSettings.keyBindAttack,
-                        MacroHandler.getInstance().getCrop() != FarmHelperConfig.CropEnum.CACTUS && MacroHandler.getInstance().getCrop() != FarmHelperConfig.CropEnum.PUMPKIN && MacroHandler.getInstance().getCrop() != FarmHelperConfig.CropEnum.MELON && PlayerUtils.shouldWalkForwards() ? mc.gameSettings.keyBindForward : null
+                        PlayerUtils.shouldWalkForwards() ? mc.gameSettings.keyBindForward : null
                 );
                 break;
             case SWITCHING_LANE:
@@ -136,10 +136,10 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 }
                 switch (changeLaneDirection) {
                     case FORWARD:
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, FarmHelperConfig.holdLeftClickWhenChangingRow ? mc.gameSettings.keyBindAttack : null);
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, mc.gameSettings.keyBindSprint, FarmHelperConfig.holdLeftClickWhenChangingRow ? mc.gameSettings.keyBindAttack : null);
                         break;
                     case BACKWARD:
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, FarmHelperConfig.holdLeftClickWhenChangingRow ? mc.gameSettings.keyBindAttack : null);
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, mc.gameSettings.keyBindSprint, FarmHelperConfig.holdLeftClickWhenChangingRow ? mc.gameSettings.keyBindAttack : null);
                         break;
                     default: {
                         LogUtils.sendDebug("I can't decide which direction to go!");

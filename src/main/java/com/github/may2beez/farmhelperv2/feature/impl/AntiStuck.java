@@ -89,6 +89,9 @@ public class AntiStuck implements IFeature {
     public void start() {
         if (enabled) return;
         LogUtils.sendWarning("[Anti Stuck] Enabled");
+        if (Failsafe.getInstance().getEmergencyQueue().contains(Failsafe.EmergencyType.TELEPORT_CHECK) ||
+            Failsafe.getInstance().getEmergencyQueue().contains(Failsafe.EmergencyType.ROTATION_CHECK))
+            Failsafe.getInstance().stop();
         enabled = true;
         unstuckState = UnstuckState.NONE;
         KeyBindUtils.stopMovement();
@@ -120,7 +123,6 @@ public class AntiStuck implements IFeature {
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!MacroHandler.getInstance().isMacroToggled() ||
                 MacroHandler.getInstance().isTeleporting() ||

@@ -33,7 +33,7 @@ public class DebugHUD extends TextHud {
         lines.add("Buffs");
         lines.add("   Cookie: " + GameStateHandler.getInstance().getCookieBuffState());
         lines.add("   God Pot: " + GameStateHandler.getInstance().getGodPotState());
-        if (AutoCookie.getInstance().isToggled()) {
+        if (AutoCookie.getInstance().isRunning()) {
             lines.add("AutoCookie");
             lines.add("   Main State: " + AutoCookie.getInstance().getMainState());
             lines.add("   Movie Cookie State: " + AutoCookie.getInstance().getMoveCookieState());
