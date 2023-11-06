@@ -6,6 +6,8 @@ import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 import com.github.may2beez.farmhelperv2.util.*;
+import com.github.may2beez.farmhelperv2.util.helper.Rotation;
+import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 
 import static com.github.may2beez.farmhelperv2.util.BlockUtils.getRelativeBlockPos;
 
@@ -29,7 +31,12 @@ public class SShapeMushroomMacro extends AbstractMacro {
         }
         setClosest90Deg(AngleUtils.getClosest());
 
-        getRotation().easeTo(getYaw(), getPitch(), 500);
+        getRotation().easeTo(
+                new RotationConfiguration(
+                        new Rotation(getYaw(), getPitch()),
+                        500, null
+                )
+        );
         super.onEnable();
     }
 
@@ -73,17 +80,22 @@ public class SShapeMushroomMacro extends AbstractMacro {
             case DROPPING: {
                 LogUtils.sendDebug("On Ground: " + mc.thePlayer.onGround);
                 if (mc.thePlayer.onGround && Math.abs(getLayerY() - mc.thePlayer.getPosition().getY()) > 1.5) {
-                    if (FarmHelperConfig.rotateAfterDrop && !getRotation().rotating) {
+                    if (FarmHelperConfig.rotateAfterDrop && !getRotation().isRotating()) {
                         LogUtils.sendDebug("Rotating 180");
                         getRotation().reset();
                         setYaw(getYaw() + 180);
 
-                        getRotation().easeTo(getYaw(), getPitch(), (long) (400 + Math.random() * 300));
+                        getRotation().easeTo(
+                                new RotationConfiguration(
+                                        new Rotation(getYaw(), getPitch()),
+                                        (long) (400 + Math.random() * 300), null
+                                )
+                        );
                     }
                     KeyBindUtils.stopMovement();
                     setLayerY(mc.thePlayer.getPosition().getY());
                     changeState(State.NONE);
-                } else  {
+                } else {
                     GameStateHandler.getInstance().scheduleNotMoving();
                 }
                 break;

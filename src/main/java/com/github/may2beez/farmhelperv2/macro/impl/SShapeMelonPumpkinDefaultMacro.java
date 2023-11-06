@@ -7,6 +7,8 @@ import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
+import com.github.may2beez.farmhelperv2.util.helper.Rotation;
+import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 
@@ -43,7 +45,13 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                 additionalRotation = (float) (Math.random() * 2 - 1);
                 break;
         }
-        getRotation().easeTo(getClosest90Deg() + additionalRotation, getPitch(), FarmHelperConfig.getRandomRotationTime());
+        getRotation().easeTo(
+                new RotationConfiguration(
+                        new Rotation(getClosest90Deg() + additionalRotation, getPitch()),
+                        FarmHelperConfig.getRandomRotationTime(),
+                        null
+                )
+        );
         delayAfterChangingRow.schedule(1_000);
         changeLaneDirection = null;
         super.onEnable();
@@ -58,12 +66,24 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
 
     @Override
     public void doAfterRewarpRotation() {
-        if (!getRotation().rotating) {
+        if (!getRotation().isRotating()) {
             setPitch(50 + (float) (Math.random() * 6 - 3)); // -1 - 1
             if (getCurrentState() == State.RIGHT) {
-                getRotation().easeTo((float) (getClosest90Deg() + (ROTATION_DEGREE + (Math.random() * 2))), getPitch(), FarmHelperConfig.getRandomRotationTime());
+                getRotation().easeTo(
+                        new RotationConfiguration(
+                                new Rotation((float) (getClosest90Deg() + (ROTATION_DEGREE + (Math.random() * 2))), getPitch()),
+                                FarmHelperConfig.getRandomRotationTime(),
+                                null
+                        )
+                );
             } else if (getCurrentState() == State.LEFT) {
-                getRotation().easeTo((float) (getClosest90Deg() - (ROTATION_DEGREE + (Math.random() * 2))), getPitch(), FarmHelperConfig.getRandomRotationTime());
+                getRotation().easeTo(
+                        new RotationConfiguration(
+                                new Rotation((float) (getClosest90Deg() - (ROTATION_DEGREE + (Math.random() * 2))), getPitch()),
+                                FarmHelperConfig.getRandomRotationTime(),
+                                null
+                        )
+                );
             }
         }
     }
@@ -97,7 +117,13 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                         additionalRotation = ((float) (Math.random() * 0.4 + 0.2));
                     }
                     changeState(State.SWITCHING_LANE);
-                    getRotation().easeTo(getClosest90Deg() + additionalRotation, getPitch(), FarmHelperConfig.getRandomRotationTime());
+                    getRotation().easeTo(
+                            new RotationConfiguration(
+                                    new Rotation(getClosest90Deg() + additionalRotation, getPitch()),
+                                    FarmHelperConfig.getRandomRotationTime(),
+                                    null
+                            )
+                    );
                 } else if (GameStateHandler.getInstance().isBackWalkable()) {
                     if (changeLaneDirection == ChangeLaneDirection.FORWARD) {
                         // Probably stuck in dirt
@@ -113,7 +139,13 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                         additionalRotation = ((float) (Math.random() * 0.4 + 0.2));
                     }
                     changeState(State.SWITCHING_LANE);
-                    getRotation().easeTo(getClosest90Deg() + additionalRotation, getPitch(), FarmHelperConfig.getRandomRotationTime());
+                    getRotation().easeTo(
+                            new RotationConfiguration(
+                                    new Rotation(getClosest90Deg() + additionalRotation, getPitch()),
+                                    FarmHelperConfig.getRandomRotationTime(),
+                                    null
+                            )
+                    );
                 } else {
                     if (GameStateHandler.getInstance().isLeftWalkable()) {
                         changeState(State.LEFT);
@@ -137,12 +169,24 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                     changeState(State.RIGHT);
                     delayAfterChangingRow.schedule(1_000);
                     setPitch(50 + (float) (Math.random() * 6 - 3)); // -3 - 3
-                    getRotation().easeTo((float) (getClosest90Deg() + (ROTATION_DEGREE + (Math.random() * 2))), getPitch(), FarmHelperConfig.getRandomRotationTime());
+                    getRotation().easeTo(
+                            new RotationConfiguration(
+                                    new Rotation((float) (getClosest90Deg() + (ROTATION_DEGREE + (Math.random() * 2))), getPitch()),
+                                    FarmHelperConfig.getRandomRotationTime(),
+                                    null
+                            )
+                    );
                 } else if (GameStateHandler.getInstance().isLeftWalkable()) {
                     changeState(State.LEFT);
                     delayAfterChangingRow.schedule(1_000);
                     setPitch(50 + (float) (Math.random() * 6 - 3)); // -3 - 3
-                    getRotation().easeTo((float) (getClosest90Deg() - (ROTATION_DEGREE + (Math.random() * 2))), getPitch(), FarmHelperConfig.getRandomRotationTime());
+                    getRotation().easeTo(
+                            new RotationConfiguration(
+                                    new Rotation((float) (getClosest90Deg() - (ROTATION_DEGREE + (Math.random() * 2))), getPitch()),
+                                    FarmHelperConfig.getRandomRotationTime(),
+                                    null
+                            )
+                    );
                 } else if (GameStateHandler.getInstance().isFrontWalkable()) {
                     if (changeLaneDirection == ChangeLaneDirection.BACKWARD) {
                         // Probably stuck in dirt
@@ -167,11 +211,17 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                 LogUtils.sendDebug("On Ground: " + mc.thePlayer.onGround);
                 if (mc.thePlayer.onGround && Math.abs(getLayerY() - mc.thePlayer.getPosition().getY()) > 1.5) {
                     changeLaneDirection = null;
-                    if (FarmHelperConfig.rotateAfterDrop && !getRotation().rotating) {
+                    if (FarmHelperConfig.rotateAfterDrop && !getRotation().isRotating()) {
                         LogUtils.sendDebug("Rotating 180");
                         getRotation().reset();
                         setYaw(getYaw() + 180);
-                        getRotation().easeTo(getYaw(), getPitch(), (long) (400 + Math.random() * 300));
+                        getRotation().easeTo(
+                                new RotationConfiguration(
+                                        new Rotation(getYaw(), getPitch()),
+                                        (long) (400 + Math.random() * 300),
+                                        null
+                                )
+                        );
                     }
                     KeyBindUtils.stopMovement();
                     setLayerY(mc.thePlayer.getPosition().getY());

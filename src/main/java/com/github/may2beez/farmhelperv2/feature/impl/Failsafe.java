@@ -14,6 +14,8 @@ import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
+import com.github.may2beez.farmhelperv2.util.helper.Rotation;
+import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -48,7 +50,7 @@ import java.util.stream.Collectors;
 @Getter
 public class Failsafe implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
-    private final RotationUtils rotation = new RotationUtils();
+    private final RotationUtils rotation = RotationUtils.getInstance();
 
     private static Failsafe instance;
 
@@ -270,7 +272,8 @@ public class Failsafe implements IFeature {
         if (!BanInfoWS.getInstance().isBanwave()) return;
         if (!FarmHelperConfig.banwaveCheckerEnabled) return;
         if (!FarmHelperConfig.enableLeavePauseOnBanwave) return;
-        if (FarmHelperConfig.banwaveDontLeaveDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) return;
+        if (FarmHelperConfig.banwaveDontLeaveDuringJacobsContest && GameStateHandler.getInstance().inJacobContest())
+            return;
 
         addEmergency(EmergencyType.BANWAVE);
     }
@@ -436,7 +439,12 @@ public class Failsafe implements IFeature {
                 break;
             case END:
                 float randomTime = FarmHelperConfig.getRandomRotationTime();
-                rotation.easeTo((float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30), (float) (30 + Math.random() * 20 - 10), (long) randomTime);
+                this.rotation.easeTo(
+                        new RotationConfiguration(
+                                new Rotation(
+                                        (float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30),
+                                        (float) (30 + Math.random() * 20 - 10))
+                                , (long) randomTime, null));
                 Failsafe.getInstance().stop();
                 if (FarmHelperConfig.enableRestartAfterFailSafe) {
                     MacroHandler.getInstance().pauseMacro();
@@ -476,7 +484,12 @@ public class Failsafe implements IFeature {
 
     private void randomMoveAndRotate() {
         long rotationTime = FarmHelperConfig.getRandomRotationTime();
-        rotation.easeTo(mc.thePlayer.rotationYaw + randomValueBetweenExt(-180, 180, 45), randomValueBetweenExt(-20, 40, 5), rotationTime);
+        this.rotation.easeTo(
+                new RotationConfiguration(
+                        new Rotation(
+                                mc.thePlayer.rotationYaw + randomValueBetweenExt(-180, 180, 45),
+                                randomValueBetweenExt(-20, 40, 5)),
+                        rotationTime, null));
         failsafeDelay.schedule(rotationTime - 50);
         currentLookAroundTimes++;
         if (!mc.thePlayer.onGround) return;
@@ -576,11 +589,11 @@ public class Failsafe implements IFeature {
                 break;
             case ROTATE_INTO_DIRT:
                 BlockPos closestDirt = dirtBlocks.stream().sorted(Comparator.comparingDouble(block -> mc.thePlayer.getPosition().distanceSq(block))).collect(Collectors.toList()).get(0);
-                RotationUtils.Rotation rotation = AngleUtils.getRotation(new Vec3(closestDirt.getX() + 0.5f + (Math.random() * 1 - 0.5), closestDirt.getY() + 0.5f + (Math.random() * 1 - 0.5), closestDirt.getZ() + 0.5f + (Math.random() * 1 - 0.5)));
+                Rotation rotation = getRotation().getRotation(new Vec3(closestDirt.getX() + 0.5f + (Math.random() * 1 - 0.5), closestDirt.getY() + 0.5f + (Math.random() * 1 - 0.5), closestDirt.getZ() + 0.5f + (Math.random() * 1 - 0.5)));
                 float yaw = rotation.getYaw();
                 float pitch = rotation.getPitch();
                 float randomTime = FarmHelperConfig.getRandomRotationTime();
-                this.rotation.easeTo(yaw, pitch, (long) randomTime);
+                this.rotation.easeTo(new RotationConfiguration(new Rotation(yaw, pitch), (long) randomTime, null));
                 failsafeDelay.schedule((long) (randomTime + 250 + Math.random() * 400));
                 dirtCheckState = DirtCheckState.LOOK_AWAY;
                 Multithreading.schedule(() -> {
@@ -589,10 +602,10 @@ public class Failsafe implements IFeature {
                 }, (long) Math.max(300, randomTime - 200), TimeUnit.MILLISECONDS);
                 break;
             case LOOK_AWAY:
-                if (this.rotation.rotating) return;
+                if (this.rotation.isRotating()) return;
                 KeyBindUtils.stopMovement();
                 long randomTime2 = FarmHelperConfig.getRandomRotationTime();
-                this.rotation.easeTo(mc.thePlayer.rotationYaw + 180 + randomValueBetweenExt(-30, 30, 10), randomValueBetweenExt(-30, 5, 2), randomTime2);
+                this.rotation.easeTo(new RotationConfiguration(new Rotation(mc.thePlayer.rotationYaw + 180 + randomValueBetweenExt(-30, 30, 10), randomValueBetweenExt(-30, 5, 2)), randomTime2, null));
                 if (FarmHelperConfig.sendFailsafeMessage) {
                     failsafeDelay.schedule((long) (randomTime2 + 450 + Math.random() * 500));
                     dirtCheckState = DirtCheckState.TYPE_SHIT;
@@ -602,7 +615,7 @@ public class Failsafe implements IFeature {
                 }
                 break;
             case TYPE_SHIT:
-                if (this.rotation.rotating) return;
+                if (this.rotation.isRotating()) return;
                 String randomMessage;
                 if (CustomFailsafeMessagesPage.customDirtMessages.isEmpty()) {
                     randomMessage = getRandomMessage(FAILSAFE_MESSAGES);
@@ -629,18 +642,22 @@ public class Failsafe implements IFeature {
                 break;
             case ROTATE_INTO_DIRT_2:
                 BlockPos closestDirt2 = dirtBlocks.stream().sorted(Comparator.comparingDouble(block -> mc.thePlayer.getPosition().distanceSq(block))).collect(Collectors.toList()).get(0);
-                RotationUtils.Rotation rotation2 = AngleUtils.getRotation(new Vec3(closestDirt2.getX() + 0.5f + (Math.random() * 1 - 0.5), closestDirt2.getY() + 0.5f + (Math.random() * 1 - 0.5), closestDirt2.getZ() + 0.5f + (Math.random() * 1 - 0.5)));
+                Rotation rotation2 = getRotation().getRotation(new Vec3(closestDirt2.getX() + 0.5f + (Math.random() * 1 - 0.5), closestDirt2.getY() + 0.5f + (Math.random() * 1 - 0.5), closestDirt2.getZ() + 0.5f + (Math.random() * 1 - 0.5)));
                 float yaw2 = rotation2.getYaw();
                 float pitch2 = rotation2.getPitch();
                 long randomTime3 = FarmHelperConfig.getRandomRotationTime();
-                this.rotation.easeTo(yaw2, pitch2, randomTime3);
+                this.rotation.easeTo(
+                        new RotationConfiguration(new Rotation(yaw2, pitch2), randomTime3, null)
+                );
                 failsafeDelay.schedule((long) (randomTime3 + 450 + Math.random() * 500));
                 dirtCheckState = DirtCheckState.END;
                 break;
             case END:
-                if (this.rotation.rotating) return;
+                if (this.rotation.isRotating()) return;
                 long randomTime4 = FarmHelperConfig.getRandomRotationTime();
-                this.rotation.easeTo((float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30), (float) (30 + Math.random() * 20 - 10), randomTime4);
+                this.rotation.easeTo(
+                        new RotationConfiguration(new Rotation((float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30), (float) (30 + Math.random() * 20 - 10)), randomTime4, null)
+                );
                 Failsafe.getInstance().stop();
                 if (FarmHelperConfig.enableRestartAfterFailSafe) {
                     MacroHandler.getInstance().pauseMacro();
@@ -835,7 +852,7 @@ public class Failsafe implements IFeature {
                 }
                 break;
             case SWAP_BACK_ITEM:
-                if (this.rotation.rotating) return;
+                if (this.rotation.isRotating()) return;
                 failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
                 itemChangeState = ItemChangeState.END;
                 break;
@@ -977,6 +994,7 @@ public class Failsafe implements IFeature {
         LOOK_AROUND_2,
         END,
     }
+
     private BedrockCageState bedrockCageState = BedrockCageState.NONE;
 
 
@@ -1067,7 +1085,7 @@ public class Failsafe implements IFeature {
                     return;
                 }
                 float randomTime = FarmHelperConfig.getRandomRotationTime();
-                rotation.easeTo((float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30), (float) (30 + Math.random() * 20 - 10), (long) randomTime);
+                rotation.easeTo(new RotationConfiguration(new Rotation((float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30), (float) (30 + Math.random() * 20 - 10)), (long) randomTime, null));
                 Failsafe.getInstance().stop();
                 if (FarmHelperConfig.enableRestartAfterFailSafe) {
                     MacroHandler.getInstance().pauseMacro();
@@ -1099,7 +1117,8 @@ public class Failsafe implements IFeature {
         if (firstCheckReturn()) return;
         if (MacroHandler.getInstance().isTeleporting()) return;
         if (emergency != EmergencyType.NONE) return;
-        if (BanInfoWS.getInstance().isBanwave() && FarmHelperConfig.enableLeavePauseOnBanwave && !FarmHelperConfig.banwaveAction) return;
+        if (BanInfoWS.getInstance().isBanwave() && FarmHelperConfig.enableLeavePauseOnBanwave && !FarmHelperConfig.banwaveAction)
+            return;
 
         addEmergency(EmergencyType.DISCONNECT);
     }
@@ -1146,8 +1165,8 @@ public class Failsafe implements IFeature {
             case TELEPORT_CHECK:
             case ITEM_CHANGE_CHECK:
             case BEDROCK_CAGE_CHECK:
-            if (movementFilesExist(emergency.label))
-                return true;
+                if (movementFilesExist(emergency.label))
+                    return true;
         }
         return false;
     }
@@ -1267,7 +1286,9 @@ public class Failsafe implements IFeature {
                 break;
             case END:
                 float randomTime = FarmHelperConfig.getRandomRotationTime();
-                rotation.easeTo((float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30), (float) (30 + Math.random() * 20 - 10), (long) randomTime);
+                rotation.easeTo(new RotationConfiguration(
+                        new Rotation((float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30), (float) (30 + Math.random() * 20 - 10)), (long) randomTime, null
+                ));
                 Failsafe.getInstance().stop();
                 if (FarmHelperConfig.enableRestartAfterFailSafe) {
                     MacroHandler.getInstance().pauseMacro();
@@ -1402,13 +1423,6 @@ public class Failsafe implements IFeature {
             }
         }
         return highestPriority;
-    }
-
-    @SubscribeEvent
-    public void onLastRender(RenderWorldLastEvent event) {
-        if (rotation.rotating) {
-            rotation.update();
-        }
     }
 
     @SubscribeEvent

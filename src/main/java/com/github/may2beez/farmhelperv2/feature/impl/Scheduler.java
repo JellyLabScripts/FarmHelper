@@ -9,11 +9,9 @@ import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.InventoryUtils;
 import com.github.may2beez.farmhelperv2.util.KeyBindUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
-import com.github.may2beez.farmhelperv2.util.RotationUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -29,7 +27,7 @@ public class Scheduler implements IFeature {
         return instance;
     }
 
-    private final RotationUtils rotation = new RotationUtils();
+    private final RotationUtils rotation = RotationUtils.getInstance();
 
     @Getter
     private final Clock schedulerClock = new Clock();
@@ -140,7 +138,7 @@ public class Scheduler implements IFeature {
                     long randomTime4 = FarmHelperConfig.getRandomRotationTime();
                     this.rotation.easeTo((float) (mc.thePlayer.rotationYaw + Math.random() * 20 - 10), (float) (20 + Math.random() * 10 - 5), randomTime4);
                     Multithreading.schedule(InventoryUtils::openInventory, randomTime4 + 350, TimeUnit.MILLISECONDS);
-                }, (long) (600 + Math.random() * 400), TimeUnit.MILLISECONDS);
+                }, (long) (300 + Math.random() * 200), TimeUnit.MILLISECONDS);
             }
         } else if (MacroHandler.getInstance().isMacroToggled() && schedulerState == SchedulerState.BREAK && !schedulerClock.isPaused() && schedulerClock.passed()) {
             LogUtils.sendDebug("[Scheduler] Break time has passed, starting");
@@ -150,13 +148,6 @@ public class Scheduler implements IFeature {
             schedulerState = SchedulerState.FARMING;
             schedulerClock.schedule((long)((FarmHelperConfig.schedulerFarmingTime * 60_000f) + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness * 60_000f)));
             MacroHandler.getInstance().resumeMacro();
-        }
-    }
-
-    @SubscribeEvent
-    public void onRenderWorldLast(RenderWorldLastEvent event) {
-        if (rotation.rotating) {
-            rotation.update();
         }
     }
 }

@@ -22,7 +22,7 @@ public class DebugHUD extends TextHud {
         lines.add("Location: " + GameStateHandler.getInstance().getLocation());
         MacroHandler.getInstance().getCurrentMacro().ifPresent(macro -> {
             lines.add("Current state: " + macro.getCurrentState());
-            lines.add("Rotating: " + macro.getRotation().rotating);
+            lines.add("Rotating: " + macro.getRotation().isRotating());
         });
         lines.add("Scheduler: " + Scheduler.getInstance().isToggled());
         if (Scheduler.getInstance().isToggled()) {

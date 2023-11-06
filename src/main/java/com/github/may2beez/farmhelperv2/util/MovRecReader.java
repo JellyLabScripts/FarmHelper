@@ -1,5 +1,7 @@
 package com.github.may2beez.farmhelperv2.util;
 
+import com.github.may2beez.farmhelperv2.util.helper.Rotation;
+import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -18,8 +20,9 @@ public class MovRecReader {
     private static int currentDelay = 0;
     private static int playingIndex = 0;
     static Minecraft mc = Minecraft.getMinecraft();
-    private static final RotationUtils rotateBeforePlaying = new RotationUtils();
-    private static final RotationUtils rotateDuringPlaying = new RotationUtils();
+    private static final RotationUtils rotateBeforePlaying = RotationUtils.getInstance();
+    // TODO: Yuro fix this
+    private static final RotationUtils rotateDuringPlaying = RotationUtils.getInstance();
 
     public static class Movement {
         private final boolean forward;
@@ -61,14 +64,19 @@ public class MovRecReader {
             stopRecording();
             return;
         }
-        if (rotateBeforePlaying.rotating) {
+        if (rotateBeforePlaying.isRotating()) {
             KeyBindUtils.stopMovement();
             return;
         }
 
         Movement movement = movements.get(playingIndex);
         setPlayerMovement(movement);
-        rotateDuringPlaying.easeTo(movement.yaw, movement.pitch, 49);
+        rotateBeforePlaying.easeTo(
+                new RotationConfiguration(
+                        new Rotation(movement.yaw, movement.pitch),
+                        40, null
+                )
+        );
 
         if (currentDelay < movement.delay) {
             currentDelay++;
@@ -80,17 +88,6 @@ public class MovRecReader {
             isMovementPlaying = false;
             resetTimers();
             LogUtils.sendDebug("Playing has been finished.");
-        }
-    }
-
-    @SubscribeEvent
-    public void onWorldLastRender(RenderWorldLastEvent event) {
-        if (rotateDuringPlaying.rotating) {
-            rotateDuringPlaying.update();
-            return;
-        }
-        if (rotateBeforePlaying.rotating) {
-            rotateBeforePlaying.update();
         }
     }
 
@@ -146,7 +143,12 @@ public class MovRecReader {
         isMovementReading = false;
         isMovementPlaying = true;
         Movement movement = movements.get(0);
-        rotateBeforePlaying.easeTo(movement.yaw, movement.pitch, 500);
+        rotateBeforePlaying.easeTo(
+                new RotationConfiguration(
+                        new Rotation(movement.yaw, movement.pitch),
+                        500, null
+                )
+        );
     }
 
     private static void resetTimers() {

@@ -120,55 +120,55 @@ public class AngleUtils {
         }
     }
 
-    public static RotationUtils.Rotation getRotation(BlockPos block) {
-        return getRotation(new Vec3(block.getX() + 0.5, block.getY() + 0.5, block.getZ() + 0.5));
-    }
-
-    public static RotationUtils.Rotation getRotation(Entity entity, boolean randomness) {
-        AxisAlignedBB boundingBox = entity.getEntityBoundingBox();
-        double diffX = boundingBox.minX + (boundingBox.maxX - boundingBox.minX) * 0.8 - mc.thePlayer.posX;
-        double diffY = boundingBox.minY + (boundingBox.maxY - boundingBox.minY) * 0.8 - mc.thePlayer.posY - mc.thePlayer.getEyeHeight() - 0.2;
-        double diffZ = boundingBox.minZ + (boundingBox.maxZ - boundingBox.minZ) * 0.8 - mc.thePlayer.posZ;
-        return getRotationTo(diffX, diffY, diffZ, randomness);
-    }
-
-    public static RotationUtils.Rotation getRotation(final Vec3 from, final Vec3 to) {
-        double diffX = to.xCoord - from.xCoord;
-        double diffY = to.yCoord - from.yCoord;
-        double diffZ = to.zCoord - from.zCoord;
-        double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
-
-        float pitch = (float) -Math.atan2(dist, diffY);
-        float yaw = (float) Math.atan2(diffZ, diffX);
-        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90) * -1);
-        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90);
-
-        return new RotationUtils.Rotation(pitch, yaw);
-    }
-
-    public static RotationUtils.Rotation getRotation(Entity entity) {
-        return getRotation(entity.getPositionEyes(1), false);
-    }
-
-    public static RotationUtils.Rotation getRotation(Vec3 vec3, boolean randomness) {
-        double diffX = vec3.xCoord - mc.thePlayer.posX;
-        double diffY = vec3.yCoord - mc.thePlayer.posY - mc.thePlayer.getEyeHeight();
-        double diffZ = vec3.zCoord - mc.thePlayer.posZ;
-        return getRotationTo(diffX, diffY, diffZ, randomness);
-    }
-
-    public static RotationUtils.Rotation getRotation(Vec3 vec3) {
-        return getRotation(vec3, false);
-    }
-
-    private static RotationUtils.Rotation getRotationTo(double diffX, double diffY, double diffZ, boolean randomness) {
-        double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
-
-        float pitch = (float) -Math.atan2(dist, diffY);
-        float yaw = (float) Math.atan2(diffZ, diffX);
-        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90) * -1) + (randomness ? (float) (Math.random() * 6 - 3f) : 0);
-        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90) + (randomness ? (float) (Math.random() * 6 - 3f) : 0);
-
-        return new RotationUtils.Rotation(yaw, pitch);
-    }
+//    public static RotationUtils.Rotation getRotation(BlockPos block) {
+//        return getRotation(new Vec3(block.getX() + 0.5, block.getY() + 0.5, block.getZ() + 0.5));
+//    }
+//
+//    public static RotationUtils.Rotation getRotation(Entity entity, boolean randomness) {
+//        AxisAlignedBB boundingBox = entity.getEntityBoundingBox();
+//        double diffX = boundingBox.minX + (boundingBox.maxX - boundingBox.minX) * 0.8 - mc.thePlayer.posX;
+//        double diffY = boundingBox.minY + (boundingBox.maxY - boundingBox.minY) * 0.8 - mc.thePlayer.posY - mc.thePlayer.getEyeHeight() - 0.2;
+//        double diffZ = boundingBox.minZ + (boundingBox.maxZ - boundingBox.minZ) * 0.8 - mc.thePlayer.posZ;
+//        return getRotationTo(diffX, diffY, diffZ, randomness);
+//    }
+//
+//    public static RotationUtils.Rotation getRotation(final Vec3 from, final Vec3 to) {
+//        double diffX = to.xCoord - from.xCoord;
+//        double diffY = to.yCoord - from.yCoord;
+//        double diffZ = to.zCoord - from.zCoord;
+//        double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
+//
+//        float pitch = (float) -Math.atan2(dist, diffY);
+//        float yaw = (float) Math.atan2(diffZ, diffX);
+//        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90) * -1);
+//        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90);
+//
+//        return new RotationUtils.Rotation(pitch, yaw);
+//    }
+//
+//    public static RotationUtils.Rotation getRotation(Entity entity) {
+//        return getRotation(entity.getPositionEyes(1), false);
+//    }
+//
+//    public static RotationUtils.Rotation getRotation(Vec3 vec3, boolean randomness) {
+//        double diffX = vec3.xCoord - mc.thePlayer.posX;
+//        double diffY = vec3.yCoord - mc.thePlayer.posY - mc.thePlayer.getEyeHeight();
+//        double diffZ = vec3.zCoord - mc.thePlayer.posZ;
+//        return getRotationTo(diffX, diffY, diffZ, randomness);
+//    }
+//
+//    public static RotationUtils.Rotation getRotation(Vec3 vec3) {
+//        return getRotation(vec3, false);
+//    }
+//
+//    private static RotationUtils.Rotation getRotationTo(double diffX, double diffY, double diffZ, boolean randomness) {
+//        double dist = Math.sqrt(diffX * diffX + diffZ * diffZ);
+//
+//        float pitch = (float) -Math.atan2(dist, diffY);
+//        float yaw = (float) Math.atan2(diffZ, diffX);
+//        pitch = (float) wrapAngleTo180((pitch * 180F / Math.PI + 90) * -1) + (randomness ? (float) (Math.random() * 6 - 3f) : 0);
+//        yaw = (float) wrapAngleTo180((yaw * 180 / Math.PI) - 90) + (randomness ? (float) (Math.random() * 6 - 3f) : 0);
+//
+//        return new RotationUtils.Rotation(yaw, pitch);
+//    }
 }

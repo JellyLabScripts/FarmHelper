@@ -8,6 +8,8 @@ import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
+import com.github.may2beez.farmhelperv2.util.helper.Rotation;
+import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -50,7 +52,7 @@ public abstract class AbstractMacro {
     public State currentState = State.NONE;
     @Setter
     private Optional<SavedState> savedState = Optional.empty();
-    private final RotationUtils rotation = new RotationUtils();
+    private final RotationUtils rotation = RotationUtils.getInstance();
     @Setter
     private int layerY = 0;
     @Setter
@@ -104,7 +106,7 @@ public abstract class AbstractMacro {
             return;
         }
 
-        if (getRotation().rotating) {
+        if (getRotation().isRotating()) {
             KeyBindUtils.stopMovement();
             GameStateHandler.getInstance().scheduleNotMoving();
             return;
@@ -137,7 +139,9 @@ public abstract class AbstractMacro {
                     }
                 }
                 if (shouldRotateAfterWarp())
-                    rotation.easeTo(yaw, pitch, FarmHelperConfig.getRandomRotationTime() * 2);
+                    rotation.easeTo(new RotationConfiguration(
+                            new Rotation(yaw, pitch), FarmHelperConfig.getRandomRotationTime() * 2, null
+                    ));
             }
             rotated = true;
             LogUtils.sendDebug("Rotating");
@@ -177,9 +181,6 @@ public abstract class AbstractMacro {
     }
 
     public void onLastRender() {
-        if (rotation.rotating) {
-            rotation.update();
-        }
     }
 
     public void onChatMessageReceived(String msg) {
@@ -192,6 +193,7 @@ public abstract class AbstractMacro {
     }
 
     public abstract void updateState();
+
     public abstract void invokeState();
 
     public void onEnable() {

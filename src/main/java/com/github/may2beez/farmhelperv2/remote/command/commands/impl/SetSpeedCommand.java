@@ -76,7 +76,7 @@ public class SetSpeedCommand extends ClientCommand {
     private static boolean enabled = false;
     private static State currentState = State.NONE;
     private static final Clock clock = new Clock();
-    private static final RotationUtils rotation = new RotationUtils();
+    private static final RotationUtils rotation = RotationUtils.getInstance();
     private static RotationUtils.Rotation lastRotation = new RotationUtils.Rotation(0f, 0f);
     int freeSlot = -1;
     int freeHotbarSlot = -1;
@@ -258,12 +258,7 @@ public class SetSpeedCommand extends ClientCommand {
         }
         disableWithError("Couldn't find an empty space to look at! Disabling...");
     }
-    @SubscribeEvent
-    public void onLastRender(RenderWorldLastEvent event) {
-        if (rotation.rotating) {
-            rotation.update();
-        }
-    }
+
     @SubscribeEvent
     public void onChatMessage(ClientChatReceivedEvent event) {
         if (enabled && event.type == 0 && event.message != null && event.message.getFormattedText().contains("§eClick in the air!")) {

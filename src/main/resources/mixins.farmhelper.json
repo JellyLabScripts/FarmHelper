@@ -16,6 +16,8 @@
   ],
   "client": [
     "block.MixinBlockRendererDispatcher",
+    "client.EntityPlayerSPAccessor",
+    "client.MinecraftAccessor",
     "client.MixinEntityPlayerSP",
     "client.MixinMinecraft",
     "client.MixinPlayerControllerMP",
@@ -28,6 +30,7 @@
     "render.MixinActiveRenderInfo",
     "render.MixinEffectRenderer",
     "render.MixinEntityRenderer",
+    "render.MixinModelBiped",
     "render.MixinRenderManager"
   ]
 }

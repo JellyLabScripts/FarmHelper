@@ -8,6 +8,8 @@ import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
+import com.github.may2beez.farmhelperv2.util.helper.Rotation;
+import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -161,7 +163,7 @@ public class AutoCookie implements IFeature {
 
     private final Clock timeoutClock = new Clock();
 
-    private final RotationUtils rotation = new RotationUtils();
+    private final RotationUtils rotation = RotationUtils.getInstance();
 
 
     @SubscribeEvent
@@ -249,12 +251,12 @@ public class AutoCookie implements IFeature {
                             break;
                         }
 
-                        if (rotation.rotating) break;
+                        if (rotation.isRotating()) break;
 
-                        RotationUtils.Rotation rotationNeeded2 = AngleUtils.getRotation(new Vec3(hubWaypoint.up().up()).add(new Vec3(0.5, 0.5, 0.5)), true);
+                        Rotation rotationNeeded2 = getRotation().getRotation(new Vec3(hubWaypoint.up().up()).add(new Vec3(0.5, 0.5, 0.5)), true);
                         if (AngleUtils.smallestAngleDifference(mc.thePlayer.rotationYaw, rotationNeeded2.getYaw()) > 4 ||
                                 AngleUtils.smallestAngleDifference(mc.thePlayer.rotationPitch, rotationNeeded2.getPitch()) > 4) {
-                            rotation.easeTo(rotationNeeded2.getYaw(), rotationNeeded2.getPitch(), FarmHelperConfig.getRandomRotationTime());
+                            rotation.easeTo(new RotationConfiguration(rotationNeeded2, FarmHelperConfig.getRandomRotationTime(), null));
                             break;
                         }
 
@@ -267,7 +269,7 @@ public class AutoCookie implements IFeature {
                             break;
                         }
 
-                        if (rotation.rotating) break;
+                        if (rotation.isRotating()) break;
 
                         Optional<Entity> bazaarNpc = mc.theWorld.loadedEntityList.stream().filter(entity -> {
                             double distance = Math.sqrt(entity.getDistanceSqToCenter(mc.thePlayer.getPosition()));
@@ -280,12 +282,19 @@ public class AutoCookie implements IFeature {
                             autoCookieDelay.schedule(getRandomDelay());
                             break;
                         }
-                        RotationUtils.Rotation rotationNeeded3 = AngleUtils.getRotation(bazaarNpc.get(), true);
+
+                        Rotation rotationNeeded3 = getRotation().getRotation(bazaarNpc.get(), true);
 
                         if (AngleUtils.smallestAngleDifference(mc.thePlayer.rotationYaw, rotationNeeded3.getYaw()) > 5 ||
                                 AngleUtils.smallestAngleDifference(mc.thePlayer.rotationPitch, rotationNeeded3.getPitch()) > 5) {
                             KeyBindUtils.stopMovement();
-                            rotation.easeTo(rotationNeeded3.getYaw(), rotationNeeded3.getPitch(), FarmHelperConfig.getRandomRotationTime());
+                            rotation.easeTo(
+                                    new RotationConfiguration(
+                                            rotationNeeded3,
+                                            FarmHelperConfig.getRandomRotationTime(),
+                                            null
+                                    )
+                            );
                             break;
                         }
 
@@ -616,13 +625,6 @@ public class AutoCookie implements IFeature {
             }
         }
 
-    }
-
-    @SubscribeEvent
-    public void onLastRender(RenderWorldLastEvent event) {
-        if (rotation.rotating && mc.currentScreen == null) {
-            rotation.update();
-        }
     }
 
     private int getRandomDelay() {

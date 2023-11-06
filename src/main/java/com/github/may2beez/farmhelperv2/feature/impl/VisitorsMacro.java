@@ -8,6 +8,8 @@ import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
+import com.github.may2beez.farmhelperv2.util.helper.Rotation;
+import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import com.github.may2beez.farmhelperv2.util.helper.SignUtils;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,7 +24,6 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.*;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
@@ -163,7 +164,7 @@ public class VisitorsMacro implements IFeature {
     private final Clock stuckClock = new Clock();
     private final int STUCK_DELAY = (int) (7_500 + FarmHelperConfig.visitorsMacroGuiDelay + FarmHelperConfig.visitorsMacroGuiDelayRandomness);
     public final List<String> profitRewards = Arrays.asList("Dedication", "Cultivating", "Delicate", "Replenish", "Music Rune", "Green Bandana", "Overgrown Grass", "Space Helmet");
-    private final RotationUtils rotation = new RotationUtils();
+    private final RotationUtils rotation = RotationUtils.getInstance();
 
     @Override
     public String getName() {
@@ -510,9 +511,13 @@ public class VisitorsMacro implements IFeature {
                     return;
                 }
 
-                RotationUtils.Rotation rotationToEdge = AngleUtils.getRotation(closestEdge.add(0.5, 0.5, 0.5));
+                Rotation rotationToEdge = rotation.getRotation(closestEdge.add(0.5, 0.5, 0.5));
                 long rotationTime = FarmHelperConfig.getRandomRotationTime();
-                rotation.easeTo(rotationToEdge.getYaw(), rotationToEdge.getPitch(), rotationTime);
+                rotation.easeTo(
+                        new RotationConfiguration(
+                                new Rotation(rotationToEdge.getYaw(), rotationToEdge.getPitch()), rotationTime, null
+                        )
+                );
                 currentEdge = Optional.of(closestEdge);
                 setTravelState(TravelState.FLY_TO_EDGE);
                 delayClock.schedule(rotationTime);
@@ -559,7 +564,7 @@ public class VisitorsMacro implements IFeature {
                     }
                     break;
                 }
-                if (rotation.rotating) return;
+                if (rotation.isRotating()) return;
 
                 if (canSeeDeskPos()) {
                     LogUtils.sendDebug("[Visitors Macro] Player can see desk pos");
@@ -568,10 +573,14 @@ public class VisitorsMacro implements IFeature {
                 }
 
                 stuckClock.schedule(STUCK_DELAY);
-                RotationUtils.Rotation rotationToCenter = AngleUtils.getRotation(barnCenter.add(0.5, 0.5, 0.5));
+                Rotation rotationToCenter = rotation.getRotation(barnCenter.add(0.5, 0.5, 0.5));
                 currentEdge = Optional.of(barnCenter);
                 long rotationTime2 = FarmHelperConfig.getRandomRotationTime();
-                rotation.easeTo(rotationToCenter.getYaw(), rotationToCenter.getPitch(), rotationTime2);
+                rotation.easeTo(
+                        new RotationConfiguration(
+                                new Rotation(rotationToCenter.getYaw(), rotationToCenter.getPitch()), rotationTime2, null
+                        )
+                );
                 setTravelState(TravelState.FLY_TO_CENTER);
                 delayClock.schedule(rotationTime2);
                 break;
@@ -598,15 +607,23 @@ public class VisitorsMacro implements IFeature {
                     break;
                 }
                 KeyBindUtils.stopMovement();
-                RotationUtils.Rotation rotationToDesk = AngleUtils.getRotation(new Vec3(FarmHelperConfig.visitorsDeskPosX + 0.5, FarmHelperConfig.visitorsDeskPosY + 1.5, FarmHelperConfig.visitorsDeskPosZ + 0.5));
-                rotation.easeTo(rotationToDesk.getYaw(), rotationToDesk.getPitch(), FarmHelperConfig.getRandomRotationTime());
+                Rotation rotationToDesk = rotation.getRotation(new Vec3(FarmHelperConfig.visitorsDeskPosX + 0.5, FarmHelperConfig.visitorsDeskPosY + 1.5, FarmHelperConfig.visitorsDeskPosZ + 0.5));
+                rotation.easeTo(
+                        new RotationConfiguration(
+                                new Rotation(rotationToDesk.getYaw(), rotationToDesk.getPitch()), FarmHelperConfig.getRandomRotationTime(), null
+                        )
+                );
                 setTravelState(TravelState.MOVE_TOWARDS_DESK);
                 previousDistanceToCheck = Integer.MAX_VALUE;
                 break;
             case MOVE_TOWARDS_DESK:
-                RotationUtils.Rotation rotationToDesk2 = AngleUtils.getRotation(new Vec3(FarmHelperConfig.visitorsDeskPosX + 0.5, FarmHelperConfig.visitorsDeskPosY + 1.5, FarmHelperConfig.visitorsDeskPosZ + 0.5));
-                if ((Math.abs(rotationToDesk2.getYaw() - mc.thePlayer.rotationYaw) > 1 || Math.abs(rotationToDesk2.getPitch() - mc.thePlayer.rotationPitch) > 1) && !rotation.rotating) {
-                    rotation.easeTo(rotationToDesk2.getYaw(), rotationToDesk2.getPitch(), FarmHelperConfig.getRandomRotationTime());
+                Rotation rotationToDesk2 = rotation.getRotation(new Vec3(FarmHelperConfig.visitorsDeskPosX + 0.5, FarmHelperConfig.visitorsDeskPosY + 1.5, FarmHelperConfig.visitorsDeskPosZ + 0.5));
+                if ((Math.abs(rotationToDesk2.getYaw() - mc.thePlayer.rotationYaw) > 1 || Math.abs(rotationToDesk2.getPitch() - mc.thePlayer.rotationPitch) > 1) && !rotation.isRotating()) {
+                    rotation.easeTo(
+                            new RotationConfiguration(
+                                    new Rotation(rotationToDesk2.getYaw(), rotationToDesk2.getPitch()), FarmHelperConfig.getRandomRotationTime(), null
+                            )
+                    );
                 }
 
                 BlockPos playerPos = BlockUtils.getRelativeBlockPos(0, 0, 0);
@@ -680,20 +697,24 @@ public class VisitorsMacro implements IFeature {
             );
 
             if (distanceToEdge > 14) {
-                if ((aotvTpCooldown.passed() || !aotvTpCooldown.isScheduled()) && aspectOfTheSlot.isPresent() && !rotation.rotating) {
+                if ((aotvTpCooldown.passed() || !aotvTpCooldown.isScheduled()) && aspectOfTheSlot.isPresent() && !rotation.isRotating()) {
                     KeyBindUtils.rightClick();
                     aotvTpCooldown.schedule((long) (150 + Math.random() * 150));
                     rotation.reset();
                 }
             }
 
-            RotationUtils.Rotation rotationToEdge2 = AngleUtils.getRotation(currentEdge.get().add(0.5, 0.5, 0.5));
+            Rotation rotationToEdge2 = rotation.getRotation(currentEdge.get().add(0.5, 0.5, 0.5));
             float randomValue = playerY > 80 ? 5 + (float) (Math.random() * 1 - 0.5) : 1 + (float) (Math.random() * 1 - 0.5);
 
-            if (forwardIsClear() && (Math.abs(mc.thePlayer.rotationYaw - rotationToEdge2.getYaw()) > 5 || Math.abs(mc.thePlayer.rotationPitch - randomValue) > 5) && !rotation.rotating && aotvTpCooldown.isScheduled()) {
+            if (forwardIsClear() && (Math.abs(mc.thePlayer.rotationYaw - rotationToEdge2.getYaw()) > 5 || Math.abs(mc.thePlayer.rotationPitch - randomValue) > 5) && !rotation.isRotating() && aotvTpCooldown.isScheduled()) {
                 aotvTpCooldown.schedule((long) (200 + Math.random() * 200));
                 rotation.reset();
-                rotation.easeTo(rotationToEdge2.getYaw(), randomValue, FarmHelperConfig.getRandomRotationTime());
+                rotation.easeTo(
+                        new RotationConfiguration(
+                                new Rotation(rotationToEdge2.getYaw(), randomValue), FarmHelperConfig.getRandomRotationTime(), null
+                        )
+                );
             }
             return true;
         }
@@ -731,10 +752,14 @@ public class VisitorsMacro implements IFeature {
                     return;
                 }
                 setCompactorState(CompactorState.HOLD_COMPACTOR);
-                rotation.easeTo(mc.thePlayer.rotationYaw, (float) (85 + (Math.random() * 10 - 5)), FarmHelperConfig.getRandomRotationTime());
+                rotation.easeTo(
+                        new RotationConfiguration(
+                                new Rotation(mc.thePlayer.rotationYaw, (float) (85 + (Math.random() * 10 - 5))), FarmHelperConfig.getRandomRotationTime(), null
+                        )
+                );
                 break;
             case HOLD_COMPACTOR:
-                if (rotation.rotating) return;
+                if (rotation.isRotating()) return;
                 LogUtils.sendDebug("[Visitors Macro] Holding compactor");
                 if (compactors.isEmpty()) {
                     LogUtils.sendWarning("[Visitors Macro] All compactors has been disabled");
@@ -858,10 +883,14 @@ public class VisitorsMacro implements IFeature {
                 break;
             case ROTATE_TO_VISITOR:
                 if (currentVisitor.isPresent()) {
-                    if (rotation.rotating) return;
+                    if (rotation.isRotating()) return;
                     LogUtils.sendDebug("Position of visitor: " + currentVisitor.get().getPositionEyes(1));
-                    RotationUtils.Rotation rotationToVisitor = AngleUtils.getRotation(currentVisitor.get(), true);
-                    rotation.easeTo(rotationToVisitor.getYaw(), rotationToVisitor.getPitch(), FarmHelperConfig.getRandomRotationTime());
+                    Rotation rotationToVisitor = rotation.getRotation(currentVisitor.get(), true);
+                    rotation.easeTo(
+                            new RotationConfiguration(
+                                    new Rotation(rotationToVisitor.getYaw(), rotationToVisitor.getPitch()), FarmHelperConfig.getRandomRotationTime(), null
+                            )
+                    );
                     setVisitorsState(VisitorsState.OPEN_VISITOR);
                     delayClock.schedule(FarmHelperConfig.getRandomRotationTime());
                 } else {
@@ -874,7 +903,7 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(getRandomDelay());
                     break;
                 }
-                if (rotation.rotating) return;
+                if (rotation.isRotating()) return;
                 assert currentVisitor.isPresent();
                 if (entityIsMoving(currentVisitor.get())) {
                     setVisitorsState(VisitorsState.ROTATE_TO_VISITOR);
@@ -1087,7 +1116,7 @@ public class VisitorsMacro implements IFeature {
                 break;
             case ROTATE_TO_VISITOR_2:
                 if (mc.currentScreen != null) return;
-                if (rotation.rotating) return;
+                if (rotation.isRotating()) return;
                 if (mc.objectMouseOver != null && mc.objectMouseOver.entityHit != null) {
                     Entity entity = mc.objectMouseOver.entityHit;
                     assert currentVisitor.isPresent();
@@ -1100,8 +1129,12 @@ public class VisitorsMacro implements IFeature {
                     }
                 }
                 LogUtils.sendDebug("Position of visitor: " + currentVisitor.get().getPositionEyes(1));
-                RotationUtils.Rotation rotationToVisitor = AngleUtils.getRotation(currentVisitor.get(), true);
-                rotation.easeTo(rotationToVisitor.getYaw(), rotationToVisitor.getPitch(), FarmHelperConfig.getRandomRotationTime());
+                Rotation rotationToVisitor = rotation.getRotation(currentVisitor.get(), true);
+                rotation.easeTo(
+                        new RotationConfiguration(
+                                new Rotation(rotationToVisitor.getYaw(), rotationToVisitor.getPitch()), FarmHelperConfig.getRandomRotationTime(), null
+                        )
+                );
                 setVisitorsState(VisitorsState.OPEN_VISITOR_2);
                 delayClock.schedule(FarmHelperConfig.getRandomRotationTime());
                 break;
@@ -1111,7 +1144,7 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(getRandomDelay());
                     break;
                 }
-                if (rotation.rotating) return;
+                if (rotation.isRotating()) return;
                 assert currentVisitor.isPresent();
                 if (entityIsMoving(currentVisitor.get())) {
                     setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
@@ -1494,13 +1527,6 @@ public class VisitorsMacro implements IFeature {
                 setBuyState(BuyState.CLOSE_BZ);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
             }
-        }
-    }
-
-    @SubscribeEvent
-    public void onLastRender(RenderWorldLastEvent event) {
-        if (rotation.rotating) {
-            rotation.update();
         }
     }
 }

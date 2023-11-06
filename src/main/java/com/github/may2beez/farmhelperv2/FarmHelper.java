@@ -10,9 +10,7 @@ import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.remote.DiscordBotHandler;
 import com.github.may2beez.farmhelperv2.remote.WebsocketHandler;
-import com.github.may2beez.farmhelperv2.util.FailsafeUtils;
-import com.github.may2beez.farmhelperv2.util.LogUtils;
-import com.github.may2beez.farmhelperv2.util.ReflectionUtils;
+import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
 import com.github.may2beez.farmhelperv2.util.helper.TickTask;
 import com.google.gson.Gson;
@@ -88,6 +86,8 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(Failsafe.getInstance());
         MinecraftForge.EVENT_BUS.register(Freelock.getInstance());
         MinecraftForge.EVENT_BUS.register(VisitorsMacro.getInstance());
+        MinecraftForge.EVENT_BUS.register(RotationUtils.getInstance());
+        MinecraftForge.EVENT_BUS.register(RotationUtils.getInstance());
     }
 
     private void initializeFields() {

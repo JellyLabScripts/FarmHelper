@@ -8,6 +8,8 @@ import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
+import com.github.may2beez.farmhelperv2.util.helper.Rotation;
+import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import com.github.may2beez.farmhelperv2.util.helper.SignUtils;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
@@ -45,7 +47,7 @@ public class AutoGodPot implements IFeature {
     private final Clock stuckClock = new Clock();
     private final int STUCK_DELAY = (int) (7_500 + FarmHelperConfig.visitorsMacroGuiDelay + FarmHelperConfig.visitorsMacroGuiDelayRandomness);
 
-    private final RotationUtils rotation = new RotationUtils();
+    private final RotationUtils rotation = RotationUtils.getInstance();
 
     private boolean shouldTpToGarden = true;
 
@@ -332,7 +334,7 @@ public class AutoGodPot implements IFeature {
                     break;
                 }
                 if (rightClick) {
-                    if (rotation.rotating) return;
+                    if (rotation.isRotating()) return;
                     long randomTime = FarmHelperConfig.getRandomRotationTime();
                     Optional<Entity> entity = mc.theWorld.loadedEntityList.stream().filter(e -> {
                         double distance = Math.sqrt(e.getDistanceSqToCenter(mc.thePlayer.getPosition()));
@@ -340,8 +342,10 @@ public class AutoGodPot implements IFeature {
                         return distance < 4.5 && name != null && name.equals("Auction Agent");
                     }).findFirst();
                     if (entity.isPresent()) {
-                        RotationUtils.Rotation rot = AngleUtils.getRotation(entity.get());
-                        rotation.easeTo(rot.getYaw(), rot.getPitch(), randomTime);
+                        Rotation rot = rotation.getRotation(entity.get());
+                        rotation.easeTo(new RotationConfiguration(
+                                new Rotation(rot.getYaw(), rot.getPitch()), randomTime, null
+                        ));
                         delayClock.schedule(randomTime + 150);
                         Multithreading.schedule(() -> {
                             KeyBindUtils.rightClick();
@@ -589,8 +593,10 @@ public class AutoGodPot implements IFeature {
                 }
                 KeyBindUtils.stopMovement();
                 long randomTime = FarmHelperConfig.getRandomRotationTime();
-                RotationUtils.Rotation rot = AngleUtils.getRotation(ahLocation1);
-                rotation.easeTo(rot.getYaw(), rot.getPitch(), randomTime);
+                Rotation rot = rotation.getRotation(ahLocation1);
+                rotation.easeTo(
+                        new RotationConfiguration(new Rotation(rot.getYaw(), rot.getPitch()), randomTime, null
+                        ));
                 delayClock.schedule(randomTime + 150);
                 setGoingToAHState(GoingToAHState.GO_TO_AH_1);
                 break;
@@ -601,7 +607,7 @@ public class AutoGodPot implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                if (rotation.rotating) break;
+                if (rotation.isRotating()) break;
                 if (mc.thePlayer.getPositionVector().distanceTo(ahLocation1) < 1.5) {
                     KeyBindUtils.stopMovement();
                     setGoingToAHState(GoingToAHState.ROTATE_TO_AH_2);
@@ -619,8 +625,10 @@ public class AutoGodPot implements IFeature {
                 }
                 KeyBindUtils.stopMovement();
                 long randomTime2 = FarmHelperConfig.getRandomRotationTime();
-                RotationUtils.Rotation rot2 = AngleUtils.getRotation(ahLocation2);
-                rotation.easeTo(rot2.getYaw(), rot2.getPitch(), randomTime2);
+                Rotation rot2 = rotation.getRotation(ahLocation2);
+                rotation.easeTo(
+                        new RotationConfiguration(new Rotation(rot2.getYaw(), rot2.getPitch()), randomTime2, null
+                        ));
                 delayClock.schedule(randomTime2 + 150);
                 setGoingToAHState(GoingToAHState.GO_TO_AH_2);
                 break;
@@ -631,7 +639,7 @@ public class AutoGodPot implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                if (rotation.rotating) break;
+                if (rotation.isRotating()) break;
                 if (mc.thePlayer.getPositionVector().distanceTo(ahLocation2) < 1.5) {
                     KeyBindUtils.stopMovement();
                     setGoingToAHState(GoingToAHState.NONE);
@@ -845,7 +853,6 @@ public class AutoGodPot implements IFeature {
     }
 
 
-
     private void onBitsShop() {
         switch (bitsShopState) {
             case NONE:
@@ -876,8 +883,10 @@ public class AutoGodPot implements IFeature {
                 }
                 KeyBindUtils.stopMovement();
                 long randomTime = FarmHelperConfig.getRandomRotationTime();
-                RotationUtils.Rotation rot = AngleUtils.getRotation(bitsShopLocation1);
-                rotation.easeTo(rot.getYaw(), rot.getPitch(), randomTime);
+                Rotation rot = rotation.getRotation(bitsShopLocation1);
+                rotation.easeTo(
+                        new RotationConfiguration(new Rotation(rot.getYaw(), rot.getPitch()), randomTime, null
+                        ));
                 delayClock.schedule(randomTime + 150);
                 setBitsShopState(BitsShopState.GO_TO_BITS_SHOP_1);
                 break;
@@ -888,7 +897,7 @@ public class AutoGodPot implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                if (rotation.rotating) break;
+                if (rotation.isRotating()) break;
                 if (mc.thePlayer.getPositionVector().distanceTo(bitsShopLocation1) < 1.5) {
                     KeyBindUtils.stopMovement();
                     setBitsShopState(BitsShopState.ROTATE_TO_BITS_SHOP_2);
@@ -906,8 +915,10 @@ public class AutoGodPot implements IFeature {
                 }
                 KeyBindUtils.stopMovement();
                 long randomTime2 = FarmHelperConfig.getRandomRotationTime();
-                RotationUtils.Rotation rot2 = AngleUtils.getRotation(bitsShopLocation2);
-                rotation.easeTo(rot2.getYaw(), rot2.getPitch(), randomTime2);
+                Rotation rot2 = rotation.getRotation(bitsShopLocation2);
+                rotation.easeTo(
+                        new RotationConfiguration(new Rotation(rot2.getYaw(), rot2.getPitch()), randomTime2, null
+                        ));
                 delayClock.schedule(randomTime2 + 150);
                 setBitsShopState(BitsShopState.GO_TO_BITS_SHOP_2);
                 break;
@@ -918,7 +929,7 @@ public class AutoGodPot implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                if (rotation.rotating) break;
+                if (rotation.isRotating()) break;
                 if (mc.thePlayer.getPositionVector().distanceTo(bitsShopLocation2) < 1.5) {
                     KeyBindUtils.stopMovement();
                     setBitsShopState(BitsShopState.ROTATE_TO_BITS_SHOP);
@@ -943,8 +954,10 @@ public class AutoGodPot implements IFeature {
                 }
                 KeyBindUtils.stopMovement();
                 long randomTime3 = FarmHelperConfig.getRandomRotationTime();
-                RotationUtils.Rotation rot3 = AngleUtils.getRotation(elizabeth.get());
-                rotation.easeTo(rot3.getYaw(), rot3.getPitch(), randomTime3);
+                Rotation rot3 = rotation.getRotation(elizabeth.get());
+                rotation.easeTo(
+                        new RotationConfiguration(new Rotation(rot3.getYaw(), rot3.getPitch()), randomTime3, null
+                        ));
                 delayClock.schedule(randomTime3 + 150);
                 setBitsShopState(BitsShopState.OPEN_BITS_SHOP);
                 break;
@@ -1143,11 +1156,5 @@ public class AutoGodPot implements IFeature {
             return true;
         }
         return false;
-    }
-
-    @SubscribeEvent
-    public void onLastRender(RenderWorldLastEvent event) {
-        if (rotation.rotating)
-            rotation.update();
     }
 }

@@ -6,6 +6,8 @@ import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 import com.github.may2beez.farmhelperv2.util.*;
+import com.github.may2beez.farmhelperv2.util.helper.Rotation;
+import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 
 public class SShapeVerticalCropMacro extends AbstractMacro {
     public enum ChangeLaneDirection {
@@ -77,11 +79,16 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 LogUtils.sendDebug("On Ground: " + mc.thePlayer.onGround);
                 if (mc.thePlayer.onGround && Math.abs(getLayerY() - mc.thePlayer.getPosition().getY()) > 1.5) {
                     changeLaneDirection = null;
-                    if (FarmHelperConfig.rotateAfterDrop && !getRotation().rotating) {
+                    if (FarmHelperConfig.rotateAfterDrop && !getRotation().isRotating()) {
                         LogUtils.sendDebug("Rotating 180");
                         getRotation().reset();
                         setYaw(getYaw() + 180);
-                        getRotation().easeTo(getYaw(), getPitch(), (long) (400 + Math.random() * 300));
+                        getRotation().easeTo(
+                                new RotationConfiguration(
+                                        new Rotation(getYaw(), getPitch()),
+                                        (long) (400 + Math.random() * 300), null
+                                )
+                        );
                     }
                     KeyBindUtils.stopMovement();
                     setLayerY(mc.thePlayer.getPosition().getY());
@@ -200,7 +207,12 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
         }
         getRotation().reset();
         super.onEnable();
-        getRotation().easeTo(getYaw(), getPitch(), FarmHelperConfig.getRandomRotationTime());
+        getRotation().easeTo(
+                new RotationConfiguration(
+                        new Rotation(getYaw(), getPitch()),
+                        500, null
+                )
+        );
     }
 
     @Override

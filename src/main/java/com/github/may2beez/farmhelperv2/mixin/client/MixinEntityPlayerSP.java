@@ -1,5 +1,6 @@
 package com.github.may2beez.farmhelperv2.mixin.client;
 
+import com.github.may2beez.farmhelperv2.event.MotionUpdateEvent;
 import com.github.may2beez.farmhelperv2.feature.impl.Freelock;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.client.entity.AbstractClientPlayer;
@@ -31,5 +32,15 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
         } else {
             super.setAngles(yaw, pitch);
         }
+    }
+
+    @Inject(method = "onUpdateWalkingPlayer", at = @At("HEAD"))
+    public void onUpdateWalkingPlayer(CallbackInfo ci) {
+        MinecraftForge.EVENT_BUS.post(new MotionUpdateEvent.Pre(this.rotationYaw, this.rotationPitch));
+    }
+
+    @Inject(method = "onUpdateWalkingPlayer", at = @At("RETURN"))
+    public void onUpdateWalkingPlayerReturn(CallbackInfo ci) {
+        MinecraftForge.EVENT_BUS.post(new MotionUpdateEvent.Post(this.rotationYaw, this.rotationPitch));
     }
 }

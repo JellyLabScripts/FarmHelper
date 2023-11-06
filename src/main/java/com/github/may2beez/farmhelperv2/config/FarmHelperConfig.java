@@ -16,14 +16,12 @@ import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.hud.DebugHUD;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.github.may2beez.farmhelperv2.hud.StatusHUD;
-import com.github.may2beez.farmhelperv2.util.BlockUtils;
-import com.github.may2beez.farmhelperv2.util.InventoryUtils;
-import com.github.may2beez.farmhelperv2.util.LogUtils;
-import com.github.may2beez.farmhelperv2.util.PlayerUtils;
+import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
+import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.client.Minecraft;
-import net.minecraft.inventory.Slot;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
@@ -1443,14 +1441,22 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-//        registerKeyBind(debugKeybind, () -> {
-//            InventoryUtils.openInventory();
-//            Multithreading.schedule(() -> {
-//                for (Slot slot : mc.thePlayer.inventoryContainer.inventorySlots) {
-//                    System.out.println(slot.slotNumber + ": " + slot.getStack());
-//                }
-//            }, 1_000, TimeUnit.MILLISECONDS);
-//        });
+        registerKeyBind(debugKeybind, () -> {
+            if (mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK)
+                return;
+            BlockPos pos = mc.objectMouseOver.getBlockPos();
+            if (pos == null) return;
+            Multithreading.schedule(() -> {
+                RotationUtils.getInstance().easeTo(
+                        new RotationConfiguration(
+                                new RotationConfiguration.Target(pos),
+                                600,
+                                RotationConfiguration.RotationType.CLIENT,
+                                () -> {
+                    System.out.println("Finished rotating, let's send destroy block packet");
+                }));
+            }, 1000, TimeUnit.MILLISECONDS);
+        });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
         save();
     }

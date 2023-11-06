@@ -6,6 +6,8 @@ import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 import com.github.may2beez.farmhelperv2.util.*;
+import com.github.may2beez.farmhelperv2.util.helper.Rotation;
+import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 
 import static com.github.may2beez.farmhelperv2.util.BlockUtils.getRelativeBlockPos;
 
@@ -23,7 +25,12 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
         setClosest90Deg(AngleUtils.getClosest());
 
         super.onEnable();
-        getRotation().easeTo((float) (getClosest90Deg() + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
+        getRotation().easeTo(
+                new RotationConfiguration(
+                        new Rotation((float) (getClosest90Deg() + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch()),
+                        (long) (400 + Math.random() * 300), null
+                )
+        );
     }
 
     @Override
@@ -45,10 +52,20 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
             case LEFT:
                 if (GameStateHandler.getInstance().isRightWalkable()) {
                     changeState(State.RIGHT);
-                    getRotation().easeTo((float) (getClosest90Deg() + 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
+                    getRotation().easeTo(
+                            new RotationConfiguration(
+                                    new Rotation((float) (getClosest90Deg() + 30 + (Math.random() * 4 - 2)), getPitch()),
+                                    (long) (400 + Math.random() * 300), null
+                            )
+                    );
                 } else if (GameStateHandler.getInstance().isLeftWalkable()) {
                     changeState(State.LEFT);
-                    getRotation().easeTo((float) (getClosest90Deg() - 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
+                    getRotation().easeTo(
+                            new RotationConfiguration(
+                                    new Rotation((float) (getClosest90Deg() - 30 + (Math.random() * 4 - 2)), getPitch()),
+                                    (long) (400 + Math.random() * 300), null
+                            )
+                    );
                 } else {
                     LogUtils.sendDebug("No direction found");
                     changeState(calculateDirection());
@@ -59,10 +76,20 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
             case RIGHT:
                 if (GameStateHandler.getInstance().isLeftWalkable()) {
                     changeState(State.LEFT);
-                    getRotation().easeTo((float) (getClosest90Deg() - 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
+                    getRotation().easeTo(
+                            new RotationConfiguration(
+                                    new Rotation((float) (getClosest90Deg() - 30 + (Math.random() * 4 - 2)), getPitch()),
+                                    (long) (400 + Math.random() * 300), null
+                            )
+                    );
                 } else if (GameStateHandler.getInstance().isRightWalkable()) {
                     changeState(State.RIGHT);
-                    getRotation().easeTo((float) (getClosest90Deg() + 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
+                    getRotation().easeTo(
+                            new RotationConfiguration(
+                                    new Rotation((float) (getClosest90Deg() + 30 + (Math.random() * 4 - 2)), getPitch()),
+                                    (long) (400 + Math.random() * 300), null
+                            )
+                    );
                 } else {
                     LogUtils.sendDebug("No direction found");
                     changeState(calculateDirection());
@@ -73,12 +100,18 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
             case DROPPING: {
                 LogUtils.sendDebug("On Ground: " + mc.thePlayer.onGround);
                 if (mc.thePlayer.onGround && Math.abs(getLayerY() - mc.thePlayer.getPosition().getY()) > 1.5) {
-                    if (FarmHelperConfig.rotateAfterDrop && !getRotation().rotating) {
+                    if (FarmHelperConfig.rotateAfterDrop && !getRotation().isRotating()) {
                         LogUtils.sendDebug("Rotating 180");
                         getRotation().reset();
                         setYaw(getYaw() + 180);
 
-                        getRotation().easeTo((float) (getClosest90Deg() + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
+                        getRotation().easeTo(
+                                new RotationConfiguration(
+                                        new Rotation((float) (getClosest90Deg() + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch()),
+                                        (long) (400 + Math.random() * 300),
+                                        null
+                                )
+                        );
                     }
                     KeyBindUtils.stopMovement();
                     setLayerY(mc.thePlayer.getPosition().getY());
@@ -92,10 +125,20 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                 changeState(calculateDirection());
                 switch (getCurrentState()) {
                     case LEFT:
-                        getRotation().easeTo((float) (getClosest90Deg() - 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
+                        getRotation().easeTo(
+                                new RotationConfiguration(
+                                        new Rotation((float) (getClosest90Deg() - 30 + (Math.random() * 4 - 2)), getPitch()),
+                                        (long) (400 + Math.random() * 300), null
+                                )
+                        );
                         break;
                     case RIGHT:
-                        getRotation().easeTo((float) (getClosest90Deg() + 30 + (Math.random() * 4 - 2)), getPitch(), (long) (400 + Math.random() * 300));
+                        getRotation().easeTo(
+                                new RotationConfiguration(
+                                        new Rotation((float) (getClosest90Deg() + 30 + (Math.random() * 4 - 2)), getPitch()),
+                                        (long) (400 + Math.random() * 300), null
+                                )
+                        );
                         break;
                 }
                 break;
