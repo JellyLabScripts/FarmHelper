@@ -1441,22 +1441,22 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-        registerKeyBind(debugKeybind, () -> {
-            if (mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK)
-                return;
-            BlockPos pos = mc.objectMouseOver.getBlockPos();
-            if (pos == null) return;
-            Multithreading.schedule(() -> {
-                RotationUtils.getInstance().easeTo(
-                        new RotationConfiguration(
-                                new RotationConfiguration.Target(pos),
-                                600,
-                                RotationConfiguration.RotationType.CLIENT,
-                                () -> {
-                    System.out.println("Finished rotating, let's send destroy block packet");
-                }));
-            }, 1000, TimeUnit.MILLISECONDS);
-        });
+//        registerKeyBind(debugKeybind, () -> {
+//            if (mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK)
+//                return;
+//            BlockPos pos = mc.objectMouseOver.getBlockPos();
+//            if (pos == null) return;
+//            Multithreading.schedule(() -> {
+//                RotationUtils.getInstance().easeTo(
+//                        new RotationConfiguration(
+//                                new RotationConfiguration.Target(pos),
+//                                600,
+//                                RotationConfiguration.RotationType.CLIENT,
+//                                () -> {
+//                    System.out.println("Finished rotating, let's send destroy block packet");
+//                }));
+//            }, 1000, TimeUnit.MILLISECONDS);
+//        });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
         save();
     }
