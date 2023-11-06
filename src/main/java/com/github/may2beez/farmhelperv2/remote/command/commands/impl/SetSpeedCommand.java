@@ -6,6 +6,8 @@ import com.github.may2beez.farmhelperv2.remote.command.commands.Command;
 import com.github.may2beez.farmhelperv2.remote.struct.RemoteMessage;
 import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
+import com.github.may2beez.farmhelperv2.util.helper.Rotation;
+import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import com.github.may2beez.farmhelperv2.util.helper.SignUtils;
 import com.google.gson.JsonObject;
 import net.minecraft.init.Blocks;
@@ -77,7 +79,7 @@ public class SetSpeedCommand extends ClientCommand {
     private static State currentState = State.NONE;
     private static final Clock clock = new Clock();
     private static final RotationUtils rotation = RotationUtils.getInstance();
-    private static RotationUtils.Rotation lastRotation = new RotationUtils.Rotation(0f, 0f);
+    private static Rotation lastRotation = new Rotation(0f, 0f);
     int freeSlot = -1;
     int freeHotbarSlot = -1;
     boolean wasMacroing = false;
@@ -139,7 +141,7 @@ public class SetSpeedCommand extends ClientCommand {
                 break;
             case CLOSE_INVENTORY:
                 ClientCommand.mc.currentScreen = null;
-                lastRotation = new RotationUtils.Rotation(AngleUtils.get360RotationYaw(), ClientCommand.mc.thePlayer.rotationPitch);
+                lastRotation = new Rotation(AngleUtils.get360RotationYaw(), ClientCommand.mc.thePlayer.rotationPitch);
                 currentState = State.LOOK_IN_THE_AIR;
                 clock.schedule(500);
                 break;
@@ -181,7 +183,12 @@ public class SetSpeedCommand extends ClientCommand {
                 break;
             case LOOK_BACK:
                 rotation.reset();
-                rotation.easeTo(lastRotation.getYaw(), lastRotation.getPitch(), 300);
+                rotation.easeTo(
+                        new RotationConfiguration(
+                                new Rotation(lastRotation.getYaw(), lastRotation.getPitch()),
+                                300, null
+                        )
+                );
                 currentState = State.OPEN_INVENTORY_AGAIN;
                 clock.schedule(500);
                 break;
@@ -249,7 +256,12 @@ public class SetSpeedCommand extends ClientCommand {
                     if (ClientCommand.mc.theWorld.getBlockState(blockPos).getBlock() == null || ClientCommand.mc.theWorld.getBlockState(blockPos).getBlock() == Blocks.air) {
                         LogUtils.sendDebug("Looking at " + Arrays.toString(vector));
                         rotation.reset();
-                        rotation.easeTo(AngleUtils.getRotation(target, true).getYaw(), AngleUtils.getRotation(target, true).getPitch(), 300);
+                        rotation.easeTo(
+                                new RotationConfiguration(
+                                        new Rotation(rotation.getRotation(target, true).getYaw(), rotation.getRotation(target, true).getPitch()),
+                                        300, null
+                                )
+                        );
                         return;
                     }
                 }

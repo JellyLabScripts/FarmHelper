@@ -9,7 +9,10 @@ import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.InventoryUtils;
 import com.github.may2beez.farmhelperv2.util.KeyBindUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
+import com.github.may2beez.farmhelperv2.util.RotationUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
+import com.github.may2beez.farmhelperv2.util.helper.Rotation;
+import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -136,7 +139,15 @@ public class Scheduler implements IFeature {
                 KeyBindUtils.stopMovement();
                 Multithreading.schedule(() -> {
                     long randomTime4 = FarmHelperConfig.getRandomRotationTime();
-                    this.rotation.easeTo((float) (mc.thePlayer.rotationYaw + Math.random() * 20 - 10), (float) (20 + Math.random() * 10 - 5), randomTime4);
+                    this.rotation.easeTo(
+                            new RotationConfiguration(
+                                    new Rotation(
+                                            (float) (mc.thePlayer.rotationYaw + Math.random() * 20 - 10),
+                                            (float) (20 + Math.random() * 10 - 5)
+                                    ),
+                                    randomTime4, null
+                            )
+                    );
                     Multithreading.schedule(InventoryUtils::openInventory, randomTime4 + 350, TimeUnit.MILLISECONDS);
                 }, (long) (300 + Math.random() * 200), TimeUnit.MILLISECONDS);
             }

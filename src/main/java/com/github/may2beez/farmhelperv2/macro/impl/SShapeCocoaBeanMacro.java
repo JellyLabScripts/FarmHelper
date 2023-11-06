@@ -6,12 +6,11 @@ import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 import com.github.may2beez.farmhelperv2.util.*;
-import net.dv8tion.jda.api.hooks.SubscribeEvent;
+import com.github.may2beez.farmhelperv2.util.helper.Rotation;
+import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.block.BlockDoor;
 import net.minecraft.block.BlockTrapDoor;
 import net.minecraft.init.Blocks;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.intellij.lang.annotations.Subst;
 
 public class SShapeCocoaBeanMacro extends AbstractMacro {
 
@@ -35,7 +34,12 @@ public class SShapeCocoaBeanMacro extends AbstractMacro {
             setYaw(AngleUtils.getClosest());
         }
         getRotation().reset();
-        getRotation().easeTo(getYaw(), getPitch(), FarmHelperConfig.getRandomRotationTime());
+        getRotation().easeTo(
+                new RotationConfiguration(
+                        new Rotation(getYaw(), getPitch()),
+                        FarmHelperConfig.getRandomRotationTime(), null
+                )
+        );
     }
 
     @Override
