@@ -1,7 +1,9 @@
-package com.github.may2beez.farmhelperv2.util;
+package com.github.may2beez.farmhelperv2.handler;
 
 import com.github.may2beez.farmhelperv2.event.MotionUpdateEvent;
 import com.github.may2beez.farmhelperv2.mixin.client.MinecraftAccessor;
+import com.github.may2beez.farmhelperv2.util.AngleUtils;
+import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Rotation;
 import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import lombok.Getter;
@@ -17,13 +19,13 @@ import java.util.function.Function;
 
 import static cc.polyfrost.oneconfig.libs.universal.UMath.wrapAngleTo180;
 
-public class RotationUtils {
+public class RotationHandler {
     private final Minecraft mc = Minecraft.getMinecraft();
-    private static RotationUtils instance;
+    private static RotationHandler instance;
 
-    public static RotationUtils getInstance() {
+    public static RotationHandler getInstance() {
         if (instance == null) {
-            instance = new RotationUtils();
+            instance = new RotationHandler();
         }
         return instance;
     }

@@ -6,6 +6,7 @@ import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
+import com.github.may2beez.farmhelperv2.handler.RotationHandler;
 import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import com.github.may2beez.farmhelperv2.util.helper.Rotation;
@@ -19,7 +20,6 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -163,7 +163,7 @@ public class AutoCookie implements IFeature {
 
     private final Clock timeoutClock = new Clock();
 
-    private final RotationUtils rotation = RotationUtils.getInstance();
+    private final RotationHandler rotation = RotationHandler.getInstance();
 
 
     @SubscribeEvent

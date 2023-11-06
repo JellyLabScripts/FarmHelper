@@ -6,6 +6,7 @@ import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.impl.*;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
+import com.github.may2beez.farmhelperv2.handler.RotationHandler;
 import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import com.github.may2beez.farmhelperv2.util.helper.Rotation;
@@ -52,7 +53,7 @@ public abstract class AbstractMacro {
     public State currentState = State.NONE;
     @Setter
     private Optional<SavedState> savedState = Optional.empty();
-    private final RotationUtils rotation = RotationUtils.getInstance();
+    private final RotationHandler rotation = RotationHandler.getInstance();
     @Setter
     private int layerY = 0;
     @Setter

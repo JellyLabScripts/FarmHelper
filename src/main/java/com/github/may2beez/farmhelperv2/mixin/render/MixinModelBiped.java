@@ -1,8 +1,8 @@
 package com.github.may2beez.farmhelperv2.mixin.render;
 
+import com.github.may2beez.farmhelperv2.handler.RotationHandler;
 import com.github.may2beez.farmhelperv2.mixin.client.EntityPlayerSPAccessor;
 import com.github.may2beez.farmhelperv2.mixin.client.MinecraftAccessor;
-import com.github.may2beez.farmhelperv2.util.RotationUtils;
 import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBiped;
@@ -25,7 +25,7 @@ public class MixinModelBiped {
 
     @Inject(method = { "setRotationAngles" }, at = { @At(value = "FIELD", target = "Lnet/minecraft/client/model/ModelBiped;swingProgress:F") })
     public void onSetRotationAngles(float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Entity entityIn, CallbackInfo ci) {
-        if (!RotationUtils.getInstance().isRotating() || RotationUtils.getInstance().getConfiguration() != null && RotationUtils.getInstance().getConfiguration().getRotationType() != RotationConfiguration.RotationType.SERVER) return;
+        if (!RotationHandler.getInstance().isRotating() || RotationHandler.getInstance().getConfiguration() != null && RotationHandler.getInstance().getConfiguration().getRotationType() != RotationConfiguration.RotationType.SERVER) return;
 
         if (entityIn != null && entityIn.equals(Minecraft.getMinecraft().thePlayer)) {
             this.bipedHead.rotateAngleX = ((EntityPlayerSPAccessor) entityIn).getLastReportedPitch() / 57.295776f;

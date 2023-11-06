@@ -6,10 +6,10 @@ import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
+import com.github.may2beez.farmhelperv2.handler.RotationHandler;
 import com.github.may2beez.farmhelperv2.util.InventoryUtils;
 import com.github.may2beez.farmhelperv2.util.KeyBindUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
-import com.github.may2beez.farmhelperv2.util.RotationUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import com.github.may2beez.farmhelperv2.util.helper.Rotation;
 import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
@@ -30,7 +30,7 @@ public class Scheduler implements IFeature {
         return instance;
     }
 
-    private final RotationUtils rotation = RotationUtils.getInstance();
+    private final RotationHandler rotation = RotationHandler.getInstance();
 
     @Getter
     private final Clock schedulerClock = new Clock();

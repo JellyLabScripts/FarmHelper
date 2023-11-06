@@ -1,10 +1,10 @@
 package com.github.may2beez.farmhelperv2.util;
 
+import com.github.may2beez.farmhelperv2.handler.RotationHandler;
 import com.github.may2beez.farmhelperv2.util.helper.Rotation;
 import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -20,9 +20,9 @@ public class MovRecReader {
     private static int currentDelay = 0;
     private static int playingIndex = 0;
     static Minecraft mc = Minecraft.getMinecraft();
-    private static final RotationUtils rotateBeforePlaying = RotationUtils.getInstance();
+    private static final RotationHandler rotateBeforePlaying = RotationHandler.getInstance();
     // TODO: Yuro fix this
-    private static final RotationUtils rotateDuringPlaying = RotationUtils.getInstance();
+    private static final RotationHandler rotateDuringPlaying = RotationHandler.getInstance();
 
     public static class Movement {
         private final boolean forward;

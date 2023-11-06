@@ -8,6 +8,7 @@ import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.impl.*;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
+import com.github.may2beez.farmhelperv2.handler.RotationHandler;
 import com.github.may2beez.farmhelperv2.remote.DiscordBotHandler;
 import com.github.may2beez.farmhelperv2.remote.WebsocketHandler;
 import com.github.may2beez.farmhelperv2.util.*;
@@ -86,8 +87,8 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(Failsafe.getInstance());
         MinecraftForge.EVENT_BUS.register(Freelock.getInstance());
         MinecraftForge.EVENT_BUS.register(VisitorsMacro.getInstance());
-        MinecraftForge.EVENT_BUS.register(RotationUtils.getInstance());
-        MinecraftForge.EVENT_BUS.register(RotationUtils.getInstance());
+        MinecraftForge.EVENT_BUS.register(RotationHandler.getInstance());
+        MinecraftForge.EVENT_BUS.register(RotationHandler.getInstance());
     }
 
     private void initializeFields() {

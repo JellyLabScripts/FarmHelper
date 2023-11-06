@@ -10,6 +10,7 @@ import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
+import com.github.may2beez.farmhelperv2.handler.RotationHandler;
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
@@ -29,7 +30,6 @@ import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 @Getter
 public class Failsafe implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
-    private final RotationUtils rotation = RotationUtils.getInstance();
+    private final RotationHandler rotation = RotationHandler.getInstance();
 
     private static Failsafe instance;
 

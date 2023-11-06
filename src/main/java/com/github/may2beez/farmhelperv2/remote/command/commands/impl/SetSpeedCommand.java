@@ -1,6 +1,7 @@
 package com.github.may2beez.farmhelperv2.remote.command.commands.impl;
 
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
+import com.github.may2beez.farmhelperv2.handler.RotationHandler;
 import com.github.may2beez.farmhelperv2.remote.command.commands.ClientCommand;
 import com.github.may2beez.farmhelperv2.remote.command.commands.Command;
 import com.github.may2beez.farmhelperv2.remote.struct.RemoteMessage;
@@ -15,7 +16,6 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -78,7 +78,7 @@ public class SetSpeedCommand extends ClientCommand {
     private static boolean enabled = false;
     private static State currentState = State.NONE;
     private static final Clock clock = new Clock();
-    private static final RotationUtils rotation = RotationUtils.getInstance();
+    private static final RotationHandler rotation = RotationHandler.getInstance();
     private static Rotation lastRotation = new Rotation(0f, 0f);
     int freeSlot = -1;
     int freeHotbarSlot = -1;
