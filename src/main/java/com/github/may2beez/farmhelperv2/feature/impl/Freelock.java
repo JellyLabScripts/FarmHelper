@@ -51,6 +51,7 @@ public class Freelock implements IFeature {
 
     @Override
     public void start() {
+        if (mc.gameSettings.thirdPersonView == 1) return;
         enabled = true;
         if (UngrabMouse.getInstance().isRunning() && MacroHandler.getInstance().isCurrentMacroEnabled()) {
             UngrabMouse.getInstance().regrabMouse();

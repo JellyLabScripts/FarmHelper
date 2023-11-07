@@ -3,18 +3,18 @@ package com.github.may2beez.farmhelperv2.util;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
+import com.github.may2beez.farmhelperv2.handler.RotationHandler;
+import com.github.may2beez.farmhelperv2.util.helper.Rotation;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.EnumDyeColor;
 import net.minecraft.util.*;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static cc.polyfrost.oneconfig.libs.universal.UMath.wrapAngleTo180;
@@ -287,5 +287,274 @@ public class BlockUtils {
 
     public static boolean isWater(Block block) {
         return block instanceof BlockLiquid && block.getMaterial() == Material.water;
+    }
+
+    public static BlockPos getEasiestBlock(ArrayList<BlockPos> list, Predicate<? super BlockPos> predicate) {
+        EntityPlayerSP player = mc.thePlayer;
+        BlockPos easiest = null;
+
+        Rotation serverSideRotation = new Rotation(RotationHandler.getInstance().getServerSideYaw(), RotationHandler.getInstance().getServerSidePitch());
+
+        for (BlockPos blockPos : list) {
+            if (predicate.test(blockPos) && canBlockBeSeen(blockPos, 8, new Vec3(0, 0, 0), x -> false)) {
+                if (easiest == null || RotationHandler.getInstance().getNeededChange(serverSideRotation, RotationHandler.getInstance().getRotation(blockPos)).getValue() < RotationHandler.getInstance().getNeededChange(serverSideRotation, RotationHandler.getInstance().getRotation(easiest)).getValue()) {
+                    easiest = blockPos;
+                }
+            }
+        }
+
+        if (easiest != null) return easiest;
+
+        for (BlockPos blockPos : list) {
+            if (predicate.test(blockPos)) {
+                if (easiest == null || RotationHandler.getInstance().getNeededChange(serverSideRotation, RotationHandler.getInstance().getRotation(blockPos)).getValue() < RotationHandler.getInstance().getNeededChange(serverSideRotation, RotationHandler.getInstance().getRotation(easiest)).getValue()) {
+                    easiest = blockPos;
+                }
+            }
+        }
+
+        return easiest;
+    }
+
+    public static boolean canBlockBeSeen(BlockPos blockPos, double dist, Vec3 offset, Predicate<? super BlockPos> predicate) {
+        Vec3 vec = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5).add(offset);
+        MovingObjectPosition mop = rayTraceBlocks(mc.thePlayer.getPositionEyes(1.0f), vec, false, true, false, predicate);
+        if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            return mop.getBlockPos().equals(blockPos) && vec.distanceTo(mc.thePlayer.getPositionEyes(1.0f)) < dist;
+        }
+
+        return false;
+    }
+
+    public static MovingObjectPosition rayTraceBlocks(Vec3 vec31, Vec3 vec32, boolean stopOnLiquid, boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock, Predicate<? super BlockPos> predicate) {
+        return rayTraceBlocks(vec31, vec32, stopOnLiquid, ignoreBlockWithoutBoundingBox, returnLastUncollidableBlock, predicate, false);
+    }
+
+    public static MovingObjectPosition rayTraceBlocks(Vec3 vec31, Vec3 vec32, boolean stopOnLiquid, boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock, Predicate<? super BlockPos> predicate, boolean fullBlocks) {
+        if (!(Double.isNaN(vec31.xCoord) || Double.isNaN(vec31.yCoord) || Double.isNaN(vec31.zCoord))) {
+            if (!(Double.isNaN(vec32.xCoord) || Double.isNaN(vec32.yCoord) || Double.isNaN(vec32.zCoord))) {
+                MovingObjectPosition movingobjectposition;
+                int i = MathHelper.floor_double(vec32.xCoord);
+                int j = MathHelper.floor_double(vec32.yCoord);
+                int k = MathHelper.floor_double(vec32.zCoord);
+                int l = MathHelper.floor_double(vec31.xCoord);
+                int i1 = MathHelper.floor_double(vec31.yCoord);
+                int j1 = MathHelper.floor_double(vec31.zCoord);
+                BlockPos blockpos = new BlockPos(l, i1, j1);
+                IBlockState iblockstate = getBlockState(blockpos);
+                Block block = iblockstate.getBlock();
+                if (!predicate.test(blockpos) && (!ignoreBlockWithoutBoundingBox || block.getCollisionBoundingBox(mc.theWorld, blockpos, iblockstate) != null) && block.canCollideCheck(iblockstate, stopOnLiquid) && (movingobjectposition = collisionRayTrace(block, blockpos, vec31, vec32, fullBlocks)) != null) {
+                    return movingobjectposition;
+                }
+                MovingObjectPosition movingobjectposition2 = null;
+                int k1 = 200;
+                while (k1-- >= 0) {
+                    EnumFacing enumfacing;
+                    if (Double.isNaN(vec31.xCoord) || Double.isNaN(vec31.yCoord) || Double.isNaN(vec31.zCoord)) {
+                        return null;
+                    }
+                    if (l == i && i1 == j && j1 == k) {
+                        return returnLastUncollidableBlock ? movingobjectposition2 : null;
+                    }
+                    boolean flag2 = true;
+                    boolean flag = true;
+                    boolean flag1 = true;
+                    double d0 = 999.0;
+                    double d1 = 999.0;
+                    double d2 = 999.0;
+                    if (i > l) {
+                        d0 = (double)l + 1.0;
+                    } else if (i < l) {
+                        d0 = (double)l + 0.0;
+                    } else {
+                        flag2 = false;
+                    }
+                    if (j > i1) {
+                        d1 = (double)i1 + 1.0;
+                    } else if (j < i1) {
+                        d1 = (double)i1 + 0.0;
+                    } else {
+                        flag = false;
+                    }
+                    if (k > j1) {
+                        d2 = (double)j1 + 1.0;
+                    } else if (k < j1) {
+                        d2 = (double)j1 + 0.0;
+                    } else {
+                        flag1 = false;
+                    }
+                    double d3 = 999.0;
+                    double d4 = 999.0;
+                    double d5 = 999.0;
+                    double d6 = vec32.xCoord - vec31.xCoord;
+                    double d7 = vec32.yCoord - vec31.yCoord;
+                    double d8 = vec32.zCoord - vec31.zCoord;
+                    if (flag2) {
+                        d3 = (d0 - vec31.xCoord) / d6;
+                    }
+                    if (flag) {
+                        d4 = (d1 - vec31.yCoord) / d7;
+                    }
+                    if (flag1) {
+                        d5 = (d2 - vec31.zCoord) / d8;
+                    }
+                    if (d3 == -0.0) {
+                        d3 = -1.0E-4;
+                    }
+                    if (d4 == -0.0) {
+                        d4 = -1.0E-4;
+                    }
+                    if (d5 == -0.0) {
+                        d5 = -1.0E-4;
+                    }
+                    if (d3 < d4 && d3 < d5) {
+                        enumfacing = i > l ? EnumFacing.WEST : EnumFacing.EAST;
+                        vec31 = new Vec3(d0, vec31.yCoord + d7 * d3, vec31.zCoord + d8 * d3);
+                    } else if (d4 < d5) {
+                        enumfacing = j > i1 ? EnumFacing.DOWN : EnumFacing.UP;
+                        vec31 = new Vec3(vec31.xCoord + d6 * d4, d1, vec31.zCoord + d8 * d4);
+                    } else {
+                        enumfacing = k > j1 ? EnumFacing.NORTH : EnumFacing.SOUTH;
+                        vec31 = new Vec3(vec31.xCoord + d6 * d5, vec31.yCoord + d7 * d5, d2);
+                    }
+                    l = MathHelper.floor_double(vec31.xCoord) - (enumfacing == EnumFacing.EAST ? 1 : 0);
+                    i1 = MathHelper.floor_double(vec31.yCoord) - (enumfacing == EnumFacing.UP ? 1 : 0);
+                    j1 = MathHelper.floor_double(vec31.zCoord) - (enumfacing == EnumFacing.SOUTH ? 1 : 0);
+                    blockpos = new BlockPos(l, i1, j1);
+                    IBlockState iblockstate1 = getBlockState(blockpos);
+                    Block block1 = iblockstate1.getBlock();
+                    if (ignoreBlockWithoutBoundingBox && block1.getCollisionBoundingBox(mc.theWorld, blockpos, iblockstate1) == null) continue;
+                    if (predicate.test(blockpos)) continue;
+                    if (block1.canCollideCheck(iblockstate1, stopOnLiquid)) {
+                        MovingObjectPosition movingobjectposition1 = collisionRayTrace(block1, blockpos, vec31, vec32, fullBlocks);
+                        if (movingobjectposition1 == null) continue;
+                        return movingobjectposition1;
+                    }
+                    movingobjectposition2 = new MovingObjectPosition(MovingObjectPosition.MovingObjectType.MISS, vec31, enumfacing, blockpos);
+                }
+                return returnLastUncollidableBlock ? movingobjectposition2 : null;
+            }
+            return null;
+        }
+        return null;
+    }
+
+    public static MovingObjectPosition collisionRayTrace(Block block, BlockPos pos, Vec3 start, Vec3 end, boolean fullBlocks) {
+        start = start.addVector(-pos.getX(), -pos.getY(), -pos.getZ());
+        end = end.addVector(-pos.getX(), -pos.getY(), -pos.getZ());
+
+        Vec3 vec3 = start.getIntermediateWithXValue(end, fullBlocks ? 0.0 : block.getBlockBoundsMinX());
+        Vec3 vec31 = start.getIntermediateWithXValue(end, fullBlocks ? 1.0 : block.getBlockBoundsMaxX());
+        Vec3 vec32 = start.getIntermediateWithYValue(end, fullBlocks ? 0.0 : block.getBlockBoundsMinY());
+        Vec3 vec33 = start.getIntermediateWithYValue(end, fullBlocks ? 1.0 : block.getBlockBoundsMaxY());
+        Vec3 vec34 = start.getIntermediateWithZValue(end, fullBlocks ? 0.0 : block.getBlockBoundsMinZ());
+        Vec3 vec35 = start.getIntermediateWithZValue(end, fullBlocks ? 1.0 : block.getBlockBoundsMaxZ());
+
+        if (!isVecInsideYZBounds(block, vec3, fullBlocks)) {
+            vec3 = null;
+        }
+        if (!isVecInsideYZBounds(block, vec31, fullBlocks)) {
+            vec31 = null;
+        }
+        if (!isVecInsideXZBounds(block, vec32, fullBlocks)) {
+            vec32 = null;
+        }
+        if (!isVecInsideXZBounds(block, vec33, fullBlocks)) {
+            vec33 = null;
+        }
+        if (!isVecInsideXYBounds(block, vec34, fullBlocks)) {
+            vec34 = null;
+        }
+        if (!isVecInsideXYBounds(block, vec35, fullBlocks)) {
+            vec35 = null;
+        }
+
+        Vec3 vec36 = null;
+
+        if (vec3 != null) {
+            vec36 = vec3;
+        }
+        if (vec31 != null && (vec36 == null || start.squareDistanceTo(vec31) < start.squareDistanceTo(vec36))) {
+            vec36 = vec31;
+        }
+        if (vec32 != null && (vec36 == null || start.squareDistanceTo(vec32) < start.squareDistanceTo(vec36))) {
+            vec36 = vec32;
+        }
+        if (vec33 != null && (vec36 == null || start.squareDistanceTo(vec33) < start.squareDistanceTo(vec36))) {
+            vec36 = vec33;
+        }
+        if (vec34 != null && (vec36 == null || start.squareDistanceTo(vec34) < start.squareDistanceTo(vec36))) {
+            vec36 = vec34;
+        }
+        if (vec35 != null && (vec36 == null || start.squareDistanceTo(vec35) < start.squareDistanceTo(vec36))) {
+            vec36 = vec35;
+        }
+        if (vec36 == null) {
+            return null;
+        }
+        EnumFacing enumfacing = null;
+        if (vec36 == vec3) {
+            enumfacing = EnumFacing.WEST;
+        }
+        if (vec36 == vec31) {
+            enumfacing = EnumFacing.EAST;
+        }
+        if (vec36 == vec32) {
+            enumfacing = EnumFacing.DOWN;
+        }
+        if (vec36 == vec33) {
+            enumfacing = EnumFacing.UP;
+        }
+        if (vec36 == vec34) {
+            enumfacing = EnumFacing.NORTH;
+        }
+        if (vec36 == vec35) {
+            enumfacing = EnumFacing.SOUTH;
+        }
+        return new MovingObjectPosition(vec36.addVector(pos.getX(), pos.getY(), pos.getZ()), enumfacing, pos);
+    }
+
+    private static boolean isVecInsideYZBounds(Block block, Vec3 point, boolean fullBlocks) {
+        return point != null && point.yCoord >= (fullBlocks ? 0.0 : block.getBlockBoundsMinY()) && point.yCoord <= (fullBlocks ? 1.0 : block.getBlockBoundsMaxY()) && point.zCoord >= (fullBlocks ? 0.0 : block.getBlockBoundsMinZ()) && point.zCoord <= (fullBlocks ? 1.0 : block.getBlockBoundsMaxZ());
+    }
+
+    private static boolean isVecInsideXZBounds(Block block, Vec3 point, boolean fullBlocks) {
+        return point != null && point.xCoord >= (fullBlocks ? 0.0 : block.getBlockBoundsMinX()) && point.xCoord <= (fullBlocks ? 1.0 : block.getBlockBoundsMaxX()) && point.zCoord >= (fullBlocks ? 0.0 : block.getBlockBoundsMinZ()) && point.zCoord <= (fullBlocks ? 1.0 : block.getBlockBoundsMaxZ());
+    }
+
+    private static boolean isVecInsideXYBounds(Block block, Vec3 point, boolean fullBlocks) {
+        return point != null && point.xCoord >= (fullBlocks ? 0.0 : block.getBlockBoundsMinX()) && point.xCoord <= (fullBlocks ? 1.0 : block.getBlockBoundsMaxX()) && point.yCoord >= (fullBlocks ? 0.0 : block.getBlockBoundsMinY()) && point.yCoord <= (fullBlocks ? 1.0 : block.getBlockBoundsMaxY());
+    }
+
+    public static IBlockState getBlockState(BlockPos blockPos) {
+        if (mc.theWorld == null) return null;
+        return mc.theWorld.getBlockState(blockPos);
+    }
+
+    public static EnumFacing calculateEnumfacing(Vec3 vec) {
+        int x = MathHelper.floor_double(vec.xCoord);
+        int y = MathHelper.floor_double(vec.yCoord);
+        int z = MathHelper.floor_double(vec.zCoord);
+        MovingObjectPosition position = calculateIntercept(new AxisAlignedBB(x, y, z, x + 1, y + 1, z + 1), vec, 50.0f);
+        return (position != null) ? position.sideHit : null;
+    }
+
+    public static MovingObjectPosition calculateIntercept(AxisAlignedBB aabb, Vec3 vec, float range) {
+        Vec3 playerPositionEyes = mc.thePlayer.getPositionEyes(1f);
+        Vec3 blockVector = getLook(vec);
+        return aabb.calculateIntercept(playerPositionEyes, playerPositionEyes.addVector(blockVector.xCoord * range, blockVector.yCoord * range, blockVector.zCoord * range));
+    }
+
+    public static Vec3 getLook(final Vec3 vec) {
+        final double diffX = vec.xCoord - mc.thePlayer.posX;
+        final double diffY = vec.yCoord - (mc.thePlayer.posY + mc.thePlayer.getEyeHeight());
+        final double diffZ = vec.zCoord - mc.thePlayer.posZ;
+        final double dist = MathHelper.sqrt_double(diffX * diffX + diffZ * diffZ);
+        return getVectorForRotation((float)(-(MathHelper.atan2(diffY, dist) * 180.0 / 3.141592653589793)), (float)(MathHelper.atan2(diffZ, diffX) * 180.0 / 3.141592653589793 - 90.0));
+    }
+
+    public static Vec3 getVectorForRotation(final float pitch, final float yaw) {
+        final float f2 = -MathHelper.cos(-pitch * 0.017453292f);
+        return new Vec3(MathHelper.sin(-yaw * 0.017453292f - 3.1415927f) * f2, MathHelper.sin(-pitch * 0.017453292f), MathHelper.cos(-yaw * 0.017453292f - 3.1415927f) * f2);
     }
 }

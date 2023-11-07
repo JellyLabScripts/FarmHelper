@@ -13,15 +13,20 @@ import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
 import com.github.may2beez.farmhelperv2.feature.impl.*;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
+import com.github.may2beez.farmhelperv2.handler.RotationHandler;
 import com.github.may2beez.farmhelperv2.hud.DebugHUD;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.github.may2beez.farmhelperv2.hud.StatusHUD;
 import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
 import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
+import com.github.may2beez.farmhelperv2.util.helper.Target;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
@@ -31,6 +36,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 // THIS IS RAT - CatalizCS
@@ -268,6 +274,12 @@ public class FarmHelperConfig extends Config {
             description = "Locks rotation, lets you freely look", size = 2
     )
     public static OneKeyBind freelockKeybind = new OneKeyBind(Keyboard.KEY_L);
+
+    @KeyBind(
+            name = "Plot Cleaning Helper", category = MISCELLANEOUS, subcategory = "Keybinds",
+            description = "Toggles the plot cleaning helper on/off", size = 2
+    )
+    public static OneKeyBind plotCleaningHelperKeybind = new OneKeyBind(Keyboard.KEY_P);
 
     @DualOption(
             name = "AutoUpdater Version Type", category = MISCELLANEOUS, subcategory = "Miscellaneous",
@@ -1209,7 +1221,7 @@ public class FarmHelperConfig extends Config {
 
     @Slider(
             name = "Rotation Time", category = DELAYS, subcategory = "Rotations",
-            description = "The time it takes to rotate the player (in seconds)",
+            description = "The time it takes to rotate the player",
             min = 200f, max = 2000f
     )
     public static float rotationTime = 500f;
@@ -1242,6 +1254,25 @@ public class FarmHelperConfig extends Config {
 
     public static long getRandomGUIMacroDelay() {
         return (long) (visitorsMacroGuiDelay + (float) Math.random() * visitorsMacroGuiDelayRandomness);
+    }
+
+    @Slider(
+            name = "Plot Cleaning Helper Rotation Time", category = DELAYS, subcategory = "Plot Cleaning Helper",
+            description = "The time it takes to rotate the player",
+            min = 20f, max = 500f
+    )
+    public static float plotCleaningHelperRotationTime = 50;
+
+    @Slider(
+            name = "Additional random Plot Cleaning Helper Rotation Time", category = DELAYS, subcategory = "Plot Cleaning Helper",
+            description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
+            min = 0f, max = 500f
+    )
+
+    public static float plotCleaningHelperRotationTimeRandomness = 50;
+
+    public static long getRandomPlotCleaningHelperRotationTime() {
+        return (long) (plotCleaningHelperRotationTime + (float) Math.random() * plotCleaningHelperRotationTimeRandomness);
     }
 
     // END DELAYS
@@ -1447,17 +1478,32 @@ public class FarmHelperConfig extends Config {
 //            BlockPos pos = mc.objectMouseOver.getBlockPos();
 //            if (pos == null) return;
 //            Multithreading.schedule(() -> {
-//                RotationUtils.getInstance().easeTo(
+//                RotationHandler.getInstance().easeTo(
 //                        new RotationConfiguration(
-//                                new RotationConfiguration.Target(pos),
-//                                600,
-//                                RotationConfiguration.RotationType.CLIENT,
+//                                new Target(pos),
+//                                250,
+//                                RotationConfiguration.RotationType.SERVER,
 //                                () -> {
-//                    System.out.println("Finished rotating, let's send destroy block packet");
-//                }));
+//                                    RotationHandler.getInstance().easeBackFromServerRotation();
+//                                    EnumFacing enumFacing = BlockUtils.calculateEnumfacing(new Vec3(pos).add(randomVec()));
+//                                    if (enumFacing != null) {
+//                                        mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(
+//                                                C07PacketPlayerDigging.Action.START_DESTROY_BLOCK,
+//                                                pos,
+//                                                enumFacing
+//                                        ));
+//                                    } else {
+//                                        mc.thePlayer.sendQueue.addToSendQueue(new C07PacketPlayerDigging(
+//                                                C07PacketPlayerDigging.Action.START_DESTROY_BLOCK,
+//                                                pos,
+//                                                mc.thePlayer.getHorizontalFacing().getOpposite()
+//                                        ));
+//                                    }
+//                                }));
 //            }, 1000, TimeUnit.MILLISECONDS);
 //        });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
+        registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
         save();
     }
 

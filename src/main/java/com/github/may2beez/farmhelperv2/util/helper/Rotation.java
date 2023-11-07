@@ -19,6 +19,10 @@ public class Rotation {
         this.pitch = rotation.getPitch();
     }
 
+    public float getValue() {
+        return Math.abs(this.yaw) + Math.abs(this.pitch);
+    }
+
     @Override
     public String toString() {
         return "Rotation{" +

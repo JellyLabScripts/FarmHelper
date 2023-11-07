@@ -7,15 +7,18 @@ import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Rotation;
 import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import lombok.Getter;
+import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static cc.polyfrost.oneconfig.libs.universal.UMath.wrapAngleTo180;
 
@@ -94,6 +97,7 @@ public class RotationHandler {
 
     public void easeBackFromServerRotation() {
         if (configuration == null) return;
+        LogUtils.sendDebug("[Rotation] Easing back from server rotation");
         configuration.setGoingBackToClientSide(true);
         completed = false;
         rotating = true;
@@ -126,7 +130,7 @@ public class RotationHandler {
             LogUtils.sendDebug("[Rotation] Normal rotation");
         }
         endTime = System.currentTimeMillis() + configuration.getTime();
-        configuration.setCallback(Optional.empty());
+        configuration.setCallback(Optional.of(this::reset));
     }
 
     private float pythagoras(float a, float b) {
@@ -167,11 +171,11 @@ public class RotationHandler {
     }
 
     public Rotation getRotation(BlockPos pos) {
-        return getRotation(mc.thePlayer.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), new Vec3(pos.getX(), pos.getY(), pos.getZ()), false);
+        return getRotation(mc.thePlayer.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), false);
     }
 
     public Rotation getRotation(BlockPos pos, boolean randomness) {
-        return getRotation(mc.thePlayer.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), new Vec3(pos.getX(), pos.getY(), pos.getZ()), randomness);
+        return getRotation(mc.thePlayer.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), randomness);
     }
 
     public Rotation getRotation(Vec3 from, Vec3 to, boolean randomness) {
@@ -254,6 +258,10 @@ public class RotationHandler {
         if (System.currentTimeMillis() >= endTime) {
             if (configuration.getCallback().isPresent()) {
                 configuration.getCallback().get().run();
+                System.out.println(configuration);
+                if (configuration == null) {
+                    return;
+                }
             } else {
                 reset();
                 return;
@@ -263,10 +271,10 @@ public class RotationHandler {
         clientSidePitch = mc.thePlayer.rotationPitch;
         clientSideYaw = mc.thePlayer.rotationYaw;
 
-        if (configuration.isGoingBackToClientSide()) {
+        if (configuration != null && configuration.isGoingBackToClientSide()) {
             targetRotation.setYaw(clientSideYaw);
             targetRotation.setPitch(clientSidePitch);
-        } else if (configuration.getTarget().isPresent() && configuration.getTarget().get().getTarget().isPresent()) {
+        } else if (configuration != null && configuration.getTarget().isPresent() && configuration.getTarget().get().getTarget().isPresent()) {
             Vec3 vec = configuration.getTarget().get().getTarget().get();
             Rotation rot = getRotation(vec);
             Rotation neededChange = getNeededChange(startRotation, rot);

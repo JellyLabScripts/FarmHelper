@@ -4,6 +4,7 @@ import cc.polyfrost.oneconfig.utils.Notifications;
 import com.github.may2beez.farmhelperv2.command.FarmHelperCommand;
 import com.github.may2beez.farmhelperv2.command.RewarpCommand;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.event.MillisecondEvent;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.impl.*;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
@@ -26,6 +27,10 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.Display;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 @Mod(modid = "farmhelper", useMetadata = true)
 public class FarmHelper {
     private final Minecraft mc = Minecraft.getMinecraft();
@@ -46,6 +51,10 @@ public class FarmHelper {
         mc.gameSettings.gammaSetting = 1000;
         Display.setTitle("Farm Helper 〔v" + VERSION + "〕 Bing Chilling ☛ " + Minecraft.getMinecraft().getSession().getUsername());
         FailsafeUtils.getInstance();
+
+        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+        executorService.scheduleAtFixedRate(() -> MinecraftForge.EVENT_BUS.post(new MillisecondEvent()), 0, 1, TimeUnit.MILLISECONDS);
+
     }
 
     @SubscribeEvent
@@ -89,6 +98,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(VisitorsMacro.getInstance());
         MinecraftForge.EVENT_BUS.register(RotationHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(RotationHandler.getInstance());
+        MinecraftForge.EVENT_BUS.register(PlotCleaningHelper.getInstance());
     }
 
     private void initializeFields() {
