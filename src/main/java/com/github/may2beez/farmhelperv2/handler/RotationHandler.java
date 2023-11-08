@@ -7,18 +7,15 @@ import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Rotation;
 import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import lombok.Getter;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.*;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import static cc.polyfrost.oneconfig.libs.universal.UMath.wrapAngleTo180;
 
@@ -292,7 +289,7 @@ public class RotationHandler {
     @SubscribeEvent
     public void onUpdatePost(MotionUpdateEvent.Post event) {
         if (!rotating) return;
-        if (configuration == null || configuration.getRotationType() == RotationConfiguration.RotationType.CLIENT)
+        if (configuration == null || configuration.getRotationType() != RotationConfiguration.RotationType.SERVER)
             return;
 
         mc.thePlayer.rotationYaw = clientSideYaw;

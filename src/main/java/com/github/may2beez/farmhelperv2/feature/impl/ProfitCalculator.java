@@ -208,7 +208,6 @@ public class ProfitCalculator implements IFeature {
     @Override
     public void stop() {
         updateClock.reset();
-        updateBazaarClock.reset();
     }
 
     @Override

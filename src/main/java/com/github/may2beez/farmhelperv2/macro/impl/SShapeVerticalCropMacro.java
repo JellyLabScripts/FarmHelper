@@ -205,14 +205,18 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
         } else {
             setYaw(AngleUtils.getClosest());
         }
+        System.out.println("SShapeVerticalCropMacro.onEnable() before reset");
         getRotation().reset();
+        System.out.println("SShapeVerticalCropMacro.onEnable() after reset");
         super.onEnable();
+        System.out.println("SShapeVerticalCropMacro.onEnable() after super.onEnable()");
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),
                         500, null
                 )
         );
+        System.out.println("SShapeVerticalCropMacro.onEnable() end");
     }
 
     @Override

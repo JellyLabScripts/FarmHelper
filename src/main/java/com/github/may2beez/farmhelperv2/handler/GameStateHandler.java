@@ -347,21 +347,21 @@ public class GameStateHandler {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
 
         if (PlayerUtils.isStandingOnRewarpLocation()) {
-            if (reWarpTimer.hasPassed(randomRewarpValueToWait)) {
-                reWarpTimer.reset();
+            if (!reWarpTimer.isScheduled()) {
+                reWarpTimer.schedule();
             }
         } else {
-            reWarpTimer.schedule();
+            reWarpTimer.reset();
         }
     }
 
     public boolean canRewarp() {
-        return !reWarpTimer.isScheduled();
+        return reWarpTimer.hasPassed(randomRewarpValueToWait);
     }
 
     public void scheduleRewarp() {
         randomRewarpValueToWait = FarmHelperConfig.getRandomRewarpDelay();
-        reWarpTimer.schedule();
+        reWarpTimer.reset();
     }
 
     public boolean hasPassedSinceStopped() {

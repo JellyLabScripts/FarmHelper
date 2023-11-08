@@ -200,21 +200,22 @@ public class BlockUtils {
             yaw = mc.thePlayer.rotationYaw;
         }
         yaw = (float) wrapAngleTo180(yaw);
-        List<BlockPos> crops = Arrays.asList(
-                getRelativeBlockPos(xOffset, 0, 1, yaw),
-                getRelativeBlockPos(xOffset, 1, 1, yaw)
-        );
-
+        List<BlockPos> crops;
         if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.CACTUS || MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.SUGAR_CANE) {
-            crops.set(0, null);
-        } else if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_CACTUS_SUNTZU) {
-            crops.set(0, null);
-            crops.set(1, null);
-        } else if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.COCOA_BEANS) {
-            crops.add(getRelativeBlockPos(xOffset, 2, 1, yaw));
-            crops.add(getRelativeBlockPos(xOffset, 3, 1, yaw));
+            crops = Collections.singletonList(
+                    getRelativeBlockPos(xOffset, 0, 1, yaw)
+            );
+        } else if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_CACTUS_SUNTZU || MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.COCOA_BEANS) {
+            crops = Arrays.asList(
+                    getRelativeBlockPos(xOffset, 2, 1, yaw),
+                    getRelativeBlockPos(xOffset, 3, 1, yaw)
+            );
+        } else {
+            crops = Arrays.asList(
+                    getRelativeBlockPos(xOffset, 0, 1, yaw),
+                    getRelativeBlockPos(xOffset, 1, 1, yaw)
+            );
         }
-        crops.removeIf(Objects::isNull);
 
         List<BlockPos> cropList = crops.stream().filter(c -> {
             IBlockState blockState = mc.theWorld.getBlockState(c);
@@ -251,6 +252,7 @@ public class BlockUtils {
         Block crop = mc.theWorld.getBlockState(optionalBlockPos.get()).getBlock();
 
         if (crop == null) return false;
+
 
         switch (MacroHandler.getInstance().getCrop()) {
             case WHEAT:
@@ -373,23 +375,23 @@ public class BlockUtils {
                     double d1 = 999.0;
                     double d2 = 999.0;
                     if (i > l) {
-                        d0 = (double)l + 1.0;
+                        d0 = (double) l + 1.0;
                     } else if (i < l) {
-                        d0 = (double)l + 0.0;
+                        d0 = (double) l + 0.0;
                     } else {
                         flag2 = false;
                     }
                     if (j > i1) {
-                        d1 = (double)i1 + 1.0;
+                        d1 = (double) i1 + 1.0;
                     } else if (j < i1) {
-                        d1 = (double)i1 + 0.0;
+                        d1 = (double) i1 + 0.0;
                     } else {
                         flag = false;
                     }
                     if (k > j1) {
-                        d2 = (double)j1 + 1.0;
+                        d2 = (double) j1 + 1.0;
                     } else if (k < j1) {
-                        d2 = (double)j1 + 0.0;
+                        d2 = (double) j1 + 0.0;
                     } else {
                         flag1 = false;
                     }
@@ -433,7 +435,8 @@ public class BlockUtils {
                     blockpos = new BlockPos(l, i1, j1);
                     IBlockState iblockstate1 = getBlockState(blockpos);
                     Block block1 = iblockstate1.getBlock();
-                    if (ignoreBlockWithoutBoundingBox && block1.getCollisionBoundingBox(mc.theWorld, blockpos, iblockstate1) == null) continue;
+                    if (ignoreBlockWithoutBoundingBox && block1.getCollisionBoundingBox(mc.theWorld, blockpos, iblockstate1) == null)
+                        continue;
                     if (predicate.test(blockpos)) continue;
                     if (block1.canCollideCheck(iblockstate1, stopOnLiquid)) {
                         MovingObjectPosition movingobjectposition1 = collisionRayTrace(block1, blockpos, vec31, vec32, fullBlocks);
@@ -560,7 +563,7 @@ public class BlockUtils {
         final double diffY = vec.yCoord - (mc.thePlayer.posY + mc.thePlayer.getEyeHeight());
         final double diffZ = vec.zCoord - mc.thePlayer.posZ;
         final double dist = MathHelper.sqrt_double(diffX * diffX + diffZ * diffZ);
-        return getVectorForRotation((float)(-(MathHelper.atan2(diffY, dist) * 180.0 / 3.141592653589793)), (float)(MathHelper.atan2(diffZ, diffX) * 180.0 / 3.141592653589793 - 90.0));
+        return getVectorForRotation((float) (-(MathHelper.atan2(diffY, dist) * 180.0 / 3.141592653589793)), (float) (MathHelper.atan2(diffZ, diffX) * 180.0 / 3.141592653589793 - 90.0));
     }
 
     public static Vec3 getVectorForRotation(final float pitch, final float yaw) {
