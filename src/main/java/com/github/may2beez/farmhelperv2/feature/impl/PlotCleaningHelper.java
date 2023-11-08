@@ -4,10 +4,7 @@ import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.event.MillisecondEvent;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.RotationHandler;
-import com.github.may2beez.farmhelperv2.util.BlockUtils;
-import com.github.may2beez.farmhelperv2.util.LogUtils;
-import com.github.may2beez.farmhelperv2.util.RenderUtils;
-import com.github.may2beez.farmhelperv2.util.ScoreboardUtils;
+import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import com.github.may2beez.farmhelperv2.util.helper.Target;
@@ -24,10 +21,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 // Credits to GTC's nuker
 public class PlotCleaningHelper implements IFeature {
@@ -105,10 +100,10 @@ public class PlotCleaningHelper implements IFeature {
         return enabled;
     }
 
-    private final ArrayList<BlockPos> scytheBlockPos = new ArrayList<>();
-    private final ArrayList<BlockPos> treeCapitatorBlockPos = new ArrayList<>();
-    private final ArrayList<BlockPos> pickaxeBlockPos = new ArrayList<>();
-    private final ArrayList<BlockPos> brokenBlockPosArrayList = new ArrayList<>();
+    private final CopyOnWriteArrayList<BlockPos> scytheBlockPos = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArrayList<BlockPos> treeCapitatorBlockPos = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArrayList<BlockPos> pickaxeBlockPos = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArrayList<Tuple<BlockPos, Long>> brokenBlockPosArrayList = new CopyOnWriteArrayList<>();
     private BlockPos longBreakTarget = null;
     private BlockPos target = null;
 
@@ -141,7 +136,7 @@ public class PlotCleaningHelper implements IFeature {
         BlockPos blockTop = playerPos.add(vec3Top);
         BlockPos blockBottom = playerPos.subtract(vec3Bottom);
         for (BlockPos blockpos : BlockPos.getAllInBox(blockBottom, blockTop)) {
-            if (brokenBlockPosArrayList.contains(blockpos)) continue;
+            if (brokenBlockPosArrayList.stream().anyMatch(tup -> tup.getFirst().equals(blockpos))) continue;
             Vec3 target = new Vec3(blockpos.getX() + 0.5, blockpos.getY() + 0.5, blockpos.getZ() + 0.5);
             float fovToVec = fovToVec3(target);
             float wrappedYaw = MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw);
@@ -163,6 +158,7 @@ public class PlotCleaningHelper implements IFeature {
         if (stuckClock.passed()) {
             LogUtils.sendDebug("Stuck clock passed, resetting.");
             stuckClock.reset();
+            brokenBlockPosArrayList.clear();
             longBreakTarget = null;
         }
 
@@ -181,16 +177,21 @@ public class PlotCleaningHelper implements IFeature {
         if (!isRunning()) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
-        if (event.timestamp - lastBlockBroken > 1000f / 20 && (!RotationHandler.getInstance().isRotating() || (RotationHandler.getInstance().isRotating() && RotationHandler.getInstance().getConfiguration() != null && RotationHandler.getInstance().getConfiguration().isGoingBackToClientSide())) ) {
+        if (longBreakTarget != null && (mc.thePlayer.getDistanceSq(longBreakTarget) > 25 || !canMine(longBreakTarget))) {
+            longBreakTarget = null;
+        }
+
+        if (event.timestamp - lastBlockBroken > 1000f / 20 && (!RotationHandler.getInstance().isRotating() || (RotationHandler.getInstance().isRotating() && RotationHandler.getInstance().getConfiguration() != null && RotationHandler.getInstance().getConfiguration().isGoingBackToClientSide()))) {
             lastBlockBroken = event.timestamp;
 
-            if (brokenBlockPosArrayList.size() > 30) brokenBlockPosArrayList.clear();
+            brokenBlockPosArrayList.removeIf(tup -> tup.getSecond() + 2_500 < System.currentTimeMillis());
 
             if (longBreakTarget == null) {
-                ArrayList<BlockPos> blockPosCopy = new ArrayList<>();
-                blockPosCopy.addAll(scytheBlockPos);
-                blockPosCopy.addAll(treeCapitatorBlockPos);
-                blockPosCopy.addAll(pickaxeBlockPos);
+                ArrayList<BlockPos> blockPosCopy = new ArrayList<>(scytheBlockPos);
+                if (mc.thePlayer.onGround) {
+                    blockPosCopy.addAll(treeCapitatorBlockPos);
+                    blockPosCopy.addAll(pickaxeBlockPos);
+                }
                 target = BlockUtils.getEasiestBlock(blockPosCopy, this::canMine);
             }
 
@@ -198,13 +199,21 @@ public class PlotCleaningHelper implements IFeature {
                 if (longBreakTarget != null && (longBreakTarget.compareTo(target) != 0 || Objects.requireNonNull(BlockUtils.getBlockState(longBreakTarget)).getBlock() != Objects.requireNonNull(BlockUtils.getBlockState(target)).getBlock())) {
                     longBreakTarget = null;
                 }
-                if (isSlow(Objects.requireNonNull(BlockUtils.getBlockState(target)))) {
-                    LogUtils.sendDebug("Target is slow mining.");
-                    if (longBreakTarget == null) {
-                        mineBlock(target);
+                if (FarmHelperConfig.autoChooseTool) {
+                    int id = getBestTool(Objects.requireNonNull(BlockUtils.getBlockState(target)).getBlock());
+                    if (id != -1 && mc.thePlayer.inventory.currentItem != id) {
+                        mc.thePlayer.inventory.currentItem = id;
+                        lastBlockBroken = event.timestamp + 250;
+                        return;
                     }
+                }
+                if (isSlow(Objects.requireNonNull(BlockUtils.getBlockState(target)))) {
+//                    LogUtils.sendDebug("Target is slow mining.");
+//                    if (longBreakTarget == null) {
+//                        mineBlock(target);
+//                    }
+                    LogUtils.sendDebug("Won't destroy this block, because you are flying");
                 } else {
-                    LogUtils.sendDebug("Target is fast mining.");
                     pinglessMineBlock(target);
                     longBreakTarget = null;
                 }
@@ -231,7 +240,6 @@ public class PlotCleaningHelper implements IFeature {
     }
 
     private void pinglessMineBlock(BlockPos blockPos) {
-        System.out.println("pingless mining block");
         RotationHandler.getInstance().easeTo(
                 new RotationConfiguration(
                         new Target(blockPos),
@@ -249,13 +257,13 @@ public class PlotCleaningHelper implements IFeature {
                                             BlockPos blockPos1 = blockPos.add(x, y, z);
                                             Block block = mc.theWorld.getBlockState(blockPos1).getBlock();
                                             if (checkIfScythe(block)) {
-                                                brokenBlockPosArrayList.add(blockPos1);
+                                                brokenBlockPosArrayList.add(new Tuple<>(blockPos1, System.currentTimeMillis()));
                                             }
                                         }
                                     }
                                 }
                             } else {
-                                brokenBlockPosArrayList.add(blockPos);
+                                brokenBlockPosArrayList.add(new Tuple<>(blockPos, System.currentTimeMillis()));
                             }
                             stuckClock.schedule(7000);
                         }
@@ -323,35 +331,61 @@ public class PlotCleaningHelper implements IFeature {
     }
 
     private boolean canMine(BlockPos blockPos) {
-        if (brokenBlockPosArrayList.contains(blockPos)) return false;
-        ItemStack currentItem = mc.thePlayer.getCurrentEquippedItem();
-        if (currentItem == null) return false;
-        if (Arrays.stream(tools).noneMatch(currentItem.getDisplayName()::contains)) return false;
+        if (brokenBlockPosArrayList.stream().anyMatch(tup -> tup.getFirst().equals(blockPos))) return false;
+
         Block block = mc.theWorld.getBlockState(blockPos).getBlock();
-        if (block instanceof BlockTallGrass || block instanceof BlockFlower || block instanceof BlockLeaves || block instanceof BlockDoublePlant) {
-            return currentItem.getDisplayName().contains("Scythe");
-        } else if (block.getMaterial().equals(Material.wood)) {
-            return currentItem.getDisplayName().contains("Treecapitator") || (currentItem.getDisplayName().contains("Axe") && !currentItem.getDisplayName().contains("Pick"));
-        } else if (block.getMaterial().equals(Material.rock)) {
-            return currentItem.getDisplayName().contains("Pickaxe") || currentItem.getDisplayName().contains("Stonk");
+        if (FarmHelperConfig.autoChooseTool) {
+            if (block instanceof BlockTallGrass || block instanceof BlockFlower || block instanceof BlockLeaves || block instanceof BlockDoublePlant) {
+                return InventoryUtils.hasItemInHotbar("Scythe");
+            } else if (block.getMaterial().equals(Material.wood)) {
+                return InventoryUtils.hasItemInHotbar("Treecapitator", "Axe");
+            } else if (block.getMaterial().equals(Material.rock) && !block.equals(Blocks.bedrock)) {
+                return InventoryUtils.hasItemInHotbar("Pickaxe") || InventoryUtils.hasItemInHotbar("Stonk");
+            }
+        } else {
+            ItemStack currentItem = mc.thePlayer.getCurrentEquippedItem();
+            if (currentItem == null) return false;
+            if (Arrays.stream(tools).noneMatch(currentItem.getDisplayName()::contains)) return false;
+            if (block instanceof BlockTallGrass || block instanceof BlockFlower || block instanceof BlockLeaves || block instanceof BlockDoublePlant) {
+                return currentItem.getDisplayName().contains("Scythe");
+            } else if (block.getMaterial().equals(Material.wood)) {
+                return currentItem.getDisplayName().contains("Treecapitator") || (currentItem.getDisplayName().contains("Axe") && !currentItem.getDisplayName().contains("Pick"));
+            } else if (block.getMaterial().equals(Material.rock)) {
+                return currentItem.getDisplayName().contains("Pickaxe") || currentItem.getDisplayName().contains("Stonk");
+            }
         }
         return false;
     }
 
-    private final Color color = new Color(0, 255, 0, 100);
+    private int getBestTool(Block block) {
+        if (block instanceof BlockTallGrass || block instanceof BlockFlower || block instanceof BlockLeaves || block instanceof BlockDoublePlant) {
+            return InventoryUtils.getSlotIdOfItemInHotbar("Scythe");
+        } else if (block.getMaterial().equals(Material.wood)) {
+            return InventoryUtils.getSlotIdOfItemInHotbar("Treecapitator", "Axe");
+        } else if (block.getMaterial().equals(Material.rock)) {
+            return InventoryUtils.getSlotIdOfItemInHotbar("Pickaxe", "Stonk");
+        }
+        return -1;
+    }
+
+    private final Color colorGreen = new Color(0, 255, 0, 100);
+    private final Color colorRock = new Color(230, 230, 230, 100);
+    private final Color colorWood = new Color(150, 50, 50, 100);
     private final Color targetColor = new Color(255, 0, 0, 100);
 
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event) {
         if (!isRunning()) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        ArrayList<BlockPos> blockPosCopy = new ArrayList<>();
-        blockPosCopy.addAll(scytheBlockPos);
-        blockPosCopy.addAll(treeCapitatorBlockPos);
-        blockPosCopy.addAll(pickaxeBlockPos);
 
-        for (BlockPos blockPos : blockPosCopy) {
-            RenderUtils.drawBlockBox(blockPos, color);
+        for (BlockPos blockPos : scytheBlockPos) {
+            RenderUtils.drawBlockBox(blockPos, colorGreen);
+        }
+        for (BlockPos blockPos : treeCapitatorBlockPos) {
+            RenderUtils.drawBlockBox(blockPos, colorWood);
+        }
+        for (BlockPos blockPos : pickaxeBlockPos) {
+            RenderUtils.drawBlockBox(blockPos, colorRock);
         }
 
         if (target != null) {

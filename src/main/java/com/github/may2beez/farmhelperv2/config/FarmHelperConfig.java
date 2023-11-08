@@ -5,7 +5,6 @@ import cc.polyfrost.oneconfig.config.annotations.Number;
 import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.*;
-import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.page.AutoSellNPCItemsPage;
 import com.github.may2beez.farmhelperv2.config.page.CustomFailsafeMessagesPage;
@@ -13,20 +12,15 @@ import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
 import com.github.may2beez.farmhelperv2.feature.impl.*;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
-import com.github.may2beez.farmhelperv2.handler.RotationHandler;
 import com.github.may2beez.farmhelperv2.hud.DebugHUD;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.github.may2beez.farmhelperv2.hud.StatusHUD;
-import com.github.may2beez.farmhelperv2.util.*;
+import com.github.may2beez.farmhelperv2.util.BlockUtils;
+import com.github.may2beez.farmhelperv2.util.LogUtils;
+import com.github.may2beez.farmhelperv2.util.PlayerUtils;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
-import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
-import com.github.may2beez.farmhelperv2.util.helper.Target;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
@@ -36,8 +30,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 // THIS IS RAT - CatalizCS
 @SuppressWarnings({"unused", "DefaultAnnotationParam"})
@@ -276,10 +268,16 @@ public class FarmHelperConfig extends Config {
     public static OneKeyBind freelockKeybind = new OneKeyBind(Keyboard.KEY_L);
 
     @KeyBind(
-            name = "Plot Cleaning Helper", category = MISCELLANEOUS, subcategory = "Keybinds",
+            name = "Plot Cleaning Helper", category = MISCELLANEOUS, subcategory = "Plot Cleaning Helper",
             description = "Toggles the plot cleaning helper on/off", size = 2
     )
     public static OneKeyBind plotCleaningHelperKeybind = new OneKeyBind(Keyboard.KEY_P);
+
+    @Switch(
+            name = "Automatically choose tool to destroy the block", category = MISCELLANEOUS, subcategory = "Plot Cleaning Helper",
+            description = "Automatically chooses the best tool to destroy the block"
+    )
+    public static boolean autoChooseTool = false;
 
     @DualOption(
             name = "AutoUpdater Version Type", category = MISCELLANEOUS, subcategory = "Miscellaneous",

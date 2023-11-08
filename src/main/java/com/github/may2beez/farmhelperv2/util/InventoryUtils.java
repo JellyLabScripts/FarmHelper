@@ -127,12 +127,12 @@ public class InventoryUtils {
         return false;
     }
 
-    public static boolean hasItemInHotbar(String item) {
+    public static boolean hasItemInHotbar(String ...item) {
         for (int i = 0; i < 9; i++) {
             ItemStack slot = mc.thePlayer.inventory.getStackInSlot(i);
             if (slot != null && slot.getItem() != null) {
                 String itemName = StringUtils.stripControlCodes(slot.getDisplayName());
-                if (itemName.contains(item)) {
+                if (Arrays.stream(item).anyMatch(itemName::contains)) {
                     return true;
                 }
             }
