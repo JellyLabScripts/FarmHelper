@@ -16,6 +16,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.exceptions.WebsocketNotConnectedException;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
@@ -139,7 +140,7 @@ public class BanInfoWS implements IFeature {
                 }
                 client.connectBlocking();
                 client.send("{\"message\":\"banwaveInfo\", \"mod\": \"farmHelper\"}");
-            } catch (URISyntaxException | InterruptedException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 client = null;
                 reconnectDelay.schedule(5_000);
