@@ -83,6 +83,8 @@ public class GameStateHandler {
     private String serverIP;
     private final Timer notMovingTimer = new Timer();
     private long randomValueToWait = FarmHelperConfig.getRandomTimeBetweenChangingRows();
+    private long randomRewarpValueToWait = FarmHelperConfig.getRandomRewarpDelay();
+    private final Timer reWarpTimer = new Timer();
 
     public enum BuffState {
         ACTIVE,
@@ -309,7 +311,7 @@ public class GameStateHandler {
         dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
 
         if (notMoving()) {
-            if (hasPassedSinceStopped()) {
+            if (hasPassedSinceStopped() && !PlayerUtils.isStandingOnRewarpLocation()) {
                 if (Failsafe.getInstance().hasDirtBlocks() && Failsafe.getInstance().isTouchingDirtBlock()) {
                     Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.DIRT_CHECK);
                     return;
@@ -337,6 +339,29 @@ public class GameStateHandler {
         }
         rightWalkable = (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(1, 0, 0, yaw)));
         leftWalkable = (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-1, 0, 0, yaw)));
+    }
+
+    @SubscribeEvent
+    public void onTickCheckRewarp(TickEvent.ClientTickEvent event) {
+        if (mc.theWorld == null || mc.thePlayer == null) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+
+        if (PlayerUtils.isStandingOnRewarpLocation()) {
+            if (reWarpTimer.hasPassed(randomRewarpValueToWait)) {
+                reWarpTimer.reset();
+            }
+        } else {
+            reWarpTimer.schedule();
+        }
+    }
+
+    public boolean canRewarp() {
+        return !reWarpTimer.isScheduled();
+    }
+
+    public void scheduleRewarp() {
+        randomRewarpValueToWait = FarmHelperConfig.getRandomRewarpDelay();
+        reWarpTimer.schedule();
     }
 
     public boolean hasPassedSinceStopped() {

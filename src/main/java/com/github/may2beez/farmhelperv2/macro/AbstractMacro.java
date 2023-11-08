@@ -270,10 +270,11 @@ public abstract class AbstractMacro {
         if (GameStateHandler.getInstance().notMoving()) {
             KeyBindUtils.stopMovement();
         }
-        if (force || GameStateHandler.getInstance().canChangeDirection() && !beforeTeleportationPos.isPresent()) {
+        if (force || GameStateHandler.getInstance().canRewarp() && !beforeTeleportationPos.isPresent()) {
             rewarpState = RewarpState.TELEPORTING;
             LogUtils.sendDebug("Warping to spawn point");
             mc.thePlayer.sendChatMessage("/warp garden");
+            GameStateHandler.getInstance().scheduleRewarp();
             setBeforeTeleportationPos(Optional.ofNullable(mc.thePlayer.getPosition()));
         }
     }

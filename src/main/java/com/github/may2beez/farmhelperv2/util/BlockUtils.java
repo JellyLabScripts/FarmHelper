@@ -200,24 +200,23 @@ public class BlockUtils {
             yaw = mc.thePlayer.rotationYaw;
         }
         yaw = (float) wrapAngleTo180(yaw);
-        BlockPos[] crops = Arrays.asList(
+        List<BlockPos> crops = Arrays.asList(
                 getRelativeBlockPos(xOffset, 0, 1, yaw),
-                getRelativeBlockPos(xOffset, 1, 1, yaw),
-                getRelativeBlockPos(xOffset, 2, 1, yaw),
-                getRelativeBlockPos(xOffset, 3, 1, yaw)
-
-        ).toArray(new BlockPos[0]);
+                getRelativeBlockPos(xOffset, 1, 1, yaw)
+        );
 
         if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.CACTUS || MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.SUGAR_CANE) {
-            crops[0] = null;
-            crops = Arrays.stream(crops).filter(Objects::nonNull).toArray(BlockPos[]::new);
+            crops.set(0, null);
         } else if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_CACTUS_SUNTZU) {
-            crops[0] = null;
-            crops[1] = null;
-            crops = Arrays.stream(crops).filter(Objects::nonNull).toArray(BlockPos[]::new);
+            crops.set(0, null);
+            crops.set(1, null);
+        } else if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.COCOA_BEANS) {
+            crops.add(getRelativeBlockPos(xOffset, 2, 1, yaw));
+            crops.add(getRelativeBlockPos(xOffset, 3, 1, yaw));
         }
+        crops.removeIf(Objects::isNull);
 
-        List<BlockPos> cropList = Arrays.stream(crops).filter(c -> {
+        List<BlockPos> cropList = crops.stream().filter(c -> {
             IBlockState blockState = mc.theWorld.getBlockState(c);
             Block block = blockState.getBlock();
             return block instanceof BlockCrops && blockState.getValue(BlockCrops.AGE) == 7 ||
@@ -228,15 +227,26 @@ public class BlockUtils {
                     block instanceof BlockCactus ||
                     block instanceof BlockMushroom;
         }).collect(Collectors.toList());
-        Optional<BlockPos> optionalBlockPos = cropList.stream().min((c1, c2) -> {
-            double d1 = mc.thePlayer.getDistance(c1.getX(), c1.getY(), c1.getZ());
-            double d2 = mc.thePlayer.getDistance(c2.getX(), c2.getY(), c2.getZ());
-            return Double.compare(d1, d2);
-        });
+        Optional<BlockPos> optionalBlockPos = Optional.empty();
+
+        for (BlockPos crop : cropList) {
+            if (optionalBlockPos.isPresent()) {
+                double distance1 = mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(crop.getX() + 0.5, crop.getY() + 0.5, crop.getZ() + 0.5));
+                double distance2 = mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(optionalBlockPos.get().getX() + 0.5, optionalBlockPos.get().getY() + 0.5, optionalBlockPos.get().getZ() + 0.5));
+                System.out.println(distance1 + " " + distance2);
+                if (distance1 < distance2) {
+                    optionalBlockPos = Optional.of(crop);
+                }
+            } else {
+                optionalBlockPos = Optional.of(crop);
+            }
+        }
 
         if (!optionalBlockPos.isPresent()) {
             return false;
         }
+
+        LogUtils.sendDebug("Closest crop: " + optionalBlockPos.get());
 
         Block crop = mc.theWorld.getBlockState(optionalBlockPos.get()).getBlock();
 

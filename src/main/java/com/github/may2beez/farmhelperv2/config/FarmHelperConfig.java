@@ -1194,7 +1194,6 @@ public class FarmHelperConfig extends Config {
 
     // START DELAYS
 
-
     @Slider(
             name = "Time between changing rows", category = DELAYS, subcategory = "Changing rows",
             description = "The minimum time to wait before changing rows (in milliseconds)",
@@ -1271,6 +1270,24 @@ public class FarmHelperConfig extends Config {
 
     public static long getRandomPlotCleaningHelperRotationTime() {
         return (long) (plotCleaningHelperRotationTime + (float) Math.random() * plotCleaningHelperRotationTimeRandomness);
+    }
+
+    @Slider(
+            name = "Rewarp Delay", category = DELAYS, subcategory = "Rewarp",
+            description = "The delay between rewarping (in milliseconds)",
+            min = 250f, max = 2000f
+    )
+    public static float rewarpDelay = 400f;
+
+    @Slider(
+            name = "Additional random Rewarp Delay", category = DELAYS, subcategory = "Rewarp",
+            description = "The maximum random time added to the delay time between rewarping (in milliseconds)",
+            min = 0f, max = 2000f
+    )
+    public static float rewarpDelayRandomness = 350f;
+
+    public static long getRandomRewarpDelay() {
+        return (long) (rewarpDelay + (float) Math.random() * rewarpDelayRandomness);
     }
 
     // END DELAYS

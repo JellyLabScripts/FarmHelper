@@ -97,7 +97,6 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(Freelock.getInstance());
         MinecraftForge.EVENT_BUS.register(VisitorsMacro.getInstance());
         MinecraftForge.EVENT_BUS.register(RotationHandler.getInstance());
-        MinecraftForge.EVENT_BUS.register(RotationHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(PlotCleaningHelper.getInstance());
     }
 
