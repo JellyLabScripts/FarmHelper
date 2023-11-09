@@ -680,9 +680,9 @@ public class Config extends cc.polyfrost.oneconfig.config.Config {
 	@Slider(
 			name = "Melon Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
 			description = "The melon cap",
-			min = 10000, max = 2000000, step = 10000
+			min = 10000, max = 5000000, step = 10000
 	)
-	public int jacobMelonCap = 1234000;
+	public int jacobMelonCap = 2000000;
 	@Slider(
 			name = "Pumpkin Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
 			description = "The pumpkin cap",
