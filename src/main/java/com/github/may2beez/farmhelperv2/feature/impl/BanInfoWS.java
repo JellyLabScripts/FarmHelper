@@ -76,6 +76,8 @@ public class BanInfoWS implements IFeature {
     @Setter
     private int bansByMod = 0;
 
+    private int retryCount = 0;
+
     @Override
     public String getName() {
         return "Banwave Checker";
@@ -144,6 +146,12 @@ public class BanInfoWS implements IFeature {
     @SubscribeEvent
     public void onTickReconnect(TickEvent.ClientTickEvent event) {
         if (reconnectDelay.isScheduled() && !reconnectDelay.passed()) return;
+        if (retryCount == 4) {
+            LogUtils.sendWarning("Failed to connect to analytics server 5 times. Restart Minecraft to try again.");
+            reconnectDelay.reset();
+            retryCount = 999;
+            return;
+        }
 
         if (client == null || client.isClosed() || !client.isOpen()) {
             try {
@@ -153,7 +161,7 @@ public class BanInfoWS implements IFeature {
                 for (Map.Entry<String, JsonElement> header : getHeaders().entrySet()) {
                     client.addHeader(header.getKey(), header.getValue().getAsString());
                 }
-                reconnectDelay.schedule(5_000);
+                reconnectDelay.schedule(5_000L * (retryCount + 1));
                 client.connect();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -447,6 +455,7 @@ public class BanInfoWS implements IFeature {
                 Notifications.INSTANCE.send("FarmHelper INFO", "Connected to analytics websocket server");
                 if (FarmHelperConfig.banwaveCheckerEnabled)
                     Multithreading.schedule(() -> client.send("{\"message\":\"banwaveInfo\", \"mod\": \"farmHelper\"}"), 1_000, TimeUnit.MILLISECONDS);
+                retryCount = 0;
             }
 
             @Override
@@ -479,7 +488,8 @@ public class BanInfoWS implements IFeature {
             public void onClose(int code, String reason, boolean remote) {
                 LogUtils.sendDebug("Disconnected from analytics server");
                 LogUtils.sendDebug("Code: " + code + ", reason: " + reason + ", remote: " + remote);
-                reconnectDelay.schedule(5_000);
+                retryCount++;
+                reconnectDelay.schedule(5_000L * (retryCount + 1));
             }
 
             @Override
