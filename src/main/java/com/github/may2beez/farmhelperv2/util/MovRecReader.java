@@ -31,20 +31,22 @@ public class MovRecReader {
         private final boolean right;
         private final boolean sneak;
         private final boolean sprint;
+        private final boolean fly;
         private final boolean jump;
         private final boolean attack;
         private final float yaw;
         private final float pitch;
         private final int delay;
 
-        public Movement(boolean forward, boolean left, boolean backwards, boolean right, boolean sneak, boolean sprint, boolean jump,
-                        boolean attack, float yaw, float pitch, int delay) {
+        public Movement(boolean forward, boolean left, boolean backwards, boolean right, boolean sneak, boolean sprint, boolean fly,
+                        boolean jump, boolean attack, float yaw, float pitch, int delay) {
             this.forward = forward;
             this.left = left;
             this.backwards = backwards;
             this.right = right;
             this.sneak = sneak;
             this.sprint = sprint;
+            this.fly = fly;
             this.jump = jump;
             this.attack = attack;
             this.yaw = yaw;
@@ -128,9 +130,10 @@ public class MovRecReader {
                         Boolean.parseBoolean(split[5]),
                         Boolean.parseBoolean(split[6]),
                         Boolean.parseBoolean(split[7]),
-                        Float.parseFloat(split[8]),
+                        Boolean.parseBoolean(split[8]),
                         Float.parseFloat(split[9]),
-                        Integer.parseInt(split[10])
+                        Integer.parseInt(split[10]),
+                        Integer.parseInt(split[11])
                 );
                 movements.add(movement);
             }
@@ -163,6 +166,8 @@ public class MovRecReader {
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), movement.right);
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), movement.sneak);
         mc.thePlayer.setSprinting(movement.sprint);
+        if (mc.thePlayer.capabilities.allowFlying && mc.thePlayer.capabilities.isFlying != movement.fly)
+            mc.thePlayer.capabilities.isFlying = movement.fly;
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), movement.jump);
         if (movement.attack) {
             KeyBindUtils.leftClick();
