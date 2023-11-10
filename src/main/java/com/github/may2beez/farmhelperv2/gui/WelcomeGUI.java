@@ -27,7 +27,8 @@ public class WelcomeGUI extends GuiScreen {
             "1. Read the guide first! (Click \"Read the guide\").",
             "2. Build the farm using schematics provided in our guide.",
             "3. Join our Discord to get help and receive important information about the mod.",
-            "4. Type \"I understand\" in the box below and click \"Close\" to close this window."
+            "4. For research purposes we will collect statistics about your macro. You can opt out in the config.",
+            "5. Type \"I understand\" in the box below and click \"Close\" to close this window.",
     };
 
     public WelcomeGUI() {
