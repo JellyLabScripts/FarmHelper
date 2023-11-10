@@ -189,7 +189,7 @@ public class Failsafe implements IFeature {
         emergencyQueue.clear();
         chooseEmergencyDelay.reset();
         hadEmergency = true;
-        LogUtils.sendDebug("[Failsafe] Emergency chosen: " + StringUtils.stripControlCodes(emergency.label));
+        LogUtils.sendDebug("[Failsafe] Emergency chosen: " + StringUtils.stripControlCodes(emergency.name()));
         LogUtils.sendFailsafeMessage(emergency.label);
         FeatureManager.getInstance().disableCurrentlyRunning(this);
         FailsafeUtils.getInstance().sendNotification(StringUtils.stripControlCodes(emergency.label), TrayIcon.MessageType.WARNING);
@@ -218,8 +218,13 @@ public class Failsafe implements IFeature {
         if (!isEmergency()) return;
         if (failsafeDelay.isScheduled() && !failsafeDelay.passed()) return;
 
-        if (shouldPlayRecording(emergency)) {
-            playMovementRecording(emergency.label);
+        if (
+                !MovRecReader.isPlaying()
+                && !MovRecReader.isReading()
+                && !rotation.isRotating()
+                && shouldPlayRecording(emergency)
+        ) {
+            playMovementRecording(emergency.name());
             return;
         }
 
@@ -1165,7 +1170,7 @@ public class Failsafe implements IFeature {
             case TELEPORT_CHECK:
             case ITEM_CHANGE_CHECK:
             case BEDROCK_CAGE_CHECK:
-                if (movementFilesExist(emergency.label))
+                if (movementFilesExist(emergency.name()))
                     return true;
         }
         return false;
@@ -1173,16 +1178,20 @@ public class Failsafe implements IFeature {
 
     private boolean movementFilesExist(String emergencyName) {
         File recordingDir = new File(mc.mcDataDir, "movementrecorder");
+        LogUtils.sendDebug("Checking recording name for: " + emergencyName);
         if (recordingDir.exists()) {
             File[] recordingFiles = recordingDir.listFiles();
             boolean recordingFile = false;
             boolean recordingFile2 = false;
             if (recordingFiles != null) {
                 for (File file : recordingFiles) {
-                    if (file.getName().contains(emergencyName + "_1")) {
+                    LogUtils.sendDebug("[Failsafe] Found file: " + file.getName());
+                    if (file.getName().contains(emergencyName + "_PreChat_")) {
                         recordingFile = true;
-                    } else if (file.getName().contains(emergencyName + "_2")) {
+                        LogUtils.sendDebug("[Failsafe] Found recording file: " + file.getName());
+                    } else if (file.getName().contains(emergencyName + "_PostChat_")) {
                         recordingFile2 = true;
+                        LogUtils.sendDebug("[Failsafe] Found recording2 file: " + file.getName());
                     }
                     if (recordingFile && recordingFile2) {
                         return true;
