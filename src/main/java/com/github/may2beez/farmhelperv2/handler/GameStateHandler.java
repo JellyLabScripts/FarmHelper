@@ -60,6 +60,8 @@ public class GameStateHandler {
     }
 
     @Getter
+    private Location lastLocation = Location.TELEPORTING;
+    @Getter
     private Location location = Location.TELEPORTING;
     private final Pattern areaPattern = Pattern.compile("Area:\\s(.+)");
 
@@ -133,6 +135,7 @@ public class GameStateHandler {
 
     @SubscribeEvent
     public void onWorldChange(WorldEvent.Unload event) {
+        lastLocation = location;
         location = Location.TELEPORTING;
     }
 
@@ -279,6 +282,7 @@ public class GameStateHandler {
         }
 
         if (TablistUtils.getTabList().size() == 1 && ScoreboardUtils.getScoreboardLines().isEmpty() && PlayerUtils.isInventoryEmpty(mc.thePlayer)) {
+            lastLocation = location;
             location = Location.LIMBO;
             return;
         }
@@ -289,6 +293,7 @@ public class GameStateHandler {
                 String area = matcher.group(1);
                 for (Location island : Location.values()) {
                     if (area.equals(island.getName())) {
+                        lastLocation = location;
                         location = island;
                         return;
                     }
@@ -296,8 +301,12 @@ public class GameStateHandler {
             }
         }
         if (ScoreboardUtils.getScoreboardTitle().contains("PROTOTYPE") || ScoreboardUtils.getScoreboardTitle().contains("HYPIXEL")) {
+            lastLocation = location;
             location = Location.LOBBY;
             return;
+        }
+        if (location != Location.TELEPORTING) {
+            lastLocation = location;
         }
         location = Location.TELEPORTING;
     }

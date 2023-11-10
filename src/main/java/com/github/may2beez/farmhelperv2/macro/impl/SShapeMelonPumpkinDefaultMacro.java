@@ -24,7 +24,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
     public void onEnable() {
         FarmHelperConfig.CropEnum crop = PlayerUtils.getFarmingCrop();
         if (crop == FarmHelperConfig.CropEnum.WHEAT) {
-            crop = FarmHelperConfig.CropEnum.PUMPKIN_MELON_UNKOWN;
+            crop = FarmHelperConfig.CropEnum.PUMPKIN_MELON_UNKNOWN;
         }
         LogUtils.sendDebug("Crop: " + crop);
         MacroHandler.getInstance().setCrop(crop);

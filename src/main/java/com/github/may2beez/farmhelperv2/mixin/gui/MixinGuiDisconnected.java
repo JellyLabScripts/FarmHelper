@@ -42,9 +42,6 @@ public class MixinGuiDisconnected {
     @Inject(method = "initGui", at = @At("RETURN"))
     public void initGui(CallbackInfo ci) {
         if (multilineMessage.get(0).contains("banned")) {
-            if (MacroHandler.getInstance().isMacroToggled()) {
-                MacroHandler.getInstance().disableMacro();
-            }
             Failsafe.getInstance().stop();
         }
     }
@@ -55,17 +52,6 @@ public class MixinGuiDisconnected {
 
         if (multilineMessage.get(0).contains("banned")) {
             farmHelperV2$isBanned = true;
-            try {
-                String duration = StringUtils.stripControlCodes(multilineMessage.get(0)).replace("You are temporarily banned for ", "")
-                        .replace(" from this server!", "").trim();
-                String reason = StringUtils.stripControlCodes(multilineMessage.get(2)).replace("Reason: ", "").trim();
-                int durationDays = Integer.parseInt(duration.split(" ")[0].replace("d", ""));
-                String banId = StringUtils.stripControlCodes(multilineMessage.get(5)).replace("Ban ID: ", "").trim();
-                BanInfoWS.getInstance().playerBanned(durationDays, reason, banId);
-                LogUtils.webhookLog("Banned for " + durationDays + " days for " + reason, true);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
             return;
         }
 
