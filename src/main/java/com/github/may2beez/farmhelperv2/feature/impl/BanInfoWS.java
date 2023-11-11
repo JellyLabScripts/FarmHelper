@@ -457,7 +457,6 @@ public class BanInfoWS implements IFeature {
                 Notifications.INSTANCE.send("FarmHelper INFO", "Connected to analytics websocket server");
                 if (FarmHelperConfig.banwaveCheckerEnabled)
                     Multithreading.schedule(() -> client.send("{\"message\":\"banwaveInfo\", \"mod\": \"farmHelper\"}"), 1_000, TimeUnit.MILLISECONDS);
-                retryCount = 0;
             }
 
             @Override
@@ -466,6 +465,7 @@ public class BanInfoWS implements IFeature {
                 String msg = jsonObject.get("message").getAsString();
                 switch (msg) {
                     case "banwaveInfo": {
+                        retryCount = 0;
                         int bans = jsonObject.get("bansInLast15Minutes").getAsInt();
                         int minutes = jsonObject.get("bansInLast15MinutesTime").getAsInt();
                         int bansByMod = jsonObject.get("bansInLast15MinutesMod").getAsInt();
