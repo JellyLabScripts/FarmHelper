@@ -213,6 +213,7 @@ public abstract class AbstractMacro {
         if (VisitorsMacro.getInstance().isToggled()) {
             VisitorsMacro.getInstance().start();
         }
+        setLayerY(mc.thePlayer.getPosition().getY());
         analyticsClock.schedule(60_000);
     }
 

@@ -535,7 +535,7 @@ public class FarmHelperConfig extends Config {
             name = "Auto Evacuate on World update", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Automatically evacuates the island on server reboot, server update, etc"
     )
-    public static boolean autoEvacuateOnWorldUpdate = false;
+    public static boolean autoEvacuateOnWorldUpdate = true;
 
     @Switch(
             name = "Auto reconnect on disconnect", category = FAILSAFE, subcategory = "Miscellaneous",
@@ -1488,17 +1488,17 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-        registerKeyBind(debugKeybind, () -> {
-            String banScreen = "You are temporarily banned for 29d 23h 59m 59s from this server!" +
-                    "\n" +
-                    "\nReason: Cheaters get banned" +
-                    "\nFind out more: nhttps://www.hypixel.net/appeal" +
-                    "\n" +
-                    "\nBan ID: #49871982" +
-                    "\nSharing your Ban ID may affect the processing of your appeal!";
-//            BanInfoWS.getInstance().playerBanned(30, "Cheaters gets banned", "#49871982", banScreen);
-            mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText(banScreen));
-        });
+//        registerKeyBind(debugKeybind, () -> {
+//            String banScreen = "You are temporarily banned for 29d 23h 59m 59s from this server!" +
+//                    "\n" +
+//                    "\nReason: Cheaters get banned" +
+//                    "\nFind out more: nhttps://www.hypixel.net/appeal" +
+//                    "\n" +
+//                    "\nBan ID: #49871982" +
+//                    "\nSharing your Ban ID may affect the processing of your appeal!";
+////            BanInfoWS.getInstance().playerBanned(30, "Cheaters gets banned", "#49871982", banScreen);
+//            mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText(banScreen));
+//        });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
         save();
