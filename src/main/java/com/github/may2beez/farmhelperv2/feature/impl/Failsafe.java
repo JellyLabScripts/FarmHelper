@@ -138,6 +138,7 @@ public class Failsafe implements IFeature {
         failsafeDelay.reset();
         lookAroundTimes = 0;
         currentLookAroundTimes = 0;
+        resetCustomMovement();
         resetRotationCheck();
         resetDirtCheck();
         resetEvacuateCheck();
@@ -218,8 +219,14 @@ public class Failsafe implements IFeature {
         if (!isEmergency()) return;
         if (failsafeDelay.isScheduled() && !failsafeDelay.passed()) return;
 
-        if (shouldPlayRecording(emergency)) {
+        if (recordingFile && recordingFile2) {
             playMovementRecording(emergency.name());
+            return;
+        }
+        if (shouldCheckIfRecordingShouldBePlayed) {
+            shouldCheckIfRecordingShouldBePlayed = false;
+            if (shouldPlayRecording(emergency))
+                playMovementRecording(emergency.name());
             return;
         }
 
@@ -1156,6 +1163,9 @@ public class Failsafe implements IFeature {
 
     private CustomMovementState recordingCheckState = CustomMovementState.NONE;
     private int playingState = 0;
+    private boolean shouldCheckIfRecordingShouldBePlayed = true;
+    private boolean recordingFile = false;
+    private boolean recordingFile2 = false;
 
     public boolean shouldPlayRecording(EmergencyType emergency) {
         switch (emergency) {
@@ -1165,8 +1175,9 @@ public class Failsafe implements IFeature {
             case TELEPORT_CHECK:
             case ITEM_CHANGE_CHECK:
             case BEDROCK_CAGE_CHECK:
-                if (movementFilesExist(emergency.name()))
+                if (movementFilesExist(emergency.name())) {
                     return true;
+                }
         }
         return false;
     }
@@ -1175,8 +1186,6 @@ public class Failsafe implements IFeature {
         File recordingDir = new File(mc.mcDataDir, "movementrecorder");
         if (recordingDir.exists()) {
             File[] recordingFiles = recordingDir.listFiles();
-            boolean recordingFile = false;
-            boolean recordingFile2 = false;
             if (recordingFiles != null) {
                 for (File file : recordingFiles) {
                     if (file.getName().contains(emergencyName + "_PreChat_")) {
@@ -1232,6 +1241,7 @@ public class Failsafe implements IFeature {
                 switch (playingState) {
                     case 0:
                         MovRecReader.playRecording(selectRandomRecordingByName(emergencyName + "_PreChat_"));
+                        failsafeDelay.schedule((long) (2000 + Math.random() * 1_000));
                         playingState = 1;
                         break;
                     case 1:
@@ -1274,6 +1284,7 @@ public class Failsafe implements IFeature {
                 switch (playingState) {
                     case 2:
                         MovRecReader.playRecording(selectRandomRecordingByName(emergencyName + "_PostChat_"));
+                        failsafeDelay.schedule((long) (2000 + Math.random() * 1_000));
                         playingState = 3;
                         break;
                     case 3:
@@ -1285,9 +1296,12 @@ public class Failsafe implements IFeature {
                 break;
             case END:
                 float randomTime = FarmHelperConfig.getRandomRotationTime();
-                rotation.easeTo(new RotationConfiguration(
-                        new Rotation((float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30), (float) (30 + Math.random() * 20 - 10)), (long) randomTime, null
-                ));
+                this.rotation.easeTo(
+                        new RotationConfiguration(
+                                new Rotation(
+                                        (float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30),
+                                        (float) (30 + Math.random() * 20 - 10))
+                                , (long) randomTime, null));
                 Failsafe.getInstance().stop();
                 if (FarmHelperConfig.enableRestartAfterFailSafe) {
                     MacroHandler.getInstance().pauseMacro();
@@ -1301,9 +1315,17 @@ public class Failsafe implements IFeature {
                         LogUtils.sendDebug("[Failsafe] Restarting macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
                         restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
                     }
-                }, (int) randomTime + 250, TimeUnit.MILLISECONDS);
+                }, (long) randomTime + 250, TimeUnit.MILLISECONDS);
                 break;
         }
+    }
+
+    private void resetCustomMovement() {
+        recordingCheckState = CustomMovementState.NONE;
+        playingState = 0;
+        shouldCheckIfRecordingShouldBePlayed = true;
+        recordingFile = false;
+        recordingFile2 = false;
     }
 
     // endregion
