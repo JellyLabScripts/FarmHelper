@@ -218,12 +218,7 @@ public class Failsafe implements IFeature {
         if (!isEmergency()) return;
         if (failsafeDelay.isScheduled() && !failsafeDelay.passed()) return;
 
-        if (
-                !MovRecReader.isPlaying()
-                && !MovRecReader.isReading()
-                && !rotation.isRotating()
-                && shouldPlayRecording(emergency)
-        ) {
+        if (shouldPlayRecording(emergency)) {
             playMovementRecording(emergency.name());
             return;
         }
@@ -1178,20 +1173,16 @@ public class Failsafe implements IFeature {
 
     private boolean movementFilesExist(String emergencyName) {
         File recordingDir = new File(mc.mcDataDir, "movementrecorder");
-        LogUtils.sendDebug("Checking recording name for: " + emergencyName);
         if (recordingDir.exists()) {
             File[] recordingFiles = recordingDir.listFiles();
             boolean recordingFile = false;
             boolean recordingFile2 = false;
             if (recordingFiles != null) {
                 for (File file : recordingFiles) {
-                    LogUtils.sendDebug("[Failsafe] Found file: " + file.getName());
                     if (file.getName().contains(emergencyName + "_PreChat_")) {
                         recordingFile = true;
-                        LogUtils.sendDebug("[Failsafe] Found recording file: " + file.getName());
                     } else if (file.getName().contains(emergencyName + "_PostChat_")) {
                         recordingFile2 = true;
-                        LogUtils.sendDebug("[Failsafe] Found recording2 file: " + file.getName());
                     }
                     if (recordingFile && recordingFile2) {
                         return true;
@@ -1205,14 +1196,13 @@ public class Failsafe implements IFeature {
     public String selectRandomRecordingByName(String pattern) {
         File recordingDir = new File(mc.mcDataDir, "movementrecorder");
         File[] files = recordingDir.listFiles((dir, name) -> name.contains(pattern) && name.endsWith(".movement"));
-        System.out.println(Arrays.toString(files));
 
         if (files != null && files.length > 0) {
             List<File> matchingFiles = new ArrayList<>(Arrays.asList(files));
 
             Random random = new Random();
             int randomIndex = random.nextInt(matchingFiles.size());
-            System.out.println("Selected recording: " + matchingFiles.get(randomIndex).getName());
+            LogUtils.sendDebug("Selected recording: " + matchingFiles.get(randomIndex).getName());
             return matchingFiles.get(randomIndex).getName();
         }
 

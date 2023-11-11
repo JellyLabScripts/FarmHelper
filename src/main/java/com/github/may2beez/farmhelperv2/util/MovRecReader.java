@@ -17,6 +17,7 @@ public class MovRecReader {
     private static final List<Movement> movements = new ArrayList<>();
     private static boolean isMovementPlaying = false;
     private static boolean isMovementReading = false;
+    private static boolean attackKeyPressed = false;
     private static int currentDelay = 0;
     private static int playingIndex = 0;
     static Minecraft mc = Minecraft.getMinecraft();
@@ -84,6 +85,7 @@ public class MovRecReader {
             currentDelay++;
             return;
         }
+        attackKeyPressed = false;
         playingIndex++;
         currentDelay = 0;
         if (playingIndex >= movements.size()) {
@@ -96,6 +98,7 @@ public class MovRecReader {
     public static void stopRecording() {
         playingIndex = 0;
         currentDelay = 0;
+        attackKeyPressed = false;
         resetTimers();
         KeyBindUtils.stopMovement();
         if (isMovementPlaying || isMovementReading) {
@@ -107,17 +110,17 @@ public class MovRecReader {
         LogUtils.sendError("No recording has been started.");
     }
 
-    public static void playRecording(String name) {
-        movements.clear();
-        playingIndex = 0;
-        resetTimers();
+    public static void playRecording(String filename) {
         if (isMovementPlaying) {
             LogUtils.sendError("The recording is playing already.");
             return;
         }
+        movements.clear();
+        playingIndex = 0;
+        resetTimers();
         isMovementReading = true;
         try {
-            List<String> lines = java.nio.file.Files.readAllLines(new File(mc.mcDataDir + "\\movementrecorder\\" + name + ".movement").toPath());
+            List<String> lines = java.nio.file.Files.readAllLines(new File(mc.mcDataDir + "\\movementrecorder\\" + filename).toPath());
             for (String line : lines) {
                 if (!isMovementReading) return;
                 String[] split = line.split(";");
@@ -132,7 +135,7 @@ public class MovRecReader {
                         Boolean.parseBoolean(split[7]),
                         Boolean.parseBoolean(split[8]),
                         Float.parseFloat(split[9]),
-                        Integer.parseInt(split[10]),
+                        Float.parseFloat(split[10]),
                         Integer.parseInt(split[11])
                 );
                 movements.add(movement);
@@ -169,8 +172,9 @@ public class MovRecReader {
         if (mc.thePlayer.capabilities.allowFlying && mc.thePlayer.capabilities.isFlying != movement.fly)
             mc.thePlayer.capabilities.isFlying = movement.fly;
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), movement.jump);
-        if (movement.attack) {
+        if (movement.attack && !attackKeyPressed) {
             KeyBindUtils.leftClick();
+            attackKeyPressed = true;
         }
     }
 
