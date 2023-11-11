@@ -86,7 +86,6 @@ public abstract class AbstractMacro {
     }
 
     public void onTick() {
-        System.out.println("AbstractMacro.onTick()");
         checkForTeleport();
         LogUtils.webhookStatus();
         if (analyticsClock.passed() && FarmHelperConfig.sendAnalyticData) {
@@ -179,7 +178,6 @@ public abstract class AbstractMacro {
             }
             invokeState();
         }
-        System.out.println("AbstractMacro.onTick() end");
     }
 
     public void onLastRender() {
@@ -199,33 +197,23 @@ public abstract class AbstractMacro {
     public abstract void invokeState();
 
     public void onEnable() {
-        System.out.println("AbstractMacro.onEnable()");
         GameStateHandler.getInstance().scheduleRewarp();
-        System.out.println("AbstractMacro.onEnable() 1");
         setClosest90Deg(AngleUtils.getClosest());
-        System.out.println("AbstractMacro.onEnable() 2");
         if (savedState.isPresent()) {
-            System.out.println("AbstractMacro.onEnable() 3");
             LogUtils.sendDebug("Restoring state: " + savedState.get());
             changeState(savedState.get().getState());
             setYaw(savedState.get().getYaw());
             setPitch(savedState.get().getPitch());
             setClosest90Deg(savedState.get().getClosest90Deg());
             savedState = Optional.empty();
-            System.out.println("AbstractMacro.onEnable() 4");
         } else if (currentState == State.NONE || currentState == null) {
-            System.out.println("AbstractMacro.onEnable() 5");
             changeState(calculateDirection());
-            System.out.println("AbstractMacro.onEnable() 5.5");
         }
         setEnabled(true);
-        System.out.println("AbstractMacro.onEnable() 6");
         if (VisitorsMacro.getInstance().isToggled()) {
             VisitorsMacro.getInstance().start();
         }
-        System.out.println("AbstractMacro.onEnable() 7");
         analyticsClock.schedule(60_000);
-        System.out.println("AbstractMacro.onEnable() end");
     }
 
     public void onDisable() {
