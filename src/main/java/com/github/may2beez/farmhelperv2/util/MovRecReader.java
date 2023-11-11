@@ -77,7 +77,7 @@ public class MovRecReader {
         rotateBeforePlaying.easeTo(
                 new RotationConfiguration(
                         new Rotation(movement.yaw, movement.pitch),
-                        40, null
+                        49, null
                 )
         );
 

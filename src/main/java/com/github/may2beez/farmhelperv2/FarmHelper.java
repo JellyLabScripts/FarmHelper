@@ -98,6 +98,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(VisitorsMacro.getInstance());
         MinecraftForge.EVENT_BUS.register(RotationHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(PlotCleaningHelper.getInstance());
+        MinecraftForge.EVENT_BUS.register(new MovRecReader());
     }
 
     private void initializeFields() {
