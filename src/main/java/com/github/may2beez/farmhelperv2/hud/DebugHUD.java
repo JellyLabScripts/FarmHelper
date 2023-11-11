@@ -24,8 +24,13 @@ public class DebugHUD extends TextHud {
             lines.add("Current state: " + macro.getCurrentState());
             lines.add("Rotating: " + macro.getRotation().isRotating());
         });
-        lines.add("Scheduler: " + Scheduler.getInstance().isToggled());
+        lines.add("Directions: ");
+        lines.add("   Forward: " + GameStateHandler.getInstance().isFrontWalkable());
+        lines.add("   Backward: " + GameStateHandler.getInstance().isBackWalkable());
+        lines.add("   Left: " + GameStateHandler.getInstance().isLeftWalkable());
+        lines.add("   Right: " + GameStateHandler.getInstance().isRightWalkable());
         if (Scheduler.getInstance().isToggled()) {
+            lines.add("Scheduler: ");
             lines.add("  State: " + LogUtils.capitalize(Scheduler.getInstance().getSchedulerState().toString()));
             lines.add("  Clock: " + Scheduler.getInstance().getSchedulerClock().getRemainingTime());
             lines.add("  isFarming: " + Scheduler.getInstance().isFarming());

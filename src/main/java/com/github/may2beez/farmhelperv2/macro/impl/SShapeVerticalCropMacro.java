@@ -1,7 +1,6 @@
 package com.github.may2beez.farmhelperv2.macro.impl;
 
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
-import com.github.may2beez.farmhelperv2.feature.impl.AntiStuck;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
@@ -26,20 +25,16 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
             case RIGHT: {
                 if (GameStateHandler.getInstance().isLeftWalkable() && getCurrentState() == State.LEFT) {
                     // Probably stuck in dirt, continue going left
-                    AntiStuck.getInstance().start();
-                    changeState(State.LEFT);
                     return;
                 }
                 if (GameStateHandler.getInstance().isRightWalkable() && getCurrentState() == State.RIGHT) {
                     // Probably stuck in dirt, continue going right
-                    AntiStuck.getInstance().start();
-                    changeState(State.RIGHT);
                     return;
                 }
                 if (GameStateHandler.getInstance().isFrontWalkable()) {
                     if (changeLaneDirection == ChangeLaneDirection.BACKWARD) {
                         // Probably stuck in dirt
-                        AntiStuck.getInstance().start();
+                        changeState(State.NONE);
                         return;
                     }
                     changeState(State.SWITCHING_LANE);
@@ -47,7 +42,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 } else if (GameStateHandler.getInstance().isBackWalkable()) {
                     if (changeLaneDirection == ChangeLaneDirection.FORWARD) {
                         // Probably stuck in dirt
-                        AntiStuck.getInstance().start();
+                        changeState(State.NONE);
                         return;
                     }
                     changeState(State.SWITCHING_LANE);
@@ -71,7 +66,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 } else if (GameStateHandler.getInstance().isRightWalkable()) {
                     changeState(State.RIGHT);
                 } else {
-                    AntiStuck.getInstance().start();
+                    changeState(State.NONE);
                 }
                 break;
             }
@@ -137,7 +132,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                     } else if (GameStateHandler.getInstance().isBackWalkable()) {
                         changeLaneDirection = ChangeLaneDirection.BACKWARD;
                     } else {
-                        AntiStuck.getInstance().start();
+                        changeState(State.NONE);
                         return;
                     }
                 }
@@ -178,25 +173,15 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
         } else {
             if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_V_NORMAL_TYPE) {
                 setPitch((float) (2.8f + Math.random() * 0.5f));
-            }
-
-            if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_PUMPKIN_MELON) {
+            } else if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_PUMPKIN_MELON) {
                 setPitch(28 + (float) (Math.random() * 2)); // 28 - 30
-            }
-
-            if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_PUMPKIN_MELON_MELONGKINGDE) { // melonkingdebil
-                setPitch((float) (-58.5f + Math.random() * 1f)); // -58.5 - -57.5
-            }
-
-            if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.NETHER_WART || FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_CACTUS) {
+            } else if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_PUMPKIN_MELON_MELONGKINGDE) { // melonkingdebil
+                setPitch((float) (-59.2f + Math.random() * 1f)); // -59.2 - -58.2
+            } else if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.NETHER_WART || FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_CACTUS) {
                 setPitch((float) (0f + Math.random() * 0.5f)); // 0 - 0.5
-            }
-
-            if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_CACTUS_SUNTZU) {
+            } else if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_CACTUS_SUNTZU) {
                 setPitch((float) (-38 - Math.random() * 1.5f)); // -38 - -39.5
-            }
-
-            if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_COCOA_BEANS_LEFT_RIGHT) {
+            } else if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_COCOA_BEANS_LEFT_RIGHT) {
                 setPitch(-90f);
             }
         }

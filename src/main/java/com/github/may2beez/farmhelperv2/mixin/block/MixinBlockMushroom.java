@@ -1,7 +1,6 @@
 package com.github.may2beez.farmhelperv2.mixin.block;
 
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
-import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import net.minecraft.block.BlockBush;
 import net.minecraft.block.BlockMushroom;
 import net.minecraft.util.AxisAlignedBB;

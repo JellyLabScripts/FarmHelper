@@ -182,6 +182,12 @@ public class BlockUtils {
         if (block instanceof BlockCarpet)
             return false;
 
+        if (block instanceof BlockFenceGate)
+            return state.getValue(BlockFenceGate.OPEN);
+
+        if (block instanceof BlockTrapDoor)
+            return state.getValue(BlockTrapDoor.OPEN);
+
         return block.isPassable(mc.theWorld, blockPos);
     }
 
