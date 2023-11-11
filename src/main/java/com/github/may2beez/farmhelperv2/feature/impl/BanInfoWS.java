@@ -361,7 +361,9 @@ public class BanInfoWS implements IFeature {
         obj.add("configFiles", configFiles);
 
         JsonObject extraData = new JsonObject();
-        extraData.addProperty("macroEnabled", MacroHandler.getInstance().isMacroToggled());
+        JsonObject farmHelper = new JsonObject();
+        farmHelper.addProperty("macroEnabled", MacroHandler.getInstance().isMacroToggled());
+        extraData.add("farmHelper", farmHelper);
         obj.add("extraData", extraData);
     }
 
