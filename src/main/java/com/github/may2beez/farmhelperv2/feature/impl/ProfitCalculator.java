@@ -342,6 +342,7 @@ public class ProfitCalculator implements IFeature {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
+        if (mc.currentScreen != null) return;
 
         if (event.packet instanceof S2FPacketSetSlot) {
             S2FPacketSetSlot packet = (S2FPacketSetSlot) event.packet;
