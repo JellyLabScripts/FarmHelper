@@ -63,7 +63,7 @@ public class WelcomeGUI extends GuiScreen {
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         this.drawBackground(0);
         drawTitle();
-        float scale = this.width / 450f;
+        float scale = this.width / 600f;
         int fontSize = (int) (this.width / 2f / scale);
         GL11.glScalef(scale, scale, 0.0F);
         for (int i = 0; i < welcomeMessage.length; i++) {
