@@ -21,7 +21,10 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 // Credits to GTC's nuker
@@ -203,7 +206,7 @@ public class PlotCleaningHelper implements IFeature {
                     int id = getBestTool(Objects.requireNonNull(BlockUtils.getBlockState(target)).getBlock());
                     if (id != -1 && mc.thePlayer.inventory.currentItem != id) {
                         mc.thePlayer.inventory.currentItem = id;
-                        lastBlockBroken = event.timestamp + 250;
+                        lastBlockBroken = event.timestamp + 100;
                         return;
                     }
                 }
@@ -327,7 +330,7 @@ public class PlotCleaningHelper implements IFeature {
     }
 
     private boolean checkIfPickaxe(Block block) {
-        return block.getMaterial().equals(Material.rock) || block.equals(Blocks.stone_slab) || block.equals(Blocks.double_stone_slab) || block.equals(Blocks.cobblestone) || block.equals(Blocks.stone_stairs);
+        return (block.getMaterial().equals(Material.rock) && !block.equals(Blocks.bedrock)) || block.equals(Blocks.stone_slab) || block.equals(Blocks.double_stone_slab) || block.equals(Blocks.cobblestone) || block.equals(Blocks.stone_stairs);
     }
 
     private boolean canMine(BlockPos blockPos) {
@@ -335,22 +338,22 @@ public class PlotCleaningHelper implements IFeature {
 
         Block block = mc.theWorld.getBlockState(blockPos).getBlock();
         if (FarmHelperConfig.autoChooseTool) {
-            if (block instanceof BlockTallGrass || block instanceof BlockFlower || block instanceof BlockLeaves || block instanceof BlockDoublePlant) {
+            if (checkIfScythe(block)) {
                 return InventoryUtils.hasItemInHotbar("Scythe");
-            } else if (block.getMaterial().equals(Material.wood)) {
+            } else if (checkIfTreecap(block)) {
                 return InventoryUtils.hasItemInHotbar("Treecapitator", "Axe");
-            } else if (block.getMaterial().equals(Material.rock) && !block.equals(Blocks.bedrock)) {
+            } else if (checkIfPickaxe(block)) {
                 return InventoryUtils.hasItemInHotbar("Pickaxe") || InventoryUtils.hasItemInHotbar("Stonk");
             }
         } else {
             ItemStack currentItem = mc.thePlayer.getCurrentEquippedItem();
             if (currentItem == null) return false;
             if (Arrays.stream(tools).noneMatch(currentItem.getDisplayName()::contains)) return false;
-            if (block instanceof BlockTallGrass || block instanceof BlockFlower || block instanceof BlockLeaves || block instanceof BlockDoublePlant) {
+            if (checkIfScythe(block)) {
                 return currentItem.getDisplayName().contains("Scythe");
-            } else if (block.getMaterial().equals(Material.wood)) {
+            } else if (checkIfTreecap(block)) {
                 return currentItem.getDisplayName().contains("Treecapitator") || (currentItem.getDisplayName().contains("Axe") && !currentItem.getDisplayName().contains("Pick"));
-            } else if (block.getMaterial().equals(Material.rock)) {
+            } else if (checkIfPickaxe(block)) {
                 return currentItem.getDisplayName().contains("Pickaxe") || currentItem.getDisplayName().contains("Stonk");
             }
         }

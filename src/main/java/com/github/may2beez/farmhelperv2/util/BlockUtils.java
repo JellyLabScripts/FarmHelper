@@ -130,6 +130,18 @@ public class BlockUtils {
     private static boolean canWalkThroughBottom(BlockPos blockPos) {
         IBlockState state = mc.theWorld.getBlockState(blockPos);
         Block block = state.getBlock();
+
+        // if no blocks down to 65, then return false
+        boolean allAir = true;
+        for (int y = blockPos.getY(); y >= 65; y--) {
+            if (mc.theWorld.getBlockState(new BlockPos(blockPos.getX(), y, blockPos.getZ())).getBlock() != Blocks.air) {
+                allAir = false;
+                break;
+            }
+        }
+
+        if (allAir) return false;
+
         if (mc.thePlayer.posY % 1 >= 0.5 && mc.thePlayer.posY % 1 <= 0.75)
             return true;
 
