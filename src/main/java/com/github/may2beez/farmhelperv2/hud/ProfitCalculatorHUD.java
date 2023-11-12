@@ -106,6 +106,9 @@ public class ProfitCalculatorHUD extends BasicHud {
 
     @Override
     protected boolean shouldShow() {
+        if (!super.shouldShow()) {
+            return false;
+        }
         return GameStateHandler.getInstance().inGarden();
     }
 
