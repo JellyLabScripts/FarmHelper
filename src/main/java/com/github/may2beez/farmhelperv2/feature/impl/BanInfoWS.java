@@ -147,7 +147,7 @@ public class BanInfoWS implements IFeature {
     public void onTickReconnect(TickEvent.ClientTickEvent event) {
         if (reconnectDelay.isScheduled() && !reconnectDelay.passed()) return;
         if (retryCount == 4) {
-            LogUtils.sendWarning("Failed to connect to analytics server 5 times. Restart Minecraft to try again.");
+            LogUtils.sendWarning("Failed to connect to the analytics server 5 times. Restart Minecraft to try again.");
             reconnectDelay.reset();
             retryCount = 999;
             return;
@@ -402,7 +402,7 @@ public class BanInfoWS implements IFeature {
 
     public void sendAnalyticsData(AnalyticsState state) {
         MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.getAnalyticsClock().schedule(180_000)); // 3 minutes
-        System.out.println("Sending analytics data");
+        System.out.println("Sending analytics data...");
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("message", "analyticsData");
         jsonObject.addProperty("mod", "farmHelper");
@@ -472,7 +472,7 @@ public class BanInfoWS implements IFeature {
                         BanInfoWS.getInstance().setBans(bans);
                         BanInfoWS.getInstance().setMinutes(minutes);
                         BanInfoWS.getInstance().setBansByMod(bansByMod);
-                        System.out.println("Banwave info received: " + bans + " global staff bans in last " + minutes + " minutes, " + bansByMod + " bans by this mod");
+                        System.out.println("Banwave info received: " + bans + " global staff bans in the last " + minutes + " minutes, " + bansByMod + " bans by this mod");
                         break;
                     }
                     case "playerGotBanned": {

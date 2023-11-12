@@ -184,12 +184,12 @@ public class AutoSell implements IFeature {
                 start();
             } else {
                 inventoryFilledClock.reset();
-                LogUtils.sendDebug("[Auto Sell] Inventory is not full anymore, resetting inventoryFilledClock");
+                LogUtils.sendDebug("[Auto Sell] Inventory is not full anymore, resetting inventoryFilledClock...");
             }
         } else if (!inventoryFilledClock.isScheduled()) {
             if (getInventoryFilledPercentage() >= FarmHelperConfig.inventoryFullRatio / 100f) {
                 inventoryFilledClock.schedule((long) (FarmHelperConfig.inventoryFullTime * 1000f));
-                LogUtils.sendDebug("[Auto Sell] Inventory is full, scheduling inventoryFilledClock");
+                LogUtils.sendDebug("[Auto Sell] Inventory is full, scheduling inventoryFilledClock...");
             }
         }
     }
@@ -213,7 +213,7 @@ public class AutoSell implements IFeature {
                 break;
             case OPEN_MENU:
                 if (mc.currentScreen == null) {
-                    LogUtils.sendDebug("[Auto Sell] Opening Sacks menu");
+                    LogUtils.sendDebug("[Auto Sell] Opening the Sacks menu");
                     pickedUpItems = false;
                     mc.thePlayer.sendChatMessage("/sacks");
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
@@ -228,7 +228,7 @@ public class AutoSell implements IFeature {
                     break;
                 }
                 if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Sacks")) {
-                    LogUtils.sendDebug("[Auto Sell] Wrong menu");
+                    LogUtils.sendDebug("[Auto Sell] Wrong menu detected!");
                     mc.thePlayer.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     setSacksState(SacksState.OPEN_MENU);
@@ -237,10 +237,10 @@ public class AutoSell implements IFeature {
                     break;
                 }
 
-                LogUtils.sendDebug("[Auto Sell] Detected Sacks menu");
+                LogUtils.sendDebug("[Auto Sell] Detected the Sacks menu");
                 int sacksSlot = InventoryUtils.getSlotIdOfItemInContainer("Agronomy Sack");
                 if (sacksSlot == -1) {
-                    LogUtils.sendDebug("[Auto Sell] Couldn't find \"Agronomy Sack\" item in Sacks menu, closing Sacks menu");
+                    LogUtils.sendDebug("[Auto Sell] Couldn't find the \"Agronomy Sack\" item in the Sacks menu, closing Sacks menu");
                     mc.thePlayer.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     setSacksState(SacksState.CLOSE_MENU);
@@ -259,7 +259,7 @@ public class AutoSell implements IFeature {
                     break;
                 }
                 if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Agronomy Sack")) {
-                    LogUtils.sendDebug("[Auto Sell] Wrong menu");
+                    LogUtils.sendDebug("[Auto Sell] Wrong menu detected!");
                     mc.thePlayer.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     setSacksState(SacksState.OPEN_MENU);
@@ -280,7 +280,7 @@ public class AutoSell implements IFeature {
                         setSacksState(SacksState.CLOSE_MENU);
                     }
                 } else {
-                    LogUtils.sendDebug("[Auto Sell] Couldn't find \"Pickup All\" item in Sacks menu, closing Sacks menu");
+                    LogUtils.sendDebug("[Auto Sell] Couldn't find the \"Pickup All\" item in the Sacks menu, closing Sacks menu...");
                     mc.thePlayer.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     setSacksState(SacksState.CLOSE_MENU);
@@ -329,7 +329,7 @@ public class AutoSell implements IFeature {
                             break;
                         }
                         if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Bazaar")) {
-                            LogUtils.sendDebug("[Auto Sell] Wrong menu");
+                            LogUtils.sendDebug("[Auto Sell] Wrong menu detected!");
                             mc.thePlayer.closeScreen();
                             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                             setBazaarState(BazaarState.OPEN_MENU);
@@ -342,7 +342,7 @@ public class AutoSell implements IFeature {
                         int sellInventorySlot = InventoryUtils.getSlotIdOfItemInContainer("Sell Inventory Now");
                         int sellSacksSlot = InventoryUtils.getSlotIdOfItemInContainer("Sell Sacks Now");
                         if (sellInventorySlot == -1) {
-                            LogUtils.sendDebug("[Auto Sell] Couldn't find \"Sell Inventory Now\" item in Bazaar menu, opening again menu");
+                            LogUtils.sendDebug("[Auto Sell] Couldn't find the \"Sell Inventory Now\" item in the Bazaar menu, opening the menu again...");
                             mc.thePlayer.closeScreen();
                             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                             setBazaarState(BazaarState.OPEN_MENU);
@@ -369,7 +369,7 @@ public class AutoSell implements IFeature {
                     case SELL_INV_CONFIRM:
                         if (mc.currentScreen == null) return;
                         if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Are you sure?")) {
-                            LogUtils.sendError("[Auto Sell] Couldn't find \"Are you sure?\" inventory, opening again menu");
+                            LogUtils.sendError("[Auto Sell] Couldn't find the \"Are you sure?\" inventory, opening the menu again...");
                             mc.thePlayer.closeScreen();
                             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                             setBazaarState(BazaarState.OPEN_MENU);
@@ -380,7 +380,7 @@ public class AutoSell implements IFeature {
                         LogUtils.sendDebug("[Auto Sell] Detected sell confirmation menu");
                         int confirmSlot = InventoryUtils.getSlotIdOfItemInContainer("Selling whole inventory");
                         if (confirmSlot == -1) {
-                            LogUtils.sendError("[Auto Sell] Couldn't find \"Selling whole inventory\" item in Bazaar menu, opening again menu");
+                            LogUtils.sendError("[Auto Sell] Couldn't find the \"Selling whole inventory\" item in the Bazaar menu, opening the menu again...");
                             mc.thePlayer.closeScreen();
                             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                             setBazaarState(BazaarState.OPEN_MENU);
@@ -432,7 +432,7 @@ public class AutoSell implements IFeature {
                             break;
                         }
                         if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Trades")) {
-                            LogUtils.sendDebug("[Auto Sell] Wrong menu");
+                            LogUtils.sendDebug("[Auto Sell] Wrong menu detected!");
                             mc.thePlayer.closeScreen();
                             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                             setNpcState(NPCState.OPEN_MENU);

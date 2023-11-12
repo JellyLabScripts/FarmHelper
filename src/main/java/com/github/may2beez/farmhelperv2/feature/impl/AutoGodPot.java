@@ -261,7 +261,7 @@ public class AutoGodPot implements IFeature {
 
         if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LOBBY && GameStateHandler.getInstance().getGodPotState() == GameStateHandler.BuffState.NOT_ACTIVE) {
             if (!enabled && !activating) {
-                LogUtils.sendWarning("[Auto God Pot] Your God Pot Buff is not active! Activating Auto God Pot in 1.5 second!");
+                LogUtils.sendWarning("[Auto God Pot] Your God Pot Buff is not active! Activating Auto God Pot in 1.5 seconds!");
                 activating = true;
                 KeyBindUtils.stopMovement();
                 Multithreading.schedule(() -> {

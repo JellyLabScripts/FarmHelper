@@ -166,7 +166,7 @@ public class SShapeCocoaBeanMacro extends AbstractMacro {
 
     @Override
     public State calculateDirection() {
-        LogUtils.sendDebug("Calculating direction");
+        LogUtils.sendDebug("Calculating direction...");
         if (GameStateHandler.getInstance().isFrontWalkable() && GameStateHandler.getInstance().isRightWalkable())
             return State.FORWARD;
         if (GameStateHandler.getInstance().isBackWalkable())
@@ -175,7 +175,7 @@ public class SShapeCocoaBeanMacro extends AbstractMacro {
             return State.FORWARD;
         if (GameStateHandler.getInstance().isBackWalkable() && GameStateHandler.getInstance().isLeftWalkable())
             return State.BACKWARD;
-        LogUtils.sendDebug("Cannot find direction. Length > 180");
+        LogUtils.sendDebug("Couldn't find a direction!");
         return State.NONE;
     }
 

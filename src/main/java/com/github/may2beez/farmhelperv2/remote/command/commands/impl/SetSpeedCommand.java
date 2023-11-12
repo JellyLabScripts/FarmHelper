@@ -266,7 +266,7 @@ public class SetSpeedCommand extends ClientCommand {
                     }
                 }
             }
-            LogUtils.sendDebug("Couldn't find an empty space to look at! Trying next vector...");
+            LogUtils.sendDebug("Couldn't find an empty space to look at! Trying the next vector...");
         }
         disableWithError("Couldn't find an empty space to look at! Disabling...");
     }

@@ -181,7 +181,7 @@ public class PetSwapper implements IFeature {
                     }
                     if (petLore.stream().anyMatch(s -> s.toLowerCase().contains("click to despawn"))) {
                         if (petName.toLowerCase().trim().contains(FarmHelperConfig.petSwapperName.toLowerCase())) {
-                            LogUtils.sendError("Current pet is already the one we want! Pet won't be swapped at the end of this contest.");
+                            LogUtils.sendError("The current pet is already the one we want! The pet won't be swapped at the end of this contest.");
                             hasPetChangedDuringThisContest = false;
                             mc.thePlayer.closeScreen();
                             stop();

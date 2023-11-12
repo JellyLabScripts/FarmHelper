@@ -94,8 +94,8 @@ public class DiscordBotHandler extends ListenerAdapter {
             LogUtils.sendSuccess("Connected to the Discord Bot!");
         } catch (InvalidTokenException | ErrorResponseException e) {
             e.printStackTrace();
-            Notifications.INSTANCE.send("Farm Helper", "Failed to connect to the Discord Bot, check your token. Removing token...");
-            LogUtils.sendError("Failed to connect to the Discord Bot, check your token. Disabling remote control...");
+            Notifications.INSTANCE.send("Farm Helper", "Failed to connect to the Discord Bot! Check your token. Disabling remote control and removing the token...");
+            LogUtils.sendError("Failed to connect to the Discord Bot! Check your token. Disabling remote control and removing the token...");
             WebsocketHandler.getInstance().setWebsocketState(WebsocketHandler.WebsocketState.NONE);
             FarmHelperConfig.discordRemoteControlToken = "";
         } catch (IllegalStateException e) {

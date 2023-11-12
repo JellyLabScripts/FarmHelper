@@ -95,7 +95,7 @@ public class AutoReconnect implements IFeature {
             e.printStackTrace();
         }
         state = State.CONNECTING;
-        LogUtils.sendDebug("[Reconnect] Reconnecting to server...");
+        LogUtils.sendDebug("[Reconnect] Reconnecting to the server...");
     }
 
     @Override
@@ -104,7 +104,7 @@ public class AutoReconnect implements IFeature {
         enabled = false;
         state = State.NONE;
         reconnectDelay.reset();
-        LogUtils.sendDebug("[Reconnect] Finished reconnecting to server!");
+        LogUtils.sendDebug("[Reconnect] Finished reconnecting to the server.");
         if (macroWasToggled) {
             MacroHandler.getInstance().resumeMacro();
             macroWasToggled = false;
@@ -134,7 +134,7 @@ public class AutoReconnect implements IFeature {
             case NONE:
                 break;
             case CONNECTING:
-                System.out.println("Reconnecting to server... Waiting " + LogUtils.formatTime(reconnectDelay.getRemainingTime()) + " before connecting.");
+                System.out.println("Reconnecting to the server... Waiting " + LogUtils.formatTime(reconnectDelay.getRemainingTime()) + " before connecting.");
                 if (reconnectDelay.passed()) {
                     try {
                         FMLClientHandler.instance().connectToServer(new GuiMultiplayer(new GuiMainMenu()), new ServerData("bozo", GameStateHandler.getInstance().getServerIP() != null ? GameStateHandler.getInstance().getServerIP() : "mc.hypixel.net", false));
@@ -157,8 +157,8 @@ public class AutoReconnect implements IFeature {
                     break;
                 }
                 if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY || !GameStateHandler.getInstance().inGarden()) {
-                    System.out.println("Reconnected to lobby!");
-                    LogUtils.sendDebug("[Reconnect] Came back to lobby!");
+                    System.out.println("Reconnected to the lobby!");
+                    LogUtils.sendDebug("[Reconnect] Came back to the lobby.");
                     mc.thePlayer.sendChatMessage("/skyblock");
                     state = State.GARDEN;
                     reconnectDelay.schedule(5_000);
@@ -172,8 +172,8 @@ public class AutoReconnect implements IFeature {
                     break;
                 }
                 if (GameStateHandler.getInstance().inGarden()) {
-                    System.out.println("Reconnected to garden!");
-                    LogUtils.sendDebug("[Reconnect] Came back to garden!");
+                    System.out.println("Reconnected to the garden!");
+                    LogUtils.sendDebug("[Reconnect] Came back to the garden!");
                     stop();
                 } else if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY) {
                     state = State.LOBBY;

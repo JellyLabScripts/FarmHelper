@@ -178,7 +178,7 @@ public class AutoCookie implements IFeature {
 
         if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LOBBY && GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
             if (!enabled && !activating && (!dontEnableClock.isScheduled() || dontEnableClock.passed())) {
-                LogUtils.sendWarning("[Auto Cookie] Your Cookie Buff is not active! Activating Auto Cookie in 1.5 second!");
+                LogUtils.sendWarning("[Auto Cookie] Your Cookie Buff is not active! Activating Auto Cookie in 1.5 seconds!");
                 activating = true;
                 KeyBindUtils.stopMovement();
                 Multithreading.schedule(() -> {
@@ -314,7 +314,7 @@ public class AutoCookie implements IFeature {
                             break;
                         }
                         if (InventoryUtils.getInventoryName() == null || !InventoryUtils.getInventoryName().startsWith("Bazaar")) {
-                            LogUtils.sendError("Something went wrong while opening bazaar, trying to open again!");
+                            LogUtils.sendError("Something went wrong while opening the bazaar, trying to open again!");
                             autoCookieDelay.schedule(getRandomDelay() * 2L);
                             mc.thePlayer.closeScreen();
                             setBazaarState(BazaarState.OPEN_BAZAAR);
@@ -322,7 +322,7 @@ public class AutoCookie implements IFeature {
                         }
                         int odditiesSlot = InventoryUtils.getSlotIdOfItemInContainer("Oddities");
                         if (odditiesSlot == -1) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the oddities! Restarting");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the oddities! Restarting...");
                             stop();
                             enabled = true;
                             break;
@@ -344,7 +344,7 @@ public class AutoCookie implements IFeature {
                         }
 
                         if (InventoryUtils.getInventoryName() == null || !InventoryUtils.getInventoryName().startsWith("Bazaar ➜ Oddities")) {
-                            LogUtils.sendError("Something went wrong while opening bazaar, trying to open again!");
+                            LogUtils.sendError("Something went wrong while opening the bazaar, trying to open again!");
                             autoCookieDelay.schedule(getRandomDelay() * 2L);
                             mc.thePlayer.closeScreen();
                             setBazaarState(BazaarState.OPEN_BAZAAR);
@@ -353,7 +353,7 @@ public class AutoCookie implements IFeature {
 
                         int cookieSlot = InventoryUtils.getSlotIdOfItemInContainer("Booster Cookie");
                         if (cookieSlot == -1) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting...");
                             stop();
                             enabled = true;
                             break;
@@ -377,7 +377,7 @@ public class AutoCookie implements IFeature {
 
                         int buyInstantlySlot = InventoryUtils.getSlotIdOfItemInContainer("Buy Instantly");
                         if (buyInstantlySlot == -1) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the buy instantly! Restarting");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the buy instantly! Restarting...");
                             stop();
                             enabled = true;
                             break;
@@ -401,7 +401,7 @@ public class AutoCookie implements IFeature {
 
                         int buyOnlyOneSlot = InventoryUtils.getSlotIdOfItemInContainer("Buy only one!");
                         if (buyOnlyOneSlot == -1) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the buy only one! Restarting");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the buy only one! Restarting...");
                             stop();
                             enabled = true;
                             break;
@@ -457,7 +457,7 @@ public class AutoCookie implements IFeature {
                         }
                         int cookieSlot = InventoryUtils.getSlotIdOfItemInInventory("Booster Cookie");
                         if (cookieSlot == -1) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting...");
                             stop();
                             enabled = true;
                             break;
@@ -469,7 +469,7 @@ public class AutoCookie implements IFeature {
                         break;
                     case SWAP_COOKIE_TO_HOTBAR_PUT:
                         if (mc.currentScreen == null) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting...");
                             stop();
                             enabled = true;
                             break;
@@ -486,7 +486,7 @@ public class AutoCookie implements IFeature {
                         break;
                     case SWAP_COOKIE_TO_HOTBAR_PUT_BACK:
                         if (mc.currentScreen == null) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting...");
                             stop();
                             enabled = true;
                             break;
@@ -508,7 +508,7 @@ public class AutoCookie implements IFeature {
                         break;
                     case PUT_ITEM_BACK_PUT:
                         if (mc.currentScreen == null) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting...");
                             stop();
                             enabled = true;
                             break;
@@ -528,7 +528,7 @@ public class AutoCookie implements IFeature {
                 int cookieSlot = InventoryUtils.getSlotIdOfItemInHotbar("Booster Cookie");
                 LogUtils.sendDebug("Cookie Slot: " + cookieSlot);
                 if (cookieSlot == -1 || cookieSlot > 8) {
-                    LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting");
+                    LogUtils.sendError("Something went wrong while trying to get the slot of the cookie! Restarting...");
                     stop();
                     enabled = true;
                     break;
@@ -554,7 +554,7 @@ public class AutoCookie implements IFeature {
 
                 int slotOfConsumeCookie = InventoryUtils.getSlotIdOfItemInContainer("Consume Cookie");
                 if (slotOfConsumeCookie == -1) {
-                    LogUtils.sendError("Something went wrong while trying to get the slot of the consume cookie! Restarting");
+                    LogUtils.sendError("Something went wrong while trying to get the slot of the consume cookie! Restarting...");
                     stop();
                     enabled = true;
                     break;
@@ -594,7 +594,7 @@ public class AutoCookie implements IFeature {
         if (mainState == State.WAIT_FOR_CONSUME) {
             if (message.startsWith("You consumed a Booster Cookie!")) {
                 LogUtils.sendDebug("Successfully consumed a cookie!");
-                LogUtils.sendWarning("[Auto Cookie] Successfully consumed a cookie! Resuming macro in 1.5s");
+                LogUtils.sendWarning("[Auto Cookie] Successfully consumed a cookie! Resuming the macro in 1.5s");
                 if (this.hotbarSlot == -1) {
                     setMainState(State.NONE);
                     Multithreading.schedule(this::stop, 1_500, TimeUnit.MILLISECONDS);
@@ -608,7 +608,7 @@ public class AutoCookie implements IFeature {
 
         if (mainState == State.GET_COOKIE) {
             if (message.startsWith("This server is too laggy to use the Bazaar, sorry!")) {
-                LogUtils.sendError("This server is too laggy to use the Bazaar, sorry! Disabling this feature for next 30 minutes");
+                LogUtils.sendError("This server is too laggy to use the Bazaar, sorry! Disabling this feature for the next 30 minutes");
                 dontEnableClock.schedule(30_000 * 60);
                 setBazaarState(BazaarState.CLOSE_GUI);
             }
@@ -618,7 +618,7 @@ public class AutoCookie implements IFeature {
                     setBazaarState(BazaarState.CLOSE_GUI);
                     autoCookieDelay.schedule(getRandomDelay());
                 } else if (message.startsWith("[Bazaar] You cannot afford this!")) {
-                    LogUtils.sendError("You cannot afford a cookie! Disabling this feature for next 30 minutes");
+                    LogUtils.sendError("You cannot afford a cookie! Disabling this feature for the next 30 minutes");
                     dontEnableClock.schedule(30_000 * 60);
                     setBazaarState(BazaarState.CLOSE_GUI);
                 }

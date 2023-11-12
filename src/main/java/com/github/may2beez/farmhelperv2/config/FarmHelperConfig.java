@@ -177,7 +177,7 @@ public class FarmHelperConfig extends Config {
 
     @Switch(
             name = "Don't fix micro rotations after warp", category = GENERAL, subcategory = "Rotation",
-            description = "Macro doesn't do micro rotations after rewarp, if current yaw and target yaw are the same", size = 2
+            description = "The macro doesn't do micro-rotations after rewarp if the current yaw and target yaw are the same", size = 2
     )
     public static boolean dontFixAfterWarping = false;
 
@@ -275,7 +275,7 @@ public class FarmHelperConfig extends Config {
     public static OneKeyBind plotCleaningHelperKeybind = new OneKeyBind(Keyboard.KEY_P);
 
     @Switch(
-            name = "Automatically choose tool to destroy the block", category = MISCELLANEOUS, subcategory = "Plot Cleaning Helper",
+            name = "Automatically choose a tool to destroy the block", category = MISCELLANEOUS, subcategory = "Plot Cleaning Helper",
             description = "Automatically chooses the best tool to destroy the block"
     )
     public static boolean autoChooseTool = false;
@@ -315,12 +315,12 @@ public class FarmHelperConfig extends Config {
 
     @Switch(
             name = "Auto Ungrab Mouse", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-            description = "Automatically ugrabs your mouse, so you can safely alt-tab"
+            description = "Automatically ungrabs your mouse, so you can safely alt-tab"
     )
     public static boolean autoUngrabMouse = true;
 
     @Info(
-            text = "Prority getting God Pot is: Backpack -> Bits -> AH",
+            text = "Priority getting God Pot is: Backpack -> Bits -> AH",
             type = InfoType.INFO, size = 2, category = MISCELLANEOUS, subcategory = "God Pot"
     )
     private static int godPotInfo;
@@ -352,13 +352,13 @@ public class FarmHelperConfig extends Config {
     public static int autoGodPotBackpackNumber = 1;
 
     @Switch(
-            name = "Get God Pot with Bits", category = MISCELLANEOUS, subcategory = "God Pot"
+            name = "Buy God Pot using Bits", category = MISCELLANEOUS, subcategory = "God Pot"
     )
     public static boolean autoGodPotFromBits = false;
 
     @Switch(
             name = "Get God Pot from Auction House", category = MISCELLANEOUS, subcategory = "God Pot",
-            description = "If user doesn't have cookie, it will go to hub and buy from AH"
+            description = "If the user doesn't have a cookie, it will go to the hub and buy from AH"
     )
     public static boolean autoGodPotFromAH = false;
 
@@ -401,14 +401,14 @@ public class FarmHelperConfig extends Config {
 
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "Inventory Full Time", category = MISCELLANEOUS, subcategory = "Auto Sell",
-            description = "The time to wait to test, if inventory fullness ratio is still the same (or higher)",
+            description = "The time to wait to test if inventory fullness ratio is still the same (or higher)",
             min = 1, max = 20
     )
     public static int inventoryFullTime = 6;
 
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "Inventory Full Ratio", category = MISCELLANEOUS, subcategory = "Auto Sell",
-            description = "After reaching this ratio, macro will start counting from 0 to Inventory Full Time. If the fullness ratio is still the same (or higher) after the time has passed, it will start selling items",
+            description = "After reaching this ratio, the macro will start counting from 0 to Inventory Full Time. If the fullness ratio is still the same (or higher) after the time has passed, it will start selling items.",
             min = 1, max = 100
     )
     public static int inventoryFullRatio = 65;
@@ -451,7 +451,7 @@ public class FarmHelperConfig extends Config {
 
     @Switch(
             name = "Increase Cocoa Hitboxes", category = MISCELLANEOUS, subcategory = "Crop Utils",
-            description = "Allows you to farm cocoa beans more efficient on higher speeds by making the hitboxes bigger"
+            description = "Allows you to farm cocoa beans more efficiently at higher speeds by making the hitboxes bigger"
     )
     public static boolean increasedCocoaBeans = true;
 
@@ -463,20 +463,20 @@ public class FarmHelperConfig extends Config {
 
     @Switch(
             name = "Increase Nether Wart Hitboxes", category = MISCELLANEOUS, subcategory = "Crop Utils",
-            description = "Allows you to farm nether warts more efficient on higher speeds by making the hitboxes bigger"
+            description = "Allows you to farm nether warts more efficiently at higher speeds by making the hitboxes bigger"
     )
     public static boolean increasedNetherWarts = true;
 
 
     @Switch(
             name = "Increase Mushroom Hitboxes", category = MISCELLANEOUS, subcategory = "Crop Utils",
-            description = "Allows you to farm mushrooms more efficient on higher speeds by making the hitboxes bigger"
+            description = "Allows you to farm mushrooms more efficiently at higher speeds by making the hitboxes bigger"
     )
     public static boolean increasedMushrooms = true;
 
     @Switch(
             name = "Pingless Cactus", category = MISCELLANEOUS, subcategory = "Crop Utils",
-            description = "Allows you to farm cactus more efficient on higher speeds by making the cactus pingless"
+            description = "Allows you to farm cactus more efficiently at higher speeds by making the cactus pingless"
     )
     public static boolean pinglessCactus = true;
 
@@ -527,7 +527,7 @@ public class FarmHelperConfig extends Config {
 
     @Switch(
             name = "Auto TP back on World Change", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Automatically warps back to garden on server reboot, server update, etc"
+            description = "Automatically warps back to the garden on server reboot, server update, etc"
     )
     public static boolean autoTPOnWorldChange = true;
 
@@ -545,7 +545,7 @@ public class FarmHelperConfig extends Config {
 
     @Slider(
             name = "Rotation Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The sensitivity of rotation check, the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives",
+            description = "The sensitivity of the rotation check; the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives.",
             min = 1, max = 10
     )
     public static float rotationCheckSensitivity = 2;
@@ -668,13 +668,13 @@ public class FarmHelperConfig extends Config {
 
     @Switch(
             name = "Leave/pause during banwave", category = FAILSAFE, subcategory = "Banwave Checker",
-            description = "Automatically disconnects from the server or pauses the macro when banwave detected"
+            description = "Automatically disconnects from the server or pauses the macro when a banwave is detected"
     )
     public static boolean enableLeavePauseOnBanwave = false;
 
     @DualOption(
             name = "Banwave Action", category = FAILSAFE, subcategory = "Banwave Checker",
-            description = "The banwave action",
+            description = "The action taken when banwave detected",
             left = "Leave",
             right = "Pause"
     )
@@ -882,7 +882,7 @@ public class FarmHelperConfig extends Config {
     // START VISITORS_MACRO
 
     @Info(
-            text = "Visitors Macro tend to move your mouse, because of opening GUI's frequently. Be aware of that.",
+            text = "Visitors Macro tends to move your mouse because of opening GUIs frequently. Be aware of that.",
             type = InfoType.WARNING,
             category = VISITORS_MACRO,
             subcategory = "Visitors Macro",

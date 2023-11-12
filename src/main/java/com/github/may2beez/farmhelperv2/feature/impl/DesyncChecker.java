@@ -87,7 +87,7 @@ public class DesyncChecker implements IFeature {
         if (enabled) return;
         enabled = true;
         stop();
-        LogUtils.sendWarning("[Desync Checker] Desync detected, pausing macro for " + Math.floor((double) FarmHelperConfig.desyncPauseDelay / 1_000) + " seconds to prevent further desync");
+        LogUtils.sendWarning("[Desync Checker] Desync detected, pausing macro for " + Math.floor((double) FarmHelperConfig.desyncPauseDelay / 1_000) + " seconds to prevent further desync.");
         MacroHandler.getInstance().pauseMacro();
         Multithreading.schedule(() -> {
             if (!MacroHandler.getInstance().isMacroToggled()) return;

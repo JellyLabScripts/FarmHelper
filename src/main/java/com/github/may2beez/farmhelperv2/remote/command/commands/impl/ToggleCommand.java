@@ -37,7 +37,7 @@ public class ToggleCommand extends ClientCommand {
                     e.printStackTrace();
                 }
                 if (!GameStateHandler.getInstance().inGarden()) {
-                    data.addProperty("info", "Can't teleport to garden!");
+                    data.addProperty("info", "Can't teleport to the garden!");
                 } else {
                     MacroHandler.getInstance().toggleMacro();
                     data.addProperty("info", "You are in garden! Macroing");
@@ -56,7 +56,7 @@ public class ToggleCommand extends ClientCommand {
                     e.printStackTrace();
                 }
                 if (!GameStateHandler.getInstance().inGarden()) {
-                    data.addProperty("info", "Can't teleport to garden!");
+                    data.addProperty("info", "Can't teleport to the garden!");
                 } else {
                     MacroHandler.getInstance().toggleMacro();
                     data.addProperty("info", "You are in garden! Macroing");

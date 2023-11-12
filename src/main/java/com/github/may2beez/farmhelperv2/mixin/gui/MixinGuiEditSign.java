@@ -38,7 +38,7 @@ public abstract class MixinGuiEditSign extends GuiScreen {
         if (netHandlerPlayClient != null) {
             netHandlerPlayClient.addToSendQueue(new C12PacketUpdateSign(tileSign.getPos(), tileSign.signText));
             SignUtils.getInstance().setTextToWriteOnString("");
-            LogUtils.sendDebug("Sign text set to empty");
+            LogUtils.sendDebug("Sign text set to empty.");
         }
     }
 }

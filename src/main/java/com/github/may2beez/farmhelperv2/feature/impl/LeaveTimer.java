@@ -82,7 +82,7 @@ public class LeaveTimer implements IFeature {
         if (Failsafe.getInstance().isEmergency()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (leaveClock.isScheduled() && leaveClock.passed()) {
-            LogUtils.sendDebug("Leave timer has ended");
+            LogUtils.sendDebug("Leave timer has ended.");
             leaveClock.reset();
             MacroHandler.getInstance().disableMacro();
             Multithreading.schedule(() -> {

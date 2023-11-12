@@ -101,7 +101,7 @@ public abstract class AbstractMacro {
             return;
         }
         if (mc.thePlayer.getPosition().getY() < -5) {
-            LogUtils.sendError("Build a wall between rewarp point and the void to prevent falling out of the garden! Disabling the macro...");
+            LogUtils.sendError("Build a wall between the rewarp point and the void to prevent falling out of the garden! Disabling the macro...");
             MacroHandler.getInstance().disableMacro();
             triggerWarpGarden(true);
             return;
@@ -120,7 +120,7 @@ public abstract class AbstractMacro {
         if (rewarpState == RewarpState.TELEPORTED) {
             // rotate
             if (rotated && !LagDetector.getInstance().isLagging() && mc.thePlayer.onGround) {
-                LogUtils.sendDebug("Rotated after warping");
+                LogUtils.sendDebug("Rotated after warping.");
                 rewarpState = RewarpState.NONE;
                 return;
             } else if (rotated && (LagDetector.getInstance().isLagging() || !mc.thePlayer.onGround)) {
@@ -134,7 +134,7 @@ public abstract class AbstractMacro {
             if (mc.thePlayer.rotationPitch != pitch || mc.thePlayer.rotationYaw != yaw) {
                 if (mc.thePlayer.rotationYaw == yaw) {
                     if (FarmHelperConfig.dontFixAfterWarping) {
-                        LogUtils.sendDebug("Not rotating after warping");
+                        LogUtils.sendDebug("Not rotating after warping.");
                         rotated = true;
                         return;
                     }
@@ -155,12 +155,12 @@ public abstract class AbstractMacro {
         }
 
         if (Failsafe.getInstance().isEmergency()) {
-            LogUtils.sendDebug("Blocking changing movement due to emergency");
+            LogUtils.sendDebug("Blocking changing movement due to emergency!");
             return;
         }
 
         if (LagDetector.getInstance().isLagging()) {
-            LogUtils.sendDebug("Blocking changing movement due to lag");
+            LogUtils.sendDebug("Blocking changing movement due to lag!");
             return;
         }
 

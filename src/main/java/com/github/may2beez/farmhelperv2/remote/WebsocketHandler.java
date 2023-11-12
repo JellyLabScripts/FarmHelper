@@ -67,7 +67,7 @@ public class WebsocketHandler {
                 new DisconnectCommand()
         ));
         MinecraftForge.EVENT_BUS.register(speedCommand);
-        LogUtils.sendDebug("[Remote Control] Registered " + commands.size() + " commands");
+        LogUtils.sendDebug("[Remote Control] Registered " + commands.size() + " commands.");
     }
 
     public boolean isServerAlive() {
@@ -77,11 +77,11 @@ public class WebsocketHandler {
             JsonObject data = new JsonObject();
             data.addProperty("name", Minecraft.getMinecraft().getSession().getUsername());
             websocketClient.addHeader("auth", FarmHelper.gson.toJson(data));
-            LogUtils.sendDebug("[Remote Control] Connecting to websocket server..");
+            LogUtils.sendDebug("[Remote Control] Connecting to websocket server...");
             return websocketClient.connectBlocking();
         } catch (URISyntaxException | InterruptedException e) {
             websocketClient = null;
-            LogUtils.sendDebug("[Remote Control] Failed to connect to websocket server..");
+            LogUtils.sendDebug("[Remote Control] Failed to connect to the websocket server!");
             return false;
         }
     }
@@ -137,19 +137,19 @@ public class WebsocketHandler {
                         JsonObject data = new JsonObject();
                         data.addProperty("name", mc.getSession().getUsername());
                         websocketClient.addHeader("auth", FarmHelper.gson.toJson(data));
-                        LogUtils.sendDebug("[Remote Control] Connecting to websocket server..");
+                        LogUtils.sendDebug("[Remote Control] Connecting to websocket server...");
                         websocketClient.connectBlocking();
                         Notifications.INSTANCE.send("Farm Helper", "Connected to websocket server as a client!");
                     } catch (URISyntaxException | InterruptedException e) {
-                        LogUtils.sendDebug("[Remote Control] Failed to connect to websocket server..");
+                        LogUtils.sendDebug("[Remote Control] Failed to connect to the websocket server!");
                         e.printStackTrace();
                     }
                 } else if (!websocketClient.isOpen() && websocketClient.getReadyState() != ReadyState.NOT_YET_CONNECTED) {
                     if (reconnectAttempts > 5) {
                         reconnectAttempts = 0;
                         websocketState = WebsocketState.NONE;
-                        Notifications.INSTANCE.send("Farm Helper", "Failed to connect to websocket server, disabling remote control..");
-                        LogUtils.sendError("[Remote Control] Failed to connect to websocket server, disabling remote control..");
+                        Notifications.INSTANCE.send("Farm Helper", "Failed to connect to the websocket server, disabling remote control..");
+                        LogUtils.sendError("[Remote Control] Failed to connect to the websocket server, disabling remote control..");
                         FarmHelperConfig.enableRemoteControl = false;
                         return;
                     }

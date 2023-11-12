@@ -71,11 +71,11 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 break;
             }
             case DROPPING: {
-                LogUtils.sendDebug("On Ground: " + mc.thePlayer.onGround);
+                LogUtils.sendDebug("onGround: " + mc.thePlayer.onGround);
                 if (mc.thePlayer.onGround && Math.abs(getLayerY() - mc.thePlayer.getPosition().getY()) > 1.5) {
                     changeLaneDirection = null;
                     if (FarmHelperConfig.rotateAfterDrop && !getRotation().isRotating()) {
-                        LogUtils.sendDebug("Rotating 180");
+                        LogUtils.sendDebug("Rotating 180...");
                         getRotation().reset();
                         setYaw(getYaw() + 180);
                         getRotation().easeTo(
@@ -247,7 +247,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 }
             }
         }
-        LogUtils.sendDebug("Cannot find direction. Length > 180. Defaulting to RIGHT");
+        LogUtils.sendDebug("Couldn't find a direction! Length > 180. Defaulting to RIGHT...");
         return State.RIGHT;
     }
 }

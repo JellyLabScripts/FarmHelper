@@ -285,7 +285,7 @@ public class VisitorsMacro implements IFeature {
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return false;
 
         if (!manual && (!PlayerUtils.isSpawnLocationSet() || !PlayerUtils.isStandingOnSpawnPoint())) {
-            LogUtils.sendError("[Visitors Macro] Player is not standing on spawn location, skipping...");
+            LogUtils.sendError("[Visitors Macro] The player is not standing on spawn location, skipping...");
             return false;
         }
 
@@ -300,7 +300,7 @@ public class VisitorsMacro implements IFeature {
         }
 
         if (GameStateHandler.getInstance().getCurrentPurse() < FarmHelperConfig.visitorsMacroMinMoney) {
-            LogUtils.sendError("[Visitors Macro] Player's purse is too low, skipping...");
+            LogUtils.sendError("[Visitors Macro] The player's purse is too low, skipping...");
             return false;
         }
 
@@ -310,19 +310,19 @@ public class VisitorsMacro implements IFeature {
         }
 
         if (!FarmHelperConfig.visitorsMacroAction && !canSeeClosestEdgeOfBarn()) {
-            LogUtils.sendError("[Visitors Macro] Player can't see closest edge of barn, skipping...");
+            LogUtils.sendError("[Visitors Macro] Can't see the closest edge of barn, skipping...");
             return false;
         }
 
         if (!FarmHelperConfig.visitorsMacroAction && !isAboveHeadClear()) {
-            LogUtils.sendError("[Visitors Macro] Player's head is not clear, skipping...");
+            LogUtils.sendError("[Visitors Macro] There is something above the player's head, skipping...");
             return false;
         }
 
         if (!manual) {
             int aspectOfTheVoid = InventoryUtils.getSlotIdOfItemInHotbar("Aspect of the Void", "Aspect of the End");
             if (aspectOfTheVoid == -1) {
-                LogUtils.sendError("[Visitors Macro] Player does not have Aspect of the Void or End in hotbar, travel will be slower");
+                LogUtils.sendError("[Visitors Macro] You don't have AOTV nor AOTE in the hotbar. Travel will be slower!");
                 aspectOfTheSlot = Optional.empty();
             } else {
                 aspectOfTheSlot = Optional.of(aspectOfTheVoid);
@@ -330,7 +330,7 @@ public class VisitorsMacro implements IFeature {
         }
 
         if (!PlayerUtils.isDeskPosSet()) {
-            LogUtils.sendError("[Visitors Macro] Player's desk position is not set, skipping...");
+            LogUtils.sendError("[Visitors Macro] The player's desk position is not set, skipping...");
             return false;
         }
 
@@ -429,7 +429,7 @@ public class VisitorsMacro implements IFeature {
         if (delayClock.isScheduled() && !delayClock.passed()) return;
 
         if (stuckClock.isScheduled() && stuckClock.passed()) {
-            LogUtils.sendError("[Visitors Macro] Player is stuck, restarting macro");
+            LogUtils.sendError("[Visitors Macro] The player is stuck, restarting the macro...");
             stop();
             forceStart = true;
             start();
@@ -500,7 +500,7 @@ public class VisitorsMacro implements IFeature {
                 BlockPos closestEdge = barnEdges.stream().min(Comparator.comparingDouble(edge -> mc.thePlayer.getDistance(edge.getX(), edge.getY(), edge.getZ()))).orElse(null);
                 LogUtils.sendDebug("[Visitors Macro] Closest edge: " + closestEdge);
                 if (closestEdge == null) {
-                    LogUtils.sendError("[Visitors Macro] Couldn't find closest edge, restarting macro");
+                    LogUtils.sendError("[Visitors Macro] Couldn't find the closest edge, restarting the macro...");
                     stop();
                     forceStart = true;
                     start();
@@ -531,7 +531,7 @@ public class VisitorsMacro implements IFeature {
                 double distanceToEdge = mc.thePlayer.getDistance(currentEdge.get().getX(), mc.thePlayer.posY, currentEdge.get().getZ());
 
                 if (canSeeCenterOfBarn() && distanceToEdge < 25) {
-                    LogUtils.sendDebug("[Visitors Macro] Player can see center of barn");
+                    LogUtils.sendDebug("[Visitors Macro] The player can see center of barn");
                     setTravelState(TravelState.ROTATE_TO_CENTER);
                     break;
                 }
@@ -542,7 +542,7 @@ public class VisitorsMacro implements IFeature {
                     KeyBindUtils.stopMovement();
                     previousDistanceToCheck = Integer.MAX_VALUE;
                     if (retriesGettingCloser >= 2) {
-                        LogUtils.sendError("[Visitors Macro] Player is not getting closer to edge. Stopping Visitors Macro... Report it in the Discord Server");
+                        LogUtils.sendError("[Visitors Macro] The player is not getting closer to the edge. Stopping visitors macro... Report it in the Discord Server");
                         setMainState(MainState.END);
                         return;
                     }
@@ -551,7 +551,7 @@ public class VisitorsMacro implements IFeature {
 
                 if (flyUpAndForward()) break;
 
-                LogUtils.sendDebug("[Visitors Macro] Player is close enough to edge");
+                LogUtils.sendDebug("[Visitors Macro] The player is close enough to edge");
                 KeyBindUtils.stopMovement();
                 setTravelState(TravelState.ROTATE_TO_CENTER);
                 delayClock.schedule(getRandomDelay());
@@ -560,7 +560,7 @@ public class VisitorsMacro implements IFeature {
                 if (beforeTeleportationPos.isPresent()) {
                     if (mc.thePlayer.getDistance(beforeTeleportationPos.get().getX(), beforeTeleportationPos.get().getY(), beforeTeleportationPos.get().getZ()) > 1) {
                         beforeTeleportationPos = Optional.empty();
-                        LogUtils.sendDebug("[Visitors Macro] Player teleported to plot 4");
+                        LogUtils.sendDebug("[Visitors Macro] The player teleported to plot 4");
                         delayClock.schedule(getRandomDelay());
                     }
                     break;
@@ -568,7 +568,7 @@ public class VisitorsMacro implements IFeature {
                 if (rotation.isRotating()) return;
 
                 if (canSeeDeskPos()) {
-                    LogUtils.sendDebug("[Visitors Macro] Player can see desk pos");
+                    LogUtils.sendDebug("[Visitors Macro] The player can see desk pos");
                     setTravelState(TravelState.ROTATE_TO_DESK);
                     break;
                 }
@@ -591,14 +591,14 @@ public class VisitorsMacro implements IFeature {
                 stuckClock.schedule(STUCK_DELAY);
 
                 if (canSeeDeskPos()) {
-                    LogUtils.sendDebug("[Visitors Macro] Player can see desk pos");
+                    LogUtils.sendDebug("[Visitors Macro] The player can see desk pos");
                     setTravelState(TravelState.ROTATE_TO_DESK);
                     break;
                 }
 
                 if (flyUpAndForward()) break;
 
-                LogUtils.sendDebug("[Visitors Macro] Player is close enough to center");
+                LogUtils.sendDebug("[Visitors Macro] The player is close enough to center");
                 KeyBindUtils.stopMovement();
                 setTravelState(TravelState.ROTATE_TO_DESK);
                 break;
@@ -748,7 +748,7 @@ public class VisitorsMacro implements IFeature {
                     }
                 }
                 if (compactors.isEmpty()) {
-                    LogUtils.sendWarning("[Visitors Macro] Player does not have any compactors in hotbar, skipping...");
+                    LogUtils.sendWarning("[Visitors Macro] The player does not have any compactors in the hotbar, skipping...");
                     setMainState(MainState.VISITORS);
                     return;
                 }
@@ -763,7 +763,7 @@ public class VisitorsMacro implements IFeature {
                 if (rotation.isRotating()) return;
                 LogUtils.sendDebug("[Visitors Macro] Holding compactor");
                 if (compactors.isEmpty()) {
-                    LogUtils.sendWarning("[Visitors Macro] All compactors has been disabled");
+                    LogUtils.sendWarning("[Visitors Macro] All compactors have been disabled");
                     setCompactorState(CompactorState.END);
                     return;
                 }
@@ -831,16 +831,16 @@ public class VisitorsMacro implements IFeature {
         switch (visitorsState) {
             case NONE:
                 if (visitors.isEmpty() && manuallyStarted) {
-                    LogUtils.sendDebug("[Visitors Macro] No visitors in queue, waiting...");
+                    LogUtils.sendDebug("[Visitors Macro] No visitors in the queue, waiting...");
                     delayClock.schedule(getRandomDelay());
                     return;
                 }
                 setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
                 break;
             case GET_CLOSEST_VISITOR:
-                LogUtils.sendDebug("[Visitors Macro] Getting closest visitor");
+                LogUtils.sendDebug("[Visitors Macro] Getting the closest visitor");
                 if (getNonToolItem() == -1) {
-                    LogUtils.sendError("[Visitors Macro] Player does not have any free slots in hotbar, might get stuck...");
+                    LogUtils.sendError("[Visitors Macro] The player doesn't have any free slots in the hotbar, might get stuck...");
                 } else {
                     mc.thePlayer.inventory.currentItem = getNonToolItem();
                 }
@@ -862,14 +862,14 @@ public class VisitorsMacro implements IFeature {
                         .min(Comparator.comparingDouble(entity -> entity.getDistanceToEntity(mc.thePlayer)))
                         .orElse(null);
                 if (closest == null) {
-                    LogUtils.sendWarning("[Visitors Macro] Couldn't find closest visitor, waiting");
+                    LogUtils.sendWarning("[Visitors Macro] Couldn't find the closest visitor, waiting...");
                     delayClock.schedule(getRandomDelay());
                     return;
                 }
                 Entity character = PlayerUtils.getEntityCuttingOtherEntity(closest);
 
                 if (character == null) {
-                    LogUtils.sendError("[Visitors Macro] Couldn't find character of closest visitor, restarting macro");
+                    LogUtils.sendError("[Visitors Macro] Couldn't find the character of closest visitor, restarting the macro...");
                     stop();
                     forceStart = true;
                     start();
@@ -958,12 +958,12 @@ public class VisitorsMacro implements IFeature {
 
                 Slot acceptOfferSlot = InventoryUtils.getSlotOfItemInContainer("Accept Offer");
                 if (acceptOfferSlot == null) {
-                    LogUtils.sendError("[Visitors Macro] Couldn't find Accept Offer slot.");
+                    LogUtils.sendError("[Visitors Macro] Couldn't find the \"Accept Offer\" slot!");
                     break;
                 }
                 ItemStack acceptOfferItemStack = acceptOfferSlot.getStack();
                 if (acceptOfferItemStack == null) {
-                    LogUtils.sendError("[Visitors Macro] Couldn't find Accept Offer item.");
+                    LogUtils.sendError("[Visitors Macro] Couldn't find the \"Accept Offer\" slot!");
                     break;
                 }
                 ArrayList<String> loreAcceptOffer = InventoryUtils.getItemLore(acceptOfferItemStack);
@@ -1083,20 +1083,7 @@ public class VisitorsMacro implements IFeature {
                         delayClock.schedule(getRandomDelay());
                         break;
                     }
-                    LogUtils.sendDebug("[Visitors Macro] Rejecting visitor");
-                    Slot rejectOfferSlot = InventoryUtils.getSlotOfItemInContainer("Refuse Offer");
-                    if (rejectOfferSlot == null) {
-                        LogUtils.sendError("[Visitors Macro] Couldn't find Reject Offer slot.");
-                        delayClock.schedule(getRandomDelay());
-                        break;
-                    }
-                    ItemStack rejectOfferItemStack = rejectOfferSlot.getStack();
-                    if (rejectOfferItemStack == null) {
-                        LogUtils.sendError("[Visitors Macro] Couldn't find Reject Offer item.");
-                        delayClock.schedule(getRandomDelay());
-                        break;
-                    }
-                    InventoryUtils.clickContainerSlot(rejectOfferSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                    if (rejectVisitor()) break;
                     if (FarmHelperConfig.sendVisitorsMacroLogs)
                         LogUtils.webhookLog("Visitors Macro rejected visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
                     currentVisitor.ifPresent(servedCustomers::add);
@@ -1177,20 +1164,7 @@ public class VisitorsMacro implements IFeature {
                     break;
                 }
                 if (rejectVisitor) {
-                    LogUtils.sendDebug("[Visitors Macro] Rejecting visitor");
-                    Slot rejectOfferSlot = InventoryUtils.getSlotOfItemInContainer("Refuse Offer");
-                    if (rejectOfferSlot == null) {
-                        LogUtils.sendError("[Visitors Macro] Couldn't find Reject Offer slot.");
-                        delayClock.schedule(getRandomDelay());
-                        break;
-                    }
-                    ItemStack rejectOfferItemStack = rejectOfferSlot.getStack();
-                    if (rejectOfferItemStack == null) {
-                        LogUtils.sendError("[Visitors Macro] Couldn't find Reject Offer item.");
-                        delayClock.schedule(getRandomDelay());
-                        break;
-                    }
-                    InventoryUtils.clickContainerSlot(rejectOfferSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                    if (rejectVisitor()) break;
                     if (FarmHelperConfig.sendVisitorsMacroLogs)
                         LogUtils.webhookLog("Visitors Macro rejected visitor: " + currentVisitor.get().getCustomNameTag(), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
                     currentVisitor.ifPresent(servedCustomers::add);
@@ -1199,16 +1173,16 @@ public class VisitorsMacro implements IFeature {
                     setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
                     break;
                 }
-                LogUtils.sendDebug("[Visitors Macro] Giving items to visitor");
+                LogUtils.sendDebug("[Visitors Macro] Giving items to the visitor.");
                 Slot acceptOfferSlot2 = InventoryUtils.getSlotOfItemInContainer("Accept Offer");
                 if (acceptOfferSlot2 == null) {
-                    LogUtils.sendError("[Visitors Macro] Couldn't find Accept Offer slot.");
+                    LogUtils.sendError("[Visitors Macro] Couldn't find the \"Accept Offer\" slot!");
                     delayClock.schedule(getRandomDelay());
                     break;
                 }
                 ItemStack acceptOfferItemStack2 = acceptOfferSlot2.getStack();
                 if (acceptOfferItemStack2 == null) {
-                    LogUtils.sendError("[Visitors Macro] Couldn't find Accept Offer item.");
+                    LogUtils.sendError("[Visitors Macro] Couldn't find the \"Accept Offer\" slot!");
                     delayClock.schedule(getRandomDelay());
                     break;
                 }
@@ -1244,6 +1218,18 @@ public class VisitorsMacro implements IFeature {
                 delayClock.schedule(getRandomDelay());
                 break;
         }
+    }
+
+    private boolean rejectVisitor() {
+        LogUtils.sendDebug("[Visitors Macro] Rejecting the visitor");
+        Slot rejectOfferSlot = InventoryUtils.getSlotOfItemInContainer("Refuse Offer");
+        if (rejectOfferSlot == null || rejectOfferSlot.getStack() == null) {
+            LogUtils.sendError("[Visitors Macro] Couldn't find the \"Reject Offer\" slot!");
+            delayClock.schedule(getRandomDelay());
+            return true;
+        }
+        InventoryUtils.clickContainerSlot(rejectOfferSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+        return false;
     }
 
     private boolean entityIsMoving(Entity e) {
@@ -1350,7 +1336,7 @@ public class VisitorsMacro implements IFeature {
                         break;
                     }
                 } else {
-                    LogUtils.sendDebug("[Visitors Macro] Couldn't find crop in API, can't check if price is manipulated, still buying...");
+                    LogUtils.sendDebug("[Visitors Macro] Couldn't find the crop price in the API data. Can't check if the price has been manipulated. Buying anyway...");
                 }
 
                 InventoryUtils.clickContainerSlot(buyInstantly.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
@@ -1499,7 +1485,7 @@ public class VisitorsMacro implements IFeature {
         BlockPos barn2 = new BlockPos(36, 80, -2);
         AxisAlignedBB axisAlignedBB = new AxisAlignedBB(barn1, barn2);
         boolean flag = axisAlignedBB.isVecInside(mc.thePlayer.getPositionVector());
-        LogUtils.sendDebug("[Visitors Macro] Player is in barn: " + flag);
+        LogUtils.sendDebug("[Visitors Macro] The player is in barn: " + flag);
         return flag;
     }
 

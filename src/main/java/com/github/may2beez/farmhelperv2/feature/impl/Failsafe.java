@@ -205,7 +205,7 @@ public class Failsafe implements IFeature {
             if (mc.currentScreen != null) {
                 mc.thePlayer.closeScreen();
             }
-            LogUtils.sendDebug("[Failsafe] Restarting macro...");
+            LogUtils.sendDebug("[Failsafe] Restarting the macro...");
             MacroHandler.getInstance().enableMacro();
             Failsafe.getInstance().setHadEmergency(false);
             Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().reset();
@@ -289,11 +289,11 @@ public class Failsafe implements IFeature {
         if (FarmHelperConfig.banwaveAction) {
             // pause
             if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
-                LogUtils.sendFailsafeMessage("[Failsafe] Paused macro because of banwave!");
+                LogUtils.sendFailsafeMessage("[Failsafe] Paused the macro because of banwave!");
                 MacroHandler.getInstance().pauseMacro();
             } else {
                 if (!BanInfoWS.getInstance().isBanwave()) {
-                    LogUtils.sendFailsafeMessage("[Failsafe] Resuming macro because banwave is over!");
+                    LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because banwave is over!");
                     Failsafe.getInstance().stop();
                     MacroHandler.getInstance().resumeMacro();
                 }
@@ -469,7 +469,7 @@ public class Failsafe implements IFeature {
                                 InventoryUtils.openInventory();
                                 LogUtils.sendDebug("[Failsafe] Finished rotation failsafe");
                                 if (FarmHelperConfig.enableRestartAfterFailSafe) {
-                                    LogUtils.sendDebug("[Failsafe] Restarting macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
+                                    LogUtils.sendDebug("[Failsafe] Restarting the macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
                                     restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
                                 }
                             }, (long) (1_500 + Math.random() * 1_000), TimeUnit.MILLISECONDS);
@@ -480,7 +480,7 @@ public class Failsafe implements IFeature {
                         InventoryUtils.openInventory();
                         LogUtils.sendDebug("[Failsafe] Finished rotation failsafe");
                         if (FarmHelperConfig.enableRestartAfterFailSafe) {
-                            LogUtils.sendDebug("[Failsafe] Restarting macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
+                            LogUtils.sendDebug("[Failsafe] Restarting the macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
                             restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
                         }
                     }, (long) (randomTime + 250), TimeUnit.MILLISECONDS);
@@ -536,7 +536,7 @@ public class Failsafe implements IFeature {
             LogUtils.sendDebug("[Failsafe] Fake movement is disabled! Disabling macro.");
             if (FarmHelperConfig.enableRestartAfterFailSafe) {
                 MacroHandler.getInstance().pauseMacro();
-                LogUtils.sendDebug("[Failsafe] Restarting macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
+                LogUtils.sendDebug("[Failsafe] Restarting the macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
                 restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
             } else {
                 MacroHandler.getInstance().disableMacro();
@@ -560,7 +560,7 @@ public class Failsafe implements IFeature {
         if (event.update.getBlock() == null) return;
         if (!event.update.getBlock().equals(Blocks.dirt)) return;
 
-        LogUtils.sendWarning("[Failsafe] Someone put block on your garden! Block pos: " + event.pos);
+        LogUtils.sendWarning("[Failsafe] Someone put a block on your garden! Block pos: " + event.pos);
         dirtBlocks.add(event.pos);
     }
 
@@ -675,7 +675,7 @@ public class Failsafe implements IFeature {
                     InventoryUtils.openInventory();
                     LogUtils.sendDebug("[Failsafe] Finished dirt check failsafe");
                     if (FarmHelperConfig.enableRestartAfterFailSafe) {
-                        LogUtils.sendDebug("[Failsafe] Restarting macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
+                        LogUtils.sendDebug("[Failsafe] Restarting the macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
                         restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
                     }
                 }, randomTime4 + 250, TimeUnit.MILLISECONDS);
@@ -867,7 +867,7 @@ public class Failsafe implements IFeature {
                 PlayerUtils.getTool();
                 Failsafe.getInstance().stop();
                 Multithreading.schedule(() -> {
-                    LogUtils.sendDebug("[Failsafe] Finished item change failsafe. Continuing macro...");
+                    LogUtils.sendDebug("[Failsafe] Finished item change failsafe. Farming...");
                     MacroHandler.getInstance().resumeMacro();
                 }, 500, TimeUnit.MILLISECONDS);
                 break;
@@ -906,14 +906,14 @@ public class Failsafe implements IFeature {
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains(":")) return;
         if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing") || message.contains("You cannot join SkyBlock from here!")) {
-            LogUtils.sendWarning("[Failsafe] Can't warp to garden! Will try again in a moment.");
+            LogUtils.sendWarning("[Failsafe] Can't warp to the garden! Will try again in a moment.");
             failsafeDelay.schedule(10_000);
         }
     }
 
     private void onWorldChange() {
         if (!FarmHelperConfig.autoTPOnWorldChange) {
-            LogUtils.sendDebug("[Failsafe] Auto tp on world change is disabled! Disabling macro and disconnecting");
+            LogUtils.sendDebug("[Failsafe] Auto TP on world change is disabled! Disabling macro and disconnecting...");
             MacroHandler.getInstance().disableMacro();
             Multithreading.schedule(() -> {
                 try {
@@ -972,7 +972,7 @@ public class Failsafe implements IFeature {
                     return;
                 }
                 if (GameStateHandler.getInstance().inGarden()) {
-                    LogUtils.sendDebug("[Failsafe] Went back to garden. Continuing macro...");
+                    LogUtils.sendDebug("[Failsafe] Came back to the garden. Farming...");
                     Failsafe.getInstance().stop();
                     MacroHandler.getInstance().resumeMacro();
                     return;
@@ -1103,7 +1103,7 @@ public class Failsafe implements IFeature {
                     InventoryUtils.openInventory();
                     LogUtils.sendDebug("[Failsafe] Finished bedrock cage failsafe");
                     if (FarmHelperConfig.enableRestartAfterFailSafe) {
-                        LogUtils.sendDebug("[Failsafe] Restarting macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
+                        LogUtils.sendDebug("[Failsafe] Restarting the macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
                         restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
                     }
                 }, (int) randomTime + 250, TimeUnit.MILLISECONDS);
@@ -1312,7 +1312,7 @@ public class Failsafe implements IFeature {
                     InventoryUtils.openInventory();
                     LogUtils.sendDebug("[Failsafe] Finished playing custom movement recording");
                     if (FarmHelperConfig.enableRestartAfterFailSafe) {
-                        LogUtils.sendDebug("[Failsafe] Restarting macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
+                        LogUtils.sendDebug("[Failsafe] Restarting the macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
                         restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
                     }
                 }, (long) randomTime + 250, TimeUnit.MILLISECONDS);
@@ -1382,11 +1382,11 @@ public class Failsafe implements IFeature {
         if (FarmHelperConfig.jacobFailsafeAction) {
             // pause
             if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
-                LogUtils.sendFailsafeMessage("[Failsafe] Paused macro because of extending Jacob's Content!");
+                LogUtils.sendFailsafeMessage("[Failsafe] Paused the macro because of extended Jacob's Content!");
                 MacroHandler.getInstance().pauseMacro();
             } else {
                 if (!GameStateHandler.getInstance().inJacobContest()) {
-                    LogUtils.sendFailsafeMessage("[Failsafe] Resuming macro because Jacob's Contest is over!");
+                    LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because Jacob's Contest is over!");
                     Failsafe.getInstance().stop();
                     MacroHandler.getInstance().resumeMacro();
                 }
@@ -1455,7 +1455,7 @@ public class Failsafe implements IFeature {
             String text = "Failsafe in: " + LogUtils.formatTime(chooseEmergencyDelay.getRemainingTime());
             RenderUtils.drawCenterTopText(text, event, Color.MAGENTA);
         } else if (restartMacroAfterFailsafeDelay.isScheduled()) {
-            String text = "Restarting macro in: " + LogUtils.formatTime(restartMacroAfterFailsafeDelay.getRemainingTime());
+            String text = "Restarting the macro in: " + LogUtils.formatTime(restartMacroAfterFailsafeDelay.getRemainingTime());
             RenderUtils.drawCenterTopText(text, event, Color.MAGENTA);
         } else if (failsafeDelay.isScheduled()) {
             String text = "Failsafe delay: " + LogUtils.formatTime(failsafeDelay.getRemainingTime());

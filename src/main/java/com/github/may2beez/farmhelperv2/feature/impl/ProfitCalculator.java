@@ -428,7 +428,7 @@ public class ProfitCalculator implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (updateBazaarClock.passed()) {
             updateBazaarClock.schedule(1000 * 60 * 5);
-            LogUtils.sendDebug("Updating Bazaar Prices");
+            LogUtils.sendDebug("Updating bazaar prices...");
             Multithreading.schedule(this::fetchBazaarPrices, 0, TimeUnit.MILLISECONDS);
         }
     }
@@ -439,7 +439,7 @@ public class ProfitCalculator implements IFeature {
             String userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36";
             JsonObject request = APIUtils.readJsonFromUrl(url, "User-Agent", userAgent);
             if (request == null) {
-                LogUtils.sendDebug("Failed to update bazaar prices");
+                LogUtils.sendDebug("Failed to update bazaar prices!");
                 cantConnectToApi = true;
                 return;
             }
@@ -450,12 +450,12 @@ public class ProfitCalculator implements IFeature {
 
             getPrices(json1, rngDropToCount);
 
-            LogUtils.sendDebug("Bazaar prices updated");
+            LogUtils.sendDebug("Bazaar prices updated.");
             cantConnectToApi = false;
 
         } catch (Exception e) {
             e.printStackTrace();
-            LogUtils.sendDebug("Failed to update bazaar prices");
+            LogUtils.sendDebug("Failed to update bazaar prices!");
             cantConnectToApi = true;
         }
     }

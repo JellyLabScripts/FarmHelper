@@ -62,7 +62,7 @@ public class RotationHandler {
         } else if (configuration.getTo().isPresent()) {
             neededChange = getNeededChange(startRotation, configuration.getTo().get());
         } else {
-            throw new IllegalArgumentException("No target or to rotation specified");
+            throw new IllegalArgumentException("No target or rotation specified!");
         }
         targetRotation.setYaw(startRotation.getYaw() + neededChange.getYaw());
         targetRotation.setPitch(startRotation.getPitch() + neededChange.getPitch());

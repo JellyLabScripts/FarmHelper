@@ -29,17 +29,17 @@ public class StatusHUD extends TextHud {
     protected void getLines(List<String> lines, boolean example) {
         if (example) {
             lines.add("Break for 25m 35s");
-            lines.add("Staff bans in last 15 minutes: 999");
-            lines.add("FarmHelper's bans in last 15 minutes: 0");
+            lines.add("Staff bans in the last 15 minutes: 999");
+            lines.add("FarmHelper's bans in the last 15 minutes: 0");
             lines.set(0, centerText(lines.get(0), scale));
         } else {
             lines.add(getStatusString());
 
             if (BanInfoWS.getInstance().isRunning() && FarmHelperConfig.banwaveCheckerEnabled && BanInfoWS.getInstance().isConnected()) {
-                lines.add("Staff bans in last " + BanInfoWS.getInstance().getMinutes() + " minutes: " + BanInfoWS.getInstance().getBans());
-                lines.add("FarmHelper's bans in last 15 minutes: " + BanInfoWS.getInstance().getBansByMod());
+                lines.add("Staff bans in the last " + BanInfoWS.getInstance().getMinutes() + " minutes: " + BanInfoWS.getInstance().getBans());
+                lines.add("FarmHelper's bans in the last 15 minutes: " + BanInfoWS.getInstance().getBansByMod());
             } else if (!BanInfoWS.getInstance().isConnected() && FarmHelperConfig.banwaveCheckerEnabled) {
-                lines.add("Connecting to analytics server...");
+                lines.add("Connecting to the analytics server...");
             }
             if (LeaveTimer.getInstance().isRunning())
                 lines.add("Leaving in " + LogUtils.formatTime(Math.max(LeaveTimer.leaveClock.getRemainingTime(), 0)));
