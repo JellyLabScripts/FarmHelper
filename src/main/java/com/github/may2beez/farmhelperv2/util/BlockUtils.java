@@ -185,8 +185,16 @@ public class BlockUtils {
         if (block instanceof BlockFenceGate)
             return state.getValue(BlockFenceGate.OPEN);
 
-        if (block instanceof BlockTrapDoor)
-            return state.getValue(BlockTrapDoor.OPEN);
+        if (block instanceof BlockTrapDoor) {
+            EnumFacing playerFacing = EnumFacing.fromAngle(mc.thePlayer.rotationYaw);
+            EnumFacing playerFacingOpposite = playerFacing.getOpposite();
+            if (state.getValue(BlockTrapDoor.OPEN)) {
+                EnumFacing facing = state.getValue(BlockTrapDoor.FACING);
+                return facing == playerFacing || facing == playerFacingOpposite;
+            } else {
+                return state.getValue(BlockTrapDoor.HALF) == BlockTrapDoor.DoorHalf.TOP;
+            }
+        }
 
         return block.isPassable(mc.theWorld, blockPos);
     }
