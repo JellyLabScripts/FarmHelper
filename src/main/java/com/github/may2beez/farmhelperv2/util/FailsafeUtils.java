@@ -72,8 +72,10 @@ public class FailsafeUtils {
     public static void bringWindowToFront() {
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
             bringWindowToFrontUsingWinApi();
+            System.out.println("Bringing window to front using WinApi.");
         } else {
             bringWindowToFrontUsingRobot();
+            System.out.println("Bringing window to front using Robot.");
         }
     }
 
