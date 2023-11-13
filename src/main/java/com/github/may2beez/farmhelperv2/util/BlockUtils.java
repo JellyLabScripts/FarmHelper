@@ -310,6 +310,12 @@ public class BlockUtils {
                     getRelativeBlockPos(xOffset, 2, 1, yaw),
                     getRelativeBlockPos(xOffset, 3, 1, yaw)
             );
+        } else if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_MUSHROOM || FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_MUSHROOM_ROTATE) {
+            crops = Arrays.asList(
+                    getRelativeBlockPos(xOffset, 1, 1, yaw),
+                    getRelativeBlockPos(xOffset, 2, 1, yaw),
+                    getRelativeBlockPos(xOffset, 3, 1, yaw)
+            );
         } else {
             crops = Arrays.asList(
                     getRelativeBlockPos(xOffset, 0, 1, yaw),
