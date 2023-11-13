@@ -21,8 +21,6 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
 
     @Override
     public void setAngles(float yaw, float pitch) {
-        Freelock.getInstance().onRender();
-
         if (Freelock.getInstance().isRunning()) {
             Freelock.getInstance().setCameraPrevYaw(Freelock.getInstance().getCameraYaw());
             Freelock.getInstance().setCameraPrevPitch(Freelock.getInstance().getCameraPitch());

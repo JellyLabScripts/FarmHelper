@@ -156,11 +156,11 @@ public class RotationHandler {
     }
 
     public Rotation getRotation(Entity to) {
-        return getRotation(mc.thePlayer.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), to.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), false);
+        return getRotation(mc.thePlayer.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), to.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks).subtract(0, -(Math.random() * 0.25 + 0.15), 0), false);
     }
 
     public Rotation getRotation(Entity to, boolean randomness) {
-        return getRotation(mc.thePlayer.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), to.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), randomness);
+        return getRotation(mc.thePlayer.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), to.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks).subtract(0, -(Math.random() * 0.25 + 0.15), 0), randomness);
     }
 
     public Rotation getRotation(Vec3 from, Vec3 to) {

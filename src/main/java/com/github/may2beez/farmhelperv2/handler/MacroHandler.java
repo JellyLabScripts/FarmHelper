@@ -136,8 +136,12 @@ public class MacroHandler {
                 return;
             }
             if (VisitorsMacro.getInstance().isInBarn()) {
-                VisitorsMacro.getInstance().setManuallyStarted(true);
-                VisitorsMacro.getInstance().start();
+                if (VisitorsMacro.getInstance().isToggled()) {
+                    VisitorsMacro.getInstance().setManuallyStarted(true);
+                    VisitorsMacro.getInstance().start();
+                } else {
+                    LogUtils.sendError("You are in the barn and have Visitors Macro disabled!");
+                }
                 return;
             }
             if (Failsafe.getInstance().isHadEmergency()) {

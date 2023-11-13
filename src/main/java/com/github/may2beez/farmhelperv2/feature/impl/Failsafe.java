@@ -70,14 +70,21 @@ public class Failsafe implements IFeature {
         ITEM_CHANGE_CHECK("Your §lITEM HAS CHANGED§r§d!", 3),
         WORLD_CHANGE_CHECK("Your §lWORLD HAS CHANGED§r§d!", 2),
         BEDROCK_CAGE_CHECK("You've got§l BEDROCK CAGED§r§d by staff member!", 1),
-        EVACUATE("Server is restarting! Evacuate!", 1),
-        BANWAVE("Banwave has been detected!", 6),
+        EVACUATE("Server is restarting! Evacuate!", 1, false),
+        BANWAVE("Banwave has been detected!", 6, false),
         DISCONNECT("You've been§l DISCONNECTED§r§d from the server!", 1),
-        JACOB("You've extended the §lJACOB COUNTER§r§d!", 7);
+        JACOB("You've extended the §lJACOB COUNTER§r§d!", 7, false);
 
         final String label;
         // 1 is highest priority
         final int priority;
+        boolean shouldAlert = true;
+
+        EmergencyType(String s, int priority, boolean shouldAlert) {
+            label = s;
+            this.priority = priority;
+            this.shouldAlert = shouldAlert;
+        }
 
         EmergencyType(String s, int priority) {
             label = s;
@@ -170,7 +177,6 @@ public class Failsafe implements IFeature {
 
     @SubscribeEvent
     public void onTickChooseEmergency(TickEvent.ClientTickEvent event) {
-//        if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!MacroHandler.getInstance().isMacroToggled() && !emergencyQueue.contains(EmergencyType.TEST)) return;
         if (isEmergency()) return;
         if (emergencyQueue.isEmpty()) return;
@@ -183,17 +189,19 @@ public class Failsafe implements IFeature {
             return;
         }
 
-        AudioManager.getInstance().playSound();
-        if (FarmHelperConfig.autoAltTab)
+        if (FarmHelperConfig.autoAltTab && emergency.shouldAlert) {
+            AudioManager.getInstance().playSound();
             FailsafeUtils.bringWindowToFront();
+        }
         emergency = tempEmergency;
         emergencyQueue.clear();
         chooseEmergencyDelay.reset();
         hadEmergency = true;
         LogUtils.sendDebug("[Failsafe] Emergency chosen: " + StringUtils.stripControlCodes(emergency.name()));
-        LogUtils.sendFailsafeMessage(emergency.label);
+        LogUtils.sendFailsafeMessage(emergency.label, emergency.shouldAlert);
         FeatureManager.getInstance().disableCurrentlyRunning(this);
-        FailsafeUtils.getInstance().sendNotification(StringUtils.stripControlCodes(emergency.label), TrayIcon.MessageType.WARNING);
+        if (emergency.shouldAlert)
+            FailsafeUtils.getInstance().sendNotification(StringUtils.stripControlCodes(emergency.label), TrayIcon.MessageType.WARNING);
     }
 
     @SubscribeEvent
@@ -289,11 +297,11 @@ public class Failsafe implements IFeature {
         if (FarmHelperConfig.banwaveAction) {
             // pause
             if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
-                LogUtils.sendFailsafeMessage("[Failsafe] Paused the macro because of banwave!");
+                LogUtils.sendFailsafeMessage("[Failsafe] Paused the macro because of banwave!", false);
                 MacroHandler.getInstance().pauseMacro();
             } else {
                 if (!BanInfoWS.getInstance().isBanwave()) {
-                    LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because banwave is over!");
+                    LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because banwave is over!", false);
                     Failsafe.getInstance().stop();
                     MacroHandler.getInstance().resumeMacro();
                 }
@@ -301,7 +309,7 @@ public class Failsafe implements IFeature {
         } else {
             // leave
             if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
-                LogUtils.sendFailsafeMessage("[Failsafe] Leaving because of banwave!");
+                LogUtils.sendFailsafeMessage("[Failsafe] Leaving because of banwave!", false);
                 MacroHandler.getInstance().pauseMacro();
                 Multithreading.schedule(() -> {
                     try {
@@ -1382,11 +1390,11 @@ public class Failsafe implements IFeature {
         if (FarmHelperConfig.jacobFailsafeAction) {
             // pause
             if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
-                LogUtils.sendFailsafeMessage("[Failsafe] Paused the macro because of extended Jacob's Content!");
+                LogUtils.sendFailsafeMessage("[Failsafe] Paused the macro because of extended Jacob's Content!", false);
                 MacroHandler.getInstance().pauseMacro();
             } else {
                 if (!GameStateHandler.getInstance().inJacobContest()) {
-                    LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because Jacob's Contest is over!");
+                    LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because Jacob's Contest is over!", false);
                     Failsafe.getInstance().stop();
                     MacroHandler.getInstance().resumeMacro();
                 }
@@ -1394,7 +1402,7 @@ public class Failsafe implements IFeature {
         } else {
             // leave
             if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
-                LogUtils.sendFailsafeMessage("[Failsafe] Leaving because of extending Jacob's Contest!");
+                LogUtils.sendFailsafeMessage("[Failsafe] Leaving because of extending Jacob's Contest!", false);
                 MacroHandler.getInstance().pauseMacro();
                 Multithreading.schedule(() -> {
                     try {

@@ -1166,7 +1166,7 @@ public class VisitorsMacro implements IFeature {
                 if (rejectVisitor) {
                     if (rejectVisitor()) break;
                     if (FarmHelperConfig.sendVisitorsMacroLogs)
-                        LogUtils.webhookLog("Visitors Macro rejected visitor: " + currentVisitor.get().getCustomNameTag(), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
+                        LogUtils.webhookLog("Visitors Macro rejected visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
                     currentVisitor.ifPresent(servedCustomers::add);
                     currentRewards.clear();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
@@ -1197,7 +1197,7 @@ public class VisitorsMacro implements IFeature {
                 }
                 InventoryUtils.clickContainerSlot(acceptOfferSlot2.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                 if (FarmHelperConfig.sendVisitorsMacroLogs)
-                    LogUtils.webhookLog("Visitors Macro accepted visitor: " + currentVisitor.get().getCustomNameTag(), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
+                    LogUtils.webhookLog("Visitors Macro accepted visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
                 currentVisitor.ifPresent(servedCustomers::add);
                 currentRewards.clear();
                 setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);

@@ -51,8 +51,13 @@ public class Freelock implements IFeature {
 
     @Override
     public void start() {
-        if (mc.gameSettings.thirdPersonView == 1) return;
+        if (enabled || mc.gameSettings.thirdPersonView == 1) return;
         enabled = true;
+        cameraPrevYaw = mc.thePlayer.prevRotationYaw;
+        cameraPrevPitch = mc.thePlayer.prevRotationPitch;
+        cameraYaw = mc.thePlayer.rotationYaw + 180;
+        cameraPitch = mc.thePlayer.rotationPitch;
+        mc.gameSettings.thirdPersonView = 1;
         if (UngrabMouse.getInstance().isRunning() && MacroHandler.getInstance().isCurrentMacroEnabled()) {
             UngrabMouse.getInstance().regrabMouse();
             mouseWasGrabbed = true;
@@ -61,7 +66,9 @@ public class Freelock implements IFeature {
 
     @Override
     public void stop() {
+        if (!enabled) return;
         enabled = false;
+        mc.gameSettings.thirdPersonView = 0;
         if (UngrabMouse.getInstance().isToggled() && mouseWasGrabbed && MacroHandler.getInstance().isCurrentMacroEnabled()) {
             UngrabMouse.getInstance().ungrabMouse();
         }
@@ -78,7 +85,6 @@ public class Freelock implements IFeature {
         return false;
     }
 
-    public boolean lastActivated;
     private boolean enabled = false;
     @Getter
     @Setter
@@ -115,24 +121,5 @@ public class Freelock implements IFeature {
 
     public float getPrevYaw(float original) {
         return isRunning() ? cameraPrevYaw : original;
-    }
-
-    public void onRender() {
-        boolean current = isRunning();
-        if (lastActivated == current) return;
-
-        if (current) {
-            lastActivated = true;
-            cameraPrevYaw = mc.thePlayer.prevRotationYaw;
-            cameraPrevPitch = mc.thePlayer.prevRotationPitch;
-            cameraYaw = mc.thePlayer.rotationYaw + 180;
-            cameraPitch = mc.thePlayer.rotationPitch;
-            mc.gameSettings.thirdPersonView = 1;
-            start();
-        } else {
-            mc.gameSettings.thirdPersonView = 0;
-            stop();
-        }
-
     }
 }

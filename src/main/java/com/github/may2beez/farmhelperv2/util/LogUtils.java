@@ -52,8 +52,12 @@ public class LogUtils {
     }
 
     public static void sendFailsafeMessage(String message) {
+        sendFailsafeMessage(message, false);
+    }
+
+    public static void sendFailsafeMessage(String message, boolean pingAll) {
         sendLog(new ChatComponentText("§5§lFarm Helper §8» §d" + message));
-        webhookLog(StringUtils.stripControlCodes(message), true);
+        webhookLog(StringUtils.stripControlCodes(message), pingAll);
     }
 
     public static String getRuntimeFormat() {
