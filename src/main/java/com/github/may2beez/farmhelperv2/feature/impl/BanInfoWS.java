@@ -4,7 +4,6 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import cc.polyfrost.oneconfig.utils.Notifications;
 import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
-import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
@@ -18,9 +17,6 @@ import com.mojang.authlib.exceptions.AuthenticationException;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.Packet;
-import net.minecraft.network.play.server.S40PacketDisconnect;
-import net.minecraft.util.StringUtils;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -35,7 +31,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.Base64;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
 
@@ -167,35 +166,6 @@ public class BanInfoWS implements IFeature {
                 e.printStackTrace();
                 client = null;
             }
-        }
-    }
-
-    private final List<String> times = Arrays.asList(
-            "23h 59m 59s",
-            "23h 59m 58s",
-            "23h 59m 57s",
-            "23h 59m 56s"
-    );
-
-    @SubscribeEvent
-    public void onDisconnect(ReceivePacketEvent event) {
-        Packet<?> packet = event.packet;
-        if (!(packet instanceof S40PacketDisconnect)) return;
-        String[] multilineMessage = ((S40PacketDisconnect) packet).getReason().getUnformattedText().split("\n");
-        System.out.println(((S40PacketDisconnect) packet).getReason().getUnformattedText());
-        try {
-            if (times.stream().noneMatch(time -> multilineMessage[0].contains(time))) return;
-
-            String duration = StringUtils.stripControlCodes(multilineMessage[0]).replace("You are temporarily banned for ", "")
-                    .replace(" from this server!", "").trim();
-            String reason = StringUtils.stripControlCodes(multilineMessage[2]).replace("Reason: ", "").trim();
-            int durationDays = Integer.parseInt(duration.split(" ")[0].replace("d", ""));
-            String banId = StringUtils.stripControlCodes(multilineMessage[5]).replace("Ban ID: ", "").trim();
-            BanInfoWS.getInstance().playerBanned(durationDays, reason, banId, ((S40PacketDisconnect) packet).getReason().getUnformattedText());
-            LogUtils.webhookLog("Banned for " + durationDays + " days for " + reason, true);
-            MacroHandler.getInstance().disableMacro();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

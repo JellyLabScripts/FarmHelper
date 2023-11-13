@@ -1,19 +1,15 @@
 package com.github.may2beez.farmhelperv2.mixin.gui;
 
-import cc.polyfrost.oneconfig.utils.Notifications;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
-import com.github.may2beez.farmhelperv2.feature.impl.BanInfoWS;
 import com.github.may2beez.farmhelperv2.feature.impl.AutoReconnect;
+import com.github.may2beez.farmhelperv2.feature.impl.BanInfoWS;
 import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiDisconnected;
-import net.minecraft.client.gui.GuiMainMenu;
-import net.minecraft.client.gui.GuiMultiplayer;
-import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.util.StringUtils;
-import net.minecraftforge.fml.client.FMLClientHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -22,6 +18,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Mixin(GuiDisconnected.class)
@@ -46,12 +43,44 @@ public class MixinGuiDisconnected {
         }
     }
 
+    @Unique
+    private final List<String> farmHelperV2$times = Arrays.asList(
+            "23h 59m 59s",
+            "23h 59m 58s",
+            "23h 59m 57s",
+            "23h 59m 56s"
+    );
+
+    private final List<String> farmHelperV2$days = Arrays.asList(
+            "29d",
+            "89d",
+            "359d"
+    );
+
     @Inject(method = "drawScreen", at = @At("TAIL"))
     public void drawScreen(CallbackInfo ci) {
         if (farmHelperV2$isBanned) return;
 
         if (multilineMessage.get(0).contains("banned")) {
             farmHelperV2$isBanned = true;
+            String wholeReason = String.join("\n", multilineMessage);
+            try {
+                if (farmHelperV2$times.stream().noneMatch(time -> multilineMessage.get(0).contains(time)) || farmHelperV2$days.stream().noneMatch(day -> multilineMessage.get(0).contains(day))) return;
+
+                String duration = StringUtils.stripControlCodes(multilineMessage.get(0)).replace("You are temporarily banned for ", "")
+                        .replace(" from this server!", "").trim();
+                String reason = StringUtils.stripControlCodes(multilineMessage.get(2)).replace("Reason: ", "").trim();
+                int durationDays = Integer.parseInt(duration.split(" ")[0].replace("d", ""));
+                String banId = StringUtils.stripControlCodes(multilineMessage.get(5)).replace("Ban ID: ", "").trim();
+                BanInfoWS.getInstance().playerBanned(durationDays, reason, banId, wholeReason);
+                LogUtils.webhookLog("Banned for " + durationDays + " days for " + reason, true);
+                System.out.println("Banned");
+                if (MacroHandler.getInstance().isMacroToggled()) {
+                    MacroHandler.getInstance().disableMacro();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             return;
         }
 
@@ -85,6 +114,15 @@ public class MixinGuiDisconnected {
             multilineMessage = farmHelperV2$multilineMessageCopy;
             multilineMessage.set(0, "Reconnecting in " + AutoReconnect.getInstance().getReconnectDelay().getRemainingTime() + "ms");
             multilineMessage.set(1, "Press ESC to cancel");
+        }
+    }
+
+    @Inject(method = "actionPerformed", at = @At("RETURN"))
+    protected void actionPerformed(GuiButton button, CallbackInfo ci) {
+        if (button.id == 0) {
+            if (AutoReconnect.getInstance().isRunning()) {
+                AutoReconnect.getInstance().stop();
+            }
         }
     }
 }

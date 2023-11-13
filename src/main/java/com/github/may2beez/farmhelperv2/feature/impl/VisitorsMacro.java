@@ -631,7 +631,7 @@ public class VisitorsMacro implements IFeature {
                 BlockPos deskPos = new BlockPos(FarmHelperConfig.visitorsDeskPosX, playerPos.getY(), FarmHelperConfig.visitorsDeskPosZ);
                 double distance = Math.sqrt(playerPos.distanceSq(deskPos));
                 stuckClock.schedule(STUCK_DELAY);
-                if (distance <= 1f || playerPos.equals(deskPos) || (previousDistanceToCheck < distance && distance < 1.75f)) {
+                if (distance <= 0.75f || playerPos.equals(deskPos) || (previousDistanceToCheck < distance && distance < 1.75f)) {
                     KeyBindUtils.stopMovement();
                     setTravelState(TravelState.END);
                     delayClock.schedule(getRandomDelay());
@@ -927,7 +927,7 @@ public class VisitorsMacro implements IFeature {
                     Entity entity = mc.objectMouseOver.entityHit;
                     assert currentVisitor.isPresent();
                     assert currentCharacter.isPresent();
-                    if (entity.equals(currentVisitor.get()) || entity.equals(currentCharacter.get())) {
+                    if (entity.equals(currentVisitor.get()) || entity.equals(currentCharacter.get()) || entity.getCustomNameTag().contains("CLICK") && entity.getDistanceToEntity(currentVisitor.get()) < 1) {
                         LogUtils.sendDebug("[Visitors Macro] Looking at Visitor");
                         setVisitorsState(VisitorsState.GET_LIST);
                         KeyBindUtils.rightClick();
@@ -941,6 +941,14 @@ public class VisitorsMacro implements IFeature {
                     break;
                 } else {
                     LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
+                    if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) > 4) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, mc.gameSettings.keyBindSneak);
+                        Multithreading.schedule(KeyBindUtils::stopMovement, 150, TimeUnit.MILLISECONDS);
+                    } else if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) < 1.5) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindBack);
+                        Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
+                    }
+                    delayClock.schedule(300);
                     setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
                 }
                 break;
@@ -1166,6 +1174,14 @@ public class VisitorsMacro implements IFeature {
                     break;
                 } else {
                     LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
+                    if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) > 4) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, mc.gameSettings.keyBindSneak);
+                        Multithreading.schedule(KeyBindUtils::stopMovement, 150, TimeUnit.MILLISECONDS);
+                    } else if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) < 1.5) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindBack);
+                        Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
+                    }
+                    delayClock.schedule(300);
                     setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
                 }
                 break;
