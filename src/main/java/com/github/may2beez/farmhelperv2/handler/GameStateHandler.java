@@ -340,14 +340,14 @@ public class GameStateHandler {
             yaw = mc.thePlayer.rotationYaw;
         }
         if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.CACTUS) {
-            frontWalkable = BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1, yaw)) && BlockUtils.getRelativeBlock(0, 0, 2, yaw) != Blocks.cactus;
-            backWalkable = BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, -1, yaw)) && BlockUtils.getRelativeBlock(0, 0, -2, yaw) != Blocks.cactus;
+            frontWalkable = BlockUtils.canWalkThroughDoor(BlockUtils.Direction.FORWARD) && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1, yaw), BlockUtils.Direction.FORWARD) && BlockUtils.getRelativeBlock(0, 0, 2, yaw) != Blocks.cactus;
+            backWalkable = BlockUtils.canWalkThroughDoor(BlockUtils.Direction.BACKWARD) && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, -1, yaw), BlockUtils.Direction.BACKWARD) && BlockUtils.getRelativeBlock(0, 0, -2, yaw) != Blocks.cactus;
         } else {
-            frontWalkable = BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1, yaw));
-            backWalkable = (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, -1, yaw)));
+            frontWalkable = BlockUtils.canWalkThroughDoor(BlockUtils.Direction.FORWARD) && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1, yaw), BlockUtils.Direction.FORWARD);
+            backWalkable = BlockUtils.canWalkThroughDoor(BlockUtils.Direction.BACKWARD) && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, -1, yaw), BlockUtils.Direction.BACKWARD);
         }
-        rightWalkable = (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(1, 0, 0, yaw)));
-        leftWalkable = (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-1, 0, 0, yaw)));
+        rightWalkable = BlockUtils.canWalkThroughDoor(BlockUtils.Direction.RIGHT) && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(1, 0, 0, yaw), BlockUtils.Direction.RIGHT);
+        leftWalkable = BlockUtils.canWalkThroughDoor(BlockUtils.Direction.LEFT) && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-1, 0, 0, yaw), BlockUtils.Direction.LEFT);
     }
 
     @SubscribeEvent

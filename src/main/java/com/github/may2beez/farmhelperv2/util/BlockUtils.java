@@ -124,10 +124,14 @@ public class BlockUtils {
     }
 
     public static boolean canWalkThrough(BlockPos blockPos) {
-        return canWalkThroughBottom(blockPos) && canWalkThroughAbove(blockPos.add(0, 1, 0));
+        return canWalkThrough(blockPos, null);
     }
 
-    private static boolean canWalkThroughBottom(BlockPos blockPos) {
+    public static boolean canWalkThrough(BlockPos blockPos, Direction direction) {
+        return canWalkThroughBottom(blockPos, direction) && canWalkThroughAbove(blockPos.add(0, 1, 0), direction);
+    }
+
+    private static boolean canWalkThroughBottom(BlockPos blockPos, Direction direction) {
         IBlockState state = mc.theWorld.getBlockState(blockPos);
         Block block = state.getBlock();
 
@@ -147,6 +151,10 @@ public class BlockUtils {
 
         if (Arrays.asList(initialWalkables).contains(block))
             return true;
+
+        if (block instanceof BlockDoor && direction != null) {
+            return canWalkThroughDoor(blockPos, direction);
+        }
 
         if (block instanceof BlockFenceGate)
             return state.getValue(BlockFenceGate.OPEN);
@@ -187,12 +195,16 @@ public class BlockUtils {
         return block.isPassable(mc.theWorld, blockPos);
     }
 
-    private static boolean canWalkThroughAbove(BlockPos blockPos) {
+    private static boolean canWalkThroughAbove(BlockPos blockPos, Direction direction) {
         IBlockState state = mc.theWorld.getBlockState(blockPos);
         Block block = state.getBlock();
 
         if (block instanceof BlockCarpet)
             return false;
+
+        if (block instanceof BlockDoor && direction != null) {
+            return canWalkThroughDoor(blockPos.subtract(new Vec3i(0, 1, 0)), direction);
+        }
 
         if (block instanceof BlockFenceGate)
             return state.getValue(BlockFenceGate.OPEN);
@@ -209,6 +221,63 @@ public class BlockUtils {
         }
 
         return block.isPassable(mc.theWorld, blockPos);
+    }
+
+    public enum Direction {
+        FORWARD,
+        BACKWARD,
+        LEFT,
+        RIGHT
+    }
+
+    public static boolean canWalkThroughDoor(Direction direction) {
+        return canWalkThroughDoor(getRelativeBlockPos(0, 0, 0), direction);
+    }
+
+    public static boolean canWalkThroughDoor(BlockPos blockPos, Direction direction) {
+        Block block = mc.theWorld.getBlockState(blockPos).getBlock();
+        if (!(block instanceof BlockDoor)) return true;
+
+        EnumFacing playerFacing = EnumFacing.fromAngle(mc.thePlayer.rotationYaw);
+        EnumFacing doorFacing = mc.theWorld.getBlockState(blockPos).getValue(BlockDoor.FACING);
+        boolean standingOnDoor = getRelativeBlockPos(0, 0, 0).equals(blockPos);
+        System.out.println(standingOnDoor + " " + blockPos + " " + doorFacing + " " + playerFacing + " " + direction);
+
+        switch (direction) {
+            case FORWARD:
+                if (doorFacing.equals(playerFacing.getOpposite()) && standingOnDoor) {
+                    return false;
+                }
+                if (!standingOnDoor && doorFacing.equals(playerFacing)) {
+                    return false;
+                }
+                break;
+            case BACKWARD:
+                if (doorFacing.equals(playerFacing) && standingOnDoor) {
+                    return false;
+                }
+                if (!standingOnDoor && doorFacing.equals(playerFacing.getOpposite())) {
+                    return false;
+                }
+                break;
+            case LEFT:
+                if (doorFacing.equals(playerFacing.rotateY()) && standingOnDoor) {
+                    return false;
+                }
+                if (!standingOnDoor && doorFacing.equals(playerFacing.rotateYCCW())) {
+                    return false;
+                }
+                break;
+            case RIGHT:
+                if (doorFacing.equals(playerFacing.rotateYCCW()) && standingOnDoor) {
+                    return false;
+                }
+                if (!standingOnDoor && doorFacing.equals(playerFacing.rotateY())) {
+                    return false;
+                }
+                break;
+        }
+        return true;
     }
 
     public static BlockPos getBlockPosLookingAt() {
@@ -230,6 +299,11 @@ public class BlockUtils {
         if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.CACTUS || MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.SUGAR_CANE) {
             crops = Collections.singletonList(
                     getRelativeBlockPos(xOffset, 0, 1, yaw)
+            );
+        } else if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_COCOA_BEANS_LEFT_RIGHT) {
+            crops = Arrays.asList(
+                    getRelativeBlockPos(xOffset, 2, 0, yaw),
+                    getRelativeBlockPos(xOffset, 3, 0, yaw)
             );
         } else if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_CACTUS_SUNTZU || MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.COCOA_BEANS) {
             crops = Arrays.asList(

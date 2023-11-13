@@ -631,7 +631,7 @@ public class VisitorsMacro implements IFeature {
                 BlockPos deskPos = new BlockPos(FarmHelperConfig.visitorsDeskPosX, playerPos.getY(), FarmHelperConfig.visitorsDeskPosZ);
                 double distance = Math.sqrt(playerPos.distanceSq(deskPos));
                 stuckClock.schedule(STUCK_DELAY);
-                if (distance <= 0.75f || playerPos.equals(deskPos) || (previousDistanceToCheck < distance && distance < 1.75f)) {
+                if (distance <= 1f || playerPos.equals(deskPos) || (previousDistanceToCheck < distance && distance < 1.75f)) {
                     KeyBindUtils.stopMovement();
                     setTravelState(TravelState.END);
                     delayClock.schedule(getRandomDelay());
@@ -647,6 +647,14 @@ public class VisitorsMacro implements IFeature {
                     );
                     if (shouldJump()) {
                         mc.thePlayer.jump();
+                    }
+
+                    if (distance > 10) {
+                        if ((aotvTpCooldown.passed() || !aotvTpCooldown.isScheduled()) && aspectOfTheSlot.isPresent() && !rotation.isRotating()) {
+                            KeyBindUtils.rightClick();
+                            aotvTpCooldown.schedule((long) (450 + Math.random() * 350));
+                            rotation.reset();
+                        }
                     }
                 }
                 previousDistanceToCheck = (int) distance;
@@ -668,9 +676,13 @@ public class VisitorsMacro implements IFeature {
     private boolean shouldJump() {
         BlockPos block1 = BlockUtils.getRelativeBlockPos(0, 0, 1);
         BlockPos block2 = BlockUtils.getRelativeBlockPos(0, 0, 2);
-        Block block = mc.theWorld.getBlockState(block1).getBlock();
-        Block block3 = mc.theWorld.getBlockState(block2).getBlock();
-        return blockNotPassable(block2, block3) || blockNotPassable(block1, block);
+        BlockPos block3 = BlockUtils.getRelativeBlockPos(0, 0, 3);
+        BlockPos block4 = BlockUtils.getRelativeBlockPos(0, 0, 4);
+        Block block11 = mc.theWorld.getBlockState(block1).getBlock();
+        Block block22 = mc.theWorld.getBlockState(block2).getBlock();
+        Block block33 = mc.theWorld.getBlockState(block3).getBlock();
+        Block block44 = mc.theWorld.getBlockState(block4).getBlock();
+        return blockNotPassable(block2, block22) || blockNotPassable(block1, block11) || blockNotPassable(block3, block33) || blockNotPassable(block4, block44);
     }
 
     private boolean blockNotPassable(BlockPos block2, Block block3) {

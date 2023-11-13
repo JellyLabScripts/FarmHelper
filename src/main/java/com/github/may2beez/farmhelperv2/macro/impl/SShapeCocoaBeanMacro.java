@@ -152,7 +152,7 @@ public class SShapeCocoaBeanMacro extends AbstractMacro {
                 KeyBindUtils.holdThese(
                         mc.gameSettings.keyBindForward,
                         mc.gameSettings.keyBindAttack,
-                        ((!isHuggingAWall() || BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air)) && BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.air)) ? mc.gameSettings.keyBindLeft : null
+                        (((!isHuggingAWall() && !GameStateHandler.getInstance().isLeftWalkable())) && BlockUtils.getRelativeBlock(0, 0, 0).equals(Blocks.air)) ? mc.gameSettings.keyBindLeft : null
                 );
                 break;
             case SWITCHING_SIDE:
