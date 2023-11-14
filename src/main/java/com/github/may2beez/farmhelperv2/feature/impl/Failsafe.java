@@ -4,6 +4,7 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import cc.polyfrost.oneconfig.utils.Notifications;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.config.page.CustomFailsafeMessagesPage;
+import com.github.may2beez.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.github.may2beez.farmhelperv2.event.BlockChangeEvent;
 import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
@@ -70,21 +71,15 @@ public class Failsafe implements IFeature {
         ITEM_CHANGE_CHECK("Your §lITEM HAS CHANGED§r§d!", 3),
         WORLD_CHANGE_CHECK("Your §lWORLD HAS CHANGED§r§d!", 2),
         BEDROCK_CAGE_CHECK("You've got§l BEDROCK CAGED§r§d by staff member!", 1),
-        EVACUATE("Server is restarting! Evacuate!", 1, false),
-        BANWAVE("Banwave has been detected!", 6, false),
+        EVACUATE("Server is restarting! Evacuate!", 1),
+        BANWAVE("Banwave has been detected!", 6),
         DISCONNECT("You've been§l DISCONNECTED§r§d from the server!", 1),
-        JACOB("You've extended the §lJACOB COUNTER§r§d!", 7, false);
+        JACOB("You've extended the §lJACOB COUNTER§r§d!", 7);
 
         final String label;
         // 1 is highest priority
         final int priority;
         boolean shouldAlert = true;
-
-        EmergencyType(String s, int priority, boolean shouldAlert) {
-            label = s;
-            this.priority = priority;
-            this.shouldAlert = shouldAlert;
-        }
 
         EmergencyType(String s, int priority) {
             label = s;
@@ -189,7 +184,7 @@ public class Failsafe implements IFeature {
             return;
         }
 
-        if (FarmHelperConfig.autoAltTab && emergency.shouldAlert) {
+        if (FarmHelperConfig.autoAltTab && shouldAlert(emergency)) {
             AudioManager.getInstance().playSound();
             FailsafeUtils.bringWindowToFront();
         }
@@ -198,9 +193,9 @@ public class Failsafe implements IFeature {
         chooseEmergencyDelay.reset();
         hadEmergency = true;
         LogUtils.sendDebug("[Failsafe] Emergency chosen: " + StringUtils.stripControlCodes(emergency.name()));
-        LogUtils.sendFailsafeMessage(emergency.label, emergency.shouldAlert);
+        LogUtils.sendFailsafeMessage(emergency.label, shouldTagEveryone(emergency));
         FeatureManager.getInstance().disableCurrentlyRunning(this);
-        if (emergency.shouldAlert)
+        if (shouldNotify(emergency))
             FailsafeUtils.getInstance().sendNotification(StringUtils.stripControlCodes(emergency.label), TrayIcon.MessageType.WARNING);
     }
 
@@ -1439,7 +1434,7 @@ public class Failsafe implements IFeature {
         MacroHandler.getInstance().getCurrentMacro().ifPresent(AbstractMacro::saveState);
         emergencyQueue.add(emergencyType);
         if (!chooseEmergencyDelay.isScheduled())
-            chooseEmergencyDelay.schedule(1_000);
+            chooseEmergencyDelay.schedule(FarmHelperConfig.failsafeStopDelay + (long) (Math.random() * 500));
         LogUtils.sendDebug("[Failsafe] Emergency added: " + emergencyType.name());
         LogUtils.sendWarning("[Failsafe] Probability of emergency: " + LogUtils.capitalize(emergencyType.name()));
     }
@@ -1469,5 +1464,83 @@ public class Failsafe implements IFeature {
             String text = "Failsafe delay: " + LogUtils.formatTime(failsafeDelay.getRemainingTime());
             RenderUtils.drawCenterTopText(text, event, Color.MAGENTA);
         }
+    }
+
+    private boolean shouldNotify(EmergencyType emergency) {
+        switch (emergency) {
+            case ROTATION_CHECK:
+                return FailsafeNotificationsPage.notifyOnRotationFailsafe;
+            case TELEPORT_CHECK:
+                return FailsafeNotificationsPage.notifyOnTeleportationFailsafe;
+            case DIRT_CHECK:
+                return FailsafeNotificationsPage.notifyOnDirtFailsafe;
+            case ITEM_CHANGE_CHECK:
+                return FailsafeNotificationsPage.notifyOnItemChangeFailsafe;
+            case WORLD_CHANGE_CHECK:
+                return FailsafeNotificationsPage.notifyOnWorldChangeFailsafe;
+            case BEDROCK_CAGE_CHECK:
+                return FailsafeNotificationsPage.notifyOnBedrockCageFailsafe;
+            case EVACUATE:
+                return FailsafeNotificationsPage.notifyOnEvacuateFailsafe;
+            case BANWAVE:
+                return FailsafeNotificationsPage.notifyOnBanwaveFailsafe;
+            case DISCONNECT:
+                return FailsafeNotificationsPage.notifyOnDisconnectFailsafe;
+            case JACOB:
+                return FailsafeNotificationsPage.notifyOnJacobFailsafe;
+        }
+        return false;
+    }
+
+    private boolean shouldAlert(EmergencyType emergency) {
+        switch (emergency) {
+            case ROTATION_CHECK:
+                return FailsafeNotificationsPage.alertOnRotationFailsafe;
+            case TELEPORT_CHECK:
+                return FailsafeNotificationsPage.alertOnTeleportationFailsafe;
+            case DIRT_CHECK:
+                return FailsafeNotificationsPage.alertOnDirtFailsafe;
+            case ITEM_CHANGE_CHECK:
+                return FailsafeNotificationsPage.alertOnItemChangeFailsafe;
+            case WORLD_CHANGE_CHECK:
+                return FailsafeNotificationsPage.alertOnWorldChangeFailsafe;
+            case BEDROCK_CAGE_CHECK:
+                return FailsafeNotificationsPage.alertOnBedrockCageFailsafe;
+            case EVACUATE:
+                return FailsafeNotificationsPage.alertOnEvacuateFailsafe;
+            case BANWAVE:
+                return FailsafeNotificationsPage.alertOnBanwaveFailsafe;
+            case DISCONNECT:
+                return FailsafeNotificationsPage.alertOnDisconnectFailsafe;
+            case JACOB:
+                return FailsafeNotificationsPage.alertOnJacobFailsafe;
+        }
+        return false;
+    }
+
+    private boolean shouldTagEveryone(EmergencyType emergency) {
+        switch (emergency) {
+            case ROTATION_CHECK:
+                return FailsafeNotificationsPage.tagEveryoneOnRotationFailsafe;
+            case TELEPORT_CHECK:
+                return FailsafeNotificationsPage.tagEveryoneOnTeleportationFailsafe;
+            case DIRT_CHECK:
+                return FailsafeNotificationsPage.tagEveryoneOnDirtFailsafe;
+            case ITEM_CHANGE_CHECK:
+                return FailsafeNotificationsPage.tagEveryoneOnItemChangeFailsafe;
+            case WORLD_CHANGE_CHECK:
+                return FailsafeNotificationsPage.tagEveryoneOnWorldChangeFailsafe;
+            case BEDROCK_CAGE_CHECK:
+                return FailsafeNotificationsPage.tagEveryoneOnBedrockCageFailsafe;
+            case EVACUATE:
+                return FailsafeNotificationsPage.tagEveryoneOnEvacuateFailsafe;
+            case BANWAVE:
+                return FailsafeNotificationsPage.tagEveryoneOnBanwaveFailsafe;
+            case DISCONNECT:
+                return FailsafeNotificationsPage.tagEveryoneOnDisconnectFailsafe;
+            case JACOB:
+                return FailsafeNotificationsPage.tagEveryoneOnJacobFailsafe;
+        }
+        return false;
     }
 }
