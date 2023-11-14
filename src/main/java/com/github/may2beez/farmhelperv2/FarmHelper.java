@@ -88,6 +88,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(ProfitCalculator.getInstance());
         MinecraftForge.EVENT_BUS.register(BanInfoWS.getInstance());
         MinecraftForge.EVENT_BUS.register(TickTask.getInstance());
+        MinecraftForge.EVENT_BUS.register(MovRecPlayer.getInstance());
         MinecraftForge.EVENT_BUS.register(WebsocketHandler.getInstance());
         if (Loader.isModLoaded("farmhelperjdadependency"))
             MinecraftForge.EVENT_BUS.register(DiscordBotHandler.getInstance());
@@ -98,7 +99,6 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(VisitorsMacro.getInstance());
         MinecraftForge.EVENT_BUS.register(RotationHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(PlotCleaningHelper.getInstance());
-        MinecraftForge.EVENT_BUS.register(new MovRecReader());
     }
 
     private void initializeFields() {

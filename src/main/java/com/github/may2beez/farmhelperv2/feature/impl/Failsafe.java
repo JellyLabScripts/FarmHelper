@@ -141,6 +141,7 @@ public class Failsafe implements IFeature {
         lookAroundTimes = 0;
         currentLookAroundTimes = 0;
         resetCustomMovement();
+        shouldCheckIfRecordingShouldBePlayed = true; // seperated from resetCustomMovement() so it doesn't play the corrupted recording again
         resetRotationCheck();
         resetDirtCheck();
         resetEvacuateCheck();
@@ -183,12 +184,13 @@ public class Failsafe implements IFeature {
             stop();
             return;
         }
+        emergency = tempEmergency;
 
-        if (FarmHelperConfig.autoAltTab && shouldAlert(emergency)) {
+        if (FarmHelperConfig.autoAltTab && shouldPlaySoundAlert(emergency)) {
             AudioManager.getInstance().playSound();
             FailsafeUtils.bringWindowToFront();
         }
-        emergency = tempEmergency;
+
         emergencyQueue.clear();
         chooseEmergencyDelay.reset();
         hadEmergency = true;
@@ -1239,11 +1241,11 @@ public class Failsafe implements IFeature {
                 KeyBindUtils.stopMovement();
                 break;
             case LOOK_AROUND:
-                if (MovRecReader.isReading() || MovRecReader.isPlaying())
+                if (MovRecPlayer.getInstance().isRunning())
                     break;
                 switch (playingState) {
                     case 0:
-                        MovRecReader.playRecording(selectRandomRecordingByName(emergencyName + "_PreChat_"));
+                        MovRecPlayer.getInstance().playRandomRecording(emergencyName + "_PreChat_");
                         failsafeDelay.schedule((long) (2000 + Math.random() * 1_000));
                         playingState = 1;
                         break;
@@ -1282,11 +1284,11 @@ public class Failsafe implements IFeature {
                 lookAroundTimes = (int) (2 + Math.random() * 2);
                 break;
             case LOOK_AROUND_2:
-                if (MovRecReader.isReading() || MovRecReader.isPlaying())
+                if (MovRecPlayer.getInstance().isRunning())
                     break;
                 switch (playingState) {
                     case 2:
-                        MovRecReader.playRecording(selectRandomRecordingByName(emergencyName + "_PostChat_"));
+                        MovRecPlayer.getInstance().playRandomRecording(emergencyName + "_PostChat_");
                         failsafeDelay.schedule((long) (2000 + Math.random() * 1_000));
                         playingState = 3;
                         break;
@@ -1323,10 +1325,9 @@ public class Failsafe implements IFeature {
         }
     }
 
-    private void resetCustomMovement() {
+    public void resetCustomMovement() {
         recordingCheckState = CustomMovementState.NONE;
         playingState = 0;
-        shouldCheckIfRecordingShouldBePlayed = true;
         recordingFile = false;
         recordingFile2 = false;
     }
@@ -1492,7 +1493,7 @@ public class Failsafe implements IFeature {
         return false;
     }
 
-    private boolean shouldAlert(EmergencyType emergency) {
+    private boolean shouldPlaySoundAlert(EmergencyType emergency) {
         switch (emergency) {
             case ROTATION_CHECK:
                 return FailsafeNotificationsPage.alertOnRotationFailsafe;

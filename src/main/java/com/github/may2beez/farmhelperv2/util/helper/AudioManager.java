@@ -34,12 +34,19 @@ public class AudioManager {
     private float soundBeforeChange = 0;
 
     public void resetSound() {
+        if (clip != null && clip.isRunning()) {
+            clip.stop();
+            clip.close();
+            return;
+        }
         minecraftSoundEnabled = false;
         if (FarmHelperConfig.maxOutMinecraftSounds) {
             mc.gameSettings.setSoundLevel(SoundCategory.MASTER, soundBeforeChange);
             soundBeforeChange = 0;
         }
     }
+
+    private static Clip clip;
 
     public void playSound() {
         if (!FarmHelperConfig.failsafeSoundType) {
@@ -77,7 +84,7 @@ public class AudioManager {
                         LogUtils.sendError("[Audio Manager] Failed to load sound file!");
                         return;
                     }
-                    Clip clip = AudioSystem.getClip();
+                    clip = AudioSystem.getClip();
                     clip.open(inputStream);
                     FloatControl volume = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
                     float volumePercentage = FarmHelperConfig.failsafeSoundVolume / 100f;
@@ -94,6 +101,10 @@ public class AudioManager {
                 }
             }, 0, TimeUnit.MILLISECONDS);
         }
+    }
+
+    public boolean isSoundPlaying() {
+        return (clip != null && clip.isRunning()) || minecraftSoundEnabled;
     }
 
     @SubscribeEvent

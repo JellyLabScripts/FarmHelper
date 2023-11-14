@@ -67,26 +67,26 @@ public class RotationHandler {
         targetRotation.setYaw(startRotation.getYaw() + neededChange.getYaw());
         targetRotation.setPitch(startRotation.getPitch() + neededChange.getPitch());
 
-        LogUtils.sendDebug("[Rotation] Needed change: " + neededChange.getYaw() + " " + neededChange.getPitch());
+        LogUtils.sendDebug("[Rotation] Needed change: " + neededChange.getYaw() + " " + neededChange.getPitch(), true);
 
         int absYaw = Math.abs((int) neededChange.getYaw());
         int absPitch = Math.abs((int) neededChange.getPitch());
         int pythagoras = (int) pythagoras(absYaw, absPitch);
         if (pythagoras < 25) {
-            LogUtils.sendDebug("[Rotation] Very close rotation, speeding up by 0.65");
+            LogUtils.sendDebug("[Rotation] Very close rotation, speeding up by 0.65", true);
             configuration.setTime((long) (configuration.getTime() * 0.65));
         } else if (pythagoras < 45) {
             configuration.setTime((long) (configuration.getTime() * 0.77));
-            LogUtils.sendDebug("[Rotation] Close rotation, speeding up by 0.77");
+            LogUtils.sendDebug("[Rotation] Close rotation, speeding up by 0.77", true);
         } else if (pythagoras < 80) {
             configuration.setTime((long) (configuration.getTime() * 0.9));
-            LogUtils.sendDebug("[Rotation] Not so close, but not that far rotation, speeding up by 0.9");
+            LogUtils.sendDebug("[Rotation] Not so close, but not that far rotation, speeding up by 0.9", true);
         } else if (pythagoras > 100) {
             configuration.setTime((long) (configuration.getTime() * 1.25));
-            LogUtils.sendDebug("[Rotation] Far rotation, slowing down by 1.25");
+            LogUtils.sendDebug("[Rotation] Far rotation, slowing down by 1.25", true);
         } else {
             configuration.setTime((long) (configuration.getTime() * 1.0));
-            LogUtils.sendDebug("[Rotation] Normal rotation");
+            LogUtils.sendDebug("[Rotation] Normal rotation", true);
         }
         endTime = System.currentTimeMillis() + configuration.getTime();
         this.configuration = configuration;
