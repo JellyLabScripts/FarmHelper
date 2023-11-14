@@ -9,6 +9,7 @@ import cc.polyfrost.oneconfig.config.data.*;
 import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.page.AutoSellNPCItemsPage;
 import com.github.may2beez.farmhelperv2.config.page.CustomFailsafeMessagesPage;
+import com.github.may2beez.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
 import com.github.may2beez.farmhelperv2.feature.impl.*;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
@@ -525,6 +526,12 @@ public class FarmHelperConfig extends Config {
     )
     public static int desyncPauseDelay = 5_000;
 
+    @Slider(
+            name = "Failsafe Stop Delay", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "The delay to stop the macro after failsafe has been triggered (in milliseconds)",
+            min = 1_000, max = 7_500
+    )
+    public static int failsafeStopDelay = 2_000;
 
     @Switch(
             name = "Auto TP back on World Change", category = FAILSAFE, subcategory = "Miscellaneous",
@@ -639,6 +646,12 @@ public class FarmHelperConfig extends Config {
             description = "Maxes out the sounds while failsafe"
     )
     public static boolean maxOutMinecraftSounds = false;
+
+    @Page(
+            name = "Failsafe Notifications", category = FAILSAFE, subcategory = "Failsafe Notifications", location = PageLocation.BOTTOM,
+            description = "Click here to customize failsafe notifications"
+    )
+    public FailsafeNotificationsPage failsafeNotificationsPage = new FailsafeNotificationsPage();
 
 
     @Switch(
@@ -996,6 +1009,12 @@ public class FarmHelperConfig extends Config {
             description = "Whether to accept visitors that are legendary rarity"
     )
     public static boolean visitorsAcceptLegendary = true;
+
+    @Switch(
+            name = "Accept mythic visitors", category = VISITORS_MACRO, subcategory = "Rarity",
+            description = "Whether to accept visitors that are mythic rarity"
+    )
+    public static boolean visitorsAcceptMythic = true;
 
     @Switch(
             name = "Accept special visitors", category = VISITORS_MACRO, subcategory = "Rarity",
@@ -1474,6 +1493,7 @@ public class FarmHelperConfig extends Config {
         this.addDependency("visitorsAcceptUncommon", "visitorsMacro");
         this.addDependency("visitorsAcceptRare", "visitorsMacro");
         this.addDependency("visitorsAcceptLegendary", "visitorsMacro");
+        this.addDependency("visitorsAcceptMythic", "visitorsMacro");
         this.addDependency("visitorsAcceptSpecial", "visitorsMacro");
         this.addDependency("visitorsMacroAction", "visitorsMacro");
         this.addDependency("visitorsMacroAutosellBeforeServing", "visitorsMacro");

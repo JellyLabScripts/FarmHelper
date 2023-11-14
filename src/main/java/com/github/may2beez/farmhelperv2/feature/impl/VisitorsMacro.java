@@ -124,6 +124,7 @@ public class VisitorsMacro implements IFeature {
         UNCOMMON,
         RARE,
         LEGENDARY,
+        MYTHIC,
         SPECIAL;
 
         public static Rarity getRarityFromNpcName(String npcName) {
@@ -134,6 +135,8 @@ public class VisitorsMacro implements IFeature {
                 return RARE;
             } else if (npcName.startsWith("§6")) {
                 return LEGENDARY;
+            } else if (npcName.startsWith("§d")) {
+                return MYTHIC;
             } else if (npcName.startsWith("§c")) {
                 return SPECIAL;
             } else {
@@ -1087,6 +1090,16 @@ public class VisitorsMacro implements IFeature {
                                     LogUtils.webhookLog("Visitors Macro found legendary visitor", FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
                             } else {
                                 LogUtils.sendDebug("[Visitors Macro] Visitor is legendary rarity. Skipping...");
+                                rejectVisitor = true;
+                            }
+                            break;
+                        case MYTHIC:
+                            if (FarmHelperConfig.visitorsAcceptMythic) {
+                                LogUtils.sendDebug("[Visitors Macro] Visitor is mythic rarity. Accepting offer...");
+                                if (FarmHelperConfig.sendVisitorsMacroLogs)
+                                    LogUtils.webhookLog("Visitors Macro found mythic visitor", FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
+                            } else {
+                                LogUtils.sendDebug("[Visitors Macro] Visitor is mythic rarity. Skipping...");
                                 rejectVisitor = true;
                             }
                             break;
