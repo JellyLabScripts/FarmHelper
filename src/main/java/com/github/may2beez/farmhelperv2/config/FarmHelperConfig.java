@@ -3,6 +3,7 @@ package com.github.may2beez.farmhelperv2.config;
 import cc.polyfrost.oneconfig.config.Config;
 import cc.polyfrost.oneconfig.config.annotations.Number;
 import cc.polyfrost.oneconfig.config.annotations.*;
+import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.*;
 import com.github.may2beez.farmhelperv2.FarmHelper;
@@ -21,7 +22,6 @@ import com.github.may2beez.farmhelperv2.util.PlayerUtils;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
@@ -42,6 +42,7 @@ public class FarmHelperConfig extends Config {
     private transient static final String SCHEDULER = "Scheduler";
     private transient static final String JACOBS_CONTEST = "Jacob's Contest";
     private transient static final String VISITORS_MACRO = "Visitors Macro";
+    private transient static final String PESTS_DESTROYER = "Pests Destroyer";
     private transient static final String DISCORD_INTEGRATION = "Discord Integration";
     private transient static final String DELAYS = "Delays";
     private transient static final String HUD = "HUD";
@@ -1105,6 +1106,46 @@ public class FarmHelperConfig extends Config {
     public static boolean drawSpawnLocation = true;
 
     // END VISITORS_MACRO
+
+    // START PESTS_DESTROYER
+
+    @Switch(
+            name = "Enable Pests Destroyer (DOESN'T WORK!!!!)", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            description = "Destroys pests"
+    )
+    public static boolean enablePestsDestroyer = false;
+
+    @Slider(
+            name = "Start killing pests at X pests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            description = "The amount of pests to start killing pests",
+            min = 1, max = 8
+    )
+    public static int startKillingPestsAt = 3;
+
+    @Switch(
+            name = "Pests ESP", category = PESTS_DESTROYER, subcategory = "Drawings",
+            description = "Draws a box around pests"
+    )
+    public static boolean pestsESP = true;
+    @Color(
+            name = "ESP Color", category = PESTS_DESTROYER, subcategory = "Drawings",
+            description = "The color of the pests ESP"
+    )
+    public static OneColor pestsESPColor = new OneColor(0, 255, 217, 171);
+
+    @Switch(
+            name = "Tracers to Pests", category = PESTS_DESTROYER, subcategory = "Drawings",
+            description = "Draws a line to pests"
+    )
+    public static boolean pestsTracers = true;
+
+    @Color(
+            name = "Tracers Color", category = PESTS_DESTROYER, subcategory = "Drawings",
+            description = "The color of the pests tracers"
+    )
+    public static OneColor pestsTracersColor = new OneColor(0, 255, 217, 171);
+
+    // END PESTS_DESTROYER
 
     // START DISCORD_INTEGRATION
 

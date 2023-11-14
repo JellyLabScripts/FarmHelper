@@ -735,11 +735,11 @@ public class Failsafe implements IFeature {
         if (evacuateState != EvacuateState.NONE) return;
 
         if (message.contains("to warp out! CLICK to warp now!")) {
-            addEmergency(EmergencyType.EVACUATE);
+//            addEmergency(EmergencyType.EVACUATE);
         }
     }
 
-    private final Pattern pattern = Pattern.compile("§cServer closing: (?<minutes>\\d+):(?<seconds>\\d+) §8.*");
+    private final Pattern pattern = Pattern.compile("Server closing: (?<minutes>\\d+):(?<seconds>\\d+) .*");
 
     @SubscribeEvent
     public void onTickCheckScoreboard(TickEvent.ClientTickEvent event) {
@@ -749,7 +749,7 @@ public class Failsafe implements IFeature {
 
         List<String> scoreboard = ScoreboardUtils.getScoreboardLines();
         for (String line : scoreboard) {
-            Matcher matcher = pattern.matcher(line);
+            Matcher matcher = pattern.matcher(StringUtils.stripControlCodes(ScoreboardUtils.cleanSB(line)));
             if (matcher.find()) {
                 int minutes = Integer.parseInt(matcher.group("minutes"));
                 int seconds = Integer.parseInt(matcher.group("seconds"));

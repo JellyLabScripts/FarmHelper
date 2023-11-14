@@ -241,7 +241,6 @@ public class BlockUtils {
         EnumFacing playerFacing = EnumFacing.fromAngle(mc.thePlayer.rotationYaw);
         EnumFacing doorFacing = mc.theWorld.getBlockState(blockPos).getValue(BlockDoor.FACING);
         boolean standingOnDoor = getRelativeBlockPos(0, 0, 0).equals(blockPos);
-        System.out.println(standingOnDoor + " " + blockPos + " " + doorFacing + " " + playerFacing + " " + direction);
 
         switch (direction) {
             case FORWARD:

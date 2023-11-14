@@ -942,11 +942,19 @@ public class VisitorsMacro implements IFeature {
                 } else {
                     LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
                     if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) > 4) {
+                        LogUtils.sendDebug("[Visitors Macro] Visitor is too far away, getting closer...");
                         KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, mc.gameSettings.keyBindSneak);
                         Multithreading.schedule(KeyBindUtils::stopMovement, 150, TimeUnit.MILLISECONDS);
                     } else if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) < 1.5) {
+                        LogUtils.sendDebug("[Visitors Macro] Visitor is too close, getting further...");
                         KeyBindUtils.holdThese(mc.gameSettings.keyBindBack);
                         Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
+                    } else {
+                        mc.playerController.interactWithEntitySendPacket(mc.thePlayer, currentVisitor.get());
+                        LogUtils.sendDebug("[Visitors Macro] Opening Visitor with different option");
+                        setVisitorsState(VisitorsState.GET_LIST);
+                        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                        break;
                     }
                     delayClock.schedule(300);
                     setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
@@ -1129,7 +1137,7 @@ public class VisitorsMacro implements IFeature {
                     Entity entity = mc.objectMouseOver.entityHit;
                     assert currentVisitor.isPresent();
                     assert currentCharacter.isPresent();
-                    if (entity.equals(currentVisitor.get()) || entity.equals(currentCharacter.get())) {
+                    if (entity.equals(currentVisitor.get()) || entity.equals(currentCharacter.get()) || entity.getCustomNameTag().contains("CLICK") && entity.getDistanceToEntity(currentVisitor.get()) < 1) {
                         LogUtils.sendDebug("[Visitors Macro] Looking at Visitor");
                         setVisitorsState(VisitorsState.OPEN_VISITOR_2);
                         delayClock.schedule(FarmHelperConfig.getRandomRotationTime());
@@ -1162,7 +1170,7 @@ public class VisitorsMacro implements IFeature {
                     Entity entity = mc.objectMouseOver.entityHit;
                     assert currentVisitor.isPresent();
                     assert currentCharacter.isPresent();
-                    if (entity.equals(currentVisitor.get()) || entity.equals(currentCharacter.get())) {
+                    if (entity.equals(currentVisitor.get()) || entity.equals(currentCharacter.get()) || entity.getCustomNameTag().contains("CLICK") && entity.getDistanceToEntity(currentVisitor.get()) < 1) {
                         LogUtils.sendDebug("[Visitors Macro] Looking at Visitor");
                         setVisitorsState(VisitorsState.FINISH_VISITOR);
                         KeyBindUtils.rightClick();
@@ -1180,6 +1188,12 @@ public class VisitorsMacro implements IFeature {
                     } else if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) < 1.5) {
                         KeyBindUtils.holdThese(mc.gameSettings.keyBindBack);
                         Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
+                    } else {
+                        mc.playerController.interactWithEntitySendPacket(mc.thePlayer, currentVisitor.get());
+                        LogUtils.sendDebug("[Visitors Macro] Opening Visitor with different option");
+                        setVisitorsState(VisitorsState.GET_LIST);
+                        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                        break;
                     }
                     delayClock.schedule(300);
                     setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);

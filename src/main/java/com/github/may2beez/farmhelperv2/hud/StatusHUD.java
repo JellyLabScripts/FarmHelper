@@ -3,16 +3,14 @@ package com.github.may2beez.farmhelperv2.hud;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
-import com.github.may2beez.farmhelperv2.feature.impl.BanInfoWS;
-import com.github.may2beez.farmhelperv2.feature.impl.Failsafe;
-import com.github.may2beez.farmhelperv2.feature.impl.LeaveTimer;
-import com.github.may2beez.farmhelperv2.feature.impl.Scheduler;
+import com.github.may2beez.farmhelperv2.feature.impl.*;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.remote.DiscordBotHandler;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.Loader;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -33,34 +31,54 @@ public class StatusHUD extends TextHud {
             lines.add("FarmHelper's bans in the last 15 minutes: 0");
             lines.set(0, centerText(lines.get(0), scale));
         } else {
-            lines.add(getStatusString());
+            List<String> tempLines = new ArrayList<>();
+            tempLines.add(getStatusString());
+
+            if (PestsDestroyer.getInstance().getAmountOfPests() > 0) {
+                tempLines.add("Pests in Garden: " + PestsDestroyer.getInstance().getAmountOfPests());
+            }
 
             if (BanInfoWS.getInstance().isRunning() && FarmHelperConfig.banwaveCheckerEnabled && BanInfoWS.getInstance().isConnected()) {
-                lines.add("Staff bans in the last " + BanInfoWS.getInstance().getMinutes() + " minutes: " + BanInfoWS.getInstance().getBans());
-                lines.add("FarmHelper's bans in the last 15 minutes: " + BanInfoWS.getInstance().getBansByMod());
+                tempLines.add("Staff bans in the last " + BanInfoWS.getInstance().getMinutes() + " minutes: " + BanInfoWS.getInstance().getBans());
+                tempLines.add("FarmHelper's bans in the last 15 minutes: " + BanInfoWS.getInstance().getBansByMod());
             } else if (!BanInfoWS.getInstance().isConnected() && FarmHelperConfig.banwaveCheckerEnabled) {
-                lines.add("Connecting to the analytics server...");
+                tempLines.add("Connecting to the analytics server...");
             }
             if (LeaveTimer.getInstance().isRunning())
-                lines.add("Leaving in " + LogUtils.formatTime(Math.max(LeaveTimer.leaveClock.getRemainingTime(), 0)));
+                tempLines.add("Leaving in " + LogUtils.formatTime(Math.max(LeaveTimer.leaveClock.getRemainingTime(), 0)));
 
             if (FarmHelperConfig.enableRemoteControl && jdaDependencyPresent) {
                 if (!Objects.equals(DiscordBotHandler.getInstance().getConnectingState(), "")) {
-                    lines.add("");
-                    lines.add(DiscordBotHandler.getInstance().getConnectingState());
+                    tempLines.add("");
+                    tempLines.add(DiscordBotHandler.getInstance().getConnectingState());
                 }
             }
 
-            lines.set(0, centerText(lines.get(0), scale));
+            for (String line : tempLines) {
+                lines.add(centerText(line, scale, tempLines));
+            }
         }
     }
 
     private String centerText(String text, float scale) {
+        return centerText(text, scale, lines);
+    }
+
+    private String centerText(String text, float scale, List<String> lines) {
         if (lines == null || lines.isEmpty()) return text;
         float maxTextLength = getLineWidth(text, scale);
-        float maxLongestLine = getWidth(scale, false);
+        float maxLongestLine = getWidth(scale, false, lines);
         int difference = (int) (((maxLongestLine - maxTextLength) / 3.5f) / (2 * scale)) - 1;
         return (difference > 0) ? new String(new char[difference]).replace("\0", " ") + text : text;
+    }
+
+    protected float getWidth(float scale, boolean example, List<String> lines) {
+        if (lines == null) return 0;
+        float width = 0;
+        for (String line : lines) {
+            width = Math.max(width, getLineWidth(line, scale));
+        }
+        return width;
     }
 
     public String getStatusString() {

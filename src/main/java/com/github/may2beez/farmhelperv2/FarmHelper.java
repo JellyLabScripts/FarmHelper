@@ -6,13 +6,15 @@ import com.github.may2beez.farmhelperv2.command.RewarpCommand;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.event.MillisecondEvent;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
-import com.github.may2beez.farmhelperv2.feature.impl.*;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.handler.RotationHandler;
 import com.github.may2beez.farmhelperv2.remote.DiscordBotHandler;
 import com.github.may2beez.farmhelperv2.remote.WebsocketHandler;
-import com.github.may2beez.farmhelperv2.util.*;
+import com.github.may2beez.farmhelperv2.util.FailsafeUtils;
+import com.github.may2beez.farmhelperv2.util.LogUtils;
+import com.github.may2beez.farmhelperv2.util.MovRecReader;
+import com.github.may2beez.farmhelperv2.util.ReflectionUtils;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
 import com.github.may2beez.farmhelperv2.util.helper.TickTask;
 import com.google.gson.Gson;
@@ -45,7 +47,7 @@ public class FarmHelper {
         initializeFields();
         initializeListeners();
         initializeCommands();
-        FeatureManager.getInstance().fillFeatures();
+        FeatureManager.getInstance().fillFeatures().forEach(MinecraftForge.EVENT_BUS::register);
 
         mc.gameSettings.pauseOnLostFocus = false;
         mc.gameSettings.gammaSetting = 1000;
@@ -77,27 +79,12 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(GameStateHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(MacroHandler.getInstance());
-        MinecraftForge.EVENT_BUS.register(Scheduler.getInstance());
-        MinecraftForge.EVENT_BUS.register(LeaveTimer.getInstance());
-        MinecraftForge.EVENT_BUS.register(AutoCookie.getInstance());
-        MinecraftForge.EVENT_BUS.register(AutoGodPot.getInstance());
-        MinecraftForge.EVENT_BUS.register(AntiStuck.getInstance());
-        MinecraftForge.EVENT_BUS.register(LagDetector.getInstance());
-        MinecraftForge.EVENT_BUS.register(DesyncChecker.getInstance());
-        MinecraftForge.EVENT_BUS.register(AutoSell.getInstance());
-        MinecraftForge.EVENT_BUS.register(ProfitCalculator.getInstance());
-        MinecraftForge.EVENT_BUS.register(BanInfoWS.getInstance());
         MinecraftForge.EVENT_BUS.register(TickTask.getInstance());
         MinecraftForge.EVENT_BUS.register(WebsocketHandler.getInstance());
         if (Loader.isModLoaded("farmhelperjdadependency"))
             MinecraftForge.EVENT_BUS.register(DiscordBotHandler.getInstance());
-        MinecraftForge.EVENT_BUS.register(AutoReconnect.getInstance());
         MinecraftForge.EVENT_BUS.register(AudioManager.getInstance());
-        MinecraftForge.EVENT_BUS.register(Failsafe.getInstance());
-        MinecraftForge.EVENT_BUS.register(Freelock.getInstance());
-        MinecraftForge.EVENT_BUS.register(VisitorsMacro.getInstance());
         MinecraftForge.EVENT_BUS.register(RotationHandler.getInstance());
-        MinecraftForge.EVENT_BUS.register(PlotCleaningHelper.getInstance());
         MinecraftForge.EVENT_BUS.register(new MovRecReader());
     }
 

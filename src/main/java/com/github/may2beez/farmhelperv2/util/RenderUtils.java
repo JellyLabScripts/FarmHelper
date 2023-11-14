@@ -1,14 +1,19 @@
 package com.github.may2beez.farmhelperv2.util;
 
+import com.github.may2beez.farmhelperv2.mixin.client.MinecraftAccessor;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.StringUtils;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import org.lwjgl.opengl.GL11;
 
@@ -107,6 +112,85 @@ public class RenderUtils {
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
         GlStateManager.scale(scale, scale, scale);
         Minecraft.getMinecraft().fontRendererObj.drawString(text, (-Minecraft.getMinecraft().fontRendererObj.getStringWidth(text) / 2f), 0, color.getRGB(), true);
+        GlStateManager.popMatrix();
+    }
+
+    public static void drawText(String str, double X, double Y, double Z, float scale) {
+        float lScale = scale;
+        FontRenderer fontRenderer = Minecraft.getMinecraft().fontRendererObj;
+
+        double renderPosX = X - Minecraft.getMinecraft().getRenderManager().viewerPosX;
+        double renderPosY = Y - Minecraft.getMinecraft().getRenderManager().viewerPosY;
+        double renderPosZ = Z - Minecraft.getMinecraft().getRenderManager().viewerPosZ;
+
+        double distance = Math.sqrt(renderPosX * renderPosX + renderPosY * renderPosY + renderPosZ * renderPosZ);
+        double multiplier = Math.max(distance / 150f, 0.1f);
+        lScale *= 0.45f * multiplier;
+
+        float xMultiplier = Minecraft.getMinecraft().gameSettings.thirdPersonView == 2 ? -1 : 1;
+
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(renderPosX, renderPosY, renderPosZ);
+        RenderManager renderManager = Minecraft.getMinecraft().getRenderManager();
+        GlStateManager.rotate(-renderManager.playerViewY, 0, 1, 0);
+        GlStateManager.rotate(renderManager.playerViewX * xMultiplier, 1, 0, 0);
+        GlStateManager.scale(-lScale, -lScale, lScale);
+        GlStateManager.disableLighting();
+        GlStateManager.depthMask(false);
+        GlStateManager.disableDepth();
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+
+        int textWidth = fontRenderer.getStringWidth(StringUtils.stripControlCodes((str)));
+
+        float j = textWidth / 2f;
+        GlStateManager.disableTexture2D();
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        GlStateManager.color(0, 0, 0, 0.5f);
+        worldrenderer.begin(7, DefaultVertexFormats.POSITION);
+        worldrenderer.pos(-j - 1, -1, 0).endVertex();
+        worldrenderer.pos(-j - 1, 8, 0).endVertex();
+        worldrenderer.pos(j + 1, 8, 0).endVertex();
+        worldrenderer.pos(j + 1, -1, 0).endVertex();
+        tessellator.draw();
+        GlStateManager.enableTexture2D();
+
+        fontRenderer.drawString(str, -textWidth / 2, 0, 553648127);
+        GlStateManager.depthMask(true);
+        fontRenderer.drawString(str, -textWidth / 2, 0, -1);
+
+        GlStateManager.enableDepth();
+        GlStateManager.enableBlend();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.popMatrix();
+    }
+
+    public static void drawTracer(Vec3 to, Color color) {
+        GlStateManager.pushMatrix();
+        GlStateManager.disableDepth();
+        GlStateManager.disableTexture2D();
+        GlStateManager.disableLighting();
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        RenderManager renderManager = Minecraft.getMinecraft().getRenderManager();
+        double renderPosX = to.xCoord - renderManager.viewerPosX;
+        double renderPosY = to.yCoord - renderManager.viewerPosY;
+        double renderPosZ = to.zCoord - renderManager.viewerPosZ;
+        GL11.glLineWidth(1.5f);
+        GL11.glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, color.getAlpha() / 255f);
+        GL11.glBegin(GL11.GL_LINES);
+        Vec3 from = Minecraft.getMinecraft().thePlayer.getPositionEyes(((MinecraftAccessor) Minecraft.getMinecraft()).getTimer().renderPartialTicks);
+        double d0 = Minecraft.getMinecraft().getRenderManager().viewerPosX;
+        double d1 = Minecraft.getMinecraft().getRenderManager().viewerPosY;
+        double d2 = Minecraft.getMinecraft().getRenderManager().viewerPosZ;
+        GL11.glVertex3d(from.xCoord - d0, from.yCoord - d1, from.zCoord - d2);
+        GL11.glVertex3d(renderPosX, renderPosY, renderPosZ);
+        GL11.glEnd();
+        GlStateManager.enableLighting();
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableDepth();
+        GlStateManager.disableBlend();
         GlStateManager.popMatrix();
     }
 }

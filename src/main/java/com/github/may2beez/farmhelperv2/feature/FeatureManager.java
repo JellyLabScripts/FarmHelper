@@ -18,7 +18,7 @@ public class FeatureManager {
 
     private final ArrayList<IFeature> features = new ArrayList<>();
 
-    public void fillFeatures() {
+     public List<IFeature> fillFeatures() {
         List<IFeature> featuresList = Arrays.asList(
                 AntiStuck.getInstance(),
                 AutoCookie.getInstance(),
@@ -32,13 +32,16 @@ public class FeatureManager {
                 LagDetector.getInstance(),
                 LeaveTimer.getInstance(),
                 PerformanceMode.getInstance(),
+                PestsDestroyer.getInstance(),
                 PetSwapper.getInstance(),
+                PlotCleaningHelper.getInstance(),
                 ProfitCalculator.getInstance(),
                 Scheduler.getInstance(),
                 UngrabMouse.getInstance(),
                 VisitorsMacro.getInstance()
         );
         features.addAll(featuresList);
+        return features;
     }
 
     public boolean shouldPauseMacroExecution() {
