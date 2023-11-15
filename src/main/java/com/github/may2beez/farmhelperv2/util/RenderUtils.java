@@ -168,11 +168,11 @@ public class RenderUtils {
 
     public static void drawTracer(Vec3 to, Color color) {
         GlStateManager.pushMatrix();
-        GlStateManager.disableDepth();
-        GlStateManager.disableTexture2D();
-        GlStateManager.disableLighting();
         GlStateManager.enableBlend();
+        GlStateManager.disableDepth();
+        GlStateManager.disableLighting();
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.disableTexture2D();
         RenderManager renderManager = Minecraft.getMinecraft().getRenderManager();
         double renderPosX = to.xCoord - renderManager.viewerPosX;
         double renderPosY = to.yCoord - renderManager.viewerPosY;
@@ -180,17 +180,15 @@ public class RenderUtils {
         GL11.glLineWidth(1.5f);
         GL11.glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, color.getAlpha() / 255f);
         GL11.glBegin(GL11.GL_LINES);
-        Vec3 from = Minecraft.getMinecraft().thePlayer.getPositionEyes(((MinecraftAccessor) Minecraft.getMinecraft()).getTimer().renderPartialTicks);
-        double d0 = Minecraft.getMinecraft().getRenderManager().viewerPosX;
-        double d1 = Minecraft.getMinecraft().getRenderManager().viewerPosY;
-        double d2 = Minecraft.getMinecraft().getRenderManager().viewerPosZ;
-        GL11.glVertex3d(from.xCoord - d0, from.yCoord - d1, from.zCoord - d2);
+        GL11.glVertex3d(0, Minecraft.getMinecraft().thePlayer.getEyeHeight(), 0);
         GL11.glVertex3d(renderPosX, renderPosY, renderPosZ);
         GL11.glEnd();
-        GlStateManager.enableLighting();
+        GL11.glLineWidth(1.0f);
         GlStateManager.enableTexture2D();
         GlStateManager.enableDepth();
         GlStateManager.disableBlend();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.resetColor();
         GlStateManager.popMatrix();
     }
 }

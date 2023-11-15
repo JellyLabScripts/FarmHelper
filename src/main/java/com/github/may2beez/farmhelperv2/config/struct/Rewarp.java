@@ -4,15 +4,13 @@ import com.google.gson.annotations.Expose;
 import lombok.Getter;
 import net.minecraft.util.BlockPos;
 
+@Getter
 public class Rewarp {
     @Expose
-    @Getter
     public int x;
     @Expose
-    @Getter
     public int y;
     @Expose
-    @Getter
     public int z;
 
     public Rewarp(int x, int y, int z) {

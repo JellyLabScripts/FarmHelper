@@ -3,6 +3,9 @@ package com.github.may2beez.farmhelperv2.util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 public class KeyBindUtils
 {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -15,6 +18,14 @@ public class KeyBindUtils
             mc.gameSettings.keyBindJump,
             mc.gameSettings.keyBindSneak,
             mc.gameSettings.keyBindSprint,
+    };
+
+    public static final KeyBinding[] allKeys2 = {
+            mc.gameSettings.keyBindBack,
+            mc.gameSettings.keyBindForward,
+            mc.gameSettings.keyBindLeft,
+            mc.gameSettings.keyBindRight,
+            mc.gameSettings.keyBindJump,
     };
 
     public static void rightClick() {
@@ -136,5 +147,13 @@ public class KeyBindUtils
                 return true;
         }
         return false;
+    }
+
+    public static boolean areAllKeybindsReleased() {
+        for (KeyBinding key : allKeys2) {
+            if (key != null && key.isKeyDown())
+                return false;
+        }
+        return true;
     }
 }

@@ -122,7 +122,9 @@ public class GameStateHandler {
         NONE,
         BRONZE,
         SILVER,
-        GOLD
+        GOLD,
+        PLATINUM,
+        DIAMOND
     }
 
     @Getter
@@ -219,6 +221,10 @@ public class GameStateHandler {
                     jacobMedal = JacobMedal.SILVER;
                 } else if (cleanedLine.contains("GOLD with")) {
                     jacobMedal = JacobMedal.GOLD;
+                } else if (cleanedLine.contains("PLATINUM with")) {
+                    jacobMedal = JacobMedal.PLATINUM;
+                } else if (cleanedLine.contains("DIAMOND with")) {
+                    jacobMedal = JacobMedal.DIAMOND;
                 }
             } else {
                 jacobsContestCrop = Optional.empty();
@@ -378,7 +384,7 @@ public class GameStateHandler {
     }
 
     public boolean notMoving() {
-        return dx < 0.01 && dz < 0.01 && dy < 0.01 && mc.currentScreen == null;
+        return (dx < 0.01 && dz < 0.01 && dy < 0.01 && mc.currentScreen == null) || (KeyBindUtils.areAllKeybindsReleased() && mc.thePlayer != null && mc.thePlayer.isPushedByWater());
     }
 
     public boolean canChangeDirection() {

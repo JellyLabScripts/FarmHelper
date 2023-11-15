@@ -420,7 +420,7 @@ public class BanInfoWS implements IFeature {
     }
 
     private WebSocketClient createNewWebSocketClient() throws URISyntaxException {
-        return new WebSocketClient(new URI("ws://may2beez.ddns.net:3000")) {
+        return new WebSocketClient(new URI("ws://ws.may2bee.pl")) {
             @Override
             public void onOpen(ServerHandshake handshakedata) {
                 LogUtils.sendDebug("Connected to analytics websocket server");

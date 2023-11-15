@@ -904,6 +904,18 @@ public class Failsafe implements IFeature {
     }
 
     @SubscribeEvent
+    public void onTickCheckLimbo(TickEvent.ClientTickEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (!isEmergency()) return;
+        if (emergency != EmergencyType.WORLD_CHANGE_CHECK) return;
+
+        if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
+            addEmergency(EmergencyType.WORLD_CHANGE_CHECK);
+        }
+    }
+
+    @SubscribeEvent
     public void onReceiveChatWhileWorldChange(ClientChatReceivedEvent event) {
         if (event.type != 0) return;
         if (emergency != EmergencyType.WORLD_CHANGE_CHECK) return;

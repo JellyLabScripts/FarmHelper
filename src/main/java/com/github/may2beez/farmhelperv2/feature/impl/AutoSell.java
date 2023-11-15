@@ -137,7 +137,7 @@ public class AutoSell implements IFeature {
 
     @Override
     public boolean isToggled() {
-        return FarmHelperConfig.enableAutoSell || FarmHelperConfig.visitorsMacroAutosellBeforeServing;
+        return FarmHelperConfig.enableAutoSell;
     }
 
     public void enable(boolean manually) {
@@ -197,7 +197,6 @@ public class AutoSell implements IFeature {
     @SubscribeEvent
     public void onTickEnabled(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!isToggled() && !manually) return;
         if (!isRunning()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) {

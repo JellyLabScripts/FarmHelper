@@ -18,6 +18,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.SoundManager;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -34,12 +35,14 @@ import java.util.concurrent.TimeUnit;
 public class MacroHandler {
     private final Minecraft mc = Minecraft.getMinecraft();
     private static MacroHandler instance;
+
     public static MacroHandler getInstance() {
         if (instance == null) {
             instance = new MacroHandler();
         }
         return instance;
     }
+
     @Getter
     @Setter
     private Optional<AbstractMacro> currentMacro = Optional.empty();
@@ -225,18 +228,25 @@ public class MacroHandler {
         FeatureManager.getInstance().resetAllStates();
         disableCurrentMacro();
         setCurrentMacro(Optional.empty());
-
     }
 
-    public void pauseMacro() {
+    public void pauseMacro(boolean scheduler) {
         currentMacro.ifPresent(cm -> {
             if (cm.isPaused()) return;
             cm.saveState();
             cm.onDisable();
             macroingTimer.pause();
             analyticsTimer.pause();
-            Scheduler.getInstance().pause();
+            if (scheduler && Freelock.getInstance().isRunning()) {
+                Freelock.getInstance().stop();
+            }
+            if (Scheduler.getInstance().isFarming())
+                Scheduler.getInstance().pause();
         });
+    }
+
+    public void pauseMacro() {
+        pauseMacro(false);
     }
 
     public void resumeMacro() {

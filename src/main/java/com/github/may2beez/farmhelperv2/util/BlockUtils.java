@@ -159,8 +159,9 @@ public class BlockUtils {
         if (block instanceof BlockFenceGate)
             return state.getValue(BlockFenceGate.OPEN);
 
-        if (block instanceof BlockTrapDoor)
+        if (block instanceof BlockTrapDoor) {
             return state.getValue(BlockTrapDoor.OPEN);
+        }
 
         if (block instanceof BlockSnow)
             return state.getValue(BlockSnow.LAYERS) <= 5;
@@ -211,10 +212,11 @@ public class BlockUtils {
 
         if (block instanceof BlockTrapDoor) {
             EnumFacing playerFacing = EnumFacing.fromAngle(mc.thePlayer.rotationYaw);
-            EnumFacing playerFacingOpposite = playerFacing.getOpposite();
+            EnumFacing doorFacing = mc.theWorld.getBlockState(blockPos).getValue(BlockTrapDoor.FACING);
+            boolean standingOnDoor = getRelativeBlockPos(0, 1, 0).equals(blockPos);
+
             if (state.getValue(BlockTrapDoor.OPEN)) {
-                EnumFacing facing = state.getValue(BlockTrapDoor.FACING);
-                return facing == playerFacing || facing == playerFacingOpposite;
+                return canWalkThroughDoorWithDirection(direction, playerFacing, doorFacing, standingOnDoor);
             } else {
                 return state.getValue(BlockTrapDoor.HALF) == BlockTrapDoor.DoorHalf.TOP;
             }
@@ -223,25 +225,7 @@ public class BlockUtils {
         return block.isPassable(mc.theWorld, blockPos);
     }
 
-    public enum Direction {
-        FORWARD,
-        BACKWARD,
-        LEFT,
-        RIGHT
-    }
-
-    public static boolean canWalkThroughDoor(Direction direction) {
-        return canWalkThroughDoor(getRelativeBlockPos(0, 0, 0), direction);
-    }
-
-    public static boolean canWalkThroughDoor(BlockPos blockPos, Direction direction) {
-        Block block = mc.theWorld.getBlockState(blockPos).getBlock();
-        if (!(block instanceof BlockDoor)) return true;
-
-        EnumFacing playerFacing = EnumFacing.fromAngle(mc.thePlayer.rotationYaw);
-        EnumFacing doorFacing = mc.theWorld.getBlockState(blockPos).getValue(BlockDoor.FACING);
-        boolean standingOnDoor = getRelativeBlockPos(0, 0, 0).equals(blockPos);
-
+    private static boolean canWalkThroughDoorWithDirection(Direction direction, EnumFacing playerFacing, EnumFacing doorFacing, boolean standingOnDoor) {
         switch (direction) {
             case FORWARD:
                 if (doorFacing.equals(playerFacing.getOpposite()) && standingOnDoor) {
@@ -277,6 +261,28 @@ public class BlockUtils {
                 break;
         }
         return true;
+    }
+
+    public enum Direction {
+        FORWARD,
+        BACKWARD,
+        LEFT,
+        RIGHT
+    }
+
+    public static boolean canWalkThroughDoor(Direction direction) {
+        return canWalkThroughDoor(getRelativeBlockPos(0, 0, 0), direction);
+    }
+
+    public static boolean canWalkThroughDoor(BlockPos blockPos, Direction direction) {
+        Block block = mc.theWorld.getBlockState(blockPos).getBlock();
+        if (!(block instanceof BlockDoor)) return true;
+
+        EnumFacing playerFacing = EnumFacing.fromAngle(mc.thePlayer.rotationYaw);
+        EnumFacing doorFacing = mc.theWorld.getBlockState(blockPos).getValue(BlockDoor.FACING);
+        boolean standingOnDoor = getRelativeBlockPos(0, 0, 0).equals(blockPos);
+
+        return canWalkThroughDoorWithDirection(direction, playerFacing, doorFacing, standingOnDoor);
     }
 
     public static BlockPos getBlockPosLookingAt() {

@@ -132,8 +132,8 @@ public class Scheduler implements IFeature {
 
         if (MacroHandler.getInstance().isMacroToggled() && MacroHandler.getInstance().isCurrentMacroEnabled() && schedulerState == SchedulerState.FARMING && !schedulerClock.isPaused() && schedulerClock.passed()) {
             LogUtils.sendDebug("[Scheduler] Farming time has passed, stopping");
-            MacroHandler.getInstance().pauseMacro();
             schedulerState = SchedulerState.BREAK;
+            MacroHandler.getInstance().pauseMacro(true);
             schedulerClock.schedule((long) ((FarmHelperConfig.schedulerBreakTime * 60_000f) + (Math.random() * FarmHelperConfig.schedulerBreakTimeRandomness * 60_000f)));
             if (FarmHelperConfig.openInventoryOnSchedulerBreaks) {
                 KeyBindUtils.stopMovement();

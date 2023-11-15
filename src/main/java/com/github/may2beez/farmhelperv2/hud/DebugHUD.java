@@ -29,6 +29,8 @@ public class DebugHUD extends TextHud {
         lines.add("   Backward: " + GameStateHandler.getInstance().isBackWalkable());
         lines.add("   Left: " + GameStateHandler.getInstance().isLeftWalkable());
         lines.add("   Right: " + GameStateHandler.getInstance().isRightWalkable());
+        lines.add("   Not moving: " + GameStateHandler.getInstance().notMoving());
+        lines.add("   HasPassedSinceStopped: " + GameStateHandler.getInstance().hasPassedSinceStopped());
         if (Scheduler.getInstance().isToggled()) {
             lines.add("Scheduler: ");
             lines.add("  State: " + LogUtils.capitalize(Scheduler.getInstance().getSchedulerState().toString()));

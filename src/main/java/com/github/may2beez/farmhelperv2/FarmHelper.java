@@ -6,6 +6,7 @@ import com.github.may2beez.farmhelperv2.command.RewarpCommand;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.event.MillisecondEvent;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
+import com.github.may2beez.farmhelperv2.feature.impl.MovRecPlayer;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.handler.RotationHandler;
@@ -13,7 +14,6 @@ import com.github.may2beez.farmhelperv2.remote.DiscordBotHandler;
 import com.github.may2beez.farmhelperv2.remote.WebsocketHandler;
 import com.github.may2beez.farmhelperv2.util.FailsafeUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
-import com.github.may2beez.farmhelperv2.util.MovRecReader;
 import com.github.may2beez.farmhelperv2.util.ReflectionUtils;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
 import com.github.may2beez.farmhelperv2.util.helper.TickTask;
@@ -86,7 +86,6 @@ public class FarmHelper {
             MinecraftForge.EVENT_BUS.register(DiscordBotHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(AudioManager.getInstance());
         MinecraftForge.EVENT_BUS.register(RotationHandler.getInstance());
-        MinecraftForge.EVENT_BUS.register(new MovRecReader());
     }
 
     private void initializeFields() {

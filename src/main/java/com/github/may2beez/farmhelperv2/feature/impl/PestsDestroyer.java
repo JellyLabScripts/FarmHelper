@@ -21,6 +21,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -169,19 +170,23 @@ public class PestsDestroyer implements IFeature {
             return false;
         }).collect(Collectors.toList());
 
-        pests.forEach(entity -> {
+        for (Entity entity : pests) {
             AxisAlignedBB boundingBox = new AxisAlignedBB(entity.posX - 0.5, entity.posY + entity.getEyeHeight() - 0.35, entity.posZ - 0.5, entity.posX + 0.5, entity.posY + entity.getEyeHeight() + 0.65, entity.posZ + 0.5);
             double d0 = Minecraft.getMinecraft().getRenderManager().viewerPosX;
             double d1 = Minecraft.getMinecraft().getRenderManager().viewerPosY;
             double d2 = Minecraft.getMinecraft().getRenderManager().viewerPosZ;
             boundingBox = boundingBox.offset(-d0, -d1, -d2);
             if (FarmHelperConfig.pestsESP) {
-                RenderUtils.drawBox(boundingBox, FarmHelperConfig.pestsESPColor.toJavaColor());
+                Color color = FarmHelperConfig.pestsESPColor.toJavaColor();
+                if (mc.thePlayer.canEntityBeSeen(entity)) {
+                    color = new Color(color.getRed(), color.getGreen(), color.getBlue(), Math.min(50, color.getAlpha()));
+                }
+                RenderUtils.drawBox(boundingBox, color);
             }
             if (FarmHelperConfig.pestsTracers) {
-                RenderUtils.drawTracer(new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), FarmHelperConfig.pestsESPColor.toJavaColor());
+                RenderUtils.drawTracer(new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), FarmHelperConfig.pestsTracersColor.toJavaColor());
             }
-        });
+        }
     }
 
     @SubscribeEvent

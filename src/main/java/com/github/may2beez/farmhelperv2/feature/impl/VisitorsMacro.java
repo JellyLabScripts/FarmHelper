@@ -933,7 +933,7 @@ public class VisitorsMacro implements IFeature {
                     if (entity.equals(currentVisitor.get()) || entity.equals(currentCharacter.get()) || entity.getCustomNameTag().contains("CLICK") && entity.getDistanceToEntity(currentVisitor.get()) < 1) {
                         LogUtils.sendDebug("[Visitors Macro] Looking at Visitor");
                         setVisitorsState(VisitorsState.GET_LIST);
-                        KeyBindUtils.rightClick();
+                        KeyBindUtils.leftClick();
                         delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     } else {
                         LogUtils.sendDebug("[Visitors Macro] Looking at something else");
@@ -1146,6 +1146,11 @@ public class VisitorsMacro implements IFeature {
             case ROTATE_TO_VISITOR_2:
                 if (mc.currentScreen != null) return;
                 if (rotation.isRotating()) return;
+                if (getNonToolItem() == -1) {
+                    LogUtils.sendError("[Visitors Macro] The player doesn't have any free slots in the hotbar, might get stuck...");
+                } else {
+                    mc.thePlayer.inventory.currentItem = getNonToolItem();
+                }
                 if (mc.objectMouseOver != null && mc.objectMouseOver.entityHit != null) {
                     Entity entity = mc.objectMouseOver.entityHit;
                     assert currentVisitor.isPresent();
@@ -1186,7 +1191,7 @@ public class VisitorsMacro implements IFeature {
                     if (entity.equals(currentVisitor.get()) || entity.equals(currentCharacter.get()) || entity.getCustomNameTag().contains("CLICK") && entity.getDistanceToEntity(currentVisitor.get()) < 1) {
                         LogUtils.sendDebug("[Visitors Macro] Looking at Visitor");
                         setVisitorsState(VisitorsState.FINISH_VISITOR);
-                        KeyBindUtils.rightClick();
+                        KeyBindUtils.leftClick();
                         delayClock.schedule(getRandomDelay());
                     } else {
                         LogUtils.sendDebug("[Visitors Macro] Looking at something else");
@@ -1508,6 +1513,30 @@ public class VisitorsMacro implements IFeature {
     }
 
     private int getNonToolItem() {
+        ArrayList<Integer> maxedTools = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            ItemStack itemStack = mc.thePlayer.inventory.mainInventory[i];
+            if (itemStack != null &&
+                    itemStack.getItem() != null) {
+                if (itemStack.getItem() instanceof ItemHoe) {
+                    ItemHoe itemHoe = (ItemHoe) itemStack.getItem();
+                    if (Objects.equals(itemHoe.getMaterialName(), Item.ToolMaterial.EMERALD.name())) {
+                        maxedTools.add(i);
+                    }
+                }
+                if (itemStack.getItem() instanceof ItemAxe) {
+                    String displayName = itemStack.getDisplayName();
+                    if (displayName.contains("Dicer 3.0") || displayName.contains("Coco Chopper")) {
+                        maxedTools.add(i);
+                    }
+                }
+            }
+        }
+
+        if (!maxedTools.isEmpty()) {
+            return maxedTools.get(0);
+        }
+
         ArrayList<Integer> slotsWithoutItems = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
             if (mc.thePlayer.inventory.mainInventory[i] == null || mc.thePlayer.inventory.mainInventory[i].getItem() == null) {
@@ -1528,7 +1557,8 @@ public class VisitorsMacro implements IFeature {
                     !itemStack.getDisplayName().contains("Compactor") &&
                     !itemStack.getDisplayName().contains("Cropie") &&
                     !itemStack.getDisplayName().contains("Squash") &&
-                    !itemStack.getDisplayName().contains("Fermento")) {
+                    !itemStack.getDisplayName().contains("Fermento") &&
+                    !itemStack.getDisplayName().contains("Compost")) {
                 return i;
             }
         }
@@ -1555,7 +1585,7 @@ public class VisitorsMacro implements IFeature {
             if (msg.startsWith("[NPC] " + npcName + ":")) {
                 Multithreading.schedule(() -> {
                     if (mc.currentScreen == null) {
-                        KeyBindUtils.rightClick();
+                        KeyBindUtils.leftClick();
                     }
                 }, (long) (250 + Math.random() * 150), TimeUnit.MILLISECONDS);
             }
