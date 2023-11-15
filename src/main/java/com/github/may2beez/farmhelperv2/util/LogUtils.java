@@ -3,6 +3,7 @@ package com.github.may2beez.farmhelperv2.util;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.config.struct.DiscordWebhook;
+import com.github.may2beez.farmhelperv2.feature.impl.MovRecPlayer;
 import com.github.may2beez.farmhelperv2.feature.impl.ProfitCalculator;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
@@ -49,6 +50,11 @@ public class LogUtils {
         else
             System.out.println("[Farm Helper] " + message);
         lastDebugMessage = message;
+    }
+
+    public static void sendDebug(String message, boolean checkIfRecording) {
+        if (checkIfRecording && !MovRecPlayer.getInstance().isRunning())
+            sendDebug(message);
     }
 
     public static void sendFailsafeMessage(String message) {

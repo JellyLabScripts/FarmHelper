@@ -80,6 +80,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(GameStateHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(MacroHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(TickTask.getInstance());
+        MinecraftForge.EVENT_BUS.register(MovRecPlayer.getInstance());
         MinecraftForge.EVENT_BUS.register(WebsocketHandler.getInstance());
         if (Loader.isModLoaded("farmhelperjdadependency"))
             MinecraftForge.EVENT_BUS.register(DiscordBotHandler.getInstance());

@@ -594,6 +594,12 @@ public class FarmHelperConfig extends Config {
             text = "Play"
     )
     Runnable _playFailsafeSoundButton = () -> AudioManager.getInstance().playSound();
+    @Button(
+            name = "", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
+            description = "Stops playing the selected sound",
+            text = "Stop"
+    )
+    Runnable _stopFailsafeSoundButton = () -> AudioManager.getInstance().resetSound();
 
     @Dropdown(
             name = "Minecraft Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
@@ -1456,8 +1462,11 @@ public class FarmHelperConfig extends Config {
         this.addDependency("petSwapperDelay", "enablePetSwapper");
         this.addDependency("petSwapperName", "enablePetSwapper");
 
-        this.addDependency("failsafeSoundType", "enableFailsafeSound");
+        this.addDependency("failsafeSoundType", "Play Button", () -> enableFailsafeSound && !AudioManager.getInstance().isSoundPlaying());
         this.addDependency("_playFailsafeSoundButton", "enableFailsafeSound");
+        this.addDependency("_stopFailsafeSoundButton", "enableFailsafeSound");
+        this.hideIf("_playFailsafeSoundButton" , () -> AudioManager.getInstance().isSoundPlaying());
+        this.hideIf("_stopFailsafeSoundButton" , () -> !AudioManager.getInstance().isSoundPlaying());
         this.addDependency("failsafeMcSoundSelected", "Minecraft Sound", () -> !failsafeSoundType && enableFailsafeSound);
         this.addDependency("failsafeSoundSelected", "Custom Sound", () -> failsafeSoundType && enableFailsafeSound);
         this.addDependency("failsafeSoundVolume", "Custom Sound", () -> failsafeSoundType && enableFailsafeSound);
