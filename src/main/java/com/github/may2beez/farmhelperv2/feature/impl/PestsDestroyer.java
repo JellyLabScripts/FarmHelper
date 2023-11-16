@@ -119,7 +119,7 @@ public class PestsDestroyer implements IFeature {
 
     @Override
     public boolean isToggled() {
-        return FarmHelperConfig.enablePestsDestroyer;
+        return true;
     }
 
     private final Pattern pestPattern = Pattern.compile("GROSS! A Pest has appeared in Plot - (\\d+)!");
