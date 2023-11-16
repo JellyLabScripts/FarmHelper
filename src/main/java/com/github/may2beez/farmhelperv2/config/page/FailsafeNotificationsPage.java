@@ -214,4 +214,74 @@ public class FailsafeNotificationsPage {
             category = "Failsafe Tag Everyone"
     )
     public static boolean tagEveryoneOnJacobFailsafe = false;
+
+    @Switch(
+            name = "Rotation Check Auto Alt-tab",
+            description = "Whether or not to automatically alt-tab when the rotation check failsafe is triggered.",
+            category = "Failsafe Auto Alt-tab"
+    )
+    public static boolean autoAltTabOnRotationFailsafe = true;
+
+    @Switch(
+            name = "Teleportation Check Auto Alt-tab",
+            description = "Whether or not to automatically alt-tab when the teleportation check failsafe is triggered.",
+            category = "Failsafe Auto Alt-tab"
+    )
+    public static boolean autoAltTabOnTeleportationFailsafe = true;
+
+    @Switch(
+            name = "Dirt Check Auto Alt-tab",
+            description = "Whether or not to automatically alt-tab when the dirt check failsafe is triggered.",
+            category = "Failsafe Auto Alt-tab"
+    )
+    public static boolean autoAltTabOnDirtFailsafe = true;
+
+    @Switch(
+            name = "Item Change Check Auto Alt-tab",
+            description = "Whether or not to automatically alt-tab when the item change check failsafe is triggered.",
+            category = "Failsafe Auto Alt-tab"
+    )
+    public static boolean autoAltTabOnItemChangeFailsafe = true;
+
+    @Switch(
+            name = "World Change Check Auto Alt-tab",
+            description = "Whether or not to automatically alt-tab when the world change check failsafe is triggered.",
+            category = "Failsafe Auto Alt-tab"
+    )
+    public static boolean autoAltTabOnWorldChangeFailsafe = false;
+
+    @Switch(
+            name = "Bedrock Cage Check Auto Alt-tab",
+            description = "Whether or not to automatically alt-tab when the bedrock cage check failsafe is triggered.",
+            category = "Failsafe Auto Alt-tab"
+    )
+    public static boolean autoAltTabOnBedrockCageFailsafe = true;
+
+    @Switch(
+            name = "Evacuate Auto Alt-tab",
+            description = "Whether or not to automatically alt-tab when the evacuate failsafe is triggered.",
+            category = "Failsafe Auto Alt-tab"
+    )
+    public static boolean autoAltTabOnEvacuateFailsafe = false;
+
+    @Switch(
+            name = "Banwave Auto Alt-tab",
+            description = "Whether or not to automatically alt-tab when the banwave failsafe is triggered.",
+            category = "Failsafe Auto Alt-tab"
+    )
+    public static boolean autoAltTabOnBanwaveFailsafe = false;
+
+    @Switch(
+            name = "Disconnect Auto Alt-tab",
+            description = "Whether or not to automatically alt-tab when the disconnect failsafe is triggered.",
+            category = "Failsafe Auto Alt-tab"
+    )
+    public static boolean autoAltTabOnDisconnectFailsafe = false;
+
+    @Switch(
+            name = "Jacob Auto Alt-tab",
+            description = "Whether or not to automatically alt-tab when the Jacob failsafe is triggered.",
+            category = "Failsafe Auto Alt-tab"
+    )
+    public static boolean autoAltTabOnJacobFailsafe = false;
 }

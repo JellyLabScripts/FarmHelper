@@ -233,6 +233,10 @@ public abstract class AbstractMacro {
         }
     }
 
+    public void clearSavedState() {
+        savedState = Optional.empty();
+    }
+
     public void changeState(State state) {
         LogUtils.sendDebug("Changing state from " + currentState + " to " + state);
         setCurrentState(state);

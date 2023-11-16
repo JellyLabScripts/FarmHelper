@@ -113,6 +113,9 @@ public class GameStateHandler {
     private long copper = 0;
 
     @Getter
+    private int currentPlot = 0;
+
+    @Getter
     private Optional<FarmHelperConfig.CropEnum> jacobsContestCrop = Optional.empty();
 
     @Getter
@@ -147,6 +150,12 @@ public class GameStateHandler {
 
         List<String> scoreboardLines = ScoreboardUtils.getScoreboardLines();
         if (scoreboardLines.isEmpty()) return;
+
+        if (inGarden()) {
+            currentPlot = PlotUtils.getPlotNumberBasedOnLocation();
+        } else {
+            currentPlot = -5;
+        }
 
         for (String line : scoreboardLines) {
             String cleanedLine = StringUtils.stripControlCodes(ScoreboardUtils.cleanSB(line));

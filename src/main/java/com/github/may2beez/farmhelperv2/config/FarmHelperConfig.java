@@ -1170,6 +1170,18 @@ public class FarmHelperConfig extends Config {
     )
     public static OneColor pestsTracersColor = new OneColor(0, 255, 217, 171);
 
+    @Switch(
+            name = "Highlight borders of Plot with pests", category = PESTS_DESTROYER, subcategory = "Drawings",
+            description = "Highlights the borders of the plot with pests"
+    )
+    public static boolean highlightPlotWithPests = true;
+
+    @Color(
+            name = "Plot Highlight Color", category = PESTS_DESTROYER, subcategory = "Drawings",
+            description = "The color of the plot highlight"
+    )
+    public static OneColor plotHighlightColor = new OneColor(0, 255, 217, 40);
+
     // END PESTS_DESTROYER
 
     // START DISCORD_INTEGRATION

@@ -23,6 +23,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -123,6 +124,7 @@ public class PlotCleaningHelper implements IFeature {
             RotationHandler.getInstance().reset();
             return;
         }
+
         if (ScoreboardUtils.getScoreboardLines().stream().noneMatch(line -> line.contains("Cleanup"))) {
             scytheBlockPos.clear();
             treeCapitatorBlockPos.clear();
@@ -140,6 +142,9 @@ public class PlotCleaningHelper implements IFeature {
         BlockPos blockBottom = playerPos.subtract(vec3Bottom);
         for (BlockPos blockpos : BlockPos.getAllInBox(blockBottom, blockTop)) {
             if (brokenBlockPosArrayList.stream().anyMatch(tup -> tup.getFirst().equals(blockpos))) continue;
+            List<Tuple<Integer, Integer>> chunks = PlotUtils.getPlotChunksBasedOnLocation(blockpos);
+            AxisAlignedBB aabb = new AxisAlignedBB(chunks.get(0).getFirst() * 16 + 1, 66, chunks.get(0).getSecond() * 16 + 1, chunks.get(chunks.size() - 1).getFirst() * 16 + 16 - 1, 200, chunks.get(chunks.size() - 1).getSecond() * 16 + 16 - 1);
+            if (!aabb.isVecInside(new Vec3(blockpos))) continue;
             Vec3 target = new Vec3(blockpos.getX() + 0.5, blockpos.getY() + 0.5, blockpos.getZ() + 0.5);
             float fovToVec = fovToVec3(target);
             float wrappedYaw = MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw);

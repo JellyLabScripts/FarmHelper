@@ -79,7 +79,6 @@ public class Failsafe implements IFeature {
         final String label;
         // 1 is highest priority
         final int priority;
-        boolean shouldAlert = true;
 
         EmergencyType(String s, int priority) {
             label = s;
@@ -186,8 +185,11 @@ public class Failsafe implements IFeature {
         }
         emergency = tempEmergency;
 
-        if (FarmHelperConfig.autoAltTab && shouldPlaySoundAlert(emergency)) {
+        if (FarmHelperConfig.enableFailsafeSound && shouldPlaySoundAlert(emergency)) {
             AudioManager.getInstance().playSound();
+        }
+
+        if (FarmHelperConfig.autoAltTab && shouldAltTab(emergency)) {
             FailsafeUtils.bringWindowToFront();
         }
 
@@ -197,7 +199,7 @@ public class Failsafe implements IFeature {
         LogUtils.sendDebug("[Failsafe] Emergency chosen: " + StringUtils.stripControlCodes(emergency.name()));
         LogUtils.sendFailsafeMessage(emergency.label, shouldTagEveryone(emergency));
         FeatureManager.getInstance().disableCurrentlyRunning(this);
-        if (shouldNotify(emergency))
+        if (FarmHelperConfig.popUpNotification && shouldNotify(emergency))
             FailsafeUtils.getInstance().sendNotification(StringUtils.stripControlCodes(emergency.label), TrayIcon.MessageType.WARNING);
     }
 
@@ -1527,6 +1529,32 @@ public class Failsafe implements IFeature {
                 return FailsafeNotificationsPage.alertOnDisconnectFailsafe;
             case JACOB:
                 return FailsafeNotificationsPage.alertOnJacobFailsafe;
+        }
+        return false;
+    }
+
+    private boolean shouldAltTab(EmergencyType emergency) {
+        switch (emergency) {
+            case ROTATION_CHECK:
+                return FailsafeNotificationsPage.autoAltTabOnRotationFailsafe;
+            case TELEPORT_CHECK:
+                return FailsafeNotificationsPage.autoAltTabOnTeleportationFailsafe;
+            case DIRT_CHECK:
+                return FailsafeNotificationsPage.autoAltTabOnDirtFailsafe;
+            case ITEM_CHANGE_CHECK:
+                return FailsafeNotificationsPage.autoAltTabOnItemChangeFailsafe;
+            case WORLD_CHANGE_CHECK:
+                return FailsafeNotificationsPage.autoAltTabOnWorldChangeFailsafe;
+            case BEDROCK_CAGE_CHECK:
+                return FailsafeNotificationsPage.autoAltTabOnBedrockCageFailsafe;
+            case EVACUATE:
+                return FailsafeNotificationsPage.autoAltTabOnEvacuateFailsafe;
+            case BANWAVE:
+                return FailsafeNotificationsPage.autoAltTabOnBanwaveFailsafe;
+            case DISCONNECT:
+                return FailsafeNotificationsPage.autoAltTabOnDisconnectFailsafe;
+            case JACOB:
+                return FailsafeNotificationsPage.autoAltTabOnJacobFailsafe;
         }
         return false;
     }

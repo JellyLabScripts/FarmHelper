@@ -95,7 +95,7 @@ public class RenderUtils {
         GlStateManager.enableTexture2D();
         GlStateManager.enableDepth();
         GlStateManager.disableBlend();
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.resetColor();
         GlStateManager.popMatrix();
     }
 

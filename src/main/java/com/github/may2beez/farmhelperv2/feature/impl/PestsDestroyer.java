@@ -3,9 +3,7 @@ package com.github.may2beez.farmhelperv2.feature.impl;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
-import com.github.may2beez.farmhelperv2.util.LogUtils;
-import com.github.may2beez.farmhelperv2.util.RenderUtils;
-import com.github.may2beez.farmhelperv2.util.ScoreboardUtils;
+import com.github.may2beez.farmhelperv2.util.*;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -16,16 +14,20 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.Vec3;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -117,7 +119,7 @@ public class PestsDestroyer implements IFeature {
 
     @Override
     public boolean isToggled() {
-        return true;
+        return FarmHelperConfig.enablePestsDestroyer;
     }
 
     private final Pattern pestPattern = Pattern.compile("GROSS! A Pest has appeared in Plot - (\\d+)!");
@@ -181,10 +183,75 @@ public class PestsDestroyer implements IFeature {
                 if (mc.thePlayer.canEntityBeSeen(entity)) {
                     color = new Color(color.getRed(), color.getGreen(), color.getBlue(), Math.min(50, color.getAlpha()));
                 }
+                float distance = mc.thePlayer.getDistanceToEntity(entity);
+                if (distance > 5) {
+                    try {
+                        ItemStack itemStack = ((EntityArmorStand) entity).getEquipmentInSlot(4);
+                        String pestName = this.pests.stream().filter(pest -> itemStack.getTagCompound().toString().contains(pest.getSecond())).findFirst().get().getFirst();
+                        RenderUtils.drawText(pestName, entity.posX, entity.posY + entity.getEyeHeight() + 0.65 + 0.5, entity.posZ, 1 + (float) Math.min((distance / 20), 3));
+                    } catch (Exception ignored) {
+                    }
+                }
                 RenderUtils.drawBox(boundingBox, color);
+
             }
             if (FarmHelperConfig.pestsTracers) {
                 RenderUtils.drawTracer(new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), FarmHelperConfig.pestsTracersColor.toJavaColor());
+            }
+        }
+
+        if (!FarmHelperConfig.highlightPlotWithPests) return;
+
+//        for (Map.Entry<Integer, List<Tuple<Integer, Integer>>> chunk : PlotUtils.getPLOTS().entrySet()) {
+//            List<Tuple<Integer, Integer>> chunks = chunk.getValue();
+//            int plotNumber = chunk.getKey();
+//            AxisAlignedBB boundingBox = new AxisAlignedBB(chunks.get(0).getFirst() * 16, 66, chunks.get(0).getSecond() * 16, chunks.get(chunks.size() - 1).getFirst() * 16 + 16, 80, chunks.get(chunks.size() - 1).getSecond() * 16 + 16);
+//            double d0 = Minecraft.getMinecraft().getRenderManager().viewerPosX;
+//            double d1 = Minecraft.getMinecraft().getRenderManager().viewerPosY;
+//            double d2 = Minecraft.getMinecraft().getRenderManager().viewerPosZ;
+//            int centerX = (int) (boundingBox.minX + (boundingBox.maxX - boundingBox.minX) / 2);
+//            int centerZ = (int) (boundingBox.minZ + (boundingBox.maxZ - boundingBox.minZ) / 2);
+//
+//            boundingBox = boundingBox.offset(-d0, -d1, -d2);
+//            RenderUtils.drawBox(boundingBox, FarmHelperConfig.plotHighlightColor.toJavaColor());
+//            RenderUtils.drawText(plotNumber + "", centerX, 80, centerZ, 1);
+//        }
+
+        for (Pest pest : pestsMap) {
+            int plotNumber = pest.getPlotNumber();
+            List<Tuple<Integer, Integer>> chunks = PlotUtils.getPlotBasedOnNumber(plotNumber);
+            AxisAlignedBB boundingBox = new AxisAlignedBB(chunks.get(0).getFirst() * 16, 66, chunks.get(0).getSecond() * 16, chunks.get(chunks.size() - 1).getFirst() * 16 + 16, 80, chunks.get(chunks.size() - 1).getSecond() * 16 + 16);
+            double d0 = Minecraft.getMinecraft().getRenderManager().viewerPosX;
+            double d1 = Minecraft.getMinecraft().getRenderManager().viewerPosY;
+            double d2 = Minecraft.getMinecraft().getRenderManager().viewerPosZ;
+            float centerX = (float) (boundingBox.minX + (boundingBox.maxX - boundingBox.minX) / 2);
+            float centerZ = (float) (boundingBox.minZ + (boundingBox.maxZ - boundingBox.minZ) / 2);
+            boundingBox = boundingBox.offset(-d0, -d1, -d2);
+            RenderUtils.drawBox(boundingBox, FarmHelperConfig.plotHighlightColor.toJavaColor());
+            int numberOfPests = pest.getAmount();
+            RenderUtils.drawText("Pests in plot: " + numberOfPests, centerX, 80, centerZ, 1);
+        }
+    }
+
+    @SubscribeEvent
+    public void onEntityDeath(LivingDeathEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!isToggled()) return;
+        if (!GameStateHandler.getInstance().inGarden()) return;
+
+        Entity entity = event.entity;
+        LogUtils.sendDebug("[Pests Destroyer] Entity died: " + entity.getName() + " at: " + entity.getPosition());
+        int plotNumber = PlotUtils.getPlotNumberBasedOnLocation(entity.getPosition());
+        if (plotNumber == -1) {
+            LogUtils.sendError("[Pests Destroyer] Failed to get plot number for entity: " + entity.getName() + " at: " + entity.getPosition());
+            return;
+        }
+        Optional<Pest> pestOptional = pestsMap.stream().filter(p -> p.plotNumber == plotNumber).findFirst();
+        if (pestOptional.isPresent()) {
+            Pest pest = pestOptional.get();
+            pest.amount--;
+            if (pest.amount <= 0) {
+                pestsMap.remove(pest);
             }
         }
     }
@@ -216,5 +283,13 @@ public class PestsDestroyer implements IFeature {
                 amountOfPests = 0;
             }
         }
+        if (amountOfPests == 0) {
+            pestsMap.clear();
+        }
+    }
+
+    @SubscribeEvent
+    public void onWorldUnload(WorldEvent.Unload event) {
+        pestsMap.clear();
     }
 }
