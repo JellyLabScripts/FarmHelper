@@ -387,7 +387,6 @@ public class MacroHandler {
             return;
         }
         currentMacro.ifPresent(m -> {
-            if (!m.isEnabled()) return;
             if (m.getSavedState().isPresent()) {
                 LogUtils.sendWarning("Clearing saved state, because of world change.");
                 m.clearSavedState();

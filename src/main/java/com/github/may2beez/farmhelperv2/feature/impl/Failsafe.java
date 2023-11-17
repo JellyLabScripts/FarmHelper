@@ -201,6 +201,9 @@ public class Failsafe implements IFeature {
         FeatureManager.getInstance().disableCurrentlyRunning(this);
         if (FarmHelperConfig.popUpNotification && shouldNotify(emergency))
             FailsafeUtils.getInstance().sendNotification(StringUtils.stripControlCodes(emergency.label), TrayIcon.MessageType.WARNING);
+        if (!Scheduler.getInstance().isFarming()) {
+            Scheduler.getInstance().farmingTime();
+        }
     }
 
     @SubscribeEvent
@@ -506,20 +509,42 @@ public class Failsafe implements IFeature {
                         rotationTime, null));
         failsafeDelay.schedule(rotationTime - 50);
         currentLookAroundTimes++;
-        if (!mc.thePlayer.onGround) return;
         double randomKey = Math.random();
-        if (randomKey <= 0.2) {
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), true);
-            Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
-        } else if (randomKey <= 0.4) {
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), true);
-            Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
-        } else if (randomKey <= 0.6) {
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), true);
-            Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
-        } else if (randomKey <= 0.8) {
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), true);
-            Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+        if (!mc.thePlayer.onGround && FarmHelperConfig.tryToUseJumpingAndFlying) {
+            if (randomKey <= 0.3) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
+                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+            } else if (randomKey <= 0.6) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), true);
+                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+            } else {
+                KeyBindUtils.stopMovement();
+            }
+        } else {
+            if (randomKey <= 0.175 && GameStateHandler.getInstance().isFrontWalkable()) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), true);
+                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+            } else if (randomKey <= 0.35 && GameStateHandler.getInstance().isLeftWalkable()) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), true);
+                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+            } else if (randomKey <= 0.525 && GameStateHandler.getInstance().isRightWalkable()) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), true);
+                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+            } else if (randomKey <= 0.70 && GameStateHandler.getInstance().isBackWalkable()) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), true);
+                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+            } else {
+                KeyBindUtils.stopMovement();
+                if (FarmHelperConfig.tryToUseJumpingAndFlying) {
+                    mc.thePlayer.jump();
+                    Multithreading.schedule(() -> {
+                        if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.allowEdit && !mc.thePlayer.capabilities.isFlying) {
+                            mc.thePlayer.capabilities.isFlying = true;
+                            mc.thePlayer.sendPlayerAbilities();
+                        }
+                    }, (long) (250 + Math.random() * 250), TimeUnit.MILLISECONDS);
+                }
+            }
         }
     }
 
@@ -789,8 +814,13 @@ public class Failsafe implements IFeature {
                     evacuateState = EvacuateState.END;
                     failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
                 } else {
-                    mc.thePlayer.sendChatMessage("/warp garden");
-                    failsafeDelay.schedule((long) (2_500 + Math.random() * 2_000));
+                    if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.HUB) {
+                        mc.thePlayer.sendChatMessage("/warp garden");
+                        failsafeDelay.schedule((long) (2_500 + Math.random() * 2_000));
+                    } else {
+                        mc.thePlayer.sendChatMessage("/skyblock");
+                        failsafeDelay.schedule((long) (5_500 + Math.random() * 4_000));
+                    }
                 }
                 break;
             case END:

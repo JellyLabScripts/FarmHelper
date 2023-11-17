@@ -88,5 +88,11 @@ public class DebugHUD extends TextHud {
             lines.add("   Consume Pot State: " + AutoGodPot.getInstance().getConsumePotState());
             lines.add("   Clock: " + AutoGodPot.getInstance().getDelayClock().getRemainingTime());
         }
+        if (FarmHelperConfig.highlightPlotWithPests) {
+            lines.add("Pests:");
+            for (PestsDestroyer.Pest pest : PestsDestroyer.getInstance().getPestsMap()) {
+                lines.add("   Plot: " + pest.getPlotNumber() + " - " + pest.getAmount());
+            }
+        }
     }
 }

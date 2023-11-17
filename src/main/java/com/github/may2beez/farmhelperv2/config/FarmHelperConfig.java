@@ -513,6 +513,12 @@ public class FarmHelperConfig extends Config {
     public static boolean autoAltTab = true;
 
     @Switch(
+            name = "Try to use jumping and flying in failsafes reactions", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "Tries to use jumping and flying in failsafes reactions"
+    )
+    public static boolean tryToUseJumpingAndFlying = true;
+
+    @Switch(
             name = "Check Desync", category = FAILSAFE, subcategory = "Desync",
             description = "If client desynchronization is detected, it activates a failsafe. Turn this off if the network is weak or if it happens frequently."
     )

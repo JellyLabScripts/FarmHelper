@@ -31,10 +31,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Base64;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
 
@@ -52,7 +49,12 @@ public class BanInfoWS implements IFeature {
         try {
             LogUtils.sendDebug("Connecting to analytics server...");
             client = createNewWebSocketClient();
-            for (Map.Entry<String, JsonElement> header : getHeaders().entrySet()) {
+            JsonObject headers = getHeaders();
+            if (headers == null) {
+                LogUtils.sendDebug("Failed to connect to analytics server");
+                return;
+            }
+            for (Map.Entry<String, JsonElement> header : headers.entrySet()) {
                 client.addHeader(header.getKey(), header.getValue().getAsString());
             }
             client.connect();
@@ -157,7 +159,12 @@ public class BanInfoWS implements IFeature {
                 reconnectDelay.reset();
                 LogUtils.sendDebug("Connecting to analytics server...");
                 client = createNewWebSocketClient();
-                for (Map.Entry<String, JsonElement> header : getHeaders().entrySet()) {
+                JsonObject headers = getHeaders();
+                if (headers == null) {
+                    LogUtils.sendDebug("Failed to connect to analytics server");
+                    return;
+                }
+                for (Map.Entry<String, JsonElement> header : headers.entrySet()) {
                     client.addHeader(header.getKey(), header.getValue().getAsString());
                 }
                 reconnectDelay.schedule(5_000L * (retryCount + 1));
@@ -414,7 +421,10 @@ public class BanInfoWS implements IFeature {
             Minecraft.getMinecraft().getSessionService().joinServer(Minecraft.getMinecraft().getSession().getProfile(), Minecraft.getMinecraft().getSession().getToken(), serverId);
             handshake.addProperty("serverId", serverId);
         } catch (AuthenticationException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            retryCount++;
+            reconnectDelay.schedule(5_000L * (retryCount + 1));
+            return null;
         }
         return handshake;
     }

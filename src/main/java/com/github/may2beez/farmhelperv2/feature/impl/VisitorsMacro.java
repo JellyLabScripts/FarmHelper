@@ -1584,9 +1584,7 @@ public class VisitorsMacro implements IFeature {
         BlockPos barn1 = new BlockPos(-30, 65, -45);
         BlockPos barn2 = new BlockPos(36, 80, -2);
         AxisAlignedBB axisAlignedBB = new AxisAlignedBB(barn1, barn2);
-        boolean flag = axisAlignedBB.isVecInside(mc.thePlayer.getPositionVector());
-        LogUtils.sendDebug("[Visitors Macro] The player is in barn: " + flag);
-        return flag;
+        return axisAlignedBB.isVecInside(mc.thePlayer.getPositionVector());
     }
 
     @SubscribeEvent(receiveCanceled = true)
