@@ -1,7 +1,6 @@
 package com.github.may2beez.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
-import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.event.ClickedBlockEvent;
 import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
@@ -10,7 +9,6 @@ import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.github.may2beez.farmhelperv2.util.APIUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
-import com.github.may2beez.farmhelperv2.util.helper.CircularFifoQueue;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -41,13 +39,17 @@ public class ProfitCalculator implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
     @Getter
     private final NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "US"));
+
     {
         formatter.setMaximumFractionDigits(0);
     }
+
     private final NumberFormat oneDecimalDigitFormatter = NumberFormat.getNumberInstance(Locale.US);
+
     {
         oneDecimalDigitFormatter.setMaximumFractionDigits(1);
     }
+
     private static ProfitCalculator instance;
 
     public static ProfitCalculator getInstance() {
@@ -77,72 +79,79 @@ public class ProfitCalculator implements IFeature {
 
     public final HashMap<String, Integer> itemsDropped = new HashMap<>();
 
-    public final List<BazaarItem> visitorsMacroPrices = new ArrayList<BazaarItem>() {{
-        add(new BazaarItem("_Wheat", "WHEAT"));
-        add(new BazaarItem("_Enchanted Bread", "ENCHANTED_BREAD"));
-        add(new BazaarItem("_Hay Bale", "HAY_BLOCK"));
-        add(new BazaarItem("_Enchanted Hay Bale", "ENCHANTED_HAY_BLOCK"));
-        add(new BazaarItem("_Tightly-Tied Hay Bale", "TIGHTLY_TIED_HAY_BALE"));
+    public final List<BazaarItem> visitorsMacroPrices = new ArrayList<BazaarItem>() {
+        {
+            add(new BazaarItem("_Wheat", "WHEAT", 6));
+            add(new BazaarItem("_Enchanted Bread", "ENCHANTED_BREAD", 60));
+            add(new BazaarItem("_Hay Bale", "HAY_BLOCK", 54));
+            add(new BazaarItem("_Enchanted Hay Bale", "ENCHANTED_HAY_BLOCK", 7_780));
+            add(new BazaarItem("_Tightly-Tied Hay Bale", "TIGHTLY_TIED_HAY_BALE", 1_119_744));
 
-        add(new BazaarItem("-Potato", "POTATO_ITEM"));
-        add(new BazaarItem("-Enchanted Potato", "ENCHANTED_POTATO"));
-        add(new BazaarItem("-Enchanted Baked Potato", "ENCHANTED_BAKED_POTATO"));
+            add(new BazaarItem("_Potato", "POTATO_ITEM", 3));
+            add(new BazaarItem("_Enchanted Potato", "ENCHANTED_POTATO", 480));
+            add(new BazaarItem("_Enchanted Baked Potato", "ENCHANTED_BAKED_POTATO", 7_680));
 
-        add(new BazaarItem("_Nether Wart", "NETHER_STALK"));
-        add(new BazaarItem("_Enchanted Nether Wart", "ENCHANTED_NETHER_STALK"));
-        add(new BazaarItem("_Mutant Nether Wart", "MUTANT_NETHER_STALK"));
+            add(new BazaarItem("_Nether Wart", "NETHER_STALK", 4));
+            add(new BazaarItem("_Enchanted Nether Wart", "ENCHANTED_NETHER_STALK", 640));
+            add(new BazaarItem("_Mutant Nether Wart", "MUTANT_NETHER_STALK", 102_400));
 
-        add(new BazaarItem("_Carrot", "CARROT_ITEM"));
-        add(new BazaarItem("_Enchanted Carrot", "ENCHANTED_CARROT"));
-        add(new BazaarItem("_Enchanted Golden Carrot", "ENCHANTED_GOLDEN_CARROT"));
+            add(new BazaarItem("_Carrot", "CARROT_ITEM", 3));
+            add(new BazaarItem("_Enchanted Carrot", "ENCHANTED_CARROT", 480));
+            add(new BazaarItem("_Enchanted Golden Carrot", "ENCHANTED_GOLDEN_CARROT", 61_440));
 
-        add(new BazaarItem("_Cactus", "CACTUS"));
-        add(new BazaarItem("_Enchanted Cactus Green", "ENCHANTED_CACTUS_GREEN"));
-        add(new BazaarItem("_Enchanted Cactus", "ENCHANTED_CACTUS"));
+            add(new BazaarItem("_Cactus", "CACTUS", 3));
+            add(new BazaarItem("_Enchanted Cactus Green", "ENCHANTED_CACTUS_GREEN", 480));
+            add(new BazaarItem("_Enchanted Cactus", "ENCHANTED_CACTUS", 76_800));
 
-        add(new BazaarItem("_Sugar Cane", "SUGAR_CANE"));
-        add(new BazaarItem("_Enchanted Sugar", "ENCHANTED_SUGAR"));
-        add(new BazaarItem("_Enchanted Sugar Cane", "ENCHANTED_SUGAR_CANE"));
+            add(new BazaarItem("_Sugar Cane", "SUGAR_CANE", 4));
+            add(new BazaarItem("_Enchanted Sugar", "ENCHANTED_SUGAR", 640));
+            add(new BazaarItem("_Enchanted Sugar Cane", "ENCHANTED_SUGAR_CANE", 102_400));
 
-        add(new BazaarItem("_Melon", "MELON"));
-        add(new BazaarItem("_Enchanted Melon", "ENCHANTED_MELON"));
-        add(new BazaarItem("_Melon Block", "MELON_BLOCK"));
-        add(new BazaarItem("_Enchanted Melon Block", "ENCHANTED_MELON_BLOCK"));
+            add(new BazaarItem("_Melon", "MELON", 2));
+            add(new BazaarItem("_Enchanted Melon", "ENCHANTED_MELON", 320));
+            add(new BazaarItem("_Melon Block", "MELON_BLOCK", 18));
+            add(new BazaarItem("_Enchanted Melon Block", "ENCHANTED_MELON_BLOCK", 51_200));
 
-        add(new BazaarItem("_Cocoa Beans", "INK_SACK:3"));
-        add(new BazaarItem("_Enchanted Cocoa Beans", "ENCHANTED_COCOA"));
-        add(new BazaarItem("_Enchanted Cookie", "ENCHANTED_COOKIE"));
+            add(new BazaarItem("_Cocoa Beans", "INK_SACK:3", 3));
+            add(new BazaarItem("_Enchanted Cocoa Beans", "ENCHANTED_COCOA", 480));
+            add(new BazaarItem("_Enchanted Cookie", "ENCHANTED_COOKIE", 61_500));
 
-        add(new BazaarItem("_Red Mushroom", "RED_MUSHROOM"));
-        add(new BazaarItem("_Enchanted Red Mushroom", "ENCHANTED_RED_MUSHROOM"));
-        add(new BazaarItem("_Red Mushroom Block", "HUGE_MUSHROOM_1"));
-        add(new BazaarItem("_Enchanted Red Mushroom Block", "ENCHANTED_HUGE_MUSHROOM_1"));
+            add(new BazaarItem("_Red Mushroom", "RED_MUSHROOM", 10));
+            add(new BazaarItem("_Enchanted Red Mushroom", "ENCHANTED_RED_MUSHROOM", 1_600));
+            add(new BazaarItem("_Red Mushroom Block", "HUGE_MUSHROOM_2", 10));
+            add(new BazaarItem("_Enchanted Red Mushroom Block", "ENCHANTED_HUGE_MUSHROOM_2", 51_200));
 
-        add(new BazaarItem("_Brown Mushroom", "BROWN_MUSHROOM"));
-        add(new BazaarItem("_Enchanted Brown Mushroom", "ENCHANTED_BROWN_MUSHROOM"));
-        add(new BazaarItem("_Brown Mushroom Block", "HUGE_MUSHROOM_2"));
-        add(new BazaarItem("_Enchanted Brown Mushroom Block", "ENCHANTED_HUGE_MUSHROOM_2"));
+            add(new BazaarItem("_Brown Mushroom", "BROWN_MUSHROOM", 10));
+            add(new BazaarItem("_Enchanted Brown Mushroom", "ENCHANTED_BROWN_MUSHROOM", 1_600));
+            add(new BazaarItem("_Brown Mushroom Block", "HUGE_MUSHROOM_1", 10));
+            add(new BazaarItem("_Enchanted Brown Mushroom Block", "ENCHANTED_HUGE_MUSHROOM_1", 51_200));
 
-        add(new BazaarItem("_Pumpkin", "PUMPKIN"));
-        add(new BazaarItem("_Enchanted Pumpkin", "ENCHANTED_PUMPKIN"));
-        add(new BazaarItem("_Polished Pumpkin", "POLISHED_PUMPKIN"));
+            add(new BazaarItem("_Pumpkin", "PUMPKIN", 10));
+            add(new BazaarItem("_Enchanted Pumpkin", "ENCHANTED_PUMPKIN", 1_600));
+            add(new BazaarItem("_Polished Pumpkin", "POLISHED_PUMPKIN", 256_000));
 
-        add(new BazaarItem("_Raw Porkchop", "PORK"));
-        add(new BazaarItem("_Enchanted Pork", "ENCHANTED_PORK"));
-        add(new BazaarItem("_Enchanted Grilled Pork", "ENCHANTED_GRILLED_PORK"));
+            add(new BazaarItem("_Raw Porkchop", "PORK", 5));
+            add(new BazaarItem("_Enchanted Pork", "ENCHANTED_PORK", 800));
+            add(new BazaarItem("_Enchanted Grilled Pork", "ENCHANTED_GRILLED_PORK", 128_000));
 
-        add(new BazaarItem("_Raw Rabbit", "RABBIT"));
-        add(new BazaarItem("_Enchanted Raw Rabbit", "ENCHANTED_RABBIT"));
+            add(new BazaarItem("_Raw Rabbit", "RABBIT", 4));
+            add(new BazaarItem("_Enchanted Raw Rabbit", "ENCHANTED_RABBIT", 640));
 
-        add(new BazaarItem("_Compost", "COMPOST"));
-        add(new BazaarItem("_Mutton", "MUTTON"));
-        add(new BazaarItem("_Enchanted Mutton", "ENCHANTED_MUTTON"));
-        add(new BazaarItem("_Enchanted Cookied Mutton", "ENCHANTED_COOKED_MUTTON"));
+            add(new BazaarItem("_Compost", "COMPOST", 21_300));
 
-        add(new BazaarItem("_Seeds", "SEEDS"));
-        add(new BazaarItem("_Enchanted Seeds", "ENCHANTED_SEEDS"));
-        add(new BazaarItem("_Box of Seeds", "BOX_OF_SEEDS"));
-    }};
+            add(new BazaarItem("_Mutton", "MUTTON", 5));
+            add(new BazaarItem("_Enchanted Mutton", "ENCHANTED_MUTTON", 800));
+            add(new BazaarItem("_Enchanted Cookied Mutton", "ENCHANTED_COOKED_MUTTON", 128_000));
+
+            add(new BazaarItem("_Seeds", "SEEDS", 3));
+            add(new BazaarItem("_Enchanted Seeds", "ENCHANTED_SEEDS", 480));
+            add(new BazaarItem("_Box of Seeds", "BOX_OF_SEEDS", 76_800));
+        }
+    };
+
+    public BazaarItem getVisitorsItem(String localizedName) {
+        return visitorsMacroPrices.stream().filter(item -> item.localizedName.equals(localizedName)).findFirst().orElse(null);
+    }
 
     public final List<BazaarItem> cropsToCount = new ArrayList<BazaarItem>() {{
         final int HAY_ENCHANTED_TIER_1 = 144;
@@ -178,6 +187,7 @@ public class ProfitCalculator implements IFeature {
     private final Clock updateBazaarClock = new Clock();
     public final List<String> cropsToCountList = Arrays.asList("Hay Bale", "Seeds", "Carrot", "Potato", "Melon", "Pumpkin", "Sugar Cane", "Cocoa Beans", "Nether Wart", "Cactus Green", "Red Mushroom", "Brown Mushroom");
     public final List<String> rngToCountList = Arrays.asList("Cropie", "Squash", "Fermento", "Burrowing Spores");
+
     @Override
     public String getName() {
         return "Profit Calculator";
@@ -243,10 +253,8 @@ public class ProfitCalculator implements IFeature {
             } else {
                 double price;
                 if (!bazaarPrices.containsKey(item.localizedName)) {
-                    LogUtils.sendDebug("No price for " + item.localizedName);
+                    LogUtils.sendDebug("No price or is manipulated for " + item.localizedName);
                     price = item.npcPrice;
-                } else if (bazaarPrices.get(item.localizedName).isManipulated()) {
-                    price = bazaarPrices.get(item.localizedName).getMedian();
                 } else {
                     price = bazaarPrices.get(item.localizedName).currentPrice;
                 }
@@ -260,10 +268,8 @@ public class ProfitCalculator implements IFeature {
             } else {
                 double price;
                 if (!bazaarPrices.containsKey(item.localizedName)) {
-                    LogUtils.sendDebug("No price for " + item.localizedName);
+                    LogUtils.sendDebug("No price or is manipulated for " + item.localizedName);
                     price = item.npcPrice;
-                } else if (bazaarPrices.get(item.localizedName).isManipulated()) {
-                    price = bazaarPrices.get(item.localizedName).getMedian();
                 } else {
                     price = bazaarPrices.get(item.localizedName).currentPrice;
                 }
@@ -352,7 +358,8 @@ public class ProfitCalculator implements IFeature {
             ItemStack newItem = packet.func_149174_e();
             ItemStack oldItem = currentSlot.getStack();
             if (newItem == null) return;
-            if (newItem.getItem() instanceof ItemTool || newItem.getItem() instanceof ItemArmor || newItem.getItem() instanceof ItemHoe) return;
+            if (newItem.getItem() instanceof ItemTool || newItem.getItem() instanceof ItemArmor || newItem.getItem() instanceof ItemHoe)
+                return;
             if (oldItem == null || !oldItem.getItem().equals(newItem.getItem())) {
                 int newStackSize = newItem.stackSize;
                 String name = StringUtils.stripControlCodes(newItem.getDisplayName());
@@ -476,11 +483,10 @@ public class ProfitCalculator implements IFeature {
             APICrop apiCrop;
             if (bazaarPrices.containsKey(item.localizedName)) {
                 apiCrop = bazaarPrices.get(item.localizedName);
-                apiCrop.previousPrices.add(apiCrop.currentPrice);
+                apiCrop.currentPrice = buyPrice;
             } else {
-                apiCrop = new APICrop();
+                apiCrop = new APICrop(item.localizedName, buyPrice);
             }
-            apiCrop.currentPrice = buyPrice;
             bazaarPrices.put(item.localizedName, apiCrop);
         }
     }
@@ -542,10 +548,11 @@ public class ProfitCalculator implements IFeature {
             this.currentAmount = 0;
         }
 
-        public BazaarItem(String localizedName, String bazaarId) {
+        public BazaarItem(String localizedName, String bazaarId, int npcPrice) {
             this.localizedName = localizedName;
             this.bazaarId = bazaarId;
             this.dontCount = true;
+            this.npcPrice = npcPrice;
         }
 
         public BazaarItem setImage() {
@@ -556,16 +563,11 @@ public class ProfitCalculator implements IFeature {
 
     public static class APICrop {
         public double currentPrice = 0;
-        public CircularFifoQueue<Double> previousPrices = new CircularFifoQueue<>(10);
-        public boolean isManipulated() {
-            if (previousPrices.size() < 5) return false;
-            double average = previousPrices.stream().mapToDouble(a -> a).average().orElse(currentPrice);
-            return currentPrice > average * FarmHelperConfig.visitorsMacroPriceManipulationMultiplier;
-        }
-        public double getMedian() {
-            List<Double> list = new ArrayList<>(previousPrices);
-            Collections.sort(list);
-            return list.get(list.size() / 2);
+        public String name;
+
+        public APICrop(String name, double currentPrice) {
+            this.name = name;
+            this.currentPrice = currentPrice;
         }
     }
 }

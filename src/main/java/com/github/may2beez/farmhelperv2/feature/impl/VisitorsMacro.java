@@ -31,7 +31,6 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class VisitorsMacro implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
@@ -162,6 +161,8 @@ public class VisitorsMacro implements IFeature {
     private BuyState buyState = BuyState.NONE;
     private final ArrayList<Pair<String, Long>> itemsToBuy = new ArrayList<>();
 
+    private boolean haveItemsInSack = false;
+
     @Getter
     private final Clock delayClock = new Clock();
     @Getter
@@ -222,6 +223,7 @@ public class VisitorsMacro implements IFeature {
             setTravelState(TravelState.END);
         }
         forceStart = false;
+        haveItemsInSack = false;
         delayClock.reset();
         rotation.reset();
         stuckClock.schedule(STUCK_DELAY);
@@ -975,6 +977,7 @@ public class VisitorsMacro implements IFeature {
                 if (npcItemStack == null) break;
                 ArrayList<String> lore = InventoryUtils.getItemLore(npcItemStack);
                 boolean isNpc = lore.size() == 4 && lore.get(3).contains("Offers Accepted: ");
+                haveItemsInSack = false;
                 String npcName = isNpc ? StringUtils.stripControlCodes(npcSlot.getStack().getDisplayName()) : "";
                 assert currentVisitor.isPresent();
                 if (npcName.isEmpty() || !StringUtils.stripControlCodes(npcName).contains(StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()))) {
@@ -1001,12 +1004,16 @@ public class VisitorsMacro implements IFeature {
                 boolean foundRequiredItems = false;
                 boolean foundRewards = false;
                 for (String line : loreAcceptOffer) {
+                    if (line.toLowerCase().contains("click to give")) {
+                        haveItemsInSack = true;
+                        continue;
+                    }
                     if (line.contains("Required:")) {
                         foundRequiredItems = true;
                         continue;
                     }
                     if (foundRewards && line.trim().isEmpty()) {
-                        break;
+                        continue;
                     }
                     if (line.trim().contains("Rewards:") || line.trim().isEmpty() && foundRequiredItems) {
                         foundRewards = true;
@@ -1033,8 +1040,6 @@ public class VisitorsMacro implements IFeature {
                         }
                     }
                 }
-
-                System.out.println(currentRewards.stream().map(tuple -> tuple.getFirst() + " " + tuple.getSecond()).collect(Collectors.joining(", ")));
 
                 if (itemsToBuy.isEmpty()) {
                     LogUtils.sendDebug("[Visitors Macro] Something went wrong with collecting required items...");
@@ -1115,6 +1120,12 @@ public class VisitorsMacro implements IFeature {
                             break;
                     }
                 }
+
+                if (haveItemsInSack && !rejectVisitor) {
+                    setVisitorsState(VisitorsState.FINISH_VISITOR);
+                    break;
+                }
+
                 setVisitorsState(VisitorsState.CLOSE_VISITOR);
                 break;
             case CLOSE_VISITOR:
@@ -1246,15 +1257,18 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(getRandomDelay());
                     break;
                 }
-                for (Pair<String, Long> item : itemsToBuy) {
-                    if (InventoryUtils.getAmountOfItemInInventory(item.getLeft()) < item.getRight()) {
-                        LogUtils.sendError("[Visitors Macro] Missing item " + item.getLeft() + " amount " + item.getRight());
-                        setVisitorsState(VisitorsState.BUY_STATE);
-                        mc.thePlayer.closeScreen();
-                        delayClock.schedule(getRandomDelay());
-                        return;
+                if (!haveItemsInSack) {
+                    for (Pair<String, Long> item : itemsToBuy) {
+                        if (InventoryUtils.getAmountOfItemInInventory(item.getLeft()) < item.getRight()) {
+                            LogUtils.sendError("[Visitors Macro] Missing item " + item.getLeft() + " amount " + item.getRight());
+                            setVisitorsState(VisitorsState.BUY_STATE);
+                            mc.thePlayer.closeScreen();
+                            delayClock.schedule(getRandomDelay());
+                            return;
+                        }
                     }
                 }
+                haveItemsInSack = false;
                 InventoryUtils.clickContainerSlot(acceptOfferSlot2.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                 if (FarmHelperConfig.sendVisitorsMacroLogs)
                     LogUtils.webhookLog("Visitors Macro accepted visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
@@ -1289,6 +1303,7 @@ public class VisitorsMacro implements IFeature {
             return true;
         }
         InventoryUtils.clickContainerSlot(rejectOfferSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+        rejectVisitor = false;
         return false;
     }
 
@@ -1384,11 +1399,11 @@ public class VisitorsMacro implements IFeature {
                     }
                 }
 
-                ProfitCalculator.APICrop cropFromApi = ProfitCalculator.getInstance().bazaarPrices.get("_" + itemsToBuy.get(0).getLeft());
-                if (cropFromApi != null) {
-                    if (cropFromApi.isManipulated()) {
+                ProfitCalculator.BazaarItem bazaarItem = ProfitCalculator.getInstance().getVisitorsItem("_" + itemsToBuy.get(0).getLeft());
+                if (bazaarItem != null) {
+                    if (pricePerUnit > bazaarItem.npcPrice * FarmHelperConfig.visitorsMacroPriceManipulationMultiplier) {
                         LogUtils.sendDebug("[Visitors Macro] Price manipulation detected, skipping...");
-                        LogUtils.sendDebug("[Visitors Macro] Current price: " + pricePerUnit + " Median Price: " + cropFromApi.getMedian());
+                        LogUtils.sendDebug("[Visitors Macro] Current price: " + pricePerUnit + " Npc price: " + bazaarItem.npcPrice + " Npc price after manipulation: " + bazaarItem.npcPrice * FarmHelperConfig.visitorsMacroPriceManipulationMultiplier);
                         rejectVisitor = true;
                         setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
                         delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
