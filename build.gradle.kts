@@ -36,6 +36,7 @@ loom {
             property("asmhelper.verbose", "true")
             arg("--tweakClass", "cc.polyfrost.oneconfig.loader.stage0.LaunchWrapperTweaker")
             arg("-Dfml.coreMods.load", "com.github.may2beez.farmhelperv2.transformer.FMLCore")
+            arg("--tweakClass", "com.github.may2beez.farmhelperv2.transformer.Tweaker")
         }
     }
     forge {
@@ -88,6 +89,10 @@ dependencies {
 
     shadowImpl("com.dorkbox:Notify:3.7")
 
+    implementation("com.github.Niroxbtw.baritone:baritone-deobf:2.0.5")
+//    compileOnly("com.github.Niroxbtw.baritone:baritone-deobf:2.0.0")
+//    runtimeOnly("com.github.Niroxbtw.baritone:baritone-deobf:2.0.0")
+//    shadowImpl("com.github.Niroxbtw.baritone:baritone-api:2.0.0")
 }
 
 // Tasks:

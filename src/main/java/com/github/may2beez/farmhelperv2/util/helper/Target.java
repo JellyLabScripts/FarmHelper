@@ -26,7 +26,7 @@ public class Target {
         if (vec != null) {
             return Optional.of(vec);
         } else if (entity != null) {
-            return Optional.of(entity.getPositionVector());
+            return Optional.of(entity.getPositionVector().add(new Vec3(0.5, entity.getEyeHeight(), 0.5)));
         } else {
             return Optional.empty();
         }

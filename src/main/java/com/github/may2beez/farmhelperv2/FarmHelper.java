@@ -1,5 +1,7 @@
 package com.github.may2beez.farmhelperv2;
 
+import baritone.api.BaritoneAPI;
+import baritone.api.pathing.goals.GoalBlock;
 import cc.polyfrost.oneconfig.utils.Notifications;
 import com.github.may2beez.farmhelperv2.command.FarmHelperCommand;
 import com.github.may2beez.farmhelperv2.command.RewarpCommand;
@@ -20,6 +22,8 @@ import com.github.may2beez.farmhelperv2.util.helper.TickTask;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Loader;
@@ -73,6 +77,17 @@ public class FarmHelper {
             LogUtils.sendError("You've got §6§lHytils §cinstalled in your mods folder! This will cause many issues with rewarping as it sends tons of commands every minute.");
         }
         sentInfoAboutShittyClient = true;
+    }
+
+    @SubscribeEvent
+    public void onMiddleClick(TickEvent.ClientTickEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (mc.gameSettings.keyBindPickBlock.isKeyDown()) {
+            if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                BlockPos pos = mc.objectMouseOver.getBlockPos();
+                BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().setGoal(new GoalBlock(pos));
+            }
+        }
     }
 
     private void initializeListeners() {

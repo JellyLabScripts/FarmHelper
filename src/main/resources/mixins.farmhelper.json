@@ -27,6 +27,7 @@
     "gui.MixinGuiEditSign",
     "gui.MixinGuiMainMenu",
     "gui.MixinGuiMultiplayer",
+    "network.MixinNetHandlerPlayClient",
     "render.MixinActiveRenderInfo",
     "render.MixinEffectRenderer",
     "render.MixinEntityRenderer",

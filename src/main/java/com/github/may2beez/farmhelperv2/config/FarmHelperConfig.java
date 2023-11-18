@@ -1,5 +1,8 @@
 package com.github.may2beez.farmhelperv2.config;
 
+import baritone.api.BaritoneAPI;
+import baritone.api.pathing.goals.GoalXZ;
+import baritone.api.utils.BetterBlockPos;
 import cc.polyfrost.oneconfig.config.Config;
 import cc.polyfrost.oneconfig.config.annotations.Number;
 import cc.polyfrost.oneconfig.config.annotations.*;
@@ -23,6 +26,7 @@ import com.github.may2beez.farmhelperv2.util.PlayerUtils;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.MathHelper;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
@@ -1576,17 +1580,13 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-//        registerKeyBind(debugKeybind, () -> {
-//            String banScreen = "You are temporarily banned for 29d 23h 59m 59s from this server!" +
-//                    "\n" +
-//                    "\nReason: Cheaters get banned" +
-//                    "\nFind out more: nhttps://www.hypixel.net/appeal" +
-//                    "\n" +
-//                    "\nBan ID: #49871982" +
-//                    "\nSharing your Ban ID may affect the processing of your appeal!";
-////            BanInfoWS.getInstance().playerBanned(30, "Cheaters gets banned", "#49871982", banScreen);
-//            mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText(banScreen));
-//        });
+        registerKeyBind(debugKeybind, () -> {
+//            BaritoneAPI.getSettings().pitchRotationTimeTicks.value = Math.toIntExact(FarmHelperConfig.getRandomRotationTime() / 50);
+//            BaritoneAPI.getSettings().yawRotationTimeTicks.value = Math.toIntExact(FarmHelperConfig.getRandomRotationTime() / 50);
+//            BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().setGoal(new GoalXZ(MathHelper.floor_double(mc.thePlayer.posX + 50),  MathHelper.floor_double(mc.thePlayer.posZ + 50)));
+//            BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().findPath(new BetterBlockPos(mc.thePlayer.getPosition().getX(), mc.thePlayer.getPosition().getY(), mc.thePlayer.getPosition().getZ()));
+            PestsDestroyer.getInstance().toggle();
+        });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
         save();
