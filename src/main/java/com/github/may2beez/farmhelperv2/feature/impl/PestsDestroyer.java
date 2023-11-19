@@ -472,7 +472,7 @@ public class PestsDestroyer implements IFeature {
     private void fly() {
         mc.thePlayer.jump();
         Multithreading.schedule(() -> {
-            if (!mc.thePlayer.onGround && !mc.thePlayer.capabilities.isFlying) {
+            if (!mc.thePlayer.onGround && !mc.thePlayer.capabilities.isFlying && mc.thePlayer.capabilities.allowFlying) {
                 mc.thePlayer.capabilities.isFlying = true;
                 mc.thePlayer.sendPlayerAbilities();
             }
@@ -494,7 +494,7 @@ public class PestsDestroyer implements IFeature {
 
     @SubscribeEvent
     public void onChat(ClientChatReceivedEvent event) {
-        if (event.type != 0) return;
+        if (event.type != 0 || event.message == null) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText().trim());
         Matcher matcher = pestPattern.matcher(message);
         if (!matcher.matches()) {

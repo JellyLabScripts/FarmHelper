@@ -1480,6 +1480,8 @@ public class FarmHelperConfig extends Config {
         this.addDependency("petSwapperDelay", "enablePetSwapper");
         this.addDependency("petSwapperName", "enablePetSwapper");
 
+        this.addDependency("autoUngrabMouse", "This feature doesn't work properly on Mac OS!", () -> !Minecraft.isRunningOnMac);
+
         this.addDependency("failsafeSoundType", "Play Button", () -> enableFailsafeSound && !AudioManager.getInstance().isSoundPlaying());
         this.addDependency("_playFailsafeSoundButton", "enableFailsafeSound");
         this.addDependency("_stopFailsafeSoundButton", "enableFailsafeSound");

@@ -89,6 +89,11 @@ public class FarmHelper {
             Notifications.INSTANCE.send("FarmHelper", "You've got Hytils installed in your mods folder! This will cause many issues with rewarping as it sends tons of commands every minute.", 15000);
             LogUtils.sendError("You've got §6§lHytils §cinstalled in your mods folder! This will cause many issues with rewarping as it sends tons of commands every minute.");
         }
+        if (Minecraft.isRunningOnMac && FarmHelperConfig.autoUngrabMouse) {
+            FarmHelperConfig.autoUngrabMouse = false;
+            Notifications.INSTANCE.send("FarmHelper", "Auto Ungrab Mouse feature doesn't work properly on Mac OS. It has been disabled automatically.", 15000);
+            LogUtils.sendError("Auto Ungrab Mouse feature doesn't work properly on Mac OS. It has been disabled automatically.");
+        }
         sentInfoAboutShittyClient = true;
     }
 
