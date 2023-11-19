@@ -208,7 +208,6 @@ public class PestsDestroyer implements IFeature {
         if (amountOfPests < FarmHelperConfig.startKillingPestsAt) return false;
 
         if (PlayerUtils.isStandingOnRewarpLocation()) {
-            System.out.println(BlockUtils.isAboveHeadClear());
             if ((BlockUtils.isAboveHeadClear() && !pestsLocations.isEmpty()) || !pestsMap.isEmpty()) {
                 start();
             }
@@ -301,7 +300,7 @@ public class PestsDestroyer implements IFeature {
             case GET_LOCATION:
                 KeyBindUtils.stopMovement();
 
-                if (!pestsLocations.isEmpty()) {
+                if (!pestsLocations.isEmpty() && BlockUtils.isAboveHeadClear()) {
                     state = States.FLY_TO_PEST;
                     break;
                 }
@@ -389,7 +388,7 @@ public class PestsDestroyer implements IFeature {
                     return;
                 }
                 double distance = mc.thePlayer.getDistance(entity.posX, mc.thePlayer.posY, entity.posZ);
-                if (distance > 2 || !canEntityBeSeenIgnoreNonCollidable(entity)) {
+                if (distance > 2) {
                     if (!mc.thePlayer.capabilities.isFlying) {
                         fly();
                         delayClock.schedule(350);
