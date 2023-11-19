@@ -7,6 +7,7 @@ import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.handler.RotationHandler;
+import com.github.may2beez.farmhelperv2.macro.AbstractMacro;
 import com.github.may2beez.farmhelperv2.util.*;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import com.github.may2beez.farmhelperv2.util.helper.Rotation;
@@ -246,6 +247,7 @@ public class VisitorsMacro implements IFeature {
         }
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();
+            MacroHandler.getInstance().getCurrentMacro().ifPresent(AbstractMacro::clearSavedState);
         }
         LogUtils.webhookLog("Visitors Macro started");
     }
@@ -319,7 +321,7 @@ public class VisitorsMacro implements IFeature {
             return false;
         }
 
-        if (!FarmHelperConfig.visitorsMacroAction && !isAboveHeadClear()) {
+        if (!FarmHelperConfig.visitorsMacroAction && !BlockUtils.isAboveHeadClear()) {
             LogUtils.sendError("[Visitors Macro] There is something above the player's head, skipping...");
             return false;
         }
@@ -372,17 +374,6 @@ public class VisitorsMacro implements IFeature {
         Vec3 deskPos1 = new Vec3(FarmHelperConfig.visitorsDeskPosX + 0.5, FarmHelperConfig.visitorsDeskPosY + 0.5, FarmHelperConfig.visitorsDeskPosZ + 0.5);
         return mc.theWorld.rayTraceBlocks(positionFrom1, deskPos1, false, true, false) == null &&
                 mc.theWorld.rayTraceBlocks(positionFrom, deskPos1, false, true, false) == null;
-    }
-
-    private boolean isAboveHeadClear() {
-        for (int y = BlockUtils.getRelativeBlockPos(0, 1, 0).getY(); y < 100; y++) {
-            BlockPos blockPos = BlockUtils.getRelativeBlockPos(0, y, 0);
-            Block block = mc.theWorld.getBlockState(blockPos).getBlock();
-            if (!mc.theWorld.isAirBlock(blockPos) && !block.equals(Blocks.reeds) && !block.equals(Blocks.water) && !block.equals(Blocks.flowing_water)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @SubscribeEvent

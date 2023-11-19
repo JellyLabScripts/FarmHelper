@@ -1,12 +1,11 @@
 package com.github.may2beez.farmhelperv2;
 
-import baritone.api.BaritoneAPI;
-import baritone.api.pathing.goals.GoalBlock;
 import cc.polyfrost.oneconfig.utils.Notifications;
 import com.github.may2beez.farmhelperv2.command.FarmHelperCommand;
 import com.github.may2beez.farmhelperv2.command.RewarpCommand;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
 import com.github.may2beez.farmhelperv2.event.MillisecondEvent;
+import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.FeatureManager;
 import com.github.may2beez.farmhelperv2.feature.impl.MovRecPlayer;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
@@ -22,8 +21,9 @@ import com.github.may2beez.farmhelperv2.util.helper.TickTask;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.network.Packet;
+import net.minecraft.network.login.server.S00PacketDisconnect;
+import net.minecraft.network.play.server.S40PacketDisconnect;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Loader;
@@ -60,7 +60,20 @@ public class FarmHelper {
 
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
         executorService.scheduleAtFixedRate(() -> MinecraftForge.EVENT_BUS.post(new MillisecondEvent()), 0, 1, TimeUnit.MILLISECONDS);
+    }
 
+    @SubscribeEvent
+    public void onPacketReceive(ReceivePacketEvent event) {
+        Packet<?> packet = event.packet;
+        if (packet instanceof S00PacketDisconnect) {
+            String reason = ((S00PacketDisconnect) packet).func_149603_c().getFormattedText();
+            System.out.println("S00PacketDisconnect");
+            System.out.println(reason);
+        } else if (packet instanceof S40PacketDisconnect) {
+            String reason = ((S40PacketDisconnect) packet).getReason().getFormattedText();
+            System.out.println("S40PacketDisconnect");
+            System.out.println(reason);
+        }
     }
 
     @SubscribeEvent
@@ -77,17 +90,6 @@ public class FarmHelper {
             LogUtils.sendError("You've got §6§lHytils §cinstalled in your mods folder! This will cause many issues with rewarping as it sends tons of commands every minute.");
         }
         sentInfoAboutShittyClient = true;
-    }
-
-    @SubscribeEvent
-    public void onMiddleClick(TickEvent.ClientTickEvent event) {
-        if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (mc.gameSettings.keyBindPickBlock.isKeyDown()) {
-            if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                BlockPos pos = mc.objectMouseOver.getBlockPos();
-                BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().setGoal(new GoalBlock(pos));
-            }
-        }
     }
 
     private void initializeListeners() {

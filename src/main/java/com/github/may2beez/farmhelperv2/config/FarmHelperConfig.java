@@ -1,8 +1,5 @@
 package com.github.may2beez.farmhelperv2.config;
 
-import baritone.api.BaritoneAPI;
-import baritone.api.pathing.goals.GoalXZ;
-import baritone.api.utils.BetterBlockPos;
 import cc.polyfrost.oneconfig.config.Config;
 import cc.polyfrost.oneconfig.config.annotations.Number;
 import cc.polyfrost.oneconfig.config.annotations.*;
@@ -26,7 +23,6 @@ import com.github.may2beez.farmhelperv2.util.PlayerUtils;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.MathHelper;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
@@ -1581,10 +1577,6 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
         registerKeyBind(debugKeybind, () -> {
-//            BaritoneAPI.getSettings().pitchRotationTimeTicks.value = Math.toIntExact(FarmHelperConfig.getRandomRotationTime() / 50);
-//            BaritoneAPI.getSettings().yawRotationTimeTicks.value = Math.toIntExact(FarmHelperConfig.getRandomRotationTime() / 50);
-//            BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().setGoal(new GoalXZ(MathHelper.floor_double(mc.thePlayer.posX + 50),  MathHelper.floor_double(mc.thePlayer.posZ + 50)));
-//            BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().findPath(new BetterBlockPos(mc.thePlayer.getPosition().getX(), mc.thePlayer.getPosition().getY(), mc.thePlayer.getPosition().getZ()));
             PestsDestroyer.getInstance().toggle();
         });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());

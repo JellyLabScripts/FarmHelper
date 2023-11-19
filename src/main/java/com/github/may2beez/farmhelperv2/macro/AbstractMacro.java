@@ -86,6 +86,10 @@ public abstract class AbstractMacro {
     }
 
     public void onTick() {
+        if (mc.thePlayer.capabilities.isFlying) {
+            KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
+            return;
+        }
         checkForTeleport();
         LogUtils.webhookStatus();
         if (analyticsClock.passed() && FarmHelperConfig.sendAnalyticData) {
@@ -97,6 +101,10 @@ public abstract class AbstractMacro {
             return;
         }
         if (PlayerUtils.isStandingOnRewarpLocation() && !Failsafe.getInstance().isEmergency()) {
+            if (PestsDestroyer.getInstance().canEnableMacro()) {
+                PestsDestroyer.getInstance().start();
+                return;
+            }
             triggerWarpGarden();
             return;
         }
@@ -210,7 +218,9 @@ public abstract class AbstractMacro {
             changeState(calculateDirection());
         }
         setEnabled(true);
-        if (VisitorsMacro.getInstance().isToggled()) {
+        if (PestsDestroyer.getInstance().canEnableMacro()) {
+            PestsDestroyer.getInstance().start();
+        } else if (VisitorsMacro.getInstance().isToggled()) {
             VisitorsMacro.getInstance().start();
         }
         setLayerY(mc.thePlayer.getPosition().getY());
@@ -260,6 +270,10 @@ public abstract class AbstractMacro {
                 PlayerUtils.setSpawnLocation();
             }
             actionAfterTeleport();
+            if (PestsDestroyer.getInstance().canEnableMacro()) {
+                PestsDestroyer.getInstance().start();
+                return;
+            }
             if (VisitorsMacro.getInstance().isToggled())
                 VisitorsMacro.getInstance().start();
         }

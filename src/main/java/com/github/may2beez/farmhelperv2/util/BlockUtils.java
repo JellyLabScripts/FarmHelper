@@ -263,6 +263,21 @@ public class BlockUtils {
         return true;
     }
 
+    public static boolean isAboveHeadClear() {
+        BlockPos blockPosStart = getRelativeBlockPos(0, 1, 0);
+        for (int y = blockPosStart.getY(); y < 100; y++) {
+            BlockPos blockPos = new BlockPos(blockPosStart.getX(), y, blockPosStart.getZ());
+            if (!Minecraft.getMinecraft().theWorld.isAirBlock(blockPos) || blockHasCollision(blockPos)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean blockHasCollision(BlockPos blockPos) {
+        return !mc.theWorld.getBlockState(blockPos).getBlock().isPassable(mc.theWorld, blockPos);
+    }
+
     public enum Direction {
         FORWARD,
         BACKWARD,

@@ -186,7 +186,7 @@ public class AntiStuck implements IFeature {
             case NONE:
                 KeyBindUtils.stopMovement();
                 unstuckState = UnstuckState.PRESS;
-                delayBetweenMovementsClock.schedule(300 + (int) (Math.random() * 250));
+                delayBetweenMovementsClock.schedule(150 + (int) (Math.random() * 150));
                 break;
             case PRESS:
                 if (intersectingBlockPos == null) {
@@ -207,12 +207,12 @@ public class AntiStuck implements IFeature {
                 keys.add(mc.gameSettings.keyBindSneak);
                 KeyBindUtils.holdThese(keys.toArray(new KeyBinding[0]));
                 unstuckState = UnstuckState.RELEASE;
-                delayBetweenMovementsClock.schedule(150 + (int) (Math.random() * 250));
+                delayBetweenMovementsClock.schedule(150 + (int) (Math.random() * 200));
                 break;
             case RELEASE:
                 KeyBindUtils.stopMovement();
                 unstuckState = UnstuckState.DISABLE;
-                delayBetweenMovementsClock.schedule(150 + (int) (Math.random() * 250));
+                delayBetweenMovementsClock.schedule(150 + (int) (Math.random() * 200));
                 break;
             case DISABLE:
                 stop();

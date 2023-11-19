@@ -23,6 +23,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.compress.utils.IOUtils;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.enums.ReadyState;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.io.ByteArrayOutputStream;
@@ -433,8 +434,12 @@ public class BanInfoWS implements IFeature {
         return new WebSocketClient(new URI("ws://ws.may2bee.pl")) {
             @Override
             public void onOpen(ServerHandshake handshakedata) {
-                LogUtils.sendDebug("Connected to analytics websocket server");
-                Notifications.INSTANCE.send("FarmHelper INFO", "Connected to analytics websocket server");
+                Multithreading.schedule(() -> {
+                    if (client.isOpen() && client.getReadyState() != ReadyState.NOT_YET_CONNECTED) {
+                        LogUtils.sendDebug("Connected to analytics websocket server");
+                        Notifications.INSTANCE.send("FarmHelper INFO", "Connected to analytics websocket server");
+                    }
+                }, 1_500, TimeUnit.MILLISECONDS);
                 if (FarmHelperConfig.banwaveCheckerEnabled)
                     Multithreading.schedule(() -> client.send("{\"message\":\"banwaveInfo\", \"mod\": \"farmHelper\"}"), 1_000, TimeUnit.MILLISECONDS);
             }

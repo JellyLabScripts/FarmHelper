@@ -311,9 +311,10 @@ public class MacroHandler {
     public void onChatMessageReceived(ClientChatReceivedEvent event) {
         if (event.type == 0) {
             String message = event.message.getUnformattedText();
-            if (message.contains(":")) return;
-            if (message.equals("Your spawn location has been set!")) {
-                PlayerUtils.setSpawnLocation();
+            if (!message.contains(":") && GameStateHandler.getInstance().inGarden()) {
+                if (message.equals("Your spawn location has been set!")) {
+                    PlayerUtils.setSpawnLocation();
+                }
             }
         }
 

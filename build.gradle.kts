@@ -88,11 +88,6 @@ dependencies {
     implementation("net.dv8tion:JDA:5.0.0-beta.13")
 
     shadowImpl("com.dorkbox:Notify:3.7")
-
-    implementation("com.github.Niroxbtw.baritone:baritone-deobf:2.0.5")
-//    compileOnly("com.github.Niroxbtw.baritone:baritone-deobf:2.0.0")
-//    runtimeOnly("com.github.Niroxbtw.baritone:baritone-deobf:2.0.0")
-//    shadowImpl("com.github.Niroxbtw.baritone:baritone-api:2.0.0")
 }
 
 // Tasks:

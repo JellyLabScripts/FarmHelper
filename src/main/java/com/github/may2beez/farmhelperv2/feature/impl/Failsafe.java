@@ -538,7 +538,7 @@ public class Failsafe implements IFeature {
                 if (FarmHelperConfig.tryToUseJumpingAndFlying) {
                     mc.thePlayer.jump();
                     Multithreading.schedule(() -> {
-                        if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.allowEdit && !mc.thePlayer.capabilities.isFlying) {
+                        if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.allowEdit && mc.thePlayer.capabilities.allowFlying && !mc.thePlayer.capabilities.isFlying) {
                             mc.thePlayer.capabilities.isFlying = true;
                             mc.thePlayer.sendPlayerAbilities();
                         }

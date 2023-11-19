@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@Mixin(GuiDisconnected.class)
+@Mixin(value = GuiDisconnected.class, priority = Integer.MAX_VALUE)
 public class MixinGuiDisconnected {
     @Shadow
     private List<String> multilineMessage;
@@ -38,6 +38,8 @@ public class MixinGuiDisconnected {
 
     @Inject(method = "initGui", at = @At("RETURN"))
     public void initGui(CallbackInfo ci) {
+        System.out.println("initGui");
+        System.out.println(multilineMessage);
         if (multilineMessage.get(0).contains("banned")) {
             Failsafe.getInstance().stop();
         }
@@ -51,21 +53,26 @@ public class MixinGuiDisconnected {
             "23h 59m 56s"
     );
 
+    @Unique
     private final List<String> farmHelperV2$days = Arrays.asList(
             "29d",
             "89d",
             "359d"
     );
 
-    @Inject(method = "drawScreen", at = @At("TAIL"))
+    @Inject(method = "drawScreen", at = @At("RETURN"))
     public void drawScreen(CallbackInfo ci) {
         if (farmHelperV2$isBanned) return;
 
+        System.out.println(multilineMessage);
+
         if (multilineMessage.get(0).contains("banned")) {
             farmHelperV2$isBanned = true;
+            Failsafe.getInstance().stop();
             String wholeReason = String.join("\n", multilineMessage);
             try {
-                if (farmHelperV2$times.stream().noneMatch(time -> multilineMessage.get(0).contains(time)) || farmHelperV2$days.stream().noneMatch(day -> multilineMessage.get(0).contains(day))) return;
+                if (farmHelperV2$times.stream().noneMatch(time -> multilineMessage.get(0).contains(time)) || farmHelperV2$days.stream().noneMatch(day -> multilineMessage.get(0).contains(day)))
+                    return;
 
                 String duration = StringUtils.stripControlCodes(multilineMessage.get(0)).replace("You are temporarily banned for ", "")
                         .replace(" from this server!", "").trim();
