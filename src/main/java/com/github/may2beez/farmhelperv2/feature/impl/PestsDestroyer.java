@@ -663,9 +663,12 @@ public class PestsDestroyer implements IFeature {
                     int pestsAmount = Integer.parseInt(pests);
                     if (pestsAmount != amountOfPests) {
                         amountOfPests = pestsAmount;
-                        if (!isRunning() && FarmHelperConfig.sendWebhookLogIfPestsDetectionNumberExceeded) {
-                            if (amountOfPests >= FarmHelperConfig.startKillingPestsAt) {
+                        if (!isRunning() && amountOfPests >= FarmHelperConfig.startKillingPestsAt) {
+                            if (FarmHelperConfig.sendWebhookLogIfPestsDetectionNumberExceeded) {
                                 LogUtils.webhookLog("[Pests Destroyer]\\nThere " + (amountOfPests > 1 ? "are" : "is") + " currently **" + amountOfPests + "** " + (amountOfPests > 1 ? "pests" : "pest") + " in the garden!", FarmHelperConfig.pingEveryoneOnPestsDetectionNumberExceeded);
+                            }
+                            if (FarmHelperConfig.sendNotificationIfPestsDetectionNumberExceeded) {
+                                FailsafeUtils.getInstance().sendNotification("There " + (amountOfPests > 1 ? "are" : "is") + " currently **" + amountOfPests + "** " + (amountOfPests > 1 ? "pests" : "pest") + " in the garden!", TrayIcon.MessageType.WARNING);
                             }
                         }
                     }
@@ -756,5 +759,6 @@ public class PestsDestroyer implements IFeature {
     @SubscribeEvent
     public void onWorldUnload(WorldEvent.Unload event) {
         pestsPlotMap.clear();
+        amountOfPests = 0;
     }
 }

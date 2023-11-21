@@ -104,7 +104,7 @@ public class VisitorsMacro implements IFeature {
     @Getter
     private ArrayList<Tuple<String, String>> currentRewards = new ArrayList<>();
 
-    Pattern itemNamePattern = Pattern.compile("^(\\w+)(?:\\sx(\\d+))?$");
+    Pattern itemNamePattern = Pattern.compile("^(.*?)(?:\\sx(\\d+))?$");
     private final ArrayList<Entity> servedCustomers = new ArrayList<>();
     private boolean rejectVisitor = false;
     private float spentMoney = 0;
@@ -754,7 +754,8 @@ public class VisitorsMacro implements IFeature {
                         continue;
                     }
                     if (foundRequiredItems) {
-                        Matcher matcher = itemNamePattern.matcher(line);
+                        Matcher matcher = itemNamePattern.matcher(StringUtils.stripControlCodes(line).trim());
+                        System.out.println("Item: " + StringUtils.stripControlCodes(line).trim());
                         if (matcher.matches()) {
                             String itemName = matcher.group(1);
                             String quantity = matcher.group(2);

@@ -1187,16 +1187,22 @@ public class FarmHelperConfig extends Config {
     public static OneColor plotHighlightColor = new OneColor(0, 255, 217, 40);
 
     @Switch(
-            name = "Send Webhook log if pests detection number has been exceeded", category = PESTS_DESTROYER, subcategory = "Discord Webhook",
+            name = "Send Webhook log if pests detection number has been exceeded", category = PESTS_DESTROYER, subcategory = "Logs",
             description = "Sends a webhook log if pests detection number has been exceeded"
     )
     public static boolean sendWebhookLogIfPestsDetectionNumberExceeded = true;
 
     @Switch(
-            name = "Ping @everyone", category = PESTS_DESTROYER, subcategory = "Discord Webhook",
+            name = "Ping @everyone", category = PESTS_DESTROYER, subcategory = "Logs",
             description = "Pings @everyone on pests detection number exceeded"
     )
     public static boolean pingEveryoneOnPestsDetectionNumberExceeded = false;
+
+    @Switch(
+            name = "Send notification if pests detection number has been exceeded", category = PESTS_DESTROYER, subcategory = "Logs",
+            description = "Sends a notification if pests detection number has been exceeded"
+    )
+    public static boolean sendNotificationIfPestsDetectionNumberExceeded = true;
 
     // END PESTS_DESTROYER
 
