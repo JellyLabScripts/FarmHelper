@@ -15,13 +15,8 @@ import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import com.github.may2beez.farmhelperv2.util.helper.SignUtils;
 import lombok.Getter;
 import lombok.Setter;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockSlab;
-import net.minecraft.block.BlockStairs;
-import net.minecraft.block.BlockTallGrass;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.*;
 import net.minecraft.util.*;
@@ -61,10 +56,6 @@ public class VisitorsMacro implements IFeature {
 
     enum TravelState {
         NONE,
-        ROTATE_TO_EDGE,
-        FLY_TO_EDGE,
-        ROTATE_TO_CENTER,
-        FLY_TO_CENTER,
         ROTATE_TO_DESK,
         MOVE_TOWARDS_DESK,
         END
@@ -73,10 +64,6 @@ public class VisitorsMacro implements IFeature {
     @Getter
     private TravelState travelState = TravelState.NONE;
     private int previousDistanceToCheck = Integer.MAX_VALUE;
-    private int retriesGettingCloser = 0;
-    private final Clock aotvTpCooldown = new Clock();
-    private Optional<BlockPos> beforeTeleportationPos = Optional.empty();
-    private Optional<BlockPos> currentEdge = Optional.empty();
     private int speed = 0;
 
     enum CompactorState {
@@ -233,14 +220,11 @@ public class VisitorsMacro implements IFeature {
         stuckClock.schedule(STUCK_DELAY);
         currentVisitor = Optional.empty();
         currentCharacter = Optional.empty();
-        beforeTeleportationPos = Optional.empty();
-        currentEdge = Optional.empty();
         itemsToBuy.clear();
         compactors.clear();
         currentRewards.clear();
         servedCustomers.clear();
         previousDistanceToCheck = Integer.MAX_VALUE;
-        retriesGettingCloser = 0;
         spentMoney = 0;
         speed = InventoryUtils.getRancherBootSpeed();
         LogUtils.sendDebug("[Visitors Macro] Speed: " + speed);
@@ -280,8 +264,6 @@ public class VisitorsMacro implements IFeature {
 
     private final ArrayList<String> visitors = new ArrayList<>();
 
-    private Optional<Integer> aspectOfTheSlot = Optional.empty();
-
     @Getter
     @Setter
     private boolean manuallyStarted = false;
@@ -319,64 +301,12 @@ public class VisitorsMacro implements IFeature {
             return false;
         }
 
-        if (FarmHelperConfig.visitorsMacroAction == 1 && !canSeeClosestEdgeOfBarn()) {
-            LogUtils.sendError("[Visitors Macro] Can't see the closest edge of barn, skipping...");
-            return false;
-        }
-
-        if (FarmHelperConfig.visitorsMacroAction == 2 && !BlockUtils.isAboveHeadClear()) {
-            LogUtils.sendError("[Visitors Macro] There is something above the player's head, skipping...");
-            return false;
-        }
-
-        if (!manual && FarmHelperConfig.visitorsMacroAction != 0) {
-            int aspectOfTheVoid = InventoryUtils.getSlotIdOfItemInHotbar("Aspect of the Void", "Aspect of the End");
-            if (aspectOfTheVoid == -1) {
-                LogUtils.sendError("[Visitors Macro] You don't have AOTV nor AOTE in the hotbar. Travel will be slower!");
-                aspectOfTheSlot = Optional.empty();
-            } else {
-                aspectOfTheSlot = Optional.of(aspectOfTheVoid);
-            }
-        }
-
         if (!PlayerUtils.isDeskPosSet()) {
             LogUtils.sendError("[Visitors Macro] The player's desk position is not set, skipping...");
             return false;
         }
 
         return true;
-    }
-
-    private final List<BlockPos> barnEdges = Arrays.asList(new BlockPos(33, 85, -6), new BlockPos(-32, 85, -6));
-    private final BlockPos barnCenter = new BlockPos(0, 85, -7);
-
-    private boolean canSeeClosestEdgeOfBarn() {
-        Vec3 positionFrom = new Vec3(mc.thePlayer.posX, 80, mc.thePlayer.posZ);
-        BlockPos closestEdge = null;
-        double closestDistance = Double.MAX_VALUE;
-        List<BlockPos> tempBarnEdges = new ArrayList<>(barnEdges);
-        tempBarnEdges.add(barnCenter);
-        for (BlockPos edge : tempBarnEdges) {
-            double distance = positionFrom.distanceTo(new Vec3(edge.getX(), edge.getY(), edge.getZ()));
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestEdge = edge;
-            }
-        }
-        return closestEdge != null && mc.theWorld.rayTraceBlocks(positionFrom, new Vec3(closestEdge.getX() + 0.5, closestEdge.getY() + 0.5, closestEdge.getZ() + 0.5), false, true, false) == null;
-    }
-
-    private boolean canSeeCenterOfBarn() {
-        Vec3 positionFrom = mc.thePlayer.getPositionVector();
-        return mc.theWorld.rayTraceBlocks(positionFrom, new Vec3(barnCenter.getX() + 0.5, barnCenter.getY() + 0.5, barnCenter.getZ() + 0.5), false, true, false) == null;
-    }
-
-    private boolean canSeeDeskPos() {
-        Vec3 positionFrom = mc.thePlayer.getPositionVector();
-        Vec3 positionFrom1 = new Vec3(positionFrom.xCoord, FarmHelperConfig.visitorsDeskPosY + 2.5, positionFrom.zCoord);
-        Vec3 deskPos1 = new Vec3(FarmHelperConfig.visitorsDeskPosX + 0.5, FarmHelperConfig.visitorsDeskPosY + 0.5, FarmHelperConfig.visitorsDeskPosZ + 0.5);
-        return mc.theWorld.rayTraceBlocks(positionFrom1, deskPos1, false, true, false) == null &&
-                mc.theWorld.rayTraceBlocks(positionFrom, deskPos1, false, true, false) == null;
     }
 
     @SubscribeEvent
@@ -485,128 +415,9 @@ public class VisitorsMacro implements IFeature {
 
         switch (travelState) {
             case NONE:
-                switch (FarmHelperConfig.visitorsMacroAction) {
-                    case 0:
-                        beforeTeleportationPos = Optional.of(BlockUtils.getRelativeBlockPos(0, 0, 0));
-                        mc.thePlayer.sendChatMessage("/tptoplot barn");
-                        setTravelState(TravelState.ROTATE_TO_DESK);
-                        break;
-                    case 1:
-                        setTravelState(TravelState.ROTATE_TO_EDGE);
-                        break;
-                    case 2:
-                        beforeTeleportationPos = Optional.of(BlockUtils.getRelativeBlockPos(0, 0, 0));
-                        mc.thePlayer.sendChatMessage("/tptoplot 4");
-                        setTravelState(TravelState.ROTATE_TO_CENTER);
-                        break;
-                }
-                delayClock.schedule(getRandomDelay());
-                break;
-            case ROTATE_TO_EDGE:
-                BlockPos closestEdge = barnEdges.stream().min(Comparator.comparingDouble(edge -> mc.thePlayer.getDistance(edge.getX(), edge.getY(), edge.getZ()))).orElse(null);
-                LogUtils.sendDebug("[Visitors Macro] Closest edge: " + closestEdge);
-                if (closestEdge == null) {
-                    LogUtils.sendError("[Visitors Macro] Couldn't find the closest edge, restarting the macro...");
-                    stop();
-                    forceStart = true;
-                    start();
-                    return;
-                }
-
-                if (mc.thePlayer.getDistance(barnCenter.getX(), barnCenter.getY(), barnCenter.getZ()) < mc.thePlayer.getDistance(closestEdge.getX(), closestEdge.getY(), closestEdge.getZ())) {
-                    setTravelState(TravelState.ROTATE_TO_CENTER);
-                    return;
-                }
-
-                Rotation rotationToEdge = rotation.getRotation(closestEdge.add(0.5, 0.5, 0.5));
-                long rotationTime = FarmHelperConfig.getRandomRotationTime();
-                rotation.easeTo(
-                        new RotationConfiguration(
-                                new Rotation(rotationToEdge.getYaw(), rotationToEdge.getPitch()), rotationTime, null
-                        )
-                );
-                currentEdge = Optional.of(closestEdge);
-                setTravelState(TravelState.FLY_TO_EDGE);
-                delayClock.schedule(rotationTime);
-                break;
-            case FLY_TO_EDGE:
-                aspectOfTheSlot.ifPresent(integer -> mc.thePlayer.inventory.currentItem = integer);
-
-                stuckClock.schedule(STUCK_DELAY);
-                assert currentEdge.isPresent();
-                double distanceToEdge = mc.thePlayer.getDistance(currentEdge.get().getX(), mc.thePlayer.posY, currentEdge.get().getZ());
-
-                if (canSeeCenterOfBarn() && distanceToEdge < 25) {
-                    LogUtils.sendDebug("[Visitors Macro] The player can see center of barn");
-                    setTravelState(TravelState.ROTATE_TO_CENTER);
-                    break;
-                }
-
-                if (distanceToEdge > previousDistanceToCheck && distanceToEdge > 10) {
-                    retriesGettingCloser++;
-                    setTravelState(TravelState.ROTATE_TO_EDGE);
-                    KeyBindUtils.stopMovement();
-                    previousDistanceToCheck = Integer.MAX_VALUE;
-                    if (retriesGettingCloser >= 2) {
-                        LogUtils.sendError("[Visitors Macro] The player is not getting closer to the edge. Stopping visitors macro... Report it in the Discord Server");
-                        setMainState(MainState.END);
-                        return;
-                    }
-                    break;
-                }
-
-                if (flyUpAndForward()) break;
-
-                LogUtils.sendDebug("[Visitors Macro] The player is close enough to edge");
-                KeyBindUtils.stopMovement();
-                setTravelState(TravelState.ROTATE_TO_CENTER);
-                delayClock.schedule(getRandomDelay());
-                break;
-            case ROTATE_TO_CENTER:
-                if (beforeTeleportationPos.isPresent()) {
-                    if (mc.thePlayer.getDistance(beforeTeleportationPos.get().getX(), beforeTeleportationPos.get().getY(), beforeTeleportationPos.get().getZ()) > 1) {
-                        beforeTeleportationPos = Optional.empty();
-                        LogUtils.sendDebug("[Visitors Macro] The player teleported to " + (FarmHelperConfig.visitorsMacroAction == 1 ? "plot 4" : "barn"));
-                        delayClock.schedule(getRandomDelay());
-                    }
-                    break;
-                }
-                if (rotation.isRotating()) return;
-
-                if (canSeeDeskPos()) {
-                    LogUtils.sendDebug("[Visitors Macro] The player can see desk pos");
-                    setTravelState(TravelState.ROTATE_TO_DESK);
-                    break;
-                }
-
-                stuckClock.schedule(STUCK_DELAY);
-                Rotation rotationToCenter = rotation.getRotation(barnCenter.add(0.5, 0.5, 0.5));
-                currentEdge = Optional.of(barnCenter);
-                long rotationTime2 = FarmHelperConfig.getRandomRotationTime();
-                rotation.easeTo(
-                        new RotationConfiguration(
-                                new Rotation(rotationToCenter.getYaw(), rotationToCenter.getPitch()), rotationTime2, null
-                        )
-                );
-                setTravelState(TravelState.FLY_TO_CENTER);
-                delayClock.schedule(rotationTime2);
-                break;
-            case FLY_TO_CENTER:
-                aspectOfTheSlot.ifPresent(integer -> mc.thePlayer.inventory.currentItem = integer);
-
-                stuckClock.schedule(STUCK_DELAY);
-
-                if (canSeeDeskPos()) {
-                    LogUtils.sendDebug("[Visitors Macro] The player can see desk pos");
-                    setTravelState(TravelState.ROTATE_TO_DESK);
-                    break;
-                }
-
-                if (flyUpAndForward()) break;
-
-                LogUtils.sendDebug("[Visitors Macro] The player is close enough to center");
-                KeyBindUtils.stopMovement();
+                mc.thePlayer.sendChatMessage("/tptoplot barn");
                 setTravelState(TravelState.ROTATE_TO_DESK);
+                delayClock.schedule(getRandomDelay());
                 break;
             case ROTATE_TO_DESK:
                 if (GameStateHandler.getInstance().getDx() > 0.25 || GameStateHandler.getInstance().getDz() > 0.25) {
@@ -620,8 +431,6 @@ public class VisitorsMacro implements IFeature {
                                 new Rotation(rotationToDesk.getYaw(), rotationToDesk.getPitch()), FarmHelperConfig.getRandomRotationTime(), null
                         )
                 );
-//                if (FarmHelperConfig.visitorsMacroAction == 0 && rotation.isRotating())
-//                    return; // wait until it rotates, so it doesn't jump around like a clown
                 setTravelState(TravelState.MOVE_TOWARDS_DESK);
                 previousDistanceToCheck = Integer.MAX_VALUE;
                 break;
@@ -653,22 +462,10 @@ public class VisitorsMacro implements IFeature {
                             (speed > 150 && distance < 2.5) ? mc.gameSettings.keyBindSneak : null,
                             distance > 10 ? mc.gameSettings.keyBindSprint : null
                     );
-                    if (FarmHelperConfig.visitorsMacroAction != 0 && shouldJump()) {
-                        mc.thePlayer.jump();
-                    }
-                    if (FarmHelperConfig.visitorsMacroAction == 0
-                            && !BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1))
-                            && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 1, 1))) {
+                    if (!BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1))
+                        && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 1, 1))) {
                         rotation.reset();
                         mc.thePlayer.jump();
-                    }
-
-                    if (distance > 10) {
-                        if ((aotvTpCooldown.passed() || !aotvTpCooldown.isScheduled()) && aspectOfTheSlot.isPresent() && !rotation.isRotating()) {
-                            KeyBindUtils.rightClick();
-                            aotvTpCooldown.schedule((long) (450 + Math.random() * 350));
-                            rotation.reset();
-                        }
                     }
                 }
                 previousDistanceToCheck = (int) distance;
@@ -685,83 +482,6 @@ public class VisitorsMacro implements IFeature {
                 setTravelState(TravelState.NONE);
                 break;
         }
-    }
-
-    private boolean shouldJump() {
-        BlockPos block1 = BlockUtils.getRelativeBlockPos(0, 0, 1);
-        BlockPos block2 = BlockUtils.getRelativeBlockPos(0, 0, 2);
-        BlockPos block3 = BlockUtils.getRelativeBlockPos(0, 0, 3);
-        BlockPos block4 = BlockUtils.getRelativeBlockPos(0, 0, 4);
-        Block block11 = mc.theWorld.getBlockState(block1).getBlock();
-        Block block22 = mc.theWorld.getBlockState(block2).getBlock();
-        Block block33 = mc.theWorld.getBlockState(block3).getBlock();
-        Block block44 = mc.theWorld.getBlockState(block4).getBlock();
-        return blockNotPassable(block2, block22) || blockNotPassable(block1, block11) || blockNotPassable(block3, block33) || blockNotPassable(block4, block44);
-    }
-
-    private boolean blockNotPassable(BlockPos block2, Block block3) {
-        if (mc.thePlayer.onGround && !block3.equals(Blocks.air) && !block3.isPassable(mc.theWorld, block2) && !(block3 instanceof BlockSlab) && !(block3 instanceof BlockStairs) && !(block3 instanceof BlockTallGrass)) {
-            rotation.reset();
-            return true;
-        }
-        if (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1))) {
-            rotation.reset();
-            return true;
-        }
-        return false;
-    }
-
-    private boolean flyUpAndForward() {
-        assert currentEdge.isPresent();
-        double distanceToEdge = mc.thePlayer.getDistance(currentEdge.get().getX(), mc.thePlayer.posY, currentEdge.get().getZ());
-        int playerY = mc.thePlayer.getPosition().getY();
-
-        if (distanceToEdge > 5) {
-            if (!mc.thePlayer.capabilities.isFlying && mc.thePlayer.capabilities.allowFlying) {
-                mc.thePlayer.capabilities.isFlying = true;
-                mc.thePlayer.sendPlayerAbilities();
-            }
-            KeyBindUtils.holdThese(
-                    (forwardIsClear()) ? mc.gameSettings.keyBindForward : null,
-                    playerY < 85 ? mc.gameSettings.keyBindJump : null,
-                    mc.gameSettings.keyBindSprint
-            );
-
-            if (distanceToEdge > 14) {
-                if ((aotvTpCooldown.passed() || !aotvTpCooldown.isScheduled()) && aspectOfTheSlot.isPresent() && !rotation.isRotating()) {
-                    KeyBindUtils.rightClick();
-                    aotvTpCooldown.schedule((long) (150 + Math.random() * 150));
-                    rotation.reset();
-                }
-            }
-
-            Rotation rotationToEdge2 = rotation.getRotation(currentEdge.get().add(0.5, 0.5, 0.5));
-            float randomValue = playerY > 80 ? 5 + (float) (Math.random() * 1 - 0.5) : 1 + (float) (Math.random() * 1 - 0.5);
-
-            if (forwardIsClear() && (Math.abs(mc.thePlayer.rotationYaw - rotationToEdge2.getYaw()) > 5 || Math.abs(mc.thePlayer.rotationPitch - randomValue) > 5) && !rotation.isRotating() && aotvTpCooldown.isScheduled()) {
-                aotvTpCooldown.schedule((long) (200 + Math.random() * 200));
-                rotation.reset();
-                rotation.easeTo(
-                        new RotationConfiguration(
-                                new Rotation(rotationToEdge2.getYaw(), randomValue), FarmHelperConfig.getRandomRotationTime(), null
-                        )
-                );
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private boolean forwardIsClear() {
-        Block block1 = BlockUtils.getRelativeBlock(0, 0, 1);
-        Block block2 = BlockUtils.getRelativeBlock(0, 1, 1);
-        Block block3 = BlockUtils.getRelativeBlock(0, 0, 2);
-        Block block4 = BlockUtils.getRelativeBlock(0, 1, 2);
-        return blockPassable(block1) && blockPassable(block2) && blockPassable(block3) && blockPassable(block4);
-    }
-
-    private boolean blockPassable(Block block) {
-        return block.equals(Blocks.air) || block.equals(Blocks.water) || block.equals(Blocks.flowing_water);
     }
 
     private void onCompactorState() {
@@ -1147,13 +867,7 @@ public class VisitorsMacro implements IFeature {
                         delayClock.schedule(getRandomDelay());
                         break;
                     }
-                    if (rejectVisitor()) break;
-                    if (FarmHelperConfig.sendVisitorsMacroLogs)
-                        LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro rejected visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
-                    currentVisitor.ifPresent(servedCustomers::add);
-                    currentRewards.clear();
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
+                    rejectCurrentVisitor();
                     break;
                 }
                 LogUtils.sendDebug("[Visitors Macro] Closing menu");
@@ -1247,14 +961,7 @@ public class VisitorsMacro implements IFeature {
                     break;
                 }
                 if (rejectVisitor) {
-                    if (rejectVisitor()) break;
-                    if (FarmHelperConfig.sendVisitorsMacroLogs)
-                        LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro rejected visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
-                    currentVisitor.ifPresent(servedCustomers::add);
-                    currentRewards.clear();
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
-                    break;
+                    rejectCurrentVisitor();
                 }
                 LogUtils.sendDebug("[Visitors Macro] Giving items to the visitor.");
                 Slot acceptOfferSlot2 = InventoryUtils.getSlotOfItemInContainer("Accept Offer");
@@ -1304,6 +1011,16 @@ public class VisitorsMacro implements IFeature {
                 delayClock.schedule(getRandomDelay());
                 break;
         }
+    }
+
+    private void rejectCurrentVisitor() {
+        if (rejectVisitor()) return;
+        if (FarmHelperConfig.sendVisitorsMacroLogs)
+            LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro rejected visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
+        currentVisitor.ifPresent(servedCustomers::add);
+        currentRewards.clear();
+        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+        setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
     }
 
     private boolean rejectVisitor() {
