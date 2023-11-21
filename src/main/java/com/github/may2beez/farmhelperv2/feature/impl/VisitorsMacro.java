@@ -32,6 +32,8 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class VisitorsMacro implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
@@ -115,6 +117,7 @@ public class VisitorsMacro implements IFeature {
     @Getter
     private ArrayList<Tuple<String, String>> currentRewards = new ArrayList<>();
 
+    Pattern itemNamePattern = Pattern.compile("^(\\w+)(?:\\sx(\\d+))?$");
     private final ArrayList<Entity> servedCustomers = new ArrayList<>();
     private boolean rejectVisitor = false;
     private float spentMoney = 0;
@@ -316,17 +319,17 @@ public class VisitorsMacro implements IFeature {
             return false;
         }
 
-        if (!FarmHelperConfig.visitorsMacroAction && !canSeeClosestEdgeOfBarn()) {
+        if (FarmHelperConfig.visitorsMacroAction == 1 && !canSeeClosestEdgeOfBarn()) {
             LogUtils.sendError("[Visitors Macro] Can't see the closest edge of barn, skipping...");
             return false;
         }
 
-        if (!FarmHelperConfig.visitorsMacroAction && !BlockUtils.isAboveHeadClear()) {
+        if (FarmHelperConfig.visitorsMacroAction == 2 && !BlockUtils.isAboveHeadClear()) {
             LogUtils.sendError("[Visitors Macro] There is something above the player's head, skipping...");
             return false;
         }
 
-        if (!manual) {
+        if (!manual && FarmHelperConfig.visitorsMacroAction != 0) {
             int aspectOfTheVoid = InventoryUtils.getSlotIdOfItemInHotbar("Aspect of the Void", "Aspect of the End");
             if (aspectOfTheVoid == -1) {
                 LogUtils.sendError("[Visitors Macro] You don't have AOTV nor AOTE in the hotbar. Travel will be slower!");
@@ -482,15 +485,22 @@ public class VisitorsMacro implements IFeature {
 
         switch (travelState) {
             case NONE:
-                if (FarmHelperConfig.visitorsMacroAction) {
-                    // Teleport to plot 4 and fly
-                    beforeTeleportationPos = Optional.of(BlockUtils.getRelativeBlockPos(0, 0, 0));
-                    mc.thePlayer.sendChatMessage("/tptoplot 4");
-                    setTravelState(TravelState.ROTATE_TO_CENTER);
-                } else {
-                    // Fly from farm
-                    setTravelState(TravelState.ROTATE_TO_EDGE);
+                switch (FarmHelperConfig.visitorsMacroAction) {
+                    case 0:
+                        beforeTeleportationPos = Optional.of(BlockUtils.getRelativeBlockPos(0, 0, 0));
+                        mc.thePlayer.sendChatMessage("/tptoplot barn");
+                        setTravelState(TravelState.ROTATE_TO_DESK);
+                        break;
+                    case 1:
+                        setTravelState(TravelState.ROTATE_TO_EDGE);
+                        break;
+                    case 2:
+                        beforeTeleportationPos = Optional.of(BlockUtils.getRelativeBlockPos(0, 0, 0));
+                        mc.thePlayer.sendChatMessage("/tptoplot 4");
+                        setTravelState(TravelState.ROTATE_TO_CENTER);
+                        break;
                 }
+                delayClock.schedule(getRandomDelay());
                 break;
             case ROTATE_TO_EDGE:
                 BlockPos closestEdge = barnEdges.stream().min(Comparator.comparingDouble(edge -> mc.thePlayer.getDistance(edge.getX(), edge.getY(), edge.getZ()))).orElse(null);
@@ -556,7 +566,7 @@ public class VisitorsMacro implements IFeature {
                 if (beforeTeleportationPos.isPresent()) {
                     if (mc.thePlayer.getDistance(beforeTeleportationPos.get().getX(), beforeTeleportationPos.get().getY(), beforeTeleportationPos.get().getZ()) > 1) {
                         beforeTeleportationPos = Optional.empty();
-                        LogUtils.sendDebug("[Visitors Macro] The player teleported to plot 4");
+                        LogUtils.sendDebug("[Visitors Macro] The player teleported to " + (FarmHelperConfig.visitorsMacroAction == 1 ? "plot 4" : "barn"));
                         delayClock.schedule(getRandomDelay());
                     }
                     break;
@@ -610,6 +620,8 @@ public class VisitorsMacro implements IFeature {
                                 new Rotation(rotationToDesk.getYaw(), rotationToDesk.getPitch()), FarmHelperConfig.getRandomRotationTime(), null
                         )
                 );
+//                if (FarmHelperConfig.visitorsMacroAction == 0 && rotation.isRotating())
+//                    return; // wait until it rotates, so it doesn't jump around like a clown
                 setTravelState(TravelState.MOVE_TOWARDS_DESK);
                 previousDistanceToCheck = Integer.MAX_VALUE;
                 break;
@@ -641,7 +653,13 @@ public class VisitorsMacro implements IFeature {
                             (speed > 150 && distance < 2.5) ? mc.gameSettings.keyBindSneak : null,
                             distance > 10 ? mc.gameSettings.keyBindSprint : null
                     );
-                    if (shouldJump()) {
+                    if (FarmHelperConfig.visitorsMacroAction != 0 && shouldJump()) {
+                        mc.thePlayer.jump();
+                    }
+                    if (FarmHelperConfig.visitorsMacroAction == 0
+                            && !BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1))
+                            && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 1, 1))) {
+                        rotation.reset();
                         mc.thePlayer.jump();
                     }
 
@@ -683,6 +701,10 @@ public class VisitorsMacro implements IFeature {
 
     private boolean blockNotPassable(BlockPos block2, Block block3) {
         if (mc.thePlayer.onGround && !block3.equals(Blocks.air) && !block3.isPassable(mc.theWorld, block2) && !(block3 instanceof BlockSlab) && !(block3 instanceof BlockStairs) && !(block3 instanceof BlockTallGrass)) {
+            rotation.reset();
+            return true;
+        }
+        if (BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1))) {
             rotation.reset();
             return true;
         }
@@ -1012,14 +1034,13 @@ public class VisitorsMacro implements IFeature {
                         continue;
                     }
                     if (foundRequiredItems) {
-                        if (line.contains("x")) {
-                            String[] split = line.split("x");
-                            String itemName = split[0].trim();
-                            long amount = Long.parseLong(split[1].replace(",", "").trim());
+                        Matcher matcher = itemNamePattern.matcher(line);
+                        if (matcher.matches()) {
+                            String itemName = matcher.group(1);
+                            String quantity = matcher.group(2);
+                            long amount = (quantity != null) ? Long.parseLong(quantity) : 1L;
                             itemsToBuy.add(Pair.of(itemName, amount));
-                        } else {
-                            String itemName = line.trim();
-                            itemsToBuy.add(Pair.of(itemName, 1L));
+                            LogUtils.sendWarning("[Visitors Macro] Required item: " + itemName + " Amount: " + amount);
                         }
                     }
                     if (foundRewards) {

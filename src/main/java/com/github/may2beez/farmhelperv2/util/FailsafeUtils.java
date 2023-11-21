@@ -52,7 +52,6 @@ public class FailsafeUtils {
     private final TrayIcon trayIcon;
 
     public void sendNotification(String text, TrayIcon.MessageType type) {
-        if (!FarmHelperConfig.popUpNotification) return;
         try {
             if (Minecraft.isRunningOnMac) {
                 Notify.create()

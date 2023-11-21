@@ -239,7 +239,7 @@ public class InventoryUtils {
         for (Slot slot : mc.thePlayer.inventoryContainer.inventorySlots) {
             if (slot.getHasStack()) {
                 String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
-                if (itemName.contains(item)) {
+                if (itemName.equals(item)) {
                     amount += slot.getStack().stackSize;
                 }
             }
