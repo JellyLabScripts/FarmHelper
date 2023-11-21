@@ -249,7 +249,7 @@ public class VisitorsMacro implements IFeature {
             MacroHandler.getInstance().pauseMacro();
             MacroHandler.getInstance().getCurrentMacro().ifPresent(AbstractMacro::clearSavedState);
         }
-        LogUtils.webhookLog("Visitors Macro started");
+        LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro started");
     }
 
     @Override
@@ -413,7 +413,7 @@ public class VisitorsMacro implements IFeature {
         }
         if (hasSpecial) {
             LogUtils.sendWarning("[Visitors Macro] Special visitor found in queue");
-            LogUtils.webhookLog("Special visitor found in queue", true);
+            LogUtils.webhookLog("[Visitors Macro]\\nSpecial visitor found in queue", true);
         }
     }
 
@@ -1052,7 +1052,7 @@ public class VisitorsMacro implements IFeature {
                         }).findFirst().get().getLeft();
 
                         if (FarmHelperConfig.sendVisitorsMacroLogs)
-                            LogUtils.webhookLog("Visitors Macro found profitable item: " + profitableReward, FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
+                            LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro found profitable item: " + profitableReward, FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
                         LogUtils.sendDebug("[Visitors Macro] Accepting offer...");
                     } else {
                         LogUtils.sendWarning("[Visitors Macro] Visitor is not profitable, skipping...");
@@ -1083,7 +1083,7 @@ public class VisitorsMacro implements IFeature {
                             if (FarmHelperConfig.visitorsAcceptLegendary) {
                                 LogUtils.sendDebug("[Visitors Macro] Visitor is legendary rarity. Accepting offer...");
                                 if (FarmHelperConfig.sendVisitorsMacroLogs)
-                                    LogUtils.webhookLog("Visitors Macro found legendary visitor", FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
+                                    LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro found legendary visitor", FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
                             } else {
                                 LogUtils.sendDebug("[Visitors Macro] Visitor is legendary rarity. Skipping...");
                                 rejectVisitor = true;
@@ -1093,7 +1093,7 @@ public class VisitorsMacro implements IFeature {
                             if (FarmHelperConfig.visitorsAcceptMythic) {
                                 LogUtils.sendDebug("[Visitors Macro] Visitor is mythic rarity. Accepting offer...");
                                 if (FarmHelperConfig.sendVisitorsMacroLogs)
-                                    LogUtils.webhookLog("Visitors Macro found mythic visitor", FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
+                                    LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro found mythic visitor", FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
                             } else {
                                 LogUtils.sendDebug("[Visitors Macro] Visitor is mythic rarity. Skipping...");
                                 rejectVisitor = true;
@@ -1103,7 +1103,7 @@ public class VisitorsMacro implements IFeature {
                             if (FarmHelperConfig.visitorsAcceptSpecial) {
                                 LogUtils.sendDebug("[Visitors Macro] Visitor is special rarity. Accepting offer...");
                                 if (FarmHelperConfig.sendVisitorsMacroLogs)
-                                    LogUtils.webhookLog("Visitors Macro found special visitor", FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
+                                    LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro found special visitor", FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
                             } else {
                                 LogUtils.sendDebug("[Visitors Macro] Visitor is special rarity. Skipping...");
                                 rejectVisitor = true;
@@ -1128,7 +1128,7 @@ public class VisitorsMacro implements IFeature {
                     }
                     if (rejectVisitor()) break;
                     if (FarmHelperConfig.sendVisitorsMacroLogs)
-                        LogUtils.webhookLog("Visitors Macro rejected visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
+                        LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro rejected visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
                     currentVisitor.ifPresent(servedCustomers::add);
                     currentRewards.clear();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
@@ -1228,7 +1228,7 @@ public class VisitorsMacro implements IFeature {
                 if (rejectVisitor) {
                     if (rejectVisitor()) break;
                     if (FarmHelperConfig.sendVisitorsMacroLogs)
-                        LogUtils.webhookLog("Visitors Macro rejected visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
+                        LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro rejected visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
                     currentVisitor.ifPresent(servedCustomers::add);
                     currentRewards.clear();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
@@ -1262,7 +1262,7 @@ public class VisitorsMacro implements IFeature {
                 haveItemsInSack = false;
                 InventoryUtils.clickContainerSlot(acceptOfferSlot2.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                 if (FarmHelperConfig.sendVisitorsMacroLogs)
-                    LogUtils.webhookLog("Visitors Macro accepted visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
+                    LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro accepted visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
                 currentVisitor.ifPresent(servedCustomers::add);
                 currentRewards.clear();
                 setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);

@@ -8,7 +8,9 @@ import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DebugHUD extends TextHud {
     public DebugHUD() {
@@ -88,18 +90,19 @@ public class DebugHUD extends TextHud {
             lines.add("   Consume Pot State: " + AutoGodPot.getInstance().getConsumePotState());
             lines.add("   Clock: " + AutoGodPot.getInstance().getDelayClock().getRemainingTime());
         }
-        if (FarmHelperConfig.highlightPlotWithPests && !PestsDestroyer.getInstance().getPestsMap().isEmpty()) {
+//        System.out.println(PestsDestroyer.getInstance().getPestsPlotMap().isEmpty());
+        if (FarmHelperConfig.highlightPlotWithPests && !PestsDestroyer.getInstance().getPestsPlotMap().isEmpty()) {
             lines.add("Pests:");
-            for (PestsDestroyer.Pest pest : PestsDestroyer.getInstance().getPestsMap()) {
-                lines.add("   Plot: " + pest.getPlotNumber() + " - " + pest.getAmount());
+            for (Map.Entry<Integer, Integer> pest : PestsDestroyer.getInstance().getPestsPlotMap().entrySet()) {
+                lines.add("   Plot: " + pest.getKey() + " - " + pest.getValue());
             }
         }
         if (PestsDestroyer.getInstance().isRunning()) {
             lines.add("Pests Destroyer");
             lines.add("   State: " + PestsDestroyer.getInstance().getState());
             lines.add("   Clock: " + PestsDestroyer.getInstance().getDelayClock().getRemainingTime());
-            PestsDestroyer.getInstance().getCurrentTarget().ifPresent(target -> lines.add("   Current Target: " + target));
-            PestsDestroyer.getInstance().getCurrentEntityTarget().ifPresent(target -> lines.add("   Current Entity Target: " + target));
+            lines.add("   Stuck clock: " + PestsDestroyer.getInstance().getStuckClock().getRemainingTime());
+            PestsDestroyer.getInstance().getCurrentEntityTarget().ifPresent(target -> lines.add("   Current Entity Target: " + target.getPositionVector()));
         }
     }
 }

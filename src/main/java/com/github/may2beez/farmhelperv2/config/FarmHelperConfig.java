@@ -6,6 +6,7 @@ import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.*;
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.page.AutoSellNPCItemsPage;
 import com.github.may2beez.farmhelperv2.config.page.CustomFailsafeMessagesPage;
@@ -14,6 +15,7 @@ import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
 import com.github.may2beez.farmhelperv2.feature.impl.*;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
+import com.github.may2beez.farmhelperv2.handler.RotationHandler;
 import com.github.may2beez.farmhelperv2.hud.DebugHUD;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.github.may2beez.farmhelperv2.hud.StatusHUD;
@@ -21,8 +23,12 @@ import com.github.may2beez.farmhelperv2.util.BlockUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.PlayerUtils;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
+import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
+import com.github.may2beez.farmhelperv2.util.helper.Target;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
@@ -32,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 // THIS IS RAT - CatalizCS
 @SuppressWarnings({"unused", "DefaultAnnotationParam"})
@@ -1141,7 +1148,7 @@ public class FarmHelperConfig extends Config {
     // START PESTS_DESTROYER
 
     @Switch(
-            name = "Enable Pests Destroyer (DOESN'T WORK!!!!)", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            name = "Enable Pests Destroyer", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Destroys pests"
     )
     public static boolean enablePestsDestroyer = false;
@@ -1187,6 +1194,18 @@ public class FarmHelperConfig extends Config {
             description = "The color of the plot highlight"
     )
     public static OneColor plotHighlightColor = new OneColor(0, 255, 217, 40);
+
+    @Switch(
+            name = "Send Webhook log if pests detection number has been exceeded", category = PESTS_DESTROYER, subcategory = "Discord Webhook",
+            description = "Sends a webhook log if pests detection number has been exceeded"
+    )
+    public static boolean sendWebhookLogIfPestsDetectionNumberExceeded = true;
+
+    @Switch(
+            name = "Ping @everyone", category = PESTS_DESTROYER, subcategory = "Discord Webhook",
+            description = "Pings @everyone on pests detection number exceeded"
+    )
+    public static boolean pingEveryoneOnPestsDetectionNumberExceeded = false;
 
     // END PESTS_DESTROYER
 
@@ -1319,6 +1338,23 @@ public class FarmHelperConfig extends Config {
         return (long) (rotationTime + (float) Math.random() * rotationTimeRandomness);
     }
 
+    @Slider(
+            name = "Pests Destroyer Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
+            description = "The time it takes to rotate the player",
+            min = 50f, max = 750
+    )
+    public static float pestsKillerRotationTime = 200f;
+
+    @Slider(
+            name = "Additional random Pests Destroyer Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
+            description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
+            min = 0f, max = 750
+    )
+    public static float pestsKillerRotationTimeRandomness = 150;
+
+    public static long getRandomPestsKillerRotationTime() {
+        return (long) (pestsKillerRotationTime + (float) Math.random() * pestsKillerRotationTimeRandomness);
+    }
 
     @Slider(
             name = "GUI Delay", category = DELAYS, subcategory = "GUI Delays",
@@ -1570,6 +1606,10 @@ public class FarmHelperConfig extends Config {
         this.addDependency("delayBeforeReconnecting", "enableLeavePauseOnBanwave");
         this.addDependency("banwaveDontLeaveDuringJacobsContest", "enableLeavePauseOnBanwave");
 
+        this.addDependency("sendWebhookLogIfPestsDetectionNumberExceeded", "enableWebHook");
+        this.addDependency("pingEveryoneOnPestsDetectionNumberExceeded", "sendWebhookLogIfPestsDetectionNumberExceeded");
+        this.addDependency("pingEveryoneOnPestsDetectionNumberExceeded", "enableWebHook");
+
         this.addDependency("leaveTime", "leaveTimer");
 
         this.hideIf("shownWelcomeGUI", () -> true);
@@ -1579,7 +1619,17 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
         registerKeyBind(debugKeybind, () -> {
-            PestsDestroyer.getInstance().toggle();
+            MovingObjectPosition objectMouseOver = Minecraft.getMinecraft().objectMouseOver;
+            if (objectMouseOver != null && objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY) {
+                Entity entity = objectMouseOver.entityHit;
+                Multithreading.schedule(() -> {
+                    RotationHandler.getInstance().easeTo(new RotationConfiguration(
+                            new Target(entity),
+                            FarmHelperConfig.getRandomRotationTime(),
+                            null
+                    ).followTarget(true));
+                }, 1, TimeUnit.SECONDS);
+            }
         });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());

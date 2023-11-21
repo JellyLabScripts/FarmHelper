@@ -189,7 +189,7 @@ public class PlotCleaningHelper implements IFeature {
             longBreakTarget = null;
         }
 
-        if (event.timestamp - lastBlockBroken > 1000f / 20 && (!RotationHandler.getInstance().isRotating() || (RotationHandler.getInstance().isRotating() && RotationHandler.getInstance().getConfiguration() != null && RotationHandler.getInstance().getConfiguration().isGoingBackToClientSide()))) {
+        if (event.timestamp - lastBlockBroken > 1000f / 20 && (!RotationHandler.getInstance().isRotating() || (RotationHandler.getInstance().isRotating() && RotationHandler.getInstance().getConfiguration() != null && RotationHandler.getInstance().getConfiguration().goingBackToClientSide()))) {
             lastBlockBroken = event.timestamp;
 
             brokenBlockPosArrayList.removeIf(tup -> tup.getSecond() + 2_500 < System.currentTimeMillis());

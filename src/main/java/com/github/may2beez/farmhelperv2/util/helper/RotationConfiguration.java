@@ -3,12 +3,9 @@ package com.github.may2beez.farmhelperv2.util.helper;
 import com.github.may2beez.farmhelperv2.handler.RotationHandler;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.Vec3;
 
-import java.util.Objects;
 import java.util.Optional;
 
 @Getter
@@ -22,7 +19,16 @@ public class RotationConfiguration {
     private Optional<Runnable> callback;
     @Setter
     @Getter
+    @Accessors(fluent = true)
     private boolean goingBackToClientSide = false;
+    @Getter
+    @Setter
+    @Accessors(fluent = true)
+    private boolean followTarget = false;
+    @Getter
+    @Setter
+    @Accessors(fluent = true)
+    private boolean randomness = false;
 
     public enum RotationType {
         SERVER,
@@ -47,14 +53,14 @@ public class RotationConfiguration {
     }
 
     public RotationConfiguration(Rotation to, long time, Runnable callback) {
-        this.from = RotationHandler.getInstance().getConfiguration() != null && RotationHandler.getInstance().getConfiguration().isGoingBackToClientSide() ? new Rotation(RotationHandler.getInstance().getServerSideYaw(), RotationHandler.getInstance().getServerSidePitch()) : new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+        this.from = RotationHandler.getInstance().getConfiguration() != null && RotationHandler.getInstance().getConfiguration().goingBackToClientSide() ? new Rotation(RotationHandler.getInstance().getServerSideYaw(), RotationHandler.getInstance().getServerSidePitch()) : new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
         this.to = Optional.ofNullable(to);
         this.time = time;
         this.callback = Optional.ofNullable(callback);
     }
 
     public RotationConfiguration(Rotation to, long time, RotationType rotationType, Runnable callback) {
-        this.from = RotationHandler.getInstance().getConfiguration() != null && RotationHandler.getInstance().getConfiguration().isGoingBackToClientSide() ? new Rotation(RotationHandler.getInstance().getServerSideYaw(), RotationHandler.getInstance().getServerSidePitch()) : new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+        this.from = RotationHandler.getInstance().getConfiguration() != null && RotationHandler.getInstance().getConfiguration().goingBackToClientSide() ? new Rotation(RotationHandler.getInstance().getServerSideYaw(), RotationHandler.getInstance().getServerSidePitch()) : new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
         this.to = Optional.ofNullable(to);
         this.time = time;
         this.rotationType = rotationType;
@@ -62,14 +68,14 @@ public class RotationConfiguration {
     }
 
     public RotationConfiguration(Target target, long time, Runnable callback) {
-        this.from = RotationHandler.getInstance().getConfiguration() != null && RotationHandler.getInstance().getConfiguration().isGoingBackToClientSide() ? new Rotation(RotationHandler.getInstance().getServerSideYaw(), RotationHandler.getInstance().getServerSidePitch()) : new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+        this.from = RotationHandler.getInstance().getConfiguration() != null && RotationHandler.getInstance().getConfiguration().goingBackToClientSide() ? new Rotation(RotationHandler.getInstance().getServerSideYaw(), RotationHandler.getInstance().getServerSidePitch()) : new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
         this.time = time;
         this.target = Optional.ofNullable(target);
         this.callback = Optional.ofNullable(callback);
     }
 
     public RotationConfiguration(Target target, long time, RotationType rotationType, Runnable callback) {
-        this.from = RotationHandler.getInstance().getConfiguration() != null && RotationHandler.getInstance().getConfiguration().isGoingBackToClientSide() ? new Rotation(RotationHandler.getInstance().getServerSideYaw(), RotationHandler.getInstance().getServerSidePitch()) : new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+        this.from = RotationHandler.getInstance().getConfiguration() != null && RotationHandler.getInstance().getConfiguration().goingBackToClientSide() ? new Rotation(RotationHandler.getInstance().getServerSideYaw(), RotationHandler.getInstance().getServerSidePitch()) : new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
         this.time = time;
         this.target = Optional.ofNullable(target);
         this.rotationType = rotationType;

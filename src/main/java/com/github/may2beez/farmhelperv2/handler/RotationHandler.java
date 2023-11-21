@@ -4,8 +4,10 @@ import com.github.may2beez.farmhelperv2.event.MotionUpdateEvent;
 import com.github.may2beez.farmhelperv2.mixin.client.MinecraftAccessor;
 import com.github.may2beez.farmhelperv2.util.AngleUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
+import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import com.github.may2beez.farmhelperv2.util.helper.Rotation;
 import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
+import com.github.may2beez.farmhelperv2.util.helper.Target;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -52,6 +54,7 @@ public class RotationHandler {
     private final Rotation targetRotation = new Rotation(0f, 0f);
 
     public void easeTo(RotationConfiguration configuration) {
+        dontRotateAfterTeleport.reset();
         completed = false;
         rotating = true;
         startTime = System.currentTimeMillis();
@@ -72,6 +75,12 @@ public class RotationHandler {
         int absYaw = Math.abs((int) neededChange.getYaw());
         int absPitch = Math.abs((int) neededChange.getPitch());
         int pythagoras = (int) pythagoras(absYaw, absPitch);
+        setTime(pythagoras, configuration);
+        endTime = System.currentTimeMillis() + configuration.getTime();
+        this.configuration = configuration;
+    }
+
+    private void setTime(int pythagoras, RotationConfiguration configuration) {
         if (pythagoras < 25) {
             LogUtils.sendDebug("[Rotation] Very close rotation, speeding up by 0.65", true);
             configuration.setTime((long) (configuration.getTime() * 0.65));
@@ -88,14 +97,17 @@ public class RotationHandler {
             configuration.setTime((long) (configuration.getTime() * 1.0));
             LogUtils.sendDebug("[Rotation] Normal rotation", true);
         }
-        endTime = System.currentTimeMillis() + configuration.getTime();
-        this.configuration = configuration;
+    }
+
+    public void updateTarget(Target target) {
+        if (configuration == null) return;
+        configuration.setTarget(Optional.of(target));
     }
 
     public void easeBackFromServerRotation() {
         if (configuration == null) return;
         LogUtils.sendDebug("[Rotation] Easing back from server rotation");
-        configuration.setGoingBackToClientSide(true);
+        configuration.goingBackToClientSide(true);
         completed = false;
         rotating = true;
         startTime = System.currentTimeMillis();
@@ -135,7 +147,12 @@ public class RotationHandler {
     }
 
     public Rotation getNeededChange(Rotation startRot, Vec3 target) {
-        Rotation targetRot = getRotation(target);
+        Rotation targetRot;
+        if (configuration != null) {
+            targetRot = getRotation(target, configuration.randomness());
+        } else {
+            targetRot = getRotation(target);
+        }
         return getNeededChange(startRot, targetRot);
     }
 
@@ -164,10 +181,16 @@ public class RotationHandler {
     }
 
     public Rotation getRotation(Vec3 from, Vec3 to) {
+        if (configuration != null) {
+            return getRotation(from, to, configuration.randomness());
+        }
         return getRotation(from, to, false);
     }
 
     public Rotation getRotation(BlockPos pos) {
+        if (configuration != null) {
+            return getRotation(mc.thePlayer.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), configuration.randomness());
+        }
         return getRotation(mc.thePlayer.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), false);
     }
 
@@ -215,20 +238,21 @@ public class RotationHandler {
         return (float) (1 - Math.pow(1 - x, 5));
     }
 
+    private Optional<Vec3> previousTargetLocation = Optional.empty();
+
     @SubscribeEvent
     public void onLastRender(RenderWorldLastEvent event) {
         if (!rotating || configuration == null || configuration.getRotationType() != RotationConfiguration.RotationType.CLIENT)
             return;
 
-        if (mc.currentScreen != null) {
-            startTime = System.currentTimeMillis();
-            endTime = System.currentTimeMillis() + configuration.getTime();
-            return;
-        }
+        if (openGuiUpdateRotation()) return;
+
         if (System.currentTimeMillis() <= endTime) {
+            updateTargetRotation();
             mc.thePlayer.rotationYaw = interpolate(startRotation.getYaw(), targetRotation.getYaw(), this::easeOutCubic);
             mc.thePlayer.rotationPitch = interpolate(startRotation.getPitch(), targetRotation.getPitch(), this::easeOutQuint);
         } else if (!completed) {
+            if (updateFollowTarget()) return;
             mc.thePlayer.rotationYaw = targetRotation.getYaw();
             mc.thePlayer.rotationPitch = targetRotation.getPitch();
             completed = true;
@@ -241,16 +265,51 @@ public class RotationHandler {
         }
     }
 
+    private final Clock dontRotateAfterTeleport = new Clock();
+
+    private void updateTargetRotation() {
+        if (configuration != null && configuration.getTarget().isPresent() && configuration.getTarget().get().getTarget().isPresent()) {
+            Vec3 vec = configuration.getTarget().get().getTarget().get();
+            if (previousTargetLocationHasTeleported(vec)) {
+                previousTargetLocation = Optional.empty();
+                dontRotateAfterTeleport.schedule((long) (300 + Math.random() * 500));
+                return;
+            }
+            Rotation rot = getRotation(vec, configuration.randomness());
+            Rotation neededChange = getNeededChange(startRotation, rot);
+            targetRotation.setYaw(startRotation.getYaw() + neededChange.getYaw());
+            targetRotation.setPitch(startRotation.getPitch() + neededChange.getPitch());
+            previousTargetLocation = Optional.of(vec);
+        }
+    }
+
+    private boolean updateFollowTarget() {
+        if (configuration.followTarget() && configuration.getTarget().isPresent() && configuration.getTarget().get().getTarget().isPresent()) {
+            startRotation.setRotation(new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch));
+            Rotation rot = getRotation(configuration.getTarget().get().getTarget().get(), configuration.randomness());
+            int pythagoras = (int) pythagoras(Math.abs((int) rot.getYaw()), Math.abs((int) rot.getPitch()));
+            setTime(pythagoras, configuration);
+            endTime = System.currentTimeMillis() + Math.max(configuration.getTime(), 150);
+            updateTargetRotation();
+            return true;
+        }
+        return false;
+    }
+
+    private boolean previousTargetLocationHasTeleported(Vec3 currentVec) {
+        if (previousTargetLocation.isPresent()) {
+            Vec3 previousVec = previousTargetLocation.get();
+            return previousVec.distanceTo(currentVec) > 0.5;
+        }
+        return false;
+    }
+
     @SubscribeEvent
     public void onUpdatePre(MotionUpdateEvent.Pre event) {
         if (!rotating || configuration == null || configuration.getRotationType() != RotationConfiguration.RotationType.SERVER)
             return;
 
-        if (mc.currentScreen != null) {
-            startTime = System.currentTimeMillis();
-            endTime = System.currentTimeMillis() + configuration.getTime();
-            return;
-        }
+        if (openGuiUpdateRotation()) return;
 
         if (System.currentTimeMillis() >= endTime) {
             if (configuration.getCallback().isPresent()) {
@@ -260,30 +319,39 @@ public class RotationHandler {
                     return;
                 }
             } else {
+                if (updateFollowTarget()) return;
                 reset();
                 return;
             }
         }
+        updateTargetRotation();
 
         clientSidePitch = mc.thePlayer.rotationPitch;
         clientSideYaw = mc.thePlayer.rotationYaw;
 
-        if (configuration != null && configuration.isGoingBackToClientSide()) {
+        if (configuration != null && configuration.goingBackToClientSide()) {
             targetRotation.setYaw(clientSideYaw);
             targetRotation.setPitch(clientSidePitch);
-        } else if (configuration != null && configuration.getTarget().isPresent() && configuration.getTarget().get().getTarget().isPresent()) {
-            Vec3 vec = configuration.getTarget().get().getTarget().get();
-            Rotation rot = getRotation(vec);
-            Rotation neededChange = getNeededChange(startRotation, rot);
-            targetRotation.setYaw(startRotation.getYaw() + neededChange.getYaw());
-            targetRotation.setPitch(startRotation.getPitch() + neededChange.getPitch());
-        }
+        } else updateTargetRotation();
         event.yaw = interpolate(startRotation.getYaw(), targetRotation.getYaw(), this::easeOutCubic);
         event.pitch = interpolate(startRotation.getPitch(), targetRotation.getPitch(), this::easeOutQuint);
         serverSidePitch = event.pitch;
         serverSideYaw = event.yaw;
         mc.thePlayer.rotationYaw = event.yaw;
         mc.thePlayer.rotationPitch = event.pitch;
+    }
+
+    private boolean openGuiUpdateRotation() {
+        if (mc.currentScreen != null || dontRotateAfterTeleport.isScheduled() && !dontRotateAfterTeleport.passed()) {
+            startRotation.setRotation(new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch));
+            startTime = System.currentTimeMillis();
+            endTime = System.currentTimeMillis() + configuration.getTime();
+            return true;
+        } else if (dontRotateAfterTeleport.isScheduled() && dontRotateAfterTeleport.passed()) {
+            dontRotateAfterTeleport.reset();
+            updateFollowTarget();
+        }
+        return false;
     }
 
     @SubscribeEvent

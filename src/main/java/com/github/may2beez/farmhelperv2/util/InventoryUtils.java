@@ -106,13 +106,17 @@ public class InventoryUtils {
     }
 
     public static String getInventoryName() {
-        if (mc.currentScreen instanceof GuiChest) {
-            final ContainerChest chest = (ContainerChest) mc.thePlayer.openContainer;
-            if (chest == null) return null;
-            final IInventory inv = chest.getLowerChestInventory();
-            return inv.hasCustomName() ? inv.getName() : null;
+        try {
+            if (mc.currentScreen instanceof GuiChest) {
+                final ContainerChest chest = (ContainerChest) mc.thePlayer.openContainer;
+                if (chest == null) return null;
+                final IInventory inv = chest.getLowerChestInventory();
+                return inv.hasCustomName() ? inv.getName() : null;
+            }
+            return null;
+        } catch (Exception e) {
+            return null;
         }
-        return null;
     }
 
     public static boolean hasItemInInventory(String item) {

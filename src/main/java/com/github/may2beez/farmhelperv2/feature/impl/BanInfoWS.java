@@ -4,6 +4,7 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import cc.polyfrost.oneconfig.utils.Notifications;
 import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.FarmHelperConfig;
+import com.github.may2beez.farmhelperv2.event.ReceivePacketEvent;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
@@ -17,6 +18,10 @@ import com.mojang.authlib.exceptions.AuthenticationException;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.Packet;
+import net.minecraft.network.login.server.S00PacketDisconnect;
+import net.minecraft.network.play.server.S40PacketDisconnect;
+import net.minecraft.util.StringUtils;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -25,6 +30,7 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.enums.ReadyState;
 import org.java_websocket.handshake.ServerHandshake;
+import org.spongepowered.asm.mixin.Unique;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -52,7 +58,7 @@ public class BanInfoWS implements IFeature {
             client = createNewWebSocketClient();
             JsonObject headers = getHeaders();
             if (headers == null) {
-                LogUtils.sendDebug("Failed to connect to analytics server");
+                LogUtils.sendDebug("Failed to connect to analytics server. Retrying in 1 minute...");
                 return;
             }
             for (Map.Entry<String, JsonElement> header : headers.entrySet()) {
@@ -162,18 +168,73 @@ public class BanInfoWS implements IFeature {
                 client = createNewWebSocketClient();
                 JsonObject headers = getHeaders();
                 if (headers == null) {
-                    LogUtils.sendDebug("Failed to connect to analytics server");
+                    LogUtils.sendDebug("Failed to connect to analytics server. Retrying in 1 minute...");
                     return;
                 }
                 for (Map.Entry<String, JsonElement> header : headers.entrySet()) {
                     client.addHeader(header.getKey(), header.getValue().getAsString());
                 }
-                reconnectDelay.schedule(5_000L * (retryCount + 1));
+                reconnectDelay.schedule(60_000L);
                 client.connect();
             } catch (Exception e) {
                 e.printStackTrace();
                 client = null;
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onReceivePacket(ReceivePacketEvent event) {
+        Packet<?> packet = event.packet;
+        if (packet instanceof S00PacketDisconnect) {
+            String reason = ((S00PacketDisconnect) packet).func_149603_c().getFormattedText();
+            System.out.println("S00PacketDisconnect");
+            System.out.println(reason);
+            processBanScreen(reason);
+        } else if (packet instanceof S40PacketDisconnect) {
+            String reason = ((S40PacketDisconnect) packet).getReason().getFormattedText();
+            System.out.println("S40PacketDisconnect");
+            System.out.println(reason);
+            processBanScreen(reason);
+        }
+    }
+
+    @Unique
+    private final List<String> times = Arrays.asList(
+            "23h 59m 59s",
+            "23h 59m 58s",
+            "23h 59m 57s",
+            "23h 59m 56s"
+    );
+
+    @Unique
+    private final List<String> days = Arrays.asList(
+            "29d",
+            "89d",
+            "359d"
+    );
+
+    private void processBanScreen(String wholeReason) {
+        Failsafe.getInstance().stop();
+        ArrayList<String> multilineMessage = new ArrayList<>(Arrays.asList(wholeReason.split("\n")));
+        System.out.println(multilineMessage);
+        try {
+            if (times.stream().noneMatch(time -> multilineMessage.get(0).contains(time)) || days.stream().noneMatch(day -> multilineMessage.get(0).contains(day)))
+                return;
+
+            String duration = StringUtils.stripControlCodes(multilineMessage.get(0)).replace("You are temporarily banned for ", "")
+                    .replace(" from this server!", "").trim();
+            String reason = StringUtils.stripControlCodes(multilineMessage.get(2)).replace("Reason: ", "").trim();
+            int durationDays = Integer.parseInt(duration.split(" ")[0].replace("d", ""));
+            String banId = StringUtils.stripControlCodes(multilineMessage.get(5)).replace("Ban ID: ", "").trim();
+            BanInfoWS.getInstance().playerBanned(durationDays, reason, banId, wholeReason);
+            LogUtils.webhookLog("[Banned]\\nBanned for " + durationDays + " days for " + reason, true);
+            System.out.println("Banned");
+            if (MacroHandler.getInstance().isMacroToggled()) {
+                MacroHandler.getInstance().disableMacro();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -424,7 +485,7 @@ public class BanInfoWS implements IFeature {
         } catch (AuthenticationException e) {
             e.printStackTrace();
             retryCount++;
-            reconnectDelay.schedule(5_000L * (retryCount + 1));
+            reconnectDelay.schedule(60_000L);
             return null;
         }
         return handshake;

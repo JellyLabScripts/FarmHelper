@@ -267,7 +267,8 @@ public class BlockUtils {
         BlockPos blockPosStart = getRelativeBlockPos(0, 1, 0);
         for (int y = blockPosStart.getY(); y < 100; y++) {
             BlockPos blockPos = new BlockPos(blockPosStart.getX(), y, blockPosStart.getZ());
-            if (!Minecraft.getMinecraft().theWorld.isAirBlock(blockPos) || blockHasCollision(blockPos)) {
+            System.out.println(blockPos + " " + blockHasCollision(blockPos));
+            if (blockHasCollision(blockPos)) {
                 return false;
             }
         }
@@ -275,7 +276,8 @@ public class BlockUtils {
     }
 
     private static boolean blockHasCollision(BlockPos blockPos) {
-        return !mc.theWorld.getBlockState(blockPos).getBlock().isPassable(mc.theWorld, blockPos);
+        AxisAlignedBB axisAlignedBB = mc.theWorld.getBlockState(blockPos).getBlock().getCollisionBoundingBox(mc.theWorld, blockPos, mc.theWorld.getBlockState(blockPos));
+        return !mc.theWorld.getBlockState(blockPos).getBlock().isPassable(mc.theWorld, blockPos) || axisAlignedBB != null;
     }
 
     public enum Direction {

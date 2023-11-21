@@ -336,7 +336,7 @@ public class Failsafe implements IFeature {
 
         if (event.packet instanceof S08PacketPlayerPosLook) {
             // Rotation or teleport
-            if (LagDetector.getInstance().isLagging()) {
+            if (LagDetector.getInstance().isLagging() || LagDetector.getInstance().wasJustLagging()) {
                 LogUtils.sendWarning("[Failsafe] Got rotation packet while lagging! Ignoring that one.");
                 return;
             }
