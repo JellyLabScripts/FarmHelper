@@ -937,14 +937,16 @@ public class FarmHelperConfig extends Config {
     )
     public static int visitorsMacroMinVisitors = 5;
 
-    @DualOption(
+    @Dropdown(
             name = "Visitors Macro Action", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "The action to take when a Visitors Macro has been triggered",
-            left = "Fly from farm",
-            right = "Teleport to plot 4 and fly",
-            size = 2
+            options = {
+                    "Barn",
+                    "Fly from the farm",
+                    "Plot 4"
+            }
     )
-    public static boolean visitorsMacroAction = false;
+    public static int visitorsMacroAction = 0;
 
     @Switch(
             name = "Autosell before serving visitors", category = VISITORS_MACRO, subcategory = "Visitors Macro",

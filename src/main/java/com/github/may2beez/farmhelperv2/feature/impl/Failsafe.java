@@ -199,7 +199,7 @@ public class Failsafe implements IFeature {
         LogUtils.sendDebug("[Failsafe] Emergency chosen: " + StringUtils.stripControlCodes(emergency.name()));
         LogUtils.sendFailsafeMessage(emergency.label, shouldTagEveryone(emergency));
         FeatureManager.getInstance().disableCurrentlyRunning(this);
-        if (FarmHelperConfig.popUpNotification && shouldNotify(emergency))
+        if (shouldNotify(emergency))
             FailsafeUtils.getInstance().sendNotification(StringUtils.stripControlCodes(emergency.label), TrayIcon.MessageType.WARNING);
         if (!Scheduler.getInstance().isFarming()) {
             Scheduler.getInstance().farmingTime();
@@ -1512,6 +1512,8 @@ public class Failsafe implements IFeature {
     }
 
     private boolean shouldNotify(EmergencyType emergency) {
+        if (!FarmHelperConfig.popUpNotification)
+            return false;
         switch (emergency) {
             case ROTATION_CHECK:
                 return FailsafeNotificationsPage.notifyOnRotationFailsafe;
