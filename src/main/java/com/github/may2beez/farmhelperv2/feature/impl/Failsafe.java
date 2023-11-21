@@ -1533,6 +1533,8 @@ public class Failsafe implements IFeature {
                 return FailsafeNotificationsPage.notifyOnDisconnectFailsafe;
             case JACOB:
                 return FailsafeNotificationsPage.notifyOnJacobFailsafe;
+            case TEST:
+                return FailsafeNotificationsPage.notifyOnTestFailsafe;
         }
         return false;
     }
@@ -1559,6 +1561,8 @@ public class Failsafe implements IFeature {
                 return FailsafeNotificationsPage.alertOnDisconnectFailsafe;
             case JACOB:
                 return FailsafeNotificationsPage.alertOnJacobFailsafe;
+            case TEST:
+                return FailsafeNotificationsPage.alertOnTestFailsafe;
         }
         return false;
     }
@@ -1585,6 +1589,8 @@ public class Failsafe implements IFeature {
                 return FailsafeNotificationsPage.autoAltTabOnDisconnectFailsafe;
             case JACOB:
                 return FailsafeNotificationsPage.autoAltTabOnJacobFailsafe;
+            case TEST:
+                return FailsafeNotificationsPage.autoAltTabOnTestFailsafe;
         }
         return false;
     }
@@ -1611,6 +1617,8 @@ public class Failsafe implements IFeature {
                 return FailsafeNotificationsPage.tagEveryoneOnDisconnectFailsafe;
             case JACOB:
                 return FailsafeNotificationsPage.tagEveryoneOnJacobFailsafe;
+            case TEST:
+                return FailsafeNotificationsPage.tagEveryoneOnTestFailsafe;
         }
         return false;
     }
