@@ -35,6 +35,7 @@ import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent;
+import org.lwjgl.opengl.Display;
 
 import java.awt.*;
 import java.io.File;
@@ -192,6 +193,12 @@ public class Failsafe implements IFeature {
         if (FarmHelperConfig.autoAltTab && shouldAltTab(emergency)) {
             FailsafeUtils.bringWindowToFront();
         }
+        Multithreading.schedule(() -> {
+            if (FarmHelperConfig.autoAltTab && shouldAltTab(emergency) && !Display.isActive()) {
+                FailsafeUtils.bringWindowToFrontUsingRobot();
+                System.out.println("Bringing window to front using Robot because Winapi failed as usual.");
+            }
+        }, 750, TimeUnit.MILLISECONDS);
 
         emergencyQueue.clear();
         chooseEmergencyDelay.reset();
@@ -576,6 +583,7 @@ public class Failsafe implements IFeature {
             Failsafe.getInstance().stop();
             return true;
         }
+        UngrabMouse.getInstance().ungrabMouse();
         return false;
     }
 
