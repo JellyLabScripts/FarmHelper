@@ -216,7 +216,7 @@ public class PlayerUtils {
 
     public static boolean shouldWalkForwards() {
         if (Failsafe.getInstance().isEmergency()) return false;
-        if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.CACTUS || MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.PUMPKIN || MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.MELON) return false;
+        if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.CACTUS || (FarmHelperConfig.getMacro() != FarmHelperConfig.MacroEnum.S_PUMPKIN_MELON_MELONGKINGDE && (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.PUMPKIN || MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.MELON))) return false;
 
         float angle = AngleUtils.getClosest();
         double x = mc.thePlayer.posX % 1;

@@ -231,7 +231,12 @@ public class PestsDestroyer implements IFeature {
                     delayClock.schedule((long) (500 + Math.random() * 500));
                     return;
                 }
-                state = States.OPEN_DESK;
+                int pestsInMap = pestsPlotMap.values().stream().mapToInt(i -> i).sum();
+                if (pestsInMap < amountOfPests) {
+                    state = States.OPEN_DESK;
+                } else {
+                    state = States.TELEPORT_TO_PLOT;
+                }
                 delayClock.schedule((long) (500 + Math.random() * 500));
                 break;
             case OPEN_DESK:
@@ -284,7 +289,7 @@ public class PestsDestroyer implements IFeature {
                 preTpBlockPos = Optional.of(mc.thePlayer.getPosition());
                 mc.thePlayer.sendChatMessage("/tptoplot " + plotNumber);
                 state = States.WAIT_FOR_TP;
-                delayClock.schedule((long) (500 + Math.random() * 500));
+                delayClock.schedule((long) (200 + Math.random() * 100));
                 break;
             case WAIT_FOR_TP:
                 if (!preTpBlockPos.isPresent()) {
@@ -292,7 +297,7 @@ public class PestsDestroyer implements IFeature {
                     break;
                 }
                 if (!mc.thePlayer.getPosition().equals(preTpBlockPos.get())) {
-                    if (mc.thePlayer.onGround) {
+                    if (!mc.thePlayer.capabilities.isFlying) {
                         fly();
                         delayClock.schedule(350);
                         break;
@@ -302,9 +307,9 @@ public class PestsDestroyer implements IFeature {
                 }
                 break;
             case GET_LOCATION:
-                KeyBindUtils.stopMovement();
+                KeyBindUtils.holdThese(mc.thePlayer.posY < 75 ? mc.gameSettings.keyBindJump : null);
 
-                if (mc.thePlayer.onGround) {
+                if (!mc.thePlayer.capabilities.isFlying) {
                     fly();
                     delayClock.schedule(350);
                     break;
@@ -340,7 +345,7 @@ public class PestsDestroyer implements IFeature {
                 }
                 break;
             case FLY_TO_PEST:
-                if (mc.thePlayer.onGround) {
+                if (!mc.thePlayer.capabilities.isFlying) {
                     fly();
                     break;
                 }
@@ -414,7 +419,7 @@ public class PestsDestroyer implements IFeature {
                         rotationType = RotationType.CLOSE;
                     }
                     KeyBindUtils.holdThese(mc.gameSettings.keyBindUseItem);
-                } else if (distance <= 10 || distanceWithoutY <= 2) {
+                } else if (distance <= 10 || distanceWithoutY <= 1) {
                     if (!mc.thePlayer.capabilities.isFlying) {
                         fly();
                         delayClock.schedule(350);
@@ -501,9 +506,10 @@ public class PestsDestroyer implements IFeature {
             stop();
             return;
         }
-        mc.thePlayer.jump();
+        if (mc.thePlayer.onGround)
+            mc.thePlayer.jump();
         Multithreading.schedule(() -> {
-            if (!mc.thePlayer.onGround && !mc.thePlayer.capabilities.isFlying) {
+            if (!mc.thePlayer.capabilities.isFlying) {
                 mc.thePlayer.capabilities.isFlying = true;
                 mc.thePlayer.sendPlayerAbilities();
             }
@@ -740,7 +746,6 @@ public class PestsDestroyer implements IFeature {
         lastFireworkLocation = Optional.of(event.getPos());
     }
 
-    private String previousGuiName = null;
     private final Pattern pestPatternDeskGui = Pattern.compile("ൠ This plot has (\\d+) Pest!");
 
     @SubscribeEvent
@@ -748,33 +753,43 @@ public class PestsDestroyer implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (!(event.guiScreen instanceof GuiChest)) return;
-        if (!event.fullyLoaded) return;
         String guiName = InventoryUtils.getInventoryName();
-        if (guiName == null || Objects.equals(guiName, previousGuiName)) return;
+        if (guiName == null) return;
         if (!delayClock.passed()) return;
         ContainerChest guiChest = (ContainerChest) ((GuiChest) event.guiScreen).inventorySlots;
 
-        if (guiName.equals("Configure Plots")) {
+        int plotCounter = 0;
+        if (StringUtils.stripControlCodes(guiName).equals("Configure Plots")) {
             pestsPlotMap.clear();
             for (int i = 0; i < guiChest.inventorySlots.size(); i++) {
                 Slot slot = guiChest.inventorySlots.get(i);
                 if (slot == null || !slot.getHasStack()) continue;
                 if (slot.getStack().getDisplayName().contains("Plot")) {
                     String displayName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
-                    int plotNumber = Integer.parseInt(displayName.replace("Plot -", "").trim());
-                    List<String> lore = InventoryUtils.getItemLore(slot.getStack());
-                    for (String line : lore) {
-                        Matcher matcher = pestPatternDeskGui.matcher(line);
-                        if (matcher.matches()) {
-                            int pests = Integer.parseInt(matcher.group(1));
-                            pestsPlotMap.put(plotNumber, pests);
-                            LogUtils.sendDebug("Found plot with pests: " + plotNumber + " with " + pests + " pests");
+                    try {
+                        int plotNumber = PlotUtils.getPLOT_NUMBERS().get(plotCounter);
+                        List<String> lore = InventoryUtils.getItemLore(slot.getStack());
+                        for (String line : lore) {
+                            Matcher matcher = pestPatternDeskGui.matcher(line);
+                            if (matcher.matches()) {
+                                int pests = Integer.parseInt(matcher.group(1));
+                                pestsPlotMap.put(plotNumber, pests);
+                            }
                         }
+                    } catch (Exception e) {
+                        LogUtils.sendError("[Pests Destroyer] Failed to parse plot number: " + displayName);
                     }
-                }
+                    plotCounter++;
+                } else if (StringUtils.stripControlCodes(slot.getStack().getDisplayName()).equals("The Barn")) plotCounter++;
             }
         }
-        previousGuiName = guiName;
+        int pestsInMap = pestsPlotMap.values().stream().mapToInt(i -> i).sum();
+        if (pestsInMap < amountOfPests) return;
+        for (Map.Entry<Integer, Integer> plot : pestsPlotMap.entrySet()) {
+            if (plot.getValue() > 0) {
+                LogUtils.sendDebug("Found plot with pests: " + plot.getKey() + " with " + plot.getValue() + " pests");
+            }
+        }
         if (state == States.WAIT_FOR_INFO) {
             Multithreading.schedule(() -> {
                 if (mc.currentScreen != null) {

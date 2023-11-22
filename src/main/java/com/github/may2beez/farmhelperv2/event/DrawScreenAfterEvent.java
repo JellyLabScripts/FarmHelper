@@ -5,10 +5,8 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 
 public class DrawScreenAfterEvent extends Event {
     public GuiScreen guiScreen;
-    public boolean fullyLoaded;
 
-    public DrawScreenAfterEvent(GuiScreen guiScreen, boolean fullyLoaded) {
+    public DrawScreenAfterEvent(GuiScreen guiScreen) {
         this.guiScreen = guiScreen;
-        this.fullyLoaded = fullyLoaded;
     }
 }

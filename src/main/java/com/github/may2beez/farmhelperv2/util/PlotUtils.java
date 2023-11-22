@@ -11,6 +11,9 @@ import java.util.*;
 public class PlotUtils {
     @Getter
     private static final HashMap<Integer, List<Tuple<Integer, Integer>>> PLOTS = new HashMap<>();
+
+    @Getter
+    private static final ArrayList<Integer> PLOT_NUMBERS = new ArrayList<>(Arrays.asList(21, 13, 9, 14, 22, 15, 5, 1, 6, 16, 10, 2, 0, 3, 11, 17, 7, 4, 8, 18, 23, 19, 12, 20, 24));
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     static {

@@ -227,7 +227,6 @@ public class RotationHandler {
 
     private float interpolate(float start, float end, Function<Float, Float> function) {
         float t = (float) (System.currentTimeMillis() - startTime) / (endTime - startTime);
-        System.out.println("Rotation T: " + t);
         return (end - start) * function.apply(t) + start;
     }
 
