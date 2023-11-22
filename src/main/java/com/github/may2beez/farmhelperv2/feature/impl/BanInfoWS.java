@@ -27,6 +27,14 @@ import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.compress.utils.IOUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.StandardHttpRequestRetryHandler;
+import org.apache.http.message.BasicHeader;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.enums.ReadyState;
 import org.java_websocket.handshake.ServerHandshake;
@@ -52,6 +60,8 @@ public class BanInfoWS implements IFeature {
         return instance;
     }
 
+    private HttpClient httpClient;
+
     public BanInfoWS() {
         try {
             LogUtils.sendDebug("Connecting to analytics server...");
@@ -69,6 +79,21 @@ public class BanInfoWS implements IFeature {
             e.printStackTrace();
             client = null;
         }
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(5000)
+                .setConnectionRequestTimeout(5000)
+                .setSocketTimeout(5000)
+                .build();
+        StandardHttpRequestRetryHandler retryHandler = new StandardHttpRequestRetryHandler(3, true);
+        this.httpClient = HttpClientBuilder.create().setRetryHandler(retryHandler).setDefaultRequestConfig(requestConfig).build();
+    }
+
+    private List<BasicHeader> getHttpClientHeaders() {
+        List<BasicHeader> headers = new ArrayList<>();
+        headers.add(new BasicHeader("User-Agent", "Farm Helper"));
+        headers.add(new BasicHeader("Content-Type", "application/json"));
+        headers.add(new BasicHeader("Accept", "application/json"));
+        return headers;
     }
 
     private WebSocketClient client;
@@ -175,7 +200,9 @@ public class BanInfoWS implements IFeature {
                     client.addHeader(header.getKey(), header.getValue().getAsString());
                 }
                 reconnectDelay.schedule(60_000L);
-                client.connect();
+                Multithreading.schedule(() -> {
+                    client.connect();
+                }, 0, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 e.printStackTrace();
                 client = null;
@@ -266,6 +293,34 @@ public class BanInfoWS implements IFeature {
             client.send(jsonObject.toString());
         } catch (Exception e) {
             e.printStackTrace();
+            try {
+
+                String serverId = mojangAuthentication();
+                jsonObject.remove("config");
+                jsonObject.addProperty("config", compress(configJsonString));
+                jsonObject.addProperty("serverId", serverId);
+                HashMap<String, String> headers = FarmHelper.gson.fromJson(jsonObject, HashMap.class);
+                HttpPost post = new HttpPost("https://ws.may2bee.pl/ban");
+                post.setHeaders(getHttpClientHeaders().stream().map(header -> new BasicHeader(header.getName(), header.getValue())).toArray(BasicHeader[]::new));
+                for (Map.Entry<String, String> header : headers.entrySet()) {
+                    post.addHeader(header.getKey(), FarmHelper.gson.toJson(header.getValue()));
+                }
+                for (Header header : post.getAllHeaders()) {
+                    System.out.println(header.getName() + ": " + header.getValue());
+                }
+                Multithreading.schedule(() -> {
+                    HttpResponse response = null;
+                    try {
+                        response = httpClient.execute(post);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    System.out.println(response);
+                }, 0, TimeUnit.MILLISECONDS);
+
+            } catch (AuthenticationException | IOException ex) {
+                ex.printStackTrace();
+            }
         }
     }
 
@@ -429,6 +484,14 @@ public class BanInfoWS implements IFeature {
         return Base64.getEncoder().encodeToString(rstBao.toByteArray());
     }
 
+    private static String compress(String json) throws IOException {
+        ByteArrayOutputStream rstBao = new ByteArrayOutputStream();
+        GZIPOutputStream zos = new GZIPOutputStream(rstBao);
+        zos.write(json.getBytes());
+        IOUtils.closeQuietly(zos);
+        return Base64.getEncoder().encodeToString(rstBao.toByteArray());
+    }
+
     public enum AnalyticsState {
         START_SESSION,
         INFO,
@@ -476,11 +539,8 @@ public class BanInfoWS implements IFeature {
         handshake.addProperty("username", Minecraft.getMinecraft().getSession().getUsername());
         handshake.addProperty("modVersion", FarmHelper.VERSION);
         handshake.addProperty("mod", "farmHelper");
-        String serverId = UUID.randomUUID().toString().replace("-", "");
-        String commentForDecompilers =
-                "This sends a request to Mojang's auth server, used for verification. This is how we verify you are the real user without your session details. This is the exact same system Optifine uses.";
         try {
-            Minecraft.getMinecraft().getSessionService().joinServer(Minecraft.getMinecraft().getSession().getProfile(), Minecraft.getMinecraft().getSession().getToken(), serverId);
+            String serverId = mojangAuthentication();
             handshake.addProperty("serverId", serverId);
         } catch (AuthenticationException e) {
             e.printStackTrace();
@@ -489,6 +549,14 @@ public class BanInfoWS implements IFeature {
             return null;
         }
         return handshake;
+    }
+
+    private String mojangAuthentication() throws AuthenticationException {
+        String serverId = UUID.randomUUID().toString().replace("-", "");
+        String commentForDecompilers =
+                "This sends a request to Mojang's auth server, used for verification. This is how we verify you are the real user without your session details. This is the exact same system as Skytils and Optifine use.";
+        Minecraft.getMinecraft().getSessionService().joinServer(Minecraft.getMinecraft().getSession().getProfile(), Minecraft.getMinecraft().getSession().getToken(), serverId);
+        return serverId;
     }
 
     private WebSocketClient createNewWebSocketClient() throws URISyntaxException {

@@ -227,15 +227,24 @@ public class RotationHandler {
 
     private float interpolate(float start, float end, Function<Float, Float> function) {
         float t = (float) (System.currentTimeMillis() - startTime) / (endTime - startTime);
+        System.out.println("Rotation T: " + t);
         return (end - start) * function.apply(t) + start;
     }
 
-    private float easeOutCubic(double number) {
-        return (float) Math.max(0, Math.min(1, 1 - Math.pow(1 - number, 3)));
+//    private float easeOutCubic(double number) {
+//        return (float) Math.max(0, Math.min(1, 1 - Math.pow(1 - number, 3)));
+//    }
+//
+//    private float easeOutQuint(float x) {
+//        return (float) (1 - Math.pow(1 - x, 5));
+//    }
+
+    private float easeOutQuart(float x) {
+        return (float) (1 - Math.pow(1 - x, 4));
     }
 
-    private float easeOutQuint(float x) {
-        return (float) (1 - Math.pow(1 - x, 5));
+    private float easeOutExpo(float x) {
+        return x == 1 ? 1 : 1 - (float) Math.pow(2, -10 * x);
     }
 
     private Optional<Vec3> previousTargetLocation = Optional.empty();
@@ -249,8 +258,8 @@ public class RotationHandler {
 
         if (System.currentTimeMillis() <= endTime) {
             updateTargetRotation();
-            mc.thePlayer.rotationYaw = interpolate(startRotation.getYaw(), targetRotation.getYaw(), this::easeOutCubic);
-            mc.thePlayer.rotationPitch = interpolate(startRotation.getPitch(), targetRotation.getPitch(), this::easeOutQuint);
+            mc.thePlayer.rotationYaw = interpolate(startRotation.getYaw(), targetRotation.getYaw(), this::easeOutExpo);
+            mc.thePlayer.rotationPitch = interpolate(startRotation.getPitch(), targetRotation.getPitch(), this::easeOutQuart);
         } else if (!completed) {
             if (updateFollowTarget()) return;
             mc.thePlayer.rotationYaw = targetRotation.getYaw();
@@ -333,8 +342,8 @@ public class RotationHandler {
             targetRotation.setYaw(clientSideYaw);
             targetRotation.setPitch(clientSidePitch);
         } else updateTargetRotation();
-        event.yaw = interpolate(startRotation.getYaw(), targetRotation.getYaw(), this::easeOutCubic);
-        event.pitch = interpolate(startRotation.getPitch(), targetRotation.getPitch(), this::easeOutQuint);
+        event.yaw = interpolate(startRotation.getYaw(), targetRotation.getYaw(), this::easeOutExpo);
+        event.pitch = interpolate(startRotation.getPitch(), targetRotation.getPitch(), this::easeOutQuart);
         serverSidePitch = event.pitch;
         serverSideYaw = event.yaw;
         mc.thePlayer.rotationYaw = event.yaw;

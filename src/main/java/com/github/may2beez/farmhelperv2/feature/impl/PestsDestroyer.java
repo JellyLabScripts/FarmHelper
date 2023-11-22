@@ -14,6 +14,7 @@ import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
 import com.github.may2beez.farmhelperv2.util.helper.Target;
 import lombok.Getter;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.entity.Entity;
@@ -110,6 +111,7 @@ public class PestsDestroyer implements IFeature {
             return;
         }
         preparing = true;
+        currentEntityTarget = Optional.empty();
         lastFireworkLocation = Optional.empty();
         lastFireworkTime = 0;
         state = States.IDLE;
@@ -296,10 +298,17 @@ public class PestsDestroyer implements IFeature {
                         break;
                     }
                     state = States.GET_LOCATION;
+                    delayClock.schedule((long) (500 + Math.random() * 500));
                 }
                 break;
             case GET_LOCATION:
                 KeyBindUtils.stopMovement();
+
+                if (mc.thePlayer.onGround) {
+                    fly();
+                    delayClock.schedule(350);
+                    break;
+                }
 
                 if (!pestsLocations.isEmpty()) {
                     state = States.FLY_TO_PEST;
@@ -309,6 +318,7 @@ public class PestsDestroyer implements IFeature {
                 state = States.WAIT_FOR_LOCATION;
                 lastFireworkLocation = Optional.empty();
                 KeyBindUtils.leftClick();
+                delayClock.schedule(300);
                 break;
             case WAIT_FOR_LOCATION:
                 if (RotationHandler.getInstance().isRotating()) return;
@@ -319,7 +329,7 @@ public class PestsDestroyer implements IFeature {
                 }
 
                 if (lastFireworkLocation.isPresent()) {
-                    if (lastFireworkTime + 100 < System.currentTimeMillis()) {
+                    if (lastFireworkTime + 250 < System.currentTimeMillis()) {
                         RotationHandler.getInstance().easeTo(new RotationConfiguration(
                                 new Target(new Vec3(lastFireworkLocation.get().xCoord, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), lastFireworkLocation.get().zCoord)),
                                 FarmHelperConfig.getRandomRotationTime(),
@@ -433,7 +443,13 @@ public class PestsDestroyer implements IFeature {
                         break;
                     }
 
-                    KeyBindUtils.holdThese(objectsInFrontOfPlayer() ? mc.gameSettings.keyBindJump : null, distanceWithoutY > 2 ? mc.gameSettings.keyBindForward : null);
+                    if (!GameStateHandler.getInstance().isLeftWalkable() && GameStateHandler.getInstance().isRightWalkable()) {
+                        KeyBindUtils.holdThese(objectsInFrontOfPlayer() ? mc.gameSettings.keyBindJump : null, distanceWithoutY > 2 ? mc.gameSettings.keyBindForward : null, mc.gameSettings.keyBindRight);
+                    } else if (GameStateHandler.getInstance().isLeftWalkable() && !GameStateHandler.getInstance().isRightWalkable()) {
+                        KeyBindUtils.holdThese(objectsInFrontOfPlayer() ? mc.gameSettings.keyBindJump : null, distanceWithoutY > 2 ? mc.gameSettings.keyBindForward : null, mc.gameSettings.keyBindLeft);
+                    } else {
+                        KeyBindUtils.holdThese(objectsInFrontOfPlayer() ? mc.gameSettings.keyBindJump : null, distanceWithoutY > 2 ? mc.gameSettings.keyBindForward : null);
+                    }
 
                     if (!RotationHandler.getInstance().isRotating() && rotationType != RotationType.FAR) {
                         RotationHandler.getInstance().reset();
@@ -497,23 +513,36 @@ public class PestsDestroyer implements IFeature {
 
     private boolean objectsInFrontOfPlayer() {
         Vec3 playerPos = mc.thePlayer.getPositionVector();
-        Vec3 playerPosToTheLeft = playerPos.addVector(-BlockUtils.getUnitX(), 0, BlockUtils.getUnitZ());
-        Vec3 playerPosToTheRight = playerPos.addVector(BlockUtils.getUnitX(), 0, BlockUtils.getUnitZ());
-        Vec3 playerLook = mc.thePlayer.getLookVec();
-        // look 5 blocks in front of the player's feet and head level
-        Vec3 lookAtFeet = playerPos.addVector(playerLook.xCoord * 8, 0, playerLook.zCoord * 8);
-        Vec3 lookAtHead = playerPos.addVector(playerLook.xCoord * 8, 1.5, playerLook.zCoord * 8);
-        Vec3 lookAtFeetToTheLeft = playerPosToTheLeft.addVector(playerLook.xCoord * 8, 0, playerLook.zCoord * 8);
-        Vec3 lookAtFeetToTheRight = playerPosToTheRight.addVector(playerLook.xCoord * 8, 0, playerLook.zCoord * 8);
-        // check if there is a block in the way
-        MovingObjectPosition feetRayTrace = mc.theWorld.rayTraceBlocks(new Vec3(playerPos.xCoord, playerPos.yCoord, playerPos.zCoord), lookAtFeet, false, true, false);
-        MovingObjectPosition headRayTrace = mc.theWorld.rayTraceBlocks(new Vec3(playerPos.xCoord, playerPos.yCoord + 1.5, playerPos.zCoord), lookAtHead, false, true, false);
-        MovingObjectPosition feetRayTraceToTheLeft = mc.theWorld.rayTraceBlocks(new Vec3(playerPosToTheLeft.xCoord, playerPosToTheLeft.yCoord, playerPosToTheLeft.zCoord), lookAtFeetToTheLeft, false, true, false);
-        MovingObjectPosition feetRayTraceToTheRight = mc.theWorld.rayTraceBlocks(new Vec3(playerPosToTheRight.xCoord, playerPosToTheRight.yCoord, playerPosToTheRight.zCoord), lookAtFeetToTheRight, false, true, false);
-        return (feetRayTrace != null && feetRayTrace.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) ||
-                (headRayTrace != null && headRayTrace.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) ||
-                (feetRayTraceToTheLeft != null && feetRayTraceToTheLeft.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) ||
-                (feetRayTraceToTheRight != null && feetRayTraceToTheRight.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK);
+        Vec3 leftPos = BlockUtils.getRelativeVec(-0.66f, 0, 0.66f, mc.thePlayer.rotationYaw);
+        Vec3 rightPos = BlockUtils.getRelativeVec(0.66f, 0, 0.66f, mc.thePlayer.rotationYaw);
+        Vec3 playerLook = AngleUtils.getVectorForRotation(0, mc.thePlayer.rotationYaw);
+        Vec3 lookForwardFeet = playerPos.addVector(playerLook.xCoord * 6, 0, playerLook.zCoord * 6);
+        Vec3 lookForwardHead = playerPos.addVector(playerLook.xCoord * 6, mc.thePlayer.eyeHeight, playerLook.zCoord * 6);
+        Vec3 lookForwardFeetLeft = leftPos.addVector(playerLook.xCoord * 5, 0, playerLook.zCoord * 5);
+        Vec3 lookForwardHeadLeft = leftPos.addVector(playerLook.xCoord * 5, mc.thePlayer.eyeHeight, playerLook.zCoord * 5);
+        Vec3 lookForwardFeetRight = rightPos.addVector(playerLook.xCoord * 5, 0, playerLook.zCoord * 5);
+        Vec3 lookForwardHeadRight = rightPos.addVector(playerLook.xCoord * 5, mc.thePlayer.eyeHeight, playerLook.zCoord * 5);
+        MovingObjectPosition mopFeet = mc.theWorld.rayTraceBlocks(playerPos, lookForwardFeet, false, true, false);
+        if (unpassableBlock(mopFeet)) return true;
+        MovingObjectPosition mopHead = mc.theWorld.rayTraceBlocks(playerPos.addVector(0, mc.thePlayer.eyeHeight, 0), lookForwardHead, false, true, false);
+        if (unpassableBlock(mopHead)) return true;
+        MovingObjectPosition mopFeetLeft = mc.theWorld.rayTraceBlocks(leftPos, lookForwardFeetLeft, false, true, false);
+        if (unpassableBlock(mopFeetLeft)) return true;
+        MovingObjectPosition mopHeadLeft = mc.theWorld.rayTraceBlocks(leftPos.addVector(0, mc.thePlayer.eyeHeight, 0), lookForwardHeadLeft, false, true, false);
+        if (unpassableBlock(mopHeadLeft)) return true;
+        MovingObjectPosition mopFeetRight = mc.theWorld.rayTraceBlocks(rightPos, lookForwardFeetRight, false, true, false);
+        if (unpassableBlock(mopFeetRight)) return true;
+        MovingObjectPosition mopHeadRight = mc.theWorld.rayTraceBlocks(rightPos.addVector(0, mc.thePlayer.eyeHeight, 0), lookForwardHeadRight, false, true, false);
+        return unpassableBlock(mopHeadRight);
+    }
+
+    private boolean unpassableBlock(MovingObjectPosition mop) {
+        return mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && !isBlockPassable(mop.getBlockPos());
+    }
+
+    private boolean isBlockPassable(BlockPos blockPos) {
+        Block block = mc.theWorld.getBlockState(blockPos).getBlock();
+        return block.isPassable(mc.theWorld, blockPos);
     }
 
     @SubscribeEvent
@@ -603,7 +632,7 @@ public class PestsDestroyer implements IFeature {
             boundingBox = boundingBox.offset(-d0, -d1, -d2);
             RenderUtils.drawBox(boundingBox, FarmHelperConfig.plotHighlightColor.toJavaColor());
             int numberOfPests = plotNumber.getValue();
-            RenderUtils.drawText("Plot: " + EnumChatFormatting.AQUA + plotNumber.getKey() + " has " + EnumChatFormatting.GOLD + numberOfPests + " pests", centerX, 80, centerZ, 1);
+            RenderUtils.drawText("Plot: " + EnumChatFormatting.AQUA + plotNumber.getKey() + EnumChatFormatting.RESET + " has " + EnumChatFormatting.GOLD + numberOfPests + EnumChatFormatting.RESET + " pests", centerX, 80, centerZ, 1);
         }
     }
 
@@ -707,8 +736,8 @@ public class PestsDestroyer implements IFeature {
             }
         }
 
-        lastFireworkLocation = Optional.of(event.getPos());
         lastFireworkTime = System.currentTimeMillis();
+        lastFireworkLocation = Optional.of(event.getPos());
     }
 
     private String previousGuiName = null;
@@ -722,6 +751,7 @@ public class PestsDestroyer implements IFeature {
         if (!event.fullyLoaded) return;
         String guiName = InventoryUtils.getInventoryName();
         if (guiName == null || Objects.equals(guiName, previousGuiName)) return;
+        if (!delayClock.passed()) return;
         ContainerChest guiChest = (ContainerChest) ((GuiChest) event.guiScreen).inventorySlots;
 
         if (guiName.equals("Configure Plots")) {
@@ -752,7 +782,7 @@ public class PestsDestroyer implements IFeature {
                     delayClock.schedule((long) (300 + Math.random() * 300));
                     mc.thePlayer.closeScreen();
                 }
-            }, 300 + (long) (Math.random() * 300), TimeUnit.MILLISECONDS);
+            }, 500 + (long) (Math.random() * 500), TimeUnit.MILLISECONDS);
         }
     }
 

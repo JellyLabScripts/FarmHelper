@@ -166,7 +166,7 @@ public class RenderUtils {
         GlStateManager.popMatrix();
     }
 
-    public static void drawTracer(Vec3 to, Color color) {
+    public static void drawTracer(Vec3 from, Vec3 to, Color color) {
         GlStateManager.pushMatrix();
         GlStateManager.enableBlend();
         GlStateManager.disableDepth();
@@ -180,7 +180,7 @@ public class RenderUtils {
         GL11.glLineWidth(1.5f);
         GL11.glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, color.getAlpha() / 255f);
         GL11.glBegin(GL11.GL_LINES);
-        GL11.glVertex3d(0, Minecraft.getMinecraft().thePlayer.getEyeHeight(), 0);
+        GL11.glVertex3d(from.xCoord, from.yCoord, from.zCoord);
         GL11.glVertex3d(renderPosX, renderPosY, renderPosZ);
         GL11.glEnd();
         GL11.glLineWidth(1.0f);
@@ -190,5 +190,9 @@ public class RenderUtils {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.resetColor();
         GlStateManager.popMatrix();
+    }
+
+    public static void drawTracer(Vec3 to, Color color) {
+        drawTracer(new Vec3(0, Minecraft.getMinecraft().thePlayer.getEyeHeight(), 0), to, color);
     }
 }

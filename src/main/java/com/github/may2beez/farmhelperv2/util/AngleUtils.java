@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 
 import static cc.polyfrost.oneconfig.libs.universal.UMath.wrapAngleTo180;
@@ -32,6 +33,13 @@ public class AngleUtils {
         return get360RotationYaw(targetYaw360 - initialYaw360);
     }
 
+    public static Vec3 getVectorForRotation(float pitch, float yaw) {
+        float f = MathHelper.cos(-yaw * 0.017453292F - 3.1415927F);
+        float f1 = MathHelper.sin(-yaw * 0.017453292F - 3.1415927F);
+        float f2 = -MathHelper.cos(-pitch * 0.017453292F);
+        float f3 = MathHelper.sin(-pitch * 0.017453292F);
+        return new Vec3(f1 * f2, f3, f * f2);
+    }
     public static float antiClockwiseDifference(float initialYaw360, float targetYaw360) {
         return get360RotationYaw(initialYaw360 - targetYaw360);
     }

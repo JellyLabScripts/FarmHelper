@@ -966,11 +966,11 @@ public class FarmHelperConfig extends Config {
     };
 
     @Slider(
-            name = "The minimum amount of coins to start the macro", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+            name = "The minimum amount of coins to start the macro (in thousands)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "The minimum amount of coins you need to have in your purse to start the visitors macro",
-            min = 100_000, max = 20_000_000, step = 10_000
+            min = 1_000, max = 20_000
     )
-    public static int visitorsMacroMinMoney = 3;
+    public static int visitorsMacroMinMoney = 2_000;
 
     @Slider(
             name = "Price Manipulation Detection Multiplier", category = VISITORS_MACRO, subcategory = "Visitors Macro",
@@ -1615,19 +1615,8 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-        registerKeyBind(debugKeybind, () -> {
-            MovingObjectPosition objectMouseOver = Minecraft.getMinecraft().objectMouseOver;
-            if (objectMouseOver != null && objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY) {
-                Entity entity = objectMouseOver.entityHit;
-                Multithreading.schedule(() -> {
-                    RotationHandler.getInstance().easeTo(new RotationConfiguration(
-                            new Target(entity),
-                            FarmHelperConfig.getRandomRotationTime(),
-                            null
-                    ).followTarget(true));
-                }, 1, TimeUnit.SECONDS);
-            }
-        });
+//        registerKeyBind(debugKeybind, () -> {
+//        });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
         save();

@@ -24,35 +24,41 @@ public class BlockUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final Block[] initialWalkables = {Blocks.air, Blocks.water, Blocks.flowing_water, Blocks.waterlily, Blocks.wall_sign, Blocks.reeds, Blocks.pumpkin_stem, Blocks.melon_stem};
 
-    public static int getUnitX() {
+    public static float getUnitX() {
         return getUnitX((mc.thePlayer.rotationYaw % 360 + 360) % 360);
     }
 
-    public static int getUnitZ() {
+    public static float getUnitZ() {
         return getUnitZ((mc.thePlayer.rotationYaw % 360 + 360) % 360);
     }
 
-    public static int getUnitX(float modYaw) {
-        if (AngleUtils.get360RotationYaw(modYaw) < 45 || AngleUtils.get360RotationYaw(modYaw) > 315) {
+    public static float getUnitX(float modYaw) {
+        float yaw = AngleUtils.get360RotationYaw(modYaw);
+        if (yaw < 30) {
             return 0;
-        } else if (AngleUtils.get360RotationYaw(modYaw) < 135) {
-            return -1;
-        } else if (AngleUtils.get360RotationYaw(modYaw) < 225) {
+        } else if (yaw < 150) {
+            return -1f;
+        } else if (yaw < 210) {
             return 0;
+        } else if (yaw < 330) {
+            return 1f;
         } else {
-            return 1;
+            return 0;
         }
     }
 
-    public static int getUnitZ(float modYaw) {
-        if (AngleUtils.get360RotationYaw(modYaw) < 45 || AngleUtils.get360RotationYaw(modYaw) > 315) {
-            return 1;
-        } else if (AngleUtils.get360RotationYaw(modYaw) < 135) {
+    public static float getUnitZ(float modYaw) {
+        float yaw = AngleUtils.get360RotationYaw(modYaw);
+        if (yaw < 60) {
+            return 1f;
+        } else if (yaw < 120) {
             return 0;
-        } else if (AngleUtils.get360RotationYaw(modYaw) < 225) {
-            return -1;
+        } else if (yaw < 240) {
+            return -1f;
+        } else if (yaw < 300) {
+            return 0;
         } else {
-            return 0;
+            return 1;
         }
     }
 
