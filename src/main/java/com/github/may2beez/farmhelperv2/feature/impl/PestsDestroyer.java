@@ -316,21 +316,7 @@ public class PestsDestroyer implements IFeature {
                     break;
                 }
 
-                if (mc.thePlayer.posY < 75 && !hasBlockAboveThePlayer()) {
-                    if (!GameStateHandler.getInstance().isRightWalkable()) {
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
-                    } else if (!GameStateHandler.getInstance().isLeftWalkable()) {
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindRight, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
-                    } else if (!GameStateHandler.getInstance().isFrontWalkable()) {
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
-                    } else if (!GameStateHandler.getInstance().isFrontWalkable()) {
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
-                    } else {
-                        KeyBindUtils.holdThese(mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
-                    }
-                } else {
-                    KeyBindUtils.stopMovement();
-                }
+                flyAwayFromStructures();
 
                 if (!pestsLocations.isEmpty()) {
                     state = States.FLY_TO_PEST;
@@ -343,6 +329,8 @@ public class PestsDestroyer implements IFeature {
                 delayClock.schedule(300);
                 break;
             case WAIT_FOR_LOCATION:
+                flyAwayFromStructures();
+
                 if (RotationHandler.getInstance().isRotating()) return;
 
                 if (!pestsLocations.isEmpty()) {
@@ -511,6 +499,25 @@ public class PestsDestroyer implements IFeature {
             case GO_BACK:
                 finishMacro();
                 break;
+        }
+    }
+
+    private void flyAwayFromStructures() {
+        if (mc.thePlayer.posY < 75 && !hasBlockAboveThePlayer()) {
+            LogUtils.sendDebug("Has block above the player");
+            if (!GameStateHandler.getInstance().isRightWalkable()) {
+                KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
+            } else if (!GameStateHandler.getInstance().isLeftWalkable()) {
+                KeyBindUtils.holdThese(mc.gameSettings.keyBindRight, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
+            } else if (!GameStateHandler.getInstance().isFrontWalkable()) {
+                KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
+            } else if (!GameStateHandler.getInstance().isFrontWalkable()) {
+                KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
+            } else {
+                KeyBindUtils.holdThese(mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
+            }
+        } else {
+            KeyBindUtils.stopMovement();
         }
     }
 

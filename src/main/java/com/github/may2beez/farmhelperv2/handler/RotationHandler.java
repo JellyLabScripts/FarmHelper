@@ -230,14 +230,6 @@ public class RotationHandler {
         return (end - start) * function.apply(t) + start;
     }
 
-//    private float easeOutCubic(double number) {
-//        return (float) Math.max(0, Math.min(1, 1 - Math.pow(1 - number, 3)));
-//    }
-//
-//    private float easeOutQuint(float x) {
-//        return (float) (1 - Math.pow(1 - x, 5));
-//    }
-
     private float easeOutQuart(float x) {
         return (float) (1 - Math.pow(1 - x, 4));
     }
@@ -297,7 +289,7 @@ public class RotationHandler {
             Rotation rot = getRotation(configuration.getTarget().get().getTarget().get(), configuration.randomness());
             int pythagoras = (int) pythagoras(Math.abs((int) rot.getYaw()), Math.abs((int) rot.getPitch()));
             setTime(pythagoras, configuration);
-            endTime = System.currentTimeMillis() + Math.max(configuration.getTime(), 150);
+            endTime = System.currentTimeMillis() + Math.max(configuration.getTime(), 350);
             updateTargetRotation();
             return true;
         }

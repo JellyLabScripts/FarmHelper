@@ -212,6 +212,19 @@ public class VisitorsMacro implements IFeature {
         if (manuallyStarted || forceStart) {
             setMainState(MainState.TRAVEL);
             setTravelState(TravelState.END);
+            Entity closest = mc.theWorld.getLoadedEntityList().
+                    stream().
+                    filter(entity ->
+                            entity.hasCustomName() &&
+                                    visitors.stream().anyMatch(
+                                            v ->
+                                                    StringUtils.stripControlCodes(v).contains(StringUtils.stripControlCodes(entity.getCustomNameTag()))))
+                    .filter(entity -> entity.getDistanceToEntity(mc.thePlayer) < 14)
+                    .min(Comparator.comparingDouble(entity -> entity.getDistanceToEntity(mc.thePlayer)))
+                    .orElse(null);
+            if (closest == null) {
+                setTravelState(TravelState.NONE);
+            }
         }
         forceStart = false;
         haveItemsInSack = false;
