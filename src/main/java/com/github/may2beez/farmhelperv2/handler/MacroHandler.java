@@ -341,11 +341,6 @@ public class MacroHandler {
             }
         }
 
-        if (FarmHelperConfig.drawVisitorsDeskLocation && PlayerUtils.isDeskPosSet() && GameStateHandler.getInstance().inGarden()) {
-            BlockPos deskPosTemp = new BlockPos(FarmHelperConfig.visitorsDeskPosX, FarmHelperConfig.visitorsDeskPosY, FarmHelperConfig.visitorsDeskPosZ);
-            RenderUtils.drawBlockBox(deskPosTemp, new Color(Color.DARK_GRAY.getRed(), Color.DARK_GRAY.getGreen(), Color.DARK_GRAY.getBlue(), 80));
-        }
-
         if (FarmHelperConfig.drawSpawnLocation && PlayerUtils.isSpawnLocationSet() && GameStateHandler.getInstance().inGarden()) {
             BlockPos spawnLocation = new BlockPos(PlayerUtils.getSpawnLocation());
             RenderUtils.drawBlockBox(spawnLocation, new Color(Color.orange.getRed(), Color.orange.getGreen(), Color.orange.getBlue(), 80));

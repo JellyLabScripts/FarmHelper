@@ -264,10 +264,6 @@ public class PlayerUtils {
         FarmHelper.config.save();
     }
 
-    public static boolean isDeskPosSet() {
-        return FarmHelperConfig.visitorsDeskPosX != 0 || FarmHelperConfig.visitorsDeskPosY != 0 || FarmHelperConfig.visitorsDeskPosZ != 0;
-    }
-
     public static Entity getEntityCuttingOtherEntity(Entity e) {
         return getEntityCuttingOtherEntity(e, false);
     }

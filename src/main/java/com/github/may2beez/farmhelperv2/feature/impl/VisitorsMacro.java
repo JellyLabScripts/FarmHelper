@@ -301,11 +301,6 @@ public class VisitorsMacro implements IFeature {
             return false;
         }
 
-        if (!PlayerUtils.isDeskPosSet()) {
-            LogUtils.sendError("[Visitors Macro] The player's desk position is not set, skipping...");
-            return false;
-        }
-
         return true;
     }
 
@@ -405,6 +400,10 @@ public class VisitorsMacro implements IFeature {
         }
     }
 
+    private BlockPos positionBeforeTp = null;
+    private Vec3 deskRotation = null;
+    private Entity closestEntity = null;
+
     private void onTravelState() {
         if (mc.currentScreen != null) {
             KeyBindUtils.stopMovement();
@@ -415,17 +414,38 @@ public class VisitorsMacro implements IFeature {
 
         switch (travelState) {
             case NONE:
+                positionBeforeTp = mc.thePlayer.getPosition();
                 mc.thePlayer.sendChatMessage("/tptoplot barn");
                 setTravelState(TravelState.ROTATE_TO_DESK);
-                delayClock.schedule(getRandomDelay());
+                delayClock.schedule((long) (1_000 + Math.random() * 500));
                 break;
             case ROTATE_TO_DESK:
-                if (GameStateHandler.getInstance().getDx() > 0.25 || GameStateHandler.getInstance().getDz() > 0.25) {
-                    KeyBindUtils.holdThese(mc.gameSettings.keyBindBack);
+                if (mc.thePlayer.getPosition().equals(positionBeforeTp) || !mc.thePlayer.onGround) {
+                    return;
+                }
+
+                Entity closest = mc.theWorld.getLoadedEntityList().
+                        stream().
+                        filter(entity ->
+                                entity.hasCustomName() &&
+                                        visitors.stream().anyMatch(
+                                                v ->
+                                                        StringUtils.stripControlCodes(v).contains(StringUtils.stripControlCodes(entity.getCustomNameTag()))))
+                        .filter(entity -> entity.getDistanceToEntity(mc.thePlayer) < 14)
+                        .min(Comparator.comparingDouble(entity -> entity.getDistanceToEntity(mc.thePlayer)))
+                        .orElse(null);
+
+                if (closest == null) {
+                    LogUtils.sendDebug("[Visitors Macro] Couldn't find the closest visitor to go to, waiting...");
+                    delayClock.schedule(getRandomDelay());
                     break;
                 }
-                KeyBindUtils.stopMovement();
-                Rotation rotationToDesk = rotation.getRotation(new Vec3(FarmHelperConfig.visitorsDeskPosX + 0.5, FarmHelperConfig.visitorsDeskPosY + 1.5, FarmHelperConfig.visitorsDeskPosZ + 0.5));
+                closestEntity = closest;
+                List<BlockPos> blocksAroundVisitor = BlockUtils.getBlocksAroundEntity(closest);
+                BlockPos closestToPlayer = blocksAroundVisitor.stream().min(Comparator.comparingDouble(blockPos -> mc.thePlayer.getDistance(blockPos.getX(), blockPos.getY(), blockPos.getZ()))).orElse(null);
+                assert closestToPlayer != null;
+                deskRotation = new Vec3(closestToPlayer.getX() + 0.5, closestToPlayer.getY() + 1.5, closestToPlayer.getZ() + 0.5);
+                Rotation rotationToDesk = rotation.getRotation(deskRotation);
                 rotation.easeTo(
                         new RotationConfiguration(
                                 new Rotation(rotationToDesk.getYaw(), rotationToDesk.getPitch()), FarmHelperConfig.getRandomRotationTime(), null
@@ -435,20 +455,11 @@ public class VisitorsMacro implements IFeature {
                 previousDistanceToCheck = Integer.MAX_VALUE;
                 break;
             case MOVE_TOWARDS_DESK:
-                Rotation rotationToDesk2 = rotation.getRotation(new Vec3(FarmHelperConfig.visitorsDeskPosX + 0.5, FarmHelperConfig.visitorsDeskPosY + 1.5, FarmHelperConfig.visitorsDeskPosZ + 0.5));
-                if ((Math.abs(rotationToDesk2.getYaw() - mc.thePlayer.rotationYaw) > 1 || Math.abs(rotationToDesk2.getPitch() - mc.thePlayer.rotationPitch) > 1) && !rotation.isRotating()) {
-                    rotation.easeTo(
-                            new RotationConfiguration(
-                                    new Rotation(rotationToDesk2.getYaw(), rotationToDesk2.getPitch()), FarmHelperConfig.getRandomRotationTime(), null
-                            )
-                    );
-                }
-
                 BlockPos playerPos = BlockUtils.getRelativeBlockPos(0, 0, 0);
-                BlockPos deskPos = new BlockPos(FarmHelperConfig.visitorsDeskPosX, playerPos.getY(), FarmHelperConfig.visitorsDeskPosZ);
+                BlockPos deskPos = new BlockPos(deskRotation.xCoord, mc.thePlayer.posY, deskRotation.zCoord);
                 double distance = Math.sqrt(playerPos.distanceSq(deskPos));
                 stuckClock.schedule(STUCK_DELAY);
-                if (distance <= 0.75f || playerPos.equals(deskPos) || (previousDistanceToCheck < distance && distance < 1.75f)) {
+                if (distance <= 1f || playerPos.equals(deskPos) || (previousDistanceToCheck < distance && distance < 1.75f) || mc.thePlayer.getDistanceToEntity(closestEntity) < 2.5) {
                     KeyBindUtils.stopMovement();
                     setTravelState(TravelState.END);
                     delayClock.schedule(getRandomDelay());
@@ -463,7 +474,7 @@ public class VisitorsMacro implements IFeature {
                             distance > 10 ? mc.gameSettings.keyBindSprint : null
                     );
                     if (!BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1))
-                        && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 1, 1))) {
+                            && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 1, 1))) {
                         rotation.reset();
                         mc.thePlayer.jump();
                     }
@@ -963,6 +974,7 @@ public class VisitorsMacro implements IFeature {
                 }
                 if (rejectVisitor) {
                     rejectCurrentVisitor();
+                    break;
                 }
                 LogUtils.sendDebug("[Visitors Macro] Giving items to the visitor.");
                 Slot acceptOfferSlot2 = InventoryUtils.getSlotOfItemInContainer("Accept Offer");
@@ -1255,6 +1267,10 @@ public class VisitorsMacro implements IFeature {
         buyState = state;
         LogUtils.sendDebug("[Visitors Macro] Buy state: " + state.name());
         stuckClock.schedule(STUCK_DELAY);
+    }
+
+    private float randomFloat(float from, float to) {
+        return from + (float) Math.random() * (to - from);
     }
 
     private int getNonToolItem() {

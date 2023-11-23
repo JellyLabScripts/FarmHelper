@@ -10,6 +10,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.*;
 
@@ -703,5 +704,17 @@ public class BlockUtils {
     public static Vec3 getVectorForRotation(final float pitch, final float yaw) {
         final float f2 = -MathHelper.cos(-pitch * 0.017453292f);
         return new Vec3(MathHelper.sin(-yaw * 0.017453292f - 3.1415927f) * f2, MathHelper.sin(-pitch * 0.017453292f), MathHelper.cos(-yaw * 0.017453292f - 3.1415927f) * f2);
+    }
+
+    public static List<BlockPos> getBlocksAroundEntity(Entity entity) {
+        List<BlockPos> blocks = new ArrayList<>();
+        int x = (int) Math.floor(entity.posX);
+        int y = (int) Math.floor(entity.posY);
+        int z = (int) Math.floor(entity.posZ);
+        blocks.add(new BlockPos(x + 1, y, z));
+        blocks.add(new BlockPos(x - 1, y, z));
+        blocks.add(new BlockPos(x, y, z + 1));
+        blocks.add(new BlockPos(x, y, z - 1));
+        return blocks;
     }
 }

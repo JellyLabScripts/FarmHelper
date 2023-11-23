@@ -17,6 +17,7 @@ import lombok.Getter;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.inventory.ContainerChest;
@@ -118,6 +119,7 @@ public class PestsDestroyer implements IFeature {
         rotationType = RotationType.NONE;
         delayClock.reset();
         stuckClock.reset();
+        delayBetweenBackTaps.reset();
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();
             MacroHandler.getInstance().getCurrentMacro().ifPresent(AbstractMacro::clearSavedState);
@@ -178,6 +180,7 @@ public class PestsDestroyer implements IFeature {
 
     @Getter
     private final Clock delayClock = new Clock();
+    private final Clock delayBetweenBackTaps = new Clock();
 
     public boolean canEnableMacro() {
         if (!isToggled()) return false;
@@ -228,7 +231,7 @@ public class PestsDestroyer implements IFeature {
                         return;
                     }
                     mc.thePlayer.inventory.currentItem = vacuum;
-                    delayClock.schedule((long) (500 + Math.random() * 500));
+                    delayClock.schedule((long) (200 + Math.random() * 200));
                     return;
                 }
                 int pestsInMap = pestsPlotMap.values().stream().mapToInt(i -> i).sum();
@@ -237,7 +240,7 @@ public class PestsDestroyer implements IFeature {
                 } else {
                     state = States.TELEPORT_TO_PLOT;
                 }
-                delayClock.schedule((long) (500 + Math.random() * 500));
+                delayClock.schedule((long) (200 + Math.random() * 200));
                 break;
             case OPEN_DESK:
                 if (mc.currentScreen != null) {
@@ -247,13 +250,13 @@ public class PestsDestroyer implements IFeature {
                 }
                 mc.thePlayer.sendChatMessage("/desk");
                 state = States.OPEN_PLOTS;
-                delayClock.schedule((long) (500 + Math.random() * 500));
+                delayClock.schedule((long) (300 + Math.random() * 300));
                 break;
             case OPEN_PLOTS:
                 String chestName = InventoryUtils.getInventoryName();
                 if (chestName != null && !chestName.equals("Desk")) {
                     mc.thePlayer.closeScreen();
-                    delayClock.schedule((long) (500 + Math.random() * 500));
+                    delayClock.schedule((long) (300 + Math.random() * 300));
                     state = States.OPEN_DESK;
                     break;
                 }
@@ -307,12 +310,26 @@ public class PestsDestroyer implements IFeature {
                 }
                 break;
             case GET_LOCATION:
-                KeyBindUtils.holdThese(mc.thePlayer.posY < 75 ? mc.gameSettings.keyBindJump : null);
-
                 if (!mc.thePlayer.capabilities.isFlying) {
                     fly();
                     delayClock.schedule(350);
                     break;
+                }
+
+                if (mc.thePlayer.posY < 75 && !hasBlockAboveThePlayer()) {
+                    if (!GameStateHandler.getInstance().isRightWalkable()) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
+                    } else if (!GameStateHandler.getInstance().isLeftWalkable()) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindRight, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
+                    } else if (!GameStateHandler.getInstance().isFrontWalkable()) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
+                    } else if (!GameStateHandler.getInstance().isFrontWalkable()) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
+                    } else {
+                        KeyBindUtils.holdThese(mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
+                    }
+                } else {
+                    KeyBindUtils.stopMovement();
                 }
 
                 if (!pestsLocations.isEmpty()) {
@@ -425,12 +442,26 @@ public class PestsDestroyer implements IFeature {
                         delayClock.schedule(350);
                         break;
                     }
+                    if (distanceWithoutY <= 3 && (mc.thePlayer.motionX > 0.05 || mc.thePlayer.motionZ > 0.05)) {
+                        KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null);
+                        if (delayBetweenBackTaps.passed()) {
+                            KeyBindUtils.holdThese(mc.gameSettings.keyBindBack);
+                            delayBetweenBackTaps.schedule(100 + (long) (Math.random() * 200));
+                        }
+                        break;
+                    }
                     if (objectsInFrontOfPlayer() || entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY >= 3) {
-                        KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindJump, distanceWithoutY > 2 ? mc.gameSettings.keyBindForward : null);
+                        KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindJump, distanceWithoutY > 3 ? mc.gameSettings.keyBindForward : null);
                     } else if (entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY <= -3) {
-                        KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindSneak, distanceWithoutY > 2 ? mc.gameSettings.keyBindForward : null);
+                        if (hasBlockUnderThePlayer()) {
+                            LogUtils.sendDebug("Has block under the player");
+                            KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, getMovementToEvadeBottomBlock());
+                        } else {
+                            LogUtils.sendDebug("Doesn't have block under the player");
+                            KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindSneak, distanceWithoutY > 3 ? mc.gameSettings.keyBindForward : null);
+                        }
                     } else {
-                        KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, distanceWithoutY > 2 ? mc.gameSettings.keyBindForward : null);
+                        KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, distanceWithoutY > 3 ? mc.gameSettings.keyBindForward : null);
                     }
                     if (!RotationHandler.getInstance().isRotating() && rotationType != RotationType.MEDIUM) {
                         RotationHandler.getInstance().reset();
@@ -540,6 +571,39 @@ public class PestsDestroyer implements IFeature {
         if (unpassableBlock(mopFeetRight)) return true;
         MovingObjectPosition mopHeadRight = mc.theWorld.rayTraceBlocks(rightPos.addVector(0, mc.thePlayer.eyeHeight, 0), lookForwardHeadRight, false, true, false);
         return unpassableBlock(mopHeadRight);
+    }
+
+    private boolean hasBlockUnderThePlayer() {
+        Vec3 playerPos = mc.thePlayer.getPositionVector();
+        Vec3 lookDown = AngleUtils.getVectorForRotation(90, mc.thePlayer.rotationYaw);
+        Vec3 lookDownFeet = playerPos.addVector(lookDown.xCoord * 2, lookDown.yCoord * 2, lookDown.zCoord * 2);
+        MovingObjectPosition mopFeet = mc.theWorld.rayTraceBlocks(playerPos, lookDownFeet, false, true, false);
+        return unpassableBlock(mopFeet);
+    }
+
+    private boolean hasBlockAboveThePlayer() {
+        Vec3 playerPos = mc.thePlayer.getPositionVector().addVector(0, mc.thePlayer.getEyeHeight(), 0);
+        Vec3 lookUp = AngleUtils.getVectorForRotation(-90, mc.thePlayer.rotationYaw);
+        Vec3 lookUpFeet = playerPos.addVector(lookUp.xCoord, lookUp.yCoord, lookUp.zCoord);
+        MovingObjectPosition mopFeet = mc.theWorld.rayTraceBlocks(playerPos, lookUpFeet, false, true, false);
+        return unpassableBlock(mopFeet);
+    }
+
+    private KeyBinding getMovementToEvadeBottomBlock() {
+        Vec3 playerPosForward = BlockUtils.getRelativeVec(0, 0, 1, mc.thePlayer.rotationYaw);
+        Vec3 playerPosBackward = BlockUtils.getRelativeVec(0, 0, -1, mc.thePlayer.rotationYaw);
+        Vec3 playerPosLeft = BlockUtils.getRelativeVec(-1, 0, 0, mc.thePlayer.rotationYaw);
+        Vec3 playerPosRight = BlockUtils.getRelativeVec(1, 0, 0, mc.thePlayer.rotationYaw);
+        MovingObjectPosition mopForward = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), playerPosForward, false, true, false);
+        if (!unpassableBlock(mopForward) && GameStateHandler.getInstance().isFrontWalkable()) return mc.gameSettings.keyBindForward;
+        MovingObjectPosition mopBackward = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), playerPosBackward, false, true, false);
+        if (!unpassableBlock(mopBackward) && GameStateHandler.getInstance().isBackWalkable()) return mc.gameSettings.keyBindBack;
+        MovingObjectPosition mopLeft = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), playerPosLeft, false, true, false);
+        if (!unpassableBlock(mopLeft) && GameStateHandler.getInstance().isLeftWalkable()) return mc.gameSettings.keyBindLeft;
+        MovingObjectPosition mopRight = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), playerPosRight, false, true, false);
+        if (!unpassableBlock(mopRight) && GameStateHandler.getInstance().isRightWalkable()) return mc.gameSettings.keyBindRight;
+        LogUtils.sendError("[Pests Destroyer] Couldn't find a way to evade bottom block!");
+        return null;
     }
 
     private boolean unpassableBlock(MovingObjectPosition mop) {
@@ -746,7 +810,7 @@ public class PestsDestroyer implements IFeature {
         lastFireworkLocation = Optional.of(event.getPos());
     }
 
-    private final Pattern pestPatternDeskGui = Pattern.compile("ൠ This plot has (\\d+) Pest!");
+    private final Pattern pestPatternDeskGui = Pattern.compile(".*?(\\d+).*?");
 
     @SubscribeEvent
     public void onGuiOpen(DrawScreenAfterEvent event) {
@@ -770,17 +834,20 @@ public class PestsDestroyer implements IFeature {
                         int plotNumber = PlotUtils.getPLOT_NUMBERS().get(plotCounter);
                         List<String> lore = InventoryUtils.getItemLore(slot.getStack());
                         for (String line : lore) {
-                            Matcher matcher = pestPatternDeskGui.matcher(line);
-                            if (matcher.matches()) {
-                                int pests = Integer.parseInt(matcher.group(1));
-                                pestsPlotMap.put(plotNumber, pests);
+                            if (line.contains("This plot has")) {
+                                Matcher matcher = pestPatternDeskGui.matcher(line);
+                                if (matcher.matches()) {
+                                    int pests = Integer.parseInt(matcher.group(1));
+                                    pestsPlotMap.put(plotNumber, pests);
+                                }
                             }
                         }
                     } catch (Exception e) {
                         LogUtils.sendError("[Pests Destroyer] Failed to parse plot number: " + displayName);
                     }
                     plotCounter++;
-                } else if (StringUtils.stripControlCodes(slot.getStack().getDisplayName()).equals("The Barn")) plotCounter++;
+                } else if (StringUtils.stripControlCodes(slot.getStack().getDisplayName()).equals("The Barn"))
+                    plotCounter++;
             }
         }
         int pestsInMap = pestsPlotMap.values().stream().mapToInt(i -> i).sum();

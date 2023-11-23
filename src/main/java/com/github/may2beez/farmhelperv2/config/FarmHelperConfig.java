@@ -6,7 +6,6 @@ import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.*;
-import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.github.may2beez.farmhelperv2.FarmHelper;
 import com.github.may2beez.farmhelperv2.config.page.AutoSellNPCItemsPage;
 import com.github.may2beez.farmhelperv2.config.page.CustomFailsafeMessagesPage;
@@ -15,7 +14,6 @@ import com.github.may2beez.farmhelperv2.config.struct.Rewarp;
 import com.github.may2beez.farmhelperv2.feature.impl.*;
 import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
-import com.github.may2beez.farmhelperv2.handler.RotationHandler;
 import com.github.may2beez.farmhelperv2.hud.DebugHUD;
 import com.github.may2beez.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.github.may2beez.farmhelperv2.hud.StatusHUD;
@@ -23,12 +21,8 @@ import com.github.may2beez.farmhelperv2.util.BlockUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.PlayerUtils;
 import com.github.may2beez.farmhelperv2.util.helper.AudioManager;
-import com.github.may2beez.farmhelperv2.util.helper.RotationConfiguration;
-import com.github.may2beez.farmhelperv2.util.helper.Target;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
@@ -38,7 +32,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 // THIS IS RAT - CatalizCS
 @SuppressWarnings({"unused", "DefaultAnnotationParam"})
@@ -993,14 +986,6 @@ public class FarmHelperConfig extends Config {
             subcategory = "Visitors Macro"
     )
     public static boolean infoCookieBuffRequired;
-    @Info(
-            text = "Desk position must be set before using the visitors macro!",
-            type = InfoType.ERROR,
-            category = VISITORS_MACRO,
-            subcategory = "Visitors Macro"
-    )
-    public static boolean infoDeskNotSet;
-
 
     @Switch(
             name = "Accept uncommon visitors", category = VISITORS_MACRO, subcategory = "Rarity",
@@ -1031,53 +1016,6 @@ public class FarmHelperConfig extends Config {
             description = "Whether to accept visitors that are special rarity"
     )
     public static boolean visitorsAcceptSpecial = true;
-
-
-    @cc.polyfrost.oneconfig.config.annotations.Number(
-            name = "Visitors Desk X", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-            description = "Visitors desk X coordinate",
-            min = -30000000, max = 30000000
-    )
-    public static int visitorsDeskPosX = 0;
-    @Button(
-            name = "Set Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-            description = "Sets the visitor's desk position",
-            text = "Set Visitor's Desk"
-    )
-    Runnable setVisitorDesk = () -> {
-        BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
-        visitorsDeskPosX = pos.getX();
-        visitorsDeskPosY = pos.getY();
-        visitorsDeskPosZ = pos.getZ();
-        save();
-        LogUtils.sendSuccess("Visitors desk position has been set");
-    };
-
-    @cc.polyfrost.oneconfig.config.annotations.Number(
-            name = "Visitors Desk Y", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-            description = "Visitors desk Y coordinate",
-            min = -30000000, max = 30000000
-    )
-    public static int visitorsDeskPosY = 0;
-    @Button(
-            name = "Reset Visitor's Desk", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-            description = "Resets the visitor's desk position",
-            text = "Reset Visitor's Desk"
-    )
-    Runnable resetVisitorDesk = () -> {
-        visitorsDeskPosX = 0;
-        visitorsDeskPosY = 0;
-        visitorsDeskPosZ = 0;
-        save();
-        LogUtils.sendSuccess("Visitors desk position has been reset");
-    };
-
-    @cc.polyfrost.oneconfig.config.annotations.Number(
-            name = "Visitors Desk Z", category = VISITORS_MACRO, subcategory = "Visitor's Desk",
-            description = "Visitors desk Z coordinate",
-            min = -30000000, max = 30000000
-    )
-    public static int visitorsDeskPosZ = 0;
 
 
     @cc.polyfrost.oneconfig.config.annotations.Number(
@@ -1119,14 +1057,6 @@ public class FarmHelperConfig extends Config {
             min = -30000000, max = 30000000
     )
     public static int spawnPosZ = 0;
-
-
-    @Switch(
-            name = "Draw visitors desk location", category = VISITORS_MACRO, subcategory = "Drawings",
-            description = "Draws the visitors desk location"
-    )
-    public static boolean drawVisitorsDeskLocation = true;
-
 
     @Switch(
             name = "Draw spawn location", category = VISITORS_MACRO, subcategory = "Drawings",
@@ -1569,7 +1499,6 @@ public class FarmHelperConfig extends Config {
 
 
         this.hideIf("infoCookieBuffRequired", () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE);
-        this.hideIf("infoDeskNotSet", () -> GameStateHandler.getInstance().inGarden() || PlayerUtils.isDeskPosSet());
 
         this.addDependency("sendLogs", "enableWebHook");
         this.addDependency("sendStatusUpdates", "enableWebHook");

@@ -179,6 +179,7 @@ public class BanInfoWS implements IFeature {
     @SubscribeEvent
     public void onTickReconnect(TickEvent.ClientTickEvent event) {
         if (reconnectDelay.isScheduled() && !reconnectDelay.passed()) return;
+        if (retryCount > 5) return;
         if (retryCount == 4) {
             LogUtils.sendWarning("Failed to connect to the analytics server 5 times. Restart Minecraft to try again.");
             reconnectDelay.reset();
@@ -200,9 +201,7 @@ public class BanInfoWS implements IFeature {
                     client.addHeader(header.getKey(), header.getValue().getAsString());
                 }
                 reconnectDelay.schedule(60_000L);
-                Multithreading.schedule(() -> {
-                    client.connect();
-                }, 0, TimeUnit.MILLISECONDS);
+                Multithreading.schedule(() -> client.connect(), 0, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 e.printStackTrace();
                 client = null;

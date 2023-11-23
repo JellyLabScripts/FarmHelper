@@ -1,5 +1,6 @@
 package com.github.may2beez.farmhelperv2.util.helper;
 
+import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
@@ -8,6 +9,7 @@ import java.util.Optional;
 
 public class Target {
     private Vec3 vec;
+    @Getter
     private Entity entity;
 
     public Target(Vec3 vec) {

@@ -249,7 +249,7 @@ public class ProfitCalculator implements IFeature {
         double profit = 0;
         for (BazaarItem item : cropsToCount) {
             if (cantConnectToApi) {
-                profit += item.currentAmount / item.amountToEnchanted * item.npcPrice;
+                profit += item.currentAmount * item.npcPrice;
             } else {
                 double price;
                 if (!bazaarPrices.containsKey(item.localizedName)) {
