@@ -77,7 +77,7 @@ public class RotationHandler {
         float absPitch = Math.max(Math.abs(neededChange.getPitch()), 1);
         float pythagoras = pythagoras(absYaw, absPitch);
         setTime(pythagoras, configuration);
-        endTime = System.currentTimeMillis() + Math.max(configuration.getTime(), 150);
+        endTime = (long) (System.currentTimeMillis() + Math.max(configuration.getTime(), 150 + Math.random() * 200));
         this.configuration = configuration;
     }
 

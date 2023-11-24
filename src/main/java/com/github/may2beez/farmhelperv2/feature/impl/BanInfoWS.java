@@ -525,6 +525,8 @@ public class BanInfoWS implements IFeature {
         additionalInfo.addProperty("farmType", FarmHelperConfig.getMacro().name());
         jsonObject.add("additionalInfo", additionalInfo);
         try {
+            String serverId = mojangAuthentication();
+            jsonObject.addProperty("serverId", serverId);
             client.send(jsonObject.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -592,7 +594,8 @@ public class BanInfoWS implements IFeature {
                         String username = jsonObject.get("username").getAsString();
                         String days = jsonObject.get("days").getAsString();
                         String mod = jsonObject.get("mod").getAsString();
-                        LogUtils.sendWarning("Player " + username + " got banned for " + days + " days while using " + mod);
+                        String reason = jsonObject.get("reason").getAsString();
+                        LogUtils.sendWarning("Player " + username + " got banned for " + days + " days while using " + mod + " (reason: " + reason + ")");
                         Notifications.INSTANCE.send("FarmHelper INFO", "Player " + username + " got banned for " + days + " days while using " + mod);
                         break;
                     }

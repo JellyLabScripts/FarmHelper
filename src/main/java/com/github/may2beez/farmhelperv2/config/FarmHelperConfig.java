@@ -1549,9 +1549,9 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-//        registerKeyBind(debugKeybind, () -> {
-//
-//        });
+        registerKeyBind(debugKeybind, () -> {
+//            PestsDestroyer.getInstance().setCantReachPest(60);
+        });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
         save();

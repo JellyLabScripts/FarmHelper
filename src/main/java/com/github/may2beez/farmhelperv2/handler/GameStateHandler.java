@@ -315,7 +315,8 @@ public class GameStateHandler {
                 }
             }
         }
-        if (ScoreboardUtils.getScoreboardTitle().contains("PROTOTYPE") || ScoreboardUtils.getScoreboardTitle().contains("HYPIXEL")) {
+
+        if (!ScoreboardUtils.getScoreboardTitle().contains("SKYBLOCK") && !ScoreboardUtils.getScoreboardLines().isEmpty() && ScoreboardUtils.cleanSB(ScoreboardUtils.getScoreboardLines().get(0)).contains("www.hypixel.net")) {
             lastLocation = location;
             location = Location.LOBBY;
             return;
@@ -329,6 +330,7 @@ public class GameStateHandler {
     @SubscribeEvent
     public void onTickCheckMoving(TickEvent.ClientTickEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
+
 
         dx = Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX);
         dz = Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ);
