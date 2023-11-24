@@ -17,6 +17,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import static cc.polyfrost.oneconfig.libs.universal.UMath.wrapAngleTo180;
@@ -72,15 +73,15 @@ public class RotationHandler {
 
         LogUtils.sendDebug("[Rotation] Needed change: " + neededChange.getYaw() + " " + neededChange.getPitch(), true);
 
-        int absYaw = Math.abs((int) neededChange.getYaw());
-        int absPitch = Math.abs((int) neededChange.getPitch());
-        int pythagoras = (int) pythagoras(absYaw, absPitch);
+        float absYaw = Math.max(Math.abs(neededChange.getYaw()), 1);
+        float absPitch = Math.max(Math.abs(neededChange.getPitch()), 1);
+        float pythagoras = pythagoras(absYaw, absPitch);
         setTime(pythagoras, configuration);
-        endTime = System.currentTimeMillis() + configuration.getTime();
+        endTime = System.currentTimeMillis() + Math.max(configuration.getTime(), 150);
         this.configuration = configuration;
     }
 
-    private void setTime(int pythagoras, RotationConfiguration configuration) {
+    private void setTime(float pythagoras, RotationConfiguration configuration) {
         if (pythagoras < 25) {
             LogUtils.sendDebug("[Rotation] Very close rotation, speeding up by 0.65", true);
             configuration.setTime((long) (configuration.getTime() * 0.65));
@@ -119,26 +120,10 @@ public class RotationHandler {
 
         LogUtils.sendDebug("[Rotation] Needed change: " + neededChange.getYaw() + " " + neededChange.getPitch());
 
-        int absYaw = Math.abs((int) neededChange.getYaw());
-        int absPitch = Math.abs((int) neededChange.getPitch());
-        int pythagoras = (int) pythagoras(absYaw, absPitch);
-        if (pythagoras < 25) {
-            LogUtils.sendDebug("[Rotation] Very close rotation, speeding up by 0.65");
-            configuration.setTime((long) (configuration.getTime() * 0.65));
-        } else if (pythagoras < 45) {
-            configuration.setTime((long) (configuration.getTime() * 0.77));
-            LogUtils.sendDebug("[Rotation] Close rotation, speeding up by 0.77");
-        } else if (pythagoras < 80) {
-            configuration.setTime((long) (configuration.getTime() * 0.9));
-            LogUtils.sendDebug("[Rotation] Not so close, but not that far rotation, speeding up by 0.9");
-        } else if (pythagoras > 100) {
-            configuration.setTime((long) (configuration.getTime() * 1.25));
-            LogUtils.sendDebug("[Rotation] Far rotation, slowing down by 1.25");
-        } else {
-            configuration.setTime((long) (configuration.getTime() * 1.0));
-            LogUtils.sendDebug("[Rotation] Normal rotation");
-        }
-        endTime = System.currentTimeMillis() + configuration.getTime();
+        float absYaw = Math.max(Math.abs(neededChange.getYaw()), 1);
+        float absPitch = Math.max(Math.abs(neededChange.getPitch()), 1);
+        setTime(pythagoras(absYaw, absPitch), configuration);
+        endTime = System.currentTimeMillis() + Math.max(configuration.getTime(), 50);
         configuration.setCallback(Optional.of(this::reset));
     }
 
@@ -248,7 +233,7 @@ public class RotationHandler {
         if (openGuiUpdateRotation()) return;
 
         if (System.currentTimeMillis() <= endTime) {
-            updateTargetRotation();
+//            updateTargetRotation();
             mc.thePlayer.rotationYaw = interpolate(startRotation.getYaw(), targetRotation.getYaw(), this::easeOutExpo);
             mc.thePlayer.rotationPitch = interpolate(startRotation.getPitch(), targetRotation.getPitch(), this::easeOutQuart);
         } else if (!completed) {
@@ -285,12 +270,20 @@ public class RotationHandler {
 
     private boolean updateFollowTarget() {
         if (configuration.followTarget() && configuration.getTarget().isPresent() && configuration.getTarget().get().getTarget().isPresent()) {
-            startRotation.setRotation(new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch));
-            Rotation rot = getRotation(configuration.getTarget().get().getTarget().get(), configuration.randomness());
-            int pythagoras = (int) pythagoras(Math.abs((int) rot.getYaw()), Math.abs((int) rot.getPitch()));
-            setTime(pythagoras, configuration);
-            endTime = System.currentTimeMillis() + Math.max(configuration.getTime(), 350);
-            updateTargetRotation();
+            AtomicReference<Target> target = new AtomicReference<>();
+            configuration.getTarget().ifPresent(t -> {
+                if (t.getEntity() != null) {
+                    target.set(new Target(t.getEntity()));
+                } else {
+                    target.set(t);
+                }
+            });
+            easeTo(new RotationConfiguration(
+                    target.get(),
+                    configuration.getTime(),
+                    configuration.getRotationType(),
+                    configuration.getCallback().orElse(null)
+            ).followTarget(configuration.followTarget()).randomness(configuration.randomness()));
             return true;
         }
         return false;

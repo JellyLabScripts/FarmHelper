@@ -438,9 +438,9 @@ public class PestsDestroyer implements IFeature {
                         }
                         break;
                     }
-                    if (objectsInFrontOfPlayer() || entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY >= 3) {
+                    if (objectsInFrontOfPlayer() || entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY >= 2) {
                         KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindJump, distanceWithoutY > 3 ? mc.gameSettings.keyBindForward : null);
-                    } else if (entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY <= -3) {
+                    } else if (entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY <= -2) {
                         if (hasBlockUnderThePlayer()) {
                             LogUtils.sendDebug("Has block under the player");
                             KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, getMovementToEvadeBottomBlock());
