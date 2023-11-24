@@ -420,9 +420,16 @@ public class VisitorsMacro implements IFeature {
                 delayClock.schedule((long) (1_000 + Math.random() * 500));
                 break;
             case ROTATE_TO_DESK:
-                if (mc.thePlayer.getPosition().equals(positionBeforeTp) || !mc.thePlayer.onGround) {
+                if (mc.thePlayer.getPosition().equals(positionBeforeTp)) {
+                    LogUtils.sendDebug("[Visitors Macro] Waiting for teleportation...");
                     return;
                 }
+                if (!mc.thePlayer.onGround) {
+                    KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
+                    LogUtils.sendDebug("[Visitors Macro] The player is not on the ground, waiting...");
+                    return;
+                }
+                KeyBindUtils.stopMovement();
 
                 Entity closest = mc.theWorld.getLoadedEntityList().
                         stream().

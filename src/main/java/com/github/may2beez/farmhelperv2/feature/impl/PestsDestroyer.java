@@ -112,14 +112,6 @@ public class PestsDestroyer implements IFeature {
             return;
         }
         preparing = true;
-        currentEntityTarget = Optional.empty();
-        lastFireworkLocation = Optional.empty();
-        lastFireworkTime = 0;
-        state = States.IDLE;
-        rotationType = RotationType.NONE;
-        delayClock.reset();
-        stuckClock.reset();
-        delayBetweenBackTaps.reset();
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();
             MacroHandler.getInstance().getCurrentMacro().ifPresent(AbstractMacro::clearSavedState);
@@ -140,15 +132,26 @@ public class PestsDestroyer implements IFeature {
             LogUtils.sendWarning("[Pests Destroyer] Stopping!");
             LogUtils.webhookLog("[Pests Destroyer]\\nStopping!");
         }
-        stuckClock.reset();
-        enabled = false;
-        preparing = false;
+        resetStatesAfterMacroDisabled();
         KeyBindUtils.stopMovement();
     }
 
     @Override
     public void resetStatesAfterMacroDisabled() {
-
+        currentEntityTarget = Optional.empty();
+        lastFireworkLocation = Optional.empty();
+        preTpBlockPos = Optional.empty();
+        delayBetweenBackTaps.reset();
+        delayClock.reset();
+        stuckClock.reset();
+        pestsLocations.clear();
+        pestsPlotMap.clear();
+        preparing = false;
+        enabled = false;
+        amountOfPests = 0;
+        lastFireworkTime = 0;
+        rotationType = RotationType.NONE;
+        state = States.IDLE;
     }
 
     @Override
@@ -211,7 +214,7 @@ public class PestsDestroyer implements IFeature {
 
 
         if (stuckClock.isScheduled() && stuckClock.passed()) {
-            LogUtils.sendWarning("[Pests Destroyer] Player is struggling killing pest for 5 minutes, stopping fully!");
+            LogUtils.sendWarning("[Pests Destroyer] The player is struggling killing pest for 5 minutes, stopping fully!");
             FarmHelperConfig.enablePestsDestroyer = false;
             LogUtils.sendFailsafeMessage("[Pests Destroyer] Couldn't kill pest for 5 minutes, stopping fully!", true);
             finishMacro();
@@ -499,7 +502,7 @@ public class PestsDestroyer implements IFeature {
                 }
                 break;
             case CHECK_ANOTHER_PEST:
-                LogUtils.sendDebug(amountOfPests + " pests left");
+                LogUtils.sendDebug(amountOfPests + " pest" + (amountOfPests == 1 ? "" : "s") + " left");
                 if (amountOfPests == 0) {
                     state = States.GO_BACK;
                 } else {
@@ -767,7 +770,7 @@ public class PestsDestroyer implements IFeature {
                                 LogUtils.webhookLog("[Pests Destroyer]\\nThere " + (amountOfPests > 1 ? "are" : "is") + " currently **" + amountOfPests + "** " + (amountOfPests > 1 ? "pests" : "pest") + " in the garden!", FarmHelperConfig.pingEveryoneOnPestsDetectionNumberExceeded);
                             }
                             if (FarmHelperConfig.sendNotificationIfPestsDetectionNumberExceeded) {
-                                FailsafeUtils.getInstance().sendNotification("There " + (amountOfPests > 1 ? "are" : "is") + " currently **" + amountOfPests + "** " + (amountOfPests > 1 ? "pests" : "pest") + " in the garden!", TrayIcon.MessageType.WARNING);
+                                FailsafeUtils.getInstance().sendNotification("There " + (amountOfPests > 1 ? "are" : "is") + " currently " + amountOfPests + " " + (amountOfPests > 1 ? "pests" : "pest") + " in the garden!", TrayIcon.MessageType.WARNING);
                             }
                         }
                     }
