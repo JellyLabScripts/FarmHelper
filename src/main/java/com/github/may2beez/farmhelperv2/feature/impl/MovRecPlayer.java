@@ -3,6 +3,7 @@ package com.github.may2beez.farmhelperv2.feature.impl;
 import com.github.may2beez.farmhelperv2.feature.IFeature;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.handler.RotationHandler;
+import com.github.may2beez.farmhelperv2.util.AngleUtils;
 import com.github.may2beez.farmhelperv2.util.KeyBindUtils;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Rotation;
@@ -39,6 +40,7 @@ public class MovRecPlayer implements IFeature {
     private static boolean attackKeyPressed = false;
     private static int currentDelay = 0;
     private static int playingIndex = 0;
+    private static float yawDifference = 0;
     static Minecraft mc = Minecraft.getMinecraft();
     private static final RotationHandler rotateBeforePlaying = RotationHandler.getInstance();
     private static final RotationHandler rotateDuringPlaying = RotationHandler.getInstance();
@@ -180,9 +182,10 @@ public class MovRecPlayer implements IFeature {
         isMovementReading = false;
         isMovementPlaying = true;
         Movement movement = movements.get(0);
+        yawDifference = AngleUtils.normalizeAngle(movement.yaw - AngleUtils.get360RotationYaw());
         rotateBeforePlaying.easeTo(
                 new RotationConfiguration(
-                        new Rotation(movement.yaw, movement.pitch),
+                        new Rotation(mc.thePlayer.rotationYaw, movement.pitch),
                         500, null
                 )
         );
@@ -250,7 +253,7 @@ public class MovRecPlayer implements IFeature {
         setPlayerMovement(movement);
         rotateBeforePlaying.easeTo(
                 new RotationConfiguration(
-                        new Rotation(movement.yaw, movement.pitch),
+                        new Rotation(AngleUtils.normalizeAngle(movement.yaw - yawDifference), movement.pitch),
                         49, null
                 )
         );
