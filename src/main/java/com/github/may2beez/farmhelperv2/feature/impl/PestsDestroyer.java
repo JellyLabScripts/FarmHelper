@@ -168,7 +168,7 @@ public class PestsDestroyer implements IFeature {
 
     @Override
     public boolean shouldCheckForFailsafes() {
-        return state != States.TELEPORT_TO_PLOT && state != States.WAIT_FOR_TP;
+        return state != States.TELEPORT_TO_PLOT && state != States.WAIT_FOR_TP && escapeState != EscapeState.NONE;
     }
 
     private final Pattern pestPattern = Pattern.compile("GROSS! A Pest has appeared in Plot - (\\d+)!");
@@ -490,11 +490,19 @@ public class PestsDestroyer implements IFeature {
                 }
 
                 if (lastFireworkLocation.isPresent()) {
-                    if (lastFireworkTime + 250 < System.currentTimeMillis()) {
+                    if (lastFireworkTime + 150 < System.currentTimeMillis()) {
                         RotationHandler.getInstance().easeTo(new RotationConfiguration(
                                 new Target(new Vec3(lastFireworkLocation.get().xCoord, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), lastFireworkLocation.get().zCoord)),
                                 FarmHelperConfig.getRandomRotationTime(),
-                                () -> state = States.FLY_TO_PEST
+                                () -> {
+                                    if (state != States.WAIT_FOR_LOCATION) {
+                                        RotationHandler.getInstance().reset();
+                                        return;
+                                    }
+                                    LogUtils.sendDebug("[Pests Destroyer] Finished rotating to firework location!");
+                                    state = States.FLY_TO_PEST;
+                                    RotationHandler.getInstance().reset();
+                                }
                         ));
                         delayClock.schedule(300);
                     }
@@ -600,13 +608,13 @@ public class PestsDestroyer implements IFeature {
                 }
 
                 if (distance <= 3) {
-                    if (!RotationHandler.getInstance().isRotating() && rotationType != RotationType.CLOSE) {
+                    if (!RotationHandler.getInstance().isRotating()) {
                         RotationHandler.getInstance().reset();
                         RotationHandler.getInstance().easeTo(new RotationConfiguration(
                                 new Target(entity),
                                 FarmHelperConfig.getRandomPestsKillerRotationTime(),
                                 null
-                        ).followTarget(true));
+                        ));
                         rotationType = RotationType.CLOSE;
                     }
                     KeyBindUtils.holdThese(mc.gameSettings.keyBindUseItem);
@@ -637,13 +645,13 @@ public class PestsDestroyer implements IFeature {
                     } else {
                         KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, distanceWithoutY > 3 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 4 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null);
                     }
-                    if (!RotationHandler.getInstance().isRotating() && rotationType != RotationType.MEDIUM) {
+                    if (!RotationHandler.getInstance().isRotating()) {
                         RotationHandler.getInstance().reset();
                         RotationHandler.getInstance().easeTo(new RotationConfiguration(
                                 new Target(entity),
                                 FarmHelperConfig.getRandomRotationTime(),
                                 null
-                        ).followTarget(true));
+                        ));
                         rotationType = RotationType.MEDIUM;
                     }
                 } else {
@@ -661,13 +669,13 @@ public class PestsDestroyer implements IFeature {
                         KeyBindUtils.holdThese(objectsInFrontOfPlayer() ? mc.gameSettings.keyBindJump : null, distanceWithoutY > 2 ? mc.gameSettings.keyBindForward : null);
                     }
 
-                    if (!RotationHandler.getInstance().isRotating() && rotationType != RotationType.FAR) {
+                    if (!RotationHandler.getInstance().isRotating()) {
                         RotationHandler.getInstance().reset();
                         RotationHandler.getInstance().easeTo(new RotationConfiguration(
                                 new Target(entity),
                                 FarmHelperConfig.getRandomRotationTime(),
                                 null
-                        ).followTarget(true));
+                        ));
                         rotationType = RotationType.FAR;
                     }
                 }

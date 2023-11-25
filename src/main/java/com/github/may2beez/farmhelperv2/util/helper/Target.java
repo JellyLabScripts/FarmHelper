@@ -11,6 +11,8 @@ public class Target {
     private Vec3 vec;
     @Getter
     private Entity entity;
+    @Getter
+    private BlockPos blockPos;
 
     public Target(Vec3 vec) {
         this.vec = vec;
@@ -21,7 +23,7 @@ public class Target {
     }
 
     public Target(BlockPos blockPos) {
-        this.vec = new Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
+        this.blockPos = blockPos;
     }
 
     public Optional<Vec3> getTarget() {
@@ -29,6 +31,8 @@ public class Target {
             return Optional.of(vec);
         } else if (entity != null) {
             return Optional.of(entity.getPositionVector().add(new Vec3(0, entity.getEyeHeight() - 0.15, 0)));
+        } else if (blockPos != null) {
+            return Optional.of(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
         } else {
             return Optional.empty();
         }
