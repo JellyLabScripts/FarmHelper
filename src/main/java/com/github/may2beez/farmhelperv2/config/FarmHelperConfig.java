@@ -1302,6 +1302,20 @@ public class FarmHelperConfig extends Config {
     }
 
     @Slider(
+            name = "Pests Destroyer Stuck Time (in minutes)", category = DELAYS, subcategory = "Pests Destroyer",
+            description = "Pests Destroyer Stuck Time (in minutes) for single pest",
+            min = 1, max = 7
+    )
+    public static float pestsKillerStuckTime = 3;
+
+    @Slider(
+            name = "Pests Destroyer Ticks of not seeing pest.", category = DELAYS, subcategory = "Pests Destroyer",
+            description = "Pests Destroyer Ticks of not seeing pest while attacking (1 tick == 50ms) to trigger Escape to Hub. 0 to disable",
+            min = 0, max = 100
+    )
+    public static int pestsKillerTicksOfNotSeeingPestWhileAttacking = 30;
+
+    @Slider(
             name = "GUI Delay", category = DELAYS, subcategory = "GUI Delays",
             description = "The delay between clicking during GUI macros (in miliseconds)",
             min = 250f, max = 2000f

@@ -321,6 +321,7 @@ public class PestsDestroyer implements IFeature {
                     if (GameStateHandler.getInstance().inGarden()) {
                         escapeState = EscapeState.NONE;
                         state = States.IDLE;
+                        cantReachPest = 0;
                         delayClock.schedule((long) (2_500 + Math.random() * 1_500));
                         LogUtils.sendDebug("[Pests Destroyer] Came back to Garden!");
                         break;
@@ -555,7 +556,7 @@ public class PestsDestroyer implements IFeature {
                 cantReachPest = 0;
                 KeyBindUtils.stopMovement();
                 if (!stuckClock.isScheduled())
-                    stuckClock.schedule(1_000 * 60 * 5);
+                    stuckClock.schedule(1_000 * 60 * FarmHelperConfig.pestsKillerStuckTime);
                 delayClock.schedule(300);
                 break;
             case KILL_PEST:
@@ -585,13 +586,13 @@ public class PestsDestroyer implements IFeature {
                 double distance = mc.thePlayer.getDistance(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ);
                 double distanceWithoutY = mc.thePlayer.getDistance(entity.posX, mc.thePlayer.posY, entity.posZ);
 
-                if ((distanceWithoutY < 1.5 || distance <= 10 || (GameStateHandler.getInstance().getDx() < 0.1 && GameStateHandler.getInstance().getDz() < 0.1)) && !canEntityBeSeenIgnoreNonCollidable(entity)) {
+                if (FarmHelperConfig.pestsKillerTicksOfNotSeeingPestWhileAttacking > 0 && (distanceWithoutY < 1.5 || distance <= 10 || (GameStateHandler.getInstance().getDx() < 0.1 && GameStateHandler.getInstance().getDz() < 0.1)) && !canEntityBeSeenIgnoreNonCollidable(entity)) {
                     cantReachPest++;
                     LogUtils.sendDebug("[Pests Destroyer] Probably can't reach that pest: " + cantReachPest);
                 }
 
-                if (cantReachPest > 20) {
-                    LogUtils.sendDebug("[Pests Destroyer] Can't reach pest, will do a quick Garden -> Hub -> Garden teleport.");
+                if (cantReachPest >= FarmHelperConfig.pestsKillerTicksOfNotSeeingPestWhileAttacking) {
+                    LogUtils.sendWarning("[Pests Destroyer] Can't reach pest, will do a quick Garden -> Hub -> Garden teleport.");
                     escapeState = EscapeState.GO_TO_HUB;
                     KeyBindUtils.stopMovement();
                     delayClock.schedule(300);
@@ -906,7 +907,7 @@ public class PestsDestroyer implements IFeature {
         Vec3 vec3 = new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ);
         Vec3 vec31 = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
         MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(vec31, vec3, false, true, false);
-        return mop == null || mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && !mc.theWorld.getBlockState(mop.getBlockPos()).getBlock().equals(Blocks.cactus);
+        return mop == null || mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && mc.theWorld.getBlockState(mop.getBlockPos()).getBlock().equals(Blocks.cactus);
     }
 
     @SubscribeEvent

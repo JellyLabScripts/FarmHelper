@@ -66,15 +66,17 @@ public class BanInfoWS implements IFeature {
         try {
             LogUtils.sendDebug("Connecting to analytics server...");
             client = createNewWebSocketClient();
-            JsonObject headers = getHeaders();
-            if (headers == null) {
-                LogUtils.sendDebug("Failed to connect to analytics server. Retrying in 1 minute...");
-                return;
-            }
-            for (Map.Entry<String, JsonElement> header : headers.entrySet()) {
-                client.addHeader(header.getKey(), header.getValue().getAsString());
-            }
-            client.connect();
+            Multithreading.schedule(() -> {
+                JsonObject headers = getHeaders();
+                if (headers == null) {
+                    LogUtils.sendDebug("Failed to connect to analytics server. Retrying in 1 minute...");
+                    return;
+                }
+                for (Map.Entry<String, JsonElement> header : headers.entrySet()) {
+                    client.addHeader(header.getKey(), header.getValue().getAsString());
+                }
+                client.connect();
+            }, 0, TimeUnit.MILLISECONDS);
         } catch (URISyntaxException e) {
             e.printStackTrace();
             client = null;
@@ -197,16 +199,18 @@ public class BanInfoWS implements IFeature {
                 reconnectDelay.reset();
                 LogUtils.sendDebug("Connecting to analytics server...");
                 client = createNewWebSocketClient();
-                JsonObject headers = getHeaders();
-                if (headers == null) {
-                    LogUtils.sendDebug("Failed to connect to analytics server. Retrying in 1 minute...");
-                    return;
-                }
-                for (Map.Entry<String, JsonElement> header : headers.entrySet()) {
-                    client.addHeader(header.getKey(), header.getValue().getAsString());
-                }
                 reconnectDelay.schedule(60_000L);
-                Multithreading.schedule(() -> client.connect(), 0, TimeUnit.MILLISECONDS);
+                Multithreading.schedule(() -> {
+                    JsonObject headers = getHeaders();
+                    if (headers == null) {
+                        LogUtils.sendDebug("Failed to connect to analytics server. Retrying in 1 minute...");
+                        return;
+                    }
+                    for (Map.Entry<String, JsonElement> header : headers.entrySet()) {
+                        client.addHeader(header.getKey(), header.getValue().getAsString());
+                    }
+                    client.connect();
+                }, 0, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 e.printStackTrace();
                 client = null;
@@ -297,7 +301,8 @@ public class BanInfoWS implements IFeature {
             String serverId = mojangAuthentication();
             jsonObject.addProperty("serverId", serverId);
         } catch (AuthenticationException e) {
-            jsonObject.addProperty("serverId", "FAILED");
+            Multithreading.schedule(() -> playerBanned(days, reason, banId, fullReason), 250, TimeUnit.MILLISECONDS);
+            return;
         }
 
         try {
