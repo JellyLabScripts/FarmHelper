@@ -24,6 +24,7 @@ public class FeatureManager {
                 AutoCookie.getInstance(),
                 AutoGodPot.getInstance(),
                 AutoReconnect.getInstance(),
+                AutoRepellent.getInstance(),
                 AutoSell.getInstance(),
                 BanInfoWS.getInstance(),
                 DesyncChecker.getInstance(),
@@ -77,6 +78,10 @@ public class FeatureManager {
 
     public boolean isAnyOtherFeatureEnabled(IFeature ...sender) {
         return features.stream().anyMatch(feature -> feature.shouldPauseMacroExecution() && feature.isRunning() && !Arrays.asList(sender).contains(feature));
+    }
+
+    public boolean shouldCheckForFailsafe() {
+        return features.stream().anyMatch(feature -> feature.shouldCheckForFailsafes() && feature.isRunning());
     }
 
     public void enableAll() {

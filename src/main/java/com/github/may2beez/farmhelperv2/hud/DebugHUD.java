@@ -8,7 +8,6 @@ import com.github.may2beez.farmhelperv2.handler.GameStateHandler;
 import com.github.may2beez.farmhelperv2.handler.MacroHandler;
 import com.github.may2beez.farmhelperv2.util.LogUtils;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +42,7 @@ public class DebugHUD extends TextHud {
         lines.add("Buffs");
         lines.add("   Cookie: " + GameStateHandler.getInstance().getCookieBuffState());
         lines.add("   God Pot: " + GameStateHandler.getInstance().getGodPotState());
+        lines.add("   Repellent: " + GameStateHandler.getInstance().getPestRepellentState());
         if (AutoCookie.getInstance().isRunning()) {
             lines.add("AutoCookie");
             lines.add("   Main State: " + AutoCookie.getInstance().getMainState());

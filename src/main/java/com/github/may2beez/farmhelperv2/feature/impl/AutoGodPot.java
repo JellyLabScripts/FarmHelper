@@ -140,6 +140,11 @@ public class AutoGodPot implements IFeature {
         return FarmHelperConfig.autoGodPot;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return goingToAHState != GoingToAHState.NONE && bitsShopState != BitsShopState.NONE;
+    }
+
     private boolean enabled = false;
     private boolean activating = false;
 

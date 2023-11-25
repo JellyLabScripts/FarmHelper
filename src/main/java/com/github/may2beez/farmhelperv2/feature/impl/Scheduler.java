@@ -81,6 +81,11 @@ public class Scheduler implements IFeature {
         return FarmHelperConfig.enableScheduler;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return false;
+    }
+
     public enum SchedulerState {
         NONE,
         FARMING,

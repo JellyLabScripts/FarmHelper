@@ -9,4 +9,5 @@ public interface IFeature {
     void stop();
     void resetStatesAfterMacroDisabled();
     boolean isToggled();
+    boolean shouldCheckForFailsafes();
 }

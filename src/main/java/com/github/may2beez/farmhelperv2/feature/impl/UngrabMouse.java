@@ -94,4 +94,9 @@ public class UngrabMouse implements IFeature {
     public boolean isToggled() {
         return FarmHelperConfig.autoUngrabMouse;
     }
+
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return false;
+    }
 }

@@ -214,6 +214,11 @@ public class MovRecPlayer implements IFeature {
         return false;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return false;
+    }
+
     @SubscribeEvent
     public void onTickPlayMovement(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null)

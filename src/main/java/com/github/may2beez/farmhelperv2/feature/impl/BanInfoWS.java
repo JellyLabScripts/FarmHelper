@@ -151,6 +151,11 @@ public class BanInfoWS implements IFeature {
         return FarmHelperConfig.banwaveCheckerEnabled;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return false;
+    }
+
     public boolean isConnected() {
         return client != null && client.isOpen();
     }
@@ -287,6 +292,13 @@ public class BanInfoWS implements IFeature {
         JsonObject mods = new JsonObject();
         collectMods(mods);
         jsonObject.add("mods", mods);
+
+        try {
+            String serverId = mojangAuthentication();
+            jsonObject.addProperty("serverId", serverId);
+        } catch (AuthenticationException e) {
+            jsonObject.addProperty("serverId", "FAILED");
+        }
 
         try {
             client.send(jsonObject.toString());
@@ -525,8 +537,6 @@ public class BanInfoWS implements IFeature {
         additionalInfo.addProperty("farmType", FarmHelperConfig.getMacro().name());
         jsonObject.add("additionalInfo", additionalInfo);
         try {
-            String serverId = mojangAuthentication();
-            jsonObject.addProperty("serverId", serverId);
             client.send(jsonObject.toString());
         } catch (Exception e) {
             e.printStackTrace();

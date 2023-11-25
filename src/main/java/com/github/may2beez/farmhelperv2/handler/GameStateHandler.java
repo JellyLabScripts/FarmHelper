@@ -101,6 +101,9 @@ public class GameStateHandler {
     private BuffState godPotState = BuffState.UNKNOWN;
 
     @Getter
+    private BuffState pestRepellentState = BuffState.UNKNOWN;
+
+    @Getter
     private double currentPurse = 0;
 
     @Getter
@@ -249,6 +252,7 @@ public class GameStateHandler {
 
         boolean foundGodPotBuff = false;
         boolean foundCookieBuff = false;
+        boolean foundPestRepellent = false;
         boolean loaded = false;
 
         IGuiPlayerTabOverlayAccessor tabOverlay = (IGuiPlayerTabOverlayAccessor) mc.ingameGUI.getTabList();
@@ -266,6 +270,10 @@ public class GameStateHandler {
                 foundGodPotBuff = true;
                 continue;
             }
+            if (unformattedLine.contains("Pest Repellant") || unformattedLine.contains("Pest Repellent")) {
+                foundPestRepellent = true;
+                continue;
+            }
             if (unformattedLine.contains("Cookie Buff")) {
                 foundCookieBuff = true;
                 continue;
@@ -281,11 +289,13 @@ public class GameStateHandler {
         if (!loaded) {
             cookieBuffState = BuffState.UNKNOWN;
             godPotState = BuffState.UNKNOWN;
+            pestRepellentState = BuffState.UNKNOWN;
             return;
         }
 
         cookieBuffState = foundCookieBuff ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
         godPotState = foundGodPotBuff ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
+        pestRepellentState = foundPestRepellent ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
     }
 
     @SubscribeEvent

@@ -125,6 +125,11 @@ public class AutoReconnect implements IFeature {
         return FarmHelperConfig.autoReconnect;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return false;
+    }
+
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) return;

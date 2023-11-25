@@ -163,6 +163,9 @@ public class BlockUtils {
             return canWalkThroughDoor(blockPos, direction);
         }
 
+        if (block instanceof BlockFence)
+            return false;
+
         if (block instanceof BlockFenceGate)
             return state.getValue(BlockFenceGate.OPEN);
 
@@ -213,6 +216,9 @@ public class BlockUtils {
         if (block instanceof BlockDoor && direction != null) {
             return canWalkThroughDoor(blockPos.subtract(new Vec3i(0, 1, 0)), direction);
         }
+
+        if (block instanceof BlockFence)
+            return false;
 
         if (block instanceof BlockFenceGate)
             return state.getValue(BlockFenceGate.OPEN);

@@ -90,7 +90,8 @@ public class AutoCookie implements IFeature {
         activating = false;
         autoCookieDelay.reset();
         timeoutClock.reset();
-        mc.thePlayer.closeScreen();
+        if (mc.currentScreen != null)
+            mc.thePlayer.closeScreen();
         KeyBindUtils.stopMovement();
         if (MacroHandler.getInstance().isMacroToggled())
             MacroHandler.getInstance().resumeMacro();
@@ -104,6 +105,11 @@ public class AutoCookie implements IFeature {
     @Override
     public boolean isToggled() {
         return FarmHelperConfig.autoCookie;
+    }
+
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return mainState != State.GET_COOKIE && bazaarState != BazaarState.NONE && bazaarState != BazaarState.GO_BAZAAR && bazaarState != BazaarState.TELEPORT_TO_GARDEN;
     }
 
     enum State {
@@ -415,8 +421,8 @@ public class AutoCookie implements IFeature {
                         break;
                     case CLOSE_GUI:
                         if (mc.currentScreen == null) {
-                            mc.thePlayer.sendChatMessage("/warp garden");
                             setBazaarState(BazaarState.TELEPORT_TO_GARDEN);
+                            mc.thePlayer.sendChatMessage("/warp garden");
                             autoCookieDelay.schedule(3_000);
                             break;
                         }

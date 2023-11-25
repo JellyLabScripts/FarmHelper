@@ -435,6 +435,19 @@ public class FarmHelperConfig extends Config {
         AutoSell.getInstance().enable(true);
     };
 
+    @Switch(
+            name = "Auto Pest Repellent", category = MISCELLANEOUS, subcategory = "Pest Repellent",
+            description = "Automatically uses pest repellent when it's not active"
+    )
+    public static boolean autoPestRepellent = false;
+
+    @DualOption(
+            name = "Pest Repellent Type", category = MISCELLANEOUS, subcategory = "Pest Repellent",
+            description = "The pest repellent type to use",
+            left = "Pest Repellent",
+            right = "Pest Repellent MAX"
+    )
+    public static boolean pestRepellentType = true;
 
     @Switch(
             name = "Swap pet during Jacob's contest", category = MISCELLANEOUS, subcategory = "Pet Swapper",
@@ -1541,6 +1554,8 @@ public class FarmHelperConfig extends Config {
         this.addDependency("pingEveryoneOnPestsDetectionNumberExceeded", "sendWebhookLogIfPestsDetectionNumberExceeded");
         this.addDependency("pingEveryoneOnPestsDetectionNumberExceeded", "enableWebHook");
 
+        this.addDependency("pestRepellentType", "autoPestRepellent");
+
         this.addDependency("leaveTime", "leaveTimer");
 
         this.hideIf("shownWelcomeGUI", () -> true);
@@ -1550,7 +1565,7 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
         registerKeyBind(debugKeybind, () -> {
-//            PestsDestroyer.getInstance().setCantReachPest(60);
+            AutoRepellent.getInstance().start();
         });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());

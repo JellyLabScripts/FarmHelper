@@ -230,6 +230,11 @@ public class ProfitCalculator implements IFeature {
         return true;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return false;
+    }
+
     public void resetProfits() {
         realProfit = 0;
         realHourlyProfit = 0;

@@ -69,4 +69,9 @@ public class PerformanceMode implements IFeature {
     public boolean isToggled() {
         return FarmHelperConfig.performanceMode;
     }
+
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return false;
+    }
 }

@@ -75,6 +75,11 @@ public class LeaveTimer implements IFeature {
         return FarmHelperConfig.leaveTimer;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return false;
+    }
+
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;

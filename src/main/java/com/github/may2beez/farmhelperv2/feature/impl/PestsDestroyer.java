@@ -166,6 +166,11 @@ public class PestsDestroyer implements IFeature {
         return FarmHelperConfig.enablePestsDestroyer;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return state != States.TELEPORT_TO_PLOT && state != States.WAIT_FOR_TP;
+    }
+
     private final Pattern pestPattern = Pattern.compile("GROSS! A Pest has appeared in Plot - (\\d+)!");
 
     enum States {
@@ -349,6 +354,8 @@ public class PestsDestroyer implements IFeature {
                     if (vacuum == -1) {
                         LogUtils.sendError("[Pests Destroyer] Failed to find vacuum in hotbar!");
                         state = States.GO_BACK;
+                        FarmHelperConfig.enablePestsDestroyer = false;
+                        finishMacro();
                         return;
                     }
                     mc.thePlayer.inventory.currentItem = vacuum;

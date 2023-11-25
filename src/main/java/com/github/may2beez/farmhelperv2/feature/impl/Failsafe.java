@@ -161,6 +161,11 @@ public class Failsafe implements IFeature {
         return true;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return false;
+    }
+
     public boolean isEmergency() {
         return emergency != EmergencyType.NONE;
     }
@@ -1478,7 +1483,7 @@ public class Failsafe implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return true;
         if (!MacroHandler.getInstance().isMacroToggled()) return true;
         if (isEmergency()) return true;
-        return FeatureManager.getInstance().isAnyOtherFeatureEnabled(this); // we don't want to leave while serving visitors or doing other stuff
+        return !FeatureManager.getInstance().shouldCheckForFailsafe();
     }
 
     public void addEmergency(EmergencyType emergencyType) {

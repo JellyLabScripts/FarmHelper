@@ -73,6 +73,11 @@ public class DesyncChecker implements IFeature {
         return FarmHelperConfig.checkDesync;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return false;
+    }
+
     @Getter
     private final CircularFifoQueue<ClickedBlockEvent> clickedBlocks = new CircularFifoQueue<>(120);
 

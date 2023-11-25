@@ -121,6 +121,11 @@ public class AntiStuck implements IFeature {
         return FarmHelperConfig.enableAntiStuck;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return false;
+    }
+
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;

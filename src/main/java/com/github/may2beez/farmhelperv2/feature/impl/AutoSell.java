@@ -140,6 +140,11 @@ public class AutoSell implements IFeature {
         return FarmHelperConfig.enableAutoSell;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return true;
+    }
+
     public void enable(boolean manually) {
         if (enabled && !manually) return;
         if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) {

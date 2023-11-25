@@ -59,6 +59,11 @@ public class LagDetector implements IFeature {
         return true;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return false;
+    }
+
     private final Clock recentlyLagged = new Clock();
     private long lastReceivedPacketTime = 0;
 

@@ -104,6 +104,11 @@ public class PlotCleaningHelper implements IFeature {
         return enabled;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return true;
+    }
+
     private final CopyOnWriteArrayList<BlockPos> scytheBlockPos = new CopyOnWriteArrayList<>();
     private final CopyOnWriteArrayList<BlockPos> treeCapitatorBlockPos = new CopyOnWriteArrayList<>();
     private final CopyOnWriteArrayList<BlockPos> pickaxeBlockPos = new CopyOnWriteArrayList<>();

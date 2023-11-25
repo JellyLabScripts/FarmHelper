@@ -273,6 +273,11 @@ public class VisitorsMacro implements IFeature {
         return FarmHelperConfig.visitorsMacro;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return travelState != TravelState.ROTATE_TO_DESK && mainState != MainState.DISABLING && mainState != MainState.END;
+    }
+
     private boolean enabled = false;
 
     private final ArrayList<String> visitors = new ArrayList<>();
@@ -428,8 +433,8 @@ public class VisitorsMacro implements IFeature {
         switch (travelState) {
             case NONE:
                 positionBeforeTp = mc.thePlayer.getPosition();
-                mc.thePlayer.sendChatMessage("/tptoplot barn");
                 setTravelState(TravelState.ROTATE_TO_DESK);
+                mc.thePlayer.sendChatMessage("/tptoplot barn");
                 delayClock.schedule((long) (1_000 + Math.random() * 500));
                 break;
             case ROTATE_TO_DESK:

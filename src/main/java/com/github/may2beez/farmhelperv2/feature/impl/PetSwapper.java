@@ -88,6 +88,11 @@ public class PetSwapper implements IFeature {
         return FarmHelperConfig.enablePetSwapper;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return true;
+    }
+
     public static State currentState = State.NONE;
     static Clock delayClock = new Clock();
     static String previousPet = null;

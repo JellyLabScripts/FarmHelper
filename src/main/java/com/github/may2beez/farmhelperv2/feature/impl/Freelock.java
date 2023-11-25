@@ -85,6 +85,11 @@ public class Freelock implements IFeature {
         return false;
     }
 
+    @Override
+    public boolean shouldCheckForFailsafes() {
+        return false;
+    }
+
     private boolean enabled = false;
     @Getter
     @Setter
