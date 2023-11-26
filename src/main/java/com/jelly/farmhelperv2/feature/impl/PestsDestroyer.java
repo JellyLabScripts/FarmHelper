@@ -398,6 +398,10 @@ public class PestsDestroyer implements IFeature {
                 }
                 break;
             case GET_LOCATION:
+                if (totalPests == 0) {
+                    state = States.GO_BACK;
+                    return;
+                }
                 if (mc.currentScreen != null) {
                     KeyBindUtils.stopMovement();
                     delayClock.schedule(300 + (long) (Math.random() * 300));
@@ -646,7 +650,7 @@ public class PestsDestroyer implements IFeature {
             case CHECK_ANOTHER_PEST:
                 // remove 1 from count because we send message before scoreboard update
                 LogUtils.sendDebug((totalPests-1) + " pest" + (totalPests == 2 ? "" : "s") + " left");
-                if (totalPests == 0) {
+                if (totalPests-1 == 0) {
                     state = States.GO_BACK;
                 } else {
                     if (pestsPlotMap.isEmpty())
