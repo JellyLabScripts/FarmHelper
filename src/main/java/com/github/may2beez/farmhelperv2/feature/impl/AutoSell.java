@@ -555,7 +555,7 @@ public class AutoSell implements IFeature {
         if (AutoSellNPCItemsPage.autoSellOxfordShoes && name.contains("Oxford Shoes")) return true;
         if (!AutoSellNPCItemsPage.autoSellCustomItems.isEmpty()) {
             List<String> customItems = Arrays.asList(AutoSellNPCItemsPage.autoSellCustomItems.split("\\|"));
-            return customItems.contains(name);
+            return customItems.stream().anyMatch(item -> StringUtils.stripControlCodes(name).startsWith(item));
         }
         return false;
     }

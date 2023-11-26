@@ -534,7 +534,6 @@ public class VisitorsMacro implements IFeature {
                     setMainState(MainState.VISITORS);
                     return;
                 }
-                setCompactorState(CompactorState.HOLD_COMPACTOR);
                 boolean foundRotationToEntity = false;
                 Vec3 playerPos = mc.thePlayer.getPositionEyes(1);
                 for (int i = 0; i < 6; i++) {
@@ -552,14 +551,27 @@ public class VisitorsMacro implements IFeature {
                     }
                 }
                 if (!foundRotationToEntity) {
-                    LogUtils.sendError("[Visitors Macro] Couldn't find a rotation to the compactor, defaulting to 0, 85");
-                    rotation.easeTo(
-                            new RotationConfiguration(
-                                    new Rotation(mc.thePlayer.rotationYaw, (float) (85 + Math.random() * 3 - 1.5)), FarmHelperConfig.getRandomRotationTime(), null
-                            )
-                    );
+                    LogUtils.sendError("[Visitors Macro] Couldn't find a rotation to the compactor, moving away a little");
+                    if (GameStateHandler.getInstance().isBackWalkable()) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindBack);
+                        Multithreading.schedule(KeyBindUtils::stopMovement, 150, TimeUnit.MILLISECONDS);
+                    } else if (GameStateHandler.getInstance().isLeftWalkable()) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft);
+                        Multithreading.schedule(KeyBindUtils::stopMovement, 150, TimeUnit.MILLISECONDS);
+                    } else if (GameStateHandler.getInstance().isRightWalkable()) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindRight);
+                        Multithreading.schedule(KeyBindUtils::stopMovement, 150, TimeUnit.MILLISECONDS);
+                    } else {
+                        LogUtils.sendError("[Visitors Macro] Couldn't find a way to move away from the compactor, restarting the macro...");
+                        stop();
+                        forceStart = true;
+                        start();
+                        return;
+                    }
+                    delayClock.schedule(300);
                     return;
                 }
+                setCompactorState(CompactorState.HOLD_COMPACTOR);
                 break;
             case HOLD_COMPACTOR:
                 if (rotation.isRotating()) return;
@@ -634,20 +646,28 @@ public class VisitorsMacro implements IFeature {
         float pitchToCheck = mc.thePlayer.rotationPitch + (float) (Math.random() * 5 - 2.5);
         Vec3 testRotation = AngleUtils.getVectorForRotation(pitchToCheck, yawToCheck);
         Vec3 lookVector = playerPos.addVector(testRotation.xCoord * 5, testRotation.yCoord * 5, testRotation.zCoord * 5);
-        MovingObjectPosition objectPosition = mc.theWorld.rayTraceBlocks(playerPos, lookVector, false, true, false);
-        Rotation rotationToCheck = rotation.getRotation(lookVector);
-        LogUtils.sendDebug("Checking rotation: " + rotationToCheck);
-        System.out.println(objectPosition);
-        if (objectPosition == null || objectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            LogUtils.sendDebug("Found rotation: " + yawToCheck + " " + pitchToCheck);
-            rotation.easeTo(
-                    new RotationConfiguration(
-                            rotationToCheck, FarmHelperConfig.getRandomRotationTime(), null
-                    )
-            );
-            return true;
+        List<Entity> entitiesInFront = mc.theWorld.getEntitiesWithinAABBExcludingEntity(mc.thePlayer, mc.thePlayer.getEntityBoundingBox().addCoord(testRotation.xCoord * 5, testRotation.yCoord * 5, testRotation.zCoord * 5).expand(1, 1, 1));
+        if (!entitiesInFront.isEmpty()) {
+            for (Entity entity : entitiesInFront) {
+                AxisAlignedBB entityBoundingBox = entity.getEntityBoundingBox().expand(entity.getCollisionBorderSize(), entity.getCollisionBorderSize(), entity.getCollisionBorderSize());
+                MovingObjectPosition movingObjectPosition = entityBoundingBox.calculateIntercept(playerPos, lookVector);
+
+                if (entityBoundingBox.isVecInside(playerPos)) {
+                    LogUtils.sendDebug("[Visitors Macro] Player is inside entity");
+                    return false;
+                } else if (movingObjectPosition != null) {
+                    LogUtils.sendDebug("[Visitors Macro] Found entity in front of player");
+                    return false;
+                }
+            }
         }
-        return false;
+        LogUtils.sendDebug("Found rotation: " + yawToCheck + " " + pitchToCheck);
+        rotation.easeTo(
+                new RotationConfiguration(
+                        new Rotation(yawToCheck, pitchToCheck), FarmHelperConfig.getRandomRotationTime(), null
+                )
+        );
+        return true;
     }
 
     private void onVisitorsState() {
