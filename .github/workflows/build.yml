@@ -112,7 +112,7 @@ jobs:
           embeds: |
             [
               {
-                "title": "FarmHelper Update ${{steps.variables.outputs.TITLE}}",
+                "title": "FarmHelper Update ${{ steps.variables.outputs.TITLE }}",
                 "description": "FarmHelper has been updated with the following changes:",
                 "color": 3447003,
                 "thumbnail": {
@@ -121,15 +121,15 @@ jobs:
                 "fields": [
                   {
                     "name": "Latest Commit",
-                    "value": "**${steps.variables.outputs.escaped_commit_message}**"
+                    "value": "**${{ steps.variables.outputs.escaped_commit_message }}**"
                   },
                   {
                     "name": "Commit ID",
-                    "value": "[View Commit (${steps.variables.outputs.SHORT_COMMIT_SHA})](${steps.variables.outputs.COMMIT_URL})\\n_To learn more about the changes, click on the link!_"
+                    "value": "[View Commit (${{ steps.variables.outputs.SHORT_COMMIT_SHA} })](${{ steps.variables.outputs.COMMIT_URL} })\\n_To learn more about the changes, click on the link!_"
                   }
                 ],
                 "footer": {
-                  "text": "Updated: ${steps.variables.outputs.LONG_DATE}"
+                  "text": "Updated: ${{ steps.variables.outputs.LONG_DATE }}"
                 }
               }
             ]
