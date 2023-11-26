@@ -568,8 +568,8 @@ public class FarmHelperConfig extends Config {
     @Slider(
             name = "Leave time", category = SCHEDULER, subcategory = "Leave Timer",
             description = "The time to leave the server (in minutes)",
-//            min = 15, max = 720, step = 15
-            min = 1, max = 20, step = 1
+            min = 15, max = 720, step = 5
+//            min = 1, max = 20, step = 1
     )
     public static int leaveTime = 60;
     @Switch(
