@@ -114,7 +114,7 @@ jobs:
               {
                 "title": "FarmHelper Update ${{ steps.variables.outputs.TITLE }}",
                 "description": "FarmHelper has been updated with the following changes:",
-                "color": 3447003,
+                "color": "Random",
                 "thumbnail": {
                   "url": "https://cdn.discordapp.com/attachments/861700235890130986/1144673641951395982/icon.png"
                 },
@@ -125,7 +125,8 @@ jobs:
                   },
                   {
                     "name": "Commit ID",
-                    "value": "[View Commit (${{ steps.variables.outputs.SHORT_COMMIT_SHA }})](${{ steps.variables.outputs.COMMIT_URL }})\\n_To learn more about the changes, click on the link!_"
+                    "value": "[View Commit (${{ steps.variables.outputs.SHORT_COMMIT_SHA }})](${{ steps.variables.outputs.COMMIT_URL }})
+                              _To learn more about the changes, click on the link!_"
                   }
                 ],
                 "footer": {
