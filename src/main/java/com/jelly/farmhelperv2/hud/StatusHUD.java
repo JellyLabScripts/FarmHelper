@@ -33,8 +33,8 @@ public class StatusHUD extends TextHud {
             List<String> tempLines = new ArrayList<>();
             tempLines.add(getStatusString());
 
-            if (PestsDestroyer.getInstance().getAmountOfPests() > 0) {
-                tempLines.add("Pests in Garden: " + PestsDestroyer.getInstance().getAmountOfPests());
+            if (PestsDestroyer.getInstance().getTotalPests() > 0) {
+                tempLines.add("Pests in Garden: " + PestsDestroyer.getInstance().getTotalPests());
             }
 
             if (BanInfoWS.getInstance().isRunning() && FarmHelperConfig.banwaveCheckerEnabled && BanInfoWS.getInstance().isConnected()) {
