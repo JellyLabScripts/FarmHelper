@@ -79,7 +79,7 @@ jobs:
         run: |
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
           LONG_DATE=$(date -u +"%A, %B %-d, %Y at %T")
-          COMMIT_MESSAGE=${{ github.event.head_commit.message }}
+          COMMIT_MESSAGE="${{ github.event.head_commit.message }}"
           COMMIT_URL=${{ github.event.head_commit.url }}
           SHORT_COMMIT_SHA=${{ steps.short_sha.outputs.sha_short }}
           escaped_commit_message=$(echo "${COMMIT_MESSAGE}" | sed -z 's/\\n/\\n/g')
