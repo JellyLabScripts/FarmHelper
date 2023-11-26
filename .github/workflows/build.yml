@@ -77,20 +77,28 @@ jobs:
         id: variables
         if: ${{ (steps.check_secrets.outputs.result == 'success') && (steps.get_version.outputs.shouldRelease == 'true') }}
         run: |
-          echo "TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" >> $GITHUB_OUTPUT
-          echo "LONG_DATE=$(date -u +"%A, %B %-d, %Y at %T")" >> $GITHUB_OUTPUT
-          echo "COMMIT_MESSAGE=${{ github.event.head_commit.message }}" >> $GITHUB_OUTPUT
-          echo "COMMIT_URL=${{ github.event.head_commit.url }}" >> $GITHUB_OUTPUT
-          echo "SHORT_COMMIT_SHA=${{ steps.short_sha.outputs.sha_short }}" >> $GITHUB_OUTPUT
-          echo "escaped_commit_message=$(echo "${COMMIT_MESSAGE}" | sed -z 's/\\n/\\n/g')" >> $GITHUB_OUTPUT
-          echo "VERSION=${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_OUTPUT
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
+          LONG_DATE=$(date -u +"%A, %B %-d, %Y at %T")
+          COMMIT_MESSAGE=${{ github.event.head_commit.message }}
+          COMMIT_URL=${{ github.event.head_commit.url }}
+          SHORT_COMMIT_SHA=${{ steps.short_sha.outputs.sha_short }}
+          escaped_commit_message=$(echo "${COMMIT_MESSAGE}" | sed -z 's/\\n/\\n/g')
+          VERSION=${{ steps.get_version.outputs.VERSION }}
           if [[ $VERSION == *-pre ]]
           then
               TITLE="Pre-Release"
           else
               TITLE="Release"
           fi
-          echo "TITLE=${TITLE} ${VERSION}" >> $GITHUB_OUTPUT
+          TITLE=${TITLE} ${VERSION} >> $GITHUB_OUTPUT
+          
+          echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_OUTPUT
+          echo "LONG_DATE=$LONG_DATE" >> $GITHUB_OUTPUT
+          echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_OUTPUT
+          echo "COMMIT_URL=$COMMIT_URL" >> $GITHUB_OUTPUT
+          echo "SHORT_COMMIT_SHA=$SHORT_COMMIT_SHA" >> $GITHUB_OUTPUT
+          echo "escaped_commit_message=$escaped_commit_message" >> $GITHUB_OUTPUT
+          echo "TITLE=$TITLE" >> $GITHUB_OUTPUT
 
         # Step 7: Send embed message with files
       - name: Send embed message with files
