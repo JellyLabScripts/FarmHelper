@@ -5,7 +5,7 @@
     "description": "A helper for every farmer",
     "version": "${version}",
     "mcversion": "${mcversion}",
-    "url": "https://github.com/May2Beez/FarmHelperV2",
+    "url": "",
     "updateUrl": "",
     "authorList": [
       "You"

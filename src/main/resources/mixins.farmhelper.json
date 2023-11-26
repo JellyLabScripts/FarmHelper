@@ -1,5 +1,5 @@
 {
-  "package": "com.github.may2beez.farmhelperv2.mixin",
+  "package": "com.jelly.farmhelperv2.mixin",
   "refmap": "mixins.${modid}.refmap.json",
   "minVersion": "0.7",
   "compatibilityLevel": "JAVA_8",
@@ -22,7 +22,6 @@
     "client.MixinMinecraft",
     "client.MixinPlayerControllerMP",
     "client.MixinSoundManager",
-    "gui.IGuiChestAccessor",
     "gui.IGuiPlayerTabOverlayAccessor",
     "gui.MixinGuiContainer",
     "gui.MixinGuiDisconnected",
