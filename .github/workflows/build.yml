@@ -108,7 +108,7 @@ jobs:
           username: FarmHelper Releaser
           avatar_url: https://cdn.discordapp.com/attachments/861700235890130986/1144673641951395982/icon.png
           files: |
-            ${{GITHUB_WORKSPACE}}/build/libs/*.jar
+            $GITHUB_WORKSPACE/build/libs/*.jar
           embeds: |
             [
               {
