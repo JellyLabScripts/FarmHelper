@@ -293,13 +293,6 @@ public class BlockUtils {
         return !mc.theWorld.getBlockState(blockPos).getBlock().isPassable(mc.theWorld, blockPos) || axisAlignedBB != null;
     }
 
-    public enum Direction {
-        FORWARD,
-        BACKWARD,
-        LEFT,
-        RIGHT
-    }
-
     public static boolean canWalkThroughDoor(Direction direction) {
         return canWalkThroughDoor(getRelativeBlockPos(0, 0, 0), direction);
     }
@@ -324,8 +317,8 @@ public class BlockUtils {
 
     public static boolean isCropReady(int xOffset) {
         float yaw;
-        if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg() != -1337) {
-            yaw = MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg();
+        if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().isPresent()) {
+            yaw = MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().get();
         } else {
             yaw = mc.thePlayer.rotationYaw;
         }
@@ -722,5 +715,12 @@ public class BlockUtils {
         blocks.add(new BlockPos(x, y, z + 1));
         blocks.add(new BlockPos(x, y, z - 1));
         return blocks;
+    }
+
+    public enum Direction {
+        FORWARD,
+        BACKWARD,
+        LEFT,
+        RIGHT
     }
 }

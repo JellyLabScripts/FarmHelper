@@ -169,7 +169,7 @@ public class Failsafe implements IFeature {
 
     @Override
     public boolean shouldCheckForFailsafes() {
-        return false;
+        return !isEmergency();
     }
 
     // endregion

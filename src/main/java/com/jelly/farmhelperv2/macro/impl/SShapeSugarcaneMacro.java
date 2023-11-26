@@ -8,6 +8,8 @@ import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 
+import java.util.Optional;
+
 public class SShapeSugarcaneMacro extends AbstractMacro {
 
     public double rowStartX = 0;
@@ -42,7 +44,8 @@ public class SShapeSugarcaneMacro extends AbstractMacro {
                     if (FarmHelperConfig.rotateAfterDrop && !getRotation().isRotating()) {
                         LogUtils.sendDebug("Rotating 180");
                         getRotation().reset();
-                        setYaw(getYaw() + 180);
+                        setYaw(AngleUtils.getClosest(getYaw() + 180));
+                        setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
                         getRotation().easeTo(
                                 new RotationConfiguration(
                                         new Rotation(getYaw(), getPitch()),
@@ -125,7 +128,7 @@ public class SShapeSugarcaneMacro extends AbstractMacro {
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),
-                        500, null
+                        FarmHelperConfig.getRandomRotationTime(), null
                 )
         );
         rowStartX = mc.thePlayer.posX;

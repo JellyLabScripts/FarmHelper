@@ -24,36 +24,16 @@ import java.util.Optional;
 @Getter
 public abstract class AbstractMacro {
     public static final Minecraft mc = Minecraft.getMinecraft();
-
-    public enum State {
-        // Add default values like NONE and DROPPING
-        NONE,
-        DROPPING,
-        LEFT,
-        RIGHT,
-        BACKWARD,
-        FORWARD,
-        SWITCHING_SIDE,
-        SWITCHING_LANE,
-
-        A,
-        D,
-        S
-    }
-
-    public enum RewarpState {
-        NONE,
-        TELEPORTING,
-        TELEPORTED
-    }
-
-    @Setter
-    private boolean enabled = false;
+    private final RotationHandler rotation = RotationHandler.getInstance();
+    private final Clock rewarpDelay = new Clock();
+    @Getter
+    private final Clock analyticsClock = new Clock();
     @Setter
     public State currentState = State.NONE;
     @Setter
+    private boolean enabled = false;
+    @Setter
     private Optional<SavedState> savedState = Optional.empty();
-    private final RotationHandler rotation = RotationHandler.getInstance();
     @Setter
     private int layerY = 0;
     @Setter
@@ -62,7 +42,7 @@ public abstract class AbstractMacro {
     private float pitch;
     @Setter
     @Getter
-    private float closest90Deg = -1337;
+    private Optional<Float> closest90Deg = Optional.empty();
     @Setter
     private boolean rotated = false;
     @Setter
@@ -71,11 +51,6 @@ public abstract class AbstractMacro {
     @Getter
     @Setter
     private RewarpState rewarpState = RewarpState.NONE;
-
-    private final Clock rewarpDelay = new Clock();
-
-    @Getter
-    private final Clock analyticsClock = new Clock();
 
     public boolean isEnabled() {
         return enabled && !FeatureManager.getInstance().shouldPauseMacroExecution();
@@ -206,13 +181,13 @@ public abstract class AbstractMacro {
 
     public void onEnable() {
         GameStateHandler.getInstance().scheduleRewarp();
-        setClosest90Deg(AngleUtils.getClosest());
+        setClosest90Deg(Optional.of(AngleUtils.getClosest()));
         if (savedState.isPresent()) {
             LogUtils.sendDebug("Restoring state: " + savedState.get());
             changeState(savedState.get().getState());
             setYaw(savedState.get().getYaw());
             setPitch(savedState.get().getPitch());
-            setClosest90Deg(savedState.get().getClosest90Deg());
+            setClosest90Deg(Optional.of(savedState.get().getClosest90Deg()));
             savedState = Optional.empty();
         } else if (currentState == State.NONE || currentState == null) {
             changeState(calculateDirection());
@@ -231,7 +206,7 @@ public abstract class AbstractMacro {
         DesyncChecker.getInstance().getClickedBlocks().clear();
         KeyBindUtils.stopMovement();
         changeState(State.NONE);
-        setClosest90Deg(-1337);
+        setClosest90Deg(Optional.empty());
         rewarpDelay.reset();
         setEnabled(false);
     }
@@ -239,7 +214,7 @@ public abstract class AbstractMacro {
     public void saveState() {
         if (!savedState.isPresent()) {
             LogUtils.sendDebug("Saving state: " + currentState);
-            savedState = Optional.of(new SavedState(currentState, yaw, pitch, closest90Deg));
+            savedState = Optional.of(new SavedState(currentState, yaw, pitch, closest90Deg.get()));
         }
     }
 
@@ -272,10 +247,13 @@ public abstract class AbstractMacro {
             actionAfterTeleport();
             if (PestsDestroyer.getInstance().canEnableMacro()) {
                 PestsDestroyer.getInstance().start();
+                rotated = true;
                 return;
             }
-            if (VisitorsMacro.getInstance().isToggled())
+            if (VisitorsMacro.getInstance().isToggled() && VisitorsMacro.getInstance().canEnableMacro(false)) {
                 VisitorsMacro.getInstance().start();
+                rotated = true;
+            }
         }
     }
 
@@ -314,11 +292,33 @@ public abstract class AbstractMacro {
 
     public void doAfterRewarpRotation() {
         yaw = AngleUtils.get360RotationYaw(yaw + 180);
-        setClosest90Deg(AngleUtils.getClosest(yaw));
+        setClosest90Deg(Optional.of(AngleUtils.getClosest(yaw)));
     }
 
     public boolean shouldRotateAfterWarp() {
         return true;
+    }
+
+    public enum State {
+        // Add default values like NONE and DROPPING
+        NONE,
+        DROPPING,
+        LEFT,
+        RIGHT,
+        BACKWARD,
+        FORWARD,
+        SWITCHING_SIDE,
+        SWITCHING_LANE,
+
+        A,
+        D,
+        S
+    }
+
+    public enum RewarpState {
+        NONE,
+        TELEPORTING,
+        TELEPORTED
     }
 
     @Getter
