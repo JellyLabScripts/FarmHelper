@@ -442,7 +442,7 @@ public class VisitorsMacro implements IFeature {
                     LogUtils.sendDebug("[Visitors Macro] Waiting for teleportation...");
                     return;
                 }
-                if (!mc.thePlayer.onGround) {
+                if (!mc.thePlayer.onGround || mc.thePlayer.capabilities.isFlying) {
                     KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
                     LogUtils.sendDebug("[Visitors Macro] The player is not on the ground, waiting...");
                     return;
@@ -489,17 +489,13 @@ public class VisitorsMacro implements IFeature {
                     setTravelState(TravelState.END);
                     delayClock.schedule(getRandomDelay());
                 } else {
-                    if (mc.thePlayer.capabilities.isFlying) {
-                        mc.thePlayer.capabilities.isFlying = false;
-                        mc.thePlayer.sendPlayerAbilities();
-                    }
                     KeyBindUtils.holdThese(
                             mc.gameSettings.keyBindForward,
                             (speed > 150 && distance < 2.5) ? mc.gameSettings.keyBindSneak : null,
                             distance > 10 ? mc.gameSettings.keyBindSprint : null
                     );
                     if (!BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1))
-                            && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 1, 1))) {
+                            && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 1, 1)) && mc.thePlayer.onGround) {
                         rotation.reset();
                         mc.thePlayer.jump();
                     }
@@ -539,11 +535,31 @@ public class VisitorsMacro implements IFeature {
                     return;
                 }
                 setCompactorState(CompactorState.HOLD_COMPACTOR);
-                rotation.easeTo(
-                        new RotationConfiguration(
-                                new Rotation(mc.thePlayer.rotationYaw, (float) (85 + (Math.random() * 10 - 5))), FarmHelperConfig.getRandomRotationTime(), null
-                        )
-                );
+                boolean foundRotationToEntity = false;
+                Vec3 playerPos = mc.thePlayer.getPositionEyes(1);
+                for (int i = 0; i < 6; i++) {
+                    if (findRotation(playerPos, i)) {
+                        foundRotationToEntity = true;
+                        break;
+                    }
+                }
+                if (!foundRotationToEntity) {
+                    for (int i = 0; i > -6; i--) {
+                        if (findRotation(playerPos, i)) {
+                            foundRotationToEntity = true;
+                            break;
+                        }
+                    }
+                }
+                if (!foundRotationToEntity) {
+                    LogUtils.sendError("[Visitors Macro] Couldn't find a rotation to the compactor, defaulting to 0, 85");
+                    rotation.easeTo(
+                            new RotationConfiguration(
+                                    new Rotation(mc.thePlayer.rotationYaw, (float) (85 + Math.random() * 3 - 1.5)), FarmHelperConfig.getRandomRotationTime(), null
+                            )
+                    );
+                    return;
+                }
                 break;
             case HOLD_COMPACTOR:
                 if (rotation.isRotating()) return;
@@ -611,6 +627,27 @@ public class VisitorsMacro implements IFeature {
                 delayClock.schedule(getRandomDelay());
                 break;
         }
+    }
+
+    private boolean findRotation(Vec3 playerPos, int i) {
+        float yawToCheck = (float) (mc.thePlayer.rotationYaw + (i * 15) + Math.random() * 5 - 2.5);
+        float pitchToCheck = mc.thePlayer.rotationPitch + (float) (Math.random() * 5 - 2.5);
+        Vec3 testRotation = AngleUtils.getVectorForRotation(pitchToCheck, yawToCheck);
+        Vec3 lookVector = playerPos.addVector(testRotation.xCoord * 5, testRotation.yCoord * 5, testRotation.zCoord * 5);
+        MovingObjectPosition objectPosition = mc.theWorld.rayTraceBlocks(playerPos, lookVector, false, true, false);
+        Rotation rotationToCheck = rotation.getRotation(lookVector);
+        LogUtils.sendDebug("Checking rotation: " + rotationToCheck);
+        System.out.println(objectPosition);
+        if (objectPosition == null || objectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            LogUtils.sendDebug("Found rotation: " + yawToCheck + " " + pitchToCheck);
+            rotation.easeTo(
+                    new RotationConfiguration(
+                            rotationToCheck, FarmHelperConfig.getRandomRotationTime(), null
+                    )
+            );
+            return true;
+        }
+        return false;
     }
 
     private void onVisitorsState() {
@@ -756,6 +793,7 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(getRandomDelay());
                     break;
                 }
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 Rarity npcRarity = Rarity.getRarityFromNpcName(npcSlot.getStack().getDisplayName());
                 LogUtils.sendDebug("[Visitors Macro] Opened NPC: " + npcName + " Rarity: " + npcRarity);
 
