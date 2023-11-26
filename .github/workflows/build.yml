@@ -94,7 +94,6 @@ jobs:
           
           echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_OUTPUT
           echo "LONG_DATE=$LONG_DATE" >> $GITHUB_OUTPUT
-          echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_OUTPUT
           echo "COMMIT_URL=$COMMIT_URL" >> $GITHUB_OUTPUT
           echo "SHORT_COMMIT_SHA=$SHORT_COMMIT_SHA" >> $GITHUB_OUTPUT
           echo "escaped_commit_message=$escaped_commit_message" >> $GITHUB_OUTPUT
