@@ -107,8 +107,6 @@ jobs:
           key: ${{ secrets.DISCORD_WEBHOOK_URL }}
           username: FarmHelper Releaser
           avatar_url: https://cdn.discordapp.com/attachments/861700235890130986/1144673641951395982/icon.png
-          files: |
-            $GITHUB_WORKSPACE/build/libs/*.jar
           embeds: |
             [
               {
@@ -125,8 +123,7 @@ jobs:
                   },
                   {
                     "name": "Commit ID",
-                    "value": "[View Commit (${{ steps.variables.outputs.SHORT_COMMIT_SHA }})](${{ steps.variables.outputs.COMMIT_URL }})
-                              _To learn more about the changes, click on the link!_"
+                    "value": "[View Commit (${{ steps.variables.outputs.SHORT_COMMIT_SHA }})](${{ steps.variables.outputs.COMMIT_URL }}) _To learn more about the changes, click on the link!_"
                   }
                 ],
                 "footer": {
@@ -134,3 +131,14 @@ jobs:
                 }
               }
             ]
+
+      # Step 7: Send built JAR files to Discord webhook
+      - name: Send build artifacts to Discord webhook
+        if: ${{ (steps.check_secrets.outputs.result == 'success') && (steps.get_version.outputs.shouldRelease == 'true') }}
+        run: |
+          cd build/libs
+          for file in *.jar; do
+            curl -X POST -H "Content-Type: multipart/form-data" \
+              -F "file=@$file" \
+              ${{ secrets.DISCORD_WEBHOOK_URL }}
+          done
