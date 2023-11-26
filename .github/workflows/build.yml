@@ -90,7 +90,7 @@ jobs:
           else
               TITLE="Release"
           fi
-          TITLE=${TITLE} ${VERSION} >> $GITHUB_OUTPUT
+          TITLE="${TITLE} ${VERSION}" >> $GITHUB_OUTPUT
           
           echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_OUTPUT
           echo "LONG_DATE=$LONG_DATE" >> $GITHUB_OUTPUT
