@@ -294,7 +294,7 @@ public class VisitorsMacro implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return false;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return false;
 
-        if (!manual && (!PlayerUtils.isSpawnLocationSet() || !PlayerUtils.isStandingOnSpawnPoint())) {
+        if (!manual && !forceStart && (!PlayerUtils.isSpawnLocationSet() || !PlayerUtils.isStandingOnSpawnPoint())) {
             LogUtils.sendError("[Visitors Macro] The player is not standing on spawn location, skipping...");
             return false;
         }
