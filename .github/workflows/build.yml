@@ -104,7 +104,7 @@ jobs:
         if: ${{ (steps.check_secrets.outputs.result == 'success') && (steps.get_version.outputs.shouldRelease == 'true') }}
         uses: hugoalh/send-discord-webhook-ghaction@v6.0.0
         with:
-          key: (echo "${{ secrets.DISCORD_WEBHOOK_URL }}" | sed -z 's/https:\/\/discord.com\/api\/webhooks\///g' | sed -z 's/\/.*//g')
+          key: ${{ secrets.DISCORD_WEBHOOK_URL }}
           username: FarmHelper Releaser
           avatar_url: https://cdn.discordapp.com/attachments/861700235890130986/1144673641951395982/icon.png
           files: |
