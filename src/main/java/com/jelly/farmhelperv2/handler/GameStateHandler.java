@@ -294,7 +294,7 @@ public class GameStateHandler {
         dz = Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ);
         dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
 
-        if (notMoving()) {
+        if (notMoving() && mc.currentScreen == null) {
             if (hasPassedSinceStopped() && !PlayerUtils.isStandingOnRewarpLocation()) {
                 if (Failsafe.getInstance().hasDirtBlocks() && Failsafe.getInstance().isTouchingDirtBlock()) {
                     Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.DIRT_CHECK);
