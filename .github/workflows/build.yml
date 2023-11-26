@@ -125,7 +125,7 @@ jobs:
                   },
                   {
                     "name": "Commit ID",
-                    "value": "[View Commit (${{ steps.variables.outputs.SHORT_COMMIT_SHA} })](${{ steps.variables.outputs.COMMIT_URL} })\\n_To learn more about the changes, click on the link!_"
+                    "value": "[View Commit (${{ steps.variables.outputs.SHORT_COMMIT_SHA }})](${{ steps.variables.outputs.COMMIT_URL }})\\n_To learn more about the changes, click on the link!_"
                   }
                 ],
                 "footer": {
