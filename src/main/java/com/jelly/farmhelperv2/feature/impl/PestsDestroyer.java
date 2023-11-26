@@ -338,13 +338,13 @@ public class PestsDestroyer implements IFeature {
                 }
                 mc.thePlayer.sendChatMessage("/desk");
                 state = States.OPEN_PLOTS;
-                delayClock.schedule((long) (500 + Math.random() * 500));
+                delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 500 + Math.random() * 500));
                 break;
             case OPEN_PLOTS:
                 String chestName = InventoryUtils.getInventoryName();
                 if (chestName != null && !chestName.equals("Desk")) {
                     mc.thePlayer.closeScreen();
-                    delayClock.schedule((long) (300 + Math.random() * 300));
+                    delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
                     state = States.OPEN_DESK;
                     break;
                 }
@@ -355,7 +355,7 @@ public class PestsDestroyer implements IFeature {
                     }
                     state = States.WAIT_FOR_INFO;
                     InventoryUtils.clickContainerSlot(configurePlots.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                    delayClock.schedule((long) (500 + Math.random() * 500));
+                    delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 500 + Math.random() * 500));
                     break;
                 }
                 break;
@@ -364,7 +364,7 @@ public class PestsDestroyer implements IFeature {
                 if (chestName2 != null && !chestName2.equals("Configure Plots")) {
                     LogUtils.sendDebug("Wrong " + chestName2);
                     mc.thePlayer.closeScreen();
-                    delayClock.schedule((long) (500 + Math.random() * 500));
+                    delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 500 + Math.random() * 500));
                     state = States.OPEN_DESK;
                     break;
                 }
