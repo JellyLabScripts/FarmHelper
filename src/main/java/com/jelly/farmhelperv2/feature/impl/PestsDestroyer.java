@@ -975,6 +975,7 @@ public class PestsDestroyer implements IFeature {
     public void onGuiOpen(DrawScreenAfterEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
+        if (!enabled) return;
         if (!(event.guiScreen instanceof GuiChest)) return;
         String guiName = InventoryUtils.getInventoryName();
         if (guiName == null) return;
