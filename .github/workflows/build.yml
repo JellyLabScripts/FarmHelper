@@ -8,9 +8,9 @@ jobs:
         uses: actions/checkout@v3
       - name: Get Gradle version and check if it's pre release
         run: |
-          VERSION=$(grep -Po '^version = .*' gradle.properties | cut -d= -f2)
+          VERSION=$(grep -Po '^version=.*' gradle.properties | cut -d= -f2)
           VERSION=${VERSION#[[:space:]]}
-          SHOULD_RELEASE=$(grep -Po '^shouldRelease = .*' gradle.properties | cut -d= -f2)
+          SHOULD_RELEASE=$(grep -Po '^shouldRelease=.*' gradle.properties | cut -d= -f2)
           SHOULD_RELEASE=${SHOULD_RELEASE#[[:space:]]}
           echo "$VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
