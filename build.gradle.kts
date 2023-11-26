@@ -87,7 +87,7 @@ dependencies {
 
     implementation("net.dv8tion:JDA:5.0.0-beta.13")
 
-    shadowImpl("com.dorkbox:Notify:3.7")
+    shadowImpl("com.dorkbox:Notify:4.4")
 }
 
 // Tasks:
