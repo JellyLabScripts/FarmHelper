@@ -1015,18 +1015,21 @@ public class PestsDestroyer implements IFeature {
                     plotCounter++;
             }
 
-            if (pestsPlotMap.isEmpty()) {
-                long delay = 500 + (long) (Math.random() * 500);
-                delayClock.schedule(delay + (long)(Math.random() * 200));
-                LogUtils.sendError("[Pests Destroyer] Failed to get locations of pests. (Uncleaned plots?)");
-                LogUtils.sendError("[Pests Destroyer] Attempting to find pest with tracker");
-                state = States.GET_LOCATION;
-                Multithreading.schedule(() -> {
-                    if (mc.currentScreen != null) {
-                        mc.thePlayer.closeScreen();
-                    }
-                }, delay, TimeUnit.MILLISECONDS);
-                return;
+            Slot slot = guiChest.inventorySlots.get(42); // last plot in gui
+            if (slot != null && slot.getHasStack() && slot.getStack().getDisplayName().contains("Plot")) {
+                if (pestsPlotMap.isEmpty()) {
+                    long delay = 500 + (long) (Math.random() * 500);
+                    delayClock.schedule(delay + (long) (Math.random() * 200));
+                    LogUtils.sendError("[Pests Destroyer] Failed to get locations of pests. (Uncleaned plots?)");
+                    LogUtils.sendError("[Pests Destroyer] Attempting to find pest with tracker");
+                    state = States.GET_LOCATION;
+                    Multithreading.schedule(() -> {
+                        if (mc.currentScreen != null) {
+                            mc.thePlayer.closeScreen();
+                        }
+                    }, delay, TimeUnit.MILLISECONDS);
+                    return;
+                }
             }
         }
         int pestsInMap = pestsPlotMap.values().stream().mapToInt(i -> i).sum();
