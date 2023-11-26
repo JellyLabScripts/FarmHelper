@@ -53,7 +53,7 @@ public class PlayerUtils {
                 for (int y = -1; y < 5; y++) {
                     for (int z = -1; z < 3; z++) {
                         BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, z,
-                                (MacroHandler.getInstance().getCurrentMacro().isPresent() ? MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg() : FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_MUSHROOM ||
+                                (MacroHandler.getInstance().getCurrentMacro().isPresent() ? MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().isPresent() ? MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().get() : AngleUtils.getClosest() : FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_MUSHROOM ||
                                         FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_SUGAR_CANE ?
                                         AngleUtils.getClosestDiagonal() - 45 :
                                         AngleUtils.getClosest()));
@@ -223,8 +223,8 @@ public class PlayerUtils {
         double x = mc.thePlayer.posX % 1;
         double z = mc.thePlayer.posZ % 1;
         float yaw;
-        if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg() != -1337) {
-            yaw = MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg();
+        if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().isPresent()) {
+            yaw = MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().get();
         } else {
             yaw = mc.thePlayer.rotationYaw;
         }

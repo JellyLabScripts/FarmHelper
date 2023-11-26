@@ -8,6 +8,8 @@ import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 
+import java.util.Optional;
+
 public class SShapeVerticalCropMacro extends AbstractMacro {
     public ChangeLaneDirection changeLaneDirection = null;
 
@@ -71,12 +73,13 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                     changeLaneDirection = null;
                     if (FarmHelperConfig.rotateAfterDrop && !getRotation().isRotating()) {
                         LogUtils.sendDebug("Rotating 180...");
-                        getRotation().reset();
-                        setYaw(getYaw() + 180);
+                        setYaw(AngleUtils.getClosest(getYaw() + 180));
+                        setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
                         getRotation().easeTo(
                                 new RotationConfiguration(
                                         new Rotation(getYaw(), getPitch()),
-                                        (long) (400 + Math.random() * 300), null
+                                        FarmHelperConfig.getRandomRotationTime(),
+                                        null
                                 )
                         );
                     }
@@ -207,6 +210,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
 
     @Override
     public State calculateDirection() {
+        System.out.println(AngleUtils.get360RotationYaw());
         State voidCheck = super.calculateDirection();
         if (voidCheck != State.NONE) {
             return voidCheck;
@@ -219,8 +223,8 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
         }
 
         float yaw;
-        if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg() != -1337) {
-            yaw = MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg();
+        if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().isPresent()) {
+            yaw = MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().get();
         } else {
             yaw = mc.thePlayer.rotationYaw;
         }

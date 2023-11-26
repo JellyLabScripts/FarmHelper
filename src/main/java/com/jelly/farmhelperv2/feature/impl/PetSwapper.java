@@ -25,8 +25,16 @@ import java.util.List;
     Credits to Yuro for this superb class
 */
 public class PetSwapper implements IFeature {
-    private final Minecraft mc = Minecraft.getMinecraft();
+    public static State currentState = State.NONE;
+    public static boolean hasPetChangedDuringThisContest = false;
+    static Clock delayClock = new Clock();
+    static String previousPet = null;
     private static PetSwapper instance;
+    private static boolean getPreviousPet = false;
+    private final Minecraft mc = Minecraft.getMinecraft();
+    List<ItemStack> inventory;
+    @Setter
+    private boolean enabled;
 
     public static PetSwapper getInstance() {
         if (instance == null) {
@@ -34,9 +42,6 @@ public class PetSwapper implements IFeature {
         }
         return instance;
     }
-
-    @Setter
-    private boolean enabled;
 
     @Override
     public String getName() {
@@ -90,22 +95,7 @@ public class PetSwapper implements IFeature {
 
     @Override
     public boolean shouldCheckForFailsafes() {
-        return true;
-    }
-
-    public static State currentState = State.NONE;
-    static Clock delayClock = new Clock();
-    static String previousPet = null;
-    private static boolean getPreviousPet = false;
-    public static boolean hasPetChangedDuringThisContest = false;
-    List<ItemStack> inventory;
-
-    public enum State {
-        NONE,
-        STARTING,
-        FIND_PREVIOUS,
-        FIND_NEW,
-        WAITING_FOR_SPAWN
+        return false;
     }
 
     public void start(boolean getPreviousPet) {
@@ -274,5 +264,13 @@ public class PetSwapper implements IFeature {
     @SubscribeEvent
     public final void onUnloadWorld(WorldEvent.Unload event) {
         resetStatesAfterMacroDisabled();
+    }
+
+    public enum State {
+        NONE,
+        STARTING,
+        FIND_PREVIOUS,
+        FIND_NEW,
+        WAITING_FOR_SPAWN
     }
 }
