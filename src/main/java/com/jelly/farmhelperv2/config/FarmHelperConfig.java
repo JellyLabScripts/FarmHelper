@@ -777,6 +777,12 @@ public class FarmHelperConfig extends Config {
             min = 1, max = 8
     )
     public static int startKillingPestsAt = 3;
+    @Slider(
+            name = "Additional GUI Delay (ms)", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            description = "Extra time to wait between clicks",
+            min = 0, max = 5000
+    )
+    public static int pestAdditionalGUIDelay = 0;
     @Switch(
             name = "Pests ESP", category = PESTS_DESTROYER, subcategory = "Drawings",
             description = "Draws a box around pests"

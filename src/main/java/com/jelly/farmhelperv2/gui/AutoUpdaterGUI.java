@@ -353,26 +353,33 @@ public class AutoUpdaterGUI extends GuiScreen {
                     });
                     break;
                 case CLOSE_BUTTON_ID:
-                    if (displayGUI == 0) mc.displayGuiScreen(new GuiMainMenu());
-                    if (displayGUI == 2) {
-                        mc.addScheduledTask(() -> {
-                            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                                File fileToDelete = new File(mc.mcDataDir + "/mods/FarmHelper-v" + FarmHelper.VERSION + ".jar");
-                                if (fileToDelete.exists()) {
-                                    try {
-                                        FileUtils.forceDelete(fileToDelete);
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }));
-                        });
-                        mc.shutdown();
-                    }
+                    if (displayGUI == 0)
+                        mc.displayGuiScreen(new GuiMainMenu());
+                    if (displayGUI == 2)
+                        deleteAndClose();
                     break;
             }
         }
         scrollableList.actionPerformed(button);
+    }
+
+    private static void deleteAndClose() {
+        mc.addScheduledTask(() -> {
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                File[] filesToDelete = new File(mc.mcDataDir + "/mods").listFiles(
+                        (dir, name) -> name.toLowerCase().startsWith("farmhelper") && !name.toLowerCase().contains("jda"));
+                if (filesToDelete != null) {
+                    for (File fileToDelete : filesToDelete) {
+                        try {
+                            FileUtils.forceDelete(fileToDelete);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }));
+        });
+        mc.shutdown();
     }
 
     @Override
