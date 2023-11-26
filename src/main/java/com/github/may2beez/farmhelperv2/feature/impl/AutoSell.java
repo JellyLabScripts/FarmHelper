@@ -12,6 +12,7 @@ import com.github.may2beez.farmhelperv2.util.LogUtils;
 import com.github.may2beez.farmhelperv2.util.helper.Clock;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
@@ -219,39 +220,49 @@ public class AutoSell implements IFeature {
                 if (mc.currentScreen == null) {
                     LogUtils.sendDebug("[Auto Sell] Opening the Sacks menu");
                     pickedUpItems = false;
-                    mc.thePlayer.sendChatMessage("/sacks");
+                    if (FarmHelperConfig.autoSellSacksPlacement)
+                        mc.thePlayer.sendChatMessage("/sacks");
+                    else
+                        InventoryUtils.openInventory();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     setSacksState(SacksState.SELECT_SACK);
-                    break;
+                    return;
                 }
                 return;
             case SELECT_SACK:
                 if (mc.currentScreen == null) {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     setSacksState(SacksState.OPEN_MENU);
-                    break;
+                    return;
                 }
-                if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Sacks")) {
-                    LogUtils.sendDebug("[Auto Sell] Wrong menu detected!");
-                    mc.thePlayer.closeScreen();
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    setSacksState(SacksState.OPEN_MENU);
-                    break;
-                } else if (InventoryUtils.getInventoryName() == null) {
-                    break;
+                if (FarmHelperConfig.autoSellSacksPlacement) {
+                    if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Sacks")) {
+                        LogUtils.sendDebug("[Auto Sell] Wrong menu detected!");
+                        mc.thePlayer.closeScreen();
+                        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                        setSacksState(SacksState.OPEN_MENU);
+                        return;
+                    } else if (InventoryUtils.getInventoryName() == null) {
+                        return;
+                    }
+                } else {
+                    if (!(mc.currentScreen instanceof GuiInventory)) {
+                        return;
+                    }
                 }
 
                 LogUtils.sendDebug("[Auto Sell] Detected the Sacks menu");
-                int sacksSlot = InventoryUtils.getSlotIdOfItemInContainer("Agronomy Sack");
+                int sacksSlot = InventoryUtils.getSlotIdOfItemInContainer("Enchanted Agronomy Sack");
                 if (sacksSlot == -1) {
-                    LogUtils.sendDebug("[Auto Sell] Couldn't find the \"Agronomy Sack\" item in the Sacks menu, closing Sacks menu");
+                    LogUtils.sendDebug("[Auto Sell] Couldn't find the \"Enchanted Agronomy Sack\" item in the Sacks menu, closing Sacks menu");
                     mc.thePlayer.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     setSacksState(SacksState.CLOSE_MENU);
-                    break;
+                    emptySacks = true;
+                    return;
                 }
 
-                LogUtils.sendDebug("[Auto Sell] Selecting Agronomy Sack");
+                LogUtils.sendDebug("[Auto Sell] Selecting Enchanted Agronomy Sack");
                 InventoryUtils.clickContainerSlot(sacksSlot, InventoryUtils.ClickType.RIGHT, InventoryUtils.ClickMode.PICKUP);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 setSacksState(SacksState.PICKUP);
@@ -260,21 +271,21 @@ public class AutoSell implements IFeature {
                 if (mc.currentScreen == null) {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     setSacksState(SacksState.OPEN_MENU);
-                    break;
+                    return;
                 }
-                if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Agronomy Sack")) {
+                if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Enchanted Agronomy Sack")) {
                     LogUtils.sendDebug("[Auto Sell] Wrong menu detected!");
                     mc.thePlayer.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     setSacksState(SacksState.OPEN_MENU);
-                    break;
+                    return;
                 } else if (InventoryUtils.getInventoryName() == null) {
-                    break;
+                    return;
                 }
                 int pickUpAll = InventoryUtils.getSlotIdOfItemInContainer("Pickup All");
                 if (pickUpAll != -1) {
                     if (mc.thePlayer.inventory.getFirstEmptyStack() != -1) {
-                        LogUtils.sendDebug("[Auto Sell] Picking up all items from Agronomy Sack");
+                        LogUtils.sendDebug("[Auto Sell] Picking up all items from Enchanted Agronomy Sack");
                         pickedUpItems = true;
                         InventoryUtils.clickContainerSlot(pickUpAll, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                     } else {
@@ -413,7 +424,17 @@ public class AutoSell implements IFeature {
             case NPC:
                 switch (npcState) {
                     case NONE:
-                        if (!hasAnythingToSell()) {
+                        if (sacksState != SacksState.NONE) break;
+                        boolean shouldSell = hasAnythingToSell();
+                        if (!shouldSell && FarmHelperConfig.autoSellSacks && !emptySacks) {
+                            setSacksState(SacksState.OPEN_MENU);
+                            if (mc.currentScreen == null) {
+                                mc.thePlayer.closeScreen();
+                            }
+                            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                            break;
+                        }
+                        if (!shouldSell) {
                             LogUtils.sendDebug("[Auto Sell] Nothing to sell, disabling Auto Sell");
                             stop();
                             break;
@@ -450,7 +471,8 @@ public class AutoSell implements IFeature {
                         IInventory inv = chest.getLowerChestInventory();
 
                         for (Slot slot : chest.inventorySlots) {
-                            if (slot == null || !slot.getHasStack() || slot.slotNumber < inv.getSizeInventory()) continue;
+                            if (slot == null || !slot.getHasStack() || slot.slotNumber < inv.getSizeInventory())
+                                continue;
                             String name = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
                             if (slot.getStack().getItem() instanceof ItemTool) continue;
                             if (!shouldSell(name)) continue;
@@ -547,7 +569,6 @@ public class AutoSell implements IFeature {
     }
 
     private boolean shouldSellCustomItem(String name) {
-        if (AutoSellNPCItemsPage.autoSellMysteriousCrop && name.contains("Mysterious Crop")) return true;
         if (AutoSellNPCItemsPage.autoSellRunes && name.contains(" Rune")) return true;
         if (AutoSellNPCItemsPage.autoSellVelvetTopHat && name.contains("Velvet Top Hat")) return true;
         if (AutoSellNPCItemsPage.autoSellCashmereJacket && name.contains("Cashmere Jacket")) return true;

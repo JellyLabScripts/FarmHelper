@@ -4,11 +4,8 @@ import cc.polyfrost.oneconfig.config.annotations.Switch;
 import cc.polyfrost.oneconfig.config.annotations.Text;
 
 public class AutoSellNPCItemsPage {
-    @Switch(name = "Mysterious Crop")
-    public static boolean autoSellMysteriousCrop = true;
     @Switch(name = "Runes")
     public static boolean autoSellRunes = true;
-
     @Switch(name = "Velvet Top Hat")
     public static boolean autoSellVelvetTopHat = true;
     @Switch(name = "Cashmere Jacket")
