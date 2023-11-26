@@ -71,7 +71,7 @@ val shadowImpl: Configuration by configurations.creating {
 
 dependencies {
     minecraft("com.mojang:minecraft:1.8.9")
-    mappings("de.oceanlabs.mcp:mcp_stable:22-1.8.9")
+    mappings("de.oceanlabs.mcp:mcp_stable:60-1.15")
     forge("net.minecraftforge:forge:1.8.9-11.15.1.2318-1.8.9")
 
     compileOnly("cc.polyfrost:oneconfig-1.8.9-forge:0.2.0-alpha+")
