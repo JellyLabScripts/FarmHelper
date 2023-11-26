@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.feature.impl;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.MillisecondEvent;
 import com.jelly.farmhelperv2.feature.IFeature;
+import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Clock;
@@ -146,6 +147,9 @@ public class PlotCleaningHelper implements IFeature {
         for (BlockPos blockpos : BlockPos.getAllInBox(blockBottom, blockTop)) {
             if (brokenBlockPosArrayList.stream().anyMatch(tup -> tup.getFirst().equals(blockpos))) continue;
             List<Tuple<Integer, Integer>> chunks = PlotUtils.getPlotChunksBasedOnLocation(blockpos);
+            if (chunks == null || chunks.isEmpty()) continue;
+            int plotNumber = PlotUtils.getPlotNumberBasedOnLocation(blockpos);
+            if (plotNumber != GameStateHandler.getInstance().getCurrentPlot()) continue;
             AxisAlignedBB aabb = new AxisAlignedBB(chunks.get(0).getFirst() * 16 + 1, 66, chunks.get(0).getSecond() * 16 + 1, chunks.get(chunks.size() - 1).getFirst() * 16 + 16 - 1, 200, chunks.get(chunks.size() - 1).getSecond() * 16 + 16 - 1);
             if (!aabb.isVecInside(new Vec3(blockpos))) continue;
             Vec3 target = new Vec3(blockpos.getX() + 0.5, blockpos.getY() + 0.5, blockpos.getZ() + 0.5);

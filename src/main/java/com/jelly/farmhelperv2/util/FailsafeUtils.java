@@ -3,9 +3,8 @@ package com.jelly.farmhelperv2.util;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
-import dorkbox.notify.Notify;
-import dorkbox.notify.Pos;
 import net.minecraft.client.Minecraft;
+import org.apache.commons.lang3.SystemUtils;
 import org.lwjgl.opengl.Display;
 
 import javax.imageio.ImageIO;
@@ -21,7 +20,7 @@ public class FailsafeUtils {
     private final TrayIcon trayIcon;
 
     public FailsafeUtils() {
-        if (Minecraft.isRunningOnMac) {
+        if (!SystemUtils.IS_OS_WINDOWS) {
             trayIcon = null;
             return;
         }
@@ -50,7 +49,7 @@ public class FailsafeUtils {
     }
 
     public static void bringWindowToFront() {
-        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+        if (SystemUtils.IS_OS_WINDOWS) {
             bringWindowToFrontUsingWinApi();
             System.out.println("Bringing window to front using WinApi.");
         } else {
@@ -114,17 +113,46 @@ public class FailsafeUtils {
 
     public void sendNotification(String text, TrayIcon.MessageType type) {
         try {
-            if (Minecraft.isRunningOnMac) {
-                Notify.create()
-                        .title("Farm Helper Failsafes") // not enough space
-                        .position(Pos.TOP_RIGHT)
-                        .text(text)
-                        .darkStyle()
-                        .showWarning();
-                return;
+            if (SystemUtils.IS_OS_WINDOWS) {
+                windows(text, type);
+            } else if (SystemUtils.IS_OS_MAC_OSX) {
+                mac(text);
+            } else if (SystemUtils.IS_OS_LINUX) {
+                linux(text);
             }
-            trayIcon.displayMessage("Farm Helper Failsafe Notification", text, type);
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void windows(String text, TrayIcon.MessageType type) {
+        if (SystemTray.isSupported()) {
+            try {
+                trayIcon.displayMessage("FarmHelper", text, type);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("SystemTray is not supported");
+        }
+    }
+
+    private void mac(String text) {
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.command("osascript", "-e", "display notification \"" + text + "\" with title \"FarmHelper\"");
+        try {
+            processBuilder.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void linux(String text) {
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.command("notify-send", "-a", "FarmHelper", text);
+        try {
+            processBuilder.start();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

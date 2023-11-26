@@ -294,14 +294,14 @@ public class GameStateHandler {
         dz = Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ);
         dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
 
-        if (notMoving()) {
+        if (notMoving() && mc.currentScreen == null) {
             if (hasPassedSinceStopped() && !PlayerUtils.isStandingOnRewarpLocation()) {
                 if (Failsafe.getInstance().hasDirtBlocks() && Failsafe.getInstance().isTouchingDirtBlock()) {
                     Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.DIRT_CHECK);
-                    return;
+                } else {
+                    randomValueToWaitNextTime = -1;
+                    notMovingTimer.reset();
                 }
-                randomValueToWaitNextTime = -1;
-                notMovingTimer.reset();
             }
         } else {
             if (!notMovingTimer.isScheduled())
@@ -309,8 +309,8 @@ public class GameStateHandler {
             notMovingTimer.schedule();
         }
         float yaw;
-        if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg() != -1337) {
-            yaw = MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg();
+        if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().isPresent()) {
+            yaw = MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().get();
         } else {
             yaw = mc.thePlayer.rotationYaw;
         }
@@ -353,7 +353,7 @@ public class GameStateHandler {
     }
 
     public boolean notMoving() {
-        return (dx < 0.01 && dz < 0.01 && dy < 0.01 && mc.currentScreen == null) || (KeyBindUtils.areAllKeybindsReleased() && mc.thePlayer != null && mc.thePlayer.isPushedByWater());
+        return (dx < 0.01 && dz < 0.01 && dy < 0.01 && mc.currentScreen == null) || (KeyBindUtils.areAllKeybindsReleased() && mc.thePlayer != null && mc.thePlayer.isPushedByWater() && mc.thePlayer.isInWater());
     }
 
     public boolean canChangeDirection() {

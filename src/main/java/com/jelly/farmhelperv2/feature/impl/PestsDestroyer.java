@@ -11,6 +11,7 @@ import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.macro.AbstractMacro;
 import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Clock;
+import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import com.jelly.farmhelperv2.util.helper.Target;
 import lombok.Getter;
@@ -171,7 +172,7 @@ public class PestsDestroyer implements IFeature {
 
     @Override
     public boolean shouldCheckForFailsafes() {
-        return state != States.TELEPORT_TO_PLOT && state != States.WAIT_FOR_TP && escapeState != EscapeState.NONE;
+        return state != States.TELEPORT_TO_PLOT && state != States.WAIT_FOR_TP && escapeState == EscapeState.NONE;
     }
 
     public boolean canEnableMacro() {
@@ -552,7 +553,10 @@ public class PestsDestroyer implements IFeature {
                 double distance = mc.thePlayer.getDistance(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ);
                 double distanceWithoutY = mc.thePlayer.getDistance(entity.posX, mc.thePlayer.posY, entity.posZ);
 
-                if (FarmHelperConfig.pestsKillerTicksOfNotSeeingPestWhileAttacking > 0 && (distanceWithoutY < 1.5 || distance <= 10 || (GameStateHandler.getInstance().getDx() < 0.1 && GameStateHandler.getInstance().getDz() < 0.1)) && !canEntityBeSeenIgnoreNonCollidable(entity)) {
+                Rotation rotationEntity = RotationHandler.getInstance().getRotation(entity);
+                float yawDifference = Math.abs(AngleUtils.normalizeAngle(rotationEntity.getYaw() - AngleUtils.get360RotationYaw()));
+
+                if (FarmHelperConfig.pestsKillerTicksOfNotSeeingPestWhileAttacking > 0 && (distanceWithoutY < 1.5 || distance <= 10) && GameStateHandler.getInstance().getDx() < 0.1 && GameStateHandler.getInstance().getDz() < 0.1 && !canEntityBeSeenIgnoreNonCollidable(entity)) {
                     cantReachPest++;
                     LogUtils.sendDebug("[Pests Destroyer] Probably can't reach that pest: " + cantReachPest);
                 }
@@ -564,6 +568,7 @@ public class PestsDestroyer implements IFeature {
                     delayClock.schedule(300);
                     return;
                 }
+
 
                 if (distance <= 3) {
                     if (!RotationHandler.getInstance().isRotating()) {
@@ -591,17 +596,17 @@ public class PestsDestroyer implements IFeature {
                         break;
                     }
                     if (objectsInFrontOfPlayer() || entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY >= 2) {
-                        KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindJump, distanceWithoutY > 3 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 4 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null);
+                        KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindJump, distanceWithoutY > 3 && yawDifference < 45 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 4 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null);
                     } else if (entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY <= -2) {
                         if (hasBlockUnderThePlayer()) {
                             LogUtils.sendDebug("Has block under the player");
                             KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, getMovementToEvadeBottomBlock(), distanceWithoutY < 4 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null);
                         } else {
                             LogUtils.sendDebug("Doesn't have block under the player");
-                            KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindSneak, distanceWithoutY > 3 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 4 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null);
+                            KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindSneak, distanceWithoutY > 3 && yawDifference < 45 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 4 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null);
                         }
                     } else {
-                        KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, distanceWithoutY > 3 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 4 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null);
+                        KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, distanceWithoutY > 3 && yawDifference < 45 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 4 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null);
                     }
                     if (!RotationHandler.getInstance().isRotating()) {
                         RotationHandler.getInstance().reset();
@@ -620,11 +625,11 @@ public class PestsDestroyer implements IFeature {
                     }
 
                     if (!GameStateHandler.getInstance().isLeftWalkable() && GameStateHandler.getInstance().isRightWalkable()) {
-                        KeyBindUtils.holdThese(objectsInFrontOfPlayer() ? mc.gameSettings.keyBindJump : null, distanceWithoutY > 2 ? mc.gameSettings.keyBindForward : null, mc.gameSettings.keyBindRight);
+                        KeyBindUtils.holdThese(objectsInFrontOfPlayer() ? mc.gameSettings.keyBindJump : null, distanceWithoutY > 2 && yawDifference < 90 ? mc.gameSettings.keyBindForward : null, mc.gameSettings.keyBindRight);
                     } else if (GameStateHandler.getInstance().isLeftWalkable() && !GameStateHandler.getInstance().isRightWalkable()) {
-                        KeyBindUtils.holdThese(objectsInFrontOfPlayer() ? mc.gameSettings.keyBindJump : null, distanceWithoutY > 2 ? mc.gameSettings.keyBindForward : null, mc.gameSettings.keyBindLeft);
+                        KeyBindUtils.holdThese(objectsInFrontOfPlayer() ? mc.gameSettings.keyBindJump : null, distanceWithoutY > 2 && yawDifference < 90 ? mc.gameSettings.keyBindForward : null, mc.gameSettings.keyBindLeft);
                     } else {
-                        KeyBindUtils.holdThese(objectsInFrontOfPlayer() ? mc.gameSettings.keyBindJump : null, distanceWithoutY > 2 ? mc.gameSettings.keyBindForward : null);
+                        KeyBindUtils.holdThese(objectsInFrontOfPlayer() ? mc.gameSettings.keyBindJump : null, distanceWithoutY > 2 && yawDifference < 90 ? mc.gameSettings.keyBindForward : null);
                     }
 
                     if (!RotationHandler.getInstance().isRotating()) {
@@ -686,7 +691,7 @@ public class PestsDestroyer implements IFeature {
                 LogUtils.sendDebug("Enabling macro after teleportation");
                 MacroHandler.getInstance().resumeMacro();
             }
-        }, 500 + (long) (Math.random() * 500), TimeUnit.MILLISECONDS);
+        }, 1_500 + (long) (Math.random() * 1_500), TimeUnit.MILLISECONDS);
     }
 
     private void fly() {
