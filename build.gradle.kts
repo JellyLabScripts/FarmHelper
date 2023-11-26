@@ -85,7 +85,7 @@ dependencies {
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.1.2")
 //    shadowImpl("org.reflections:reflections:0.10.2")
 
-    implementation("net.dv8tion:JDA:5.0.0-beta.13")
+    implementation("net.dv8tion:JDA:5.0.0-beta.18")
 
     shadowImpl("com.dorkbox:Notify:3.7")
 }
