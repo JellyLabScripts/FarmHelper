@@ -9,6 +9,8 @@ import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 
+import java.util.Optional;
+
 public class SShapeMushroomMacro extends AbstractMacro {
 
     @Override
@@ -27,7 +29,7 @@ public class SShapeMushroomMacro extends AbstractMacro {
         } else {
             setYaw(AngleUtils.getClosestDiagonal());
         }
-        setClosest90Deg(AngleUtils.getClosest());
+        setClosest90Deg(Optional.of(AngleUtils.getClosest()));
 
         getRotation().easeTo(
                 new RotationConfiguration(
@@ -46,7 +48,7 @@ public class SShapeMushroomMacro extends AbstractMacro {
     @Override
     public void doAfterRewarpRotation() {
         setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
-        setClosest90Deg((float) UMath.wrapAngleTo180(AngleUtils.getClosest() + 180));
+        setClosest90Deg(Optional.of((float) UMath.wrapAngleTo180(AngleUtils.getClosest(AngleUtils.getClosest() + 180))));
         setYaw(AngleUtils.getClosestDiagonal(getYaw() + 180));
     }
 
@@ -81,8 +83,8 @@ public class SShapeMushroomMacro extends AbstractMacro {
                     if (FarmHelperConfig.rotateAfterDrop && !getRotation().isRotating()) {
                         LogUtils.sendDebug("Rotating 180");
                         getRotation().reset();
-                        setYaw(getYaw() + 180);
-
+                        setYaw(AngleUtils.getClosest(getYaw() + 180));
+                        setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
                         getRotation().easeTo(
                                 new RotationConfiguration(
                                         new Rotation(getYaw(), getPitch()),
@@ -157,10 +159,10 @@ public class SShapeMushroomMacro extends AbstractMacro {
         }
 
         for (int i = 1; i < 180; i++) {
-            if (!BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(i, 0, 0, getClosest90Deg()))) {
+            if (!BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(i, 0, 0, (getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest())))) {
                 return State.LEFT;
             }
-            if (!BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-i, 0, 0, getClosest90Deg())))
+            if (!BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-i, 0, 0, (getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()))))
                 return State.RIGHT;
         }
         LogUtils.sendDebug("No direction found");

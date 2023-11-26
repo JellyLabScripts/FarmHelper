@@ -554,7 +554,7 @@ public class FarmHelperConfig extends Config {
             description = "Opens inventory on scheduler breaks"
     )
     public static boolean openInventoryOnSchedulerBreaks = true;
-//
+    //
 //    @Switch(
 //            name = "Leave after failsafe triggered", category = FAILSAFE, subcategory = "Restart After FailSafe",
 //            description = "Leaves the server after a failsafe has been triggered"
@@ -1269,7 +1269,7 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
         registerKeyBind(debugKeybind, () -> {
-
+            PestsDestroyer.getInstance().setCantReachPest(40);
         });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
