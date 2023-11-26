@@ -36,7 +36,7 @@ public class AutoUpdaterGUI extends GuiScreen {
     static final int DOWNLOAD_BUTTON_ID = 1;
     static final int CLOSE_BUTTON_ID = 2;
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final String GITHUB_API_URL = "https://api.github.com/repos/May2Beez/FarmHelperV2/releases";
+    private static final String GITHUB_API_URL = "https://api.github.com/repos/JellyLabScripts/FarmHelper/releases";
     private static final int CONNECT_TIMEOUT = 10000;
     private static final int READ_TIMEOUT = 10000;
     public static boolean checkedForUpdates = false;

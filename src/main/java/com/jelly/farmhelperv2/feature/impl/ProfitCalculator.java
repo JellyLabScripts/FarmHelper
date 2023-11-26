@@ -3,7 +3,6 @@ package com.jelly.farmhelperv2.feature.impl;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ClickedBlockEvent;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.feature.IFeature;
@@ -338,41 +337,41 @@ public class ProfitCalculator implements IFeature {
         if (!GameStateHandler.getInstance().inGarden()) return;
 
         switch (MacroHandler.getInstance().getCrop()) {
-            case FarmHelperConfig.CropEnum.NETHER_WART:
-            case FarmHelperConfig.CropEnum.CARROT:
-            case FarmHelperConfig.CropEnum.POTATO:
-            case FarmHelperConfig.CropEnum.WHEAT:
+            case NETHER_WART:
+            case CARROT:
+            case POTATO:
+            case WHEAT:
                 if (event.getBlock() instanceof BlockCrops ||
                         event.getBlock() instanceof BlockNetherWart) {
                     blocksBroken++;
                 }
                 break;
-            case FarmHelperConfig.CropEnum.SUGAR_CANE:
+            case SUGAR_CANE:
                 if (event.getBlock() instanceof BlockReed) {
                     blocksBroken++;
                 }
                 break;
-            case FarmHelperConfig.CropEnum.MELON:
+            case MELON:
                 if (event.getBlock().equals(Blocks.melon_block)) {
                     blocksBroken++;
                 }
                 break;
-            case FarmHelperConfig.CropEnum.PUMPKIN:
+            case PUMPKIN:
                 if (event.getBlock().equals(Blocks.pumpkin)) {
                     blocksBroken++;
                 }
                 break;
-            case FarmHelperConfig.CropEnum.CACTUS:
+            case CACTUS:
                 if (event.getBlock().equals(Blocks.cactus)) {
                     blocksBroken++;
                 }
                 break;
-            case FarmHelperConfig.CropEnum.COCOA_BEANS:
+            case COCOA_BEANS:
                 if (event.getBlock().equals(Blocks.cocoa)) {
                     blocksBroken++;
                 }
                 break;
-            case FarmHelperConfig.CropEnum.MUSHROOM:
+            case MUSHROOM:
                 if (event.getBlock().equals(Blocks.red_mushroom) ||
                         event.getBlock().equals(Blocks.brown_mushroom)) {
                     blocksBroken++;

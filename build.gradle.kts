@@ -35,8 +35,8 @@ loom {
             property("mixin.debug", "true")
             property("asmhelper.verbose", "true")
             arg("--tweakClass", "cc.polyfrost.oneconfig.loader.stage0.LaunchWrapperTweaker")
-            arg("-Dfml.coreMods.load", "com.github.may2beez.farmhelperv2.transformer.FMLCore")
-            arg("--tweakClass", "com.github.may2beez.farmhelperv2.transformer.Tweaker")
+            arg("-Dfml.coreMods.load", "com.jelly.farmhelperv2.transformer.FMLCore")
+            arg("--tweakClass", "com.jelly.farmhelperv2.transformer.Tweaker")
         }
     }
     forge {
@@ -62,7 +62,7 @@ repositories {
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
     maven("https://repo.polyfrost.cc/releases")
     maven("https://repo.essential.gg/repository/maven-public")
-    maven ("https://jitpack.io")
+    maven("https://jitpack.io")
 }
 
 val shadowImpl: Configuration by configurations.creating {
@@ -99,7 +99,7 @@ tasks.withType(JavaCompile::class) {
 tasks.withType(Jar::class) {
     archiveBaseName.set(modName)
     manifest.attributes.run {
-        this["FMLCorePlugin"] = "com.github.may2beez.farmhelperv2.transformer.FMLCore"
+        this["FMLCorePlugin"] = "com.jelly.farmhelperv2.transformer.FMLCore"
         this["FMLCorePluginContainsFMLMod"] = "true"
         this["ForceLoadAsMod"] = "true"
         this["TweakOrder"] = "0"
