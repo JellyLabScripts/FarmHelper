@@ -77,20 +77,20 @@ jobs:
         id: variables
         if: ${{ (steps.check_secrets.outputs.result == 'success') && (steps.get_version.outputs.shouldRelease == 'true') }}
         run: |
-          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ) >> $GITHUB_OUTPUT
-          LONG_DATE=$(date -u +"%A, %B %-d, %Y at %T") >> $GITHUB_OUTPUT
-          COMMIT_MESSAGE=${{ github.event.head_commit.message }} >> $GITHUB_OUTPUT
-          COMMIT_URL=${{ github.event.head_commit.url }} >> $GITHUB_OUTPUT
-          SHORT_COMMIT_SHA=${{ steps.short_sha.outputs.sha_short }} >> $GITHUB_OUTPUT
-          escaped_commit_message=$(echo "${COMMIT_MESSAGE}" | sed -z 's/\\n/\\n/g') >> $GITHUB_OUTPUT
-          VERSION=${{ steps.get_version.outputs.VERSION }} >> $GITHUB_OUTPUT
+          echo "TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" >> $GITHUB_OUTPUT
+          echo "LONG_DATE=$(date -u +"%A, %B %-d, %Y at %T")" >> $GITHUB_OUTPUT
+          echo "COMMIT_MESSAGE=${{ github.event.head_commit.message }}" >> $GITHUB_OUTPUT
+          echo "COMMIT_URL=${{ github.event.head_commit.url }}" >> $GITHUB_OUTPUT
+          echo "SHORT_COMMIT_SHA=${{ steps.short_sha.outputs.sha_short }}" >> $GITHUB_OUTPUT
+          echo "escaped_commit_message=$(echo "${COMMIT_MESSAGE}" | sed -z 's/\\n/\\n/g')" >> $GITHUB_OUTPUT
+          echo "VERSION=${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_OUTPUT
           if [[ $VERSION == *-pre ]]
           then
               TITLE="Pre-Release"
           else
               TITLE="Release"
           fi
-          TITLE=${TITLE} ${VERSION} >> $GITHUB_OUTPUT
+          echo "TITLE=${TITLE} ${VERSION}" >> $GITHUB_OUTPUT
 
         # Step 7: Send embed message with files
       - name: Send embed message with files
