@@ -71,7 +71,7 @@ public class PestsDestroyer implements IFeature {
     @Getter
     private Optional<Entity> currentEntityTarget = Optional.empty();
     @Getter
-    private int amountOfPests = 0;
+    private int totalPests = 0;
     private boolean enabled = false;
     private boolean preparing = false;
     @Setter
@@ -159,7 +159,7 @@ public class PestsDestroyer implements IFeature {
         pestsPlotMap.clear();
         preparing = false;
         enabled = false;
-        amountOfPests = 0;
+        totalPests = 0;
         lastFireworkTime = 0;
         rotationType = RotationType.NONE;
         state = States.IDLE;
@@ -180,7 +180,7 @@ public class PestsDestroyer implements IFeature {
         if (!GameStateHandler.getInstance().inGarden()) return false;
         if (!MacroHandler.getInstance().isMacroToggled()) return false;
         if (enabled || preparing) return false;
-        if (amountOfPests < FarmHelperConfig.startKillingPestsAt) return false;
+        if (totalPests < FarmHelperConfig.startKillingPestsAt) return false;
 
         return PlayerUtils.isStandingOnSpawnPoint() || PlayerUtils.isStandingOnRewarpLocation();
     }
@@ -323,7 +323,7 @@ public class PestsDestroyer implements IFeature {
                     return;
                 }
                 int pestsInMap = pestsPlotMap.values().stream().mapToInt(i -> i).sum();
-                if (pestsInMap < amountOfPests) {
+                if (pestsInMap == 0) {
                     state = States.OPEN_DESK;
                 } else {
                     state = States.TELEPORT_TO_PLOT;
@@ -644,11 +644,18 @@ public class PestsDestroyer implements IFeature {
                 }
                 break;
             case CHECK_ANOTHER_PEST:
-                LogUtils.sendDebug(amountOfPests + " pest" + (amountOfPests == 1 ? "" : "s") + " left");
-                if (amountOfPests == 0) {
+                // remove 1 from count because we send message before scoreboard update
+                LogUtils.sendDebug((totalPests-1) + " pest" + (totalPests == 2 ? "" : "s") + " left");
+                if (totalPests == 0) {
                     state = States.GO_BACK;
                 } else {
-                    state = States.TELEPORT_TO_PLOT;
+                    if (pestsPlotMap.isEmpty())
+                    {
+                        LogUtils.sendDebug("Manually searching for pest");
+                        state = States.GET_LOCATION;
+                    } else {
+                        state = States.TELEPORT_TO_PLOT;
+                    }
                 }
                 KeyBindUtils.stopMovement();
                 delayClock.schedule(1_500 + (long) (Math.random() * 1_000));
@@ -929,14 +936,14 @@ public class PestsDestroyer implements IFeature {
                 try {
                     String pests = split[split.length - 1].replace("x", "").trim();
                     int pestsAmount = Integer.parseInt(pests);
-                    if (pestsAmount != amountOfPests) {
-                        amountOfPests = pestsAmount;
-                        if (!isRunning() && amountOfPests >= FarmHelperConfig.startKillingPestsAt) {
+                    if (pestsAmount != totalPests) {
+                        totalPests = pestsAmount;
+                        if (!isRunning() && totalPests >= FarmHelperConfig.startKillingPestsAt) {
                             if (FarmHelperConfig.sendWebhookLogIfPestsDetectionNumberExceeded) {
-                                LogUtils.webhookLog("[Pests Destroyer]\\nThere " + (amountOfPests > 1 ? "are" : "is") + " currently **" + amountOfPests + "** " + (amountOfPests > 1 ? "pests" : "pest") + " in the garden!", FarmHelperConfig.pingEveryoneOnPestsDetectionNumberExceeded);
+                                LogUtils.webhookLog("[Pests Destroyer]\\nThere " + (totalPests > 1 ? "are" : "is") + " currently **" + totalPests + "** " + (totalPests > 1 ? "pests" : "pest") + " in the garden!", FarmHelperConfig.pingEveryoneOnPestsDetectionNumberExceeded);
                             }
                             if (FarmHelperConfig.sendNotificationIfPestsDetectionNumberExceeded) {
-                                FailsafeUtils.getInstance().sendNotification("There " + (amountOfPests > 1 ? "are" : "is") + " currently " + amountOfPests + " " + (amountOfPests > 1 ? "pests" : "pest") + " in the garden!", TrayIcon.MessageType.WARNING);
+                                FailsafeUtils.getInstance().sendNotification("There " + (totalPests > 1 ? "are" : "is") + " currently " + totalPests + " " + (totalPests > 1 ? "pests" : "pest") + " in the garden!", TrayIcon.MessageType.WARNING);
                             }
                         }
                     }
@@ -944,10 +951,10 @@ public class PestsDestroyer implements IFeature {
                     e.printStackTrace();
                 }
             } else if (line.contains("Garden") || line.contains("Plot")) {
-                amountOfPests = 0;
+                totalPests = 0;
             }
         }
-        if (amountOfPests == 0) {
+        if (totalPests == 0) {
             pestsPlotMap.clear();
         }
     }
@@ -1014,7 +1021,6 @@ public class PestsDestroyer implements IFeature {
                 } else if (StringUtils.stripControlCodes(slot.getStack().getDisplayName()).equals("The Barn"))
                     plotCounter++;
             }
-
             Slot slot = guiChest.inventorySlots.get(42); // last plot in gui
             if (slot != null && slot.getHasStack() && slot.getStack().getDisplayName().contains("Plot")) {
                 if (pestsPlotMap.isEmpty()) {
@@ -1032,8 +1038,8 @@ public class PestsDestroyer implements IFeature {
                 }
             }
         }
-        int pestsInMap = pestsPlotMap.values().stream().mapToInt(i -> i).sum();
-        if (pestsInMap < amountOfPests) return;
+        int foundPests = pestsPlotMap.values().stream().mapToInt(i -> i).sum();
+        if (foundPests == 0) return;
         for (Map.Entry<Integer, Integer> plot : pestsPlotMap.entrySet()) {
             if (plot.getValue() > 0) {
                 LogUtils.sendDebug("Found plot with pests: " + plot.getKey() + " with " + plot.getValue() + " pests");
@@ -1053,7 +1059,7 @@ public class PestsDestroyer implements IFeature {
     @SubscribeEvent
     public void onWorldUnload(WorldEvent.Unload event) {
         pestsPlotMap.clear();
-        amountOfPests = 0;
+        totalPests = 0;
     }
 
     enum States {
