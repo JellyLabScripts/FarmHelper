@@ -52,11 +52,17 @@ public class PlayerUtils {
             for (int x = -3; x < 3; x++) {
                 for (int y = -1; y < 5; y++) {
                     for (int z = -1; z < 3; z++) {
-                        BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, z,
-                                (MacroHandler.getInstance().getCurrentMacro().isPresent() ? MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().isPresent() ? MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().get() : AngleUtils.getClosest() : FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_MUSHROOM ||
-                                        FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_SUGAR_CANE ?
-                                        AngleUtils.getClosestDiagonal() - 45 :
-                                        AngleUtils.getClosest()));
+                        float yaw;
+                        if (MacroHandler.getInstance().getCurrentMacro().isPresent()) {
+                            yaw = MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().orElse(AngleUtils.getClosest());
+                        } else {
+                            if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_MUSHROOM || FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_SUGAR_CANE) {
+                                yaw = AngleUtils.getClosestDiagonal();
+                            } else {
+                                yaw = AngleUtils.getClosest();
+                            }
+                        }
+                        BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, z, yaw);
                         Block block = mc.theWorld.getBlockState(pos).getBlock();
                         if (!(block instanceof BlockCrops || block instanceof BlockReed || block instanceof BlockCocoa || block instanceof BlockNetherWart || block instanceof BlockMelon || block instanceof BlockPumpkin || block instanceof BlockMushroom || block instanceof BlockCactus))
                             continue;

@@ -228,7 +228,7 @@ public class BlockUtils {
             EnumFacing doorFacing = mc.theWorld.getBlockState(blockPos).getValue(BlockTrapDoor.FACING);
             boolean standingOnDoor = getRelativeBlockPos(0, 1, 0).equals(blockPos);
 
-            if (state.getValue(BlockTrapDoor.OPEN)) {
+            if (state.getValue(BlockTrapDoor.OPEN) && direction != null) {
                 return canWalkThroughDoorWithDirection(direction, playerFacing, doorFacing, standingOnDoor);
             } else {
                 return state.getValue(BlockTrapDoor.HALF) == BlockTrapDoor.DoorHalf.TOP;

@@ -92,11 +92,10 @@ public class DebugHUD extends TextHud {
             lines.add("   Consume Pot State: " + AutoGodPot.getInstance().getConsumePotState());
             lines.add("   Clock: " + AutoGodPot.getInstance().getDelayClock().getRemainingTime());
         }
-//        System.out.println(PestsDestroyer.getInstance().getPestsPlotMap().isEmpty());
         if (FarmHelperConfig.highlightPlotWithPests && !PestsDestroyer.getInstance().getPestsPlotMap().isEmpty()) {
             lines.add("Pests:");
-            for (Map.Entry<Integer, Integer> pest : PestsDestroyer.getInstance().getPestsPlotMap().entrySet()) {
-                lines.add("   Plot: " + pest.getKey() + " - " + pest.getValue());
+            for (Map.Entry<PestsDestroyer.Plot, Integer> pest : PestsDestroyer.getInstance().getPestsPlotMap().entrySet()) {
+                lines.add("   Plot: " + pest.getKey().name + " - " + pest.getValue());
             }
         }
         if (PestsDestroyer.getInstance().isRunning()) {

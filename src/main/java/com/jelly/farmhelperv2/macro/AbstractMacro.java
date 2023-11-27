@@ -110,6 +110,8 @@ public abstract class AbstractMacro {
                 return;
             }
 
+            KeyBindUtils.holdThese(mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindSneak : null);
+
             if (FarmHelperConfig.rotateAfterWarped) {
                 doAfterRewarpRotation();
             }
@@ -187,7 +189,7 @@ public abstract class AbstractMacro {
             changeState(savedState.get().getState());
             setYaw(savedState.get().getYaw());
             setPitch(savedState.get().getPitch());
-            setClosest90Deg(Optional.of(savedState.get().getClosest90Deg()));
+            setClosest90Deg(Optional.ofNullable(savedState.get().getClosest90Deg()));
             savedState = Optional.empty();
         } else if (currentState == State.NONE || currentState == null) {
             changeState(calculateDirection());
@@ -214,7 +216,7 @@ public abstract class AbstractMacro {
     public void saveState() {
         if (!savedState.isPresent()) {
             LogUtils.sendDebug("Saving state: " + currentState);
-            savedState = Optional.of(new SavedState(currentState, yaw, pitch, closest90Deg.get()));
+            savedState = Optional.of(new SavedState(currentState, yaw, pitch, closest90Deg.orElse(AngleUtils.getClosest())));
         }
     }
 
