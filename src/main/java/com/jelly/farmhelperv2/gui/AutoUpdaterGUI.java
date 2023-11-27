@@ -10,7 +10,7 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.util.MarkdownFormatter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
@@ -233,13 +233,14 @@ public class AutoUpdaterGUI extends GuiScreen {
                     (dir, name) -> name.toLowerCase().startsWith("farmhelper") && !name.toLowerCase().contains("jda") && !name.toLowerCase().contains(latestVersion));
             if (filesToDelete != null) {
                 for (File fileToDelete : filesToDelete) {
-                    try {
-                        if (!fileToDelete.delete()) {
-                            fileToDelete.deleteOnExit();
+                    if (SystemUtils.IS_OS_WINDOWS) {
+                        try {
+                            Runtime.getRuntime().exec("cmd /c ping 0 -n 2 && del \"" + fileToDelete.getAbsolutePath() + "\"");
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                        FileUtils.forceDelete(fileToDelete);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    } else {
+                        fileToDelete.deleteOnExit();
                     }
                 }
             }
