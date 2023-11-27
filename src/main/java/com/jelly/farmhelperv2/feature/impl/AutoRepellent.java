@@ -27,7 +27,7 @@ public class AutoRepellent implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
     private static AutoRepellent instance;
 
-    public static Clock repellentFailsafeClock = new Clock();
+    public final static Clock repellentFailsafeClock = new Clock();
     private final Pattern repellentRegex = Pattern.compile("(\\d+)m\\s(\\d+)s");
 
     private int savedSlot = 0;
@@ -211,12 +211,6 @@ public class AutoRepellent implements IFeature {
                 state = State.OPEN_SKYMART;
                 delay.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
-            case OPEN_SKYMART:
-                break;
-            case CLICK_REPELLENT:
-                break;
-            case CONFIRM_BUY:
-                break;
             case CLOSE_GUI:
                 if (mc.currentScreen != null) {
                     mc.thePlayer.closeScreen();
@@ -327,7 +321,11 @@ public class AutoRepellent implements IFeature {
                 KeyBindUtils.rightClick();
                 delay.schedule(300 + (long) (Math.random() * 300));
                 break;
+            case OPEN_SKYMART:
+            case CLICK_REPELLENT:
+            case CONFIRM_BUY:
             case WAIT_FOR_REPELLENT:
+            case END:
                 break;
         }
     }
