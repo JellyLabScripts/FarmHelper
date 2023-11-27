@@ -227,6 +227,26 @@ public class AutoUpdaterGUI extends GuiScreen {
         return 0;
     }
 
+    private static void deleteAndClose() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            File[] filesToDelete = new File(mc.mcDataDir + "/mods").listFiles(
+                    (dir, name) -> name.toLowerCase().startsWith("farmhelper") && !name.toLowerCase().contains("jda") && !name.toLowerCase().contains(latestVersion));
+            if (filesToDelete != null) {
+                for (File fileToDelete : filesToDelete) {
+                    try {
+                        if (!fileToDelete.delete()) {
+                            fileToDelete.deleteOnExit();
+                        }
+                        FileUtils.forceDelete(fileToDelete);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }, "FarmHelperV2-Delete-Old-Files"));
+        mc.shutdown();
+    }
+
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         drawBackgroundAndContent(mouseX, mouseY, partialTicks);
@@ -337,7 +357,7 @@ public class AutoUpdaterGUI extends GuiScreen {
                             displayGUI = 1;
                             downloadFileWithProgress(
                                     downloadURL,
-                                    new File(mc.mcDataDir + "/mods/FarmHelper-v" + latestVersion + ".jar")
+                                    new File(mc.mcDataDir + "/mods/FarmHelperV2-" + latestVersion + ".jar")
                             );
                             mc.addScheduledTask(() -> {
                                 downloadBtn.enabled = false;
@@ -361,25 +381,6 @@ public class AutoUpdaterGUI extends GuiScreen {
             }
         }
         scrollableList.actionPerformed(button);
-    }
-
-    private static void deleteAndClose() {
-        mc.addScheduledTask(() -> {
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                File[] filesToDelete = new File(mc.mcDataDir + "/mods").listFiles(
-                        (dir, name) -> name.toLowerCase().startsWith("farmhelper") && !name.toLowerCase().contains("jda"));
-                if (filesToDelete != null) {
-                    for (File fileToDelete : filesToDelete) {
-                        try {
-                            FileUtils.forceDelete(fileToDelete);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }));
-        });
-        mc.shutdown();
     }
 
     @Override
