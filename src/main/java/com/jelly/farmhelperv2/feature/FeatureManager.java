@@ -81,8 +81,26 @@ public class FeatureManager {
         return features.stream().anyMatch(feature -> feature.shouldPauseMacroExecution() && feature.isRunning() && !Arrays.asList(sender).contains(feature));
     }
 
-    public boolean shouldCheckForFailsafe() {
-        return features.stream().anyMatch(feature -> feature.shouldCheckForFailsafes() && feature.isRunning());
+    public boolean shouldIgnoreFalseCheck() {
+        if (AutoCookie.getInstance().isRunning() && !AutoCookie.getInstance().shouldCheckForFailsafes()) {
+            return true;
+        }
+        if (AutoGodPot.getInstance().isRunning() && !AutoGodPot.getInstance().shouldCheckForFailsafes()) {
+            return true;
+        }
+        if (LeaveTimer.getInstance().isRunning() && !LeaveTimer.getInstance().shouldCheckForFailsafes()) {
+            return true;
+        }
+        if (PestsDestroyer.getInstance().isRunning() && !PestsDestroyer.getInstance().shouldCheckForFailsafes()) {
+            return true;
+        }
+        if (PlotCleaningHelper.getInstance().isRunning() && !PlotCleaningHelper.getInstance().shouldCheckForFailsafes()) {
+            return true;
+        }
+        if (VisitorsMacro.getInstance().isRunning() && !VisitorsMacro.getInstance().shouldCheckForFailsafes()) {
+            return true;
+        }
+        return false;
     }
 
     public void enableAll() {

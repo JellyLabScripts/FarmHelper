@@ -44,7 +44,7 @@ public class SShapeSugarcaneMacro extends AbstractMacro {
                     if (FarmHelperConfig.rotateAfterDrop && !getRotation().isRotating()) {
                         LogUtils.sendDebug("Rotating 180");
                         getRotation().reset();
-                        setYaw(AngleUtils.getClosest(getYaw() + 180));
+                        setYaw(AngleUtils.getClosestDiagonal(getYaw() + 180));
                         setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
                         getRotation().easeTo(
                                 new RotationConfiguration(

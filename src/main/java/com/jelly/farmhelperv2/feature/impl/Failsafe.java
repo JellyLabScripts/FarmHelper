@@ -528,7 +528,8 @@ public class Failsafe implements IFeature {
             } else if (randomKey <= 0.70 && GameStateHandler.getInstance().isBackWalkable()) {
                 KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), true);
                 Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
-            } else {
+            }
+            if (randomKey > 0.7) {
                 KeyBindUtils.stopMovement();
                 if (FarmHelperConfig.tryToUseJumpingAndFlying) {
                     mc.thePlayer.jump();
@@ -1375,7 +1376,7 @@ public class Failsafe implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return true;
         if (!MacroHandler.getInstance().isMacroToggled()) return true;
         if (isEmergency()) return true;
-        return !FeatureManager.getInstance().shouldCheckForFailsafe();
+        return FeatureManager.getInstance().shouldIgnoreFalseCheck();
     }
 
     public void addEmergency(EmergencyType emergencyType) {

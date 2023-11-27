@@ -18,7 +18,7 @@ import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.*;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -220,7 +220,7 @@ public class VisitorsMacro implements IFeature {
             return false;
         }
 
-        if (GameStateHandler.getInstance().getCurrentPurse() < FarmHelperConfig.visitorsMacroMinMoney) {
+        if (GameStateHandler.getInstance().getCurrentPurse() < FarmHelperConfig.visitorsMacroMinMoney * 1_000) {
             LogUtils.sendError("[Visitors Macro] The player's purse is too low, skipping...");
             return false;
         }
@@ -410,6 +410,10 @@ public class VisitorsMacro implements IFeature {
                 previousDistanceToCheck = (int) distance;
                 break;
             case END:
+                if (!mc.thePlayer.onGround) {
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
+                    break;
+                }
                 if (FarmHelperConfig.visitorsMacroAutosellBeforeServing) {
                     setMainState(MainState.AUTO_SELL);
                 } else if (InventoryUtils.hasItemInHotbar("Compactor")) {
@@ -589,11 +593,6 @@ public class VisitorsMacro implements IFeature {
                 break;
             case GET_CLOSEST_VISITOR:
                 LogUtils.sendDebug("[Visitors Macro] Getting the closest visitor");
-                if (getNonToolItem() == -1) {
-                    LogUtils.sendError("[Visitors Macro] The player doesn't have any free slots in the hotbar, might get stuck...");
-                } else {
-                    mc.thePlayer.inventory.currentItem = getNonToolItem();
-                }
                 if (visitors.isEmpty()) {
                     LogUtils.sendWarning("[Visitors Macro] No visitors in queue...");
                     setVisitorsState(VisitorsState.END);
@@ -885,11 +884,6 @@ public class VisitorsMacro implements IFeature {
             case ROTATE_TO_VISITOR_2:
                 if (mc.currentScreen != null) return;
                 if (rotation.isRotating()) return;
-                if (getNonToolItem() == -1) {
-                    LogUtils.sendError("[Visitors Macro] The player doesn't have any free slots in the hotbar, might get stuck...");
-                } else {
-                    mc.thePlayer.inventory.currentItem = getNonToolItem();
-                }
                 if (mc.objectMouseOver != null && mc.objectMouseOver.entityHit != null) {
                     Entity entity = mc.objectMouseOver.entityHit;
                     assert currentVisitor.isPresent();
@@ -1257,63 +1251,6 @@ public class VisitorsMacro implements IFeature {
         buyState = state;
         LogUtils.sendDebug("[Visitors Macro] Buy state: " + state.name());
         stuckClock.schedule(STUCK_DELAY);
-    }
-
-    private float randomFloat(float from, float to) {
-        return from + (float) Math.random() * (to - from);
-    }
-
-    private int getNonToolItem() {
-        ArrayList<Integer> maxedTools = new ArrayList<>();
-        for (int i = 0; i < 8; i++) {
-            ItemStack itemStack = mc.thePlayer.inventory.mainInventory[i];
-            if (itemStack != null &&
-                    itemStack.getItem() != null) {
-                if (itemStack.getItem() instanceof ItemHoe) {
-                    ItemHoe itemHoe = (ItemHoe) itemStack.getItem();
-                    if (Objects.equals(itemHoe.getMaterialName(), Item.ToolMaterial.EMERALD.name())) {
-                        maxedTools.add(i);
-                    }
-                }
-                if (itemStack.getItem() instanceof ItemAxe) {
-                    String displayName = itemStack.getDisplayName();
-                    if (displayName.contains("Dicer 3.0") || displayName.contains("Coco Chopper")) {
-                        maxedTools.add(i);
-                    }
-                }
-            }
-        }
-
-        if (!maxedTools.isEmpty()) {
-            return maxedTools.get(0);
-        }
-
-        ArrayList<Integer> slotsWithoutItems = new ArrayList<>();
-        for (int i = 0; i < 8; i++) {
-            if (mc.thePlayer.inventory.mainInventory[i] == null || mc.thePlayer.inventory.mainInventory[i].getItem() == null) {
-                slotsWithoutItems.add(i);
-            }
-        }
-        if (!slotsWithoutItems.isEmpty()) {
-            return slotsWithoutItems.get(0);
-        }
-        for (int i = 0; i < 8; i++) {
-            ItemStack itemStack = mc.thePlayer.inventory.mainInventory[i];
-            if (itemStack != null &&
-                    itemStack.getItem() != null &&
-                    !(itemStack.getItem() instanceof ItemTool) &&
-                    !(itemStack.getItem() instanceof ItemSword) &&
-                    !(itemStack.getItem() instanceof ItemHoe) &&
-                    !(itemStack.getItem() instanceof ItemSpade) &&
-                    !itemStack.getDisplayName().contains("Compactor") &&
-                    !itemStack.getDisplayName().contains("Cropie") &&
-                    !itemStack.getDisplayName().contains("Squash") &&
-                    !itemStack.getDisplayName().contains("Fermento") &&
-                    !itemStack.getDisplayName().contains("Compost")) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     public boolean isInBarn() {

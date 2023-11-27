@@ -36,7 +36,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
         setYaw(AngleUtils.getClosestDiagonal());
         setClosest90Deg(Optional.of(AngleUtils.getClosest()));
         changeState(calculateDirection());
-        float additionalRotation = 0;
+        float additionalRotation;
         switch (getCurrentState()) {
             case LEFT:
                 additionalRotation = (float) (-ROTATION_DEGREE - (Math.random() * 2));
@@ -50,7 +50,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
         }
         getRotation().easeTo(
                 new RotationConfiguration(
-                        new Rotation((getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()) + additionalRotation, getPitch()),
+                        new Rotation((getClosest90Deg().orElse(AngleUtils.getClosest())) + additionalRotation, getPitch()),
                         FarmHelperConfig.getRandomRotationTime(),
                         null
                 )
@@ -67,7 +67,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
             if (getCurrentState() == State.RIGHT) {
                 getRotation().easeTo(
                         new RotationConfiguration(
-                                new Rotation((float) ((getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()) + (ROTATION_DEGREE + (Math.random() * 2))), getPitch()),
+                                new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + (ROTATION_DEGREE + (Math.random() * 2))), getPitch()),
                                 FarmHelperConfig.getRandomRotationTime(),
                                 null
                         )
@@ -75,7 +75,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
             } else if (getCurrentState() == State.LEFT) {
                 getRotation().easeTo(
                         new RotationConfiguration(
-                                new Rotation((float) ((getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()) - (ROTATION_DEGREE + (Math.random() * 2))), getPitch()),
+                                new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) - (ROTATION_DEGREE + (Math.random() * 2))), getPitch()),
                                 FarmHelperConfig.getRandomRotationTime(),
                                 null
                         )
@@ -92,8 +92,8 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
         switch (getCurrentState()) {
             case RIGHT:
             case LEFT:
-                Block blockLeft = BlockUtils.getBlock(getRelativeBlockPos(-1, 0, 0, (getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest())));
-                Block blockRight = BlockUtils.getBlock(getRelativeBlockPos(1, 0, 0, (getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest())));
+                Block blockLeft = BlockUtils.getBlock(getRelativeBlockPos(-1, 0, 0, getClosest90Deg().orElse(AngleUtils.getClosest())));
+                Block blockRight = BlockUtils.getBlock(getRelativeBlockPos(1, 0, 0, getClosest90Deg().orElse(AngleUtils.getClosest())));
                 if (blockLeft.equals(Blocks.melon_block) || blockLeft.equals(Blocks.pumpkin)) {
                     changeState(State.LEFT);
                 } else if (blockRight.equals(Blocks.melon_block) || blockRight.equals(Blocks.pumpkin)) {
@@ -115,7 +115,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                     changeState(State.SWITCHING_LANE);
                     getRotation().easeTo(
                             new RotationConfiguration(
-                                    new Rotation((getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()) + additionalRotation, getPitch()),
+                                    new Rotation(getClosest90Deg().orElse(AngleUtils.getClosest()) + additionalRotation, getPitch()),
                                     FarmHelperConfig.getRandomRotationTime(),
                                     null
                             )
@@ -137,7 +137,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                     changeState(State.SWITCHING_LANE);
                     getRotation().easeTo(
                             new RotationConfiguration(
-                                    new Rotation((getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()) + additionalRotation, getPitch()),
+                                    new Rotation(getClosest90Deg().orElse(AngleUtils.getClosest()) + additionalRotation, getPitch()),
                                     FarmHelperConfig.getRandomRotationTime(),
                                     null
                             )
@@ -167,7 +167,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                     setPitch(50 + (float) (Math.random() * 6 - 3)); // -3 - 3
                     getRotation().easeTo(
                             new RotationConfiguration(
-                                    new Rotation((float) ((getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()) + (ROTATION_DEGREE + (Math.random() * 2))), getPitch()),
+                                    new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + (ROTATION_DEGREE + (Math.random() * 2))), getPitch()),
                                     FarmHelperConfig.getRandomRotationTime(),
                                     null
                             )
@@ -178,7 +178,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                     setPitch(50 + (float) (Math.random() * 6 - 3)); // -3 - 3
                     getRotation().easeTo(
                             new RotationConfiguration(
-                                    new Rotation((float) ((getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()) - (ROTATION_DEGREE + (Math.random() * 2))), getPitch()),
+                                    new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) - (ROTATION_DEGREE + (Math.random() * 2))), getPitch()),
                                     FarmHelperConfig.getRandomRotationTime(),
                                     null
                             )
@@ -299,10 +299,10 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
             if (blockLeft.equals(Blocks.pumpkin) || blockLeft.equals(Blocks.melon_block)) {
                 return State.LEFT;
             }
-            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(i, 0, 0, (getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest())))) {
+            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(i, 0, 0, getClosest90Deg().orElse(AngleUtils.getClosest())))) {
                 return State.LEFT;
             }
-            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(-i, 0, 0, (getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest())))) {
+            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(-i, 0, 0, getClosest90Deg().orElse(AngleUtils.getClosest())))) {
                 return State.RIGHT;
             }
         }

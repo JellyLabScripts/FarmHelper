@@ -10,7 +10,7 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.util.MarkdownFormatter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
@@ -227,6 +227,27 @@ public class AutoUpdaterGUI extends GuiScreen {
         return 0;
     }
 
+    private static void deleteAndClose() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            File[] filesToDelete = new File(mc.mcDataDir + "/mods").listFiles(
+                    (dir, name) -> name.toLowerCase().startsWith("farmhelper") && !name.toLowerCase().contains("jda") && !name.toLowerCase().contains(latestVersion));
+            if (filesToDelete != null) {
+                for (File fileToDelete : filesToDelete) {
+                    if (SystemUtils.IS_OS_WINDOWS) {
+                        try {
+                            Runtime.getRuntime().exec("cmd /c ping 0 -n 2 && del \"" + fileToDelete.getAbsolutePath() + "\"");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        fileToDelete.deleteOnExit();
+                    }
+                }
+            }
+        }, "FarmHelperV2-Delete-Old-Files"));
+        mc.shutdown();
+    }
+
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         drawBackgroundAndContent(mouseX, mouseY, partialTicks);
@@ -337,7 +358,7 @@ public class AutoUpdaterGUI extends GuiScreen {
                             displayGUI = 1;
                             downloadFileWithProgress(
                                     downloadURL,
-                                    new File(mc.mcDataDir + "/mods/FarmHelper-v" + latestVersion + ".jar")
+                                    new File(mc.mcDataDir + "/mods/FarmHelperV2-" + latestVersion + ".jar")
                             );
                             mc.addScheduledTask(() -> {
                                 downloadBtn.enabled = false;
@@ -361,25 +382,6 @@ public class AutoUpdaterGUI extends GuiScreen {
             }
         }
         scrollableList.actionPerformed(button);
-    }
-
-    private static void deleteAndClose() {
-        mc.addScheduledTask(() -> {
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                File[] filesToDelete = new File(mc.mcDataDir + "/mods").listFiles(
-                        (dir, name) -> name.toLowerCase().startsWith("farmhelper") && !name.toLowerCase().contains("jda"));
-                if (filesToDelete != null) {
-                    for (File fileToDelete : filesToDelete) {
-                        try {
-                            FileUtils.forceDelete(fileToDelete);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }));
-        });
-        mc.shutdown();
     }
 
     @Override

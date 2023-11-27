@@ -29,7 +29,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
         super.onEnable();
         getRotation().easeTo(
                 new RotationConfiguration(
-                        new Rotation((float) ((getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()) + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch()),
+                        new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch()),
                         (long) (400 + Math.random() * 300), null
                 )
         );
@@ -56,7 +56,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                     changeState(State.RIGHT);
                     getRotation().easeTo(
                             new RotationConfiguration(
-                                    new Rotation((float) ((getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()) + 30 + (Math.random() * 4 - 2)), getPitch()),
+                                    new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + 30 + (Math.random() * 4 - 2)), getPitch()),
                                     (long) (400 + Math.random() * 300), null
                             )
                     );
@@ -64,7 +64,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                     changeState(State.LEFT);
                     getRotation().easeTo(
                             new RotationConfiguration(
-                                    new Rotation((float) ((getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()) - 30 + (Math.random() * 4 - 2)), getPitch()),
+                                    new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) - 30 + (Math.random() * 4 - 2)), getPitch()),
                                     (long) (400 + Math.random() * 300), null
                             )
                     );
@@ -80,7 +80,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                     changeState(State.LEFT);
                     getRotation().easeTo(
                             new RotationConfiguration(
-                                    new Rotation((float) ((getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()) - 30 + (Math.random() * 4 - 2)), getPitch()),
+                                    new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) - 30 + (Math.random() * 4 - 2)), getPitch()),
                                     (long) (400 + Math.random() * 300), null
                             )
                     );
@@ -88,7 +88,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                     changeState(State.RIGHT);
                     getRotation().easeTo(
                             new RotationConfiguration(
-                                    new Rotation((float) ((getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()) + 30 + (Math.random() * 4 - 2)), getPitch()),
+                                    new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + 30 + (Math.random() * 4 - 2)), getPitch()),
                                     (long) (400 + Math.random() * 300), null
                             )
                     );
@@ -109,7 +109,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                         setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
                         getRotation().easeTo(
                                 new RotationConfiguration(
-                                        new Rotation((float) ((getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()) + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch()),
+                                        new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch()),
                                         (long) (400 + Math.random() * 300),
                                         null
                                 )
@@ -129,7 +129,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                     case LEFT:
                         getRotation().easeTo(
                                 new RotationConfiguration(
-                                        new Rotation((float) ((getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()) - 30 + (Math.random() * 4 - 2)), getPitch()),
+                                        new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) - 30 + (Math.random() * 4 - 2)), getPitch()),
                                         (long) (400 + Math.random() * 300), null
                                 )
                         );
@@ -137,7 +137,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                     case RIGHT:
                         getRotation().easeTo(
                                 new RotationConfiguration(
-                                        new Rotation((float) ((getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()) + 30 + (Math.random() * 4 - 2)), getPitch()),
+                                        new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + 30 + (Math.random() * 4 - 2)), getPitch()),
                                         (long) (400 + Math.random() * 300), null
                                 )
                         );
@@ -186,10 +186,10 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
         }
 
         for (int i = 1; i < 180; i++) {
-            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(i, 0, 0, (getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest())))) {
+            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(i, 0, 0, getClosest90Deg().orElse(AngleUtils.getClosest())))) {
                 return State.LEFT;
             }
-            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(-i, 0, 0, (getClosest90Deg().isPresent() ? getClosest90Deg().get() : AngleUtils.getClosest()))))
+            if (!BlockUtils.canWalkThrough(getRelativeBlockPos(-i, 0, 0, getClosest90Deg().orElse(AngleUtils.getClosest()))))
                 return State.RIGHT;
         }
         LogUtils.sendDebug("No direction found");
