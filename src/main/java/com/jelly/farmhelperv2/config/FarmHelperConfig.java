@@ -277,6 +277,14 @@ public class FarmHelperConfig extends Config {
             right = "Pest Repellent MAX"
     )
     public static boolean pestRepellentType = true;
+    @Button(
+            name = "Reset Failsafe", category = MISCELLANEOUS, subcategory = "Pest Repellent",
+            text = "Click Here",
+            description = "Resets the failsafe timer for repellent"
+    )
+    Runnable resetFailsafe = () -> {
+        AutoRepellent.repellentFailsafeClock.schedule(0);
+    };
     @Switch(
             name = "Swap pet during Jacob's contest", category = MISCELLANEOUS, subcategory = "Pet Swapper",
             description = "Swaps pet to the selected pet during Jacob's contest. Selects the first one from the pet list."

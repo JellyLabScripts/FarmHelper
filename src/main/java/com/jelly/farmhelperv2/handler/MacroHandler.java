@@ -230,6 +230,7 @@ public class MacroHandler {
         currentMacro.ifPresent(cm -> {
             if (!cm.isPaused()) return;
             cm.onEnable();
+            PlayerUtils.getTool();
             macroingTimer.resume();
             analyticsTimer.resume();
             Scheduler.getInstance().resume();

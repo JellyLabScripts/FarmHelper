@@ -1,6 +1,7 @@
 package com.jelly.farmhelperv2.handler;
 
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.feature.impl.AutoRepellent;
 import com.jelly.farmhelperv2.feature.impl.Failsafe;
 import com.jelly.farmhelperv2.mixin.gui.IGuiPlayerTabOverlayAccessor;
 import com.jelly.farmhelperv2.util.*;
@@ -243,7 +244,7 @@ public class GameStateHandler {
 
         cookieBuffState = foundCookieBuff ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
         godPotState = foundGodPotBuff ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
-        pestRepellentState = foundPestRepellent ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
+        pestRepellentState = foundPestRepellent ? BuffState.ACTIVE : (!AutoRepellent.repellentFailsafeClock.passed() ? BuffState.FAILSAFE : BuffState.NOT_ACTIVE);
     }
 
     @SubscribeEvent
@@ -414,6 +415,7 @@ public class GameStateHandler {
 
     public enum BuffState {
         ACTIVE,
+        FAILSAFE,
         NOT_ACTIVE,
         UNKNOWN
     }
