@@ -106,5 +106,15 @@ public class DebugHUD extends TextHud {
             lines.add("   Stuck clock: " + PestsDestroyer.getInstance().getStuckClock().getRemainingTime());
             PestsDestroyer.getInstance().getCurrentEntityTarget().ifPresent(target -> lines.add("   Current Entity Target: " + target.getPositionVector()));
         }
+        if (AutoSprayonator.getInstance().isToggled()) {
+            lines.add("Auto Sprayonator");
+            lines.add("   State: " + AutoSprayonator.getInstance().getSprayState());
+            lines.add("   Item: " + AutoSprayonator.getInstance().getSprayItem());
+            lines.add("   Clock: " + AutoSprayonator.getInstance().getSprayonatorDelay().getRemainingTime());
+            lines.add("   Check Plot State: " + AutoSprayonator.getInstance().getCheckPlotState());
+            lines.add("   Skymart State: " + AutoSprayonator.getInstance().getSkymartPurchaseState());
+            lines.add("   Bazaar State: " + AutoSprayonator.getInstance().getBazaarPurchaseState());
+            lines.add("   GUI State: " + AutoSprayonator.getInstance().getCurrentGuiState());
+        }
     }
 }
