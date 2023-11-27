@@ -42,7 +42,9 @@ public class DebugHUD extends TextHud {
         lines.add("Buffs");
         lines.add("   Cookie: " + GameStateHandler.getInstance().getCookieBuffState());
         lines.add("   God Pot: " + GameStateHandler.getInstance().getGodPotState());
-        lines.add("   Repellent: " + GameStateHandler.getInstance().getPestRepellentState());
+        final boolean isRepellentFailsafe = GameStateHandler.getInstance().getPestRepellentState() == GameStateHandler.BuffState.FAILSAFE;
+        lines.add("   Repellent: " + GameStateHandler.getInstance().getPestRepellentState() +
+                (isRepellentFailsafe ? "" : AutoRepellent.repellentFailsafeClock.passed() ? "" : " & FAILSAFE"));
         if (AutoCookie.getInstance().isRunning()) {
             lines.add("AutoCookie");
             lines.add("   Main State: " + AutoCookie.getInstance().getMainState());
