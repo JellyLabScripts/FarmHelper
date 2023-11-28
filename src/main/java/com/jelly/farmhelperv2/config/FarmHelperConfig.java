@@ -1408,6 +1408,29 @@ public class FarmHelperConfig extends Config {
         return (long) (plotCleaningHelperRotationTime + (float) Math.random() * plotCleaningHelperRotationTimeRandomness);
     }
 
+    @Slider(
+            name = "Flight Path Finder Speed Acceleration Distance", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "The minimum distance from the block at which the flight path finder accelerates",
+            min = 0.1f, max = 1.5f
+    )
+    public static float flightSpeedAccelerationDistance = 0.6f;
+
+    @Slider(
+            name = "Flight Path Finder Speed Deceleration Distance", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "The minimum distance from the block at which the flight path finder decelerates",
+            min = 0.01f, max = 0.7f
+    )
+    public static float flightSpeedDecelerationDistance = 0.5f;
+
+    @Slider(
+            name = "Flight Path Finder Speed Deceleration Threshold", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "The minimum flight speed after which flight path finder would decelerate",
+            min = 0.01f, max = 0.5f
+    )
+    public static float flightSpeedDecelerationThreshold = 0.2f;
+
+    // END EXPERIMENTAL
+
     // END EXPERIMENTAL
 
     public static long getRandomRewarpDelay() {
