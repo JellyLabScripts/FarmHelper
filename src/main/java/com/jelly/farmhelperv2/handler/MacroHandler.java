@@ -115,6 +115,10 @@ public class MacroHandler {
                 VisitorsMacro.getInstance().stop();
                 return;
             }
+            if (PestsDestroyer.getInstance().isRunning()) {
+                PestsDestroyer.getInstance().stop();
+                return;
+            }
             if (VisitorsMacro.getInstance().isInBarn()) {
                 if (VisitorsMacro.getInstance().isToggled()) {
                     VisitorsMacro.getInstance().setManuallyStarted(true);
@@ -238,6 +242,19 @@ public class MacroHandler {
                 System.out.println("Regrabbing mouse");
                 UngrabMouse.getInstance().regrabMouse();
                 UngrabMouse.getInstance().ungrabMouse();
+            } else {
+                boolean hadFocus = mc.inGameHasFocus;
+                LogUtils.sendDebug("Had focus: " + hadFocus);
+                if (!hadFocus) {
+                    System.out.println("Focus");
+                    mc.inGameHasFocus = true;
+                    mc.mouseHelper.grabMouseCursor();
+                    Multithreading.schedule(() -> {
+                        System.out.println("Unfocus");
+                        mc.inGameHasFocus = false;
+                        mc.mouseHelper.ungrabMouseCursor();
+                    }, 150, TimeUnit.MILLISECONDS);
+                }
             }
         });
     }

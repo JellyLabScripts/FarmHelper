@@ -499,6 +499,7 @@ public class BanInfoWS implements IFeature {
         JsonObject extraData = new JsonObject();
         JsonObject farmHelper = new JsonObject();
         farmHelper.addProperty("macroEnabled", MacroHandler.getInstance().isMacroToggled());
+        farmHelper.addProperty("pestsDestroyerEnabled", FarmHelperConfig.enablePestsDestroyer);
         extraData.add("farmHelper", farmHelper);
         obj.add("extraData", extraData);
     }

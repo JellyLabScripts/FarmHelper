@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.macro;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.feature.FeatureManager;
@@ -19,6 +20,7 @@ import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("ALL")
 @Getter
@@ -91,7 +93,8 @@ public abstract class AbstractMacro {
         }
 
         if (getRotation().isRotating()) {
-            KeyBindUtils.stopMovement();
+            if (!mc.gameSettings.keyBindSneak.isKeyDown())
+                KeyBindUtils.stopMovement();
             GameStateHandler.getInstance().scheduleNotMoving();
             return;
         }
@@ -105,12 +108,11 @@ public abstract class AbstractMacro {
             if (rotated && !LagDetector.getInstance().isLagging() && mc.thePlayer.onGround) {
                 LogUtils.sendDebug("Rotated after warping.");
                 rewarpState = RewarpState.NONE;
+                rewarpDelay.schedule(FarmHelperConfig.getRandomTimeBetweenChangingRows());
                 return;
             } else if (rotated && (LagDetector.getInstance().isLagging() || !mc.thePlayer.onGround)) {
                 return;
             }
-
-            KeyBindUtils.holdThese(mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindSneak : null);
 
             if (FarmHelperConfig.rotateAfterWarped) {
                 doAfterRewarpRotation();
@@ -132,7 +134,6 @@ public abstract class AbstractMacro {
             rotated = true;
             LogUtils.sendDebug("Rotating");
             setLayerY(mc.thePlayer.getPosition().getY());
-            rewarpDelay.schedule(FarmHelperConfig.getRandomTimeBetweenChangingRows());
             return;
         } else if (rewarpState == RewarpState.TELEPORTING) {
             // teleporting
@@ -241,8 +242,11 @@ public abstract class AbstractMacro {
             rewarpState = RewarpState.TELEPORTED;
             rotated = false;
             GameStateHandler.getInstance().scheduleNotMoving(750);
-            rewarpDelay.schedule(1_250);
-            KeyBindUtils.holdThese(mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindSneak : null);
+            if (!mc.thePlayer.onGround && !mc.gameSettings.keyBindSneak.isKeyDown()) {
+                KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
+                Multithreading.schedule(() -> KeyBindUtils.stopMovement(), (long) (450 + Math.random() * 600), TimeUnit.MILLISECONDS);
+            }
+            rewarpDelay.schedule(FarmHelperConfig.getRandomTimeBetweenChangingRows());
             if (!PlayerUtils.isSpawnLocationSet() || (mc.thePlayer.getPositionVector().distanceTo(PlayerUtils.getSpawnLocation()) > 1)) {
                 PlayerUtils.setSpawnLocation();
             }
@@ -252,7 +256,7 @@ public abstract class AbstractMacro {
                 rotated = true;
                 return;
             }
-            if (VisitorsMacro.getInstance().isToggled() && VisitorsMacro.getInstance().canEnableMacro(false)) {
+            if (VisitorsMacro.getInstance().isToggled() && VisitorsMacro.getInstance().canEnableMacro(false, false)) {
                 VisitorsMacro.getInstance().start();
                 rotated = true;
             }
@@ -270,6 +274,10 @@ public abstract class AbstractMacro {
             KeyBindUtils.stopMovement();
         }
         if (force || GameStateHandler.getInstance().canRewarp() && !beforeTeleportationPos.isPresent()) {
+            if (force) {
+                yaw = -2137;
+                pitch = -2137;
+            }
             rewarpState = RewarpState.TELEPORTING;
             LogUtils.sendDebug("Warping to spawn point");
             mc.thePlayer.sendChatMessage("/warp garden");

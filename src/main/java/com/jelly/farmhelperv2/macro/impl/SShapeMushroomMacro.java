@@ -30,7 +30,7 @@ public class SShapeMushroomMacro extends AbstractMacro {
             setYaw(AngleUtils.getClosestDiagonal());
         }
         setClosest90Deg(Optional.of(AngleUtils.getClosest()));
-
+        if (MacroHandler.getInstance().isTeleporting()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),

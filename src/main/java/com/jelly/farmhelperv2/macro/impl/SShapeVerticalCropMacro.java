@@ -190,6 +190,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
         }
         getRotation().reset();
         super.onEnable();
+        if (MacroHandler.getInstance().isTeleporting()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),

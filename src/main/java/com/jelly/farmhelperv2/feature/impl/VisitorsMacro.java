@@ -105,7 +105,7 @@ public class VisitorsMacro implements IFeature {
 
     @Override
     public void start() {
-        if (!canEnableMacro(manuallyStarted) && !forceStart) {
+        if (!canEnableMacro(manuallyStarted, true) && !forceStart) {
             setManuallyStarted(false);
             return;
         }
@@ -199,34 +199,35 @@ public class VisitorsMacro implements IFeature {
         return travelState != TravelState.ROTATE_TO_DESK && mainState != MainState.DISABLING && mainState != MainState.END;
     }
 
-    public boolean canEnableMacro(boolean manual) {
+    public boolean canEnableMacro(boolean manual, boolean withError) {
         if (!isToggled()) return false;
         if (!GameStateHandler.getInstance().inGarden()) return false;
         if (mc.thePlayer == null || mc.theWorld == null) return false;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return false;
 
         if (!manual && !forceStart && (!PlayerUtils.isSpawnLocationSet() || !PlayerUtils.isStandingOnSpawnPoint())) {
-            LogUtils.sendError("[Visitors Macro] The player is not standing on spawn location, skipping...");
+            if (withError)
+                LogUtils.sendError("[Visitors Macro] The player is not standing on spawn location, skipping...");
             return false;
         }
 
         if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
-            LogUtils.sendError("[Visitors Macro] Cookie buff is not active, skipping...");
+            if (withError) LogUtils.sendError("[Visitors Macro] Cookie buff is not active, skipping...");
             return false;
         }
 
         if (FarmHelperConfig.pauseVisitorsMacroDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) {
-            LogUtils.sendError("[Visitors Macro] Jacob's contest is active, skipping...");
+            if (withError) LogUtils.sendError("[Visitors Macro] Jacob's contest is active, skipping...");
             return false;
         }
 
         if (GameStateHandler.getInstance().getCurrentPurse() < FarmHelperConfig.visitorsMacroMinMoney * 1_000) {
-            LogUtils.sendError("[Visitors Macro] The player's purse is too low, skipping...");
+            if (withError) LogUtils.sendError("[Visitors Macro] The player's purse is too low, skipping...");
             return false;
         }
 
         if (!manual && visitors.size() < FarmHelperConfig.visitorsMacroMinVisitors) {
-            LogUtils.sendError("[Visitors Macro] Not enough Visitors in queue, skipping...");
+            if (withError) LogUtils.sendError("[Visitors Macro] Not enough Visitors in queue, skipping...");
             return false;
         }
 
@@ -593,6 +594,9 @@ public class VisitorsMacro implements IFeature {
                 break;
             case GET_CLOSEST_VISITOR:
                 LogUtils.sendDebug("[Visitors Macro] Getting the closest visitor");
+                if (PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false) != -1) {
+                    mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
+                }
                 if (visitors.isEmpty()) {
                     LogUtils.sendWarning("[Visitors Macro] No visitors in queue...");
                     setVisitorsState(VisitorsState.END);
@@ -884,6 +888,9 @@ public class VisitorsMacro implements IFeature {
             case ROTATE_TO_VISITOR_2:
                 if (mc.currentScreen != null) return;
                 if (rotation.isRotating()) return;
+                if (PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false) != -1) {
+                    mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
+                }
                 if (mc.objectMouseOver != null && mc.objectMouseOver.entityHit != null) {
                     Entity entity = mc.objectMouseOver.entityHit;
                     assert currentVisitor.isPresent();

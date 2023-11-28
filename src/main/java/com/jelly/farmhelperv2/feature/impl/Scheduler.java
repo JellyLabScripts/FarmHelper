@@ -112,6 +112,7 @@ public class Scheduler implements IFeature {
     }
 
     public void farmingTime() {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
         if (mc.currentScreen != null) {
             mc.thePlayer.closeScreen();
         }

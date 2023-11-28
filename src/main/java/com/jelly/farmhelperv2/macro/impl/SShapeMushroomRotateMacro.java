@@ -27,6 +27,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
         setClosest90Deg(Optional.of(AngleUtils.getClosest()));
 
         super.onEnable();
+        if (MacroHandler.getInstance().isTeleporting()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch()),

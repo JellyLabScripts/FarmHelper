@@ -48,6 +48,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                 additionalRotation = (float) (Math.random() * 2 - 1);
                 break;
         }
+        if (MacroHandler.getInstance().isTeleporting()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation((getClosest90Deg().orElse(AngleUtils.getClosest())) + additionalRotation, getPitch()),

@@ -90,6 +90,9 @@ public class Failsafe implements IFeature {
     private boolean shouldCheckIfRecordingShouldBePlayed = true;
     private boolean recordingFile = false;
     private boolean recordingFile2 = false;
+    private boolean sendingFailsafeInfo = false;
+
+    // region BANWAVE
 
     public static Failsafe getInstance() {
         if (instance == null) {
@@ -97,8 +100,6 @@ public class Failsafe implements IFeature {
         }
         return instance;
     }
-
-    // region BANWAVE
 
     private static String getRandomMessage(String[] messages) {
         if (messages.length > 1) {
@@ -108,14 +109,14 @@ public class Failsafe implements IFeature {
         }
     }
 
+    // endregion
+
+    // region ROTATION and TELEPORT
+
     @Override
     public String getName() {
         return "Failsafe";
     }
-
-    // endregion
-
-    // region ROTATION and TELEPORT
 
     @Override
     public boolean isRunning() {
@@ -167,14 +168,14 @@ public class Failsafe implements IFeature {
         return true;
     }
 
+    // endregion
+
+    // region DIRT check
+
     @Override
     public boolean shouldCheckForFailsafes() {
         return !isEmergency();
     }
-
-    // endregion
-
-    // region DIRT check
 
     public boolean isEmergency() {
         return emergency != EmergencyType.NONE;
@@ -195,28 +196,11 @@ public class Failsafe implements IFeature {
         }
         emergency = tempEmergency;
 
-        if (FarmHelperConfig.enableFailsafeSound && shouldPlaySoundAlert(emergency)) {
-            AudioManager.getInstance().playSound();
-        }
-
-        if (FarmHelperConfig.autoAltTab && shouldAltTab(emergency)) {
-            FailsafeUtils.bringWindowToFront();
-        }
-        Multithreading.schedule(() -> {
-            if (FarmHelperConfig.autoAltTab && shouldAltTab(emergency) && !Display.isActive()) {
-                FailsafeUtils.bringWindowToFrontUsingRobot();
-                System.out.println("Bringing window to front using Robot because Winapi failed as usual.");
-            }
-        }, 750, TimeUnit.MILLISECONDS);
-
         emergencyQueue.clear();
         chooseEmergencyDelay.reset();
         hadEmergency = true;
         LogUtils.sendDebug("[Failsafe] Emergency chosen: " + StringUtils.stripControlCodes(emergency.name()));
-        LogUtils.sendFailsafeMessage(emergency.label, shouldTagEveryone(emergency));
         FeatureManager.getInstance().disableCurrentlyRunning(this);
-        if (shouldNotify(emergency))
-            FailsafeUtils.getInstance().sendNotification(StringUtils.stripControlCodes(emergency.label), TrayIcon.MessageType.WARNING);
         if (!Scheduler.getInstance().isFarming()) {
             Scheduler.getInstance().farmingTime();
         }
@@ -354,12 +338,12 @@ public class Failsafe implements IFeature {
             // Teleport Check
 
             double distance = currentPlayerPos.distanceTo(packetPlayerPos);
-            if (packet.getY() >= 80) {
+            if (packet.getY() >= 80 || BlockUtils.bedrockCount() > 2) {
                 LogUtils.sendDebug("[Failsafe] Most likely a bedrock check! Will check in a moment to be sure.");
                 return;
             }
 
-            if (distance >= FarmHelperConfig.teleportCheckSensitivity) {
+            if (distance >= FarmHelperConfig.teleportCheckSensitivity || (MacroHandler.getInstance().getCurrentMacro().isPresent() && Math.abs(packet.getY()) - Math.abs(MacroHandler.getInstance().getCurrentMacro().get().getLayerY()) > 0.8)) {
                 LogUtils.sendDebug("[Failsafe] Teleport detected! Distance: " + distance);
                 addEmergency(EmergencyType.TELEPORT_CHECK);
                 return;
@@ -494,6 +478,10 @@ public class Failsafe implements IFeature {
         }
     }
 
+    // endregion
+
+    // region EVACUATE
+
     private void randomMoveAndRotate() {
         long rotationTime = FarmHelperConfig.getRandomRotationTime();
         this.rotation.easeTo(
@@ -543,10 +531,6 @@ public class Failsafe implements IFeature {
             }
         }
     }
-
-    // endregion
-
-    // region EVACUATE
 
     private float randomValueBetweenExt(float min, float max, float minFromZero) {
         double random = Math.random();
@@ -711,14 +695,14 @@ public class Failsafe implements IFeature {
         return !dirtBlocks.isEmpty();
     }
 
+    // endregion
+
+    // region ITEM CHANGE
+
     private void resetDirtCheck() {
         dirtBlocks.clear();
         dirtCheckState = DirtCheckState.NONE;
     }
-
-    // endregion
-
-    // region ITEM CHANGE
 
     @SubscribeEvent
     public void onChatReceived(ClientChatReceivedEvent event) {
@@ -801,13 +785,13 @@ public class Failsafe implements IFeature {
         }
     }
 
-    private void resetEvacuateCheck() {
-        evacuateState = EvacuateState.NONE;
-    }
-
     // endregion
 
     // region WORLD CHANGE
+
+    private void resetEvacuateCheck() {
+        evacuateState = EvacuateState.NONE;
+    }
 
     @SubscribeEvent
     public void onPacketReceive(ReceivePacketEvent event) {
@@ -907,6 +891,10 @@ public class Failsafe implements IFeature {
         }
     }
 
+    // endregion
+
+    // region BEDROCK CAGE
+
     private void onWorldChange() {
         if (!FarmHelperConfig.autoTPOnWorldChange) {
             LogUtils.sendDebug("[Failsafe] Auto TP on world change is disabled! Disabling macro and disconnecting...");
@@ -980,10 +968,6 @@ public class Failsafe implements IFeature {
                 break;
         }
     }
-
-    // endregion
-
-    // region BEDROCK CAGE
 
     private void resetWorldChangeCheck() {
         worldChangeState = WorldChangeState.NONE;
@@ -1099,6 +1083,10 @@ public class Failsafe implements IFeature {
         bedrockCageState = BedrockCageState.NONE;
     }
 
+    // endregion
+
+    // region DISCONNECT
+
     @SubscribeEvent
     public void onDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         if (firstCheckReturn()) return;
@@ -1109,10 +1097,6 @@ public class Failsafe implements IFeature {
 
         addEmergency(EmergencyType.DISCONNECT);
     }
-
-    // endregion
-
-    // region DISCONNECT
 
     private void onDisconnect() {
         if (!AutoReconnect.getInstance().isRunning() && AutoReconnect.getInstance().isToggled()) {
@@ -1132,6 +1116,10 @@ public class Failsafe implements IFeature {
         }
     }
 
+    // endregion
+
+    // region CUSTOM_MOVEMENT
+
     public boolean shouldPlayRecording(EmergencyType emergency) {
         switch (emergency) {
             case TEST:
@@ -1146,10 +1134,6 @@ public class Failsafe implements IFeature {
         }
         return false;
     }
-
-    // endregion
-
-    // region CUSTOM_MOVEMENT
 
     private boolean movementFilesExist(String emergencyName) {
         File recordingDir = new File(mc.mcDataDir, "movementrecorder");
@@ -1388,6 +1372,36 @@ public class Failsafe implements IFeature {
             chooseEmergencyDelay.schedule(FarmHelperConfig.failsafeStopDelay + (long) (Math.random() * 500));
         LogUtils.sendDebug("[Failsafe] Emergency added: " + emergencyType.name());
         LogUtils.sendWarning("[Failsafe] Probability of emergency: " + LogUtils.capitalize(emergencyType.name()));
+        if (!sendingFailsafeInfo) {
+            sendingFailsafeInfo = true;
+            Multithreading.schedule(() -> {
+                EmergencyType tempEmergency = getHighestPriorityEmergency();
+                if (tempEmergency == EmergencyType.NONE) {
+                    // Should never happen, but yeh...
+                    LogUtils.sendDebug("[Failsafe] No emergency chosen!");
+                    stop();
+                    return;
+                }
+
+                if (FarmHelperConfig.enableFailsafeSound && shouldPlaySoundAlert(tempEmergency)) {
+                    AudioManager.getInstance().playSound();
+                }
+
+                if (FarmHelperConfig.autoAltTab && shouldAltTab(tempEmergency)) {
+                    FailsafeUtils.bringWindowToFront();
+                }
+                Multithreading.schedule(() -> {
+                    if (FarmHelperConfig.autoAltTab && shouldAltTab(tempEmergency) && !Display.isActive()) {
+                        FailsafeUtils.bringWindowToFrontUsingRobot();
+                        System.out.println("Bringing window to front using Robot because Winapi failed as usual.");
+                    }
+                }, 750, TimeUnit.MILLISECONDS);
+
+                LogUtils.sendFailsafeMessage(tempEmergency.label, shouldTagEveryone(tempEmergency));
+                if (shouldNotify(tempEmergency))
+                    FailsafeUtils.getInstance().sendNotification(StringUtils.stripControlCodes(tempEmergency.label), TrayIcon.MessageType.WARNING);
+            }, 800, TimeUnit.MILLISECONDS);
+        }
     }
 
     private EmergencyType getHighestPriorityEmergency() {

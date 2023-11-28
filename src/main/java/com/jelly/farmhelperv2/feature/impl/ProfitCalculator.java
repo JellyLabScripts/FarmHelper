@@ -380,7 +380,7 @@ public class ProfitCalculator implements IFeature {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(receiveCanceled = true)
     public void onReceivedPacket(ReceivePacketEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
@@ -411,7 +411,7 @@ public class ProfitCalculator implements IFeature {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(receiveCanceled = true)
     public void onReceivedChat(ClientChatReceivedEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;

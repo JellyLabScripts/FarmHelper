@@ -125,6 +125,7 @@ public class SShapeSugarcaneMacro extends AbstractMacro {
         if (currentState == null)
             changeState(State.NONE);
         mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop());
+        if (MacroHandler.getInstance().isTeleporting()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),

@@ -277,14 +277,6 @@ public class FarmHelperConfig extends Config {
             right = "Pest Repellent MAX"
     )
     public static boolean pestRepellentType = true;
-    @Button(
-            name = "Reset Failsafe", category = MISCELLANEOUS, subcategory = "Pest Repellent",
-            text = "Click Here",
-            description = "Resets the failsafe timer for repellent"
-    )
-    Runnable resetFailsafe = () -> {
-        AutoRepellent.repellentFailsafeClock.schedule(0);
-    };
     @Switch(
             name = "Swap pet during Jacob's contest", category = MISCELLANEOUS, subcategory = "Pet Swapper",
             description = "Swaps pet to the selected pet during Jacob's contest. Selects the first one from the pet list."
@@ -407,9 +399,6 @@ public class FarmHelperConfig extends Config {
             right = "Custom"
     )
     public static boolean failsafeSoundType = false;
-
-    // END MISCELLANEOUS
-
     // START FAILSAFE
     @Dropdown(
             name = "Minecraft Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
@@ -420,6 +409,8 @@ public class FarmHelperConfig extends Config {
             }
     )
     public static int failsafeMcSoundSelected = 1;
+
+    // END MISCELLANEOUS
     @Dropdown(
             name = "Custom Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
             description = "The custom sound to play when a failsafe has been triggered",
@@ -634,9 +625,6 @@ public class FarmHelperConfig extends Config {
             min = 10000, max = 2000000, step = 10000
     )
     public static int jacobMelonCap = 1234000;
-
-    // END FAILSAFE
-
     // START SCHEDULER
     @Slider(
             name = "Pumpkin Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
@@ -644,6 +632,8 @@ public class FarmHelperConfig extends Config {
             min = 10000, max = 2000000, step = 10000
     )
     public static int jacobPumpkinCap = 240000;
+
+    // END FAILSAFE
     @Slider(
             name = "Cocoa Beans Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "The cocoa beans cap",
@@ -656,6 +646,14 @@ public class FarmHelperConfig extends Config {
             min = 10000, max = 2000000, step = 10000
     )
     public static int jacobCactusCap = 470000;
+    // END SCHEDULER
+    @Info(
+            text = "If you are alt tabbing while the macro is running, you NEED to have ungrab mouse feature enabled.",
+            type = InfoType.WARNING,
+            category = VISITORS_MACRO,
+            size = 2
+    )
+    public static boolean visitorsMacroWarning;
     @Info(
             text = "Visitors Macro tends to move your mouse because of opening GUIs frequently. Be aware of that.",
             type = InfoType.WARNING,
@@ -663,7 +661,7 @@ public class FarmHelperConfig extends Config {
             subcategory = "Visitors Macro",
             size = 2
     )
-    public static boolean visitorsMacroWarning;
+    public static boolean visitorsMacroWarning2;
     @Switch(
             name = "Enable visitors macro", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "Enables visitors macro"
@@ -690,9 +688,6 @@ public class FarmHelperConfig extends Config {
             description = "Only accepts visitors that are profitable"
     )
     public static boolean onlyAcceptProfitableVisitors = false;
-
-    // END SCHEDULER
-
     // START JACOB
     @Slider(
             name = "The minimum amount of coins to start the macro (in thousands)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
@@ -700,6 +695,8 @@ public class FarmHelperConfig extends Config {
             min = 1_000, max = 20_000
     )
     public static int visitorsMacroMinMoney = 2_000;
+
+    // START VISITORS_MACRO
     @Slider(
             name = "Price Manipulation Detection Multiplier", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "How much does Instant Buy price need to be higher than Instant Sell price to detect price manipulation",
@@ -766,16 +763,24 @@ public class FarmHelperConfig extends Config {
     )
     public static int spawnPosZ = 0;
 
-    // END JACOB
-
-    // START VISITORS_MACRO
     @Switch(
             name = "Draw spawn location", category = VISITORS_MACRO, subcategory = "Drawings",
             description = "Draws the spawn location"
     )
     public static boolean drawSpawnLocation = true;
+
+    // END JACOB
+
+    @Info(
+            text = "If you are alt tabbing while the macro is running, you NEED to have ungrab mouse feature enabled.",
+            type = InfoType.WARNING,
+            category = PESTS_DESTROYER,
+            size = 2
+    )
+    public static boolean pestsDestroyerWarning;
+
     @Switch(
-            name = "Enable Pests Destroyer", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            name = "Enable Pests Destroyer (USE AT YOUR OWN RISK)", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Destroys pests"
     )
     public static boolean enablePestsDestroyer = false;
@@ -791,6 +796,25 @@ public class FarmHelperConfig extends Config {
             min = 0, max = 5000
     )
     public static int pestAdditionalGUIDelay = 0;
+
+    @Switch(
+            name = "Pause the Pests Destroyer during Jacob's contests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            description = "Pauses the Pests Destroyer during Jacob's contests",
+            size = 2
+    )
+    public static boolean pausePestsDestroyerDuringJacobsContest = true;
+
+    @Button(
+            name = "Trigger now Pests Destroyer", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            description = "Triggers the pests destroyer manually",
+            text = "Trigger now"
+    )
+    public static void triggerManuallyPestsDestroyer() {
+        if (PestsDestroyer.getInstance().canEnableMacro(true)) {
+            PestsDestroyer.getInstance().start();
+        }
+    }
+
     @Switch(
             name = "Pests ESP", category = PESTS_DESTROYER, subcategory = "Drawings",
             description = "Draws a box around pests"
@@ -893,9 +917,6 @@ public class FarmHelperConfig extends Config {
             placeholder = "localhost"
     )
     public static String discordRemoteControlAddress = "localhost";
-
-    // END VISITORS_MACRO
-
     // START PESTS_DESTROYER
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "Remote Control Port", category = DISCORD_INTEGRATION, subcategory = "Remote Control",
@@ -903,6 +924,8 @@ public class FarmHelperConfig extends Config {
             min = 1, max = 65535
     )
     public static int remoteControlPort = 21370;
+
+    // END VISITORS_MACRO
     @Info(
             text = "If you want to use the remote control feature, you need to put Farm Helper JDA Dependency inside your mods folder.",
             type = InfoType.ERROR,
@@ -965,9 +988,6 @@ public class FarmHelperConfig extends Config {
             min = 250f, max = 2000f
     )
     public static float visitorsMacroGuiDelay = 400f;
-
-    // END PESTS_DESTROYER
-
     // START DISCORD_INTEGRATION
     @Slider(
             name = "Additional random GUI Delay", category = DELAYS, subcategory = "GUI Delays",
@@ -975,6 +995,8 @@ public class FarmHelperConfig extends Config {
             min = 0f, max = 2000f
     )
     public static float visitorsMacroGuiDelayRandomness = 350f;
+
+    // END PESTS_DESTROYER
     @Slider(
             name = "Plot Cleaning Helper Rotation Time", category = DELAYS, subcategory = "Plot Cleaning Helper",
             description = "The time it takes to rotate the player",
@@ -1035,15 +1057,14 @@ public class FarmHelperConfig extends Config {
             name = "Debug HUD", category = DEBUG, subcategory = " "
     )
     public static DebugHUD debugHUD = new DebugHUD();
-
-    // END DISCORD_INTEGRATION
-
     // START DELAYS
     @Switch(
             name = "Enable Fast Break (DANGEROUS)", category = EXPERIMENTAL, subcategory = "Fast Break",
             description = "Fast Break is very risky and using it will most likely result in a ban. Proceed with caution."
     )
     public static boolean fastBreak = false;
+
+    // END DISCORD_INTEGRATION
     @Info(
             text = "Fast Break will most likely ban you. Use at your own risk.",
             type = InfoType.ERROR,
@@ -1088,6 +1109,14 @@ public class FarmHelperConfig extends Config {
             description = "Click here to customize failsafe notifications"
     )
     public FailsafeNotificationsPage failsafeNotificationsPage = new FailsafeNotificationsPage();
+    @Button(
+            name = "Reset Failsafe", category = MISCELLANEOUS, subcategory = "Pest Repellent",
+            text = "Click Here",
+            description = "Resets the failsafe timer for repellent"
+    )
+    Runnable resetFailsafe = () -> {
+        AutoRepellent.repellentFailsafeClock.schedule(0);
+    };
     @Button(
             name = "Add Rewarp", category = GENERAL, subcategory = "Rewarp",
             description = "Adds a rewarp position",

@@ -31,6 +31,7 @@ public class SShapeCocoaBeanMacro extends AbstractMacro {
             setYaw(AngleUtils.getClosest());
         }
         getRotation().reset();
+        if (MacroHandler.getInstance().isTeleporting()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),
