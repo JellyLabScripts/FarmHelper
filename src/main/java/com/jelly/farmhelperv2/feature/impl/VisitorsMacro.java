@@ -163,7 +163,11 @@ public class VisitorsMacro implements IFeature {
         speed = InventoryUtils.getRancherBootSpeed();
         LogUtils.sendDebug("[Visitors Macro] Speed: " + speed);
         LogUtils.sendDebug("[Visitors Macro] Macro started");
-        if (FarmHelperConfig.onlyAcceptProfitableVisitors) {
+        if (FarmHelperConfig.visitorsActionUncommon == 1
+                || FarmHelperConfig.visitorsActionRare == 1
+                || FarmHelperConfig.visitorsActionLegendary == 1
+                || FarmHelperConfig.visitorsActionMythic == 1
+                || FarmHelperConfig.visitorsActionSpecial == 1) {
             LogUtils.sendDebug("[Visitors Macro] Only accepting profitable rewards. " + String.join(", ", profitRewards));
         }
         if (MacroHandler.getInstance().isMacroToggled()) {
@@ -261,7 +265,7 @@ public class VisitorsMacro implements IFeature {
         if (newVisitors.equals(visitors)) return;
         visitors.clear();
         visitors.addAll(newVisitors);
-        LogUtils.sendDebug("[Visitors Macro] Visitors: " + visitors.size());
+        LogUtils.sendDebug("[Visitors Macro] The visitors: " + visitors.size());
         boolean hasSpecial = false;
         for (String visitor : visitors) {
             if (Rarity.getRarityFromNpcName(visitor) == Rarity.SPECIAL) {
@@ -683,11 +687,11 @@ public class VisitorsMacro implements IFeature {
                 } else {
                     LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
                     if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) > 4) {
-                        LogUtils.sendDebug("[Visitors Macro] Visitor is too far away, getting closer...");
+                        LogUtils.sendDebug("[Visitors Macro] The visitor is too far away, getting closer...");
                         KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, mc.gameSettings.keyBindSneak);
                         Multithreading.schedule(KeyBindUtils::stopMovement, 150, TimeUnit.MILLISECONDS);
                     } else if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) < 1.5) {
-                        LogUtils.sendDebug("[Visitors Macro] Visitor is too close, getting further...");
+                        LogUtils.sendDebug("[Visitors Macro] The visitor is too close, getting further...");
                         KeyBindUtils.holdThese(mc.gameSettings.keyBindBack);
                         Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
                     } else {
@@ -786,76 +790,61 @@ public class VisitorsMacro implements IFeature {
                     return;
                 }
                 LogUtils.sendDebug("[Visitors Macro] Items to buy: " + itemsToBuy);
-                if (FarmHelperConfig.onlyAcceptProfitableVisitors) {
-                    if (itemsToBuy.stream().anyMatch(item -> {
-                        String name = StringUtils.stripControlCodes(item.getLeft());
-                        return profitRewards.stream().anyMatch(reward -> reward.contains(name));
-                    })) {
-                        LogUtils.sendDebug("[Visitors Macro] Visitor is profitable");
-                        String profitableReward = itemsToBuy.stream().filter(item -> {
-                            String name = StringUtils.stripControlCodes(item.getLeft());
-                            return profitRewards.stream().anyMatch(reward -> reward.contains(name));
-                        }).findFirst().get().getLeft();
 
-                        if (FarmHelperConfig.sendVisitorsMacroLogs)
-                            LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro found profitable item: " + profitableReward, FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
-                        LogUtils.sendDebug("[Visitors Macro] Accepting offer...");
-                    } else {
-                        LogUtils.sendWarning("[Visitors Macro] Visitor is not profitable, skipping...");
-                        rejectVisitor = true;
-                    }
-                } else {
-                    switch (npcRarity) {
-                        case UNKNOWN:
-                            LogUtils.sendDebug("[Visitors Macro] Visitor is unknown rarity. Accepting offer...");
-                            break;
-                        case UNCOMMON:
-                            if (FarmHelperConfig.visitorsAcceptUncommon) {
-                                LogUtils.sendDebug("[Visitors Macro] Visitor is uncommon rarity. Accepting offer...");
-                            } else {
-                                LogUtils.sendDebug("[Visitors Macro] Visitor is uncommon rarity. Skipping...");
-                                rejectVisitor = true;
-                            }
-                            break;
-                        case RARE:
-                            if (FarmHelperConfig.visitorsAcceptRare) {
-                                LogUtils.sendDebug("[Visitors Macro] Visitor is rare rarity. Accepting offer...");
-                            } else {
-                                LogUtils.sendDebug("[Visitors Macro] Visitor is rare rarity. Skipping...");
-                                rejectVisitor = true;
-                            }
-                            break;
-                        case LEGENDARY:
-                            if (FarmHelperConfig.visitorsAcceptLegendary) {
-                                LogUtils.sendDebug("[Visitors Macro] Visitor is legendary rarity. Accepting offer...");
-                                if (FarmHelperConfig.sendVisitorsMacroLogs)
-                                    LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro found legendary visitor", FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
-                            } else {
-                                LogUtils.sendDebug("[Visitors Macro] Visitor is legendary rarity. Skipping...");
-                                rejectVisitor = true;
-                            }
-                            break;
-                        case MYTHIC:
-                            if (FarmHelperConfig.visitorsAcceptMythic) {
-                                LogUtils.sendDebug("[Visitors Macro] Visitor is mythic rarity. Accepting offer...");
-                                if (FarmHelperConfig.sendVisitorsMacroLogs)
-                                    LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro found mythic visitor", FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
-                            } else {
-                                LogUtils.sendDebug("[Visitors Macro] Visitor is mythic rarity. Skipping...");
-                                rejectVisitor = true;
-                            }
-                            break;
-                        case SPECIAL:
-                            if (FarmHelperConfig.visitorsAcceptSpecial) {
-                                LogUtils.sendDebug("[Visitors Macro] Visitor is special rarity. Accepting offer...");
-                                if (FarmHelperConfig.sendVisitorsMacroLogs)
-                                    LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro found special visitor", FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
-                            } else {
-                                LogUtils.sendDebug("[Visitors Macro] Visitor is special rarity. Skipping...");
-                                rejectVisitor = true;
-                            }
-                            break;
-                    }
+                switch (npcRarity) {
+                    case UNKNOWN:
+                        LogUtils.sendDebug("[Visitors Macro] The visitor is unknown rarity. Accepting offer...");
+                        break;
+                    case UNCOMMON:
+                        if (FarmHelperConfig.visitorsActionUncommon == 0) {
+                            LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Accepting...");
+                        } else if (FarmHelperConfig.visitorsActionUncommon == 1) {
+                            checkIfCurrentVisitorIsProfitable();
+                        } else if (FarmHelperConfig.visitorsActionUncommon == 2) {
+                            LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Rejecting...");
+                            rejectVisitor = true;
+                        }
+                        break;
+                    case RARE:
+                        if (FarmHelperConfig.visitorsActionRare == 0) {
+                            LogUtils.sendDebug("[Visitors Macro] The visitor is rare rarity. Accepting...");
+                        } else if (FarmHelperConfig.visitorsActionRare == 1) {
+                            checkIfCurrentVisitorIsProfitable();
+                        } else if (FarmHelperConfig.visitorsActionRare == 2) {
+                            LogUtils.sendDebug("[Visitors Macro] The visitor is rare rarity. Rejecting...");
+                            rejectVisitor = true;
+                        }
+                        break;
+                    case LEGENDARY:
+                        if (FarmHelperConfig.visitorsActionLegendary == 0) {
+                            LogUtils.sendDebug("[Visitors Macro] The visitor is legendary rarity. Accepting...");
+                        } else if (FarmHelperConfig.visitorsActionLegendary == 1) {
+                            checkIfCurrentVisitorIsProfitable();
+                        } else if (FarmHelperConfig.visitorsActionLegendary == 2) {
+                            LogUtils.sendDebug("[Visitors Macro] The visitor is legendary rarity. Rejecting...");
+                            rejectVisitor = true;
+                        }
+                        break;
+                    case MYTHIC:
+                        if (FarmHelperConfig.visitorsActionMythic == 0) {
+                            LogUtils.sendDebug("[Visitors Macro] The visitor is mythic rarity. Accepting...");
+                        } else if (FarmHelperConfig.visitorsActionMythic == 1) {
+                            checkIfCurrentVisitorIsProfitable();
+                        } else if (FarmHelperConfig.visitorsActionMythic == 2) {
+                            LogUtils.sendDebug("[Visitors Macro] The visitor is mythic rarity. Rejecting...");
+                            rejectVisitor = true;
+                        }
+                        break;
+                    case SPECIAL:
+                        if (FarmHelperConfig.visitorsActionSpecial == 0) {
+                            LogUtils.sendDebug("[Visitors Macro] The visitor is special rarity. Accepting...");
+                        } else if (FarmHelperConfig.visitorsActionSpecial == 1) {
+                            checkIfCurrentVisitorIsProfitable();
+                        } else if (FarmHelperConfig.visitorsActionSpecial == 2) {
+                            LogUtils.sendDebug("[Visitors Macro] The visitor is special rarity. Rejecting...");
+                            rejectVisitor = true;
+                        }
+                        break;
                 }
 
                 if (haveItemsInSack && !rejectVisitor) {
@@ -1038,6 +1027,26 @@ public class VisitorsMacro implements IFeature {
         InventoryUtils.clickContainerSlot(rejectOfferSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
         rejectVisitor = false;
         return false;
+    }
+
+    private void checkIfCurrentVisitorIsProfitable() {
+        if (itemsToBuy.stream().anyMatch(item -> {
+            String name = StringUtils.stripControlCodes(item.getLeft());
+            return profitRewards.stream().anyMatch(reward -> reward.contains(name));
+        })) {
+            LogUtils.sendDebug("[Visitors Macro] The visitor is profitable");
+            String profitableReward = itemsToBuy.stream().filter(item -> {
+                String name = StringUtils.stripControlCodes(item.getLeft());
+                return profitRewards.stream().anyMatch(reward -> reward.contains(name));
+            }).findFirst().get().getLeft();
+
+            if (FarmHelperConfig.sendVisitorsMacroLogs)
+                LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro found profitable item: " + profitableReward, FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
+            LogUtils.sendDebug("[Visitors Macro] Accepting offer...");
+        } else {
+            LogUtils.sendWarning("[Visitors Macro] The visitor is not profitable, skipping...");
+            rejectVisitor = true;
+        }
     }
 
     private boolean entityIsMoving(Entity e) {

@@ -683,11 +683,7 @@ public class FarmHelperConfig extends Config {
             description = "Pauses the visitors macro during Jacob's contests"
     )
     public static boolean pauseVisitorsMacroDuringJacobsContest = true;
-    @Switch(
-            name = "Only Accept Profitable Visitors", category = VISITORS_MACRO, subcategory = "Visitors Macro",
-            description = "Only accepts visitors that are profitable"
-    )
-    public static boolean onlyAcceptProfitableVisitors = false;
+
     // START JACOB
     @Slider(
             name = "The minimum amount of coins to start the macro (in thousands)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
@@ -718,31 +714,42 @@ public class FarmHelperConfig extends Config {
             subcategory = "Visitors Macro"
     )
     public static boolean infoCookieBuffRequired;
-    @Switch(
-            name = "Accept uncommon visitors", category = VISITORS_MACRO, subcategory = "Rarity",
-            description = "Whether to accept visitors that are uncommon rarity"
+
+    @Dropdown(
+            name = "Uncommon", category = VISITORS_MACRO, subcategory = "Rarity",
+            description = "The action taken when an uncommon visitor arrives",
+            options = {"Accept", "Accept if profitable only", "Decline"},
+            size = 2
     )
-    public static boolean visitorsAcceptUncommon = true;
-    @Switch(
-            name = "Accept rare visitors", category = VISITORS_MACRO, subcategory = "Rarity",
-            description = "Whether to accept visitors that are rare rarity"
+    public static int visitorsActionUncommon = 0;
+    @Dropdown(
+            name = "Rare", category = VISITORS_MACRO, subcategory = "Rarity",
+            description = "The action taken when a rare visitor arrives",
+            options = {"Accept", "Accept if profitable only", "Decline"},
+            size = 2
     )
-    public static boolean visitorsAcceptRare = true;
-    @Switch(
-            name = "Accept legendary visitors", category = VISITORS_MACRO, subcategory = "Rarity",
-            description = "Whether to accept visitors that are legendary rarity"
+    public static int visitorsActionRare = 0;
+    @Dropdown(
+            name = "Legendary", category = VISITORS_MACRO, subcategory = "Rarity",
+            description = "The action taken when a legendary visitor arrives",
+            options = {"Accept", "Accept if profitable only", "Decline"},
+            size = 2
     )
-    public static boolean visitorsAcceptLegendary = true;
-    @Switch(
-            name = "Accept mythic visitors", category = VISITORS_MACRO, subcategory = "Rarity",
-            description = "Whether to accept visitors that are mythic rarity"
+    public static int visitorsActionLegendary = 0;
+    @Dropdown(
+            name = "Mythic", category = VISITORS_MACRO, subcategory = "Rarity",
+            description = "The action taken when a mythic visitor arrives",
+            options = {"Accept", "Accept if profitable only", "Decline"},
+            size = 2
     )
-    public static boolean visitorsAcceptMythic = true;
-    @Switch(
-            name = "Accept special visitors", category = VISITORS_MACRO, subcategory = "Rarity",
-            description = "Whether to accept visitors that are special rarity"
+    public static int visitorsActionMythic = 0;
+    @Dropdown(
+            name = "Special", category = VISITORS_MACRO, subcategory = "Rarity",
+            description = "The action taken when a special visitor arrives",
+            options = {"Accept", "Accept if profitable only", "Decline"},
+            size = 2
     )
-    public static boolean visitorsAcceptSpecial = true;
+    public static int visitorsActionSpecial = 0;
     @cc.polyfrost.oneconfig.config.annotations.Number(
             name = "SpawnPos X", category = VISITORS_MACRO, subcategory = "Spawn Position",
             description = "The X coordinate of the spawn",
@@ -784,6 +791,12 @@ public class FarmHelperConfig extends Config {
             description = "Destroys pests"
     )
     public static boolean enablePestsDestroyer = false;
+
+    @Switch(
+            name = "Fly to the pests instead of TP", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            description = "Flies to the pests instead of teleporting to them"
+    )
+    public static boolean flyToPestInstead = false;
     @Slider(
             name = "Start killing pests at X pests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "The amount of pests to start killing pests",
