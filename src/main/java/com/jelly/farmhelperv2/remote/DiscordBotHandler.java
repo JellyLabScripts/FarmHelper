@@ -95,9 +95,15 @@ public class DiscordBotHandler extends ListenerAdapter {
             WebsocketHandler.getInstance().setWebsocketState(WebsocketHandler.WebsocketState.NONE);
             FarmHelperConfig.discordRemoteControlToken = "";
         } catch (IllegalStateException e) {
-            Notifications.INSTANCE.send("Farm Helper", "Discord Bot is already connected, connecting as a client...");
-            LogUtils.sendWarning("Discord Bot is already connected, connecting as a client...");
-            WebsocketHandler.getInstance().setWebsocketState(WebsocketHandler.WebsocketState.CLIENT);
+            if (e.getMessage().contains("im-getting-closecode4014-disallowed-intents")) {
+                Notifications.INSTANCE.send("Farm Helper", "You need to enable Intents in the Discord Developer Portal! Disabling remote control...");
+                LogUtils.sendError("You need to enable Intents in the Discord Developer Portal! Disabling remote control...");
+                FarmHelperConfig.enableRemoteControl = false;
+            } else {
+                Notifications.INSTANCE.send("Farm Helper", "Discord Bot is already connected, connecting as a client...");
+                LogUtils.sendWarning("Discord Bot is already connected, connecting as a client...");
+                WebsocketHandler.getInstance().setWebsocketState(WebsocketHandler.WebsocketState.CLIENT);
+            }
         } catch (InterruptedException e) {
             Notifications.INSTANCE.send("Farm Helper", "Unexpected error while connecting to the Discord Bot, disabling remote control...");
             LogUtils.sendError("Unexpected error while connecting to the Discord Bot, disabling remote control...");

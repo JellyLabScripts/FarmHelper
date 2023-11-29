@@ -135,7 +135,7 @@ public class PestsDestroyer implements IFeature {
             preparing = false;
             LogUtils.sendWarning("[Pests Destroyer] Starting killing shitters!");
             LogUtils.webhookLog("[Pests Destroyer]\\nStarting killing shitters!");
-        }, 800 + (long) (Math.random() * 500), TimeUnit.MILLISECONDS);
+        }, MacroHandler.getInstance().isMacroToggled() ? (800 + (long) (Math.random() * 500)) : 0, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -199,7 +199,16 @@ public class PestsDestroyer implements IFeature {
             return false;
         }
 
-        return manually || PlayerUtils.isStandingOnSpawnPoint() || PlayerUtils.isStandingOnRewarpLocation();
+        if (manually) {
+            return true;
+        }
+
+        if (!PlayerUtils.isStandingOnSpawnPoint() && !PlayerUtils.isStandingOnRewarpLocation()) {
+            LogUtils.sendError("[Pests Destroyer] You need to be standing on spawn point or rewarp point to use Pests Destroyer!");
+            return false;
+        }
+
+        return true;
     }
 
     @SubscribeEvent
@@ -300,7 +309,7 @@ public class PestsDestroyer implements IFeature {
                         escapeState = EscapeState.NONE;
                         state = States.IDLE;
                         cantReachPest = 0;
-                        delayClock.schedule((long) (2_500 + Math.random() * 1_500));
+                        delayClock.schedule((long) (1_000 + Math.random() * 500));
                         LogUtils.sendDebug("[Pests Destroyer] Came back to Garden!");
                         break;
                     }
@@ -489,7 +498,7 @@ public class PestsDestroyer implements IFeature {
                 }
 
                 if (lastFireworkLocation.isPresent()) {
-                    if (lastFireworkTime + 150 < System.currentTimeMillis()) {
+                    if (lastFireworkTime + 250 < System.currentTimeMillis()) {
                         RotationHandler.getInstance().easeTo(new RotationConfiguration(
                                 new Target(new Vec3(lastFireworkLocation.get().xCoord, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), lastFireworkLocation.get().zCoord)),
                                 FarmHelperConfig.getRandomRotationTime(),

@@ -45,8 +45,8 @@ public class PerformanceMode implements IFeature {
         enabled = true;
         renderDistanceBefore = mc.gameSettings.renderDistanceChunks;
         maxFpsBefore = mc.gameSettings.limitFramerate;
-        mc.gameSettings.renderDistanceChunks = 2;
-        mc.gameSettings.limitFramerate = 15;
+        mc.gameSettings.renderDistanceChunks = 1;
+        mc.gameSettings.limitFramerate = 10;
         mc.renderGlobal.loadRenderers();
     }
 
