@@ -641,19 +641,12 @@ public class FarmHelperConfig extends Config {
     )
     public static int jacobCocoaBeansCap = 725000;
     @Slider(
-            name = "Cactus Beans Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
+            name = "Cactus Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "The cactus cap",
             min = 10000, max = 2000000, step = 10000
     )
     public static int jacobCactusCap = 470000;
     // END SCHEDULER
-    @Info(
-            text = "If you are alt tabbing while the macro is running, you NEED to have ungrab mouse feature enabled.",
-            type = InfoType.WARNING,
-            category = VISITORS_MACRO,
-            size = 2
-    )
-    public static boolean visitorsMacroWarning;
     @Info(
             text = "Visitors Macro tends to move your mouse because of opening GUIs frequently. Be aware of that.",
             type = InfoType.WARNING,
@@ -779,9 +772,10 @@ public class FarmHelperConfig extends Config {
     // END JACOB
 
     @Info(
-            text = "If you are alt tabbing while the macro is running, you NEED to have ungrab mouse feature enabled.",
+            text = "Make sure to have enabled Hypixel's Particles (/pq low), low is the minimum to make it work",
             type = InfoType.WARNING,
             category = PESTS_DESTROYER,
+            subcategory = "Pests Destroyer",
             size = 2
     )
     public static boolean pestsDestroyerWarning;
@@ -827,6 +821,13 @@ public class FarmHelperConfig extends Config {
             PestsDestroyer.getInstance().start();
         }
     }
+
+    @KeyBind(
+            name = "Enable Pests Destroyer", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            description = "Enables the pests destroyer",
+            size = 2
+    )
+    public static OneKeyBind enablePestsDestroyerKeyBind = new OneKeyBind(Keyboard.KEY_NONE);
 
     @Switch(
             name = "Pests ESP", category = PESTS_DESTROYER, subcategory = "Drawings",
@@ -1329,6 +1330,11 @@ public class FarmHelperConfig extends Config {
         });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
+        registerKeyBind(enablePestsDestroyerKeyBind, () -> {
+            if (PestsDestroyer.getInstance().canEnableMacro(true)) {
+                PestsDestroyer.getInstance().start();
+            }
+        });
         save();
     }
 

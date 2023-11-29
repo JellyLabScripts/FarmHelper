@@ -63,6 +63,11 @@ public abstract class AbstractMacro {
     }
 
     public void onTick() {
+        if (Failsafe.getInstance().isRunning() || Failsafe.getInstance().getChooseEmergencyDelay().isScheduled()) {
+            LogUtils.sendWarning("Failsafe is running! Blocking main onTick event!");
+            return;
+        }
+
         if (mc.thePlayer.capabilities.isFlying) {
             KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
             return;
@@ -107,10 +112,13 @@ public abstract class AbstractMacro {
             // rotate
             if (rotated && !LagDetector.getInstance().isLagging() && mc.thePlayer.onGround) {
                 LogUtils.sendDebug("Rotated after warping.");
-                rewarpState = RewarpState.NONE;
+                rewarpState = RewarpState.POST_REWARP;
+                Multithreading.schedule(() -> rewarpState = RewarpState.NONE, 1000, TimeUnit.MILLISECONDS);
                 rewarpDelay.schedule(FarmHelperConfig.getRandomTimeBetweenChangingRows());
                 return;
             } else if (rotated && (LagDetector.getInstance().isLagging() || !mc.thePlayer.onGround)) {
+                LogUtils.sendDebug("Rotated after warping, but player is not on ground or lagging.");
+                KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
                 return;
             }
 
@@ -209,6 +217,7 @@ public abstract class AbstractMacro {
         DesyncChecker.getInstance().getClickedBlocks().clear();
         KeyBindUtils.stopMovement();
         changeState(State.NONE);
+        setRewarpState(RewarpState.NONE);
         setClosest90Deg(Optional.empty());
         rewarpDelay.reset();
         setEnabled(false);
@@ -234,9 +243,6 @@ public abstract class AbstractMacro {
         if (!beforeTeleportationPos.isPresent()) return;
         if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos.get()) > 2) {
             LogUtils.sendDebug("Teleported!");
-            if (yaw == -2137 && pitch == -2137) {
-                onEnable();
-            }
             changeState(State.NONE);
             beforeTeleportationPos = Optional.empty();
             rewarpState = RewarpState.TELEPORTED;
@@ -274,10 +280,6 @@ public abstract class AbstractMacro {
             KeyBindUtils.stopMovement();
         }
         if (force || GameStateHandler.getInstance().canRewarp() && !beforeTeleportationPos.isPresent()) {
-            if (force) {
-                yaw = -2137;
-                pitch = -2137;
-            }
             rewarpState = RewarpState.TELEPORTING;
             LogUtils.sendDebug("Warping to spawn point");
             mc.thePlayer.sendChatMessage("/warp garden");
@@ -328,7 +330,8 @@ public abstract class AbstractMacro {
     public enum RewarpState {
         NONE,
         TELEPORTING,
-        TELEPORTED
+        TELEPORTED,
+        POST_REWARP
     }
 
     @Getter

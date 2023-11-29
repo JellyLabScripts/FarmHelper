@@ -155,12 +155,19 @@ public class Failsafe implements IFeature {
         resetItemChangeCheck();
         resetWorldChangeCheck();
         resetBedrockCageCheck();
+        sendingFailsafeInfo = false;
     }
 
     @Override
     public void resetStatesAfterMacroDisabled() {
         stop();
         restartMacroAfterFailsafeDelay.reset();
+        if (UngrabMouse.getInstance().isRunning())
+            UngrabMouse.getInstance().regrabMouse(true);
+        else {
+            mc.inGameHasFocus = true;
+            mc.mouseHelper.grabMouseCursor();
+        }
     }
 
     @Override
@@ -731,7 +738,6 @@ public class Failsafe implements IFeature {
             if (matcher.find()) {
                 int minutes = Integer.parseInt(matcher.group("minutes"));
                 int seconds = Integer.parseInt(matcher.group("seconds"));
-                System.out.println(minutes + " " + seconds);
                 if (minutes == 0 && seconds <= 30) {
                     addEmergency(EmergencyType.EVACUATE);
                 }
