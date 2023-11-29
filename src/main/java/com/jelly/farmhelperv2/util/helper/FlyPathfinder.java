@@ -174,7 +174,8 @@ public class FlyPathfinder {
                     z < 0 ? mc.gameSettings.keyBindBack : null,
                     z > 0 ? mc.gameSettings.keyBindForward : null,
                     distanceY > 0.25 ? mc.gameSettings.keyBindJump : null,
-                    distanceY < -0.25 ? mc.gameSettings.keyBindSneak : null);
+                    distanceY < -0.25 ? mc.gameSettings.keyBindSneak : null,
+                    distance > 5 ? mc.gameSettings.keyBindSprint : null);
         } else if (distance > FarmHelperConfig.flightSpeedDecelerationDistance) {
             decelerate();
         } else {
