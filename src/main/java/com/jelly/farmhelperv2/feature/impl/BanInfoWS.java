@@ -509,7 +509,7 @@ public class BanInfoWS implements IFeature {
     }
 
     public void sendAnalyticsData(AnalyticsState state) {
-        MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.getAnalyticsClock().schedule(180_000)); // 3 minutes
+        MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.getAnalyticsClock().schedule(300_000)); // 5 minutes
         System.out.println("Sending analytics data...");
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("message", "analyticsData");

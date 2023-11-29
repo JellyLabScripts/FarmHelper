@@ -115,7 +115,7 @@ public class PlayerUtils {
             return;
         }
 
-        changeItemEveryClock.schedule(5_000L);
+        changeItemEveryClock.schedule(2_000L);
         mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop());
     }
 

@@ -49,7 +49,7 @@ public class VisitorsMacro implements IFeature {
     private MainState mainState = MainState.NONE;
     @Getter
     private TravelState travelState = TravelState.NONE;
-    private int previousDistanceToCheck = Integer.MAX_VALUE;
+    private double previousDistanceToCheck = Integer.MAX_VALUE;
     private int speed = 0;
     @Getter
     private CompactorState compactorState = CompactorState.NONE;
@@ -408,7 +408,7 @@ public class VisitorsMacro implements IFeature {
                         mc.thePlayer.jump();
                     }
                 }
-                previousDistanceToCheck = (int) distance;
+                previousDistanceToCheck = distance;
                 break;
             case END:
                 if (!mc.thePlayer.onGround) {
@@ -597,7 +597,7 @@ public class VisitorsMacro implements IFeature {
                 if (PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false) != -1) {
                     mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
                 }
-                if (visitors.isEmpty()) {
+                if (visitors.isEmpty() || visitors.stream().noneMatch(s -> servedCustomers.stream().noneMatch(s2 -> StringUtils.stripControlCodes(s2.getCustomNameTag()).contains(StringUtils.stripControlCodes(s))))) {
                     LogUtils.sendWarning("[Visitors Macro] No visitors in queue...");
                     setVisitorsState(VisitorsState.END);
                     delayClock.schedule(getRandomDelay());
