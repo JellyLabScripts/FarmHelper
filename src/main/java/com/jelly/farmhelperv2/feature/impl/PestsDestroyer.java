@@ -397,6 +397,13 @@ public class PestsDestroyer implements IFeature {
                     break;
                 }
                 break;
+            case FLY_TO_PLOT:
+                Optional<Plot> plotNumberOpt2 = pestsPlotMap.entrySet().stream().filter(entry -> entry.getValue() > 0).map(Map.Entry::getKey).findFirst();
+                if (!plotNumberOpt2.isPresent()) {
+                    state = States.GO_BACK;
+                    delayClock.schedule((long) (500 + Math.random() * 500));
+                    return;
+                }
             case TELEPORT_TO_PLOT:
                 Optional<Plot> plotNumberOpt = pestsPlotMap.entrySet().stream().filter(entry -> entry.getValue() > 0).map(Map.Entry::getKey).findFirst();
                 if (!plotNumberOpt.isPresent()) {
@@ -690,8 +697,13 @@ public class PestsDestroyer implements IFeature {
                         LogUtils.sendDebug("Manually searching for pest");
                         state = States.GET_LOCATION;
                     } else {
-                        LogUtils.sendDebug("Teleporting to plot");
-                        state = States.TELEPORT_TO_PLOT;
+                        if (FarmHelperConfig.flyToPestInstead) {
+                            LogUtils.sendDebug("Flying to plot");
+                            state = States.FLY_TO_PLOT;
+                        } else {
+                            LogUtils.sendDebug("Teleporting to plot");
+                            state = States.TELEPORT_TO_PLOT;
+                        }
                     }
                 }
                 KeyBindUtils.stopMovement();
@@ -1145,7 +1157,11 @@ public class PestsDestroyer implements IFeature {
         if (state == States.WAIT_FOR_INFO) {
             Multithreading.schedule(() -> {
                 if (mc.currentScreen != null) {
-                    state = States.TELEPORT_TO_PLOT;
+                    if (FarmHelperConfig.flyToPestInstead) {
+                        state = States.FLY_TO_PEST;
+                    } else {
+                        state = States.TELEPORT_TO_PLOT;
+                    }
                     delayClock.schedule((long) (300 + Math.random() * 300));
                     mc.thePlayer.closeScreen();
                 }
@@ -1164,6 +1180,7 @@ public class PestsDestroyer implements IFeature {
         OPEN_DESK,
         OPEN_PLOTS,
         WAIT_FOR_INFO,
+        FLY_TO_PLOT,
         TELEPORT_TO_PLOT,
         WAIT_FOR_TP,
         GET_LOCATION,
