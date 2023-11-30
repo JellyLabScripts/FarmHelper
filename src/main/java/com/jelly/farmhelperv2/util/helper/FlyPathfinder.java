@@ -10,11 +10,14 @@ import baritone.pathing.calc.AbstractNodeCostSearch;
 import baritone.pathing.calc.FlyAStar;
 import baritone.pathing.movement.CalculationContext;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.*;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -41,6 +44,7 @@ public class FlyPathfinder {
     private CalculationContext context;
     @Getter
     private final List<BetterBlockPos> pathBlocks = new ArrayList<>();
+    private static final RotationHandler rotation = RotationHandler.getInstance();
 
     public List<BetterBlockPos> getPathTo(Goal goal) {
         return getPathTo(goal, false);
@@ -131,6 +135,10 @@ public class FlyPathfinder {
         return BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().isPathing();
     }
 
+    public boolean isRunning() {
+        return !pathBlocks.isEmpty();
+    }
+
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
@@ -149,6 +157,7 @@ public class FlyPathfinder {
         if (pathBlocks.isEmpty()) {
             if (isPathing()) {
                 stop();
+                LogUtils.sendDebug("Fly pathing stopped");
             }
             return;
         }
@@ -180,6 +189,15 @@ public class FlyPathfinder {
             decelerate();
         } else {
             pathBlocks.remove(0);
+            if (!rotation.isRotating() && pathBlocks.size() > 2) {
+                Vec3 target = new Vec3(pathBlocks.get(2).getX() + 0.5, pathBlocks.get(2).getY() + 0.5, pathBlocks.get(2).getZ() + 0.5);
+                rotation.easeTo(
+                        new RotationConfiguration(
+                                new Rotation(rotation.getRotation(target, true).getYaw(), rotation.getRotation(target, true).getPitch()),
+                                750, null
+                        )
+                );
+            }
             KeyBindUtils.stopMovement();
         }
     }
