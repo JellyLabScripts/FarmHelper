@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.config;
 
+import baritone.api.pathing.goals.GoalBlock;
 import cc.polyfrost.oneconfig.config.Config;
 import cc.polyfrost.oneconfig.config.annotations.Number;
 import cc.polyfrost.oneconfig.config.annotations.*;
@@ -21,7 +22,10 @@ import com.jelly.farmhelperv2.util.BlockUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
+import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
@@ -1048,6 +1052,10 @@ public class FarmHelperConfig extends Config {
             name = "Debug Keybind", category = DEBUG
     )
     public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_H);
+    @KeyBind(
+            name = "Debug Keybind2", category = DEBUG
+    )
+    public static OneKeyBind debugKeybind2 = new OneKeyBind(Keyboard.KEY_J);
     @Switch(
             name = "Debug Mode", category = DEBUG, subcategory = "Debug",
             description = "Prints to chat what the bot is currently executing. Useful if you are having issues."
@@ -1325,8 +1333,20 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
+//        registerKeyBind(debugKeybind, () -> {
+//            PestsDestroyer.getInstance().setCantReachPest(40);
+//        });
         registerKeyBind(debugKeybind, () -> {
-            PestsDestroyer.getInstance().setCantReachPest(40);
+            MovingObjectPosition objectMouseOver = Minecraft.getMinecraft().objectMouseOver;
+            if (objectMouseOver != null && objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                BlockPos blockPos = objectMouseOver.getBlockPos();
+                BlockPos oppositeSide = blockPos.offset(objectMouseOver.sideHit);
+                LogUtils.sendDebug("Block: " + oppositeSide);
+                FlyPathfinder.getInstance().setGoal(new GoalBlock(oppositeSide));
+            }
+        });
+        registerKeyBind(debugKeybind2, () -> {
+            FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal(), true);
         });
         registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());

@@ -76,7 +76,7 @@ public class FlyPathfinder {
         future.join();
         pathBlocks.clear();
         if (onlyTurns) {
-            pathBlocks.addAll(getOnlyTurns(tempList));
+            pathBlocks.addAll(getOnlyTurns3(getOnlyTurns(tempList)));
         } else {
             pathBlocks.addAll(tempList);
         }
@@ -94,7 +94,7 @@ public class FlyPathfinder {
             LogUtils.sendDebug("Path is empty");
             return new ArrayList<>();
         }
-        Set<BetterBlockPos> turns = new HashSet<>();
+        ArrayList<BetterBlockPos> turns = new ArrayList<>();
         BetterBlockPos lastPos = list.get(0);
         turns.add(lastPos);
         Direction lastDirection = Direction.X;
@@ -119,6 +119,44 @@ public class FlyPathfinder {
         }
         turns.add(lastPos);
         return new ArrayList<>(turns);
+    }
+
+    public List<BetterBlockPos> getOnlyTurns2(List<BetterBlockPos> list) {
+        if (list.size() < 3) return list;
+        List<BetterBlockPos> tempList = new ArrayList<>();
+        tempList.add(list.get(0));
+        for (int i = 1; i < list.size() - 1; i++) {
+            BetterBlockPos current = list.get(i);
+            BetterBlockPos next = list.get(i + 1);
+            BetterBlockPos previous = list.get(i - 1);
+            if (current.getX() != next.getX() && current.getX() != previous.getX()) {
+                tempList.add(current);
+            } else if (current.getY() != next.getY() && current.getY() != previous.getY()) {
+                tempList.add(current);
+            } else if (current.getZ() != next.getZ() && current.getZ() != previous.getZ()) {
+                tempList.add(current);
+            }
+        }
+        tempList.add(list.get(list.size() - 1));
+        return tempList;
+    }
+
+    public List<BetterBlockPos> getOnlyTurns3(List<BetterBlockPos> list) {
+        if (list.size() < 3) return list;
+        List<BetterBlockPos> tempList = new ArrayList<>();
+        tempList.add(list.get(0));
+        for (int i = 2; i < list.size() - 2; i++) {
+            BetterBlockPos current = list.get(i);
+            BetterBlockPos previous = list.get(i - 1);
+            if (Math.sqrt(Math.pow(current.getX() - previous.getX(), 2) + Math.pow(current.getY() - previous.getY(), 2) + Math.pow(current.getZ() - previous.getZ(), 2)) > 1.5) {
+//                MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(new Vec3(current.getX() + 0.5, current.getY() + 0.5, current.getZ() + 0.5), new Vec3(previous.getX() + 0.5, previous.getY() + 0.5, previous.getZ() + 0.5));
+//                if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                    tempList.add(current);
+//                }
+            }
+        }
+        tempList.add(list.get(list.size() - 1));
+        return tempList;
     }
 
     public boolean hasGoal() {
@@ -175,6 +213,7 @@ public class FlyPathfinder {
             return;
         }
         double distance = Math.abs(Math.sqrt(x * x + z * z));
+        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSprint, distance > 5);
         if (distance > FarmHelperConfig.flightSpeedAccelerationDistance) {
             mc.thePlayer.capabilities.isFlying = true;
             KeyBindUtils.holdThese(
@@ -183,8 +222,7 @@ public class FlyPathfinder {
                     z < 0 ? mc.gameSettings.keyBindBack : null,
                     z > 0 ? mc.gameSettings.keyBindForward : null,
                     distanceY > 0.25 ? mc.gameSettings.keyBindJump : null,
-                    distanceY < -0.25 ? mc.gameSettings.keyBindSneak : null,
-                    distance > 5 ? mc.gameSettings.keyBindSprint : null);
+                    distanceY < -0.25 ? mc.gameSettings.keyBindSneak : null);
         } else if (distance > FarmHelperConfig.flightSpeedDecelerationDistance) {
             decelerate();
         } else {

@@ -7,6 +7,7 @@ import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 
 import java.util.List;
 import java.util.Map;
@@ -103,7 +104,13 @@ public class DebugHUD extends TextHud {
             lines.add("   State: " + PestsDestroyer.getInstance().getState());
             lines.add("   Clock: " + PestsDestroyer.getInstance().getDelayClock().getRemainingTime());
             lines.add("   Stuck clock: " + PestsDestroyer.getInstance().getStuckClock().getRemainingTime());
-            PestsDestroyer.getInstance().getCurrentEntityTarget().ifPresent(target -> lines.add("   Current Entity Target: " + target.getPositionVector()));
+            PestsDestroyer.getInstance().getCurrentEntityTarget().ifPresent(target -> lines.add(
+                    String.format("   Current Entity Target: %.2f %.2f %.2f", target.getPositionVector().xCoord, target.getPositionVector().yCoord, target.getPositionVector().zCoord))
+            );
+        }
+        if (FlyPathfinder.getInstance().isRunning()) {
+            lines.add("FlyPathfinder");
+            lines.add("   Path size: " + FlyPathfinder.getInstance().getPathBlocks().size());
         }
     }
 }
