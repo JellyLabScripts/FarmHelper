@@ -11,7 +11,10 @@ import baritone.pathing.calc.FlyAStar;
 import baritone.pathing.movement.CalculationContext;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.handler.RotationHandler;
-import com.jelly.farmhelperv2.util.*;
+import com.jelly.farmhelperv2.util.BlockUtils;
+import com.jelly.farmhelperv2.util.KeyBindUtils;
+import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.RenderUtils;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -23,8 +26,9 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 // Not yet finished :(
@@ -38,6 +42,7 @@ public class FlyPathfinder {
         }
         return instance;
     }
+
     @Getter
     @Setter
     private Goal goal;
@@ -70,7 +75,8 @@ public class FlyPathfinder {
             while (!finder.isFinished()) {
                 try {
                     Thread.sleep(1);
-                } catch (InterruptedException ignored) {}
+                } catch (InterruptedException ignored) {
+                }
             }
         });
         future.join();
@@ -145,14 +151,29 @@ public class FlyPathfinder {
         if (list.size() < 3) return list;
         List<BetterBlockPos> tempList = new ArrayList<>();
         tempList.add(list.get(0));
-        for (int i = 2; i < list.size() - 2; i++) {
+        BetterBlockPos startOfShattering = null;
+        for (int i = 0; i < list.size() - 2; i++) {
             BetterBlockPos current = list.get(i);
-            BetterBlockPos previous = list.get(i - 1);
-            if (Math.sqrt(Math.pow(current.getX() - previous.getX(), 2) + Math.pow(current.getY() - previous.getY(), 2) + Math.pow(current.getZ() - previous.getZ(), 2)) > 1.5) {
-//                MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(new Vec3(current.getX() + 0.5, current.getY() + 0.5, current.getZ() + 0.5), new Vec3(previous.getX() + 0.5, previous.getY() + 0.5, previous.getZ() + 0.5));
-//                if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            BetterBlockPos next = list.get(i + 1);
+            if (Math.sqrt(current.distanceSq(next.x, next.y, next.z)) <= 2.5) {
+                if (startOfShattering == null) {
+                    startOfShattering = current;
+                    continue;
+                }
+                MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(
+                        new Vec3(startOfShattering.x + 0.5, startOfShattering.y + 0.5, startOfShattering.z + 0.5),
+                        new Vec3(next.x + 0.5, next.y + 0.5, next.z + 0.5), false, true, false);
+                if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                    tempList.add(startOfShattering);
                     tempList.add(current);
-//                }
+                    startOfShattering = current;
+                }
+            } else {
+                if (startOfShattering != null) {
+                    tempList.add(startOfShattering);
+                    startOfShattering = null;
+                }
+                tempList.add(current);
             }
         }
         tempList.add(list.get(list.size() - 1));
