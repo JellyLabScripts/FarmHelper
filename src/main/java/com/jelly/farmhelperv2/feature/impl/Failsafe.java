@@ -712,21 +712,6 @@ public class Failsafe implements IFeature {
     }
 
     @SubscribeEvent
-    public void onChatReceived(ClientChatReceivedEvent event) {
-        if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (MacroHandler.getInstance().isCurrentMacroPaused()) return;
-        if (event.type != 0) return;
-        if (!FarmHelperConfig.autoEvacuateOnWorldUpdate) return;
-        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
-        if (getNumberOfCharactersInString(message) > 1) return;
-        if (evacuateState != EvacuateState.NONE) return;
-
-        if (message.contains("to warp out! CLICK to warp now!")) {
-//            addEmergency(EmergencyType.EVACUATE);
-        }
-    }
-
-    @SubscribeEvent
     public void onTickCheckScoreboard(TickEvent.ClientTickEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!FarmHelperConfig.autoEvacuateOnWorldUpdate) return;
@@ -808,7 +793,8 @@ public class Failsafe implements IFeature {
 
         S2FPacketSetSlot packet = (S2FPacketSetSlot) event.packet;
         int slot = packet.func_149173_d();
-        int farmingToolSlot = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop());
+        int farmingToolSlot = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
+        if (farmingToolSlot == -1) return;
         ItemStack farmingTool = mc.thePlayer.inventory.getStackInSlot(farmingToolSlot);
         if (slot == 36 + farmingToolSlot &&
                 farmingTool != null &&

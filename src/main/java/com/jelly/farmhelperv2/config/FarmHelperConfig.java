@@ -1089,6 +1089,13 @@ public class FarmHelperConfig extends Config {
             description = "Disables Fast Break during Jacob's contest"
     )
     public static boolean disableFastBreakDuringJacobsContest = true;
+
+    @Switch(
+            name = "Auto switch tool based on crop", category = EXPERIMENTAL, subcategory = "Auto Switch",
+            description = "Automatically switches to the best tool based on the crop"
+    )
+    public static boolean autoSwitchTool = true;
+
     @Number(name = "Config Version", category = EXPERIMENTAL, subcategory = "Experimental", min = 0, max = 1337)
     public static int configVersion = 1;
     @Switch(

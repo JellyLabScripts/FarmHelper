@@ -5,7 +5,10 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.macro.AbstractMacro;
-import com.jelly.farmhelperv2.util.*;
+import com.jelly.farmhelperv2.util.AngleUtils;
+import com.jelly.farmhelperv2.util.BlockUtils;
+import com.jelly.farmhelperv2.util.KeyBindUtils;
+import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 
@@ -18,20 +21,19 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
 
     @Override
     public void onEnable() {
-        FarmHelperConfig.CropEnum crop = PlayerUtils.getFarmingCrop();
-        LogUtils.sendDebug("Crop: " + crop);
-        MacroHandler.getInstance().setCrop(crop);
-        PlayerUtils.getTool();
-        setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
-        setYaw(AngleUtils.getClosest());
-        setClosest90Deg(Optional.of(AngleUtils.getClosest()));
-
         super.onEnable();
+        if (!FarmHelperConfig.customPitch) {
+            setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
+        }
+        if (!FarmHelperConfig.customYaw) {
+            setYaw(AngleUtils.getClosest());
+        }
         if (MacroHandler.getInstance().isTeleporting()) return;
+        if (!shouldFixRotation(false)) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch()),
-                        (long) (400 + Math.random() * 300), null
+                        FarmHelperConfig.getRandomRotationTime(), null
                 )
         );
     }

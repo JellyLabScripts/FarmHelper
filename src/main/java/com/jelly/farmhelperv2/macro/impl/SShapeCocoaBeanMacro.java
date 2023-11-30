@@ -4,7 +4,10 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.macro.AbstractMacro;
-import com.jelly.farmhelperv2.util.*;
+import com.jelly.farmhelperv2.util.AngleUtils;
+import com.jelly.farmhelperv2.util.BlockUtils;
+import com.jelly.farmhelperv2.util.KeyBindUtils;
+import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.init.Blocks;
@@ -14,24 +17,14 @@ public class SShapeCocoaBeanMacro extends AbstractMacro {
     @Override
     public void onEnable() {
         super.onEnable();
-        if (getCurrentState() == null)
-            changeState(State.NONE);
-        FarmHelperConfig.CropEnum crop = PlayerUtils.getFarmingCrop();
-        LogUtils.sendDebug("Crop: " + crop);
-        MacroHandler.getInstance().setCrop(crop);
-        PlayerUtils.getTool();
-        if (FarmHelperConfig.customPitch) {
-            setPitch(FarmHelperConfig.customPitchLevel);
-        } else {
+        if (!FarmHelperConfig.customPitch) {
             setPitch(-70f + (float) (Math.random() * 0.6));
         }
-        if (FarmHelperConfig.customYaw) {
-            setYaw(FarmHelperConfig.customYawLevel);
-        } else {
+        if (!FarmHelperConfig.customYaw) {
             setYaw(AngleUtils.getClosest());
         }
-        getRotation().reset();
         if (MacroHandler.getInstance().isTeleporting()) return;
+        if (!shouldFixRotation(false)) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),

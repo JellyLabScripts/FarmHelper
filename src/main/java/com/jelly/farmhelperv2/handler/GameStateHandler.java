@@ -354,7 +354,7 @@ public class GameStateHandler {
     }
 
     public boolean notMoving() {
-        return (dx < 0.01 && dz < 0.01 && dy < 0.01 && mc.currentScreen == null) || (KeyBindUtils.areAllKeybindsReleased() && mc.thePlayer != null && mc.thePlayer.isPushedByWater() && mc.thePlayer.isInWater());
+        return (dx < 0.01 && dz < 0.01 && dy < 0.01 && mc.currentScreen == null) || (KeyBindUtils.areAllKeybindsReleased() && mc.thePlayer != null && mc.thePlayer.isPushedByWater() && mc.thePlayer.isInWater()) || RotationHandler.getInstance().isRotating();
     }
 
     public boolean canChangeDirection() {
