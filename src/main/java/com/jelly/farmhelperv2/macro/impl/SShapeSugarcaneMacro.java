@@ -53,7 +53,7 @@ public class SShapeSugarcaneMacro extends AbstractMacro {
                                 new RotationConfiguration(
                                         new Rotation(getYaw(), getPitch()),
                                         (long) (400 + Math.random() * 300), null
-                                )
+                                ).easeOutBack(true)
                         );
                     }
                     KeyBindUtils.stopMovement();
@@ -124,12 +124,12 @@ public class SShapeSugarcaneMacro extends AbstractMacro {
         rowStartX = mc.thePlayer.posX;
         rowStartZ = mc.thePlayer.posZ;
         if (MacroHandler.getInstance().isTeleporting()) return;
-        if (!shouldFixRotation()) return;
+//        if (!shouldFixRotation()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),
                         FarmHelperConfig.getRandomRotationTime(), null
-                )
+                ).easeOutBack(true)
         );
     }
 

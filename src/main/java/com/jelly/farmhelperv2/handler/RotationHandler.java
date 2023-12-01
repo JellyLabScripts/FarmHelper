@@ -17,6 +17,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.Optional;
+import java.util.Random;
 import java.util.function.Function;
 
 import static cc.polyfrost.oneconfig.libs.universal.UMath.wrapAngleTo180;
@@ -41,6 +42,8 @@ public class RotationHandler {
     private RotationConfiguration configuration;
     private float distanceTraveled = 0;
 
+    private final Random random = new Random();
+
     public static RotationHandler getInstance() {
         if (instance == null) {
             instance = new RotationHandler();
@@ -49,6 +52,8 @@ public class RotationHandler {
     }
 
     public void easeTo(RotationConfiguration configuration) {
+        this.configuration = configuration;
+        easingModifier = (random.nextFloat() * 0.5f - 0.25f);
         distanceTraveled = 0;
         dontRotate.reset();
         rotating = true;
@@ -72,26 +77,27 @@ public class RotationHandler {
         float pythagoras = pythagoras(absYaw, absPitch);
         float time = getTime(pythagoras, configuration.getTime());
         endTime = (long) (System.currentTimeMillis() + Math.max(time, 50 + Math.random() * 100));
-        this.configuration = configuration;
     }
 
     private float getTime(float pythagoras, float time) {
         if (pythagoras < 25) {
             LogUtils.sendDebug("[Rotation] Very close rotation, speeding up by 0.65", true);
             return (long) (time * 0.65);
-        } else if (pythagoras < 45) {
+        }
+        if (pythagoras < 45) {
             LogUtils.sendDebug("[Rotation] Close rotation, speeding up by 0.77", true);
             return (long) (time * 0.77);
-        } else if (pythagoras < 80) {
+        }
+        if (pythagoras < 80) {
             LogUtils.sendDebug("[Rotation] Not so close, but not that far rotation, speeding up by 0.9", true);
             return (long) (time * 0.9);
-        } else if (pythagoras > 100) {
-            LogUtils.sendDebug("[Rotation] Far rotation, slowing down by 1.25", true);
-            return (long) (time * 1.25);
-        } else {
-            LogUtils.sendDebug("[Rotation] Normal rotation", true);
-            return (long) (time * 1.0);
         }
+        if (pythagoras > 100) {
+            LogUtils.sendDebug("[Rotation] Far rotation, slowing down by 1.1", true);
+            return (long) (time * 1.1);
+        }
+        LogUtils.sendDebug("[Rotation] Normal rotation", true);
+        return (long) (time * 1.0);
     }
 
     public void easeBackFromServerRotation() {
@@ -121,7 +127,7 @@ public class RotationHandler {
 
     public Rotation getNeededChange(Rotation startRot, Vec3 target) {
         Rotation targetRot;
-        if (configuration != null) {
+        if (configuration != null && random.nextGaussian() > 0.8) {
             targetRot = getRotation(target, configuration.randomness());
         } else {
             targetRot = getRotation(target);
@@ -154,14 +160,14 @@ public class RotationHandler {
     }
 
     public Rotation getRotation(Vec3 from, Vec3 to) {
-        if (configuration != null) {
+        if (configuration != null && random.nextGaussian() > 0.8) {
             return getRotation(from, to, configuration.randomness());
         }
         return getRotation(from, to, false);
     }
 
     public Rotation getRotation(BlockPos pos) {
-        if (configuration != null) {
+        if (configuration != null && random.nextGaussian() > 0.8) {
             return getRotation(mc.thePlayer.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), configuration.randomness());
         }
         return getRotation(mc.thePlayer.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), false);
@@ -202,12 +208,20 @@ public class RotationHandler {
         return (end - start) * function.apply(t) + start;
     }
 
+    private float easingModifier = 0;
+
     private float easeOutQuart(float x) {
         return (float) (1 - Math.pow(1 - x, 4));
     }
 
     private float easeOutExpo(float x) {
         return x == 1 ? 1 : 1 - (float) Math.pow(2, -10 * x);
+    }
+
+    private float easeOutBack(float x) {
+        float c1 = 1.70158f + easingModifier;
+        float c3 = c1 + 1;
+        return 1 + c3 * (float) Math.pow(x - 1, 3) + c1 * (float) Math.pow(x - 1, 2);
     }
 
     @SubscribeEvent
@@ -225,6 +239,10 @@ public class RotationHandler {
             if (configuration.getCallback().isPresent()) {
                 configuration.getCallback().get().run();
             } else { // No callback, just reset
+                if (Math.abs(mc.thePlayer.rotationYaw - targetRotation.getYaw()) < 0.1 && Math.abs(mc.thePlayer.rotationPitch - targetRotation.getPitch()) < 0.1) {
+                    mc.thePlayer.rotationYaw = AngleUtils.get360RotationYaw(targetRotation.getYaw());
+                    mc.thePlayer.rotationPitch = targetRotation.getPitch();
+                }
                 reset();
                 return;
             }
@@ -238,11 +256,11 @@ public class RotationHandler {
             Target target = configuration.getTarget().get();
             Rotation rot;
             if (target.getEntity() != null) {
-                rot = getRotation(target.getEntity(), configuration.randomness());
+                rot = getRotation(target.getEntity());
             } else if (target.getBlockPos() != null) {
-                rot = getRotation(target.getBlockPos(), configuration.randomness());
+                rot = getRotation(target.getBlockPos());
             } else if (target.getTarget().isPresent()) {
-                rot = getRotation(target.getTarget().get(), configuration.randomness());
+                rot = getRotation(target.getTarget().get());
             } else {
                 throw new IllegalArgumentException("No target specified!");
             }
@@ -257,8 +275,8 @@ public class RotationHandler {
             long time = (long) getTime(pythagoras(Math.abs(neededChange.getYaw()), Math.abs(neededChange.getPitch())), configuration.getTime());
             endTime = System.currentTimeMillis() + Math.max(time, (long) (50 + Math.random() * 100));
         }
-        mc.thePlayer.rotationYaw = interpolate(startRotation.getYaw(), targetRotation.getYaw(), this::easeOutExpo);
-        mc.thePlayer.rotationPitch = interpolate(startRotation.getPitch(), targetRotation.getPitch(), this::easeOutQuart);
+        mc.thePlayer.rotationYaw = interpolate(startRotation.getYaw(), targetRotation.getYaw(), configuration.easeOutBack() ? this::easeOutBack : this::easeOutExpo);
+        mc.thePlayer.rotationPitch = interpolate(startRotation.getPitch(), targetRotation.getPitch(), configuration.easeOutBack() ? this::easeOutBack : this::easeOutQuart);
     }
 
     @SubscribeEvent(receiveCanceled = true)
@@ -285,11 +303,11 @@ public class RotationHandler {
             Target target = configuration.getTarget().get();
             Rotation rot;
             if (target.getEntity() != null) {
-                rot = getRotation(target.getEntity(), configuration.randomness());
+                rot = getRotation(target.getEntity());
             } else if (target.getBlockPos() != null) {
-                rot = getRotation(target.getBlockPos(), configuration.randomness());
+                rot = getRotation(target.getBlockPos());
             } else if (target.getTarget().isPresent()) {
-                rot = getRotation(target.getTarget().get(), configuration.randomness());
+                rot = getRotation(target.getTarget().get());
             } else {
                 throw new IllegalArgumentException("No target specified!");
             }

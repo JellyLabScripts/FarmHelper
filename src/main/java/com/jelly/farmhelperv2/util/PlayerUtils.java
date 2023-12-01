@@ -327,4 +327,10 @@ public class PlayerUtils {
         AxisAlignedBB playerHeadBB = new AxisAlignedBB(playerHead.getX(), playerHead.getY(), playerHead.getZ(), playerHead.getX() + 1, playerHead.getY() + 1, playerHead.getZ() + 1);
         return mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, playerBB).stream().anyMatch(bb -> bb != playerFeetBB && bb != playerHeadBB);
     }
+
+    public static void closeScreen() {
+        if (mc.currentScreen != null && mc.thePlayer != null) {
+            mc.thePlayer.closeScreen();
+        }
+    }
 }

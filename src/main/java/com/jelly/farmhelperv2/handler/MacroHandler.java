@@ -155,7 +155,7 @@ public class MacroHandler {
             return;
         }
         LogUtils.sendDebug("Selected macro: " + LogUtils.capitalize(currentMacro.get().getClass().getSimpleName()));
-        mc.thePlayer.closeScreen();
+        PlayerUtils.closeScreen();
         LogUtils.sendSuccess("Macro enabled!");
         LogUtils.webhookLog("Macro enabled!");
 
@@ -168,7 +168,7 @@ public class MacroHandler {
         }, 300, TimeUnit.MILLISECONDS);
 
         if (mc.currentScreen != null) {
-            mc.thePlayer.closeScreen();
+            PlayerUtils.closeScreen();
         }
         AudioManager.getInstance().setSoundBeforeChange(mc.gameSettings.getSoundLevel(SoundCategory.MASTER));
 
@@ -367,8 +367,10 @@ public class MacroHandler {
             return;
         }
         currentMacro.ifPresent(m -> {
-            LogUtils.sendWarning("Clearing saved state, because of world change.");
-            m.setCurrentState(AbstractMacro.State.NONE);
+            if (m.getCurrentState() != AbstractMacro.State.NONE) {
+                LogUtils.sendWarning("Clearing saved state, because of world change.");
+                m.setCurrentState(AbstractMacro.State.NONE);
+            }
         });
     }
 

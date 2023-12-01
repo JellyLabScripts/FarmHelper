@@ -177,8 +177,8 @@ public class VisitorsMacro implements IFeature {
         manuallyStarted = false;
         LogUtils.sendDebug("[Visitors Macro] Macro stopped");
         rotation.reset();
-        if (mc.currentScreen != null) {
-            mc.thePlayer.closeScreen();
+        if (mc.currentScreen != null && mc.thePlayer != null) {
+            PlayerUtils.closeScreen();
         }
     }
 
@@ -331,7 +331,7 @@ public class VisitorsMacro implements IFeature {
     private void onTravelState() {
         if (mc.currentScreen != null) {
             KeyBindUtils.stopMovement();
-            mc.thePlayer.closeScreen();
+            PlayerUtils.closeScreen();
             delayClock.schedule(getRandomDelay());
             return;
         }
@@ -381,7 +381,7 @@ public class VisitorsMacro implements IFeature {
                 rotation.easeTo(
                         new RotationConfiguration(
                                 new Rotation(rotationToDesk.getYaw(), rotationToDesk.getPitch()), FarmHelperConfig.getRandomRotationTime(), null
-                        )
+                        ).easeOutBack(true)
                 );
                 setTravelState(TravelState.MOVE_TOWARDS_DESK);
                 previousDistanceToCheck = Integer.MAX_VALUE;
@@ -499,7 +499,7 @@ public class VisitorsMacro implements IFeature {
                 break;
             case OPEN_COMPACTOR:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
@@ -533,7 +533,7 @@ public class VisitorsMacro implements IFeature {
             case CLOSE_COMPACTOR:
                 LogUtils.sendDebug("[Visitors Macro] Closing compactor");
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                 }
                 setCompactorState(CompactorState.HOLD_COMPACTOR);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
@@ -576,7 +576,7 @@ public class VisitorsMacro implements IFeature {
         rotation.easeTo(
                 new RotationConfiguration(
                         new Rotation(yawToCheck, pitchToCheck), FarmHelperConfig.getRandomRotationTime(), null
-                )
+                ).easeOutBack(true)
         );
         return true;
     }
@@ -609,15 +609,22 @@ public class VisitorsMacro implements IFeature {
                                         visitors.stream().anyMatch(
                                                 v ->
                                                         StringUtils.stripControlCodes(v).contains(StringUtils.stripControlCodes(entity.getCustomNameTag()))))
-                        .filter(entity -> entity.getDistanceToEntity(mc.thePlayer) < 4)
+                        .filter(entity -> entity.getDistance(mc.thePlayer.posX, entity.posY, mc.thePlayer.posZ) < 4)
                         .filter(entity -> servedCustomers.stream().noneMatch(s -> s.equals(entity)))
                         .min(Comparator.comparingDouble(entity -> entity.getDistanceToEntity(mc.thePlayer)))
                         .orElse(null);
                 if (closest == null) {
-                    LogUtils.sendWarning("[Visitors Macro] Couldn't find the closest visitor, waiting...");
-                    delayClock.schedule(getRandomDelay());
+                    LogUtils.sendWarning("[Visitors Macro] Couldn't find the closest visitor, getting a little closer...");
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindForward);
+                    if (!BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1))
+                            && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 1, 1)) && mc.thePlayer.onGround) {
+                        rotation.reset();
+                        mc.thePlayer.jump();
+                    }
+//                    delayClock.schedule(getRandomDelay());
                     return;
                 }
+                KeyBindUtils.stopMovement();
                 Entity character = PlayerUtils.getEntityCuttingOtherEntity(closest);
 
                 if (character == null) {
@@ -642,7 +649,7 @@ public class VisitorsMacro implements IFeature {
                     rotation.easeTo(
                             new RotationConfiguration(
                                     new Rotation(rotationToVisitor.getYaw(), rotationToVisitor.getPitch()), FarmHelperConfig.getRandomRotationTime(), null
-                            )
+                            ).easeOutBack(true)
                     );
                     setVisitorsState(VisitorsState.OPEN_VISITOR);
                     delayClock.schedule(FarmHelperConfig.getRandomRotationTime());
@@ -718,7 +725,7 @@ public class VisitorsMacro implements IFeature {
                 if (npcName.isEmpty() || !StringUtils.stripControlCodes(npcName).contains(StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()))) {
                     LogUtils.sendError("[Visitors Macro] Opened wrong NPC.");
                     setVisitorsState(VisitorsState.ROTATE_TO_VISITOR);
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delayClock.schedule(getRandomDelay());
                     break;
                 }
@@ -876,7 +883,7 @@ public class VisitorsMacro implements IFeature {
                 }
                 LogUtils.sendDebug("[Visitors Macro] Closing menu");
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                 }
                 setVisitorsState(VisitorsState.BUY_STATE);
                 delayClock.schedule(getRandomDelay());
@@ -906,7 +913,7 @@ public class VisitorsMacro implements IFeature {
                 rotation.easeTo(
                         new RotationConfiguration(
                                 new Rotation(rotationToVisitor.getYaw(), rotationToVisitor.getPitch()), FarmHelperConfig.getRandomRotationTime(), null
-                        )
+                        ).easeOutBack(true)
                 );
                 setVisitorsState(VisitorsState.OPEN_VISITOR_2);
                 delayClock.schedule(FarmHelperConfig.getRandomRotationTime());
@@ -984,7 +991,7 @@ public class VisitorsMacro implements IFeature {
                         if (InventoryUtils.getAmountOfItemInInventory(item.getLeft()) < item.getRight()) {
                             LogUtils.sendError("[Visitors Macro] Missing item " + item.getLeft() + " amount " + item.getRight());
                             setVisitorsState(VisitorsState.BUY_STATE);
-                            mc.thePlayer.closeScreen();
+                            PlayerUtils.closeScreen();
                             delayClock.schedule(getRandomDelay());
                             return;
                         }
@@ -1080,7 +1087,7 @@ public class VisitorsMacro implements IFeature {
                     LogUtils.sendError("[Visitors Macro] Opened wrong Bazaar Menu");
                     setBuyState(BuyState.OPEN_BZ);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     break;
                 }
                 Pair<String, Long> firstItem = itemsToBuy.get(0);
@@ -1091,7 +1098,7 @@ public class VisitorsMacro implements IFeature {
                     rejectVisitor = true;
                     setVisitorsState(VisitorsState.CLOSE_VISITOR);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     break;
                 }
                 ItemStack cropItemStack = cropSlot.getStack();
@@ -1100,7 +1107,7 @@ public class VisitorsMacro implements IFeature {
                     rejectVisitor = true;
                     setVisitorsState(VisitorsState.CLOSE_VISITOR);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     break;
                 }
                 InventoryUtils.clickContainerSlot(cropSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
@@ -1139,7 +1146,7 @@ public class VisitorsMacro implements IFeature {
                         rejectVisitor = true;
                         setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
                         delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                        mc.thePlayer.closeScreen();
+                        PlayerUtils.closeScreen();
                         break;
                     }
                 } else {
@@ -1209,7 +1216,7 @@ public class VisitorsMacro implements IFeature {
                 break;
             case CLOSE_BZ:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                 }
                 if (itemsToBuy.isEmpty()) {
                     setBuyState(BuyState.END);
