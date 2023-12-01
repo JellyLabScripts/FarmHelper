@@ -161,14 +161,9 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
 
     @Override
     public void onEnable() {
+        super.onEnable();
         changeLaneDirection = null;
-        FarmHelperConfig.CropEnum crop = PlayerUtils.getFarmingCrop();
-        LogUtils.sendDebug("Crop: " + crop);
-        MacroHandler.getInstance().setCrop(crop);
-        PlayerUtils.getTool();
-        if (FarmHelperConfig.customPitch) {
-            setPitch(FarmHelperConfig.customPitchLevel);
-        } else {
+        if (!FarmHelperConfig.customPitch) {
             if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_V_NORMAL_TYPE) {
                 setPitch((float) (2.8f + Math.random() * 0.5f));
             } else if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_PUMPKIN_MELON) {
@@ -183,17 +178,15 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 setPitch(-90f);
             }
         }
-        if (FarmHelperConfig.customYaw) {
-            setYaw(FarmHelperConfig.customYawLevel);
-        } else {
+        if (!FarmHelperConfig.customYaw) {
             setYaw(AngleUtils.getClosest());
         }
-        getRotation().reset();
-        super.onEnable();
+        if (MacroHandler.getInstance().isTeleporting()) return;
+        if (!shouldFixRotation()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),
-                        500, null
+                        FarmHelperConfig.getRandomRotationTime(), null
                 )
         );
     }

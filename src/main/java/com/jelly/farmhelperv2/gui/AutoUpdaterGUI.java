@@ -235,7 +235,7 @@ public class AutoUpdaterGUI extends GuiScreen {
                 for (File fileToDelete : filesToDelete) {
                     if (SystemUtils.IS_OS_WINDOWS) {
                         try {
-                            Runtime.getRuntime().exec("cmd /c ping 0 -n 2 && del \"" + fileToDelete.getAbsolutePath() + "\"");
+                            Runtime.getRuntime().exec("cmd /c ping 0 -n 3 & del \"" + fileToDelete.getAbsolutePath() + "\"");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

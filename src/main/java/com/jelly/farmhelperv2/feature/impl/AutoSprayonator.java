@@ -330,8 +330,9 @@ public class AutoSprayonator implements IFeature {
                     return;
                 }
                 sprayonatorDelay.schedule(1000);
-                if (mc.thePlayer.inventory.currentItem != getChosenSprayonatorSlot())
+                if (mc.thePlayer.inventory.currentItem != getChosenSprayonatorSlot()) {
                     mc.thePlayer.inventory.currentItem = getChosenSprayonatorSlot();
+                }
                 List<String> itemLore = InventoryUtils.getItemLore(mc.thePlayer.inventory.getStackInSlot(getChosenSprayonatorSlot()));
                 if (itemLore.isEmpty()) return;
                 if (itemLore.size() < 19) return;
@@ -344,13 +345,22 @@ public class AutoSprayonator implements IFeature {
                 }
                 break;
             case CHECK_ITEM:
+                if (hasSprayItem()) {
+                    sprayState = AUTO_SPRAYONATOR_STATE.USE_SPRAYONATOR;
+                } else {
+                    sprayState = AUTO_SPRAYONATOR_STATE.BAZAAR_PURCHASE;
+                    bazaarPurchaseState = BAZAAR_PURCHASE_STATE.OPEN_BAZAAR;
+                }
                 break;
             case BAZAAR_PURCHASE:
+                long randomDelay = (long)(Math.random() * 250);
                 switch (bazaarPurchaseState) {
                     case OPEN_BAZAAR:
+                        mc.thePlayer.sendChatMessage("/bz " + sprayItem.getItemName().toLowerCase());
+                        sprayonatorDelay.schedule(1000 + randomDelay);
+                        currentGuiState = CURRENT_GUI_STATE.AWAIT_OPEN;
                         break;
-                    case CLICK_ITEM:
-                        break;
+                    case CLICK_ITEM: // handled in gui event
                     case BUY_ITEM:
                         break;
                     case NONE:
@@ -375,10 +385,13 @@ public class AutoSprayonator implements IFeature {
         if (guiName == null) return;
         ContainerChest guiChest = (ContainerChest) ((GuiChest) event.guiScreen).inventorySlots;
         if (currentGuiState != CURRENT_GUI_STATE.AWAIT_OPEN) return;
-        sprayonatorDelay.schedule(1000);
+        sprayItem = SPRAYONATOR_ITEM.values()[FarmHelperConfig.sprayonatorType];
+
+        long randomDelay = (long)(Math.random() * 250);
 
         switch (sprayState) {
             case CHECK_PLOTS:
+                sprayonatorDelay.schedule(1000 + randomDelay);
                 switch (checkPlotState) {
                     case OPEN_DESK:
                         if (!guiName.equals("Desk")) {
@@ -415,6 +428,53 @@ public class AutoSprayonator implements IFeature {
                         }, 150 + (long)(Math.random() * 50), TimeUnit.MILLISECONDS);
                 }
                 break;
+            case BAZAAR_PURCHASE:
+                sprayonatorDelay.schedule(2000 + randomDelay*3);
+                switch (bazaarPurchaseState) {
+                    case CLICK_ITEM:
+                        if (guiName.equals("Bazaar")) {
+                            Slot slot = InventoryUtils.getSlotOfItemInContainer(bazaarItemName);
+                            if (slot == null) {
+                                currentGuiState = CURRENT_GUI_STATE.CLOSING;
+                                Multithreading.schedule(() -> {
+                                    mc.thePlayer.closeScreen();
+                                    currentGuiState = CURRENT_GUI_STATE.NONE;
+                                }, 100 + (long)(Math.random() * 50), TimeUnit.MILLISECONDS);
+                                return;
+                            }
+                            InventoryUtils.clickContainerSlot(slot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                            bazaarPurchaseState = BAZAAR_PURCHASE_STATE.BUY_ITEM;
+                        }
+                        break;
+                    case BUY_ITEM:
+                        if (!guiName.equals(bazaarItemName)) {
+                            Slot slot = InventoryUtils.getSlotOfItemInContainer(bazaarItemName);
+                            if (slot == null) {
+                                currentGuiState = CURRENT_GUI_STATE.CLOSING;
+                                Multithreading.schedule(() -> {
+                                    mc.thePlayer.closeScreen();
+                                    currentGuiState = CURRENT_GUI_STATE.NONE;
+                                }, 100 + (long)(Math.random() * 50), TimeUnit.MILLISECONDS);
+                                return;
+                            }
+                            Multithreading.schedule(() -> {
+                                InventoryUtils.clickContainerSlot(slot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                                Multithreading.schedule(() -> {
+                                    InventoryUtils.clickContainerSlot(slot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                                    currentGuiState = CURRENT_GUI_STATE.CLOSING;
+                                    Multithreading.schedule(() -> {
+                                        mc.thePlayer.closeScreen();
+                                        currentGuiState = CURRENT_GUI_STATE.NONE;
+                                        sprayState = AUTO_SPRAYONATOR_STATE.CHECK_ITEM;
+                                    }, 300 + (long)(Math.random() * 50), TimeUnit.MILLISECONDS);
+                                }, 300 + (long)(Math.random() * 50), TimeUnit.MILLISECONDS);
+                            }, 300 + (long)(Math.random() * 50), TimeUnit.MILLISECONDS);
+                            bazaarPurchaseState = BAZAAR_PURCHASE_STATE.NONE;
+                        }
+                        break;
+                    default:
+                        break;
+                }
             default:
                 break;
         }

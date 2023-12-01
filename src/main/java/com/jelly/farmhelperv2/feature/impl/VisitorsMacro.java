@@ -7,7 +7,6 @@ import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
-import com.jelly.farmhelperv2.macro.AbstractMacro;
 import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.Rotation;
@@ -49,7 +48,7 @@ public class VisitorsMacro implements IFeature {
     private MainState mainState = MainState.NONE;
     @Getter
     private TravelState travelState = TravelState.NONE;
-    private int previousDistanceToCheck = Integer.MAX_VALUE;
+    private double previousDistanceToCheck = Integer.MAX_VALUE;
     private int speed = 0;
     @Getter
     private CompactorState compactorState = CompactorState.NONE;
@@ -105,7 +104,7 @@ public class VisitorsMacro implements IFeature {
 
     @Override
     public void start() {
-        if (!canEnableMacro(manuallyStarted) && !forceStart) {
+        if (!canEnableMacro(manuallyStarted, true) && !forceStart) {
             setManuallyStarted(false);
             return;
         }
@@ -168,7 +167,6 @@ public class VisitorsMacro implements IFeature {
         }
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();
-            MacroHandler.getInstance().getCurrentMacro().ifPresent(AbstractMacro::clearSavedState);
         }
         LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro started");
     }
@@ -199,34 +197,35 @@ public class VisitorsMacro implements IFeature {
         return travelState != TravelState.ROTATE_TO_DESK && mainState != MainState.DISABLING && mainState != MainState.END;
     }
 
-    public boolean canEnableMacro(boolean manual) {
+    public boolean canEnableMacro(boolean manual, boolean withError) {
         if (!isToggled()) return false;
         if (!GameStateHandler.getInstance().inGarden()) return false;
         if (mc.thePlayer == null || mc.theWorld == null) return false;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return false;
 
-        if (!manual && !forceStart && (!PlayerUtils.isSpawnLocationSet() || !PlayerUtils.isStandingOnSpawnPoint())) {
-            LogUtils.sendError("[Visitors Macro] The player is not standing on spawn location, skipping...");
+        if (!manual && !forceStart && (!PlayerUtils.isStandingOnSpawnPoint() && !PlayerUtils.isStandingOnRewarpLocation())) {
+            if (withError)
+                LogUtils.sendError("[Visitors Macro] The player is not standing on spawn location, skipping...");
             return false;
         }
 
         if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
-            LogUtils.sendError("[Visitors Macro] Cookie buff is not active, skipping...");
+            if (withError) LogUtils.sendError("[Visitors Macro] Cookie buff is not active, skipping...");
             return false;
         }
 
         if (FarmHelperConfig.pauseVisitorsMacroDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) {
-            LogUtils.sendError("[Visitors Macro] Jacob's contest is active, skipping...");
+            if (withError) LogUtils.sendError("[Visitors Macro] Jacob's contest is active, skipping...");
             return false;
         }
 
         if (GameStateHandler.getInstance().getCurrentPurse() < FarmHelperConfig.visitorsMacroMinMoney * 1_000) {
-            LogUtils.sendError("[Visitors Macro] The player's purse is too low, skipping...");
+            if (withError) LogUtils.sendError("[Visitors Macro] The player's purse is too low, skipping...");
             return false;
         }
 
         if (!manual && visitors.size() < FarmHelperConfig.visitorsMacroMinVisitors) {
-            LogUtils.sendError("[Visitors Macro] Not enough Visitors in queue, skipping...");
+            if (withError) LogUtils.sendError("[Visitors Macro] Not enough Visitors in queue, skipping...");
             return false;
         }
 
@@ -317,7 +316,7 @@ public class VisitorsMacro implements IFeature {
             case END:
                 setMainState(MainState.DISABLING);
                 Multithreading.schedule(() -> {
-                    mc.thePlayer.sendChatMessage("/warp garden");
+                    MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
                     Multithreading.schedule(() -> {
                         stop();
                         MacroHandler.getInstance().resumeMacro();
@@ -345,7 +344,7 @@ public class VisitorsMacro implements IFeature {
                 delayClock.schedule((long) (1_000 + Math.random() * 500));
                 break;
             case ROTATE_TO_DESK:
-                if (mc.thePlayer.getPosition().equals(positionBeforeTp)) {
+                if (mc.thePlayer.getPosition().equals(positionBeforeTp) || PlayerUtils.isPlayerSuffocating()) {
                     LogUtils.sendDebug("[Visitors Macro] Waiting for teleportation...");
                     return;
                 }
@@ -364,6 +363,7 @@ public class VisitorsMacro implements IFeature {
                                                 v ->
                                                         StringUtils.stripControlCodes(v).contains(StringUtils.stripControlCodes(entity.getCustomNameTag()))))
                         .filter(entity -> entity.getDistanceToEntity(mc.thePlayer) < 14)
+                        .filter(entity -> servedCustomers.stream().noneMatch(s -> s.equals(entity)))
                         .min(Comparator.comparingDouble(entity -> entity.getDistanceToEntity(mc.thePlayer)))
                         .orElse(null);
 
@@ -391,7 +391,7 @@ public class VisitorsMacro implements IFeature {
                 BlockPos deskPos = new BlockPos(deskRotation.xCoord, mc.thePlayer.posY, deskRotation.zCoord);
                 double distance = Math.sqrt(playerPos.distanceSq(deskPos));
                 stuckClock.schedule(STUCK_DELAY);
-                if (distance <= 1f || playerPos.equals(deskPos) || (previousDistanceToCheck < distance && distance < 1.75f) || mc.thePlayer.getDistanceToEntity(closestEntity) < 2.5) {
+                if (distance <= 1f || playerPos.equals(deskPos) || (previousDistanceToCheck < distance && distance < 1.75f) || mc.thePlayer.getDistanceToEntity(closestEntity) < 4) {
                     KeyBindUtils.stopMovement();
                     setTravelState(TravelState.END);
                     delayClock.schedule(getRandomDelay());
@@ -407,7 +407,7 @@ public class VisitorsMacro implements IFeature {
                         mc.thePlayer.jump();
                     }
                 }
-                previousDistanceToCheck = (int) distance;
+                previousDistanceToCheck = distance;
                 break;
             case END:
                 if (!mc.thePlayer.onGround) {
@@ -593,7 +593,10 @@ public class VisitorsMacro implements IFeature {
                 break;
             case GET_CLOSEST_VISITOR:
                 LogUtils.sendDebug("[Visitors Macro] Getting the closest visitor");
-                if (visitors.isEmpty()) {
+                if (PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false) != -1) {
+                    mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
+                }
+                if (visitors.isEmpty() || visitors.stream().noneMatch(s -> servedCustomers.stream().noneMatch(s2 -> StringUtils.stripControlCodes(s2.getCustomNameTag()).contains(StringUtils.stripControlCodes(s))))) {
                     LogUtils.sendWarning("[Visitors Macro] No visitors in queue...");
                     setVisitorsState(VisitorsState.END);
                     delayClock.schedule(getRandomDelay());
@@ -884,6 +887,9 @@ public class VisitorsMacro implements IFeature {
             case ROTATE_TO_VISITOR_2:
                 if (mc.currentScreen != null) return;
                 if (rotation.isRotating()) return;
+                if (PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false) != -1) {
+                    mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
+                }
                 if (mc.objectMouseOver != null && mc.objectMouseOver.entityHit != null) {
                     Entity entity = mc.objectMouseOver.entityHit;
                     assert currentVisitor.isPresent();

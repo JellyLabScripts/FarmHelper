@@ -5,8 +5,10 @@ import com.jelly.farmhelperv2.feature.impl.AntiStuck;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.macro.AbstractMacro;
-import com.jelly.farmhelperv2.util.*;
-import com.jelly.farmhelperv2.util.helper.Clock;
+import com.jelly.farmhelperv2.util.AngleUtils;
+import com.jelly.farmhelperv2.util.BlockUtils;
+import com.jelly.farmhelperv2.util.KeyBindUtils;
+import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.block.Block;
@@ -18,24 +20,16 @@ import static com.jelly.farmhelperv2.util.BlockUtils.getRelativeBlock;
 import static com.jelly.farmhelperv2.util.BlockUtils.getRelativeBlockPos;
 
 public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
-
-    private final Clock delayAfterChangingRow = new Clock();
     private final int ROTATION_DEGREE = 45;
     public ChangeLaneDirection changeLaneDirection = null;
 
     @Override
     public void onEnable() {
-        FarmHelperConfig.CropEnum crop = PlayerUtils.getFarmingCrop();
-        if (crop == FarmHelperConfig.CropEnum.WHEAT) {
-            crop = FarmHelperConfig.CropEnum.PUMPKIN_MELON_UNKNOWN;
-        }
-        LogUtils.sendDebug("Crop: " + crop);
-        MacroHandler.getInstance().setCrop(crop);
-        PlayerUtils.getTool();
-        setPitch(50 + (float) (Math.random() * 6 - 3)); // -3 - 3
-        setYaw(AngleUtils.getClosestDiagonal());
-        setClosest90Deg(Optional.of(AngleUtils.getClosest()));
-        changeState(calculateDirection());
+        super.onEnable();
+        if (!FarmHelperConfig.customPitch)
+            setPitch(50 + (float) (Math.random() * 6 - 3)); // -3 - 3
+        if (!FarmHelperConfig.customYaw)
+            setYaw(AngleUtils.getClosestDiagonal());
         float additionalRotation;
         switch (getCurrentState()) {
             case LEFT:
@@ -48,6 +42,9 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                 additionalRotation = (float) (Math.random() * 2 - 1);
                 break;
         }
+        changeLaneDirection = null;
+        if (MacroHandler.getInstance().isTeleporting()) return;
+        if (!shouldFixRotation()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation((getClosest90Deg().orElse(AngleUtils.getClosest())) + additionalRotation, getPitch()),
@@ -55,9 +52,10 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                         null
                 )
         );
-        delayAfterChangingRow.schedule(1_000);
-        changeLaneDirection = null;
-        super.onEnable();
+    }
+
+    private boolean isHuggingBackWall() {
+        return !GameStateHandler.getInstance().isBackWalkable();
     }
 
     @Override
@@ -163,7 +161,6 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                     changeState(State.SWITCHING_LANE);
                 } else if (GameStateHandler.getInstance().isRightWalkable()) {
                     changeState(State.RIGHT);
-                    delayAfterChangingRow.schedule(1_000);
                     setPitch(50 + (float) (Math.random() * 6 - 3)); // -3 - 3
                     getRotation().easeTo(
                             new RotationConfiguration(
@@ -174,7 +171,6 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                     );
                 } else if (GameStateHandler.getInstance().isLeftWalkable()) {
                     changeState(State.LEFT);
-                    delayAfterChangingRow.schedule(1_000);
                     setPitch(50 + (float) (Math.random() * 6 - 3)); // -3 - 3
                     getRotation().easeTo(
                             new RotationConfiguration(
@@ -244,14 +240,14 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
         switch (getCurrentState()) {
             case RIGHT:
                 KeyBindUtils.holdThese(
-                        !delayAfterChangingRow.isScheduled() || delayAfterChangingRow.passed() ? mc.gameSettings.keyBindForward : null,
+                        isHuggingBackWall() ? mc.gameSettings.keyBindForward : null,
                         mc.gameSettings.keyBindRight,
                         mc.gameSettings.keyBindAttack
                 );
                 break;
             case LEFT: {
                 KeyBindUtils.holdThese(
-                        !delayAfterChangingRow.isScheduled() || delayAfterChangingRow.passed() ? mc.gameSettings.keyBindForward : null,
+                        isHuggingBackWall() ? mc.gameSettings.keyBindForward : null,
                         mc.gameSettings.keyBindLeft,
                         mc.gameSettings.keyBindAttack
                 );

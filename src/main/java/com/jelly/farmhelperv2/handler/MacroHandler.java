@@ -13,11 +13,13 @@ import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.RenderUtils;
+import com.jelly.farmhelperv2.util.helper.AudioManager;
 import com.jelly.farmhelperv2.util.helper.Timer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.SoundCategory;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -115,6 +117,10 @@ public class MacroHandler {
                 VisitorsMacro.getInstance().stop();
                 return;
             }
+            if (PestsDestroyer.getInstance().isRunning()) {
+                PestsDestroyer.getInstance().stop();
+                return;
+            }
             if (VisitorsMacro.getInstance().isInBarn()) {
                 if (VisitorsMacro.getInstance().isToggled()) {
                     VisitorsMacro.getInstance().setManuallyStarted(true);
@@ -125,6 +131,9 @@ public class MacroHandler {
                 return;
             }
             if (Failsafe.getInstance().isHadEmergency()) {
+                if (Failsafe.getInstance().isEmergency()) {
+                    Failsafe.getInstance().stop();
+                }
                 Failsafe.getInstance().setHadEmergency(false);
                 Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().reset();
                 LogUtils.sendWarning("Farm manually and DO NOT restart the macro too soon! The staff might still be spectating you for a while!");
@@ -152,16 +161,16 @@ public class MacroHandler {
 
         analyticsTimer.reset();
         Multithreading.schedule(() -> {
-            if (macroingTimer.isScheduled() && !ProfitCalculatorHUD.resetStatsBetweenDisabling) {
-                macroingTimer.resume();
-            } else {
+            if (!macroingTimer.isScheduled() || ProfitCalculatorHUD.resetStatsBetweenDisabling) {
                 macroingTimer.schedule();
+                macroingTimer.pause();
             }
         }, 300, TimeUnit.MILLISECONDS);
 
         if (mc.currentScreen != null) {
             mc.thePlayer.closeScreen();
         }
+        AudioManager.getInstance().setSoundBeforeChange(mc.gameSettings.getSoundLevel(SoundCategory.MASTER));
 
         FeatureManager.getInstance().enableAll();
 
@@ -209,6 +218,7 @@ public class MacroHandler {
 
     public void pauseMacro(boolean scheduler) {
         currentMacro.ifPresent(cm -> {
+            KeyBindUtils.stopMovement();
             if (cm.isPaused()) return;
             cm.saveState();
             cm.onDisable();
@@ -235,9 +245,11 @@ public class MacroHandler {
             analyticsTimer.resume();
             Scheduler.getInstance().resume();
             if (UngrabMouse.getInstance().isToggled()) {
-                System.out.println("Regrabbing mouse");
                 UngrabMouse.getInstance().regrabMouse();
                 UngrabMouse.getInstance().ungrabMouse();
+            } else {
+                mc.inGameHasFocus = true;
+                mc.mouseHelper.grabMouseCursor();
             }
         });
     }
@@ -251,7 +263,10 @@ public class MacroHandler {
             PlayerUtils.itemChangedByStaff = false;
             PlayerUtils.changeItemEveryClock.reset();
             KeyBindUtils.updateKeys(false, false, false, false, false, mc.thePlayer.capabilities.isFlying, false);
-            Multithreading.schedule(startCurrent, 300, TimeUnit.MILLISECONDS);
+            Multithreading.schedule(() -> {
+                startCurrent.run();
+                macroingTimer.resume();
+            }, 300, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -352,10 +367,8 @@ public class MacroHandler {
             return;
         }
         currentMacro.ifPresent(m -> {
-            if (m.getSavedState().isPresent()) {
-                LogUtils.sendWarning("Clearing saved state, because of world change.");
-                m.clearSavedState();
-            }
+            LogUtils.sendWarning("Clearing saved state, because of world change.");
+            m.setCurrentState(AbstractMacro.State.NONE);
         });
     }
 

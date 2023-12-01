@@ -31,6 +31,7 @@ public class AudioManager {
 
     private final Clock delayBetweenPings = new Clock();
     private int numSounds = 15;
+    @Setter
     private float soundBeforeChange = 0;
 
     public void resetSound() {
@@ -42,7 +43,6 @@ public class AudioManager {
         minecraftSoundEnabled = false;
         if (FarmHelperConfig.maxOutMinecraftSounds) {
             mc.gameSettings.setSoundLevel(SoundCategory.MASTER, soundBeforeChange);
-            soundBeforeChange = 0;
         }
     }
 
@@ -54,7 +54,6 @@ public class AudioManager {
             numSounds = 15;
             minecraftSoundEnabled = true;
             if (FarmHelperConfig.maxOutMinecraftSounds) {
-                soundBeforeChange = mc.gameSettings.getSoundLevel(SoundCategory.MASTER);
                 mc.gameSettings.setSoundLevel(SoundCategory.MASTER, 1.0f);
             }
         } else {
@@ -117,7 +116,6 @@ public class AudioManager {
             minecraftSoundEnabled = false;
             if (FarmHelperConfig.maxOutMinecraftSounds) {
                 mc.gameSettings.setSoundLevel(SoundCategory.MASTER, soundBeforeChange);
-                soundBeforeChange = 0;
             }
             return;
         }

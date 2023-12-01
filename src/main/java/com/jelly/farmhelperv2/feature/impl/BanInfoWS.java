@@ -499,6 +499,7 @@ public class BanInfoWS implements IFeature {
         JsonObject extraData = new JsonObject();
         JsonObject farmHelper = new JsonObject();
         farmHelper.addProperty("macroEnabled", MacroHandler.getInstance().isMacroToggled());
+        farmHelper.addProperty("pestsDestroyerEnabled", FarmHelperConfig.enablePestsDestroyer);
         extraData.add("farmHelper", farmHelper);
         obj.add("extraData", extraData);
     }
@@ -508,7 +509,7 @@ public class BanInfoWS implements IFeature {
     }
 
     public void sendAnalyticsData(AnalyticsState state) {
-        MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.getAnalyticsClock().schedule(180_000)); // 3 minutes
+        MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.getAnalyticsClock().schedule(300_000)); // 5 minutes
         System.out.println("Sending analytics data...");
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("message", "analyticsData");
