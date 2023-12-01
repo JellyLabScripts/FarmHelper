@@ -26,7 +26,7 @@ public class SShapeMushroomMacro extends AbstractMacro {
             setYaw(AngleUtils.getClosestDiagonal());
         }
         if (MacroHandler.getInstance().isTeleporting()) return;
-        if (!shouldFixRotation(false)) return;
+        if (!shouldFixRotation()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),

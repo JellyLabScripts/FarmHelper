@@ -182,7 +182,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
             setYaw(AngleUtils.getClosest());
         }
         if (MacroHandler.getInstance().isTeleporting()) return;
-        if (!shouldFixRotation(false)) return;
+        if (!shouldFixRotation()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),

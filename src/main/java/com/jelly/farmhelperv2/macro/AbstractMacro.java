@@ -62,12 +62,13 @@ public abstract class AbstractMacro {
         return !enabled;
     }
 
+    private final Clock checkOnSpawnClock = new Clock();
+
     public void onTick() {
         if (Failsafe.getInstance().isRunning() || Failsafe.getInstance().getChooseEmergencyDelay().isScheduled()) {
             LogUtils.sendWarning("Failsafe is running! Blocking main onTick event!");
             return;
         }
-
         if (mc.thePlayer.capabilities.isFlying) {
             KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
             return;
@@ -83,26 +84,30 @@ public abstract class AbstractMacro {
             return;
         }
         if (PlayerUtils.isStandingOnRewarpLocation() && !Failsafe.getInstance().isEmergency() && GameStateHandler.getInstance().notMoving()) {
-            if (PestsDestroyer.getInstance().canEnableMacro()) {
-                PestsDestroyer.getInstance().start();
-            } else if (VisitorsMacro.getInstance().isToggled()) {
-                VisitorsMacro.getInstance().start();
+            if (checkOnSpawnClock.passed()) {
+                if (PestsDestroyer.getInstance().canEnableMacro()) {
+                    PestsDestroyer.getInstance().start();
+                } else if (VisitorsMacro.getInstance().canEnableMacro(false, true)) {
+                    VisitorsMacro.getInstance().start();
+                }
+                checkOnSpawnClock.schedule(5000);
             } else {
                 triggerWarpGarden();
             }
             return;
         }
-        if (PlayerUtils.isStandingOnSpawnPoint() && !Failsafe.getInstance().isEmergency() && GameStateHandler.getInstance().notMoving()) {
+        if (PlayerUtils.isStandingOnSpawnPoint() && !Failsafe.getInstance().isEmergency() && GameStateHandler.getInstance().notMoving() && checkOnSpawnClock.passed()) {
             if (PestsDestroyer.getInstance().canEnableMacro()) {
                 PestsDestroyer.getInstance().start();
                 rotated = true;
                 return;
             }
-            if (VisitorsMacro.getInstance().isToggled() && VisitorsMacro.getInstance().canEnableMacro(false, false)) {
+            if (VisitorsMacro.getInstance().canEnableMacro(false, true)) {
                 VisitorsMacro.getInstance().start();
                 rotated = true;
                 return;
             }
+            checkOnSpawnClock.schedule(5000);
         }
         if (mc.thePlayer.getPosition().getY() < -5) {
             LogUtils.sendError("Build a wall between the rewarp point and the void to prevent falling out of the garden! Disabling the macro...");
@@ -134,19 +139,22 @@ public abstract class AbstractMacro {
                 LogUtils.sendDebug("Rotated after warping, but player is not on ground or lagging.");
                 KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
                 return;
+            } else if (rotated) {
+                LogUtils.sendDebug("Rotated after warping, but player is not on ground or lagging.");
+                return;
             }
 
             if (FarmHelperConfig.rotateAfterWarped) {
                 doAfterRewarpRotation();
             }
 
-            if (shouldFixRotation(true) && shouldRotateAfterWarp()) {
+            if (shouldFixRotation() && shouldRotateAfterWarp()) {
                 rotation.easeTo(new RotationConfiguration(
                         new Rotation(yaw, pitch), FarmHelperConfig.getRandomRotationTime() * 2, null
                 ));
+                LogUtils.sendDebug("Rotating");
             }
             rotated = true;
-            LogUtils.sendDebug("Rotating");
             setLayerY(mc.thePlayer.getPosition().getY());
             return;
         } else if (rewarpState == RewarpState.TELEPORTING) {
@@ -203,6 +211,7 @@ public abstract class AbstractMacro {
     public abstract void invokeState();
 
     public void onEnable() {
+        checkOnSpawnClock.reset();
         FarmHelperConfig.CropEnum crop = PlayerUtils.getFarmingCrop();
         LogUtils.sendDebug("Crop: " + crop);
         MacroHandler.getInstance().setCrop(crop);
@@ -263,6 +272,7 @@ public abstract class AbstractMacro {
         if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos.get()) > 2) {
             LogUtils.sendDebug("Teleported!");
             changeState(State.NONE);
+            checkOnSpawnClock.reset();
             beforeTeleportationPos = Optional.empty();
             rewarpState = RewarpState.TELEPORTED;
             rotated = false;
@@ -280,17 +290,12 @@ public abstract class AbstractMacro {
     }
 
 
-    public boolean shouldFixRotation(boolean afterRewarp) {
+    public boolean shouldFixRotation() {
         double absYaw = Math.abs(Math.abs(AngleUtils.get360RotationYaw()) - Math.abs(yaw));
         double absPitch = Math.abs(Math.abs(mc.thePlayer.rotationPitch) - Math.abs(pitch));
         if (absYaw > 1 || absPitch > 1) {
-            if (afterRewarp && FarmHelperConfig.dontFixAfterWarping) {
-                LogUtils.sendDebug("Not fixing rotation after warping.");
-                return false;
-            } else {
-                LogUtils.sendDebug("Fixing rotation after warping.");
-                return true;
-            }
+            LogUtils.sendDebug("Fixing rotation after warping.");
+            return true;
         }
         return false;
     }

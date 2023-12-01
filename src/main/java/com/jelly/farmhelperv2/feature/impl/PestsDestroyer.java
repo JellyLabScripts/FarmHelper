@@ -425,7 +425,7 @@ public class PestsDestroyer implements IFeature {
                     break;
                 }
                 if (!mc.thePlayer.getPosition().equals(preTpBlockPos.get())) {
-                    if (isPlayerSuffocating()) {
+                    if (PlayerUtils.isPlayerSuffocating()) {
                         delayClock.schedule(2_000 + Math.random() * 500);
                         Multithreading.schedule(() -> {
                             mc.thePlayer.sendChatMessage("/warp garden");
@@ -744,15 +744,6 @@ public class PestsDestroyer implements IFeature {
         } else {
             KeyBindUtils.stopMovement();
         }
-    }
-
-    private boolean isPlayerSuffocating() {
-        BlockPos playerFeet = BlockUtils.getRelativeBlockPos(0, 0, 0);
-        BlockPos playerHead = BlockUtils.getRelativeBlockPos(0, mc.thePlayer.eyeHeight, 0);
-        AxisAlignedBB playerBB = mc.thePlayer.getEntityBoundingBox().expand(-0.1, -0.1, -0.1);
-        AxisAlignedBB playerFeetBB = new AxisAlignedBB(playerFeet.getX(), playerFeet.getY(), playerFeet.getZ(), playerFeet.getX() + 1, playerFeet.getY() + 1, playerFeet.getZ() + 1);
-        AxisAlignedBB playerHeadBB = new AxisAlignedBB(playerHead.getX(), playerHead.getY(), playerHead.getZ(), playerHead.getX() + 1, playerHead.getY() + 1, playerHead.getZ() + 1);
-        return mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, playerBB).stream().anyMatch(bb -> bb != playerFeetBB && bb != playerHeadBB);
     }
 
     private void finishMacro() {

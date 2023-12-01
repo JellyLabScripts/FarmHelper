@@ -12,6 +12,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
@@ -316,5 +317,14 @@ public class PlayerUtils {
         if (!possible.isEmpty())
             return Collections.min(possible, Comparator.comparing(e2 -> e2.getDistanceToEntity(e)));
         return null;
+    }
+
+    public static boolean isPlayerSuffocating() {
+        BlockPos playerFeet = BlockUtils.getRelativeBlockPos(0, 0, 0);
+        BlockPos playerHead = BlockUtils.getRelativeBlockPos(0, mc.thePlayer.eyeHeight, 0);
+        AxisAlignedBB playerBB = mc.thePlayer.getEntityBoundingBox().expand(-0.1, -0.1, -0.1);
+        AxisAlignedBB playerFeetBB = new AxisAlignedBB(playerFeet.getX(), playerFeet.getY(), playerFeet.getZ(), playerFeet.getX() + 1, playerFeet.getY() + 1, playerFeet.getZ() + 1);
+        AxisAlignedBB playerHeadBB = new AxisAlignedBB(playerHead.getX(), playerHead.getY(), playerHead.getZ(), playerHead.getX() + 1, playerHead.getY() + 1, playerHead.getZ() + 1);
+        return mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, playerBB).stream().anyMatch(bb -> bb != playerFeetBB && bb != playerHeadBB);
     }
 }

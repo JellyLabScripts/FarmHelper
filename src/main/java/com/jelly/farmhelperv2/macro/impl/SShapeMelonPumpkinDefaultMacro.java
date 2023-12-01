@@ -44,7 +44,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
         }
         changeLaneDirection = null;
         if (MacroHandler.getInstance().isTeleporting()) return;
-        if (!shouldFixRotation(false)) return;
+        if (!shouldFixRotation()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation((getClosest90Deg().orElse(AngleUtils.getClosest())) + additionalRotation, getPitch()),

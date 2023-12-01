@@ -344,7 +344,7 @@ public class VisitorsMacro implements IFeature {
                 delayClock.schedule((long) (1_000 + Math.random() * 500));
                 break;
             case ROTATE_TO_DESK:
-                if (mc.thePlayer.getPosition().equals(positionBeforeTp)) {
+                if (mc.thePlayer.getPosition().equals(positionBeforeTp) || PlayerUtils.isPlayerSuffocating()) {
                     LogUtils.sendDebug("[Visitors Macro] Waiting for teleportation...");
                     return;
                 }
@@ -363,6 +363,7 @@ public class VisitorsMacro implements IFeature {
                                                 v ->
                                                         StringUtils.stripControlCodes(v).contains(StringUtils.stripControlCodes(entity.getCustomNameTag()))))
                         .filter(entity -> entity.getDistanceToEntity(mc.thePlayer) < 14)
+                        .filter(entity -> servedCustomers.stream().noneMatch(s -> s.equals(entity)))
                         .min(Comparator.comparingDouble(entity -> entity.getDistanceToEntity(mc.thePlayer)))
                         .orElse(null);
 
