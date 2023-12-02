@@ -255,7 +255,7 @@ public class AutoSprayonator implements IFeature {
                 PlotData data = sprayonatorPlotStates.get(GameStateHandler.getInstance().getCurrentPlot());
                 if (data == null)
                     return;
-                if (!data.sprayed || !data.sprayItem.equals(sprayItem.getItemName())) {
+                if (!data.isSprayed() || !data.sprayItem.equals(sprayItem.getItemName())) {
                     sprayState = AUTO_SPRAYONATOR_STATE.CHECK_SPRAYONATOR;
                     return;
                 } else {
@@ -591,8 +591,6 @@ public class AutoSprayonator implements IFeature {
         @Getter
         private final Clock sprayClock = new Clock();
 
-        @Getter @Setter
-        private boolean sprayed = false;
         @Setter @Getter
         private String sprayItem = "none";
         @Setter
@@ -607,13 +605,16 @@ public class AutoSprayonator implements IFeature {
             this.plot_number = plot_number;
             this.sprayItem = spray_item;
             this.sprayTime = time;
-            this.sprayed = true;
             sprayClock.schedule(time);
+        }
+
+        public boolean isSprayed() {
+            return !sprayClock.passed();
         }
 
         @Override
         public String toString() {
-            return "{" + "sprayed=" + sprayed + ", sprayItem='" + sprayItem + '\'' + ", sprayTime=" + sprayTime + ", plot_number=" + plot_number + '}';
+            return "{" + "sprayed=" + isSprayed() + ", sprayItem='" + sprayItem + '\'' + ", sprayTime=" + sprayTime + ", plot_number=" + plot_number + '}';
         }
     }
 }
