@@ -54,7 +54,7 @@ public class AutoSprayonator implements IFeature {
     private BAZAAR_PURCHASE_STATE bazaarPurchaseState = BAZAAR_PURCHASE_STATE.NONE;
     @Getter
     private CURRENT_GUI_STATE currentGuiState = CURRENT_GUI_STATE.NONE;
-    private final Pattern sprayTimerPattern = Pattern.compile("(\\w+)\\s(\\d+)m\\s(\\d+)s");
+    private final Pattern sprayTimerPattern = Pattern.compile("with\\s([\\w\\s]+)\\s(\\d+)m\\s(\\d+)s");
     private boolean hasCopper = true;
     private String bazaarItemName;
 
