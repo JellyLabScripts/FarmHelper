@@ -141,10 +141,10 @@ public class FarmHelperConfig extends Config {
 
     public static OneKeyBind openGuiKeybind = new OneKeyBind(Keyboard.KEY_F);
     @KeyBind(
-            name = "Freelock", category = MISCELLANEOUS, subcategory = "Keybinds",
+            name = "Freelook", category = MISCELLANEOUS, subcategory = "Keybinds",
             description = "Locks rotation, lets you freely look", size = 2
     )
-    public static OneKeyBind freelockKeybind = new OneKeyBind(Keyboard.KEY_L);
+    public static OneKeyBind freelookKeybind = new OneKeyBind(Keyboard.KEY_L);
     @KeyBind(
             name = "Plot Cleaning Helper", category = MISCELLANEOUS, subcategory = "Plot Cleaning Helper",
             description = "Toggles the plot cleaning helper on/off", size = 2
@@ -1194,10 +1194,10 @@ public class FarmHelperConfig extends Config {
         LogUtils.sendSuccess("Spawn position has been reset!");
     };
     @Info(
-            text = "Freelock doesn't work properly with Oringo!", type = InfoType.WARNING,
+            text = "Freelook doesn't work properly with Oringo!", type = InfoType.WARNING,
             category = MISCELLANEOUS, subcategory = "Keybinds"
     )
-    private int freelockWarning;
+    private int freelookWarning;
 
     public FarmHelperConfig() {
         super(new Mod("Farm Helper", ModType.HYPIXEL, "/farmhelper/icon-mod/icon.png"), "/farmhelper/config.json");
@@ -1324,7 +1324,7 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(debugKeybind, () -> {
             PestsDestroyer.getInstance().setCantReachPest(40);
         });
-        registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
+        registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
         registerKeyBind(enablePestsDestroyerKeyBind, () -> {
             if (PestsDestroyer.getInstance().canEnableMacro(true)) {

@@ -224,8 +224,8 @@ public class MacroHandler {
             cm.onDisable();
             macroingTimer.pause();
             analyticsTimer.pause();
-            if (scheduler && Freelock.getInstance().isRunning()) {
-                Freelock.getInstance().stop();
+            if (scheduler && Freelook.getInstance().isRunning()) {
+                Freelook.getInstance().stop();
             }
             if (Scheduler.getInstance().isFarming())
                 Scheduler.getInstance().pause();
