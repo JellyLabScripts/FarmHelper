@@ -34,6 +34,7 @@ public class FeatureManager {
                 LeaveTimer.getInstance(),
                 PerformanceMode.getInstance(),
                 PestsDestroyer.getInstance(),
+                AutoSprayonator.getInstance(),
                 PetSwapper.getInstance(),
                 PlotCleaningHelper.getInstance(),
                 ProfitCalculator.getInstance(),

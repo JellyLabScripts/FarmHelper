@@ -21,6 +21,7 @@ import com.jelly.farmhelperv2.util.BlockUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
+import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
@@ -1131,6 +1132,65 @@ public class FarmHelperConfig extends Config {
     Runnable resetFailsafe = () -> {
         AutoRepellent.repellentFailsafeClock.schedule(0);
     };
+
+    // START SPRAYONATOR
+    @Switch(
+            name = "Auto Sprayonator", category = MISCELLANEOUS, subcategory = "Sprayonator"
+    )
+    public static boolean enableSprayonator;
+
+    @Dropdown(
+            name = "Type", category = MISCELLANEOUS, subcategory = "Sprayonator",
+            description = "Item to spray plot with",
+            options = {
+                    "Compost (Earthworm & Mosquito)",
+                    "Honey Jar (Moth & Cricket)",
+                    "Dung (Beetle & Fly)",
+                    "Plant Matter (Locust & Slug)",
+                    "Tasty Cheese (Rat & Mite)"
+            }, size = 5
+    )
+    public static int sprayonatorType;
+    @Getter
+    public enum SPRAYONATOR_ITEM {
+        COMPOST("Compost"),
+        HONEY_JAR("Honey Jar"),
+        DUNG("Dung"),
+        PLANT_MATTER("Plant Matter"),
+        TASTY_CHEESE("Tasty Cheese"),
+        NONE("NONE");
+
+        final String itemName;
+
+        SPRAYONATOR_ITEM(final String item_name) {
+            this.itemName = item_name;
+        }
+    }
+
+    @Switch(
+            name = "Inventory Only", category = MISCELLANEOUS, subcategory = "Sprayonator"
+    )
+    public static boolean sprayonatorItemInventoryOnly;
+
+    @Slider(
+            name = "Sprayonator Slot", category = MISCELLANEOUS, subcategory = "Sprayonator",
+            min = 1, max = 8,
+            step = 1,
+            description = "Slot to move sprayonator to"
+    )
+    public static int sprayonatorSlot = 1;
+
+    @Button(
+            name = "Reset Plots", category = MISCELLANEOUS, subcategory = "Sprayonator",
+            text = "Click Here",
+            description = "Resets the cached data for sprayonator"
+    )
+    Runnable resetSprayonatorPlots = () -> {
+        AutoSprayonator.getInstance().resetPlots();
+    };
+
+    // END SPRAYONATOR
+
     @Button(
             name = "Add Rewarp", category = GENERAL, subcategory = "Rewarp",
             description = "Adds a rewarp position",
