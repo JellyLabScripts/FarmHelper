@@ -27,7 +27,6 @@ import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.compress.utils.IOUtils;
-import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -588,10 +587,9 @@ public class BanInfoWS implements IFeature {
                     case "playerGotBanned": {
                         String username = jsonObject.get("username").getAsString();
                         String days = jsonObject.get("days").getAsString();
-                        String mod = jsonObject.get("mod").getAsString();
                         String reason = jsonObject.get("reason").getAsString();
-                        LogUtils.sendWarning("Player " + username + " got banned for " + days + " days while having " + mod + " in mods folder (reason: " + reason + ")");
-                        Notifications.INSTANCE.send("FarmHelper INFO", "Player " + username + " got banned for " + days + " days while having " + mod + " in mods folder");
+                        LogUtils.sendWarning("Detected ban screen in " + username + "'s client for " + days + " days (reason: " + reason + ")");
+                        Notifications.INSTANCE.send("FarmHelper INFO", "Detected ban screen in " + username + "'s client for " + days + " days");
                         break;
                     }
                 }
