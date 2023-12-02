@@ -210,6 +210,7 @@ public class AutoSprayonator implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isToggled()) return;
         if (event.phase != TickEvent.Phase.START) return;
+        if (!GameStateHandler.getInstance().inGarden()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (sprayState != AUTO_SPRAYONATOR_STATE.NONE && sprayState != AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT && !MacroHandler.getInstance().isCurrentMacroPaused()) {
             MacroHandler.getInstance().pauseMacro();
