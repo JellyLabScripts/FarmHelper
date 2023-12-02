@@ -2,6 +2,7 @@ package com.jelly.farmhelperv2.util;
 
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.chunk.Chunk;
@@ -59,7 +60,10 @@ public class PlotUtils {
     }
 
     public static List<Tuple<Integer, Integer>> getPlotChunksBasedOnLocation() {
-        return getPlotChunksBasedOnLocation(Minecraft.getMinecraft().thePlayer.getPosition());
+        AxisAlignedBB playerBoundingBox = mc.thePlayer.getEntityBoundingBox();
+        // get blockpos in the middle of the player's bounding box
+        BlockPos pos = new BlockPos(playerBoundingBox.minX + (playerBoundingBox.maxX - playerBoundingBox.minX) / 2, playerBoundingBox.minY, playerBoundingBox.minZ + (playerBoundingBox.maxZ - playerBoundingBox.minZ) / 2);
+        return getPlotChunksBasedOnLocation(pos);
     }
 
     public static int getPlotNumberBasedOnLocation(BlockPos pos) {
@@ -73,7 +77,10 @@ public class PlotUtils {
     }
 
     public static int getPlotNumberBasedOnLocation() {
-        return getPlotNumberBasedOnLocation(Minecraft.getMinecraft().thePlayer.getPosition());
+        AxisAlignedBB playerBoundingBox = mc.thePlayer.getEntityBoundingBox();
+        // get blockpos in the middle of the player's bounding box
+        BlockPos pos = new BlockPos(playerBoundingBox.minX + (playerBoundingBox.maxX - playerBoundingBox.minX) / 2, playerBoundingBox.minY, playerBoundingBox.minZ + (playerBoundingBox.maxZ - playerBoundingBox.minZ) / 2);
+        return getPlotNumberBasedOnLocation(pos);
     }
 
     public static List<Tuple<Integer, Integer>> getPlotBasedOnNumber(int plotNumber) {
