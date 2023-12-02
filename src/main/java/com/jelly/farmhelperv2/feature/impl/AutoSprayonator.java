@@ -226,13 +226,16 @@ public class AutoSprayonator implements IFeature {
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (sprayState != AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT) return;
+        sprayItem = SPRAYONATOR_ITEM.values()[FarmHelperConfig.sprayonatorType];
 
         if (!hasSprayonator() && GameStateHandler.getInstance().getCopper() < 25) {
             LogUtils.sendError("[Auto Sprayonator] Disabling due to no sprayonator");
             return;
         }
-
-        if (sprayonatorPlotStates.isEmpty() || !sprayonatorPlotStates.get(GameStateHandler.getInstance().getCurrentPlot()).sprayed) {
+        PlotData data = sprayonatorPlotStates.get(GameStateHandler.getInstance().getCurrentPlot());
+        if (data == null)
+            return;
+        if (sprayonatorPlotStates.isEmpty() || !data.sprayed) {
             LogUtils.sendWarning("[Auto Sprayonator] Activating!");
             KeyBindUtils.stopMovement();
             start();
@@ -286,12 +289,16 @@ public class AutoSprayonator implements IFeature {
                     return;
                 }
                 PlotData data = sprayonatorPlotStates.get(GameStateHandler.getInstance().getCurrentPlot());
+                if (data == null)
+                    return;
                 if (!data.sprayed || !data.spray_item.equals(sprayItem.getItemName())) {
                     sprayState = AUTO_SPRAYONATOR_STATE.CHECK_SPRAYONATOR;
                     return;
                 } else {
-                    if (running)
+                    if (running && MacroHandler.getInstance().isCurrentMacroPaused()) {
+                        MacroHandler.getInstance().resumeMacro();
                         stop();
+                    }
                 }
                 break;
             case CHECK_SPRAYONATOR:
