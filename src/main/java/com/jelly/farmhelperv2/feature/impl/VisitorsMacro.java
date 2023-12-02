@@ -687,6 +687,7 @@ public class VisitorsMacro implements IFeature {
                     break;
                 } else {
                     LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
+                    LogUtils.sendDebug("[Visitors Macro] Distance: " + mc.thePlayer.getDistanceToEntity(currentVisitor.get()));
                     if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) > 3.5) {
                         LogUtils.sendDebug("[Visitors Macro] Visitor is too far away, getting closer...");
                         KeyBindUtils.holdThese(mc.gameSettings.keyBindForward);
@@ -736,7 +737,6 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(getRandomDelay());
                     break;
                 }
-                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 Rarity npcRarity = Rarity.getRarityFromNpcName(npcSlot.getStack().getDisplayName());
                 LogUtils.sendDebug("[Visitors Macro] Opened NPC: " + npcName + " Rarity: " + npcRarity);
 
@@ -939,7 +939,8 @@ public class VisitorsMacro implements IFeature {
                     break;
                 } else {
                     LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
-                    if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) > 4) {
+                    LogUtils.sendDebug("[Visitors Macro] Distance: " + mc.thePlayer.getDistanceToEntity(currentVisitor.get()));
+                    if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) > 3) {
                         KeyBindUtils.holdThese(mc.gameSettings.keyBindForward);
                         shouldJump();
                         Multithreading.schedule(KeyBindUtils::stopMovement, 150, TimeUnit.MILLISECONDS);
@@ -1127,7 +1128,6 @@ public class VisitorsMacro implements IFeature {
                     LogUtils.sendError("[Visitors Macro] Couldn't find crop slot");
                     rejectVisitor = true;
                     setVisitorsState(VisitorsState.CLOSE_VISITOR);
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     PlayerUtils.closeScreen();
                     break;
                 }
@@ -1136,7 +1136,6 @@ public class VisitorsMacro implements IFeature {
                     LogUtils.sendError("[Visitors Macro] Couldn't find crop item");
                     rejectVisitor = true;
                     setVisitorsState(VisitorsState.CLOSE_VISITOR);
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     PlayerUtils.closeScreen();
                     break;
                 }

@@ -245,8 +245,11 @@ public class MacroHandler {
             analyticsTimer.resume();
             Scheduler.getInstance().resume();
             if (UngrabMouse.getInstance().isToggled()) {
-                UngrabMouse.getInstance().regrabMouse();
+                UngrabMouse.getInstance().regrabMouse(true);
                 UngrabMouse.getInstance().ungrabMouse();
+                if (!mc.inGameHasFocus) {
+                    mc.inGameHasFocus = true;
+                }
             } else {
                 mc.inGameHasFocus = true;
                 mc.mouseHelper.grabMouseCursor();

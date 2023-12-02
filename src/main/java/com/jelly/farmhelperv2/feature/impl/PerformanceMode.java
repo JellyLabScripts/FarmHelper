@@ -47,7 +47,7 @@ public class PerformanceMode implements IFeature {
         maxFpsBefore = mc.gameSettings.limitFramerate;
         mc.gameSettings.renderDistanceChunks = 1;
         mc.gameSettings.limitFramerate = 10;
-        mc.renderGlobal.loadRenderers();
+        mc.addScheduledTask(() -> mc.renderGlobal.loadRenderers());
     }
 
     @Override
@@ -57,7 +57,7 @@ public class PerformanceMode implements IFeature {
         mc.gameSettings.limitFramerate = maxFpsBefore;
         renderDistanceBefore = 0;
         maxFpsBefore = 0;
-        mc.renderGlobal.loadRenderers();
+        mc.addScheduledTask(() -> mc.renderGlobal.loadRenderers());
     }
 
     @Override

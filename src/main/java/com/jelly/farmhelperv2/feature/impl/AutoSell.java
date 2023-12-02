@@ -532,7 +532,7 @@ public class AutoSell implements IFeature {
             emptySacks = true;
             sacksState = SacksState.CLOSE_MENU;
         }
-        if (message.startsWith("[Bazaar] No items could be matched with buyers!")) {
+        if (message.startsWith("[Bazaar] No items could be matched")) {
             bazaarState = BazaarState.CLOSE_MENU;
         }
     }

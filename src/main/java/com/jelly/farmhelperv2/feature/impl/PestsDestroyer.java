@@ -63,7 +63,7 @@ public class PestsDestroyer implements IFeature {
     private final ArrayList<Entity> pestsLocations = new ArrayList<>();
     @Getter
     private final Clock stuckClock = new Clock();
-    private final Pattern pestPattern = Pattern.compile("\\s+(\\d+)\\s+(?:appeared|spawned) in Plot - (\\d+)!");
+    private final Pattern pestPattern = Pattern.compile(".*(\\d+).* (?:appeared|spawned) in Plot - (\\d+)!");
     @Getter
     private final Clock delayClock = new Clock();
     private final Clock delayBetweenBackTaps = new Clock();
