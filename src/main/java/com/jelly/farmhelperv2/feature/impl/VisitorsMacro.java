@@ -209,6 +209,11 @@ public class VisitorsMacro implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return false;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return false;
 
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
+            LogUtils.sendError("[Visitors Macro] Server is closing in " + GameStateHandler.getInstance().getServerClosingSeconds().get() + " seconds!");
+            return false;
+        }
+
         if (!manual && !forceStart && (!PlayerUtils.isStandingOnSpawnPoint() && !PlayerUtils.isStandingOnRewarpLocation())) {
             if (withError)
                 LogUtils.sendError("[Visitors Macro] The player is not standing on spawn location, skipping...");
@@ -397,7 +402,7 @@ public class VisitorsMacro implements IFeature {
                 BlockPos deskPos = new BlockPos(deskRotation.xCoord, mc.thePlayer.posY, deskRotation.zCoord);
                 double distance = Math.sqrt(playerPos.distanceSq(deskPos));
                 stuckClock.schedule(STUCK_DELAY);
-                if (distance <= 1f || playerPos.equals(deskPos) || (previousDistanceToCheck < distance && distance < 1.75f) || mc.thePlayer.getDistanceToEntity(closestEntity) < 4) {
+                if (distance <= 1f || playerPos.equals(deskPos) || (previousDistanceToCheck < distance && distance < 1.75f) || mc.thePlayer.getDistance(closestEntity.posX, mc.thePlayer.posY, closestEntity.posZ) < 3) {
                     KeyBindUtils.stopMovement();
                     setTravelState(TravelState.END);
                     delayClock.schedule(getRandomDelay());
@@ -688,7 +693,7 @@ public class VisitorsMacro implements IFeature {
                 } else {
                     LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
                     LogUtils.sendDebug("[Visitors Macro] Distance: " + mc.thePlayer.getDistanceToEntity(currentVisitor.get()));
-                    if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) > 3.5) {
+                    if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) > 3) {
                         LogUtils.sendDebug("[Visitors Macro] Visitor is too far away, getting closer...");
                         KeyBindUtils.holdThese(mc.gameSettings.keyBindForward);
                         shouldJump();

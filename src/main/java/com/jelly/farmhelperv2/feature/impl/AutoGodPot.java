@@ -178,6 +178,7 @@ public class AutoGodPot implements IFeature {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
 
         if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LOBBY && GameStateHandler.getInstance().getGodPotState() == GameStateHandler.BuffState.NOT_ACTIVE) {
             if (!enabled && !activating) {

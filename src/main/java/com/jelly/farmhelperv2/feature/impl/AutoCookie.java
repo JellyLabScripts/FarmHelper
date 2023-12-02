@@ -142,7 +142,7 @@ public class AutoCookie implements IFeature {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
-
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LOBBY && GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
             if (!enabled && !activating && (!dontEnableClock.isScheduled() || dontEnableClock.passed())) {
                 LogUtils.sendWarning("[Auto Cookie] Your Cookie Buff is not active! Activating Auto Cookie in 1.5 seconds!");

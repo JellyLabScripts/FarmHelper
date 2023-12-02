@@ -63,7 +63,7 @@ public class PestsDestroyer implements IFeature {
     private final ArrayList<Entity> pestsLocations = new ArrayList<>();
     @Getter
     private final Clock stuckClock = new Clock();
-    private final Pattern pestPattern = Pattern.compile(".*(\\d+).* (?:appeared|spawned) in Plot - (\\d+)!");
+    private final Pattern pestPattern = Pattern.compile(".* (\\d+|A) .* (?:appeared|spawned) in Plot - (\\d+)!");
     @Getter
     private final Clock delayClock = new Clock();
     private final Clock delayBetweenBackTaps = new Clock();
@@ -441,7 +441,7 @@ public class PestsDestroyer implements IFeature {
                 MovingObjectPosition mop = mc.objectMouseOver;
                 if (RotationHandler.getInstance().isRotating()) break;
                 if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                    Rotation upRotation = new Rotation((float) (mc.thePlayer.rotationYaw + (Math.random() * 5 - 2.5)), (float) (86 + (Math.random() * 6 - 4)));
+                    Rotation upRotation = new Rotation((float) (mc.thePlayer.rotationYaw + (Math.random() * 5 - 2.5)), (float) (-86 + (Math.random() * 6 - 4)));
                     RotationHandler.getInstance().easeTo(new RotationConfiguration(
                             upRotation,
                             FarmHelperConfig.getRandomRotationTime(),
@@ -849,7 +849,7 @@ public class PestsDestroyer implements IFeature {
         int pests;
         try {
             plotNumber = Integer.parseInt(plot);
-            pests = Integer.parseInt(numberOfPests);
+            pests = Objects.equals(numberOfPests, "A") ? 1 : Integer.parseInt(numberOfPests);
         } catch (Exception e) {
             LogUtils.sendError("[Pests Destroyer] Failed to parse plot number: " + plot);
             return;
