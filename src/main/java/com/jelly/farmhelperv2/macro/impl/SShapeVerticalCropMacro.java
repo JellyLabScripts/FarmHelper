@@ -80,7 +80,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                                         new Rotation(getYaw(), getPitch()),
                                         FarmHelperConfig.getRandomRotationTime(),
                                         null
-                                )
+                                ).easeOutBack(true)
                         );
                     }
                     KeyBindUtils.stopMovement();
@@ -182,12 +182,12 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
             setYaw(AngleUtils.getClosest());
         }
         if (MacroHandler.getInstance().isTeleporting()) return;
-        if (!shouldFixRotation()) return;
+//        if (!shouldFixRotation()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),
                         FarmHelperConfig.getRandomRotationTime(), null
-                )
+                ).easeOutBack(true)
         );
     }
 

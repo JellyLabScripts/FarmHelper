@@ -36,11 +36,15 @@ public class RotationConfiguration {
     private boolean followTarget = false;
     @Getter
     @Setter
+    private RotationType rotationType = RotationType.CLIENT;
     @Accessors(fluent = true)
-    private boolean randomness = false;
     @Getter
     @Setter
-    private RotationType rotationType = RotationType.CLIENT;
+    private boolean easeOutBack = false;
+    @Accessors(fluent = true)
+    @Getter
+    @Setter
+    private boolean randomness = false;
 
     public RotationConfiguration(Rotation from, Rotation to, long time, RotationType rotationType, Runnable callback) {
         this.from = from;
@@ -91,5 +95,14 @@ public class RotationConfiguration {
     public enum RotationType {
         SERVER,
         CLIENT
+    }
+
+    @Override
+    public Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

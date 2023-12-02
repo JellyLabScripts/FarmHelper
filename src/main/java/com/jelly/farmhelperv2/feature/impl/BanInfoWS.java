@@ -404,7 +404,7 @@ public class BanInfoWS implements IFeature {
         boolean cheetoLoaded = false;
         JsonArray modFiles = new JsonArray();
         for (File mod : Objects.requireNonNull(new File(Minecraft.getMinecraft().mcDataDir, "mods").listFiles())) {
-            if (!mod.isFile()) return;
+            if (!mod.isFile()) continue;
             String name = mod.getName();
             modFiles.add(new JsonPrimitive(name));
 
@@ -429,7 +429,7 @@ public class BanInfoWS implements IFeature {
         JsonArray ctModules = new JsonArray();
         if (ctLoaded) {
             for (File module : Objects.requireNonNull(new File(Minecraft.getMinecraft().mcDataDir, "config/ChatTriggers/modules").listFiles())) {
-                if (!module.isFile()) return;
+                if (!module.isFile()) continue;
                 String name = module.getName();
                 ctModules.add(new JsonPrimitive(name));
             }
@@ -600,8 +600,8 @@ public class BanInfoWS implements IFeature {
                         String days = jsonObject.get("days").getAsString();
                         String mod = jsonObject.get("mod").getAsString();
                         String reason = jsonObject.get("reason").getAsString();
-                        LogUtils.sendWarning("Player " + username + " got banned for " + days + " days while using " + mod + " (reason: " + reason + ")");
-                        Notifications.INSTANCE.send("FarmHelper INFO", "Player " + username + " got banned for " + days + " days while using " + mod);
+                        LogUtils.sendWarning("Player " + username + " got banned for " + days + " days while having " + mod + " in mods folder (reason: " + reason + ")");
+                        Notifications.INSTANCE.send("FarmHelper INFO", "Player " + username + " got banned for " + days + " days while having " + mod + " in mods folder");
                         break;
                     }
                 }

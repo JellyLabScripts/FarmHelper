@@ -29,12 +29,12 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
             setYaw(AngleUtils.getClosest());
         }
         if (MacroHandler.getInstance().isTeleporting()) return;
-        if (!shouldFixRotation()) return;
+//        if (!shouldFixRotation()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch()),
                         FarmHelperConfig.getRandomRotationTime(), null
-                )
+                ).easeOutBack(true)
         );
     }
 
@@ -61,7 +61,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                             new RotationConfiguration(
                                     new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + 30 + (Math.random() * 4 - 2)), getPitch()),
                                     (long) (400 + Math.random() * 300), null
-                            )
+                            ).easeOutBack(true)
                     );
                 } else if (GameStateHandler.getInstance().isLeftWalkable()) {
                     changeState(State.LEFT);
@@ -69,7 +69,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                             new RotationConfiguration(
                                     new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) - 30 + (Math.random() * 4 - 2)), getPitch()),
                                     (long) (400 + Math.random() * 300), null
-                            )
+                            ).easeOutBack(true)
                     );
                 } else {
                     LogUtils.sendDebug("No direction found");
@@ -85,7 +85,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                             new RotationConfiguration(
                                     new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) - 30 + (Math.random() * 4 - 2)), getPitch()),
                                     (long) (400 + Math.random() * 300), null
-                            )
+                            ).easeOutBack(true)
                     );
                 } else if (GameStateHandler.getInstance().isRightWalkable()) {
                     changeState(State.RIGHT);
@@ -93,7 +93,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                             new RotationConfiguration(
                                     new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + 30 + (Math.random() * 4 - 2)), getPitch()),
                                     (long) (400 + Math.random() * 300), null
-                            )
+                            ).easeOutBack(true)
                     );
                 } else {
                     LogUtils.sendDebug("No direction found");
@@ -115,7 +115,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                                         new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch()),
                                         (long) (400 + Math.random() * 300),
                                         null
-                                )
+                                ).easeOutBack(true)
                         );
                     }
                     KeyBindUtils.stopMovement();
@@ -134,7 +134,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                                 new RotationConfiguration(
                                         new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) - 30 + (Math.random() * 4 - 2)), getPitch()),
                                         (long) (400 + Math.random() * 300), null
-                                )
+                                ).easeOutBack(true)
                         );
                         break;
                     case RIGHT:
@@ -142,7 +142,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                                 new RotationConfiguration(
                                         new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + 30 + (Math.random() * 4 - 2)), getPitch()),
                                         (long) (400 + Math.random() * 300), null
-                                )
+                                ).easeOutBack(true)
                         );
                         break;
                 }

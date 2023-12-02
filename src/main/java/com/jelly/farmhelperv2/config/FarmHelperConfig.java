@@ -1170,7 +1170,9 @@ public class FarmHelperConfig extends Config {
             text = "Sell Inventory Now"
     )
     Runnable autoSellFunction = () -> {
-        mc.thePlayer.closeScreen();
+        if (mc.currentScreen != null && mc.thePlayer != null) {
+            PlayerUtils.closeScreen();
+        }
         AutoSell.getInstance().enable(true);
     };
     @Button(

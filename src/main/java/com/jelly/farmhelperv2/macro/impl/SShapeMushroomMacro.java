@@ -26,12 +26,12 @@ public class SShapeMushroomMacro extends AbstractMacro {
             setYaw(AngleUtils.getClosestDiagonal());
         }
         if (MacroHandler.getInstance().isTeleporting()) return;
-        if (!shouldFixRotation()) return;
+//        if (!shouldFixRotation()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),
                         FarmHelperConfig.getRandomRotationTime(), null
-                )
+                ).easeOutBack(true)
         );
     }
 

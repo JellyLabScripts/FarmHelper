@@ -64,9 +64,14 @@ public abstract class AbstractMacro {
 
     private final Clock checkOnSpawnClock = new Clock();
 
+    private boolean sentWarning = false;
+
     public void onTick() {
         if (Failsafe.getInstance().isRunning() || Failsafe.getInstance().getChooseEmergencyDelay().isScheduled()) {
-            LogUtils.sendWarning("Failsafe is running! Blocking main onTick event!");
+            if (!sentWarning) {
+                LogUtils.sendWarning("Failsafe is running! Blocking main onTick event!");
+                sentWarning = true;
+            }
             return;
         }
         if (mc.thePlayer.capabilities.isFlying) {
@@ -151,7 +156,7 @@ public abstract class AbstractMacro {
             if (shouldFixRotation() && shouldRotateAfterWarp()) {
                 rotation.easeTo(new RotationConfiguration(
                         new Rotation(yaw, pitch), FarmHelperConfig.getRandomRotationTime() * 2, null
-                ));
+                ).easeOutBack(true));
                 LogUtils.sendDebug("Rotating");
             }
             rotated = true;
@@ -247,7 +252,10 @@ public abstract class AbstractMacro {
         changeState(State.NONE);
         setRewarpState(RewarpState.NONE);
         setClosest90Deg(Optional.empty());
+        rotation.reset();
         rewarpDelay.reset();
+        setBeforeTeleportationPos(Optional.empty());
+        sentWarning = false;
         setEnabled(false);
     }
 
@@ -269,7 +277,7 @@ public abstract class AbstractMacro {
 
     private void checkForTeleport() {
         if (!beforeTeleportationPos.isPresent()) return;
-        if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos.get()) > 2) {
+        if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos.get()) > 2 && !PlayerUtils.isPlayerSuffocating()) {
             LogUtils.sendDebug("Teleported!");
             changeState(State.NONE);
             checkOnSpawnClock.reset();

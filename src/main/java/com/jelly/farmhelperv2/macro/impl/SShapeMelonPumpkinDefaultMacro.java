@@ -44,7 +44,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
         }
         changeLaneDirection = null;
         if (MacroHandler.getInstance().isTeleporting()) return;
-        if (!shouldFixRotation()) return;
+//        if (!shouldFixRotation()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation((getClosest90Deg().orElse(AngleUtils.getClosest())) + additionalRotation, getPitch()),
@@ -68,7 +68,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                                 new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + (ROTATION_DEGREE + (Math.random() * 2))), getPitch()),
                                 FarmHelperConfig.getRandomRotationTime(),
                                 null
-                        )
+                        ).easeOutBack(true)
                 );
             } else if (getCurrentState() == State.LEFT) {
                 getRotation().easeTo(
@@ -76,7 +76,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                                 new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) - (ROTATION_DEGREE + (Math.random() * 2))), getPitch()),
                                 FarmHelperConfig.getRandomRotationTime(),
                                 null
-                        )
+                        ).easeOutBack(true)
                 );
             }
         }

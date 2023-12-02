@@ -220,7 +220,7 @@ public class Failsafe implements IFeature {
 
         if (restartMacroAfterFailsafeDelay.passed()) {
             if (mc.currentScreen != null) {
-                mc.thePlayer.closeScreen();
+                PlayerUtils.closeScreen();
             }
             LogUtils.sendDebug("[Failsafe] Restarting the macro...");
             MacroHandler.getInstance().enableMacro();
@@ -459,7 +459,7 @@ public class Failsafe implements IFeature {
                         InventoryUtils.openInventory();
                         Multithreading.schedule(() -> {
                             if (mc.currentScreen != null)
-                                mc.thePlayer.closeScreen();
+                                PlayerUtils.closeScreen();
                             MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
                             Multithreading.schedule(() -> {
                                 InventoryUtils.openInventory();
@@ -862,7 +862,7 @@ public class Failsafe implements IFeature {
     public void onTickCheckLimbo(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (!isEmergency()) return;
+//        if (!isEmergency()) return;
         if (emergency == EmergencyType.WORLD_CHANGE_CHECK) return;
 
         if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
