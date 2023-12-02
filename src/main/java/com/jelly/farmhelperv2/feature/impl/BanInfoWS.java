@@ -264,13 +264,9 @@ public class BanInfoWS implements IFeature {
         Packet<?> packet = event.packet;
         if (packet instanceof S00PacketDisconnect) {
             String reason = ((S00PacketDisconnect) packet).func_149603_c().getFormattedText();
-            System.out.println("S00PacketDisconnect");
-            System.out.println(reason);
             processBanScreen(reason);
         } else if (packet instanceof S40PacketDisconnect) {
             String reason = ((S40PacketDisconnect) packet).getReason().getFormattedText();
-            System.out.println("S40PacketDisconnect");
-            System.out.println(reason);
             processBanScreen(reason);
         }
     }
@@ -280,7 +276,6 @@ public class BanInfoWS implements IFeature {
     private void processBanScreen(String wholeReason) {
         Failsafe.getInstance().stop();
         ArrayList<String> multilineMessage = new ArrayList<>(Arrays.asList(wholeReason.split("\n")));
-        System.out.println(multilineMessage);
         try {
             if (times.stream().noneMatch(time -> multilineMessage.get(0).contains(time)) || days.stream().noneMatch(day -> multilineMessage.get(0).contains(day)))
                 return;
@@ -292,7 +287,6 @@ public class BanInfoWS implements IFeature {
             String banId = StringUtils.stripControlCodes(multilineMessage.get(5)).replace("Ban ID: ", "").trim();
             BanInfoWS.getInstance().playerBanned(durationDays, reason, banId, wholeReason);
             LogUtils.webhookLog("[Banned]\\nBanned for " + durationDays + " days for " + reason, true);
-            System.out.println("Banned");
             if (MacroHandler.getInstance().isMacroToggled()) {
                 MacroHandler.getInstance().disableMacro();
             }
@@ -349,9 +343,6 @@ public class BanInfoWS implements IFeature {
                 for (Map.Entry<String, String> header : headers.entrySet()) {
                     post.addHeader(header.getKey(), FarmHelper.gson.toJson(header.getValue()));
                 }
-                for (Header header : post.getAllHeaders()) {
-                    System.out.println(header.getName() + ": " + header.getValue());
-                }
                 Multithreading.schedule(() -> {
                     HttpResponse response = null;
                     try {
@@ -359,7 +350,6 @@ public class BanInfoWS implements IFeature {
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
-                    System.out.println(response);
                 }, 0, TimeUnit.MILLISECONDS);
 
             } catch (AuthenticationException | IOException ex) {

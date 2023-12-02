@@ -240,11 +240,7 @@ public class PestsDestroyer implements IFeature {
             KeyBindUtils.stopMovement();
             switch (escapeState) {
                 case GO_TO_HUB:
-                    if (mc.currentScreen != null) {
-                        PlayerUtils.closeScreen();
-                        delayClock.schedule((long) (500 + Math.random() * 500));
-                        break;
-                    }
+                    if (isInventoryOpen()) break;
                     if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.HUB) {
                         escapeState = EscapeState.GO_TO_GARDEN;
                         delayClock.schedule((long) (5_500 + Math.random() * 3_500));
@@ -267,11 +263,7 @@ public class PestsDestroyer implements IFeature {
                     }
                     break;
                 case GO_TO_GARDEN:
-                    if (mc.currentScreen != null) {
-                        PlayerUtils.closeScreen();
-                        delayClock.schedule((long) (500 + Math.random() * 500));
-                        break;
-                    }
+                    if (isInventoryOpen()) break;
                     if (GameStateHandler.getInstance().inGarden()) {
                         escapeState = EscapeState.GO_TO_HUB;
                         delayClock.schedule((long) (2_500 + Math.random() * 1_500));
@@ -295,11 +287,7 @@ public class PestsDestroyer implements IFeature {
                     }
                     break;
                 case RESUME_MACRO:
-                    if (mc.currentScreen != null) {
-                        PlayerUtils.closeScreen();
-                        delayClock.schedule((long) (500 + Math.random() * 500));
-                        break;
-                    }
+                    if (isInventoryOpen()) break;
                     if (GameStateHandler.getInstance().inGarden()) {
                         escapeState = EscapeState.NONE;
                         state = States.IDLE;
@@ -333,11 +321,7 @@ public class PestsDestroyer implements IFeature {
             case IDLE:
                 ItemStack currentItem = mc.thePlayer.getHeldItem();
                 if (totalPests == 0) {
-                    if (mc.currentScreen != null) {
-                        PlayerUtils.closeScreen();
-                        delayClock.schedule(500 + (long) (Math.random() * 500));
-                        return;
-                    }
+                    if (isInventoryOpen()) return;
                     finishMacro();
                     return;
                 }
@@ -358,11 +342,7 @@ public class PestsDestroyer implements IFeature {
                 delayClock.schedule((long) (200 + Math.random() * 200));
                 break;
             case OPEN_DESK:
-                if (mc.currentScreen != null) {
-                    PlayerUtils.closeScreen();
-                    delayClock.schedule((long) (500 + Math.random() * 500));
-                    break;
-                }
+                if (isInventoryOpen()) break;
                 mc.thePlayer.sendChatMessage("/desk");
                 state = States.OPEN_PLOTS;
                 delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 500 + Math.random() * 500));
@@ -442,17 +422,7 @@ public class PestsDestroyer implements IFeature {
                     state = States.GO_BACK;
                     return;
                 }
-                if (mc.currentScreen != null) {
-                    KeyBindUtils.stopMovement();
-                    delayClock.schedule(300 + (long) (Math.random() * 300));
-                    Multithreading.schedule(() -> {
-                        if (mc.currentScreen != null) {
-                            PlayerUtils.closeScreen();
-                            delayClock.schedule(100 + (long) (Math.random() * 200));
-                        }
-                    }, (long) (200 + Math.random() * 100), TimeUnit.MILLISECONDS);
-                    break;
-                }
+                if (isInventoryOpenDelayed()) break;
                 if (!mc.thePlayer.capabilities.isFlying) {
                     fly();
                     delayClock.schedule(350);
@@ -484,17 +454,7 @@ public class PestsDestroyer implements IFeature {
                 delayClock.schedule(300);
                 break;
             case WAIT_FOR_LOCATION:
-                if (mc.currentScreen != null) {
-                    KeyBindUtils.stopMovement();
-                    delayClock.schedule(300 + (long) (Math.random() * 300));
-                    Multithreading.schedule(() -> {
-                        if (mc.currentScreen != null) {
-                            PlayerUtils.closeScreen();
-                            delayClock.schedule(100 + (long) (Math.random() * 200));
-                        }
-                    }, (long) (200 + Math.random() * 100), TimeUnit.MILLISECONDS);
-                    break;
-                }
+                if (isInventoryOpenDelayed()) break;
                 flyAwayFromStructures();
 
                 if (RotationHandler.getInstance().isRotating()) return;
@@ -524,17 +484,7 @@ public class PestsDestroyer implements IFeature {
                 }
                 break;
             case FLY_TO_PEST:
-                if (mc.currentScreen != null) {
-                    KeyBindUtils.stopMovement();
-                    delayClock.schedule(300 + (long) (Math.random() * 300));
-                    Multithreading.schedule(() -> {
-                        if (mc.currentScreen != null) {
-                            PlayerUtils.closeScreen();
-                            delayClock.schedule(100 + (long) (Math.random() * 200));
-                        }
-                    }, (long) (200 + Math.random() * 100), TimeUnit.MILLISECONDS);
-                    break;
-                }
+                if (isInventoryOpenDelayed()) break;
                 if (!mc.thePlayer.capabilities.isFlying) {
                     fly();
                     break;
@@ -595,17 +545,7 @@ public class PestsDestroyer implements IFeature {
                 delayClock.schedule(300);
                 break;
             case KILL_PEST:
-                if (mc.currentScreen != null) {
-                    KeyBindUtils.stopMovement();
-                    delayClock.schedule(300 + (long) (Math.random() * 300));
-                    Multithreading.schedule(() -> {
-                        if (mc.currentScreen != null) {
-                            PlayerUtils.closeScreen();
-                            delayClock.schedule(100 + (long) (Math.random() * 200));
-                        }
-                    }, (long) (200 + Math.random() * 100), TimeUnit.MILLISECONDS);
-                    break;
-                }
+                if (isInventoryOpenDelayed()) break;
                 if (!currentEntityTarget.isPresent()) {
                     RotationHandler.getInstance().reset();
                     state = States.CHECK_ANOTHER_PEST;
@@ -729,6 +669,30 @@ public class PestsDestroyer implements IFeature {
         }
     }
 
+    private boolean isInventoryOpenDelayed() {
+        if (mc.currentScreen != null) {
+            KeyBindUtils.stopMovement();
+            delayClock.schedule(300 + (long) (Math.random() * 300));
+            Multithreading.schedule(() -> {
+                if (mc.currentScreen != null) {
+                    PlayerUtils.closeScreen();
+                    delayClock.schedule(100 + (long) (Math.random() * 200));
+                }
+            }, (long) (200 + Math.random() * 100), TimeUnit.MILLISECONDS);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isInventoryOpen() {
+        if (mc.currentScreen != null) {
+            PlayerUtils.closeScreen();
+            delayClock.schedule(500 + (long) (Math.random() * 500));
+            return true;
+        }
+        return false;
+    }
+
     private void manipulateHeight(Entity entity, double distance, double distanceWithoutY, float yawDifference) {
         if (objectsInFrontOfPlayer() || entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY >= 2) {
             KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindJump, distanceWithoutY > 3 && yawDifference < 45 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 4 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null);
@@ -765,11 +729,7 @@ public class PestsDestroyer implements IFeature {
     }
 
     private void finishMacro() {
-        if (mc.currentScreen != null) {
-            PlayerUtils.closeScreen();
-            delayClock.schedule(500 + (long) (Math.random() * 500));
-            return;
-        }
+        if (isInventoryOpen()) return;
         stop();
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
@@ -790,7 +750,6 @@ public class PestsDestroyer implements IFeature {
             return;
         }
         if (mc.thePlayer.motionY == 0) {
-            System.out.println(mc.thePlayer.motionY);
             delayClock.schedule(400);
             return;
         }

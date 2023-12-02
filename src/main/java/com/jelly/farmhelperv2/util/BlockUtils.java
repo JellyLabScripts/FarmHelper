@@ -280,7 +280,6 @@ public class BlockUtils {
         BlockPos blockPosStart = getRelativeBlockPos(0, 1, 0);
         for (int y = blockPosStart.getY(); y < 100; y++) {
             BlockPos blockPos = new BlockPos(blockPosStart.getX(), y, blockPosStart.getZ());
-            System.out.println(blockPos + " " + blockHasCollision(blockPos));
             if (blockHasCollision(blockPos)) {
                 return false;
             }
@@ -368,7 +367,6 @@ public class BlockUtils {
             if (optionalBlockPos.isPresent()) {
                 double distance1 = mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(crop.getX() + 0.5, crop.getY() + 0.5, crop.getZ() + 0.5));
                 double distance2 = mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(optionalBlockPos.get().getX() + 0.5, optionalBlockPos.get().getY() + 0.5, optionalBlockPos.get().getZ() + 0.5));
-                System.out.println(distance1 + " " + distance2);
                 if (distance1 < distance2) {
                     optionalBlockPos = Optional.of(crop);
                 }

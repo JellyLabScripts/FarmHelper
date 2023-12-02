@@ -29,7 +29,6 @@ public class WebsocketClient extends WebSocketClient {
             LogUtils.sendDebug("Command: " + command);
 
             Optional<ClientCommand> commandInstance = RemoteUtils.getCommand(WebsocketHandler.commands, (cmd) -> cmd.label.equalsIgnoreCase(command));
-            System.out.println(commandInstance);
             commandInstance.ifPresent(clientCommand -> clientCommand.execute(remoteMessage));
         } catch (Exception ex) {
             ex.printStackTrace();

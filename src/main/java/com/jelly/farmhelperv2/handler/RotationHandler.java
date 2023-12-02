@@ -341,7 +341,6 @@ public class RotationHandler {
             float interY = interpolate(startRotation.getPitch(), targetRotation.getPitch(), this::easeOutQuart);
             float absDiffX = Math.abs(interX - targetRotation.getYaw());
             float absDiffY = Math.abs(interY - targetRotation.getPitch());
-            System.out.println("Abs diff: " + absDiffX + " " + absDiffY);
             event.yaw = absDiffX < 0.1 ? targetRotation.getYaw() : interX;
             event.pitch = absDiffY < 0.1 ? targetRotation.getPitch() : interY;
         }
