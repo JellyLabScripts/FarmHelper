@@ -1,12 +1,9 @@
 package com.jelly.farmhelperv2.util.helper;
 
-import baritone.Baritone;
 import baritone.api.BaritoneAPI;
 import baritone.api.pathing.calc.IPath;
 import baritone.api.pathing.goals.Goal;
-import baritone.api.utils.BetterBlockPos;
 import baritone.api.utils.PathCalculationResult;
-import baritone.pathing.calc.AbstractNodeCostSearch;
 import baritone.pathing.calc.FlyAStar;
 import baritone.pathing.movement.CalculationContext;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
@@ -48,38 +45,24 @@ public class FlyPathfinder {
     private Goal goal;
     private CalculationContext context;
     @Getter
-    private final List<BetterBlockPos> pathBlocks = new ArrayList<>();
+    private final List<BlockPos> pathBlocks = new ArrayList<>();
     private static final RotationHandler rotation = RotationHandler.getInstance();
 
-    public List<BetterBlockPos> getPathTo(Goal goal) {
+    public List<BlockPos> getPathTo(Goal goal) {
         return getPathTo(goal, false);
     }
 
-    public List<BetterBlockPos> getPathTo(Goal goal, boolean onlyTurns) {
+    public List<BlockPos> getPathTo(Goal goal, boolean onlyTurns) {
         if (context == null) {
             context = new CalculationContext(BaritoneAPI.getProvider().getPrimaryBaritone(), true);
         }
         this.goal = goal;
-        List<BetterBlockPos> tempList = new ArrayList<>();
+        List<BlockPos> tempList = new ArrayList<>();
         BlockPos playerPos = BlockUtils.getRelativeBlockPos(0, 0, 0);
-        AbstractNodeCostSearch finder = new FlyAStar(playerPos.getX(), playerPos.getY(), playerPos.getZ(), goal, context);
-        long primaryTimeout = Baritone.settings().primaryTimeoutMS.value;
-        long failureTimeout = Baritone.settings().failureTimeoutMS.value;
-        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-            Baritone.getExecutor().execute(() -> {
-                PathCalculationResult calcResult = finder.calculate(primaryTimeout, failureTimeout);
-                Optional<IPath> path = calcResult.getPath();
-                path.ifPresent(iPath -> tempList.addAll(iPath.positions()));
-                LogUtils.sendDebug("Path: " + tempList.size());
-            });
-            while (!finder.isFinished()) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException ignored) {
-                }
-            }
-        });
-        future.join();
+        FlyAStar finder = new FlyAStar(playerPos.getX(), playerPos.getY(), playerPos.getZ(), goal, context);
+        PathCalculationResult calcResult = finder.calculate(1000, 1000);
+        Optional<IPath> path = calcResult.getPath();
+        path.ifPresent(iPath -> tempList.addAll(iPath.positions()));
         pathBlocks.clear();
         if (onlyTurns) {
             pathBlocks.addAll(getOnlyTurns3(getOnlyTurns(tempList)));
@@ -95,16 +78,16 @@ public class FlyPathfinder {
         Z
     }
 
-    public List<BetterBlockPos> getOnlyTurns(List<BetterBlockPos> list) {
+    public List<BlockPos> getOnlyTurns(List<BlockPos> list) {
         if (list.isEmpty()) {
             LogUtils.sendDebug("Path is empty");
             return new ArrayList<>();
         }
-        ArrayList<BetterBlockPos> turns = new ArrayList<>();
-        BetterBlockPos lastPos = list.get(0);
+        ArrayList<BlockPos> turns = new ArrayList<>();
+        BlockPos lastPos = list.get(0);
         turns.add(lastPos);
         Direction lastDirection = Direction.X;
-        for (BetterBlockPos pos : list) {
+        for (BlockPos pos : list) {
             if (pos.getX() != lastPos.getX()) {
                 if (lastDirection != Direction.X) {
                     turns.add(lastPos);
@@ -127,14 +110,14 @@ public class FlyPathfinder {
         return new ArrayList<>(turns);
     }
 
-    public List<BetterBlockPos> getOnlyTurns2(List<BetterBlockPos> list) {
+    public List<BlockPos> getOnlyTurns2(List<BlockPos> list) {
         if (list.size() < 3) return list;
-        List<BetterBlockPos> tempList = new ArrayList<>();
+        List<BlockPos> tempList = new ArrayList<>();
         tempList.add(list.get(0));
         for (int i = 1; i < list.size() - 1; i++) {
-            BetterBlockPos current = list.get(i);
-            BetterBlockPos next = list.get(i + 1);
-            BetterBlockPos previous = list.get(i - 1);
+            BlockPos current = list.get(i);
+            BlockPos next = list.get(i + 1);
+            BlockPos previous = list.get(i - 1);
             if (current.getX() != next.getX() && current.getX() != previous.getX()) {
                 tempList.add(current);
             } else if (current.getY() != next.getY() && current.getY() != previous.getY()) {
@@ -147,22 +130,22 @@ public class FlyPathfinder {
         return tempList;
     }
 
-    public List<BetterBlockPos> getOnlyTurns3(List<BetterBlockPos> list) {
+    public List<BlockPos> getOnlyTurns3(List<BlockPos> list) {
         if (list.size() < 3) return list;
-        List<BetterBlockPos> tempList = new ArrayList<>();
+        List<BlockPos> tempList = new ArrayList<>();
         tempList.add(list.get(0));
-        BetterBlockPos startOfShattering = null;
+        BlockPos startOfShattering = null;
         for (int i = 0; i < list.size() - 2; i++) {
-            BetterBlockPos current = list.get(i);
-            BetterBlockPos next = list.get(i + 1);
-            if (Math.sqrt(current.distanceSq(next.x, next.y, next.z)) <= 2.5) {
+            BlockPos current = list.get(i);
+            BlockPos next = list.get(i + 1);
+            if (Math.sqrt(current.distanceSq(next.getX(), next.getY(), next.getZ())) <= 2.5) {
                 if (startOfShattering == null) {
                     startOfShattering = current;
                     continue;
                 }
                 MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(
-                        new Vec3(startOfShattering.x + 0.5, startOfShattering.y + 0.5, startOfShattering.z + 0.5),
-                        new Vec3(next.x + 0.5, next.y + 0.5, next.z + 0.5), false, true, false);
+                        new Vec3(startOfShattering.getX() + 0.5, startOfShattering.getY() + 0.5, startOfShattering.getZ() + 0.5),
+                        new Vec3(next.getX() + 0.5, next.getY() + 0.5, next.getZ() + 0.5), false, true, false);
                 if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                     tempList.add(startOfShattering);
                     tempList.add(current);
@@ -203,7 +186,7 @@ public class FlyPathfinder {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!FarmHelperConfig.debugMode) return;
         if (pathBlocks.isEmpty()) return;
-        for (BetterBlockPos pos : pathBlocks) {
+        for (BlockPos pos : pathBlocks) {
             int value = 255 - 50 * pathBlocks.indexOf(pos);
             if (value < 0) value = 0;
             RenderUtils.drawBlockBox(pos, new Color(value, 0, 0, 150));
