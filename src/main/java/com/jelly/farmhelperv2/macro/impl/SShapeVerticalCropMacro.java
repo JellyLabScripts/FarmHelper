@@ -203,7 +203,6 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
 
     @Override
     public State calculateDirection() {
-        System.out.println(AngleUtils.get360RotationYaw());
         State voidCheck = super.calculateDirection();
         if (voidCheck != State.NONE) {
             return voidCheck;

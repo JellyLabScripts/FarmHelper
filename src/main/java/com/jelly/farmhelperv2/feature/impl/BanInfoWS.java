@@ -27,7 +27,6 @@ import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.compress.utils.IOUtils;
-import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -264,13 +263,9 @@ public class BanInfoWS implements IFeature {
         Packet<?> packet = event.packet;
         if (packet instanceof S00PacketDisconnect) {
             String reason = ((S00PacketDisconnect) packet).func_149603_c().getFormattedText();
-            System.out.println("S00PacketDisconnect");
-            System.out.println(reason);
             processBanScreen(reason);
         } else if (packet instanceof S40PacketDisconnect) {
             String reason = ((S40PacketDisconnect) packet).getReason().getFormattedText();
-            System.out.println("S40PacketDisconnect");
-            System.out.println(reason);
             processBanScreen(reason);
         }
     }
@@ -280,7 +275,6 @@ public class BanInfoWS implements IFeature {
     private void processBanScreen(String wholeReason) {
         Failsafe.getInstance().stop();
         ArrayList<String> multilineMessage = new ArrayList<>(Arrays.asList(wholeReason.split("\n")));
-        System.out.println(multilineMessage);
         try {
             if (times.stream().noneMatch(time -> multilineMessage.get(0).contains(time)) || days.stream().noneMatch(day -> multilineMessage.get(0).contains(day)))
                 return;
@@ -292,7 +286,6 @@ public class BanInfoWS implements IFeature {
             String banId = StringUtils.stripControlCodes(multilineMessage.get(5)).replace("Ban ID: ", "").trim();
             BanInfoWS.getInstance().playerBanned(durationDays, reason, banId, wholeReason);
             LogUtils.webhookLog("[Banned]\\nBanned for " + durationDays + " days for " + reason, true);
-            System.out.println("Banned");
             if (MacroHandler.getInstance().isMacroToggled()) {
                 MacroHandler.getInstance().disableMacro();
             }
@@ -349,9 +342,6 @@ public class BanInfoWS implements IFeature {
                 for (Map.Entry<String, String> header : headers.entrySet()) {
                     post.addHeader(header.getKey(), FarmHelper.gson.toJson(header.getValue()));
                 }
-                for (Header header : post.getAllHeaders()) {
-                    System.out.println(header.getName() + ": " + header.getValue());
-                }
                 Multithreading.schedule(() -> {
                     HttpResponse response = null;
                     try {
@@ -359,7 +349,6 @@ public class BanInfoWS implements IFeature {
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
-                    System.out.println(response);
                 }, 0, TimeUnit.MILLISECONDS);
 
             } catch (AuthenticationException | IOException ex) {
@@ -598,10 +587,9 @@ public class BanInfoWS implements IFeature {
                     case "playerGotBanned": {
                         String username = jsonObject.get("username").getAsString();
                         String days = jsonObject.get("days").getAsString();
-                        String mod = jsonObject.get("mod").getAsString();
                         String reason = jsonObject.get("reason").getAsString();
-                        LogUtils.sendWarning("Player " + username + " got banned for " + days + " days while having " + mod + " in mods folder (reason: " + reason + ")");
-                        Notifications.INSTANCE.send("FarmHelper INFO", "Player " + username + " got banned for " + days + " days while having " + mod + " in mods folder");
+                        LogUtils.sendWarning("Detected ban screen in " + username + "'s client for " + days + " days (reason: " + reason + ")");
+                        Notifications.INSTANCE.send("FarmHelper INFO", "Detected ban screen in " + username + "'s client for " + days + " days");
                         break;
                     }
                 }

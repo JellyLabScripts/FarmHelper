@@ -19,6 +19,7 @@
     "client.EntityPlayerSPAccessor",
     "client.MinecraftAccessor",
     "client.MixinEntityPlayerSP",
+    "client.MixinKeyBinding",
     "client.MixinMinecraft",
     "client.MixinPlayerControllerMP",
     "client.MixinSoundManager",

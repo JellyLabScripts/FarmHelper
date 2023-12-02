@@ -29,7 +29,7 @@ public class FeatureManager {
                 BanInfoWS.getInstance(),
                 DesyncChecker.getInstance(),
                 Failsafe.getInstance(),
-                Freelock.getInstance(),
+                Freelook.getInstance(),
                 LagDetector.getInstance(),
                 LeaveTimer.getInstance(),
                 PerformanceMode.getInstance(),

@@ -5,12 +5,10 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.macro.AbstractMacro;
-import com.jelly.farmhelperv2.util.AngleUtils;
-import com.jelly.farmhelperv2.util.BlockUtils;
-import com.jelly.farmhelperv2.util.KeyBindUtils;
-import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
+import net.minecraft.util.EnumFacing;
 
 import java.util.Optional;
 
@@ -107,14 +105,14 @@ public class SShapeMushroomMacro extends AbstractMacro {
         switch (getCurrentState()) {
             case RIGHT: {
                 KeyBindUtils.holdThese(
-                        mushroom45DegreeLeftSide() ? mc.gameSettings.keyBindRight : mc.gameSettings.keyBindForward,
+                        mushroom45DegreeSide() == LookDirection.LEFT ? mc.gameSettings.keyBindRight : mc.gameSettings.keyBindForward,
                         mc.gameSettings.keyBindAttack
                 );
                 break;
             }
             case LEFT: {
                 KeyBindUtils.holdThese(
-                        mushroom45DegreeLeftSide() ? mc.gameSettings.keyBindForward : mc.gameSettings.keyBindLeft,
+                        mushroom45DegreeSide() == LookDirection.LEFT ? mc.gameSettings.keyBindForward : mc.gameSettings.keyBindLeft,
                         mc.gameSettings.keyBindAttack
                 );
                 break;
@@ -133,15 +131,51 @@ public class SShapeMushroomMacro extends AbstractMacro {
         }
     }
 
-    private boolean mushroom45DegreeLeftSide() {
-        float targetAngle = 45f; // Angle around 45 degrees
-        float counterClockwiseThreshold = -315f; // Angle around -315 degrees
-        float tolerance = 2f; // Tolerance of 2 degrees
+    private enum LookDirection {
+        LEFT, RIGHT
+    }
 
-        float angleDifference = AngleUtils.normalizeAngle(AngleUtils.getClosest() - getYaw());
-
-        return Math.abs(angleDifference - targetAngle) < tolerance ||
-                Math.abs(angleDifference - counterClockwiseThreshold) < tolerance;
+    private LookDirection mushroom45DegreeSide() {
+        if (!getClosest90Deg().isPresent()) return LookDirection.LEFT;
+        EnumFacing facing = PlayerUtils.getHorizontalFacing(getClosest90Deg().get());
+        double yaw180 = UMath.wrapAngleTo180(getYaw());
+        float difference = (float) (yaw180 - 90f);
+        switch (facing) {
+            case EAST:
+                if (difference < -220) {
+                    return LookDirection.LEFT;
+                } else if (difference > -140) {
+                    return LookDirection.RIGHT;
+                } else {
+                    return LookDirection.LEFT;
+                }
+            case WEST:
+                if (difference < 40) {
+                    return LookDirection.LEFT;
+                } else if (difference > 40) {
+                    return LookDirection.RIGHT;
+                } else {
+                    return LookDirection.LEFT;
+                }
+            case NORTH:
+                if (difference > 40) {
+                    return LookDirection.LEFT;
+                } else if (difference < -40) {
+                    return LookDirection.RIGHT;
+                } else {
+                    return LookDirection.LEFT;
+                }
+            case SOUTH:
+                if (difference < -130) {
+                    return LookDirection.LEFT;
+                } else if (difference < -40) {
+                    return LookDirection.RIGHT;
+                } else {
+                    return LookDirection.LEFT;
+                }
+            default:
+                throw new IllegalStateException("Unexpected value: " + facing);
+        }
     }
 
 

@@ -68,7 +68,7 @@ public class LagDetector implements IFeature {
     }
 
     public boolean isLagging() {
-        return System.currentTimeMillis() - lastReceivedPacketTime > 500;
+        return System.currentTimeMillis() - lastReceivedPacketTime > 250;
     }
 
     public boolean wasJustLagging() {
@@ -90,7 +90,7 @@ public class LagDetector implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (lastReceivedPacketTime == 0) return;
         if (isLagging()) {
-            recentlyLagged.schedule(500);
+            recentlyLagged.schedule(900);
         }
         if (recentlyLagged.isScheduled() && recentlyLagged.passed()) {
             recentlyLagged.reset();

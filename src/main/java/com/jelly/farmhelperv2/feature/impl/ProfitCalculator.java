@@ -48,7 +48,7 @@ public class ProfitCalculator implements IFeature {
 
             add(new BazaarItem("_Potato", "POTATO_ITEM", 3));
             add(new BazaarItem("_Enchanted Potato", "ENCHANTED_POTATO", 480));
-            add(new BazaarItem("_Enchanted Baked Potato", "ENCHANTED_BAKED_POTATO", 7_680));
+            add(new BazaarItem("_Enchanted Baked Potato", "ENCHANTED_BAKED_POTATO", 76_800));
 
             add(new BazaarItem("_Nether Wart", "NETHER_STALK", 4));
             add(new BazaarItem("_Enchanted Nether Wart", "ENCHANTED_NETHER_STALK", 640));
@@ -72,7 +72,7 @@ public class ProfitCalculator implements IFeature {
             add(new BazaarItem("_Enchanted Melon Block", "ENCHANTED_MELON_BLOCK", 51_200));
 
             add(new BazaarItem("_Cocoa Beans", "INK_SACK:3", 3));
-            add(new BazaarItem("_Enchanted Cocoa Beans", "ENCHANTED_COCOA", 480));
+            add(new BazaarItem("_Enchanted Cocoa Bean", "ENCHANTED_COCOA", 480));
             add(new BazaarItem("_Enchanted Cookie", "ENCHANTED_COOKIE", 61_500));
 
             add(new BazaarItem("_Red Mushroom", "RED_MUSHROOM", 10));

@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.remote.command.commands.impl;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.gson.JsonObject;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
@@ -21,6 +22,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 /*
     Credits to mostly Yuro with few changes by May2Bee for this superb class
@@ -155,7 +157,7 @@ public class SetSpeedCommand extends ClientCommand {
                     clock.schedule(500);
                     break;
                 }
-                SignUtils.getInstance().setTextToWriteOnString(String.valueOf(speed));
+                Multithreading.schedule(() -> SignUtils.setTextToWriteOnString(String.valueOf(speed)), (long) (400 + Math.random() * 400), TimeUnit.MILLISECONDS);
                 KeyBindUtils.leftClick();
                 currentState = State.TYPE_IN_SPEED;
                 clock.schedule(500);

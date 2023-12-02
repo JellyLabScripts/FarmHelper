@@ -115,10 +115,10 @@ public class Scheduler implements IFeature {
     public void farmingTime() {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         schedulerState = SchedulerState.FARMING;
-        MacroHandler.getInstance().resumeMacro();
         if (mc.currentScreen != null) {
             PlayerUtils.closeScreen();
         }
+        MacroHandler.getInstance().resumeMacro();
         schedulerClock.schedule((long) ((FarmHelperConfig.schedulerFarmingTime * 60_000f) + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness * 60_000f)));
     }
 

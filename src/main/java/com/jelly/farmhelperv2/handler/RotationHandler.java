@@ -56,7 +56,6 @@ public class RotationHandler {
         easingModifier = (random.nextFloat() * 0.5f - 0.25f);
         distanceTraveled = 0;
         dontRotate.reset();
-        rotating = true;
         startTime = System.currentTimeMillis();
         startRotation.setRotation(configuration.getFrom());
         Rotation neededChange;
@@ -77,6 +76,7 @@ public class RotationHandler {
         float pythagoras = pythagoras(absYaw, absPitch);
         float time = getTime(pythagoras, configuration.getTime());
         endTime = (long) (System.currentTimeMillis() + Math.max(time, 50 + Math.random() * 100));
+        rotating = true;
     }
 
     private float getTime(float pythagoras, float time) {
@@ -240,7 +240,7 @@ public class RotationHandler {
                 configuration.getCallback().get().run();
             } else { // No callback, just reset
                 if (Math.abs(mc.thePlayer.rotationYaw - targetRotation.getYaw()) < 0.1 && Math.abs(mc.thePlayer.rotationPitch - targetRotation.getPitch()) < 0.1) {
-                    mc.thePlayer.rotationYaw = AngleUtils.get360RotationYaw(targetRotation.getYaw());
+                    mc.thePlayer.rotationYaw = targetRotation.getYaw();
                     mc.thePlayer.rotationPitch = targetRotation.getPitch();
                 }
                 reset();
@@ -341,7 +341,6 @@ public class RotationHandler {
             float interY = interpolate(startRotation.getPitch(), targetRotation.getPitch(), this::easeOutQuart);
             float absDiffX = Math.abs(interX - targetRotation.getYaw());
             float absDiffY = Math.abs(interY - targetRotation.getPitch());
-            System.out.println("Abs diff: " + absDiffX + " " + absDiffY);
             event.yaw = absDiffX < 0.1 ? targetRotation.getYaw() : interX;
             event.pitch = absDiffY < 0.1 ? targetRotation.getPitch() : interY;
         }
