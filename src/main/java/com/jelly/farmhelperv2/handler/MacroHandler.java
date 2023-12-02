@@ -224,8 +224,8 @@ public class MacroHandler {
             cm.onDisable();
             macroingTimer.pause();
             analyticsTimer.pause();
-            if (scheduler && Freelock.getInstance().isRunning()) {
-                Freelock.getInstance().stop();
+            if (scheduler && Freelook.getInstance().isRunning()) {
+                Freelook.getInstance().stop();
             }
             if (Scheduler.getInstance().isFarming())
                 Scheduler.getInstance().pause();
@@ -245,8 +245,11 @@ public class MacroHandler {
             analyticsTimer.resume();
             Scheduler.getInstance().resume();
             if (UngrabMouse.getInstance().isToggled()) {
-                UngrabMouse.getInstance().regrabMouse();
+                UngrabMouse.getInstance().regrabMouse(true);
                 UngrabMouse.getInstance().ungrabMouse();
+                if (!mc.inGameHasFocus) {
+                    mc.inGameHasFocus = true;
+                }
             } else {
                 mc.inGameHasFocus = true;
                 mc.mouseHelper.grabMouseCursor();

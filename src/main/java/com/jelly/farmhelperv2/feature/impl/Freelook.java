@@ -8,20 +8,20 @@ import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-public class Freelock implements IFeature {
+public class Freelook implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
-    private static Freelock instance;
+    private static Freelook instance;
 
-    public static Freelock getInstance() {
+    public static Freelook getInstance() {
         if (instance == null) {
-            instance = new Freelock();
+            instance = new Freelook();
         }
         return instance;
     }
 
     @Override
     public String getName() {
-        return "Freelock";
+        return "Freelook";
     }
 
     @Override

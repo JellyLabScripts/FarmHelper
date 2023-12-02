@@ -22,6 +22,7 @@ import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
+import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
@@ -145,10 +146,10 @@ public class FarmHelperConfig extends Config {
 
     public static OneKeyBind openGuiKeybind = new OneKeyBind(Keyboard.KEY_F);
     @KeyBind(
-            name = "Freelock", category = MISCELLANEOUS, subcategory = "Keybinds",
+            name = "Freelook", category = MISCELLANEOUS, subcategory = "Keybinds",
             description = "Locks rotation, lets you freely look", size = 2
     )
-    public static OneKeyBind freelockKeybind = new OneKeyBind(Keyboard.KEY_L);
+    public static OneKeyBind freelookKeybind = new OneKeyBind(Keyboard.KEY_L);
     @KeyBind(
             name = "Plot Cleaning Helper", category = MISCELLANEOUS, subcategory = "Plot Cleaning Helper",
             description = "Toggles the plot cleaning helper on/off", size = 2
@@ -788,11 +789,6 @@ public class FarmHelperConfig extends Config {
             description = "Destroys pests"
     )
     public static boolean enablePestsDestroyer = false;
-    @Switch(
-            name = "Fly to the pests instead of TP", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
-            description = "Flies to the pests instead of teleporting to them"
-    )
-    public static boolean flyToPestInstead = false;
     @Slider(
             name = "Start killing pests at X pests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "The amount of pests to start killing pests",
@@ -1148,6 +1144,65 @@ public class FarmHelperConfig extends Config {
     Runnable resetFailsafe = () -> {
         AutoRepellent.repellentFailsafeClock.schedule(0);
     };
+
+    // START SPRAYONATOR
+    @Switch(
+            name = "Auto Sprayonator", category = MISCELLANEOUS, subcategory = "Sprayonator"
+    )
+    public static boolean enableSprayonator;
+
+    @Dropdown(
+            name = "Type", category = MISCELLANEOUS, subcategory = "Sprayonator",
+            description = "Item to spray plot with",
+            options = {
+                    "Compost (Earthworm & Mosquito)",
+                    "Honey Jar (Moth & Cricket)",
+                    "Dung (Beetle & Fly)",
+                    "Plant Matter (Locust & Slug)",
+                    "Tasty Cheese (Rat & Mite)"
+            }, size = 5
+    )
+    public static int sprayonatorType;
+    @Getter
+    public enum SPRAYONATOR_ITEM {
+        COMPOST("Compost"),
+        HONEY_JAR("Honey Jar"),
+        DUNG("Dung"),
+        PLANT_MATTER("Plant Matter"),
+        TASTY_CHEESE("Tasty Cheese"),
+        NONE("NONE");
+
+        final String itemName;
+
+        SPRAYONATOR_ITEM(final String item_name) {
+            this.itemName = item_name;
+        }
+    }
+
+    @Switch(
+            name = "Inventory Only", category = MISCELLANEOUS, subcategory = "Sprayonator"
+    )
+    public static boolean sprayonatorItemInventoryOnly;
+
+    @Slider(
+            name = "Sprayonator Slot", category = MISCELLANEOUS, subcategory = "Sprayonator",
+            min = 1, max = 8,
+            step = 1,
+            description = "Slot to move sprayonator to"
+    )
+    public static int sprayonatorSlot = 1;
+
+    @Button(
+            name = "Reset Plots", category = MISCELLANEOUS, subcategory = "Sprayonator",
+            text = "Click Here",
+            description = "Resets the cached data for sprayonator"
+    )
+    Runnable resetSprayonatorPlots = () -> {
+        AutoSprayonator.getInstance().resetPlots();
+    };
+
+    // END SPRAYONATOR
+
     @Button(
             name = "Add Rewarp", category = GENERAL, subcategory = "Rewarp",
             description = "Adds a rewarp position",
@@ -1217,10 +1272,10 @@ public class FarmHelperConfig extends Config {
         LogUtils.sendSuccess("Spawn position has been reset!");
     };
     @Info(
-            text = "Freelock doesn't work properly with Oringo!", type = InfoType.WARNING,
+            text = "Freelook doesn't work properly with Oringo!", type = InfoType.WARNING,
             category = MISCELLANEOUS, subcategory = "Keybinds"
     )
-    private int freelockWarning;
+    private int freelookWarning;
 
     public FarmHelperConfig() {
         super(new Mod("Farm Helper", ModType.HYPIXEL, "/farmhelper/icon-mod/icon.png"), "/farmhelper/config.json");
@@ -1347,7 +1402,7 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(debugKeybind, () -> {
             PestsDestroyer.getInstance().setCantReachPest(40);
         });
-        registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
+        registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
         registerKeyBind(enablePestsDestroyerKeyBind, () -> {
             if (PestsDestroyer.getInstance().canEnableMacro(true)) {

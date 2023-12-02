@@ -26,18 +26,18 @@ public abstract class MixinGuiEditSign extends GuiScreen {
         tileSign = tileEntitySign;
     }
 
-    @Inject(method = "initGui", at = @At("RETURN"))
+    @Inject(method = "drawScreen", at = @At("RETURN"))
     private void initGui(CallbackInfo ci) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (SignUtils.getInstance().getTextToWriteOnString().isEmpty()) return;
+        if (SignUtils.getTextToWriteOnString().isEmpty()) return;
 
-        LogUtils.sendDebug("Sign text: " + SignUtils.getInstance().getTextToWriteOnString());
-        tileSign.signText[0] = new ChatComponentText(SignUtils.getInstance().getTextToWriteOnString());
+        LogUtils.sendDebug("Sign text: " + SignUtils.getTextToWriteOnString());
+        tileSign.signText[0] = new ChatComponentText(SignUtils.getTextToWriteOnString());
 
         NetHandlerPlayClient netHandlerPlayClient = mc.getNetHandler();
         if (netHandlerPlayClient != null) {
             netHandlerPlayClient.addToSendQueue(new C12PacketUpdateSign(tileSign.getPos(), tileSign.signText));
-            SignUtils.getInstance().setTextToWriteOnString("");
+            SignUtils.setTextToWriteOnString("");
             LogUtils.sendDebug("Sign text set to empty.");
         }
     }

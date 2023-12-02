@@ -62,7 +62,7 @@ public class PestsDestroyer implements IFeature {
     private final ArrayList<Entity> pestsLocations = new ArrayList<>();
     @Getter
     private final Clock stuckClock = new Clock();
-    private final Pattern pestPattern = Pattern.compile("\\s+ appeared in Plot - (\\d+)!");
+    private final Pattern pestPattern = Pattern.compile(".*(\\d+).* (?:appeared|spawned) in Plot - (\\d+)!");
     @Getter
     private final Clock delayClock = new Clock();
     private final Clock delayBetweenBackTaps = new Clock();
@@ -438,6 +438,18 @@ public class PestsDestroyer implements IFeature {
 
                 state = States.WAIT_FOR_LOCATION;
                 lastFireworkLocation = Optional.empty();
+                MovingObjectPosition mop = mc.objectMouseOver;
+                if (RotationHandler.getInstance().isRotating()) break;
+                if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                    Rotation upRotation = new Rotation((float) (mc.thePlayer.rotationYaw + (Math.random() * 5 - 2.5)), (float) (86 + (Math.random() * 6 - 4)));
+                    RotationHandler.getInstance().easeTo(new RotationConfiguration(
+                            upRotation,
+                            FarmHelperConfig.getRandomRotationTime(),
+                            null
+                    ).easeOutBack(true));
+                    delayClock.schedule(300);
+                    break;
+                }
                 KeyBindUtils.leftClick();
                 delayClock.schedule(300);
                 break;
@@ -487,6 +499,18 @@ public class PestsDestroyer implements IFeature {
                         state = States.GET_LOCATION;
                         return;
                     }
+
+                    // if lastFireworkLocation is behind the player, then GET_LOCATION
+                    Vec3 playerPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+                    Vec3 playerLook = mc.thePlayer.getLookVec();
+                    Vec3 fireworkPos = new Vec3(lastFireworkLocation.get().xCoord, mc.thePlayer.posY, lastFireworkLocation.get().zCoord);
+                    Vec3 playerToFirework = fireworkPos.subtract(playerPos);
+                    double angle = Math.toDegrees(Math.acos(playerLook.dotProduct(playerToFirework) / (playerLook.lengthVector() * playerToFirework.lengthVector())));
+                    if (angle > 90) {
+                        state = States.GET_LOCATION;
+                        return;
+                    }
+
                     boolean objects = objectsInFrontOfPlayer();
                     KeyBindUtils.holdThese(
                             !objects ? mc.gameSettings.keyBindForward : null,
@@ -593,16 +617,18 @@ public class PestsDestroyer implements IFeature {
                     if (!pestsLocations.isEmpty()) {
                         LogUtils.sendDebug("Found another pest");
                         state = States.FLY_TO_PEST;
+                        delayClock.schedule(300 + (long) (Math.random() * 300));
                     } else if (pestsPlotMap.isEmpty()) {
                         LogUtils.sendDebug("Manually searching for pest");
                         state = States.GET_LOCATION;
+                        delayClock.schedule(1_000 + (long) (Math.random() * 750));
                     } else {
                         LogUtils.sendDebug("Teleporting to plot");
                         state = States.TELEPORT_TO_PLOT;
+                        delayClock.schedule(1_500 + (long) (Math.random() * 1_000));
                     }
                 }
                 KeyBindUtils.stopMovement();
-                delayClock.schedule(1_500 + (long) (Math.random() * 1_000));
                 break;
             case GO_BACK:
                 finishMacro();
@@ -784,26 +810,31 @@ public class PestsDestroyer implements IFeature {
         if (!matcher.matches()) {
             return;
         }
-        String plot = matcher.group(1);
+        String numberOfPests = matcher.group(1);
+        String plot = matcher.group(2);
         int plotNumber;
+        int pests;
         try {
             plotNumber = Integer.parseInt(plot);
+            pests = Integer.parseInt(numberOfPests);
         } catch (Exception e) {
             LogUtils.sendError("[Pests Destroyer] Failed to parse plot number: " + plot);
             return;
         }
         int finalPlotNumber = plotNumber;
         boolean found = false;
+        Plot plotObj = null;
         for (Map.Entry<Plot, Integer> entry : pestsPlotMap.entrySet()) {
             if (entry.getKey().plotNumber == finalPlotNumber) {
-                pestsPlotMap.put(entry.getKey(), entry.getValue() + 1);
+                pestsPlotMap.put(entry.getKey(), entry.getValue() + pests);
                 found = true;
+                plotObj = entry.getKey();
                 break;
             }
         }
-        Plot plotObj = new Plot(String.valueOf(plotNumber), plotNumber);
         if (!found) {
-            pestsPlotMap.put(plotObj, 1);
+            plotObj = new Plot(String.valueOf(plotNumber), plotNumber);
+            pestsPlotMap.put(plotObj, pests);
         }
         LogUtils.sendDebug("New pest at plot number: " + finalPlotNumber + ", total number on this plot is: " + pestsPlotMap.get(plotObj));
     }
