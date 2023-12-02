@@ -114,6 +114,12 @@ public class DebugHUD extends TextHud {
             lines.add("   Skymart State: " + AutoSprayonator.getInstance().getSkymartPurchaseState());
             lines.add("   Bazaar State: " + AutoSprayonator.getInstance().getBazaarPurchaseState());
             lines.add("   GUI State: " + AutoSprayonator.getInstance().getCurrentGuiState());
+            AutoSprayonator.PlotData plotData = AutoSprayonator.getInstance().getSprayonatorPlotStates().get(GameStateHandler.getInstance().getCurrentPlot());
+            if (plotData != null) {
+                lines.add("   Plot Sprayed: " + plotData.isSprayed());
+                lines.add("   Plot Spray Clock: " + plotData.getSprayClock().getRemainingTime());
+                lines.add("   Plot Spray Item: " + plotData.getSprayItem());
+            }
         }
     }
 }

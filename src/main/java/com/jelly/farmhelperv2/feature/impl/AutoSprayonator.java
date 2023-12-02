@@ -255,7 +255,7 @@ public class AutoSprayonator implements IFeature {
                 PlotData data = sprayonatorPlotStates.get(GameStateHandler.getInstance().getCurrentPlot());
                 if (data == null)
                     return;
-                if (!data.sprayed || !data.spray_item.equals(sprayItem.getItemName())) {
+                if (!data.sprayed || !data.sprayItem.equals(sprayItem.getItemName())) {
                     sprayState = AUTO_SPRAYONATOR_STATE.CHECK_SPRAYONATOR;
                     return;
                 } else {
@@ -585,18 +585,18 @@ public class AutoSprayonator implements IFeature {
         NONE
     }
 
-    private static class PlotData {
+    public static class PlotData {
         @Getter
         private final int plot_number;
         @Getter
         private final Clock sprayClock = new Clock();
-        @Getter
-        @Setter
+
+        @Getter @Setter
         private boolean sprayed = false;
+        @Setter @Getter
+        private String sprayItem = "none";
         @Setter
-        private String spray_item = "none";
-        @Setter
-        private long spray_time;
+        private long sprayTime;
 
         private PlotData(int plot_number) {
             this.plot_number = plot_number;
@@ -605,15 +605,15 @@ public class AutoSprayonator implements IFeature {
 
         private PlotData(int plot_number, String spray_item, long time) {
             this.plot_number = plot_number;
-            this.spray_item = spray_item;
-            this.spray_time = time;
+            this.sprayItem = spray_item;
+            this.sprayTime = time;
             this.sprayed = true;
-            sprayClock.schedule(spray_time);
+            sprayClock.schedule(time);
         }
 
         @Override
         public String toString() {
-            return "{" + "sprayed=" + sprayed + ", sprayItem='" + spray_item + '\'' + ", spray_time=" + spray_time + ", plot_number=" + plot_number + '}';
+            return "{" + "sprayed=" + sprayed + ", sprayItem='" + sprayItem + '\'' + ", sprayTime=" + sprayTime + ", plot_number=" + plot_number + '}';
         }
     }
 }
