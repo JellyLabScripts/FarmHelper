@@ -21,7 +21,11 @@ import com.jelly.farmhelperv2.util.BlockUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
+import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.MovingObjectPosition;
+import baritone.api.pathing.goals.GoalBlock;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
@@ -784,6 +788,11 @@ public class FarmHelperConfig extends Config {
             description = "Destroys pests"
     )
     public static boolean enablePestsDestroyer = false;
+    @Switch(
+            name = "Fly to the pests instead of TP", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            description = "Flies to the pests instead of teleporting to them"
+    )
+    public static boolean flyToPestInstead = false;
     @Slider(
             name = "Start killing pests at X pests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "The amount of pests to start killing pests",
@@ -1040,7 +1049,15 @@ public class FarmHelperConfig extends Config {
     @KeyBind(
             name = "Debug Keybind", category = DEBUG
     )
-    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_H);
+    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
+    @KeyBind(
+            name = "Debug Keybind 2", category = DEBUG
+    )
+    public static OneKeyBind debugKeybind2 = new OneKeyBind(Keyboard.KEY_H);
+    @KeyBind(
+            name = "Debug Keybind 3", category = DEBUG
+    )
+    public static OneKeyBind debugKeybind3 = new OneKeyBind(Keyboard.KEY_J);
     @Switch(
             name = "Debug Mode", category = DEBUG, subcategory = "Debug",
             description = "Prints to chat what the bot is currently executing. Useful if you are having issues."
@@ -1337,6 +1354,18 @@ public class FarmHelperConfig extends Config {
                 PestsDestroyer.getInstance().start();
             }
         });
+        registerKeyBind(debugKeybind2, () -> {
+            MovingObjectPosition objectMouseOver = Minecraft.getMinecraft().objectMouseOver;
+            if (objectMouseOver != null && objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                BlockPos blockPos = objectMouseOver.getBlockPos();
+                BlockPos oppositeSide = blockPos.offset(objectMouseOver.sideHit);
+                LogUtils.sendDebug("Block: " + oppositeSide);
+                FlyPathfinder.getInstance().setGoal(new GoalBlock(oppositeSide));
+            }
+        });
+        registerKeyBind(debugKeybind3, () -> {
+                    FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal(), true);
+                });
         save();
     }
 
@@ -1428,6 +1457,13 @@ public class FarmHelperConfig extends Config {
     public static long getRandomPlotCleaningHelperRotationTime() {
         return (long) (plotCleaningHelperRotationTime + (float) Math.random() * plotCleaningHelperRotationTimeRandomness);
     }
+
+    @Slider(
+            name = "Flight Path Finder Allowed Overshoot Threshold", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "The minimum distance from the block at which the flight path finder would allow overshooting",
+            min = 0.05f, max = 0.4f
+    )
+    public static float flightAllowedOvershootThreshold = 0.1f;
 
     // END EXPERIMENTAL
 

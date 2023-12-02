@@ -18,6 +18,7 @@ import com.jelly.farmhelperv2.util.FailsafeUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.ReflectionUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
+import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import com.jelly.farmhelperv2.util.helper.TickTask;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.ClientCommandHandler;
@@ -89,6 +90,7 @@ public class FarmHelper {
             MinecraftForge.EVENT_BUS.register(DiscordBotHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(AudioManager.getInstance());
         MinecraftForge.EVENT_BUS.register(RotationHandler.getInstance());
+        MinecraftForge.EVENT_BUS.register(FlyPathfinder.getInstance());
     }
 
     private void initializeFields() {

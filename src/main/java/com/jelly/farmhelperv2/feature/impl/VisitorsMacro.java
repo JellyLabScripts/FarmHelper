@@ -1,5 +1,8 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import baritone.api.BaritoneAPI;
+import baritone.api.pathing.goals.GoalBlock;
+import baritone.api.utils.BetterBlockPos;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.FeatureManager;
@@ -71,6 +74,7 @@ public class VisitorsMacro implements IFeature {
     @Setter
     private boolean manuallyStarted = false;
     private boolean forceStart = false;
+    private boolean pathFound = false;
     private BlockPos positionBeforeTp = null;
     private Vec3 deskRotation = null;
     private Entity closestEntity = null;
@@ -150,6 +154,7 @@ public class VisitorsMacro implements IFeature {
         haveItemsInSack = false;
         delayClock.reset();
         rotation.reset();
+        pathFound = false;
         stuckClock.schedule(STUCK_DELAY);
         currentVisitor = Optional.empty();
         currentCharacter = Optional.empty();
@@ -396,20 +401,19 @@ public class VisitorsMacro implements IFeature {
                 double distance = Math.sqrt(playerPos.distanceSq(deskPos));
                 stuckClock.schedule(STUCK_DELAY);
                 if (distance <= 1f || playerPos.equals(deskPos) || (previousDistanceToCheck < distance && distance < 1.75f) || mc.thePlayer.getDistanceToEntity(closestEntity) < 4) {
+                    if (pathFound) {
+                        BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
+                        pathFound = false;
+                    }
                     KeyBindUtils.stopMovement();
                     setTravelState(TravelState.END);
                     delayClock.schedule(getRandomDelay());
-                } else {
-                    KeyBindUtils.holdThese(
-                            mc.gameSettings.keyBindForward,
-                            (speed > 150 && distance < 2.5) ? mc.gameSettings.keyBindSneak : null,
-                            distance > 10 ? mc.gameSettings.keyBindSprint : null
-                    );
-                    if (!BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1))
-                            && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 1, 1)) && mc.thePlayer.onGround) {
-                        rotation.reset();
-                        mc.thePlayer.jump();
-                    }
+                } else if (!pathFound) {
+                    BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().setGoal(new GoalBlock(new BetterBlockPos(deskPos)));
+                    BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().findPath(new BetterBlockPos(BlockUtils.getRelativeBlockPos(0, 0, 0)));
+                    pathFound = true;
+                    stuckClock.schedule(STUCK_DELAY);
+                    delayClock.schedule(getRandomDelay());
                 }
                 previousDistanceToCheck = distance;
                 break;
