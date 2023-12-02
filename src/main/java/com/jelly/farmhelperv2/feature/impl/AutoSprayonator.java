@@ -198,7 +198,7 @@ public class AutoSprayonator implements IFeature {
         PlotData data = sprayonatorPlotStates.get(GameStateHandler.getInstance().getCurrentPlot());
         if (data == null)
             return;
-        if (sprayonatorPlotStates.isEmpty() || !data.sprayed) {
+        if (sprayonatorPlotStates.isEmpty() || data.sprayClock.passed()) {
             LogUtils.sendWarning("[Auto Sprayonator] Activating!");
             KeyBindUtils.stopMovement();
             start();
@@ -599,6 +599,7 @@ public class AutoSprayonator implements IFeature {
 
         private PlotData(int plot_number) {
             this.plot_number = plot_number;
+            sprayClock.schedule(0);
         }
 
         private PlotData(int plot_number, String spray_item, long time) {
