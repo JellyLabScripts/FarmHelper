@@ -1123,13 +1123,15 @@ public class PestsDestroyer implements IFeature {
                     long delay = 500 + (long) (Math.random() * 500);
                     delayClock.schedule(delay + (long) (Math.random() * 200));
                     LogUtils.sendError("[Pests Destroyer] Failed to get locations of pests. (Uncleaned plots?)");
-                    LogUtils.sendError("[Pests Destroyer] Attempting to find pest with tracker");
-                    state = States.GET_LOCATION;
-                    Multithreading.schedule(() -> {
-                        if (mc.currentScreen != null) {
-                            PlayerUtils.closeScreen();
-                        }
-                    }, delay, TimeUnit.MILLISECONDS);
+                    if (state == States.WAIT_FOR_INFO && isRunning()) {
+                        LogUtils.sendError("[Pests Destroyer] Attempting to find pest with tracker");
+                        state = States.GET_LOCATION;
+                        Multithreading.schedule(() -> {
+                            if (mc.currentScreen != null) {
+                                PlayerUtils.closeScreen();
+                            }
+                        }, delay, TimeUnit.MILLISECONDS);
+                    }
                     return;
                 }
             }
