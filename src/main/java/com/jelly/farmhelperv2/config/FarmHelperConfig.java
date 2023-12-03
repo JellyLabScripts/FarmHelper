@@ -1419,7 +1419,7 @@ public class FarmHelperConfig extends Config {
             }
         });
         registerKeyBind(debugKeybind3, () -> {
-                    FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal(), true);
+                    FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal());
                 });
         save();
     }

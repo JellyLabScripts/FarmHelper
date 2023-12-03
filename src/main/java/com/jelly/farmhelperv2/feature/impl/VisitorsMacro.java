@@ -1342,6 +1342,17 @@ public class VisitorsMacro implements IFeature {
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
             }
         }
+        if (buyState == BuyState.CLICK_CROP || buyState == BuyState.OPEN_BZ) {
+            if (msg.startsWith("You need the Cookie Buff")) {
+                if (mc.currentScreen != null && mc.thePlayer != null) {
+                    PlayerUtils.closeScreen();
+                }
+                LogUtils.sendDebug("[Visitors Macro] Cookie buff is needed. Skipping...");
+                setBuyState(BuyState.NONE);
+                setVisitorsState(VisitorsState.NONE);
+                setMainState(MainState.END);
+            }
+        }
     }
 
     enum MainState {

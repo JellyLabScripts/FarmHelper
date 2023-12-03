@@ -603,7 +603,7 @@ public class PestsDestroyer implements IFeature {
                     }
                     if (!FlyPathfinder.getInstance().isRunning()) {
                         LogUtils.sendDebug("[Pests Destroyer] Getting path to " + FlyPathfinder.getInstance().getGoal());
-                        FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal(), true);
+                        FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal());
                         delayClock.schedule(350);
                         break;
                     }

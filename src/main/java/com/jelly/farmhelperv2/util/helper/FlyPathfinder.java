@@ -26,7 +26,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 // Not yet finished :(
 public class FlyPathfinder {
@@ -46,13 +45,10 @@ public class FlyPathfinder {
     private CalculationContext context;
     @Getter
     private final List<BlockPos> pathBlocks = new ArrayList<>();
+    private final List<BlockPos> realPath = new ArrayList<>();
     private static final RotationHandler rotation = RotationHandler.getInstance();
 
     public List<BlockPos> getPathTo(Goal goal) {
-        return getPathTo(goal, false);
-    }
-
-    public List<BlockPos> getPathTo(Goal goal, boolean onlyTurns) {
         if (context == null) {
             context = new CalculationContext(BaritoneAPI.getProvider().getPrimaryBaritone(), true);
         }
@@ -64,11 +60,9 @@ public class FlyPathfinder {
         Optional<IPath> path = calcResult.getPath();
         path.ifPresent(iPath -> tempList.addAll(iPath.positions()));
         pathBlocks.clear();
-        if (onlyTurns) {
-            pathBlocks.addAll(getOnlyTurns3(getOnlyTurns(tempList)));
-        } else {
-            pathBlocks.addAll(tempList);
-        }
+        realPath.clear();
+        pathBlocks.addAll(getOnlyTurns3(getOnlyTurns(tempList)));
+        realPath.addAll(tempList);
         return pathBlocks;
     }
 
@@ -108,26 +102,6 @@ public class FlyPathfinder {
         }
         turns.add(lastPos);
         return new ArrayList<>(turns);
-    }
-
-    public List<BlockPos> getOnlyTurns2(List<BlockPos> list) {
-        if (list.size() < 3) return list;
-        List<BlockPos> tempList = new ArrayList<>();
-        tempList.add(list.get(0));
-        for (int i = 1; i < list.size() - 1; i++) {
-            BlockPos current = list.get(i);
-            BlockPos next = list.get(i + 1);
-            BlockPos previous = list.get(i - 1);
-            if (current.getX() != next.getX() && current.getX() != previous.getX()) {
-                tempList.add(current);
-            } else if (current.getY() != next.getY() && current.getY() != previous.getY()) {
-                tempList.add(current);
-            } else if (current.getZ() != next.getZ() && current.getZ() != previous.getZ()) {
-                tempList.add(current);
-            }
-        }
-        tempList.add(list.get(list.size() - 1));
-        return tempList;
     }
 
     public List<BlockPos> getOnlyTurns3(List<BlockPos> list) {
@@ -197,6 +171,7 @@ public class FlyPathfinder {
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
+        if (!isRunning()) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (pathBlocks.isEmpty()) {
             if (isPathing()) {
@@ -205,6 +180,8 @@ public class FlyPathfinder {
             }
             return;
         }
+        if (!mc.thePlayer.capabilities.allowFlying)
+            stop();
         // get distance to X, Y and Z of the next block
         double distanceX = pathBlocks.get(0).getX() - mc.thePlayer.posX + 0.5;
         double distanceY = pathBlocks.get(0).getY() - mc.thePlayer.posY + 0.5;
@@ -213,7 +190,7 @@ public class FlyPathfinder {
         float yaw = mc.thePlayer.rotationYaw * (float) Math.PI / 180.0f;
         double relativeDistanceX = distanceX * Math.cos(yaw) + distanceZ * Math.sin(yaw);
         double relativeDistanceZ = -distanceX * Math.sin(yaw) + distanceZ * Math.cos(yaw);
-        double relativeMotionX = 1*(mc.thePlayer.motionX * Math.cos(yaw) - mc.thePlayer.motionZ * Math.sin(yaw));
+        double relativeMotionX = -1*(mc.thePlayer.motionX * Math.cos(yaw) - mc.thePlayer.motionZ * Math.sin(yaw));
         double relativeMotionZ = -mc.thePlayer.motionX * Math.sin(yaw) + mc.thePlayer.motionZ * Math.cos(yaw);
         if (mc.thePlayer.onGround) {
             stop();
@@ -223,55 +200,44 @@ public class FlyPathfinder {
         double distance2d = Math.abs(Math.sqrt(relativeDistanceX * relativeDistanceX + relativeDistanceZ * relativeDistanceZ));
         if (distance2d < 0.5) {
             pathBlocks.remove(0);
-            if (!rotation.isRotating() && pathBlocks.size() > 2) {
-                Vec3 target = new Vec3(pathBlocks.get(0).getX() + 0.5, pathBlocks.get(0).getY() + 0.5, pathBlocks.get(0).getZ() + 0.5);
-                rotation.easeTo(
-                        new RotationConfiguration(
-                                new Rotation(rotation.getRotation(target, true).getYaw(), rotation.getRotation(target, true).getPitch()),
-                                500, null
-                        )
-                );
-            }
+            rotation.reset();
             KeyBindUtils.stopMovement();
         } else {
-            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSprint, relativeDistanceZ > 11);
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSprint, relativeDistanceZ > 12);
+            mc.thePlayer.setSprinting(relativeDistanceZ > 12);
             mc.thePlayer.capabilities.isFlying = true;
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, distanceY > 0.25);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, distanceY < -0.25);
-            mc.thePlayer.setSprinting(relativeDistanceZ > 11);
-            w1 = relativeMotionX > 0 && decelerationReached(relativeMotionX, relativeDistanceX);
-            w2 = relativeMotionX < 0 && decelerationReached(relativeMotionX, relativeDistanceX);
-            w3 = relativeMotionZ < 0 && decelerationReached(relativeMotionZ, relativeDistanceZ);
-            w4 = relativeMotionZ > 0 && decelerationReached(relativeMotionZ, relativeDistanceZ);
-            boolean o1 = relativeDistanceX < -FarmHelperConfig.flightAllowedOvershootThreshold;
-            boolean o2 = relativeDistanceX > FarmHelperConfig.flightAllowedOvershootThreshold;
-            boolean o3 = relativeDistanceZ < -FarmHelperConfig.flightAllowedOvershootThreshold;
-            boolean o4 = relativeDistanceZ > FarmHelperConfig.flightAllowedOvershootThreshold;
-            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, o1);
-            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, o2);
-            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, o4);
-            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, o3);
-            if (w1) {
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, relativeDistanceX < -FarmHelperConfig.flightAllowedOvershootThreshold);
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, relativeDistanceX > FarmHelperConfig.flightAllowedOvershootThreshold);
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, relativeDistanceZ > FarmHelperConfig.flightAllowedOvershootThreshold);
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, relativeDistanceZ < -FarmHelperConfig.flightAllowedOvershootThreshold);
+            if (relativeMotionX > 0 && decelerationReached(relativeMotionX, relativeDistanceX)) {
                 KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, false);
                 KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, true);
             }
-            if (w2) {
+            if (relativeMotionX < 0 && decelerationReached(relativeMotionX, relativeDistanceX)) {
                 KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, false);
                 KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, true);
             }
-            if (w3) {
+            if (relativeMotionZ < 0 && decelerationReached(relativeMotionZ, relativeDistanceZ)) {
                 KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, true);
                 KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, false);
             }
-            if (w4) {
+            if (relativeMotionZ > 0 && decelerationReached(relativeMotionZ, relativeDistanceZ)) {
                 KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, false);
                 KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, true);
             }
         }
-    }
-
-    public double calculateDecelerationDistance(double deceleration) { // 0.0064
-        return (Math.sqrt(getPlayerSpeed())) / (2 * deceleration);
+//        if (!rotation.isRotating() && pathBlocks.size() > 2) {
+//            Vec3 target = new Vec3(pathBlocks.get(0).getX() + 0.5, pathBlocks.get(0).getY() + 0.5, pathBlocks.get(0).getZ() + 0.5);
+//            rotation.easeTo(
+//                    new RotationConfiguration(
+//                            new Rotation(rotation.getRotation(target, true).getYaw(), rotation.getRotation(target, true).getPitch()),
+//                            500, null
+//                    )
+//            );
+//        }
     }
 
     private double getPlayerSpeed() {
