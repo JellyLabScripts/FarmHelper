@@ -1,6 +1,7 @@
 package com.jelly.farmhelperv2.util.helper;
 
 import baritone.api.BaritoneAPI;
+import baritone.api.IBaritone;
 import baritone.api.pathing.calc.IPath;
 import baritone.api.pathing.goals.Goal;
 import baritone.api.utils.PathCalculationResult;
@@ -27,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-// Not yet finished :(
 public class FlyPathfinder {
     private final Minecraft mc = Minecraft.getMinecraft();
     private static FlyPathfinder instance;
@@ -47,94 +47,36 @@ public class FlyPathfinder {
     private final List<BlockPos> pathBlocks = new ArrayList<>();
     private final List<BlockPos> realPath = new ArrayList<>();
     private static final RotationHandler rotation = RotationHandler.getInstance();
+    private int stuckCounter = 0;
 
-    public List<BlockPos> getPathTo(Goal goal) {
+    public void getPathTo(Goal goal) {
         if (context == null) {
             context = new CalculationContext(BaritoneAPI.getProvider().getPrimaryBaritone(), true);
         }
         this.goal = goal;
+        if (goal == null) {
+            LogUtils.sendError("Goal == null");
+            return;
+        }
         List<BlockPos> tempList = new ArrayList<>();
         BlockPos playerPos = BlockUtils.getRelativeBlockPos(0, 0, 0);
         FlyAStar finder = new FlyAStar(playerPos.getX(), playerPos.getY(), playerPos.getZ(), goal, context);
-        PathCalculationResult calcResult = finder.calculate(1000, 1000);
+        BaritoneAPI.getSettings().movementTimeoutTicks.value = 500;
+        PathCalculationResult calcResult = finder.calculate(500L, 2000L);
+        if (!calcResult.getType().equals(PathCalculationResult.Type.SUCCESS_TO_GOAL)) {
+            LogUtils.sendError("PathCalculationResult != SUCCESS_TO_GOAL");
+            return;
+        }
         Optional<IPath> path = calcResult.getPath();
+        if (!path.isPresent()) {
+            LogUtils.sendError("!path.isPresent()");
+            return;
+        }
         path.ifPresent(iPath -> tempList.addAll(iPath.positions()));
-        pathBlocks.clear();
         realPath.clear();
-        pathBlocks.addAll(getOnlyTurns3(getOnlyTurns(tempList)));
+        pathBlocks.clear();
         realPath.addAll(tempList);
-        return pathBlocks;
-    }
-
-    enum Direction {
-        X,
-        Y,
-        Z
-    }
-
-    public List<BlockPos> getOnlyTurns(List<BlockPos> list) {
-        if (list.isEmpty()) {
-            LogUtils.sendDebug("Path is empty");
-            return new ArrayList<>();
-        }
-        ArrayList<BlockPos> turns = new ArrayList<>();
-        BlockPos lastPos = list.get(0);
-        turns.add(lastPos);
-        Direction lastDirection = Direction.X;
-        for (BlockPos pos : list) {
-            if (pos.getX() != lastPos.getX()) {
-                if (lastDirection != Direction.X) {
-                    turns.add(lastPos);
-                }
-                lastDirection = Direction.X;
-            } else if (pos.getY() != lastPos.getY()) {
-                if (lastDirection != Direction.Y) {
-                    turns.add(lastPos);
-                }
-                lastDirection = Direction.Y;
-            } else if (pos.getZ() != lastPos.getZ()) {
-                if (lastDirection != Direction.Z) {
-                    turns.add(lastPos);
-                }
-                lastDirection = Direction.Z;
-            }
-            lastPos = pos;
-        }
-        turns.add(lastPos);
-        return new ArrayList<>(turns);
-    }
-
-    public List<BlockPos> getOnlyTurns3(List<BlockPos> list) {
-        if (list.size() < 3) return list;
-        List<BlockPos> tempList = new ArrayList<>();
-        tempList.add(list.get(0));
-        BlockPos startOfShattering = null;
-        for (int i = 0; i < list.size() - 2; i++) {
-            BlockPos current = list.get(i);
-            BlockPos next = list.get(i + 1);
-            if (Math.sqrt(current.distanceSq(next.getX(), next.getY(), next.getZ())) <= 2.5) {
-                if (startOfShattering == null) {
-                    startOfShattering = current;
-                    continue;
-                }
-                MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(
-                        new Vec3(startOfShattering.getX() + 0.5, startOfShattering.getY() + 0.5, startOfShattering.getZ() + 0.5),
-                        new Vec3(next.getX() + 0.5, next.getY() + 0.5, next.getZ() + 0.5), false, true, false);
-                if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                    tempList.add(startOfShattering);
-                    tempList.add(current);
-                    startOfShattering = current;
-                }
-            } else {
-                if (startOfShattering != null) {
-                    tempList.add(startOfShattering);
-                    startOfShattering = null;
-                }
-                tempList.add(current);
-            }
-        }
-        tempList.add(list.get(list.size() - 1));
-        return tempList;
+        pathBlocks.addAll(smoothPath(tempList));
     }
 
     public boolean hasGoal() {
@@ -145,6 +87,12 @@ public class FlyPathfinder {
         BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
         goal = null;
         pathBlocks.clear();
+    }
+
+    public void restart() {
+        BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
+        KeyBindUtils.stopMovement();
+        getPathTo(goal);
     }
 
     public boolean isPathing() {
@@ -160,14 +108,15 @@ public class FlyPathfinder {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!FarmHelperConfig.debugMode) return;
         if (pathBlocks.isEmpty()) return;
+        for (BlockPos pos : realPath) {
+            RenderUtils.drawBlockBox(pos, new Color(255, 255, 0, 50));
+        }
         for (BlockPos pos : pathBlocks) {
             int value = 255 - 50 * pathBlocks.indexOf(pos);
             if (value < 0) value = 0;
             RenderUtils.drawBlockBox(pos, new Color(value, 0, 0, 150));
         }
     }
-
-    public boolean w1, w2, w3, w4 = false;
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
@@ -180,8 +129,10 @@ public class FlyPathfinder {
             }
             return;
         }
-        if (!mc.thePlayer.capabilities.allowFlying)
+        if (!mc.thePlayer.capabilities.allowFlying) {
+            LogUtils.sendError("Player is not allowed to fly. Disabling pathfinder.");
             stop();
+        }
         // get distance to X, Y and Z of the next block
         double distanceX = pathBlocks.get(0).getX() - mc.thePlayer.posX + 0.5;
         double distanceY = pathBlocks.get(0).getY() - mc.thePlayer.posY + 0.5;
@@ -190,21 +141,28 @@ public class FlyPathfinder {
         float yaw = mc.thePlayer.rotationYaw * (float) Math.PI / 180.0f;
         double relativeDistanceX = distanceX * Math.cos(yaw) + distanceZ * Math.sin(yaw);
         double relativeDistanceZ = -distanceX * Math.sin(yaw) + distanceZ * Math.cos(yaw);
-        double relativeMotionX = -1*(mc.thePlayer.motionX * Math.cos(yaw) - mc.thePlayer.motionZ * Math.sin(yaw));
+        double relativeMotionX = mc.thePlayer.motionX * Math.cos(yaw) - mc.thePlayer.motionZ * Math.sin(yaw);
         double relativeMotionZ = -mc.thePlayer.motionX * Math.sin(yaw) + mc.thePlayer.motionZ * Math.cos(yaw);
-        if (mc.thePlayer.onGround) {
-            stop();
-            KeyBindUtils.stopMovement();
+        if (isStuck() || mc.thePlayer.onGround) {
+            LogUtils.sendDebug("Player is stuck. Resetting pathfinder.");
+            restart();
             return;
         }
-        double distance2d = Math.abs(Math.sqrt(relativeDistanceX * relativeDistanceX + relativeDistanceZ * relativeDistanceZ));
-        if (distance2d < 0.5) {
+        double distance3d = mc.thePlayer.getDistance(pathBlocks.get(0).getX() + 0.5, pathBlocks.get(0).getY() + 0.5, pathBlocks.get(0).getZ() + 0.5);
+        if (distance3d < 0.5) {
             pathBlocks.remove(0);
             rotation.reset();
+            if (!pathBlocks.isEmpty()) {
+                Vec3 target = new Vec3(pathBlocks.get(0).getX() + 0.5, pathBlocks.get(0).getY() + 0.5, pathBlocks.get(0).getZ() + 0.5);
+                rotation.easeTo(
+                        new RotationConfiguration(
+                                new Rotation(rotation.getRotation(target, true).getYaw(), rotation.getRotation(target, true).getPitch()),
+                                750, null
+                        )
+                );
+            }
             KeyBindUtils.stopMovement();
         } else {
-            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSprint, relativeDistanceZ > 12);
-            mc.thePlayer.setSprinting(relativeDistanceZ > 12);
             mc.thePlayer.capabilities.isFlying = true;
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, distanceY > 0.25);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, distanceY < -0.25);
@@ -228,22 +186,139 @@ public class FlyPathfinder {
                 KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, false);
                 KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, true);
             }
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSprint, relativeDistanceZ > 12 && !mc.gameSettings.keyBindSneak.isKeyDown());
+            mc.thePlayer.setSprinting(relativeDistanceZ > 12 && !mc.gameSettings.keyBindSneak.isKeyDown());
         }
-//        if (!rotation.isRotating() && pathBlocks.size() > 2) {
-//            Vec3 target = new Vec3(pathBlocks.get(0).getX() + 0.5, pathBlocks.get(0).getY() + 0.5, pathBlocks.get(0).getZ() + 0.5);
-//            rotation.easeTo(
-//                    new RotationConfiguration(
-//                            new Rotation(rotation.getRotation(target, true).getYaw(), rotation.getRotation(target, true).getPitch()),
-//                            500, null
-//                    )
-//            );
-//        }
     }
 
     private double getPlayerSpeed() {
         return Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionY * mc.thePlayer.motionY + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
     }
 
+    public boolean isStuck() {
+        if (getPlayerSpeed() < 0.1 && !mc.thePlayer.onGround)
+            stuckCounter++;
+        else
+            stuckCounter = 0;
+        if (stuckCounter > 50) {
+            stuckCounter = 0;
+            return true;
+        }
+        return false;
+    }
+
+    //region Path smoothing - Nirox version
+    IBaritone baritone = BaritoneAPI.getProvider().getPrimaryBaritone();
+    public List<BlockPos> smoothPath(List<BlockPos> path) {
+        if (path.size() < 2) {
+            return path;
+        }
+        long startTime = System.currentTimeMillis();
+        List<BlockPos> smoothed = new ArrayList<>();
+        smoothed.add(path.get(0));
+        int lowerIndex = 0;
+        while (lowerIndex < path.size() - 2) {
+            BlockPos start = path.get(lowerIndex);
+            BlockPos lastValid = path.get(lowerIndex + 1);
+            for (int upperIndex = lowerIndex + 2; upperIndex < path.size(); upperIndex++) {
+                BlockPos end = path.get(upperIndex);
+                if (traversable(start, end) && traversable(start.add(0, 1, 0), end.add(0, 1, 0))) {
+                    lastValid = end;
+                }
+            }
+            smoothed.add(lastValid);
+            lowerIndex = path.indexOf(lastValid);
+        }
+
+        long endTime = System.currentTimeMillis();
+        LogUtils.sendDebug("Direction change points found in " + (endTime - startTime) + "ms");
+        return smoothed;
+    }
+
+    private static final Vec3[] BLOCK_SIDE_MULTIPLIERS = new Vec3[]{
+            new Vec3(0.5, 0.5, 0.1),
+            new Vec3(0.5, 0.5, 0.9),
+            new Vec3(0.1, 0.5, 0.5),
+            new Vec3(0.9, 0.5, 0.5)
+    };
+
+    public boolean traversable(BlockPos from, BlockPos to) {
+        for (Vec3 offset : BLOCK_SIDE_MULTIPLIERS) {
+            Vec3 fromVec = new Vec3(from.getX() + offset.xCoord, from.getY() + offset.yCoord, from.getZ() + offset.zCoord);
+            Vec3 toVec = new Vec3(to.getX() + offset.xCoord, to.getY() + offset.yCoord, to.getZ() + offset.zCoord);
+            MovingObjectPosition trace = baritone.getPlayerContext().world().rayTraceBlocks(fromVec, toVec, false, true, false);
+
+            if (trace != null) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    //endregion
+
+    //region Path smoothing - my version
+    private static boolean rayTraceBlocks(BlockPos start, BlockPos end) {
+        for (int i = 0; i < 8; i++) {
+            Vec3 startVec = getBlockCorners(start)[i];
+            Vec3 endVec = getBlockCorners(end)[i];
+
+            MovingObjectPosition result = Minecraft.getMinecraft().theWorld.rayTraceBlocks(
+                    new Vec3(startVec.xCoord, startVec.yCoord, startVec.zCoord),
+                    new Vec3(endVec.xCoord, endVec.yCoord, endVec.zCoord));
+            if (result != null && result.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static Vec3[] getBlockCorners(BlockPos blockPos) {
+        Vec3[] corners = new Vec3[8];
+        double x = blockPos.getX();
+        double y = blockPos.getY();
+        double z = blockPos.getZ();
+
+        for (int i = 0; i < 8; i++) {
+            double xOffset = (i & 1) == 0 ? 0.1 : 0.9;
+            double yOffset = (i & 2) == 0 ? 0.1 : 0.9;
+            double zOffset = (i & 4) == 0 ? 0.1 : 0.9;
+            corners[i] = new Vec3(x + xOffset, y + yOffset, z + zOffset);
+        }
+
+        return corners;
+    }
+
+    public static List<BlockPos> findDirectionChangePoints(List<BlockPos> path) {
+        long startTime = System.currentTimeMillis();
+        List<BlockPos> newDirectionChangePoints = new ArrayList<>();
+        if (path.size() < 2) {
+            return path;
+        }
+
+        newDirectionChangePoints.add(path.get(0));
+
+        for (int i = 0; i < path.size(); i++) {
+            BlockPos currentPos = path.get(i);
+
+            for (int j = i + 1; j < path.size(); j++) {
+                BlockPos otherPos = path.get(j);
+                if (rayTraceBlocks(currentPos, otherPos)) {
+                    newDirectionChangePoints.add(path.get(j - 1));
+                    i = j - 2;
+                    break;
+                }
+            }
+        }
+
+        newDirectionChangePoints.add(path.get(path.size() - 1));
+        long endTime = System.currentTimeMillis();
+        LogUtils.sendDebug("Direction change points found in " + (endTime - startTime) + "ms");
+        return newDirectionChangePoints;
+    }
+    //endregion
+
+    //region Deceleration
     public boolean decelerationReached(double motion, double distance) {
         double reachedMotion = 0.1;
         for (int i = 0; i < decelerationDistances.size() - 1; i++) {
@@ -400,4 +475,5 @@ public class FlyPathfinder {
         add(8.70116901397705);
         add(8.7852783203125);
     }};
+    //endregion
 }
