@@ -436,12 +436,12 @@ public class PestsDestroyer implements IFeature {
                     break;
                 }
 
-                state = States.WAIT_FOR_LOCATION;
                 lastFireworkLocation = Optional.empty();
+                lastFireworkTime = System.currentTimeMillis();
                 MovingObjectPosition mop = mc.objectMouseOver;
                 if (RotationHandler.getInstance().isRotating()) break;
                 if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                    Rotation upRotation = new Rotation((float) (mc.thePlayer.rotationYaw + (Math.random() * 5 - 2.5)), (float) (-86 + (Math.random() * 6 - 4)));
+                    Rotation upRotation = new Rotation((float) (mc.thePlayer.rotationYaw + (Math.random() * 5 - 2.5)), (float) (-76 + (Math.random() * 6 - 4)));
                     RotationHandler.getInstance().easeTo(new RotationConfiguration(
                             upRotation,
                             FarmHelperConfig.getRandomRotationTime(),
@@ -450,6 +450,7 @@ public class PestsDestroyer implements IFeature {
                     delayClock.schedule(300);
                     break;
                 }
+                state = States.WAIT_FOR_LOCATION;
                 KeyBindUtils.leftClick();
                 delayClock.schedule(300);
                 break;
@@ -480,6 +481,11 @@ public class PestsDestroyer implements IFeature {
                                 }
                         ).easeOutBack(true).randomness(true));
                         delayClock.schedule(300);
+                    }
+                } else {
+                    if (System.currentTimeMillis() - lastFireworkTime > 2_000) {
+                        state = States.GET_LOCATION;
+                        break;
                     }
                 }
                 break;
@@ -710,7 +716,7 @@ public class PestsDestroyer implements IFeature {
     }
 
     private void flyAwayFromStructures() {
-        if (mc.thePlayer.posY < 75 && !hasBlockAboveThePlayer()) {
+        if (mc.thePlayer.posY < 77 && !hasBlockAboveThePlayer()) {
             LogUtils.sendDebug("Has block above the player");
             if (!GameStateHandler.getInstance().isRightWalkable() && GameStateHandler.getInstance().isLeftWalkable()) {
                 KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);

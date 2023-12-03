@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class VisitorsMacro implements IFeature {
     private static VisitorsMacro instance;
@@ -40,7 +41,7 @@ public class VisitorsMacro implements IFeature {
     private final Clock delayClock = new Clock();
     @Getter
     private final Clock stuckClock = new Clock();
-    private final int STUCK_DELAY = (int) (7_500 + FarmHelperConfig.visitorsMacroGuiDelay + FarmHelperConfig.visitorsMacroGuiDelayRandomness);
+    private final int STUCK_DELAY = (int) (7_500 + FarmHelperConfig.macroGuiDelay + FarmHelperConfig.macroGuiDelayRandomness);
     private final RotationHandler rotation = RotationHandler.getInstance();
     private final ArrayList<String> visitors = new ArrayList<>();
     Pattern itemNamePattern = Pattern.compile("^(.*?)(?:\\sx(\\d+))?$");
@@ -366,13 +367,20 @@ public class VisitorsMacro implements IFeature {
                 }
                 KeyBindUtils.stopMovement();
 
-                Entity closest = mc.theWorld.getLoadedEntityList().
+                List<Entity> allVisitors = mc.theWorld.getLoadedEntityList().
                         stream().
                         filter(entity ->
-                                entity.hasCustomName() &&
-                                        visitors.stream().anyMatch(
-                                                v ->
-                                                        StringUtils.stripControlCodes(v).contains(StringUtils.stripControlCodes(entity.getCustomNameTag()))))
+                                entity.hasCustomName() && visitors.stream().anyMatch(
+                                        v ->
+                                                StringUtils.stripControlCodes(v).contains(StringUtils.stripControlCodes(entity.getCustomNameTag()))))
+                        .collect(Collectors.toList());
+
+                if (allVisitors.size() < visitors.size()) {
+                    LogUtils.sendDebug("[Visitors Macro] Waiting for visitors to spawn...");
+                    return;
+                }
+
+                Entity closest = allVisitors.stream()
                         .filter(entity -> entity.getDistanceToEntity(mc.thePlayer) < 14)
                         .filter(entity -> servedCustomers.stream().noneMatch(s -> s.equals(entity)))
                         .min(Comparator.comparingDouble(entity -> entity.getDistanceToEntity(mc.thePlayer)))
@@ -383,6 +391,7 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(getRandomDelay());
                     break;
                 }
+
                 closestEntity = closest;
                 List<BlockPos> blocksAroundVisitor = BlockUtils.getBlocksAroundEntity(closest);
                 BlockPos closestToPlayer = blocksAroundVisitor.stream().min(Comparator.comparingDouble(blockPos -> mc.thePlayer.getDistance(blockPos.getX(), blockPos.getY(), blockPos.getZ()))).orElse(null);
@@ -616,7 +625,7 @@ public class VisitorsMacro implements IFeature {
                                         visitors.stream().anyMatch(
                                                 v ->
                                                         StringUtils.stripControlCodes(v).contains(StringUtils.stripControlCodes(entity.getCustomNameTag()))))
-                        .filter(entity -> entity.getDistance(mc.thePlayer.posX, entity.posY, mc.thePlayer.posZ) < 4)
+                        .filter(entity -> entity.getDistance(mc.thePlayer.posX, entity.posY, mc.thePlayer.posZ) < 6)
                         .filter(entity -> servedCustomers.stream().noneMatch(s -> s.equals(entity)))
                         .min(Comparator.comparingDouble(entity -> entity.getDistanceToEntity(mc.thePlayer)))
                         .orElse(null);
