@@ -107,6 +107,7 @@ public class DebugHUD extends TextHud {
         }
         if (AutoSprayonator.getInstance().isToggled()) {
             lines.add("Auto Sprayonator");
+            lines.add("   Running: " + AutoSprayonator.getInstance().isRunning());
             lines.add("   State: " + AutoSprayonator.getInstance().getSprayState());
             lines.add("   Item: " + AutoSprayonator.getInstance().getSprayItem());
             lines.add("   Clock: " + AutoSprayonator.getInstance().getSprayonatorDelay().getRemainingTime());
