@@ -336,7 +336,10 @@ public class AutoSprayonator implements IFeature {
                         RotationHandler.getInstance().easeTo(
                                 new RotationConfiguration(
                                         new Rotation(prevRotation[0], prevRotation[1]),
-                                        FarmHelperConfig.getRandomRotationTime(), () -> rotationState = 0
+                                        FarmHelperConfig.getRandomRotationTime(), () -> {
+                                            rotationState = 0;
+                                            RotationHandler.getInstance().reset();
+                                        }
                                 ).easeOutBack(true)
                         );
                     }
