@@ -68,7 +68,7 @@ public class LagDetector implements IFeature {
     }
 
     public boolean isLagging() {
-        return System.currentTimeMillis() - lastReceivedPacketTime > 250;
+        return System.currentTimeMillis() - lastReceivedPacketTime > 500;
     }
 
     public boolean wasJustLagging() {

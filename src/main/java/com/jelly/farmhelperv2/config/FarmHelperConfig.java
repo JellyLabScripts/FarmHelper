@@ -1037,6 +1037,7 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
     //</editor-fold>
 
+    //<editor-fold desc="PESTS DESTROYER">
     //<editor-fold desc="Infos">
     @Info(
             text = "Make sure to enable Hypixel's Particles (/pq low), low is the minimum to make it work",
@@ -1055,7 +1056,6 @@ public class FarmHelperConfig extends Config {
     public static boolean pestsDestroyerInfo;
     //</editor-fold>
 
-    //<editor-fold desc="PESTS DESTROYER">
     //<editor-fold desc="Pests Destroyer Main">
     @Switch(
             name = "Enable Pests Destroyer (USE AT YOUR OWN RISK)", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
