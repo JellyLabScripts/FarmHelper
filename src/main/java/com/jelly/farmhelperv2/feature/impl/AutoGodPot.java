@@ -40,7 +40,7 @@ public class AutoGodPot implements IFeature {
     private final Clock delayClock = new Clock();
     @Getter
     private final Clock stuckClock = new Clock();
-    private final int STUCK_DELAY = (int) (7_500 + FarmHelperConfig.visitorsMacroGuiDelay + FarmHelperConfig.visitorsMacroGuiDelayRandomness);
+    private final int STUCK_DELAY = (int) (7_500 + FarmHelperConfig.macroGuiDelay + FarmHelperConfig.macroGuiDelayRandomness);
     private final RotationHandler rotation = RotationHandler.getInstance();
     private final Vec3 ahLocation1 = new Vec3(-17.5, 72, -91.5);
     private final Vec3 ahLocation2 = new Vec3(-30.5, 73, -87.5);
@@ -178,6 +178,7 @@ public class AutoGodPot implements IFeature {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
 
         if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LOBBY && GameStateHandler.getInstance().getGodPotState() == GameStateHandler.BuffState.NOT_ACTIVE) {
             if (!enabled && !activating) {

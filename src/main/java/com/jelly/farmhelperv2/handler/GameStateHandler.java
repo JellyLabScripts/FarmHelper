@@ -31,6 +31,7 @@ public class GameStateHandler {
     @Getter
     private final Clock jacobContestLeftClock = new Clock();
     private final Pattern jacobsRemainingTimePattern = Pattern.compile("([0-9]|[1-2][0-9])m([0-9]|[1-5][0-9])s");
+    private final Pattern serverClosingPattern = Pattern.compile("Server closing: (?<minutes>\\d+):(?<seconds>\\d+) .*");
     @Getter
     private Location lastLocation = Location.TELEPORTING;
     @Getter
@@ -79,6 +80,9 @@ public class GameStateHandler {
     @Getter
     @Setter
     private boolean wasInJacobContest = false;
+    @Getter
+    @Setter
+    private Optional<Integer> serverClosingSeconds = Optional.empty();
 
     public static GameStateHandler getInstance() {
         if (INSTANCE == null) {
@@ -92,6 +96,7 @@ public class GameStateHandler {
         lastLocation = location;
         location = Location.TELEPORTING;
     }
+
 
     @SubscribeEvent
     public void onTickCheckCoins(TickEvent.PlayerTickEvent event) {
@@ -108,6 +113,14 @@ public class GameStateHandler {
 
         for (String line : scoreboardLines) {
             String cleanedLine = StringUtils.stripControlCodes(ScoreboardUtils.cleanSB(line));
+            Matcher serverClosingMatcher = serverClosingPattern.matcher(StringUtils.stripControlCodes(ScoreboardUtils.cleanSB(line)));
+            if (serverClosingMatcher.find()) {
+                int minutes = Integer.parseInt(serverClosingMatcher.group("minutes"));
+                int seconds = Integer.parseInt(serverClosingMatcher.group("seconds"));
+                serverClosingSeconds = Optional.of(minutes * 60 + seconds);
+            } else {
+                serverClosingSeconds = Optional.empty();
+            }
             if (cleanedLine.contains("Purse:") || cleanedLine.contains("Piggy:")) {
                 try {
                     String stringPurse = cleanedLine.split(" ")[1].replace(",", "").trim();

@@ -31,6 +31,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class VisitorsMacro implements IFeature {
     private static VisitorsMacro instance;
@@ -43,7 +44,7 @@ public class VisitorsMacro implements IFeature {
     private final Clock delayClock = new Clock();
     @Getter
     private final Clock stuckClock = new Clock();
-    private final int STUCK_DELAY = (int) (7_500 + FarmHelperConfig.visitorsMacroGuiDelay + FarmHelperConfig.visitorsMacroGuiDelayRandomness);
+    private final int STUCK_DELAY = (int) (7_500 + FarmHelperConfig.macroGuiDelay + FarmHelperConfig.macroGuiDelayRandomness);
     private final RotationHandler rotation = RotationHandler.getInstance();
     private final ArrayList<String> visitors = new ArrayList<>();
     Pattern itemNamePattern = Pattern.compile("^(.*?)(?:\\sx(\\d+))?$");
@@ -214,6 +215,11 @@ public class VisitorsMacro implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return false;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return false;
 
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
+            LogUtils.sendError("[Visitors Macro] Server is closing in " + GameStateHandler.getInstance().getServerClosingSeconds().get() + " seconds!");
+            return false;
+        }
+
         if (!manual && !forceStart && (!PlayerUtils.isStandingOnSpawnPoint() && !PlayerUtils.isStandingOnRewarpLocation())) {
             if (withError)
                 LogUtils.sendError("[Visitors Macro] The player is not standing on spawn location, skipping...");
@@ -366,13 +372,20 @@ public class VisitorsMacro implements IFeature {
                 }
                 KeyBindUtils.stopMovement();
 
-                Entity closest = mc.theWorld.getLoadedEntityList().
+                List<Entity> allVisitors = mc.theWorld.getLoadedEntityList().
                         stream().
                         filter(entity ->
-                                entity.hasCustomName() &&
-                                        visitors.stream().anyMatch(
-                                                v ->
-                                                        StringUtils.stripControlCodes(v).contains(StringUtils.stripControlCodes(entity.getCustomNameTag()))))
+                                entity.hasCustomName() && visitors.stream().anyMatch(
+                                        v ->
+                                                StringUtils.stripControlCodes(v).contains(StringUtils.stripControlCodes(entity.getCustomNameTag()))))
+                        .collect(Collectors.toList());
+
+                if (allVisitors.size() < visitors.size()) {
+                    LogUtils.sendDebug("[Visitors Macro] Waiting for visitors to spawn...");
+                    return;
+                }
+
+                Entity closest = allVisitors.stream()
                         .filter(entity -> entity.getDistanceToEntity(mc.thePlayer) < 14)
                         .filter(entity -> servedCustomers.stream().noneMatch(s -> s.equals(entity)))
                         .min(Comparator.comparingDouble(entity -> entity.getDistanceToEntity(mc.thePlayer)))
@@ -383,6 +396,7 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(getRandomDelay());
                     break;
                 }
+
                 closestEntity = closest;
                 List<BlockPos> blocksAroundVisitor = BlockUtils.getBlocksAroundEntity(closest);
                 BlockPos closestToPlayer = blocksAroundVisitor.stream().min(Comparator.comparingDouble(blockPos -> mc.thePlayer.getDistance(blockPos.getX(), blockPos.getY(), blockPos.getZ()))).orElse(null);
@@ -402,7 +416,7 @@ public class VisitorsMacro implements IFeature {
                 BlockPos deskPos = new BlockPos(deskRotation.xCoord, mc.thePlayer.posY, deskRotation.zCoord);
                 double distance = Math.sqrt(playerPos.distanceSq(deskPos));
                 stuckClock.schedule(STUCK_DELAY);
-                if (distance <= 1f || playerPos.equals(deskPos) || (previousDistanceToCheck < distance && distance < 1.75f) || mc.thePlayer.getDistanceToEntity(closestEntity) < 4) {
+                if (distance <= 1f || playerPos.equals(deskPos) || (previousDistanceToCheck < distance && distance < 1.75f) || mc.thePlayer.getDistance(closestEntity.posX, mc.thePlayer.posY, closestEntity.posZ) < 3) {
                     if (pathFound) {
                         BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
                         pathFound = false;
@@ -619,7 +633,7 @@ public class VisitorsMacro implements IFeature {
                                         visitors.stream().anyMatch(
                                                 v ->
                                                         StringUtils.stripControlCodes(v).contains(StringUtils.stripControlCodes(entity.getCustomNameTag()))))
-                        .filter(entity -> entity.getDistance(mc.thePlayer.posX, entity.posY, mc.thePlayer.posZ) < 4)
+                        .filter(entity -> entity.getDistance(mc.thePlayer.posX, entity.posY, mc.thePlayer.posZ) < 6)
                         .filter(entity -> servedCustomers.stream().noneMatch(s -> s.equals(entity)))
                         .min(Comparator.comparingDouble(entity -> entity.getDistanceToEntity(mc.thePlayer)))
                         .orElse(null);
@@ -696,7 +710,7 @@ public class VisitorsMacro implements IFeature {
                 } else {
                     LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
                     LogUtils.sendDebug("[Visitors Macro] Distance: " + mc.thePlayer.getDistanceToEntity(currentVisitor.get()));
-                    if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) > 3.5) {
+                    if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) > 3) {
                         LogUtils.sendDebug("[Visitors Macro] Visitor is too far away, getting closer...");
                         KeyBindUtils.holdThese(mc.gameSettings.keyBindForward);
                         shouldJump();

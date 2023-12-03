@@ -62,7 +62,7 @@ public class PestsDestroyer implements IFeature {
     private final ArrayList<Entity> pestsLocations = new ArrayList<>();
     @Getter
     private final Clock stuckClock = new Clock();
-    private final Pattern pestPattern = Pattern.compile(".*(\\d+).* (?:appeared|spawned) in Plot - (\\d+)!");
+    private final Pattern pestPattern = Pattern.compile(".* (\\d+|A) .* (?:appeared|spawned) in Plot - (\\d+)!");
     @Getter
     private final Clock delayClock = new Clock();
     private final Clock delayBetweenBackTaps = new Clock();
@@ -436,12 +436,12 @@ public class PestsDestroyer implements IFeature {
                     break;
                 }
 
-                state = States.WAIT_FOR_LOCATION;
                 lastFireworkLocation = Optional.empty();
+                lastFireworkTime = System.currentTimeMillis();
                 MovingObjectPosition mop = mc.objectMouseOver;
                 if (RotationHandler.getInstance().isRotating()) break;
                 if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                    Rotation upRotation = new Rotation((float) (mc.thePlayer.rotationYaw + (Math.random() * 5 - 2.5)), (float) (86 + (Math.random() * 6 - 4)));
+                    Rotation upRotation = new Rotation((float) (mc.thePlayer.rotationYaw + (Math.random() * 5 - 2.5)), (float) (-76 + (Math.random() * 6 - 4)));
                     RotationHandler.getInstance().easeTo(new RotationConfiguration(
                             upRotation,
                             FarmHelperConfig.getRandomRotationTime(),
@@ -450,6 +450,7 @@ public class PestsDestroyer implements IFeature {
                     delayClock.schedule(300);
                     break;
                 }
+                state = States.WAIT_FOR_LOCATION;
                 KeyBindUtils.leftClick();
                 delayClock.schedule(300);
                 break;
@@ -480,6 +481,11 @@ public class PestsDestroyer implements IFeature {
                                 }
                         ).easeOutBack(true).randomness(true));
                         delayClock.schedule(300);
+                    }
+                } else {
+                    if (System.currentTimeMillis() - lastFireworkTime > 2_000) {
+                        state = States.GET_LOCATION;
+                        break;
                     }
                 }
                 break;
@@ -677,7 +683,7 @@ public class PestsDestroyer implements IFeature {
     }
 
     private void flyAwayFromStructures() {
-        if (mc.thePlayer.posY < 75 && !hasBlockAboveThePlayer()) {
+        if (mc.thePlayer.posY < 77 && !hasBlockAboveThePlayer()) {
             LogUtils.sendDebug("Has block above the player");
             if (!GameStateHandler.getInstance().isRightWalkable() && GameStateHandler.getInstance().isLeftWalkable()) {
                 KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
@@ -816,7 +822,7 @@ public class PestsDestroyer implements IFeature {
         int pests;
         try {
             plotNumber = Integer.parseInt(plot);
-            pests = Integer.parseInt(numberOfPests);
+            pests = Objects.equals(numberOfPests, "A") ? 1 : Integer.parseInt(numberOfPests);
         } catch (Exception e) {
             LogUtils.sendError("[Pests Destroyer] Failed to parse plot number: " + plot);
             return;
@@ -1084,13 +1090,15 @@ public class PestsDestroyer implements IFeature {
                     long delay = 500 + (long) (Math.random() * 500);
                     delayClock.schedule(delay + (long) (Math.random() * 200));
                     LogUtils.sendError("[Pests Destroyer] Failed to get locations of pests. (Uncleaned plots?)");
-                    LogUtils.sendError("[Pests Destroyer] Attempting to find pest with tracker");
-                    state = States.GET_LOCATION;
-                    Multithreading.schedule(() -> {
-                        if (mc.currentScreen != null) {
-                            PlayerUtils.closeScreen();
-                        }
-                    }, delay, TimeUnit.MILLISECONDS);
+                    if (state == States.WAIT_FOR_INFO && isRunning()) {
+                        LogUtils.sendError("[Pests Destroyer] Attempting to find pest with tracker");
+                        state = States.GET_LOCATION;
+                        Multithreading.schedule(() -> {
+                            if (mc.currentScreen != null) {
+                                PlayerUtils.closeScreen();
+                            }
+                        }, delay, TimeUnit.MILLISECONDS);
+                    }
                     return;
                 }
             }

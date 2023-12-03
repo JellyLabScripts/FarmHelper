@@ -45,8 +45,6 @@ import java.io.File;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /*
@@ -73,7 +71,6 @@ public class Failsafe implements IFeature {
     private final Clock failsafeDelay = new Clock();
     private final ArrayList<BlockPos> dirtBlocks = new ArrayList<>();
     private final Clock dirtCheckDelay = new Clock();
-    private final Pattern pattern = Pattern.compile("Server closing: (?<minutes>\\d+):(?<seconds>\\d+) .*");
     private EmergencyType emergency = EmergencyType.NONE;
     @Setter
     private boolean hadEmergency = false;
@@ -717,25 +714,11 @@ public class Failsafe implements IFeature {
         if (!FarmHelperConfig.autoEvacuateOnWorldUpdate) return;
         if (evacuateState != EvacuateState.NONE) return;
 
-        List<String> scoreboard = ScoreboardUtils.getScoreboardLines();
-        for (String line : scoreboard) {
-            Matcher matcher = pattern.matcher(StringUtils.stripControlCodes(ScoreboardUtils.cleanSB(line)));
-            if (matcher.find()) {
-                int minutes = Integer.parseInt(matcher.group("minutes"));
-                int seconds = Integer.parseInt(matcher.group("seconds"));
-                if (minutes == 0 && seconds <= 30) {
-                    addEmergency(EmergencyType.EVACUATE);
-                }
+        GameStateHandler.getInstance().getServerClosingSeconds().ifPresent(seconds -> {
+            if (seconds < 30) {
+                addEmergency(EmergencyType.EVACUATE);
             }
-        }
-    }
-
-    private int getNumberOfCharactersInString(String string) {
-        int count = 0;
-        for (char c : string.toCharArray()) {
-            if (c == ':') count++;
-        }
-        return count;
+        });
     }
 
     private void onEvacuate() {

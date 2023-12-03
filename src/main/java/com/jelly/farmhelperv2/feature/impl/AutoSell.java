@@ -153,6 +153,10 @@ public class AutoSell implements IFeature {
             LogUtils.sendError("[Auto Sell] You don't have cookie buff active!");
             return;
         }
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
+            LogUtils.sendError("[Auto Sell] Server is closing in " + GameStateHandler.getInstance().getServerClosingSeconds().get() + " seconds!");
+            return;
+        }
         this.manually = manually;
         PlayerUtils.closeScreen();
         LogUtils.sendWarning("[Auto Sell] Enabling Auto Sell");
