@@ -533,6 +533,13 @@ public class FarmHelperConfig extends Config {
     )
     public static int sprayonatorSlot = 1;
 
+    @Slider(
+            name = "Additional Delay", category = MISCELLANEOUS, subcategory = "Sprayonator",
+            description = "Additional delay between actions (in milliseconds)",
+            min = 0, max = 5000, step = 1
+    )
+    public static int sprayonatorAdditionalDelay = 500;
+
     @Button(
             name = "Reset Plots", category = MISCELLANEOUS, subcategory = "Sprayonator",
             text = "Click Here",

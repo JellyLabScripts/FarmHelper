@@ -8,11 +8,14 @@ import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlotUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
+import com.jelly.farmhelperv2.util.helper.Rotation;
+import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -54,9 +57,12 @@ public class AutoSprayonator implements IFeature {
     private BAZAAR_PURCHASE_STATE bazaarPurchaseState = BAZAAR_PURCHASE_STATE.NONE;
     @Getter
     private CURRENT_GUI_STATE currentGuiState = CURRENT_GUI_STATE.NONE;
-    private final Pattern sprayTimerPattern = Pattern.compile("with\\s([\\w\\s]+)\\s(\\d+)m\\s(\\d+)s");
+    private final Pattern sprayTimerPattern = Pattern.compile("([a-zA-Z\\s]*)\\s?(?:(\\d+)m)?\\s+(\\d+)s");
     private boolean hasCopper = true;
     private String bazaarItemName;
+
+    private float[] prevRotation = new float[]{0f,0f};
+    private int rotationState = 0;
 
     @Override
     public String getName() {
@@ -209,6 +215,7 @@ public class AutoSprayonator implements IFeature {
     public void onClientTick(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isToggled()) return;
+        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (event.phase != TickEvent.Phase.START) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
@@ -251,6 +258,12 @@ public class AutoSprayonator implements IFeature {
                 if (sprayonatorPlotStates.isEmpty()) {
                     sprayState = AUTO_SPRAYONATOR_STATE.CHECK_PLOTS;
                     return;
+                }
+                if (!hasSprayItem() && !shouldBuySprayItem())
+                {
+                    stop();
+                    LogUtils.sendError("[Auto Sprayonator] Disabling until restart due to no spray item");
+                    sprayState = AUTO_SPRAYONATOR_STATE.NONE;
                 }
                 PlotData data = sprayonatorPlotStates.get(GameStateHandler.getInstance().getCurrentPlot());
                 if (data == null)
@@ -319,16 +332,48 @@ public class AutoSprayonator implements IFeature {
                 String sprayType = StringUtils.stripControlCodes(sprayTypeLine.split(": ")[1]);
                 if (sprayType.equals(sprayItem.getItemName())) {
                     sprayState = AUTO_SPRAYONATOR_STATE.CHECK_ITEM;
+                    if (rotationState == 1) {
+                        RotationHandler.getInstance().easeTo(
+                                new RotationConfiguration(
+                                        new Rotation(prevRotation[0], prevRotation[1]),
+                                        FarmHelperConfig.getRandomRotationTime(), () -> rotationState = 0
+                                ).easeOutBack(true)
+                        );
+                    }
                 } else {
-                    Multithreading.schedule(KeyBindUtils::leftClick, 100 + (long) (Math.random() * 100), TimeUnit.MILLISECONDS);
+                    switch (rotationState) {
+                        case 0: // save rotations and rotate
+                            prevRotation = new float[]{
+                                    mc.thePlayer.rotationYaw,
+                                    mc.thePlayer.rotationPitch
+                            };
+                            RotationHandler.getInstance().easeTo(
+                                    new RotationConfiguration(
+                                            new Rotation(mc.thePlayer.rotationYaw, 77),
+                                            FarmHelperConfig.getRandomRotationTime(), null
+                                    ).easeOutBack(true)
+                            );
+                            rotationState++;
+                            break;
+                        case 1:
+                            Multithreading.schedule(KeyBindUtils::leftClick, 100 + (long) (Math.random() * 100), TimeUnit.MILLISECONDS);
+                            break;
+                    }
+
                 }
                 break;
             case CHECK_ITEM:
                 if (hasSprayItem()) {
                     sprayState = AUTO_SPRAYONATOR_STATE.USE_SPRAYONATOR;
                 } else {
-                    sprayState = AUTO_SPRAYONATOR_STATE.BAZAAR_PURCHASE;
-                    bazaarPurchaseState = BAZAAR_PURCHASE_STATE.OPEN_BAZAAR;
+                    if (shouldBuySprayItem()) {
+                        sprayState = AUTO_SPRAYONATOR_STATE.BAZAAR_PURCHASE;
+                        bazaarPurchaseState = BAZAAR_PURCHASE_STATE.OPEN_BAZAAR;
+                    } else {
+                        stop();
+                        LogUtils.sendError("[Auto Sprayonator] Disabling until restart due to no spray item");
+                        sprayState = AUTO_SPRAYONATOR_STATE.NONE;
+                    }
                 }
                 break;
             case BAZAAR_PURCHASE:
@@ -378,7 +423,7 @@ public class AutoSprayonator implements IFeature {
 
         switch (sprayState) {
             case CHECK_PLOTS:
-                sprayonatorDelay.schedule(1000 + randomDelay);
+                sprayonatorDelay.schedule(FarmHelperConfig.sprayonatorAdditionalDelay + 1000 + randomDelay);
                 switch (checkPlotState) {
                     case OPEN_DESK:
                         if (!guiName.equals("Desk")) {
@@ -386,13 +431,13 @@ public class AutoSprayonator implements IFeature {
                             Multithreading.schedule(() -> {
                                 mc.thePlayer.closeScreen();
                                 currentGuiState = CURRENT_GUI_STATE.NONE;
-                            }, 100 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
+                            }, FarmHelperConfig.sprayonatorAdditionalDelay + 100 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
                             return;
                         }
                         checkPlotState = CHECK_PLOT_STATE.OPEN_PLOTS;
                         Multithreading.schedule(() -> {
                             InventoryUtils.clickContainerSlot(InventoryUtils.getSlotIdOfItemInContainer("Configure Plots"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                        }, 100 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
+                        }, FarmHelperConfig.sprayonatorAdditionalDelay + 100 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
                         break;
                     case OPEN_PLOTS:
                         if (!guiName.equals("Configure Plots")) {
@@ -400,7 +445,7 @@ public class AutoSprayonator implements IFeature {
                             Multithreading.schedule(() -> {
                                 mc.thePlayer.closeScreen();
                                 currentGuiState = CURRENT_GUI_STATE.NONE;
-                            }, 100 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
+                            }, FarmHelperConfig.sprayonatorAdditionalDelay + 100 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
                             return;
                         }
                         loadSprayonatorData(guiChest);
@@ -412,11 +457,11 @@ public class AutoSprayonator implements IFeature {
                             sprayState = AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT;
                             checkPlotState = CHECK_PLOT_STATE.NONE;
                             currentGuiState = CURRENT_GUI_STATE.NONE;
-                        }, 150 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
+                        }, FarmHelperConfig.sprayonatorAdditionalDelay + 150 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
                 }
                 break;
             case BAZAAR_PURCHASE:
-                sprayonatorDelay.schedule(2000 + randomDelay * 3);
+                sprayonatorDelay.schedule(FarmHelperConfig.sprayonatorAdditionalDelay + 2000 + randomDelay * 3);
                 if (guiName.contains("Bazaar")) {
                     if (bazaarPurchaseState == BAZAAR_PURCHASE_STATE.OPEN_BAZAAR)
                         bazaarPurchaseState = BAZAAR_PURCHASE_STATE.CLICK_ITEM;
@@ -426,7 +471,7 @@ public class AutoSprayonator implements IFeature {
                     Multithreading.schedule(() -> {
                         mc.thePlayer.closeScreen();
                         currentGuiState = CURRENT_GUI_STATE.NONE;
-                    }, 400 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
+                    }, FarmHelperConfig.sprayonatorAdditionalDelay + 400 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
                     return;
                 }
                 LogUtils.sendDebug("Bazaar Purchase State: " + bazaarPurchaseState.toString());
@@ -440,13 +485,13 @@ public class AutoSprayonator implements IFeature {
                                 Multithreading.schedule(() -> {
                                     mc.thePlayer.closeScreen();
                                     currentGuiState = CURRENT_GUI_STATE.NONE;
-                                }, 100 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
+                                }, FarmHelperConfig.sprayonatorAdditionalDelay + 100 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
                                 return;
                             }
                             InventoryUtils.clickContainerSlot(slot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                             bazaarPurchaseState = BAZAAR_PURCHASE_STATE.BUY_ITEM;
                             sprayonatorDelay.schedule(-1);
-                        }, 300 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
+                        }, FarmHelperConfig.sprayonatorAdditionalDelay + 300 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
                         break;
                     case BUY_ITEM:
                         Multithreading.schedule(() -> {
@@ -459,7 +504,7 @@ public class AutoSprayonator implements IFeature {
                                     Multithreading.schedule(() -> {
                                         mc.thePlayer.closeScreen();
                                         currentGuiState = CURRENT_GUI_STATE.NONE;
-                                    }, 250 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
+                                    }, FarmHelperConfig.sprayonatorAdditionalDelay + 250 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
                                     return;
                                 }
                                 Multithreading.schedule(() -> {
@@ -472,8 +517,8 @@ public class AutoSprayonator implements IFeature {
                                             currentGuiState = CURRENT_GUI_STATE.NONE;
                                             sprayState = AUTO_SPRAYONATOR_STATE.CHECK_ITEM;
                                         }, 300 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
-                                    }, 300 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
-                                }, 300 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
+                                    }, FarmHelperConfig.sprayonatorAdditionalDelay/2 + 300 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
+                                }, FarmHelperConfig.sprayonatorAdditionalDelay/2 + 300 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
                                 bazaarPurchaseState = BAZAAR_PURCHASE_STATE.NONE;
                             } else {
                                 LogUtils.sendDebug("Invalid GUI: " + guiName);
@@ -481,9 +526,9 @@ public class AutoSprayonator implements IFeature {
                                 Multithreading.schedule(() -> {
                                     mc.thePlayer.closeScreen();
                                     currentGuiState = CURRENT_GUI_STATE.NONE;
-                                }, 100 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
+                                }, FarmHelperConfig.sprayonatorAdditionalDelay + 100 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
                             }
-                        }, 300 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
+                        }, FarmHelperConfig.sprayonatorAdditionalDelay + 300 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
                         break;
                     default:
                         break;
@@ -503,6 +548,8 @@ public class AutoSprayonator implements IFeature {
             String plotNumber = e.message.getUnformattedText().split(" ")[5];
             PlotData data = new PlotData(Integer.parseInt(plotNumber), sprayItem.getItemName(), TimeUnit.MINUTES.toMillis(30));
             sprayonatorPlotStates.put(Integer.parseInt(plotNumber), data);
+        } else if (e.message.getUnformattedText().contains("sprayed with that item recently")) {
+            sprayState = AUTO_SPRAYONATOR_STATE.CHECK_PLOTS;
         }
     }
 
@@ -517,17 +564,20 @@ public class AutoSprayonator implements IFeature {
                 boolean foundSpray = false;
                 for (String line : lore) {
                     if (line.contains("Sprayed with")) {
-                        Matcher matcher = sprayTimerPattern.matcher(line);
+                        Matcher matcher = sprayTimerPattern.matcher(line.replace("Sprayed with ", ""));
                         if (matcher.find()) {
-                            String type = matcher.group(1);
-                            int minutes = Integer.parseInt(matcher.group(2));
-                            int seconds = Integer.parseInt(matcher.group(3));
-
-                            PlotData data = new PlotData(plotNumber, type, (minutes * 60L + seconds) * 1000);
-                            sprayonatorPlotStates.put(plotNumber, data);
+                            String minutes = "0";
+                            try {
+                                minutes = matcher.group(2);
+                            } catch (Exception ignored) {}
+                            String seconds = matcher.group(3);
+                            long time = TimeUnit.MINUTES.toMillis(Integer.parseInt(minutes))
+                                    + TimeUnit.SECONDS.toMillis(Integer.parseInt(seconds));
+                            PlotData data = new PlotData(plotNumber, matcher.group(1).trim(), time);
                             foundSpray = true;
-                            break;
+                            sprayonatorPlotStates.put(plotNumber, data);
                         }
+                        break;
                     }
                 }
                 if (!foundSpray) {
