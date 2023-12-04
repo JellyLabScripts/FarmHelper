@@ -10,6 +10,7 @@ import com.jelly.farmhelperv2.util.helper.Timer;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StringUtils;
@@ -367,7 +368,25 @@ public class GameStateHandler {
     }
 
     public boolean notMoving() {
-        return (dx < 0.01 && dz < 0.01 && dy < 0.01 && mc.currentScreen == null) || (KeyBindUtils.areAllKeybindsReleased() && mc.thePlayer != null && mc.thePlayer.isPushedByWater() && mc.thePlayer.isInWater()) || RotationHandler.getInstance().isRotating();
+        return (dx < 0.01 && dz < 0.01 && dy < 0.01 && mc.currentScreen == null) || (!holdingKeybindIsWalkable() && mc.thePlayer != null && mc.thePlayer.isPushedByWater() && mc.thePlayer.isInWater()) || RotationHandler.getInstance().isRotating();
+    }
+
+    public boolean holdingKeybindIsWalkable() {
+        KeyBinding[] holdingKeybinds = KeyBindUtils.getHoldingKeybinds();
+        for (KeyBinding key : holdingKeybinds) {
+            if (key != null && key.isKeyDown()) {
+                if (key == mc.gameSettings.keyBindForward && !frontWalkable) {
+                    return false;
+                } else if (key == mc.gameSettings.keyBindBack && !backWalkable) {
+                    return false;
+                } else if (key == mc.gameSettings.keyBindRight && !rightWalkable) {
+                    return false;
+                } else if (key == mc.gameSettings.keyBindLeft && !leftWalkable) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public boolean canChangeDirection() {

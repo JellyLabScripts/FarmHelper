@@ -154,4 +154,16 @@ public class KeyBindUtils {
         }
         return true;
     }
+
+    public static KeyBinding[] getHoldingKeybinds() {
+        KeyBinding[] keybinds = new KeyBinding[allKeys.length];
+        int i = 0;
+        for (KeyBinding key : allKeys) {
+            if (key != null && key.isKeyDown()) {
+                keybinds[i] = key;
+                i++;
+            }
+        }
+        return keybinds;
+    }
 }

@@ -166,7 +166,11 @@ public class AntiStuck implements IFeature {
         if (event.phase == TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (!GameStateHandler.getInstance().inGarden()) return;
+        if (!GameStateHandler.getInstance().inGarden()) {
+            if (isRunning())
+                stop();
+            return;
+        }
         if (mc.currentScreen != null) return;
         if (!enabled) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;

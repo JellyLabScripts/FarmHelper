@@ -38,7 +38,7 @@ public class StatusHUD extends TextHud {
             }
 
             if (BanInfoWS.getInstance().isRunning() && FarmHelperConfig.banwaveCheckerEnabled && BanInfoWS.getInstance().isConnected()) {
-                tempLines.add("Staff bans in the last " + BanInfoWS.getInstance().getMinutes() + " minutes: " + BanInfoWS.getInstance().getBans());
+                tempLines.add("Staff bans in the last " + BanInfoWS.getInstance().getMinutes() + " minutes: " + BanInfoWS.getInstance().getStaffBans());
                 tempLines.add("FarmHelper's bans in the last 15 minutes: " + BanInfoWS.getInstance().getBansByMod());
             } else if (!BanInfoWS.getInstance().isConnected() && FarmHelperConfig.banwaveCheckerEnabled) {
                 tempLines.add("Connecting to the analytics server...");
