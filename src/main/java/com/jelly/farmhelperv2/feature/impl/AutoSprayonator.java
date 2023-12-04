@@ -120,6 +120,7 @@ public class AutoSprayonator implements IFeature {
     @Override
     public void resetStatesAfterMacroDisabled() {
         sprayState = AUTO_SPRAYONATOR_STATE.NONE;
+        running = false;
         if (!sprayonatorPlotStates.isEmpty()) {
             sprayState = AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT;
         }
@@ -568,12 +569,13 @@ public class AutoSprayonator implements IFeature {
                 boolean foundSpray = false;
                 for (String line : lore) {
                     if (line.contains("Sprayed with")) {
+                        System.out.println(line);
                         Matcher matcher = sprayTimerPattern.matcher(line.replace("Sprayed with ", ""));
                         if (matcher.find()) {
-                            String minutes = "0";
-                            try {
-                                minutes = matcher.group(2);
-                            } catch (Exception ignored) {}
+                            String minutes = matcher.group(2);
+                            if (minutes == null) {
+                                minutes = "0";
+                            }
                             String seconds = matcher.group(3);
                             long time = TimeUnit.MINUTES.toMillis(Integer.parseInt(minutes))
                                     + TimeUnit.SECONDS.toMillis(Integer.parseInt(seconds));
