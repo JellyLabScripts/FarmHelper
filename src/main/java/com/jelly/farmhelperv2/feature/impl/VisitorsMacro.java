@@ -1176,7 +1176,7 @@ public class VisitorsMacro implements IFeature {
                 for (String line : lore) {
                     if (line.toLowerCase().contains("per unit")) {
                         String[] split = line.split(":");
-                        pricePerUnit = Integer.parseInt(split[1].replace(",", "").replace("coins", "").trim());
+                        pricePerUnit = Float.parseFloat(split[1].replace(",", "").replace("coins", "").trim());
                         break;
                     }
                 }
