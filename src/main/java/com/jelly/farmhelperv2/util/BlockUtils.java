@@ -94,6 +94,24 @@ public class BlockUtils {
         );
     }
 
+
+    public static Block getRelativeFullBlock(float x, float y, float z) {
+        return mc.theWorld.getBlockState(
+                new BlockPos(
+                        mc.thePlayer.posX + getUnitX() * z + getUnitZ() * -1 * x,
+                        mc.thePlayer.posY + y,
+                        mc.thePlayer.posZ + getUnitZ() * z + getUnitX() * x
+                )).getBlock();
+    }
+
+    public static BlockPos getRelativeFullBlockPos(float x, float y, float z) {
+        return new BlockPos(
+                mc.thePlayer.posX + getUnitX() * z + getUnitZ() * -1 * x,
+                mc.thePlayer.posY + y,
+                mc.thePlayer.posZ + getUnitZ() * z + getUnitX() * x
+        );
+    }
+
     public static Block getRelativeBlock(float x, float y, float z, float yaw) {
         return mc.theWorld.getBlockState(
                 new BlockPos(
@@ -128,6 +146,11 @@ public class BlockUtils {
             }
         }
         return count;
+    }
+
+    public boolean canFlyThrough() {
+        return BlockUtils.getRelativeFullBlock(0, 0, 1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, 0, 1))
+                && BlockUtils.getRelativeFullBlock(0, 1, 1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, 1, 1));
     }
 
     public static boolean canWalkThrough(BlockPos blockPos) {
