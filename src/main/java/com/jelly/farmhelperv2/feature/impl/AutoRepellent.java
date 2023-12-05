@@ -15,6 +15,7 @@ import com.jelly.farmhelperv2.util.helper.Clock;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.inventory.Slot;
+import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -68,8 +69,7 @@ public class AutoRepellent implements IFeature {
         savedSlot = mc.thePlayer.inventory.currentItem;
         LogUtils.sendWarning("[Auto Repellent] Enabled!");
         delay.reset();
-        if (MacroHandler.getInstance().isMacroToggled())
-            MacroHandler.getInstance().pauseMacro();
+        MacroHandler.getInstance().pauseMacro();
     }
 
     @Override
@@ -81,12 +81,11 @@ public class AutoRepellent implements IFeature {
         state = State.NONE;
         if (mc.currentScreen != null)
             PlayerUtils.closeScreen();
-        if (MacroHandler.getInstance().isMacroToggled())
-            Multithreading.schedule(() -> {
-                if (MacroHandler.getInstance().isMacroToggled()) {
-                    MacroHandler.getInstance().resumeMacro();
-                }
-            }, 1_500, TimeUnit.MILLISECONDS);
+        Multithreading.schedule(() -> {
+            if (MacroHandler.getInstance().isMacroToggled()) {
+                MacroHandler.getInstance().resumeMacro();
+            }
+        }, 1_500, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -383,16 +382,17 @@ public class AutoRepellent implements IFeature {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(receiveCanceled = true)
     public void onChatReceived(ClientChatReceivedEvent event) {
         if (!isRunning()) return;
-        String message = event.message.getUnformattedText();
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedText()); // just to be sure lol
         if (state == State.CONFIRM_BUY) {
             if (message.startsWith("You bought Pest")) {
                 state = State.CLOSE_GUI;
                 delay.schedule(300 + (long) (Math.random() * 300));
             }
         } else if (state == State.WAIT_FOR_REPELLENT) {
+            System.out.println(message);
             if (message.startsWith("YUM! Pests will now spawn")) {
                 repellentFailsafeClock.schedule(TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
                 LogUtils.sendDebug("Repellent used!");

@@ -231,7 +231,7 @@ public class VisitorsMacro implements IFeature {
             return false;
         }
 
-        if (FarmHelperConfig.pauseVisitorsMacroDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) {
+        if (!manual && !forceStart && FarmHelperConfig.pauseVisitorsMacroDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) {
             if (withError) LogUtils.sendError("[Visitors Macro] Jacob's contest is active, skipping...");
             return false;
         }
@@ -380,7 +380,7 @@ public class VisitorsMacro implements IFeature {
                                                 StringUtils.stripControlCodes(v).contains(StringUtils.stripControlCodes(entity.getCustomNameTag()))))
                         .collect(Collectors.toList());
 
-                if (allVisitors.size() < visitors.size()) {
+                if (allVisitors.size() < visitors.size() || allVisitors.size() < FarmHelperConfig.visitorsMacroMinVisitors) {
                     LogUtils.sendDebug("[Visitors Macro] Waiting for visitors to spawn...");
                     return;
                 }
@@ -1191,6 +1191,8 @@ public class VisitorsMacro implements IFeature {
 
                 if (pricePerUnit == -1) {
                     LogUtils.sendError("[Visitors Macro] Couldn't find the price per unit for " + itemsToBuy.get(0).getLeft() + " in the Bazaar menu. Report it to the developer.");
+                } else {
+                    LogUtils.sendDebug("[Visitors Macro] Price per unit for " + itemsToBuy.get(0).getLeft() + " is " + pricePerUnit);
                 }
 
                 ProfitCalculator.BazaarItem bazaarItem = ProfitCalculator.getInstance().getVisitorsItem("_" + itemsToBuy.get(0).getLeft());
@@ -1204,6 +1206,8 @@ public class VisitorsMacro implements IFeature {
                         delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                         PlayerUtils.closeScreen();
                         break;
+                    } else {
+                        LogUtils.sendDebug("[Visitors Macro] Price manipulation not detected. NPC Price per item: " + bazaarItem.npcPrice + " Bazaar Price per item: " + pricePerUnit);
                     }
                 } else {
                     LogUtils.sendError("[Visitors Macro] Couldn't find the crop price in the API data. Can't check if the price has been manipulated. Buying anyway...");

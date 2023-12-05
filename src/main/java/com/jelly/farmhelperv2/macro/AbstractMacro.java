@@ -153,9 +153,21 @@ public abstract class AbstractMacro {
                 doAfterRewarpRotation();
             }
 
-            if (shouldFixRotation() && shouldRotateAfterWarp()) {
+            if (shouldRotateAfterWarp()) {
+                Rotation newRotation = new Rotation(yaw, pitch);
+                Rotation curretnRotation = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+                Rotation neededChange = RotationHandler.getInstance().getNeededChange(newRotation, curretnRotation);
+                if (FarmHelperConfig.dontFixAfterWarping) {
+                    float pythagoras = (float) Math.sqrt(Math.pow(neededChange.getYaw(), 2) + Math.pow(neededChange.getPitch(), 2));
+                    if (pythagoras < 1) {
+                        LogUtils.sendDebug("Not rotating after warping.");
+                        rotated = true;
+                        setLayerY(mc.thePlayer.getPosition().getY());
+                        return;
+                    }
+                }
                 rotation.easeTo(new RotationConfiguration(
-                        new Rotation(yaw, pitch), FarmHelperConfig.getRandomRotationTime() * 2, null
+                        newRotation, FarmHelperConfig.getRandomRotationTime() * (Math.abs(neededChange.getYaw()) > 90 ? 2 : 1), null
                 ).easeOutBack(true));
                 LogUtils.sendDebug("Rotating");
             }
@@ -278,6 +290,15 @@ public abstract class AbstractMacro {
     private void checkForTeleport() {
         if (!beforeTeleportationPos.isPresent()) return;
         if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos.get()) > 2 && !PlayerUtils.isPlayerSuffocating()) {
+            if (!mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround) {
+                return;
+            } else if (mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround) {
+                if (!mc.thePlayer.onGround && !mc.gameSettings.keyBindSneak.isKeyDown()) {
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
+                    Multithreading.schedule(() -> KeyBindUtils.stopMovement(), (long) (450 + Math.random() * 600), TimeUnit.MILLISECONDS);
+                }
+                return;
+            }
             LogUtils.sendDebug("Teleported!");
             changeState(State.NONE);
             checkOnSpawnClock.reset();
@@ -285,14 +306,7 @@ public abstract class AbstractMacro {
             rewarpState = RewarpState.TELEPORTED;
             rotated = false;
             GameStateHandler.getInstance().scheduleNotMoving(750);
-            if (!mc.thePlayer.onGround && !mc.gameSettings.keyBindSneak.isKeyDown()) {
-                KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
-                Multithreading.schedule(() -> KeyBindUtils.stopMovement(), (long) (450 + Math.random() * 600), TimeUnit.MILLISECONDS);
-            }
-            rewarpDelay.schedule(FarmHelperConfig.getRandomTimeBetweenChangingRows());
-            if (!PlayerUtils.isSpawnLocationSet() || (mc.thePlayer.getPositionVector().distanceTo(PlayerUtils.getSpawnLocation()) > 1)) {
-                PlayerUtils.setSpawnLocation();
-            }
+            rewarpDelay.schedule(FarmHelperConfig.getRandomRewarpDelay());
             actionAfterTeleport();
         }
     }

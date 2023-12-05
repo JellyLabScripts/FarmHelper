@@ -71,7 +71,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 LogUtils.sendDebug("onGround: " + mc.thePlayer.onGround);
                 if (mc.thePlayer.onGround && Math.abs(getLayerY() - mc.thePlayer.getPosition().getY()) > 1.5) {
                     changeLaneDirection = null;
-                    if (FarmHelperConfig.rotateAfterDrop && !getRotation().isRotating()) {
+                    if (FarmHelperConfig.rotateAfterDrop) {
                         LogUtils.sendDebug("Rotating 180...");
                         setYaw(AngleUtils.getClosest(getYaw() + 180));
                         setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
@@ -139,7 +139,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                         KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, mc.gameSettings.keyBindSprint, FarmHelperConfig.holdLeftClickWhenChangingRow ? mc.gameSettings.keyBindAttack : null);
                         break;
                     case BACKWARD:
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, mc.gameSettings.keyBindSprint, FarmHelperConfig.holdLeftClickWhenChangingRow ? mc.gameSettings.keyBindAttack : null);
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, FarmHelperConfig.holdLeftClickWhenChangingRow ? mc.gameSettings.keyBindAttack : null);
                         break;
                     default: {
                         LogUtils.sendDebug("I can't decide which direction to go!");

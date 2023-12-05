@@ -68,8 +68,9 @@ public class BanInfoWS implements IFeature {
     );
     private WebSocketClient client;
 
+    @Getter
     @Setter
-    private int bans = 0;
+    private int staffBans = 0;
 
     @Getter
     @Setter
@@ -205,19 +206,19 @@ public class BanInfoWS implements IFeature {
     }
 
     public boolean isBanwave() {
-        return getBans() >= FarmHelperConfig.banwaveThreshold;
+        return getAllBans() >= FarmHelperConfig.banwaveThreshold;
     }
 
-    public int getBans() {
+    public int getAllBans() {
         switch (FarmHelperConfig.banwaveThresholdType) {
             case 0: {
-                return bans;
+                return staffBans;
             }
             case 1: {
                 return bansByMod;
             }
             case 2: {
-                return Math.max(bans, bansByMod);
+                return bansByMod + staffBans;
             }
         }
         return 0;
@@ -578,7 +579,7 @@ public class BanInfoWS implements IFeature {
                         int bans = jsonObject.get("bansInLast15Minutes").getAsInt();
                         int minutes = jsonObject.get("bansInLast15MinutesTime").getAsInt();
                         int bansByMod = jsonObject.get("bansInLast15MinutesMod").getAsInt();
-                        BanInfoWS.getInstance().setBans(bans);
+                        BanInfoWS.getInstance().setStaffBans(bans);
                         BanInfoWS.getInstance().setMinutes(minutes);
                         BanInfoWS.getInstance().setBansByMod(bansByMod);
                         System.out.println("Banwave info received: " + bans + " global staff bans in the last " + minutes + " minutes, " + bansByMod + " bans by this mod");
