@@ -6,14 +6,12 @@ import cc.polyfrost.oneconfig.config.annotations.Text;
 public class AutoSellNPCItemsPage {
     @Switch(name = "Runes")
     public static boolean autoSellRunes = true;
-    @Switch(name = "Velvet Top Hat")
-    public static boolean autoSellVelvetTopHat = true;
-    @Switch(name = "Cashmere Jacket")
-    public static boolean autoSellCashmereJacket = true;
-    @Switch(name = "Satin Trousers")
-    public static boolean autoSellSatinTrousers = true;
-    @Switch(name = "Oxford Shoes")
-    public static boolean autoSellOxfordShoes = true;
+
+    @Switch(name = "Dead Bush")
+    public static boolean autoSellDeadBush = true;
+
+    @Switch(name = "Iron Hoe")
+    public static boolean autoSellIronHoe = true;
 
     @Text(
             name = "Custom Items",

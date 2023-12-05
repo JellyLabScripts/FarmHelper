@@ -2,9 +2,12 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.feature.IFeature;
+import com.jelly.farmhelperv2.util.helper.CircularFifoQueue;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.play.server.S03PacketTimeUpdate;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 /*
@@ -14,7 +17,9 @@ public class LagDetector implements IFeature {
     private static LagDetector instance;
     private final Minecraft mc = Minecraft.getMinecraft();
     private final Clock recentlyLagged = new Clock();
-    private long lastReceivedPacketTime = 0;
+    private long lastReceivedPacketTime = -1;
+    private final CircularFifoQueue<Float> tpsHistory = new CircularFifoQueue<>(20);
+    private float timeJoined = 0;
 
     public static LagDetector getInstance() {
         if (instance == null) {
@@ -68,7 +73,7 @@ public class LagDetector implements IFeature {
     }
 
     public boolean isLagging() {
-        return System.currentTimeMillis() - lastReceivedPacketTime > 500;
+        return getTimeSinceLastTick() > 1.3;
     }
 
     public boolean wasJustLagging() {
@@ -80,20 +85,56 @@ public class LagDetector implements IFeature {
     }
 
     @SubscribeEvent
+    public void onGameJoined(PlayerEvent.PlayerLoggedInEvent event) {
+        timeJoined = System.currentTimeMillis();
+        tpsHistory.clear();
+    }
+
+    @SubscribeEvent
     public void onReceivePacket(ReceivePacketEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        lastReceivedPacketTime = System.currentTimeMillis();
+        if (!(event.packet instanceof S03PacketTimeUpdate)) return;
+        long now = System.currentTimeMillis();
+        float timeElapsed = (now - lastReceivedPacketTime) / 1000F;
+        tpsHistory.add(clamp(20F / timeElapsed, 0F, 20F));
+        lastReceivedPacketTime = now;
     }
+
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (lastReceivedPacketTime == 0) return;
+        if (lastReceivedPacketTime == -1) return;
         if (isLagging()) {
             recentlyLagged.schedule(900);
         }
         if (recentlyLagged.isScheduled() && recentlyLagged.passed()) {
             recentlyLagged.reset();
         }
+    }
+
+    public float getTickRate() {
+        if (mc.thePlayer == null || mc.theWorld == null) return 0F;
+        if (System.currentTimeMillis() - timeJoined < 5000) return 20F;
+
+        int ticks = 0;
+        float sumTickRates = 0f;
+        for (float tickRate : tpsHistory) {
+            if (tickRate > 0) {
+                sumTickRates += tickRate;
+                ticks++;
+            }
+        }
+        return ticks > 0 ? sumTickRates / ticks : 0F;
+    }
+
+    public float getTimeSinceLastTick() {
+        long now = System.currentTimeMillis();
+        if (now - timeJoined < 5000) return 0F;
+        return (now - lastReceivedPacketTime) / 1000F;
+    }
+
+    private float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(max, value));
     }
 }

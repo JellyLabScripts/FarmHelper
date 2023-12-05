@@ -58,10 +58,12 @@ public class DebugHUD extends TextHud {
             lines.add("   State: " + AntiStuck.getInstance().getUnstuckState());
             lines.add("   Delay between change state: " + AntiStuck.getInstance().getDelayBetweenMovementsClock().getRemainingTime());
         }
+        lines.add("LagDetector");
+        lines.add("   TPS: " + LagDetector.getInstance().getTickRate());
         if (LagDetector.getInstance().isLagging()) {
-            lines.add("LagDetector");
             lines.add("   Lagging for: " + LagDetector.getInstance().getLaggingTime());
         }
+        lines.add("Average BPS: " + Failsafe.getInstance().getAverageBPS());
         if (DesyncChecker.getInstance().isToggled()) {
             lines.add("Desync Checker");
             lines.add("   Clicked blocks: " + DesyncChecker.getInstance().getClickedBlocks().size());

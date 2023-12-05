@@ -14,10 +14,7 @@ import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.macro.AbstractMacro;
 import com.jelly.farmhelperv2.util.*;
-import com.jelly.farmhelperv2.util.helper.AudioManager;
-import com.jelly.farmhelperv2.util.helper.Clock;
-import com.jelly.farmhelperv2.util.helper.Rotation;
-import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
+import com.jelly.farmhelperv2.util.helper.*;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -152,6 +149,7 @@ public class Failsafe implements IFeature {
         resetItemChangeCheck();
         resetWorldChangeCheck();
         resetBedrockCageCheck();
+        resetLowerBPS();
         sendingFailsafeInfo = false;
     }
 
@@ -248,8 +246,6 @@ public class Failsafe implements IFeature {
             case NONE:
                 break;
             case TEST:
-                onRotationTeleportCheck();
-                break;
             case ROTATION_CHECK:
             case TELEPORT_CHECK:
                 onRotationTeleportCheck();
@@ -277,6 +273,9 @@ public class Failsafe implements IFeature {
                 break;
             case DISCONNECT:
                 onDisconnect();
+                break;
+            case LOWER_AVERAGE_BPS:
+                onLowerBPS();
                 break;
         }
     }
@@ -845,7 +844,6 @@ public class Failsafe implements IFeature {
     public void onTickCheckLimbo(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
-//        if (!isEmergency()) return;
         if (emergency == EmergencyType.WORLD_CHANGE_CHECK) return;
 
         if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
@@ -1331,6 +1329,112 @@ public class Failsafe implements IFeature {
         }
     }
 
+    private final CircularFifoQueue<Float> bpsQueue = new CircularFifoQueue<>(20);
+    private long lastTimeCheckedBPS = System.currentTimeMillis();
+
+    @SubscribeEvent
+    public void onTickCheckAverageBPS(TickEvent.ClientTickEvent event) {
+        if (!MacroHandler.getInstance().isMacroToggled() || MacroHandler.getInstance().isCurrentMacroPaused()) {
+            bpsQueue.clear();
+            lastTimeCheckedBPS = System.currentTimeMillis();
+            return;
+        }
+        if (firstCheckReturn()) return;
+        if (!FarmHelperConfig.averageBPSDropCheck) return;
+        if (isEmergency()) return;
+
+        if (System.currentTimeMillis() - lastTimeCheckedBPS < 1_000) return;
+        lastTimeCheckedBPS = System.currentTimeMillis();
+        float bps = ProfitCalculator.getInstance().getBPSFloat();
+        bpsQueue.add(bps);
+        if (!bpsQueue.isAtFullCapacity()) return;
+        float averageBPS = getAverageBPS();
+        if (averageBPS > bps) {
+            float percentage = (averageBPS - bps) / averageBPS * 100;
+            if (percentage > FarmHelperConfig.averageBPSDrop) {
+                addEmergency(EmergencyType.LOWER_AVERAGE_BPS);
+            }
+        }
+    }
+
+    public float getAverageBPS() {
+        float averageBPS = 0;
+        for (float bpsValue : bpsQueue) {
+            averageBPS += bpsValue;
+        }
+        averageBPS /= bpsQueue.size();
+        return averageBPS;
+    }
+
+    enum LowerBPSState {
+        NONE,
+        WAIT_BEFORE_START,
+        WARP_BACK,
+        END
+    }
+
+    private LowerBPSState lowerBPSState = LowerBPSState.NONE;
+
+    private void onLowerBPS() {
+        switch (lowerBPSState) {
+            case NONE:
+                failsafeDelay.schedule((long) (500f + Math.random() * 1_000f));
+                lowerBPSState = LowerBPSState.WAIT_BEFORE_START;
+                break;
+            case WAIT_BEFORE_START:
+                KeyBindUtils.stopMovement();
+                MacroHandler.getInstance().pauseMacro();
+                failsafeDelay.schedule((long) (500 + Math.random() * 500));
+                lowerBPSState = LowerBPSState.WARP_BACK;
+                break;
+            case WARP_BACK:
+                if (GameStateHandler.getInstance().inGarden()) {
+                    MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
+                    failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                    lowerBPSState = LowerBPSState.END;
+                } else {
+                    if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.HUB) {
+                        mc.thePlayer.sendChatMessage("/warp garden");
+                        failsafeDelay.schedule((long) (2_500 + Math.random() * 2_000));
+                    } else if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
+                        mc.thePlayer.sendChatMessage("/l");
+                        failsafeDelay.schedule((long) (2_500 + Math.random() * 2_000));
+                    } else {
+                        mc.thePlayer.sendChatMessage("/skyblock");
+                        failsafeDelay.schedule((long) (5_500 + Math.random() * 4_000));
+                    }
+                }
+                break;
+            case END:
+                float randomTime = FarmHelperConfig.getRandomRotationTime();
+                this.rotation.easeTo(
+                        new RotationConfiguration(
+                                new Rotation(
+                                        (float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30),
+                                        (float) (30 + Math.random() * 20 - 10))
+                                , (long) randomTime, null));
+                Failsafe.getInstance().stop();
+                if (FarmHelperConfig.enableRestartAfterFailSafe) {
+                    MacroHandler.getInstance().pauseMacro();
+                } else {
+                    MacroHandler.getInstance().disableMacro();
+                }
+                Multithreading.schedule(() -> {
+                    InventoryUtils.openInventory();
+                    LogUtils.sendDebug("[Failsafe] Finished playing custom movement recording");
+                    if (FarmHelperConfig.enableRestartAfterFailSafe) {
+                        LogUtils.sendDebug("[Failsafe] Restarting the macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
+                        restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
+                    }
+                }, (long) randomTime + 250, TimeUnit.MILLISECONDS);
+                break;
+        }
+    }
+
+    public void resetLowerBPS() {
+        lowerBPSState = LowerBPSState.NONE;
+    }
+
     private boolean firstCheckReturn() {
         if (mc.thePlayer == null || mc.theWorld == null) return true;
         if (!MacroHandler.getInstance().isMacroToggled()) return true;
@@ -1432,6 +1536,8 @@ public class Failsafe implements IFeature {
                 return FailsafeNotificationsPage.notifyOnJacobFailsafe;
             case TEST:
                 return FailsafeNotificationsPage.notifyOnTestFailsafe;
+            case LOWER_AVERAGE_BPS:
+                return FailsafeNotificationsPage.notifyOnLowerAverageBPS;
         }
         return false;
     }
@@ -1492,6 +1598,8 @@ public class Failsafe implements IFeature {
                 return FailsafeNotificationsPage.autoAltTabOnJacobFailsafe;
             case TEST:
                 return FailsafeNotificationsPage.autoAltTabOnTestFailsafe;
+            case LOWER_AVERAGE_BPS:
+                return FailsafeNotificationsPage.autoAltTabOnLowerAverageBPS;
         }
         return false;
     }
@@ -1522,6 +1630,8 @@ public class Failsafe implements IFeature {
                 return FailsafeNotificationsPage.tagEveryoneOnJacobFailsafe;
             case TEST:
                 return FailsafeNotificationsPage.tagEveryoneOnTestFailsafe;
+            case LOWER_AVERAGE_BPS:
+                return FailsafeNotificationsPage.tagEveryoneOnLowerAverageBPS;
         }
         return false;
     }
@@ -1538,6 +1648,7 @@ public class Failsafe implements IFeature {
         EVACUATE("Server is restarting! Evacuate!", 1),
         BANWAVE("Banwave has been detected!", 6),
         DISCONNECT("You've been§l DISCONNECTED§r§d from the server!", 1),
+        LOWER_AVERAGE_BPS("Your BPS is lower than average!", 9),
         JACOB("You've extended the §lJACOB COUNTER§r§d!", 7);
 
         final String label;
