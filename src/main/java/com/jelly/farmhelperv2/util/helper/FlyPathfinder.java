@@ -47,6 +47,7 @@ public class FlyPathfinder {
     private final List<BlockPos> pathBlocks = new ArrayList<>();
     private final List<BlockPos> realPath = new ArrayList<>();
     private static final RotationHandler rotation = RotationHandler.getInstance();
+    private Clock antiStuckDelay = new Clock();
     private int stuckCounter = 0;
 
     public void getPathTo(Goal goal) {
@@ -87,12 +88,16 @@ public class FlyPathfinder {
         BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
         goal = null;
         pathBlocks.clear();
+        rotation.reset();
+        antiStuckDelay.reset();
+        stuckCounter = 0;
     }
 
     public void restart() {
         BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
         KeyBindUtils.stopMovement();
         getPathTo(goal);
+        stuckCounter = 0;
     }
 
     public boolean isPathing() {
@@ -132,22 +137,9 @@ public class FlyPathfinder {
         if (!mc.thePlayer.capabilities.allowFlying) {
             LogUtils.sendError("Player is not allowed to fly. Disabling pathfinder.");
             stop();
-        }
-        // get distance to X, Y and Z of the next block
-        double distanceX = pathBlocks.get(0).getX() - mc.thePlayer.posX + 0.5;
-        double distanceY = pathBlocks.get(0).getY() - mc.thePlayer.posY + 0.5;
-        double distanceZ = pathBlocks.get(0).getZ() - mc.thePlayer.posZ + 0.5;
-        // swap X and Z based on looking direction
-        float yaw = mc.thePlayer.rotationYaw * (float) Math.PI / 180.0f;
-        double relativeDistanceX = distanceX * Math.cos(yaw) + distanceZ * Math.sin(yaw);
-        double relativeDistanceZ = -distanceX * Math.sin(yaw) + distanceZ * Math.cos(yaw);
-        double relativeMotionX = mc.thePlayer.motionX * Math.cos(yaw) - mc.thePlayer.motionZ * Math.sin(yaw);
-        double relativeMotionZ = -mc.thePlayer.motionX * Math.sin(yaw) + mc.thePlayer.motionZ * Math.cos(yaw);
-        if (isStuck() || mc.thePlayer.onGround) {
-            LogUtils.sendDebug("Player is stuck. Resetting pathfinder.");
-            restart();
             return;
-        }
+        } else if (!mc.thePlayer.capabilities.isFlying)
+            mc.thePlayer.capabilities.isFlying = true;
         double distance3d = mc.thePlayer.getDistance(pathBlocks.get(0).getX() + 0.5, pathBlocks.get(0).getY() + 0.5, pathBlocks.get(0).getZ() + 0.5);
         if (distance3d < 0.5) {
             pathBlocks.remove(0);
@@ -162,33 +154,85 @@ public class FlyPathfinder {
                 );
             }
             KeyBindUtils.stopMovement();
-        } else {
-            mc.thePlayer.capabilities.isFlying = true;
+            return;
+        }
+        if (antiStuckDelay.isScheduled() && !antiStuckDelay.passed())
+            return;
+        if (mc.thePlayer.onGround) {
+            mc.thePlayer.jump();
+            antiStuckDelay.schedule(200);
+            return;
+        }
+        if (isStuck()) {
+            LogUtils.sendDebug("Player is stuck. Resetting pathfinder.");
+            antiStuckDelay.schedule(5000);
+            restart();
+            return;
+        }
+        double distanceX = pathBlocks.get(0).getX() - mc.thePlayer.posX + 0.5;
+        double distanceY = pathBlocks.get(0).getY() - mc.thePlayer.posY + 0.5;
+        double distanceZ = pathBlocks.get(0).getZ() - mc.thePlayer.posZ + 0.5;
+        // swap X and Z based on looking direction
+        float yaw = mc.thePlayer.rotationYaw * (float) Math.PI / 180.0f;
+        double relativeDistanceX = distanceX * Math.cos(yaw) + distanceZ * Math.sin(yaw);
+        double relativeDistanceZ = -distanceX * Math.sin(yaw) + distanceZ * Math.cos(yaw);
+        double relativeMotionX = mc.thePlayer.motionX * Math.cos(yaw) - mc.thePlayer.motionZ * Math.sin(yaw);
+        double relativeMotionZ = -mc.thePlayer.motionX * Math.sin(yaw) + mc.thePlayer.motionZ * Math.cos(yaw);
+        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, relativeDistanceX < -FarmHelperConfig.flightAllowedOvershootThreshold);
+        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, relativeDistanceX > FarmHelperConfig.flightAllowedOvershootThreshold);
+        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, relativeDistanceZ > FarmHelperConfig.flightAllowedOvershootThreshold);
+        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, relativeDistanceZ < -FarmHelperConfig.flightAllowedOvershootThreshold);
+        if (shouldChangeHeight() == VerticalDirection.NONE) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, distanceY > 0.25);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, distanceY < -0.25);
-            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, relativeDistanceX < -FarmHelperConfig.flightAllowedOvershootThreshold);
-            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, relativeDistanceX > FarmHelperConfig.flightAllowedOvershootThreshold);
-            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, relativeDistanceZ > FarmHelperConfig.flightAllowedOvershootThreshold);
-            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, relativeDistanceZ < -FarmHelperConfig.flightAllowedOvershootThreshold);
-            if (relativeMotionX > 0 && decelerationReached(relativeMotionX, relativeDistanceX)) {
-                KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, false);
-                KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, true);
-            }
-            if (relativeMotionX < 0 && decelerationReached(relativeMotionX, relativeDistanceX)) {
-                KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, false);
-                KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, true);
-            }
-            if (relativeMotionZ < 0 && decelerationReached(relativeMotionZ, relativeDistanceZ)) {
-                KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, true);
-                KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, false);
-            }
-            if (relativeMotionZ > 0 && decelerationReached(relativeMotionZ, relativeDistanceZ)) {
-                KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, false);
-                KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, true);
-            }
-            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSprint, relativeDistanceZ > 12 && !mc.gameSettings.keyBindSneak.isKeyDown());
-            mc.thePlayer.setSprinting(relativeDistanceZ > 12 && !mc.gameSettings.keyBindSneak.isKeyDown());
+        } else if (shouldChangeHeight() == VerticalDirection.HIGHER) {
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, true);
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, false);
+        } else if (shouldChangeHeight() == VerticalDirection.LOWER) {
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, false);
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
         }
+        if (relativeMotionX > 0 && decelerationReached(relativeMotionX, relativeDistanceX)) {
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, false);
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, true);
+        }
+        if (relativeMotionX < 0 && decelerationReached(relativeMotionX, relativeDistanceX)) {
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, false);
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, true);
+        }
+        if (relativeMotionZ < 0 && decelerationReached(relativeMotionZ, relativeDistanceZ)) {
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, true);
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, false);
+        }
+        if (relativeMotionZ > 0 && decelerationReached(relativeMotionZ, relativeDistanceZ)) {
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, false);
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, true);
+        }
+        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSprint, relativeDistanceZ > 12 && !mc.gameSettings.keyBindSneak.isKeyDown());
+        mc.thePlayer.setSprinting(relativeDistanceZ > 12 && !mc.gameSettings.keyBindSneak.isKeyDown());
+    }
+
+    public VerticalDirection shouldChangeHeight() {
+        if (mc.thePlayer.posY % 1 > 0.5
+                && !BlockUtils.getRelativeFullBlock(0, 0, 1).isPassable(mc.theWorld, BlockUtils.getRelativeFullBlockPos(0, 0, 1))
+                && BlockUtils.getRelativeFullBlock(0, 1, 1).isPassable(mc.theWorld, BlockUtils.getRelativeFullBlockPos(0, 1, 1))
+                && BlockUtils.getRelativeFullBlock(0, 2, 1).isPassable(mc.theWorld, BlockUtils.getRelativeFullBlockPos(0, 2, 1))
+        ) {
+            return VerticalDirection.HIGHER;
+        } else if (mc.thePlayer.posY % 1 < 0.5 && mc.thePlayer.posY % 1 > 0.201
+                && !BlockUtils.getRelativeFullBlock(0, 2, 1).isPassable(mc.theWorld, BlockUtils.getRelativeFullBlockPos(0, 2, 1))
+                && BlockUtils.getRelativeFullBlock(0, 1, 1).isPassable(mc.theWorld, BlockUtils.getRelativeFullBlockPos(0, 1, 1))
+                && BlockUtils.getRelativeFullBlock(0, 0, 1).isPassable(mc.theWorld, BlockUtils.getRelativeFullBlockPos(0, 0, 1))
+        ) {
+            return VerticalDirection.LOWER;
+        }
+        return VerticalDirection.NONE;
+    }
+
+    public enum VerticalDirection {
+        HIGHER,
+        LOWER,
+        NONE
     }
 
     private double getPlayerSpeed() {
