@@ -362,10 +362,6 @@ public class AutoSell implements IFeature {
                         int sellInventorySlot = InventoryUtils.getSlotIdOfItemInContainer("Sell Inventory Now");
                         int sellSacksSlot = InventoryUtils.getSlotIdOfItemInContainer("Sell Sacks Now");
                         if (sellInventorySlot == -1) {
-                            LogUtils.sendDebug("[Auto Sell] Couldn't find the \"Sell Inventory Now\" item in the Bazaar menu, opening the menu again...");
-                            PlayerUtils.closeScreen();
-                            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                            setBazaarState(BazaarState.OPEN_MENU);
                             break;
                         }
                         List<String> sellInventoryNowLore = InventoryUtils.getLoreOfItemInContainer(sellInventorySlot);
@@ -562,7 +558,9 @@ public class AutoSell implements IFeature {
         for (int i = 0; i < 36; i++) {
             if (mc.thePlayer.inventoryContainer.getSlot(i).getHasStack()) {
                 String name = mc.thePlayer.inventoryContainer.getSlot(i).getStack().getDisplayName();
-                return shouldSellCustomItem(name);
+                if (shouldSellCustomItem(name)) {
+                    return true;
+                }
             }
         }
         return false;

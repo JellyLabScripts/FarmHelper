@@ -249,8 +249,9 @@ public abstract class AbstractMacro {
             savedState = Optional.empty();
         } else if (currentState == State.NONE || currentState == null) {
             changeState(calculateDirection());
-            setClosest90Deg(Optional.of(AngleUtils.getClosest()));
         }
+        if (!closest90Deg.isPresent())
+            setClosest90Deg(Optional.of(AngleUtils.getClosest()));
         setEnabled(true);
         setLayerY(mc.thePlayer.getPosition().getY());
         analyticsClock.schedule(60_000);

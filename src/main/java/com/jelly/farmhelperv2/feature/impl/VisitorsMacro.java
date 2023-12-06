@@ -629,8 +629,8 @@ public class VisitorsMacro implements IFeature {
                 break;
             case GET_CLOSEST_VISITOR:
                 LogUtils.sendDebug("[Visitors Macro] Getting the closest visitor");
-                if (PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false) != -1) {
-                    mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
+                if (PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, true) != -1) {
+                    mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, true);
                 }
                 if (visitors.isEmpty() || visitors.stream().noneMatch(s -> servedCustomers.stream().noneMatch(s2 -> StringUtils.stripControlCodes(s2.getCustomNameTag()).contains(StringUtils.stripControlCodes(s))))) {
                     LogUtils.sendWarning("[Visitors Macro] No visitors in queue...");
@@ -915,8 +915,8 @@ public class VisitorsMacro implements IFeature {
             case ROTATE_TO_VISITOR_2:
                 if (mc.currentScreen != null) return;
                 if (rotation.isRotating()) return;
-                if (PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false) != -1) {
-                    mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
+                if (PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, true) != -1) {
+                    mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, true);
                 }
                 if (mc.objectMouseOver != null && mc.objectMouseOver.entityHit != null) {
                     Entity entity = mc.objectMouseOver.entityHit;

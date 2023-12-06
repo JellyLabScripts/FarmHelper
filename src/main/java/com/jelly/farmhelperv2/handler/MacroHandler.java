@@ -246,8 +246,8 @@ public class MacroHandler {
             analyticsTimer.resume();
             Scheduler.getInstance().resume();
             if (UngrabMouse.getInstance().isToggled()) {
-                UngrabMouse.getInstance().regrabMouse(true);
-                UngrabMouse.getInstance().ungrabMouse();
+//                UngrabMouse.getInstance().regrabMouse(true);
+//                UngrabMouse.getInstance().ungrabMouse();
                 if (!mc.inGameHasFocus) {
                     mc.inGameHasFocus = true;
                 }
@@ -374,6 +374,7 @@ public class MacroHandler {
             if (m.getCurrentState() != AbstractMacro.State.NONE) {
                 LogUtils.sendWarning("Clearing saved state, because of world change.");
                 m.setCurrentState(AbstractMacro.State.NONE);
+                m.setClosest90Deg(Optional.empty());
             }
         });
     }
