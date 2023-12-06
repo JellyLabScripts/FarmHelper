@@ -9,10 +9,7 @@ import baritone.pathing.calc.FlyAStar;
 import baritone.pathing.movement.CalculationContext;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.handler.RotationHandler;
-import com.jelly.farmhelperv2.util.BlockUtils;
-import com.jelly.farmhelperv2.util.KeyBindUtils;
-import com.jelly.farmhelperv2.util.LogUtils;
-import com.jelly.farmhelperv2.util.RenderUtils;
+import com.jelly.farmhelperv2.util.*;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -148,7 +145,7 @@ public class FlyPathfinder {
                 Vec3 target = new Vec3(pathBlocks.get(0).getX() + 0.5, pathBlocks.get(0).getY() + 0.5, pathBlocks.get(0).getZ() + 0.5);
                 rotation.easeTo(
                         new RotationConfiguration(
-                                new Rotation(rotation.getRotation(target, true).getYaw(), rotation.getRotation(target, true).getPitch()),
+                                new Rotation(AngleUtils.getClosest45(rotation.getRotation(target, true).getYaw()), rotation.getRotation(target, true).getPitch()),
                                 750, null
                         )
                 );
