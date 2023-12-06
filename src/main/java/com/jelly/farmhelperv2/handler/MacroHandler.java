@@ -224,6 +224,7 @@ public class MacroHandler {
             cm.onDisable();
             macroingTimer.pause();
             analyticsTimer.pause();
+            Failsafe.getInstance().resetLowerBPS();
             if (scheduler && Freelook.getInstance().isRunning()) {
                 Freelook.getInstance().stop();
             }

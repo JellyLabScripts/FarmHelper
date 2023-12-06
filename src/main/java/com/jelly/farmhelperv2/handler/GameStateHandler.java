@@ -154,12 +154,13 @@ public class GameStateHandler {
             }
             if (inJacobContest()) {
                 try {
-                    if (cleanedLine.contains("with")) {
+                    if (cleanedLine.contains("with") || cleanedLine.startsWith("Collected")) {
                         jacobsContestCropNumber = Integer.parseInt(cleanedLine.substring(cleanedLine.lastIndexOf(" ") + 1).replace(",", ""));
                     }
                 } catch (NumberFormatException ignored) {
                     jacobsContestCropNumber = 0;
                 }
+                System.out.println(jacobsContestCropNumber);
                 if (!jacobContestLeftClock.isScheduled()) {
                     Matcher matcher = jacobsRemainingTimePattern.matcher(cleanedLine);
                     if (matcher.find()) {

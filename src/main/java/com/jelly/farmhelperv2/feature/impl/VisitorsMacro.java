@@ -532,7 +532,19 @@ public class VisitorsMacro implements IFeature {
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case TOGGLE_COMPACTOR:
-                if (mc.currentScreen == null) break;
+                if (mc.currentScreen == null) {
+                    setCompactorState(CompactorState.GET_LIST);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                String invName = InventoryUtils.getInventoryName();
+                if (invName != null && !invName.contains("Compactor")) {
+                    LogUtils.sendDebug("[Visitors Macro] Not in compactor, opening compactor again...");
+                    setCompactorState(CompactorState.GET_LIST);
+                    PlayerUtils.closeScreen();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
                 int slot = InventoryUtils.getSlotIdOfItemInContainer("Compactor Currently");
                 if (slot == -1) break;
                 Slot slotObject = InventoryUtils.getSlotOfIdInContainer(slot);
@@ -685,15 +697,10 @@ public class VisitorsMacro implements IFeature {
                 }
                 if (rotation.isRotating()) return;
                 assert currentVisitor.isPresent();
-                if (entityIsMoving(currentVisitor.get())) {
-                    setVisitorsState(VisitorsState.ROTATE_TO_VISITOR);
-                    differentOptionCounter = 0;
-                    break;
-                }
+                if (moveAwayIfPlayerTooClose()) return;
                 itemsToBuy.clear();
                 if (mc.objectMouseOver != null && mc.objectMouseOver.entityHit != null) {
                     Entity entity = mc.objectMouseOver.entityHit;
-                    assert currentVisitor.isPresent();
                     assert currentCharacter.isPresent();
                     if (entity.equals(currentVisitor.get()) || entity.equals(currentCharacter.get()) || entity.getCustomNameTag().contains("CLICK") && entity.getDistanceToEntity(currentVisitor.get()) < 1) {
                         LogUtils.sendDebug("[Visitors Macro] Looking at Visitor");
@@ -940,14 +947,9 @@ public class VisitorsMacro implements IFeature {
                 }
                 if (rotation.isRotating()) return;
                 assert currentVisitor.isPresent();
-                if (entityIsMoving(currentVisitor.get())) {
-                    differentOptionCounter = 0;
-                    setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
-                    break;
-                }
+                if (moveAwayIfPlayerTooClose()) return;
                 if (mc.objectMouseOver != null && mc.objectMouseOver.entityHit != null) {
                     Entity entity = mc.objectMouseOver.entityHit;
-                    assert currentVisitor.isPresent();
                     assert currentCharacter.isPresent();
                     if (entity.equals(currentVisitor.get()) || entity.equals(currentCharacter.get()) || entity.getCustomNameTag().contains("CLICK") && entity.getDistanceToEntity(currentVisitor.get()) < 1) {
                         LogUtils.sendDebug("[Visitors Macro] Looking at Visitor");
@@ -1047,6 +1049,27 @@ public class VisitorsMacro implements IFeature {
         }
     }
 
+    private boolean moveAwayIfPlayerTooClose() {
+        if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) < 0.5) {
+            if (GameStateHandler.getInstance().isBackWalkable()) {
+                KeyBindUtils.holdThese(mc.gameSettings.keyBindBack);
+                Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
+                return true;
+            }
+            if (GameStateHandler.getInstance().isLeftWalkable()) {
+                KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft);
+                Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
+                return true;
+            }
+            if (GameStateHandler.getInstance().isRightWalkable()) {
+                KeyBindUtils.holdThese(mc.gameSettings.keyBindRight);
+                Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void shouldJump() {
         if (!BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1))
                 && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 1, 1)) && mc.thePlayer.onGround) {
@@ -1096,10 +1119,6 @@ public class VisitorsMacro implements IFeature {
         InventoryUtils.clickContainerSlot(rejectOfferSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
         rejectVisitor = false;
         return false;
-    }
-
-    private boolean entityIsMoving(Entity e) {
-        return e.motionX != 0 || e.motionY != 0 || e.motionZ != 0;
     }
 
     private void onBuyState() {

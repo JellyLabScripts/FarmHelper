@@ -213,7 +213,12 @@ public class ProfitCalculator implements IFeature {
 
     public String getBPS() {
         if (!MacroHandler.getInstance().getMacroingTimer().isScheduled()) return "0.0 BPS";
-        return oneDecimalDigitFormatter.format(blocksBroken / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f)) + " BPS";
+        return oneDecimalDigitFormatter.format(getBPSFloat()) + " BPS";
+    }
+
+    public float getBPSFloat() {
+        if (!MacroHandler.getInstance().getMacroingTimer().isScheduled()) return 0;
+        return (float) (blocksBroken / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f));
     }
 
     public BazaarItem getVisitorsItem(String localizedName) {

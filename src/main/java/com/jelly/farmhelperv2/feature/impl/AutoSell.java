@@ -575,10 +575,8 @@ public class AutoSell implements IFeature {
 
     private boolean shouldSellCustomItem(String name) {
         if (AutoSellNPCItemsPage.autoSellRunes && name.contains(" Rune")) return true;
-        if (AutoSellNPCItemsPage.autoSellVelvetTopHat && name.contains("Velvet Top Hat")) return true;
-        if (AutoSellNPCItemsPage.autoSellCashmereJacket && name.contains("Cashmere Jacket")) return true;
-        if (AutoSellNPCItemsPage.autoSellSatinTrousers && name.contains("Satin Trousers")) return true;
-        if (AutoSellNPCItemsPage.autoSellOxfordShoes && name.contains("Oxford Shoes")) return true;
+        if (AutoSellNPCItemsPage.autoSellDeadBush && name.contains("Dead Bush")) return true;
+        if (AutoSellNPCItemsPage.autoSellIronHoe && name.contains("Iron Hoe")) return true;
         if (!AutoSellNPCItemsPage.autoSellCustomItems.isEmpty()) {
             List<String> customItems = Arrays.asList(AutoSellNPCItemsPage.autoSellCustomItems.split("\\|"));
             return customItems.stream().anyMatch(item -> StringUtils.stripControlCodes(name).startsWith(item));

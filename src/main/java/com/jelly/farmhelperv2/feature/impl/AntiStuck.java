@@ -177,6 +177,12 @@ public class AntiStuck implements IFeature {
 
         if (delayBetweenMovementsClock.isScheduled() && !delayBetweenMovementsClock.passed()) return;
 
+        if (delayBetweenMovementsClock.getRemainingTime() < -1000) {
+            LogUtils.sendError("[Anti Stuck] Something went wrong. Resuming macro execution...");
+            stop();
+            return;
+        }
+
         switch (unstuckState) {
             case NONE:
                 KeyBindUtils.stopMovement();

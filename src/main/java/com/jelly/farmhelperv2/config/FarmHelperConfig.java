@@ -611,6 +611,19 @@ public class FarmHelperConfig extends Config {
     )
     public static float teleportCheckSensitivity = 4;
 
+    @Switch(
+            name = "Average BPS Drop check", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "Checks for average BPS drop"
+    )
+    public static boolean averageBPSDropCheck = true;
+
+    @Slider(
+            name = "Average BPS Drop %", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "The minimum BPS drop to trigger failsafe",
+            min = 2, max = 50
+    )
+    public static int averageBPSDrop = 5;
+
     @Button(
             name = "Test failsafe", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Tests failsafe",
@@ -1558,6 +1571,8 @@ public class FarmHelperConfig extends Config {
         this.addDependency("pingEveryoneOnPestsDetectionNumberExceeded", "enableWebHook");
 
         this.addDependency("pestRepellentType", "autoPestRepellent");
+
+        this.addDependency("averageBPSDrop", "averageBPSDropCheck");
 
         this.addDependency("leaveTime", "leaveTimer");
 
