@@ -143,9 +143,10 @@ public class FlyPathfinder {
             rotation.reset();
             if (!pathBlocks.isEmpty()) {
                 Vec3 target = new Vec3(pathBlocks.get(0).getX() + 0.5, pathBlocks.get(0).getY() + 0.5, pathBlocks.get(0).getZ() + 0.5);
+                float yaw = (FarmHelperConfig.flightLockRotationToMultipliersOf45Degrees ? AngleUtils.getClosest45(rotation.getRotation(target, true).getYaw()) : rotation.getRotation(target, true).getYaw());
                 rotation.easeTo(
                         new RotationConfiguration(
-                                new Rotation(AngleUtils.getClosest45(rotation.getRotation(target, true).getYaw()), rotation.getRotation(target, true).getPitch()),
+                                new Rotation(yaw, rotation.getRotation(target, true).getPitch()),
                                 750, null
                         )
                 );
@@ -162,7 +163,7 @@ public class FlyPathfinder {
         }
         if (isStuck()) {
             LogUtils.sendDebug("Player is stuck. Resetting pathfinder.");
-            antiStuckDelay.schedule(5000);
+            antiStuckDelay.schedule(500);
             restart();
             return;
         }
@@ -241,7 +242,7 @@ public class FlyPathfinder {
             stuckCounter++;
         else
             stuckCounter = 0;
-        if (stuckCounter > 50) {
+        if (stuckCounter > FarmHelperConfig.flightMaxStuckTime) {
             stuckCounter = 0;
             return true;
         }

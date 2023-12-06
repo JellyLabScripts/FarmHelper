@@ -1449,6 +1449,26 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean autoSwitchTool = true;
     //</editor-fold>
+
+    //<editor-fold desc="Fly Path Finder">
+    @Slider(
+            name = "Flight Path Finder Allowed Overshoot Threshold", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "The minimum distance from the block at which the flight path finder would allow overshooting",
+            min = 0.05f, max = 0.4f
+    )
+    public static float flightAllowedOvershootThreshold = 0.1f;
+    @Slider(
+            name = "Max stuck time (in ticks)", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "The maximum time to wait before unstucking (in ticks)",
+            min = 30, max = 150
+    )
+    public static int flightMaxStuckTime = 40;
+    @Switch(
+            name = "Lock rotation to multipliers of 45 degrees", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "Locks the rotation to multipliers of 45 degrees"
+    )
+    public static boolean flightLockRotationToMultipliersOf45Degrees = false;
+    //</editor-fold>
     //</editor-fold>
 
     @Number(name = "Config Version", category = EXPERIMENTAL, subcategory = "Experimental", min = 0, max = 1337)
@@ -1682,15 +1702,6 @@ public class FarmHelperConfig extends Config {
     public static long getRandomPlotCleaningHelperRotationTime() {
         return (long) (plotCleaningHelperRotationTime + (float) Math.random() * plotCleaningHelperRotationTimeRandomness);
     }
-
-    @Slider(
-            name = "Flight Path Finder Allowed Overshoot Threshold", category = EXPERIMENTAL, subcategory = "Flight",
-            description = "The minimum distance from the block at which the flight path finder would allow overshooting",
-            min = 0.05f, max = 0.4f
-    )
-    public static float flightAllowedOvershootThreshold = 0.1f;
-
-    // END EXPERIMENTAL
 
     public static long getRandomRewarpDelay() {
         return (long) (rewarpDelay + (float) Math.random() * rewarpDelayRandomness);
