@@ -152,10 +152,16 @@ public class PlayerUtils {
         return FarmHelperConfig.CropEnum.NONE;
     }
 
-    public static int getFarmingTool(FarmHelperConfig.CropEnum crop, boolean withError, boolean fullInventory) {
+    public static int getFarmingTool(FarmHelperConfig.CropEnum crop, boolean withError, boolean anyHoe) {
         if (crop == null) return withError ? -1 : 0;
-        for (int i = fullInventory ? 0 : 36; i < 44; i++) {
+        for (int i = 36; i < 44; i++) {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
+                if (anyHoe) {
+                    if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Hoe")) {
+                        return i - 36;
+                    }
+                    continue;
+                }
                 switch (crop) {
                     case NETHER_WART:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Newton")) {
@@ -206,6 +212,12 @@ public class PlayerUtils {
                 }
             }
         }
+
+        int gardeningHoe = InventoryUtils.getSlotIdOfItemInHotbar("Gardening Hoe");
+        if (gardeningHoe != -1) {
+            return gardeningHoe;
+        }
+
         return withError ? -1 : 0;
     }
 

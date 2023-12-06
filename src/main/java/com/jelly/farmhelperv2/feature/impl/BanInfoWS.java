@@ -19,7 +19,6 @@ import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Packet;
-import net.minecraft.network.login.server.S00PacketDisconnect;
 import net.minecraft.network.play.server.S40PacketDisconnect;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.fml.common.Loader;
@@ -262,10 +261,7 @@ public class BanInfoWS implements IFeature {
     @SubscribeEvent
     public void onReceivePacket(ReceivePacketEvent event) {
         Packet<?> packet = event.packet;
-        if (packet instanceof S00PacketDisconnect) {
-            String reason = ((S00PacketDisconnect) packet).func_149603_c().getFormattedText();
-            processBanScreen(reason);
-        } else if (packet instanceof S40PacketDisconnect) {
+        if (packet instanceof S40PacketDisconnect) {
             String reason = ((S40PacketDisconnect) packet).getReason().getFormattedText();
             processBanScreen(reason);
         }

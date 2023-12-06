@@ -775,7 +775,13 @@ public class Failsafe implements IFeature {
 
         S2FPacketSetSlot packet = (S2FPacketSetSlot) event.packet;
         int slot = packet.func_149173_d();
-        int farmingToolSlot = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
+        int farmingToolSlot = -1;
+        try {
+            farmingToolSlot = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
         if (farmingToolSlot == -1) return;
         ItemStack farmingTool = mc.thePlayer.inventory.getStackInSlot(farmingToolSlot);
         if (slot == 36 + farmingToolSlot &&
@@ -912,11 +918,11 @@ public class Failsafe implements IFeature {
                 }
                 break;
             case END:
-                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING || LagDetector.getInstance().isLagging()) {
+                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING) {
                     failsafeDelay.schedule(1_000);
                     return;
                 }
-                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY) {
+                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY && !LagDetector.getInstance().isLagging()) {
                     LogUtils.sendDebug("[Failsafe] In lobby, sending /skyblock command...");
                     mc.thePlayer.sendChatMessage("/skyblock");
                     failsafeDelay.schedule((long) (4_500 + Math.random() * 1_000));
@@ -933,7 +939,7 @@ public class Failsafe implements IFeature {
                     Failsafe.getInstance().stop();
                     MacroHandler.getInstance().resumeMacro();
                     return;
-                } else {
+                } else if (!LagDetector.getInstance().isLagging()) {
                     LogUtils.sendDebug("[Failsafe] Sending /warp garden command...");
                     mc.thePlayer.sendChatMessage("/warp garden");
                     failsafeDelay.schedule((long) (4_500 + Math.random() * 1_000));

@@ -160,7 +160,6 @@ public class GameStateHandler {
                 } catch (NumberFormatException ignored) {
                     jacobsContestCropNumber = 0;
                 }
-                System.out.println(jacobsContestCropNumber);
                 if (!jacobContestLeftClock.isScheduled()) {
                     Matcher matcher = jacobsRemainingTimePattern.matcher(cleanedLine);
                     if (matcher.find()) {

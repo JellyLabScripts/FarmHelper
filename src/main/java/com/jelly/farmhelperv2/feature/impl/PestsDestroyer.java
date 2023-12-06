@@ -175,7 +175,7 @@ public class PestsDestroyer implements IFeature {
 
     @Override
     public boolean shouldCheckForFailsafes() {
-        return state != States.TELEPORT_TO_PLOT && state != States.WAIT_FOR_TP && escapeState == EscapeState.NONE;
+        return escapeState == EscapeState.NONE || (state != States.TELEPORT_TO_PLOT && state != States.WAIT_FOR_TP);
     }
 
     public boolean canEnableMacro() {
