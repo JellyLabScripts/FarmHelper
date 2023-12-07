@@ -62,7 +62,7 @@ public class FlyPathfinder {
         BaritoneAPI.getSettings().movementTimeoutTicks.value = 500;
         PathCalculationResult calcResult = finder.calculate(500L, 2000L);
         if (!calcResult.getType().equals(PathCalculationResult.Type.SUCCESS_TO_GOAL)) {
-            LogUtils.sendError("PathCalculationResult != SUCCESS_TO_GOAL");
+            LogUtils.sendError("PathCalculationResult == " + calcResult.getType());
             return;
         }
         Optional<IPath> path = calcResult.getPath();
