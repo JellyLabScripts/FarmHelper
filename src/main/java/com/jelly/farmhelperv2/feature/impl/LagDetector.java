@@ -4,6 +4,7 @@ import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.util.helper.CircularFifoQueue;
 import com.jelly.farmhelperv2.util.helper.Clock;
+import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.play.server.S03PacketTimeUpdate;
 import net.minecraft.util.Vec3;
@@ -18,6 +19,7 @@ public class LagDetector implements IFeature {
     private static LagDetector instance;
     private final Minecraft mc = Minecraft.getMinecraft();
     private final Clock recentlyLagged = new Clock();
+    @Getter
     private long lastReceivedPacketTime = -1;
     private Vec3 lastPacketPosition = null;
     private final CircularFifoQueue<Float> tpsHistory = new CircularFifoQueue<>(20);
