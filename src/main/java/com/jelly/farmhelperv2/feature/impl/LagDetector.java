@@ -6,6 +6,7 @@ import com.jelly.farmhelperv2.util.helper.CircularFifoQueue;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.play.server.S03PacketTimeUpdate;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -18,6 +19,7 @@ public class LagDetector implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
     private final Clock recentlyLagged = new Clock();
     private long lastReceivedPacketTime = -1;
+    private Vec3 lastPacketPosition = null;
     private final CircularFifoQueue<Float> tpsHistory = new CircularFifoQueue<>(20);
     private float timeJoined = 0;
 
@@ -72,6 +74,13 @@ public class LagDetector implements IFeature {
         return false;
     }
 
+    public Vec3 getLastPacketPosition() {
+        if (lastPacketPosition == null) {
+            return mc.thePlayer.getPositionVector();
+        }
+        return lastPacketPosition;
+    }
+
     public boolean isLagging() {
         return getTimeSinceLastTick() > 1.3;
     }
@@ -98,6 +107,7 @@ public class LagDetector implements IFeature {
         float timeElapsed = (now - lastReceivedPacketTime) / 1000F;
         tpsHistory.add(clamp(20F / timeElapsed, 0F, 20F));
         lastReceivedPacketTime = now;
+        lastPacketPosition = mc.thePlayer.getPositionVector();
     }
 
 

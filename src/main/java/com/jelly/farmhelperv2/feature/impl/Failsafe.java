@@ -348,6 +348,9 @@ public class Failsafe implements IFeature {
 
             if (distance >= FarmHelperConfig.teleportCheckSensitivity || (MacroHandler.getInstance().getCurrentMacro().isPresent() && Math.abs(packet.getY()) - Math.abs(MacroHandler.getInstance().getCurrentMacro().get().getLayerY()) > 0.8)) {
                 LogUtils.sendDebug("[Failsafe] Teleport detected! Distance: " + distance);
+                final double lastRecievedPacketDistance = currentPlayerPos.distanceTo(LagDetector.getInstance().getLastPacketPosition());
+                if (lastRecievedPacketDistance > 8D) // minecraft lagback at 9 blocks
+                    return;
                 addEmergency(EmergencyType.TELEPORT_CHECK);
                 return;
             }
