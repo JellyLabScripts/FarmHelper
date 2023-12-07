@@ -62,6 +62,10 @@ public class FlyPathfinder {
         FlyAStar finder = new FlyAStar(playerPos.getX(), playerPos.getY(), playerPos.getZ(), goal, context);
         BaritoneAPI.getSettings().movementTimeoutTicks.value = 500;
         PathCalculationResult calcResult = finder.calculate(500L, 2000L);
+        if (goal.heuristic(playerPos) < 2) {
+            LogUtils.sendDebug("Goal is too close to the player. Disabling pathfinder.");
+            return;
+        }
         if (calcResult.getType().equals(PathCalculationResult.Type.SUCCESS_SEGMENT)) {
             shouldRecalculateLater = true;
             LogUtils.sendDebug("PathCalculationResult == SUCCESS_SEGMENT");
