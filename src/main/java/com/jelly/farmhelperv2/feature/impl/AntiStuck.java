@@ -166,12 +166,22 @@ public class AntiStuck implements IFeature {
         if (event.phase == TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (!GameStateHandler.getInstance().inGarden()) return;
+        if (!GameStateHandler.getInstance().inGarden()) {
+            if (isRunning())
+                stop();
+            return;
+        }
         if (mc.currentScreen != null) return;
         if (!enabled) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
 
         if (delayBetweenMovementsClock.isScheduled() && !delayBetweenMovementsClock.passed()) return;
+
+        if (delayBetweenMovementsClock.getRemainingTime() < -1000) {
+            LogUtils.sendError("[Anti Stuck] Something went wrong. Resuming macro execution...");
+            stop();
+            return;
+        }
 
         switch (unstuckState) {
             case NONE:
@@ -181,8 +191,10 @@ public class AntiStuck implements IFeature {
                 break;
             case PRESS:
                 if (intersectingBlockPos == null) {
-                    stop();
-                    return;
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak, mc.gameSettings.keyBindBack);
+                    unstuckState = UnstuckState.RELEASE;
+                    delayBetweenMovementsClock.schedule(100 + (int) (Math.random() * 100));
+                    break;
                 }
                 Optional<EnumFacing> closestSide = findClosestSide(intersectingBlockPos);
                 if (!closestSide.isPresent()) {
@@ -196,6 +208,7 @@ public class AntiStuck implements IFeature {
                 Vec3 movementTarget = getMovementTarget(intersectingBlockPos, facing);
                 List<KeyBinding> keys = getNeededKeyPresses(mc.thePlayer.getPositionVector(), movementTarget);
                 keys.add(mc.gameSettings.keyBindSneak);
+                keys.add(mc.gameSettings.keyBindAttack);
                 KeyBindUtils.holdThese(keys.toArray(new KeyBinding[0]));
                 unstuckState = UnstuckState.RELEASE;
                 delayBetweenMovementsClock.schedule(150 + (int) (Math.random() * 200));

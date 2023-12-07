@@ -29,11 +29,12 @@ public class FeatureManager {
                 BanInfoWS.getInstance(),
                 DesyncChecker.getInstance(),
                 Failsafe.getInstance(),
-                Freelock.getInstance(),
+                Freelook.getInstance(),
                 LagDetector.getInstance(),
                 LeaveTimer.getInstance(),
                 PerformanceMode.getInstance(),
                 PestsDestroyer.getInstance(),
+                AutoSprayonator.getInstance(),
                 PetSwapper.getInstance(),
                 PlotCleaningHelper.getInstance(),
                 ProfitCalculator.getInstance(),
@@ -85,6 +86,9 @@ public class FeatureManager {
             return true;
         }
         if (AutoGodPot.getInstance().isRunning() && !AutoGodPot.getInstance().shouldCheckForFailsafes()) {
+            return true;
+        }
+        if (AutoReconnect.getInstance().isRunning() && !AutoReconnect.getInstance().shouldCheckForFailsafes()) {
             return true;
         }
         if (LeaveTimer.getInstance().isRunning() && !LeaveTimer.getInstance().shouldCheckForFailsafes()) {

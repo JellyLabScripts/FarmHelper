@@ -48,7 +48,7 @@ public class ProfitCalculator implements IFeature {
 
             add(new BazaarItem("_Potato", "POTATO_ITEM", 3));
             add(new BazaarItem("_Enchanted Potato", "ENCHANTED_POTATO", 480));
-            add(new BazaarItem("_Enchanted Baked Potato", "ENCHANTED_BAKED_POTATO", 7_680));
+            add(new BazaarItem("_Enchanted Baked Potato", "ENCHANTED_BAKED_POTATO", 76_800));
 
             add(new BazaarItem("_Nether Wart", "NETHER_STALK", 4));
             add(new BazaarItem("_Enchanted Nether Wart", "ENCHANTED_NETHER_STALK", 640));
@@ -59,7 +59,7 @@ public class ProfitCalculator implements IFeature {
             add(new BazaarItem("_Enchanted Golden Carrot", "ENCHANTED_GOLDEN_CARROT", 61_440));
 
             add(new BazaarItem("_Cactus", "CACTUS", 3));
-            add(new BazaarItem("_Enchanted Cactus Green", "ENCHANTED_CACTUS_GREEN", 480));
+            add(new BazaarItem("_Enchanted Cactus Green", "ENCHANTED_CACTUS_GREEN", 900)); // Not real npc price, temporary fix
             add(new BazaarItem("_Enchanted Cactus", "ENCHANTED_CACTUS", 76_800));
 
             add(new BazaarItem("_Sugar Cane", "SUGAR_CANE", 4));
@@ -72,7 +72,7 @@ public class ProfitCalculator implements IFeature {
             add(new BazaarItem("_Enchanted Melon Block", "ENCHANTED_MELON_BLOCK", 51_200));
 
             add(new BazaarItem("_Cocoa Beans", "INK_SACK:3", 3));
-            add(new BazaarItem("_Enchanted Cocoa Beans", "ENCHANTED_COCOA", 480));
+            add(new BazaarItem("_Enchanted Cocoa Bean", "ENCHANTED_COCOA", 480));
             add(new BazaarItem("_Enchanted Cookie", "ENCHANTED_COOKIE", 61_500));
 
             add(new BazaarItem("_Red Mushroom", "RED_MUSHROOM", 10));
@@ -213,7 +213,12 @@ public class ProfitCalculator implements IFeature {
 
     public String getBPS() {
         if (!MacroHandler.getInstance().getMacroingTimer().isScheduled()) return "0.0 BPS";
-        return oneDecimalDigitFormatter.format(blocksBroken / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f)) + " BPS";
+        return oneDecimalDigitFormatter.format(getBPSFloat()) + " BPS";
+    }
+
+    public float getBPSFloat() {
+        if (!MacroHandler.getInstance().getMacroingTimer().isScheduled()) return 0;
+        return (float) (blocksBroken / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f));
     }
 
     public BazaarItem getVisitorsItem(String localizedName) {
@@ -420,6 +425,7 @@ public class ProfitCalculator implements IFeature {
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains("Sold")) return;
         if (message.contains(":")) return;
+        if (message.contains("[Bazaar]")) return;
 
         Optional<String> optional = rngToCountList.stream().filter(message::contains).findFirst();
         if (optional.isPresent()) {

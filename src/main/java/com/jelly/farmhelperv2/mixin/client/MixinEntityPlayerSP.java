@@ -1,7 +1,7 @@
 package com.jelly.farmhelperv2.mixin.client;
 
 import com.jelly.farmhelperv2.event.MotionUpdateEvent;
-import com.jelly.farmhelperv2.feature.impl.Freelock;
+import com.jelly.farmhelperv2.feature.impl.Freelook;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -21,12 +21,12 @@ public abstract class MixinEntityPlayerSP extends AbstractClientPlayer {
 
     @Override
     public void setAngles(float yaw, float pitch) {
-        if (Freelock.getInstance().isRunning()) {
-            Freelock.getInstance().setCameraPrevYaw(Freelock.getInstance().getCameraYaw());
-            Freelock.getInstance().setCameraPrevPitch(Freelock.getInstance().getCameraPitch());
-            Freelock.getInstance().setCameraYaw((float) (Freelock.getInstance().getCameraYaw() + (yaw * 0.15)));
-            Freelock.getInstance().setCameraPitch((float) (Freelock.getInstance().getCameraPitch() + (pitch * -0.15)));
-            Freelock.getInstance().setCameraPitch(MathHelper.clamp_float(Freelock.getInstance().getCameraPitch(), -90.0F, 90.0F));
+        if (Freelook.getInstance().isRunning()) {
+            Freelook.getInstance().setCameraPrevYaw(Freelook.getInstance().getCameraYaw());
+            Freelook.getInstance().setCameraPrevPitch(Freelook.getInstance().getCameraPitch());
+            Freelook.getInstance().setCameraYaw((float) (Freelook.getInstance().getCameraYaw() + (yaw * 0.15)));
+            Freelook.getInstance().setCameraPitch((float) (Freelook.getInstance().getCameraPitch() + (pitch * -0.15)));
+            Freelook.getInstance().setCameraPitch(MathHelper.clamp_float(Freelook.getInstance().getCameraPitch(), -90.0F, 90.0F));
         } else {
             super.setAngles(yaw, pitch);
         }

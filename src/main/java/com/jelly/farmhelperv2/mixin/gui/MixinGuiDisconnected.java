@@ -5,6 +5,7 @@ import com.jelly.farmhelperv2.feature.impl.AutoReconnect;
 import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
 import com.jelly.farmhelperv2.feature.impl.Failsafe;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
+import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiDisconnected;
@@ -54,7 +55,7 @@ public class MixinGuiDisconnected {
             if (BanInfoWS.getInstance().isBanwave()) {
                 multilineMessage = farmHelperV2$multilineMessageCopy;
                 multilineMessage.set(0, "Will reconnect after end of banwave!");
-                multilineMessage.set(1, "Current bans: " + BanInfoWS.getInstance().getBans() + " (threshold: " + FarmHelperConfig.banwaveThreshold + ")");
+                multilineMessage.set(1, "Current bans: " + BanInfoWS.getInstance().getAllBans() + " (threshold: " + FarmHelperConfig.banwaveThreshold + ")");
             } else {
                 if (!AutoReconnect.getInstance().isRunning()) {
                     AutoReconnect.getInstance().getReconnectDelay().schedule(FarmHelperConfig.delayBeforeReconnecting * 1_000L);
@@ -83,11 +84,15 @@ public class MixinGuiDisconnected {
         }
     }
 
-    @Inject(method = "actionPerformed", at = @At("RETURN"))
+    @Inject(method = "actionPerformed", at = @At("HEAD"))
     protected void actionPerformed(GuiButton button, CallbackInfo ci) {
         if (button.id == 0) {
             if (AutoReconnect.getInstance().isRunning()) {
                 AutoReconnect.getInstance().stop();
+            }
+            if (Failsafe.getInstance().getEmergency() == Failsafe.EmergencyType.BANWAVE && !FarmHelperConfig.banwaveAction) {
+                Failsafe.getInstance().stop();
+                MacroHandler.getInstance().disableMacro();
             }
         }
     }

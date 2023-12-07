@@ -12,9 +12,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collections;
@@ -41,6 +39,7 @@ public class PlayerUtils {
         boolean foundCropUnderMouse = false;
         if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             BlockPos pos = mc.objectMouseOver.getBlockPos();
+            if (mc.theWorld.getBlockState(pos) == null) return FarmHelperConfig.CropEnum.NONE;
             Block block = mc.theWorld.getBlockState(pos).getBlock();
             if (block instanceof BlockCrops || block instanceof BlockReed || block instanceof BlockCocoa || block instanceof BlockNetherWart || block instanceof BlockMelon || block instanceof BlockPumpkin || block instanceof BlockMushroom || block instanceof BlockCactus) {
                 closestCrop = Pair.of(block, pos);
@@ -101,8 +100,8 @@ public class PlayerUtils {
                 return FarmHelperConfig.CropEnum.CACTUS;
             }
         }
-        LogUtils.sendError("Can't detect crop type! Defaulting to wheat.");
-        return FarmHelperConfig.CropEnum.WHEAT;
+        LogUtils.sendError("Can't detect crop type!");
+        return FarmHelperConfig.CropEnum.NONE;
     }
 
     public static void getTool() {
@@ -116,17 +115,53 @@ public class PlayerUtils {
         }
 
         changeItemEveryClock.schedule(2_000L);
-        mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop());
+        int id = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
+        if (id == -1) return;
+        if (id == mc.thePlayer.inventory.currentItem) return;
+        mc.thePlayer.inventory.currentItem = id;
     }
 
-    public static int getFarmingTool(FarmHelperConfig.CropEnum crop) {
-        return getFarmingTool(crop, false, false);
+    public static FarmHelperConfig.CropEnum getCropBasedOnMouseOver() {
+        if (mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK)
+            return FarmHelperConfig.CropEnum.NONE;
+        BlockPos pos = mc.objectMouseOver.getBlockPos();
+        Block block = mc.theWorld.getBlockState(pos).getBlock();
+        if (block.equals(Blocks.wheat)) {
+            return FarmHelperConfig.CropEnum.WHEAT;
+        } else if (block.equals(Blocks.carrots)) {
+            return FarmHelperConfig.CropEnum.CARROT;
+        } else if (block.equals(Blocks.potatoes)) {
+            return FarmHelperConfig.CropEnum.POTATO;
+        } else if (block.equals(Blocks.nether_wart)) {
+            return FarmHelperConfig.CropEnum.NETHER_WART;
+        } else if (block.equals(Blocks.reeds)) {
+            return FarmHelperConfig.CropEnum.SUGAR_CANE;
+        } else if (block.equals(Blocks.cocoa)) {
+            return FarmHelperConfig.CropEnum.COCOA_BEANS;
+        } else if (block.equals(Blocks.melon_block)) {
+            return FarmHelperConfig.CropEnum.MELON;
+        } else if (block.equals(Blocks.pumpkin)) {
+            return FarmHelperConfig.CropEnum.PUMPKIN;
+        } else if (block.equals(Blocks.red_mushroom)) {
+            return FarmHelperConfig.CropEnum.MUSHROOM;
+        } else if (block.equals(Blocks.brown_mushroom)) {
+            return FarmHelperConfig.CropEnum.MUSHROOM;
+        } else if (block.equals(Blocks.cactus)) {
+            return FarmHelperConfig.CropEnum.CACTUS;
+        }
+        return FarmHelperConfig.CropEnum.NONE;
     }
 
-    public static int getFarmingTool(FarmHelperConfig.CropEnum crop, boolean withError, boolean fullInventory) {
+    public static int getFarmingTool(FarmHelperConfig.CropEnum crop, boolean withError, boolean anyHoe) {
         if (crop == null) return withError ? -1 : 0;
-        for (int i = fullInventory ? 0 : 36; i < 44; i++) {
+        for (int i = 36; i < 44; i++) {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
+                if (anyHoe) {
+                    if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Hoe")) {
+                        return i - 36;
+                    }
+                    continue;
+                }
                 switch (crop) {
                     case NETHER_WART:
                         if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Newton")) {
@@ -177,6 +212,12 @@ public class PlayerUtils {
                 }
             }
         }
+
+        int gardeningHoe = InventoryUtils.getSlotIdOfItemInHotbar("Gardening Hoe");
+        if (gardeningHoe != -1) {
+            return gardeningHoe;
+        }
+
         return withError ? -1 : 0;
     }
 
@@ -286,5 +327,24 @@ public class PlayerUtils {
         if (!possible.isEmpty())
             return Collections.min(possible, Comparator.comparing(e2 -> e2.getDistanceToEntity(e)));
         return null;
+    }
+
+    public static boolean isPlayerSuffocating() {
+        BlockPos playerFeet = BlockUtils.getRelativeBlockPos(0, 0, 0);
+        BlockPos playerHead = BlockUtils.getRelativeBlockPos(0, mc.thePlayer.eyeHeight, 0);
+        AxisAlignedBB playerBB = mc.thePlayer.getEntityBoundingBox().expand(-0.1, -0.1, -0.1);
+        AxisAlignedBB playerFeetBB = new AxisAlignedBB(playerFeet.getX(), playerFeet.getY(), playerFeet.getZ(), playerFeet.getX() + 1, playerFeet.getY() + 1, playerFeet.getZ() + 1);
+        AxisAlignedBB playerHeadBB = new AxisAlignedBB(playerHead.getX(), playerHead.getY(), playerHead.getZ(), playerHead.getX() + 1, playerHead.getY() + 1, playerHead.getZ() + 1);
+        return mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, playerBB).stream().anyMatch(bb -> bb != playerFeetBB && bb != playerHeadBB);
+    }
+
+    public static EnumFacing getHorizontalFacing(float yaw) {
+        return EnumFacing.getHorizontal(MathHelper.floor_double((double) (yaw * 4.0F / 360.0F) + 0.5) & 3);
+    }
+
+    public static void closeScreen() {
+        if (mc.currentScreen != null && mc.thePlayer != null) {
+            mc.thePlayer.closeScreen();
+        }
     }
 }

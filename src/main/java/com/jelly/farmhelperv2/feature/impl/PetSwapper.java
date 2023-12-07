@@ -8,6 +8,7 @@ import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -74,7 +75,7 @@ public class PetSwapper implements IFeature {
             LogUtils.sendWarning("[Pet Swapper] Disabled!");
         enabled = false;
         resetStatesAfterMacroDisabled();
-        mc.thePlayer.closeScreen();
+        PlayerUtils.closeScreen();
         KeyBindUtils.stopMovement();
     }
 
@@ -100,7 +101,7 @@ public class PetSwapper implements IFeature {
 
     public void start(boolean getPreviousPet) {
         if (enabled) return;
-        mc.thePlayer.closeScreen();
+        PlayerUtils.closeScreen();
         LogUtils.sendDebug("[Pet Swapper] Starting...");
         currentState = State.STARTING;
         enabled = true;
@@ -178,7 +179,7 @@ public class PetSwapper implements IFeature {
                         if (petName.toLowerCase().trim().contains(FarmHelperConfig.petSwapperName.toLowerCase())) {
                             LogUtils.sendError("The current pet is already the one we want! The pet won't be swapped at the end of this contest.");
                             hasPetChangedDuringThisContest = false;
-                            mc.thePlayer.closeScreen();
+                            PlayerUtils.closeScreen();
                             stop();
                             return;
                         }
@@ -186,7 +187,7 @@ public class PetSwapper implements IFeature {
                         LogUtils.sendDebug("[Pet Swapper] previous pet: " + previousPet);
                         currentState = State.FIND_NEW;
                         delayClock.schedule(FarmHelperConfig.petSwapperDelay);
-                        mc.thePlayer.closeScreen();
+                        PlayerUtils.closeScreen();
                         mc.thePlayer.sendChatMessage("/pets");
                         break;
                     }
@@ -200,7 +201,7 @@ public class PetSwapper implements IFeature {
                     LogUtils.sendError("[Pet Swapper] no previous pet found, disabling...");
                     FarmHelperConfig.enablePetSwapper = false;
                     hasPetChangedDuringThisContest = false;
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     stop();
                     return;
                 }
@@ -232,7 +233,7 @@ public class PetSwapper implements IFeature {
                 LogUtils.sendError("[Pet Swapper] Could not find the new pet! Disabling this feature...");
                 FarmHelperConfig.enablePetSwapper = false;
                 hasPetChangedDuringThisContest = false;
-                mc.thePlayer.closeScreen();
+                PlayerUtils.closeScreen();
                 stop();
                 break;
             case WAITING_FOR_SPAWN:

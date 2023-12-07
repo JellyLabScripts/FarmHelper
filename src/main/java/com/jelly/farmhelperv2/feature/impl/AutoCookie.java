@@ -7,10 +7,7 @@ import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
-import com.jelly.farmhelperv2.util.AngleUtils;
-import com.jelly.farmhelperv2.util.InventoryUtils;
-import com.jelly.farmhelperv2.util.KeyBindUtils;
-import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
@@ -98,8 +95,9 @@ public class AutoCookie implements IFeature {
         activating = false;
         autoCookieDelay.reset();
         timeoutClock.reset();
-        if (mc.currentScreen != null)
-            mc.thePlayer.closeScreen();
+        if (mc.currentScreen != null && mc.thePlayer != null) {
+            PlayerUtils.closeScreen();
+        }
         KeyBindUtils.stopMovement();
         if (MacroHandler.getInstance().isMacroToggled())
             MacroHandler.getInstance().resumeMacro();
@@ -144,7 +142,7 @@ public class AutoCookie implements IFeature {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
-
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LOBBY && GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
             if (!enabled && !activating && (!dontEnableClock.isScheduled() || dontEnableClock.passed())) {
                 LogUtils.sendWarning("[Auto Cookie] Your Cookie Buff is not active! Activating Auto Cookie in 1.5 seconds!");
@@ -206,7 +204,7 @@ public class AutoCookie implements IFeature {
                     case GO_BAZAAR:
                         if (mc.currentScreen != null) {
                             KeyBindUtils.stopMovement();
-                            mc.thePlayer.closeScreen();
+                            PlayerUtils.closeScreen();
                             autoCookieDelay.schedule(getRandomDelay());
                             break;
                         }
@@ -233,7 +231,7 @@ public class AutoCookie implements IFeature {
                         break;
                     case OPEN_BAZAAR:
                         if (mc.currentScreen != null) {
-                            mc.thePlayer.closeScreen();
+                            PlayerUtils.closeScreen();
                             autoCookieDelay.schedule(getRandomDelay());
                             break;
                         }
@@ -285,7 +283,7 @@ public class AutoCookie implements IFeature {
                         if (InventoryUtils.getInventoryName() == null || !InventoryUtils.getInventoryName().startsWith("Bazaar")) {
                             LogUtils.sendError("Something went wrong while opening the bazaar, trying to open again!");
                             autoCookieDelay.schedule(getRandomDelay() * 2L);
-                            mc.thePlayer.closeScreen();
+                            PlayerUtils.closeScreen();
                             setBazaarState(BazaarState.OPEN_BAZAAR);
                             break;
                         }
@@ -315,7 +313,7 @@ public class AutoCookie implements IFeature {
                         if (InventoryUtils.getInventoryName() == null || !InventoryUtils.getInventoryName().startsWith("Bazaar ➜ Oddities")) {
                             LogUtils.sendError("Something went wrong while opening the bazaar, trying to open again!");
                             autoCookieDelay.schedule(getRandomDelay() * 2L);
-                            mc.thePlayer.closeScreen();
+                            PlayerUtils.closeScreen();
                             setBazaarState(BazaarState.OPEN_BAZAAR);
                             break;
                         }
@@ -339,7 +337,7 @@ public class AutoCookie implements IFeature {
                         if (InventoryUtils.getInventoryName() != null && InventoryUtils.getInventoryName().startsWith("Oddities ➜") && !InventoryUtils.getInventoryName().startsWith("Oddities ➜ Booster Cookie")) {
                             setBazaarState(BazaarState.OPEN_BAZAAR);
                             autoCookieDelay.schedule(getRandomDelay());
-                            mc.thePlayer.closeScreen();
+                            PlayerUtils.closeScreen();
                             LogUtils.sendError("Something went wrong while trying to buy the cookie, trying to buy again!");
                             break;
                         }
@@ -363,7 +361,7 @@ public class AutoCookie implements IFeature {
                         if (InventoryUtils.getInventoryName() != null && InventoryUtils.getInventoryName().startsWith("Booster Cookie ➜") && !InventoryUtils.getInventoryName().startsWith("Booster Cookie ➜ Instant Buy")) {
                             setBazaarState(BazaarState.OPEN_BAZAAR);
                             autoCookieDelay.schedule(getRandomDelay());
-                            mc.thePlayer.closeScreen();
+                            PlayerUtils.closeScreen();
                             LogUtils.sendError("Something went wrong while trying to buy the cookie, trying to buy again!");
                             break;
                         }
@@ -389,7 +387,7 @@ public class AutoCookie implements IFeature {
                             autoCookieDelay.schedule(3_000);
                             break;
                         }
-                        mc.thePlayer.closeScreen();
+                        PlayerUtils.closeScreen();
                         autoCookieDelay.schedule(getRandomDelay());
                         break;
                     case TELEPORT_TO_GARDEN:
@@ -490,7 +488,7 @@ public class AutoCookie implements IFeature {
                 break;
             case SELECT_COOKIE:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     autoCookieDelay.schedule(getRandomDelay());
                     break;
                 }
@@ -508,7 +506,7 @@ public class AutoCookie implements IFeature {
                 break;
             case RIGHT_CLICK_COOKIE:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     autoCookieDelay.schedule(getRandomDelay());
                     break;
                 }

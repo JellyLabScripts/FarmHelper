@@ -28,7 +28,6 @@ blossom {
 
 // Minecraft configuration:
 loom {
-    log4jConfigs.from(file("log4j2.xml"))
     launchConfigs {
         "client" {
             // If you don't want mixins, remove these lines
@@ -86,8 +85,8 @@ dependencies {
 
     implementation("net.dv8tion:JDA:5.0.0-beta.13")
 
-    implementation("com.github.Niroxbtw.baritone:baritone-deobf:2.1.3")
-    shadowImpl("com.github.Niroxbtw.baritone:baritone-api-forge:2.1.3") {
+    implementation("com.github.onixiya1337.baritone-fly:baritone-deobf:nirox-fly-SNAPSHOT")
+    shadowImpl("com.github.onixiya1337.baritone-fly:baritone-api-forge:nirox-fly-SNAPSHOT") {
         exclude(module = "fastutil")
         exclude(module = "lwjgl")
         exclude(module = "SimpleTweaker")

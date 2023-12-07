@@ -59,10 +59,12 @@ public class DebugHUD extends TextHud {
             lines.add("   State: " + AntiStuck.getInstance().getUnstuckState());
             lines.add("   Delay between change state: " + AntiStuck.getInstance().getDelayBetweenMovementsClock().getRemainingTime());
         }
+        lines.add("LagDetector");
+        lines.add("   TPS: " + LagDetector.getInstance().getTickRate());
         if (LagDetector.getInstance().isLagging()) {
-            lines.add("LagDetector");
             lines.add("   Lagging for: " + LagDetector.getInstance().getLaggingTime());
         }
+        lines.add("Average BPS: " + Failsafe.getInstance().getAverageBPS());
         if (DesyncChecker.getInstance().isToggled()) {
             lines.add("Desync Checker");
             lines.add("   Clicked blocks: " + DesyncChecker.getInstance().getClickedBlocks().size());
@@ -111,6 +113,23 @@ public class DebugHUD extends TextHud {
         if (FlyPathfinder.getInstance().isRunning()) {
             lines.add("FlyPathfinder");
             lines.add("   Path size: " + FlyPathfinder.getInstance().getPathBlocks().size());
+        }
+        if (AutoSprayonator.getInstance().isToggled()) {
+            lines.add("Auto Sprayonator");
+            lines.add("   Running: " + AutoSprayonator.getInstance().isRunning());
+            lines.add("   State: " + AutoSprayonator.getInstance().getSprayState());
+            lines.add("   Item: " + AutoSprayonator.getInstance().getSprayItem());
+            lines.add("   Clock: " + AutoSprayonator.getInstance().getSprayonatorDelay().getRemainingTime());
+            lines.add("   Check Plot State: " + AutoSprayonator.getInstance().getCheckPlotState());
+            lines.add("   Skymart State: " + AutoSprayonator.getInstance().getSkymartPurchaseState());
+            lines.add("   Bazaar State: " + AutoSprayonator.getInstance().getBazaarPurchaseState());
+            lines.add("   GUI State: " + AutoSprayonator.getInstance().getCurrentGuiState());
+            AutoSprayonator.PlotData plotData = AutoSprayonator.getInstance().getSprayonatorPlotStates().get(GameStateHandler.getInstance().getCurrentPlot());
+            if (plotData != null) {
+                lines.add("   Plot Sprayed: " + plotData.isSprayed());
+                lines.add("   Plot Spray Clock: " + plotData.getSprayClock().getRemainingTime());
+                lines.add("   Plot Spray Item: " + plotData.getSprayItem());
+            }
         }
     }
 }

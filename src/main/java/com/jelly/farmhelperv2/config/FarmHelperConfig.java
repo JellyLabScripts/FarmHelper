@@ -1,6 +1,5 @@
 package com.jelly.farmhelperv2.config;
 
-import baritone.api.pathing.goals.GoalBlock;
 import cc.polyfrost.oneconfig.config.Config;
 import cc.polyfrost.oneconfig.config.annotations.Number;
 import cc.polyfrost.oneconfig.config.annotations.*;
@@ -23,9 +22,11 @@ import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
+import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
+import baritone.api.pathing.goals.GoalBlock;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
@@ -58,11 +59,15 @@ public class FarmHelperConfig extends Config {
 
     public static List<Rewarp> rewarpList = new ArrayList<>();
 
+    //<editor-fold desc="PROXY">
     public static boolean proxyEnabled = false;
     public static String proxyAddress = "";
     public static String proxyUsername = "";
     public static String proxyPassword = "";
     public static Proxy.ProxyType proxyType = Proxy.ProxyType.HTTP;
+    //</editor-fold>
+
+    //<editor-fold desc="GENERAL">
     @Dropdown(
             name = "Macro Type", category = GENERAL,
             description = "Farm Types",
@@ -81,6 +86,8 @@ public class FarmHelperConfig extends Config {
             }, size = 2
     )
     public static int macroType = 0;
+
+    //<editor-fold desc="Rotation">
     @Switch(
             name = "Rotate After Warped", category = GENERAL, subcategory = "Rotation",
             description = "Rotates the player after re-warping", size = 1
@@ -108,18 +115,21 @@ public class FarmHelperConfig extends Config {
     )
     public static float customPitchLevel = 0;
 
-    // START GENERAL
     @Switch(
             name = "Custom Yaw", category = GENERAL, subcategory = "Rotation",
             description = "Set yaw to custom level after starting the macro"
     )
     public static boolean customYaw = false;
+
     @Number(
             name = "Custom Yaw Level", category = GENERAL, subcategory = "Rotation",
             description = "Set custom yaw level after starting the macro",
             min = -180.0F, max = 180.0F
     )
     public static float customYawLevel = 0;
+    //</editor-fold>
+
+    //<editor-fold desc="Rewarp">
     @Switch(
             name = "Highlight rewarp points", category = GENERAL, subcategory = "Rewarp",
             description = "Highlights all rewarp points you have added",
@@ -133,6 +143,78 @@ public class FarmHelperConfig extends Config {
             subcategory = "Rewarp"
     )
     public static boolean rewarpWarning;
+
+    @Button(
+            name = "Add Rewarp", category = GENERAL, subcategory = "Rewarp",
+            description = "Adds a rewarp position",
+            text = "Add Rewarp"
+    )
+    Runnable _addRewarp = FarmHelperConfig::addRewarp;
+    @Button(
+            name = "Remove Rewarp", category = GENERAL, subcategory = "Rewarp",
+            description = "Removes a rewarp position",
+            text = "Remove Rewarp"
+    )
+    Runnable _removeRewarp = FarmHelperConfig::removeRewarp;
+    @Button(
+            name = "Remove All Rewarps", category = GENERAL, subcategory = "Rewarp",
+            description = "Removes all rewarp positions",
+            text = "Remove All Rewarps"
+    )
+    Runnable _removeAllRewarps = FarmHelperConfig::removeAllRewarps;
+    //</editor-fold>
+
+    //<editor-fold desc="Spawn">
+    @Number(
+            name = "SpawnPos X", category = GENERAL, subcategory = "Spawn Position",
+            description = "The X coordinate of the spawn",
+            min = -30000000, max = 30000000
+
+    )
+    public static int spawnPosX = 0;
+    @Number(
+            name = "SpawnPos Y", category = GENERAL, subcategory = "Spawn Position",
+            description = "The Y coordinate of the spawn",
+            min = -30000000, max = 30000000
+    )
+    public static int spawnPosY = 0;
+    @Number(
+            name = "SpawnPos Z", category = GENERAL, subcategory = "Spawn Position",
+            description = "The Z coordinate of the spawn",
+            min = -30000000, max = 30000000
+    )
+    public static int spawnPosZ = 0;
+
+    @Button(
+            name = "Set SpawnPos", category = GENERAL, subcategory = "Spawn Position",
+            description = "Sets the spawn position to your current position",
+            text = "Set SpawnPos"
+    )
+    Runnable _setSpawnPos = PlayerUtils::setSpawnLocation;
+    @Button(
+            name = "Reset SpawnPos", category = GENERAL, subcategory = "Spawn Position",
+            description = "Resets the spawn position",
+            text = "Reset SpawnPos"
+    )
+    Runnable _resetSpawnPos = () -> {
+        spawnPosX = 0;
+        spawnPosY = 0;
+        spawnPosZ = 0;
+        save();
+        LogUtils.sendSuccess("Spawn position has been reset!");
+    };
+
+    @Switch(
+            name = "Draw spawn location", category = GENERAL, subcategory = "Drawings",
+            description = "Draws the spawn location"
+    )
+    public static boolean drawSpawnLocation = true;
+    //</editor-fold>
+
+    //</editor-fold>
+
+    //<editor-fold desc="MISC">
+    //<editor-fold desc="Keybinds">
     @KeyBind(
             name = "Toggle Farm Helper", category = MISCELLANEOUS, subcategory = "Keybinds",
             description = "Toggles the macro on/off", size = 2
@@ -145,10 +227,19 @@ public class FarmHelperConfig extends Config {
 
     public static OneKeyBind openGuiKeybind = new OneKeyBind(Keyboard.KEY_F);
     @KeyBind(
-            name = "Freelock", category = MISCELLANEOUS, subcategory = "Keybinds",
+            name = "Freelook", category = MISCELLANEOUS, subcategory = "Keybinds",
             description = "Locks rotation, lets you freely look", size = 2
     )
-    public static OneKeyBind freelockKeybind = new OneKeyBind(Keyboard.KEY_L);
+    public static OneKeyBind freelookKeybind = new OneKeyBind(Keyboard.KEY_L);
+
+    @Info(
+            text = "Freelook doesn't work properly with Oringo!", type = InfoType.WARNING,
+            category = MISCELLANEOUS, subcategory = "Keybinds"
+    )
+    private int freelookWarning;
+    //</editor-fold>
+
+    //<editor-fold desc="Plot Cleaning Helper">
     @KeyBind(
             name = "Plot Cleaning Helper", category = MISCELLANEOUS, subcategory = "Plot Cleaning Helper",
             description = "Toggles the plot cleaning helper on/off", size = 2
@@ -159,6 +250,9 @@ public class FarmHelperConfig extends Config {
             description = "Automatically chooses the best tool to destroy the block"
     )
     public static boolean autoChooseTool = false;
+    //</editor-fold>
+
+    //<editor-fold desc="Miscellaneous">
     @DualOption(
             name = "AutoUpdater Version Type", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "The version type to use",
@@ -188,23 +282,25 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean holdLeftClickWhenChangingRow = true;
 
-    // END GENERAL
-
-    // START MISCELLANEOUS
     @Switch(
             name = "Auto Ungrab Mouse", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "Automatically ungrabs your mouse, so you can safely alt-tab"
     )
     public static boolean autoUngrabMouse = true;
+    //</editor-fold>
+
+    //<editor-fold desc="God Pot">
     @Switch(
             name = "Auto God Pot", category = MISCELLANEOUS, subcategory = "God Pot",
             description = "Automatically purchases and consumes a God Pot", size = 2
     )
     public static boolean autoGodPot = false;
+
     @Switch(
             name = "Get God Pot from Backpack", category = MISCELLANEOUS, subcategory = "God Pot", size = 2
     )
     public static boolean autoGodPotFromBackpack = true;
+
     @DualOption(
             name = "Storage Type", category = MISCELLANEOUS, subcategory = "God Pot",
             description = "The storage type to get god pots from",
@@ -212,31 +308,46 @@ public class FarmHelperConfig extends Config {
             right = "Ender Chest"
     )
     public static boolean autoGodPotStorageType = true;
+
     @Number(
             name = "Backpack Number", category = MISCELLANEOUS, subcategory = "God Pot",
             description = "The backpack number, that contains god pots",
             min = 1, max = 18
     )
     public static int autoGodPotBackpackNumber = 1;
+
     @Switch(
             name = "Buy God Pot using Bits", category = MISCELLANEOUS, subcategory = "God Pot"
     )
     public static boolean autoGodPotFromBits = false;
+
     @Switch(
             name = "Get God Pot from Auction House", category = MISCELLANEOUS, subcategory = "God Pot",
             description = "If the user doesn't have a cookie, it will go to the hub and buy from AH"
     )
     public static boolean autoGodPotFromAH = false;
+
+    @Info(
+            text = "Priority getting God Pot is: Backpack -> Bits -> AH",
+            type = InfoType.INFO, size = 2, category = MISCELLANEOUS, subcategory = "God Pot"
+    )
+    private static int godPotInfo;
+
+    //</editor-fold>
+
+    //<editor-fold desc="Auto Sell">
     @Info(
             text = "Click ESC during Auto Sell, to stop it and pause for the next 15 minutes",
             category = MISCELLANEOUS, subcategory = "Auto Sell", type = InfoType.INFO, size = 2
     )
     public static boolean autoSellInfo;
+
     @Switch(
             name = "Enable Auto Sell", category = MISCELLANEOUS, subcategory = "Auto Sell",
             description = "Enables auto sell"
     )
     public static boolean enableAutoSell = false;
+
     @DualOption(
             name = "Market type", category = MISCELLANEOUS, subcategory = "Auto Sell",
             description = "The market type to sell crops to",
@@ -244,11 +355,13 @@ public class FarmHelperConfig extends Config {
             right = "NPC"
     )
     public static boolean autoSellMarketType = false;
+
     @Switch(
             name = "Sell Items In Sacks", category = MISCELLANEOUS, subcategory = "Auto Sell",
             description = "Sells items in your sacks and inventory"
     )
     public static boolean autoSellSacks = false;
+
     @DualOption(
             name = "Sacks placement",
             category = MISCELLANEOUS, subcategory = "Auto Sell",
@@ -257,23 +370,47 @@ public class FarmHelperConfig extends Config {
             right = "Sack of sacks"
     )
     public static boolean autoSellSacksPlacement = true;
-    @cc.polyfrost.oneconfig.config.annotations.Number(
+
+    @Number(
             name = "Inventory Full Time", category = MISCELLANEOUS, subcategory = "Auto Sell",
             description = "The time to wait to test if inventory fullness ratio is still the same (or higher)",
             min = 1, max = 20
     )
     public static int inventoryFullTime = 6;
-    @cc.polyfrost.oneconfig.config.annotations.Number(
+
+    @Number(
             name = "Inventory Full Ratio", category = MISCELLANEOUS, subcategory = "Auto Sell",
             description = "After reaching this ratio, the macro will start counting from 0 to Inventory Full Time. If the fullness ratio is still the same (or higher) after the time has passed, it will start selling items.",
             min = 1, max = 100
     )
     public static int inventoryFullRatio = 65;
+
+    @Button(
+            name = "Sell Inventory Now", category = MISCELLANEOUS, subcategory = "Auto Sell",
+            description = "Sells crops in your inventory",
+            text = "Sell Inventory Now"
+    )
+    Runnable autoSellFunction = () -> {
+        if (mc.currentScreen != null && mc.thePlayer != null) {
+            PlayerUtils.closeScreen();
+        }
+        AutoSell.getInstance().enable(true);
+    };
+
+    @Page(
+            name = "Customize items sold to NPC", category = MISCELLANEOUS, subcategory = "Auto Sell", location = PageLocation.BOTTOM,
+            description = "Click here to customize items that are sold to NPC automatically"
+    )
+    public AutoSellNPCItemsPage autoSellNPCItemsPage = new AutoSellNPCItemsPage();
+    //</editor-fold>
+
+    //<editor-fold desc="Pest Repellant">
     @Switch(
             name = "Auto Pest Repellent", category = MISCELLANEOUS, subcategory = "Pest Repellent",
             description = "Automatically uses pest repellent when it's not active"
     )
     public static boolean autoPestRepellent = false;
+
     @DualOption(
             name = "Pest Repellent Type", category = MISCELLANEOUS, subcategory = "Pest Repellent",
             description = "The pest repellent type to use",
@@ -281,11 +418,24 @@ public class FarmHelperConfig extends Config {
             right = "Pest Repellent MAX"
     )
     public static boolean pestRepellentType = true;
+
+    @Button(
+            name = "Reset Failsafe", category = MISCELLANEOUS, subcategory = "Pest Repellent",
+            text = "Click Here",
+            description = "Resets the failsafe timer for repellent"
+    )
+    Runnable resetFailsafe = () -> {
+        AutoRepellent.repellentFailsafeClock.schedule(0);
+    };
+    //</editor-fold>
+
+    //<editor-fold desc="Pet Swapper">
     @Switch(
             name = "Swap pet during Jacob's contest", category = MISCELLANEOUS, subcategory = "Pet Swapper",
             description = "Swaps pet to the selected pet during Jacob's contest. Selects the first one from the pet list."
     )
     public static boolean enablePetSwapper = false;
+
     @Slider(
             name = "Pet Swap Delay", category = MISCELLANEOUS, subcategory = "Pet Swapper",
             description = "The delay between clicking GUI during swapping the pet (in milliseconds)",
@@ -297,36 +447,116 @@ public class FarmHelperConfig extends Config {
             category = MISCELLANEOUS, subcategory = "Pet Swapper"
     )
     public static String petSwapperName = null;
+    //</editor-fold>
+
+    //<editor-fold desc="Crop Utils">
     @Switch(
             name = "Increase Cocoa Hitboxes", category = MISCELLANEOUS, subcategory = "Crop Utils",
             description = "Allows you to farm cocoa beans more efficiently at higher speeds by making the hitboxes bigger"
     )
     public static boolean increasedCocoaBeans = true;
+
     @Switch(
             name = "Increase Crop Hitboxes", category = MISCELLANEOUS, subcategory = "Crop Utils",
             description = "Allows you to farm crops more efficient by making the hitboxes bigger"
     )
     public static boolean increasedCrops = true;
+
     @Switch(
             name = "Increase Nether Wart Hitboxes", category = MISCELLANEOUS, subcategory = "Crop Utils",
             description = "Allows you to farm nether warts more efficiently at higher speeds by making the hitboxes bigger"
     )
     public static boolean increasedNetherWarts = true;
+
     @Switch(
             name = "Increase Mushroom Hitboxes", category = MISCELLANEOUS, subcategory = "Crop Utils",
             description = "Allows you to farm mushrooms more efficiently at higher speeds by making the hitboxes bigger"
     )
     public static boolean increasedMushrooms = true;
+
     @Switch(
             name = "Pingless Cactus", category = MISCELLANEOUS, subcategory = "Crop Utils",
             description = "Allows you to farm cactus more efficiently at higher speeds by making the cactus pingless"
     )
     public static boolean pinglessCactus = true;
+    //</editor-fold>
+
+    //<editor-fold desc="Analytics">
     @Switch(
             name = "Send analytic data", category = MISCELLANEOUS, subcategory = "Analytics",
             description = "Sends analytic data to the server to improve the macro and learn how to detect staff checks"
     )
     public static boolean sendAnalyticData = true;
+    //</editor-fold>
+
+    //<editor-fold desc="Sprayonator">
+    @Switch(
+            name = "Auto Sprayonator", category = MISCELLANEOUS, subcategory = "Sprayonator"
+    )
+    public static boolean enableSprayonator;
+
+    @Dropdown(
+            name = "Type", category = MISCELLANEOUS, subcategory = "Sprayonator",
+            description = "Item to spray plot with",
+            options = {
+                    "Compost (Earthworm & Mosquito)",
+                    "Honey Jar (Moth & Cricket)",
+                    "Dung (Beetle & Fly)",
+                    "Plant Matter (Locust & Slug)",
+                    "Tasty Cheese (Rat & Mite)"
+            }, size = 5
+    )
+    public static int sprayonatorType;
+
+    @Getter
+    public enum SPRAYONATOR_ITEM {
+        COMPOST("Compost"),
+        HONEY_JAR("Honey Jar"),
+        DUNG("Dung"),
+        PLANT_MATTER("Plant Matter"),
+        TASTY_CHEESE("Tasty Cheese"),
+        NONE("NONE");
+
+        final String itemName;
+
+        SPRAYONATOR_ITEM(final String item_name) {
+            this.itemName = item_name;
+        }
+    }
+
+    @Switch(
+            name = "Inventory Only", category = MISCELLANEOUS, subcategory = "Sprayonator"
+    )
+    public static boolean sprayonatorItemInventoryOnly;
+
+    @Slider(
+            name = "Sprayonator Slot", category = MISCELLANEOUS, subcategory = "Sprayonator",
+            min = 1, max = 8,
+            step = 1,
+            description = "Slot to move sprayonator to"
+    )
+    public static int sprayonatorSlot = 1;
+
+    @Slider(
+            name = "Additional Delay", category = MISCELLANEOUS, subcategory = "Sprayonator",
+            description = "Additional delay between actions (in milliseconds)",
+            min = 0, max = 5000, step = 1
+    )
+    public static int sprayonatorAdditionalDelay = 500;
+
+    @Button(
+            name = "Reset Plots", category = MISCELLANEOUS, subcategory = "Sprayonator",
+            text = "Click Here",
+            description = "Resets the cached data for sprayonator"
+    )
+    Runnable resetSprayonatorPlots = () -> {
+        AutoSprayonator.getInstance().resetPlots();
+    };
+    //</editor-fold>
+    //</editor-fold>
+
+    //<editor-fold desc="FAILSAFES">
+    //<editor-fold desc="Failsafe Misc">
     @Switch(
             name = "Pop-up Notification", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Enable pop-up notification"
@@ -347,17 +577,6 @@ public class FarmHelperConfig extends Config {
             description = "Tries to use jumping and flying in failsafes reactions"
     )
     public static boolean tryToUseJumpingAndFlying = true;
-    @Switch(
-            name = "Check Desync", category = FAILSAFE, subcategory = "Desync",
-            description = "If client desynchronization is detected, it activates a failsafe. Turn this off if the network is weak or if it happens frequently."
-    )
-    public static boolean checkDesync = true;
-    @Slider(
-            name = "Pause for X milliseconds after desync triggered", category = FAILSAFE, subcategory = "Desync",
-            description = "The delay to pause after desync triggered (in milliseconds)",
-            min = 3_000, max = 10_000
-    )
-    public static int desyncPauseDelay = 5_000;
     @Slider(
             name = "Failsafe Stop Delay", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "The delay to stop the macro after failsafe has been triggered (in milliseconds)",
@@ -380,6 +599,12 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean autoReconnect = true;
     @Slider(
+            name = "Teleport Check Lag Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "Variation in distance between expected and actual positions when lagging",
+            min = 0, max = 2
+    )
+    public static float teleportCheckLagSensitivity = 0.5f;
+    @Slider(
             name = "Rotation Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "The sensitivity of the rotation check; the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives.",
             min = 1, max = 10
@@ -391,6 +616,55 @@ public class FarmHelperConfig extends Config {
             min = 0.5f, max = 20f
     )
     public static float teleportCheckSensitivity = 4;
+
+    @Switch(
+            name = "Average BPS Drop check", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "Checks for average BPS drop"
+    )
+    public static boolean averageBPSDropCheck = true;
+
+    @Slider(
+            name = "Average BPS Drop %", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "The minimum BPS drop to trigger failsafe",
+            min = 2, max = 50
+    )
+    public static int averageBPSDrop = 5;
+
+    @Button(
+            name = "Test failsafe", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "Tests failsafe",
+            text = "Test failsafe", size = 2
+    )
+    Runnable _testFailsafe = () -> {
+        LogUtils.sendDebug("Testing failsafe...");
+        Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.TEST);
+    };
+
+    //</editor-fold>
+
+    //<editor-fold desc="Failsafes conf page">
+    @Page(
+            name = "Failsafe Notifications", category = FAILSAFE, subcategory = "Failsafe Notifications", location = PageLocation.BOTTOM,
+            description = "Click here to customize failsafe notifications"
+    )
+    public FailsafeNotificationsPage failsafeNotificationsPage = new FailsafeNotificationsPage();
+    //</editor-fold>
+
+    //<editor-fold desc="Desync">
+    @Switch(
+            name = "Check Desync", category = FAILSAFE, subcategory = "Desync",
+            description = "If client desynchronization is detected, it activates a failsafe. Turn this off if the network is weak or if it happens frequently."
+    )
+    public static boolean checkDesync = true;
+    @Slider(
+            name = "Pause for X milliseconds after desync triggered", category = FAILSAFE, subcategory = "Desync",
+            description = "The delay to pause after desync triggered (in milliseconds)",
+            min = 3_000, max = 10_000
+    )
+    public static int desyncPauseDelay = 5_000;
+    //</editor-fold>
+
+    //<editor-fold desc="Failsafe Trigger Sound">
     @Switch(
             name = "Enable Failsafe Trigger Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound", size = OptionSize.DUAL,
             description = "Makes a sound when a failsafe has been triggered"
@@ -403,7 +677,6 @@ public class FarmHelperConfig extends Config {
             right = "Custom"
     )
     public static boolean failsafeSoundType = false;
-    // START FAILSAFE
     @Dropdown(
             name = "Minecraft Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
             description = "The Minecraft sound to play when a failsafe has been triggered",
@@ -414,7 +687,6 @@ public class FarmHelperConfig extends Config {
     )
     public static int failsafeMcSoundSelected = 1;
 
-    // END MISCELLANEOUS
     @Dropdown(
             name = "Custom Sound", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
             description = "The custom sound to play when a failsafe has been triggered",
@@ -452,6 +724,23 @@ public class FarmHelperConfig extends Config {
             description = "Maxes out the sounds while failsafe"
     )
     public static boolean maxOutMinecraftSounds = false;
+
+    @Button(
+            name = "", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
+            description = "Plays the selected sound",
+            text = "Play"
+    )
+    Runnable _playFailsafeSoundButton = () -> AudioManager.getInstance().playSound();
+    @Button(
+            name = "", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
+            description = "Stops playing the selected sound",
+            text = "Stop"
+    )
+    Runnable _stopFailsafeSoundButton = () -> AudioManager.getInstance().resetSound();
+
+    //</editor-fold>
+
+    //<editor-fold desc="Restart after failsafe">
     @Switch(
             name = "Enable Restart After FailSafe", category = FAILSAFE, subcategory = "Restart After FailSafe",
             description = "Restarts the macro after a while when a failsafe has been triggered"
@@ -463,6 +752,9 @@ public class FarmHelperConfig extends Config {
             min = 1, max = 60
     )
     public static int restartAfterFailSafeDelay = 5;
+    //</editor-fold>
+
+    //<editor-fold desc="Banwave">
     @Switch(
             name = "Enable Banwave Checker", category = FAILSAFE, subcategory = "Banwave Checker",
             description = "Checks for banwave and shows you the number of players banned in the last 15 minutes",
@@ -492,7 +784,7 @@ public class FarmHelperConfig extends Config {
             min = 1, max = 100
     )
     public static int banwaveThreshold = 50;
-    @cc.polyfrost.oneconfig.config.annotations.Number(
+    @Number(
             name = "Delay Before Reconnecting", category = FAILSAFE, subcategory = "Banwave Checker",
             description = "The delay before reconnecting after leaving on banwave (in seconds)",
             min = 1, max = 20, size = 2
@@ -503,11 +795,17 @@ public class FarmHelperConfig extends Config {
             description = "Prevents the macro from leaving during Jacob's Contest even when banwave detected"
     )
     public static boolean banwaveDontLeaveDuringJacobsContest = true;
+    //</editor-fold>
+
+    //<editor-fold desc="Anti Stuck">
     @Switch(
-            name = "Enable AntiStuck", category = FAILSAFE, subcategory = "AntiStuck",
+            name = "Enable Anti Stuck", category = FAILSAFE, subcategory = "Anti Stuck",
             description = "Prevents the macro from getting stuck in the same position"
     )
     public static boolean enableAntiStuck = true;
+    //</editor-fold>
+
+    //<editor-fold desc="Failsafe Messages">
     @Switch(
             name = "Send Chat Message During Failsafe", category = FAILSAFE, subcategory = "Failsafe Messages",
             description = "Sends a chat message when a failsafe has been triggered"
@@ -518,6 +816,11 @@ public class FarmHelperConfig extends Config {
             description = "Click here to edit custom failsafe messages"
     )
     public static CustomFailsafeMessagesPage customFailsafeMessagesPage = new CustomFailsafeMessagesPage();
+    //</editor-fold>
+    //</editor-fold>
+
+    //<editor-fold desc="SCHEDULER">
+    //<editor-fold desc="Scheduler">
     @Switch(
             name = "Enable Scheduler", category = SCHEDULER, subcategory = "Scheduler", size = OptionSize.DUAL,
             description = "Farms for X amount of minutes then takes a break for X amount of minutes"
@@ -557,12 +860,9 @@ public class FarmHelperConfig extends Config {
             description = "Opens inventory on scheduler breaks"
     )
     public static boolean openInventoryOnSchedulerBreaks = true;
-    //
-//    @Switch(
-//            name = "Leave after failsafe triggered", category = FAILSAFE, subcategory = "Restart After FailSafe",
-//            description = "Leaves the server after a failsafe has been triggered"
-//    )
-//    public static boolean leaveAfterFailSafe = false;
+    //</editor-fold>
+
+    //<editor-fold desc="Leave timer">
     @Switch(
             name = "Enable leave timer", category = SCHEDULER, subcategory = "Leave Timer",
             description = "Leaves the server after the timer has ended"
@@ -572,9 +872,12 @@ public class FarmHelperConfig extends Config {
             name = "Leave time", category = SCHEDULER, subcategory = "Leave Timer",
             description = "The time to leave the server (in minutes)",
             min = 15, max = 720, step = 5
-//            min = 1, max = 20, step = 1
     )
     public static int leaveTime = 60;
+    //</editor-fold>
+    //</editor-fold>
+
+    //<editor-fold desc="JACOB'S CONTEST">
     @Switch(
             name = "Enable Jacob Failsafes", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "Stops farming once a crop threshold has been met"
@@ -629,7 +932,7 @@ public class FarmHelperConfig extends Config {
             min = 10000, max = 2000000, step = 10000
     )
     public static int jacobMelonCap = 1234000;
-    // START SCHEDULER
+
     @Slider(
             name = "Pumpkin Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "The pumpkin cap",
@@ -637,7 +940,6 @@ public class FarmHelperConfig extends Config {
     )
     public static int jacobPumpkinCap = 240000;
 
-    // END FAILSAFE
     @Slider(
             name = "Cocoa Beans Cap", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "The cocoa beans cap",
@@ -650,7 +952,11 @@ public class FarmHelperConfig extends Config {
             min = 10000, max = 2000000, step = 10000
     )
     public static int jacobCactusCap = 470000;
-    // END SCHEDULER
+
+    //</editor-fold>
+
+    //<editor-fold desc="VISITORS">
+    //<editor-fold desc="Visitors Main">
     @Info(
             text = "Visitors Macro tends to move your mouse because of opening GUIs frequently. Be aware of that.",
             type = InfoType.WARNING,
@@ -659,6 +965,15 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static boolean visitorsMacroWarning2;
+
+    @Info(
+            text = "Cookie buff is required!",
+            type = InfoType.ERROR,
+            category = VISITORS_MACRO,
+            subcategory = "Visitors Macro"
+    )
+    public static boolean infoCookieBuffRequired;
+
     @Switch(
             name = "Enable visitors macro", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "Enables visitors macro"
@@ -681,15 +996,12 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean pauseVisitorsMacroDuringJacobsContest = true;
 
-    // START JACOB
     @Slider(
             name = "The minimum amount of coins to start the macro (in thousands)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "The minimum amount of coins you need to have in your purse to start the visitors macro",
             min = 1_000, max = 20_000
     )
     public static int visitorsMacroMinMoney = 2_000;
-
-    // START VISITORS_MACRO
     @Slider(
             name = "Price Manipulation Detection Multiplier", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "How much does Instant Buy price need to be higher than Instant Sell price to detect price manipulation",
@@ -704,14 +1016,19 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static boolean infoCompactors;
-    @Info(
-            text = "Cookie buff is required!",
-            type = InfoType.ERROR,
-            category = VISITORS_MACRO,
-            subcategory = "Visitors Macro"
-    )
-    public static boolean infoCookieBuffRequired;
 
+    @Button(
+            name = "Start the macro manually", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+            description = "Triggers the visitors macro",
+            text = "Trigger now"
+    )
+    public static Runnable triggerVisitorsMacro = () -> {
+        VisitorsMacro.getInstance().setManuallyStarted(true);
+        VisitorsMacro.getInstance().start();
+    };
+    //</editor-fold>
+
+    //<editor-fold desc="Rarity">
     @Dropdown(
             name = "Uncommon", category = VISITORS_MACRO, subcategory = "Rarity",
             description = "The action taken when an uncommon visitor arrives",
@@ -747,54 +1064,34 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static int visitorsActionSpecial = 0;
-    @cc.polyfrost.oneconfig.config.annotations.Number(
-            name = "SpawnPos X", category = VISITORS_MACRO, subcategory = "Spawn Position",
-            description = "The X coordinate of the spawn",
-            min = -30000000, max = 30000000
+    //</editor-fold>
+    //</editor-fold>
 
-    )
-    public static int spawnPosX = 0;
-    @cc.polyfrost.oneconfig.config.annotations.Number(
-            name = "SpawnPos Y", category = VISITORS_MACRO, subcategory = "Spawn Position",
-            description = "The Y coordinate of the spawn",
-            min = -30000000, max = 30000000
-    )
-    public static int spawnPosY = 0;
-    @cc.polyfrost.oneconfig.config.annotations.Number(
-            name = "SpawnPos Z", category = VISITORS_MACRO, subcategory = "Spawn Position",
-            description = "The Z coordinate of the spawn",
-            min = -30000000, max = 30000000
-    )
-    public static int spawnPosZ = 0;
-
-    @Switch(
-            name = "Draw spawn location", category = VISITORS_MACRO, subcategory = "Drawings",
-            description = "Draws the spawn location"
-    )
-    public static boolean drawSpawnLocation = true;
-
-    // END JACOB
-
+    //<editor-fold desc="PESTS DESTROYER">
+    //<editor-fold desc="Infos">
     @Info(
-            text = "Make sure to have enabled Hypixel's Particles (/pq low), low is the minimum to make it work",
+            text = "Make sure to enable Hypixel's Particles (/pq low), low is the minimum to make it work",
             type = InfoType.WARNING,
             category = PESTS_DESTROYER,
-            subcategory = "Pests Destroyer",
             size = 2
     )
     public static boolean pestsDestroyerWarning;
 
+    @Info(
+            text = "Pests Destroyer will trigger only at rewarp or spawn location after reaching the threshold!",
+            type = InfoType.INFO,
+            category = PESTS_DESTROYER,
+            size = 2
+    )
+    public static boolean pestsDestroyerInfo;
+    //</editor-fold>
+
+    //<editor-fold desc="Pests Destroyer Main">
     @Switch(
             name = "Enable Pests Destroyer (USE AT YOUR OWN RISK)", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Destroys pests"
     )
     public static boolean enablePestsDestroyer = false;
-
-    @Switch(
-            name = "Fly to the pests instead of TP", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
-            description = "Flies to the pests instead of teleporting to them"
-    )
-    public static boolean flyToPestInstead = false;
     @Slider(
             name = "Start killing pests at X pests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "The amount of pests to start killing pests",
@@ -832,6 +1129,9 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static OneKeyBind enablePestsDestroyerKeyBind = new OneKeyBind(Keyboard.KEY_NONE);
+    //</editor-fold>
+
+    //<editor-fold desc="Drawings">
 
     @Switch(
             name = "Pests ESP", category = PESTS_DESTROYER, subcategory = "Drawings",
@@ -863,6 +1163,9 @@ public class FarmHelperConfig extends Config {
             description = "The color of the plot highlight"
     )
     public static OneColor plotHighlightColor = new OneColor(0, 255, 217, 40);
+    //</editor-fold>
+
+    //<editor-fold desc="Logs">
     @Switch(
             name = "Send Webhook log if pests detection number has been exceeded", category = PESTS_DESTROYER, subcategory = "Logs",
             description = "Sends a webhook log if pests detection number has been exceeded"
@@ -878,6 +1181,11 @@ public class FarmHelperConfig extends Config {
             description = "Sends a notification if pests detection number has been exceeded"
     )
     public static boolean sendNotificationIfPestsDetectionNumberExceeded = true;
+    //</editor-fold>
+    //</editor-fold>
+
+    //<editor-fold desc="DISCORD INTEGRATION">
+    //<editor-fold desc="Webhook Discord">
     @Switch(
             name = "Enable Webhook Messages", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
             description = "Allows to send messages via Discord webhooks"
@@ -893,7 +1201,7 @@ public class FarmHelperConfig extends Config {
             description = "Sends messages about the macro, such as profits, harvesting crops, etc"
     )
     public static boolean sendStatusUpdates = false;
-    @cc.polyfrost.oneconfig.config.annotations.Number(
+    @Number(
             name = "Status Update Interval (in minutes)", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
             description = "The interval between sending messages about status updates",
             min = 1, max = 60
@@ -916,6 +1224,9 @@ public class FarmHelperConfig extends Config {
             secure = true
     )
     public static String webHookURL = "";
+    //</editor-fold>
+
+    //<editor-fold desc="Remote Control">
     @Switch(
             name = "Enable Remote Control", category = DISCORD_INTEGRATION, subcategory = "Remote Control",
             description = "Enables remote control via Discord messages"
@@ -935,15 +1246,14 @@ public class FarmHelperConfig extends Config {
             placeholder = "localhost"
     )
     public static String discordRemoteControlAddress = "localhost";
-    // START PESTS_DESTROYER
-    @cc.polyfrost.oneconfig.config.annotations.Number(
+
+    @Number(
             name = "Remote Control Port", category = DISCORD_INTEGRATION, subcategory = "Remote Control",
             description = "The port to use for remote control. Change this if you have port conflicts.",
             min = 1, max = 65535
     )
     public static int remoteControlPort = 21370;
 
-    // END VISITORS_MACRO
     @Info(
             text = "If you want to use the remote control feature, you need to put Farm Helper JDA Dependency inside your mods folder.",
             type = InfoType.ERROR,
@@ -952,6 +1262,11 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static boolean infoRemoteControl;
+    //</editor-fold>
+    //</editor-fold>
+
+    //<editor-fold desc="DELAYS">
+    //<editor-fold desc="Changing Rows">
     @Slider(
             name = "Time between changing rows", category = DELAYS, subcategory = "Changing rows",
             description = "The minimum time to wait before changing rows (in milliseconds)",
@@ -964,6 +1279,9 @@ public class FarmHelperConfig extends Config {
             min = 0, max = 2000
     )
     public static float randomTimeBetweenChangingRows = 200f;
+    //</editor-fold>
+
+    //<editor-fold desc="Rotation Time">
     @Slider(
             name = "Rotation Time", category = DELAYS, subcategory = "Rotations",
             description = "The time it takes to rotate the player",
@@ -976,6 +1294,9 @@ public class FarmHelperConfig extends Config {
             min = 0f, max = 2000f
     )
     public static float rotationTimeRandomness = 300;
+    //</editor-fold>
+
+    //<editor-fold desc="Pests Destroyer Time">
     @Slider(
             name = "Pests Destroyer Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
             description = "The time it takes to rotate the player",
@@ -1000,21 +1321,24 @@ public class FarmHelperConfig extends Config {
             min = 0, max = 100
     )
     public static int pestsKillerTicksOfNotSeeingPestWhileAttacking = 30;
+    //</editor-fold>
+
+    //<editor-fold desc="Gui Delay">
     @Slider(
             name = "GUI Delay", category = DELAYS, subcategory = "GUI Delays",
             description = "The delay between clicking during GUI macros (in miliseconds)",
             min = 250f, max = 2000f
     )
-    public static float visitorsMacroGuiDelay = 400f;
-    // START DISCORD_INTEGRATION
+    public static float macroGuiDelay = 400f;
     @Slider(
             name = "Additional random GUI Delay", category = DELAYS, subcategory = "GUI Delays",
             description = "The maximum random time added to the delay time between clicking during GUI macros (in miliseconds)",
             min = 0f, max = 2000f
     )
-    public static float visitorsMacroGuiDelayRandomness = 350f;
+    public static float macroGuiDelayRandomness = 350f;
+    //</editor-fold>
 
-    // END PESTS_DESTROYER
+    //<editor-fold desc="Plot Cleaning Time">
     @Slider(
             name = "Plot Cleaning Helper Rotation Time", category = DELAYS, subcategory = "Plot Cleaning Helper",
             description = "The time it takes to rotate the player",
@@ -1028,6 +1352,9 @@ public class FarmHelperConfig extends Config {
     )
 
     public static float plotCleaningHelperRotationTimeRandomness = 50;
+    //</editor-fold>
+
+    //<editor-fold desc="Rewarp Time">
     @Slider(
             name = "Rewarp Delay", category = DELAYS, subcategory = "Rewarp",
             description = "The delay between rewarping (in milliseconds)",
@@ -1040,6 +1367,10 @@ public class FarmHelperConfig extends Config {
             min = 0f, max = 2000f
     )
     public static float rewarpDelayRandomness = 350f;
+    //</editor-fold>
+    //</editor-fold>
+
+    //<editor-fold desc="HUD">
     @HUD(
             name = "Status HUD", category = HUD
     )
@@ -1048,14 +1379,22 @@ public class FarmHelperConfig extends Config {
             name = "Profit Calculator HUD", category = HUD, subcategory = " "
     )
     public static ProfitCalculatorHUD profitHUD = new ProfitCalculatorHUD();
+    //</editor-fold>
+
+    //<editor-fold desc="DEBUG">
+    //<editor-fold desc="Debug">
     @KeyBind(
-            name = "Debug Keybind", category = DEBUG
+            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
     )
-    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_H);
+    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
     @KeyBind(
-            name = "Debug Keybind2", category = DEBUG
+            name = "Debug Keybind 2", category = DEBUG
     )
-    public static OneKeyBind debugKeybind2 = new OneKeyBind(Keyboard.KEY_J);
+    public static OneKeyBind debugKeybind2 = new OneKeyBind(Keyboard.KEY_H);
+    @KeyBind(
+            name = "Debug Keybind 3", category = DEBUG
+    )
+    public static OneKeyBind debugKeybind3 = new OneKeyBind(Keyboard.KEY_J);
     @Switch(
             name = "Debug Mode", category = DEBUG, subcategory = "Debug",
             description = "Prints to chat what the bot is currently executing. Useful if you are having issues."
@@ -1066,27 +1405,24 @@ public class FarmHelperConfig extends Config {
             description = "Hides all logs from the console. Not recommended."
     )
     public static boolean hideLogs = false;
-    @Button(
-            name = "Start the macro manually", category = VISITORS_MACRO, subcategory = "Visitors Macro",
-            description = "Triggers the visitors macro",
-            text = "Trigger now"
-    )
-    public static Runnable triggerVisitorsMacro = () -> {
-        VisitorsMacro.getInstance().setManuallyStarted(true);
-        VisitorsMacro.getInstance().start();
-    };
+    //</editor-fold>
+
+    //<editor-fold desc="Debug Hud">
     @HUD(
             name = "Debug HUD", category = DEBUG, subcategory = " "
     )
     public static DebugHUD debugHUD = new DebugHUD();
-    // START DELAYS
+    //</editor-fold>
+    //</editor-fold>
+
+    //<editor-fold desc="EXPERIMENTAL">
+    //<editor-fold desc="Fastbreak">
     @Switch(
             name = "Enable Fast Break (DANGEROUS)", category = EXPERIMENTAL, subcategory = "Fast Break",
             description = "Fast Break is very risky and using it will most likely result in a ban. Proceed with caution."
     )
     public static boolean fastBreak = false;
 
-    // END DISCORD_INTEGRATION
     @Info(
             text = "Fast Break will most likely ban you. Use at your own risk.",
             type = InfoType.ERROR,
@@ -1110,106 +1446,43 @@ public class FarmHelperConfig extends Config {
             description = "Disables Fast Break during Jacob's contest"
     )
     public static boolean disableFastBreakDuringJacobsContest = true;
+    //</editor-fold>
+
+    //<editor-fold desc="Auto Switch">
+    @Switch(
+            name = "Auto switch tool based on crop", category = EXPERIMENTAL, subcategory = "Auto Switch",
+            description = "Automatically switches to the best tool based on the crop"
+    )
+    public static boolean autoSwitchTool = true;
+    //</editor-fold>
+
+    //<editor-fold desc="Fly Path Finder">
+    @Slider(
+            name = "Flight Path Finder Allowed Overshoot Threshold", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "The minimum distance from the block at which the flight path finder would allow overshooting",
+            min = 0.05f, max = 0.4f
+    )
+    public static float flightAllowedOvershootThreshold = 0.1f;
+    @Slider(
+            name = "Max stuck time (in ticks)", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "The maximum time to wait before unstucking (in ticks)",
+            min = 30, max = 150
+    )
+    public static int flightMaxStuckTime = 40;
+    @Switch(
+            name = "Lock rotation to multipliers of 45 degrees", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "Locks the rotation to multipliers of 45 degrees"
+    )
+    public static boolean flightLockRotationToMultipliersOf45Degrees = false;
+    //</editor-fold>
+    //</editor-fold>
+
     @Number(name = "Config Version", category = EXPERIMENTAL, subcategory = "Experimental", min = 0, max = 1337)
     public static int configVersion = 1;
     @Switch(
             name = "Shown Welcome GUI", category = EXPERIMENTAL, subcategory = "Experimental"
     )
     public static boolean shownWelcomeGUI = false;
-    @Info(
-            text = "Priority getting God Pot is: Backpack -> Bits -> AH",
-            type = InfoType.INFO, size = 2, category = MISCELLANEOUS, subcategory = "God Pot"
-    )
-    private static int godPotInfo;
-    @Page(
-            name = "Customize items sold to NPC", category = MISCELLANEOUS, subcategory = "Auto Sell", location = PageLocation.BOTTOM,
-            description = "Click here to customize items that are sold to NPC automatically"
-    )
-    public AutoSellNPCItemsPage autoSellNPCItemsPage = new AutoSellNPCItemsPage();
-    @Page(
-            name = "Failsafe Notifications", category = FAILSAFE, subcategory = "Failsafe Notifications", location = PageLocation.BOTTOM,
-            description = "Click here to customize failsafe notifications"
-    )
-    public FailsafeNotificationsPage failsafeNotificationsPage = new FailsafeNotificationsPage();
-    @Button(
-            name = "Reset Failsafe", category = MISCELLANEOUS, subcategory = "Pest Repellent",
-            text = "Click Here",
-            description = "Resets the failsafe timer for repellent"
-    )
-    Runnable resetFailsafe = () -> {
-        AutoRepellent.repellentFailsafeClock.schedule(0);
-    };
-    @Button(
-            name = "Add Rewarp", category = GENERAL, subcategory = "Rewarp",
-            description = "Adds a rewarp position",
-            text = "Add Rewarp"
-    )
-    Runnable _addRewarp = FarmHelperConfig::addRewarp;
-    @Button(
-            name = "Remove Rewarp", category = GENERAL, subcategory = "Rewarp",
-            description = "Removes a rewarp position",
-            text = "Remove Rewarp"
-    )
-    Runnable _removeRewarp = FarmHelperConfig::removeRewarp;
-    @Button(
-            name = "Remove All Rewarps", category = GENERAL, subcategory = "Rewarp",
-            description = "Removes all rewarp positions",
-            text = "Remove All Rewarps"
-    )
-    Runnable _removeAllRewarps = FarmHelperConfig::removeAllRewarps;
-    @Button(
-            name = "Sell Inventory Now", category = MISCELLANEOUS, subcategory = "Auto Sell",
-            description = "Sells crops in your inventory",
-            text = "Sell Inventory Now"
-    )
-    Runnable autoSellFunction = () -> {
-        mc.thePlayer.closeScreen();
-        AutoSell.getInstance().enable(true);
-    };
-    @Button(
-            name = "Test failsafe", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Tests failsafe",
-            text = "Test failsafe", size = 2
-    )
-    Runnable _testFailsafe = () -> {
-        LogUtils.sendDebug("Testing failsafe...");
-        Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.TEST);
-    };
-    @Button(
-            name = "", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
-            description = "Plays the selected sound",
-            text = "Play"
-    )
-    Runnable _playFailsafeSoundButton = () -> AudioManager.getInstance().playSound();
-    @Button(
-            name = "", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
-            description = "Stops playing the selected sound",
-            text = "Stop"
-    )
-    Runnable _stopFailsafeSoundButton = () -> AudioManager.getInstance().resetSound();
-    @Button(
-            name = "Set SpawnPos", category = VISITORS_MACRO, subcategory = "Spawn Position",
-            description = "Sets the spawn position to your current position",
-            text = "Set SpawnPos"
-    )
-    Runnable _setSpawnPos = PlayerUtils::setSpawnLocation;
-    @Button(
-            name = "Reset SpawnPos", category = VISITORS_MACRO, subcategory = "Spawn Position",
-            description = "Resets the spawn position",
-            text = "Reset SpawnPos"
-    )
-    Runnable _resetSpawnPos = () -> {
-        spawnPosX = 0;
-        spawnPosY = 0;
-        spawnPosZ = 0;
-        save();
-        LogUtils.sendSuccess("Spawn position has been reset!");
-    };
-    @Info(
-            text = "Freelock doesn't work properly with Oringo!", type = InfoType.WARNING,
-            category = MISCELLANEOUS, subcategory = "Keybinds"
-    )
-    private int freelockWarning;
 
     public FarmHelperConfig() {
         super(new Mod("Farm Helper", ModType.HYPIXEL, "/farmhelper/icon-mod/icon.png"), "/farmhelper/config.json");
@@ -1325,6 +1598,8 @@ public class FarmHelperConfig extends Config {
 
         this.addDependency("pestRepellentType", "autoPestRepellent");
 
+        this.addDependency("averageBPSDrop", "averageBPSDropCheck");
+
         this.addDependency("leaveTime", "leaveTimer");
 
         this.hideIf("shownWelcomeGUI", () -> true);
@@ -1333,10 +1608,16 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-//        registerKeyBind(debugKeybind, () -> {
-//            PestsDestroyer.getInstance().setCantReachPest(40);
-//        });
         registerKeyBind(debugKeybind, () -> {
+        });
+        registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
+        registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
+        registerKeyBind(enablePestsDestroyerKeyBind, () -> {
+            if (PestsDestroyer.getInstance().canEnableMacro(true)) {
+                PestsDestroyer.getInstance().start();
+            }
+        });
+        registerKeyBind(debugKeybind2, () -> {
             MovingObjectPosition objectMouseOver = Minecraft.getMinecraft().objectMouseOver;
             if (objectMouseOver != null && objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                 BlockPos blockPos = objectMouseOver.getBlockPos();
@@ -1345,22 +1626,11 @@ public class FarmHelperConfig extends Config {
                 FlyPathfinder.getInstance().setGoal(new GoalBlock(oppositeSide));
             }
         });
-        registerKeyBind(debugKeybind2, () -> {
-            FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal(), true);
-        });
-        registerKeyBind(freelockKeybind, () -> Freelock.getInstance().toggle());
-        registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
-        registerKeyBind(enablePestsDestroyerKeyBind, () -> {
-            if (PestsDestroyer.getInstance().canEnableMacro(true)) {
-                PestsDestroyer.getInstance().start();
-            }
-        });
+        registerKeyBind(debugKeybind3, () -> {
+                    FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal());
+                });
         save();
     }
-
-    // END DELAYS
-
-    // START HUD
 
     public static void addRewarp() {
         if (FarmHelperConfig.rewarpList.stream().anyMatch(rewarp -> rewarp.isTheSameAs(BlockUtils.getRelativeBlockPos(0, 0, 0)))) {
@@ -1394,10 +1664,6 @@ public class FarmHelperConfig extends Config {
         }
     }
 
-    // END HUD
-
-    // START DEBUG
-
     public static void removeAllRewarps() {
         rewarpList.clear();
         LogUtils.sendSuccess("Removed all saved rewarp positions");
@@ -1423,10 +1689,6 @@ public class FarmHelperConfig extends Config {
         return (long) (timeBetweenChangingRows + (float) Math.random() * randomTimeBetweenChangingRows);
     }
 
-    // END DEBUG
-
-    // START EXPERIMENTAL
-
     public static long getMaxTimeBetweenChangingRows() {
         return (long) (timeBetweenChangingRows + randomTimeBetweenChangingRows);
     }
@@ -1440,37 +1702,12 @@ public class FarmHelperConfig extends Config {
     }
 
     public static long getRandomGUIMacroDelay() {
-        return (long) (visitorsMacroGuiDelay + (float) Math.random() * visitorsMacroGuiDelayRandomness);
+        return (long) (macroGuiDelay + (float) Math.random() * macroGuiDelayRandomness);
     }
 
     public static long getRandomPlotCleaningHelperRotationTime() {
         return (long) (plotCleaningHelperRotationTime + (float) Math.random() * plotCleaningHelperRotationTimeRandomness);
     }
-
-    @Slider(
-            name = "Flight Path Finder Speed Acceleration Distance", category = EXPERIMENTAL, subcategory = "Flight",
-            description = "The minimum distance from the block at which the flight path finder accelerates",
-            min = 0.1f, max = 1.5f
-    )
-    public static float flightSpeedAccelerationDistance = 0.6f;
-
-    @Slider(
-            name = "Flight Path Finder Speed Deceleration Distance", category = EXPERIMENTAL, subcategory = "Flight",
-            description = "The minimum distance from the block at which the flight path finder decelerates",
-            min = 0.01f, max = 0.7f
-    )
-    public static float flightSpeedDecelerationDistance = 0.5f;
-
-    @Slider(
-            name = "Flight Path Finder Speed Deceleration Threshold", category = EXPERIMENTAL, subcategory = "Flight",
-            description = "The minimum flight speed after which flight path finder would decelerate",
-            min = 0.01f, max = 0.5f
-    )
-    public static float flightSpeedDecelerationThreshold = 0.2f;
-
-    // END EXPERIMENTAL
-
-    // END EXPERIMENTAL
 
     public static long getRandomRewarpDelay() {
         return (long) (rewarpDelay + (float) Math.random() * rewarpDelayRandomness);

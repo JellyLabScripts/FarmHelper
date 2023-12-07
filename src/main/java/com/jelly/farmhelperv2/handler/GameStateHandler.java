@@ -10,6 +10,7 @@ import com.jelly.farmhelperv2.util.helper.Timer;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StringUtils;
@@ -31,6 +32,7 @@ public class GameStateHandler {
     @Getter
     private final Clock jacobContestLeftClock = new Clock();
     private final Pattern jacobsRemainingTimePattern = Pattern.compile("([0-9]|[1-2][0-9])m([0-9]|[1-5][0-9])s");
+    private final Pattern serverClosingPattern = Pattern.compile("Server closing: (?<minutes>\\d+):(?<seconds>\\d+) .*");
     @Getter
     private Location lastLocation = Location.TELEPORTING;
     @Getter
@@ -79,6 +81,9 @@ public class GameStateHandler {
     @Getter
     @Setter
     private boolean wasInJacobContest = false;
+    @Getter
+    @Setter
+    private Optional<Integer> serverClosingSeconds = Optional.empty();
 
     public static GameStateHandler getInstance() {
         if (INSTANCE == null) {
@@ -92,6 +97,7 @@ public class GameStateHandler {
         lastLocation = location;
         location = Location.TELEPORTING;
     }
+
 
     @SubscribeEvent
     public void onTickCheckCoins(TickEvent.PlayerTickEvent event) {
@@ -108,6 +114,14 @@ public class GameStateHandler {
 
         for (String line : scoreboardLines) {
             String cleanedLine = StringUtils.stripControlCodes(ScoreboardUtils.cleanSB(line));
+            Matcher serverClosingMatcher = serverClosingPattern.matcher(StringUtils.stripControlCodes(ScoreboardUtils.cleanSB(line)));
+            if (serverClosingMatcher.find()) {
+                int minutes = Integer.parseInt(serverClosingMatcher.group("minutes"));
+                int seconds = Integer.parseInt(serverClosingMatcher.group("seconds"));
+                serverClosingSeconds = Optional.of(minutes * 60 + seconds);
+            } else {
+                serverClosingSeconds = Optional.empty();
+            }
             if (cleanedLine.contains("Purse:") || cleanedLine.contains("Piggy:")) {
                 try {
                     String stringPurse = cleanedLine.split(" ")[1].replace(",", "").trim();
@@ -140,7 +154,7 @@ public class GameStateHandler {
             }
             if (inJacobContest()) {
                 try {
-                    if (cleanedLine.contains("with")) {
+                    if (cleanedLine.contains("with") || cleanedLine.startsWith("Collected")) {
                         jacobsContestCropNumber = Integer.parseInt(cleanedLine.substring(cleanedLine.lastIndexOf(" ") + 1).replace(",", ""));
                     }
                 } catch (NumberFormatException ignored) {
@@ -354,7 +368,25 @@ public class GameStateHandler {
     }
 
     public boolean notMoving() {
-        return (dx < 0.01 && dz < 0.01 && dy < 0.01 && mc.currentScreen == null) || (KeyBindUtils.areAllKeybindsReleased() && mc.thePlayer != null && mc.thePlayer.isPushedByWater() && mc.thePlayer.isInWater());
+        return (dx < 0.01 && dz < 0.01 && dy < 0.01 && mc.currentScreen == null) || (!holdingKeybindIsWalkable() && mc.thePlayer != null && mc.thePlayer.isPushedByWater() && mc.thePlayer.isInWater()) || RotationHandler.getInstance().isRotating();
+    }
+
+    public boolean holdingKeybindIsWalkable() {
+        KeyBinding[] holdingKeybinds = KeyBindUtils.getHoldingKeybinds();
+        for (KeyBinding key : holdingKeybinds) {
+            if (key != null && key.isKeyDown()) {
+                if (key == mc.gameSettings.keyBindForward && !frontWalkable) {
+                    return false;
+                } else if (key == mc.gameSettings.keyBindBack && !backWalkable) {
+                    return false;
+                } else if (key == mc.gameSettings.keyBindRight && !rightWalkable) {
+                    return false;
+                } else if (key == mc.gameSettings.keyBindLeft && !leftWalkable) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public boolean canChangeDirection() {

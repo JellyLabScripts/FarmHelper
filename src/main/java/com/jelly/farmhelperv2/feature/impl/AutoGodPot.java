@@ -10,6 +10,7 @@ import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
@@ -39,7 +40,7 @@ public class AutoGodPot implements IFeature {
     private final Clock delayClock = new Clock();
     @Getter
     private final Clock stuckClock = new Clock();
-    private final int STUCK_DELAY = (int) (7_500 + FarmHelperConfig.visitorsMacroGuiDelay + FarmHelperConfig.visitorsMacroGuiDelayRandomness);
+    private final int STUCK_DELAY = (int) (7_500 + FarmHelperConfig.macroGuiDelay + FarmHelperConfig.macroGuiDelayRandomness);
     private final RotationHandler rotation = RotationHandler.getInstance();
     private final Vec3 ahLocation1 = new Vec3(-17.5, 72, -91.5);
     private final Vec3 ahLocation2 = new Vec3(-30.5, 73, -87.5);
@@ -177,6 +178,7 @@ public class AutoGodPot implements IFeature {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
 
         if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LOBBY && GameStateHandler.getInstance().getGodPotState() == GameStateHandler.BuffState.NOT_ACTIVE) {
             if (!enabled && !activating) {
@@ -245,7 +247,7 @@ public class AutoGodPot implements IFeature {
                 break;
             case OPEN_AH:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
@@ -309,7 +311,7 @@ public class AutoGodPot implements IFeature {
                 InventoryUtils.clickContainerSlot(searchItem.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                 setAhState(AhState.SORT_ITEMS);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                SignUtils.getInstance().setTextToWriteOnString("God Potion");
+                Multithreading.schedule(() -> SignUtils.setTextToWriteOnString("God Potion"), (long) (400 + Math.random() * 400), TimeUnit.MILLISECONDS);
                 break;
             case SORT_ITEMS:
                 if (mc.currentScreen == null) {
@@ -427,7 +429,7 @@ public class AutoGodPot implements IFeature {
                 break;
             case COLLECT_ITEM_OPEN_AH:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
@@ -476,7 +478,7 @@ public class AutoGodPot implements IFeature {
                 break;
             case CLOSE_AH:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                 }
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 setAhState(AhState.NONE);
@@ -493,7 +495,7 @@ public class AutoGodPot implements IFeature {
                 break;
             case TELEPORT_TO_HUB:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
@@ -652,7 +654,7 @@ public class AutoGodPot implements IFeature {
                 break;
             case SELECT_POT:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
@@ -669,7 +671,7 @@ public class AutoGodPot implements IFeature {
                 break;
             case RIGHT_CLICK_POT:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
@@ -695,7 +697,7 @@ public class AutoGodPot implements IFeature {
                 break;
             case OPEN_STORAGE:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
@@ -730,7 +732,7 @@ public class AutoGodPot implements IFeature {
                 break;
             case END:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
@@ -780,7 +782,7 @@ public class AutoGodPot implements IFeature {
                 break;
             case TELEPORT_TO_HUB:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
@@ -876,7 +878,7 @@ public class AutoGodPot implements IFeature {
                 break;
             case OPEN_BITS_SHOP:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
@@ -942,7 +944,7 @@ public class AutoGodPot implements IFeature {
                 break;
             case END:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }

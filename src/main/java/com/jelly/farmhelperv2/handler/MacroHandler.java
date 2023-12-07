@@ -155,7 +155,7 @@ public class MacroHandler {
             return;
         }
         LogUtils.sendDebug("Selected macro: " + LogUtils.capitalize(currentMacro.get().getClass().getSimpleName()));
-        mc.thePlayer.closeScreen();
+        PlayerUtils.closeScreen();
         LogUtils.sendSuccess("Macro enabled!");
         LogUtils.webhookLog("Macro enabled!");
 
@@ -168,7 +168,7 @@ public class MacroHandler {
         }, 300, TimeUnit.MILLISECONDS);
 
         if (mc.currentScreen != null) {
-            mc.thePlayer.closeScreen();
+            PlayerUtils.closeScreen();
         }
         AudioManager.getInstance().setSoundBeforeChange(mc.gameSettings.getSoundLevel(SoundCategory.MASTER));
 
@@ -224,8 +224,9 @@ public class MacroHandler {
             cm.onDisable();
             macroingTimer.pause();
             analyticsTimer.pause();
-            if (scheduler && Freelock.getInstance().isRunning()) {
-                Freelock.getInstance().stop();
+            Failsafe.getInstance().resetLowerBPS();
+            if (scheduler && Freelook.getInstance().isRunning()) {
+                Freelook.getInstance().stop();
             }
             if (Scheduler.getInstance().isFarming())
                 Scheduler.getInstance().pause();
@@ -245,8 +246,11 @@ public class MacroHandler {
             analyticsTimer.resume();
             Scheduler.getInstance().resume();
             if (UngrabMouse.getInstance().isToggled()) {
-                UngrabMouse.getInstance().regrabMouse();
-                UngrabMouse.getInstance().ungrabMouse();
+//                UngrabMouse.getInstance().regrabMouse(true);
+//                UngrabMouse.getInstance().ungrabMouse();
+                if (!mc.inGameHasFocus) {
+                    mc.inGameHasFocus = true;
+                }
             } else {
                 mc.inGameHasFocus = true;
                 mc.mouseHelper.grabMouseCursor();
@@ -367,9 +371,10 @@ public class MacroHandler {
             return;
         }
         currentMacro.ifPresent(m -> {
-            if (m.getSavedState().isPresent()) {
+            if (m.getCurrentState() != AbstractMacro.State.NONE) {
                 LogUtils.sendWarning("Clearing saved state, because of world change.");
-                m.clearSavedState();
+                m.setCurrentState(AbstractMacro.State.NONE);
+                m.setClosest90Deg(Optional.empty());
             }
         });
     }

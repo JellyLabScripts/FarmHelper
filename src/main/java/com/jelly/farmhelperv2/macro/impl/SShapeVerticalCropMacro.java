@@ -71,7 +71,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 LogUtils.sendDebug("onGround: " + mc.thePlayer.onGround);
                 if (mc.thePlayer.onGround && Math.abs(getLayerY() - mc.thePlayer.getPosition().getY()) > 1.5) {
                     changeLaneDirection = null;
-                    if (FarmHelperConfig.rotateAfterDrop && !getRotation().isRotating()) {
+                    if (FarmHelperConfig.rotateAfterDrop) {
                         LogUtils.sendDebug("Rotating 180...");
                         setYaw(AngleUtils.getClosest(getYaw() + 180));
                         setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
@@ -80,7 +80,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                                         new Rotation(getYaw(), getPitch()),
                                         FarmHelperConfig.getRandomRotationTime(),
                                         null
-                                )
+                                ).easeOutBack(true)
                         );
                     }
                     KeyBindUtils.stopMovement();
@@ -139,7 +139,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                         KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, mc.gameSettings.keyBindSprint, FarmHelperConfig.holdLeftClickWhenChangingRow ? mc.gameSettings.keyBindAttack : null);
                         break;
                     case BACKWARD:
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, mc.gameSettings.keyBindSprint, FarmHelperConfig.holdLeftClickWhenChangingRow ? mc.gameSettings.keyBindAttack : null);
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, FarmHelperConfig.holdLeftClickWhenChangingRow ? mc.gameSettings.keyBindAttack : null);
                         break;
                     default: {
                         LogUtils.sendDebug("I can't decide which direction to go!");
@@ -161,14 +161,9 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
 
     @Override
     public void onEnable() {
+        super.onEnable();
         changeLaneDirection = null;
-        FarmHelperConfig.CropEnum crop = PlayerUtils.getFarmingCrop();
-        LogUtils.sendDebug("Crop: " + crop);
-        MacroHandler.getInstance().setCrop(crop);
-        PlayerUtils.getTool();
-        if (FarmHelperConfig.customPitch) {
-            setPitch(FarmHelperConfig.customPitchLevel);
-        } else {
+        if (!FarmHelperConfig.customPitch) {
             if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_V_NORMAL_TYPE) {
                 setPitch((float) (2.8f + Math.random() * 0.5f));
             } else if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_PUMPKIN_MELON) {
@@ -183,19 +178,16 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 setPitch(-90f);
             }
         }
-        if (FarmHelperConfig.customYaw) {
-            setYaw(FarmHelperConfig.customYawLevel);
-        } else {
+        if (!FarmHelperConfig.customYaw) {
             setYaw(AngleUtils.getClosest());
         }
-        getRotation().reset();
-        super.onEnable();
         if (MacroHandler.getInstance().isTeleporting()) return;
+//        if (!shouldFixRotation()) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),
-                        500, null
-                )
+                        FarmHelperConfig.getRandomRotationTime(), null
+                ).easeOutBack(true)
         );
     }
 
@@ -211,7 +203,6 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
 
     @Override
     public State calculateDirection() {
-        System.out.println(AngleUtils.get360RotationYaw());
         State voidCheck = super.calculateDirection();
         if (voidCheck != State.NONE) {
             return voidCheck;

@@ -1,8 +1,11 @@
 package com.jelly.farmhelperv2.mixin.block;
 
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockBush;
 import net.minecraft.block.BlockMushroom;
+import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
@@ -15,13 +18,19 @@ import org.spongepowered.asm.mixin.Unique;
 public class MixinBlockMushroom extends BlockBush {
     @Override
     public AxisAlignedBB getSelectedBoundingBox(World worldIn, BlockPos pos) {
-        farmHelperV2$setMushroomBoundings(worldIn, pos);
+        Block block = Minecraft.getMinecraft().theWorld.getBlockState(pos).getBlock();
+        if (block.equals(Blocks.brown_mushroom) || block.equals(Blocks.red_mushroom)) {
+            farmHelperV2$setMushroomBoundings(worldIn, pos);
+        }
         return super.getSelectedBoundingBox(worldIn, pos);
     }
 
     @Override
     public MovingObjectPosition collisionRayTrace(World worldIn, BlockPos pos, Vec3 start, Vec3 end) {
-        farmHelperV2$setMushroomBoundings(worldIn, pos);
+        Block block = Minecraft.getMinecraft().theWorld.getBlockState(pos).getBlock();
+        if (block.equals(Blocks.brown_mushroom) || block.equals(Blocks.red_mushroom)) {
+            farmHelperV2$setMushroomBoundings(worldIn, pos);
+        }
         return super.collisionRayTrace(worldIn, pos, start, end);
     }
 

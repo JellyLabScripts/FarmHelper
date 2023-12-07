@@ -15,6 +15,7 @@ import com.jelly.farmhelperv2.util.helper.Clock;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.inventory.Slot;
+import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -68,8 +69,7 @@ public class AutoRepellent implements IFeature {
         savedSlot = mc.thePlayer.inventory.currentItem;
         LogUtils.sendWarning("[Auto Repellent] Enabled!");
         delay.reset();
-        if (MacroHandler.getInstance().isMacroToggled())
-            MacroHandler.getInstance().pauseMacro();
+        MacroHandler.getInstance().pauseMacro();
     }
 
     @Override
@@ -80,13 +80,12 @@ public class AutoRepellent implements IFeature {
         notEnoughCopper = false;
         state = State.NONE;
         if (mc.currentScreen != null)
-            mc.thePlayer.closeScreen();
-        if (MacroHandler.getInstance().isMacroToggled())
-            Multithreading.schedule(() -> {
-                if (MacroHandler.getInstance().isMacroToggled()) {
-                    MacroHandler.getInstance().resumeMacro();
-                }
-            }, 1_500, TimeUnit.MILLISECONDS);
+            PlayerUtils.closeScreen();
+        Multithreading.schedule(() -> {
+            if (MacroHandler.getInstance().isMacroToggled()) {
+                MacroHandler.getInstance().resumeMacro();
+            }
+        }, 1_500, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -95,7 +94,7 @@ public class AutoRepellent implements IFeature {
         notEnoughCopper = false;
         state = State.NONE;
         if (mc.currentScreen != null)
-            mc.thePlayer.closeScreen();
+            PlayerUtils.closeScreen();
     }
 
     @Override
@@ -189,7 +188,7 @@ public class AutoRepellent implements IFeature {
             case NONE:
                 KeyBindUtils.stopMovement();
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delay.schedule(300 + (long) (Math.random() * 300));
                     break;
                 }
@@ -202,7 +201,7 @@ public class AutoRepellent implements IFeature {
                 break;
             case OPEN_DESK:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delay.schedule(300 + (long) (Math.random() * 300));
                     break;
                 }
@@ -213,7 +212,7 @@ public class AutoRepellent implements IFeature {
                 break;
             case CLOSE_GUI:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delay.schedule(300 + (long) (Math.random() * 300));
                     break;
                 }
@@ -295,7 +294,7 @@ public class AutoRepellent implements IFeature {
                 break;
             case SELECT_REPELLENT:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delay.schedule(300 + (long) (Math.random() * 300));
                     break;
                 }
@@ -313,7 +312,7 @@ public class AutoRepellent implements IFeature {
                 break;
             case USE_REPELLENT:
                 if (mc.currentScreen != null) {
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delay.schedule(300 + (long) (Math.random() * 300));
                     break;
                 }
@@ -341,7 +340,7 @@ public class AutoRepellent implements IFeature {
             case OPEN_SKYMART:
                 if (!guiName.equals("Desk")) {
                     state = State.OPEN_DESK;
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delay.schedule(300 + (long) (Math.random() * 300));
                     break;
                 }
@@ -361,7 +360,7 @@ public class AutoRepellent implements IFeature {
                 }
                 if (!guiName.equals("SkyMart")) {
                     state = State.OPEN_DESK;
-                    mc.thePlayer.closeScreen();
+                    PlayerUtils.closeScreen();
                     delay.schedule(300 + (long) (Math.random() * 300));
                     break;
                 }
@@ -383,16 +382,17 @@ public class AutoRepellent implements IFeature {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(receiveCanceled = true)
     public void onChatReceived(ClientChatReceivedEvent event) {
         if (!isRunning()) return;
-        String message = event.message.getUnformattedText();
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedText()); // just to be sure lol
         if (state == State.CONFIRM_BUY) {
             if (message.startsWith("You bought Pest")) {
                 state = State.CLOSE_GUI;
                 delay.schedule(300 + (long) (Math.random() * 300));
             }
         } else if (state == State.WAIT_FOR_REPELLENT) {
+            System.out.println(message);
             if (message.startsWith("YUM! Pests will now spawn")) {
                 repellentFailsafeClock.schedule(TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
                 LogUtils.sendDebug("Repellent used!");

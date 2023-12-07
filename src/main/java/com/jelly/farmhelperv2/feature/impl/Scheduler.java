@@ -10,6 +10,7 @@ import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
@@ -113,34 +114,34 @@ public class Scheduler implements IFeature {
 
     public void farmingTime() {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (mc.currentScreen != null) {
-            mc.thePlayer.closeScreen();
-        }
         schedulerState = SchedulerState.FARMING;
-        schedulerClock.schedule((long) ((FarmHelperConfig.schedulerFarmingTime * 60_000f) + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness * 60_000f)));
+        if (mc.currentScreen != null) {
+            PlayerUtils.closeScreen();
+        }
         MacroHandler.getInstance().resumeMacro();
+        schedulerClock.schedule((long) ((FarmHelperConfig.schedulerFarmingTime * 60_000f) + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness * 60_000f)));
     }
 
     public void breakTime() {
         schedulerState = SchedulerState.BREAK;
         MacroHandler.getInstance().pauseMacro(true);
         schedulerClock.schedule((long) ((FarmHelperConfig.schedulerBreakTime * 60_000f) + (Math.random() * FarmHelperConfig.schedulerBreakTimeRandomness * 60_000f)));
-        if (FarmHelperConfig.openInventoryOnSchedulerBreaks) {
-            KeyBindUtils.stopMovement();
-            Multithreading.schedule(() -> {
-                long randomTime4 = FarmHelperConfig.getRandomRotationTime();
-                this.rotation.easeTo(
-                        new RotationConfiguration(
-                                new Rotation(
-                                        (float) (mc.thePlayer.rotationYaw + Math.random() * 20 - 10),
-                                        (float) Math.min(90, Math.max(-90, (mc.thePlayer.rotationPitch + Math.random() * 30 - 15)))
-                                ),
-                                randomTime4, null
-                        )
-                );
+        KeyBindUtils.stopMovement();
+        Multithreading.schedule(() -> {
+            long randomTime4 = FarmHelperConfig.getRandomRotationTime();
+            this.rotation.easeTo(
+                    new RotationConfiguration(
+                            new Rotation(
+                                    (float) (mc.thePlayer.rotationYaw + Math.random() * 20 - 10),
+                                    (float) Math.min(90, Math.max(-90, (mc.thePlayer.rotationPitch + Math.random() * 30 - 15)))
+                            ),
+                            randomTime4, null
+                    )
+            );
+            if (FarmHelperConfig.openInventoryOnSchedulerBreaks) {
                 Multithreading.schedule(InventoryUtils::openInventory, randomTime4 + 350, TimeUnit.MILLISECONDS);
-            }, (long) (300 + Math.random() * 200), TimeUnit.MILLISECONDS);
-        }
+            }
+        }, (long) (300 + Math.random() * 200), TimeUnit.MILLISECONDS);
     }
 
     @SubscribeEvent

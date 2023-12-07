@@ -19,7 +19,6 @@ import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Packet;
-import net.minecraft.network.login.server.S00PacketDisconnect;
 import net.minecraft.network.play.server.S40PacketDisconnect;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.fml.common.Loader;
@@ -27,7 +26,6 @@ import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.compress.utils.IOUtils;
-import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -69,8 +67,9 @@ public class BanInfoWS implements IFeature {
     );
     private WebSocketClient client;
 
+    @Getter
     @Setter
-    private int bans = 0;
+    private int staffBans = 0;
 
     @Getter
     @Setter
@@ -206,19 +205,19 @@ public class BanInfoWS implements IFeature {
     }
 
     public boolean isBanwave() {
-        return getBans() >= FarmHelperConfig.banwaveThreshold;
+        return getAllBans() >= FarmHelperConfig.banwaveThreshold;
     }
 
-    public int getBans() {
+    public int getAllBans() {
         switch (FarmHelperConfig.banwaveThresholdType) {
             case 0: {
-                return bans;
+                return staffBans;
             }
             case 1: {
                 return bansByMod;
             }
             case 2: {
-                return Math.max(bans, bansByMod);
+                return bansByMod + staffBans;
             }
         }
         return 0;
@@ -262,15 +261,8 @@ public class BanInfoWS implements IFeature {
     @SubscribeEvent
     public void onReceivePacket(ReceivePacketEvent event) {
         Packet<?> packet = event.packet;
-        if (packet instanceof S00PacketDisconnect) {
-            String reason = ((S00PacketDisconnect) packet).func_149603_c().getFormattedText();
-            System.out.println("S00PacketDisconnect");
-            System.out.println(reason);
-            processBanScreen(reason);
-        } else if (packet instanceof S40PacketDisconnect) {
+        if (packet instanceof S40PacketDisconnect) {
             String reason = ((S40PacketDisconnect) packet).getReason().getFormattedText();
-            System.out.println("S40PacketDisconnect");
-            System.out.println(reason);
             processBanScreen(reason);
         }
     }
@@ -280,7 +272,6 @@ public class BanInfoWS implements IFeature {
     private void processBanScreen(String wholeReason) {
         Failsafe.getInstance().stop();
         ArrayList<String> multilineMessage = new ArrayList<>(Arrays.asList(wholeReason.split("\n")));
-        System.out.println(multilineMessage);
         try {
             if (times.stream().noneMatch(time -> multilineMessage.get(0).contains(time)) || days.stream().noneMatch(day -> multilineMessage.get(0).contains(day)))
                 return;
@@ -292,7 +283,6 @@ public class BanInfoWS implements IFeature {
             String banId = StringUtils.stripControlCodes(multilineMessage.get(5)).replace("Ban ID: ", "").trim();
             BanInfoWS.getInstance().playerBanned(durationDays, reason, banId, wholeReason);
             LogUtils.webhookLog("[Banned]\\nBanned for " + durationDays + " days for " + reason, true);
-            System.out.println("Banned");
             if (MacroHandler.getInstance().isMacroToggled()) {
                 MacroHandler.getInstance().disableMacro();
             }
@@ -349,9 +339,6 @@ public class BanInfoWS implements IFeature {
                 for (Map.Entry<String, String> header : headers.entrySet()) {
                     post.addHeader(header.getKey(), FarmHelper.gson.toJson(header.getValue()));
                 }
-                for (Header header : post.getAllHeaders()) {
-                    System.out.println(header.getName() + ": " + header.getValue());
-                }
                 Multithreading.schedule(() -> {
                     HttpResponse response = null;
                     try {
@@ -359,7 +346,6 @@ public class BanInfoWS implements IFeature {
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
-                    System.out.println(response);
                 }, 0, TimeUnit.MILLISECONDS);
 
             } catch (AuthenticationException | IOException ex) {
@@ -404,7 +390,7 @@ public class BanInfoWS implements IFeature {
         boolean cheetoLoaded = false;
         JsonArray modFiles = new JsonArray();
         for (File mod : Objects.requireNonNull(new File(Minecraft.getMinecraft().mcDataDir, "mods").listFiles())) {
-            if (!mod.isFile()) return;
+            if (!mod.isFile()) continue;
             String name = mod.getName();
             modFiles.add(new JsonPrimitive(name));
 
@@ -429,7 +415,7 @@ public class BanInfoWS implements IFeature {
         JsonArray ctModules = new JsonArray();
         if (ctLoaded) {
             for (File module : Objects.requireNonNull(new File(Minecraft.getMinecraft().mcDataDir, "config/ChatTriggers/modules").listFiles())) {
-                if (!module.isFile()) return;
+                if (!module.isFile()) continue;
                 String name = module.getName();
                 ctModules.add(new JsonPrimitive(name));
             }
@@ -589,7 +575,7 @@ public class BanInfoWS implements IFeature {
                         int bans = jsonObject.get("bansInLast15Minutes").getAsInt();
                         int minutes = jsonObject.get("bansInLast15MinutesTime").getAsInt();
                         int bansByMod = jsonObject.get("bansInLast15MinutesMod").getAsInt();
-                        BanInfoWS.getInstance().setBans(bans);
+                        BanInfoWS.getInstance().setStaffBans(bans);
                         BanInfoWS.getInstance().setMinutes(minutes);
                         BanInfoWS.getInstance().setBansByMod(bansByMod);
                         System.out.println("Banwave info received: " + bans + " global staff bans in the last " + minutes + " minutes, " + bansByMod + " bans by this mod");
@@ -598,10 +584,9 @@ public class BanInfoWS implements IFeature {
                     case "playerGotBanned": {
                         String username = jsonObject.get("username").getAsString();
                         String days = jsonObject.get("days").getAsString();
-                        String mod = jsonObject.get("mod").getAsString();
                         String reason = jsonObject.get("reason").getAsString();
-                        LogUtils.sendWarning("Player " + username + " got banned for " + days + " days while using " + mod + " (reason: " + reason + ")");
-                        Notifications.INSTANCE.send("FarmHelper INFO", "Player " + username + " got banned for " + days + " days while using " + mod);
+                        LogUtils.sendWarning("Detected ban screen in " + username + "'s client for " + days + " days (reason: " + reason + ")");
+                        Notifications.INSTANCE.send("FarmHelper INFO", "Detected ban screen in " + username + "'s client for " + days + " days");
                         break;
                     }
                 }
