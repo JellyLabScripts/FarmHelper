@@ -46,6 +46,7 @@ public class FlyPathfinder {
     private static final RotationHandler rotation = RotationHandler.getInstance();
     private Clock antiStuckDelay = new Clock();
     private int stuckCounter = 0;
+    private boolean shouldRecalculateLater = false;
 
     public void getPathTo(Goal goal) {
         if (context == null) {
@@ -61,13 +62,16 @@ public class FlyPathfinder {
         FlyAStar finder = new FlyAStar(playerPos.getX(), playerPos.getY(), playerPos.getZ(), goal, context);
         BaritoneAPI.getSettings().movementTimeoutTicks.value = 500;
         PathCalculationResult calcResult = finder.calculate(500L, 2000L);
-        if (!calcResult.getType().equals(PathCalculationResult.Type.SUCCESS_TO_GOAL)) {
+        if (calcResult.getType().equals(PathCalculationResult.Type.SUCCESS_SEGMENT)) {
+            shouldRecalculateLater = true;
+            LogUtils.sendDebug("PathCalculationResult == SUCCESS_SEGMENT");
+        } else if (!calcResult.getType().equals(PathCalculationResult.Type.SUCCESS_TO_GOAL)) {
             LogUtils.sendError("PathCalculationResult == " + calcResult.getType());
             return;
         }
         Optional<IPath> path = calcResult.getPath();
-        if (!path.isPresent()) {
-            LogUtils.sendError("!path.isPresent()");
+        if (path.isPresent() && path.get().positions().isEmpty()) {
+            LogUtils.sendError("The path is empty!");
             return;
         }
         path.ifPresent(iPath -> tempList.addAll(iPath.positions()));
@@ -150,6 +154,10 @@ public class FlyPathfinder {
                                 750, null
                         )
                 );
+            } else if (shouldRecalculateLater) {
+                shouldRecalculateLater = false;
+                LogUtils.sendDebug("Recalculating the path...");
+                getPathTo(goal);
             }
             KeyBindUtils.stopMovement();
             return;
