@@ -599,6 +599,12 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean autoReconnect = true;
     @Slider(
+            name = "Teleport Check Lag Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "Variation in distance between expected and actual positions when lagging",
+            min = 0, max = 2
+    )
+    public static double teleportCheckLagSensitivity = 0.5;
+    @Slider(
             name = "Rotation Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "The sensitivity of the rotation check; the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives.",
             min = 1, max = 10
