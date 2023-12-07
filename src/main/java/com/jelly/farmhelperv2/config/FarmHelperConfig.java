@@ -1480,7 +1480,7 @@ public class FarmHelperConfig extends Config {
             description = "",
             min = 0, max = 15
     )
-    public static int flightDecelerationOffset = 3;
+    public static int flightDecelerationOffset = 5;
     @Slider(
             name = "Maximum stuck distance threshold", category = EXPERIMENTAL, subcategory = "Flight",
             description = "The maximum distance threshold before unstucking (Vec3)",
