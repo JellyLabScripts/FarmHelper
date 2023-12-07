@@ -350,7 +350,7 @@ public class Failsafe implements IFeature {
                 LogUtils.sendDebug("[Failsafe] Teleport detected! Distance: " + distance);
                 final double lastRecievedPacketDistance = currentPlayerPos.distanceTo(LagDetector.getInstance().getLastPacketPosition());
                 // blocks per tick
-                final double playerMovementSpeed = mc.thePlayer.getAttributeMap().getAttributeInstanceByName("generic.movement_speed").getAttributeValue();
+                final double playerMovementSpeed = mc.thePlayer.getAttributeMap().getAttributeInstanceByName("generic.movementSpeed").getAttributeValue();
                 final int ticksSinceLastPacket = (int) Math.ceil(LagDetector.getInstance().getTimeSinceLastTick() / 50D);
                 final double estimatedMovement = playerMovementSpeed * ticksSinceLastPacket;
                 if (lastRecievedPacketDistance > 7.5D && Math.abs(lastRecievedPacketDistance - estimatedMovement) < FarmHelperConfig.teleportCheckLagSensitivity)
