@@ -192,29 +192,33 @@ public class FlyPathfinder {
         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, relativeDistanceX > FarmHelperConfig.flightAllowedOvershootThreshold);
         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, relativeDistanceZ > FarmHelperConfig.flightAllowedOvershootThreshold);
         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, relativeDistanceZ < -FarmHelperConfig.flightAllowedOvershootThreshold);
-        if (shouldChangeHeight() == VerticalDirection.NONE) {
+        if (shouldChangeHeight(distanceY) == VerticalDirection.NONE) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, distanceY > 0.25);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, distanceY < -0.25);
-        } else if (shouldChangeHeight() == VerticalDirection.HIGHER) {
+        } else if (shouldChangeHeight(distanceY) == VerticalDirection.HIGHER) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, true);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, false);
-        } else if (shouldChangeHeight() == VerticalDirection.LOWER) {
+        } else if (shouldChangeHeight(distanceY) == VerticalDirection.LOWER) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
         }
-        if (relativeMotionX > 0 && decelerationReached(relativeMotionX, relativeDistanceX)) {
+        isDeceleratingLeft = relativeMotionX > 0 && decelerationReached(relativeMotionX, relativeDistanceX);
+        if (isDeceleratingLeft) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, true);
         }
-        if (relativeMotionX < 0 && decelerationReached(relativeMotionX, relativeDistanceX)) {
+        isDeceleratingRight = relativeMotionX < 0 && decelerationReached(relativeMotionX, relativeDistanceX);
+        if (isDeceleratingRight) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, true);
         }
-        if (relativeMotionZ < 0 && decelerationReached(relativeMotionZ, relativeDistanceZ)) {
+        isDeceleratingForward = relativeMotionZ < 0 && decelerationReached(relativeMotionZ, relativeDistanceZ);
+        if (isDeceleratingForward) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, true);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, false);
         }
-        if (relativeMotionZ > 0 && decelerationReached(relativeMotionZ, relativeDistanceZ)) {
+        isDeceleratingBackward = relativeMotionZ > 0 && decelerationReached(relativeMotionZ, relativeDistanceZ);
+        if (isDeceleratingBackward) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, true);
         }
@@ -222,8 +226,10 @@ public class FlyPathfinder {
         mc.thePlayer.setSprinting(relativeDistanceZ > 12 && !mc.gameSettings.keyBindSneak.isKeyDown());
     }
 
-    public VerticalDirection shouldChangeHeight() {
-        if (mc.thePlayer.posY % 1 > 0.5
+    public boolean isDeceleratingLeft, isDeceleratingRight, isDeceleratingForward, isDeceleratingBackward;
+
+    public VerticalDirection shouldChangeHeight(double distanceY) {
+        if (mc.thePlayer.posY % 1 > 0.5 && distanceY > 0.75
                 && !BlockUtils.getRelativeFullBlock(0, 0, 1).isPassable(mc.theWorld, BlockUtils.getRelativeFullBlockPos(0, 0, 1))
                 && BlockUtils.getRelativeFullBlock(0, 1, 1).isPassable(mc.theWorld, BlockUtils.getRelativeFullBlockPos(0, 1, 1))
                 && BlockUtils.getRelativeFullBlock(0, 2, 1).isPassable(mc.theWorld, BlockUtils.getRelativeFullBlockPos(0, 2, 1))
@@ -375,8 +381,9 @@ public class FlyPathfinder {
     //region Deceleration
     public boolean decelerationReached(double motion, double distance) {
         double reachedMotion = 0.1;
-        for (int i = 0; i < decelerationDistances.size() - 1; i++) {
-            if (Math.abs(motion) > reachedMotion && decelerationDistances.get(i) > Math.abs(distance)) {
+        int offset = FarmHelperConfig.flightDecelerationOffset;
+        for (int i = 0; i < decelerationDistances.size() - 1 - offset; i++) {
+            if (Math.abs(motion) > reachedMotion && decelerationDistances.get(i + offset) > Math.abs(distance)) {
                 return true;
             }
             reachedMotion += 0.01;

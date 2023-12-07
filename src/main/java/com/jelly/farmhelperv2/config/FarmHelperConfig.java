@@ -1469,6 +1469,12 @@ public class FarmHelperConfig extends Config {
             min = 30, max = 150
     )
     public static int flightMaxStuckTime = 40;
+    @Slider(
+            name = "Deceleration offset", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "",
+            min = 0, max = 15
+    )
+    public static int flightDecelerationOffset = 3;
     @Switch(
             name = "Lock rotation to multipliers of 45 degrees", category = EXPERIMENTAL, subcategory = "Flight",
             description = "Locks the rotation to multipliers of 45 degrees"
