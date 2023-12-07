@@ -1458,23 +1458,35 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="Fly Path Finder">
     @Slider(
-            name = "Flight Path Finder Allowed Overshoot Threshold", category = EXPERIMENTAL, subcategory = "Flight",
+            name = "Allowed Overshoot Threshold", category = EXPERIMENTAL, subcategory = "Flight",
             description = "The minimum distance from the block at which the flight path finder would allow overshooting",
             min = 0.05f, max = 0.4f
     )
     public static float flightAllowedOvershootThreshold = 0.1f;
     @Slider(
-            name = "Max stuck time (in ticks)", category = EXPERIMENTAL, subcategory = "Flight",
+            name = "Max stuck time without motion (in ticks)", category = EXPERIMENTAL, subcategory = "Flight",
             description = "The maximum time to wait before unstucking (in ticks)",
             min = 30, max = 150
     )
-    public static int flightMaxStuckTime = 40;
+    public static int flightMaxStuckTimeWithoutMotion = 40;
+    @Slider(
+            name = "Max stuck time with motion (in ticks)", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "The maximum time to wait before unstucking (in ticks)",
+            min = 30, max = 150
+    )
+    public static int flightMaxStuckTimeWithMotion = 100;
     @Slider(
             name = "Deceleration offset", category = EXPERIMENTAL, subcategory = "Flight",
             description = "",
             min = 0, max = 15
     )
     public static int flightDecelerationOffset = 3;
+    @Slider(
+            name = "Maximum stuck distance threshold", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "The maximum distance threshold before unstucking (Vec3)",
+            min = 0.3f, max = 1.5f
+    )
+    public static float flightMaximumStuckDistanceThreshold = 0.75f;
     @Switch(
             name = "Lock rotation to multipliers of 45 degrees", category = EXPERIMENTAL, subcategory = "Flight",
             description = "Locks the rotation to multipliers of 45 degrees"

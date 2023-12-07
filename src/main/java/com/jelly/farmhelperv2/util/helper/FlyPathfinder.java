@@ -45,8 +45,10 @@ public class FlyPathfinder {
     private final List<BlockPos> realPath = new ArrayList<>();
     private static final RotationHandler rotation = RotationHandler.getInstance();
     private Clock antiStuckDelay = new Clock();
-    private int stuckCounter = 0;
+    private int stuckCounterWithoutMotion = 0;
+    private int stuckCounterWithMotion = 0;
     private boolean shouldRecalculateLater = false;
+    private Vec3 lastPlayerPos;
 
     public void getPathTo(Goal goal) {
         if (context == null) {
@@ -95,14 +97,16 @@ public class FlyPathfinder {
         pathBlocks.clear();
         rotation.reset();
         antiStuckDelay.reset();
-        stuckCounter = 0;
+        stuckCounterWithoutMotion = 0;
+        stuckCounterWithMotion = 0;
     }
 
     public void restart() {
         BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
         KeyBindUtils.stopMovement();
         getPathTo(goal);
-        stuckCounter = 0;
+        stuckCounterWithoutMotion = 0;
+        stuckCounterWithMotion = 0;
     }
 
     public boolean isPathing() {
@@ -173,6 +177,12 @@ public class FlyPathfinder {
             antiStuckDelay.schedule(200);
             return;
         }
+        if (isStuckWithMotion()) {
+            LogUtils.sendDebug("Player is stuck with motion. Resetting pathfinder.");
+            antiStuckDelay.schedule(500);
+            restart();
+            return;
+        }
         if (isStuck()) {
             LogUtils.sendDebug("Player is stuck. Resetting pathfinder.");
             antiStuckDelay.schedule(500);
@@ -192,13 +202,13 @@ public class FlyPathfinder {
         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, relativeDistanceX > FarmHelperConfig.flightAllowedOvershootThreshold);
         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, relativeDistanceZ > FarmHelperConfig.flightAllowedOvershootThreshold);
         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, relativeDistanceZ < -FarmHelperConfig.flightAllowedOvershootThreshold);
-        if (shouldChangeHeight(distanceY) == VerticalDirection.NONE) {
+        if (shouldChangeHeight(relativeDistanceX, relativeDistanceZ) == VerticalDirection.NONE) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, distanceY > 0.25);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, distanceY < -0.25);
-        } else if (shouldChangeHeight(distanceY) == VerticalDirection.HIGHER) {
+        } else if (shouldChangeHeight(relativeDistanceX, relativeDistanceZ) == VerticalDirection.HIGHER) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, true);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, false);
-        } else if (shouldChangeHeight(distanceY) == VerticalDirection.LOWER) {
+        } else if (shouldChangeHeight(relativeDistanceX, relativeDistanceZ) == VerticalDirection.LOWER) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
         }
@@ -228,8 +238,11 @@ public class FlyPathfinder {
 
     public boolean isDeceleratingLeft, isDeceleratingRight, isDeceleratingForward, isDeceleratingBackward;
 
-    public VerticalDirection shouldChangeHeight(double distanceY) {
-        if (mc.thePlayer.posY % 1 > 0.5 && distanceY > 0.75
+    public VerticalDirection shouldChangeHeight(double relativeDistanceX, double relativeDistanceZ) {
+        if (Math.abs(relativeDistanceX) < 0.75 && Math.abs(relativeDistanceZ) < 0.75) {
+            return VerticalDirection.NONE;
+        }
+        if (mc.thePlayer.posY % 1 > 0.5
                 && !BlockUtils.getRelativeFullBlock(0, 0, 1).isPassable(mc.theWorld, BlockUtils.getRelativeFullBlockPos(0, 0, 1))
                 && BlockUtils.getRelativeFullBlock(0, 1, 1).isPassable(mc.theWorld, BlockUtils.getRelativeFullBlockPos(0, 1, 1))
                 && BlockUtils.getRelativeFullBlock(0, 2, 1).isPassable(mc.theWorld, BlockUtils.getRelativeFullBlockPos(0, 2, 1))
@@ -251,17 +264,36 @@ public class FlyPathfinder {
         NONE
     }
 
-    private double getPlayerSpeed() {
+    public double getPlayerSpeed() {
         return Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionY * mc.thePlayer.motionY + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
     }
 
     public boolean isStuck() {
         if (getPlayerSpeed() < 0.1 && !mc.thePlayer.onGround)
-            stuckCounter++;
+            stuckCounterWithoutMotion++;
         else
-            stuckCounter = 0;
-        if (stuckCounter > FarmHelperConfig.flightMaxStuckTime) {
-            stuckCounter = 0;
+            stuckCounterWithoutMotion = 0;
+        if (stuckCounterWithoutMotion > FarmHelperConfig.flightMaxStuckTimeWithoutMotion) {
+            stuckCounterWithoutMotion = 0;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isStuckWithMotion() {
+        if (lastPlayerPos == null || getPlayerSpeed() > 0.5 || mc.thePlayer.onGround) {
+            lastPlayerPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+            return false;
+        }
+        Vec3 currentPlayerPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+        if (currentPlayerPos.distanceTo(lastPlayerPos) < FarmHelperConfig.flightMaximumStuckDistanceThreshold)
+            stuckCounterWithMotion++;
+        else {
+            stuckCounterWithMotion = 0;
+            lastPlayerPos = currentPlayerPos;
+        }
+        if (stuckCounterWithMotion > FarmHelperConfig.flightMaxStuckTimeWithMotion) {
+            stuckCounterWithMotion = 0;
             return true;
         }
         return false;
