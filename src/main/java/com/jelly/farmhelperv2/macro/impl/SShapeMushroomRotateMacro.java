@@ -22,14 +22,14 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
     @Override
     public void onEnable() {
         super.onEnable();
-        if (!FarmHelperConfig.customPitch) {
+        if (!FarmHelperConfig.customPitch && !isRestoredState()) {
             setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
         }
-        if (!FarmHelperConfig.customYaw) {
+        if (!FarmHelperConfig.customYaw && !isRestoredState()) {
             setYaw(AngleUtils.getClosest());
         }
         if (MacroHandler.getInstance().isTeleporting()) return;
-//        if (!shouldFixRotation()) return;
+        setRestoredState(false);
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch()),

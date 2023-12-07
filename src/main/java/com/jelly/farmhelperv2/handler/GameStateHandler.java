@@ -9,6 +9,8 @@ import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.Timer;
 import lombok.Getter;
 import lombok.Setter;
+import net.minecraft.block.BlockLiquid;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
@@ -235,6 +237,16 @@ public class GameStateHandler {
             }
             if (unformattedLine.contains("Pest Repellant") || unformattedLine.contains("Pest Repellent")) {
                 foundPestRepellent = true;
+                if (!AutoRepellent.repellentFailsafeClock.isScheduled()) {
+                    String[] split = unformattedLine.split(" ");
+                    String time = split[split.length - 1];
+                    if (time.contains("m")) {
+                        AutoRepellent.repellentFailsafeClock.schedule(Long.parseLong(time.replace("m", "").trim()) * 60 * 1_000L);
+                    } else {
+                        AutoRepellent.repellentFailsafeClock.schedule(Long.parseLong(time.replace("s", "")) * 1_000L);
+                    }
+                    LogUtils.sendDebug("Scheduled auto repellent failsafe clock for " + time);
+                }
                 continue;
             }
             if (unformattedLine.contains("Cookie Buff")) {
@@ -304,7 +316,6 @@ public class GameStateHandler {
     public void onTickCheckMoving(TickEvent.ClientTickEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
 
-
         dx = Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX);
         dz = Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ);
         dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
@@ -368,7 +379,20 @@ public class GameStateHandler {
     }
 
     public boolean notMoving() {
-        return (dx < 0.01 && dz < 0.01 && dy < 0.01 && mc.currentScreen == null) || (!holdingKeybindIsWalkable() && mc.thePlayer != null && mc.thePlayer.isPushedByWater() && mc.thePlayer.isInWater()) || RotationHandler.getInstance().isRotating();
+        return (dx < 0.01 && dz < 0.01 && dy < 0.01 && mc.currentScreen == null) || (!holdingKeybindIsWalkable() && mc.thePlayer != null && (playerIsInFlowingWater(0) || playerIsInFlowingWater(1)) && mc.thePlayer.isInWater()) || RotationHandler.getInstance().isRotating();
+    }
+
+    private boolean playerIsInFlowingWater(int y) {
+        IBlockState state = mc.theWorld.getBlockState(BlockUtils.getRelativeBlockPos(0, y, 0));
+        if (!state.getBlock().equals(Blocks.water)) return false;
+        int level = state.getValue(BlockLiquid.LEVEL);
+        if (level == 0) {
+            double motionX = mc.thePlayer.motionX;
+            double motionZ = mc.thePlayer.motionZ;
+            return motionX > 0.01 || motionX < -0.01 || motionZ > 0.01 || motionZ < -0.01;
+        } else {
+            return true;
+        }
     }
 
     public boolean holdingKeybindIsWalkable() {

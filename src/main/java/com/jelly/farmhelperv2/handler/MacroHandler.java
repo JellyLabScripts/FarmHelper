@@ -212,6 +212,8 @@ public class MacroHandler {
         setCrop(FarmHelperConfig.CropEnum.NONE);
         FeatureManager.getInstance().disableAll();
         FeatureManager.getInstance().resetAllStates();
+        if (UngrabMouse.getInstance().isToggled())
+            UngrabMouse.getInstance().stop();
         disableCurrentMacro();
         setCurrentMacro(Optional.empty());
     }
@@ -240,21 +242,12 @@ public class MacroHandler {
     public void resumeMacro() {
         currentMacro.ifPresent(cm -> {
             if (!cm.isPaused()) return;
+            mc.inGameHasFocus = true;
             cm.onEnable();
             PlayerUtils.getTool();
             macroingTimer.resume();
             analyticsTimer.resume();
             Scheduler.getInstance().resume();
-            if (UngrabMouse.getInstance().isToggled()) {
-//                UngrabMouse.getInstance().regrabMouse(true);
-//                UngrabMouse.getInstance().ungrabMouse();
-                if (!mc.inGameHasFocus) {
-                    mc.inGameHasFocus = true;
-                }
-            } else {
-                mc.inGameHasFocus = true;
-                mc.mouseHelper.grabMouseCursor();
-            }
         });
     }
 
@@ -371,11 +364,8 @@ public class MacroHandler {
             return;
         }
         currentMacro.ifPresent(m -> {
-            if (m.getCurrentState() != AbstractMacro.State.NONE) {
-                LogUtils.sendWarning("Clearing saved state, because of world change.");
-                m.setCurrentState(AbstractMacro.State.NONE);
-                m.setClosest90Deg(Optional.empty());
-            }
+            m.setCurrentState(AbstractMacro.State.NONE);
+            m.getSavedState().ifPresent(ss -> ss.setState(AbstractMacro.State.NONE));
         });
     }
 

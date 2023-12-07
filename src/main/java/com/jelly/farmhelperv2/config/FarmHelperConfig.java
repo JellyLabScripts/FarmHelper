@@ -748,6 +748,14 @@ public class FarmHelperConfig extends Config {
             min = 1, max = 60
     )
     public static int restartAfterFailSafeDelay = 5;
+
+    @Switch(
+            name = "Always teleport to /warp garden after the delay",
+            category = FAILSAFE, subcategory = "Restart After FailSafe",
+            description = "Always teleports to /warp garden after the delay"
+    )
+    public static boolean alwaysTeleportToGarden = false;
+
     //</editor-fold>
 
     //<editor-fold desc="Banwave">

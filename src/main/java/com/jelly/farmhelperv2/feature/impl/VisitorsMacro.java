@@ -882,6 +882,7 @@ public class VisitorsMacro implements IFeature {
                 }
 
                 setVisitorsState(VisitorsState.CLOSE_VISITOR);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case CLOSE_VISITOR:
                 if (rejectVisitor) {

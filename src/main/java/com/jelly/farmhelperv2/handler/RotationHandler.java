@@ -273,7 +273,7 @@ public class RotationHandler {
             targetRotation.setPitch(startRotation.getPitch() + neededChange.getPitch());
             distanceTraveled += Math.abs(neededChange.getYaw());
             long time = (long) getTime(pythagoras(Math.abs(neededChange.getYaw()), Math.abs(neededChange.getPitch())), configuration.getTime());
-            endTime = System.currentTimeMillis() + Math.max(time, (long) (50 + Math.random() * 100));
+            endTime = System.currentTimeMillis() + Math.max(time, (long) (100 + Math.random() * 100));
         }
         mc.thePlayer.rotationYaw = interpolate(startRotation.getYaw(), targetRotation.getYaw(), configuration.easeOutBack() ? this::easeOutBack : this::easeOutExpo);
         mc.thePlayer.rotationPitch = interpolate(startRotation.getPitch(), targetRotation.getPitch(), configuration.easeOutBack() ? this::easeOutBack : this::easeOutQuart);
