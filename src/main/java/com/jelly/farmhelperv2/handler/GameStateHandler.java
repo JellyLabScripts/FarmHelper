@@ -316,9 +316,9 @@ public class GameStateHandler {
     public void onTickCheckMoving(TickEvent.ClientTickEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
 
-        dx = Math.abs(mc.thePlayer.posX - mc.thePlayer.lastTickPosX);
-        dz = Math.abs(mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ);
-        dy = Math.abs(mc.thePlayer.posY - mc.thePlayer.lastTickPosY);
+        dx = Math.abs(mc.thePlayer.motionX);
+        dy = Math.abs(mc.thePlayer.motionY);
+        dz = Math.abs(mc.thePlayer.motionZ);
 
         if (notMoving() && mc.currentScreen == null) {
             if (hasPassedSinceStopped() && !PlayerUtils.isStandingOnRewarpLocation()) {
@@ -379,7 +379,11 @@ public class GameStateHandler {
     }
 
     public boolean notMoving() {
-        return (dx < 0.01 && dz < 0.01 && dy < 0.01 && mc.currentScreen == null) || (!holdingKeybindIsWalkable() && mc.thePlayer != null && (playerIsInFlowingWater(0) || playerIsInFlowingWater(1)) && mc.thePlayer.isInWater()) || RotationHandler.getInstance().isRotating();
+        return (dx < 0.01 && dz < 0.01 && dyIsRest() && mc.currentScreen == null) || (!holdingKeybindIsWalkable() && mc.thePlayer != null && (playerIsInFlowingWater(0) || playerIsInFlowingWater(1)) && mc.thePlayer.isInWater()) || RotationHandler.getInstance().isRotating();
+    }
+
+    private boolean dyIsRest() {
+        return dy < 0.01 || dy <= 0.079 && dy >= 0.078; // weird calculation of motionY being -0.0784000015258789 while resting at block and 0.0 is while flying for some reason
     }
 
     private boolean playerIsInFlowingWater(int y) {
