@@ -320,6 +320,8 @@ public class GameStateHandler {
         dy = Math.abs(mc.thePlayer.motionY);
         dz = Math.abs(mc.thePlayer.motionZ);
 
+        System.out.println("dx: " + dx + " dy: " + dy + " dz: " + dz);
+
         if (notMoving() && mc.currentScreen == null) {
             if (hasPassedSinceStopped() && !PlayerUtils.isStandingOnRewarpLocation()) {
                 if (Failsafe.getInstance().hasDirtBlocks() && Failsafe.getInstance().isTouchingDirtBlock()) {
@@ -383,7 +385,7 @@ public class GameStateHandler {
     }
 
     private boolean dyIsRest() {
-        return dy < 0.01 || dy <= 0.079 && dy >= 0.078; // weird calculation of motionY being -0.0784000015258789 while resting at block and 0.0 is while flying for some reason
+        return dy < 0.05 || dy <= 0.079 && dy >= 0.078; // weird calculation of motionY being -0.0784000015258789 while resting at block and 0.0 is while flying for some reason
     }
 
     private boolean playerIsInFlowingWater(int y) {
