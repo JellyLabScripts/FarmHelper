@@ -320,8 +320,6 @@ public class GameStateHandler {
         dy = Math.abs(mc.thePlayer.motionY);
         dz = Math.abs(mc.thePlayer.motionZ);
 
-        System.out.println("dx: " + dx + " dy: " + dy + " dz: " + dz);
-
         if (notMoving() && mc.currentScreen == null) {
             if (hasPassedSinceStopped() && !PlayerUtils.isStandingOnRewarpLocation()) {
                 if (Failsafe.getInstance().hasDirtBlocks() && Failsafe.getInstance().isTouchingDirtBlock()) {
