@@ -333,15 +333,7 @@ public class PlayerUtils {
     public static boolean isPlayerSuffocating() {
         AxisAlignedBB playerBB = mc.thePlayer.getEntityBoundingBox().expand(-0.1, -0.1, -0.1);
         List<AxisAlignedBB> collidingBoxes = mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, playerBB);
-        return collidingBoxes.stream().anyMatch(bb -> {
-            BlockPos blockPos = new BlockPos(bb.minX, bb.minY, bb.minZ);
-            Block block = mc.theWorld.getBlockState(blockPos).getBlock();
-            return blockHasColliding(block, blockPos);
-        });
-    }
-
-    private static boolean blockHasColliding(Block block, BlockPos blockPos) {
-        return block.getCollisionBoundingBox(mc.theWorld, blockPos, mc.theWorld.getBlockState(blockPos)) != null;
+        return !collidingBoxes.isEmpty();
     }
 
     public static EnumFacing getHorizontalFacing(float yaw) {

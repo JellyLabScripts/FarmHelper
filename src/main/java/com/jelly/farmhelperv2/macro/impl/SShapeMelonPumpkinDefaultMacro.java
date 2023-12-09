@@ -28,8 +28,10 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
         super.onEnable();
         if (!FarmHelperConfig.customPitch && !isRestoredState())
             setPitch(50 + (float) (Math.random() * 6 - 3)); // -3 - 3
-        if (!FarmHelperConfig.customYaw && !isRestoredState())
+        if (!FarmHelperConfig.customYaw && !isRestoredState()) {
             setYaw(AngleUtils.getClosestDiagonal());
+            setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
+        }
         float additionalRotation;
         switch (getCurrentState()) {
             case LEFT:

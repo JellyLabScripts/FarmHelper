@@ -120,6 +120,7 @@ public class SShapeSugarcaneMacro extends AbstractMacro {
         }
         if (!FarmHelperConfig.customYaw && !isRestoredState()) {
             setYaw(AngleUtils.getClosestDiagonal());
+            setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
         }
         rowStartX = mc.thePlayer.posX;
         rowStartZ = mc.thePlayer.posZ;
