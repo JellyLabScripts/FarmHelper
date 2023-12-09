@@ -106,6 +106,8 @@ public class DebugHUD extends TextHud {
             lines.add("   State: " + PestsDestroyer.getInstance().getState());
             lines.add("   Clock: " + PestsDestroyer.getInstance().getDelayClock().getRemainingTime());
             lines.add("   Stuck clock: " + PestsDestroyer.getInstance().getStuckClock().getRemainingTime());
+            if (PestsDestroyer.getInstance().getCantReachPest() != 0)
+                lines.add("   Can't reach pests for: " + PestsDestroyer.getInstance().getCantReachPest());
             PestsDestroyer.getInstance().getCurrentEntityTarget().ifPresent(target -> lines.add(
                     String.format("   Current Entity Target: %.2f %.2f %.2f", target.getPositionVector().xCoord, target.getPositionVector().yCoord, target.getPositionVector().zCoord))
             );
