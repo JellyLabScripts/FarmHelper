@@ -591,7 +591,7 @@ public class PestsDestroyer implements IFeature {
                 }
 
 
-                if (distance <= 2.5) {
+                if (distance <= 3) {
                     if (FlyPathfinder.getInstance().isRunning())
                         FlyPathfinder.getInstance().stop();
                     if (!RotationHandler.getInstance().isRotating()) {
@@ -611,7 +611,7 @@ public class PestsDestroyer implements IFeature {
                     }
                     if (!FlyPathfinder.getInstance().hasGoal()) {
                         LogUtils.sendDebug("[Pests Destroyer] Setting goal to " + entity.getPosition());
-                        FlyPathfinder.getInstance().setGoal(new GoalNear(new BetterBlockPos(entity.getPosition()), 3));
+                        FlyPathfinder.getInstance().setGoal(new GoalNear(new BetterBlockPos(entity.getPosition()), 2));
                         delayClock.schedule(550);
                         break;
                     }

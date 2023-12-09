@@ -166,6 +166,9 @@ public class FlyPathfinder {
                 shouldRecalculateLater = false;
                 LogUtils.sendDebug("Recalculating the path...");
                 getPathTo(goal);
+            } else {
+                LogUtils.sendDebug("Path is empty. Stopping pathfinder.");
+                stop();
             }
             KeyBindUtils.stopMovement();
             return;

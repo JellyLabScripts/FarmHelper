@@ -301,9 +301,9 @@ public class PlayerUtils {
     }
 
     public static boolean isSpawnPointObstructed() {
-        for (int y = 0; y < 5; y++) {
+        for (int y = 1; y < 5; y++) {
             BlockPos pos = BlockUtils.getRelativeBlockPos(0, y, 0);
-            if (mc.theWorld.getBlockState(pos).getBlock().isPassable(mc.theWorld, pos)) {
+            if (!mc.theWorld.getBlockState(pos).getBlock().isPassable(mc.theWorld, pos)) {
                 return true;
             }
         }
