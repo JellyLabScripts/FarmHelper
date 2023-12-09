@@ -113,6 +113,12 @@ public class DebugHUD extends TextHud {
         if (FlyPathfinder.getInstance().isRunning()) {
             lines.add("FlyPathfinder");
             lines.add("   Path size: " + FlyPathfinder.getInstance().getPathBlocks().size());
+            lines.add(String.format("   Player speed: %.2f", FlyPathfinder.getInstance().getPlayerSpeed()));
+            lines.add("   Deceleration:");
+            lines.add("      Left: " + FlyPathfinder.getInstance().isDeceleratingLeft);
+            lines.add("      Right: " + FlyPathfinder.getInstance().isDeceleratingRight);
+            lines.add("      Forward: " + FlyPathfinder.getInstance().isDeceleratingForward);
+            lines.add("      Backward: " + FlyPathfinder.getInstance().isDeceleratingBackward);
         }
         if (AutoSprayonator.getInstance().isToggled()) {
             lines.add("Auto Sprayonator");

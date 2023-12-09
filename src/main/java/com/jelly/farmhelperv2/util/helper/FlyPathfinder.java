@@ -45,7 +45,10 @@ public class FlyPathfinder {
     private final List<BlockPos> realPath = new ArrayList<>();
     private static final RotationHandler rotation = RotationHandler.getInstance();
     private Clock antiStuckDelay = new Clock();
-    private int stuckCounter = 0;
+    private int stuckCounterWithoutMotion = 0;
+    private int stuckCounterWithMotion = 0;
+    private boolean shouldRecalculateLater = false;
+    private Vec3 lastPlayerPos;
 
     public void getPathTo(Goal goal) {
         if (context == null) {
@@ -61,13 +64,20 @@ public class FlyPathfinder {
         FlyAStar finder = new FlyAStar(playerPos.getX(), playerPos.getY(), playerPos.getZ(), goal, context);
         BaritoneAPI.getSettings().movementTimeoutTicks.value = 500;
         PathCalculationResult calcResult = finder.calculate(500L, 2000L);
-        if (!calcResult.getType().equals(PathCalculationResult.Type.SUCCESS_TO_GOAL)) {
-            LogUtils.sendError("PathCalculationResult != SUCCESS_TO_GOAL");
+        if (goal.heuristic(playerPos) < 2) {
+            LogUtils.sendDebug("Goal is too close to the player. Disabling pathfinder.");
+            return;
+        }
+        if (calcResult.getType().equals(PathCalculationResult.Type.SUCCESS_SEGMENT)) {
+            shouldRecalculateLater = true;
+            LogUtils.sendDebug("PathCalculationResult == SUCCESS_SEGMENT");
+        } else if (!calcResult.getType().equals(PathCalculationResult.Type.SUCCESS_TO_GOAL)) {
+            LogUtils.sendError("PathCalculationResult == " + calcResult.getType());
             return;
         }
         Optional<IPath> path = calcResult.getPath();
-        if (!path.isPresent()) {
-            LogUtils.sendError("!path.isPresent()");
+        if (path.isPresent() && path.get().positions().isEmpty()) {
+            LogUtils.sendError("The path is empty!");
             return;
         }
         path.ifPresent(iPath -> tempList.addAll(iPath.positions()));
@@ -87,14 +97,16 @@ public class FlyPathfinder {
         pathBlocks.clear();
         rotation.reset();
         antiStuckDelay.reset();
-        stuckCounter = 0;
+        stuckCounterWithoutMotion = 0;
+        stuckCounterWithMotion = 0;
     }
 
     public void restart() {
         BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
         KeyBindUtils.stopMovement();
         getPathTo(goal);
-        stuckCounter = 0;
+        stuckCounterWithoutMotion = 0;
+        stuckCounterWithMotion = 0;
     }
 
     public boolean isPathing() {
@@ -127,7 +139,7 @@ public class FlyPathfinder {
         if (pathBlocks.isEmpty()) {
             if (isPathing()) {
                 stop();
-                LogUtils.sendDebug("Fly pathing stopped");
+                LogUtils.sendDebug("Fly pathfinding stopped");
             }
             return;
         }
@@ -150,6 +162,13 @@ public class FlyPathfinder {
                                 750, null
                         )
                 );
+            } else if (shouldRecalculateLater) {
+                shouldRecalculateLater = false;
+                LogUtils.sendDebug("Recalculating the path...");
+                getPathTo(goal);
+            } else {
+                LogUtils.sendDebug("Path is empty. Stopping pathfinder.");
+                stop();
             }
             KeyBindUtils.stopMovement();
             return;
@@ -159,6 +178,12 @@ public class FlyPathfinder {
         if (mc.thePlayer.onGround) {
             mc.thePlayer.jump();
             antiStuckDelay.schedule(200);
+            return;
+        }
+        if (isStuckWithMotion()) {
+            LogUtils.sendDebug("Player is stuck with motion. Resetting pathfinder.");
+            antiStuckDelay.schedule(500);
+            restart();
             return;
         }
         if (isStuck()) {
@@ -180,29 +205,33 @@ public class FlyPathfinder {
         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, relativeDistanceX > FarmHelperConfig.flightAllowedOvershootThreshold);
         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, relativeDistanceZ > FarmHelperConfig.flightAllowedOvershootThreshold);
         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, relativeDistanceZ < -FarmHelperConfig.flightAllowedOvershootThreshold);
-        if (shouldChangeHeight() == VerticalDirection.NONE) {
+        if (shouldChangeHeight(relativeDistanceX, relativeDistanceZ) == VerticalDirection.NONE) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, distanceY > 0.25);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, distanceY < -0.25);
-        } else if (shouldChangeHeight() == VerticalDirection.HIGHER) {
+        } else if (shouldChangeHeight(relativeDistanceX, relativeDistanceZ) == VerticalDirection.HIGHER) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, true);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, false);
-        } else if (shouldChangeHeight() == VerticalDirection.LOWER) {
+        } else if (shouldChangeHeight(relativeDistanceX, relativeDistanceZ) == VerticalDirection.LOWER) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
         }
-        if (relativeMotionX > 0 && decelerationReached(relativeMotionX, relativeDistanceX)) {
+        isDeceleratingLeft = relativeMotionX > 0 && decelerationReached(relativeMotionX, relativeDistanceX);
+        if (isDeceleratingLeft) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, true);
         }
-        if (relativeMotionX < 0 && decelerationReached(relativeMotionX, relativeDistanceX)) {
+        isDeceleratingRight = relativeMotionX < 0 && decelerationReached(relativeMotionX, relativeDistanceX);
+        if (isDeceleratingRight) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, true);
         }
-        if (relativeMotionZ < 0 && decelerationReached(relativeMotionZ, relativeDistanceZ)) {
+        isDeceleratingForward = relativeMotionZ < 0 && decelerationReached(relativeMotionZ, relativeDistanceZ);
+        if (isDeceleratingForward) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, true);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, false);
         }
-        if (relativeMotionZ > 0 && decelerationReached(relativeMotionZ, relativeDistanceZ)) {
+        isDeceleratingBackward = relativeMotionZ > 0 && decelerationReached(relativeMotionZ, relativeDistanceZ);
+        if (isDeceleratingBackward) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, true);
         }
@@ -210,7 +239,15 @@ public class FlyPathfinder {
         mc.thePlayer.setSprinting(relativeDistanceZ > 12 && !mc.gameSettings.keyBindSneak.isKeyDown());
     }
 
-    public VerticalDirection shouldChangeHeight() {
+    public boolean isDeceleratingLeft = false;
+    public boolean isDeceleratingRight = false;
+    public boolean isDeceleratingForward = false;
+    public boolean isDeceleratingBackward = false;
+
+    public VerticalDirection shouldChangeHeight(double relativeDistanceX, double relativeDistanceZ) {
+        if (Math.abs(relativeDistanceX) < 0.75 && Math.abs(relativeDistanceZ) < 0.75) {
+            return VerticalDirection.NONE;
+        }
         if (mc.thePlayer.posY % 1 > 0.5
                 && !BlockUtils.getRelativeFullBlock(0, 0, 1).isPassable(mc.theWorld, BlockUtils.getRelativeFullBlockPos(0, 0, 1))
                 && BlockUtils.getRelativeFullBlock(0, 1, 1).isPassable(mc.theWorld, BlockUtils.getRelativeFullBlockPos(0, 1, 1))
@@ -233,17 +270,36 @@ public class FlyPathfinder {
         NONE
     }
 
-    private double getPlayerSpeed() {
+    public double getPlayerSpeed() {
         return Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionY * mc.thePlayer.motionY + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
     }
 
     public boolean isStuck() {
         if (getPlayerSpeed() < 0.1 && !mc.thePlayer.onGround)
-            stuckCounter++;
+            stuckCounterWithoutMotion++;
         else
-            stuckCounter = 0;
-        if (stuckCounter > FarmHelperConfig.flightMaxStuckTime) {
-            stuckCounter = 0;
+            stuckCounterWithoutMotion = 0;
+        if (stuckCounterWithoutMotion > FarmHelperConfig.flightMaxStuckTimeWithoutMotion) {
+            stuckCounterWithoutMotion = 0;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isStuckWithMotion() {
+        if (lastPlayerPos == null || getPlayerSpeed() > 0.5 || mc.thePlayer.onGround) {
+            lastPlayerPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+            return false;
+        }
+        Vec3 currentPlayerPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+        if (currentPlayerPos.distanceTo(lastPlayerPos) < FarmHelperConfig.flightMaximumStuckDistanceThreshold)
+            stuckCounterWithMotion++;
+        else {
+            stuckCounterWithMotion = 0;
+            lastPlayerPos = currentPlayerPos;
+        }
+        if (stuckCounterWithMotion > FarmHelperConfig.flightMaxStuckTimeWithMotion) {
+            stuckCounterWithMotion = 0;
             return true;
         }
         return false;
@@ -363,8 +419,9 @@ public class FlyPathfinder {
     //region Deceleration
     public boolean decelerationReached(double motion, double distance) {
         double reachedMotion = 0.1;
-        for (int i = 0; i < decelerationDistances.size() - 1; i++) {
-            if (Math.abs(motion) > reachedMotion && decelerationDistances.get(i) > Math.abs(distance)) {
+        int offset = FarmHelperConfig.flightDecelerationOffset;
+        for (int i = 0; i < decelerationDistances.size() - 1 - offset; i++) {
+            if (Math.abs(motion) > reachedMotion && decelerationDistances.get(i + offset) > Math.abs(distance)) {
                 return true;
             }
             reachedMotion += 0.01;

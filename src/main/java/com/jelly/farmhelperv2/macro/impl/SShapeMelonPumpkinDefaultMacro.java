@@ -26,9 +26,9 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
     @Override
     public void onEnable() {
         super.onEnable();
-        if (!FarmHelperConfig.customPitch)
+        if (!FarmHelperConfig.customPitch && !isRestoredState())
             setPitch(50 + (float) (Math.random() * 6 - 3)); // -3 - 3
-        if (!FarmHelperConfig.customYaw)
+        if (!FarmHelperConfig.customYaw && !isRestoredState())
             setYaw(AngleUtils.getClosestDiagonal());
         float additionalRotation;
         switch (getCurrentState()) {
@@ -44,7 +44,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
         }
         changeLaneDirection = null;
         if (MacroHandler.getInstance().isTeleporting()) return;
-//        if (!shouldFixRotation()) return;
+        setRestoredState(false);
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation((getClosest90Deg().orElse(AngleUtils.getClosest())) + additionalRotation, getPitch()),

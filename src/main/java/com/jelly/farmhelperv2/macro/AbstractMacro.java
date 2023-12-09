@@ -37,6 +37,8 @@ public abstract class AbstractMacro {
     @Setter
     private Optional<SavedState> savedState = Optional.empty();
     @Setter
+    private boolean restoredState = false;
+    @Setter
     private int layerY = 0;
     @Setter
     private float yaw;
@@ -245,7 +247,8 @@ public abstract class AbstractMacro {
             changeState(savedState.get().getState());
             setYaw(savedState.get().getYaw());
             setPitch(savedState.get().getPitch());
-            setClosest90Deg(Optional.ofNullable(savedState.get().getClosest90Deg()));
+            setClosest90Deg(savedState.get().getClosest90Deg());
+            restoredState = true;
             savedState = Optional.empty();
         } else if (currentState == State.NONE || currentState == null) {
             changeState(calculateDirection());
@@ -389,17 +392,18 @@ public abstract class AbstractMacro {
     }
 
     @Getter
-    private static class SavedState {
-        private final State state;
-        private final float yaw;
-        private final float pitch;
-        private final float closest90Deg;
+    @Setter
+    public static class SavedState {
+        private State state;
+        private float yaw;
+        private float pitch;
+        private Optional<Float> closest90Deg;
 
         public SavedState(State state, float yaw, float pitch, float closest90Deg) {
             this.state = state;
             this.yaw = yaw;
             this.pitch = pitch;
-            this.closest90Deg = closest90Deg;
+            this.closest90Deg = Optional.of(closest90Deg);
         }
 
         @Override

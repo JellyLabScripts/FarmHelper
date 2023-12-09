@@ -156,57 +156,58 @@ public class PlayerUtils {
         if (crop == null) return withError ? -1 : 0;
         for (int i = 36; i < 44; i++) {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
+                String name = mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName();
                 if (anyHoe) {
-                    if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Hoe")) {
+                    if (name.contains("Hoe") || name.contains("Dicer") || name.contains("Chopper") || name.contains("Fungi") || name.contains("Knife")) {
                         return i - 36;
                     }
                     continue;
                 }
                 switch (crop) {
                     case NETHER_WART:
-                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Newton")) {
+                        if (name.contains("Newton")) {
                             return i - 36;
                         }
                         continue;
                     case CARROT:
-                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Gauss")) {
+                        if (name.contains("Gauss")) {
                             return i - 36;
                         }
                         continue;
                     case WHEAT:
-                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Euclid")) {
+                        if (name.contains("Euclid")) {
                             return i - 36;
                         }
                         continue;
                     case POTATO:
-                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Pythagorean")) {
+                        if (name.contains("Pythagorean")) {
                             return i - 36;
                         }
                         continue;
                     case SUGAR_CANE:
-                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Turing")) {
+                        if (name.contains("Turing")) {
                             return i - 36;
                         }
                         continue;
                     case CACTUS:
-                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Knife")) {
+                        if (name.contains("Knife")) {
                             return i - 36;
                         }
                         continue;
                     case MUSHROOM:
-                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Fungi")) {
+                        if (name.contains("Fungi")) {
                             return i - 36;
                         }
                         continue;
                     case PUMPKIN_MELON_UNKNOWN:
                     case MELON:
                     case PUMPKIN:
-                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Dicer")) {
+                        if (name.contains("Dicer")) {
                             return i - 36;
                         }
                         continue;
                     case COCOA_BEANS:
-                        if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName().contains("Chopper")) {
+                        if (name.contains("Chopper")) {
                             return i - 36;
                         }
                 }

@@ -115,16 +115,16 @@ public class SShapeSugarcaneMacro extends AbstractMacro {
     @Override
     public void onEnable() {
         super.onEnable();
-        if (!FarmHelperConfig.customPitch) {
+        if (!FarmHelperConfig.customPitch && !isRestoredState()) {
             setPitch((float) (Math.random() * 1) - 0.5f); // -0.5 to 0.5
         }
-        if (!FarmHelperConfig.customYaw) {
+        if (!FarmHelperConfig.customYaw && !isRestoredState()) {
             setYaw(AngleUtils.getClosestDiagonal());
         }
         rowStartX = mc.thePlayer.posX;
         rowStartZ = mc.thePlayer.posZ;
         if (MacroHandler.getInstance().isTeleporting()) return;
-//        if (!shouldFixRotation()) return;
+        setRestoredState(false);
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),
