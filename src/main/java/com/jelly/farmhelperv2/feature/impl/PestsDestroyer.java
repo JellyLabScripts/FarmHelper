@@ -168,7 +168,9 @@ public class PestsDestroyer implements IFeature {
         enabled = false;
         lastFireworkTime = 0;
         state = States.IDLE;
-        FlyPathfinder.getInstance().setGoal(null);
+        if (FlyPathfinder.getInstance().isPathing()) {
+            FlyPathfinder.getInstance().stop();
+        }
     }
 
     @Override
@@ -729,7 +731,7 @@ public class PestsDestroyer implements IFeature {
             delayClock.schedule(400);
             return;
         }
-        if (mc.thePlayer.onGround)
+        if (mc.thePlayer.onGround && !PlayerUtils.isPlayerSuffocating())
             mc.thePlayer.jump();
         Multithreading.schedule(() -> {
             if (!mc.thePlayer.capabilities.isFlying) {
