@@ -411,7 +411,7 @@ public class PestsDestroyer implements IFeature {
                         return;
                     }
                     if (!mc.thePlayer.capabilities.isFlying) {
-                        fly();
+                        flyAwayFromGround();
                         delayClock.schedule(350);
                         break;
                     }
@@ -426,7 +426,7 @@ public class PestsDestroyer implements IFeature {
                 }
                 if (isInventoryOpenDelayed()) break;
                 if (!mc.thePlayer.capabilities.isFlying) {
-                    fly();
+                    flyAwayFromGround();
                     delayClock.schedule(350);
                     break;
                 }
@@ -494,7 +494,7 @@ public class PestsDestroyer implements IFeature {
             case FLY_TO_PEST:
                 if (isInventoryOpenDelayed()) break;
                 if (!mc.thePlayer.capabilities.isFlying) {
-                    fly();
+                    flyAwayFromGround();
                     break;
                 }
 
@@ -597,9 +597,10 @@ public class PestsDestroyer implements IFeature {
                         ));
                     }
                     KeyBindUtils.holdThese(mc.gameSettings.keyBindUseItem);
-                } else if (distance <= 10 || distanceWithoutY <= 2) {
+                } else if ((distance <= 10 || distanceWithoutY <= 2) && !FarmHelperConfig.enablePestsDestroyerPathfindingMediumDistances
+                || (distanceWithoutY <= 10) && FarmHelperConfig.enablePestsDestroyerPathfindingLongerDistances) {
                     if (!mc.thePlayer.capabilities.isFlying) {
-                        fly();
+                        flyAwayFromGround();
                         delayClock.schedule(350);
                         break;
                     }
@@ -633,7 +634,7 @@ public class PestsDestroyer implements IFeature {
                             break;
                         }
                         if (!mc.thePlayer.capabilities.isFlying && distanceWithoutY > 6) {
-                            fly();
+                            flyAwayFromGround();
                             delayClock.schedule(350);
                             break;
                         }
@@ -689,7 +690,7 @@ public class PestsDestroyer implements IFeature {
 
     private void flyPathFinding(Entity entity) {
         if (!mc.thePlayer.capabilities.isFlying) {
-            fly();
+            flyAwayFromGround();
             delayClock.schedule(350);
             return;
         }
@@ -795,7 +796,7 @@ public class PestsDestroyer implements IFeature {
         }
     }
 
-    private void fly() {
+    private void flyAwayFromGround() {
         if (!mc.thePlayer.capabilities.allowFlying) {
             LogUtils.sendError("[Pests Destroyer] You need to be able to fly!");
             FarmHelperConfig.enablePestsDestroyer = false;
