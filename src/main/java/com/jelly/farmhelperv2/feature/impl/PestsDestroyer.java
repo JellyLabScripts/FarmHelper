@@ -570,6 +570,7 @@ public class PestsDestroyer implements IFeature {
                 double distanceWithoutY = mc.thePlayer.getDistance(entity.posX, mc.thePlayer.posY, entity.posZ);
 
                 Rotation rotationEntity = RotationHandler.getInstance().getRotation(entity);
+                float yawDifference = Math.abs(AngleUtils.normalizeAngle(rotationEntity.getYaw() - AngleUtils.get360RotationYaw()));
 
                 if (FarmHelperConfig.pestsKillerTicksOfNotSeeingPestWhileAttacking > 0 && (distanceWithoutY < 1.5 || distance <= 10) && GameStateHandler.getInstance().getDx() < 0.1 && GameStateHandler.getInstance().getDz() < 0.1 && !canEntityBeSeenIgnoreNonCollidable(entity)) {
                     cantReachPest++;
@@ -584,7 +585,6 @@ public class PestsDestroyer implements IFeature {
                     return;
                 }
 
-
                 if (distance <= 3) {
                     if (FlyPathfinder.getInstance().isRunning())
                         FlyPathfinder.getInstance().stop();
@@ -598,38 +598,70 @@ public class PestsDestroyer implements IFeature {
                     }
                     KeyBindUtils.holdThese(mc.gameSettings.keyBindUseItem);
                 } else {
-                    if (!mc.thePlayer.capabilities.isFlying) {
-                        fly();
-                        delayClock.schedule(350);
-                        break;
+                    if (FarmHelperConfig.enablePestsDestroyerPathfindingLongerDistances) {
+                        if (!mc.thePlayer.capabilities.isFlying) {
+                            fly();
+                            delayClock.schedule(350);
+                            break;
+                        }
+                        if (FlyPathfinder.getInstance().hasGoal() && FlyPathfinder.getInstance().getDistanceTo(new BlockPos(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ)) > FarmHelperConfig.recalculatePathAfterPestEscaped) {
+                            FlyPathfinder.getInstance().setGoal(new GoalNear(new BetterBlockPos(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ), 2));
+                            LogUtils.sendDebug("[Pests Destroyer] Pest escaped. Recalculating path to " + FlyPathfinder.getInstance().getGoal());
+                            FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal());
+                            delayClock.schedule(350);
+                            break;
+                        }
+                        if (FlyPathfinder.getInstance().hasGoal() && FlyPathfinder.getInstance().hasFailed) {
+                            LogUtils.sendError("[Pests Destroyer] Failed to get path to " + FlyPathfinder.getInstance().getGoal());
+                            FlyPathfinder.getInstance().stop();
+                            escapeState = EscapeState.GO_TO_HUB;
+                            KeyBindUtils.stopMovement();
+                            delayClock.schedule(300);
+                            return;
+                        }
+                        if (!FlyPathfinder.getInstance().hasGoal()) {
+                            LogUtils.sendDebug("[Pests Destroyer] Setting goal to " + String.format("%.2f %.2f %.2f", entity.posX, entity.posY + 1.5, entity.posZ));
+                            FlyPathfinder.getInstance().setGoal(new GoalNear(new BetterBlockPos(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ), 2));
+                            delayClock.schedule(550);
+                            break;
+                        }
+                        if (!FlyPathfinder.getInstance().isRunning()) {
+                            LogUtils.sendDebug("[Pests Destroyer] Getting path to " + FlyPathfinder.getInstance().getGoal());
+                            FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal());
+                            delayClock.schedule(350);
+                            break;
+                        }
+                    } else {
+                        if (distanceWithoutY < 6 && distance > 10 && mc.thePlayer.capabilities.isFlying) {
+                            manipulateHeight(entity, distance, distanceWithoutY, yawDifference);
+                            break;
+                        }
+                        if (!mc.thePlayer.capabilities.isFlying && distanceWithoutY > 6) {
+                            fly();
+                            delayClock.schedule(350);
+                            break;
+                        }
+
+                        boolean objects = objectsInFrontOfPlayer();
+
+                        if (!GameStateHandler.getInstance().isLeftWalkable() && GameStateHandler.getInstance().isRightWalkable()) {
+                            KeyBindUtils.holdThese(objects ? mc.gameSettings.keyBindJump : null, distanceWithoutY > 2 && yawDifference < 90 ? mc.gameSettings.keyBindForward : null, mc.gameSettings.keyBindRight);
+                        } else if (GameStateHandler.getInstance().isLeftWalkable() && !GameStateHandler.getInstance().isRightWalkable()) {
+                            KeyBindUtils.holdThese(objects ? mc.gameSettings.keyBindJump : null, distanceWithoutY > 2 && yawDifference < 90 ? mc.gameSettings.keyBindForward : null, mc.gameSettings.keyBindLeft);
+                        } else {
+                            KeyBindUtils.holdThese(objects ? mc.gameSettings.keyBindJump : null, distanceWithoutY > 2 && yawDifference < 90 ? mc.gameSettings.keyBindForward : null);
+                        }
+
+                        if (!RotationHandler.getInstance().isRotating()) {
+                            RotationHandler.getInstance().reset();
+                            RotationHandler.getInstance().easeTo(new RotationConfiguration(
+                                    new Target(entity),
+                                    FarmHelperConfig.getRandomRotationTime(),
+                                    null
+                            ).randomness(true));
+                        }
                     }
-                    if (FlyPathfinder.getInstance().hasGoal() && FlyPathfinder.getInstance().getDistanceTo(new BlockPos(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ)) > FarmHelperConfig.recalculatePathAfterPestEscaped) {
-                        FlyPathfinder.getInstance().setGoal(new GoalNear(new BetterBlockPos(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ), 2));
-                        LogUtils.sendDebug("[Pests Destroyer] Pest escaped. Recalculating path to " + FlyPathfinder.getInstance().getGoal());
-                        FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal());
-                        delayClock.schedule(350);
-                        break;
-                    }
-                    if (FlyPathfinder.getInstance().hasGoal() && FlyPathfinder.getInstance().hasFailed) {
-                        LogUtils.sendError("[Pests Destroyer] Failed to get path to " + FlyPathfinder.getInstance().getGoal());
-                        FlyPathfinder.getInstance().stop();
-                        escapeState = EscapeState.GO_TO_HUB;
-                        KeyBindUtils.stopMovement();
-                        delayClock.schedule(300);
-                        return;
-                    }
-                    if (!FlyPathfinder.getInstance().hasGoal()) {
-                        LogUtils.sendDebug("[Pests Destroyer] Setting goal to " + String.format("%.2f %.2f %.2f", entity.posX, entity.posY + 1.5, entity.posZ));
-                        FlyPathfinder.getInstance().setGoal(new GoalNear(new BetterBlockPos(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ), 2));
-                        delayClock.schedule(550);
-                        break;
-                    }
-                    if (!FlyPathfinder.getInstance().isRunning()) {
-                        LogUtils.sendDebug("[Pests Destroyer] Getting path to " + FlyPathfinder.getInstance().getGoal());
-                        FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal());
-                        delayClock.schedule(350);
-                        break;
-                    }
+                    break;
                 }
                 break;
             case CHECK_ANOTHER_PEST:
