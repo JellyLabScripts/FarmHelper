@@ -12,6 +12,8 @@ import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.init.Blocks;
 
+import java.util.Optional;
+
 public class SShapeCocoaBeanMacro extends AbstractMacro {
 
     @Override
@@ -22,6 +24,7 @@ public class SShapeCocoaBeanMacro extends AbstractMacro {
         }
         if (!FarmHelperConfig.customYaw && !isRestoredState()) {
             setYaw(AngleUtils.getClosest());
+            setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
         }
         if (MacroHandler.getInstance().isTeleporting()) return;
         setRestoredState(false);

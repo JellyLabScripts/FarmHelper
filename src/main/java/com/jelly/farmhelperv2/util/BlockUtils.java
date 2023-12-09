@@ -170,7 +170,7 @@ public class BlockUtils {
             return state.getValue(BlockFenceGate.OPEN);
 
         if (block instanceof BlockTrapDoor) {
-            return state.getValue(BlockTrapDoor.OPEN);
+            return state.getValue(BlockTrapDoor.OPEN) || state.getValue(BlockTrapDoor.HALF) == BlockTrapDoor.DoorHalf.BOTTOM;
         }
 
         if (block instanceof BlockSnow)

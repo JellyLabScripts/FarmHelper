@@ -379,7 +379,7 @@ public class GameStateHandler {
     }
 
     public boolean notMoving() {
-        return (dx < 0.01 && dz < 0.01 && dyIsRest() && mc.currentScreen == null) || (!holdingKeybindIsWalkable() && mc.thePlayer != null && (playerIsInFlowingWater(0) || playerIsInFlowingWater(1)) && mc.thePlayer.isInWater()) || RotationHandler.getInstance().isRotating();
+        return (dx < 0.01 && dz < 0.01 && dyIsRest() && mc.currentScreen == null) || (!holdingKeybindIsWalkable() && mc.thePlayer != null && (playerIsInFlowingWater(0) || playerIsInFlowingWater(1)) && mc.thePlayer.isInWater());
     }
 
     private boolean dyIsRest() {

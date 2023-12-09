@@ -721,7 +721,6 @@ public class PestsDestroyer implements IFeature {
 
     private void flyAwayFromStructures() {
         if (mc.thePlayer.posY < 77 && !hasBlockAboveThePlayer()) {
-            LogUtils.sendDebug("Has block above the player");
             if (!GameStateHandler.getInstance().isRightWalkable() && GameStateHandler.getInstance().isLeftWalkable()) {
                 KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
             } else if (!GameStateHandler.getInstance().isLeftWalkable() && GameStateHandler.getInstance().isRightWalkable()) {

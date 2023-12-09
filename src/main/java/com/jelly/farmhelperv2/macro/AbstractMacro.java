@@ -254,7 +254,7 @@ public abstract class AbstractMacro {
             changeState(calculateDirection());
         }
         if (!closest90Deg.isPresent())
-            setClosest90Deg(Optional.of(AngleUtils.getClosest()));
+            setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
         setEnabled(true);
         setLayerY(mc.thePlayer.getPosition().getY());
         analyticsClock.schedule(60_000);
