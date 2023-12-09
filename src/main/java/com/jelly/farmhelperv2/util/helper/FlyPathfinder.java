@@ -48,6 +48,7 @@ public class FlyPathfinder {
     private int stuckCounterWithoutMotion = 0;
     private int stuckCounterWithMotion = 0;
     private boolean shouldRecalculateLater = false;
+    public boolean hasFailed = false;
     private Vec3 lastPlayerPos;
 
     public void getPathTo(Goal goal) {
@@ -72,9 +73,11 @@ public class FlyPathfinder {
             shouldRecalculateLater = true;
             LogUtils.sendDebug("PathCalculationResult == SUCCESS_SEGMENT");
         } else if (!calcResult.getType().equals(PathCalculationResult.Type.SUCCESS_TO_GOAL)) {
+            hasFailed = true;
             LogUtils.sendError("PathCalculationResult == " + calcResult.getType());
             return;
         }
+        hasFailed = false;
         Optional<IPath> path = calcResult.getPath();
         if (path.isPresent() && path.get().positions().isEmpty()) {
             LogUtils.sendError("The path is empty!");
@@ -99,6 +102,8 @@ public class FlyPathfinder {
         antiStuckDelay.reset();
         stuckCounterWithoutMotion = 0;
         stuckCounterWithMotion = 0;
+        shouldRecalculateLater = false;
+        hasFailed = false;
     }
 
     public void restart() {

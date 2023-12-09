@@ -69,7 +69,7 @@ public class RotationHandler {
         targetRotation.setYaw(startRotation.getYaw() + neededChange.getYaw());
         targetRotation.setPitch(startRotation.getPitch() + neededChange.getPitch());
 
-        LogUtils.sendDebug("[Rotation] Needed change: " + neededChange.getYaw() + " " + neededChange.getPitch(), true);
+        LogUtils.sendDebugRotation("[Rotation] Needed change: " + neededChange.getYaw() + " " + neededChange.getPitch());
 
         float absYaw = Math.max(Math.abs(neededChange.getYaw()), 1);
         float absPitch = Math.max(Math.abs(neededChange.getPitch()), 1);
@@ -81,28 +81,28 @@ public class RotationHandler {
 
     private float getTime(float pythagoras, float time) {
         if (pythagoras < 25) {
-            LogUtils.sendDebug("[Rotation] Very close rotation, speeding up by 0.65", true);
+            LogUtils.sendDebugRotation("[Rotation] Very close rotation, speeding up by 0.65");
             return (long) (time * 0.65);
         }
         if (pythagoras < 45) {
-            LogUtils.sendDebug("[Rotation] Close rotation, speeding up by 0.77", true);
+            LogUtils.sendDebugRotation("[Rotation] Close rotation, speeding up by 0.77");
             return (long) (time * 0.77);
         }
         if (pythagoras < 80) {
-            LogUtils.sendDebug("[Rotation] Not so close, but not that far rotation, speeding up by 0.9", true);
+            LogUtils.sendDebugRotation("[Rotation] Not so close, but not that far rotation, speeding up by 0.9");
             return (long) (time * 0.9);
         }
         if (pythagoras > 100) {
-            LogUtils.sendDebug("[Rotation] Far rotation, slowing down by 1.1", true);
+            LogUtils.sendDebugRotation("[Rotation] Far rotation, slowing down by 1.1");
             return (long) (time * 1.1);
         }
-        LogUtils.sendDebug("[Rotation] Normal rotation", true);
+        LogUtils.sendDebugRotation("[Rotation] Normal rotation");
         return (long) (time * 1.0);
     }
 
     public void easeBackFromServerRotation() {
         if (configuration == null) return;
-        LogUtils.sendDebug("[Rotation] Easing back from server rotation");
+        LogUtils.sendDebugRotation("[Rotation] Easing back from server rotation");
         configuration.goingBackToClientSide(true);
         rotating = true;
         startTime = System.currentTimeMillis();
@@ -112,7 +112,7 @@ public class RotationHandler {
         targetRotation.setYaw(startRotation.getYaw() + neededChange.getYaw());
         targetRotation.setPitch(startRotation.getPitch() + neededChange.getPitch());
 
-        LogUtils.sendDebug("[Rotation] Needed change: " + neededChange.getYaw() + " " + neededChange.getPitch());
+        LogUtils.sendDebugRotation("[Rotation] Needed change: " + neededChange.getYaw() + " " + neededChange.getPitch());
 
         float absYaw = Math.max(Math.abs(neededChange.getYaw()), 1);
         float absPitch = Math.max(Math.abs(neededChange.getPitch()), 1);
@@ -196,7 +196,7 @@ public class RotationHandler {
     }
 
     public void reset() {
-        LogUtils.sendDebug("[Rotation] Resetting");
+        LogUtils.sendDebugRotation("[Rotation] Resetting");
         rotating = false;
         configuration = null;
         startTime = 0;
@@ -328,7 +328,7 @@ public class RotationHandler {
             endTime = System.currentTimeMillis() + Math.max(time, (long) (50 + Math.random() * 100));
         }
         if (configuration.goingBackToClientSide()) {
-            LogUtils.sendDebug("Going back to client side");
+            LogUtils.sendDebugRotation("Going back to client side");
             targetRotation.setYaw(clientSideYaw);
             targetRotation.setPitch(clientSidePitch);
         }

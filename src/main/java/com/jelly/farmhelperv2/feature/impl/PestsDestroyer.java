@@ -606,9 +606,23 @@ public class PestsDestroyer implements IFeature {
                         delayClock.schedule(350);
                         break;
                     }
+                    if (FlyPathfinder.getInstance().hasGoal() && distance < FarmHelperConfig.recalculatePathAfterPestEscaped) {
+                        LogUtils.sendDebug("[Pests Destroyer] Pest escaped. Recalculating path to " + FlyPathfinder.getInstance().getGoal());
+                        FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal());
+                        delayClock.schedule(350);
+                        break;
+                    }
+                    if (FlyPathfinder.getInstance().hasGoal() && FlyPathfinder.getInstance().hasFailed) {
+                        LogUtils.sendError("[Pests Destroyer] Failed to get path to " + FlyPathfinder.getInstance().getGoal());
+                        FlyPathfinder.getInstance().stop();
+                        escapeState = EscapeState.GO_TO_HUB;
+                        KeyBindUtils.stopMovement();
+                        delayClock.schedule(300);
+                        return;
+                    }
                     if (!FlyPathfinder.getInstance().hasGoal()) {
-                        LogUtils.sendDebug("[Pests Destroyer] Setting goal to " + entity.getPosition());
-                        FlyPathfinder.getInstance().setGoal(new GoalNear(new BetterBlockPos(entity.getPosition()), 2));
+                        LogUtils.sendDebug("[Pests Destroyer] Setting goal to " + String.format("%.2f %.2f %.2f", entity.posX, entity.posY + 1.5, entity.posZ));
+                        FlyPathfinder.getInstance().setGoal(new GoalNear(new BetterBlockPos(entity.posX, entity.posY + 1.5, entity.posZ), 2));
                         delayClock.schedule(550);
                         break;
                     }

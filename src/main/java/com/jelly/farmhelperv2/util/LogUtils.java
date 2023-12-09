@@ -51,8 +51,8 @@ public class LogUtils {
         lastDebugMessage = message;
     }
 
-    public static void sendDebug(String message, boolean checkIfRecording) {
-        if (checkIfRecording && !MovRecPlayer.getInstance().isRunning())
+    public static void sendDebugRotation(String message) {
+        if (FarmHelperConfig.showRotationDebugMessages)
             sendDebug(message);
     }
 

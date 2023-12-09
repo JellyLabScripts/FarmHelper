@@ -114,6 +114,7 @@ public class DebugHUD extends TextHud {
             lines.add("FlyPathfinder");
             lines.add("   Path size: " + FlyPathfinder.getInstance().getPathBlocks().size());
             lines.add(String.format("   Player speed: %.2f", FlyPathfinder.getInstance().getPlayerSpeed()));
+            lines.add("   Goal: " + FlyPathfinder.getInstance().getGoal());
             lines.add("   Deceleration:");
             lines.add("      Left: " + FlyPathfinder.getInstance().isDeceleratingLeft);
             lines.add("      Right: " + FlyPathfinder.getInstance().isDeceleratingRight);
