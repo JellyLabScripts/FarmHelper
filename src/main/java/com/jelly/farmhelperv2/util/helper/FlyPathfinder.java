@@ -139,7 +139,7 @@ public class FlyPathfinder {
         if (pathBlocks.isEmpty()) {
             if (isPathing()) {
                 stop();
-                LogUtils.sendDebug("Fly pathing stopped");
+                LogUtils.sendDebug("Fly pathfinding stopped");
             }
             return;
         }

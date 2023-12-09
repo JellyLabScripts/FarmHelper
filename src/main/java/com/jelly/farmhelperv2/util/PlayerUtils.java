@@ -300,16 +300,6 @@ public class PlayerUtils {
         return pos.getX() == FarmHelperConfig.spawnPosX && pos.getY() == FarmHelperConfig.spawnPosY && pos.getZ() == FarmHelperConfig.spawnPosZ;
     }
 
-    public static boolean isSpawnPointObstructed() {
-        for (int y = 1; y < 5; y++) {
-            BlockPos pos = BlockUtils.getRelativeBlockPos(0, y, 0);
-            if (!mc.theWorld.getBlockState(pos).getBlock().isPassable(mc.theWorld, pos)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public static Vec3 getSpawnLocation() {
         return new Vec3(FarmHelperConfig.spawnPosX + 0.5, FarmHelperConfig.spawnPosY + 0.5, FarmHelperConfig.spawnPosZ + 0.5);
     }
