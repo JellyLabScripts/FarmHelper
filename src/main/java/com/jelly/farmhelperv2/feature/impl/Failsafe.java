@@ -217,10 +217,16 @@ public class Failsafe implements IFeature {
             if (mc.currentScreen != null) {
                 PlayerUtils.closeScreen();
             }
-            LogUtils.sendDebug("[Failsafe] Restarting the macro...");
-            MacroHandler.getInstance().enableMacro();
-            Failsafe.getInstance().setHadEmergency(false);
-            Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().reset();
+            if (FarmHelperConfig.alwaysTeleportToGarden) {
+                MacroHandler.getInstance().getCurrentMacro().ifPresent(AbstractMacro::triggerWarpGarden);
+            }
+            restartMacroAfterFailsafeDelay.reset();
+            Multithreading.schedule(() -> {
+                LogUtils.sendDebug("[Failsafe] Restarting the macro...");
+                MacroHandler.getInstance().enableMacro();
+                Failsafe.getInstance().setHadEmergency(false);
+                Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().reset();
+            }, FarmHelperConfig.alwaysTeleportToGarden ? 1_500 : 0, TimeUnit.MILLISECONDS);
         }
     }
 

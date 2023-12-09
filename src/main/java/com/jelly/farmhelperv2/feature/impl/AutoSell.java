@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.page.AutoSellNPCItemsPage;
 import com.jelly.farmhelperv2.feature.FeatureManager;
@@ -29,6 +30,7 @@ import org.lwjgl.input.Keyboard;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /*
     Credits to Yuro for this superb class
@@ -45,7 +47,6 @@ public class AutoSell implements IFeature {
     }
 
     private boolean enabled = false;
-    private boolean manually = false;
 
     @Getter
     private MarketType marketType = MarketType.NONE;
@@ -114,7 +115,6 @@ public class AutoSell implements IFeature {
     public void stop() {
         LogUtils.sendWarning("[Auto Sell] Disabling Auto Sell");
         enabled = false;
-        manually = false;
         emptySacks = false;
         pickedUpItems = false;
         marketType = MarketType.NONE;
@@ -124,9 +124,10 @@ public class AutoSell implements IFeature {
         delayClock.reset();
         timeoutClock.reset();
         inventoryFilledClock.reset();
+        PlayerUtils.closeScreen();
         KeyBindUtils.stopMovement();
         if (MacroHandler.getInstance().isMacroToggled() && !VisitorsMacro.getInstance().isRunning()) {
-            MacroHandler.getInstance().resumeMacro();
+            Multithreading.schedule(() -> MacroHandler.getInstance().resumeMacro(), 1000, TimeUnit.MILLISECONDS);
         }
         if (FarmHelperConfig.enableScheduler && !VisitorsMacro.getInstance().isRunning())
             Scheduler.getInstance().resume();
@@ -157,7 +158,6 @@ public class AutoSell implements IFeature {
             LogUtils.sendError("[Auto Sell] Server is closing in " + GameStateHandler.getInstance().getServerClosingSeconds().get() + " seconds!");
             return;
         }
-        this.manually = manually;
         PlayerUtils.closeScreen();
         LogUtils.sendWarning("[Auto Sell] Enabling Auto Sell");
         enabled = true;
@@ -429,7 +429,7 @@ public class AutoSell implements IFeature {
                         boolean shouldSell = hasAnythingToSell();
                         if (!shouldSell && FarmHelperConfig.autoSellSacks && !emptySacks) {
                             setSacksState(SacksState.OPEN_MENU);
-                            if (mc.currentScreen == null) {
+                            if (mc.currentScreen != null) {
                                 PlayerUtils.closeScreen();
                             }
                             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
@@ -450,6 +450,19 @@ public class AutoSell implements IFeature {
                             setNpcState(NPCState.SELL);
                             break;
                         }
+                        if (InventoryUtils.getInventoryName() == null) {
+                            break;
+                        }
+                        if (InventoryUtils.getInventoryName().contains("Trades")) {
+                            LogUtils.sendDebug("[Auto Sell] Detected trades menu");
+                            setNpcState(NPCState.SELL);
+                            break;
+                        }
+
+                        LogUtils.sendDebug("[Auto Sell] Detected wrong menu, closing it");
+                        PlayerUtils.closeScreen();
+                        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                        setNpcState(NPCState.OPEN_MENU);
                         break;
                     case SELL:
                         if (mc.currentScreen == null) {
@@ -555,7 +568,7 @@ public class AutoSell implements IFeature {
     }
 
     private boolean hasShitItemsInInventory() {
-        for (int i = 0; i < 36; i++) {
+        for (int i = 9; i < 45; i++) {
             if (mc.thePlayer.inventoryContainer.getSlot(i).getHasStack()) {
                 String name = mc.thePlayer.inventoryContainer.getSlot(i).getStack().getDisplayName();
                 if (shouldSellCustomItem(name)) {
@@ -572,7 +585,7 @@ public class AutoSell implements IFeature {
     }
 
     private boolean shouldSellCustomItem(String name) {
-        if (AutoSellNPCItemsPage.autoSellRunes && name.contains(" Rune")) return true;
+        if (AutoSellNPCItemsPage.autoSellRunes && name.contains(" Rune") && !name.contains("Music")) return true;
         if (AutoSellNPCItemsPage.autoSellDeadBush && name.contains("Dead Bush")) return true;
         if (AutoSellNPCItemsPage.autoSellIronHoe && name.contains("Iron Hoe")) return true;
         if (!AutoSellNPCItemsPage.autoSellCustomItems.isEmpty()) {

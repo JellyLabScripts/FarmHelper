@@ -19,6 +19,10 @@ public class Freelook implements IFeature {
         return instance;
     }
 
+    @Getter
+    @Setter
+    private float distance = 4;
+
     @Override
     public String getName() {
         return "Freelook";
@@ -53,12 +57,13 @@ public class Freelook implements IFeature {
     public void start() {
         if (enabled || mc.gameSettings.thirdPersonView == 1) return;
         enabled = true;
+        distance = 4;
         cameraPrevYaw = mc.thePlayer.prevRotationYaw;
         cameraPrevPitch = mc.thePlayer.prevRotationPitch;
         cameraYaw = mc.thePlayer.rotationYaw + 180;
         cameraPitch = mc.thePlayer.rotationPitch;
         mc.gameSettings.thirdPersonView = 1;
-        if (UngrabMouse.getInstance().isRunning() && MacroHandler.getInstance().isCurrentMacroEnabled()) {
+        if (UngrabMouse.getInstance().isToggled() && MacroHandler.getInstance().isCurrentMacroEnabled()) {
             UngrabMouse.getInstance().regrabMouse();
             mouseWasGrabbed = true;
         }
@@ -68,6 +73,7 @@ public class Freelook implements IFeature {
     public void stop() {
         if (!enabled) return;
         enabled = false;
+        distance = 4;
         mc.gameSettings.thirdPersonView = 0;
         if (UngrabMouse.getInstance().isToggled() && mouseWasGrabbed && MacroHandler.getInstance().isCurrentMacroEnabled()) {
             UngrabMouse.getInstance().ungrabMouse();

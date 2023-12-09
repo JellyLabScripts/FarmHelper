@@ -752,6 +752,14 @@ public class FarmHelperConfig extends Config {
             min = 1, max = 60
     )
     public static int restartAfterFailSafeDelay = 5;
+
+    @Switch(
+            name = "Always teleport to /warp garden after the delay",
+            category = FAILSAFE, subcategory = "Restart After FailSafe",
+            description = "Always teleports to /warp garden after the delay"
+    )
+    public static boolean alwaysTeleportToGarden = false;
+
     //</editor-fold>
 
     //<editor-fold desc="Banwave">
@@ -1270,7 +1278,7 @@ public class FarmHelperConfig extends Config {
     @Slider(
             name = "Time between changing rows", category = DELAYS, subcategory = "Changing rows",
             description = "The minimum time to wait before changing rows (in milliseconds)",
-            min = 150, max = 2000
+            min = 50, max = 2000
     )
     public static float timeBetweenChangingRows = 400f;
     @Slider(

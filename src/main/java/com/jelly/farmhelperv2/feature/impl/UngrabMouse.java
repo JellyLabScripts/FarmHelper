@@ -62,7 +62,7 @@ public class UngrabMouse implements IFeature {
 
     @Override
     public boolean isRunning() {
-        return mouseUngrabbed;
+        return false;
     }
 
     @Override
