@@ -209,6 +209,11 @@ public class PestsDestroyer implements IFeature {
             return false;
         }
 
+        if (PlayerUtils.isSpawnPointObstructed()) {
+            LogUtils.sendError("[Pests Destroyer] Your spawn point is obstructed! Please clear the area above!");
+            return false;
+        }
+
         return true;
     }
 
