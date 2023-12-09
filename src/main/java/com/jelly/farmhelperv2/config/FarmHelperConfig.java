@@ -1413,6 +1413,11 @@ public class FarmHelperConfig extends Config {
             description = "Hides all logs from the console. Not recommended."
     )
     public static boolean hideLogs = false;
+    @Switch(
+            name = "Show rotation debug messages", category = DEBUG, subcategory = "Debug",
+            description = "Shows rotation debug messages"
+    )
+    public static boolean showRotationDebugMessages = false;
     //</editor-fold>
 
     //<editor-fold desc="Debug Hud">
