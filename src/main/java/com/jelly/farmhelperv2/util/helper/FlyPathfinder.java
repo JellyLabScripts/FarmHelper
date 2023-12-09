@@ -236,7 +236,10 @@ public class FlyPathfinder {
         mc.thePlayer.setSprinting(relativeDistanceZ > 12 && !mc.gameSettings.keyBindSneak.isKeyDown());
     }
 
-    public boolean isDeceleratingLeft, isDeceleratingRight, isDeceleratingForward, isDeceleratingBackward;
+    public boolean isDeceleratingLeft = false;
+    public boolean isDeceleratingRight = false;
+    public boolean isDeceleratingForward = false;
+    public boolean isDeceleratingBackward = false;
 
     public VerticalDirection shouldChangeHeight(double relativeDistanceX, double relativeDistanceZ) {
         if (Math.abs(relativeDistanceX) < 0.75 && Math.abs(relativeDistanceZ) < 0.75) {
