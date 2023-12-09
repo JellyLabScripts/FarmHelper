@@ -1112,14 +1112,12 @@ public class FarmHelperConfig extends Config {
             min = 0, max = 5000
     )
     public static int pestAdditionalGUIDelay = 0;
-
     @Switch(
             name = "Pause the Pests Destroyer during Jacob's contests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Pauses the Pests Destroyer during Jacob's contests",
             size = 2
     )
     public static boolean pausePestsDestroyerDuringJacobsContest = true;
-
     @Button(
             name = "Trigger now Pests Destroyer", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Triggers the pests destroyer manually",
@@ -1131,32 +1129,32 @@ public class FarmHelperConfig extends Config {
         }
     }
 
-    @Slider(
-            name = "Recalculate path after pest escaped X blocks", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
-            description = "",
-            min = 2, max = 10
-    )
-    public static int recalculatePathAfterPestEscaped = 5;
-
-    @Switch(
-            name = "Enable Pests Destroyer Pathfinding for medium distances", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
-            description = "Enables the pests destroyer pathfinding for medium distances",
-            size = 1
-    )
-    public static boolean enablePestsDestroyerPathfindingMediumDistances = false;
-    @Switch(
-            name = "Enable Pests Destroyer Pathfinding for longer distances", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
-            description = "Enables the pests destroyer pathfinding for longer distances",
-            size = 1
-    )
-    public static boolean enablePestsDestroyerPathfindingLongerDistances = false;
-
     @KeyBind(
             name = "Enable Pests Destroyer", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Enables the pests destroyer",
             size = 2
     )
     public static OneKeyBind enablePestsDestroyerKeyBind = new OneKeyBind(Keyboard.KEY_NONE);
+
+    @Slider(
+            name = "Recalculate path after pest escaped X blocks", category = PESTS_DESTROYER, subcategory = "Pathfinding",
+            description = "",
+            min = 3, max = 10
+    )
+    public static int recalculatePathAfterPestEscaped = 5;
+
+    @Switch(
+            name = "Enable Pests Destroyer Pathfinding for medium distances", category = PESTS_DESTROYER, subcategory = "Pathfinding",
+            description = "Enables the pests destroyer pathfinding for medium distances",
+            size = 1
+    )
+    public static boolean enablePestsDestroyerPathfindingMediumDistances = true;
+    @Switch(
+            name = "Enable Pests Destroyer Pathfinding for longer distances", category = PESTS_DESTROYER, subcategory = "Pathfinding",
+            description = "Enables the pests destroyer pathfinding for longer distances",
+            size = 1
+    )
+    public static boolean enablePestsDestroyerPathfindingLongerDistances = false;
     //</editor-fold>
 
     //<editor-fold desc="Drawings">
@@ -1492,7 +1490,7 @@ public class FarmHelperConfig extends Config {
     //<editor-fold desc="Fly Path Finder">
     @Slider(
             name = "Allowed Overshoot Threshold", category = EXPERIMENTAL, subcategory = "Flight",
-            description = "The minimum distance from the block at which the flight path finder would allow overshooting",
+            description = "The minimum distance from the block at which the fly path finder would allow overshooting",
             min = 0.05f, max = 0.4f
     )
     public static float flightAllowedOvershootThreshold = 0.1f;

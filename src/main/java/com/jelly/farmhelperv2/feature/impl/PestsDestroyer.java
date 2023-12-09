@@ -605,7 +605,7 @@ public class PestsDestroyer implements IFeature {
                         break;
                     }
                     if (FarmHelperConfig.enablePestsDestroyerPathfindingMediumDistances) {
-                        flyPathFinding(entity);
+                        flyPathfinding(entity);
                     } else {
                         if (distanceXZ <= 1 && (Math.abs(mc.thePlayer.motionX) > 0.1 || Math.abs(mc.thePlayer.motionZ) > 0.1)) {
                             KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null);
@@ -627,7 +627,7 @@ public class PestsDestroyer implements IFeature {
                     }
                 } else {
                     if (FarmHelperConfig.enablePestsDestroyerPathfindingLongerDistances) {
-                        flyPathFinding(entity);
+                        flyPathfinding(entity);
                     } else {
                         if (distanceXZ < 6 && distance > 10 && mc.thePlayer.capabilities.isFlying) {
                             manipulateHeight(entity, distance, distanceXZ, yawDifference);
@@ -688,7 +688,7 @@ public class PestsDestroyer implements IFeature {
         }
     }
 
-    private void flyPathFinding(Entity entity) {
+    private void flyPathfinding(Entity entity) {
         if (!mc.thePlayer.capabilities.isFlying) {
             flyAwayFromGround();
             delayClock.schedule(350);
