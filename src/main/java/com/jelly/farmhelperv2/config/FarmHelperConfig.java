@@ -1346,9 +1346,9 @@ public class FarmHelperConfig extends Config {
     @Slider(
             name = "Pests Destroyer Ticks of not seeing pest.", category = DELAYS, subcategory = "Pests Destroyer",
             description = "Pests Destroyer Ticks of not seeing pest while attacking (1 tick == 50ms) to trigger Escape to Hub. 0 to disable",
-            min = 20, max = 150
+            min = 20, max = 200
     )
-    public static int pestsKillerTicksOfNotSeeingPestWhileAttacking = 50;
+    public static int pestsKillerTicksOfNotSeeingPestWhileAttacking = 70;
     //</editor-fold>
 
     //<editor-fold desc="Gui Delay">
