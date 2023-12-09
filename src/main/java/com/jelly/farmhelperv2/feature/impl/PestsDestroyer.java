@@ -605,8 +605,8 @@ public class PestsDestroyer implements IFeature {
                         break;
                     }
                     if (!FlyPathfinder.getInstance().hasGoal()) {
-                        LogUtils.sendDebug("[Pests Destroyer] Setting goal to " + entity.getPosition());
-                        FlyPathfinder.getInstance().setGoal(new GoalNear(new BetterBlockPos(entity.getPosition()), 2));
+                        LogUtils.sendDebug("[Pests Destroyer] Setting goal to " + String.format("%.2f %.2f %.2f", entity.posX, entity.posY + 1.5, entity.posZ));
+                        FlyPathfinder.getInstance().setGoal(new GoalNear(new BetterBlockPos(entity.posX, entity.posY + 1.5, entity.posZ), 2));
                         delayClock.schedule(550);
                         break;
                     }
