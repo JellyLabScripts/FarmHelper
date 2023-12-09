@@ -1108,7 +1108,7 @@ public class FarmHelperConfig extends Config {
     public static int startKillingPestsAt = 3;
     @Slider(
             name = "Additional GUI Delay (ms)", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
-            description = "Extra time to wait between clicks",
+            description = "Extra time to wait between clicks. By default it's 500-1000 ms.",
             min = 0, max = 5000
     )
     public static int pestAdditionalGUIDelay = 0;
@@ -1130,6 +1130,13 @@ public class FarmHelperConfig extends Config {
             PestsDestroyer.getInstance().start();
         }
     }
+
+    @Slider(
+            name = "Recalculate path after pest escaped X blocks", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            description = "",
+            min = 2, max = 10
+    )
+    public static int recalculatePathAfterPestEscaped = 5;
 
     @KeyBind(
             name = "Enable Pests Destroyer", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
