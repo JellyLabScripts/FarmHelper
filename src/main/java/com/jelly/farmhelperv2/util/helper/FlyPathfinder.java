@@ -4,6 +4,7 @@ import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
 import baritone.api.pathing.calc.IPath;
 import baritone.api.pathing.goals.Goal;
+import baritone.api.pathing.goals.GoalNear;
 import baritone.api.utils.PathCalculationResult;
 import baritone.pathing.calc.FlyAStar;
 import baritone.pathing.movement.CalculationContext;
@@ -277,6 +278,13 @@ public class FlyPathfinder {
 
     public double getPlayerSpeed() {
         return Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionY * mc.thePlayer.motionY + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
+    }
+
+    public float getDistanceTo(BlockPos target) {
+        System.out.println("Goal: " + ((GoalNear) goal).getGoalPos().toString());
+        System.out.println("Target: " + target.toString());
+        System.out.println("Distance: " + (float) Math.sqrt(((GoalNear) goal).getGoalPos().distanceSq(target.getX(), target.getY(), target.getZ())));
+        return (float) Math.sqrt(((GoalNear) goal).getGoalPos().distanceSq(target.getX(), target.getY(), target.getZ()));
     }
 
     public boolean isStuck() {

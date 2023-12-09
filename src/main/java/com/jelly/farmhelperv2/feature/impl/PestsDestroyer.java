@@ -168,9 +168,6 @@ public class PestsDestroyer implements IFeature {
         enabled = false;
         lastFireworkTime = 0;
         state = States.IDLE;
-        if (FlyPathfinder.getInstance().isPathing()) {
-            FlyPathfinder.getInstance().stop();
-        }
     }
 
     @Override
@@ -606,7 +603,8 @@ public class PestsDestroyer implements IFeature {
                         delayClock.schedule(350);
                         break;
                     }
-                    if (FlyPathfinder.getInstance().hasGoal() && distance < FarmHelperConfig.recalculatePathAfterPestEscaped) {
+                    if (FlyPathfinder.getInstance().hasGoal() && FlyPathfinder.getInstance().getDistanceTo(new BlockPos(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ)) > FarmHelperConfig.recalculatePathAfterPestEscaped) {
+                        FlyPathfinder.getInstance().setGoal(new GoalNear(new BetterBlockPos(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ), 2));
                         LogUtils.sendDebug("[Pests Destroyer] Pest escaped. Recalculating path to " + FlyPathfinder.getInstance().getGoal());
                         FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal());
                         delayClock.schedule(350);
@@ -622,7 +620,7 @@ public class PestsDestroyer implements IFeature {
                     }
                     if (!FlyPathfinder.getInstance().hasGoal()) {
                         LogUtils.sendDebug("[Pests Destroyer] Setting goal to " + String.format("%.2f %.2f %.2f", entity.posX, entity.posY + 1.5, entity.posZ));
-                        FlyPathfinder.getInstance().setGoal(new GoalNear(new BetterBlockPos(entity.posX, entity.posY + 1.5, entity.posZ), 2));
+                        FlyPathfinder.getInstance().setGoal(new GoalNear(new BetterBlockPos(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ), 2));
                         delayClock.schedule(550);
                         break;
                     }
