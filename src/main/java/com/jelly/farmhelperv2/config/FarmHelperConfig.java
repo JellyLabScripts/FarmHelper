@@ -1139,6 +1139,12 @@ public class FarmHelperConfig extends Config {
     public static int recalculatePathAfterPestEscaped = 5;
 
     @Switch(
+            name = "Enable Pests Destroyer Pathfinding for medium distances", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            description = "Enables the pests destroyer pathfinding for medium distances",
+            size = 1
+    )
+    public static boolean enablePestsDestroyerPathfindingMediumDistances = false;
+    @Switch(
             name = "Enable Pests Destroyer Pathfinding for longer distances", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Enables the pests destroyer pathfinding for longer distances",
             size = 1
