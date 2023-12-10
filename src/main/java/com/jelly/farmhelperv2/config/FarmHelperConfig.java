@@ -1346,7 +1346,7 @@ public class FarmHelperConfig extends Config {
             description = "Pests Destroyer Ticks of not seeing pest while attacking (1 tick == 50ms) to trigger Escape to Hub. 0 to disable",
             min = 20, max = 200
     )
-    public static int pestsKillerTicksOfNotSeeingPestWhileAttacking = 70;
+    public static int pestsKillerTicksOfNotSeeingPestWhileAttacking = 100;
     //</editor-fold>
 
     //<editor-fold desc="Gui Delay">
