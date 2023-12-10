@@ -1409,18 +1409,18 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="DEBUG">
     //<editor-fold desc="Debug">
-    @KeyBind(
-            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
-    )
-    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
-    @KeyBind(
-            name = "Debug Keybind 2", category = DEBUG
-    )
-    public static OneKeyBind debugKeybind2 = new OneKeyBind(Keyboard.KEY_H);
-    @KeyBind(
-            name = "Debug Keybind 3", category = DEBUG
-    )
-    public static OneKeyBind debugKeybind3 = new OneKeyBind(Keyboard.KEY_J);
+//    @KeyBind(
+//            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
+//    )
+//    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
+//    @KeyBind(
+//            name = "Debug Keybind 2", category = DEBUG
+//    )
+//    public static OneKeyBind debugKeybind2 = new OneKeyBind(Keyboard.KEY_H);
+//    @KeyBind(
+//            name = "Debug Keybind 3", category = DEBUG
+//    )
+//    public static OneKeyBind debugKeybind3 = new OneKeyBind(Keyboard.KEY_J);
     @Switch(
             name = "Debug Mode", category = DEBUG, subcategory = "Debug",
             description = "Prints to chat what the bot is currently executing. Useful if you are having issues."
@@ -1657,8 +1657,8 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-        registerKeyBind(debugKeybind, () -> {
-        });
+//        registerKeyBind(debugKeybind, () -> {
+//        });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
         registerKeyBind(enablePestsDestroyerKeyBind, () -> {
@@ -1666,18 +1666,18 @@ public class FarmHelperConfig extends Config {
                 PestsDestroyer.getInstance().start();
             }
         });
-        registerKeyBind(debugKeybind2, () -> {
-            MovingObjectPosition objectMouseOver = Minecraft.getMinecraft().objectMouseOver;
-            if (objectMouseOver != null && objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                BlockPos blockPos = objectMouseOver.getBlockPos();
-                BlockPos oppositeSide = blockPos.offset(objectMouseOver.sideHit);
-                LogUtils.sendDebug("Block: " + oppositeSide);
-                FlyPathfinder.getInstance().setGoal(new GoalBlock(oppositeSide));
-            }
-        });
-        registerKeyBind(debugKeybind3, () -> {
-                    FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal());
-                });
+//        registerKeyBind(debugKeybind2, () -> {
+//            MovingObjectPosition objectMouseOver = Minecraft.getMinecraft().objectMouseOver;
+//            if (objectMouseOver != null && objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+//                BlockPos blockPos = objectMouseOver.getBlockPos();
+//                BlockPos oppositeSide = blockPos.offset(objectMouseOver.sideHit);
+//                LogUtils.sendDebug("Block: " + oppositeSide);
+//                FlyPathfinder.getInstance().setGoal(new GoalBlock(oppositeSide));
+//            }
+//        });
+//        registerKeyBind(debugKeybind3, () -> {
+//                    FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal());
+//                });
         save();
     }
 
