@@ -21,12 +21,8 @@ import com.jelly.farmhelperv2.util.BlockUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
-import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.MovingObjectPosition;
-import baritone.api.pathing.goals.GoalBlock;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
@@ -1352,13 +1348,13 @@ public class FarmHelperConfig extends Config {
     //<editor-fold desc="Gui Delay">
     @Slider(
             name = "GUI Delay", category = DELAYS, subcategory = "GUI Delays",
-            description = "The delay between clicking during GUI macros (in miliseconds)",
+            description = "The delay between clicking during GUI macros (in milliseconds)",
             min = 250f, max = 2000f
     )
     public static float macroGuiDelay = 400f;
     @Slider(
             name = "Additional random GUI Delay", category = DELAYS, subcategory = "GUI Delays",
-            description = "The maximum random time added to the delay time between clicking during GUI macros (in miliseconds)",
+            description = "The maximum random time added to the delay time between clicking during GUI macros (in milliseconds)",
             min = 0f, max = 2000f
     )
     public static float macroGuiDelayRandomness = 350f;
