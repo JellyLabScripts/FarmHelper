@@ -626,6 +626,7 @@ public class PestsDestroyer implements IFeature {
                         }
                     }
                 } else {
+                    cantReachPest = 0;
                     if (FarmHelperConfig.enablePestsDestroyerPathfindingLongerDistances) {
                         flyPathfinding(entity);
                     } else {
@@ -892,6 +893,10 @@ public class PestsDestroyer implements IFeature {
     public void onChat(ClientChatReceivedEvent event) {
         if (event.type != 0 || event.message == null) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText().trim());
+        if (message.contains("The worm seems to have burrowed")) {
+            cantReachPest = 0;
+            return;
+        }
         Matcher matcher = pestPattern.matcher(message);
         if (!matcher.matches()) {
             return;
