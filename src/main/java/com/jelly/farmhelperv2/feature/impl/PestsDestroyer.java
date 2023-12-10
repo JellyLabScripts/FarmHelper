@@ -586,8 +586,10 @@ public class PestsDestroyer implements IFeature {
                 }
 
                 if (distance <= 3) {
-                    if (FlyPathfinder.getInstance().isRunning())
+                    if (FlyPathfinder.getInstance().isRunning()) {
                         FlyPathfinder.getInstance().stop();
+                        KeyBindUtils.stopMovement();
+                    }
                     if (!RotationHandler.getInstance().isRotating()) {
                         RotationHandler.getInstance().reset();
                         RotationHandler.getInstance().easeTo(new RotationConfiguration(
@@ -716,7 +718,7 @@ public class PestsDestroyer implements IFeature {
             delayClock.schedule(550);
             return;
         }
-        if (!FlyPathfinder.getInstance().isRunning()) {
+        if (!FlyPathfinder.getInstance().isRunning() && GameStateHandler.getInstance().getDx() < 0.04 && GameStateHandler.getInstance().getDz() < 0.04 ) {
             LogUtils.sendDebug("[Pests Destroyer] Getting path to " + FlyPathfinder.getInstance().getGoal());
             FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal());
             delayClock.schedule(350);
