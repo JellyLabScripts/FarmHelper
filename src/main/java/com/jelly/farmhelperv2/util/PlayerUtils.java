@@ -314,16 +314,11 @@ public class PlayerUtils {
     }
 
     public static Entity getEntityCuttingOtherEntity(Entity e) {
-        return getEntityCuttingOtherEntity(e, false);
-    }
-
-    public static Entity getEntityCuttingOtherEntity(Entity e, boolean armorStand) {
         List<Entity> possible = mc.theWorld.getEntitiesInAABBexcluding(e, e.getEntityBoundingBox().expand(0.3D, 2.0D, 0.3D), a -> {
             boolean flag1 = (!a.isDead && !a.equals(mc.thePlayer));
-            boolean flag2 = armorStand == (a instanceof EntityArmorStand);
-            boolean flag3 = !(a instanceof net.minecraft.entity.projectile.EntityFireball);
-            boolean flag4 = !(a instanceof net.minecraft.entity.projectile.EntityFishHook);
-            return flag1 && flag2 && flag3 && flag4;
+            boolean flag2 = !(a instanceof net.minecraft.entity.projectile.EntityFireball);
+            boolean flag3 = !(a instanceof net.minecraft.entity.projectile.EntityFishHook);
+            return flag1 && flag2 && flag3;
         });
         if (!possible.isEmpty())
             return Collections.min(possible, Comparator.comparing(e2 -> e2.getDistanceToEntity(e)));
@@ -331,7 +326,7 @@ public class PlayerUtils {
     }
 
     public static boolean isPlayerSuffocating() {
-        AxisAlignedBB playerBB = mc.thePlayer.getEntityBoundingBox().expand(-0.1, -0.1, -0.1);
+        AxisAlignedBB playerBB = mc.thePlayer.getEntityBoundingBox().expand(-0.15, -0.15, -0.15);
         List<AxisAlignedBB> collidingBoxes = mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, playerBB);
         return !collidingBoxes.isEmpty();
     }

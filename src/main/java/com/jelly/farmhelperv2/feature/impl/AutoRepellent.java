@@ -145,6 +145,7 @@ public class AutoRepellent implements IFeature {
         if (enabled) return;
         if (!isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
 

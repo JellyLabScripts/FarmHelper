@@ -193,6 +193,7 @@ public class AutoSprayonator implements IFeature {
         if (running) return;
         if (!isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (sprayState != AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT) return;

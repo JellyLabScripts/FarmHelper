@@ -186,6 +186,7 @@ public class AutoSell implements IFeature {
         if (isRunning()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (dontEnableForClock.isScheduled() && !dontEnableForClock.passed()) return;
