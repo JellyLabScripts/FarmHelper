@@ -586,8 +586,10 @@ public class PestsDestroyer implements IFeature {
                 }
 
                 if (distance <= 2.5) {
-                    if (FlyPathfinder.getInstance().isRunning())
+                    if (FlyPathfinder.getInstance().isRunning()) {
                         FlyPathfinder.getInstance().stop();
+                        KeyBindUtils.stopMovement();
+                    }
                     if (!RotationHandler.getInstance().isRotating()) {
                         RotationHandler.getInstance().reset();
                         RotationHandler.getInstance().easeTo(new RotationConfiguration(
@@ -606,6 +608,7 @@ public class PestsDestroyer implements IFeature {
                     }
                     if (FarmHelperConfig.enablePestsDestroyerPathfindingMediumDistances) {
                         flyPathfinding(entity);
+                        break;
                     } else {
                         if (distanceXZ <= 1 && (Math.abs(mc.thePlayer.motionX) > 0.1 || Math.abs(mc.thePlayer.motionZ) > 0.1)) {
                             KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null);
@@ -717,10 +720,13 @@ public class PestsDestroyer implements IFeature {
             return;
         }
         if (!FlyPathfinder.getInstance().isRunning()) {
+            if (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) {
+                KeyBindUtils.stopMovement();
+                return;
+            }
             LogUtils.sendDebug("[Pests Destroyer] Getting path to " + FlyPathfinder.getInstance().getGoal());
             FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal());
             delayClock.schedule(350);
-            return;
         }
     }
 
