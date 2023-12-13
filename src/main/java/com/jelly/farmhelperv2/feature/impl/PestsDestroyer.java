@@ -494,6 +494,11 @@ public class PestsDestroyer implements IFeature {
                 break;
             case FLY_TO_PEST:
                 if (isInventoryOpenDelayed()) break;
+                if (!currentEntityTarget.isPresent() || totalPests == 0) {
+                    RotationHandler.getInstance().reset();
+                    state = States.CHECK_ANOTHER_PEST;
+                    return;
+                }
                 if (!mc.thePlayer.capabilities.isFlying) {
                     flyAwayFromGround();
                     break;
@@ -1051,7 +1056,7 @@ public class PestsDestroyer implements IFeature {
                 KeyBindUtils.stopMovement();
                 stuckClock.reset();
                 RotationHandler.getInstance().reset();
-                delayClock.schedule(1_500);
+                delayClock.schedule(500);
             }
         });
     }

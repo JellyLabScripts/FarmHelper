@@ -257,6 +257,9 @@ public class AutoSell implements IFeature {
                     }
                 }
 
+                int closeSlot = InventoryUtils.getSlotIdOfItemInContainer("Close");
+                if (closeSlot != -1) return;
+
                 LogUtils.sendDebug("[Auto Sell] Detected the Sacks menu");
                 int sacksSlot = InventoryUtils.getSlotIdOfItemInContainer("Enchanted Agronomy Sack");
                 if (sacksSlot == -1) {
@@ -288,6 +291,8 @@ public class AutoSell implements IFeature {
                 } else if (InventoryUtils.getInventoryName() == null) {
                     return;
                 }
+                int closeSlot1 = InventoryUtils.getSlotIdOfItemInContainer("Go Back");
+                if (closeSlot1 != -1) return;
                 int pickUpAll = InventoryUtils.getSlotIdOfItemInContainer("Pickup All");
                 if (pickUpAll != -1) {
                     if (mc.thePlayer.inventory.getFirstEmptyStack() != -1) {

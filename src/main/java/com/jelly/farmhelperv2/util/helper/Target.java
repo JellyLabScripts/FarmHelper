@@ -36,7 +36,7 @@ public class Target {
         if (vec != null) {
             return Optional.of(vec);
         } else if (entity != null) {
-            return Optional.of(entity.getPositionVector().add(new Vec3(0, entity.getEyeHeight() - 0.15 + additionalY, 0)));
+            return Optional.of(entity.getPositionVector().add(new Vec3(0, Math.min(entity.getEyeHeight() - 0.15, 1.2) + additionalY, 0)));
         } else if (blockPos != null) {
             return Optional.of(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
         } else {

@@ -86,6 +86,8 @@ public class GameStateHandler {
     @Getter
     @Setter
     private Optional<Integer> serverClosingSeconds = Optional.empty();
+    @Getter
+    private int speed = 0;
 
     public static GameStateHandler getInstance() {
         if (INSTANCE == null) {
@@ -310,6 +312,14 @@ public class GameStateHandler {
             lastLocation = location;
         }
         location = Location.TELEPORTING;
+    }
+
+    @SubscribeEvent
+    public void onTickCheckSpeed(TickEvent.ClientTickEvent event) {
+        if (mc.theWorld == null || mc.thePlayer == null) return;
+
+        float speed = mc.thePlayer.capabilities.getWalkSpeed();
+        this.speed = (int) (speed * 1_000);
     }
 
     @SubscribeEvent
