@@ -494,7 +494,7 @@ public class PestsDestroyer implements IFeature {
                 break;
             case FLY_TO_PEST:
                 if (isInventoryOpenDelayed()) break;
-                if (!currentEntityTarget.isPresent() || totalPests == 0) {
+                if (totalPests == 0) {
                     RotationHandler.getInstance().reset();
                     state = States.CHECK_ANOTHER_PEST;
                     return;
@@ -674,6 +674,7 @@ public class PestsDestroyer implements IFeature {
                 LogUtils.sendDebug(totalPests + " pest" + (totalPests == 1 ? "" : "s") + " left");
                 if (totalPests == 0) {
                     state = States.GO_BACK;
+                    delayClock.schedule((long) (1_000 + Math.random() * 500));
                 } else {
                     if (!pestsLocations.isEmpty()) {
                         LogUtils.sendDebug("Found another pest");
@@ -908,6 +909,12 @@ public class PestsDestroyer implements IFeature {
     public void onChat(ClientChatReceivedEvent event) {
         if (event.type != 0 || event.message == null) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText().trim());
+        if (message.startsWith("You can't fast travel while in combat!")) {
+            LogUtils.sendWarning("[Pests Destroyer] Can't fast travel while in combat, will try again to teleport.");
+            enabled = true;
+            Multithreading.schedule(this::finishMacro, 1_000 + (long) (Math.random() * 1_000), TimeUnit.MILLISECONDS);
+            return;
+        }
         if (message.contains("The worm seems to have burrowed")) {
             cantReachPest = 0;
             return;
