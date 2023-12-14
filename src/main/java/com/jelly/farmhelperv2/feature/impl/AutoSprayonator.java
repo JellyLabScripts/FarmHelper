@@ -87,8 +87,7 @@ public class AutoSprayonator implements IFeature {
     @Override
     public void start() {
         if (running) return;
-        if (MacroHandler.getInstance().isMacroToggled())
-            MacroHandler.getInstance().pauseMacro();
+        MacroHandler.getInstance().pauseMacro();
         running = true;
 
         sprayItem = SPRAYONATOR_ITEM.values()[FarmHelperConfig.sprayonatorType];
@@ -109,11 +108,7 @@ public class AutoSprayonator implements IFeature {
         if (mc.currentScreen != null)
             mc.thePlayer.closeScreen();
         if (MacroHandler.getInstance().isMacroToggled())
-            Multithreading.schedule(() -> {
-                if (MacroHandler.getInstance().isMacroToggled()) {
-                    MacroHandler.getInstance().resumeMacro();
-                }
-            }, 1_500, TimeUnit.MILLISECONDS);
+            Multithreading.schedule(() -> MacroHandler.getInstance().resumeMacro(), 1_500, TimeUnit.MILLISECONDS);
         running = false;
     }
 

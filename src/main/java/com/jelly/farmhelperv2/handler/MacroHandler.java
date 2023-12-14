@@ -286,6 +286,15 @@ public class MacroHandler {
             return;
         }
 
+        if (!GameStateHandler.getInstance().inGarden()) {
+            if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(Failsafe.getInstance()) &&
+                    !FeatureManager.getInstance().shouldIgnoreFalseCheck() &&
+                    !Failsafe.getInstance().isEmergency()) {
+                Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.WORLD_CHANGE_CHECK);
+            }
+            return;
+        }
+
         currentMacro.ifPresent(cm -> {
             if (!cm.isEnabled()) return;
             cm.onTick();

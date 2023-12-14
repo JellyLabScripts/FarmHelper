@@ -81,11 +81,7 @@ public class AutoRepellent implements IFeature {
         state = State.NONE;
         if (mc.currentScreen != null)
             PlayerUtils.closeScreen();
-        Multithreading.schedule(() -> {
-            if (MacroHandler.getInstance().isMacroToggled()) {
-                MacroHandler.getInstance().resumeMacro();
-            }
-        }, 1_500, TimeUnit.MILLISECONDS);
+        Multithreading.schedule(() -> MacroHandler.getInstance().resumeMacro(), 1_500, TimeUnit.MILLISECONDS);
     }
 
     @Override
