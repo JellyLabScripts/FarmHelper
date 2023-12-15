@@ -966,11 +966,15 @@ public class VisitorsMacro implements IFeature {
                     assert currentCharacter.isPresent();
                     if (entity.equals(currentVisitor.get()) || entity.equals(currentCharacter.get()) || entity.getCustomNameTag().contains("CLICK") && entity.getDistanceToEntity(currentVisitor.get()) < 1) {
                         LogUtils.sendDebug("[Visitors Macro] Looking at Visitor");
-                        setVisitorsState(VisitorsState.FINISH_VISITOR);
                         KeyBindUtils.leftClick();
-                        delayClock.schedule(getRandomDelay());
-                        break;
+                    } else {
+                        LogUtils.sendDebug("[Visitors Macro] Looking at someone else");
+                        LogUtils.sendDebug("[Visitors Macro] Looking at: " + entity.getName());
+                        mc.playerController.interactWithEntitySendPacket(mc.thePlayer, entity);
                     }
+                    setVisitorsState(VisitorsState.FINISH_VISITOR);
+                    delayClock.schedule(getRandomDelay());
+                    break;
                 }
                 LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
                 LogUtils.sendDebug("[Visitors Macro] Distance: " + mc.thePlayer.getDistanceToEntity(currentVisitor.get()));
