@@ -28,7 +28,6 @@ public abstract class AbstractMacro {
     public static final Minecraft mc = Minecraft.getMinecraft();
     private final RotationHandler rotation = RotationHandler.getInstance();
     private final Clock rewarpDelay = new Clock();
-    @Getter
     private final Clock analyticsClock = new Clock();
     @Setter
     public State currentState = State.NONE;
@@ -45,16 +44,18 @@ public abstract class AbstractMacro {
     @Setter
     private float pitch;
     @Setter
-    @Getter
     private Optional<Float> closest90Deg = Optional.empty();
     @Setter
     private boolean rotated = false;
     @Setter
     private Optional<BlockPos> beforeTeleportationPos = Optional.empty();
-
-    @Getter
     @Setter
     private RewarpState rewarpState = RewarpState.NONE;
+    @Setter
+    private WalkingDirection walkingDirection = WalkingDirection.X;
+    @Setter
+    private int previousWalkingCoord = 0;
+
 
     public boolean isEnabled() {
         return enabled && !FeatureManager.getInstance().shouldPauseMacroExecution();
@@ -364,6 +365,19 @@ public abstract class AbstractMacro {
         setClosest90Deg(Optional.of(AngleUtils.getClosest(yaw)));
     }
 
+    protected void setWalkingDirection() {
+        int currentX = BlockUtils.getRelativeBlockPos(0, 0, 0, getYaw()).getX();
+        int leftX = BlockUtils.getRelativeBlockPos(1, 0, 0, getYaw()).getX();
+        int rightX = BlockUtils.getRelativeBlockPos(-1, 0, 0, getYaw()).getX();
+        if (currentX == leftX || currentX == rightX) {
+            setWalkingDirection(WalkingDirection.Z);
+        } else {
+            setWalkingDirection(WalkingDirection.X);
+        }
+        LogUtils.sendDebug("Walking direction: " + getWalkingDirection());
+        setPreviousWalkingCoord(getWalkingDirection() == WalkingDirection.X ? mc.thePlayer.getPosition().getZ() : currentX);
+    }
+
     public boolean shouldRotateAfterWarp() {
         return true;
     }
@@ -389,6 +403,11 @@ public abstract class AbstractMacro {
         TELEPORTING,
         TELEPORTED,
         POST_REWARP
+    }
+
+    public enum WalkingDirection {
+        X,
+        Z,
     }
 
     @Getter
