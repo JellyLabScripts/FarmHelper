@@ -186,6 +186,7 @@ public class AutoSell implements IFeature {
         if (isRunning()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (dontEnableForClock.isScheduled() && !dontEnableForClock.passed()) return;
@@ -210,6 +211,11 @@ public class AutoSell implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isRunning()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
+            LogUtils.sendWarning("[Auto Sell] Server is closing in " + GameStateHandler.getInstance().getServerClosingSeconds().get() + " seconds, disabling Auto Sell");
+            stop();
+            return;
+        }
         if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) {
             stop();
             return;
@@ -256,6 +262,9 @@ public class AutoSell implements IFeature {
                     }
                 }
 
+                int closeSlot = InventoryUtils.getSlotIdOfItemInContainer("Close");
+                if (closeSlot != -1) return;
+
                 LogUtils.sendDebug("[Auto Sell] Detected the Sacks menu");
                 int sacksSlot = InventoryUtils.getSlotIdOfItemInContainer("Enchanted Agronomy Sack");
                 if (sacksSlot == -1) {
@@ -287,6 +296,8 @@ public class AutoSell implements IFeature {
                 } else if (InventoryUtils.getInventoryName() == null) {
                     return;
                 }
+                int closeSlot1 = InventoryUtils.getSlotIdOfItemInContainer("Go Back");
+                if (closeSlot1 != -1) return;
                 int pickUpAll = InventoryUtils.getSlotIdOfItemInContainer("Pickup All");
                 if (pickUpAll != -1) {
                     if (mc.thePlayer.inventory.getFirstEmptyStack() != -1) {
@@ -590,7 +601,8 @@ public class AutoSell implements IFeature {
         if (AutoSellNPCItemsPage.autoSellIronHoe && name.contains("Iron Hoe")) return true;
         if (!AutoSellNPCItemsPage.autoSellCustomItems.isEmpty()) {
             List<String> customItems = Arrays.asList(AutoSellNPCItemsPage.autoSellCustomItems.split("\\|"));
-            return customItems.stream().anyMatch(item -> StringUtils.stripControlCodes(name).startsWith(item));
+            System.out.println(customItems);
+            return customItems.stream().anyMatch(item -> StringUtils.stripControlCodes(name.toLowerCase()).contains(item.toLowerCase()));
         }
         return false;
     }

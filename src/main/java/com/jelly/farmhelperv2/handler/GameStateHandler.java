@@ -86,6 +86,8 @@ public class GameStateHandler {
     @Getter
     @Setter
     private Optional<Integer> serverClosingSeconds = Optional.empty();
+    @Getter
+    private int speed = 0;
 
     public static GameStateHandler getInstance() {
         if (INSTANCE == null) {
@@ -313,12 +315,21 @@ public class GameStateHandler {
     }
 
     @SubscribeEvent
+    public void onTickCheckSpeed(TickEvent.ClientTickEvent event) {
+        if (mc.theWorld == null || mc.thePlayer == null) return;
+
+        float speed = mc.thePlayer.capabilities.getWalkSpeed();
+        this.speed = (int) (speed * 1_000);
+    }
+
+    @SubscribeEvent
     public void onTickCheckMoving(TickEvent.ClientTickEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
 
         dx = Math.abs(mc.thePlayer.motionX);
         dy = Math.abs(mc.thePlayer.motionY);
         dz = Math.abs(mc.thePlayer.motionZ);
+
 
         if (notMoving() && mc.currentScreen == null) {
             if (hasPassedSinceStopped() && !PlayerUtils.isStandingOnRewarpLocation()) {

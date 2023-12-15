@@ -63,7 +63,7 @@ public class Freelook implements IFeature {
         cameraYaw = mc.thePlayer.rotationYaw + 180;
         cameraPitch = mc.thePlayer.rotationPitch;
         mc.gameSettings.thirdPersonView = 1;
-        if (UngrabMouse.getInstance().isToggled() && MacroHandler.getInstance().isCurrentMacroEnabled()) {
+        if (UngrabMouse.getInstance().isToggled() && MacroHandler.getInstance().isMacroToggled()) {
             UngrabMouse.getInstance().regrabMouse();
             mouseWasGrabbed = true;
         }
@@ -75,7 +75,7 @@ public class Freelook implements IFeature {
         enabled = false;
         distance = 4;
         mc.gameSettings.thirdPersonView = 0;
-        if (UngrabMouse.getInstance().isToggled() && mouseWasGrabbed && MacroHandler.getInstance().isCurrentMacroEnabled()) {
+        if (UngrabMouse.getInstance().isToggled() && mouseWasGrabbed && MacroHandler.getInstance().isMacroToggled()) {
             UngrabMouse.getInstance().ungrabMouse();
         }
         mouseWasGrabbed = false;

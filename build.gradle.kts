@@ -43,7 +43,7 @@ loom {
     forge {
         pack200Provider.set(dev.architectury.pack200.java.Pack200Adapter())
         // If you don't want mixins, remove this lines
-        mixinConfig("mixins.$modid.json")
+        mixinConfig("mixins.$modid.json", "mixins.baritone.json")
     }
     // If you don't want mixins, remove these lines
     mixin {
@@ -86,6 +86,14 @@ dependencies {
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.1.2")
 
     implementation("net.dv8tion:JDA:5.0.0-beta.13")
+
+    implementation("com.github.onixiya1337.baritone-fly:baritone-deobf:nirox-fly-SNAPSHOT")
+    shadowImpl("com.github.onixiya1337.baritone-fly:baritone-api-forge:nirox-fly-SNAPSHOT") {
+        exclude(module = "fastutil")
+        exclude(module = "lwjgl")
+        exclude(module = "SimpleTweaker")
+        exclude(module = "launchwrapper")
+    }
 }
 
 // Tasks:
@@ -105,7 +113,7 @@ tasks.withType(Jar::class) {
 
         // If you don't want mixins, remove these lines
         this["TweakClass"] = "cc.polyfrost.oneconfig.loader.stage0.LaunchWrapperTweaker"
-        this["MixinConfigs"] = "mixins.$modid.json"
+        this["MixinConfigs"] = "mixins.$modid.json, mixins.baritone.json"
     }
 }
 

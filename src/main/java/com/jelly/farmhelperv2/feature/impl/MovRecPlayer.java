@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import cc.polyfrost.oneconfig.libs.universal.UMath;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
@@ -11,6 +12,7 @@ import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.util.MathHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -224,12 +226,14 @@ public class MovRecPlayer implements IFeature {
 
         Movement movement = movements.get(playingIndex);
         setPlayerMovement(movement);
-        rotateBeforePlaying.easeTo(
-                new RotationConfiguration(
-                        new Rotation(AngleUtils.normalizeAngle(movement.yaw - yawDifference), movement.pitch),
-                        49, null
-                )
-        );
+//        rotateBeforePlaying.easeTo(
+//                new RotationConfiguration(
+//                        new Rotation(AngleUtils.normalizeAngle(movement.yaw - yawDifference), movement.pitch),
+//                        49, null
+//                )
+//        );
+        mc.thePlayer.rotationYaw = movement.yaw - yawDifference;
+        mc.thePlayer.rotationPitch = movement.pitch;
 
         if (currentDelay < movement.delay) {
             currentDelay++;

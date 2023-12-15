@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2;
 
+import baritone.api.BaritoneAPI;
 import cc.polyfrost.oneconfig.utils.Notifications;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -18,6 +19,8 @@ import com.jelly.farmhelperv2.util.FailsafeUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.ReflectionUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
+import com.jelly.farmhelperv2.util.helper.BaritoneEventListener;
+import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import com.jelly.farmhelperv2.util.helper.TickTask;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.ClientCommandHandler;
@@ -55,6 +58,7 @@ public class FarmHelper {
 
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
         executorService.scheduleAtFixedRate(() -> MinecraftForge.EVENT_BUS.post(new MillisecondEvent()), 0, 1, TimeUnit.MILLISECONDS);
+        BaritoneAPI.getProvider().getPrimaryBaritone().getGameEventHandler().registerEventListener(new BaritoneEventListener());
     }
 
     @SubscribeEvent
@@ -89,6 +93,7 @@ public class FarmHelper {
             MinecraftForge.EVENT_BUS.register(DiscordBotHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(AudioManager.getInstance());
         MinecraftForge.EVENT_BUS.register(RotationHandler.getInstance());
+        MinecraftForge.EVENT_BUS.register(FlyPathfinder.getInstance());
     }
 
     private void initializeFields() {

@@ -7,6 +7,7 @@ import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ public class DebugHUD extends TextHud {
             lines.add("Rotating: " + macro.getRotation().isRotating());
         });
         lines.add("Current plot: " + GameStateHandler.getInstance().getCurrentPlot());
+        lines.add("Speed: " + GameStateHandler.getInstance().getSpeed());
         lines.add("Directions: ");
         lines.add("   Forward: " + GameStateHandler.getInstance().isFrontWalkable());
         lines.add("   Backward: " + GameStateHandler.getInstance().isBackWalkable());
@@ -105,7 +107,22 @@ public class DebugHUD extends TextHud {
             lines.add("   State: " + PestsDestroyer.getInstance().getState());
             lines.add("   Clock: " + PestsDestroyer.getInstance().getDelayClock().getRemainingTime());
             lines.add("   Stuck clock: " + PestsDestroyer.getInstance().getStuckClock().getRemainingTime());
-            PestsDestroyer.getInstance().getCurrentEntityTarget().ifPresent(target -> lines.add("   Current Entity Target: " + target.getPositionVector()));
+            if (PestsDestroyer.getInstance().getCantReachPest() != 0)
+                lines.add("   Can't reach pests for: " + PestsDestroyer.getInstance().getCantReachPest());
+            PestsDestroyer.getInstance().getCurrentEntityTarget().ifPresent(target -> lines.add(
+                    String.format("   Current Entity Target: %.2f %.2f %.2f", target.getPositionVector().xCoord, target.getPositionVector().yCoord, target.getPositionVector().zCoord))
+            );
+        }
+        if (FlyPathfinder.getInstance().isRunning()) {
+            lines.add("FlyPathfinder");
+            lines.add("   Path size: " + FlyPathfinder.getInstance().getPathBlocks().size());
+            lines.add(String.format("   Player speed: %.2f", FlyPathfinder.getInstance().getPlayerSpeed()));
+            lines.add("   Goal: " + FlyPathfinder.getInstance().getGoal());
+            lines.add("   Deceleration:");
+            lines.add("      Left: " + FlyPathfinder.getInstance().isDeceleratingLeft);
+            lines.add("      Right: " + FlyPathfinder.getInstance().isDeceleratingRight);
+            lines.add("      Forward: " + FlyPathfinder.getInstance().isDeceleratingForward);
+            lines.add("      Backward: " + FlyPathfinder.getInstance().isDeceleratingBackward);
         }
         if (AutoSprayonator.getInstance().isToggled()) {
             lines.add("Auto Sprayonator");

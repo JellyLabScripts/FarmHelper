@@ -102,6 +102,16 @@ public class AngleUtils {
         }
     }
 
+    public static float getClosest45(float inputAngle) {
+        float normalizedAngle = (inputAngle % 360 + 360) % 360;
+        float remainder = normalizedAngle % 45;
+        if (remainder <= 22.5) {
+            return (float) (Math.floor(normalizedAngle / 45) * 45);
+        } else {
+            return (float) (Math.ceil(normalizedAngle / 45) * 45);
+        }
+    }
+
     public static float getClosest() {
         if (get360RotationYaw() < 45 || get360RotationYaw() > 315) {
             return 0f;
