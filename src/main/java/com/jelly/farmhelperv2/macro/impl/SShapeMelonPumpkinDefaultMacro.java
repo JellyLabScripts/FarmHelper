@@ -242,14 +242,14 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
         switch (getCurrentState()) {
             case RIGHT:
                 KeyBindUtils.holdThese(
-                        isHuggingBackWall() ? mc.gameSettings.keyBindForward : null,
+                        isHuggingBackWall() || FarmHelperConfig.alwaysHoldW ? mc.gameSettings.keyBindForward : null,
                         mc.gameSettings.keyBindRight,
                         mc.gameSettings.keyBindAttack
                 );
                 break;
             case LEFT: {
                 KeyBindUtils.holdThese(
-                        isHuggingBackWall() ? mc.gameSettings.keyBindForward : null,
+                        isHuggingBackWall() || FarmHelperConfig.alwaysHoldW ? mc.gameSettings.keyBindForward : null,
                         mc.gameSettings.keyBindLeft,
                         mc.gameSettings.keyBindAttack
                 );

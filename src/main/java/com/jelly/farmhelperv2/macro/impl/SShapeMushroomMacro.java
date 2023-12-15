@@ -106,14 +106,14 @@ public class SShapeMushroomMacro extends AbstractMacro {
         switch (getCurrentState()) {
             case RIGHT: {
                 KeyBindUtils.holdThese(
-                        mushroom45DegreeSide() == LookDirection.LEFT ? mc.gameSettings.keyBindRight : mc.gameSettings.keyBindForward,
+                        FarmHelperConfig.alwaysHoldW ? mc.gameSettings.keyBindForward : mushroom45DegreeSide() == LookDirection.LEFT ? mc.gameSettings.keyBindRight : mc.gameSettings.keyBindForward,
                         mc.gameSettings.keyBindAttack
                 );
                 break;
             }
             case LEFT: {
                 KeyBindUtils.holdThese(
-                        mushroom45DegreeSide() == LookDirection.LEFT ? mc.gameSettings.keyBindForward : mc.gameSettings.keyBindLeft,
+                        FarmHelperConfig.alwaysHoldW ? mc.gameSettings.keyBindForward : mushroom45DegreeSide() == LookDirection.LEFT ? mc.gameSettings.keyBindForward : mc.gameSettings.keyBindLeft,
                         mc.gameSettings.keyBindAttack
                 );
                 break;

@@ -278,6 +278,11 @@ public class VisitorsMacro implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (delayClock.isScheduled() && !delayClock.passed()) return;
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
+            LogUtils.sendError("[Visitors Macro] Server is closing in " + GameStateHandler.getInstance().getServerClosingSeconds().get() + " seconds!");
+            stop();
+            return;
+        }
 
         if (stuckClock.isScheduled() && stuckClock.passed()) {
             LogUtils.sendError("[Visitors Macro] The player is stuck, restarting the macro...");

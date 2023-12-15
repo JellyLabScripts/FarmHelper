@@ -113,14 +113,14 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 KeyBindUtils.holdThese(
                         mc.gameSettings.keyBindLeft,
                         mc.gameSettings.keyBindAttack,
-                        PlayerUtils.shouldWalkForwards() ? mc.gameSettings.keyBindForward : null
+                        PlayerUtils.shouldWalkForwards() || FarmHelperConfig.alwaysHoldW ? mc.gameSettings.keyBindForward : null
                 );
                 break;
             case RIGHT:
                 KeyBindUtils.holdThese(
                         mc.gameSettings.keyBindRight,
                         mc.gameSettings.keyBindAttack,
-                        PlayerUtils.shouldWalkForwards() ? mc.gameSettings.keyBindForward : null
+                        PlayerUtils.shouldWalkForwards() || FarmHelperConfig.alwaysHoldW ? mc.gameSettings.keyBindForward : null
                 );
                 break;
             case SWITCHING_LANE:

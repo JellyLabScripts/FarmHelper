@@ -83,6 +83,12 @@ public class FarmHelperConfig extends Config {
     )
     public static int macroType = 0;
 
+    @Switch(
+            name = "Always hold W while farming", category = GENERAL,
+            description = "Always hold W while farming"
+    )
+    public static boolean alwaysHoldW = false;
+
     //<editor-fold desc="Rotation">
     @Switch(
             name = "Rotate After Warped", category = GENERAL, subcategory = "Rotation",

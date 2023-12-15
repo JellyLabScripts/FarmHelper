@@ -211,6 +211,11 @@ public class AutoSell implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isRunning()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
+            LogUtils.sendWarning("[Auto Sell] Server is closing in " + GameStateHandler.getInstance().getServerClosingSeconds().get() + " seconds, disabling Auto Sell");
+            stop();
+            return;
+        }
         if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) {
             stop();
             return;
@@ -596,7 +601,8 @@ public class AutoSell implements IFeature {
         if (AutoSellNPCItemsPage.autoSellIronHoe && name.contains("Iron Hoe")) return true;
         if (!AutoSellNPCItemsPage.autoSellCustomItems.isEmpty()) {
             List<String> customItems = Arrays.asList(AutoSellNPCItemsPage.autoSellCustomItems.split("\\|"));
-            return customItems.stream().anyMatch(item -> StringUtils.stripControlCodes(name).startsWith(item));
+            System.out.println(customItems);
+            return customItems.stream().anyMatch(item -> StringUtils.stripControlCodes(name.toLowerCase()).contains(item.toLowerCase()));
         }
         return false;
     }
