@@ -7,6 +7,7 @@ import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
+import com.jelly.farmhelperv2.macro.AbstractMacro;
 import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
@@ -163,6 +164,10 @@ public class Scheduler implements IFeature {
         }
 
         if (MacroHandler.getInstance().isMacroToggled() && MacroHandler.getInstance().isCurrentMacroEnabled() && schedulerState == SchedulerState.FARMING && !schedulerClock.isPaused() && schedulerClock.passed()) {
+            if (MacroHandler.getInstance().getCurrentMacro().get().getCurrentState().equals(AbstractMacro.State.SWITCHING_LANE)) {
+                LogUtils.sendDebug("[Scheduler] Macro is switching row, won't pause.");
+                return;
+            }
             LogUtils.sendDebug("[Scheduler] Farming time has passed, stopping");
             breakTime();
         } else if (MacroHandler.getInstance().isMacroToggled() && schedulerState == SchedulerState.BREAK && !schedulerClock.isPaused() && schedulerClock.passed()) {
