@@ -328,19 +328,7 @@ public class PestsDestroyer implements IFeature {
                     finishMacro();
                     return;
                 }
-                if (currentItem == null || !currentItem.getDisplayName().contains("Vacuum")) {
-                    int vacuum = InventoryUtils.getSlotIdOfItemInHotbar("Vacuum");
-                    if (vacuum == -1) {
-                        LogUtils.sendError("[Pests Destroyer] Failed to find vacuum in hotbar!");
-                        state = States.GO_BACK;
-                        FarmHelperConfig.enablePestsDestroyer = false;
-                        finishMacro();
-                        return;
-                    }
-                    mc.thePlayer.inventory.currentItem = vacuum;
-                    delayClock.schedule((long) (200 + Math.random() * 200));
-                    return;
-                }
+                if (getVacuum(currentItem)) return;
                 state = States.OPEN_DESK;
                 delayClock.schedule((long) (200 + Math.random() * 200));
                 break;
@@ -431,6 +419,8 @@ public class PestsDestroyer implements IFeature {
                     delayClock.schedule(350);
                     break;
                 }
+                ItemStack currentItem2 = mc.thePlayer.getHeldItem();
+                if (getVacuum(currentItem2)) return;
 
                 flyAwayFromStructures();
 
@@ -455,6 +445,8 @@ public class PestsDestroyer implements IFeature {
                 }
                 state = States.WAIT_FOR_LOCATION;
                 KeyBindUtils.leftClick();
+                if (!stuckClock.isScheduled())
+                    stuckClock.schedule(1_000 * 60 * FarmHelperConfig.pestsKillerStuckTime);
                 delayClock.schedule(300);
                 break;
             case WAIT_FOR_LOCATION:
@@ -514,7 +506,6 @@ public class PestsDestroyer implements IFeature {
                         return;
                     }
 
-                    // if lastFireworkLocation is behind the player, then GET_LOCATION
                     Vec3 playerPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
                     Vec3 playerLook = mc.thePlayer.getLookVec();
                     Vec3 fireworkPos = new Vec3(lastFireworkLocation.get().xCoord, mc.thePlayer.posY, lastFireworkLocation.get().zCoord);
@@ -595,6 +586,14 @@ public class PestsDestroyer implements IFeature {
                         FlyPathfinder.getInstance().stop();
                         KeyBindUtils.stopMovement();
                     }
+                    if (Math.abs(mc.thePlayer.motionX) > 0.1 || Math.abs(mc.thePlayer.motionZ) > 0.1) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindUseItem);
+                        if (delayBetweenBackTaps.passed()) {
+                            KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, mc.gameSettings.keyBindUseItem);
+                            delayBetweenBackTaps.schedule(100 + (long) (Math.random() * 100));
+                        }
+                        break;
+                    }
                     if (!RotationHandler.getInstance().isRotating()) {
                         RotationHandler.getInstance().reset();
                         RotationHandler.getInstance().easeTo(new RotationConfiguration(
@@ -611,11 +610,12 @@ public class PestsDestroyer implements IFeature {
                         delayClock.schedule(350);
                         break;
                     }
+
                     if (FarmHelperConfig.enablePestsDestroyerPathfindingMediumDistances && !FlyPathfinder.getInstance().hasFailed) {
                         flyPathfinding(entity);
                         break;
                     } else {
-                        if (distanceXZ <= 1 && (Math.abs(mc.thePlayer.motionX) > 0.1 || Math.abs(mc.thePlayer.motionZ) > 0.1)) {
+                        if (distanceXZ <= 1.5 && (Math.abs(mc.thePlayer.motionX) > 0.1 || Math.abs(mc.thePlayer.motionZ) > 0.1)) {
                             KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null);
                             if (delayBetweenBackTaps.passed()) {
                                 KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, distance < 6 ? mc.gameSettings.keyBindUseItem : null);
@@ -651,11 +651,11 @@ public class PestsDestroyer implements IFeature {
                         boolean objects = objectsInFrontOfPlayer();
 
                         if (!GameStateHandler.getInstance().isLeftWalkable() && GameStateHandler.getInstance().isRightWalkable()) {
-                            KeyBindUtils.holdThese(objects ? mc.gameSettings.keyBindJump : null, distanceXZ > 2 && yawDifference < 90 ? mc.gameSettings.keyBindForward : null, mc.gameSettings.keyBindRight);
+                            KeyBindUtils.holdThese(objects ? mc.gameSettings.keyBindJump : null, distanceXZ > 2 && yawDifference < 90 ? mc.gameSettings.keyBindForward : null, mc.gameSettings.keyBindRight, distanceXZ > 10 && yawDifference < 30 ? mc.gameSettings.keyBindSprint : null);
                         } else if (GameStateHandler.getInstance().isLeftWalkable() && !GameStateHandler.getInstance().isRightWalkable()) {
-                            KeyBindUtils.holdThese(objects ? mc.gameSettings.keyBindJump : null, distanceXZ > 2 && yawDifference < 90 ? mc.gameSettings.keyBindForward : null, mc.gameSettings.keyBindLeft);
+                            KeyBindUtils.holdThese(objects ? mc.gameSettings.keyBindJump : null, distanceXZ > 2 && yawDifference < 90 ? mc.gameSettings.keyBindForward : null, mc.gameSettings.keyBindLeft, distanceXZ > 10 && yawDifference < 30 ? mc.gameSettings.keyBindSprint : null);
                         } else {
-                            KeyBindUtils.holdThese(objects ? mc.gameSettings.keyBindJump : null, distanceXZ > 2 && yawDifference < 90 ? mc.gameSettings.keyBindForward : null);
+                            KeyBindUtils.holdThese(objects ? mc.gameSettings.keyBindJump : null, distanceXZ > 2 && yawDifference < 90 ? mc.gameSettings.keyBindForward : null, distanceXZ > 10 && yawDifference < 30 ? mc.gameSettings.keyBindSprint : null);
                         }
 
                         if (!RotationHandler.getInstance().isRotating()) {
@@ -696,6 +696,23 @@ public class PestsDestroyer implements IFeature {
                 finishMacro();
                 break;
         }
+    }
+
+    private boolean getVacuum(ItemStack currentItem2) {
+        if (currentItem2 == null || !currentItem2.getDisplayName().contains("Vacuum")) {
+            int vacuum = InventoryUtils.getSlotIdOfItemInHotbar("Vacuum");
+            if (vacuum == -1) {
+                LogUtils.sendError("[Pests Destroyer] Failed to find vacuum in hotbar!");
+                state = States.GO_BACK;
+                FarmHelperConfig.enablePestsDestroyer = false;
+                finishMacro();
+                return true;
+            }
+            mc.thePlayer.inventory.currentItem = vacuum;
+            delayClock.schedule((long) (200 + Math.random() * 200));
+            return true;
+        }
+        return false;
     }
 
     private void flyPathfinding(Entity entity) {
@@ -762,17 +779,17 @@ public class PestsDestroyer implements IFeature {
 
     private void manipulateHeight(Entity entity, double distance, double distanceWithoutY, float yawDifference) {
         if (objectsInFrontOfPlayer() || entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY >= 2) {
-            KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindJump, distanceWithoutY > 3 && yawDifference < 45 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 1 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null);
+            KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null, distanceWithoutY > 6 && yawDifference < 25 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 1 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null, distanceWithoutY > 7 && yawDifference < 25 ? mc.gameSettings.keyBindSprint : null);
         } else if (entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY <= -2) {
             if (hasBlockUnderThePlayer()) {
                 LogUtils.sendDebug("Has block under the player");
                 KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, getMovementToEvadeBottomBlock(), distanceWithoutY < 1 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null);
             } else {
                 LogUtils.sendDebug("Doesn't have block under the player");
-                KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindSneak, distanceWithoutY > 3 && yawDifference < 45 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 1 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null);
+                KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindSneak, distanceWithoutY > 6 && yawDifference < 25 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 1 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null, distanceWithoutY > 7 && yawDifference < 25 ? mc.gameSettings.keyBindSprint : null);
             }
         } else {
-            KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, distanceWithoutY > 3 && yawDifference < 45 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 1 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null);
+            KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, distanceWithoutY > 3 && yawDifference < 25 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 1 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null, distanceWithoutY > 7 && yawDifference < 25 ? mc.gameSettings.keyBindSprint : null);
         }
     }
 
@@ -780,16 +797,16 @@ public class PestsDestroyer implements IFeature {
         if (mc.thePlayer.posY < 80) {
             if (hasBlockAboveThePlayer()) {
                 if (!GameStateHandler.getInstance().isRightWalkable() && GameStateHandler.getInstance().isLeftWalkable()) {
-                    KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft, mc.gameSettings.keyBindJump);
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
                 } else if (!GameStateHandler.getInstance().isLeftWalkable() && GameStateHandler.getInstance().isRightWalkable()) {
-                    KeyBindUtils.holdThese(mc.gameSettings.keyBindRight, mc.gameSettings.keyBindJump);
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindRight, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
                 } else if (!GameStateHandler.getInstance().isFrontWalkable() && GameStateHandler.getInstance().isBackWalkable()) {
-                    KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, mc.gameSettings.keyBindJump);
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
                 } else if (!GameStateHandler.getInstance().isFrontWalkable() && !GameStateHandler.getInstance().isBackWalkable()) {
-                    KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, mc.gameSettings.keyBindJump);
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
                 }
             } else {
-                KeyBindUtils.holdThese(mc.gameSettings.keyBindJump);
+                KeyBindUtils.holdThese(mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null);
             }
         } else {
             KeyBindUtils.stopMovement();
@@ -832,28 +849,27 @@ public class PestsDestroyer implements IFeature {
     }
 
     private boolean objectsInFrontOfPlayer() {
-        Vec3 playerPos = mc.thePlayer.getPositionVector();
-        Vec3 leftPos = BlockUtils.getRelativeVec(-0.66f, 0, 0.66f, mc.thePlayer.rotationYaw);
-        Vec3 rightPos = BlockUtils.getRelativeVec(0.66f, 0, 0.66f, mc.thePlayer.rotationYaw);
-        Vec3 playerLook = AngleUtils.getVectorForRotation(0, mc.thePlayer.rotationYaw);
-        Vec3 lookForwardFeet = playerPos.addVector(playerLook.xCoord * 6, 0, playerLook.zCoord * 6);
-        Vec3 lookForwardHead = playerPos.addVector(playerLook.xCoord * 6, mc.thePlayer.eyeHeight, playerLook.zCoord * 6);
-        Vec3 lookForwardFeetLeft = leftPos.addVector(playerLook.xCoord * 5, 0, playerLook.zCoord * 5);
-        Vec3 lookForwardHeadLeft = leftPos.addVector(playerLook.xCoord * 5, mc.thePlayer.eyeHeight, playerLook.zCoord * 5);
-        Vec3 lookForwardFeetRight = rightPos.addVector(playerLook.xCoord * 5, 0, playerLook.zCoord * 5);
-        Vec3 lookForwardHeadRight = rightPos.addVector(playerLook.xCoord * 5, mc.thePlayer.eyeHeight, playerLook.zCoord * 5);
-        MovingObjectPosition mopFeet = mc.theWorld.rayTraceBlocks(playerPos, lookForwardFeet, false, true, false);
+        Vec3 playerPos = mc.thePlayer.getPositionVector().addVector(0, 0.1f, 0);
+        Vec3 leftPos = BlockUtils.getRelativeVec(-0.66f, 0.1f, 0.66f, mc.thePlayer.rotationYaw);
+        Vec3 rightPos = BlockUtils.getRelativeVec(0.66f, 0.1f, 0.66f, mc.thePlayer.rotationYaw);
+        if (getMopFromTopToBottom(playerPos, 6)) return true;
+        if (getMopFromTopToBottom(leftPos, 5)) return true;
+        return getMopFromTopToBottom(rightPos, 5);
+    }
+
+    private boolean getMopFromTopToBottom(Vec3 start, float distance) {
+        Vec3 playerLook = AngleUtils.getVectorForRotation(0f, mc.thePlayer.rotationYaw);
+        Vec3 posCenter = start.addVector(0, 0.4, 0);
+        Vec3 posHead = start.addVector(0, 1.4, 0);
+        Vec3 posFeetForward = start.addVector(playerLook.xCoord * distance, 0, playerLook.zCoord * distance);
+        Vec3 posCenterForward = posCenter.addVector(playerLook.xCoord * distance, 0, playerLook.zCoord * distance);
+        Vec3 posHeadForward = posHead.addVector(playerLook.xCoord * distance, 0, playerLook.zCoord * distance);
+        MovingObjectPosition mopFeet = mc.theWorld.rayTraceBlocks(start, posFeetForward, false, true, false);
         if (unpassableBlock(mopFeet)) return true;
-        MovingObjectPosition mopHead = mc.theWorld.rayTraceBlocks(playerPos.addVector(0, mc.thePlayer.eyeHeight, 0), lookForwardHead, false, true, false);
-        if (unpassableBlock(mopHead)) return true;
-        MovingObjectPosition mopFeetLeft = mc.theWorld.rayTraceBlocks(leftPos, lookForwardFeetLeft, false, true, false);
-        if (unpassableBlock(mopFeetLeft)) return true;
-        MovingObjectPosition mopHeadLeft = mc.theWorld.rayTraceBlocks(leftPos.addVector(0, mc.thePlayer.eyeHeight, 0), lookForwardHeadLeft, false, true, false);
-        if (unpassableBlock(mopHeadLeft)) return true;
-        MovingObjectPosition mopFeetRight = mc.theWorld.rayTraceBlocks(rightPos, lookForwardFeetRight, false, true, false);
-        if (unpassableBlock(mopFeetRight)) return true;
-        MovingObjectPosition mopHeadRight = mc.theWorld.rayTraceBlocks(rightPos.addVector(0, mc.thePlayer.eyeHeight, 0), lookForwardHeadRight, false, true, false);
-        return unpassableBlock(mopHeadRight);
+        MovingObjectPosition mopCenter = mc.theWorld.rayTraceBlocks(posCenter, posCenterForward, false, true, false);
+        if (unpassableBlock(mopCenter)) return true;
+        MovingObjectPosition mopHead = mc.theWorld.rayTraceBlocks(posHead, posHeadForward, false, true, false);
+        return unpassableBlock(mopHead);
     }
 
     private boolean hasBlockUnderThePlayer() {
@@ -1047,7 +1063,7 @@ public class PestsDestroyer implements IFeature {
                     return;
                 }
                 if (pestsPlotMap.get(plot) > 1) {
-                    pestsPlotMap.put(plot, pestsPlotMap.get(plot) - 1);
+                    pestsPlotMap.replace(plot, pestsPlotMap.get(plot) - 1);
                     LogUtils.sendDebug("[Pests Destroyer] Removed 1 pest from plot number: " + plotNumber);
                 } else {
                     pestsPlotMap.remove(plot);
