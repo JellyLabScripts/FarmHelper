@@ -14,6 +14,7 @@ import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.RenderUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
+import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import com.jelly.farmhelperv2.util.helper.Timer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -216,6 +217,9 @@ public class MacroHandler {
             UngrabMouse.getInstance().stop();
         disableCurrentMacro();
         setCurrentMacro(Optional.empty());
+        if (FlyPathfinder.getInstance().isRunning()) {
+            FlyPathfinder.getInstance().stop();
+        }
     }
 
     public void pauseMacro(boolean scheduler) {
@@ -279,6 +283,15 @@ public class MacroHandler {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (mc.currentScreen != null) {
             KeyBindUtils.stopMovement();
+            return;
+        }
+
+        if (!GameStateHandler.getInstance().inGarden()) {
+            if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(Failsafe.getInstance()) &&
+                    !FeatureManager.getInstance().shouldIgnoreFalseCheck() &&
+                    !Failsafe.getInstance().isEmergency()) {
+                Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.WORLD_CHANGE_CHECK);
+            }
             return;
         }
 

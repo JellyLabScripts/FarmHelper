@@ -60,7 +60,7 @@ public class ProfitCalculator implements IFeature {
 
             add(new BazaarItem("_Cactus", "CACTUS", 3));
             add(new BazaarItem("_Enchanted Cactus Green", "ENCHANTED_CACTUS_GREEN", 900)); // Not real npc price, temporary fix
-            add(new BazaarItem("_Enchanted Cactus", "ENCHANTED_CACTUS", 76_800));
+            add(new BazaarItem("_Enchanted Cactus", "ENCHANTED_CACTUS", 110_800));
 
             add(new BazaarItem("_Sugar Cane", "SUGAR_CANE", 4));
             add(new BazaarItem("_Enchanted Sugar", "ENCHANTED_SUGAR", 640));

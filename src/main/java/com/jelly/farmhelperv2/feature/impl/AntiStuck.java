@@ -120,7 +120,8 @@ public class AntiStuck implements IFeature {
                 !AntiStuck.getInstance().isToggled() ||
                 AntiStuck.getInstance().isRunning() ||
                 FeatureManager.getInstance().isAnyOtherFeatureEnabled(this) ||
-                !MacroHandler.getInstance().isCurrentMacroEnabled()) {
+                !MacroHandler.getInstance().isCurrentMacroEnabled() ||
+                !GameStateHandler.getInstance().inGarden()) {
             return;
         }
 

@@ -871,6 +871,19 @@ public class Failsafe implements IFeature {
     }
 
     @SubscribeEvent
+    public void onChatMessageCheckLimbo(ClientChatReceivedEvent event) {
+        if (firstCheckReturn()) return;
+        if (emergency != EmergencyType.WORLD_CHANGE_CHECK) return;
+
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        if (message.contains(":")) return;
+        if (message.contains("You were spawned in Limbo.") || message.contains("/limbo") || message.startsWith("A kick occurred in your connection")) {
+            LogUtils.sendWarning("[Failsafe] Got kicked to Limbo!");
+            addEmergency(EmergencyType.WORLD_CHANGE_CHECK);
+        }
+    }
+
+    @SubscribeEvent
     public void onReceiveChatWhileWorldChange(ClientChatReceivedEvent event) {
         if (event.type != 0) return;
         if (emergency != EmergencyType.WORLD_CHANGE_CHECK) return;

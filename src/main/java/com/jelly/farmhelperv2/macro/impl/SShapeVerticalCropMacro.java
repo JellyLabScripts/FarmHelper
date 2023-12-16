@@ -36,6 +36,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                     }
                     changeState(State.SWITCHING_LANE);
                     changeLaneDirection = ChangeLaneDirection.FORWARD;
+                    setWalkingDirection();
                 } else if (GameStateHandler.getInstance().isBackWalkable()) {
                     if (changeLaneDirection == ChangeLaneDirection.FORWARD) {
                         // Probably stuck in dirt
@@ -44,6 +45,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                     }
                     changeState(State.SWITCHING_LANE);
                     changeLaneDirection = ChangeLaneDirection.BACKWARD;
+                    setWalkingDirection();
                 } else {
                     if (GameStateHandler.getInstance().isLeftWalkable()) {
                         changeState(State.LEFT);
@@ -58,6 +60,19 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 break;
             }
             case SWITCHING_LANE: {
+                if (getWalkingDirection() == WalkingDirection.X) {
+                    int currentZ = mc.thePlayer.getPosition().getZ();
+                    if (Math.abs(currentZ - getPreviousWalkingCoord()) < 1) {
+                        LogUtils.sendWarning("Probability of lag back detected! Still going forward...");
+                        break;
+                    }
+                } else if (getWalkingDirection() == WalkingDirection.Z) {
+                    int currentX = mc.thePlayer.getPosition().getX();
+                    if (Math.abs(currentX - getPreviousWalkingCoord()) < 1) {
+                        LogUtils.sendWarning("Probability of lag back detected! Still going forward...");
+                        break;
+                    }
+                }
                 if (GameStateHandler.getInstance().isLeftWalkable()) {
                     changeState(State.LEFT);
                 } else if (GameStateHandler.getInstance().isRightWalkable()) {
@@ -113,14 +128,14 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 KeyBindUtils.holdThese(
                         mc.gameSettings.keyBindLeft,
                         mc.gameSettings.keyBindAttack,
-                        PlayerUtils.shouldWalkForwards() ? mc.gameSettings.keyBindForward : null
+                        PlayerUtils.shouldWalkForwards() || FarmHelperConfig.alwaysHoldW ? mc.gameSettings.keyBindForward : null
                 );
                 break;
             case RIGHT:
                 KeyBindUtils.holdThese(
                         mc.gameSettings.keyBindRight,
                         mc.gameSettings.keyBindAttack,
-                        PlayerUtils.shouldWalkForwards() ? mc.gameSettings.keyBindForward : null
+                        PlayerUtils.shouldWalkForwards() || FarmHelperConfig.alwaysHoldW ? mc.gameSettings.keyBindForward : null
                 );
                 break;
             case SWITCHING_LANE:

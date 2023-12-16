@@ -83,6 +83,12 @@ public class FarmHelperConfig extends Config {
     )
     public static int macroType = 0;
 
+    @Switch(
+            name = "Always hold W while farming", category = GENERAL,
+            description = "Always hold W while farming"
+    )
+    public static boolean alwaysHoldW = false;
+
     //<editor-fold desc="Rotation">
     @Switch(
             name = "Rotate After Warped", category = GENERAL, subcategory = "Rotation",
@@ -1000,6 +1006,12 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean pauseVisitorsMacroDuringJacobsContest = true;
 
+    @Switch(
+            name = "Use Path finder in Visitors macro between serving visitors", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+            description = "Uses path finder between serving visitors"
+    )
+    public static boolean visitorsMacroUsePathFinder = false;
+
     @Slider(
             name = "The minimum amount of coins to start the macro (in thousands)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "The minimum amount of coins you need to have in your purse to start the visitors macro",
@@ -1104,18 +1116,16 @@ public class FarmHelperConfig extends Config {
     public static int startKillingPestsAt = 3;
     @Slider(
             name = "Additional GUI Delay (ms)", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
-            description = "Extra time to wait between clicks",
+            description = "Extra time to wait between clicks. By default it's 500-1000 ms.",
             min = 0, max = 5000
     )
     public static int pestAdditionalGUIDelay = 0;
-
     @Switch(
             name = "Pause the Pests Destroyer during Jacob's contests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Pauses the Pests Destroyer during Jacob's contests",
             size = 2
     )
     public static boolean pausePestsDestroyerDuringJacobsContest = true;
-
     @Button(
             name = "Trigger now Pests Destroyer", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Triggers the pests destroyer manually",
@@ -1133,6 +1143,26 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static OneKeyBind enablePestsDestroyerKeyBind = new OneKeyBind(Keyboard.KEY_NONE);
+
+    @Slider(
+            name = "Recalculate path after pest escaped X blocks", category = PESTS_DESTROYER, subcategory = "Pathfinding",
+            description = "",
+            min = 3, max = 10
+    )
+    public static int recalculatePathAfterPestEscaped = 5;
+
+    @Switch(
+            name = "Enable Pests Destroyer Pathfinding for medium distances", category = PESTS_DESTROYER, subcategory = "Pathfinding",
+            description = "Enables the pests destroyer pathfinding for medium distances",
+            size = 1
+    )
+    public static boolean enablePestsDestroyerPathfindingMediumDistances = true;
+    @Switch(
+            name = "Enable Pests Destroyer Pathfinding for longer distances", category = PESTS_DESTROYER, subcategory = "Pathfinding",
+            description = "Enables the pests destroyer pathfinding for longer distances",
+            size = 1
+    )
+    public static boolean enablePestsDestroyerPathfindingLongerDistances = false;
     //</editor-fold>
 
     //<editor-fold desc="Drawings">
@@ -1322,21 +1352,21 @@ public class FarmHelperConfig extends Config {
     @Slider(
             name = "Pests Destroyer Ticks of not seeing pest.", category = DELAYS, subcategory = "Pests Destroyer",
             description = "Pests Destroyer Ticks of not seeing pest while attacking (1 tick == 50ms) to trigger Escape to Hub. 0 to disable",
-            min = 0, max = 100
+            min = 20, max = 200
     )
-    public static int pestsKillerTicksOfNotSeeingPestWhileAttacking = 30;
+    public static int pestsKillerTicksOfNotSeeingPestWhileAttacking = 100;
     //</editor-fold>
 
     //<editor-fold desc="Gui Delay">
     @Slider(
             name = "GUI Delay", category = DELAYS, subcategory = "GUI Delays",
-            description = "The delay between clicking during GUI macros (in miliseconds)",
+            description = "The delay between clicking during GUI macros (in milliseconds)",
             min = 250f, max = 2000f
     )
     public static float macroGuiDelay = 400f;
     @Slider(
             name = "Additional random GUI Delay", category = DELAYS, subcategory = "GUI Delays",
-            description = "The maximum random time added to the delay time between clicking during GUI macros (in miliseconds)",
+            description = "The maximum random time added to the delay time between clicking during GUI macros (in milliseconds)",
             min = 0f, max = 2000f
     )
     public static float macroGuiDelayRandomness = 350f;
@@ -1387,10 +1417,18 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="DEBUG">
     //<editor-fold desc="Debug">
-    @KeyBind(
-            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
-    )
-    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_H);
+//    @KeyBind(
+//            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
+//    )
+//    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
+//    @KeyBind(
+//            name = "Debug Keybind 2", category = DEBUG
+//    )
+//    public static OneKeyBind debugKeybind2 = new OneKeyBind(Keyboard.KEY_H);
+//    @KeyBind(
+//            name = "Debug Keybind 3", category = DEBUG
+//    )
+//    public static OneKeyBind debugKeybind3 = new OneKeyBind(Keyboard.KEY_J);
     @Switch(
             name = "Debug Mode", category = DEBUG, subcategory = "Debug",
             description = "Prints to chat what the bot is currently executing. Useful if you are having issues."
@@ -1401,6 +1439,11 @@ public class FarmHelperConfig extends Config {
             description = "Hides all logs from the console. Not recommended."
     )
     public static boolean hideLogs = false;
+    @Switch(
+            name = "Show rotation debug messages", category = DEBUG, subcategory = "Debug",
+            description = "Shows rotation debug messages"
+    )
+    public static boolean showRotationDebugMessages = false;
     //</editor-fold>
 
     //<editor-fold desc="Debug Hud">
@@ -1450,6 +1493,44 @@ public class FarmHelperConfig extends Config {
             description = "Automatically switches to the best tool based on the crop"
     )
     public static boolean autoSwitchTool = true;
+    //</editor-fold>
+
+    //<editor-fold desc="Fly Path Finder">
+    @Slider(
+            name = "Allowed Overshoot Threshold", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "The minimum distance from the block at which the fly path finder would allow overshooting",
+            min = 0.05f, max = 0.4f
+    )
+    public static float flightAllowedOvershootThreshold = 0.1f;
+    @Slider(
+            name = "Max stuck time without motion (in ticks)", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "The maximum time to wait before unstucking (in ticks)",
+            min = 30, max = 150
+    )
+    public static int flightMaxStuckTimeWithoutMotion = 40;
+    @Slider(
+            name = "Max stuck time with motion (in ticks)", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "The maximum time to wait before unstucking (in ticks)",
+            min = 30, max = 150
+    )
+    public static int flightMaxStuckTimeWithMotion = 100;
+    @Slider(
+            name = "Deceleration offset", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "",
+            min = 0, max = 15
+    )
+    public static int flightDecelerationOffset = 5;
+    @Slider(
+            name = "Maximum stuck distance threshold", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "The maximum distance threshold before unstucking (Vec3)",
+            min = 0.3f, max = 1.5f
+    )
+    public static float flightMaximumStuckDistanceThreshold = 0.75f;
+    @Switch(
+            name = "Lock rotation to multipliers of 45 degrees", category = EXPERIMENTAL, subcategory = "Flight",
+            description = "Locks the rotation to multipliers of 45 degrees"
+    )
+    public static boolean flightLockRotationToMultipliersOf45Degrees = false;
     //</editor-fold>
     //</editor-fold>
 
@@ -1584,8 +1665,8 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-        registerKeyBind(debugKeybind, () -> {
-        });
+//        registerKeyBind(debugKeybind, () -> {
+//        });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
         registerKeyBind(enablePestsDestroyerKeyBind, () -> {
@@ -1593,6 +1674,18 @@ public class FarmHelperConfig extends Config {
                 PestsDestroyer.getInstance().start();
             }
         });
+//        registerKeyBind(debugKeybind2, () -> {
+//            MovingObjectPosition objectMouseOver = Minecraft.getMinecraft().objectMouseOver;
+//            if (objectMouseOver != null && objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+//                BlockPos blockPos = objectMouseOver.getBlockPos();
+//                BlockPos oppositeSide = blockPos.offset(objectMouseOver.sideHit);
+//                LogUtils.sendDebug("Block: " + oppositeSide);
+//                FlyPathfinder.getInstance().setGoal(new GoalBlock(oppositeSide));
+//            }
+//        });
+//        registerKeyBind(debugKeybind3, () -> {
+//                    FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal());
+//                });
         save();
     }
 

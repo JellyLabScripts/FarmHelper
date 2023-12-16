@@ -22,7 +22,7 @@ public class SShapeMushroomMacro extends AbstractMacro {
         }
         if (!FarmHelperConfig.customYaw && !isRestoredState()) {
             setYaw(AngleUtils.getClosestDiagonal());
-            setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
+            setClosest90Deg(Optional.of(AngleUtils.getClosest(mc.thePlayer.rotationYaw)));
         }
         if (MacroHandler.getInstance().isTeleporting()) return;
         setRestoredState(false);
@@ -106,14 +106,14 @@ public class SShapeMushroomMacro extends AbstractMacro {
         switch (getCurrentState()) {
             case RIGHT: {
                 KeyBindUtils.holdThese(
-                        mushroom45DegreeSide() == LookDirection.LEFT ? mc.gameSettings.keyBindRight : mc.gameSettings.keyBindForward,
+                        FarmHelperConfig.alwaysHoldW ? mc.gameSettings.keyBindForward : mushroom45DegreeSide() == LookDirection.LEFT ? mc.gameSettings.keyBindRight : mc.gameSettings.keyBindForward,
                         mc.gameSettings.keyBindAttack
                 );
                 break;
             }
             case LEFT: {
                 KeyBindUtils.holdThese(
-                        mushroom45DegreeSide() == LookDirection.LEFT ? mc.gameSettings.keyBindForward : mc.gameSettings.keyBindLeft,
+                        FarmHelperConfig.alwaysHoldW ? mc.gameSettings.keyBindForward : mushroom45DegreeSide() == LookDirection.LEFT ? mc.gameSettings.keyBindForward : mc.gameSettings.keyBindLeft,
                         mc.gameSettings.keyBindAttack
                 );
                 break;
@@ -137,6 +137,7 @@ public class SShapeMushroomMacro extends AbstractMacro {
     }
 
     private LookDirection mushroom45DegreeSide() {
+        System.out.println(getClosest90Deg());
         if (!getClosest90Deg().isPresent()) return LookDirection.LEFT;
         EnumFacing facing = PlayerUtils.getHorizontalFacing(getClosest90Deg().get());
         double yaw180 = UMath.wrapAngleTo180(getYaw());
