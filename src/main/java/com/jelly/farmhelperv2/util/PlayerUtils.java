@@ -121,8 +121,7 @@ public class PlayerUtils {
             LogUtils.sendDebug("No tool found!");
             return;
         }
-        LogUtils.sendDebug("Tool id: " + id);
-        LogUtils.sendDebug("Current item: " + mc.thePlayer.inventory.currentItem);
+        LogUtils.sendDebug("Tool id: " + id + " current item: " + mc.thePlayer.inventory.currentItem);
         if (id == mc.thePlayer.inventory.currentItem) return;
         mc.thePlayer.inventory.currentItem = id;
     }

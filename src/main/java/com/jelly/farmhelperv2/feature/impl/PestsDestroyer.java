@@ -817,13 +817,10 @@ public class PestsDestroyer implements IFeature {
             stop();
             return;
         }
-        if (mc.thePlayer.motionY == 0) {
-            delayClock.schedule(400);
-            return;
-        }
+
         if (mc.thePlayer.onGround && !PlayerUtils.isPlayerSuffocating()) {
             KeyBindUtils.holdThese(mc.gameSettings.keyBindJump);
-            Multithreading.schedule(KeyBindUtils::stopMovement, 150, TimeUnit.MILLISECONDS);
+            Multithreading.schedule(KeyBindUtils::stopMovement, 280, TimeUnit.MILLISECONDS);
             Multithreading.schedule(() -> {
                 if (!mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround) {
                     mc.thePlayer.capabilities.isFlying = true;
