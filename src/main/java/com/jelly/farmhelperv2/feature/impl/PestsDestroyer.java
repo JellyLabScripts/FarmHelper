@@ -178,7 +178,7 @@ public class PestsDestroyer implements IFeature {
 
     @Override
     public boolean shouldCheckForFailsafes() {
-        return escapeState == EscapeState.NONE && state != States.TELEPORT_TO_PLOT && state != States.WAIT_FOR_TP;
+        return escapeState == EscapeState.NONE && state != States.TELEPORT_TO_PLOT && state != States.WAIT_FOR_TP && state != States.GET_LOCATION;
     }
 
     public boolean canEnableMacro() {
@@ -1022,7 +1022,7 @@ public class PestsDestroyer implements IFeature {
     }
 
     private boolean canEntityBeSeenIgnoreNonCollidable(Entity entity) {
-        Vec3 vec3 = new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ);
+        Vec3 vec3 = new Vec3(entity.posX, entity.posY + entity.getEyeHeight() + 0.5, entity.posZ);
         Vec3 vec31 = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
         MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(vec31, vec3, false, true, false);
         return mop == null || mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && mc.theWorld.getBlockState(mop.getBlockPos()).getBlock().equals(Blocks.cactus);

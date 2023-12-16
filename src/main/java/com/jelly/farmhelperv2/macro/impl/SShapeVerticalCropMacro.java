@@ -1,6 +1,7 @@
 package com.jelly.farmhelperv2.macro.impl;
 
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.feature.impl.AntiStuck;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.macro.AbstractMacro;
@@ -28,7 +29,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                     // Probably stuck in dirt, continue going right
                     return;
                 }
-                if (GameStateHandler.getInstance().isFrontWalkable()) {
+                if (GameStateHandler.getInstance().isFrontWalkable() && !FarmHelperConfig.alwaysHoldW) {
                     if (changeLaneDirection == ChangeLaneDirection.BACKWARD) {
                         // Probably stuck in dirt
                         changeState(State.NONE);
@@ -37,7 +38,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                     changeState(State.SWITCHING_LANE);
                     changeLaneDirection = ChangeLaneDirection.FORWARD;
                     setWalkingDirection();
-                } else if (GameStateHandler.getInstance().isBackWalkable()) {
+                } else if (GameStateHandler.getInstance().isBackWalkable() && !FarmHelperConfig.alwaysHoldW) {
                     if (changeLaneDirection == ChangeLaneDirection.FORWARD) {
                         // Probably stuck in dirt
                         changeState(State.NONE);
@@ -62,16 +63,10 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
             case SWITCHING_LANE: {
                 if (getWalkingDirection() == WalkingDirection.X) {
                     int currentZ = mc.thePlayer.getPosition().getZ();
-                    if (Math.abs(currentZ - getPreviousWalkingCoord()) < 1) {
-                        LogUtils.sendWarning("Probability of lag back detected! Still going forward...");
-                        break;
-                    }
+                    if (lagBackDetected(currentZ)) break;
                 } else if (getWalkingDirection() == WalkingDirection.Z) {
                     int currentX = mc.thePlayer.getPosition().getX();
-                    if (Math.abs(currentX - getPreviousWalkingCoord()) < 1) {
-                        LogUtils.sendWarning("Probability of lag back detected! Still going forward...");
-                        break;
-                    }
+                    if (lagBackDetected(currentX)) break;
                 }
                 if (GameStateHandler.getInstance().isLeftWalkable()) {
                     changeState(State.LEFT);
@@ -118,6 +113,26 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 LogUtils.sendDebug("This shouldn't happen, but it did...");
                 changeState(State.NONE);
         }
+    }
+
+    private boolean lagBackDetected(int currentCoord) {
+        if (Math.abs(currentCoord - getPreviousWalkingCoord()) < 1) {
+            if (getPreviousState() == State.LEFT) {
+                AntiStuck.getInstance().setIntersectingBlockPos(BlockUtils.getRelativeBlockPos(-1, 0, 0, getYaw()));
+            } else if (getPreviousState() == State.RIGHT) {
+                AntiStuck.getInstance().setIntersectingBlockPos(BlockUtils.getRelativeBlockPos(1, 0, 0, getYaw()));
+            } else {
+                if (getCurrentState() == State.LEFT) {
+                    AntiStuck.getInstance().setIntersectingBlockPos(BlockUtils.getRelativeBlockPos(-1, 0, 0, getYaw()));
+                } else if (getCurrentState() == State.RIGHT) {
+                    AntiStuck.getInstance().setIntersectingBlockPos(BlockUtils.getRelativeBlockPos(1, 0, 0, getYaw()));
+                }
+            }
+            AntiStuck.getInstance().start();
+            LogUtils.sendWarning("Probability of lag back detected!");
+            return true;
+        }
+        return false;
     }
 
     @Override

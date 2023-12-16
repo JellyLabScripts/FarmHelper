@@ -9,7 +9,6 @@ import com.jelly.farmhelperv2.util.helper.Clock;
 import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.*;
@@ -116,10 +115,13 @@ public class PlayerUtils {
             return;
         }
 
-        changeItemEveryClock.schedule(2_000L);
+        changeItemEveryClock.schedule(1_500L);
         int id = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
+        if (id == -1) {
+            LogUtils.sendDebug("No tool found!");
+            return;
+        }
         LogUtils.sendDebug("Tool id: " + id);
-        if (id == -1) return;
         LogUtils.sendDebug("Current item: " + mc.thePlayer.inventory.currentItem);
         if (id == mc.thePlayer.inventory.currentItem) return;
         mc.thePlayer.inventory.currentItem = id;

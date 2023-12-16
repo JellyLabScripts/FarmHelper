@@ -440,6 +440,7 @@ public class VisitorsMacro implements IFeature {
                     KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
                     break;
                 }
+                KeyBindUtils.stopMovement();
                 if (FarmHelperConfig.visitorsMacroAutosellBeforeServing) {
                     setMainState(MainState.AUTO_SELL);
                 } else if (InventoryUtils.hasItemInHotbar("Compactor")) {
@@ -697,7 +698,7 @@ public class VisitorsMacro implements IFeature {
                     return;
                 }
                 if (mc.thePlayer.getDistance(closest2.getPosition().getX(), mc.thePlayer.getPosition().getY(), closest2.getPosition().getZ()) > 2.8) {
-                    KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, shouldJump() ? mc.gameSettings.keyBindJump : null, GameStateHandler.getInstance().getSpeed() > 190 ? mc.gameSettings.keyBindSneak : null);
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, shouldJump() ? mc.gameSettings.keyBindJump : null, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
                     stuckClock.schedule(STUCK_DELAY);
                     break;
                 }
@@ -979,7 +980,7 @@ public class VisitorsMacro implements IFeature {
                 LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
                 LogUtils.sendDebug("[Visitors Macro] Distance: " + mc.thePlayer.getDistanceToEntity(currentVisitor.get()));
                 if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) > 2.8) {
-                    KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, shouldJump() ? mc.gameSettings.keyBindJump : null, GameStateHandler.getInstance().getSpeed() > 190 ? mc.gameSettings.keyBindSneak : null);
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, shouldJump() ? mc.gameSettings.keyBindJump : null, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
                     stuckClock.schedule(STUCK_DELAY);
                     break;
                 }
@@ -1091,17 +1092,17 @@ public class VisitorsMacro implements IFeature {
             assert currentVisitor.isPresent();
             if (mc.thePlayer.getDistanceToEntity(currentVisitor.get()) < 0.5) {
                 if (GameStateHandler.getInstance().isBackWalkable()) {
-                    KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, GameStateHandler.getInstance().getSpeed() > 190 ? mc.gameSettings.keyBindSneak : null);
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
                     Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
                     return true;
                 }
                 if (GameStateHandler.getInstance().isLeftWalkable()) {
-                    KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft, GameStateHandler.getInstance().getSpeed() > 190 ? mc.gameSettings.keyBindSneak : null);
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
                     Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
                     return true;
                 }
                 if (GameStateHandler.getInstance().isRightWalkable()) {
-                    KeyBindUtils.holdThese(mc.gameSettings.keyBindRight, GameStateHandler.getInstance().getSpeed() > 190 ? mc.gameSettings.keyBindSneak : null);
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindRight, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
                     Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
                     return true;
                 }
@@ -1112,18 +1113,15 @@ public class VisitorsMacro implements IFeature {
     }
 
     private void checkIfCurrentVisitorIsProfitable() {
-        if (itemsToBuy.stream().anyMatch(item -> {
-            String name = StringUtils.stripControlCodes(item.getLeft());
+        Optional<Tuple<String, String>> profitableReward = currentRewards.stream().filter(item -> {
+            String name = StringUtils.stripControlCodes(item.getFirst());
             return profitRewards.stream().anyMatch(reward -> reward.contains(name));
-        })) {
+        }).findFirst();
+        if (profitableReward.isPresent()) {
             LogUtils.sendDebug("[Visitors Macro] The visitor is profitable");
-            String profitableReward = itemsToBuy.stream().filter(item -> {
-                String name = StringUtils.stripControlCodes(item.getLeft());
-                return profitRewards.stream().anyMatch(reward -> reward.contains(name));
-            }).findFirst().get().getLeft();
-
+            String reward = profitableReward.get().getFirst();
             if (FarmHelperConfig.sendVisitorsMacroLogs)
-                LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro found profitable item: " + profitableReward, FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
+                LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro found profitable item: " + reward, FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
             LogUtils.sendDebug("[Visitors Macro] Accepting offer...");
         } else {
             LogUtils.sendWarning("[Visitors Macro] The visitor is not profitable, skipping...");

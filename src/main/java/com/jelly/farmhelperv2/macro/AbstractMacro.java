@@ -32,6 +32,8 @@ public abstract class AbstractMacro {
     @Setter
     public State currentState = State.NONE;
     @Setter
+    public State previousState = State.NONE;
+    @Setter
     private boolean enabled = false;
     @Setter
     private Optional<SavedState> savedState = Optional.empty();
@@ -291,6 +293,7 @@ public abstract class AbstractMacro {
 
     public void changeState(State state) {
         LogUtils.sendDebug("Changing state from " + currentState + " to " + state);
+        setPreviousState(currentState);
         setCurrentState(state);
     }
 

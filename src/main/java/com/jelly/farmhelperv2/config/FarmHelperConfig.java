@@ -1126,6 +1126,7 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static boolean pausePestsDestroyerDuringJacobsContest = true;
+
     @Button(
             name = "Trigger now Pests Destroyer", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Triggers the pests destroyer manually",
@@ -1417,11 +1418,11 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="DEBUG">
     //<editor-fold desc="Debug">
-//    @KeyBind(
-//            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
-//    )
-//    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
-//    @KeyBind(
+    @KeyBind(
+            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
+    )
+    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
+    //    @KeyBind(
 //            name = "Debug Keybind 2", category = DEBUG
 //    )
 //    public static OneKeyBind debugKeybind2 = new OneKeyBind(Keyboard.KEY_H);
@@ -1489,8 +1490,8 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="Auto Switch">
     @Switch(
-            name = "Auto switch tool based on crop", category = EXPERIMENTAL, subcategory = "Auto Switch",
-            description = "Automatically switches to the best tool based on the crop"
+            name = "Automatically switch recognized crop", category = EXPERIMENTAL, subcategory = "Auto Switch",
+            description = "Macro will be recognizing farming crop, which will lead to auto switching tool to the best one"
     )
     public static boolean autoSwitchTool = true;
     //</editor-fold>
@@ -1665,8 +1666,9 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-//        registerKeyBind(debugKeybind, () -> {
-//        });
+        registerKeyBind(debugKeybind, () -> {
+//            AutoRepellent.getInstance().start();
+        });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
         registerKeyBind(enablePestsDestroyerKeyBind, () -> {
