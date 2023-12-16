@@ -1536,7 +1536,7 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     @Number(name = "Config Version", category = EXPERIMENTAL, subcategory = "Experimental", min = 0, max = 1337)
-    public static int configVersion = 1;
+    public static int configVersion = 2;
     @Switch(
             name = "Shown Welcome GUI", category = EXPERIMENTAL, subcategory = "Experimental"
     )
