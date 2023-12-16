@@ -630,7 +630,7 @@ public class FarmHelperConfig extends Config {
             description = "The minimum BPS drop to trigger failsafe",
             min = 2, max = 50
     )
-    public static int averageBPSDrop = 5;
+    public static int averageBPSDrop = 15;
 
     @Button(
             name = "Test failsafe", category = FAILSAFE, subcategory = "Miscellaneous",
@@ -1155,13 +1155,13 @@ public class FarmHelperConfig extends Config {
     @Switch(
             name = "Enable Pests Destroyer Pathfinding for medium distances", category = PESTS_DESTROYER, subcategory = "Pathfinding",
             description = "Enables the pests destroyer pathfinding for medium distances",
-            size = 1
+            size = 2
     )
     public static boolean enablePestsDestroyerPathfindingMediumDistances = true;
     @Switch(
-            name = "Enable Pests Destroyer Pathfinding for longer distances", category = PESTS_DESTROYER, subcategory = "Pathfinding",
+            name = "Enable Pests Destroyer Pathfinding for longer distances (not recommended)", category = PESTS_DESTROYER, subcategory = "Pathfinding",
             description = "Enables the pests destroyer pathfinding for longer distances",
-            size = 1
+            size = 2
     )
     public static boolean enablePestsDestroyerPathfindingLongerDistances = false;
     //</editor-fold>
