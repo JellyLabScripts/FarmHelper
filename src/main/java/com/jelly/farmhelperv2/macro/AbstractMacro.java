@@ -191,10 +191,12 @@ public abstract class AbstractMacro {
             return;
         }
 
-        FarmHelperConfig.CropEnum crop = PlayerUtils.getCropBasedOnMouseOver();
-        if (crop != FarmHelperConfig.CropEnum.NONE && crop != MacroHandler.getInstance().getCrop()) {
-            LogUtils.sendWarning("Crop changed from " + MacroHandler.getInstance().getCrop() + " to " + crop);
-            MacroHandler.getInstance().setCrop(crop);
+        if (FarmHelperConfig.autoSwitchTool) {
+            FarmHelperConfig.CropEnum crop = PlayerUtils.getCropBasedOnMouseOver();
+            if (crop != FarmHelperConfig.CropEnum.NONE && crop != MacroHandler.getInstance().getCrop()) {
+                LogUtils.sendWarning("Crop changed from " + MacroHandler.getInstance().getCrop() + " to " + crop);
+                MacroHandler.getInstance().setCrop(crop);
+            }
         }
 
         PlayerUtils.getTool();

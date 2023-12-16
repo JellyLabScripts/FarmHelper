@@ -107,6 +107,7 @@ public class PlayerUtils {
     public static void getTool() {
         // Sometimes if staff changed your slot, you might not have the tool in your hand after the swap, so it won't be obvious that you're using a macro
         if (itemChangedByStaff) {
+            LogUtils.sendDebug("Item changed by staff, not changing item");
             return;
         }
 
@@ -116,7 +117,9 @@ public class PlayerUtils {
 
         changeItemEveryClock.schedule(2_000L);
         int id = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
+        LogUtils.sendDebug("Tool id: " + id);
         if (id == -1) return;
+        LogUtils.sendDebug("Current item: " + mc.thePlayer.inventory.currentItem);
         if (id == mc.thePlayer.inventory.currentItem) return;
         mc.thePlayer.inventory.currentItem = id;
     }
