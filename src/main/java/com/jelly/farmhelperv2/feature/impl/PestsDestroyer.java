@@ -605,13 +605,13 @@ public class PestsDestroyer implements IFeature {
                     }
                     KeyBindUtils.holdThese(mc.gameSettings.keyBindUseItem);
                 } else if (((distance <= 10 || distanceXZ <= 2) && !FarmHelperConfig.enablePestsDestroyerPathfindingMediumDistances)
-                        || ((distanceXZ <= 10) && FarmHelperConfig.enablePestsDestroyerPathfindingMediumDistances)) {
+                        || (!FlyPathfinder.getInstance().hasFailed && distanceXZ <= 10 && FarmHelperConfig.enablePestsDestroyerPathfindingMediumDistances)) {
                     if (!mc.thePlayer.capabilities.isFlying) {
                         flyAwayFromGround();
                         delayClock.schedule(350);
                         break;
                     }
-                    if (FarmHelperConfig.enablePestsDestroyerPathfindingMediumDistances) {
+                    if (FarmHelperConfig.enablePestsDestroyerPathfindingMediumDistances && !FlyPathfinder.getInstance().hasFailed) {
                         flyPathfinding(entity);
                         break;
                     } else {
@@ -635,7 +635,7 @@ public class PestsDestroyer implements IFeature {
                     }
                 } else {
                     cantReachPest = 0;
-                    if (FarmHelperConfig.enablePestsDestroyerPathfindingLongerDistances) {
+                    if (FarmHelperConfig.enablePestsDestroyerPathfindingLongerDistances && !FlyPathfinder.getInstance().hasFailed) {
                         flyPathfinding(entity);
                     } else {
                         if (distanceXZ < 6 && distance > 10 && mc.thePlayer.capabilities.isFlying) {
@@ -712,9 +712,9 @@ public class PestsDestroyer implements IFeature {
             return;
         }
         if (FlyPathfinder.getInstance().hasGoal() && FlyPathfinder.getInstance().hasFailed) {
-            LogUtils.sendError("[Pests Destroyer] Failed to get path to " + FlyPathfinder.getInstance().getGoal());
+            LogUtils.sendWarning("[Pests Destroyer] Failed to get path to " + FlyPathfinder.getInstance().getGoal() + ". Falling back to normal flying behavior.");
             FlyPathfinder.getInstance().stop();
-            escapeState = EscapeState.GO_TO_HUB;
+//            escapeState = EscapeState.GO_TO_HUB;
             KeyBindUtils.stopMovement();
             delayClock.schedule(300);
             return;
