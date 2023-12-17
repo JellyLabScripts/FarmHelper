@@ -206,7 +206,7 @@ public class FlyPathfinder {
         float yaw = mc.thePlayer.rotationYaw * (float) Math.PI / 180.0f;
         double relativeDistanceX = distanceX * Math.cos(yaw) + distanceZ * Math.sin(yaw);
         double relativeDistanceZ = -distanceX * Math.sin(yaw) + distanceZ * Math.cos(yaw);
-        double relativeMotionX = mc.thePlayer.motionX * Math.cos(yaw) - mc.thePlayer.motionZ * Math.sin(yaw);
+        double relativeMotionX = mc.thePlayer.motionX * Math.cos(yaw) + mc.thePlayer.motionZ * Math.sin(yaw);
         double relativeMotionZ = -mc.thePlayer.motionX * Math.sin(yaw) + mc.thePlayer.motionZ * Math.cos(yaw);
         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, relativeDistanceX < -FarmHelperConfig.flightAllowedOvershootThreshold);
         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, relativeDistanceX > FarmHelperConfig.flightAllowedOvershootThreshold);
@@ -214,7 +214,7 @@ public class FlyPathfinder {
         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, relativeDistanceZ < -FarmHelperConfig.flightAllowedOvershootThreshold);
         if (shouldChangeHeight(relativeDistanceX, relativeDistanceZ) == VerticalDirection.NONE) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, distanceY > 0.25);
-            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, distanceY < -0.25);
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, distanceY < -0.25 && !mc.thePlayer.onGround);
         } else if (shouldChangeHeight(relativeDistanceX, relativeDistanceZ) == VerticalDirection.HIGHER) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, true);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, false);
@@ -222,12 +222,12 @@ public class FlyPathfinder {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
         }
-        isDeceleratingLeft = relativeMotionX > 0 && decelerationReached(relativeMotionX, relativeDistanceX);
+        isDeceleratingLeft = relativeMotionX < 0 && decelerationReached(relativeMotionX, relativeDistanceX);
         if (isDeceleratingLeft) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, true);
         }
-        isDeceleratingRight = relativeMotionX < 0 && decelerationReached(relativeMotionX, relativeDistanceX);
+        isDeceleratingRight = relativeMotionX > 0 && decelerationReached(relativeMotionX, relativeDistanceX);
         if (isDeceleratingRight) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, true);
@@ -308,7 +308,7 @@ public class FlyPathfinder {
     }
 
     public boolean isStuckWithMotion() {
-        if (lastPlayerPos == null || getPlayerSpeed() > 0.5 || mc.thePlayer.onGround) {
+        if (lastPlayerPos == null || getPlayerSpeed() > 0.5) {
             lastPlayerPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
             return false;
         }

@@ -36,10 +36,6 @@ public class DebugHUD extends TextHud {
         lines.add("   Right: " + GameStateHandler.getInstance().isRightWalkable());
         lines.add("   Not moving: " + GameStateHandler.getInstance().notMoving());
         lines.add("   HasPassedSinceStopped: " + GameStateHandler.getInstance().hasPassedSinceStopped());
-        if (Minecraft.getMinecraft().thePlayer != null && Minecraft.getMinecraft().theWorld != null) {
-            lines.add("   MotionX: " + Minecraft.getMinecraft().thePlayer.motionX);
-            lines.add("   MotionZ: " + Minecraft.getMinecraft().thePlayer.motionZ);
-        }
         if (Scheduler.getInstance().isToggled()) {
             lines.add("Scheduler: ");
             lines.add("  State: " + LogUtils.capitalize(Scheduler.getInstance().getSchedulerState().toString()));
