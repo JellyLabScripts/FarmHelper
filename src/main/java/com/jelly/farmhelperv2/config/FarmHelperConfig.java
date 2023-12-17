@@ -1164,7 +1164,7 @@ public class FarmHelperConfig extends Config {
             description = "Enables the pests destroyer pathfinding for medium distances",
             size = 2
     )
-    public static boolean enablePestsDestroyerPathfindingMediumDistances = true;
+    public static boolean enablePestsDestroyerPathfindingMediumDistances = false;
     @Switch(
             name = "Enable Pests Destroyer Pathfinding for longer distances (not recommended)", category = PESTS_DESTROYER, subcategory = "Pathfinding",
             description = "Enables the pests destroyer pathfinding for longer distances",
