@@ -723,7 +723,10 @@ public class PestsDestroyer implements IFeature {
             delayClock.schedule(350);
             return;
         }
-        if (FlyPathfinder.getInstance().hasGoal() && FlyPathfinder.getInstance().getDistanceTo(new BlockPos(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ)) > FarmHelperConfig.recalculatePathAfterPestEscaped) {
+        if (FarmHelperConfig.recalculatePathAfterPestEscapedEnabled
+                && FlyPathfinder.getInstance().hasGoal()
+                && FlyPathfinder.getInstance().getDistanceTo(new BlockPos(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ)) > FarmHelperConfig.recalculatePathAfterPestEscaped
+        ) {
             FlyPathfinder.getInstance().setGoal(new GoalNear(new BetterBlockPos(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ), 2));
             LogUtils.sendDebug("[Pests Destroyer] Pest escaped. Recalculating path to " + FlyPathfinder.getInstance().getGoal());
             FlyPathfinder.getInstance().getPathTo(FlyPathfinder.getInstance().getGoal());
@@ -731,7 +734,7 @@ public class PestsDestroyer implements IFeature {
             return;
         }
         if (FlyPathfinder.getInstance().hasGoal() && FlyPathfinder.getInstance().hasFailed) {
-            LogUtils.sendWarning("[Pests Destroyer] Failed to get path to " + FlyPathfinder.getInstance().getGoal() + ". Falling back to normal flying behavior.");
+            LogUtils.sendDebug("[Pests Destroyer] Failed to get path to " + FlyPathfinder.getInstance().getGoal() + ". Falling back to normal flying behavior.");
             FlyPathfinder.getInstance().stop();
 //            escapeState = EscapeState.GO_TO_HUB;
             KeyBindUtils.stopMovement();

@@ -1152,6 +1152,12 @@ public class FarmHelperConfig extends Config {
     )
     public static OneKeyBind enablePestsDestroyerKeyBind = new OneKeyBind(Keyboard.KEY_NONE);
 
+    @Switch(
+            name = "Recalculate path after pest escaped", category = PESTS_DESTROYER, subcategory = "Pathfinding",
+            description = "Recalculates the path after pest escaped"
+    )
+    public static boolean recalculatePathAfterPestEscapedEnabled = false;
+
     @Slider(
             name = "Recalculate path after pest escaped X blocks", category = PESTS_DESTROYER, subcategory = "Pathfinding",
             description = "",
@@ -1584,6 +1590,7 @@ public class FarmHelperConfig extends Config {
 
         this.addDependency("autoUngrabMouse", "This feature doesn't work properly on Mac OS!", () -> !Minecraft.isRunningOnMac);
 
+        this.addDependency("desyncPauseDelay", "checkDesync");
         this.addDependency("failsafeSoundType", "Play Button", () -> enableFailsafeSound && !AudioManager.getInstance().isSoundPlaying());
         this.addDependency("_playFailsafeSoundButton", "enableFailsafeSound");
         this.addDependency("_stopFailsafeSoundButton", "enableFailsafeSound");
@@ -1594,10 +1601,9 @@ public class FarmHelperConfig extends Config {
         this.addDependency("failsafeSoundVolume", "Custom Sound", () -> failsafeSoundType && enableFailsafeSound);
         this.addDependency("maxOutMinecraftSounds", "Minecraft Sound", () -> !failsafeSoundType && enableFailsafeSound);
         this.hideIf("customFailsafeSoundWarning", () -> !failsafeSoundType || !enableFailsafeSound || failsafeSoundSelected != 0);
-        this.addDependency("leaveAfterFailSafe", "enableRestartAfterFailSafe");
         this.addDependency("restartAfterFailSafeDelay", "enableRestartAfterFailSafe");
+        this.addDependency("alwaysTeleportToGarden", "enableRestartAfterFailSafe");
         this.addDependency("sendFailsafeMessage", "fakeMovements");
-        this.addDependency("rewarpAt3FailesAntistuck", "enableAntiStuck");
 
         this.addDependency("schedulerFarmingTime", "enableScheduler");
         this.addDependency("schedulerFarmingTimeRandomness", "enableScheduler");
@@ -1618,15 +1624,10 @@ public class FarmHelperConfig extends Config {
         this.addDependency("jacobFailsafeAction", "enableJacobFailsafes");
 
         this.addDependency("pauseVisitorsMacroDuringJacobsContest", "visitorsMacro");
-        this.addDependency("onlyAcceptProfitableVisitors", "visitorsMacro");
+        this.addDependency("visitorsMacroUsePathFinder", "visitorsMacro");
         this.addDependency("triggerVisitorsMacro", "visitorsMacro");
         this.addDependency("visitorsMacroPriceManipulationMultiplier", "visitorsMacro");
-        this.addDependency("visitorsAcceptUncommon", "visitorsMacro");
-        this.addDependency("visitorsAcceptRare", "visitorsMacro");
-        this.addDependency("visitorsAcceptLegendary", "visitorsMacro");
-        this.addDependency("visitorsAcceptMythic", "visitorsMacro");
-        this.addDependency("visitorsAcceptSpecial", "visitorsMacro");
-        this.addDependency("visitorsMacroAction", "visitorsMacro");
+        this.addDependency("visitorsMacroMinVisitors", "visitorsMacro");
         this.addDependency("visitorsMacroAutosellBeforeServing", "visitorsMacro");
         this.addDependency("visitorsMacroMinMoney", "visitorsMacro");
 
@@ -1635,6 +1636,18 @@ public class FarmHelperConfig extends Config {
         this.addDependency("pingEveryoneOnVisitorsMacroLogs", "visitorsMacro");
         this.addDependency("pingEveryoneOnVisitorsMacroLogs", "sendVisitorsMacroLogs");
         this.addDependency("pingEveryoneOnVisitorsMacroLogs", "enableWebHook");
+
+        this.addDependency("startKillingPestsAt", "enablePestsDestroyer");
+        this.addDependency("pestAdditionalGUIDelay", "enablePestsDestroyer");
+        this.addDependency("sprintWhileFlying", "enablePestsDestroyer");
+        this.addDependency("pausePestsDestroyerDuringJacobsContest", "enablePestsDestroyer");
+        this.addDependency("recalculatePathAfterPestEscapedEnabled", "enablePestsDestroyer");
+        this.addDependency("recalculatePathAfterPestEscaped", "recalculatePathAfterPestEscapedEnabled");
+        this.addDependency("enablePestsDestroyerPathfindingMediumDistances", "enablePestsDestroyer");
+        this.addDependency("enablePestsDestroyerPathfindingLongerDistances", "enablePestsDestroyer");
+
+
+        this.addDependency("recalculatePathAfterPestEscaped", "recalculatePathAfterPestEscapedEnabled");
 
 
         this.hideIf("infoCookieBuffRequired", () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE);
