@@ -18,6 +18,7 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -241,8 +242,10 @@ public class FlyPathfinder {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, true);
         }
-        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSprint, relativeDistanceZ > 12 && !mc.gameSettings.keyBindSneak.isKeyDown());
-        mc.thePlayer.setSprinting(relativeDistanceZ > 12 && !mc.gameSettings.keyBindSneak.isKeyDown());
+        boolean isSprinting = relativeDistanceZ > 12 && !mc.gameSettings.keyBindSneak.isKeyDown();
+        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSprint, isSprinting);
+        if (!isSprinting) // to avoid omni sprinting
+            mc.thePlayer.setSprinting(false);
     }
 
     public boolean isDeceleratingLeft = false;
@@ -268,6 +271,11 @@ public class FlyPathfinder {
             return VerticalDirection.LOWER;
         }
         return VerticalDirection.NONE;
+    }
+
+    @SubscribeEvent
+    public void onWorldUnload(WorldEvent.Unload event) {
+        stop();
     }
 
     public enum VerticalDirection {
