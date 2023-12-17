@@ -8,7 +8,6 @@ import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
-import net.minecraft.client.Minecraft;
 
 import java.util.List;
 import java.util.Map;
