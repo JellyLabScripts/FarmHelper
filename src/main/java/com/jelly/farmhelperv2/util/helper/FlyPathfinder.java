@@ -154,7 +154,7 @@ public class FlyPathfinder {
             LogUtils.sendError("Player is not allowed to fly. Disabling pathfinder.");
             stop();
             return;
-        } else if (!mc.thePlayer.capabilities.isFlying)
+        } else if (!mc.thePlayer.capabilities.isFlying && BlockUtils.getRelativeBlock(0, -1, 1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, -1, 1)))
             mc.thePlayer.capabilities.isFlying = true;
         double distance3d = mc.thePlayer.getDistance(pathBlocks.get(0).getX() + 0.5, pathBlocks.get(0).getY() + 0.5, pathBlocks.get(0).getZ() + 0.5);
         if (distance3d < 0.5) {
@@ -182,7 +182,11 @@ public class FlyPathfinder {
         }
         if (antiStuckDelay.isScheduled() && !antiStuckDelay.passed())
             return;
-        if (mc.thePlayer.onGround) {
+        if (mc.thePlayer.onGround
+                && BlockUtils.getRelativeBlock(0, 0, 1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, 0, 1))
+                && BlockUtils.getRelativeBlock(0, 1, 1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, 1, 1))
+                && !BlockUtils.getRelativeBlock(0, -1, 1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, -1, 1))) {
+            LogUtils.sendDebug("Jumping");
             mc.thePlayer.jump();
             antiStuckDelay.schedule(200);
             return;
@@ -214,7 +218,7 @@ public class FlyPathfinder {
         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, relativeDistanceZ < -FarmHelperConfig.flightAllowedOvershootThreshold);
         if (shouldChangeHeight(relativeDistanceX, relativeDistanceZ) == VerticalDirection.NONE) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, distanceY > 0.25);
-            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, distanceY < -0.25 && !mc.thePlayer.onGround);
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, distanceY < -0.25 && !mc.thePlayer.onGround && BlockUtils.getRelativeBlock(0, -1, 0).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, -1, 0)));
         } else if (shouldChangeHeight(relativeDistanceX, relativeDistanceZ) == VerticalDirection.HIGHER) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, true);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, false);
