@@ -1120,6 +1120,13 @@ public class FarmHelperConfig extends Config {
             min = 0, max = 5000
     )
     public static int pestAdditionalGUIDelay = 0;
+
+    @Switch(
+            name = "Sprint while flying", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            description = "Springs while flying"
+    )
+    public static boolean sprintWhileFlying = false;
+
     @Switch(
             name = "Pause the Pests Destroyer during Jacob's contests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Pauses the Pests Destroyer during Jacob's contests",
@@ -1333,17 +1340,31 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="Pests Destroyer Time">
     @Slider(
-            name = "Pests Destroyer Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
+            name = "Pests Destroyer Small Distance Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
             description = "The time it takes to rotate the player",
             min = 50f, max = 750
     )
-    public static float pestsKillerRotationTime = 200f;
+    public static float pestsKillerRotationTimeSmallDistance = 200f;
     @Slider(
-            name = "Additional random Pests Destroyer Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
+            name = "Additional random Pests Destroyer Small Distance Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
             description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
             min = 0f, max = 750
     )
-    public static float pestsKillerRotationTimeRandomness = 150;
+    public static float pestsKillerRotationTimeRandomnessSmallDistance = 150;
+
+    @Slider(
+            name = "Pests Destroyer Medium Distance Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
+            description = "The time it takes to rotate the player",
+            min = 50f, max = 750
+    )
+    public static float pestsKillerRotationTimeMediumDistance = 300f;
+    @Slider(
+            name = "Additional random Pests Destroyer Medium Distance Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
+            description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
+            min = 0f, max = 750
+    )
+    public static float pestsKillerRotationTimeRandomnessMediumDistance = 120;
+
     @Slider(
             name = "Pests Destroyer Stuck Time (in minutes)", category = DELAYS, subcategory = "Pests Destroyer",
             description = "Pests Destroyer Stuck Time (in minutes) for single pest",
@@ -1756,8 +1777,12 @@ public class FarmHelperConfig extends Config {
         return (long) (rotationTime + (float) Math.random() * rotationTimeRandomness);
     }
 
-    public static long getRandomPestsKillerRotationTime() {
-        return (long) (pestsKillerRotationTime + (float) Math.random() * pestsKillerRotationTimeRandomness);
+    public static long getRandomPestsKillerRotationTimeSmallDistance() {
+        return (long) (pestsKillerRotationTimeSmallDistance + (float) Math.random() * pestsKillerRotationTimeRandomnessSmallDistance);
+    }
+
+    public static long getRandomPestsKillerRotationTimeMediumDistance() {
+        return (long) (pestsKillerRotationTimeMediumDistance + (float) Math.random() * pestsKillerRotationTimeRandomnessMediumDistance);
     }
 
     public static long getRandomGUIMacroDelay() {
