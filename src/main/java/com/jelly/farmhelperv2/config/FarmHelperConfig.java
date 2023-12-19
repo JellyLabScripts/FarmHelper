@@ -555,6 +555,59 @@ public class FarmHelperConfig extends Config {
         AutoSprayonator.getInstance().resetPlots();
     };
     //</editor-fold>
+
+    //<editor-fold desc="New Auto Sprayonator">
+    @Switch(
+        name = "New Auto Sprayonator", category = MISCELLANEOUS, subcategory = "New Sprayonator"
+    )
+    public static boolean enableNewSprayonator = false;
+
+    @Dropdown(
+        name = "Type", category = MISCELLANEOUS, subcategory = "New Sprayonator",
+        description = "Item to spray plot with",
+        options = {
+            "Compost (Earthworm & Mosquito)",
+            "Honey Jar (Moth & Cricket)",
+            "Dung (Beetle & Fly)",
+            "Plant Matter (Locust & Slug)",
+            "Tasty Cheese (Rat & Mite)"
+        }, size = 5
+    )
+    public static int newSprayonatorType = 0;
+
+    @Slider(
+        name = "Sprayonator Slot", category = MISCELLANEOUS, subcategory = "New Sprayonator",
+        min = 1, max = 8,
+        step = 1,
+        description = "Slot to move sprayonator to"
+    )
+    public static int newSprayonatorSlot = 1;
+
+    @Slider(
+        name = "Additional Delay", category = MISCELLANEOUS, subcategory = "New Sprayonator",
+        description = "Additional delay between actions (in milliseconds)",
+        min = 0, max = 5000, step = 1
+    )
+    public static int newSprayonatorAdditionalDelay = 500;
+
+    @Button(
+        name = "Reset Plots", category = MISCELLANEOUS, subcategory = "New Sprayonator",
+        text = "Click Here",
+        description = "Resets the cached data for sprayonator"
+    )
+    Runnable _ = () -> {
+        NewAutoSprayonator.getInstance().resetPlots();
+    };
+
+//    @Button(
+//        name = "Reset Plots", category = MISCELLANEOUS, subcategory = "Sprayonator",
+//        text = "Click Here",
+//        description = "Resets the cached data for sprayonator"
+//    )
+//    Runnable newSesetSprayonatorPlots = () -> {
+//        AutoSprayonator.getInstance().resetPlots();
+//    };
+    //<editor-fold>
     //</editor-fold>
 
     //<editor-fold desc="FAILSAFES">

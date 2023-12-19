@@ -23,6 +23,13 @@ import static java.lang.Integer.parseInt;
 public class InventoryUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
+    public static boolean holdItem(String item){
+        int slot = getSlotIdOfItemInHotbar(item);
+        if(slot == -1) return false;
+        mc.thePlayer.inventory.currentItem = slot;
+        return true;
+    }
+
     public static int getSlotIdOfItemInContainer(String item) {
         for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
             if (slot.getHasStack()) {
@@ -134,6 +141,7 @@ public class InventoryUtils {
     }
 
     public static boolean hasItemInHotbar(String... item) {
+        // return getSlotIdOfItemInHotbar(item) != -1;
         for (int i = 0; i < 9; i++) {
             ItemStack slot = mc.thePlayer.inventory.getStackInSlot(i);
             if (slot != null && slot.getItem() != null) {
@@ -190,6 +198,10 @@ public class InventoryUtils {
 
     public static void openInventory() {
         KeyBinding.onTick(mc.gameSettings.keyBindInventory.getKeyCode());
+    }
+
+    public static void closeOpenInventory(){
+        if(mc.currentScreen != null) mc.thePlayer.closeScreen();
     }
 
     public static Slot getSlotOfId(int id) {

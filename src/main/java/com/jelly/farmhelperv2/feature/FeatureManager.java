@@ -35,6 +35,7 @@ public class FeatureManager {
                 PerformanceMode.getInstance(),
                 PestsDestroyer.getInstance(),
                 AutoSprayonator.getInstance(),
+                NewAutoSprayonator.getInstance(),
                 PetSwapper.getInstance(),
                 PlotCleaningHelper.getInstance(),
                 ProfitCalculator.getInstance(),
