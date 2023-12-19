@@ -153,6 +153,7 @@ public class NewAutoSprayonator implements IFeature {
                 boolean shouldCheckPlots = Arrays.stream(this.plots).noneMatch(Objects::nonNull);
                 boolean sprayonatorItemNotInInventory = !InventoryUtils.hasItemInInventory(this.SPRAYONATOR_ITEM[FarmHelperConfig.newSprayonatorType]);
                 boolean canSpray = currentPlot != null && currentPlot.canSpray();
+
                 if (shouldCheckPlots) {
                     this.mainState = MainState.CHECK_PLOTS;
                     this.checkState = CheckPlotState.STARTING;
@@ -190,7 +191,7 @@ public class NewAutoSprayonator implements IFeature {
             this.changedMaterial = true;
         }
         if (message.contains("SPRAYONATOR! You sprayed Plot - ") && this.sprayState == SprayState.SPRAY_VERIFY) {
-            this.plots[GameStateHandler.getInstance().getCurrentPlot()].setSprayExpireTime(System.currentTimeMillis() + 1800000);
+            this.plots[GameStateHandler.getInstance().getCurrentPlot()].setSprayExpireTime(System.currentTimeMillis() + 1800000); // 30 minutes
             this.sprayState = SprayState.DISABLE;
             this.timer.schedule(FarmHelperConfig.newSprayonatorAdditionalDelay);
         }
@@ -219,7 +220,8 @@ public class NewAutoSprayonator implements IFeature {
                 }
                 // WHy null? Why not ""? so that i can use contains without null issues??? why man?
                 String inventoryName = InventoryUtils.getInventoryName();
-                if (mc.currentScreen instanceof GuiChest || mc.thePlayer.openContainer instanceof ContainerChest && (inventoryName != null && inventoryName.contains("Desk"))) {
+                if ((mc.currentScreen instanceof GuiChest || mc.thePlayer.openContainer instanceof ContainerChest)
+                    && (inventoryName != null && inventoryName.contains("Desk"))) {
                     log("Opened Desk.");
                     this.checkState = CheckPlotState.OPEN_PLOTS;
                     this.timer.schedule(FarmHelperConfig.newSprayonatorAdditionalDelay);
@@ -240,7 +242,8 @@ public class NewAutoSprayonator implements IFeature {
                 }
                 // Again WHy null? Why not ""? so that i can use contains without null issues??? why man?
                 String inventoryName2 = InventoryUtils.getInventoryName();
-                if (mc.currentScreen instanceof GuiChest || mc.thePlayer.openContainer instanceof ContainerChest && (inventoryName2 != null && inventoryName2.contains("Configure Plots"))) {
+                if ((mc.currentScreen instanceof GuiChest || mc.thePlayer.openContainer instanceof ContainerChest)
+                    && (inventoryName2 != null && inventoryName2.contains("Configure Plots"))) {
                     log("In Configure Plots Menu");
                     this.checkState = CheckPlotState.SCAN_PLOTS;
                     this.timer.schedule(FarmHelperConfig.newSprayonatorAdditionalDelay);
@@ -324,7 +327,7 @@ public class NewAutoSprayonator implements IFeature {
                     this.isRotating = true;
 
                     RotationConfiguration rotationConfig = new RotationConfiguration(
-                        new Rotation(AngleUtils.getActualYawFrom360(mc.thePlayer.rotationYaw), 90),
+                        new Rotation(AngleUtils.getActualYawFrom360(mc.thePlayer.rotationYaw), -45),
                         500,
                         () -> {
                             this.isRotating = false;
