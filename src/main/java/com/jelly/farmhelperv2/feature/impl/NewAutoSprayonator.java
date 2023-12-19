@@ -190,9 +190,9 @@ public class NewAutoSprayonator implements IFeature {
             this.changedMaterial = true;
         }
         if (message.contains("SPRAYONATOR! You sprayed Plot - ") && this.sprayState == SprayState.SPRAY_VERIFY) {
-            this.plots[GameStateHandler.getInstance().getCurrentPlot()].setSprayExpireTime(System.currentTimeMillis());
+            this.plots[GameStateHandler.getInstance().getCurrentPlot()].setSprayExpireTime(System.currentTimeMillis() + 1800000);
             this.sprayState = SprayState.DISABLE;
-            this.timer.schedule(500);
+            this.timer.schedule(FarmHelperConfig.newSprayonatorAdditionalDelay);
         }
         if (message.contains("This plot was sprayed with that item recently! Try again soon!")) {
             this.plots = new Plot[25];
@@ -222,14 +222,14 @@ public class NewAutoSprayonator implements IFeature {
                 if (mc.currentScreen instanceof GuiChest || mc.thePlayer.openContainer instanceof ContainerChest && (inventoryName != null && inventoryName.contains("Desk"))) {
                     log("Opened Desk.");
                     this.checkState = CheckPlotState.OPEN_PLOTS;
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.newSprayonatorAdditionalDelay);
                 }
                 break;
             case OPEN_PLOTS:
                 if (!this.hasTimerEnded()) return;
                 InventoryUtils.clickContainerSlot(InventoryUtils.getSlotIdOfItemInContainer("Configure Plots"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                 this.checkState = CheckPlotState.VERIFY_PLOTS;
-                this.timer.schedule(500);
+                this.timer.schedule(FarmHelperConfig.newSprayonatorAdditionalDelay);
                 log("Clicked on Configure Plots Hopefully");
                 break;
             case VERIFY_PLOTS:
@@ -243,7 +243,7 @@ public class NewAutoSprayonator implements IFeature {
                 if (mc.currentScreen instanceof GuiChest || mc.thePlayer.openContainer instanceof ContainerChest && (inventoryName2 != null && inventoryName2.contains("Configure Plots"))) {
                     log("In Configure Plots Menu");
                     this.checkState = CheckPlotState.SCAN_PLOTS;
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.newSprayonatorAdditionalDelay);
                 }
                 break;
             case SCAN_PLOTS:
@@ -277,7 +277,7 @@ public class NewAutoSprayonator implements IFeature {
                     currentPlotIndex++;
                 }
                 log(Arrays.toString(this.plots));
-                this.timer.schedule(500);
+                this.timer.schedule(FarmHelperConfig.newSprayonatorAdditionalDelay);
                 this.checkState = CheckPlotState.DISABLE;
                 break;
             case DISABLE:
@@ -310,7 +310,7 @@ public class NewAutoSprayonator implements IFeature {
                 if (!InventoryUtils.hasItemInHotbar(SPRAYONATOR)) {
                     InventoryUtils.openInventory();
                     this.sprayState = SprayState.SWAP_SPRAYONATOR_TO_HOTBAR;
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.newSprayonatorAdditionalDelay);
                     return;
                 }
                 if (!InventoryUtils.holdItem(SPRAYONATOR)) {
@@ -363,7 +363,7 @@ public class NewAutoSprayonator implements IFeature {
                 if (!this.hasTimerEnded()) return;
 
                 InventoryUtils.swapSlots(InventoryUtils.getSlotIdOfItemInInventory(SPRAYONATOR), FarmHelperConfig.newSprayonatorSlot - 1);
-                this.timer.schedule(500);
+                this.timer.schedule(FarmHelperConfig.newSprayonatorAdditionalDelay);
                 this.sprayState = SprayState.STARTING;
                 break;
             case USE_SPRAYONATOR:
