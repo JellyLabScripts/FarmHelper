@@ -1114,31 +1114,29 @@ public class PestsDestroyer implements IFeature {
             LogUtils.sendError("[Pests Destroyer] Failed to get plot number for entity: " + entity.getName() + " at: " + entity.getPosition());
             return;
         }
-        currentEntityTarget.ifPresent(ent -> {
-            if (ent.equals(entity) || PlayerUtils.getEntityCuttingOtherEntity(ent).equals(entity)) {
-                Plot plot;
-                try {
-                    plot = pestsPlotMap.entrySet().stream().filter(entry -> entry.getKey().plotNumber == plotNumber).findFirst().get().getKey();
-                } catch (Exception e) {
-                    LogUtils.sendError("[Pests Destroyer] Failed to get plot for entity: " + entity.getName() + " at: " + entity.getPosition());
-                    return;
-                }
-                if (pestsPlotMap.get(plot) > 1) {
-                    pestsPlotMap.replace(plot, pestsPlotMap.get(plot) - 1);
-                    LogUtils.sendDebug("[Pests Destroyer] Removed 1 pest from plot number: " + plotNumber);
-                } else {
-                    pestsPlotMap.remove(plot);
-                    LogUtils.sendDebug("[Pests Destroyer] Removed all pests from plot number: " + plotNumber);
-                }
-                lastKilledEntity = entity;
-                currentEntityTarget = Optional.empty();
-                lastFireworkLocation = Optional.empty();
-                lastFireworkTime = 0;
-                KeyBindUtils.stopMovement();
-                stuckClock.reset();
-                RotationHandler.getInstance().reset();
-                delayClock.schedule(500);
-            }
+        Plot plot;
+        try {
+            plot = pestsPlotMap.entrySet().stream().filter(entry -> entry.getKey().plotNumber == plotNumber).findFirst().get().getKey();
+        } catch (Exception e) {
+            LogUtils.sendError("[Pests Destroyer] Failed to get plot for entity: " + entity.getName() + " at: " + entity.getPosition());
+            return;
+        }
+        if (pestsPlotMap.get(plot) > 1) {
+            pestsPlotMap.replace(plot, pestsPlotMap.get(plot) - 1);
+            LogUtils.sendDebug("[Pests Destroyer] Removed 1 pest from plot number: " + plotNumber);
+        } else {
+            pestsPlotMap.remove(plot);
+            LogUtils.sendDebug("[Pests Destroyer] Removed all pests from plot number: " + plotNumber);
+        }
+        lastKilledEntity = entity;
+        lastFireworkLocation = Optional.empty();
+        lastFireworkTime = 0;
+        currentEntityTarget.ifPresent(e -> {
+            KeyBindUtils.stopMovement();
+            currentEntityTarget = Optional.empty();
+            stuckClock.reset();
+            RotationHandler.getInstance().reset();
+            delayClock.schedule(500);
         });
     }
 
