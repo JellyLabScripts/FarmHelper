@@ -1123,7 +1123,7 @@ public class FarmHelperConfig extends Config {
 
     @Switch(
             name = "Sprint while flying", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
-            description = "Springs while flying"
+            description = "Sprints while flying"
     )
     public static boolean sprintWhileFlying = false;
 
@@ -1152,31 +1152,6 @@ public class FarmHelperConfig extends Config {
     )
     public static OneKeyBind enablePestsDestroyerKeyBind = new OneKeyBind(Keyboard.KEY_NONE);
 
-    @Switch(
-            name = "Recalculate path after pest escaped", category = PESTS_DESTROYER, subcategory = "Pathfinding",
-            description = "Recalculates the path after pest escaped"
-    )
-    public static boolean recalculatePathAfterPestEscapedEnabled = false;
-
-    @Slider(
-            name = "Recalculate path after pest escaped X blocks", category = PESTS_DESTROYER, subcategory = "Pathfinding",
-            description = "",
-            min = 3, max = 10
-    )
-    public static int recalculatePathAfterPestEscaped = 5;
-
-    @Switch(
-            name = "Enable Pests Destroyer Pathfinding for medium distances", category = PESTS_DESTROYER, subcategory = "Pathfinding",
-            description = "Enables the pests destroyer pathfinding for medium distances",
-            size = 2
-    )
-    public static boolean enablePestsDestroyerPathfindingMediumDistances = false;
-    @Switch(
-            name = "Enable Pests Destroyer Pathfinding for longer distances (not recommended)", category = PESTS_DESTROYER, subcategory = "Pathfinding",
-            description = "Enables the pests destroyer pathfinding for longer distances",
-            size = 2
-    )
-    public static boolean enablePestsDestroyerPathfindingLongerDistances = false;
     //</editor-fold>
 
     //<editor-fold desc="Drawings">
@@ -1641,13 +1616,6 @@ public class FarmHelperConfig extends Config {
         this.addDependency("pestAdditionalGUIDelay", "enablePestsDestroyer");
         this.addDependency("sprintWhileFlying", "enablePestsDestroyer");
         this.addDependency("pausePestsDestroyerDuringJacobsContest", "enablePestsDestroyer");
-        this.addDependency("recalculatePathAfterPestEscapedEnabled", "enablePestsDestroyer");
-        this.addDependency("recalculatePathAfterPestEscaped", "recalculatePathAfterPestEscapedEnabled");
-        this.addDependency("enablePestsDestroyerPathfindingMediumDistances", "enablePestsDestroyer");
-        this.addDependency("enablePestsDestroyerPathfindingLongerDistances", "enablePestsDestroyer");
-
-
-        this.addDependency("recalculatePathAfterPestEscaped", "recalculatePathAfterPestEscapedEnabled");
 
 
         this.hideIf("infoCookieBuffRequired", () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE);

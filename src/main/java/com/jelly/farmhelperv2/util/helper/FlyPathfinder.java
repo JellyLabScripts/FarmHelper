@@ -47,8 +47,10 @@ public class FlyPathfinder {
     private final List<BlockPos> realPath = new ArrayList<>();
     private static final RotationHandler rotation = RotationHandler.getInstance();
     private Clock antiStuckDelay = new Clock();
-    private int stuckCounterWithoutMotion = 0;
-    private int stuckCounterWithMotion = 0;
+    @Setter
+    public int stuckCounterWithoutMotion = 0;
+    @Setter
+    public int stuckCounterWithMotion = 0;
     private boolean shouldRecalculateLater = false;
     public boolean hasFailed = false;
     private Vec3 lastPlayerPos;
@@ -157,7 +159,7 @@ public class FlyPathfinder {
         } else if (!mc.thePlayer.capabilities.isFlying && BlockUtils.getRelativeBlock(0, -1, 1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, -1, 1)))
             mc.thePlayer.capabilities.isFlying = true;
         double distance3d = mc.thePlayer.getDistance(pathBlocks.get(0).getX() + 0.5, pathBlocks.get(0).getY() + 0.5, pathBlocks.get(0).getZ() + 0.5);
-        if (distance3d < 0.5) {
+        if (distance3d < 0.5 || (isPlayerUnderHalfBlock() && distance3d < 1)) {
             pathBlocks.remove(0);
             rotation.reset();
             if (!pathBlocks.isEmpty()) {
@@ -328,6 +330,12 @@ public class FlyPathfinder {
             return true;
         }
         return false;
+    }
+
+    public boolean isPlayerUnderHalfBlock() {
+        return (mc.thePlayer.posY % 1 < 0.701 && mc.thePlayer.posY % 1 > 0.201
+                && !BlockUtils.getRelativeFullBlock(0, 2, 0).isPassable(mc.theWorld, BlockUtils.getRelativeFullBlockPos(0, 2, 0))
+        );
     }
 
     //region Path smoothing - Nirox version
