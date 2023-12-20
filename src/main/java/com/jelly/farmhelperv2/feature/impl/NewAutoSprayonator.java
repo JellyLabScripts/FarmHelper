@@ -21,6 +21,7 @@ import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import sun.util.resources.cldr.lg.CalendarData_lg_UG;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -69,7 +70,7 @@ public class NewAutoSprayonator implements IFeature {
 
     @Override
     public boolean shouldStartAtMacroStart() {
-        return true;
+        return false;
     }
 
     @Override
@@ -133,10 +134,11 @@ public class NewAutoSprayonator implements IFeature {
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (this.mainState != MainState.NONE) return;
 
+
         Plot currentPlot = this.plots[GameStateHandler.getInstance().getCurrentPlot()];
-        if (currentPlot != null && currentPlot.canSpray()) this.counter++;
+        if (currentPlot == null || currentPlot.canSpray()) this.counter++;
         else this.counter = 0;
-        if (this.counter > 200) {
+        if (this.counter > 150) {
             this.start();
         }
     }
@@ -159,11 +161,16 @@ public class NewAutoSprayonator implements IFeature {
                     this.checkState = CheckPlotState.STARTING;
                 } else if (sprayonatorItemNotInInventory) {
                     log("Cannot find sprayonator item in inventory.");
-                    this.stop();
-                    return;
-//                    this.mainState = MainState.BUY_ITEM;
-//                    this.buyState = BuyState.STARTING;
+                    if (FarmHelperConfig.newSprayonatorAutoBuyItem) {
+                        this.mainState = MainState.BUY_ITEM;
+                        this.buyState = BuyState.STARTING;
+                    } else {
+                        FarmHelperConfig.enableNewSprayonator = false;
+                        this.stop();
+                        return;
+                    }
                 } else if (canSpray) {
+                    this.timer.schedule(FarmHelperConfig.newSprayonatorAdditionalDelay);
                     this.mainState = MainState.SPRAY_PLOT;
                     this.sprayState = SprayState.STARTING;
                 } else {
@@ -187,10 +194,16 @@ public class NewAutoSprayonator implements IFeature {
     public void onChatReceive(ClientChatReceivedEvent event) {
         if (event.type != 0 || !this.enabled) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
-        if (message.contains("SPRAYONATOR! Your selected material is now ")) {
+        if (message.startsWith("SPRAYONATOR! Your selected material is now ") && this.sprayState == SprayState.SPRAYONATOR_TYPE_VERIFY) {
+            log("Sprayonator Material Changed");
+            String itemName = SPRAYONATOR_ITEM[FarmHelperConfig.newSprayonatorType];
             this.changedMaterial = true;
+            if (message.contains(itemName)) {
+                this.changedMaterial = false;
+                this.sprayState = SprayState.STARTING;
+            }
         }
-        if (message.contains("SPRAYONATOR! You sprayed Plot - ") && this.sprayState == SprayState.SPRAY_VERIFY) {
+        if (message.startsWith("SPRAYONATOR! You sprayed Plot - ") && this.sprayState == SprayState.SPRAY_VERIFY) {
             this.plots[GameStateHandler.getInstance().getCurrentPlot()].setSprayExpireTime(System.currentTimeMillis() + 1800000); // 30 minutes
             this.sprayState = SprayState.DISABLE;
             this.timer.schedule(FarmHelperConfig.newSprayonatorAdditionalDelay);
@@ -240,7 +253,6 @@ public class NewAutoSprayonator implements IFeature {
                     this.stop();
                     return;
                 }
-                // Again WHy null? Why not ""? so that i can use contains without null issues??? why man?
                 String inventoryName2 = InventoryUtils.getInventoryName();
                 if ((mc.currentScreen instanceof GuiChest || mc.thePlayer.openContainer instanceof ContainerChest)
                     && (inventoryName2 != null && inventoryName2.contains("Configure Plots"))) {
@@ -287,20 +299,45 @@ public class NewAutoSprayonator implements IFeature {
                 if (!this.hasTimerEnded()) return;
                 this.checkState = CheckPlotState.STARTING;
                 this.mainState = MainState.STARTING;
-                InventoryUtils.closeOpenInventory();
+                PlayerUtils.closeScreen();
                 break;
         }
     }
 
     private void handleBuyItem() {
-
+        switch (this.buyState) {
+            case STARTING:
+                this.buyState = BuyState.TOGGLE_AUTO_BZ;
+                break;
+            case TOGGLE_AUTO_BZ:
+                AutoBazaar.getInstance().buy(SPRAYONATOR_ITEM[FarmHelperConfig.newSprayonatorType], FarmHelperConfig.newSprayonatorAutoBuyAmount, false);
+                this.buyState = BuyState.VERIFY_AUTO_BZ;
+                break;
+            case VERIFY_AUTO_BZ:
+                if (AutoBazaar.getInstance().hasFailed()) {
+                    LogUtils.sendError("[AutoSprayonator] - Failed to buy item from bazaar. Stopping AutoSprayonator");
+                    FarmHelperConfig.enableNewSprayonator = false;
+                    this.stop();
+                    return;
+                }
+                if (AutoBazaar.getInstance().hasSucceeded()) {
+                    log("Bought item from bazaar.");
+                    this.buyState = BuyState.DISABLE;
+                }
+                break;
+            case DISABLE:
+                this.buyState = BuyState.STARTING;
+                this.mainState = MainState.STARTING;
+                break;
+        }
     }
 
     private void handleSprayPlot() {
         switch (sprayState) {
             case STARTING:
                 if (!this.hasTimerEnded()) return;
-                InventoryUtils.closeOpenInventory();
+
+                PlayerUtils.closeScreen();
 
                 this.sprayState = SprayState.USE_SPRAYONATOR;
 
@@ -327,7 +364,7 @@ public class NewAutoSprayonator implements IFeature {
                     this.isRotating = true;
 
                     RotationConfiguration rotationConfig = new RotationConfiguration(
-                        new Rotation(AngleUtils.getActualYawFrom360(mc.thePlayer.rotationYaw), -45),
+                        new Rotation(AngleUtils.getActualYawFrom360(mc.thePlayer.rotationYaw), -60),
                         500,
                         () -> {
                             this.isRotating = false;
@@ -339,7 +376,7 @@ public class NewAutoSprayonator implements IFeature {
                 }
                 break;
             case CHANGE_SPRAYONATOR_TYPE:
-                if (this.isRotating) return;
+                if (this.isRotating || !this.hasTimerEnded()) return;
 
                 KeyBindUtils.leftClick();
                 this.sprayState = SprayState.SPRAYONATOR_TYPE_VERIFY;
@@ -353,14 +390,9 @@ public class NewAutoSprayonator implements IFeature {
                 }
                 if (!this.changedMaterial) return;
 
-                String lore = String.join(" ", InventoryUtils.getLoreOfItemInContainer(InventoryUtils.getSlotIdOfItemInContainer(SPRAYONATOR)));
-                String itemName = this.SPRAYONATOR_ITEM[FarmHelperConfig.newSprayonatorType];
                 this.changedMaterial = false;
-                if (!lore.contains(itemName)) {
-                    this.sprayState = SprayState.CHANGE_SPRAYONATOR_TYPE;
-                    return;
-                }
-                this.sprayState = SprayState.STARTING;
+                this.sprayState = SprayState.CHANGE_SPRAYONATOR_TYPE;
+                this.timer.schedule(500);
                 break;
             case SWAP_SPRAYONATOR_TO_HOTBAR:
                 if (!this.hasTimerEnded()) return;
@@ -388,7 +420,6 @@ public class NewAutoSprayonator implements IFeature {
         }
     }
 
-
     private boolean hasTimerEnded() {
         return (this.timer.isScheduled() && this.timer.passed());
     }
@@ -402,13 +433,12 @@ public class NewAutoSprayonator implements IFeature {
     }
 
     enum MainState {
-        NONE,       // Not really important
-        STARTING, CHECK_PLOTS, BUY_ITEM, SPRAY_PLOT
+        NONE, STARTING, CHECK_PLOTS, BUY_ITEM, SPRAY_PLOT
     }
 
     enum CheckPlotState {
-        STARTING, OPEN_DESK, VERIFY_DESK,    // Because I schizo over this
-        OPEN_PLOTS, VERIFY_PLOTS,   // Because I schizo over this
+        STARTING, OPEN_DESK, VERIFY_DESK,
+        OPEN_PLOTS, VERIFY_PLOTS,
         SCAN_PLOTS, DISABLE
     }
 
@@ -425,7 +455,6 @@ public class NewAutoSprayonator implements IFeature {
     static class Plot {
         private final int plotNumber;
         private long sprayExpireTime = 0L;
-//    private String sprayItem = ""; - Why do i need this? - Edit: Thats right i dont
 
         public Plot(int plotNumber, long sprayExpireTime) {
             this.plotNumber = plotNumber;

@@ -590,6 +590,19 @@ public class FarmHelperConfig extends Config {
     )
     public static int newSprayonatorAdditionalDelay = 500;
 
+    @Switch(
+        name = "Auto Buy item from Bazaar", category = MISCELLANEOUS, subcategory = "New Sprayonator",
+        description = "Auto buy necessary sprayonator item from bazaar if none is in the inventory"
+    )
+    public static boolean newSprayonatorAutoBuyItem = false;
+
+    @Number(
+        name = "Buy Amount", category = MISCELLANEOUS, subcategory = "New Sprayonator",
+        description = "Amount of item to buy from bazaar",
+        min = 1, max = 64
+    )
+    public static int newSprayonatorAutoBuyAmount = 1;
+
     @Button(
         name = "Reset Plots", category = MISCELLANEOUS, subcategory = "New Sprayonator",
         text = "Click Here",
@@ -1636,7 +1649,6 @@ public class FarmHelperConfig extends Config {
         this.addDependency("autoSellSacks", "enableAutoSell");
         this.addDependency("autoSellSacksPlacement", "enableAutoSell");
         this.addDependency("autoSellFunction", "enableAutoSell");
-
 
         this.addDependency("petSwapperDelay", "enablePetSwapper");
         this.addDependency("petSwapperName", "enablePetSwapper");

@@ -3,8 +3,10 @@ package com.jelly.farmhelperv2.feature.impl;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.SignUtils;
+import ibxm.Player;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiEditSign;
@@ -187,7 +189,7 @@ public class AutoBazaar implements IFeature {
                 if (!this.hasTimerEnded()) return;
 
                 int itemSlot = InventoryUtils.getSlotIdOfItemInContainer(this.itemToBuy, true);
-                if (itemSlot == -1) {
+                if (itemSlot == -1 || itemSlot > mc.thePlayer.openContainer.inventorySlots.size() - 37) {
                     this.disable("Cannot find item.");
                     return;
                 }
@@ -308,14 +310,13 @@ public class AutoBazaar implements IFeature {
             case DISABLE:
                 if (!this.hasTimerEnded()) return;
 
-                InventoryUtils.closeOpenInventory();
+                PlayerUtils.closeScreen();
                 this.setSuccessStatus(true);
                 this.stop();
                 log("Finished Buying");
                 break;
         }
     }
-
     private void handleSellToBz() {
         switch (this.sellState) {
             case STARTING:
@@ -398,31 +399,28 @@ public class AutoBazaar implements IFeature {
             case DISABLE:
                 if (!this.hasTimerEnded()) return;
 
-                InventoryUtils.closeOpenInventory();
+                PlayerUtils.closeScreen();
                 this.setSuccessStatus(true);
                 this.stop();
                 break;
         }
     }
 
+    // Utils
     private void log(String message) {
         LogUtils.sendDebug(String.format("[%s] - %s", this.getName(), message));
     }
-
-    private Boolean hasTimerEnded() {
+    private boolean hasTimerEnded() {
         return this.timer.isScheduled() && this.timer.passed();
     }
-
     private void setSuccessStatus(boolean succeeded) {
         this.succeeded = succeeded;
         this.failed = !succeeded;
     }
-
-    private boolean hasSucceeded() {
+    public boolean hasSucceeded() {
         return !this.enabled && this.succeeded;
     }
-
-    private boolean hasFailed() {
+    public boolean hasFailed() {
         return !this.enabled && this.failed;
     }
 
@@ -430,8 +428,6 @@ public class AutoBazaar implements IFeature {
         String openGuiName = InventoryUtils.getInventoryName();
         return (mc.currentScreen instanceof GuiChest || mc.thePlayer.openContainer instanceof ContainerChest) && (openGuiName != null && openGuiName.contains(guiName));
     }
-
-    // Tihs is mroe preferable  -English
     private boolean openedChestGuiNameStartsWith(String guiName) {
         String openGuiName = InventoryUtils.getInventoryName();
         return (mc.currentScreen instanceof GuiChest || mc.thePlayer.openContainer instanceof ContainerChest)
@@ -444,15 +440,16 @@ public class AutoBazaar implements IFeature {
         this.stop();
     }
 
-    // Everything insta (Insta buy, Insta sell)
     enum MainState {
         BUY_FROM_BZ, SELL_TO_BZ,
     }
 
+    // Insta Buy
     enum BuyState {
         STARTING, OPEN_BZ, BZ_VERIFY, CLICK_ON_PRODUCT, PRODUCT_VERIFY, CLICK_BUY_INSTANTLY, BUY_INSTANTLY_VERIY, OPEN_SIGN, OPEN_SIGN_VERIFY, EDIT_SIGN, BUY_ONE, VERIFY_CONFIRM_PAGE, CLICK_CONFIRM, BUY_VERIFY, DISABLE
     }
 
+    // Insta Sell
     enum SellState {
         STARTING, OPEN_BZ, BZ_VERIFY, CLICK_INSTASELLL, INSTASELL_VERIFY, CLICK_CONFIRM_INSTASELL, CONFIRM_INSTASELL_VERIFY, DISABLE
     }

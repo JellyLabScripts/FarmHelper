@@ -35,8 +35,7 @@ public class InventoryUtils {
     }
 
     public static int getSlotIdOfItemInContainer(String item, boolean equals) {
-        for (int i = 0; i < mc.thePlayer.openContainer.inventorySlots.size() - 37; i++) {
-            Slot slot = mc.thePlayer.openContainer.getSlot(i);
+        for (Slot slot: mc.thePlayer.openContainer.inventorySlots) {
             if (!slot.getHasStack()) continue;
             String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
             if (equals) {
@@ -208,10 +207,6 @@ public class InventoryUtils {
 
     public static void openInventory() {
         KeyBinding.onTick(mc.gameSettings.keyBindInventory.getKeyCode());
-    }
-
-    public static void closeOpenInventory() {
-        if (mc.currentScreen != null) mc.thePlayer.closeScreen();
     }
 
     public static Slot getSlotOfId(int id) {
