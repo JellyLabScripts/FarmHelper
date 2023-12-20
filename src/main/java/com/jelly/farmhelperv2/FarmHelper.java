@@ -85,11 +85,6 @@ public class FarmHelper {
             Notifications.INSTANCE.send("FarmHelper", "Pests Killer Ticks Of Not Seeing Pest While Attacking has been set to 100 ticks because of a bug in the previous version.", 15000);
             LogUtils.sendWarning("Pests Killer Ticks Of Not Seeing Pest While Attacking has been set to 100 ticks because of a bug in the previous version.");
         }
-        if (FarmHelperConfig.configVersion == 1 && FarmHelperConfig.enablePestsDestroyerPathfindingLongerDistances) {
-            FarmHelperConfig.enablePestsDestroyerPathfindingLongerDistances = false;
-            Notifications.INSTANCE.send("FarmHelper", "Enable Pests Destroyer Pathfinding Longer Distances has been disabled. We don't recommend using it for now. You can enable it again if you wish.", 15000);
-            LogUtils.sendWarning("Enable Pests Destroyer Pathfinding Longer Distances has been disabled. We don't recommend using it for now. You can enable it again if you wish.");
-        }
         if (FarmHelperConfig.configVersion == 1)
             FarmHelperConfig.configVersion = 2;
         sentInfoAboutShittyClient = true;

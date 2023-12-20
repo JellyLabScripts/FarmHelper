@@ -45,7 +45,7 @@ public class AntiStuck implements IFeature {
     private boolean enabled = false;
     @Setter
     private BlockPos intersectingBlockPos = null;
-    private ArrayList<KeyBinding> oppositeKeys = null;
+    private ArrayList<KeyBinding> oppositeKeys = new ArrayList<>();
 
     public static AntiStuck getInstance() {
         if (instance == null) {
@@ -225,10 +225,12 @@ public class AntiStuck implements IFeature {
                 EnumFacing facing = closestSide.get();
                 Vec3 movementTarget = getMovementTarget(intersectingBlockPos, facing);
                 List<KeyBinding> keys = getNeededKeyPresses(mc.thePlayer.getPositionVector(), movementTarget);
-                oppositeKeys = new ArrayList<>();
+                oppositeKeys.clear();
                 for (KeyBinding key : keys) {
                     oppositeKeys.add(getOppositeKey(key));
                 }
+                oppositeKeys.add(mc.gameSettings.keyBindSneak);
+                oppositeKeys.add(mc.gameSettings.keyBindAttack);
                 keys.add(mc.gameSettings.keyBindSneak);
                 keys.add(mc.gameSettings.keyBindAttack);
                 KeyBindUtils.holdThese(keys.toArray(new KeyBinding[0]));
@@ -241,7 +243,8 @@ public class AntiStuck implements IFeature {
                 delayBetweenMovementsClock.schedule(100 + (int) (Math.random() * 100));
                 break;
             case COME_BACK:
-                KeyBindUtils.holdThese(oppositeKeys.toArray(new KeyBinding[0]));
+                if (oppositeKeys != null)
+                    KeyBindUtils.holdThese(oppositeKeys.toArray(new KeyBinding[0]));
                 unstuckState = UnstuckState.DISABLE;
                 delayBetweenMovementsClock.schedule(100 + (int) (Math.random() * 100));
                 break;
