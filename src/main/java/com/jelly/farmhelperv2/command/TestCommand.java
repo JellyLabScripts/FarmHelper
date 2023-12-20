@@ -12,7 +12,7 @@ public class TestCommand {
     private void main(){
 //        LogUtils.sendDebug("CurrentPlot: " + GameStateHandler.getInstance().getCurrentPlot());
 //        AutoBazaar.getInstance().buy("Sugar Cane", 2, false);
-        AutoBazaar.getInstance().sell(AutoBazaar.SELL_INVENTORY);
+//        AutoBazaar.getInstance().sell(AutoBazaar.SELL_INVENTORY);
     }
 
     @SubCommand(aliases = "sf")
@@ -38,5 +38,9 @@ public class TestCommand {
     @SubCommand(aliases = "four")
     private void four(){
         AutoBazaar.getInstance().sell(AutoBazaar.SELL_INVENTORY, AutoBazaar.SELL_SACK);
+    }
+    @SubCommand()
+    private void buy(String name, int amount){
+        AutoBazaar.getInstance().buy(name, amount, true);
     }
 }

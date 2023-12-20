@@ -1,29 +1,32 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.SignUtils;
-import ibxm.Player;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiEditSign;
 import net.minecraft.inventory.ContainerChest;
+import net.minecraft.inventory.Slot;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AutoBazaar implements IFeature {
     public static Minecraft mc = Minecraft.getMinecraft();
     private static AutoBazaar instance = null;
     public static int SELL_INVENTORY = 0;
     public static int SELL_SACK = 1;
-    public String[] instaSellBtn = {"Sell inventory now", "Sell sacks now"};
 
     public static AutoBazaar getInstance() {
         if (instance == null) {
@@ -32,17 +35,22 @@ public class AutoBazaar implements IFeature {
         return instance;
     }
 
+    private final Pattern instabuyAmountPattern = Pattern.compile("Amount:\\s(\\d+)x");
+    private final Pattern ppuPattern = Pattern.compile("unit:\\s(\\d+(.\\d+)?)\\scoins");
+    public String[] instaSellBtn = {"Sell inventory now", "Sell sacks now"};
     private final Clock timer = new Clock();
     private boolean enabled = false;
     private MainState mainState = MainState.BUY_FROM_BZ;
     private boolean succeeded = false;
     private boolean failed = false;
+    public boolean wasManipulated = false;
 
     // Buy
     private BuyState buyState = BuyState.STARTING;
     private String itemToBuy = null;
     private int buyAmount = 0;
     private boolean checkManipulation = false;
+    private int buyNowButtonSlot = -1;
 
     // Sell
     private final List<Integer> sellTypes = new ArrayList<>();
@@ -82,6 +90,7 @@ public class AutoBazaar implements IFeature {
         this.buyAmount = 0;
         this.itemToBuy = null;
         this.sellTypes.clear();
+        this.buyNowButtonSlot = -1;
 
         log("Disabling");
     }
@@ -109,18 +118,20 @@ public class AutoBazaar implements IFeature {
         this.enabled = true;
         this.failed = false;
         this.succeeded = false;
+        this.wasManipulated = false;
         this.itemToBuy = itemName;
         this.buyAmount = amount;
-        this.checkManipulation = checkManipulation;
-        this.mainState = MainState.BUY_FROM_BZ;
+        this.buyNowButtonSlot = -1;
         this.buyState = BuyState.STARTING;
+        this.mainState = MainState.BUY_FROM_BZ;
+        this.checkManipulation = checkManipulation;
 
         log("Enabling");
     }
 
     public void sell(Integer... sellTypes) {
-        for(int i: sellTypes){
-            if(i >= this.instaSellBtn.length) continue;
+        for (int i : sellTypes) {
+            if (i >= this.instaSellBtn.length) continue;
             this.sellTypes.add(i);
         }
         if (this.enabled || this.sellTypes.isEmpty()) return;
@@ -199,7 +210,7 @@ public class AutoBazaar implements IFeature {
                 this.buyState = BuyState.PRODUCT_VERIFY;
                 break;
             case PRODUCT_VERIFY:
-                if (this.openedChestGuiNameContains(this.itemToBuy)) {
+                if (this.openedChestGuiNameContains("➜ " + this.itemToBuy)) {
                     log("Opened item page.");
                     this.timer.schedule(500);
                     this.buyState = BuyState.CLICK_BUY_INSTANTLY;
@@ -216,6 +227,31 @@ public class AutoBazaar implements IFeature {
                     this.disable("Cannot find buy instantly button. Disabling");
                     return;
                 }
+
+                if (this.checkManipulation) {
+
+                    String buyInstantlyLore = String.join(" ", InventoryUtils.getLoreOfItemInContainer(buyInstantlySlot)).replace(",", "");
+                    Matcher buyMatcher = ppuPattern.matcher(buyInstantlyLore);
+                    float pricePerUnit = buyMatcher.find() ? Float.parseFloat(buyMatcher.group(1)) : 0;
+
+                    if (pricePerUnit == 0) {
+                        this.disable("Cannot find item price. Report this to developer.");
+                        return;
+                    }
+
+                    ProfitCalculator.BazaarItem bazaarItem = ProfitCalculator.getInstance().getVisitorsItem("_" + this.itemToBuy);
+                    if (bazaarItem != null) {
+                        if (pricePerUnit > (bazaarItem.npcPrice * FarmHelperConfig.visitorsMacroPriceManipulationMultiplier)) {
+                            log("Price Manipulation Detected.");
+                            log("Item: " + this.itemToBuy + ", PricePerUnit: " + pricePerUnit + ", NPCPrice: " + bazaarItem.npcPrice);
+                            log("NpcPriceAfterManipulation: " + bazaarItem.npcPrice * FarmHelperConfig.visitorsMacroPriceManipulationMultiplier);
+                            this.wasManipulated = true;
+                            this.disable("Disabling due to price being manipulated.");
+                            return;
+                        }
+                    }
+                }
+
                 InventoryUtils.clickContainerSlot(buyInstantlySlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                 this.buyState = BuyState.BUY_INSTANTLY_VERIY;
                 this.timer.schedule(2000);
@@ -226,8 +262,30 @@ public class AutoBazaar implements IFeature {
                     this.timer.schedule(500);
                     this.buyState = BuyState.OPEN_SIGN;
 
-                    if (this.buyAmount == 1) {
-                        this.buyState = BuyState.BUY_ONE;
+                    Predicate<Slot> buyPredicate = slot -> slot.getHasStack()
+                        && StringUtils.stripControlCodes(slot.getStack().getDisplayName()).startsWith("Buy")
+                        && slot.slotNumber < mc.thePlayer.openContainer.inventorySlots.size() - 37;
+                    List<Slot> buySlots = InventoryUtils.getIndexesOfItemsFromContainer(buyPredicate);
+
+                    log("BuySlotsIsEmpty: " + (buySlots.isEmpty()));
+
+                    if (buySlots.isEmpty()) return;
+
+                    for (Slot slot : buySlots) {
+                        String lore = String.join(" ", InventoryUtils.getItemLore(slot.getStack()));
+
+                        if (lore.contains("Loading...")) { // Mainly for high pingers becuz lore doesnt load quick enuf
+                            this.buyState = BuyState.BUY_INSTANTLY_VERIY;
+                            return;
+                        }
+
+                        Matcher matcher = this.instabuyAmountPattern.matcher(lore);
+
+                        if (matcher.find() && this.buyAmount == Integer.parseInt(matcher.group(1))) {
+                            this.buyState = BuyState.BUY_NOW_BTN;
+                            this.buyNowButtonSlot = slot.slotNumber;
+                            return;
+                        }
                     }
                 }
                 if (this.hasTimerEnded()) {
@@ -261,8 +319,9 @@ public class AutoBazaar implements IFeature {
                 break;
             case EDIT_SIGN:
                 if (!this.hasTimerEnded()) return;
+
                 SignUtils.setTextToWriteOnString(String.valueOf(this.buyAmount));
-                this.timer.schedule(500);
+                this.timer.schedule(2000);
                 this.buyState = BuyState.VERIFY_CONFIRM_PAGE;
                 break;
             case VERIFY_CONFIRM_PAGE:
@@ -288,16 +347,15 @@ public class AutoBazaar implements IFeature {
                 this.buyState = BuyState.BUY_VERIFY;
                 this.timer.schedule(2000);
                 break;
-            case BUY_ONE:
+            case BUY_NOW_BTN:
                 if (!this.hasTimerEnded()) return;
 
-                int buyOneSlot = InventoryUtils.getSlotIdOfItemInContainer("Buy only one!");
-                if (buyOneSlot == -1) {
+                if (this.buyNowButtonSlot == -1) {
                     log("Cannot Find Buy One Slot. Switching to Sign.");
                     this.buyState = BuyState.OPEN_SIGN;
                     return;
                 }
-                InventoryUtils.clickContainerSlot(buyOneSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                InventoryUtils.clickContainerSlot(this.buyNowButtonSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                 this.buyState = BuyState.BUY_VERIFY;
                 this.timer.schedule(2000);
                 break;
@@ -317,6 +375,7 @@ public class AutoBazaar implements IFeature {
                 break;
         }
     }
+
     private void handleSellToBz() {
         switch (this.sellState) {
             case STARTING:
@@ -410,24 +469,33 @@ public class AutoBazaar implements IFeature {
     private void log(String message) {
         LogUtils.sendDebug(String.format("[%s] - %s", this.getName(), message));
     }
+
     private boolean hasTimerEnded() {
         return this.timer.isScheduled() && this.timer.passed();
     }
+
     private void setSuccessStatus(boolean succeeded) {
         this.succeeded = succeeded;
         this.failed = !succeeded;
     }
+
     public boolean hasSucceeded() {
         return !this.enabled && this.succeeded;
     }
+
     public boolean hasFailed() {
         return !this.enabled && this.failed;
+    }
+
+    public boolean wasPriceManipulated() {
+        return !this.enabled && this.wasManipulated;
     }
 
     private boolean openedChestGuiNameContains(String guiName) {
         String openGuiName = InventoryUtils.getInventoryName();
         return (mc.currentScreen instanceof GuiChest || mc.thePlayer.openContainer instanceof ContainerChest) && (openGuiName != null && openGuiName.contains(guiName));
     }
+
     private boolean openedChestGuiNameStartsWith(String guiName) {
         String openGuiName = InventoryUtils.getInventoryName();
         return (mc.currentScreen instanceof GuiChest || mc.thePlayer.openContainer instanceof ContainerChest)
@@ -446,7 +514,7 @@ public class AutoBazaar implements IFeature {
 
     // Insta Buy
     enum BuyState {
-        STARTING, OPEN_BZ, BZ_VERIFY, CLICK_ON_PRODUCT, PRODUCT_VERIFY, CLICK_BUY_INSTANTLY, BUY_INSTANTLY_VERIY, OPEN_SIGN, OPEN_SIGN_VERIFY, EDIT_SIGN, BUY_ONE, VERIFY_CONFIRM_PAGE, CLICK_CONFIRM, BUY_VERIFY, DISABLE
+        STARTING, OPEN_BZ, BZ_VERIFY, CLICK_ON_PRODUCT, PRODUCT_VERIFY, CLICK_BUY_INSTANTLY, BUY_INSTANTLY_VERIY, OPEN_SIGN, OPEN_SIGN_VERIFY, EDIT_SIGN, BUY_NOW_BTN, VERIFY_CONFIRM_PAGE, CLICK_CONFIRM, BUY_VERIFY, DISABLE
     }
 
     // Insta Sell
