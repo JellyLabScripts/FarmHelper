@@ -310,7 +310,7 @@ public class NewAutoSprayonator implements IFeature {
                 this.buyState = BuyState.TOGGLE_AUTO_BZ;
                 break;
             case TOGGLE_AUTO_BZ:
-                AutoBazaar.getInstance().buy(SPRAYONATOR_ITEM[FarmHelperConfig.newSprayonatorType], FarmHelperConfig.newSprayonatorAutoBuyAmount, false);
+                AutoBazaar.getInstance().buy(SPRAYONATOR_ITEM[FarmHelperConfig.newSprayonatorType], FarmHelperConfig.newSprayonatorAutoBuyAmount, 0);
                 this.buyState = BuyState.VERIFY_AUTO_BZ;
                 break;
             case VERIFY_AUTO_BZ:

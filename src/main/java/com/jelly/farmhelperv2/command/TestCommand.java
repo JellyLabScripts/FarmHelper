@@ -4,6 +4,7 @@ package com.jelly.farmhelperv2.command;
 import cc.polyfrost.oneconfig.utils.commands.annotations.Command;
 import cc.polyfrost.oneconfig.utils.commands.annotations.Main;
 import cc.polyfrost.oneconfig.utils.commands.annotations.SubCommand;
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.impl.AutoBazaar;
 
 @Command(value = "set")
@@ -22,12 +23,12 @@ public class TestCommand {
 
     @SubCommand(aliases = "one")
     private void one(){
-        AutoBazaar.getInstance().buy("Sugar Cane", 1, false);
+        AutoBazaar.getInstance().buy("Sugar Cane", 1, 0);
     }
 
     @SubCommand(aliases = "two")
     private void two(){
-        AutoBazaar.getInstance().buy("Sugar Cane", 16, false);
+        AutoBazaar.getInstance().buy("Sugar Cane", 16, 0);
     }
 
     @SubCommand(aliases = "three")
@@ -39,8 +40,9 @@ public class TestCommand {
     private void four(){
         AutoBazaar.getInstance().sell(AutoBazaar.SELL_INVENTORY, AutoBazaar.SELL_SACK);
     }
+
     @SubCommand()
     private void buy(String name, int amount){
-        AutoBazaar.getInstance().buy(name, amount, true);
+        AutoBazaar.getInstance().buy(name, amount, FarmHelperConfig.visitorsMacroMaxSpendLimit * 1000);
     }
 }

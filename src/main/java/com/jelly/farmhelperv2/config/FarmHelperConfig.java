@@ -1099,6 +1099,12 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean infoCompactors;
 
+    @Slider(
+        name = "Max Spend Limit (in Thousands Per Purchase)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+        min = 10, max = 2000, step = 1
+    )
+    public static int visitorsMacroMaxSpendLimit = 700;
+
     @Button(
             name = "Start the macro manually", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "Triggers the visitors macro",
