@@ -263,7 +263,7 @@ public class AutoSell implements IFeature {
                 }
 
                 int closeSlot = InventoryUtils.getSlotIdOfItemInContainer("Close");
-                if (closeSlot != -1) return;
+                if (closeSlot == -1) return;
 
                 LogUtils.sendDebug("[Auto Sell] Detected the Sacks menu");
                 int sacksSlot = InventoryUtils.getSlotIdOfItemInContainer("Enchanted Agronomy Sack");
@@ -297,7 +297,7 @@ public class AutoSell implements IFeature {
                     return;
                 }
                 int closeSlot1 = InventoryUtils.getSlotIdOfItemInContainer("Go Back");
-                if (closeSlot1 != -1) return;
+                if (closeSlot1 == -1) return;
                 int pickUpAll = InventoryUtils.getSlotIdOfItemInContainer("Pickup All");
                 if (pickUpAll != -1) {
                     if (mc.thePlayer.inventory.getFirstEmptyStack() != -1) {
@@ -376,7 +376,7 @@ public class AutoSell implements IFeature {
                             break;
                         }
                         List<String> sellInventoryNowLore = InventoryUtils.getLoreOfItemInContainer(sellInventorySlot);
-                        if (sellInventoryNowLore.contains("You don't have anything to")) {
+                        if (sellInventoryNowLore.stream().anyMatch(s -> s.contains("You don't have anything to"))) {
                             if (FarmHelperConfig.autoSellSacks && sellSacksSlot != -1) {
                                 InventoryUtils.clickContainerSlot(sellSacksSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                                 setBazaarState(BazaarState.SELL_INV_CONFIRM);
