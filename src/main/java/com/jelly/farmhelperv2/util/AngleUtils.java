@@ -22,6 +22,8 @@ public class AngleUtils {
     }
 
     public static float get360RotationYaw() {
+        if (mc.thePlayer == null)
+            return 0;
         return get360RotationYaw(mc.thePlayer.rotationYaw);
     }
 
