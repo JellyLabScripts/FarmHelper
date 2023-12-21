@@ -21,7 +21,6 @@ import com.jelly.farmhelperv2.util.BlockUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
-import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
@@ -491,70 +490,64 @@ public class FarmHelperConfig extends Config {
     public static boolean sendAnalyticData = true;
     //</editor-fold>
 
-    //<editor-fold desc="Sprayonator">
+    //<editor-fold desc="Auto Sprayonator">
     @Switch(
-            name = "Auto Sprayonator", category = MISCELLANEOUS, subcategory = "Sprayonator"
+        name = "Auto Sprayonator", category = MISCELLANEOUS, subcategory = "AutoSprayonator"
     )
-    public static boolean enableSprayonator;
+    public static boolean autoSprayonatorEnable = false;
 
     @Dropdown(
-            name = "Type", category = MISCELLANEOUS, subcategory = "Sprayonator",
-            description = "Item to spray plot with",
-            options = {
-                    "Compost (Earthworm & Mosquito)",
-                    "Honey Jar (Moth & Cricket)",
-                    "Dung (Beetle & Fly)",
-                    "Plant Matter (Locust & Slug)",
-                    "Tasty Cheese (Rat & Mite)"
-            }, size = 5
+        name = "Type", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+        description = "Item to spray plot with",
+        options = {
+            "Compost (Earthworm & Mosquito)",
+            "Honey Jar (Moth & Cricket)",
+            "Dung (Beetle & Fly)",
+            "Plant Matter (Locust & Slug)",
+            "Tasty Cheese (Rat & Mite)"
+        }, size = 5
     )
-    public static int sprayonatorType;
+    public static int autoSprayonatorType = 0;
 
-    @Getter
-    public enum SPRAYONATOR_ITEM {
-        COMPOST("Compost"),
-        HONEY_JAR("Honey Jar"),
-        DUNG("Dung"),
-        PLANT_MATTER("Plant Matter"),
-        TASTY_CHEESE("Tasty Cheese"),
-        NONE("NONE");
+    @Slider(
+        name = "Sprayonator Slot", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+        min = 1, max = 8,
+        step = 1,
+        description = "Slot to move sprayonator to"
+    )
+    public static int autoSprayonatorSlot = 1;
 
-        final String itemName;
-
-        SPRAYONATOR_ITEM(final String item_name) {
-            this.itemName = item_name;
-        }
-    }
+    @Slider(
+        name = "Additional Delay", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+        description = "Additional delay between actions (in milliseconds)",
+        min = 0, max = 5000, step = 1
+    )
+    public static int autoSprayonatorAdditionalDelay = 500;
 
     @Switch(
-            name = "Inventory Only", category = MISCELLANEOUS, subcategory = "Sprayonator"
+        name = "Auto Buy item from Bazaar", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+        description = "Auto buy necessary sprayonator item from bazaar if none is in the inventory"
     )
-    public static boolean sprayonatorItemInventoryOnly;
+    public static boolean autoSprayonatorAutoBuyItem = false;
 
-    @Slider(
-            name = "Sprayonator Slot", category = MISCELLANEOUS, subcategory = "Sprayonator",
-            min = 1, max = 8,
-            step = 1,
-            description = "Slot to move sprayonator to"
+    @Number(
+        name = "Buy Amount", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+        description = "Amount of item to buy from bazaar",
+        min = 1, max = 64
     )
-    public static int sprayonatorSlot = 1;
-
-    @Slider(
-            name = "Additional Delay", category = MISCELLANEOUS, subcategory = "Sprayonator",
-            description = "Additional delay between actions (in milliseconds)",
-            min = 0, max = 5000, step = 1
-    )
-    public static int sprayonatorAdditionalDelay = 500;
+    public static int autoSprayonatorAutoBuyAmount = 1;
 
     @Button(
-            name = "Reset Plots", category = MISCELLANEOUS, subcategory = "Sprayonator",
-            text = "Click Here",
-            description = "Resets the cached data for sprayonator"
+        name = "Reset Plots", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+        text = "Click Here",
+        description = "Resets the cached data for sprayonator"
     )
-    Runnable resetSprayonatorPlots = () -> {
+    Runnable _ = () -> {
         AutoSprayonator.getInstance().resetPlots();
     };
+
     //</editor-fold>
+
     //</editor-fold>
 
     //<editor-fold desc="FAILSAFES">
@@ -1032,6 +1025,12 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static boolean infoCompactors;
+
+    @Slider(
+        name = "Max Spend Limit (in Thousands Per Purchase)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+        min = 10, max = 2000, step = 1
+    )
+    public static int visitorsMacroMaxSpendLimit = 700;
 
     @Button(
             name = "Start the macro manually", category = VISITORS_MACRO, subcategory = "Visitors Macro",
@@ -1558,7 +1557,6 @@ public class FarmHelperConfig extends Config {
         this.addDependency("autoSellSacks", "enableAutoSell");
         this.addDependency("autoSellSacksPlacement", "enableAutoSell");
         this.addDependency("autoSellFunction", "enableAutoSell");
-
 
         this.addDependency("petSwapperDelay", "enablePetSwapper");
         this.addDependency("petSwapperName", "enablePetSwapper");

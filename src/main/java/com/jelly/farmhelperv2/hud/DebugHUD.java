@@ -124,22 +124,5 @@ public class DebugHUD extends TextHud {
             lines.add("      Forward: " + FlyPathfinder.getInstance().isDeceleratingForward);
             lines.add("      Backward: " + FlyPathfinder.getInstance().isDeceleratingBackward);
         }
-        if (AutoSprayonator.getInstance().isToggled()) {
-            lines.add("Auto Sprayonator");
-            lines.add("   Running: " + AutoSprayonator.getInstance().isRunning());
-            lines.add("   State: " + AutoSprayonator.getInstance().getSprayState());
-            lines.add("   Item: " + AutoSprayonator.getInstance().getSprayItem());
-            lines.add("   Clock: " + AutoSprayonator.getInstance().getSprayonatorDelay().getRemainingTime());
-            lines.add("   Check Plot State: " + AutoSprayonator.getInstance().getCheckPlotState());
-            lines.add("   Skymart State: " + AutoSprayonator.getInstance().getSkymartPurchaseState());
-            lines.add("   Bazaar State: " + AutoSprayonator.getInstance().getBazaarPurchaseState());
-            lines.add("   GUI State: " + AutoSprayonator.getInstance().getCurrentGuiState());
-            AutoSprayonator.PlotData plotData = AutoSprayonator.getInstance().getSprayonatorPlotStates().get(GameStateHandler.getInstance().getCurrentPlot());
-            if (plotData != null) {
-                lines.add("   Plot Sprayed: " + plotData.isSprayed());
-                lines.add("   Plot Spray Clock: " + plotData.getSprayClock().getRemainingTime());
-                lines.add("   Plot Spray Item: " + plotData.getSprayItem());
-            }
-        }
     }
 }
