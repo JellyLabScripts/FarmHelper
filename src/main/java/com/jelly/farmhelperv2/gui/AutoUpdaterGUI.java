@@ -52,6 +52,7 @@ public class AutoUpdaterGUI extends GuiScreen {
     private GuiButton downloadBtn;
     private GuiButton closeBtn;
     private ScrollableList scrollableList;
+    static Pattern versionPattern = Pattern.compile("(\\d+\\.\\d+\\.\\d+)(?:-(pre(\\d*))?)?");
 
     public AutoUpdaterGUI() {
         super();
@@ -108,19 +109,7 @@ public class AutoUpdaterGUI extends GuiScreen {
                         downloadURL = latestRelease.get("assets").getAsJsonArray().get(0).getAsJsonObject().get("browser_download_url").getAsString();
                     }
 
-                    Matcher extractSymVer = Pattern.compile("\\d+\\.\\d+\\.\\d+").matcher(latestVersion);
-                    if (!extractSymVer.find()) return;
-                    String versionWithoutCommit = extractSymVer.group(0);
-                    System.out.println("Latest version without commit: " + versionWithoutCommit);
-                    String versionWithoutPre = versionWithoutCommit.replaceAll("-pre", "");
-
-                    if (!versionWithoutCommit.contains("-pre") && FarmHelper.VERSION.equals(versionWithoutCommit + "-pre")) { // ignore Intellij warning
-                        System.out.println("This Farm Helper pre-release version is older than the latest release version.");
-                        isOutdated = true;
-                    }
-
-                    if (compareVersions(versionWithoutPre) > 0)
-                        isOutdated = true;
+                    isOutdated = isOutdated();
 
                     if (isOutdated) {
                         if (message.isEmpty()) {
@@ -133,12 +122,8 @@ public class AutoUpdaterGUI extends GuiScreen {
                                 .replace("= ", "§f= ")
                                 .replace("- ", "§c- ") + " \n \n"; // fix for top and bottom padding
                         releaseMessage = Arrays.asList(cleanedMessage.split("\n"));
-                        return;
-                    }
-                    if (compareVersions(versionWithoutPre) == 0) {
-                        System.out.println("Farm Helper is up to date.");
-                    } else if (compareVersions(versionWithoutPre) < 0) {
-                        System.out.println("Farm Helper is newer than the latest full release version.");
+                    } else {
+                        System.out.println("Farm Helper is up to date!");
                     }
                 } else {
                     System.out.println("No releases found for the repository.");
@@ -202,10 +187,47 @@ public class AutoUpdaterGUI extends GuiScreen {
         return list;
     }
 
-    // Helper method to compare the latest with the current version
-    private static int compareVersions(String latestVersion) {
+    private static boolean isOutdated() {
+        Matcher latestVersionMatcher = versionPattern.matcher(latestVersion);
+        Matcher currentVersionMatcher = versionPattern.matcher(FarmHelper.VERSION);
+
+        if (!latestVersionMatcher.find() || latestVersionMatcher.group(1) == null || latestVersionMatcher.group(1).isEmpty()) {
+            System.out.println("Failed to parse latest version.");
+            return false;
+        }
+        if (!currentVersionMatcher.find() || currentVersionMatcher.group(1) == null || currentVersionMatcher.group(1).isEmpty()) {
+            System.out.println("Failed to parse current version.");
+            return false;
+        }
+        int latestPre = 0; // -pre version
+        if (latestVersionMatcher.group(2) == null || latestVersionMatcher.group(2).isEmpty())
+            latestPre = 1337; // without -pre version (full release)
+        if (latestVersionMatcher.group(3) != null && !latestVersionMatcher.group(3).isEmpty())
+            latestPre = Integer.parseInt(latestVersionMatcher.group(3)); // -preX version
+
+        int currentPre = 0; // -pre version
+        if (currentVersionMatcher.group(2) == null || currentVersionMatcher.group(2).isEmpty())
+            currentPre = 1337; // without -pre version (full release)
+        if (currentVersionMatcher.group(3) != null && !currentVersionMatcher.group(3).isEmpty())
+            currentPre = Integer.parseInt(currentVersionMatcher.group(3)); // -preX version
+
+        if (compareSymVer(latestVersionMatcher.group(1)) > 0)
+            return true;
+        else if (compareSymVer(latestVersionMatcher.group(1)) == 0)
+            return latestPre > currentPre;
+
+        return false;
+    }
+
+    private static int compareSymVer(String latestVersion) {
+        Matcher currentMatcher = versionPattern.matcher(FarmHelper.VERSION);
+
+        if (!currentMatcher.find()) {
+            return 0;
+        }
+
         String[] parts1 = latestVersion.split("\\.");
-        String[] parts2 = FarmHelper.VERSION.replaceAll("-pre", "").split("\\.");
+        String[] parts2 = currentMatcher.group(1).split("\\.");
 
         for (int i = 0; i < Math.min(parts1.length, parts2.length); i++) {
             int part1 = Integer.parseInt(parts1[i]);
