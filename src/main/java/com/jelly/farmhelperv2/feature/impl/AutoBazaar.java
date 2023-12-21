@@ -22,10 +22,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AutoBazaar implements IFeature {
-    public static Minecraft mc = Minecraft.getMinecraft();
+    private static Minecraft mc = Minecraft.getMinecraft();
     private static AutoBazaar instance = null;
-    public static int SELL_INVENTORY = 0;
-    public static int SELL_SACK = 1;
+    public static final int SELL_INVENTORY = 0;
+    public static final int SELL_SACK = 1;
 
     public static AutoBazaar getInstance() {
         if (instance == null) {

@@ -51,6 +51,7 @@ public class AutoSprayonator implements IFeature {
     private int counter = 0; // I literally forgot the proper word kill me
     private boolean isRotating = false;
     private boolean changedMaterial = false;
+    private boolean pauseSprayonatorForThisSession = false;
 
     @Override
     public String getName() {
@@ -77,8 +78,8 @@ public class AutoSprayonator implements IFeature {
         if (this.enabled) return;
 
         if (!InventoryUtils.hasItemInInventory(SPRAYONATOR)) {
-            LogUtils.sendError("Cannot Find Sprayonator in Inventory. Disabling AutoSprayonator.");
-            FarmHelperConfig.autoSprayonatorEnable = false;
+            LogUtils.sendError("Cannot Find Sprayonator in Inventory. Disabling AutoSprayonator until restart.");
+            this.pauseSprayonatorForThisSession = true;
             return;
         }
 
@@ -94,7 +95,10 @@ public class AutoSprayonator implements IFeature {
 
         this.enabled = false;
         this.counter = 0;
-        this.resetStatesAfterMacroDisabled();
+        this.mainState = MainState.NONE;
+        this.checkState = CheckPlotState.STARTING;
+        this.buyState = BuyState.STARTING;
+        this.sprayState = SprayState.STARTING;
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().resumeMacro();
         }
@@ -104,10 +108,7 @@ public class AutoSprayonator implements IFeature {
 
     @Override
     public void resetStatesAfterMacroDisabled() {
-        this.mainState = MainState.NONE;
-        this.checkState = CheckPlotState.STARTING;
-        this.buyState = BuyState.STARTING;
-        this.sprayState = SprayState.STARTING;
+        this.pauseSprayonatorForThisSession = false;
     }
 
     @Override
@@ -124,7 +125,7 @@ public class AutoSprayonator implements IFeature {
     @SubscribeEvent
     public void onTickShouldEnable(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (this.enabled) return;
+        if (this.enabled || this.pauseSprayonatorForThisSession) return;
         if (!this.isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
@@ -132,7 +133,6 @@ public class AutoSprayonator implements IFeature {
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (this.mainState != MainState.NONE) return;
-
 
         Plot currentPlot = this.plots[GameStateHandler.getInstance().getCurrentPlot()];
         if (currentPlot == null || currentPlot.canSpray()) this.counter++;
@@ -164,7 +164,8 @@ public class AutoSprayonator implements IFeature {
                         this.mainState = MainState.BUY_ITEM;
                         this.buyState = BuyState.STARTING;
                     } else {
-                        FarmHelperConfig.autoSprayonatorEnable = false;
+                        log("Disabling AutoSprayonator until restart.");
+                        this.pauseSprayonatorForThisSession = true;
                         this.stop();
                         return;
                     }
@@ -309,13 +310,13 @@ public class AutoSprayonator implements IFeature {
                 this.buyState = BuyState.TOGGLE_AUTO_BZ;
                 break;
             case TOGGLE_AUTO_BZ:
-                AutoBazaar.getInstance().buy(SPRAYONATOR_ITEM[FarmHelperConfig.autoSprayonatorType], FarmHelperConfig.autoSprayonatorAutoBuyAmount, 0);
+                AutoBazaar.getInstance().buy(SPRAYONATOR_ITEM[FarmHelperConfig.autoSprayonatorType], FarmHelperConfig.autoSprayonatorAutoBuyAmount);
                 this.buyState = BuyState.VERIFY_AUTO_BZ;
                 break;
             case VERIFY_AUTO_BZ:
                 if (AutoBazaar.getInstance().hasFailed()) {
-                    LogUtils.sendError("[AutoSprayonator] - Failed to buy item from bazaar. Stopping AutoSprayonator");
-                    FarmHelperConfig.autoSprayonatorEnable = false;
+                    LogUtils.sendError("[AutoSprayonator] Failed to buy item from bazaar. Disabling AutoSprayonator until restart");
+                    this.pauseSprayonatorForThisSession = true;
                     this.stop();
                     return;
                 }
@@ -424,7 +425,7 @@ public class AutoSprayonator implements IFeature {
     }
 
     private void log(String message) {
-        LogUtils.sendDebug("[AutoSprayonator] - " + message);
+        LogUtils.sendDebug("[AutoSprayonator] " + message);
     }
 
     public void resetPlots() {
