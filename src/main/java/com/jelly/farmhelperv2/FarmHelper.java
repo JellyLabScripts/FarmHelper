@@ -2,7 +2,6 @@ package com.jelly.farmhelperv2;
 
 import baritone.api.BaritoneAPI;
 import cc.polyfrost.oneconfig.utils.Notifications;
-import cc.polyfrost.oneconfig.utils.commands.CommandManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.jelly.farmhelperv2.command.FarmHelperCommand;
