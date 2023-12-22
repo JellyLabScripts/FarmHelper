@@ -33,7 +33,6 @@ public class MovRecPlayer implements IFeature {
     private static MovRecPlayer instance;
     private static boolean isMovementPlaying = false;
     private static boolean isMovementReading = false;
-    private static boolean attackKeyPressed = false;
     private static int currentDelay = 0;
     private static int playingIndex = 0;
     private static float yawDifference = 0;
@@ -180,7 +179,6 @@ public class MovRecPlayer implements IFeature {
         currentDelay = 0;
         isMovementPlaying = false;
         isMovementReading = false;
-        attackKeyPressed = false;
         recordingName = "";
         resetTimers();
     }
@@ -237,7 +235,6 @@ public class MovRecPlayer implements IFeature {
             currentDelay++;
             return;
         }
-        attackKeyPressed = false;
         playingIndex++;
         currentDelay = 0;
         if (playingIndex >= movements.size()) {
@@ -259,10 +256,9 @@ public class MovRecPlayer implements IFeature {
         if (mc.thePlayer.capabilities.allowFlying && mc.thePlayer.capabilities.isFlying != movement.fly)
             mc.thePlayer.capabilities.isFlying = movement.fly;
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), movement.jump);
-        if (movement.attack && !attackKeyPressed) {
+        if (movement.attack && currentDelay == 0)
             KeyBindUtils.leftClick();
-            attackKeyPressed = true;
-        }
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), movement.attack);
     }
 
     public static class Movement {
