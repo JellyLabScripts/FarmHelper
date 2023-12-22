@@ -112,7 +112,7 @@ public class AutoBazaar implements IFeature {
         return false;
     }
 
-    public void buy(String itemName, int amount){
+    public void buy(String itemName, int amount) {
         this.buy(itemName, amount, 0);
     }
 
@@ -165,10 +165,9 @@ public class AutoBazaar implements IFeature {
     @SubscribeEvent
     public void onChatReceive(ClientChatReceivedEvent event) {
         if (event.type != 0 || !this.enabled) return;
-        String chatMessage = event.message.getUnformattedTextForChat();
-        if(chatMessage == null) return;
+        if (event.message == null) return;
 
-        String message = StringUtils.stripControlCodes(chatMessage);
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedTextForChat());
         String boughtMessage = String.format("[Bazaar] Bought %dx %s for", this.buyAmount, this.itemToBuy);
 
         if (message.startsWith(boughtMessage) && this.buyState == BuyState.BUY_VERIFY) {

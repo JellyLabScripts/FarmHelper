@@ -193,11 +193,9 @@ public class AutoSprayonator implements IFeature {
     @SubscribeEvent
     public void onChatReceive(ClientChatReceivedEvent event) {
         if (event.type != 0 || !this.enabled) return;
-        String chatMessage = event.message.getUnformattedTextForChat();
-        if(chatMessage == null) return;
+        if (event.message == null) return;
 
-        String message = StringUtils.stripControlCodes(chatMessage);
-
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedTextForChat());
         if (message.startsWith("SPRAYONATOR! Your selected material is now ") && this.sprayState == SprayState.SPRAYONATOR_TYPE_VERIFY) {
             log("Sprayonator Material Changed");
             String itemName = SPRAYONATOR_ITEM[FarmHelperConfig.autoSprayonatorType];
