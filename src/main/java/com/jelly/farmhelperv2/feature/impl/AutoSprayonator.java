@@ -149,7 +149,7 @@ public class AutoSprayonator implements IFeature {
             case NONE:
                 break;
             case STARTING:
-                // Remove these varialbes if u need
+                // Remove these variables if u need
                 Plot currentPlot = this.plots[GameStateHandler.getInstance().getCurrentPlot()];
                 boolean shouldCheckPlots = Arrays.stream(this.plots).noneMatch(Objects::nonNull);
                 boolean sprayonatorItemNotInInventory = !InventoryUtils.hasItemInInventory(this.SPRAYONATOR_ITEM[FarmHelperConfig.autoSprayonatorType]);
@@ -193,7 +193,11 @@ public class AutoSprayonator implements IFeature {
     @SubscribeEvent
     public void onChatReceive(ClientChatReceivedEvent event) {
         if (event.type != 0 || !this.enabled) return;
-        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        String chatMessage = event.message.getUnformattedTextForChat();
+        if(chatMessage == null) return;
+
+        String message = StringUtils.stripControlCodes(chatMessage);
+
         if (message.startsWith("SPRAYONATOR! Your selected material is now ") && this.sprayState == SprayState.SPRAYONATOR_TYPE_VERIFY) {
             log("Sprayonator Material Changed");
             String itemName = SPRAYONATOR_ITEM[FarmHelperConfig.autoSprayonatorType];
