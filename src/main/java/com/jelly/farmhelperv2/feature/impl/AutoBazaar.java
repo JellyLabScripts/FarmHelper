@@ -112,7 +112,7 @@ public class AutoBazaar implements IFeature {
         return false;
     }
 
-    public void buy(String itemName, int amount){
+    public void buy(String itemName, int amount) {
         this.buy(itemName, amount, 0);
     }
 
@@ -165,7 +165,9 @@ public class AutoBazaar implements IFeature {
     @SubscribeEvent
     public void onChatReceive(ClientChatReceivedEvent event) {
         if (event.type != 0 || !this.enabled) return;
-        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        if (event.message == null) return;
+
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedTextForChat());
         String boughtMessage = String.format("[Bazaar] Bought %dx %s for", this.buyAmount, this.itemToBuy);
 
         if (message.startsWith(boughtMessage) && this.buyState == BuyState.BUY_VERIFY) {
@@ -235,10 +237,10 @@ public class AutoBazaar implements IFeature {
                     return;
                 }
                 InventoryUtils.clickContainerSlot(buyInstantlySlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                this.buyState = BuyState.BUY_INSTANTLY_VERIY;
+                this.buyState = BuyState.BUY_INSTANTLY_VERIFY;
                 this.timer.schedule(2000);
                 break;
-            case BUY_INSTANTLY_VERIY:
+            case BUY_INSTANTLY_VERIFY:
                 if (this.openedChestGuiNameStartsWith(this.itemToBuy + " ➜ Instant Buy")) {
                     log("Opened instant buy page");
                     this.timer.schedule(500);
@@ -261,7 +263,7 @@ public class AutoBazaar implements IFeature {
                             return;
                         }
                         if (lore.contains("Loading...")) { // Makes more sense down here
-                            this.buyState = BuyState.BUY_INSTANTLY_VERIY;
+                            this.buyState = BuyState.BUY_INSTANTLY_VERIFY;
                             return;
                         }
                     }
@@ -377,14 +379,14 @@ public class AutoBazaar implements IFeature {
                 if (this.openedChestGuiNameStartsWith("Bazaar ➜ ")) {
                     log("Opened Bz.");
                     this.timer.schedule(500);
-                    this.sellState = SellState.CLICK_INSTASELLL;
+                    this.sellState = SellState.CLICK_INSTASELL;
                 }
 
                 if (this.hasTimerEnded()) {
                     this.disable("Cannot open bz");
                 }
                 break;
-            case CLICK_INSTASELLL:
+            case CLICK_INSTASELL:
                 if (!this.hasTimerEnded()) return;
 
                 int sellType = this.sellTypes.get(0);
@@ -498,11 +500,11 @@ public class AutoBazaar implements IFeature {
 
     // Insta Buy
     enum BuyState {
-        STARTING, OPEN_BZ, BZ_VERIFY, CLICK_ON_PRODUCT, PRODUCT_VERIFY, CLICK_BUY_INSTANTLY, BUY_INSTANTLY_VERIY, OPEN_SIGN, OPEN_SIGN_VERIFY, EDIT_SIGN, VERIFY_CONFIRM_PAGE, CLICK_BUY, BUY_VERIFY, DISABLE
+        STARTING, OPEN_BZ, BZ_VERIFY, CLICK_ON_PRODUCT, PRODUCT_VERIFY, CLICK_BUY_INSTANTLY, BUY_INSTANTLY_VERIFY, OPEN_SIGN, OPEN_SIGN_VERIFY, EDIT_SIGN, VERIFY_CONFIRM_PAGE, CLICK_BUY, BUY_VERIFY, DISABLE
     }
 
     // Insta Sell
     enum SellState {
-        STARTING, OPEN_BZ, BZ_VERIFY, CLICK_INSTASELLL, INSTASELL_VERIFY, CLICK_CONFIRM_INSTASELL, CONFIRM_INSTASELL_VERIFY, DISABLE
+        STARTING, OPEN_BZ, BZ_VERIFY, CLICK_INSTASELL, INSTASELL_VERIFY, CLICK_CONFIRM_INSTASELL, CONFIRM_INSTASELL_VERIFY, DISABLE
     }
 }
