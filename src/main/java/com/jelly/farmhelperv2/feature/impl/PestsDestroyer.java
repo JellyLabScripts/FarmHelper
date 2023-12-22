@@ -117,11 +117,6 @@ public class PestsDestroyer implements IFeature {
     @Override
     public void start() {
         if (enabled) return;
-        if (!mc.thePlayer.capabilities.allowFlying) {
-            LogUtils.sendError("[Pests Destroyer] You need to be able to fly!");
-            FarmHelperConfig.enablePestsDestroyer = false;
-            return;
-        }
         lastKilledEntity = null;
         preparing = true;
         if (MacroHandler.getInstance().isMacroToggled()) {
@@ -152,9 +147,7 @@ public class PestsDestroyer implements IFeature {
             }
         }
         lastKilledEntity = null;
-        if (mc.currentScreen != null && mc.thePlayer != null) {
-            PlayerUtils.closeScreen();
-        }
+        PlayerUtils.closeScreen();
         resetStatesAfterMacroDisabled();
         KeyBindUtils.stopMovement();
     }
@@ -204,16 +197,17 @@ public class PestsDestroyer implements IFeature {
             LogUtils.sendError("[Pests Destroyer] You need higher tier (at least second) of Vacuum to use Pests Destroyer!");
             return false;
         }
-
+        if (!mc.thePlayer.capabilities.allowFlying) {
+            LogUtils.sendError("[Pests Destroyer] You need to be able to fly!");
+            return false;
+        }
         if (manually) {
             return true;
         }
-
         if (!PlayerUtils.isStandingOnSpawnPoint() && !PlayerUtils.isStandingOnRewarpLocation()) {
             LogUtils.sendError("[Pests Destroyer] You need to be standing on spawn point or rewarp point to use Pests Destroyer!");
             return false;
         }
-
         return true;
     }
 

@@ -95,9 +95,7 @@ public class AutoCookie implements IFeature {
         activating = false;
         autoCookieDelay.reset();
         timeoutClock.reset();
-        if (mc.currentScreen != null && mc.thePlayer != null) {
-            PlayerUtils.closeScreen();
-        }
+        PlayerUtils.closeScreen();
         KeyBindUtils.stopMovement();
         if (MacroHandler.getInstance().isMacroToggled())
             MacroHandler.getInstance().resumeMacro();

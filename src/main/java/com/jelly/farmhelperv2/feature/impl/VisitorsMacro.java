@@ -168,9 +168,7 @@ public class VisitorsMacro implements IFeature {
         manuallyStarted = false;
         LogUtils.sendDebug("[Visitors Macro] Macro stopped");
         rotation.reset();
-        if (mc.currentScreen != null && mc.thePlayer != null) {
-            PlayerUtils.closeScreen();
-        }
+        PlayerUtils.closeScreen();
         KeyBindUtils.stopMovement();
         BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
     }
@@ -1411,9 +1409,7 @@ public class VisitorsMacro implements IFeature {
         }
         if (buyState == BuyState.CLICK_CROP || buyState == BuyState.OPEN_BZ) {
             if (msg.startsWith("You need the Cookie Buff")) {
-                if (mc.currentScreen != null && mc.thePlayer != null) {
-                    PlayerUtils.closeScreen();
-                }
+                PlayerUtils.closeScreen();
                 LogUtils.sendDebug("[Visitors Macro] Cookie buff is needed. Skipping...");
                 setBuyState(BuyState.NONE);
                 setVisitorsState(VisitorsState.NONE);
