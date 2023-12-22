@@ -542,7 +542,7 @@ public class FarmHelperConfig extends Config {
         text = "Click Here",
         description = "Resets the cached data for sprayonator"
     )
-    Runnable _ = () -> {
+    Runnable _autoSprayonatorResetPlots = () -> {
         AutoSprayonator.getInstance().resetPlots();
     };
 
