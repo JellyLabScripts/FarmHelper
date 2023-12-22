@@ -401,11 +401,13 @@ public class PestsDestroyer implements IFeature {
                         Multithreading.schedule(() -> {
                             mc.thePlayer.sendChatMessage("/warp garden");
                             Multithreading.schedule(() -> {
-                                if (PlayerUtils.isStandingOnSpawnPoint() && hasBlockAboveThePlayer()) {
+                                if (!BlockUtils.canFlyHigher(5)) {
                                     LogUtils.sendError("[Pests Destroyer] Your spawnpoint is obstructed! Make sure there is no block above your spawnpoint!");
                                     stop();
-                                } else
+                                } else {
                                     state = States.GET_LOCATION;
+                                    LogUtils.sendDebug("[Pests Destroyer] Spawnpoint is not obstructed");
+                                }
                             }, (long) (600 + Math.random() * 300), TimeUnit.MILLISECONDS);
                         }, (long) (600 + Math.random() * 300), TimeUnit.MILLISECONDS);
                         return;

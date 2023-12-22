@@ -330,6 +330,22 @@ public class BlockUtils {
         return canWalkThroughDoorWithDirection(direction, playerFacing, doorFacing, standingOnDoor);
     }
 
+    public static boolean canFlyHigher(int distance) {
+        AxisAlignedBB playerAABB = mc.thePlayer.getEntityBoundingBox();
+        Vec3[] corners = {
+                new Vec3(playerAABB.minX + 0.0001, playerAABB.minY + mc.thePlayer.height, playerAABB.minZ + 0.0001),
+                new Vec3(playerAABB.minX + 0.0001, playerAABB.minY + mc.thePlayer.height, playerAABB.maxZ - 0.0001),
+                new Vec3(playerAABB.maxX - 0.0001, playerAABB.minY + mc.thePlayer.height, playerAABB.minZ + 0.0001),
+                new Vec3(playerAABB.maxX - 0.0001, playerAABB.minY + mc.thePlayer.height, playerAABB.maxZ - 0.0001)
+        };
+        for (Vec3 corner : corners) {
+            if (mc.theWorld.rayTraceBlocks(corner, corner.addVector(0, distance, 0)) != null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static BlockPos getBlockPosLookingAt() {
         MovingObjectPosition mop = mc.thePlayer.rayTrace(5, 1);
         if (mop == null)
