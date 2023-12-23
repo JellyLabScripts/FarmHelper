@@ -961,9 +961,9 @@ public class Failsafe implements IFeature {
                     Random random = new Random();
                     flyingRecordingNumber = random.nextInt(maxFlyingRecordingNumber) + 1;
                     if (mc.thePlayer.onGround)
-                        tempRecordingName += "FlyAway" + flyingRecordingNumber + "_";
+                        tempRecordingName += "FlyAway_" + flyingRecordingNumber;
                     else
-                        tempRecordingName += "FlyBack" + flyingRecordingNumber + "_";
+                        tempRecordingName += "FlyBack_" + flyingRecordingNumber;
                 }
                 if (minimumReactions > 0) {
                     LogUtils.sendWarning("[Failsafe] Playing recording: " + tempRecordingName);
