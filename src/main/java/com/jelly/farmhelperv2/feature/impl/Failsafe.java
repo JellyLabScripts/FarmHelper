@@ -982,8 +982,9 @@ public class Failsafe implements IFeature {
                     break;
                 if (checkForPathingFinish()) {
                     dirtCheckState = DirtCheckState.END_DIRT_CHECK;
-                } else if (mc.thePlayer.getPosition() == positionBeforeReacting) {
+                } else if (mc.thePlayer.getPosition().equals(positionBeforeReacting)) {
                     mc.thePlayer.capabilities.isFlying = false;
+                    mc.thePlayer.sendPlayerAbilities();
                 } else if (mc.thePlayer.onGround && mc.thePlayer.getPosition().distanceSq(positionBeforeReacting) > 2) {
                     KeyBindUtils.stopMovement();
                     FlyPathfinder.getInstance().getPathTo(new GoalBlock(positionBeforeReacting));
