@@ -150,6 +150,7 @@ public class Failsafe implements IFeature {
         resetWorldChangeCheck();
         resetBedrockCageCheck();
         resetLowerBPS();
+        resetGuestVisit();
         sendingFailsafeInfo = false;
     }
 
@@ -282,6 +283,9 @@ public class Failsafe implements IFeature {
                 break;
             case LOWER_AVERAGE_BPS:
                 onLowerBPS();
+                break;
+            case GUEST_VISIT:
+                onGuestVisit();
                 break;
         }
     }
@@ -1453,7 +1457,6 @@ public class Failsafe implements IFeature {
                 }
                 Multithreading.schedule(() -> {
                     InventoryUtils.openInventory();
-                    LogUtils.sendDebug("[Failsafe] Finished playing custom movement recording");
                     if (FarmHelperConfig.enableRestartAfterFailSafe) {
                         LogUtils.sendDebug("[Failsafe] Restarting the macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
                         restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
@@ -1465,6 +1468,60 @@ public class Failsafe implements IFeature {
 
     public void resetLowerBPS() {
         lowerBPSState = LowerBPSState.NONE;
+    }
+
+    @SubscribeEvent
+    public void onChatReceived(ClientChatReceivedEvent event) {
+        if (firstCheckReturn()) return;
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        if (message.contains(":")) return;
+        if (message.contains("is visiting Your Garden") && (!GameStateHandler.getInstance().isGuestOnGarden()) && !wasGuestOnGarden) {
+            lastGuestName = message.replace("[SkyBlock] ", "").replace(" is visiting Your Garden!", "");
+            wasGuestOnGarden = true;
+            tabListCheckDelay.schedule(5000L);
+            addEmergency(EmergencyType.GUEST_VISIT);
+            if (!FarmHelperConfig.pauseWhenGuestArrives)
+                Multithreading.schedule(() -> {
+                    if (emergency == EmergencyType.GUEST_VISIT) {
+                        Failsafe.getInstance().stop();
+                        MacroHandler.getInstance().resumeMacro();
+                    }
+                }, chooseEmergencyDelay.getRemainingTime() + 100L, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    public void onGuestVisit() {
+        tabListCheckDelay.schedule(5000L);
+        if (FarmHelperConfig.pauseWhenGuestArrives) {
+            if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
+                LogUtils.sendFailsafeMessage("[Failsafe] Paused the macro because of guest visit!", false);
+                MacroHandler.getInstance().pauseMacro();
+            }
+        }
+    }
+
+    private final Clock tabListCheckDelay = new Clock();
+    private boolean wasGuestOnGarden = false;
+    private String lastGuestName = "";
+
+    public void resetGuestVisit() {
+        tabListCheckDelay.reset();
+        wasGuestOnGarden = false;
+        lastGuestName = "";
+    }
+
+    @SubscribeEvent
+    public void onTickCheckGuests(TickEvent.ClientTickEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!isEmergency()) return;
+        if (tabListCheckDelay.isScheduled() && !tabListCheckDelay.passed()) return;
+        if (!GameStateHandler.getInstance().isGuestOnGarden()
+                && GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.GARDEN
+                && wasGuestOnGarden) {
+            LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because guest visit is over!", false);
+            Failsafe.getInstance().stop();
+            MacroHandler.getInstance().resumeMacro();
+        }
     }
 
     private boolean firstCheckReturn() {
@@ -1570,13 +1627,11 @@ public class Failsafe implements IFeature {
                 return FailsafeNotificationsPage.notifyOnTestFailsafe;
             case LOWER_AVERAGE_BPS:
                 return FailsafeNotificationsPage.notifyOnLowerAverageBPS;
+            case GUEST_VISIT:
+                return FailsafeNotificationsPage.notifyOnGuestVisit;
         }
         return false;
     }
-
-    // endregion
-
-    // region JACOB
 
     private boolean shouldPlaySoundAlert(EmergencyType emergency) {
         switch (emergency) {
@@ -1602,6 +1657,10 @@ public class Failsafe implements IFeature {
                 return FailsafeNotificationsPage.alertOnJacobFailsafe;
             case TEST:
                 return FailsafeNotificationsPage.alertOnTestFailsafe;
+            case LOWER_AVERAGE_BPS:
+                return FailsafeNotificationsPage.alertOnLowerAverageBPS;
+            case GUEST_VISIT:
+                return FailsafeNotificationsPage.alertOnGuestVisit;
         }
         return false;
     }
@@ -1632,11 +1691,11 @@ public class Failsafe implements IFeature {
                 return FailsafeNotificationsPage.autoAltTabOnTestFailsafe;
             case LOWER_AVERAGE_BPS:
                 return FailsafeNotificationsPage.autoAltTabOnLowerAverageBPS;
+            case GUEST_VISIT:
+                return FailsafeNotificationsPage.autoAltTabOnGuestVisit;
         }
         return false;
     }
-
-    // endregion
 
     private boolean shouldTagEveryone(EmergencyType emergency) {
         switch (emergency) {
@@ -1664,6 +1723,8 @@ public class Failsafe implements IFeature {
                 return FailsafeNotificationsPage.tagEveryoneOnTestFailsafe;
             case LOWER_AVERAGE_BPS:
                 return FailsafeNotificationsPage.tagEveryoneOnLowerAverageBPS;
+            case GUEST_VISIT:
+                return FailsafeNotificationsPage.tagEveryoneOnGuestVisit;
         }
         return false;
     }
@@ -1681,7 +1742,9 @@ public class Failsafe implements IFeature {
         BANWAVE("Banwave has been detected!", 6),
         DISCONNECT("You've been§l DISCONNECTED§r§d from the server!", 1),
         LOWER_AVERAGE_BPS("Your BPS is lower than average!", 9),
-        JACOB("You've extended the §lJACOB COUNTER§r§d!", 7);
+        JACOB("You've extended the §lJACOB COUNTER§r§d!", 7),
+        GUEST_VISIT("You've got§l VISITED§r§d by "
+                + (!getInstance().lastGuestName.isEmpty() ? getInstance().lastGuestName : "a guest") + "!", 1);
 
         final String label;
         // 1 is highest priority

@@ -456,6 +456,25 @@ public class GameStateHandler {
         return false;
     }
 
+    public boolean isGuestOnGarden() {
+        if (mc.theWorld == null || mc.thePlayer == null) return false;
+        for (String line : ScoreboardUtils.getScoreboardLines()) {
+            String cleanedLine = ScoreboardUtils.cleanSB(line);
+            if ((cleanedLine.toLowerCase()).contains("✌ (")) {
+                return true;
+            }
+        }
+        boolean hasGuestsOnTabList = false;
+        for (String name : TablistUtils.getTabList()) {
+            if (StringUtils.stripControlCodes(name).contains("Guests "))
+                hasGuestsOnTabList = true;
+            if (StringUtils.stripControlCodes(name).contains("Guests (0)")) {
+                return false;
+            }
+        }
+        return hasGuestsOnTabList && location == Location.GARDEN;
+    }
+
     @Getter
     public enum Location {
         PRIVATE_ISLAND("Private Island"),

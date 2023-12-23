@@ -88,6 +88,13 @@ public class FailsafeNotificationsPage {
     public static boolean notifyOnLowerAverageBPS = false;
 
     @Switch(
+            name = "Guest Visit Notifications",
+            description = "Whether or not to send a notification when a guest visits your island.",
+            category = "Failsafe Notifications"
+    )
+    public static boolean notifyOnGuestVisit = true;
+
+    @Switch(
             name = "Rotation Check Sound Alert",
             description = "Whether or not to play a sound when the rotation check failsafe is triggered.",
             category = "Failsafe Sound Alerts"
@@ -170,6 +177,13 @@ public class FailsafeNotificationsPage {
             category = "Failsafe Sound Alerts"
     )
     public static boolean alertOnLowerAverageBPS = false;
+
+    @Switch(
+            name = "Guest Visit Alert",
+            description = "Whether or not to play a sound when a guest visits your island.",
+            category = "Failsafe Sound Alerts"
+    )
+    public static boolean alertOnGuestVisit = false;
 
 
     @Switch(
@@ -257,6 +271,13 @@ public class FailsafeNotificationsPage {
     public static boolean tagEveryoneOnLowerAverageBPS = false;
 
     @Switch(
+            name = "Guest Visit Tag Everyone",
+            description = "Whether or not to tag everyone in the webhook message when a guest visits your island.",
+            category = "Failsafe Tag Everyone"
+    )
+    public static boolean tagEveryoneOnGuestVisit = false;
+
+    @Switch(
             name = "Rotation Check Auto Alt-tab",
             description = "Whether or not to automatically alt-tab when the rotation check failsafe is triggered.",
             category = "Failsafe Auto Alt-tab"
@@ -339,4 +360,10 @@ public class FailsafeNotificationsPage {
             category = "Failsafe Auto Alt-tab"
     )
     public static boolean autoAltTabOnLowerAverageBPS = false;
+    @Switch(
+            name = "Guest Visit Alt-tab",
+            description = "Whether or not to automatically alt-tab when a guest visits your island.",
+            category = "Failsafe Auto Alt-tab"
+    )
+    public static boolean autoAltTabOnGuestVisit = false;
 }
