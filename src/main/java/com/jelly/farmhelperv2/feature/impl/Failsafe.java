@@ -337,6 +337,7 @@ public class Failsafe implements IFeature {
                 break;
             case DIRT_CHECK:
                 onDirtCheck();
+                break;
             case ITEM_CHANGE_CHECK:
                 onItemChange();
                 break;
@@ -919,9 +920,9 @@ public class Failsafe implements IFeature {
                 minimumReactions = (int) Math.round(3 + Math.random() * 3);
                 LogUtils.sendWarning("[Failsafe] Minimum reactions: " + minimumReactions);
                 KeyBindUtils.stopMovement();
-                if (BlockUtils.getRelativeBlock(-1, 1, 0).isCollidable())
+                if (BlockUtils.getRelativeBlock(1, 1, 0).isCollidable())
                     dirtOnLeft = true;
-                else if (BlockUtils.getRelativeBlock(1, 1, 0).isCollidable())
+                else if (BlockUtils.getRelativeBlock(-1, 1, 0).isCollidable())
                     dirtOnLeft = false;
                 positionBeforeReacting = mc.thePlayer.getPosition();
                 rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);

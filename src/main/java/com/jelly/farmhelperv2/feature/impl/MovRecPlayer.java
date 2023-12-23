@@ -199,7 +199,7 @@ public class MovRecPlayer implements IFeature {
         yawDifference = AngleUtils.normalizeAngle(movement.yaw - AngleUtils.get360RotationYaw());
         rotateBeforePlaying.easeTo(
                 new RotationConfiguration(
-                        new Rotation(mc.thePlayer.rotationYaw, movement.pitch),
+                        new Rotation(movement.yaw - yawDifference, movement.pitch),
                         500, null
                 )
         );
@@ -218,6 +218,8 @@ public class MovRecPlayer implements IFeature {
     @SubscribeEvent
     public void onTickPlayMovement(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null)
+            return;
+        if (event.phase == TickEvent.Phase.START)
             return;
         if (!isMovementPlaying || isMovementReading)
             return;
