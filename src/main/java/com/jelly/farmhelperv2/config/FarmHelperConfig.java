@@ -591,6 +591,11 @@ public class FarmHelperConfig extends Config {
             description = "Automatically reconnects to the server when disconnected"
     )
     public static boolean autoReconnect = true;
+    @Switch(
+            name = "Pause the macro when a guest arrives", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "Pauses the macro when a guest arrives"
+    )
+    public static boolean pauseWhenGuestArrives = false;
     @Slider(
             name = "Teleport Check Lag Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Variation in distance between expected and actual positions when lagging",
@@ -1665,7 +1670,7 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
         registerKeyBind(debugKeybind, () -> {
-//            AutoRepellent.getInstance().start();
+//            System.out.println("Guests: " + GameStateHandler.getInstance().isGuestOnGarden());
         });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
