@@ -631,12 +631,32 @@ public class FarmHelperConfig extends Config {
     @Button(
             name = "Test failsafe", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Tests failsafe",
-            text = "Test failsafe", size = 2
+            text = "Test failsafe"
     )
     Runnable _testFailsafe = () -> {
-        LogUtils.sendDebug("Testing failsafe...");
-        Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.TEST);
+        LogUtils.sendWarning("Testing failsafe...");
+        Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.values()[testFailsafeTypeSelected + 1]);
     };
+
+    @Dropdown(
+            name = "Test Failsafe Type", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "The failsafe type to test",
+            options = {
+                    "Rotation Check",
+                    "Teleport Check",
+                    "Dirt Check",
+                    "Item Change Check",
+                    "World Change Check",
+                    "Bedrock Cage Check",
+                    "Evacuate",
+                    "Banwave",
+                    "Disconnect",
+                    "Lower Average Bps",
+                    "Jacob",
+                    "Guest Visit"
+            }
+    )
+    public static int testFailsafeTypeSelected = 0;
 
     //</editor-fold>
 
