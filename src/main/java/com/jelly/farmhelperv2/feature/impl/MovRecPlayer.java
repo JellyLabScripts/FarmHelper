@@ -5,6 +5,8 @@ import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.AngleUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.OldRotationUtils;
+import com.jelly.farmhelperv2.util.helper.Rotation;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -49,6 +51,8 @@ public class MovRecPlayer implements IFeature {
     public String recordingName = "";
     @Setter
     private boolean builtIn = true;
+    private static OldRotationUtils rotateBeforePlaying = new OldRotationUtils();
+    private static OldRotationUtils rotateDuringPlaying = new OldRotationUtils();
     // endregion
 
     // region CONSTRUCTOR
@@ -61,7 +65,8 @@ public class MovRecPlayer implements IFeature {
     }
 
     private static void resetTimers() {
-        resetRotation();
+        rotateBeforePlaying.reset();
+        rotateDuringPlaying.reset();
     }
 
     @Override
@@ -103,6 +108,17 @@ public class MovRecPlayer implements IFeature {
         recordingName = "";
         builtIn = true;
         resetTimers();
+    }
+
+    @SubscribeEvent
+    public void onWorldLastRender(RenderWorldLastEvent event) {
+        if (rotateDuringPlaying.rotating) {
+            rotateDuringPlaying.update();
+            return;
+        }
+        if (rotateBeforePlaying.rotating) {
+            rotateBeforePlaying.update();
+        }
     }
 
     // endregion
@@ -197,7 +213,9 @@ public class MovRecPlayer implements IFeature {
         isMovementPlaying = true;
         Movement movement = movements.get(0);
 //        yawDifference = AngleUtils.normalizeAngle(AngleUtils.getClosest() - movement.yaw);
-        easeTo(AngleUtils.normalizeAngle(movement.yaw - yawDifference), movement.pitch, 500);
+        LogUtils.sendSuccess("movement.yaw: " + movement.yaw + " yawDifference: " + yawDifference);
+        LogUtils.sendSuccess("easeTo: " + (movement.yaw + yawDifference));
+        rotateBeforePlaying.easeTo(movement.yaw + yawDifference, movement.pitch, 500);
     }
 
     @Override
@@ -205,8 +223,10 @@ public class MovRecPlayer implements IFeature {
         KeyBindUtils.stopMovement();
         if (isMovementPlaying || isMovementReading) {
             LogUtils.sendDebug("[Movement Recorder] Playing has been stopped.");
-            if (Failsafe.getInstance().isRunning())
-                Failsafe.getInstance().setReactionDelay((long) (750 + Math.random() * 1_000));
+            if (Failsafe.getInstance().isRunning()) {
+                LogUtils.sendSuccess("Setting failsafe reaction delay to 500ms.");
+                Failsafe.getInstance().setReactionDelay(500);
+            }
             return;
         }
         LogUtils.sendDebug("[Movement Recorder] No recording has been started.");
@@ -236,14 +256,15 @@ public class MovRecPlayer implements IFeature {
             resetStatesAfterMacroDisabled();
             return;
         }
-//        if (rotating) {
-//            KeyBindUtils.stopMovement();
-//            return;
-//        }
+        if (rotateBeforePlaying.rotating) {
+            return;
+        }
 
         Movement movement = movements.get(playingIndex);
         setPlayerMovement(movement);
-        easeTo(movement.yaw - yawDifference, movement.pitch, 49);
+        LogUtils.sendSuccess("movement.yaw: " + movement.yaw + " yawDifference: " + yawDifference);
+        LogUtils.sendSuccess("easeTo: " + (movement.yaw + yawDifference));
+        rotateDuringPlaying.easeTo(movement.yaw + yawDifference, movement.pitch, 49);
 
         if (currentDelay < movement.delay) {
             currentDelay++;
@@ -354,73 +375,6 @@ public class MovRecPlayer implements IFeature {
                 return null;
             }
         return lines;
-    }
-
-    // endregion
-
-    // OLD_ROTATIONUTILS
-
-    public static boolean rotating;
-    public static boolean completed;
-
-    private long startTime;
-    private long endTime;
-
-    MutablePair<Float, Float> start = new MutablePair<>(0f, 0f);
-    MutablePair<Float, Float> target = new MutablePair<>(0f, 0f);
-    MutablePair<Float, Float> difference = new MutablePair<>(0f, 0f);
-
-    public void easeTo(float yaw, float pitch, long time) {
-        completed = false;
-        rotating = true;
-        startTime = System.currentTimeMillis();
-        endTime = System.currentTimeMillis() + time;
-        start.setLeft(mc.thePlayer.rotationYaw);
-        start.setRight(mc.thePlayer.rotationPitch);
-        MutablePair<Float, Float> neededChange = getNeededChange(start, new MutablePair<>(yaw, pitch));
-        target.setLeft(start.left + neededChange.left);
-        target.setRight(start.right + neededChange.right);
-        getDifference();
-    }
-
-    public static MutablePair<Float, Float> getNeededChange(MutablePair<Float, Float> startRot, MutablePair<Float, Float> endRot) {
-        float yawDiff = (float) (wrapAngleTo180(endRot.getLeft()) - wrapAngleTo180(startRot.getLeft()));
-
-        yawDiff = AngleUtils.normalizeAngle(yawDiff);
-
-        return new MutablePair<>(yawDiff, endRot.getRight() - startRot.right);
-    }
-
-
-    @SubscribeEvent
-    public void onWorldLastRender(RenderWorldLastEvent event) {
-        if (System.currentTimeMillis() <= endTime) {
-            mc.thePlayer.rotationYaw = interpolate(start.getLeft(), target.getLeft());
-            mc.thePlayer.rotationPitch = interpolate(start.getRight(), target.getRight());
-        } else if (!completed) {
-            mc.thePlayer.rotationYaw = target.left;
-            mc.thePlayer.rotationPitch = target.right;
-            completed = true;
-            rotating = false;
-        }
-    }
-
-    public static void resetRotation() {
-        completed = false;
-        rotating = false;
-    }
-
-    private void getDifference() {
-        difference.setLeft(AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), target.left));
-        difference.setRight(target.right - start.right);
-    }
-
-    private float interpolate(float start, float end) {
-        return (end - start) * easeOutCubic((float) (System.currentTimeMillis() - startTime) / (endTime - startTime)) + start;
-    }
-
-    public float easeOutCubic(double number) {
-        return (float) Math.max(0, Math.min(1, 1 - Math.pow(1 - number, 3)));
     }
 
     // endregion

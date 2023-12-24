@@ -168,6 +168,7 @@ public class Failsafe implements IFeature {
         resetLowerBPS();
         resetGuestVisit();
         sendingFailsafeInfo = false;
+        pathing = false;
         positionBeforeReacting = null;
         rotationBeforeReacting = null;
         flyingRecordingNumber = 1;
@@ -336,7 +337,7 @@ public class Failsafe implements IFeature {
                 onRotationTeleportCheck(emergency.name());
                 break;
             case DIRT_CHECK:
-                onDirtCheck();
+                onDirtCheckTest();
                 break;
             case ITEM_CHANGE_CHECK:
                 onItemChange();
@@ -919,7 +920,6 @@ public class Failsafe implements IFeature {
                 MacroHandler.getInstance().pauseMacro();
                 minimumReactions = (int) Math.round(3 + Math.random() * 3);
                 LogUtils.sendWarning("[Failsafe] Minimum reactions: " + minimumReactions);
-                KeyBindUtils.stopMovement();
                 if (BlockUtils.getRelativeBlock(-1, 1, 0).equals(Blocks.dirt))
                     dirtOnLeft = true;
                 else if (BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.dirt))
@@ -983,7 +983,9 @@ public class Failsafe implements IFeature {
                     break;
                 if (checkForPathingFinish()) {
                     dirtCheckState = DirtCheckState.END_DIRT_CHECK;
-                } else if (mc.thePlayer.getPosition().distanceSq(new BlockPos(positionBeforeReacting.getX(), positionBeforeReacting.getY() + 3, positionBeforeReacting.getZ())) > 1) {
+                } else if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.isFlying && mc.thePlayer.getPosition().distanceSq(new BlockPos(positionBeforeReacting.getX(), mc.thePlayer.posY, positionBeforeReacting.getZ())) < 1) {
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
+                } else if (mc.thePlayer.getPosition().distanceSq(new BlockPos(positionBeforeReacting.getX(), positionBeforeReacting.getY() + 3, positionBeforeReacting.getZ())) < 1) {
                     mc.thePlayer.capabilities.isFlying = false;
                     mc.thePlayer.sendPlayerAbilities();
                 } else if (mc.thePlayer.onGround && mc.thePlayer.getPosition().distanceSq(positionBeforeReacting) > 2) {
@@ -1028,6 +1030,68 @@ public class Failsafe implements IFeature {
                 }, randomTime4 + 250, TimeUnit.MILLISECONDS);
                 break;
         }
+    }
+
+    private void onDirtCheckTest() {
+        if (fakeMovementCheck()) return;
+
+        switch (dirtCheckState) {
+            case NONE:
+                LogUtils.sendSuccess("Starting test");
+                failsafeDelay.schedule((long) (500f + Math.random() * 1_000f));
+                dirtCheckState = DirtCheckState.WAIT_BEFORE_START;
+                break;
+            case WAIT_BEFORE_START:
+                MacroHandler.getInstance().pauseMacro();
+                if (BlockUtils.getRelativeBlock(-1, 1, 0).equals(Blocks.dirt))
+                    dirtOnLeft = true;
+                else if (BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.dirt))
+                    dirtOnLeft = false;
+                LogUtils.sendSuccess("[Failsafe] Dirt on left: " + dirtOnLeft);
+                LogUtils.sendSuccess("[Failsafe] Yaw difference: " + AngleUtils.getClosest());
+                MovRecPlayer.setYawDifference(AngleUtils.getClosest() - 90);
+                positionBeforeReacting = mc.thePlayer.getPosition();
+                rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+                dirtCheckState = DirtCheckState.PLAY_RECORDING;
+                failsafeDelay.schedule((long) (500 + Math.random() * 500));
+                break;
+            case PLAY_RECORDING:
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
+                if (FlyPathfinder.getInstance().isRunning())
+                    break;
+                MovRecPlayer.getInstance().playRandomRecording("ground", true);
+                dirtCheckState = DirtCheckState.ROTATE_INTO_DIRT_2;
+                failsafeDelay.schedule(1000);
+                break;
+            case ROTATE_INTO_DIRT_2:
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
+                if (FlyPathfinder.getInstance().isRunning())
+                    break;
+                PathingCommand pathingCommand = new PathingCommand(new GoalBlock(positionBeforeReacting), PathingCommandType.REVALIDATE_GOAL_AND_PATH);
+                BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().secretInternalSetGoalAndPath(pathingCommand);
+                pathing = true;
+//                MovRecPlayer.getInstance().playRandomRecording("DIRT_CHECK_BlockedRight_OnGround", true);
+                dirtCheckState = DirtCheckState.GO_BACK_END;
+                break;
+            case GO_BACK_END:
+                if (FlyPathfinder.getInstance().isRunning())
+                    break;
+                if (checkForPathingFinish()) {
+                    LogUtils.sendSuccess("Distance difference: " + mc.thePlayer.getPosition().distanceSq(positionBeforeReacting));
+                }
+                dirtCheckState = DirtCheckState.END_DIRT_CHECK;
+                break;
+            case END_DIRT_CHECK:
+                Failsafe.getInstance().stop();
+//                Multithreading.schedule(() -> {
+//                    LogUtils.sendDebug("[Failsafe] Finished item change failsafe. Farming...");
+//                    MacroHandler.getInstance().resumeMacro();
+//                }, 500, TimeUnit.MILLISECONDS);
+                break;
+        }
+
     }
 
     private void onEvacuate() {
@@ -1708,7 +1772,7 @@ public class Failsafe implements IFeature {
 
     private boolean checkForPathingFinish() {
         if (pathing) {
-            GoalNear goal = (GoalNear) BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().getGoal();
+            GoalBlock goal = (GoalBlock) BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().getGoal();
             double distance = mc.thePlayer.getDistance(goal.getGoalPos().getX() + 0.5f, mc.thePlayer.posY, goal.getGoalPos().getZ() + 0.5);
             System.out.println(BaritoneEventListener.pathEvent);
             if (distance <= 1 || BaritoneEventListener.pathEvent == PathEvent.AT_GOAL) {
