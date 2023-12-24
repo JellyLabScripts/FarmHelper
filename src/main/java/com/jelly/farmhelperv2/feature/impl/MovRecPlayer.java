@@ -2,17 +2,16 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.MacroHandler;
-import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.AngleUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
-import com.jelly.farmhelperv2.util.helper.Rotation;
-import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.apache.commons.lang3.tuple.MutablePair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +25,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+import static cc.polyfrost.oneconfig.libs.universal.UMath.wrapAngleTo180;
+
 /*
     Credits to Yuro for this superb class
     https://github.com/onixiya1337/MovementRecorder
@@ -35,8 +36,6 @@ public class MovRecPlayer implements IFeature {
 
     // region BOOLEANS, LISTS, ETC
     private static final List<Movement> movements = new ArrayList<>();
-    private static final RotationHandler rotateBeforePlaying = RotationHandler.getInstance();
-    private static final RotationHandler rotateDuringPlaying = RotationHandler.getInstance();
     static Minecraft mc = Minecraft.getMinecraft();
     private static MovRecPlayer instance;
     private static boolean isMovementPlaying = false;
@@ -60,8 +59,7 @@ public class MovRecPlayer implements IFeature {
     }
 
     private static void resetTimers() {
-        rotateBeforePlaying.reset();
-        rotateDuringPlaying.reset();
+        resetRotation();
     }
 
     @Override
@@ -196,13 +194,8 @@ public class MovRecPlayer implements IFeature {
         isMovementReading = false;
         isMovementPlaying = true;
         Movement movement = movements.get(0);
-        yawDifference = AngleUtils.normalizeAngle(movement.yaw - AngleUtils.get360RotationYaw());
-        rotateBeforePlaying.easeTo(
-                new RotationConfiguration(
-                        new Rotation(movement.yaw - yawDifference, movement.pitch),
-                        500, null
-                )
-        );
+        yawDifference = AngleUtils.normalizeAngle(AngleUtils.getClosest() - movement.yaw);
+        easeTo(movement.yaw + yawDifference , movement.pitch, 500);
     }
 
     @Override
@@ -239,15 +232,14 @@ public class MovRecPlayer implements IFeature {
             resetStatesAfterMacroDisabled();
             return;
         }
-        if (rotateBeforePlaying.isRotating()) {
+        if (rotating) {
             KeyBindUtils.stopMovement();
             return;
         }
 
         Movement movement = movements.get(playingIndex);
         setPlayerMovement(movement);
-        mc.thePlayer.rotationYaw = movement.yaw - yawDifference;
-        mc.thePlayer.rotationPitch = movement.pitch;
+        easeTo(movement.yaw + yawDifference, movement.pitch, 500);
 
         if (currentDelay < movement.delay) {
             currentDelay++;
@@ -300,7 +292,7 @@ public class MovRecPlayer implements IFeature {
     @NotNull
     private static Movement getMovement(String line) {
         String[] split = line.split(";");
-        Movement movement = new Movement(
+        return new Movement(
                 Boolean.parseBoolean(split[0]),
                 Boolean.parseBoolean(split[1]),
                 Boolean.parseBoolean(split[2]),
@@ -314,7 +306,6 @@ public class MovRecPlayer implements IFeature {
                 Float.parseFloat(split[10]),
                 Integer.parseInt(split[11])
         );
-        return movement;
     }
 
     private void setPlayerMovement(Movement movement) {
@@ -357,6 +348,73 @@ public class MovRecPlayer implements IFeature {
                 return null;
             }
         return lines;
+    }
+
+    // endregion
+
+    // OLD_ROTATIONUTILS
+
+    public static boolean rotating;
+    public static boolean completed;
+
+    private long startTime;
+    private long endTime;
+
+    MutablePair<Float, Float> start = new MutablePair<>(0f, 0f);
+    MutablePair<Float, Float> target = new MutablePair<>(0f, 0f);
+    MutablePair<Float, Float> difference = new MutablePair<>(0f, 0f);
+
+    public void easeTo(float yaw, float pitch, long time) {
+        completed = false;
+        rotating = true;
+        startTime = System.currentTimeMillis();
+        endTime = System.currentTimeMillis() + time;
+        start.setLeft(mc.thePlayer.rotationYaw);
+        start.setRight(mc.thePlayer.rotationPitch);
+        MutablePair<Float, Float> neededChange = getNeededChange(start, new MutablePair<>(yaw, pitch));
+        target.setLeft(start.left + neededChange.left);
+        target.setRight(start.right + neededChange.right);
+        getDifference();
+    }
+
+    public static MutablePair<Float, Float> getNeededChange(MutablePair<Float, Float> startRot, MutablePair<Float, Float> endRot) {
+        float yawDiff = (float) (wrapAngleTo180(endRot.getLeft()) - wrapAngleTo180(startRot.getLeft()));
+
+        yawDiff = AngleUtils.normalizeAngle(yawDiff);
+
+        return new MutablePair<>(yawDiff, endRot.getRight() - startRot.right);
+    }
+
+
+    @SubscribeEvent
+    public void onWorldLastRender(RenderWorldLastEvent event) {
+        if (System.currentTimeMillis() <= endTime) {
+            mc.thePlayer.rotationYaw = interpolate(start.getLeft(), target.getLeft());
+            mc.thePlayer.rotationPitch = interpolate(start.getRight(), target.getRight());
+        } else if (!completed) {
+            mc.thePlayer.rotationYaw = target.left;
+            mc.thePlayer.rotationPitch = target.right;
+            completed = true;
+            rotating = false;
+        }
+    }
+
+    public static void resetRotation() {
+        completed = false;
+        rotating = false;
+    }
+
+    private void getDifference() {
+        difference.setLeft(AngleUtils.smallestAngleDifference(AngleUtils.get360RotationYaw(), target.left));
+        difference.setRight(target.right - start.right);
+    }
+
+    private float interpolate(float start, float end) {
+        return (end - start) * easeOutCubic((float) (System.currentTimeMillis() - startTime) / (endTime - startTime)) + start;
+    }
+
+    public float easeOutCubic(double number) {
+        return (float) Math.max(0, Math.min(1, 1 - Math.pow(1 - number, 3)));
     }
 
     // endregion
