@@ -926,7 +926,7 @@ public class Failsafe implements IFeature {
                     dirtOnLeft = false;
                 LogUtils.sendSuccess("[Failsafe] Dirt on left: " + dirtOnLeft);
                 LogUtils.sendSuccess("[Failsafe] Yaw difference: " + AngleUtils.getClosest());
-                MovRecPlayer.setYawDifference(AngleUtils.getClosest());
+                MovRecPlayer.setYawDifference(AngleUtils.getClosest() - 90);
                 positionBeforeReacting = mc.thePlayer.getPosition();
                 rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
                 dirtCheckState = DirtCheckState.PLAY_RECORDING;
@@ -992,6 +992,7 @@ public class Failsafe implements IFeature {
                     KeyBindUtils.stopMovement();
                     PathingCommand pathingCommand = new PathingCommand(new GoalBlock(positionBeforeReacting), PathingCommandType.REVALIDATE_GOAL_AND_PATH);
                     BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().secretInternalSetGoalAndPath(pathingCommand);
+                    pathing = true;
                 }
                 failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
                 break;
@@ -1028,6 +1029,10 @@ public class Failsafe implements IFeature {
                         restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
                     }
                 }, randomTime4 + 250, TimeUnit.MILLISECONDS);
+//                Multithreading.schedule(() -> {
+//                    LogUtils.sendDebug("[Failsafe] Finished dirt check failsafe. Farming...");
+//                    MacroHandler.getInstance().resumeMacro();
+//                }, 500, TimeUnit.MILLISECONDS);
                 break;
         }
     }
