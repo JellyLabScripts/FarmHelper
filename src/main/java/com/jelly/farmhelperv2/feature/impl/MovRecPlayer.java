@@ -5,6 +5,7 @@ import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.AngleUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
+import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
@@ -42,7 +43,8 @@ public class MovRecPlayer implements IFeature {
     private static boolean isMovementReading = false;
     private static int currentDelay = 0;
     private static int playingIndex = 0;
-    private static float yawDifference = 0;
+    @Setter @Getter
+    public static float yawDifference = 0;
     @Setter
     public String recordingName = "";
     @Setter
@@ -194,8 +196,8 @@ public class MovRecPlayer implements IFeature {
         isMovementReading = false;
         isMovementPlaying = true;
         Movement movement = movements.get(0);
-        yawDifference = AngleUtils.normalizeAngle(AngleUtils.getClosest() - movement.yaw);
-        easeTo(movement.yaw + yawDifference , movement.pitch, 500);
+//        yawDifference = AngleUtils.normalizeAngle(AngleUtils.getClosest() - movement.yaw);
+        easeTo(AngleUtils.normalizeAngle(movement.yaw - yawDifference), movement.pitch, 500);
     }
 
     @Override
@@ -203,6 +205,8 @@ public class MovRecPlayer implements IFeature {
         KeyBindUtils.stopMovement();
         if (isMovementPlaying || isMovementReading) {
             LogUtils.sendDebug("[Movement Recorder] Playing has been stopped.");
+            if (Failsafe.getInstance().isRunning())
+                Failsafe.getInstance().setReactionDelay((long) (750 + Math.random() * 1_000));
             return;
         }
         LogUtils.sendDebug("[Movement Recorder] No recording has been started.");
@@ -211,8 +215,6 @@ public class MovRecPlayer implements IFeature {
     @SubscribeEvent
     public void onTickPlayMovement(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null)
-            return;
-        if (event.phase == TickEvent.Phase.START)
             return;
         if (!isMovementPlaying || isMovementReading)
             return;
@@ -227,19 +229,21 @@ public class MovRecPlayer implements IFeature {
             return;
         }
         if (!MacroHandler.getInstance().isMacroToggled()) {
-            LogUtils.sendDebug("[Movement Recorder] Macro has been disabled. Stopping playing.");
-            stop();
+            if (isRunning()) {
+                LogUtils.sendDebug("[Movement Recorder] Macro has been disabled. Stopping playing.");
+                stop();
+            }
             resetStatesAfterMacroDisabled();
             return;
         }
-        if (rotating) {
-            KeyBindUtils.stopMovement();
-            return;
-        }
+//        if (rotating) {
+//            KeyBindUtils.stopMovement();
+//            return;
+//        }
 
         Movement movement = movements.get(playingIndex);
         setPlayerMovement(movement);
-        easeTo(movement.yaw + yawDifference, movement.pitch, 500);
+        easeTo(movement.yaw - yawDifference, movement.pitch, 49);
 
         if (currentDelay < movement.delay) {
             currentDelay++;
@@ -251,7 +255,6 @@ public class MovRecPlayer implements IFeature {
             isMovementPlaying = false;
             resetTimers();
             LogUtils.sendDebug("[Movement Recorder] Playing has been finished.");
-            stop();
             resetStatesAfterMacroDisabled();
         }
     }
@@ -315,8 +318,11 @@ public class MovRecPlayer implements IFeature {
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), movement.right);
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), movement.sneak);
         mc.thePlayer.setSprinting(movement.sprint);
-        if (mc.thePlayer.capabilities.allowFlying && mc.thePlayer.capabilities.isFlying != movement.fly)
+        if (mc.thePlayer.capabilities.allowFlying && mc.thePlayer.capabilities.isFlying != movement.fly) {
             mc.thePlayer.capabilities.isFlying = movement.fly;
+            mc.thePlayer.sendPlayerAbilities();
+            LogUtils.sendSuccess("[Movement Recorder] Fly mode has been " + (movement.fly ? "enabled" : "disabled") + "!");
+        }
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), movement.jump);
         if (movement.attack && currentDelay == 0)
             KeyBindUtils.leftClick();
