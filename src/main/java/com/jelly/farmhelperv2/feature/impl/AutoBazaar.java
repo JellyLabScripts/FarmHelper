@@ -167,7 +167,7 @@ public class AutoBazaar implements IFeature {
         if (event.type != 0 || !this.enabled) return;
         if (event.message == null) return;
 
-        String message = StringUtils.stripControlCodes(event.message.getUnformattedTextForChat());
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         String boughtMessage = String.format("[Bazaar] Bought %dx %s for", this.buyAmount, this.itemToBuy);
 
         if (message.startsWith(boughtMessage) && this.buyState == BuyState.BUY_VERIFY) {
