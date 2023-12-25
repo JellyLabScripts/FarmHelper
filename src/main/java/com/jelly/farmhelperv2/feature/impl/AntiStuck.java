@@ -80,7 +80,7 @@ public class AntiStuck implements IFeature {
         LogUtils.sendWarning("[Anti Stuck] Enabled");
         if (Failsafe.getInstance().getEmergencyQueue().contains(Failsafe.EmergencyType.TELEPORT_CHECK) ||
                 Failsafe.getInstance().getEmergencyQueue().contains(Failsafe.EmergencyType.ROTATION_CHECK))
-            Failsafe.getInstance().stop();
+            FailsafeManager.getInstance().stopFailsafes();
         enabled = true;
         unstuckState = UnstuckState.NONE;
         KeyBindUtils.stopMovement();

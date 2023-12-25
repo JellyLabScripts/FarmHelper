@@ -38,7 +38,7 @@ public class MixinGuiDisconnected {
     public void initGui(CallbackInfo ci) {
         System.out.println("initGui");
         if (multilineMessage.get(0).contains("banned")) {
-            Failsafe.getInstance().stop();
+            FailsafeManager.getInstance().stopFailsafes();
         }
     }
 
@@ -91,7 +91,7 @@ public class MixinGuiDisconnected {
                 AutoReconnect.getInstance().stop();
             }
             if (Failsafe.getInstance().getEmergency() == Failsafe.EmergencyType.BANWAVE && !FarmHelperConfig.banwaveAction) {
-                Failsafe.getInstance().stop();
+                FailsafeManager.getInstance().stopFailsafes();
                 MacroHandler.getInstance().disableMacro();
             }
         }

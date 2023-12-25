@@ -82,7 +82,7 @@ public class AutoReconnect implements IFeature {
     @Override
     public void start() {
         if (enabled) return;
-        Failsafe.getInstance().stop();
+        FailsafeManager.getInstance().stopFailsafes();
         FeatureManager.getInstance().disableAllExcept(this);
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();

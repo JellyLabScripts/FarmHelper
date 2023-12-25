@@ -8,6 +8,7 @@ import com.jelly.farmhelperv2.command.FarmHelperCommand;
 import com.jelly.farmhelperv2.command.RewarpCommand;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.MillisecondEvent;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -91,6 +92,7 @@ public class FarmHelper {
 
     private void initializeListeners() {
         MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(FailsafeManager.getInstance());
         MinecraftForge.EVENT_BUS.register(GameStateHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(MacroHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(TickTask.getInstance());

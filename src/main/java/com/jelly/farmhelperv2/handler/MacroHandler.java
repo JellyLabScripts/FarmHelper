@@ -133,7 +133,7 @@ public class MacroHandler {
             }
             if (Failsafe.getInstance().isHadEmergency()) {
                 if (Failsafe.getInstance().isEmergency()) {
-                    Failsafe.getInstance().stop();
+                    FailsafeManager.getInstance().stopFailsafes();
                 }
                 Failsafe.getInstance().setHadEmergency(false);
                 Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().reset();

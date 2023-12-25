@@ -6,8 +6,10 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.util.AngleUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
+import net.minecraft.client.Minecraft;
 
 import java.util.List;
 import java.util.Map;
@@ -21,6 +23,13 @@ public class DebugHUD extends TextHud {
     protected void getLines(List<String> lines, boolean example) {
         if (!FarmHelperConfig.debugMode) return;
         lines.add("§lFarmHelper Debug HUD");
+        if (Minecraft.getMinecraft().thePlayer != null && Minecraft.getMinecraft().theWorld != null) {
+            lines.add("Minecraft Yaw: " + Minecraft.getMinecraft().thePlayer.rotationYaw);
+            lines.add("get360RotationYaw: " + AngleUtils.get360RotationYaw());
+        }
+        if (MovRecPlayer.getInstance().isRunning()) {
+            lines.add("Yaw Difference: " + MovRecPlayer.getYawDifference());
+        }
         lines.add("Location: " + GameStateHandler.getInstance().getLocation());
         MacroHandler.getInstance().getCurrentMacro().ifPresent(macro -> {
             lines.add("Current state: " + macro.getCurrentState());

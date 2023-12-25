@@ -270,7 +270,7 @@ public class BanInfoWS implements IFeature {
     // SKYSKIPPED BAN STATS
 
     private void processBanScreen(String wholeReason) {
-        Failsafe.getInstance().stop();
+        FailsafeManager.getInstance().stopFailsafes();
         ArrayList<String> multilineMessage = new ArrayList<>(Arrays.asList(wholeReason.split("\n")));
         try {
             if (times.stream().noneMatch(time -> multilineMessage.get(0).contains(time)) || days.stream().noneMatch(day -> multilineMessage.get(0).contains(day)))

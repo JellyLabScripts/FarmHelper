@@ -1,0 +1,79 @@
+package com.jelly.farmhelperv2.failsafe.impl;
+
+import cc.polyfrost.oneconfig.utils.Notifications;
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
+import com.jelly.farmhelperv2.failsafe.Failsafe;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.feature.impl.AutoReconnect;
+import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
+import com.jelly.farmhelperv2.handler.MacroHandler;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent;
+
+public class DisconnectFailsafe extends Failsafe {
+    @Override
+    public int getPriority() {
+        return 1;
+    }
+
+    @Override
+    public FailsafeManager.EmergencyType getType() {
+        return FailsafeManager.EmergencyType.DISCONNECT;
+    }
+
+    @Override
+    public boolean shouldSendNotification() {
+        return FailsafeNotificationsPage.notifyOnDisconnectFailsafe;
+    }
+
+    @Override
+    public boolean shouldPlaySound() {
+        return FailsafeNotificationsPage.alertOnDisconnectFailsafe;
+    }
+
+    @Override
+    public boolean shouldTagEveryone() {
+        return FailsafeNotificationsPage.tagEveryoneOnDisconnectFailsafe;
+    }
+
+    @Override
+    public boolean shouldAltTab() {
+        return FailsafeNotificationsPage.autoAltTabOnDisconnectFailsafe;
+    }
+
+    @Override
+    public void duringFailsafeTrigger() {
+        if (!AutoReconnect.getInstance().isRunning() && AutoReconnect.getInstance().isToggled()) {
+            System.out.println("[Reconnect] Disconnected from server! Trying to reconnect...");
+            Notifications.INSTANCE.send("Farm Helper", "Disconnected from server! Trying to reconnect...");
+            AutoReconnect.getInstance().getReconnectDelay().schedule(5_000);
+            AutoReconnect.getInstance().start();
+        } else if (!AutoReconnect.getInstance().isRunning() && !AutoReconnect.getInstance().isToggled()) {
+            System.out.println("[Reconnect] Disconnected from server! Stopping macro...");
+            Notifications.INSTANCE.send("Farm Helper", "Disconnected from server! Stopping macro...");
+            MacroHandler.getInstance().disableMacro();
+            FailsafeManager.getInstance().stopFailsafes();
+        } else if (AutoReconnect.getInstance().isRunning()) {
+            System.out.println("[Reconnect] Disconnected from server! Reconnect is already running!");
+            Notifications.INSTANCE.send("Farm Helper", "Disconnected from server! Reconnect is already running!");
+            FailsafeManager.getInstance().stopFailsafes();
+        }
+    }
+
+    @Override
+    public void endOfFailsafeTrigger() {
+
+    }
+
+
+    @SubscribeEvent
+    public void onDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+        if (MacroHandler.getInstance().isTeleporting()) return;
+        if (emergency != FailsafeManager.EmergencyType.NONE) return;
+        if (BanInfoWS.getInstance().isBanwave() && FarmHelperConfig.enableLeavePauseOnBanwave && !FarmHelperConfig.banwaveAction)
+            return;
+
+        FailsafeManager.getInstance().possibleDetection(this);
+    }
+}
