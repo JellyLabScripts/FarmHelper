@@ -1054,7 +1054,7 @@ public class Failsafe implements IFeature {
                     dirtOnLeft = false;
                 LogUtils.sendSuccess("[Failsafe] Dirt on left: " + dirtOnLeft);
                 LogUtils.sendSuccess("[Failsafe] Yaw difference: " + AngleUtils.getClosest());
-                MovRecPlayer.setYawDifference(AngleUtils.getClosest() - 90);
+                MovRecPlayer.setYawDifference(AngleUtils.getClosest());
                 positionBeforeReacting = mc.thePlayer.getPosition();
                 rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
                 dirtCheckState = DirtCheckState.PLAY_RECORDING;

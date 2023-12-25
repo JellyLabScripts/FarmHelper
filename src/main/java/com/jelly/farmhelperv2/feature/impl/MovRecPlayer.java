@@ -214,8 +214,8 @@ public class MovRecPlayer implements IFeature {
         Movement movement = movements.get(0);
 //        yawDifference = AngleUtils.normalizeAngle(AngleUtils.getClosest() - movement.yaw);
         LogUtils.sendSuccess("movement.yaw: " + movement.yaw + " yawDifference: " + yawDifference);
-        LogUtils.sendSuccess("easeTo: " + (movement.yaw + yawDifference));
-        rotateBeforePlaying.easeTo(movement.yaw + yawDifference, movement.pitch, 500);
+        LogUtils.sendSuccess("easeTo: " + (movement.yaw - yawDifference));
+        rotateBeforePlaying.easeTo(movement.yaw - yawDifference, movement.pitch, 500);
     }
 
     @Override
@@ -263,8 +263,8 @@ public class MovRecPlayer implements IFeature {
         Movement movement = movements.get(playingIndex);
         setPlayerMovement(movement);
         LogUtils.sendSuccess("movement.yaw: " + movement.yaw + " yawDifference: " + yawDifference);
-        LogUtils.sendSuccess("easeTo: " + (movement.yaw + yawDifference));
-        rotateDuringPlaying.easeTo(movement.yaw + yawDifference, movement.pitch, 49);
+        LogUtils.sendSuccess("easeTo: " + (movement.yaw - yawDifference));
+        rotateDuringPlaying.easeTo(movement.yaw - yawDifference, movement.pitch, 49);
 
         if (currentDelay < movement.delay) {
             currentDelay++;
