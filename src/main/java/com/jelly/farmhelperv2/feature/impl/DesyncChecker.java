@@ -85,6 +85,7 @@ public class DesyncChecker implements IFeature {
         if (!isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!isCrop(mc.theWorld.getBlockState(event.getPos()).getBlock())) return;
+        if (Failsafe.getInstance().isEmergency()) return;
         clickedBlocks.add(event);
         if (!clickedBlocks.isAtFullCapacity()) return;
         if (!checkIfDesync()) return;

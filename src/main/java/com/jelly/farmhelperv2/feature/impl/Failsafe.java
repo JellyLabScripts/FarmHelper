@@ -1,5 +1,11 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import baritone.api.BaritoneAPI;
+import baritone.api.event.events.PathEvent;
+import baritone.api.pathing.goals.GoalBlock;
+import baritone.api.pathing.goals.GoalNear;
+import baritone.api.process.PathingCommand;
+import baritone.api.process.PathingCommandType;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import cc.polyfrost.oneconfig.utils.Notifications;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
@@ -39,16 +45,16 @@ import org.lwjgl.opengl.Display;
 
 import java.awt.*;
 import java.io.File;
-import java.util.List;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /*
     Credits to Yuro for this superb inspiration to make this class
 */
 @Getter
 public class Failsafe implements IFeature {
+
+    // region BOOLEANS, LISTS, ETC
     private static final String[] FAILSAFE_MESSAGES = new String[]{
             "WHAT", "what?", "what", "what??", "what???", "wut?", "?", "what???", "yo huh", "yo huh?", "yo?",
             "ehhhhh??", "eh", "yo", "ahmm", "ehh", "LOL what", "lol :skull:", "bro wtf was that?", "lmao",
@@ -81,12 +87,27 @@ public class Failsafe implements IFeature {
     private BedrockCageState bedrockCageState = BedrockCageState.NONE;
     private CustomMovementState recordingCheckState = CustomMovementState.NONE;
     private int playingState = 0;
-    private boolean shouldCheckIfRecordingShouldBePlayed = true;
+    @Setter @Getter
+    private int reactionType = 0; // 0 = not checked yet, 1 = custom recording, 2 = built-in recording, 3 = legacy
     private boolean recordingFile = false;
     private boolean recordingFile2 = false;
     private boolean sendingFailsafeInfo = false;
+    private final CircularFifoQueue<Float> bpsQueue = new CircularFifoQueue<>(20);
+    private long lastTimeCheckedBPS = System.currentTimeMillis();
+    private LowerBPSState lowerBPSState = LowerBPSState.NONE;
+    private final Clock tabListCheckDelay = new Clock();
+    private boolean wasGuestOnGarden = false;
+    private String lastGuestName = "";
+    private BlockPos positionBeforeReacting = null;
+    private Rotation rotationBeforeReacting = null;
+    private boolean pathing = false;
+    private int flyingRecordingNumber = 1;
+    private static final int maxFlyingRecordingNumber = 3;
+    private boolean dirtOnLeft = false;
+    private int minimumReactions = 3;
+    // endregion
 
-    // region BANWAVE
+    // region MAIN
 
     public static Failsafe getInstance() {
         if (instance == null) {
@@ -102,10 +123,6 @@ public class Failsafe implements IFeature {
             return messages[0];
         }
     }
-
-    // endregion
-
-    // region ROTATION and TELEPORT
 
     @Override
     public String getName() {
@@ -133,16 +150,15 @@ public class Failsafe implements IFeature {
 
     @Override
     public void stop() {
-        if (emergency != EmergencyType.TEST)
-            AudioManager.getInstance().resetSound();
+        AudioManager.getInstance().resetSound();
         emergency = EmergencyType.NONE;
         emergencyQueue.clear();
         chooseEmergencyDelay.reset();
         failsafeDelay.reset();
         lookAroundTimes = 0;
         currentLookAroundTimes = 0;
+        reactionType = 0;
         resetCustomMovement();
-        shouldCheckIfRecordingShouldBePlayed = true; // seperated from resetCustomMovement() so it doesn't play the corrupted recording again
         resetRotationCheck();
         resetDirtCheck();
         resetEvacuateCheck();
@@ -150,7 +166,12 @@ public class Failsafe implements IFeature {
         resetWorldChangeCheck();
         resetBedrockCageCheck();
         resetLowerBPS();
+        resetGuestVisit();
         sendingFailsafeInfo = false;
+        pathing = false;
+        positionBeforeReacting = null;
+        rotationBeforeReacting = null;
+        flyingRecordingNumber = 1;
     }
 
     @Override
@@ -170,10 +191,6 @@ public class Failsafe implements IFeature {
         return true;
     }
 
-    // endregion
-
-    // region DIRT check
-
     @Override
     public boolean shouldCheckForFailsafes() {
         return !isEmergency();
@@ -185,7 +202,7 @@ public class Failsafe implements IFeature {
 
     @SubscribeEvent
     public void onTickChooseEmergency(TickEvent.ClientTickEvent event) {
-        if (!MacroHandler.getInstance().isMacroToggled() && !emergencyQueue.contains(EmergencyType.TEST)) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (isEmergency()) return;
         if (emergencyQueue.isEmpty()) return;
         if (chooseEmergencyDelay.isScheduled() && !chooseEmergencyDelay.passed()) return;
@@ -201,6 +218,8 @@ public class Failsafe implements IFeature {
         emergencyQueue.clear();
         chooseEmergencyDelay.reset();
         hadEmergency = true;
+        checkReactionType();
+        LogUtils.sendDebug("[Failsafe] Reaction Type: " + reactionType);
         LogUtils.sendDebug("[Failsafe] Emergency chosen: " + StringUtils.stripControlCodes(emergency.name()));
         FeatureManager.getInstance().disableCurrentlyRunning(this);
         if (!Scheduler.getInstance().isFarming()) {
@@ -230,34 +249,95 @@ public class Failsafe implements IFeature {
         }
     }
 
+    public void addEmergency(EmergencyType emergencyType) {
+        if (emergencyQueue.contains(emergencyType)) return;
+
+        MacroHandler.getInstance().getCurrentMacro().ifPresent(AbstractMacro::saveState);
+        emergencyQueue.add(emergencyType);
+        if (!chooseEmergencyDelay.isScheduled())
+            chooseEmergencyDelay.schedule(FarmHelperConfig.failsafeStopDelay + (long) (Math.random() * 500));
+        LogUtils.sendDebug("[Failsafe] Emergency added: " + emergencyType.name());
+        LogUtils.sendWarning("[Failsafe] Probability of emergency: " + LogUtils.capitalize(emergencyType.name()));
+        if (!sendingFailsafeInfo) {
+            sendingFailsafeInfo = true;
+            Multithreading.schedule(() -> {
+                EmergencyType tempEmergency = getHighestPriorityEmergency();
+                if (tempEmergency == EmergencyType.NONE) {
+                    // Should never happen, but yeh...
+                    LogUtils.sendDebug("[Failsafe] No emergency chosen!");
+                    stop();
+                    return;
+                }
+
+                if (FarmHelperConfig.enableFailsafeSound && shouldPlaySoundAlert(tempEmergency)) {
+                    AudioManager.getInstance().playSound();
+                }
+
+                if (FarmHelperConfig.autoAltTab && shouldAltTab(tempEmergency)) {
+                    FailsafeUtils.bringWindowToFront();
+                }
+                Multithreading.schedule(() -> {
+                    if (FarmHelperConfig.autoAltTab && shouldAltTab(tempEmergency) && !Display.isActive()) {
+                        FailsafeUtils.bringWindowToFrontUsingRobot();
+                        System.out.println("Bringing window to front using Robot because Winapi failed as usual.");
+                    }
+                }, 750, TimeUnit.MILLISECONDS);
+
+                LogUtils.sendFailsafeMessage(tempEmergency.label, shouldTagEveryone(tempEmergency));
+                if (shouldNotify(tempEmergency))
+                    FailsafeUtils.getInstance().sendNotification(StringUtils.stripControlCodes(tempEmergency.label), TrayIcon.MessageType.WARNING);
+            }, 800, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    private EmergencyType getHighestPriorityEmergency() {
+        EmergencyType highestPriority = EmergencyType.NONE;
+        for (EmergencyType emergencyType : emergencyQueue) {
+            if (emergencyType.priority < highestPriority.priority) {
+                highestPriority = emergencyType;
+            }
+        }
+        return highestPriority;
+    }
+
+    @SubscribeEvent
+    public void onRenderOverlay(RenderGameOverlayEvent.Post event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
+
+        if (chooseEmergencyDelay.isScheduled()) {
+            String text = "Failsafe in: " + LogUtils.formatTime(chooseEmergencyDelay.getRemainingTime());
+            RenderUtils.drawCenterTopText(text, event, Color.MAGENTA);
+        } else if (restartMacroAfterFailsafeDelay.isScheduled()) {
+            String text = "Restarting the macro in: " + LogUtils.formatTime(restartMacroAfterFailsafeDelay.getRemainingTime());
+            RenderUtils.drawCenterTopText(text, event, Color.MAGENTA);
+        } else if (failsafeDelay.isScheduled()) {
+            String text = "Failsafe delay: " + LogUtils.formatTime(failsafeDelay.getRemainingTime());
+            RenderUtils.drawCenterTopText(text, event, Color.MAGENTA);
+        }
+    }
+
     @SubscribeEvent
     public void onTickFailsafe(TickEvent.ClientTickEvent event) {
         if ((mc.thePlayer == null || mc.theWorld == null) && emergency != EmergencyType.DISCONNECT) return;
-        if (!MacroHandler.getInstance().isMacroToggled() && emergency != EmergencyType.TEST) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!isEmergency()) return;
         if (failsafeDelay.isScheduled() && !failsafeDelay.passed()) return;
 
-        if (recordingFile && recordingFile2) {
-            playMovementRecording(emergency.name());
-            return;
-        }
-        if (shouldCheckIfRecordingShouldBePlayed) {
-            shouldCheckIfRecordingShouldBePlayed = false;
-            if (shouldPlayRecording(emergency))
-                playMovementRecording(emergency.name());
+        if (reactionType == 1) {
+            onCustomFailsafeReaction(emergency.name());
             return;
         }
 
         switch (emergency) {
             case NONE:
                 break;
-            case TEST:
             case ROTATION_CHECK:
             case TELEPORT_CHECK:
-                onRotationTeleportCheck();
+                onRotationTeleportCheck(emergency.name());
                 break;
             case DIRT_CHECK:
-                onDirtCheck();
+                onDirtCheckTest();
                 break;
             case ITEM_CHANGE_CHECK:
                 onItemChange();
@@ -283,8 +363,15 @@ public class Failsafe implements IFeature {
             case LOWER_AVERAGE_BPS:
                 onLowerBPS();
                 break;
+            case GUEST_VISIT:
+                onGuestVisit();
+                break;
         }
     }
+
+    // endregion
+
+    // region TRIGGERS
 
     @SubscribeEvent
     public void onTickBanwave(TickEvent.ClientTickEvent event) {
@@ -296,36 +383,6 @@ public class Failsafe implements IFeature {
             return;
 
         addEmergency(EmergencyType.BANWAVE);
-    }
-
-    private void onBanwave() {
-        if (FarmHelperConfig.banwaveAction) {
-            // pause
-            if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
-                LogUtils.sendFailsafeMessage("[Failsafe] Paused the macro because of banwave!", false);
-                MacroHandler.getInstance().pauseMacro();
-            } else {
-                if (!BanInfoWS.getInstance().isBanwave()) {
-                    LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because banwave is over!", false);
-                    Failsafe.getInstance().stop();
-                    MacroHandler.getInstance().resumeMacro();
-                }
-            }
-        } else {
-            // leave
-            if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
-                LogUtils.sendFailsafeMessage("[Failsafe] Leaving because of banwave!", false);
-                MacroHandler.getInstance().pauseMacro();
-                Multithreading.schedule(() -> {
-                    try {
-                        mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText("Will reconnect after end of banwave!"));
-                        AudioManager.getInstance().resetSound();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }, 500, TimeUnit.MILLISECONDS);
-            }
-        }
     }
 
     @SubscribeEvent
@@ -383,7 +440,364 @@ public class Failsafe implements IFeature {
         }
     }
 
-    public void onRotationTeleportCheck() {
+    @SubscribeEvent
+    public void onBlockChange(BlockChangeEvent event) {
+        if (firstCheckReturn()) return;
+        if (isEmergency()) return;
+        if (event.update.getBlock() == null) return;
+        if (!event.update.getBlock().equals(Blocks.dirt)) return;
+
+        LogUtils.sendWarning("[Failsafe] Someone put a block on your garden! Block pos: " + event.pos);
+        dirtBlocks.add(event.pos);
+    }
+
+    @SubscribeEvent
+    public void onTickCheckScoreboard(TickEvent.ClientTickEvent event) {
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (!FarmHelperConfig.autoEvacuateOnWorldUpdate) return;
+        if (evacuateState != EvacuateState.NONE) return;
+
+        GameStateHandler.getInstance().getServerClosingSeconds().ifPresent(seconds -> {
+            if (seconds < 30) {
+                addEmergency(EmergencyType.EVACUATE);
+            }
+        });
+    }
+
+    @SubscribeEvent
+    public void onPacketReceive(ReceivePacketEvent event) {
+        if (firstCheckReturn()) return;
+        if (MacroHandler.getInstance().isTeleporting()) return;
+
+        if (!(event.packet instanceof S2FPacketSetSlot)) return;
+
+        S2FPacketSetSlot packet = (S2FPacketSetSlot) event.packet;
+        int slot = packet.func_149173_d();
+        int farmingToolSlot = -1;
+        try {
+            farmingToolSlot = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+        if (farmingToolSlot == -1) return;
+        ItemStack farmingTool = mc.thePlayer.inventory.getStackInSlot(farmingToolSlot);
+        if (slot == 36 + farmingToolSlot &&
+                farmingTool != null &&
+                !(farmingTool.getItem() instanceof ItemHoe) &&
+                !(farmingTool.getItem() instanceof ItemAxe)) {
+            LogUtils.sendDebug("[Failsafe] No farming tool in hand! Slot: " + slot);
+            addEmergency(EmergencyType.ITEM_CHANGE_CHECK);
+        }
+    }
+
+    @SubscribeEvent
+    public void onWorldChange(WorldEvent.Unload event) {
+        if (firstCheckReturn()) return;
+
+        addEmergency(EmergencyType.WORLD_CHANGE_CHECK);
+    }
+
+    @SubscribeEvent
+    public void onTickCheckLimbo(TickEvent.ClientTickEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (emergency == EmergencyType.WORLD_CHANGE_CHECK) return;
+
+        if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
+            addEmergency(EmergencyType.WORLD_CHANGE_CHECK);
+        }
+    }
+
+    @SubscribeEvent
+    public void onChatMessageCheckLimbo(ClientChatReceivedEvent event) {
+        if (firstCheckReturn()) return;
+        if (emergency != EmergencyType.WORLD_CHANGE_CHECK) return;
+
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        if (message.contains(":")) return;
+        if (message.contains("You were spawned in Limbo.") || message.contains("/limbo") || message.startsWith("A kick occurred in your connection")) {
+            LogUtils.sendWarning("[Failsafe] Got kicked to Limbo!");
+            addEmergency(EmergencyType.WORLD_CHANGE_CHECK);
+        }
+    }
+
+    @SubscribeEvent
+    public void onReceiveChatWhileWorldChange(ClientChatReceivedEvent event) {
+        if (event.type != 0) return;
+        if (emergency != EmergencyType.WORLD_CHANGE_CHECK) return;
+
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        if (message.contains(":")) return;
+        if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing") || message.contains("You cannot join SkyBlock from here!")) {
+            LogUtils.sendWarning("[Failsafe] Can't warp to the garden! Will try again in a moment.");
+            failsafeDelay.schedule(10_000);
+        }
+    }
+
+    @SubscribeEvent
+    public void onTickBedrockCageCheck(TickEvent.ClientTickEvent event) {
+        if (firstCheckReturn()) return;
+
+        if (mc.thePlayer.getPosition().getY() < 50) return;
+        if (BlockUtils.bedrockCount() <= 2) return;
+
+        addEmergency(EmergencyType.BEDROCK_CAGE_CHECK);
+    }
+
+    @SubscribeEvent
+    public void onDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+        if (firstCheckReturn()) return;
+        if (MacroHandler.getInstance().isTeleporting()) return;
+        if (emergency != EmergencyType.NONE) return;
+        if (BanInfoWS.getInstance().isBanwave() && FarmHelperConfig.enableLeavePauseOnBanwave && !FarmHelperConfig.banwaveAction)
+            return;
+
+        addEmergency(EmergencyType.DISCONNECT);
+    }
+
+    @SubscribeEvent
+    public void onTickJacobFailsafe(TickEvent.ClientTickEvent event) {
+        if (firstCheckReturn()) return;
+        if (!FarmHelperConfig.enableJacobFailsafes) return;
+        if (!GameStateHandler.getInstance().getJacobsContestCrop().isPresent()) return;
+
+        int cropThreshold = Integer.MAX_VALUE;
+        switch (GameStateHandler.getInstance().getJacobsContestCrop().get()) {
+            case CARROT:
+                cropThreshold = FarmHelperConfig.jacobCarrotCap;
+                break;
+            case NETHER_WART:
+                cropThreshold = FarmHelperConfig.jacobNetherWartCap;
+                break;
+            case POTATO:
+                cropThreshold = FarmHelperConfig.jacobPotatoCap;
+                break;
+            case WHEAT:
+                cropThreshold = FarmHelperConfig.jacobWheatCap;
+                break;
+            case SUGAR_CANE:
+                cropThreshold = FarmHelperConfig.jacobSugarCaneCap;
+                break;
+            case MELON:
+                cropThreshold = FarmHelperConfig.jacobMelonCap;
+                break;
+            case PUMPKIN:
+                cropThreshold = FarmHelperConfig.jacobPumpkinCap;
+                break;
+            case CACTUS:
+                cropThreshold = FarmHelperConfig.jacobCactusCap;
+                break;
+            case COCOA_BEANS:
+                cropThreshold = FarmHelperConfig.jacobCocoaBeansCap;
+                break;
+            case MUSHROOM_ROTATE:
+            case MUSHROOM:
+                cropThreshold = FarmHelperConfig.jacobMushroomCap;
+                break;
+        }
+
+        if (GameStateHandler.getInstance().getJacobsContestCropNumber() >= cropThreshold) {
+            addEmergency(EmergencyType.JACOB);
+        }
+    }
+
+    @SubscribeEvent
+    public void onTickCheckAverageBPS(TickEvent.ClientTickEvent event) {
+        if (!MacroHandler.getInstance().isMacroToggled() || MacroHandler.getInstance().isCurrentMacroPaused()) {
+            bpsQueue.clear();
+            lastTimeCheckedBPS = System.currentTimeMillis();
+            return;
+        }
+        if (firstCheckReturn()) return;
+        if (!FarmHelperConfig.averageBPSDropCheck) return;
+        if (isEmergency()) return;
+
+        if (System.currentTimeMillis() - lastTimeCheckedBPS < 1_000) return;
+        lastTimeCheckedBPS = System.currentTimeMillis();
+        float bps = ProfitCalculator.getInstance().getBPSFloat();
+        bpsQueue.add(bps);
+        if (!bpsQueue.isAtFullCapacity()) return;
+        float averageBPS = getAverageBPS();
+        if (averageBPS > bps) {
+            float percentage = (averageBPS - bps) / averageBPS * 100;
+            if (percentage > FarmHelperConfig.averageBPSDrop) {
+                addEmergency(EmergencyType.LOWER_AVERAGE_BPS);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onChatReceived(ClientChatReceivedEvent event) {
+        if (firstCheckReturn()) return;
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        if (message.contains(":")) return;
+        if (message.contains("is visiting Your Garden") && (!GameStateHandler.getInstance().isGuestOnGarden()) && !wasGuestOnGarden) {
+            lastGuestName = message.replace("[SkyBlock] ", "").replace(" is visiting Your Garden!", "");
+            wasGuestOnGarden = true;
+            tabListCheckDelay.schedule(5000L);
+            addEmergency(EmergencyType.GUEST_VISIT);
+            if (!FarmHelperConfig.pauseWhenGuestArrives)
+                Multithreading.schedule(() -> {
+                    if (emergency == EmergencyType.GUEST_VISIT) {
+                        Failsafe.getInstance().stop();
+                        MacroHandler.getInstance().resumeMacro();
+                    }
+                }, chooseEmergencyDelay.getRemainingTime() + 100L, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    @SubscribeEvent
+    public void onTickCheckGuests(TickEvent.ClientTickEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!isEmergency()) return;
+        if (tabListCheckDelay.isScheduled() && !tabListCheckDelay.passed()) return;
+        if (!GameStateHandler.getInstance().isGuestOnGarden()
+                && GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.GARDEN
+                && wasGuestOnGarden) {
+            LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because guest visit is over!", false);
+            Failsafe.getInstance().stop();
+            MacroHandler.getInstance().resumeMacro();
+        }
+    }
+
+    // endregion
+
+    // region REACTIONS
+
+    private void onRotationTeleportCheck(String emergencyName) {
+        if (fakeMovementCheck()) return;
+
+        switch (recordingCheckState) {
+            case NONE:
+                failsafeDelay.schedule((long) (500f + Math.random() * 1_000f));
+                recordingCheckState = CustomMovementState.WAIT_BEFORE_START;
+                playingState = 0;
+                break;
+            case WAIT_BEFORE_START:
+                MacroHandler.getInstance().pauseMacro();
+                lookAroundTimes = (int) Math.round(3 + Math.random() * 3);
+                currentLookAroundTimes = 0;
+                recordingCheckState = CustomMovementState.LOOK_AROUND;
+                failsafeDelay.schedule((long) (500 + Math.random() * 500));
+                KeyBindUtils.stopMovement();
+                break;
+            case LOOK_AROUND:
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
+                switch (playingState) {
+                    case 0: // play recording
+                        MovRecPlayer.getInstance().playRandomRecording(emergencyName + "_PreChat_", true);
+                        failsafeDelay.schedule((long) (2000 + Math.random() * 1_000));
+                        playingState = 1;
+                        break;
+                    case 1: // this will be executed once it finishes playing
+                        if (FarmHelperConfig.sendFailsafeMessage) {
+                            recordingCheckState = CustomMovementState.TYPE_SHIT;
+                            failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                        } else {
+                            recordingCheckState = CustomMovementState.LOOK_AROUND_2;
+                        }
+                        playingState = 2;
+                        break;
+                }
+                break;
+            case TYPE_SHIT:
+                String randomMessage;
+                String customMessages = "";
+                switch (emergency) {
+                    case ROTATION_CHECK:
+                        customMessages = CustomFailsafeMessagesPage.customRotationMessages;
+                        break;
+                    case TELEPORT_CHECK:
+                        customMessages = CustomFailsafeMessagesPage.customTeleportationMessages;
+                        break;
+                }
+                if (customMessages.isEmpty()) {
+                    randomMessage = getRandomMessage(FAILSAFE_MESSAGES);
+                } else {
+                    randomMessage = getRandomMessage(customMessages.split("\\|"));
+                }
+                LogUtils.sendDebug("[Failsafe] Chosen message: " + randomMessage);
+                mc.thePlayer.sendChatMessage("/ac " + randomMessage);
+                recordingCheckState = CustomMovementState.LOOK_AROUND_2;
+                failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                currentLookAroundTimes = 0;
+                lookAroundTimes = (int) (2 + Math.random() * 2);
+                break;
+            case LOOK_AROUND_2:
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
+                switch (playingState) {
+                    case 2: // play another recording
+                        MovRecPlayer.getInstance().playRandomRecording(emergencyName + "_PostChat_", true);
+                        failsafeDelay.schedule((long) (2000 + Math.random() * 1_000));
+                        playingState = 3;
+                        break;
+                    case 3: // this will be executed once it finishes playing
+                        recordingCheckState = CustomMovementState.END;
+                        failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                        playingState = 0;
+                        break;
+                }
+                break;
+            case END:
+                float randomTime = FarmHelperConfig.getRandomRotationTime();
+                this.rotation.easeTo(
+                        new RotationConfiguration(
+                                new Rotation(
+                                        (float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30),
+                                        (float) (30 + Math.random() * 20 - 10))
+                                , (long) randomTime, null));
+                Failsafe.getInstance().stop();
+                if (FarmHelperConfig.enableRestartAfterFailSafe) {
+                    MacroHandler.getInstance().pauseMacro();
+                } else {
+                    MacroHandler.getInstance().disableMacro();
+                }
+                Multithreading.schedule(() -> {
+                    InventoryUtils.openInventory();
+                    LogUtils.sendDebug("[Failsafe] Finished playing custom movement recording");
+                    if (FarmHelperConfig.enableRestartAfterFailSafe) {
+                        LogUtils.sendDebug("[Failsafe] Restarting the macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
+                        restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
+                    }
+                }, (long) randomTime + 250, TimeUnit.MILLISECONDS);
+                break;
+        }
+    }
+
+    private void onBanwave() {
+        if (FarmHelperConfig.banwaveAction) {
+            // pause
+            if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
+                LogUtils.sendFailsafeMessage("[Failsafe] Paused the macro because of banwave!", false);
+                MacroHandler.getInstance().pauseMacro();
+            } else {
+                if (!BanInfoWS.getInstance().isBanwave()) {
+                    LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because banwave is over!", false);
+                    Failsafe.getInstance().stop();
+                    MacroHandler.getInstance().resumeMacro();
+                }
+            }
+        } else {
+            // leave
+            if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
+                LogUtils.sendFailsafeMessage("[Failsafe] Leaving because of banwave!", false);
+                MacroHandler.getInstance().pauseMacro();
+                Multithreading.schedule(() -> {
+                    try {
+                        mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText("Will reconnect after end of banwave!"));
+                        AudioManager.getInstance().resetSound();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }, 500, TimeUnit.MILLISECONDS);
+            }
+        }
+    }
+
+    public void onRotationTeleportCheckLegacy() {
         if (fakeMovementCheck()) return;
 
         switch (rotationCheckState) {
@@ -494,103 +908,6 @@ public class Failsafe implements IFeature {
         }
     }
 
-    // endregion
-
-    // region EVACUATE
-
-    private void randomMoveAndRotate() {
-        long rotationTime = FarmHelperConfig.getRandomRotationTime();
-        this.rotation.easeTo(
-                new RotationConfiguration(
-                        new Rotation(
-                                mc.thePlayer.rotationYaw + randomValueBetweenExt(-180, 180, 45),
-                                randomValueBetweenExt(-20, 40, 5)),
-                        rotationTime, null));
-        failsafeDelay.schedule(rotationTime - 50);
-        currentLookAroundTimes++;
-        double randomKey = Math.random();
-        if (!mc.thePlayer.onGround && FarmHelperConfig.tryToUseJumpingAndFlying) {
-            if (randomKey <= 0.3) {
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
-                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
-            } else if (randomKey <= 0.6) {
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), true);
-                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
-            } else {
-                KeyBindUtils.stopMovement();
-            }
-        } else {
-            if (randomKey <= 0.175 && GameStateHandler.getInstance().isFrontWalkable()) {
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), true);
-                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
-            } else if (randomKey <= 0.35 && GameStateHandler.getInstance().isLeftWalkable()) {
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), true);
-                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
-            } else if (randomKey <= 0.525 && GameStateHandler.getInstance().isRightWalkable()) {
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), true);
-                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
-            } else if (randomKey <= 0.70 && GameStateHandler.getInstance().isBackWalkable()) {
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), true);
-                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
-            }
-            if (randomKey > 0.7) {
-                KeyBindUtils.stopMovement();
-                if (FarmHelperConfig.tryToUseJumpingAndFlying) {
-                    mc.thePlayer.jump();
-                    Multithreading.schedule(() -> {
-                        if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.allowEdit && mc.thePlayer.capabilities.allowFlying && !mc.thePlayer.capabilities.isFlying) {
-                            mc.thePlayer.capabilities.isFlying = true;
-                            mc.thePlayer.sendPlayerAbilities();
-                        }
-                    }, (long) (250 + Math.random() * 250), TimeUnit.MILLISECONDS);
-                }
-            }
-        }
-    }
-
-    private float randomValueBetweenExt(float min, float max, float minFromZero) {
-        double random = Math.random();
-        if (random < 0.5) {
-            // should return value between (min, -minFromZero)
-            return (float) (min + Math.random() * (minFromZero - min));
-        } else {
-            // should return value between (minFromZero, max)
-            return (float) (minFromZero + Math.random() * (max - minFromZero));
-        }
-    }
-
-    private void resetRotationCheck() {
-        rotationCheckState = RotationCheckState.NONE;
-    }
-
-    private boolean fakeMovementCheck() {
-        if (!FarmHelperConfig.fakeMovements) {
-            LogUtils.sendDebug("[Failsafe] Fake movement is disabled! Disabling macro.");
-            if (FarmHelperConfig.enableRestartAfterFailSafe) {
-                MacroHandler.getInstance().pauseMacro();
-                LogUtils.sendDebug("[Failsafe] Restarting the macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
-                restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
-            } else {
-                MacroHandler.getInstance().disableMacro();
-            }
-            Failsafe.getInstance().stop();
-            return true;
-        }
-        UngrabMouse.getInstance().ungrabMouse();
-        return false;
-    }
-
-    @SubscribeEvent
-    public void onBlockChange(BlockChangeEvent event) {
-        if (firstCheckReturn()) return;
-        if (isEmergency()) return;
-        if (event.update.getBlock() == null) return;
-        if (!event.update.getBlock().equals(Blocks.dirt)) return;
-
-        LogUtils.sendWarning("[Failsafe] Someone put a block on your garden! Block pos: " + event.pos);
-        dirtBlocks.add(event.pos);
-    }
-
     private void onDirtCheck() {
         if (fakeMovementCheck()) return;
 
@@ -601,40 +918,85 @@ public class Failsafe implements IFeature {
                 break;
             case WAIT_BEFORE_START:
                 MacroHandler.getInstance().pauseMacro();
-                lookAroundTimes = (int) Math.round(3 + Math.random() * 3);
-                currentLookAroundTimes = 0;
+                minimumReactions = (int) Math.round(3 + Math.random() * 3);
+                LogUtils.sendWarning("[Failsafe] Minimum reactions: " + minimumReactions);
+                if (BlockUtils.getRelativeBlock(-1, 1, 0).equals(Blocks.dirt))
+                    dirtOnLeft = true;
+                else if (BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.dirt))
+                    dirtOnLeft = false;
+                LogUtils.sendSuccess("[Failsafe] Dirt on left: " + dirtOnLeft);
+                LogUtils.sendSuccess("[Failsafe] Yaw difference: " + AngleUtils.getClosest());
+                MovRecPlayer.setYawDifference(AngleUtils.getClosest() - 90);
+                positionBeforeReacting = mc.thePlayer.getPosition();
+                rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+                dirtCheckState = DirtCheckState.PLAY_RECORDING;
                 failsafeDelay.schedule((long) (500 + Math.random() * 500));
-                KeyBindUtils.stopMovement();
-                dirtCheckState = DirtCheckState.ROTATE_INTO_DIRT;
                 break;
-            case ROTATE_INTO_DIRT:
-                BlockPos closestDirt = dirtBlocks.stream().sorted(Comparator.comparingDouble(block -> mc.thePlayer.getPosition().distanceSq(block))).collect(Collectors.toList()).get(0);
-                Rotation rotation = getRotation().getRotation(new Vec3(closestDirt.getX() + 0.5f + (Math.random() * 1 - 0.5), closestDirt.getY() + 0.5f + (Math.random() * 1 - 0.5), closestDirt.getZ() + 0.5f + (Math.random() * 1 - 0.5)));
-                float yaw = rotation.getYaw();
-                float pitch = rotation.getPitch();
-                float randomTime = FarmHelperConfig.getRandomRotationTime();
-                this.rotation.easeTo(new RotationConfiguration(new Rotation(yaw, pitch), (long) randomTime, null));
-                failsafeDelay.schedule((long) (randomTime + 250 + Math.random() * 400));
-                dirtCheckState = DirtCheckState.LOOK_AWAY;
-                Multithreading.schedule(() -> {
-                    KeyBindUtils.holdThese(mc.gameSettings.keyBindBack);
-                    Multithreading.schedule(KeyBindUtils::stopMovement, (long) (350 + Math.random() * 300), TimeUnit.MILLISECONDS);
-                }, (long) Math.max(300, randomTime - 200), TimeUnit.MILLISECONDS);
-                break;
-            case LOOK_AWAY:
-                if (this.rotation.isRotating()) return;
-                KeyBindUtils.stopMovement();
-                long randomTime2 = FarmHelperConfig.getRandomRotationTime();
-                this.rotation.easeTo(new RotationConfiguration(new Rotation(mc.thePlayer.rotationYaw + 180 + randomValueBetweenExt(-30, 30, 10), randomValueBetweenExt(-30, 5, 2)), randomTime2, null));
-                if (FarmHelperConfig.sendFailsafeMessage) {
-                    failsafeDelay.schedule((long) (randomTime2 + 450 + Math.random() * 500));
-                    dirtCheckState = DirtCheckState.TYPE_SHIT;
-                } else {
-                    failsafeDelay.schedule(randomTime2);
-                    dirtCheckState = DirtCheckState.LOOK_AROUND;
+            case PLAY_RECORDING:
+                // CanFly && isAboveClear,
+                // BlockedLeft,
+                // BlockedRight,
+                // Universal,
+                // OnGround,
+                // JumpBoost
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
+                if (FlyPathfinder.getInstance().isRunning())
+                    break;
+                String tempRecordingName = "DIRT_CHECK_";
+                if (dirtOnLeft)
+                    tempRecordingName += "BlockedLeft_";
+                else
+                    tempRecordingName += "BlockedRight_";
+                if (Math.random() < 0.2) {
+                    dirtCheckState = DirtCheckState.SEND_MESSAGE;
+                    failsafeDelay.schedule((long) (800 + Math.random() * 2_000));
+                    break;
+                } else if (mc.thePlayer.onGround
+                        && mc.thePlayer.getActivePotionEffects() != null
+                        && mc.thePlayer.getActivePotionEffects().stream().anyMatch(potionEffect -> potionEffect.getPotionID() == 8)
+                        && Math.random() < 0.2) {
+                    tempRecordingName += "JumpBoost_";
+                } else if (mc.thePlayer.capabilities.allowFlying && BlockUtils.isAboveHeadClear() && Math.random() < 0.3) {
+                    Random random = new Random();
+                    flyingRecordingNumber = random.nextInt(maxFlyingRecordingNumber) + 1;
+                    if (mc.thePlayer.onGround)
+                        tempRecordingName += "FlyAway_" + flyingRecordingNumber;
+                    else
+                        tempRecordingName += "FlyBack_" + flyingRecordingNumber;
+                } else if (mc.thePlayer.onGround) {
+                    tempRecordingName += "OnGround_";
                 }
+                if (minimumReactions > 0) {
+                    LogUtils.sendWarning("[Failsafe] Playing recording: " + tempRecordingName);
+                    MovRecPlayer.getInstance().playRandomRecording(tempRecordingName, true);
+                    if (!tempRecordingName.contains("FlyAway")) // cuz we want to go back
+                        minimumReactions--;
+                } else {
+                    FlyPathfinder.getInstance().getPathTo(new GoalBlock(positionBeforeReacting.getX(), positionBeforeReacting.getY() + 3, positionBeforeReacting.getZ()));
+                    dirtCheckState = DirtCheckState.GO_BACK_END;
+                }
+                failsafeDelay.schedule((long) (500 + Math.random() * 4_000));
                 break;
-            case TYPE_SHIT:
+            case GO_BACK_END:
+                if (FlyPathfinder.getInstance().isRunning())
+                    break;
+                if (checkForPathingFinish()) {
+                    dirtCheckState = DirtCheckState.END_DIRT_CHECK;
+                } else if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.isFlying && mc.thePlayer.getPosition().distanceSq(new BlockPos(positionBeforeReacting.getX(), mc.thePlayer.posY, positionBeforeReacting.getZ())) < 1) {
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
+                } else if (mc.thePlayer.getPosition().distanceSq(new BlockPos(positionBeforeReacting.getX(), positionBeforeReacting.getY() + 3, positionBeforeReacting.getZ())) < 1) {
+                    mc.thePlayer.capabilities.isFlying = false;
+                    mc.thePlayer.sendPlayerAbilities();
+                } else if (mc.thePlayer.onGround && mc.thePlayer.getPosition().distanceSq(positionBeforeReacting) > 2) {
+                    KeyBindUtils.stopMovement();
+                    PathingCommand pathingCommand = new PathingCommand(new GoalBlock(positionBeforeReacting), PathingCommandType.REVALIDATE_GOAL_AND_PATH);
+                    BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().secretInternalSetGoalAndPath(pathingCommand);
+                    pathing = true;
+                }
+                failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                break;
+            case SEND_MESSAGE:
                 if (this.rotation.isRotating()) return;
                 String randomMessage;
                 if (CustomFailsafeMessagesPage.customDirtMessages.isEmpty()) {
@@ -645,45 +1007,20 @@ public class Failsafe implements IFeature {
                 }
                 LogUtils.sendDebug("[Failsafe] Chosen message: " + randomMessage);
                 mc.thePlayer.sendChatMessage("/ac " + randomMessage);
-                dirtCheckState = DirtCheckState.LOOK_AROUND;
+                dirtCheckState = DirtCheckState.PLAY_RECORDING;
                 failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
-                currentLookAroundTimes = 0;
-                lookAroundTimes = (int) (2 + Math.random() * 2);
                 break;
-            case LOOK_AROUND:
-                if (currentLookAroundTimes >= lookAroundTimes) {
-                    this.rotation.reset();
-                    KeyBindUtils.stopMovement();
-                    dirtCheckState = DirtCheckState.ROTATE_INTO_DIRT_2;
-                    failsafeDelay.schedule((long) (150 + Math.random() * 150));
-                } else {
-                    randomMoveAndRotate();
-                }
-                break;
-            case ROTATE_INTO_DIRT_2:
-                BlockPos closestDirt2 = dirtBlocks.stream().sorted(Comparator.comparingDouble(block -> mc.thePlayer.getPosition().distanceSq(block))).collect(Collectors.toList()).get(0);
-                Rotation rotation2 = getRotation().getRotation(new Vec3(closestDirt2.getX() + 0.5f + (Math.random() * 1 - 0.5), closestDirt2.getY() + 0.5f + (Math.random() * 1 - 0.5), closestDirt2.getZ() + 0.5f + (Math.random() * 1 - 0.5)));
-                float yaw2 = rotation2.getYaw();
-                float pitch2 = rotation2.getPitch();
-                long randomTime3 = FarmHelperConfig.getRandomRotationTime();
-                this.rotation.easeTo(
-                        new RotationConfiguration(new Rotation(yaw2, pitch2), randomTime3, null)
-                );
-                failsafeDelay.schedule((long) (randomTime3 + 450 + Math.random() * 500));
-                dirtCheckState = DirtCheckState.END;
-                break;
-            case END:
+            case END_DIRT_CHECK:
                 if (this.rotation.isRotating()) return;
                 long randomTime4 = FarmHelperConfig.getRandomRotationTime();
-                this.rotation.easeTo(
-                        new RotationConfiguration(new Rotation((float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30), (float) (30 + Math.random() * 20 - 10)), randomTime4, null)
-                );
                 Failsafe.getInstance().stop();
                 if (FarmHelperConfig.enableRestartAfterFailSafe) {
                     MacroHandler.getInstance().pauseMacro();
                 } else {
                     MacroHandler.getInstance().disableMacro();
                 }
+                rotation.easeTo(new RotationConfiguration(new Rotation(rotationBeforeReacting.getYaw(), rotationBeforeReacting.getPitch()),
+                        randomTime4, null));
                 Multithreading.schedule(() -> {
                     InventoryUtils.openInventory();
                     LogUtils.sendDebug("[Failsafe] Finished dirt check failsafe");
@@ -692,45 +1029,74 @@ public class Failsafe implements IFeature {
                         restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
                     }
                 }, randomTime4 + 250, TimeUnit.MILLISECONDS);
+//                Multithreading.schedule(() -> {
+//                    LogUtils.sendDebug("[Failsafe] Finished dirt check failsafe. Farming...");
+//                    MacroHandler.getInstance().resumeMacro();
+//                }, 500, TimeUnit.MILLISECONDS);
                 break;
         }
     }
 
-    public boolean isTouchingDirtBlock() {
-        for (BlockPos dirtBlock : dirtBlocks) {
-            double distance = Math.sqrt(mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(dirtBlock.getX() + 0.5, dirtBlock.getY() + 0.5, dirtBlock.getZ() + 0.5)));
-            LogUtils.sendDebug(distance + " " + dirtBlock);
-            if (distance <= 1.5) {
-                return true;
-            }
+    private void onDirtCheckTest() {
+        if (fakeMovementCheck()) return;
+
+        switch (dirtCheckState) {
+            case NONE:
+                LogUtils.sendSuccess("Starting test");
+                failsafeDelay.schedule((long) (500f + Math.random() * 1_000f));
+                dirtCheckState = DirtCheckState.WAIT_BEFORE_START;
+                break;
+            case WAIT_BEFORE_START:
+                MacroHandler.getInstance().pauseMacro();
+                if (BlockUtils.getRelativeBlock(-1, 1, 0).equals(Blocks.dirt))
+                    dirtOnLeft = true;
+                else if (BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.dirt))
+                    dirtOnLeft = false;
+                LogUtils.sendSuccess("[Failsafe] Dirt on left: " + dirtOnLeft);
+                LogUtils.sendSuccess("[Failsafe] Yaw difference: " + AngleUtils.getClosest());
+                MovRecPlayer.setYawDifference(AngleUtils.getClosest());
+                positionBeforeReacting = mc.thePlayer.getPosition();
+                rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+                dirtCheckState = DirtCheckState.PLAY_RECORDING;
+                failsafeDelay.schedule((long) (500 + Math.random() * 500));
+                break;
+            case PLAY_RECORDING:
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
+                if (FlyPathfinder.getInstance().isRunning())
+                    break;
+                MovRecPlayer.getInstance().playRandomRecording("ground", true);
+                dirtCheckState = DirtCheckState.ROTATE_INTO_DIRT_2;
+                failsafeDelay.schedule(1000);
+                break;
+            case ROTATE_INTO_DIRT_2:
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
+                if (FlyPathfinder.getInstance().isRunning())
+                    break;
+                PathingCommand pathingCommand = new PathingCommand(new GoalBlock(positionBeforeReacting), PathingCommandType.REVALIDATE_GOAL_AND_PATH);
+                BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().secretInternalSetGoalAndPath(pathingCommand);
+                pathing = true;
+//                MovRecPlayer.getInstance().playRandomRecording("DIRT_CHECK_BlockedRight_OnGround", true);
+                dirtCheckState = DirtCheckState.GO_BACK_END;
+                break;
+            case GO_BACK_END:
+                if (FlyPathfinder.getInstance().isRunning())
+                    break;
+                if (checkForPathingFinish()) {
+                    LogUtils.sendSuccess("Distance difference: " + mc.thePlayer.getPosition().distanceSq(positionBeforeReacting));
+                }
+                dirtCheckState = DirtCheckState.END_DIRT_CHECK;
+                break;
+            case END_DIRT_CHECK:
+                Failsafe.getInstance().stop();
+//                Multithreading.schedule(() -> {
+//                    LogUtils.sendDebug("[Failsafe] Finished item change failsafe. Farming...");
+//                    MacroHandler.getInstance().resumeMacro();
+//                }, 500, TimeUnit.MILLISECONDS);
+                break;
         }
-        return false;
-    }
 
-    public boolean hasDirtBlocks() {
-        return !dirtBlocks.isEmpty();
-    }
-
-    // endregion
-
-    // region ITEM CHANGE
-
-    private void resetDirtCheck() {
-        dirtBlocks.clear();
-        dirtCheckState = DirtCheckState.NONE;
-    }
-
-    @SubscribeEvent
-    public void onTickCheckScoreboard(TickEvent.ClientTickEvent event) {
-        if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (!FarmHelperConfig.autoEvacuateOnWorldUpdate) return;
-        if (evacuateState != EvacuateState.NONE) return;
-
-        GameStateHandler.getInstance().getServerClosingSeconds().ifPresent(seconds -> {
-            if (seconds < 30) {
-                addEmergency(EmergencyType.EVACUATE);
-            }
-        });
     }
 
     private void onEvacuate() {
@@ -768,41 +1134,6 @@ public class Failsafe implements IFeature {
                 MacroHandler.getInstance().resumeMacro();
                 LogUtils.sendFailsafeMessage("[Failsafe] Came back from evacuation!");
                 break;
-        }
-    }
-
-    // endregion
-
-    // region WORLD CHANGE
-
-    private void resetEvacuateCheck() {
-        evacuateState = EvacuateState.NONE;
-    }
-
-    @SubscribeEvent
-    public void onPacketReceive(ReceivePacketEvent event) {
-        if (firstCheckReturn()) return;
-        if (MacroHandler.getInstance().isTeleporting()) return;
-
-        if (!(event.packet instanceof S2FPacketSetSlot)) return;
-
-        S2FPacketSetSlot packet = (S2FPacketSetSlot) event.packet;
-        int slot = packet.func_149173_d();
-        int farmingToolSlot = -1;
-        try {
-            farmingToolSlot = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
-        if (farmingToolSlot == -1) return;
-        ItemStack farmingTool = mc.thePlayer.inventory.getStackInSlot(farmingToolSlot);
-        if (slot == 36 + farmingToolSlot &&
-                farmingTool != null &&
-                !(farmingTool.getItem() instanceof ItemHoe) &&
-                !(farmingTool.getItem() instanceof ItemAxe)) {
-            LogUtils.sendDebug("[Failsafe] No farming tool in hand! Slot: " + slot);
-            addEmergency(EmergencyType.ITEM_CHANGE_CHECK);
         }
     }
 
@@ -847,58 +1178,6 @@ public class Failsafe implements IFeature {
                 break;
         }
     }
-
-    private void resetItemChangeCheck() {
-        itemChangeState = ItemChangeState.NONE;
-    }
-
-    @SubscribeEvent
-    public void onWorldChange(WorldEvent.Unload event) {
-        if (firstCheckReturn()) return;
-
-        addEmergency(EmergencyType.WORLD_CHANGE_CHECK);
-    }
-
-    @SubscribeEvent
-    public void onTickCheckLimbo(TickEvent.ClientTickEvent event) {
-        if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (emergency == EmergencyType.WORLD_CHANGE_CHECK) return;
-
-        if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
-            addEmergency(EmergencyType.WORLD_CHANGE_CHECK);
-        }
-    }
-
-    @SubscribeEvent
-    public void onChatMessageCheckLimbo(ClientChatReceivedEvent event) {
-        if (firstCheckReturn()) return;
-        if (emergency != EmergencyType.WORLD_CHANGE_CHECK) return;
-
-        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
-        if (message.contains(":")) return;
-        if (message.contains("You were spawned in Limbo.") || message.contains("/limbo") || message.startsWith("A kick occurred in your connection")) {
-            LogUtils.sendWarning("[Failsafe] Got kicked to Limbo!");
-            addEmergency(EmergencyType.WORLD_CHANGE_CHECK);
-        }
-    }
-
-    @SubscribeEvent
-    public void onReceiveChatWhileWorldChange(ClientChatReceivedEvent event) {
-        if (event.type != 0) return;
-        if (emergency != EmergencyType.WORLD_CHANGE_CHECK) return;
-
-        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
-        if (message.contains(":")) return;
-        if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing") || message.contains("You cannot join SkyBlock from here!")) {
-            LogUtils.sendWarning("[Failsafe] Can't warp to the garden! Will try again in a moment.");
-            failsafeDelay.schedule(10_000);
-        }
-    }
-
-    // endregion
-
-    // region BEDROCK CAGE
 
     private void onWorldChange() {
         if (!FarmHelperConfig.autoTPOnWorldChange) {
@@ -972,20 +1251,6 @@ public class Failsafe implements IFeature {
                 }
                 break;
         }
-    }
-
-    private void resetWorldChangeCheck() {
-        worldChangeState = WorldChangeState.NONE;
-    }
-
-    @SubscribeEvent
-    public void onTickBedrockCageCheck(TickEvent.ClientTickEvent event) {
-        if (firstCheckReturn()) return;
-
-        if (mc.thePlayer.getPosition().getY() < 50) return;
-        if (BlockUtils.bedrockCount() <= 2) return;
-
-        addEmergency(EmergencyType.BEDROCK_CAGE_CHECK);
     }
 
     private void onBedrockCage() {
@@ -1084,25 +1349,6 @@ public class Failsafe implements IFeature {
         }
     }
 
-    private void resetBedrockCageCheck() {
-        bedrockCageState = BedrockCageState.NONE;
-    }
-
-    // endregion
-
-    // region DISCONNECT
-
-    @SubscribeEvent
-    public void onDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
-        if (firstCheckReturn()) return;
-        if (MacroHandler.getInstance().isTeleporting()) return;
-        if (emergency != EmergencyType.NONE) return;
-        if (BanInfoWS.getInstance().isBanwave() && FarmHelperConfig.enableLeavePauseOnBanwave && !FarmHelperConfig.banwaveAction)
-            return;
-
-        addEmergency(EmergencyType.DISCONNECT);
-    }
-
     private void onDisconnect() {
         if (!AutoReconnect.getInstance().isRunning() && AutoReconnect.getInstance().isToggled()) {
             System.out.println("[Reconnect] Disconnected from server! Trying to reconnect...");
@@ -1118,216 +1364,6 @@ public class Failsafe implements IFeature {
             System.out.println("[Reconnect] Disconnected from server! Reconnect is already running!");
             Notifications.INSTANCE.send("Farm Helper", "Disconnected from server! Reconnect is already running!");
             stop();
-        }
-    }
-
-    // endregion
-
-    // region CUSTOM_MOVEMENT
-
-    public boolean shouldPlayRecording(EmergencyType emergency) {
-        switch (emergency) {
-            case TEST:
-            case DIRT_CHECK:
-            case ROTATION_CHECK:
-            case TELEPORT_CHECK:
-            case ITEM_CHANGE_CHECK:
-            case BEDROCK_CAGE_CHECK:
-                if (movementFilesExist(emergency.name())) {
-                    return true;
-                }
-        }
-        return false;
-    }
-
-    private boolean movementFilesExist(String emergencyName) {
-        File recordingDir = new File(mc.mcDataDir, "movementrecorder");
-        if (recordingDir.exists()) {
-            File[] recordingFiles = recordingDir.listFiles();
-            if (recordingFiles != null) {
-                for (File file : recordingFiles) {
-                    if (file.getName().contains(emergencyName + "_PreChat_")) {
-                        recordingFile = true;
-                    } else if (file.getName().contains(emergencyName + "_PostChat_")) {
-                        recordingFile2 = true;
-                    }
-                    if (recordingFile && recordingFile2) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    public String selectRandomRecordingByName(String pattern) {
-        File recordingDir = new File(mc.mcDataDir, "movementrecorder");
-        File[] files = recordingDir.listFiles((dir, name) -> name.contains(pattern) && name.endsWith(".movement"));
-
-        if (files != null && files.length > 0) {
-            List<File> matchingFiles = new ArrayList<>(Arrays.asList(files));
-
-            Random random = new Random();
-            int randomIndex = random.nextInt(matchingFiles.size());
-            LogUtils.sendDebug("Selected recording: " + matchingFiles.get(randomIndex).getName());
-            return matchingFiles.get(randomIndex).getName();
-        }
-
-        return null;
-    }
-
-    public void playMovementRecording(String emergencyName) {
-        if (fakeMovementCheck()) return;
-
-        switch (recordingCheckState) {
-            case NONE:
-                failsafeDelay.schedule((long) (500f + Math.random() * 1_000f));
-                recordingCheckState = CustomMovementState.WAIT_BEFORE_START;
-                playingState = 0;
-                break;
-            case WAIT_BEFORE_START:
-                MacroHandler.getInstance().pauseMacro();
-                lookAroundTimes = (int) Math.round(3 + Math.random() * 3);
-                currentLookAroundTimes = 0;
-                recordingCheckState = CustomMovementState.LOOK_AROUND;
-                failsafeDelay.schedule((long) (500 + Math.random() * 500));
-                KeyBindUtils.stopMovement();
-                break;
-            case LOOK_AROUND:
-                if (MovRecPlayer.getInstance().isRunning())
-                    break;
-                switch (playingState) {
-                    case 0:
-                        MovRecPlayer.getInstance().playRandomRecording(emergencyName + "_PreChat_");
-                        failsafeDelay.schedule((long) (2000 + Math.random() * 1_000));
-                        playingState = 1;
-                        break;
-                    case 1:
-                        if (FarmHelperConfig.sendFailsafeMessage) {
-                            recordingCheckState = CustomMovementState.TYPE_SHIT;
-                            failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
-                        } else {
-                            recordingCheckState = CustomMovementState.LOOK_AROUND_2;
-                        }
-                        playingState = 2;
-                        break;
-                }
-                break;
-            case TYPE_SHIT:
-                String randomMessage;
-                String customMessages = "";
-                switch (emergency) {
-                    case ROTATION_CHECK:
-                        customMessages = CustomFailsafeMessagesPage.customRotationMessages;
-                        break;
-                    case TELEPORT_CHECK:
-                        customMessages = CustomFailsafeMessagesPage.customTeleportationMessages;
-                        break;
-                }
-                if (customMessages.isEmpty()) {
-                    randomMessage = getRandomMessage(FAILSAFE_MESSAGES);
-                } else {
-                    randomMessage = getRandomMessage(customMessages.split("\\|"));
-                }
-                LogUtils.sendDebug("[Failsafe] Chosen message: " + randomMessage);
-                mc.thePlayer.sendChatMessage("/ac " + randomMessage);
-                recordingCheckState = CustomMovementState.LOOK_AROUND_2;
-                failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
-                currentLookAroundTimes = 0;
-                lookAroundTimes = (int) (2 + Math.random() * 2);
-                break;
-            case LOOK_AROUND_2:
-                if (MovRecPlayer.getInstance().isRunning())
-                    break;
-                switch (playingState) {
-                    case 2:
-                        MovRecPlayer.getInstance().playRandomRecording(emergencyName + "_PostChat_");
-                        failsafeDelay.schedule((long) (2000 + Math.random() * 1_000));
-                        playingState = 3;
-                        break;
-                    case 3:
-                        recordingCheckState = CustomMovementState.END;
-                        failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
-                        playingState = 0;
-                        break;
-                }
-                break;
-            case END:
-                float randomTime = FarmHelperConfig.getRandomRotationTime();
-                this.rotation.easeTo(
-                        new RotationConfiguration(
-                                new Rotation(
-                                        (float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30),
-                                        (float) (30 + Math.random() * 20 - 10))
-                                , (long) randomTime, null));
-                Failsafe.getInstance().stop();
-                if (FarmHelperConfig.enableRestartAfterFailSafe) {
-                    MacroHandler.getInstance().pauseMacro();
-                } else {
-                    MacroHandler.getInstance().disableMacro();
-                }
-                Multithreading.schedule(() -> {
-                    InventoryUtils.openInventory();
-                    LogUtils.sendDebug("[Failsafe] Finished playing custom movement recording");
-                    if (FarmHelperConfig.enableRestartAfterFailSafe) {
-                        LogUtils.sendDebug("[Failsafe] Restarting the macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
-                        restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
-                    }
-                }, (long) randomTime + 250, TimeUnit.MILLISECONDS);
-                break;
-        }
-    }
-
-    public void resetCustomMovement() {
-        recordingCheckState = CustomMovementState.NONE;
-        playingState = 0;
-        recordingFile = false;
-        recordingFile2 = false;
-    }
-
-    @SubscribeEvent
-    public void onTickJacobFailsafe(TickEvent.ClientTickEvent event) {
-        if (firstCheckReturn()) return;
-        if (!FarmHelperConfig.enableJacobFailsafes) return;
-        if (!GameStateHandler.getInstance().getJacobsContestCrop().isPresent()) return;
-
-        int cropThreshold = Integer.MAX_VALUE;
-        switch (GameStateHandler.getInstance().getJacobsContestCrop().get()) {
-            case CARROT:
-                cropThreshold = FarmHelperConfig.jacobCarrotCap;
-                break;
-            case NETHER_WART:
-                cropThreshold = FarmHelperConfig.jacobNetherWartCap;
-                break;
-            case POTATO:
-                cropThreshold = FarmHelperConfig.jacobPotatoCap;
-                break;
-            case WHEAT:
-                cropThreshold = FarmHelperConfig.jacobWheatCap;
-                break;
-            case SUGAR_CANE:
-                cropThreshold = FarmHelperConfig.jacobSugarCaneCap;
-                break;
-            case MELON:
-                cropThreshold = FarmHelperConfig.jacobMelonCap;
-                break;
-            case PUMPKIN:
-                cropThreshold = FarmHelperConfig.jacobPumpkinCap;
-                break;
-            case CACTUS:
-                cropThreshold = FarmHelperConfig.jacobCactusCap;
-                break;
-            case COCOA_BEANS:
-                cropThreshold = FarmHelperConfig.jacobCocoaBeansCap;
-                break;
-            case MUSHROOM_ROTATE:
-            case MUSHROOM:
-                cropThreshold = FarmHelperConfig.jacobMushroomCap;
-                break;
-        }
-
-        if (GameStateHandler.getInstance().getJacobsContestCropNumber() >= cropThreshold) {
-            addEmergency(EmergencyType.JACOB);
         }
     }
 
@@ -1360,52 +1396,6 @@ public class Failsafe implements IFeature {
             }
         }
     }
-
-    private final CircularFifoQueue<Float> bpsQueue = new CircularFifoQueue<>(20);
-    private long lastTimeCheckedBPS = System.currentTimeMillis();
-
-    @SubscribeEvent
-    public void onTickCheckAverageBPS(TickEvent.ClientTickEvent event) {
-        if (!MacroHandler.getInstance().isMacroToggled() || MacroHandler.getInstance().isCurrentMacroPaused()) {
-            bpsQueue.clear();
-            lastTimeCheckedBPS = System.currentTimeMillis();
-            return;
-        }
-        if (firstCheckReturn()) return;
-        if (!FarmHelperConfig.averageBPSDropCheck) return;
-        if (isEmergency()) return;
-
-        if (System.currentTimeMillis() - lastTimeCheckedBPS < 1_000) return;
-        lastTimeCheckedBPS = System.currentTimeMillis();
-        float bps = ProfitCalculator.getInstance().getBPSFloat();
-        bpsQueue.add(bps);
-        if (!bpsQueue.isAtFullCapacity()) return;
-        float averageBPS = getAverageBPS();
-        if (averageBPS > bps) {
-            float percentage = (averageBPS - bps) / averageBPS * 100;
-            if (percentage > FarmHelperConfig.averageBPSDrop) {
-                addEmergency(EmergencyType.LOWER_AVERAGE_BPS);
-            }
-        }
-    }
-
-    public float getAverageBPS() {
-        float averageBPS = 0;
-        for (float bpsValue : bpsQueue) {
-            averageBPS += bpsValue;
-        }
-        averageBPS /= bpsQueue.size();
-        return averageBPS;
-    }
-
-    enum LowerBPSState {
-        NONE,
-        WAIT_BEFORE_START,
-        WARP_BACK,
-        END
-    }
-
-    private LowerBPSState lowerBPSState = LowerBPSState.NONE;
 
     private void onLowerBPS() {
         switch (lowerBPSState) {
@@ -1453,6 +1443,117 @@ public class Failsafe implements IFeature {
                 }
                 Multithreading.schedule(() -> {
                     InventoryUtils.openInventory();
+                    if (FarmHelperConfig.enableRestartAfterFailSafe) {
+                        LogUtils.sendDebug("[Failsafe] Restarting the macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
+                        restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
+                    }
+                }, (long) randomTime + 250, TimeUnit.MILLISECONDS);
+                break;
+        }
+    }
+
+    public void onGuestVisit() {
+        tabListCheckDelay.schedule(5000L);
+        if (FarmHelperConfig.pauseWhenGuestArrives) {
+            if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
+                LogUtils.sendFailsafeMessage("[Failsafe] Paused the macro because of guest visit!", false);
+                MacroHandler.getInstance().pauseMacro();
+            }
+        }
+    }
+
+    public void onCustomFailsafeReaction(String emergencyName) {
+        if (fakeMovementCheck()) return;
+
+        switch (recordingCheckState) {
+            case NONE:
+                failsafeDelay.schedule((long) (500f + Math.random() * 1_000f));
+                recordingCheckState = CustomMovementState.WAIT_BEFORE_START;
+                playingState = 0;
+                break;
+            case WAIT_BEFORE_START:
+                MacroHandler.getInstance().pauseMacro();
+                lookAroundTimes = (int) Math.round(3 + Math.random() * 3);
+                currentLookAroundTimes = 0;
+                recordingCheckState = CustomMovementState.LOOK_AROUND;
+                failsafeDelay.schedule((long) (500 + Math.random() * 500));
+                KeyBindUtils.stopMovement();
+                break;
+            case LOOK_AROUND:
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
+                switch (playingState) {
+                    case 0: // play recording
+                        MovRecPlayer.getInstance().playRandomRecording(emergencyName + "_PreChat_", false);
+                        failsafeDelay.schedule((long) (2000 + Math.random() * 1_000));
+                        playingState = 1;
+                        break;
+                    case 1: // this will be executed once it finishes playing
+                        if (FarmHelperConfig.sendFailsafeMessage) {
+                            recordingCheckState = CustomMovementState.TYPE_SHIT;
+                            failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                        } else {
+                            recordingCheckState = CustomMovementState.LOOK_AROUND_2;
+                        }
+                        playingState = 2;
+                        break;
+                }
+                break;
+            case TYPE_SHIT:
+                String randomMessage;
+                String customMessages = "";
+                switch (emergency) {
+                    case ROTATION_CHECK:
+                        customMessages = CustomFailsafeMessagesPage.customRotationMessages;
+                        break;
+                    case TELEPORT_CHECK:
+                        customMessages = CustomFailsafeMessagesPage.customTeleportationMessages;
+                        break;
+                }
+                if (customMessages.isEmpty()) {
+                    randomMessage = getRandomMessage(FAILSAFE_MESSAGES);
+                } else {
+                    randomMessage = getRandomMessage(customMessages.split("\\|"));
+                }
+                LogUtils.sendDebug("[Failsafe] Chosen message: " + randomMessage);
+                mc.thePlayer.sendChatMessage("/ac " + randomMessage);
+                recordingCheckState = CustomMovementState.LOOK_AROUND_2;
+                failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                currentLookAroundTimes = 0;
+                lookAroundTimes = (int) (2 + Math.random() * 2);
+                break;
+            case LOOK_AROUND_2:
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
+                switch (playingState) {
+                    case 2: // play another recording
+                        MovRecPlayer.getInstance().playRandomRecording(emergencyName + "_PostChat_", false);
+                        failsafeDelay.schedule((long) (2000 + Math.random() * 1_000));
+                        playingState = 3;
+                        break;
+                    case 3: // this will be executed once it finishes playing
+                        recordingCheckState = CustomMovementState.END;
+                        failsafeDelay.schedule((long) (500 + Math.random() * 1_000));
+                        playingState = 0;
+                        break;
+                }
+                break;
+            case END:
+                float randomTime = FarmHelperConfig.getRandomRotationTime();
+                this.rotation.easeTo(
+                        new RotationConfiguration(
+                                new Rotation(
+                                        (float) (mc.thePlayer.rotationYaw + Math.random() * 60 - 30),
+                                        (float) (30 + Math.random() * 20 - 10))
+                                , (long) randomTime, null));
+                Failsafe.getInstance().stop();
+                if (FarmHelperConfig.enableRestartAfterFailSafe) {
+                    MacroHandler.getInstance().pauseMacro();
+                } else {
+                    MacroHandler.getInstance().disableMacro();
+                }
+                Multithreading.schedule(() -> {
+                    InventoryUtils.openInventory();
                     LogUtils.sendDebug("[Failsafe] Finished playing custom movement recording");
                     if (FarmHelperConfig.enableRestartAfterFailSafe) {
                         LogUtils.sendDebug("[Failsafe] Restarting the macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
@@ -1463,9 +1564,55 @@ public class Failsafe implements IFeature {
         }
     }
 
+    // endregion
+
+    // region RESETS
+
+    private void resetRotationCheck() {
+        rotationCheckState = RotationCheckState.NONE;
+    }
+
+    private void resetDirtCheck() {
+        dirtBlocks.clear();
+        dirtCheckState = DirtCheckState.NONE;
+    }
+
+    private void resetEvacuateCheck() {
+        evacuateState = EvacuateState.NONE;
+    }
+
+    private void resetItemChangeCheck() {
+        itemChangeState = ItemChangeState.NONE;
+    }
+
+    private void resetWorldChangeCheck() {
+        worldChangeState = WorldChangeState.NONE;
+    }
+
+    private void resetBedrockCageCheck() {
+        bedrockCageState = BedrockCageState.NONE;
+    }
+
+    public void resetCustomMovement() {
+        recordingCheckState = CustomMovementState.NONE;
+        playingState = 0;
+        recordingFile = false;
+        recordingFile2 = false;
+    }
+
     public void resetLowerBPS() {
         lowerBPSState = LowerBPSState.NONE;
     }
+
+    public void resetGuestVisit() {
+        tabListCheckDelay.reset();
+        wasGuestOnGarden = false;
+        lastGuestName = "";
+    }
+
+    // endregion
+
+    // region HELPER_METHODS
 
     private boolean firstCheckReturn() {
         if (mc.thePlayer == null || mc.theWorld == null) return true;
@@ -1474,73 +1621,182 @@ public class Failsafe implements IFeature {
         return FeatureManager.getInstance().shouldIgnoreFalseCheck();
     }
 
-    public void addEmergency(EmergencyType emergencyType) {
-        if (emergencyQueue.contains(emergencyType)) return;
-
-        MacroHandler.getInstance().getCurrentMacro().ifPresent(AbstractMacro::saveState);
-        emergencyQueue.add(emergencyType);
-        if (!chooseEmergencyDelay.isScheduled())
-            chooseEmergencyDelay.schedule(FarmHelperConfig.failsafeStopDelay + (long) (Math.random() * 500));
-        LogUtils.sendDebug("[Failsafe] Emergency added: " + emergencyType.name());
-        LogUtils.sendWarning("[Failsafe] Probability of emergency: " + LogUtils.capitalize(emergencyType.name()));
-        if (!sendingFailsafeInfo) {
-            sendingFailsafeInfo = true;
-            Multithreading.schedule(() -> {
-                EmergencyType tempEmergency = getHighestPriorityEmergency();
-                if (tempEmergency == EmergencyType.NONE) {
-                    // Should never happen, but yeh...
-                    LogUtils.sendDebug("[Failsafe] No emergency chosen!");
-                    stop();
-                    return;
-                }
-
-                if (FarmHelperConfig.enableFailsafeSound && shouldPlaySoundAlert(tempEmergency)) {
-                    AudioManager.getInstance().playSound();
-                }
-
-                if (FarmHelperConfig.autoAltTab && shouldAltTab(tempEmergency)) {
-                    FailsafeUtils.bringWindowToFront();
-                }
-                Multithreading.schedule(() -> {
-                    if (FarmHelperConfig.autoAltTab && shouldAltTab(tempEmergency) && !Display.isActive()) {
-                        FailsafeUtils.bringWindowToFrontUsingRobot();
-                        System.out.println("Bringing window to front using Robot because Winapi failed as usual.");
-                    }
-                }, 750, TimeUnit.MILLISECONDS);
-
-                LogUtils.sendFailsafeMessage(tempEmergency.label, shouldTagEveryone(tempEmergency));
-                if (shouldNotify(tempEmergency))
-                    FailsafeUtils.getInstance().sendNotification(StringUtils.stripControlCodes(tempEmergency.label), TrayIcon.MessageType.WARNING);
-            }, 800, TimeUnit.MILLISECONDS);
+    private boolean fakeMovementCheck() {
+        if (!FarmHelperConfig.fakeMovements) {
+            LogUtils.sendDebug("[Failsafe] Fake movement is disabled! Disabling macro.");
+            if (FarmHelperConfig.enableRestartAfterFailSafe) {
+                MacroHandler.getInstance().pauseMacro();
+                LogUtils.sendDebug("[Failsafe] Restarting the macro in " + FarmHelperConfig.restartAfterFailSafeDelay + " minutes.");
+                restartMacroAfterFailsafeDelay.schedule(FarmHelperConfig.restartAfterFailSafeDelay * 1_000L * 60L);
+            } else {
+                MacroHandler.getInstance().disableMacro();
+            }
+            Failsafe.getInstance().stop();
+            return true;
         }
+        UngrabMouse.getInstance().ungrabMouse();
+        return false;
     }
 
-    private EmergencyType getHighestPriorityEmergency() {
-        EmergencyType highestPriority = EmergencyType.NONE;
-        for (EmergencyType emergencyType : emergencyQueue) {
-            if (emergencyType.priority < highestPriority.priority) {
-                highestPriority = emergencyType;
+    private void randomMoveAndRotate() {
+        long rotationTime = FarmHelperConfig.getRandomRotationTime();
+        this.rotation.easeTo(
+                new RotationConfiguration(
+                        new Rotation(
+                                mc.thePlayer.rotationYaw + randomValueBetweenExt(-180, 180, 45),
+                                randomValueBetweenExt(-20, 40, 5)),
+                        rotationTime, null));
+        failsafeDelay.schedule(rotationTime - 50);
+        currentLookAroundTimes++;
+        double randomKey = Math.random();
+        if (!mc.thePlayer.onGround && FarmHelperConfig.tryToUseJumpingAndFlying) {
+            if (randomKey <= 0.3) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
+                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+            } else if (randomKey <= 0.6) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), true);
+                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+            } else {
+                KeyBindUtils.stopMovement();
+            }
+        } else {
+            if (randomKey <= 0.175 && GameStateHandler.getInstance().isFrontWalkable()) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), true);
+                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+            } else if (randomKey <= 0.35 && GameStateHandler.getInstance().isLeftWalkable()) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), true);
+                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+            } else if (randomKey <= 0.525 && GameStateHandler.getInstance().isRightWalkable()) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), true);
+                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+            } else if (randomKey <= 0.70 && GameStateHandler.getInstance().isBackWalkable()) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), true);
+                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
+            }
+            if (randomKey > 0.7) {
+                KeyBindUtils.stopMovement();
+                if (FarmHelperConfig.tryToUseJumpingAndFlying) {
+                    mc.thePlayer.jump();
+                    Multithreading.schedule(() -> {
+                        if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.allowEdit && mc.thePlayer.capabilities.allowFlying && !mc.thePlayer.capabilities.isFlying) {
+                            mc.thePlayer.capabilities.isFlying = true;
+                            mc.thePlayer.sendPlayerAbilities();
+                        }
+                    }, (long) (250 + Math.random() * 250), TimeUnit.MILLISECONDS);
+                }
             }
         }
-        return highestPriority;
     }
 
-    @SubscribeEvent
-    public void onRenderOverlay(RenderGameOverlayEvent.Post event) {
-        if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
-
-        if (chooseEmergencyDelay.isScheduled()) {
-            String text = "Failsafe in: " + LogUtils.formatTime(chooseEmergencyDelay.getRemainingTime());
-            RenderUtils.drawCenterTopText(text, event, Color.MAGENTA);
-        } else if (restartMacroAfterFailsafeDelay.isScheduled()) {
-            String text = "Restarting the macro in: " + LogUtils.formatTime(restartMacroAfterFailsafeDelay.getRemainingTime());
-            RenderUtils.drawCenterTopText(text, event, Color.MAGENTA);
-        } else if (failsafeDelay.isScheduled()) {
-            String text = "Failsafe delay: " + LogUtils.formatTime(failsafeDelay.getRemainingTime());
-            RenderUtils.drawCenterTopText(text, event, Color.MAGENTA);
+    private float randomValueBetweenExt(float min, float max, float minFromZero) {
+        double random = Math.random();
+        if (random < 0.5) {
+            // should return value between (min, -minFromZero)
+            return (float) (min + Math.random() * (minFromZero - min));
+        } else {
+            // should return value between (minFromZero, max)
+            return (float) (minFromZero + Math.random() * (max - minFromZero));
         }
     }
+
+    public boolean isTouchingDirtBlock() {
+        for (BlockPos dirtBlock : dirtBlocks) {
+            double distance = Math.sqrt(mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(dirtBlock.getX() + 0.5, dirtBlock.getY() + 0.5, dirtBlock.getZ() + 0.5)));
+//            LogUtils.sendDebug(distance + " " + dirtBlock);
+            if (distance <= 1.5) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasDirtBlocks() {
+        return !dirtBlocks.isEmpty();
+    }
+
+    public void checkReactionType() {
+        if (reactionType != 0) return;
+        if (shouldPlayCustomRecording(emergency))
+            reactionType = 1;
+        else
+            reactionType = 2;
+    }
+
+    public boolean shouldPlayCustomRecording(EmergencyType emergency) {
+        switch (emergency) {
+            case DIRT_CHECK:
+            case ROTATION_CHECK:
+            case TELEPORT_CHECK:
+            case ITEM_CHANGE_CHECK:
+            case BEDROCK_CAGE_CHECK:
+                if (movementFilesExist(emergency.name())) {
+                    return true;
+                }
+        }
+        return false;
+    }
+
+    private boolean movementFilesExist(String emergencyName) {
+        File recordingDir = new File(mc.mcDataDir, "movementrecorder");
+        if (recordingDir.exists()) {
+            File[] recordingFiles = recordingDir.listFiles();
+            if (recordingFiles != null) {
+                for (File file : recordingFiles) {
+                    if (file.getName().contains(emergencyName + "_PreChat_")) {
+                        recordingFile = true;
+                    } else if (file.getName().contains(emergencyName + "_PostChat_")) {
+                        recordingFile2 = true;
+                    }
+                    if (recordingFile && recordingFile2) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public void handleRecordingError(int reactionType) {
+        if (Failsafe.getInstance().isRunning()) {
+            LogUtils.sendWarning("[Movement Recorder] Something wrong happened. Switching to built-in legacy failsafe mechanism instead.");
+            Failsafe.getInstance().resetCustomMovement();
+            Failsafe.getInstance().setReactionType(reactionType);
+        }
+        MovRecPlayer.getInstance().stop();
+        MovRecPlayer.getInstance().resetStatesAfterMacroDisabled();
+    }
+
+    public float getAverageBPS() {
+        float averageBPS = 0;
+        for (float bpsValue : bpsQueue) {
+            averageBPS += bpsValue;
+        }
+        averageBPS /= bpsQueue.size();
+        return averageBPS;
+    }
+
+    private boolean checkForPathingFinish() {
+        if (pathing) {
+            GoalBlock goal = (GoalBlock) BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().getGoal();
+            double distance = mc.thePlayer.getDistance(goal.getGoalPos().getX() + 0.5f, mc.thePlayer.posY, goal.getGoalPos().getZ() + 0.5);
+            System.out.println(BaritoneEventListener.pathEvent);
+            if (distance <= 1 || BaritoneEventListener.pathEvent == PathEvent.AT_GOAL) {
+                BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
+                pathing = false;
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public void setReactionDelay(long delay) {
+        failsafeDelay.schedule(delay);
+    }
+
+    // endregion
+
+    // region CHECKS
 
     private boolean shouldNotify(EmergencyType emergency) {
         if (!FarmHelperConfig.popUpNotification)
@@ -1566,17 +1822,13 @@ public class Failsafe implements IFeature {
                 return FailsafeNotificationsPage.notifyOnDisconnectFailsafe;
             case JACOB:
                 return FailsafeNotificationsPage.notifyOnJacobFailsafe;
-            case TEST:
-                return FailsafeNotificationsPage.notifyOnTestFailsafe;
             case LOWER_AVERAGE_BPS:
                 return FailsafeNotificationsPage.notifyOnLowerAverageBPS;
+            case GUEST_VISIT:
+                return FailsafeNotificationsPage.notifyOnGuestVisit;
         }
         return false;
     }
-
-    // endregion
-
-    // region JACOB
 
     private boolean shouldPlaySoundAlert(EmergencyType emergency) {
         switch (emergency) {
@@ -1600,8 +1852,10 @@ public class Failsafe implements IFeature {
                 return FailsafeNotificationsPage.alertOnDisconnectFailsafe;
             case JACOB:
                 return FailsafeNotificationsPage.alertOnJacobFailsafe;
-            case TEST:
-                return FailsafeNotificationsPage.alertOnTestFailsafe;
+            case LOWER_AVERAGE_BPS:
+                return FailsafeNotificationsPage.alertOnLowerAverageBPS;
+            case GUEST_VISIT:
+                return FailsafeNotificationsPage.alertOnGuestVisit;
         }
         return false;
     }
@@ -1628,15 +1882,13 @@ public class Failsafe implements IFeature {
                 return FailsafeNotificationsPage.autoAltTabOnDisconnectFailsafe;
             case JACOB:
                 return FailsafeNotificationsPage.autoAltTabOnJacobFailsafe;
-            case TEST:
-                return FailsafeNotificationsPage.autoAltTabOnTestFailsafe;
             case LOWER_AVERAGE_BPS:
                 return FailsafeNotificationsPage.autoAltTabOnLowerAverageBPS;
+            case GUEST_VISIT:
+                return FailsafeNotificationsPage.autoAltTabOnGuestVisit;
         }
         return false;
     }
-
-    // endregion
 
     private boolean shouldTagEveryone(EmergencyType emergency) {
         switch (emergency) {
@@ -1660,17 +1912,20 @@ public class Failsafe implements IFeature {
                 return FailsafeNotificationsPage.tagEveryoneOnDisconnectFailsafe;
             case JACOB:
                 return FailsafeNotificationsPage.tagEveryoneOnJacobFailsafe;
-            case TEST:
-                return FailsafeNotificationsPage.tagEveryoneOnTestFailsafe;
             case LOWER_AVERAGE_BPS:
                 return FailsafeNotificationsPage.tagEveryoneOnLowerAverageBPS;
+            case GUEST_VISIT:
+                return FailsafeNotificationsPage.tagEveryoneOnGuestVisit;
         }
         return false;
     }
 
+    // endregion
+
+    // region ENUMS
+
     public enum EmergencyType {
         NONE,
-        TEST("This is a test emergency!", 100),
         ROTATION_CHECK("You've got§l ROTATED§r§d by staff member!", 4),
         TELEPORT_CHECK("You've got§l TELEPORTED§r§d by staff member!", 5),
         DIRT_CHECK("You've got§l DIRT CHECKED§r§d by staff member!", 3),
@@ -1681,7 +1936,9 @@ public class Failsafe implements IFeature {
         BANWAVE("Banwave has been detected!", 6),
         DISCONNECT("You've been§l DISCONNECTED§r§d from the server!", 1),
         LOWER_AVERAGE_BPS("Your BPS is lower than average!", 9),
-        JACOB("You've extended the §lJACOB COUNTER§r§d!", 7);
+        JACOB("You've extended the §lJACOB COUNTER§r§d!", 7),
+        GUEST_VISIT("You've got§l VISITED§r§d by "
+                + (!getInstance().lastGuestName.isEmpty() ? getInstance().lastGuestName : "a guest") + "!", 1);
 
         final String label;
         // 1 is highest priority
@@ -1711,11 +1968,11 @@ public class Failsafe implements IFeature {
         NONE,
         WAIT_BEFORE_START,
         ROTATE_INTO_DIRT,
-        LOOK_AWAY,
-        TYPE_SHIT,
-        LOOK_AROUND,
+        PLAY_RECORDING,
+        GO_BACK_END,
+        SEND_MESSAGE,
         ROTATE_INTO_DIRT_2,
-        END
+        END_DIRT_CHECK
     }
 
     enum EvacuateState {
@@ -1757,4 +2014,13 @@ public class Failsafe implements IFeature {
         LOOK_AROUND_2,
         END
     }
+
+    enum LowerBPSState {
+        NONE,
+        WAIT_BEFORE_START,
+        WARP_BACK,
+        END
+    }
+
+    // endregion
 }

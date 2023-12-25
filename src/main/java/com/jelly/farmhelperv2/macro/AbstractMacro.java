@@ -32,6 +32,8 @@ public abstract class AbstractMacro {
     @Setter
     public State currentState = State.NONE;
     @Setter
+    public State previousState = State.NONE;
+    @Setter
     private boolean enabled = false;
     @Setter
     private Optional<SavedState> savedState = Optional.empty();
@@ -192,10 +194,12 @@ public abstract class AbstractMacro {
             return;
         }
 
-        FarmHelperConfig.CropEnum crop = PlayerUtils.getCropBasedOnMouseOver();
-        if (crop != FarmHelperConfig.CropEnum.NONE && crop != MacroHandler.getInstance().getCrop()) {
-            LogUtils.sendWarning("Crop changed from " + MacroHandler.getInstance().getCrop() + " to " + crop);
-            MacroHandler.getInstance().setCrop(crop);
+        if (FarmHelperConfig.autoSwitchTool) {
+            FarmHelperConfig.CropEnum crop = PlayerUtils.getCropBasedOnMouseOver();
+            if (crop != FarmHelperConfig.CropEnum.NONE && crop != MacroHandler.getInstance().getCrop()) {
+                LogUtils.sendWarning("Crop changed from " + MacroHandler.getInstance().getCrop() + " to " + crop);
+                MacroHandler.getInstance().setCrop(crop);
+            }
         }
 
         PlayerUtils.getTool();
@@ -289,6 +293,7 @@ public abstract class AbstractMacro {
 
     public void changeState(State state) {
         LogUtils.sendDebug("Changing state from " + currentState + " to " + state);
+        setPreviousState(currentState);
         setCurrentState(state);
     }
 

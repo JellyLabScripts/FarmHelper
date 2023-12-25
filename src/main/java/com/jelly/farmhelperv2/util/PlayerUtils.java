@@ -9,7 +9,6 @@ import com.jelly.farmhelperv2.util.helper.Clock;
 import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.*;
@@ -108,6 +107,7 @@ public class PlayerUtils {
     public static void getTool() {
         // Sometimes if staff changed your slot, you might not have the tool in your hand after the swap, so it won't be obvious that you're using a macro
         if (itemChangedByStaff) {
+            LogUtils.sendDebug("Item changed by staff, not changing item");
             return;
         }
 
@@ -115,9 +115,13 @@ public class PlayerUtils {
             return;
         }
 
-        changeItemEveryClock.schedule(2_000L);
+        changeItemEveryClock.schedule(1_500L);
         int id = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
-        if (id == -1) return;
+        if (id == -1) {
+            LogUtils.sendDebug("No tool found!");
+            return;
+        }
+        LogUtils.sendDebug("Tool id: " + id + " current item: " + mc.thePlayer.inventory.currentItem);
         if (id == mc.thePlayer.inventory.currentItem) return;
         mc.thePlayer.inventory.currentItem = id;
     }

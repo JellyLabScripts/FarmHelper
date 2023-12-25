@@ -21,7 +21,6 @@ import com.jelly.farmhelperv2.util.BlockUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
-import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
@@ -393,9 +392,7 @@ public class FarmHelperConfig extends Config {
             text = "Sell Inventory Now"
     )
     Runnable autoSellFunction = () -> {
-        if (mc.currentScreen != null && mc.thePlayer != null) {
-            PlayerUtils.closeScreen();
-        }
+        PlayerUtils.closeScreen();
         AutoSell.getInstance().enable(true);
     };
 
@@ -491,70 +488,64 @@ public class FarmHelperConfig extends Config {
     public static boolean sendAnalyticData = true;
     //</editor-fold>
 
-    //<editor-fold desc="Sprayonator">
+    //<editor-fold desc="Auto Sprayonator">
     @Switch(
-            name = "Auto Sprayonator", category = MISCELLANEOUS, subcategory = "Sprayonator"
+        name = "Auto Sprayonator", category = MISCELLANEOUS, subcategory = "AutoSprayonator"
     )
-    public static boolean enableSprayonator;
+    public static boolean autoSprayonatorEnable = false;
 
     @Dropdown(
-            name = "Type", category = MISCELLANEOUS, subcategory = "Sprayonator",
-            description = "Item to spray plot with",
-            options = {
-                    "Compost (Earthworm & Mosquito)",
-                    "Honey Jar (Moth & Cricket)",
-                    "Dung (Beetle & Fly)",
-                    "Plant Matter (Locust & Slug)",
-                    "Tasty Cheese (Rat & Mite)"
-            }, size = 5
+        name = "Type", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+        description = "Item to spray plot with",
+        options = {
+            "Compost (Earthworm & Mosquito)",
+            "Honey Jar (Moth & Cricket)",
+            "Dung (Beetle & Fly)",
+            "Plant Matter (Locust & Slug)",
+            "Tasty Cheese (Rat & Mite)"
+        }, size = 5
     )
-    public static int sprayonatorType;
+    public static int autoSprayonatorType = 0;
 
-    @Getter
-    public enum SPRAYONATOR_ITEM {
-        COMPOST("Compost"),
-        HONEY_JAR("Honey Jar"),
-        DUNG("Dung"),
-        PLANT_MATTER("Plant Matter"),
-        TASTY_CHEESE("Tasty Cheese"),
-        NONE("NONE");
+    @Slider(
+        name = "Sprayonator Slot", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+        min = 1, max = 8,
+        step = 1,
+        description = "Slot to move sprayonator to"
+    )
+    public static int autoSprayonatorSlot = 1;
 
-        final String itemName;
-
-        SPRAYONATOR_ITEM(final String item_name) {
-            this.itemName = item_name;
-        }
-    }
+    @Slider(
+        name = "Additional Delay", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+        description = "Additional delay between actions (in milliseconds)",
+        min = 0, max = 5000, step = 1
+    )
+    public static int autoSprayonatorAdditionalDelay = 500;
 
     @Switch(
-            name = "Inventory Only", category = MISCELLANEOUS, subcategory = "Sprayonator"
+        name = "Auto Buy item from Bazaar", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+        description = "Auto buy necessary sprayonator item from bazaar if none is in the inventory"
     )
-    public static boolean sprayonatorItemInventoryOnly;
+    public static boolean autoSprayonatorAutoBuyItem = false;
 
-    @Slider(
-            name = "Sprayonator Slot", category = MISCELLANEOUS, subcategory = "Sprayonator",
-            min = 1, max = 8,
-            step = 1,
-            description = "Slot to move sprayonator to"
+    @Number(
+        name = "Buy Amount", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+        description = "Amount of item to buy from bazaar",
+        min = 1, max = 64
     )
-    public static int sprayonatorSlot = 1;
-
-    @Slider(
-            name = "Additional Delay", category = MISCELLANEOUS, subcategory = "Sprayonator",
-            description = "Additional delay between actions (in milliseconds)",
-            min = 0, max = 5000, step = 1
-    )
-    public static int sprayonatorAdditionalDelay = 500;
+    public static int autoSprayonatorAutoBuyAmount = 1;
 
     @Button(
-            name = "Reset Plots", category = MISCELLANEOUS, subcategory = "Sprayonator",
-            text = "Click Here",
-            description = "Resets the cached data for sprayonator"
+        name = "Reset Plots", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+        text = "Click Here",
+        description = "Resets the cached data for sprayonator"
     )
-    Runnable resetSprayonatorPlots = () -> {
+    Runnable _autoSprayonatorResetPlots = () -> {
         AutoSprayonator.getInstance().resetPlots();
     };
+
     //</editor-fold>
+
     //</editor-fold>
 
     //<editor-fold desc="FAILSAFES">
@@ -600,6 +591,11 @@ public class FarmHelperConfig extends Config {
             description = "Automatically reconnects to the server when disconnected"
     )
     public static boolean autoReconnect = true;
+    @Switch(
+            name = "Pause the macro when a guest arrives", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "Pauses the macro when a guest arrives"
+    )
+    public static boolean pauseWhenGuestArrives = false;
     @Slider(
             name = "Teleport Check Lag Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Variation in distance between expected and actual positions when lagging",
@@ -630,17 +626,37 @@ public class FarmHelperConfig extends Config {
             description = "The minimum BPS drop to trigger failsafe",
             min = 2, max = 50
     )
-    public static int averageBPSDrop = 5;
+    public static int averageBPSDrop = 15;
 
     @Button(
             name = "Test failsafe", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Tests failsafe",
-            text = "Test failsafe", size = 2
+            text = "Test failsafe"
     )
     Runnable _testFailsafe = () -> {
-        LogUtils.sendDebug("Testing failsafe...");
-        Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.TEST);
+        LogUtils.sendWarning("Testing failsafe...");
+        Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.values()[testFailsafeTypeSelected + 1]);
     };
+
+    @Dropdown(
+            name = "Test Failsafe Type", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "The failsafe type to test",
+            options = {
+                    "Rotation Check",
+                    "Teleport Check",
+                    "Dirt Check",
+                    "Item Change Check",
+                    "World Change Check",
+                    "Bedrock Cage Check",
+                    "Evacuate",
+                    "Banwave",
+                    "Disconnect",
+                    "Lower Average Bps",
+                    "Jacob",
+                    "Guest Visit"
+            }
+    )
+    public static int testFailsafeTypeSelected = 0;
 
     //</editor-fold>
 
@@ -1033,6 +1049,12 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean infoCompactors;
 
+    @Slider(
+        name = "Max Spend Limit (in Thousands Per Purchase)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+        min = 10, max = 2000, step = 1
+    )
+    public static int visitorsMacroMaxSpendLimit = 700;
+
     @Button(
             name = "Start the macro manually", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "Triggers the visitors macro",
@@ -1120,12 +1142,20 @@ public class FarmHelperConfig extends Config {
             min = 0, max = 5000
     )
     public static int pestAdditionalGUIDelay = 0;
+
+    @Switch(
+            name = "Sprint while flying", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            description = "Sprints while flying"
+    )
+    public static boolean sprintWhileFlying = false;
+
     @Switch(
             name = "Pause the Pests Destroyer during Jacob's contests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Pauses the Pests Destroyer during Jacob's contests",
             size = 2
     )
     public static boolean pausePestsDestroyerDuringJacobsContest = true;
+
     @Button(
             name = "Trigger now Pests Destroyer", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Triggers the pests destroyer manually",
@@ -1144,25 +1174,6 @@ public class FarmHelperConfig extends Config {
     )
     public static OneKeyBind enablePestsDestroyerKeyBind = new OneKeyBind(Keyboard.KEY_NONE);
 
-    @Slider(
-            name = "Recalculate path after pest escaped X blocks", category = PESTS_DESTROYER, subcategory = "Pathfinding",
-            description = "",
-            min = 3, max = 10
-    )
-    public static int recalculatePathAfterPestEscaped = 5;
-
-    @Switch(
-            name = "Enable Pests Destroyer Pathfinding for medium distances", category = PESTS_DESTROYER, subcategory = "Pathfinding",
-            description = "Enables the pests destroyer pathfinding for medium distances",
-            size = 1
-    )
-    public static boolean enablePestsDestroyerPathfindingMediumDistances = true;
-    @Switch(
-            name = "Enable Pests Destroyer Pathfinding for longer distances", category = PESTS_DESTROYER, subcategory = "Pathfinding",
-            description = "Enables the pests destroyer pathfinding for longer distances",
-            size = 1
-    )
-    public static boolean enablePestsDestroyerPathfindingLongerDistances = false;
     //</editor-fold>
 
     //<editor-fold desc="Drawings">
@@ -1304,7 +1315,7 @@ public class FarmHelperConfig extends Config {
     @Slider(
             name = "Time between changing rows", category = DELAYS, subcategory = "Changing rows",
             description = "The minimum time to wait before changing rows (in milliseconds)",
-            min = 50, max = 2000
+            min = 70, max = 2000
     )
     public static float timeBetweenChangingRows = 400f;
     @Slider(
@@ -1332,17 +1343,31 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="Pests Destroyer Time">
     @Slider(
-            name = "Pests Destroyer Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
+            name = "Pests Destroyer Small Distance Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
             description = "The time it takes to rotate the player",
             min = 50f, max = 750
     )
-    public static float pestsKillerRotationTime = 200f;
+    public static float pestsKillerRotationTimeSmallDistance = 200f;
     @Slider(
-            name = "Additional random Pests Destroyer Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
+            name = "Additional random Pests Destroyer Small Distance Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
             description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
             min = 0f, max = 750
     )
-    public static float pestsKillerRotationTimeRandomness = 150;
+    public static float pestsKillerRotationTimeRandomnessSmallDistance = 150;
+
+    @Slider(
+            name = "Pests Destroyer Medium Distance Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
+            description = "The time it takes to rotate the player",
+            min = 50f, max = 750
+    )
+    public static float pestsKillerRotationTimeMediumDistance = 300f;
+    @Slider(
+            name = "Additional random Pests Destroyer Medium Distance Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
+            description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
+            min = 0f, max = 750
+    )
+    public static float pestsKillerRotationTimeRandomnessMediumDistance = 120;
+
     @Slider(
             name = "Pests Destroyer Stuck Time (in minutes)", category = DELAYS, subcategory = "Pests Destroyer",
             description = "Pests Destroyer Stuck Time (in minutes) for single pest",
@@ -1417,11 +1442,11 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="DEBUG">
     //<editor-fold desc="Debug">
-//    @KeyBind(
-//            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
-//    )
-//    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
-//    @KeyBind(
+    @KeyBind(
+            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
+    )
+    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
+    //    @KeyBind(
 //            name = "Debug Keybind 2", category = DEBUG
 //    )
 //    public static OneKeyBind debugKeybind2 = new OneKeyBind(Keyboard.KEY_H);
@@ -1489,8 +1514,8 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="Auto Switch">
     @Switch(
-            name = "Auto switch tool based on crop", category = EXPERIMENTAL, subcategory = "Auto Switch",
-            description = "Automatically switches to the best tool based on the crop"
+            name = "Automatically switch recognized crop", category = EXPERIMENTAL, subcategory = "Auto Switch",
+            description = "Macro will be recognizing farming crop, which will lead to auto switching tool to the best one"
     )
     public static boolean autoSwitchTool = true;
     //</editor-fold>
@@ -1535,7 +1560,7 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     @Number(name = "Config Version", category = EXPERIMENTAL, subcategory = "Experimental", min = 0, max = 1337)
-    public static int configVersion = 1;
+    public static int configVersion = 2;
     @Switch(
             name = "Shown Welcome GUI", category = EXPERIMENTAL, subcategory = "Experimental"
     )
@@ -1556,12 +1581,12 @@ public class FarmHelperConfig extends Config {
         this.addDependency("autoSellSacksPlacement", "enableAutoSell");
         this.addDependency("autoSellFunction", "enableAutoSell");
 
-
         this.addDependency("petSwapperDelay", "enablePetSwapper");
         this.addDependency("petSwapperName", "enablePetSwapper");
 
         this.addDependency("autoUngrabMouse", "This feature doesn't work properly on Mac OS!", () -> !Minecraft.isRunningOnMac);
 
+        this.addDependency("desyncPauseDelay", "checkDesync");
         this.addDependency("failsafeSoundType", "Play Button", () -> enableFailsafeSound && !AudioManager.getInstance().isSoundPlaying());
         this.addDependency("_playFailsafeSoundButton", "enableFailsafeSound");
         this.addDependency("_stopFailsafeSoundButton", "enableFailsafeSound");
@@ -1572,10 +1597,9 @@ public class FarmHelperConfig extends Config {
         this.addDependency("failsafeSoundVolume", "Custom Sound", () -> failsafeSoundType && enableFailsafeSound);
         this.addDependency("maxOutMinecraftSounds", "Minecraft Sound", () -> !failsafeSoundType && enableFailsafeSound);
         this.hideIf("customFailsafeSoundWarning", () -> !failsafeSoundType || !enableFailsafeSound || failsafeSoundSelected != 0);
-        this.addDependency("leaveAfterFailSafe", "enableRestartAfterFailSafe");
         this.addDependency("restartAfterFailSafeDelay", "enableRestartAfterFailSafe");
+        this.addDependency("alwaysTeleportToGarden", "enableRestartAfterFailSafe");
         this.addDependency("sendFailsafeMessage", "fakeMovements");
-        this.addDependency("rewarpAt3FailesAntistuck", "enableAntiStuck");
 
         this.addDependency("schedulerFarmingTime", "enableScheduler");
         this.addDependency("schedulerFarmingTimeRandomness", "enableScheduler");
@@ -1596,15 +1620,10 @@ public class FarmHelperConfig extends Config {
         this.addDependency("jacobFailsafeAction", "enableJacobFailsafes");
 
         this.addDependency("pauseVisitorsMacroDuringJacobsContest", "visitorsMacro");
-        this.addDependency("onlyAcceptProfitableVisitors", "visitorsMacro");
+        this.addDependency("visitorsMacroUsePathFinder", "visitorsMacro");
         this.addDependency("triggerVisitorsMacro", "visitorsMacro");
         this.addDependency("visitorsMacroPriceManipulationMultiplier", "visitorsMacro");
-        this.addDependency("visitorsAcceptUncommon", "visitorsMacro");
-        this.addDependency("visitorsAcceptRare", "visitorsMacro");
-        this.addDependency("visitorsAcceptLegendary", "visitorsMacro");
-        this.addDependency("visitorsAcceptMythic", "visitorsMacro");
-        this.addDependency("visitorsAcceptSpecial", "visitorsMacro");
-        this.addDependency("visitorsMacroAction", "visitorsMacro");
+        this.addDependency("visitorsMacroMinVisitors", "visitorsMacro");
         this.addDependency("visitorsMacroAutosellBeforeServing", "visitorsMacro");
         this.addDependency("visitorsMacroMinMoney", "visitorsMacro");
 
@@ -1613,6 +1632,11 @@ public class FarmHelperConfig extends Config {
         this.addDependency("pingEveryoneOnVisitorsMacroLogs", "visitorsMacro");
         this.addDependency("pingEveryoneOnVisitorsMacroLogs", "sendVisitorsMacroLogs");
         this.addDependency("pingEveryoneOnVisitorsMacroLogs", "enableWebHook");
+
+        this.addDependency("startKillingPestsAt", "enablePestsDestroyer");
+        this.addDependency("pestAdditionalGUIDelay", "enablePestsDestroyer");
+        this.addDependency("sprintWhileFlying", "enablePestsDestroyer");
+        this.addDependency("pausePestsDestroyerDuringJacobsContest", "enablePestsDestroyer");
 
 
         this.hideIf("infoCookieBuffRequired", () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE);
@@ -1665,8 +1689,9 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-//        registerKeyBind(debugKeybind, () -> {
-//        });
+        registerKeyBind(debugKeybind, () -> {
+//            System.out.println("Guests: " + GameStateHandler.getInstance().isGuestOnGarden());
+        });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
         registerKeyBind(enablePestsDestroyerKeyBind, () -> {
@@ -1754,8 +1779,12 @@ public class FarmHelperConfig extends Config {
         return (long) (rotationTime + (float) Math.random() * rotationTimeRandomness);
     }
 
-    public static long getRandomPestsKillerRotationTime() {
-        return (long) (pestsKillerRotationTime + (float) Math.random() * pestsKillerRotationTimeRandomness);
+    public static long getRandomPestsKillerRotationTimeSmallDistance() {
+        return (long) (pestsKillerRotationTimeSmallDistance + (float) Math.random() * pestsKillerRotationTimeRandomnessSmallDistance);
+    }
+
+    public static long getRandomPestsKillerRotationTimeMediumDistance() {
+        return (long) (pestsKillerRotationTimeMediumDistance + (float) Math.random() * pestsKillerRotationTimeRandomnessMediumDistance);
     }
 
     public static long getRandomGUIMacroDelay() {

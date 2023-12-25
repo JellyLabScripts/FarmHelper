@@ -23,10 +23,26 @@ import static java.lang.Integer.parseInt;
 public class InventoryUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
+    public static boolean holdItem(String item) {
+        int slot = getSlotIdOfItemInHotbar(item);
+        if (slot == -1) return false;
+        mc.thePlayer.inventory.currentItem = slot;
+        return true;
+    }
+
     public static int getSlotIdOfItemInContainer(String item) {
-        for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
-            if (slot.getHasStack()) {
-                String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
+        return getSlotIdOfItemInContainer(item, false);
+    }
+
+    public static int getSlotIdOfItemInContainer(String item, boolean equals) {
+        for (Slot slot: mc.thePlayer.openContainer.inventorySlots) {
+            if (!slot.getHasStack()) continue;
+            String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
+            if (equals) {
+                if (itemName.equalsIgnoreCase(item)) {
+                    return slot.slotNumber;
+                }
+            } else {
                 if (itemName.contains(item)) {
                     return slot.slotNumber;
                 }
@@ -134,6 +150,7 @@ public class InventoryUtils {
     }
 
     public static boolean hasItemInHotbar(String... item) {
+        // return getSlotIdOfItemInHotbar(item) != -1;
         for (int i = 0; i < 9; i++) {
             ItemStack slot = mc.thePlayer.inventory.getStackInSlot(i);
             if (slot != null && slot.getItem() != null) {

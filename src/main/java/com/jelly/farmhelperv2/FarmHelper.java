@@ -80,6 +80,13 @@ public class FarmHelper {
             Notifications.INSTANCE.send("FarmHelper", "Auto Ungrab Mouse feature doesn't work properly on Mac OS. It has been disabled automatically.", 15000);
             LogUtils.sendError("Auto Ungrab Mouse feature doesn't work properly on Mac OS. It has been disabled automatically.");
         }
+        if (FarmHelperConfig.configVersion == 1 && FarmHelperConfig.pestsKillerTicksOfNotSeeingPestWhileAttacking < 80) {
+            FarmHelperConfig.pestsKillerTicksOfNotSeeingPestWhileAttacking = 100;
+            Notifications.INSTANCE.send("FarmHelper", "Pests Killer Ticks Of Not Seeing Pest While Attacking has been set to 100 ticks because of a bug in the previous version.", 15000);
+            LogUtils.sendWarning("Pests Killer Ticks Of Not Seeing Pest While Attacking has been set to 100 ticks because of a bug in the previous version.");
+        }
+        if (FarmHelperConfig.configVersion == 1)
+            FarmHelperConfig.configVersion = 2;
         sentInfoAboutShittyClient = true;
     }
 

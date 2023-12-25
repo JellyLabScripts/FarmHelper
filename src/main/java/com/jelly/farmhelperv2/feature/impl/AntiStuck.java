@@ -11,6 +11,7 @@ import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
@@ -42,7 +43,9 @@ public class AntiStuck implements IFeature {
     );
     private UnstuckState unstuckState = UnstuckState.NONE;
     private boolean enabled = false;
+    @Setter
     private BlockPos intersectingBlockPos = null;
+    private ArrayList<KeyBinding> oppositeKeys = new ArrayList<>();
 
     public static AntiStuck getInstance() {
         if (instance == null) {
@@ -131,6 +134,20 @@ public class AntiStuck implements IFeature {
         });
     }
 
+    private KeyBinding getOppositeKey(KeyBinding key) {
+        if (key.equals(mc.gameSettings.keyBindForward)) {
+            return mc.gameSettings.keyBindBack;
+        } else if (key.equals(mc.gameSettings.keyBindBack)) {
+            return mc.gameSettings.keyBindForward;
+        } else if (key.equals(mc.gameSettings.keyBindLeft)) {
+            return mc.gameSettings.keyBindRight;
+        } else if (key.equals(mc.gameSettings.keyBindRight)) {
+            return mc.gameSettings.keyBindLeft;
+        } else {
+            return null;
+        }
+    }
+
     private Optional<BlockPos> getIntersectingPos() {
         BlockPos playerPos = mc.thePlayer.getPosition();
 
@@ -208,18 +225,31 @@ public class AntiStuck implements IFeature {
                 EnumFacing facing = closestSide.get();
                 Vec3 movementTarget = getMovementTarget(intersectingBlockPos, facing);
                 List<KeyBinding> keys = getNeededKeyPresses(mc.thePlayer.getPositionVector(), movementTarget);
+                oppositeKeys.clear();
+                for (KeyBinding key : keys) {
+                    oppositeKeys.add(getOppositeKey(key));
+                }
+                oppositeKeys.add(mc.gameSettings.keyBindSneak);
+                oppositeKeys.add(mc.gameSettings.keyBindAttack);
                 keys.add(mc.gameSettings.keyBindSneak);
                 keys.add(mc.gameSettings.keyBindAttack);
                 KeyBindUtils.holdThese(keys.toArray(new KeyBinding[0]));
                 unstuckState = UnstuckState.RELEASE;
-                delayBetweenMovementsClock.schedule(150 + (int) (Math.random() * 200));
+                delayBetweenMovementsClock.schedule(100 + (int) (Math.random() * 100));
                 break;
             case RELEASE:
                 KeyBindUtils.stopMovement();
+                unstuckState = UnstuckState.COME_BACK;
+                delayBetweenMovementsClock.schedule(100 + (int) (Math.random() * 100));
+                break;
+            case COME_BACK:
+                if (oppositeKeys != null)
+                    KeyBindUtils.holdThese(oppositeKeys.toArray(new KeyBinding[0]));
                 unstuckState = UnstuckState.DISABLE;
-                delayBetweenMovementsClock.schedule(150 + (int) (Math.random() * 200));
+                delayBetweenMovementsClock.schedule(100 + (int) (Math.random() * 100));
                 break;
             case DISABLE:
+                KeyBindUtils.stopMovement();
                 stop();
                 break;
         }
@@ -279,6 +309,7 @@ public class AntiStuck implements IFeature {
         NONE,
         PRESS,
         RELEASE,
+        COME_BACK,
         DISABLE
     }
 

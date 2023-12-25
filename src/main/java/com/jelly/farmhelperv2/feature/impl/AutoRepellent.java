@@ -29,7 +29,7 @@ public class AutoRepellent implements IFeature {
     private static AutoRepellent instance;
 
     public final static Clock repellentFailsafeClock = new Clock();
-    private final Pattern repellentRegex = Pattern.compile("(\\d+)m\\s(\\d+)s");
+    private final Pattern repellentRegex = Pattern.compile("(\\d+?)m?\\s?(\\d+)s");
 
     private int savedSlot = 0;
 
@@ -391,7 +391,7 @@ public class AutoRepellent implements IFeature {
         } else if (state == State.WAIT_FOR_REPELLENT) {
             System.out.println(message);
             if (message.startsWith("YUM! Pests will now spawn")) {
-                repellentFailsafeClock.schedule(TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS));
+                repellentFailsafeClock.schedule(TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS) + 5_000);
                 LogUtils.sendDebug("Repellent used!");
                 if (this.hotbarSlot == -1) {
                     state = State.NONE;

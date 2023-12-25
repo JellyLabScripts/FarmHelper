@@ -6,8 +6,10 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.util.AngleUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
+import net.minecraft.client.Minecraft;
 
 import java.util.List;
 import java.util.Map;
@@ -21,6 +23,13 @@ public class DebugHUD extends TextHud {
     protected void getLines(List<String> lines, boolean example) {
         if (!FarmHelperConfig.debugMode) return;
         lines.add("§lFarmHelper Debug HUD");
+        if (Minecraft.getMinecraft().thePlayer != null && Minecraft.getMinecraft().theWorld != null) {
+            lines.add("Minecraft Yaw: " + Minecraft.getMinecraft().thePlayer.rotationYaw);
+            lines.add("get360RotationYaw: " + AngleUtils.get360RotationYaw());
+        }
+        if (MovRecPlayer.getInstance().isRunning()) {
+            lines.add("Yaw Difference: " + MovRecPlayer.getYawDifference());
+        }
         lines.add("Location: " + GameStateHandler.getInstance().getLocation());
         MacroHandler.getInstance().getCurrentMacro().ifPresent(macro -> {
             lines.add("Current state: " + macro.getCurrentState());
@@ -123,23 +132,6 @@ public class DebugHUD extends TextHud {
             lines.add("      Right: " + FlyPathfinder.getInstance().isDeceleratingRight);
             lines.add("      Forward: " + FlyPathfinder.getInstance().isDeceleratingForward);
             lines.add("      Backward: " + FlyPathfinder.getInstance().isDeceleratingBackward);
-        }
-        if (AutoSprayonator.getInstance().isToggled()) {
-            lines.add("Auto Sprayonator");
-            lines.add("   Running: " + AutoSprayonator.getInstance().isRunning());
-            lines.add("   State: " + AutoSprayonator.getInstance().getSprayState());
-            lines.add("   Item: " + AutoSprayonator.getInstance().getSprayItem());
-            lines.add("   Clock: " + AutoSprayonator.getInstance().getSprayonatorDelay().getRemainingTime());
-            lines.add("   Check Plot State: " + AutoSprayonator.getInstance().getCheckPlotState());
-            lines.add("   Skymart State: " + AutoSprayonator.getInstance().getSkymartPurchaseState());
-            lines.add("   Bazaar State: " + AutoSprayonator.getInstance().getBazaarPurchaseState());
-            lines.add("   GUI State: " + AutoSprayonator.getInstance().getCurrentGuiState());
-            AutoSprayonator.PlotData plotData = AutoSprayonator.getInstance().getSprayonatorPlotStates().get(GameStateHandler.getInstance().getCurrentPlot());
-            if (plotData != null) {
-                lines.add("   Plot Sprayed: " + plotData.isSprayed());
-                lines.add("   Plot Spray Clock: " + plotData.getSprayClock().getRemainingTime());
-                lines.add("   Plot Spray Item: " + plotData.getSprayItem());
-            }
         }
     }
 }

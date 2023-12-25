@@ -18,6 +18,7 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -46,8 +47,10 @@ public class FlyPathfinder {
     private final List<BlockPos> realPath = new ArrayList<>();
     private static final RotationHandler rotation = RotationHandler.getInstance();
     private Clock antiStuckDelay = new Clock();
-    private int stuckCounterWithoutMotion = 0;
-    private int stuckCounterWithMotion = 0;
+    @Setter
+    public int stuckCounterWithoutMotion = 0;
+    @Setter
+    public int stuckCounterWithMotion = 0;
     private boolean shouldRecalculateLater = false;
     public boolean hasFailed = false;
     private Vec3 lastPlayerPos;
@@ -153,10 +156,12 @@ public class FlyPathfinder {
             LogUtils.sendError("Player is not allowed to fly. Disabling pathfinder.");
             stop();
             return;
-        } else if (!mc.thePlayer.capabilities.isFlying)
+        } else if (!mc.thePlayer.capabilities.isFlying && BlockUtils.getRelativeBlock(0, -1, 1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, -1, 1))) {
             mc.thePlayer.capabilities.isFlying = true;
+            mc.thePlayer.sendPlayerAbilities();
+        }
         double distance3d = mc.thePlayer.getDistance(pathBlocks.get(0).getX() + 0.5, pathBlocks.get(0).getY() + 0.5, pathBlocks.get(0).getZ() + 0.5);
-        if (distance3d < 0.5) {
+        if (distance3d < 0.5 || (isPlayerUnderHalfBlock() && distance3d < 1)) {
             pathBlocks.remove(0);
             rotation.reset();
             if (!pathBlocks.isEmpty()) {
@@ -181,7 +186,11 @@ public class FlyPathfinder {
         }
         if (antiStuckDelay.isScheduled() && !antiStuckDelay.passed())
             return;
-        if (mc.thePlayer.onGround) {
+        if (mc.thePlayer.onGround
+                && BlockUtils.getRelativeBlock(0, 0, 1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, 0, 1))
+                && BlockUtils.getRelativeBlock(0, 1, 1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, 1, 1))
+                && !BlockUtils.getRelativeBlock(0, -1, 1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, -1, 1))) {
+            LogUtils.sendDebug("Jumping");
             mc.thePlayer.jump();
             antiStuckDelay.schedule(200);
             return;
@@ -205,7 +214,7 @@ public class FlyPathfinder {
         float yaw = mc.thePlayer.rotationYaw * (float) Math.PI / 180.0f;
         double relativeDistanceX = distanceX * Math.cos(yaw) + distanceZ * Math.sin(yaw);
         double relativeDistanceZ = -distanceX * Math.sin(yaw) + distanceZ * Math.cos(yaw);
-        double relativeMotionX = mc.thePlayer.motionX * Math.cos(yaw) - mc.thePlayer.motionZ * Math.sin(yaw);
+        double relativeMotionX = mc.thePlayer.motionX * Math.cos(yaw) + mc.thePlayer.motionZ * Math.sin(yaw);
         double relativeMotionZ = -mc.thePlayer.motionX * Math.sin(yaw) + mc.thePlayer.motionZ * Math.cos(yaw);
         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, relativeDistanceX < -FarmHelperConfig.flightAllowedOvershootThreshold);
         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, relativeDistanceX > FarmHelperConfig.flightAllowedOvershootThreshold);
@@ -213,7 +222,7 @@ public class FlyPathfinder {
         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, relativeDistanceZ < -FarmHelperConfig.flightAllowedOvershootThreshold);
         if (shouldChangeHeight(relativeDistanceX, relativeDistanceZ) == VerticalDirection.NONE) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, distanceY > 0.25);
-            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, distanceY < -0.25);
+            KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, distanceY < -0.25 && !mc.thePlayer.onGround && BlockUtils.getRelativeBlock(0, -1, 0).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, -1, 0)));
         } else if (shouldChangeHeight(relativeDistanceX, relativeDistanceZ) == VerticalDirection.HIGHER) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, true);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, false);
@@ -221,12 +230,12 @@ public class FlyPathfinder {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
         }
-        isDeceleratingLeft = relativeMotionX > 0 && decelerationReached(relativeMotionX, relativeDistanceX);
+        isDeceleratingLeft = relativeMotionX < 0 && decelerationReached(relativeMotionX, relativeDistanceX);
         if (isDeceleratingLeft) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, true);
         }
-        isDeceleratingRight = relativeMotionX < 0 && decelerationReached(relativeMotionX, relativeDistanceX);
+        isDeceleratingRight = relativeMotionX > 0 && decelerationReached(relativeMotionX, relativeDistanceX);
         if (isDeceleratingRight) {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindLeft, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindRight, true);
@@ -241,8 +250,10 @@ public class FlyPathfinder {
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindForward, false);
             KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindBack, true);
         }
-        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSprint, relativeDistanceZ > 12 && !mc.gameSettings.keyBindSneak.isKeyDown());
-        mc.thePlayer.setSprinting(relativeDistanceZ > 12 && !mc.gameSettings.keyBindSneak.isKeyDown());
+        boolean isSprinting = relativeDistanceZ > 12 && !mc.gameSettings.keyBindSneak.isKeyDown();
+        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSprint, isSprinting);
+        if (!isSprinting) // to avoid omni sprinting
+            mc.thePlayer.setSprinting(false);
     }
 
     public boolean isDeceleratingLeft = false;
@@ -268,6 +279,11 @@ public class FlyPathfinder {
             return VerticalDirection.LOWER;
         }
         return VerticalDirection.NONE;
+    }
+
+    @SubscribeEvent
+    public void onWorldUnload(WorldEvent.Unload event) {
+        stop();
     }
 
     public enum VerticalDirection {
@@ -300,7 +316,7 @@ public class FlyPathfinder {
     }
 
     public boolean isStuckWithMotion() {
-        if (lastPlayerPos == null || getPlayerSpeed() > 0.5 || mc.thePlayer.onGround) {
+        if (lastPlayerPos == null || getPlayerSpeed() > 0.5) {
             lastPlayerPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
             return false;
         }
@@ -316,6 +332,12 @@ public class FlyPathfinder {
             return true;
         }
         return false;
+    }
+
+    public boolean isPlayerUnderHalfBlock() {
+        return (mc.thePlayer.posY % 1 < 0.701 && mc.thePlayer.posY % 1 > 0.201
+                && !BlockUtils.getRelativeFullBlock(0, 2, 0).isPassable(mc.theWorld, BlockUtils.getRelativeFullBlockPos(0, 2, 0))
+        );
     }
 
     //region Path smoothing - Nirox version
