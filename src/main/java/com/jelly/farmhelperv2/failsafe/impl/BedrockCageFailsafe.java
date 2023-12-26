@@ -1,10 +1,12 @@
 package com.jelly.farmhelperv2.failsafe.impl;
 
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
@@ -13,7 +15,11 @@ import com.jelly.farmhelperv2.util.BlockUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
+import net.minecraft.init.Blocks;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.Vec3;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class BedrockCageFailsafe extends Failsafe {
     private static BedrockCageFailsafe instance;
@@ -65,12 +71,20 @@ public class BedrockCageFailsafe extends Failsafe {
                 break;
             case WAIT_BEFORE_START:
                 MacroHandler.getInstance().pauseMacro();
+                if (BlockUtils.getRelativeBlock(-1, 1, 0).equals(Blocks.bedrock))
+                    bedrockOnLeft = true;
+                else if (BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.bedrock))
+                    bedrockOnLeft = false;
                 MovRecPlayer.setYawDifference(AngleUtils.getClosest(rotationBeforeReacting.getYaw()));
                 positionBeforeReacting = mc.thePlayer.getPosition();
                 bedrockCageCheckState = BedrockCageCheckState.LOOK_AROUND;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
                 break;
             case LOOK_AROUND:
+                if (bedrockOnLeft)
+                    MovRecPlayer.getInstance().playRandomRecording("BEDROCK_CHECK_Left_Start_");
+                else
+                    MovRecPlayer.getInstance().playRandomRecording("BEDROCK_CHECK_Right_Start_");
                 MovRecPlayer.getInstance().playRandomRecording("BEDROCK_CHECK_Start");
                 bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE;
                 FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
@@ -185,10 +199,39 @@ public class BedrockCageFailsafe extends Failsafe {
         FailsafeManager.getInstance().possibleDetection(this);
     }
 
+    @SubscribeEvent
+    public void onBedrockCheckBypass(ReceivePacketEvent event) {
+        if (MacroHandler.getInstance().isTeleporting()) return;
+        if (!(event.packet instanceof S08PacketPlayerPosLook)) {
+            return;
+        }
+        S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
+        Vec3 currentPlayerPos = mc.thePlayer.getPositionVector();
+        Vec3 packetPlayerPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
+        rotationBeforeReacting = new Rotation(mc.thePlayer.prevRotationYaw, mc.thePlayer.prevRotationPitch);
+
+        double distance = currentPlayerPos.distanceTo(packetPlayerPos);
+        if (packet.getY() > 100 || distance < 10)
+            return;
+        LogUtils.sendFailsafeMessage("[Failsafe] You've just passed the failsafe check for bedrock cage!", FailsafeNotificationsPage.tagEveryoneOnBedrockCageFailsafe);
+        final double lastReceivedPacketDistance = currentPlayerPos.distanceTo(LagDetector.getInstance().getLastPacketPosition());
+        final double playerMovementSpeed = mc.thePlayer.getAttributeMap().getAttributeInstanceByName("generic.movementSpeed").getAttributeValue();
+        final int ticksSinceLastPacket = (int) Math.ceil(LagDetector.getInstance().getTimeSinceLastTick() / 50D);
+        final double estimatedMovement = playerMovementSpeed * ticksSinceLastPacket;
+        if (lastReceivedPacketDistance > 7.5D && Math.abs(lastReceivedPacketDistance - estimatedMovement) < FarmHelperConfig.teleportCheckLagSensitivity)
+            return;
+        if (bedrockCageCheckState == BedrockCageCheckState.WAIT_UNTIL_TP_BACK && MovRecPlayer.getInstance().isRunning()) {
+            MovRecPlayer.getInstance().stop();
+            bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE;
+            FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
+        }
+    }
+
     private BedrockCageCheckState bedrockCageCheckState = BedrockCageCheckState.NONE;
     private final RotationHandler rotation = RotationHandler.getInstance();
     private BlockPos positionBeforeReacting = null;
     private Rotation rotationBeforeReacting = null;
+    private boolean bedrockOnLeft = false;
     enum BedrockCageCheckState {
         NONE,
         WAIT_BEFORE_START,
