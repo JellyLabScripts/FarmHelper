@@ -21,6 +21,14 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import java.util.concurrent.TimeUnit;
 
 public class LowerAvgBpsFailsafe extends Failsafe {
+    private static LowerAvgBpsFailsafe instance;
+    public static LowerAvgBpsFailsafe getInstance() {
+        if (instance == null) {
+            instance = new LowerAvgBpsFailsafe();
+        }
+        return instance;
+    }
+
     @Override
     public int getPriority() {
         return 9;

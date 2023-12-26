@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.hud;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.remote.DiscordBotHandler;
@@ -81,10 +82,10 @@ public class StatusHUD extends TextHud {
     }
 
     public String getStatusString() {
-        if (Failsafe.getInstance().isEmergency()) {
-            return "Emergency: §l§5" + LogUtils.capitalize(Failsafe.getInstance().getEmergency().name()) + "§r";
-        } else if (Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().isScheduled()) {
-            return "§l§6Restarting after failsafe in " + LogUtils.formatTime(Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().getRemainingTime()) + "§r";
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
+            return "Emergency: §l§5" + LogUtils.capitalize(FailsafeManager.getInstance().triggeredFailsafe.get().getType().name()) + "§r";
+        } else if (FailsafeManager.getInstance().getRestartMacroAfterFailsafeDelay().isScheduled()) {
+            return "§l§6Restarting after failsafe in " + LogUtils.formatTime(FailsafeManager.getInstance().getRestartMacroAfterFailsafeDelay().getRemainingTime()) + "§r";
         } else if (!MacroHandler.getInstance().isMacroToggled()) {
             return "Idling";
         } else if (Scheduler.getInstance().isRunning()) {

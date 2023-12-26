@@ -15,6 +15,14 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import java.util.concurrent.TimeUnit;
 
 public class JacobFailsafe extends Failsafe {
+    private static JacobFailsafe instance;
+    public static JacobFailsafe getInstance() {
+        if (instance == null) {
+            instance = new JacobFailsafe();
+        }
+        return instance;
+    }
+
     @Override
     public int getPriority() {
         return 7;

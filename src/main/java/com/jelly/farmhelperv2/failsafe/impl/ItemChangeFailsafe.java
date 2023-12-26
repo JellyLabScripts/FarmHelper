@@ -1,10 +1,13 @@
 package com.jelly.farmhelperv2.failsafe.impl;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import net.minecraft.item.ItemAxe;
@@ -12,7 +15,17 @@ import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
 
+import java.util.concurrent.TimeUnit;
+
 public class ItemChangeFailsafe extends Failsafe {
+    private static ItemChangeFailsafe instance;
+    public static ItemChangeFailsafe getInstance() {
+        if (instance == null) {
+            instance = new ItemChangeFailsafe();
+        }
+        return instance;
+    }
+
     @Override
     public int getPriority() {
         return 3;
@@ -71,7 +84,35 @@ public class ItemChangeFailsafe extends Failsafe {
 
     @Override
     public void duringFailsafeTrigger() {
-
+        switch (itemChangeState) {
+            case NONE:
+                FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
+                itemChangeState = ItemChangeState.WAIT_BEFORE_START;
+                break;
+            case WAIT_BEFORE_START:
+                MacroHandler.getInstance().pauseMacro();
+                KeyBindUtils.stopMovement();
+                itemChangeState = ItemChangeState.LOOK_AROUND;
+                FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
+                break;
+            case LOOK_AROUND:
+                MovRecPlayer.getInstance().playRandomRecording("ITEM_CHANGE_");
+                itemChangeState = ItemChangeState.SWAP_BACK_ITEM;
+                break;
+            case SWAP_BACK_ITEM:
+                if (MovRecPlayer.getInstance().isRunning()) return;
+                itemChangeState = ItemChangeState.END;
+                FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
+                break;
+            case END:
+                PlayerUtils.getTool();
+                endOfFailsafeTrigger();
+                Multithreading.schedule(() -> {
+                    LogUtils.sendDebug("[Failsafe] Finished item change failsafe. Farming...");
+                    MacroHandler.getInstance().resumeMacro();
+                }, 500, TimeUnit.MILLISECONDS);
+                break;
+        }
     }
 
     @Override
@@ -79,6 +120,7 @@ public class ItemChangeFailsafe extends Failsafe {
 
     }
 
+    private ItemChangeState itemChangeState = ItemChangeState.NONE;
     enum ItemChangeState {
         NONE,
         WAIT_BEFORE_START,

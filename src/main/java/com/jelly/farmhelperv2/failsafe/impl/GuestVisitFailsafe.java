@@ -16,6 +16,14 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import java.util.concurrent.TimeUnit;
 
 public class GuestVisitFailsafe extends Failsafe {
+    private static GuestVisitFailsafe instance;
+    public static GuestVisitFailsafe getInstance() {
+        if (instance == null) {
+            instance = new GuestVisitFailsafe();
+        }
+        return instance;
+    }
+
     @Override
     public int getPriority() {
         return 1;
@@ -74,10 +82,11 @@ public class GuestVisitFailsafe extends Failsafe {
             FailsafeManager.getInstance().possibleDetection(this);
             if (!FarmHelperConfig.pauseWhenGuestArrives)
                 Multithreading.schedule(() -> {
-                    if (emergency == FailsafeManager.EmergencyType.GUEST_VISIT) {
+                    if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()
+                            && FailsafeManager.getInstance().triggeredFailsafe.get().getType() == FailsafeManager.EmergencyType.GUEST_VISIT) {
                         endOfFailsafeTrigger();
                     }
-                }, chooseEmergencyDelay.getRemainingTime() + 100L, TimeUnit.MILLISECONDS);
+                }, 100L, TimeUnit.MILLISECONDS);
         }
     }
 

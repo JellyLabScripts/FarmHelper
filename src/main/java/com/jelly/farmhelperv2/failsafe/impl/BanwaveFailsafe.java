@@ -16,6 +16,14 @@ import net.minecraft.util.ChatComponentText;
 import java.util.concurrent.TimeUnit;
 
 public class BanwaveFailsafe extends Failsafe {
+    private static BanwaveFailsafe instance;
+    public static BanwaveFailsafe getInstance() {
+        if (instance == null) {
+            instance = new BanwaveFailsafe();
+        }
+        return instance;
+    }
+
     @Override
     public int getPriority() {
         return 6;

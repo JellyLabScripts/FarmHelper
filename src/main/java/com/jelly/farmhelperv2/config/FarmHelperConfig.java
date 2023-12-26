@@ -11,6 +11,7 @@ import com.jelly.farmhelperv2.config.page.AutoSellNPCItemsPage;
 import com.jelly.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -635,7 +636,7 @@ public class FarmHelperConfig extends Config {
     )
     Runnable _testFailsafe = () -> {
         LogUtils.sendWarning("Testing failsafe...");
-        Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.values()[testFailsafeTypeSelected + 1]);
+//        Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.values()[testFailsafeTypeSelected + 1]);
     };
 
     @Dropdown(

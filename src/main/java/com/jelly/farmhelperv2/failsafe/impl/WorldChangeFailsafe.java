@@ -21,6 +21,14 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import java.util.concurrent.TimeUnit;
 
 public class WorldChangeFailsafe extends Failsafe {
+    private static WorldChangeFailsafe instance;
+    public static WorldChangeFailsafe getInstance() {
+        if (instance == null) {
+            instance = new WorldChangeFailsafe();
+        }
+        return instance;
+    }
+
     @Override
     public int getPriority() {
         return 2;
@@ -61,7 +69,8 @@ public class WorldChangeFailsafe extends Failsafe {
     public void onTickCheckLimbo(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (emergency == EmergencyType.WORLD_CHANGE_CHECK) return;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()
+                && FailsafeManager.getInstance().triggeredFailsafe.get().getType() == FailsafeManager.EmergencyType.WORLD_CHANGE_CHECK) return;
 
         if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
             FailsafeManager.getInstance().possibleDetection(this);
@@ -71,7 +80,8 @@ public class WorldChangeFailsafe extends Failsafe {
     @SubscribeEvent
     public void onChatMessageCheckLimbo(ClientChatReceivedEvent event) {
         if (FailsafeManager.getInstance().firstCheckReturn()) return;
-        if (emergency != EmergencyType.WORLD_CHANGE_CHECK) return;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()
+                && FailsafeManager.getInstance().triggeredFailsafe.get().getType() != FailsafeManager.EmergencyType.WORLD_CHANGE_CHECK) return;
 
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains(":")) return;
@@ -84,7 +94,8 @@ public class WorldChangeFailsafe extends Failsafe {
     @SubscribeEvent
     public void onReceiveChatWhileWorldChange(ClientChatReceivedEvent event) {
         if (event.type != 0) return;
-        if (emergency != EmergencyType.WORLD_CHANGE_CHECK) return;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()
+                && FailsafeManager.getInstance().triggeredFailsafe.get().getType() != FailsafeManager.EmergencyType.WORLD_CHANGE_CHECK) return;
 
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains(":")) return;

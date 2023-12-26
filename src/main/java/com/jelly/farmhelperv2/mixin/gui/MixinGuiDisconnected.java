@@ -1,9 +1,9 @@
 package com.jelly.farmhelperv2.mixin.gui;
 
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.AutoReconnect;
 import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
-import com.jelly.farmhelperv2.feature.impl.Failsafe;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
@@ -51,7 +51,7 @@ public class MixinGuiDisconnected {
             return;
         }
 
-        if (Failsafe.getInstance().getEmergency() == Failsafe.EmergencyType.BANWAVE && !FarmHelperConfig.banwaveAction) {
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent() && FailsafeManager.getInstance().triggeredFailsafe.get().getType() == FailsafeManager.EmergencyType.BANWAVE && !FarmHelperConfig.banwaveAction) {
             if (BanInfoWS.getInstance().isBanwave()) {
                 multilineMessage = farmHelperV2$multilineMessageCopy;
                 multilineMessage.set(0, "Will reconnect after end of banwave!");
@@ -64,7 +64,7 @@ public class MixinGuiDisconnected {
             }
         }
 
-        if (Failsafe.getInstance().getEmergency() == Failsafe.EmergencyType.JACOB && !FarmHelperConfig.jacobFailsafeAction) {
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent() && FailsafeManager.getInstance().triggeredFailsafe.get().getType() == FailsafeManager.EmergencyType.JACOB && !FarmHelperConfig.jacobFailsafeAction) {
             if (GameStateHandler.getInstance().inJacobContest() || (GameStateHandler.getInstance().getJacobContestLeftClock().isScheduled() && !GameStateHandler.getInstance().getJacobContestLeftClock().passed())) {
                 multilineMessage = farmHelperV2$multilineMessageCopy;
                 multilineMessage.set(0, "Will reconnect after end of Jacob's contest!");
@@ -90,7 +90,7 @@ public class MixinGuiDisconnected {
             if (AutoReconnect.getInstance().isRunning()) {
                 AutoReconnect.getInstance().stop();
             }
-            if (Failsafe.getInstance().getEmergency() == Failsafe.EmergencyType.BANWAVE && !FarmHelperConfig.banwaveAction) {
+            if (FailsafeManager.getInstance().triggeredFailsafe.isPresent() && FailsafeManager.getInstance().triggeredFailsafe.get().getType() == FailsafeManager.EmergencyType.BANWAVE && !FarmHelperConfig.banwaveAction) {
                 FailsafeManager.getInstance().stopFailsafes();
                 MacroHandler.getInstance().disableMacro();
             }

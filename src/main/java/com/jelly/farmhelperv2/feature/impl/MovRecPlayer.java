@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
@@ -44,8 +45,6 @@ public class MovRecPlayer implements IFeature {
     public static float yawDifference = 0;
     @Setter
     public String recordingName = "";
-    @Setter
-    private boolean builtIn = true;
     private static OldRotationUtils rotateBeforePlaying = new OldRotationUtils();
     private static OldRotationUtils rotateDuringPlaying = new OldRotationUtils();
     // endregion
@@ -101,7 +100,6 @@ public class MovRecPlayer implements IFeature {
         isMovementPlaying = false;
         isMovementReading = false;
         recordingName = "";
-        builtIn = true;
         resetTimers();
     }
 
@@ -118,22 +116,16 @@ public class MovRecPlayer implements IFeature {
 
     // endregion
 
-    public void playRandomRecording(String pattern, boolean builtIn) {
+    public void playRandomRecording(String pattern) {
         File[] files;
         String filename = "";
 
-        // get random recording
-        if (builtIn) {
-            String filePath = "/farmhelper/movrec/";
-            URL resourceUrl = getClass().getResource(filePath);
-            if (resourceUrl != null)
-                files = new File(resourceUrl.getPath()).listFiles((dir, name) -> name.contains(pattern) && name.endsWith(".movement"));
-            else {
-                return;
-            }
-        } else {
-            File recordingDir = new File(mc.mcDataDir, "movementrecorder");
-            files = recordingDir.listFiles((dir, name) -> name.contains(pattern) && name.endsWith(".movement"));
+        String filePath = "/farmhelper/movrec/";
+        URL resourceUrl = getClass().getResource(filePath);
+        if (resourceUrl != null)
+            files = new File(resourceUrl.getPath()).listFiles((dir, name) -> name.contains(pattern) && name.endsWith(".movement"));
+        else {
+            return;
         }
 
         if (files != null && files.length > 0) {
@@ -145,9 +137,8 @@ public class MovRecPlayer implements IFeature {
             filename = matchingFiles.get(randomIndex).getName();
         }
         if (filename.isEmpty()) {
-            if (Failsafe.getInstance().isRunning()) {
-                LogUtils.sendWarning("RIP bozo, no recording found.");
-                Failsafe.getInstance().resetCustomMovement();
+            if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
+                LogUtils.sendWarning("RIP bozo, no recording found!");
             }
             stop();
             resetStatesAfterMacroDisabled();
@@ -155,7 +146,6 @@ public class MovRecPlayer implements IFeature {
         }
         MovRecPlayer movRecPlayer = new MovRecPlayer();
         movRecPlayer.setRecordingName(filename);
-        movRecPlayer.builtIn = builtIn;
         movRecPlayer.start();
     }
 
@@ -163,8 +153,8 @@ public class MovRecPlayer implements IFeature {
     public void start() {
         if (recordingName.isEmpty()) {
             LogUtils.sendError("[Movement Recorder] No recording selected!");
-            if (Failsafe.getInstance().isRunning())
-//                Failsafe.getInstance().handleRecordingError(2);
+            if (FailsafeManager.getInstance().triggeredFailsafe.isPresent())
+                LogUtils.sendWarning("RIP bozo, no recording found!");
             return;
         }
         if (isMovementPlaying) {
@@ -179,8 +169,8 @@ public class MovRecPlayer implements IFeature {
             List<String> lines;
             lines = read();
             if (lines == null) {
-                if (Failsafe.getInstance().isRunning())
-//                    Failsafe.getInstance().handleRecordingError(3);
+                if (FailsafeManager.getInstance().triggeredFailsafe.isPresent())
+                    LogUtils.sendWarning("RIP bozo, the recording is empty!");
                 return;
             }
             for (String line : lines) {
@@ -191,9 +181,8 @@ public class MovRecPlayer implements IFeature {
         } catch (Exception e) {
             LogUtils.sendError("[Movement Recorder] An error occurred while playing the recording.");
             e.printStackTrace();
-            if (Failsafe.getInstance().isRunning()) {
-                LogUtils.sendWarning("[Movement Recorder] Your recording is corrupted! Try to record it again. Switching to built-in failsafe mechanism instead.");
-                Failsafe.getInstance().resetCustomMovement();
+            if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
+                LogUtils.sendWarning("RIP bozo, we've got an error!");
             }
             stop();
             resetStatesAfterMacroDisabled();
@@ -225,10 +214,8 @@ public class MovRecPlayer implements IFeature {
         if (!isMovementPlaying || isMovementReading)
             return;
         if (movements.isEmpty()) {
-            LogUtils.sendError("[Movement Recorder] The file is empty!");
-            if (Failsafe.getInstance().isRunning()) {
-                LogUtils.sendWarning("[Movement Recorder] Your recording is corrupted! Try to record it again. Switching to built-in failsafe mechanism instead.");
-                Failsafe.getInstance().resetCustomMovement();
+            if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
+                LogUtils.sendError("[Movement Recorder] RIP bozo, the file is empty!");
             }
             stop();
             resetStatesAfterMacroDisabled();
@@ -339,27 +326,19 @@ public class MovRecPlayer implements IFeature {
     @Nullable
     private List<String> read() {
         List<String> lines;
-        if (builtIn)
-            try {
-                String filePath = "/farmhelper/movrec/" + recordingName;
-                java.net.URL resourceUrl = getClass().getResource(filePath);
-                if (resourceUrl != null) {
-                    lines = Files.readAllLines(Paths.get(resourceUrl.toURI()));
-                } else {
-                    System.out.println("Resource not found: " + filePath);
-                    return null;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+        try {
+            String filePath = "/farmhelper/movrec/" + recordingName;
+            java.net.URL resourceUrl = getClass().getResource(filePath);
+            if (resourceUrl != null) {
+                lines = Files.readAllLines(Paths.get(resourceUrl.toURI()));
+            } else {
+                System.out.println("Resource not found: " + filePath);
                 return null;
             }
-        else
-            try {
-                lines = Files.readAllLines(new File(mc.mcDataDir + "\\movementrecorder\\" + recordingName).toPath());
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
         return lines;
     }
 

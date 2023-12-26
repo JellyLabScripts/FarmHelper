@@ -3,7 +3,7 @@ package com.jelly.farmhelperv2.util;
 import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
-import com.jelly.farmhelperv2.feature.impl.Failsafe;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import net.minecraft.block.*;
@@ -248,7 +248,7 @@ public class PlayerUtils {
     }
 
     public static boolean shouldPushBack() {
-        if (Failsafe.getInstance().isEmergency()) return false;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return false;
         float angle = AngleUtils.getClosest();
         double x = mc.thePlayer.posX % 1;
         double z = mc.thePlayer.posZ % 1;
@@ -268,7 +268,7 @@ public class PlayerUtils {
     }
 
     public static boolean shouldWalkForwards() {
-        if (Failsafe.getInstance().isEmergency()) return false;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return false;
         if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.CACTUS || (FarmHelperConfig.getMacro() != FarmHelperConfig.MacroEnum.S_PUMPKIN_MELON_MELONGKINGDE && (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.PUMPKIN || MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.MELON)))
             return false;
 

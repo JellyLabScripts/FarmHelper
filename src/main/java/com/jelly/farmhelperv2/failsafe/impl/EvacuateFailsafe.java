@@ -11,6 +11,14 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 public class EvacuateFailsafe extends Failsafe {
+    private static EvacuateFailsafe instance;
+    public static EvacuateFailsafe getInstance() {
+        if (instance == null) {
+            instance = new EvacuateFailsafe();
+        }
+        return instance;
+    }
+
     @Override
     public int getPriority() {
         return 1;

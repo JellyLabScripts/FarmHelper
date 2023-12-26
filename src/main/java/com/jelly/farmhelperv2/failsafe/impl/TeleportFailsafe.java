@@ -1,10 +1,5 @@
 package com.jelly.farmhelperv2.failsafe.impl;
 
-import baritone.api.BaritoneAPI;
-import baritone.api.event.events.PathEvent;
-import baritone.api.pathing.goals.GoalBlock;
-import baritone.api.process.PathingCommand;
-import baritone.api.process.PathingCommandType;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
@@ -13,11 +8,10 @@ import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
+import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.*;
-import com.jelly.farmhelperv2.util.helper.BaritoneEventListener;
-import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
@@ -25,6 +19,14 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 
 public class TeleportFailsafe extends Failsafe {
+    private static TeleportFailsafe instance;
+    public static TeleportFailsafe getInstance() {
+        if (instance == null) {
+            instance = new TeleportFailsafe();
+        }
+        return instance;
+    }
+
     @Override
     public int getPriority() {
         return 5;
@@ -66,16 +68,15 @@ public class TeleportFailsafe extends Failsafe {
                 break;
             case WAIT_BEFORE_START:
                 MacroHandler.getInstance().pauseMacro();
-                MovRecPlayer.setYawDifference(AngleUtils.getClosest());
+                MovRecPlayer.setYawDifference(AngleUtils.getClosest(rotationBeforeReacting.getYaw()));
                 positionBeforeReacting = mc.thePlayer.getPosition();
-                rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
                 teleportCheckState = TeleportCheckState.LOOK_AROUND;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
                 break;
             case LOOK_AROUND:
-                MovRecPlayer.getInstance().playRandomRecording("TELEPORT_CHECK_Start", true);
+                MovRecPlayer.getInstance().playRandomRecording("TELEPORT_CHECK_Start");
                 teleportCheckState = TeleportCheckState.SEND_MESSAGE;
-                FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
+                FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                 break;
             case SEND_MESSAGE:
                 if (MovRecPlayer.getInstance().isRunning())
@@ -94,17 +95,17 @@ public class TeleportFailsafe extends Failsafe {
                 break;
             case LOOK_AROUND_2:
                 if (Math.random() < 0.2) {
-                    teleportCheckState = TeleportCheckState.SEND_MESSAGE;
-                    FailsafeManager.getInstance().scheduleRandomDelay(800, 2000);
+                    teleportCheckState = TeleportCheckState.SEND_MESSAGE_2;
+                    FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                     break;
                 } else if (mc.thePlayer.getActivePotionEffects() != null
                         && mc.thePlayer.getActivePotionEffects().stream().anyMatch(potionEffect -> potionEffect.getPotionID() == 8)
                         && Math.random() < 0.2) {
-                    MovRecPlayer.getInstance().playRandomRecording("TELEPORT_CHECK_JumpBoost_", true);
+                    MovRecPlayer.getInstance().playRandomRecording("TELEPORT_CHECK_JumpBoost_");
                 } else if (mc.thePlayer.capabilities.allowFlying && BlockUtils.isAboveHeadClear() && Math.random() < 0.3) {
-                    MovRecPlayer.getInstance().playRandomRecording("TELEPORT_CHECK_Fly_", true);
+                    MovRecPlayer.getInstance().playRandomRecording("TELEPORT_CHECK_Fly_");
                 } else {
-                    MovRecPlayer.getInstance().playRandomRecording("TELEPORT_CHECK_OnGround_", true);
+                    MovRecPlayer.getInstance().playRandomRecording("TELEPORT_CHECK_OnGround_");
                 }
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 break;
@@ -120,38 +121,29 @@ public class TeleportFailsafe extends Failsafe {
                 }
                 LogUtils.sendDebug("[Failsafe] Chosen message: " + randomContinueMessage);
                 mc.thePlayer.sendChatMessage("/ac " + randomContinueMessage);
-                teleportCheckState = TeleportCheckState.LOOK_AROUND_2;
+                teleportCheckState = TeleportCheckState.GO_BACK_START;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 break;
             case GO_BACK_START:
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
-                if (mc.thePlayer.getPosition().distanceSq(positionBeforeReacting) < 1) {
-                    teleportCheckState = TeleportCheckState.ROTATE_TO_POS_BEFORE;
+                if (mc.thePlayer.getPosition().distanceSq(positionBeforeReacting) < 2) {
+                    teleportCheckState = TeleportCheckState.ROTATE_TO_POS_BEFORE_2;
                     break;
                 }
-                PathingCommand pathingCommand = new PathingCommand(new GoalBlock(positionBeforeReacting), PathingCommandType.REVALIDATE_GOAL_AND_PATH);
-                BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().secretInternalSetGoalAndPath(pathingCommand);
-                pathing = true;
+                BaritoneHandler.walkToBlockPos(positionBeforeReacting);
                 teleportCheckState = TeleportCheckState.GO_BACK_END;
                 break;
             case GO_BACK_END:
-                if (pathing) {
-                    GoalBlock goal = (GoalBlock) BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().getGoal();
-                    System.out.println(BaritoneEventListener.pathEvent);
-                    if (mc.thePlayer.getDistance(goal.getGoalPos().getX() + 0.5f, mc.thePlayer.posY, goal.getGoalPos().getZ() + 0.5) <= 1 || BaritoneEventListener.pathEvent == PathEvent.AT_GOAL) {
-                        BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
-                        pathing = false;
-                        teleportCheckState = TeleportCheckState.ROTATE_TO_POS_BEFORE;
-                        FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
-                        break;
-                    }
-                    LogUtils.sendDebug("Distance difference: " + mc.thePlayer.getPosition().distanceSq(positionBeforeReacting));
-                    FailsafeManager.getInstance().scheduleDelay(200);
+                if (BaritoneHandler.hasFailed() || BaritoneHandler.isWalkingToGoalBlock()) {
+                    teleportCheckState = TeleportCheckState.ROTATE_TO_POS_BEFORE_2;
+                    FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                     break;
                 }
+                LogUtils.sendDebug("Distance difference: " + mc.thePlayer.getPosition().distanceSq(positionBeforeReacting));
+                FailsafeManager.getInstance().scheduleDelay(200);
                 break;
-            case ROTATE_TO_POS_BEFORE:
+            case ROTATE_TO_POS_BEFORE_2:
                 if (rotation.isRotating()) break;
                 rotation.easeTo(new RotationConfiguration(new Rotation(rotationBeforeReacting.getYaw(), rotationBeforeReacting.getPitch()),
                         500, null));
@@ -168,7 +160,8 @@ public class TeleportFailsafe extends Failsafe {
         teleportCheckState = TeleportCheckState.NONE;
         positionBeforeReacting = null;
         rotationBeforeReacting = null;
-        pathing = false;
+        FailsafeManager.getInstance().stopFailsafes();
+        MacroHandler.getInstance().resumeMacro();
     }
 
     @Override
@@ -180,8 +173,7 @@ public class TeleportFailsafe extends Failsafe {
         S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
         Vec3 currentPlayerPos = mc.thePlayer.getPositionVector();
         Vec3 packetPlayerPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
-
-        // Teleport Check
+        rotationBeforeReacting = new Rotation(mc.thePlayer.prevRotationYaw, mc.thePlayer.prevRotationPitch);
 
         double distance = currentPlayerPos.distanceTo(packetPlayerPos);
         if (packet.getY() >= 80 || BlockUtils.bedrockCount() > 2) {
@@ -207,7 +199,6 @@ public class TeleportFailsafe extends Failsafe {
     private final RotationHandler rotation = RotationHandler.getInstance();
     private BlockPos positionBeforeReacting = null;
     private Rotation rotationBeforeReacting = null;
-    private boolean pathing = false;
 
     enum TeleportCheckState {
         NONE,
@@ -216,7 +207,7 @@ public class TeleportFailsafe extends Failsafe {
         SEND_MESSAGE,
         LOOK_AROUND_2,
         SEND_MESSAGE_2,
-        ROTATE_TO_POS_BEFORE,
+        ROTATE_TO_POS_BEFORE_2,
         GO_BACK_START,
         GO_BACK_END,
     }

@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.macro;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -72,7 +73,7 @@ public abstract class AbstractMacro {
     private boolean sentWarning = false;
 
     public void onTick() {
-        if (Failsafe.getInstance().isRunning() || Failsafe.getInstance().getChooseEmergencyDelay().isScheduled()) {
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent() || FailsafeManager.getInstance().getChooseEmergencyDelay().isScheduled()) {
             if (!sentWarning) {
                 LogUtils.sendWarning("Failsafe is running! Blocking main onTick event!");
                 sentWarning = true;
@@ -93,7 +94,7 @@ public abstract class AbstractMacro {
             MacroHandler.getInstance().disableMacro();
             return;
         }
-        if (PlayerUtils.isStandingOnRewarpLocation() && !Failsafe.getInstance().isEmergency() && GameStateHandler.getInstance().notMoving()) {
+        if (PlayerUtils.isStandingOnRewarpLocation() && !FailsafeManager.getInstance().triggeredFailsafe.isPresent() && GameStateHandler.getInstance().notMoving()) {
             if (checkOnSpawnClock.passed()) {
                 if (PestsDestroyer.getInstance().canEnableMacro()) {
                     PestsDestroyer.getInstance().start();
@@ -106,7 +107,7 @@ public abstract class AbstractMacro {
             }
             return;
         }
-        if (PlayerUtils.isStandingOnSpawnPoint() && !Failsafe.getInstance().isEmergency() && GameStateHandler.getInstance().notMoving() && checkOnSpawnClock.passed()) {
+        if (PlayerUtils.isStandingOnSpawnPoint() && !FailsafeManager.getInstance().triggeredFailsafe.isPresent() && GameStateHandler.getInstance().notMoving() && checkOnSpawnClock.passed()) {
             if (PestsDestroyer.getInstance().canEnableMacro()) {
                 PestsDestroyer.getInstance().start();
                 rotated = true;
@@ -184,7 +185,7 @@ public abstract class AbstractMacro {
             return;
         }
 
-        if (Failsafe.getInstance().isEmergency()) {
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
             LogUtils.sendDebug("Blocking changing movement due to emergency!");
             return;
         }

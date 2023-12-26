@@ -1,22 +1,17 @@
 package com.jelly.farmhelperv2.failsafe.impl;
 
-import baritone.api.BaritoneAPI;
 import baritone.api.pathing.goals.GoalBlock;
-import baritone.api.process.PathingCommand;
-import baritone.api.process.PathingCommandType;
-import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.event.BlockChangeEvent;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
-import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
+import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.AngleUtils;
 import com.jelly.farmhelperv2.util.BlockUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
-import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
@@ -26,10 +21,16 @@ import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 public class DirtFailsafe extends Failsafe {
+    private static DirtFailsafe instance;
+    public static DirtFailsafe getInstance() {
+        if (instance == null) {
+            instance = new DirtFailsafe();
+        }
+        return instance;
+    }
+
     @Override
     public int getPriority() {
         return 3;
@@ -89,15 +90,15 @@ public class DirtFailsafe extends Failsafe {
                 LogUtils.sendDebug("[Failsafe] Yaw difference: " + AngleUtils.getClosest());
                 MovRecPlayer.setYawDifference(AngleUtils.getClosest());
                 positionBeforeReacting = mc.thePlayer.getPosition();
-                rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+                rotationBeforeReacting = new Rotation(mc.thePlayer.prevRotationYaw, mc.thePlayer.prevRotationPitch);
                 dirtCheckState = DirtCheckState.PLAY_RECORDING;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
                 break;
             case PLAY_RECORDING:
                 if (dirtOnLeft)
-                    MovRecPlayer.getInstance().playRandomRecording("DIRT_CHECK_Start_Left_", true);
+                    MovRecPlayer.getInstance().playRandomRecording("DIRT_CHECK_Start_Left_");
                 else
-                    MovRecPlayer.getInstance().playRandomRecording("DIRT_CHECK_Start_Right", true);
+                    MovRecPlayer.getInstance().playRandomRecording("DIRT_CHECK_Start_Right");
                 dirtCheckState = DirtCheckState.SEND_MESSAGE;
                 FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                 break;
@@ -132,7 +133,7 @@ public class DirtFailsafe extends Failsafe {
                     tempRecordingName += "Right_";
                 if (Math.random() < 0.2) {
                     dirtCheckState = DirtCheckState.SEND_MESSAGE;
-                    FailsafeManager.getInstance().scheduleRandomDelay(800, 2000);
+                    FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                     break;
                 } else if (mc.thePlayer.getActivePotionEffects() != null
                         && mc.thePlayer.getActivePotionEffects().stream().anyMatch(potionEffect -> potionEffect.getPotionID() == 8)
@@ -145,7 +146,7 @@ public class DirtFailsafe extends Failsafe {
                 }
                 if (maxReactions > 0) {
                     LogUtils.sendWarning("[Failsafe] Playing recording: " + tempRecordingName);
-                    MovRecPlayer.getInstance().playRandomRecording(tempRecordingName, true);
+                    MovRecPlayer.getInstance().playRandomRecording(tempRecordingName);
                     maxReactions--;
                 } else {
                     FlyPathfinder.getInstance().getPathTo(new GoalBlock(positionBeforeReacting.getX(), positionBeforeReacting.getY() + 3, positionBeforeReacting.getZ()));
@@ -162,15 +163,13 @@ public class DirtFailsafe extends Failsafe {
                     dirtCheckState = DirtCheckState.ROTATE_TO_POS_BEFORE;
                     break;
                 }
-                PathingCommand pathingCommand = new PathingCommand(new GoalBlock(positionBeforeReacting), PathingCommandType.REVALIDATE_GOAL_AND_PATH);
-                BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().secretInternalSetGoalAndPath(pathingCommand);
-                pathing = true;
+                BaritoneHandler.walkToBlockPos(positionBeforeReacting);
                 dirtCheckState = DirtCheckState.GO_BACK_END;
                 break;
             case GO_BACK_END:
                 if (FlyPathfinder.getInstance().isRunning())
                     break;
-                if (checkForPathingFinish()) {
+                if (BaritoneHandler.isWalkingToGoalBlock()) {
                     LogUtils.sendDebug("Distance difference: " + mc.thePlayer.getPosition().distanceSq(positionBeforeReacting));
                 } else
                     dirtCheckState = DirtCheckState.ROTATE_TO_POS_BEFORE;

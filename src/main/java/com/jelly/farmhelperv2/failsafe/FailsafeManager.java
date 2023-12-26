@@ -43,8 +43,10 @@ public class FailsafeManager {
     }
     public final List<Failsafe> failsafes = new ArrayList<>();
     public Optional<Failsafe> triggeredFailsafe = Optional.empty();
-    private final ArrayList<Failsafe> emergencyQueue = new ArrayList<>();
-    private final Clock chooseEmergencyDelay = new Clock();
+    @Getter
+    public final ArrayList<Failsafe> emergencyQueue = new ArrayList<>();
+    @Getter
+    public final Clock chooseEmergencyDelay = new Clock();
     private final Clock onTickDelay = new Clock();
     @Getter
     private final Clock restartMacroAfterFailsafeDelay = new Clock();
@@ -238,7 +240,7 @@ public class FailsafeManager {
     public boolean firstCheckReturn() {
         if (mc.thePlayer == null || mc.theWorld == null) return true;
         if (!MacroHandler.getInstance().isMacroToggled()) return true;
-        if (isEmergency()) return true;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return true;
         return FeatureManager.getInstance().shouldIgnoreFalseCheck();
     }
 

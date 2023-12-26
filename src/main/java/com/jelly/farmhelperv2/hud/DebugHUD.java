@@ -3,6 +3,8 @@ package com.jelly.farmhelperv2.hud;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -74,7 +76,7 @@ public class DebugHUD extends TextHud {
         if (LagDetector.getInstance().isLagging()) {
             lines.add("   Lagging for: " + LagDetector.getInstance().getLaggingTime());
         }
-        lines.add("Average BPS: " + Failsafe.getInstance().getAverageBPS());
+        lines.add("Average BPS: " + LowerAvgBpsFailsafe.getInstance().getAverageBPS());
         if (DesyncChecker.getInstance().isToggled()) {
             lines.add("Desync Checker");
             lines.add("   Clicked blocks: " + DesyncChecker.getInstance().getClickedBlocks().size());
@@ -86,7 +88,8 @@ public class DebugHUD extends TextHud {
             lines.add("   Bazaar State: " + AutoSell.getInstance().getBazaarState());
             lines.add("   NPC State: " + AutoSell.getInstance().getNpcState());
         }
-        lines.add("Emergency: " + Failsafe.getInstance().getEmergency());
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent())
+            lines.add("Emergency: " + (FailsafeManager.getInstance().triggeredFailsafe.map(failsafe -> failsafe.getType().name()).orElse("None")));
         if (VisitorsMacro.getInstance().isRunning()) {
             lines.add("Visitors Macro");
             lines.add("   State: " + VisitorsMacro.getInstance().getVisitorsState());
