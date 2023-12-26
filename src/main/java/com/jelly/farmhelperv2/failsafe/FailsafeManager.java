@@ -20,6 +20,7 @@ import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.StringUtils;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.Display;
@@ -69,8 +70,6 @@ public class FailsafeManager {
     @Getter
     @Setter
     private boolean hadEmergency = false;
-    private int lookAroundTimes = 0;
-    private int currentLookAroundTimes = 0;
 
     public FailsafeManager() {
         failsafes.addAll(
@@ -221,6 +220,27 @@ public class FailsafeManager {
         }
     }
 
+    @SubscribeEvent
+    public void onRenderOverlay(RenderGameOverlayEvent.Post event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
+
+        if (chooseEmergencyDelay.isScheduled()) {
+            String text = "Failsafe in: " + LogUtils.formatTime(chooseEmergencyDelay.getRemainingTime());
+            RenderUtils.drawCenterTopText(text, event, Color.MAGENTA);
+        } else if (restartMacroAfterFailsafeDelay.isScheduled()) {
+            String text = "Restarting the macro in: " + LogUtils.formatTime(restartMacroAfterFailsafeDelay.getRemainingTime());
+            RenderUtils.drawCenterTopText(text, event, Color.ORANGE);
+        } else if (triggeredFailsafe.isPresent()) {
+            ArrayList<String> textLines = new ArrayList<>();
+            textLines.add("§3" + StringUtils.stripControlCodes(triggeredFailsafe.get().getType().name()).replace("_", " "));
+            textLines.add("§cYOU ARE DURING STAFF CHECK!");
+            textLines.add("§dPRESS §3" + FarmHelperConfig.toggleMacro.getDisplay() + "§d TO DISABLE THE MACRO");
+            textLines.add("§dDO §cNOT §dLEAVE! REACT!");
+            RenderUtils.drawMultiLineText(textLines, event, Color.MAGENTA, 3f);
+        }
+    }
+
     public void restartMacroAfterDelay() {
         if (FarmHelperConfig.enableRestartAfterFailSafe) {
             MacroHandler.getInstance().pauseMacro();
@@ -277,7 +297,6 @@ public class FailsafeManager {
                                 randomValueBetweenExt(-20, 40, 5)),
                         rotationTime, null));
         scheduleDelay(rotationTime - 50);
-        currentLookAroundTimes++;
         double randomKey = Math.random();
         if (!mc.thePlayer.onGround && FarmHelperConfig.tryToUseJumpingAndFlying) {
             if (randomKey <= 0.3) {

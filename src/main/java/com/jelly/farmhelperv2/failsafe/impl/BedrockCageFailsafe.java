@@ -6,7 +6,6 @@ import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
-import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.AngleUtils;
@@ -126,7 +125,7 @@ public class BedrockCageFailsafe extends Failsafe {
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
                 if (mc.thePlayer.getPosition().distanceSq(positionBeforeReacting) < 2) {
-                    bedrockCageCheckState = BedrockCageCheckState.GO_BACK_START;
+                    bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE;
                     FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                     break;
                 } else {
@@ -134,34 +133,40 @@ public class BedrockCageFailsafe extends Failsafe {
                     FailsafeManager.getInstance().scheduleRandomDelay(2500, 4000);
                 }
                 break;
-            case GO_BACK_START:
-                if (MovRecPlayer.getInstance().isRunning())
-                    break;
-                if (mc.thePlayer.getPosition().distanceSq(positionBeforeReacting) < 2) {
-                    bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE_2;
-                    break;
-                }
-                BaritoneHandler.walkToBlockPos(positionBeforeReacting);
-                bedrockCageCheckState = BedrockCageCheckState.GO_BACK_END;
-                break;
-            case GO_BACK_END:
-                if (BaritoneHandler.hasFailed() || BaritoneHandler.isWalkingToGoalBlock()) {
-                    bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE_2;
-                    FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
-                    break;
-                }
-                LogUtils.sendDebug("Distance difference: " + mc.thePlayer.getPosition().distanceSq(positionBeforeReacting));
-                FailsafeManager.getInstance().scheduleDelay(200);
-                break;
-            case ROTATE_TO_POS_BEFORE_2:
+//            case GO_BACK_START:
+//                if (MovRecPlayer.getInstance().isRunning())
+//                    break;
+//                if (mc.thePlayer.getPosition().distanceSq(positionBeforeReacting) < 2) {
+//                    bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE_2;
+//                    break;
+//                }
+//                BaritoneHandler.walkToBlockPos(positionBeforeReacting);
+//                bedrockCageCheckState = BedrockCageCheckState.GO_BACK_END;
+//                break;
+//            case GO_BACK_END:
+//                if (BaritoneHandler.hasFailed() || BaritoneHandler.isWalkingToGoalBlock()) {
+//                    bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE_2;
+//                    FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
+//                    break;
+//                }
+//                LogUtils.sendDebug("Distance difference: " + mc.thePlayer.getPosition().distanceSq(positionBeforeReacting));
+//                FailsafeManager.getInstance().scheduleDelay(200);
+//                break;
+            case ROTATE_TO_POS_BEFORE:
                 if (rotation.isRotating()) break;
                 rotation.easeTo(new RotationConfiguration(new Rotation(rotationBeforeReacting.getYaw(), rotationBeforeReacting.getPitch()),
                         750, null));
+                bedrockCageCheckState = BedrockCageCheckState.LOOK_AROUND_3;
                 FailsafeManager.getInstance().scheduleRandomDelay(800, 200);
                 break;
             case LOOK_AROUND_3:
                 MovRecPlayer.getInstance().playRandomRecording("ITEM_CHANGE_");
-                bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE_2;
+                bedrockCageCheckState = BedrockCageCheckState.END;
+                FailsafeManager.getInstance().scheduleRandomDelay(800, 200);
+                break;
+            case END:
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
                 this.endOfFailsafeTrigger();
                 break;
         }
@@ -195,6 +200,7 @@ public class BedrockCageFailsafe extends Failsafe {
         GO_BACK_START,
         GO_BACK_END,
         LOOK_AROUND_3,
-        ROTATE_TO_POS_BEFORE_2
+        ROTATE_TO_POS_BEFORE,
+        END
     }
 }
