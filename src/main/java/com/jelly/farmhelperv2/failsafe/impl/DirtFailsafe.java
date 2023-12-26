@@ -215,7 +215,6 @@ public class DirtFailsafe extends Failsafe {
     private BlockPos positionBeforeReacting = null;
     private Rotation rotationBeforeReacting = null;
     private boolean dirtOnLeft = false;
-    private boolean pathing = false;
     private int maxReactions = 3;
     private DirtCheckState dirtCheckState = DirtCheckState.NONE;
     enum DirtCheckState {

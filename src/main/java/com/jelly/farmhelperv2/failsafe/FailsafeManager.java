@@ -3,7 +3,7 @@ package com.jelly.farmhelperv2.failsafe;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
-import com.jelly.farmhelperv2.failsafe.impl.RotationFailsafe;
+import com.jelly.farmhelperv2.failsafe.impl.*;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.Scheduler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -74,7 +74,18 @@ public class FailsafeManager {
     public FailsafeManager() {
         failsafes.addAll(
                 Arrays.asList(
-                        new RotationFailsafe()
+                        new BanwaveFailsafe(),
+                        new BedrockCageFailsafe(),
+                        new DirtFailsafe(),
+                        new DisconnectFailsafe(),
+                        new EvacuateFailsafe(),
+                        new GuestVisitFailsafe(),
+                        new ItemChangeFailsafe(),
+                        new JacobFailsafe(),
+                        new LowerAvgBpsFailsafe(),
+                        new RotationFailsafe(),
+                        new TeleportFailsafe(),
+                        new WorldChangeFailsafe()
                 )
         );
     }

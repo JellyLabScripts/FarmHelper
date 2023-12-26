@@ -107,17 +107,17 @@ public class ItemChangeFailsafe extends Failsafe {
             case END:
                 PlayerUtils.getTool();
                 endOfFailsafeTrigger();
-                Multithreading.schedule(() -> {
-                    LogUtils.sendDebug("[Failsafe] Finished item change failsafe. Farming...");
-                    MacroHandler.getInstance().resumeMacro();
-                }, 500, TimeUnit.MILLISECONDS);
                 break;
         }
     }
 
     @Override
     public void endOfFailsafeTrigger() {
-
+        itemChangeState = ItemChangeState.NONE;
+        Multithreading.schedule(() -> {
+            LogUtils.sendDebug("[Failsafe] Finished item change failsafe. Farming...");
+            MacroHandler.getInstance().resumeMacro();
+        }, 500, TimeUnit.MILLISECONDS);
     }
 
     private ItemChangeState itemChangeState = ItemChangeState.NONE;

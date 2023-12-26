@@ -67,6 +67,9 @@ public class GuestVisitFailsafe extends Failsafe {
 
     @Override
     public void endOfFailsafeTrigger() {
+        tabListCheckDelay.reset();
+        wasGuestOnGarden = false;
+        lastGuestName = "";
         FailsafeManager.getInstance().stopFailsafes();
         MacroHandler.getInstance().resumeMacro();
     }
@@ -103,10 +106,4 @@ public class GuestVisitFailsafe extends Failsafe {
     private final Clock tabListCheckDelay = new Clock();
     private boolean wasGuestOnGarden = false;
     private String lastGuestName = "";
-
-    public void resetGuestVisit() {
-        tabListCheckDelay.reset();
-        wasGuestOnGarden = false;
-        lastGuestName = "";
-    }
 }

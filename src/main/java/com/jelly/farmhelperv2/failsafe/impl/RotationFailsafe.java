@@ -8,6 +8,7 @@ import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
+import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.AngleUtils;
@@ -74,12 +75,16 @@ public class RotationFailsafe extends Failsafe {
                 break;
             case LOOK_AROUND:
                 MovRecPlayer.getInstance().playRandomRecording("ROTATION_CHECK_Start");
+                rotationCheckState = RotationCheckState.WAIT;
+                FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
+                break;
+            case WAIT:
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
                 rotationCheckState = RotationCheckState.SEND_MESSAGE;
                 FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                 break;
             case SEND_MESSAGE:
-                if (MovRecPlayer.getInstance().isRunning())
-                    break;
                 String randomMessage;
                 if (CustomFailsafeMessagesPage.customRotationMessages.isEmpty()) {
                     randomMessage = FailsafeManager.getRandomMessage();
@@ -102,6 +107,12 @@ public class RotationFailsafe extends Failsafe {
                 if (rotation.isRotating())
                     break;
                 MovRecPlayer.getInstance().playRandomRecording("ROTATION_CHECK_Continue");
+                rotationCheckState = RotationCheckState.WAIT_2;
+                FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
+                break;
+            case WAIT_2:
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
                 rotationCheckState = RotationCheckState.SEND_MESSAGE_2;
                 FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                 break;
@@ -154,7 +165,8 @@ public class RotationFailsafe extends Failsafe {
     public void endOfFailsafeTrigger() {
         rotationCheckState = RotationCheckState.NONE;
         FailsafeManager.getInstance().stopFailsafes();
-        MacroHandler.getInstance().resumeMacro();
+        if (mc.thePlayer.getPosition().getY() < 100 && GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.GARDEN)
+            MacroHandler.getInstance().resumeMacro();
     }
 
     @Override
@@ -189,9 +201,11 @@ public class RotationFailsafe extends Failsafe {
         NONE,
         WAIT_BEFORE_START,
         LOOK_AROUND,
+        WAIT,
         SEND_MESSAGE,
         ROTATE_TO_POS_BEFORE,
         LOOK_AROUND_2,
+        WAIT_2,
         SEND_MESSAGE_2,
         ROTATE_TO_POS_BEFORE_2,
         GO_BACK_START,

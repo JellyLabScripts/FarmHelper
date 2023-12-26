@@ -9,6 +9,7 @@ import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
+import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.*;
@@ -161,7 +162,8 @@ public class TeleportFailsafe extends Failsafe {
         positionBeforeReacting = null;
         rotationBeforeReacting = null;
         FailsafeManager.getInstance().stopFailsafes();
-        MacroHandler.getInstance().resumeMacro();
+        if (mc.thePlayer.getPosition().getY() < 100 && GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.GARDEN)
+            MacroHandler.getInstance().resumeMacro();
     }
 
     @Override

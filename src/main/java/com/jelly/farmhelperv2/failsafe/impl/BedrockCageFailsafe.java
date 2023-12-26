@@ -75,7 +75,7 @@ public class BedrockCageFailsafe extends Failsafe {
                     bedrockOnLeft = true;
                 else if (BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.bedrock))
                     bedrockOnLeft = false;
-                MovRecPlayer.setYawDifference(AngleUtils.getClosest(rotationBeforeReacting.getYaw()));
+                MovRecPlayer.setYawDifference(AngleUtils.getClosest());
                 positionBeforeReacting = mc.thePlayer.getPosition();
                 bedrockCageCheckState = BedrockCageCheckState.LOOK_AROUND;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
@@ -85,7 +85,6 @@ public class BedrockCageFailsafe extends Failsafe {
                     MovRecPlayer.getInstance().playRandomRecording("BEDROCK_CHECK_Left_Start_");
                 else
                     MovRecPlayer.getInstance().playRandomRecording("BEDROCK_CHECK_Right_Start_");
-                MovRecPlayer.getInstance().playRandomRecording("BEDROCK_CHECK_Start");
                 bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE;
                 FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                 break;
@@ -105,6 +104,8 @@ public class BedrockCageFailsafe extends Failsafe {
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 break;
             case LOOK_AROUND_2:
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
                 if (Math.random() < 0.2) {
                     bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE_2;
                     FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
@@ -188,6 +189,7 @@ public class BedrockCageFailsafe extends Failsafe {
 
     @Override
     public void endOfFailsafeTrigger() {
+        bedrockCageCheckState = BedrockCageCheckState.NONE;
         FailsafeManager.getInstance().restartMacroAfterDelay();
         FailsafeManager.getInstance().stopFailsafes();
     }
