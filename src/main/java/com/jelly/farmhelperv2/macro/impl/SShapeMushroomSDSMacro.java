@@ -81,6 +81,7 @@ public class SShapeMushroomSDSMacro extends AbstractMacro {
                 } else {
                     GameStateHandler.getInstance().scheduleNotMoving();
                 }
+                break;
             }
             case NONE: {
                 changeState(calculateDirection());
