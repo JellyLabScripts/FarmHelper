@@ -100,6 +100,7 @@ public class FailsafeManager {
         sendingFailsafeInfo = false;
         chooseEmergencyDelay.reset();
         onTickDelay.reset();
+        failsafes.forEach(Failsafe::resetStates);
     }
 
     public void resetAfterMacroDisable() {
@@ -151,15 +152,6 @@ public class FailsafeManager {
         if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
 
         failsafes.forEach(failsafe -> failsafe.onWorldUnloadDetection(event));
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onWorldUnloadDuringFailsafe(WorldEvent.Unload event) {
-        if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (!triggeredFailsafe.isPresent()) return;
-        if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
-
-        failsafes.forEach(failsafe -> failsafe.onWorldUnloadDuringFailsafe(event));
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

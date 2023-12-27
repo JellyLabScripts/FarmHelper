@@ -59,12 +59,6 @@ public class WorldChangeFailsafe extends Failsafe {
         return FailsafeNotificationsPage.autoAltTabOnWorldChangeFailsafe;
     }
 
-    @SubscribeEvent
-    public void onWorldChange(WorldEvent.Unload event) {
-        if (FailsafeManager.getInstance().firstCheckReturn()) return;
-        FailsafeManager.getInstance().possibleDetection(this);
-    }
-
     @Override
     public void onTickDetection(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;

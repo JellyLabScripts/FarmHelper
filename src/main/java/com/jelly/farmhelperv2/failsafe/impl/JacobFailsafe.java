@@ -131,11 +131,7 @@ public class JacobFailsafe extends Failsafe {
 
     @Override
     public void endOfFailsafeTrigger() {
+        FailsafeManager.getInstance().stopFailsafes();
         MacroHandler.getInstance().resumeMacro();
-    }
-
-    @Override
-    public void onWorldUnloadDetection(WorldEvent.Unload event) {
-        endOfFailsafeTrigger();
     }
 }

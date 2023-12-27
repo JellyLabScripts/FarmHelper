@@ -117,7 +117,7 @@ public class ItemChangeFailsafe extends Failsafe {
 
     @Override
     public void endOfFailsafeTrigger() {
-        itemChangeState = ItemChangeState.NONE;
+        FailsafeManager.getInstance().stopFailsafes();
         Multithreading.schedule(() -> {
             LogUtils.sendDebug("[Failsafe] Finished item change failsafe. Farming...");
             MacroHandler.getInstance().resumeMacro();
@@ -125,8 +125,8 @@ public class ItemChangeFailsafe extends Failsafe {
     }
 
     @Override
-    public void onWorldUnloadDetection(WorldEvent.Unload event) {
-        endOfFailsafeTrigger();
+    public void resetStates() {
+        itemChangeState = ItemChangeState.NONE;
     }
 
     private ItemChangeState itemChangeState = ItemChangeState.NONE;

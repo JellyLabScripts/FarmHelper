@@ -79,16 +79,15 @@ public class GuestVisitFailsafe extends Failsafe {
 
     @Override
     public void endOfFailsafeTrigger() {
-        tabListCheckDelay.reset();
-        wasGuestOnGarden = false;
-        lastGuestName = "";
         FailsafeManager.getInstance().stopFailsafes();
         MacroHandler.getInstance().resumeMacro();
     }
 
     @Override
-    public void onWorldUnloadDuringFailsafe(WorldEvent.Unload event) {
-        endOfFailsafeTrigger();
+    public void resetStates() {
+        tabListCheckDelay.reset();
+        wasGuestOnGarden = false;
+        lastGuestName = "";
     }
 
     @Override

@@ -194,19 +194,18 @@ public class TeleportFailsafe extends Failsafe {
 
     @Override
     public void endOfFailsafeTrigger() {
-        teleportCheckState = TeleportCheckState.NONE;
-        positionBeforeReacting = null;
-        rotationBeforeReacting = null;
         FailsafeManager.getInstance().stopFailsafes();
         if (mc.thePlayer.getPosition().getY() < 100 && GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.GARDEN)
             MacroHandler.getInstance().resumeMacro();
     }
 
     @Override
-    public void onWorldUnloadDetection(WorldEvent.Unload event) {
-        endOfFailsafeTrigger();
+    public void resetStates() {
+        teleportCheckState = TeleportCheckState.NONE;
+        positionBeforeReacting = null;
+        rotationBeforeReacting = null;
+        rotation.reset();
     }
-
 
     private TeleportCheckState teleportCheckState = TeleportCheckState.NONE;
     private final RotationHandler rotation = RotationHandler.getInstance();

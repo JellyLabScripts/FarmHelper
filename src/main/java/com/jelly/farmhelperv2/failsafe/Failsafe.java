@@ -24,8 +24,6 @@ public abstract class Failsafe {
 
     public void onWorldUnloadDetection(WorldEvent.Unload event) {}
 
-    public void onWorldUnloadDuringFailsafe(WorldEvent.Unload event) {}
-
     public void onDisconnectDetection(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {}
 
     public abstract void duringFailsafeTrigger();
@@ -34,4 +32,5 @@ public abstract class Failsafe {
     private void possibleDetectionOfCheck() {
         FailsafeManager.getInstance().possibleDetection(this);
     }
+    public void resetStates() {}
 }

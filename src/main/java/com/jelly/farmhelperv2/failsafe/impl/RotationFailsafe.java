@@ -165,9 +165,6 @@ public class RotationFailsafe extends Failsafe {
 
     @Override
     public void endOfFailsafeTrigger() {
-        rotationBeforeReacting = null;
-        positionBeforeReacting = null;
-        rotationCheckState = RotationCheckState.NONE;
         FailsafeManager.getInstance().stopFailsafes();
         if (mc.thePlayer.getPosition().getY() < 100 && GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.GARDEN)
             MacroHandler.getInstance().resumeMacro();
@@ -202,8 +199,11 @@ public class RotationFailsafe extends Failsafe {
     }
 
     @Override
-    public void onWorldUnloadDetection(WorldEvent.Unload event) {
-        endOfFailsafeTrigger();
+    public void resetStates() {
+        rotationCheckState = RotationCheckState.NONE;
+        rotationBeforeReacting = null;
+        positionBeforeReacting = null;
+        rotation.reset();
     }
 
     private RotationCheckState rotationCheckState = RotationCheckState.NONE;

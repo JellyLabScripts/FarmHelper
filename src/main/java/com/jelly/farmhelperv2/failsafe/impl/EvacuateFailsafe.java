@@ -101,9 +101,13 @@ public class EvacuateFailsafe extends Failsafe {
 
     @Override
     public void endOfFailsafeTrigger() {
-        evacuateState = EvacuateState.NONE;
         FailsafeManager.getInstance().stopFailsafes();
         MacroHandler.getInstance().resumeMacro();
+    }
+
+    @Override
+    public void resetStates() {
+        evacuateState = EvacuateState.NONE;
     }
 
     private EvacuateState evacuateState = EvacuateState.NONE;

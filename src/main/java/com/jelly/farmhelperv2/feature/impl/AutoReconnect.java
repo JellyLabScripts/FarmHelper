@@ -169,6 +169,11 @@ public class AutoReconnect implements IFeature {
                     state = State.GARDEN;
                     reconnectDelay.schedule(5_000);
                 }
+                if (GameStateHandler.getInstance().inGarden()) {
+                    System.out.println("Reconnected to the garden!");
+                    LogUtils.sendDebug("[Reconnect] Came back to the garden!");
+                    stop();
+                }
                 break;
             case GARDEN:
                 if (reconnectDelay.isScheduled() && !reconnectDelay.passed()) return;

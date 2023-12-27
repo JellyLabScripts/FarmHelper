@@ -191,15 +191,18 @@ public class DirtFailsafe extends Failsafe {
 
     @Override
     public void endOfFailsafeTrigger() {
-        dirtBlocks.clear();
-        dirtCheckState = DirtCheckState.NONE;
         FailsafeManager.getInstance().stopFailsafes();
         FailsafeManager.getInstance().restartMacroAfterDelay();
     }
 
     @Override
-    public void onWorldUnloadDetection(WorldEvent.Unload event) {
-        endOfFailsafeTrigger();
+    public void resetStates() {
+        dirtBlocks.clear();
+        dirtCheckState = DirtCheckState.NONE;
+        positionBeforeReacting = null;
+        rotationBeforeReacting = null;
+        dirtOnLeft = false;
+        maxReactions = 3;
     }
 
     public boolean isTouchingDirtBlock() {

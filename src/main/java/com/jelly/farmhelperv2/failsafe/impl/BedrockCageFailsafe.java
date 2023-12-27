@@ -232,14 +232,16 @@ public class BedrockCageFailsafe extends Failsafe {
 
     @Override
     public void endOfFailsafeTrigger() {
-        bedrockCageCheckState = BedrockCageCheckState.NONE;
         FailsafeManager.getInstance().restartMacroAfterDelay();
         FailsafeManager.getInstance().stopFailsafes();
     }
 
     @Override
-    public void onWorldUnloadDuringFailsafe(WorldEvent.Unload event) {
-        endOfFailsafeTrigger();
+    public void resetStates() {
+        bedrockCageCheckState = BedrockCageCheckState.NONE;
+        rotationBeforeTeleporting = null;
+        bedrockOnLeft = false;
+        rotation.reset();
     }
 
     private BedrockCageCheckState bedrockCageCheckState = BedrockCageCheckState.NONE;
