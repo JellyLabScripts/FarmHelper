@@ -64,8 +64,6 @@ public class ItemChangeFailsafe extends Failsafe {
 
         if (!(event.packet instanceof S2FPacketSetSlot)) return;
 
-        LogUtils.sendSuccess("[Failsafe] Item change detected! Slot: " + ((S2FPacketSetSlot) event.packet).func_149173_d());
-
         S2FPacketSetSlot packet = (S2FPacketSetSlot) event.packet;
         int slot = packet.func_149173_d();
 

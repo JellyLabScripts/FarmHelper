@@ -216,7 +216,7 @@ public class MacroHandler {
         setCrop(FarmHelperConfig.CropEnum.NONE);
         FeatureManager.getInstance().disableAll();
         FeatureManager.getInstance().resetAllStates();
-        FailsafeManager.getInstance().stopFailsafes();
+        FailsafeManager.getInstance().resetAfterMacroDisable();
         if (UngrabMouse.getInstance().isToggled())
             UngrabMouse.getInstance().stop();
         disableCurrentMacro();

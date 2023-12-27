@@ -232,6 +232,9 @@ public class MovRecPlayer implements IFeature {
         if (rotateBeforePlaying.rotating) {
             return;
         }
+        if (mc.currentScreen != null) {
+            return;
+        }
 
         Movement movement = movements.get(playingIndex);
         setPlayerMovement(movement);

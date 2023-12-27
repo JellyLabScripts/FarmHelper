@@ -23,6 +23,7 @@ import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent;
@@ -77,18 +78,18 @@ public class FailsafeManager {
     public FailsafeManager() {
         failsafes.addAll(
                 Arrays.asList(
-                        new BanwaveFailsafe(),
-                        new BedrockCageFailsafe(),
-                        new DirtFailsafe(),
-                        new DisconnectFailsafe(),
-                        new EvacuateFailsafe(),
-                        new GuestVisitFailsafe(),
-                        new ItemChangeFailsafe(),
-                        new JacobFailsafe(),
-                        new LowerAvgBpsFailsafe(),
-                        new RotationFailsafe(),
-                        new TeleportFailsafe(),
-                        new WorldChangeFailsafe()
+                        BanwaveFailsafe.getInstance(),
+                        BedrockCageFailsafe.getInstance(),
+                        DirtFailsafe.getInstance(),
+                        DisconnectFailsafe.getInstance(),
+                        EvacuateFailsafe.getInstance(),
+                        GuestVisitFailsafe.getInstance(),
+                        ItemChangeFailsafe.getInstance(),
+                        JacobFailsafe.getInstance(),
+                        LowerAvgBpsFailsafe.getInstance(),
+                        RotationFailsafe.getInstance(),
+                        TeleportFailsafe.getInstance(),
+                        WorldChangeFailsafe.getInstance()
                 )
         );
     }
@@ -106,17 +107,22 @@ public class FailsafeManager {
         restartMacroAfterFailsafeDelay.reset();
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onReceivedPacketDetection(ReceivePacketEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (triggeredFailsafe.isPresent() && !triggeredFailsafe.get().equals(BedrockCageFailsafe.getInstance())) return;
+        if (triggeredFailsafe.isPresent()) {
+            if (triggeredFailsafe.get().equals(BedrockCageFailsafe.getInstance())) {
+                BedrockCageFailsafe.getInstance().onReceivedPacketDetection(event);
+            }
+            return;
+        }
         if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
 
         failsafes.forEach(failsafe -> failsafe.onReceivedPacketDetection(event));
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onTickDetection(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
@@ -126,7 +132,7 @@ public class FailsafeManager {
         failsafes.forEach(failsafe -> failsafe.onTickDetection(event));
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onChatDetection(ClientChatReceivedEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (event.type != 0) return;
@@ -138,7 +144,7 @@ public class FailsafeManager {
         failsafes.forEach(failsafe -> failsafe.onChatDetection(event));
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWorldUnloadDetection(WorldEvent.Unload event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (triggeredFailsafe.isPresent()) return;
@@ -147,7 +153,7 @@ public class FailsafeManager {
         failsafes.forEach(failsafe -> failsafe.onWorldUnloadDetection(event));
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onDisconnectDetection(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (triggeredFailsafe.isPresent()) return;

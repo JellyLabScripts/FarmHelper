@@ -18,7 +18,6 @@ import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.Vec3;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -167,6 +166,8 @@ public class RotationFailsafe extends Failsafe {
 
     @Override
     public void endOfFailsafeTrigger() {
+        rotationBeforeReacting = null;
+        positionBeforeReacting = null;
         rotationCheckState = RotationCheckState.NONE;
         FailsafeManager.getInstance().stopFailsafes();
         if (mc.thePlayer.getPosition().getY() < 100 && GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.GARDEN)
@@ -195,6 +196,7 @@ public class RotationFailsafe extends Failsafe {
         if (yawDiff == 360 && pitchDiff == 0) // prevents false checks
             return;
         if (yawDiff >= threshold || pitchDiff >= threshold) {
+            rotationBeforeReacting = new Rotation((float) playerYaw, (float) playerPitch);
             LogUtils.sendDebug("[Failsafe] Rotation detected! Yaw diff: " + yawDiff + ", Pitch diff: " + pitchDiff);
             FailsafeManager.getInstance().possibleDetection(this);
         }
