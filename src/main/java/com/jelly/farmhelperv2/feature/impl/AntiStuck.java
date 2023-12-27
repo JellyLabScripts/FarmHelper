@@ -2,6 +2,9 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.failsafe.impl.RotationFailsafe;
+import com.jelly.farmhelperv2.failsafe.impl.TeleportFailsafe;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -78,9 +81,9 @@ public class AntiStuck implements IFeature {
     public void start() {
         if (enabled) return;
         LogUtils.sendWarning("[Anti Stuck] Enabled");
-        if (Failsafe.getInstance().getEmergencyQueue().contains(Failsafe.EmergencyType.TELEPORT_CHECK) ||
-                Failsafe.getInstance().getEmergencyQueue().contains(Failsafe.EmergencyType.ROTATION_CHECK))
-            Failsafe.getInstance().stop();
+        if (FailsafeManager.getInstance().getEmergencyQueue().contains(TeleportFailsafe.getInstance()) ||
+                FailsafeManager.getInstance().getEmergencyQueue().contains(RotationFailsafe.getInstance()))
+            FailsafeManager.getInstance().stopFailsafes();
         enabled = true;
         unstuckState = UnstuckState.NONE;
         KeyBindUtils.stopMovement();

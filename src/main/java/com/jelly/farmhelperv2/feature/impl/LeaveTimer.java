@@ -2,6 +2,7 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -80,7 +81,7 @@ public class LeaveTimer implements IFeature {
     public void onTick(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isRunning()) return;
-        if (Failsafe.getInstance().isEmergency()) return;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (leaveClock.isScheduled() && leaveClock.passed()) {
             LogUtils.sendDebug("Leave timer has ended.");

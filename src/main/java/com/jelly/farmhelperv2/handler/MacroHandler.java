@@ -4,6 +4,9 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
+import com.jelly.farmhelperv2.failsafe.impl.WorldChangeFailsafe;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.hud.ProfitCalculatorHUD;
@@ -131,12 +134,12 @@ public class MacroHandler {
                 }
                 return;
             }
-            if (Failsafe.getInstance().isHadEmergency()) {
-                if (Failsafe.getInstance().isEmergency()) {
-                    Failsafe.getInstance().stop();
+            if (FailsafeManager.getInstance().isHadEmergency()) {
+                if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
+                    FailsafeManager.getInstance().stopFailsafes();
                 }
-                Failsafe.getInstance().setHadEmergency(false);
-                Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().reset();
+                FailsafeManager.getInstance().setHadEmergency(false);
+                FailsafeManager.getInstance().getRestartMacroAfterFailsafeDelay().reset();
                 LogUtils.sendWarning("Farm manually and DO NOT restart the macro too soon! The staff might still be spectating you for a while!");
                 return;
             }
@@ -213,6 +216,7 @@ public class MacroHandler {
         setCrop(FarmHelperConfig.CropEnum.NONE);
         FeatureManager.getInstance().disableAll();
         FeatureManager.getInstance().resetAllStates();
+        FailsafeManager.getInstance().stopFailsafes();
         if (UngrabMouse.getInstance().isToggled())
             UngrabMouse.getInstance().stop();
         disableCurrentMacro();
@@ -230,7 +234,7 @@ public class MacroHandler {
             cm.onDisable();
             macroingTimer.pause();
             analyticsTimer.pause();
-            Failsafe.getInstance().resetLowerBPS();
+            LowerAvgBpsFailsafe.getInstance().endOfFailsafeTrigger();
             if (scheduler && Freelook.getInstance().isRunning()) {
                 Freelook.getInstance().stop();
             }
@@ -287,10 +291,11 @@ public class MacroHandler {
         }
 
         if (!GameStateHandler.getInstance().inGarden()) {
-            if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(Failsafe.getInstance()) &&
+            if (
+//                    FeatureManager.getInstance().isAnyOtherFeatureEnabled(Failsafe.getInstance()) &&
                     !FeatureManager.getInstance().shouldIgnoreFalseCheck() &&
-                    !Failsafe.getInstance().isEmergency()) {
-                Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.WORLD_CHANGE_CHECK);
+                    !FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
+                FailsafeManager.getInstance().possibleDetection(WorldChangeFailsafe.getInstance());
             }
             return;
         }

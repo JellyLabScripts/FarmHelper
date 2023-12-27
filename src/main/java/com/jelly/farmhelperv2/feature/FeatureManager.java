@@ -29,7 +29,6 @@ public class FeatureManager {
             AutoSell.getInstance(),
             BanInfoWS.getInstance(),
             DesyncChecker.getInstance(),
-            Failsafe.getInstance(),
             Freelook.getInstance(),
             LagDetector.getInstance(),
             LeaveTimer.getInstance(),

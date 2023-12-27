@@ -1,8 +1,9 @@
 package com.jelly.farmhelperv2.handler;
 
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.failsafe.impl.DirtFailsafe;
 import com.jelly.farmhelperv2.feature.impl.AutoRepellent;
-import com.jelly.farmhelperv2.feature.impl.Failsafe;
 import com.jelly.farmhelperv2.mixin.gui.IGuiPlayerTabOverlayAccessor;
 import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Clock;
@@ -333,8 +334,8 @@ public class GameStateHandler {
 
         if (notMoving() && mc.currentScreen == null) {
             if (hasPassedSinceStopped() && !PlayerUtils.isStandingOnRewarpLocation()) {
-                if (Failsafe.getInstance().hasDirtBlocks() && Failsafe.getInstance().isTouchingDirtBlock()) {
-                    Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.DIRT_CHECK);
+                if (DirtFailsafe.getInstance().hasDirtBlocks() && DirtFailsafe.getInstance().isTouchingDirtBlock()) {
+                    FailsafeManager.getInstance().possibleDetection(DirtFailsafe.getInstance());
                 } else {
                     randomValueToWaitNextTime = -1;
                     notMovingTimer.reset();

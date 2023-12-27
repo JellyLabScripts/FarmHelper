@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.feature.impl;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ClickedBlockEvent;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
@@ -85,7 +86,7 @@ public class DesyncChecker implements IFeature {
         if (!isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!isCrop(mc.theWorld.getBlockState(event.getPos()).getBlock())) return;
-        if (Failsafe.getInstance().isEmergency()) return;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return;
         clickedBlocks.add(event);
         if (!clickedBlocks.isAtFullCapacity()) return;
         if (!checkIfDesync()) return;

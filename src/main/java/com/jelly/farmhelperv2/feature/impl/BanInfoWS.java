@@ -9,6 +9,7 @@ import com.google.gson.JsonPrimitive;
 import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -270,7 +271,7 @@ public class BanInfoWS implements IFeature {
     // SKYSKIPPED BAN STATS
 
     private void processBanScreen(String wholeReason) {
-        Failsafe.getInstance().stop();
+        FailsafeManager.getInstance().stopFailsafes();
         ArrayList<String> multilineMessage = new ArrayList<>(Arrays.asList(wholeReason.split("\n")));
         try {
             if (times.stream().noneMatch(time -> multilineMessage.get(0).contains(time)) || days.stream().noneMatch(day -> multilineMessage.get(0).contains(day)))

@@ -2,7 +2,10 @@ package com.jelly.farmhelperv2.failsafe;
 
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 
 public abstract class Failsafe {
     public final Minecraft mc = Minecraft.getMinecraft();
@@ -13,13 +16,15 @@ public abstract class Failsafe {
     public abstract boolean shouldTagEveryone();
     public abstract boolean shouldAltTab();
 
-    public void onReceivedPacketDetection(ReceivePacketEvent event) {
+    public void onReceivedPacketDetection(ReceivePacketEvent event) {}
 
-    }
+    public void onTickDetection(TickEvent.ClientTickEvent event) {}
 
-    public void onTickDetection(TickEvent.ClientTickEvent event) {
+    public void onChatDetection(ClientChatReceivedEvent event) {}
 
-    }
+    public void onWorldUnloadDetection(WorldEvent.Unload event) {}
+
+    public void onDisconnectDetection(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {}
 
     public abstract void duringFailsafeTrigger();
     public abstract void endOfFailsafeTrigger();

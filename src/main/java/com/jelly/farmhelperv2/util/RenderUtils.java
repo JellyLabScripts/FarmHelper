@@ -17,6 +17,7 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
+import java.util.ArrayList;
 
 public class RenderUtils {
 
@@ -95,6 +96,24 @@ public class RenderUtils {
         GlStateManager.enableDepth();
         GlStateManager.disableBlend();
         GlStateManager.resetColor();
+        GlStateManager.popMatrix();
+    }
+
+    public static void drawMultiLineText(ArrayList<String> lines, RenderGameOverlayEvent event, Color color, float scale) {
+        ScaledResolution scaledResolution = event.resolution;
+        int scaledWidth = scaledResolution.getScaledWidth();
+        GlStateManager.pushMatrix();
+        GlStateManager.translate((float) (scaledWidth / 2), 50, 0.0F);
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.scale(scale, scale, scale);
+        FontRenderer fontRenderer = Minecraft.getMinecraft().fontRendererObj;
+        int yOffset = 0;
+        for (String line : lines) {
+            fontRenderer.drawString(line, (-fontRenderer.getStringWidth(line) / 2f), yOffset, color.getRGB(), true);
+            yOffset += fontRenderer.FONT_HEIGHT * 2;
+        }
+
         GlStateManager.popMatrix();
     }
 
