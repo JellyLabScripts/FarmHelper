@@ -25,6 +25,7 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import org.lwjgl.opengl.Display;
 
 import java.awt.*;
@@ -144,6 +145,15 @@ public class FailsafeManager {
         if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
 
         failsafes.forEach(failsafe -> failsafe.onWorldUnloadDetection(event));
+    }
+
+    @SubscribeEvent
+    public void onDisconnectDetection(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (triggeredFailsafe.isPresent()) return;
+        if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
+
+        failsafes.forEach(failsafe -> failsafe.onDisconnectDetection(event));
     }
 
     public void possibleDetection(Failsafe failsafe) {

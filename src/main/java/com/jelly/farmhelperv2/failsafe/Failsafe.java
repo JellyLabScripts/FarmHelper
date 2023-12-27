@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 
 public abstract class Failsafe {
     public final Minecraft mc = Minecraft.getMinecraft();
@@ -22,6 +23,8 @@ public abstract class Failsafe {
     public void onChatDetection(ClientChatReceivedEvent event) {}
 
     public void onWorldUnloadDetection(WorldEvent.Unload event) {}
+
+    public void onDisconnectDetection(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {}
 
     public abstract void duringFailsafeTrigger();
     public abstract void endOfFailsafeTrigger();

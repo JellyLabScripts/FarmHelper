@@ -50,6 +50,16 @@ public class DisconnectFailsafe extends Failsafe {
         return FailsafeNotificationsPage.autoAltTabOnDisconnectFailsafe;
     }
 
+    @SubscribeEvent
+    public void onDisconnectDetection(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+        if (MacroHandler.getInstance().isTeleporting()) return;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return;
+        if (BanInfoWS.getInstance().isBanwave() && FarmHelperConfig.enableLeavePauseOnBanwave && !FarmHelperConfig.banwaveAction)
+            return;
+
+        FailsafeManager.getInstance().possibleDetection(this);
+    }
+
     @Override
     public void duringFailsafeTrigger() {
         if (!AutoReconnect.getInstance().isRunning() && AutoReconnect.getInstance().isToggled()) {
@@ -72,16 +82,5 @@ public class DisconnectFailsafe extends Failsafe {
     @Override
     public void endOfFailsafeTrigger() {
 
-    }
-
-
-    @SubscribeEvent
-    public void onDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
-        if (MacroHandler.getInstance().isTeleporting()) return;
-        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return;
-        if (BanInfoWS.getInstance().isBanwave() && FarmHelperConfig.enableLeavePauseOnBanwave && !FarmHelperConfig.banwaveAction)
-            return;
-
-        FailsafeManager.getInstance().possibleDetection(this);
     }
 }
