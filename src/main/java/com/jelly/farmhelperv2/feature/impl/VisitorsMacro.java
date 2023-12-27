@@ -1112,7 +1112,7 @@ public class VisitorsMacro implements IFeature {
     private void checkIfCurrentVisitorIsProfitable() {
         Optional<Tuple<String, String>> profitableReward = currentRewards.stream().filter(item -> {
             String name = StringUtils.stripControlCodes(item.getFirst());
-            return profitRewards.stream().anyMatch(reward -> reward.contains(name));
+            return profitRewards.stream().anyMatch(reward -> reward.contains(name) || name.contains(reward));
         }).findFirst();
         if (profitableReward.isPresent()) {
             LogUtils.sendDebug("[Visitors Macro] The visitor is profitable");
