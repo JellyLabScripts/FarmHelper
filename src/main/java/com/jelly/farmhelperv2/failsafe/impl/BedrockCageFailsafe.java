@@ -71,16 +71,16 @@ public class BedrockCageFailsafe extends Failsafe {
                 break;
             case WAIT_BEFORE_START:
                 MacroHandler.getInstance().pauseMacro();
-                if (BlockUtils.getRelativeBlock(-1, 1, 0).equals(Blocks.bedrock))
-                    bedrockOnLeft = true;
-                else if (BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.bedrock))
-                    bedrockOnLeft = false;
                 MovRecPlayer.setYawDifference(AngleUtils.getClosest());
                 positionBeforeReacting = mc.thePlayer.getPosition();
                 bedrockCageCheckState = BedrockCageCheckState.LOOK_AROUND;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
                 break;
             case LOOK_AROUND:
+                if (BlockUtils.getRelativeBlock(-1, 1, 0).equals(Blocks.bedrock))
+                    bedrockOnLeft = true;
+                else if (BlockUtils.getRelativeBlock(1, 1, 0).equals(Blocks.bedrock))
+                    bedrockOnLeft = false;
                 if (bedrockOnLeft)
                     MovRecPlayer.getInstance().playRandomRecording("BEDROCK_CHECK_Left_Start_");
                 else
@@ -92,10 +92,10 @@ public class BedrockCageFailsafe extends Failsafe {
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
                 String randomMessage;
-                if (CustomFailsafeMessagesPage.customRotationMessages.isEmpty()) {
+                if (CustomFailsafeMessagesPage.customBedrockMessages.isEmpty()) {
                     randomMessage = FailsafeManager.getRandomMessage();
                 } else {
-                    String[] customMessages = CustomFailsafeMessagesPage.customRotationMessages.split("\\|");
+                    String[] customMessages = CustomFailsafeMessagesPage.customBedrockMessages.split("\\|");
                     randomMessage = FailsafeManager.getRandomMessage(customMessages);
                 }
                 LogUtils.sendDebug("[Failsafe] Chosen message: " + randomMessage);
@@ -196,14 +196,11 @@ public class BedrockCageFailsafe extends Failsafe {
 
     @Override
     public void onReceivedPacketDetection(ReceivePacketEvent event) {
-        if (mc.thePlayer.getPosition().getY() < 50) return;
-        if (BlockUtils.bedrockCount() <= 2) return;
-        FailsafeManager.getInstance().possibleDetection(this);
-    }
-
-    @SubscribeEvent
-    public void onBedrockCheckBypass(ReceivePacketEvent event) {
         if (MacroHandler.getInstance().isTeleporting()) return;
+        if (mc.thePlayer.getPosition().getY() < 50) return;
+        if (BlockUtils.bedrockCount() > 3)
+            FailsafeManager.getInstance().possibleDetection(this);
+
         if (!(event.packet instanceof S08PacketPlayerPosLook)) {
             return;
         }
@@ -227,6 +224,7 @@ public class BedrockCageFailsafe extends Failsafe {
             bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE;
             FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
         }
+
     }
 
     private BedrockCageCheckState bedrockCageCheckState = BedrockCageCheckState.NONE;

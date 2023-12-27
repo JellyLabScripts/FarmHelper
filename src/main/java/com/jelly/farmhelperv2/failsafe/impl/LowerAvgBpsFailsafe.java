@@ -135,6 +135,7 @@ public class LowerAvgBpsFailsafe extends Failsafe {
     @Override
     public void endOfFailsafeTrigger() {
         lowerBPSState = LowerBPSState.NONE;
+        bpsQueue.clear();
     }
 
     public float getAverageBPS() {

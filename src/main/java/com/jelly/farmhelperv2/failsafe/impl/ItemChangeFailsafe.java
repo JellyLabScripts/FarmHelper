@@ -62,8 +62,13 @@ public class ItemChangeFailsafe extends Failsafe {
 
         if (!(event.packet instanceof S2FPacketSetSlot)) return;
 
+        LogUtils.sendSuccess("[Failsafe] Item change detected! Slot: " + ((S2FPacketSetSlot) event.packet).func_149173_d());
+
         S2FPacketSetSlot packet = (S2FPacketSetSlot) event.packet;
         int slot = packet.func_149173_d();
+
+//        if (slot >= 36 && slot < 45 && mc.thePlayer.inventory.currentItem + 36 == slot)
+//            LogUtils.sendSuccess("[Failsafe] Failsafe triggered!");
         int farmingToolSlot = -1;
         try {
             farmingToolSlot = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);

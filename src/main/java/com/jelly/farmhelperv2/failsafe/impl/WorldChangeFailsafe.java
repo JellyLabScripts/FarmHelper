@@ -65,8 +65,8 @@ public class WorldChangeFailsafe extends Failsafe {
         FailsafeManager.getInstance().possibleDetection(this);
     }
 
-    @SubscribeEvent
-    public void onTickCheckLimbo(TickEvent.ClientTickEvent event) {
+    @Override
+    public void onTickDetection(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()

@@ -2,6 +2,7 @@ package com.jelly.farmhelperv2.failsafe;
 
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 public abstract class Failsafe {
@@ -18,6 +19,10 @@ public abstract class Failsafe {
     }
 
     public void onTickDetection(TickEvent.ClientTickEvent event) {
+
+    }
+
+    public void onChatDetection(ClientChatReceivedEvent event) {
 
     }
 

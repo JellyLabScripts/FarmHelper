@@ -6,6 +6,7 @@ import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -17,6 +18,7 @@ import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.Vec3;
 
 public class RotationFailsafe extends Failsafe {
     private static RotationFailsafe instance;
@@ -175,12 +177,16 @@ public class RotationFailsafe extends Failsafe {
         if (!(event.packet instanceof S08PacketPlayerPosLook)) {
             return;
         }
+        if (LagDetector.getInstance().isLagging() || LagDetector.getInstance().wasJustLagging()) {
+            LogUtils.sendWarning("[Failsafe] Got rotation packet while lagging! Ignoring that one.");
+            return;
+        }
+
         S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
         double packetYaw = packet.getYaw();
         double packetPitch = packet.getPitch();
         double playerYaw = mc.thePlayer.rotationYaw;
         double playerPitch = mc.thePlayer.rotationPitch;
-        rotationBeforeReacting = new Rotation(mc.thePlayer.prevRotationYaw, mc.thePlayer.prevRotationPitch);
         double yawDiff = Math.abs(packetYaw - playerYaw);
         double pitchDiff = Math.abs(packetPitch - playerPitch);
         double threshold = FarmHelperConfig.rotationCheckSensitivity;

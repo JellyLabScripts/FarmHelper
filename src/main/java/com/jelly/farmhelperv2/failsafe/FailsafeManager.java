@@ -20,6 +20,7 @@ import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.StringUtils;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -121,6 +122,18 @@ public class FailsafeManager {
         if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
 
         failsafes.forEach(failsafe -> failsafe.onTickDetection(event));
+    }
+
+    @SubscribeEvent
+    public void onChatDetection(ClientChatReceivedEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (event.type != 0) return;
+        if (event.message == null) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (triggeredFailsafe.isPresent()) return;
+        if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
+
+        failsafes.forEach(failsafe -> failsafe.onChatDetection(event));
     }
 
     public void possibleDetection(Failsafe failsafe) {
@@ -372,7 +385,8 @@ public class FailsafeManager {
         DISCONNECT("You've been§l DISCONNECTED§r§d from the server!"),
         LOWER_AVERAGE_BPS("Your BPS is lower than average!"),
         JACOB("You've extended the §lJACOB COUNTER§r§d!"),
-        GUEST_VISIT("You've got§l VISITED§r§d by a guest!");
+        GUEST_VISIT("You've got§l VISITED§r§d by "
+                + (!GuestVisitFailsafe.getInstance().lastGuestName.isEmpty() ? GuestVisitFailsafe.getInstance().lastGuestName : "a guest") + "!");
 
         final String label;
 

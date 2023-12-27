@@ -12,6 +12,7 @@ import com.jelly.farmhelperv2.util.helper.Clock;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.concurrent.TimeUnit;
 
@@ -55,6 +56,17 @@ public class GuestVisitFailsafe extends Failsafe {
     }
 
     @Override
+    public void onTickDetection(TickEvent.ClientTickEvent event) {
+        tabListCheckDelay.schedule(5000L);
+        if (FarmHelperConfig.pauseWhenGuestArrives) {
+            if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
+                LogUtils.sendFailsafeMessage("[Failsafe] Paused the macro because of guest visit!", false);
+                MacroHandler.getInstance().pauseMacro();
+            }
+        }
+    }
+
+    @Override
     public void duringFailsafeTrigger() {
         if (tabListCheckDelay.isScheduled() && !tabListCheckDelay.passed()) return;
         if (!GameStateHandler.getInstance().isGuestOnGarden()
@@ -74,8 +86,8 @@ public class GuestVisitFailsafe extends Failsafe {
         MacroHandler.getInstance().resumeMacro();
     }
 
-    @SubscribeEvent
-    public void onChatReceived(ClientChatReceivedEvent event) {
+    @Override
+    public void onChatDetection(ClientChatReceivedEvent event) {
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains(":")) return;
         if (message.contains("is visiting Your Garden") && (!GameStateHandler.getInstance().isGuestOnGarden()) && !wasGuestOnGarden) {
@@ -93,17 +105,7 @@ public class GuestVisitFailsafe extends Failsafe {
         }
     }
 
-    public void onGuestVisit() {
-        tabListCheckDelay.schedule(5000L);
-        if (FarmHelperConfig.pauseWhenGuestArrives) {
-            if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
-                LogUtils.sendFailsafeMessage("[Failsafe] Paused the macro because of guest visit!", false);
-                MacroHandler.getInstance().pauseMacro();
-            }
-        }
-    }
-
     private final Clock tabListCheckDelay = new Clock();
     private boolean wasGuestOnGarden = false;
-    private String lastGuestName = "";
+    public String lastGuestName = "";
 }
