@@ -109,7 +109,7 @@ public class FailsafeManager {
     public void onReceivedPacketDetection(ReceivePacketEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (triggeredFailsafe.isPresent()) return;
+        if (triggeredFailsafe.isPresent() && !triggeredFailsafe.get().equals(BedrockCageFailsafe.getInstance())) return;
         if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
 
         failsafes.forEach(failsafe -> failsafe.onReceivedPacketDetection(event));
