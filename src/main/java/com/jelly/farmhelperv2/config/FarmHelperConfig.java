@@ -78,6 +78,7 @@ public class FarmHelperConfig extends Config {
                     "S Shape - Cocoa Beans (Left/Right)", // 8
                     "S Shape - Mushroom (45°)", // 9
                     "S Shape - Mushroom (30° with rotations)", // 10
+                    "S Shape - Mushroom SDS" // 11
             }, size = 2
     )
     public static int macroType = 0;
@@ -1798,7 +1799,8 @@ public class FarmHelperConfig extends Config {
         S_COCOA_BEANS,
         S_COCOA_BEANS_LEFT_RIGHT,
         S_MUSHROOM,
-        S_MUSHROOM_ROTATE
+        S_MUSHROOM_ROTATE,
+        S_MUSHROOM_SDS
     }
 
     public enum CropEnum {
