@@ -24,6 +24,8 @@ public abstract class Failsafe {
 
     public void onWorldUnloadDetection(WorldEvent.Unload event) {}
 
+    public void onWorldUnloadDuringFailsafe(WorldEvent.Unload event) {}
+
     public void onDisconnectDetection(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {}
 
     public abstract void duringFailsafeTrigger();

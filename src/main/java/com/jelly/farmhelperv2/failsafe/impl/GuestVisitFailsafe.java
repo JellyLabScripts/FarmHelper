@@ -12,7 +12,6 @@ import com.jelly.farmhelperv2.util.helper.Clock;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.concurrent.TimeUnit;
@@ -87,8 +86,8 @@ public class GuestVisitFailsafe extends Failsafe {
         MacroHandler.getInstance().resumeMacro();
     }
 
-    @SubscribeEvent
-    public void onWorldUnloadDetection(WorldEvent.Unload event) {
+    @Override
+    public void onWorldUnloadDuringFailsafe(WorldEvent.Unload event) {
         endOfFailsafeTrigger();
     }
 

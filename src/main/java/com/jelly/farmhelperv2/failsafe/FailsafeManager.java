@@ -154,6 +154,15 @@ public class FailsafeManager {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onWorldUnloadDuringFailsafe(WorldEvent.Unload event) {
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (!triggeredFailsafe.isPresent()) return;
+        if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
+
+        failsafes.forEach(failsafe -> failsafe.onWorldUnloadDuringFailsafe(event));
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onDisconnectDetection(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (triggeredFailsafe.isPresent()) return;

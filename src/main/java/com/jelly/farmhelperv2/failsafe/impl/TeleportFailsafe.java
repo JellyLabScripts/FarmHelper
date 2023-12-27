@@ -19,7 +19,6 @@ import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class TeleportFailsafe extends Failsafe {
     private static TeleportFailsafe instance;
@@ -203,7 +202,7 @@ public class TeleportFailsafe extends Failsafe {
             MacroHandler.getInstance().resumeMacro();
     }
 
-    @SubscribeEvent
+    @Override
     public void onWorldUnloadDetection(WorldEvent.Unload event) {
         endOfFailsafeTrigger();
     }

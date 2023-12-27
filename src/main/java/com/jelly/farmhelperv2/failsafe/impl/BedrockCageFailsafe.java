@@ -237,8 +237,8 @@ public class BedrockCageFailsafe extends Failsafe {
         FailsafeManager.getInstance().stopFailsafes();
     }
 
-    @SubscribeEvent
-    public void onWorldUnloadDetection(WorldEvent.Unload event) {
+    @Override
+    public void onWorldUnloadDuringFailsafe(WorldEvent.Unload event) {
         endOfFailsafeTrigger();
     }
 

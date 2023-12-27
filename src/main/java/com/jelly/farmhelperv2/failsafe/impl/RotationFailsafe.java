@@ -19,7 +19,6 @@ import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
 import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class RotationFailsafe extends Failsafe {
     private static RotationFailsafe instance;
@@ -202,7 +201,7 @@ public class RotationFailsafe extends Failsafe {
         }
     }
 
-    @SubscribeEvent
+    @Override
     public void onWorldUnloadDetection(WorldEvent.Unload event) {
         endOfFailsafeTrigger();
     }

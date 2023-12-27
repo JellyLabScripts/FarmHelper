@@ -91,8 +91,8 @@ public class WorldChangeFailsafe extends Failsafe {
         }
     }
 
-    @SubscribeEvent
-    public void onReceiveChatWhileWorldChange(ClientChatReceivedEvent event) {
+    @Override
+    public void onChatDetection(ClientChatReceivedEvent event) {
         if (event.type != 0) return;
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()
                 && FailsafeManager.getInstance().triggeredFailsafe.get().getType() != FailsafeManager.EmergencyType.WORLD_CHANGE_CHECK) return;

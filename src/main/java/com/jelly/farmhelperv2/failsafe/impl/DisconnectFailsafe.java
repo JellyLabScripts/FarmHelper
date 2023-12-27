@@ -8,7 +8,6 @@ import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.AutoReconnect;
 import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
 import com.jelly.farmhelperv2.handler.MacroHandler;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 
 public class DisconnectFailsafe extends Failsafe {
@@ -50,10 +49,10 @@ public class DisconnectFailsafe extends Failsafe {
         return FailsafeNotificationsPage.autoAltTabOnDisconnectFailsafe;
     }
 
-    @SubscribeEvent
+    @Override
     public void onDisconnectDetection(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         if (MacroHandler.getInstance().isTeleporting()) return;
-        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return;
+//        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return;
         if (BanInfoWS.getInstance().isBanwave() && FarmHelperConfig.enableLeavePauseOnBanwave && !FarmHelperConfig.banwaveAction)
             return;
 

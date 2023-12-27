@@ -11,7 +11,6 @@ import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
 import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.concurrent.TimeUnit;
@@ -135,7 +134,7 @@ public class JacobFailsafe extends Failsafe {
         MacroHandler.getInstance().resumeMacro();
     }
 
-    @SubscribeEvent
+    @Override
     public void onWorldUnloadDetection(WorldEvent.Unload event) {
         endOfFailsafeTrigger();
     }

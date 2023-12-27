@@ -197,7 +197,7 @@ public class DirtFailsafe extends Failsafe {
         FailsafeManager.getInstance().restartMacroAfterDelay();
     }
 
-    @SubscribeEvent
+    @Override
     public void onWorldUnloadDetection(WorldEvent.Unload event) {
         endOfFailsafeTrigger();
     }

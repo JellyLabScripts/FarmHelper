@@ -7,7 +7,6 @@ import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 public class EvacuateFailsafe extends Failsafe {
@@ -49,8 +48,8 @@ public class EvacuateFailsafe extends Failsafe {
         return FailsafeNotificationsPage.autoAltTabOnEvacuateFailsafe;
     }
 
-    @SubscribeEvent
-    public void onTickCheckScoreboard(TickEvent.ClientTickEvent event) {
+    @Override
+    public void onTickDetection(TickEvent.ClientTickEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!FarmHelperConfig.autoEvacuateOnWorldUpdate) return;
         if (evacuateState != EvacuateState.NONE) return;

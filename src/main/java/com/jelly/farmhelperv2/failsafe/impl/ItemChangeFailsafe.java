@@ -15,7 +15,6 @@ import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.concurrent.TimeUnit;
 
@@ -125,7 +124,7 @@ public class ItemChangeFailsafe extends Failsafe {
         }, 500, TimeUnit.MILLISECONDS);
     }
 
-    @SubscribeEvent
+    @Override
     public void onWorldUnloadDetection(WorldEvent.Unload event) {
         endOfFailsafeTrigger();
     }
