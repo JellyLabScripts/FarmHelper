@@ -328,12 +328,16 @@ public class AutoBazaar implements IFeature {
                 if (this.maxSpendLimit != 0) {
                     String lore = String.join(" ", InventoryUtils.getLoreOfItemInContainer(instaBuySlot)).replace(",", "");
                     Matcher matcher = this.totalCostPattern.matcher(lore);
+                    System.out.println(lore);
 
                     if (matcher.find()) {
                         float amount = Float.parseFloat(matcher.group(1));
+                        System.out.println("Amount: " + amount);
+                        System.out.println("Max spend limit: " + this.maxSpendLimit);
                         if (amount > this.maxSpendLimit) {
                             log("Attempting to spend more than allowed. Price: " + amount + ", limit: " + this.maxSpendLimit);
                             log("Disabling.");
+                            this.wasManipulated = true;
                             this.disable("Spending more than allowed.");
                             return;
                         }
