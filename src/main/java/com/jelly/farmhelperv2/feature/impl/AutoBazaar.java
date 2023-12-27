@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
@@ -196,7 +197,7 @@ public class AutoBazaar implements IFeature {
             case BZ_VERIFY:
                 if (this.openedChestGuiNameStartsWith("Bazaar ➜ \"")) {
                     log("Opened Bz.");
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     this.buyState = BuyState.CLICK_ON_PRODUCT;
                 }
 
@@ -222,7 +223,7 @@ public class AutoBazaar implements IFeature {
             case PRODUCT_VERIFY:
                 if (this.openedChestGuiProductNameStartsWith(this.itemToBuy)) {
                     log("Opened item page.");
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     this.buyState = BuyState.CLICK_BUY_INSTANTLY;
                 }
                 if (this.hasTimerEnded()) {
@@ -244,7 +245,7 @@ public class AutoBazaar implements IFeature {
             case BUY_INSTANTLY_VERIFY:
                 if (this.openedChestGuiNameStartsWith(this.itemToBuy + " ➜ Instant Buy")) {
                     log("Opened instant buy page");
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     this.buyState = BuyState.OPEN_SIGN;
 
                     Predicate<Slot> buyPredicate = slot -> slot.getHasStack()
@@ -290,7 +291,7 @@ public class AutoBazaar implements IFeature {
             case OPEN_SIGN_VERIFY:
                 if (mc.currentScreen instanceof GuiEditSign) {
                     log("Opened sign gui");
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     this.buyState = BuyState.EDIT_SIGN;
                 }
 
@@ -308,7 +309,7 @@ public class AutoBazaar implements IFeature {
             case VERIFY_CONFIRM_PAGE:
                 if (this.openedChestGuiNameContains("Confirm Instant Buy")) {
                     log("Opened confirm buy page");
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     this.buyState = BuyState.CLICK_BUY;
                 }
                 if (this.hasTimerEnded()) {
@@ -379,7 +380,7 @@ public class AutoBazaar implements IFeature {
             case BZ_VERIFY:
                 if (this.openedChestGuiNameStartsWith("Bazaar ➜ ")) {
                     log("Opened Bz.");
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     this.sellState = SellState.CLICK_INSTASELL;
                 }
 
@@ -416,7 +417,7 @@ public class AutoBazaar implements IFeature {
             case INSTASELL_VERIFY:
                 if (this.openedChestGuiNameContains("Are you sure?")) {
                     log("Opened instasell page.");
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     this.sellState = SellState.CLICK_CONFIRM_INSTASELL;
                 }
                 if (this.hasTimerEnded()) {
