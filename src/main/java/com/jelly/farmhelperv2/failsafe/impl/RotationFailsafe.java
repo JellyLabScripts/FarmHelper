@@ -60,6 +60,35 @@ public class RotationFailsafe extends Failsafe {
     }
 
     @Override
+    public void onReceivedPacketDetection(ReceivePacketEvent event) {
+        if (MacroHandler.getInstance().isTeleporting())
+            return;
+        if (!(event.packet instanceof S08PacketPlayerPosLook)) {
+            return;
+        }
+        if (LagDetector.getInstance().isLagging() || LagDetector.getInstance().wasJustLagging()) {
+            LogUtils.sendWarning("[Failsafe] Got rotation packet while lagging! Ignoring that one.");
+            return;
+        }
+
+        S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
+        double packetYaw = packet.getYaw();
+        double packetPitch = packet.getPitch();
+        double playerYaw = mc.thePlayer.rotationYaw;
+        double playerPitch = mc.thePlayer.rotationPitch;
+        double yawDiff = Math.abs(packetYaw - playerYaw);
+        double pitchDiff = Math.abs(packetPitch - playerPitch);
+        double threshold = FarmHelperConfig.rotationCheckSensitivity;
+        if (yawDiff == 360 && pitchDiff == 0) // prevents false checks
+            return;
+        if (yawDiff >= threshold || pitchDiff >= threshold) {
+            rotationBeforeReacting = new Rotation((float) playerYaw, (float) playerPitch);
+            LogUtils.sendDebug("[Failsafe] Rotation detected! Yaw diff: " + yawDiff + ", Pitch diff: " + pitchDiff);
+            FailsafeManager.getInstance().possibleDetection(this);
+        }
+    }
+
+    @Override
     public void duringFailsafeTrigger() {
 
         switch (rotationCheckState) {
@@ -168,34 +197,6 @@ public class RotationFailsafe extends Failsafe {
         FailsafeManager.getInstance().stopFailsafes();
         if (mc.thePlayer.getPosition().getY() < 100 && GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.GARDEN)
             MacroHandler.getInstance().resumeMacro();
-    }
-
-    @Override
-    public void onReceivedPacketDetection(ReceivePacketEvent event) {
-        if (MacroHandler.getInstance().isTeleporting()) return;
-        if (!(event.packet instanceof S08PacketPlayerPosLook)) {
-            return;
-        }
-        if (LagDetector.getInstance().isLagging() || LagDetector.getInstance().wasJustLagging()) {
-            LogUtils.sendWarning("[Failsafe] Got rotation packet while lagging! Ignoring that one.");
-            return;
-        }
-
-        S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
-        double packetYaw = packet.getYaw();
-        double packetPitch = packet.getPitch();
-        double playerYaw = mc.thePlayer.rotationYaw;
-        double playerPitch = mc.thePlayer.rotationPitch;
-        double yawDiff = Math.abs(packetYaw - playerYaw);
-        double pitchDiff = Math.abs(packetPitch - playerPitch);
-        double threshold = FarmHelperConfig.rotationCheckSensitivity;
-        if (yawDiff == 360 && pitchDiff == 0) // prevents false checks
-            return;
-        if (yawDiff >= threshold || pitchDiff >= threshold) {
-            rotationBeforeReacting = new Rotation((float) playerYaw, (float) playerPitch);
-            LogUtils.sendDebug("[Failsafe] Rotation detected! Yaw diff: " + yawDiff + ", Pitch diff: " + pitchDiff);
-            FailsafeManager.getInstance().possibleDetection(this);
-        }
     }
 
     @Override
