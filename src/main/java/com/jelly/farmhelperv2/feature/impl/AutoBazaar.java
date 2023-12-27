@@ -16,13 +16,14 @@ import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AutoBazaar implements IFeature {
-    private static Minecraft mc = Minecraft.getMinecraft();
+    private static final Minecraft mc = Minecraft.getMinecraft();
     private static AutoBazaar instance = null;
     public static final int SELL_INVENTORY = 0;
     public static final int SELL_SACK = 1;
@@ -219,7 +220,7 @@ public class AutoBazaar implements IFeature {
                 this.buyState = BuyState.PRODUCT_VERIFY;
                 break;
             case PRODUCT_VERIFY:
-                if (this.openedChestGuiNameContains("➜ " + this.itemToBuy)) {
+                if (this.openedChestGuiProductNameStartsWith(this.itemToBuy)) {
                     log("Opened item page.");
                     this.timer.schedule(500);
                     this.buyState = BuyState.CLICK_BUY_INSTANTLY;
@@ -247,8 +248,8 @@ public class AutoBazaar implements IFeature {
                     this.buyState = BuyState.OPEN_SIGN;
 
                     Predicate<Slot> buyPredicate = slot -> slot.getHasStack()
-                        && StringUtils.stripControlCodes(slot.getStack().getDisplayName()).startsWith("Buy")
-                        && slot.slotNumber < mc.thePlayer.openContainer.inventorySlots.size() - 37;
+                            && StringUtils.stripControlCodes(slot.getStack().getDisplayName()).startsWith("Buy")
+                            && slot.slotNumber < mc.thePlayer.openContainer.inventorySlots.size() - 37;
                     List<Slot> buySlots = InventoryUtils.getIndexesOfItemsFromContainer(buyPredicate);
 
                     if (buySlots.isEmpty()) return;
@@ -483,8 +484,17 @@ public class AutoBazaar implements IFeature {
 
     private boolean openedChestGuiNameStartsWith(String guiName) {
         String openGuiName = InventoryUtils.getInventoryName();
+        System.out.println(openGuiName);
         return (mc.currentScreen instanceof GuiChest || mc.thePlayer.openContainer instanceof ContainerChest)
-            && (openGuiName != null && openGuiName.startsWith(guiName));
+                && (openGuiName != null && (openGuiName.startsWith(guiName) || guiName.startsWith(openGuiName)));
+    }
+
+    private boolean openedChestGuiProductNameStartsWith(String productName) {
+        String openGuiName = InventoryUtils.getInventoryName();
+        if (openGuiName == null) return false;
+        String product = openGuiName.substring(openGuiName.indexOf("➜ ") + 2);
+        return (mc.currentScreen instanceof GuiChest || mc.thePlayer.openContainer instanceof ContainerChest)
+                && (productName.startsWith(product));
     }
 
     private void disable(String message) {

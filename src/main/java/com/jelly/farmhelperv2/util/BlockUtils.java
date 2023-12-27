@@ -339,7 +339,8 @@ public class BlockUtils {
                 new Vec3(playerAABB.maxX - 0.0001, playerAABB.minY + mc.thePlayer.height, playerAABB.maxZ - 0.0001)
         };
         for (Vec3 corner : corners) {
-            if (mc.theWorld.rayTraceBlocks(corner, corner.addVector(0, distance, 0)) != null) {
+            MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(corner, corner.addVector(0, distance, 0), false, true, false);
+            if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                 return false;
             }
         }

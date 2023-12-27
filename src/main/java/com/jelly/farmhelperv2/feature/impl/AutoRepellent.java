@@ -31,8 +31,6 @@ public class AutoRepellent implements IFeature {
     public final static Clock repellentFailsafeClock = new Clock();
     private final Pattern repellentRegex = Pattern.compile("(\\d+?)m?\\s?(\\d+)s");
 
-    private int savedSlot = 0;
-
     public static AutoRepellent getInstance() {
         if (instance == null) {
             instance = new AutoRepellent();
@@ -66,7 +64,6 @@ public class AutoRepellent implements IFeature {
         enabled = true;
         notEnoughCopper = false;
         state = State.NONE;
-        savedSlot = mc.thePlayer.inventory.currentItem;
         LogUtils.sendWarning("[Auto Repellent] Enabled!");
         delay.reset();
         MacroHandler.getInstance().pauseMacro();
@@ -79,9 +76,8 @@ public class AutoRepellent implements IFeature {
         enabled = false;
         notEnoughCopper = false;
         state = State.NONE;
-        if (mc.currentScreen != null)
-            PlayerUtils.closeScreen();
-        Multithreading.schedule(() -> MacroHandler.getInstance().resumeMacro(), 1_500, TimeUnit.MILLISECONDS);
+        PlayerUtils.closeScreen();
+        Multithreading.schedule(() -> MacroHandler.getInstance().resumeMacro(), 500, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -389,14 +385,13 @@ public class AutoRepellent implements IFeature {
                 delay.schedule(300 + (long) (Math.random() * 300));
             }
         } else if (state == State.WAIT_FOR_REPELLENT) {
-            System.out.println(message);
             if (message.startsWith("YUM! Pests will now spawn")) {
                 repellentFailsafeClock.schedule(TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS) + 5_000);
                 LogUtils.sendDebug("Repellent used!");
                 if (this.hotbarSlot == -1) {
                     state = State.NONE;
-                    LogUtils.sendWarning("[Auto Repellent] Successfully used Repellent! Resuming macro in 1.5 seconds...");
-                    Multithreading.schedule(this::stop, 1_500, TimeUnit.MILLISECONDS);
+                    LogUtils.sendWarning("[Auto Repellent] Successfully used Repellent! Resuming macro...");
+                    stop();
                 } else {
                     state = State.MOVE_REPELLENT_TO_HOTBAR;
                     moveRepellentState = MoveRepellentState.PUT_ITEM_BACK_PICKUP;
@@ -415,12 +410,8 @@ public class AutoRepellent implements IFeature {
                     LogUtils.sendError("Failed to get repellent remaining time.");
                 }
 
-                LogUtils.sendWarning("[Auto Repellent] Already used Repellent! Resuming macro in 1.5 seconds...");
-                Multithreading.schedule(() -> {
-                    mc.thePlayer.inventory.currentItem = savedSlot;
-                    savedSlot = 0;
-                }, 200 + (long) (Math.random() * 200), TimeUnit.MILLISECONDS);
-                Multithreading.schedule(this::stop, 1_500, TimeUnit.MILLISECONDS);
+                LogUtils.sendWarning("[Auto Repellent] Already used Repellent! Resuming macro...");
+                stop();
             }
         }
     }

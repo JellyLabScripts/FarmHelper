@@ -265,7 +265,7 @@ public class MacroHandler {
             startingUp = true;
             PlayerUtils.itemChangedByStaff = false;
             PlayerUtils.changeItemEveryClock.reset();
-            KeyBindUtils.updateKeys(false, false, false, false, false, mc.thePlayer.capabilities.isFlying, false);
+            KeyBindUtils.holdThese(mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindSneak : null);
             Multithreading.schedule(() -> {
                 startCurrent.run();
                 macroingTimer.resume();
