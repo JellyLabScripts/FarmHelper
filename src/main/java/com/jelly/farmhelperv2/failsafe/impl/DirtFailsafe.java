@@ -18,6 +18,7 @@ import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;
@@ -194,6 +195,11 @@ public class DirtFailsafe extends Failsafe {
         dirtCheckState = DirtCheckState.NONE;
         FailsafeManager.getInstance().stopFailsafes();
         FailsafeManager.getInstance().restartMacroAfterDelay();
+    }
+
+    @SubscribeEvent
+    public void onWorldUnloadDetection(WorldEvent.Unload event) {
+        endOfFailsafeTrigger();
     }
 
     public boolean isTouchingDirtBlock() {

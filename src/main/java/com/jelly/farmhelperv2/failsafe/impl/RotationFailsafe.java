@@ -19,6 +19,8 @@ import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
+import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class RotationFailsafe extends Failsafe {
     private static RotationFailsafe instance;
@@ -196,6 +198,11 @@ public class RotationFailsafe extends Failsafe {
             LogUtils.sendDebug("[Failsafe] Rotation detected! Yaw diff: " + yawDiff + ", Pitch diff: " + pitchDiff);
             FailsafeManager.getInstance().possibleDetection(this);
         }
+    }
+
+    @SubscribeEvent
+    public void onWorldUnloadDetection(WorldEvent.Unload event) {
+        endOfFailsafeTrigger();
     }
 
     private RotationCheckState rotationCheckState = RotationCheckState.NONE;

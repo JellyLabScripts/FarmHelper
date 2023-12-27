@@ -19,6 +19,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class BedrockCageFailsafe extends Failsafe {
@@ -58,6 +59,41 @@ public class BedrockCageFailsafe extends Failsafe {
     @Override
     public boolean shouldAltTab() {
         return FailsafeNotificationsPage.autoAltTabOnBedrockCageFailsafe;
+    }
+
+    @Override
+    public void onReceivedPacketDetection(ReceivePacketEvent event) {
+        if (MacroHandler.getInstance().isTeleporting()) return;
+        if (!(event.packet instanceof S08PacketPlayerPosLook)) {
+            return;
+        }
+        if (mc.thePlayer.getPosition().getY() < 66) return;
+        S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
+        Vec3 currentPlayerPos = mc.thePlayer.getPositionVector();
+        Vec3 packetPlayerPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
+
+        if (packet.getY() > 80) {
+            if (BlockUtils.bedrockCount() > 3)
+                FailsafeManager.getInstance().possibleDetection(this);
+            return;
+        }
+
+        double distance = currentPlayerPos.distanceTo(packetPlayerPos);
+        if (distance < 10)
+            return;
+        final double lastReceivedPacketDistance = currentPlayerPos.distanceTo(LagDetector.getInstance().getLastPacketPosition());
+        final double playerMovementSpeed = mc.thePlayer.getAttributeMap().getAttributeInstanceByName("generic.movementSpeed").getAttributeValue();
+        final int ticksSinceLastPacket = (int) Math.ceil(LagDetector.getInstance().getTimeSinceLastTick() / 50D);
+        final double estimatedMovement = playerMovementSpeed * ticksSinceLastPacket;
+        if (lastReceivedPacketDistance > 7.5D && Math.abs(lastReceivedPacketDistance - estimatedMovement) < FarmHelperConfig.teleportCheckLagSensitivity)
+            return;
+        if (bedrockCageCheckState == BedrockCageCheckState.WAIT_UNTIL_TP_BACK && MovRecPlayer.getInstance().isRunning()) {
+            MovRecPlayer.getInstance().stop();
+            rotationBeforeReacting = new Rotation(mc.thePlayer.prevRotationYaw, mc.thePlayer.prevRotationPitch);
+            LogUtils.sendFailsafeMessage("[Failsafe] You've just passed the failsafe check for bedrock cage!", FailsafeNotificationsPage.tagEveryoneOnBedrockCageFailsafe);
+            bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE;
+            FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
+        }
     }
 
     @Override
@@ -194,37 +230,9 @@ public class BedrockCageFailsafe extends Failsafe {
         FailsafeManager.getInstance().stopFailsafes();
     }
 
-    @Override
-    public void onReceivedPacketDetection(ReceivePacketEvent event) {
-        if (MacroHandler.getInstance().isTeleporting()) return;
-        if (mc.thePlayer.getPosition().getY() < 50) return;
-        if (BlockUtils.bedrockCount() > 3)
-            FailsafeManager.getInstance().possibleDetection(this);
-
-        if (!(event.packet instanceof S08PacketPlayerPosLook)) {
-            return;
-        }
-        S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
-        Vec3 currentPlayerPos = mc.thePlayer.getPositionVector();
-        Vec3 packetPlayerPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
-        rotationBeforeReacting = new Rotation(mc.thePlayer.prevRotationYaw, mc.thePlayer.prevRotationPitch);
-
-        double distance = currentPlayerPos.distanceTo(packetPlayerPos);
-        if (packet.getY() > 100 || distance < 10)
-            return;
-        LogUtils.sendFailsafeMessage("[Failsafe] You've just passed the failsafe check for bedrock cage!", FailsafeNotificationsPage.tagEveryoneOnBedrockCageFailsafe);
-        final double lastReceivedPacketDistance = currentPlayerPos.distanceTo(LagDetector.getInstance().getLastPacketPosition());
-        final double playerMovementSpeed = mc.thePlayer.getAttributeMap().getAttributeInstanceByName("generic.movementSpeed").getAttributeValue();
-        final int ticksSinceLastPacket = (int) Math.ceil(LagDetector.getInstance().getTimeSinceLastTick() / 50D);
-        final double estimatedMovement = playerMovementSpeed * ticksSinceLastPacket;
-        if (lastReceivedPacketDistance > 7.5D && Math.abs(lastReceivedPacketDistance - estimatedMovement) < FarmHelperConfig.teleportCheckLagSensitivity)
-            return;
-        if (bedrockCageCheckState == BedrockCageCheckState.WAIT_UNTIL_TP_BACK && MovRecPlayer.getInstance().isRunning()) {
-            MovRecPlayer.getInstance().stop();
-            bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE;
-            FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
-        }
-
+    @SubscribeEvent
+    public void onWorldUnloadDetection(WorldEvent.Unload event) {
+        endOfFailsafeTrigger();
     }
 
     private BedrockCageCheckState bedrockCageCheckState = BedrockCageCheckState.NONE;

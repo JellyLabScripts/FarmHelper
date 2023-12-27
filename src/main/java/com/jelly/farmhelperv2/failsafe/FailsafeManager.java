@@ -22,6 +22,7 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.Display;
@@ -134,6 +135,15 @@ public class FailsafeManager {
         if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
 
         failsafes.forEach(failsafe -> failsafe.onChatDetection(event));
+    }
+
+    @SubscribeEvent
+    public void onWorldUnloadDetection(WorldEvent.Unload event) {
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (triggeredFailsafe.isPresent()) return;
+        if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
+
+        failsafes.forEach(failsafe -> failsafe.onWorldUnloadDetection(event));
     }
 
     public void possibleDetection(Failsafe failsafe) {

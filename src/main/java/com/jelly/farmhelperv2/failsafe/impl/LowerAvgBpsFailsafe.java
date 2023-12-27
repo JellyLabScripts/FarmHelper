@@ -15,6 +15,7 @@ import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.CircularFifoQueue;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -136,6 +137,11 @@ public class LowerAvgBpsFailsafe extends Failsafe {
     public void endOfFailsafeTrigger() {
         lowerBPSState = LowerBPSState.NONE;
         bpsQueue.clear();
+    }
+
+    @SubscribeEvent
+    public void onWorldUnloadDetection(WorldEvent.Unload event) {
+        endOfFailsafeTrigger();
     }
 
     public float getAverageBPS() {

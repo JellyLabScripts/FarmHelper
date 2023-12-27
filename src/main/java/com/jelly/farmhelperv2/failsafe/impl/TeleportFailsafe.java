@@ -18,6 +18,8 @@ import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
+import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class TeleportFailsafe extends Failsafe {
     private static TeleportFailsafe instance;
@@ -56,6 +58,44 @@ public class TeleportFailsafe extends Failsafe {
     @Override
     public boolean shouldAltTab() {
         return FailsafeNotificationsPage.autoAltTabOnTeleportationFailsafe;
+    }
+
+    @Override
+    public void onReceivedPacketDetection(ReceivePacketEvent event) {
+
+        if (MacroHandler.getInstance().isTeleporting()) return;
+
+        if (event.packet instanceof S08PacketPlayerPosLook) {
+            // Rotation or teleport
+            if (LagDetector.getInstance().isLagging() || LagDetector.getInstance().wasJustLagging()) {
+                LogUtils.sendWarning("[Failsafe] Got rotation packet while lagging! Ignoring that one.");
+                return;
+            }
+
+            S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
+            Vec3 currentPlayerPos = mc.thePlayer.getPositionVector();
+            Vec3 packetPlayerPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
+
+            // Teleport Check
+
+            double distance = currentPlayerPos.distanceTo(packetPlayerPos);
+            if (packet.getY() >= 80 || BlockUtils.bedrockCount() > 2) {
+                LogUtils.sendDebug("[Failsafe] Most likely a bedrock check! Will check in a moment to be sure.");
+                return;
+            }
+
+            if (distance >= FarmHelperConfig.teleportCheckSensitivity || (MacroHandler.getInstance().getCurrentMacro().isPresent() && Math.abs(packet.getY()) - Math.abs(MacroHandler.getInstance().getCurrentMacro().get().getLayerY()) > 0.8)) {
+                LogUtils.sendDebug("[Failsafe] Teleport detected! Distance: " + distance);
+                final double lastRecievedPacketDistance = currentPlayerPos.distanceTo(LagDetector.getInstance().getLastPacketPosition());
+                // blocks per tick
+                final double playerMovementSpeed = mc.thePlayer.getAttributeMap().getAttributeInstanceByName("generic.movementSpeed").getAttributeValue();
+                final int ticksSinceLastPacket = (int) Math.ceil(LagDetector.getInstance().getTimeSinceLastTick() / 50D);
+                final double estimatedMovement = playerMovementSpeed * ticksSinceLastPacket;
+                if (lastRecievedPacketDistance > 7.5D && Math.abs(lastRecievedPacketDistance - estimatedMovement) < FarmHelperConfig.teleportCheckLagSensitivity)
+                    return;
+                FailsafeManager.getInstance().possibleDetection(this);
+            }
+        }
     }
 
     @Override
@@ -163,42 +203,9 @@ public class TeleportFailsafe extends Failsafe {
             MacroHandler.getInstance().resumeMacro();
     }
 
-    @Override
-    public void onReceivedPacketDetection(ReceivePacketEvent event) {
-
-        if (MacroHandler.getInstance().isTeleporting()) return;
-
-        if (event.packet instanceof S08PacketPlayerPosLook) {
-            // Rotation or teleport
-            if (LagDetector.getInstance().isLagging() || LagDetector.getInstance().wasJustLagging()) {
-                LogUtils.sendWarning("[Failsafe] Got rotation packet while lagging! Ignoring that one.");
-                return;
-            }
-
-            S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
-            Vec3 currentPlayerPos = mc.thePlayer.getPositionVector();
-            Vec3 packetPlayerPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
-
-            // Teleport Check
-
-            double distance = currentPlayerPos.distanceTo(packetPlayerPos);
-            if (packet.getY() >= 80 || BlockUtils.bedrockCount() > 2) {
-                LogUtils.sendDebug("[Failsafe] Most likely a bedrock check! Will check in a moment to be sure.");
-                return;
-            }
-
-            if (distance >= FarmHelperConfig.teleportCheckSensitivity || (MacroHandler.getInstance().getCurrentMacro().isPresent() && Math.abs(packet.getY()) - Math.abs(MacroHandler.getInstance().getCurrentMacro().get().getLayerY()) > 0.8)) {
-                LogUtils.sendDebug("[Failsafe] Teleport detected! Distance: " + distance);
-                final double lastRecievedPacketDistance = currentPlayerPos.distanceTo(LagDetector.getInstance().getLastPacketPosition());
-                // blocks per tick
-                final double playerMovementSpeed = mc.thePlayer.getAttributeMap().getAttributeInstanceByName("generic.movementSpeed").getAttributeValue();
-                final int ticksSinceLastPacket = (int) Math.ceil(LagDetector.getInstance().getTimeSinceLastTick() / 50D);
-                final double estimatedMovement = playerMovementSpeed * ticksSinceLastPacket;
-                if (lastRecievedPacketDistance > 7.5D && Math.abs(lastRecievedPacketDistance - estimatedMovement) < FarmHelperConfig.teleportCheckLagSensitivity)
-                    return;
-                FailsafeManager.getInstance().possibleDetection(this);
-            }
-        }
+    @SubscribeEvent
+    public void onWorldUnloadDetection(WorldEvent.Unload event) {
+        endOfFailsafeTrigger();
     }
 
 

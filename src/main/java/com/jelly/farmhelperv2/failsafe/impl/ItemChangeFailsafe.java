@@ -14,6 +14,8 @@ import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
+import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.concurrent.TimeUnit;
 
@@ -123,6 +125,11 @@ public class ItemChangeFailsafe extends Failsafe {
             LogUtils.sendDebug("[Failsafe] Finished item change failsafe. Farming...");
             MacroHandler.getInstance().resumeMacro();
         }, 500, TimeUnit.MILLISECONDS);
+    }
+
+    @SubscribeEvent
+    public void onWorldUnloadDetection(WorldEvent.Unload event) {
+        endOfFailsafeTrigger();
     }
 
     private ItemChangeState itemChangeState = ItemChangeState.NONE;
