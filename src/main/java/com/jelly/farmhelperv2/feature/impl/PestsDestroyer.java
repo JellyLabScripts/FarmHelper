@@ -390,7 +390,7 @@ public class PestsDestroyer implements IFeature {
                     break;
                 }
                 if (!mc.thePlayer.getPosition().equals(preTpBlockPos.get())) {
-                    if (PlayerUtils.isPlayerSuffocating() || hasBlockAboveThePlayer()) {
+                    if (PlayerUtils.isPlayerSuffocating() || !BlockUtils.canFlyHigher(5)) {
                         delayClock.schedule(2_000 + Math.random() * 500);
                         Multithreading.schedule(() -> {
                             mc.thePlayer.sendChatMessage("/warp garden");
@@ -635,12 +635,6 @@ public class PestsDestroyer implements IFeature {
                         break;
                     }
 
-                    if (!mc.thePlayer.capabilities.isFlying) {
-                        flyAwayFromGround();
-                        delayClock.schedule(350);
-                        break;
-                    }
-
                     if (FlyPathfinder.getInstance().isStuckWithMotion()) {
                         LogUtils.sendDebug("[Pests Destroyer] Player is stuck with motion. Falling back to fly pathfinding.");
                         flyPathfinding(entity);
@@ -655,7 +649,7 @@ public class PestsDestroyer implements IFeature {
                     }
 
                     if (distance <= 10 || distanceXZ <= 2) {
-                        if (!mc.thePlayer.capabilities.isFlying) {
+                        if (!mc.thePlayer.capabilities.isFlying && entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY >= 2) {
                             flyAwayFromGround();
                             delayClock.schedule(350);
                             break;
@@ -936,19 +930,13 @@ public class PestsDestroyer implements IFeature {
     }
 
     private boolean hasBlockUnderThePlayer() {
-        Vec3 playerPos = mc.thePlayer.getPositionVector();
-        Vec3 lookDown = AngleUtils.getVectorForRotation(90, mc.thePlayer.rotationYaw);
-        Vec3 lookDownFeet = playerPos.addVector(lookDown.xCoord * 0.8, lookDown.yCoord * 0.8, lookDown.zCoord * 0.8);
-        MovingObjectPosition mopFeet = mc.theWorld.rayTraceBlocks(playerPos, lookDownFeet, false, true, false);
-        return unpassableBlock(mopFeet);
+        BlockPos under = BlockUtils.getRelativeBlockPos(0, -1, 0, mc.thePlayer.rotationYaw);
+        return !isBlockPassable(under);
     }
 
     private boolean hasBlockAboveThePlayer() {
-        Vec3 playerPos = mc.thePlayer.getPositionVector().addVector(0, mc.thePlayer.getEyeHeight(), 0);
-        Vec3 lookUp = AngleUtils.getVectorForRotation(-90, mc.thePlayer.rotationYaw);
-        Vec3 lookUpFeet = playerPos.addVector(lookUp.xCoord * 0.6, lookUp.yCoord * 0.6, lookUp.zCoord * 0.6);
-        MovingObjectPosition mopFeet = mc.theWorld.rayTraceBlocks(playerPos, lookUpFeet, false, true, false);
-        return unpassableBlock(mopFeet);
+        BlockPos above = BlockUtils.getRelativeBlockPos(0, 1, 0, mc.thePlayer.rotationYaw);
+        return !isBlockPassable(above);
     }
 
     private KeyBinding getMovementToEvadeBottomBlock() {

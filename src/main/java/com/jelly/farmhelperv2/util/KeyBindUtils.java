@@ -49,10 +49,6 @@ public class KeyBindUtils {
         }
     }
 
-    public static void updateKeys(boolean forward, boolean back, boolean right, boolean left, boolean attack) {
-        updateKeys(forward, back, right, left, attack, false, false);
-    }
-
     public static void setKeyBindState(KeyBinding key, boolean pressed) {
         if (pressed) {
             if (mc.currentScreen != null) {
@@ -76,66 +72,36 @@ public class KeyBindUtils {
 
     }
 
-
-    public static void updateKeys(boolean forward, boolean back, boolean right, boolean left, boolean attack, boolean crouch, boolean space) {
-        if (mc.currentScreen != null) {
-            stopMovement();
-            return;
-        }
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), forward);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), back);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), right);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), left);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), attack);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), crouch);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), space);
-    }
-
-    public static void updateKeys(boolean forward, boolean back, boolean right, boolean left, boolean attack, boolean crouch, boolean space, boolean sprint) {
-        if (mc.currentScreen != null) {
-            stopMovement();
-            return;
-        }
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), forward);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), back);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), right);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), left);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), attack);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), crouch);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), space);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), sprint);
-    }
-
     public static void stopMovement() {
         stopMovement(false);
     }
 
     public static void stopMovement(boolean ignoreAttack) {
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), false);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), false);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), false);
+        realSetKeyBindState(mc.gameSettings.keyBindForward, false);
+        realSetKeyBindState(mc.gameSettings.keyBindBack, false);
+        realSetKeyBindState(mc.gameSettings.keyBindRight, false);
+        realSetKeyBindState(mc.gameSettings.keyBindLeft, false);
         if (!ignoreAttack) {
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
+            realSetKeyBindState(mc.gameSettings.keyBindAttack, false);
         }
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), false);
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), false);
+        realSetKeyBindState(mc.gameSettings.keyBindUseItem, false);
+        realSetKeyBindState(mc.gameSettings.keyBindSneak, false);
+        realSetKeyBindState(mc.gameSettings.keyBindJump, false);
+        realSetKeyBindState(mc.gameSettings.keyBindSprint, false);
     }
 
     public static void holdThese(KeyBinding... keyBinding) {
         releaseAllExcept(keyBinding);
         for (KeyBinding key : keyBinding) {
             if (key != null)
-                KeyBinding.setKeyBindState(key.getKeyCode(), true);
+                realSetKeyBindState(key, true);
         }
     }
 
     public static void releaseAllExcept(KeyBinding... keyBinding) {
         for (KeyBinding key : allKeys) {
             if (key != null && !contains(keyBinding, key))
-                KeyBinding.setKeyBindState(key.getKeyCode(), false);
+                realSetKeyBindState(key, false);
         }
     }
 

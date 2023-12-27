@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
@@ -16,13 +17,14 @@ import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AutoBazaar implements IFeature {
-    private static Minecraft mc = Minecraft.getMinecraft();
+    private static final Minecraft mc = Minecraft.getMinecraft();
     private static AutoBazaar instance = null;
     public static final int SELL_INVENTORY = 0;
     public static final int SELL_SACK = 1;
@@ -195,7 +197,7 @@ public class AutoBazaar implements IFeature {
             case BZ_VERIFY:
                 if (this.openedChestGuiNameStartsWith("Bazaar ➜ \"")) {
                     log("Opened Bz.");
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     this.buyState = BuyState.CLICK_ON_PRODUCT;
                 }
 
@@ -219,9 +221,9 @@ public class AutoBazaar implements IFeature {
                 this.buyState = BuyState.PRODUCT_VERIFY;
                 break;
             case PRODUCT_VERIFY:
-                if (this.openedChestGuiNameContains("➜ " + this.itemToBuy)) {
+                if (this.openedChestGuiProductNameStartsWith(this.itemToBuy)) {
                     log("Opened item page.");
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     this.buyState = BuyState.CLICK_BUY_INSTANTLY;
                 }
                 if (this.hasTimerEnded()) {
@@ -243,12 +245,12 @@ public class AutoBazaar implements IFeature {
             case BUY_INSTANTLY_VERIFY:
                 if (this.openedChestGuiNameStartsWith(this.itemToBuy + " ➜ Instant Buy")) {
                     log("Opened instant buy page");
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     this.buyState = BuyState.OPEN_SIGN;
 
                     Predicate<Slot> buyPredicate = slot -> slot.getHasStack()
-                        && StringUtils.stripControlCodes(slot.getStack().getDisplayName()).startsWith("Buy")
-                        && slot.slotNumber < mc.thePlayer.openContainer.inventorySlots.size() - 37;
+                            && StringUtils.stripControlCodes(slot.getStack().getDisplayName()).startsWith("Buy")
+                            && slot.slotNumber < mc.thePlayer.openContainer.inventorySlots.size() - 37;
                     List<Slot> buySlots = InventoryUtils.getIndexesOfItemsFromContainer(buyPredicate);
 
                     if (buySlots.isEmpty()) return;
@@ -289,7 +291,7 @@ public class AutoBazaar implements IFeature {
             case OPEN_SIGN_VERIFY:
                 if (mc.currentScreen instanceof GuiEditSign) {
                     log("Opened sign gui");
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     this.buyState = BuyState.EDIT_SIGN;
                 }
 
@@ -307,7 +309,7 @@ public class AutoBazaar implements IFeature {
             case VERIFY_CONFIRM_PAGE:
                 if (this.openedChestGuiNameContains("Confirm Instant Buy")) {
                     log("Opened confirm buy page");
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     this.buyState = BuyState.CLICK_BUY;
                 }
                 if (this.hasTimerEnded()) {
@@ -326,12 +328,16 @@ public class AutoBazaar implements IFeature {
                 if (this.maxSpendLimit != 0) {
                     String lore = String.join(" ", InventoryUtils.getLoreOfItemInContainer(instaBuySlot)).replace(",", "");
                     Matcher matcher = this.totalCostPattern.matcher(lore);
+                    System.out.println(lore);
 
                     if (matcher.find()) {
                         float amount = Float.parseFloat(matcher.group(1));
+                        System.out.println("Amount: " + amount);
+                        System.out.println("Max spend limit: " + this.maxSpendLimit);
                         if (amount > this.maxSpendLimit) {
                             log("Attempting to spend more than allowed. Price: " + amount + ", limit: " + this.maxSpendLimit);
                             log("Disabling.");
+                            this.wasManipulated = true;
                             this.disable("Spending more than allowed.");
                             return;
                         }
@@ -378,7 +384,7 @@ public class AutoBazaar implements IFeature {
             case BZ_VERIFY:
                 if (this.openedChestGuiNameStartsWith("Bazaar ➜ ")) {
                     log("Opened Bz.");
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     this.sellState = SellState.CLICK_INSTASELL;
                 }
 
@@ -415,7 +421,7 @@ public class AutoBazaar implements IFeature {
             case INSTASELL_VERIFY:
                 if (this.openedChestGuiNameContains("Are you sure?")) {
                     log("Opened instasell page.");
-                    this.timer.schedule(500);
+                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     this.sellState = SellState.CLICK_CONFIRM_INSTASELL;
                 }
                 if (this.hasTimerEnded()) {
@@ -483,8 +489,17 @@ public class AutoBazaar implements IFeature {
 
     private boolean openedChestGuiNameStartsWith(String guiName) {
         String openGuiName = InventoryUtils.getInventoryName();
+        System.out.println(openGuiName);
         return (mc.currentScreen instanceof GuiChest || mc.thePlayer.openContainer instanceof ContainerChest)
-            && (openGuiName != null && openGuiName.startsWith(guiName));
+                && (openGuiName != null && (openGuiName.startsWith(guiName) || guiName.startsWith(openGuiName)));
+    }
+
+    private boolean openedChestGuiProductNameStartsWith(String productName) {
+        String openGuiName = InventoryUtils.getInventoryName();
+        if (openGuiName == null) return false;
+        String product = openGuiName.substring(openGuiName.indexOf("➜ ") + 2);
+        return (mc.currentScreen instanceof GuiChest || mc.thePlayer.openContainer instanceof ContainerChest)
+                && (productName.startsWith(product));
     }
 
     private void disable(String message) {

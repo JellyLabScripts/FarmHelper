@@ -79,6 +79,7 @@ public class FarmHelperConfig extends Config {
                     "S Shape - Cocoa Beans (Left/Right)", // 8
                     "S Shape - Mushroom (45°)", // 9
                     "S Shape - Mushroom (30° with rotations)", // 10
+                    "S Shape - Mushroom SDS" // 11
             }, size = 2
     )
     public static int macroType = 0;
@@ -491,55 +492,55 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="Auto Sprayonator">
     @Switch(
-        name = "Auto Sprayonator", category = MISCELLANEOUS, subcategory = "AutoSprayonator"
+            name = "Auto Sprayonator", category = MISCELLANEOUS, subcategory = "AutoSprayonator"
     )
     public static boolean autoSprayonatorEnable = false;
 
     @Dropdown(
-        name = "Type", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
-        description = "Item to spray plot with",
-        options = {
-            "Compost (Earthworm & Mosquito)",
-            "Honey Jar (Moth & Cricket)",
-            "Dung (Beetle & Fly)",
-            "Plant Matter (Locust & Slug)",
-            "Tasty Cheese (Rat & Mite)"
-        }, size = 5
+            name = "Type", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+            description = "Item to spray plot with",
+            options = {
+                    "Compost (Earthworm & Mosquito)",
+                    "Honey Jar (Moth & Cricket)",
+                    "Dung (Beetle & Fly)",
+                    "Plant Matter (Locust & Slug)",
+                    "Tasty Cheese (Rat & Mite)"
+            }, size = 5
     )
     public static int autoSprayonatorType = 0;
 
     @Slider(
-        name = "Sprayonator Slot", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
-        min = 1, max = 8,
-        step = 1,
-        description = "Slot to move sprayonator to"
+            name = "Sprayonator Slot", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+            min = 1, max = 8,
+            step = 1,
+            description = "Slot to move sprayonator to"
     )
     public static int autoSprayonatorSlot = 1;
 
     @Slider(
-        name = "Additional Delay", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
-        description = "Additional delay between actions (in milliseconds)",
-        min = 0, max = 5000, step = 1
+            name = "Additional Delay", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+            description = "Additional delay between actions (in milliseconds)",
+            min = 0, max = 5000, step = 1
     )
     public static int autoSprayonatorAdditionalDelay = 500;
 
     @Switch(
-        name = "Auto Buy item from Bazaar", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
-        description = "Auto buy necessary sprayonator item from bazaar if none is in the inventory"
+            name = "Auto Buy item from Bazaar", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+            description = "Auto buy necessary sprayonator item from bazaar if none is in the inventory"
     )
     public static boolean autoSprayonatorAutoBuyItem = false;
 
     @Number(
-        name = "Buy Amount", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
-        description = "Amount of item to buy from bazaar",
-        min = 1, max = 64
+            name = "Buy Amount", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+            description = "Amount of item to buy from bazaar",
+            min = 1, max = 64
     )
     public static int autoSprayonatorAutoBuyAmount = 1;
 
     @Button(
-        name = "Reset Plots", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
-        text = "Click Here",
-        description = "Resets the cached data for sprayonator"
+            name = "Reset Plots", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
+            text = "Click Here",
+            description = "Resets the cached data for sprayonator"
     )
     Runnable _autoSprayonatorResetPlots = () -> {
         AutoSprayonator.getInstance().resetPlots();
@@ -1051,8 +1052,8 @@ public class FarmHelperConfig extends Config {
     public static boolean infoCompactors;
 
     @Slider(
-        name = "Max Spend Limit (in Thousands Per Purchase)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
-        min = 10, max = 2000, step = 1
+            name = "Max Spend Limit (in Thousands Per Purchase)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+            min = 10, max = 2000, step = 1
     )
     public static int visitorsMacroMaxSpendLimit = 700;
 
@@ -1691,7 +1692,7 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
         registerKeyBind(debugKeybind, () -> {
-//            System.out.println("Guests: " + GameStateHandler.getInstance().isGuestOnGarden());
+            AutoRepellent.getInstance().start();
         });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
@@ -1819,7 +1820,8 @@ public class FarmHelperConfig extends Config {
         S_COCOA_BEANS,
         S_COCOA_BEANS_LEFT_RIGHT,
         S_MUSHROOM,
-        S_MUSHROOM_ROTATE
+        S_MUSHROOM_ROTATE,
+        S_MUSHROOM_SDS
     }
 
     public enum CropEnum {

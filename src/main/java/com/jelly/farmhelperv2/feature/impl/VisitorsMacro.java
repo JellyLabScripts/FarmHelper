@@ -17,7 +17,6 @@ import com.jelly.farmhelperv2.util.helper.*;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiEditSign;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.inventory.Slot;
@@ -40,7 +39,7 @@ public class VisitorsMacro implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
     private final ArrayList<Integer> compactors = new ArrayList<>();
     private final ArrayList<Entity> servedCustomers = new ArrayList<>();
-    private final ArrayList<Pair<String, Long>> itemsToBuy = new ArrayList<>();
+    private final ArrayList<Pair<String, Integer>> itemsToBuy = new ArrayList<>();
     @Getter
     private final Clock delayClock = new Clock();
     @Getter
@@ -805,7 +804,7 @@ public class VisitorsMacro implements IFeature {
                         if (matcher.matches()) {
                             String itemName = matcher.group(1);
                             String quantity = matcher.group(2);
-                            long amount = (quantity != null) ? Long.parseLong(quantity) : 1L;
+                            int amount = (quantity != null) ? Integer.parseInt(quantity) : 1;
                             itemsToBuy.add(Pair.of(itemName, amount));
                             LogUtils.sendWarning("[Visitors Macro] Required item: " + itemName + " Amount: " + amount);
                         }
@@ -1010,7 +1009,7 @@ public class VisitorsMacro implements IFeature {
                     break;
                 }
                 if (!haveItemsInSack) {
-                    for (Pair<String, Long> item : itemsToBuy) {
+                    for (Pair<String, Integer> item : itemsToBuy) {
                         if (InventoryUtils.getAmountOfItemInInventory(item.getLeft()) < item.getRight()) {
                             LogUtils.sendError("[Visitors Macro] Missing item " + item.getLeft() + " amount " + item.getRight());
                             setVisitorsState(VisitorsState.BUY_STATE);
@@ -1113,7 +1112,7 @@ public class VisitorsMacro implements IFeature {
     private void checkIfCurrentVisitorIsProfitable() {
         Optional<Tuple<String, String>> profitableReward = currentRewards.stream().filter(item -> {
             String name = StringUtils.stripControlCodes(item.getFirst());
-            return profitRewards.stream().anyMatch(reward -> reward.contains(name));
+            return profitRewards.stream().anyMatch(reward -> reward.contains(name) || name.contains(reward));
         }).findFirst();
         if (profitableReward.isPresent()) {
             LogUtils.sendDebug("[Visitors Macro] The visitor is profitable");
@@ -1154,7 +1153,7 @@ public class VisitorsMacro implements IFeature {
         switch (buyState) {
             case NONE:
                 if (itemsToBuy.isEmpty()) {
-                    setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
+                    setBuyState(BuyState.END);
                     break;
                 }
                 if (InventoryUtils.getAmountOfItemInInventory(itemsToBuy.get(0).getLeft()) >= itemsToBuy.get(0).getRight()) {
@@ -1162,176 +1161,35 @@ public class VisitorsMacro implements IFeature {
                     itemsToBuy.remove(0);
                     return;
                 }
-                setBuyState(BuyState.OPEN_BZ);
+                setBuyState(BuyState.BUY_ITEMS);
                 break;
-            case OPEN_BZ:
-                if (mc.currentScreen == null) {
-                    Pair<String, Long> firstItem = itemsToBuy.get(0);
-                    String itemName = firstItem.getLeft();
-                    long amount = firstItem.getRight();
-                    LogUtils.sendDebug("[Visitors Macro] Opening Bazaar for item " + itemName + " amount " + amount);
-                    mc.thePlayer.sendChatMessage("/bz " + itemName.toLowerCase());
-                }
-                setBuyState(BuyState.CLICK_CROP);
-                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+            case BUY_ITEMS:
+                AutoBazaar.getInstance().buy(itemsToBuy.get(0).getLeft(), itemsToBuy.get(0).getRight(), FarmHelperConfig.visitorsMacroMaxSpendLimit * 1_000);
+                setBuyState(BuyState.WAIT_FOR_AUTOBAZAAR_FINISH);
                 break;
-            case CLICK_CROP:
-                if (mc.currentScreen == null) {
-                    setBuyState(BuyState.OPEN_BZ);
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    break;
-                }
-                String chestName = InventoryUtils.getInventoryName();
-                if (chestName == null) break;
-                if (!chestName.startsWith("Bazaar ➜ \"")) {
-                    LogUtils.sendError("[Visitors Macro] Opened wrong Bazaar Menu");
-                    setBuyState(BuyState.OPEN_BZ);
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    PlayerUtils.closeScreen();
-                    break;
-                }
-                Pair<String, Long> firstItem = itemsToBuy.get(0);
-                String itemName = firstItem.getLeft();
-                Slot cropSlot = InventoryUtils.getSlotOfItemInContainer(itemName, true);
-                if (cropSlot == null) {
-                    LogUtils.sendError("[Visitors Macro] Couldn't find crop slot");
+            case WAIT_FOR_AUTOBAZAAR_FINISH:
+                if (AutoBazaar.getInstance().wasPriceManipulated()) {
+                    LogUtils.sendDebug("[Visitors Macro] Price manipulation detected, skipping...");
                     rejectVisitor = true;
-                    setVisitorsState(VisitorsState.CLOSE_VISITOR);
+                    setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     PlayerUtils.closeScreen();
                     break;
                 }
-                ItemStack cropItemStack = cropSlot.getStack();
-                if (cropItemStack == null) {
-                    LogUtils.sendError("[Visitors Macro] Couldn't find crop item");
-                    rejectVisitor = true;
-                    setVisitorsState(VisitorsState.CLOSE_VISITOR);
+                if (AutoBazaar.getInstance().hasFailed()) {
+                    LogUtils.sendDebug("[Visitors Macro] Couldn't buy " + itemsToBuy.get(0).getLeft() + " amount " + itemsToBuy.get(0).getRight() + ", retrying...");
+                    setBuyState(BuyState.BUY_ITEMS);
                     PlayerUtils.closeScreen();
-                    break;
-                }
-                InventoryUtils.clickContainerSlot(cropSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                setBuyState(BuyState.CLICK_BUY);
-                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                break;
-            case CLICK_BUY:
-                if (mc.currentScreen == null) {
-                    setBuyState(BuyState.OPEN_BZ);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                String chestName2 = InventoryUtils.getInventoryName();
-                if (chestName2 == null) break;
-                Slot buyInstantly = InventoryUtils.getSlotOfItemInContainer("Buy Instantly");
-                if (buyInstantly == null) break;
-                ItemStack buyInstantlyItemStack = buyInstantly.getStack();
-                if (buyInstantlyItemStack == null) break;
-
-                ArrayList<String> lore = InventoryUtils.getItemLore(buyInstantlyItemStack);
-                float pricePerUnit = -1;
-
-                for (String line : lore) {
-                    if (line.toLowerCase().contains("per unit")) {
-                        String[] split = line.split(":");
-                        pricePerUnit = Float.parseFloat(split[1].replace(",", "").replace("coins", "").trim());
-                        break;
-                    }
-                }
-
-                if (pricePerUnit == -1) {
-                    LogUtils.sendError("[Visitors Macro] Couldn't find the price per unit for " + itemsToBuy.get(0).getLeft() + " in the Bazaar menu. Report it to the developer.");
-                } else {
-                    LogUtils.sendDebug("[Visitors Macro] Price per unit for " + itemsToBuy.get(0).getLeft() + " is " + pricePerUnit);
-                }
-
-                ProfitCalculator.BazaarItem bazaarItem = ProfitCalculator.getInstance().getVisitorsItem("_" + itemsToBuy.get(0).getLeft());
-                if (bazaarItem != null) {
-                    if (pricePerUnit > bazaarItem.npcPrice * FarmHelperConfig.visitorsMacroPriceManipulationMultiplier) {
-                        LogUtils.sendDebug("[Visitors Macro] Price manipulation detected, skipping...");
-                        LogUtils.sendDebug("[Visitors Macro] Current price: " + pricePerUnit + " Npc price: " + bazaarItem.npcPrice + " Npc price after manipulation: " + bazaarItem.npcPrice * FarmHelperConfig.visitorsMacroPriceManipulationMultiplier);
-                        rejectVisitor = true;
-                        setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
-                        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                        PlayerUtils.closeScreen();
-                        break;
-                    } else {
-                        LogUtils.sendDebug("[Visitors Macro] Price manipulation not detected. NPC Price per item: " + bazaarItem.npcPrice + " Bazaar Price per item: " + pricePerUnit);
-                    }
-                } else {
-                    LogUtils.sendError("[Visitors Macro] Couldn't find the crop price in the API data. Can't check if the price has been manipulated. Buying anyway...");
-                }
-
-                InventoryUtils.clickContainerSlot(buyInstantly.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                if (itemsToBuy.get(0).getRight() == 1) {
-                    setBuyState(BuyState.CLICK_BUY_ONLY_ONE);
-                } else {
-                    setBuyState(BuyState.CLICK_SIGN);
-                }
-                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                break;
-            case CLICK_BUY_ONLY_ONE:
-                if (mc.currentScreen == null) {
-                    setBuyState(BuyState.OPEN_BZ);
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    break;
-                }
-                String chestName3 = InventoryUtils.getInventoryName();
-                if (chestName3 == null) break;
-                Slot buyOnlyOne = InventoryUtils.getSlotOfItemInContainer("Buy only one!");
-                if (buyOnlyOne == null) break;
-                ItemStack buyOnlyOneItemStack = buyOnlyOne.getStack();
-                if (buyOnlyOneItemStack == null) break;
-                setBuyState(BuyState.WAIT_FOR_BUY);
-                InventoryUtils.clickContainerSlot(buyOnlyOne.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                break;
-            case CLICK_SIGN:
-                if (mc.currentScreen == null) {
-                    setBuyState(BuyState.OPEN_BZ);
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    break;
-                }
-                String chestName4 = InventoryUtils.getInventoryName();
-                if (chestName4 == null) break;
-                Slot signSlot = InventoryUtils.getSlotOfItemInContainer("Custom Amount");
-                if (signSlot == null) break;
-                ItemStack signItemStack = signSlot.getStack();
-                if (signItemStack == null) break;
-                InventoryUtils.clickContainerSlot(signSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                setBuyState(BuyState.CLICK_CONFIRM);
-                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay() * 2);
-                Multithreading.schedule(() -> SignUtils.setTextToWriteOnString(itemsToBuy.get(0).getRight().toString()), (long) (400 + Math.random() * 400), TimeUnit.MILLISECONDS);
-                break;
-            case CLICK_CONFIRM:
-                if (mc.currentScreen == null) {
-                    setBuyState(BuyState.OPEN_BZ);
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    break;
-                }
-                if (mc.currentScreen instanceof GuiEditSign) break;
-
-                String chestName5 = InventoryUtils.getInventoryName();
-                if (chestName5 == null) break;
-                if (!chestName5.equals("Confirm Instant Buy")) break;
-                Slot confirmSlot = InventoryUtils.getSlotOfItemInContainer("Custom Amount");
-                if (confirmSlot == null) break;
-                ItemStack confirmItemStack = confirmSlot.getStack();
-                if (confirmItemStack == null) break;
-                setBuyState(BuyState.WAIT_FOR_BUY);
-                InventoryUtils.clickContainerSlot(confirmSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                break;
-            case WAIT_FOR_BUY:
-                // waiting
-                break;
-            case CLOSE_BZ:
-                if (mc.currentScreen != null) {
+                if (AutoBazaar.getInstance().hasSucceeded()) {
+                    LogUtils.sendDebug("[Visitors Macro] Bought " + itemsToBuy.get(0).getLeft() + " amount " + itemsToBuy.get(0).getRight());
+                    itemsToBuy.remove(0);
+                    setBuyState(BuyState.NONE);
                     PlayerUtils.closeScreen();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 }
-                if (itemsToBuy.isEmpty()) {
-                    setBuyState(BuyState.END);
-                } else {
-                    setBuyState(BuyState.OPEN_BZ);
-                }
-                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case END:
                 setBuyState(BuyState.NONE);
@@ -1397,17 +1255,14 @@ public class VisitorsMacro implements IFeature {
                 }, (long) (250 + Math.random() * 150), TimeUnit.MILLISECONDS);
             }
         }
-        if (buyState == BuyState.WAIT_FOR_BUY) {
+        if (buyState == BuyState.WAIT_FOR_AUTOBAZAAR_FINISH) {
             if (msg.startsWith("[Bazaar] Bought ")) {
                 LogUtils.sendDebug("[Visitors Macro] Bought item");
                 String spentCoins = msg.split("for")[1].replace("coins!", "").trim();
                 spentMoney += Float.parseFloat(spentCoins.replace(",", ""));
-                itemsToBuy.remove(0);
-                setBuyState(BuyState.CLOSE_BZ);
-                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
             }
         }
-        if (buyState == BuyState.CLICK_CROP || buyState == BuyState.OPEN_BZ) {
+        if (buyState == BuyState.BUY_ITEMS) {
             if (msg.startsWith("You need the Cookie Buff")) {
                 PlayerUtils.closeScreen();
                 LogUtils.sendDebug("[Visitors Macro] Cookie buff is needed. Skipping...");
@@ -1488,14 +1343,8 @@ public class VisitorsMacro implements IFeature {
 
     enum BuyState {
         NONE,
-        OPEN_BZ,
-        CLICK_CROP,
-        CLICK_BUY,
-        CLICK_BUY_ONLY_ONE,
-        CLICK_SIGN,
-        CLICK_CONFIRM,
-        WAIT_FOR_BUY,
-        CLOSE_BZ,
+        BUY_ITEMS,
+        WAIT_FOR_AUTOBAZAAR_FINISH,
         END
     }
 }
