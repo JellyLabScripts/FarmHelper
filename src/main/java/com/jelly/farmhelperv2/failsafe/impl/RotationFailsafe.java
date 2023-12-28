@@ -173,7 +173,7 @@ public class RotationFailsafe extends Failsafe {
                 rotationCheckState = RotationCheckState.GO_BACK_END;
                 break;
             case GO_BACK_END:
-                if (BaritoneHandler.hasFailed() || BaritoneHandler.isWalkingToGoalBlock()) {
+                if (BaritoneHandler.hasFailed() || !BaritoneHandler.isWalkingToGoalBlock()) {
                     rotationCheckState = RotationCheckState.ROTATE_TO_POS_BEFORE_2;
                     FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                     break;

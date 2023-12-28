@@ -80,7 +80,10 @@ public class TeleportFailsafe extends Failsafe {
             return;
         }
 
+        rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+        positionBeforeReacting = mc.thePlayer.getPosition();
         double distance = currentPlayerPos.distanceTo(packetPlayerPos);
+        LogUtils.sendDebug("[Failsafe] Teleport 2 detected! Distance: " + distance);
         if (distance >= FarmHelperConfig.teleportCheckSensitivity || (MacroHandler.getInstance().getCurrentMacro().isPresent() && Math.abs(packet.getY()) - Math.abs(MacroHandler.getInstance().getCurrentMacro().get().getLayerY()) > 0.8)) {
             LogUtils.sendDebug("[Failsafe] Teleport detected! Distance: " + distance);
             final double lastReceivedPacketDistance = currentPlayerPos.distanceTo(LagDetector.getInstance().getLastPacketPosition());
@@ -98,19 +101,17 @@ public class TeleportFailsafe extends Failsafe {
     public void duringFailsafeTrigger() {
         switch (teleportCheckState) {
             case NONE:
-                positionBeforeReacting = mc.thePlayer.getPosition();
                 teleportCheckState = TeleportCheckState.WAIT_BEFORE_START;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
                 break;
             case WAIT_BEFORE_START:
                 MacroHandler.getInstance().pauseMacro();
                 MovRecPlayer.setYawDifference(AngleUtils.getClosest(rotationBeforeReacting.getYaw()));
-                positionBeforeReacting = mc.thePlayer.getPosition();
                 teleportCheckState = TeleportCheckState.LOOK_AROUND;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
                 break;
             case LOOK_AROUND:
-                MovRecPlayer.getInstance().playRandomRecording("TELEPORT_CHECK_Start");
+                MovRecPlayer.getInstance().playRandomRecording("ROTATION_CHECK_Start");
                 teleportCheckState = TeleportCheckState.SEND_MESSAGE;
                 FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                 break;
@@ -189,7 +190,7 @@ public class TeleportFailsafe extends Failsafe {
                 teleportCheckState = TeleportCheckState.GO_BACK_END;
                 break;
             case GO_BACK_END:
-                if (BaritoneHandler.hasFailed() || BaritoneHandler.isWalkingToGoalBlock()) {
+                if (BaritoneHandler.hasFailed() || !BaritoneHandler.isWalkingToGoalBlock()) {
                     teleportCheckState = TeleportCheckState.ROTATE_TO_POS_BEFORE_2;
                     FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                     break;
