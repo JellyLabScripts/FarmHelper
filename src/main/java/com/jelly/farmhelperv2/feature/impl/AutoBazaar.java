@@ -45,6 +45,7 @@ public class AutoBazaar implements IFeature {
     private boolean succeeded = false;
     private boolean failed = false;
     public boolean wasManipulated = false;
+    public boolean notFoundOnBZ = false;
 
     // Buy
     private BuyState buyState = BuyState.STARTING;
@@ -125,6 +126,7 @@ public class AutoBazaar implements IFeature {
         this.failed = false;
         this.succeeded = false;
         this.wasManipulated = false;
+        this.notFoundOnBZ = false;
         this.itemToBuy = itemName;
         this.buyAmount = amount;
         this.buyNowButtonSlot = -1;
@@ -212,6 +214,7 @@ public class AutoBazaar implements IFeature {
 
                 // - 37 cuz it might try to click if its in inv (dont know for sure didnt check if that happens or not)
                 if (itemSlot == -1 || itemSlot > mc.thePlayer.openContainer.inventorySlots.size() - 37) {
+                    this.notFoundOnBZ = true;
                     this.disable("Cannot find item.");
                     return;
                 }
@@ -480,6 +483,10 @@ public class AutoBazaar implements IFeature {
 
     public boolean wasPriceManipulated() {
         return !this.enabled && this.wasManipulated;
+    }
+
+    public boolean hasNotFoundOnBZ() {
+        return !this.enabled && this.notFoundOnBZ;
     }
 
     private boolean openedChestGuiNameContains(String guiName) {
