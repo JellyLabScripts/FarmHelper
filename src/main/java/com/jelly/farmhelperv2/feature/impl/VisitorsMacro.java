@@ -1176,6 +1176,14 @@ public class VisitorsMacro implements IFeature {
                     PlayerUtils.closeScreen();
                     break;
                 }
+                if (AutoBazaar.getInstance().hasNotFoundOnBZ()) {
+                    LogUtils.sendDebug("[Visitors Macro] Couldn't find " + itemsToBuy.get(0).getLeft() + " amount " + itemsToBuy.get(0).getRight() + ", skipping...");
+                    rejectVisitor = true;
+                    setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    PlayerUtils.closeScreen();
+                    break;
+                }
                 if (AutoBazaar.getInstance().hasFailed()) {
                     LogUtils.sendDebug("[Visitors Macro] Couldn't buy " + itemsToBuy.get(0).getLeft() + " amount " + itemsToBuy.get(0).getRight() + ", retrying...");
                     setBuyState(BuyState.BUY_ITEMS);
