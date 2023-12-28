@@ -22,6 +22,7 @@ import com.jelly.farmhelperv2.util.BlockUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
+import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
@@ -507,7 +508,28 @@ public class FarmHelperConfig extends Config {
                     "Tasty Cheese (Rat & Mite)"
             }, size = 5
     )
-    public static int autoSprayonatorType = 0;
+    public static int sprayonatorType;
+
+    @Getter
+    public enum SPRAYONATOR_ITEM {
+        COMPOST("Compost"),
+        HONEY_JAR("Honey Jar"),
+        DUNG("Dung"),
+        PLANT_MATTER("Plant Matter"),
+        TASTY_CHEESE("Tasty Cheese"),
+        NONE("NONE");
+
+        final String itemName;
+
+        SPRAYONATOR_ITEM(final String item_name) {
+            this.itemName = item_name;
+        }
+    }
+
+    @Switch(
+            name = "Inventory Only", category = MISCELLANEOUS, subcategory = "Sprayonator"
+    )
+    public static boolean sprayonatorItemInventoryOnly;
 
     @Slider(
             name = "Sprayonator Slot", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
