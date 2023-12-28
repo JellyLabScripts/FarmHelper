@@ -18,7 +18,6 @@ import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
-import net.minecraftforge.event.world.WorldEvent;
 
 public class TeleportFailsafe extends Failsafe {
     private static TeleportFailsafe instance;
@@ -186,8 +185,12 @@ public class TeleportFailsafe extends Failsafe {
                     teleportCheckState = TeleportCheckState.ROTATE_TO_POS_BEFORE_2;
                     break;
                 }
-                BaritoneHandler.walkToBlockPos(positionBeforeReacting);
-                teleportCheckState = TeleportCheckState.GO_BACK_END;
+                if (mc.thePlayer.getPosition().distanceSq(positionBeforeReacting) < 10) {
+                    BaritoneHandler.walkToBlockPos(positionBeforeReacting);
+                    teleportCheckState = TeleportCheckState.GO_BACK_END;
+                } else {
+                    teleportCheckState = TeleportCheckState.WARP_GARDEN;
+                }
                 break;
             case GO_BACK_END:
                 if (BaritoneHandler.hasFailed() || !BaritoneHandler.isWalkingToGoalBlock()) {
@@ -202,8 +205,19 @@ public class TeleportFailsafe extends Failsafe {
                 if (rotation.isRotating()) break;
                 rotation.easeTo(new RotationConfiguration(new Rotation(rotationBeforeReacting.getYaw(), rotationBeforeReacting.getPitch()),
                         500, null));
-                this.endOfFailsafeTrigger();
+                teleportCheckState = TeleportCheckState.END;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
+                break;
+            case WARP_GARDEN:
+                if (mc.thePlayer.getPosition().distanceSq(new BlockPos(PlayerUtils.getSpawnLocation())) < 3) {
+                    teleportCheckState = TeleportCheckState.ROTATE_TO_POS_BEFORE_2;
+                    break;
+                }
+                MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
+                FailsafeManager.getInstance().scheduleRandomDelay(3000, 1000);
+                break;
+            case END:
+                this.endOfFailsafeTrigger();
                 break;
         }
     }
@@ -241,5 +255,7 @@ public class TeleportFailsafe extends Failsafe {
         ROTATE_TO_POS_BEFORE_2,
         GO_BACK_START,
         GO_BACK_END,
+        WARP_GARDEN,
+        END
     }
 }

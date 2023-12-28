@@ -7,12 +7,14 @@ import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
+import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.AngleUtils;
 import com.jelly.farmhelperv2.util.BlockUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.init.Blocks;
@@ -72,11 +74,10 @@ public class BedrockCageFailsafe extends Failsafe {
         }
         if (mc.thePlayer.getPosition().getY() < 66) return;
         S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
-        Vec3 currentPlayerPos = mc.thePlayer.getPositionVector();
-        Vec3 packetPlayerPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
 
         if (packet.getY() > 80) {
             rotationBeforeTeleporting = new Rotation(mc.thePlayer.prevRotationYaw, mc.thePlayer.prevRotationPitch);
+            positionBeforeTeleporting = mc.thePlayer.getPosition();
             Multithreading.schedule(() -> {
                 for (int i = 0; i < 5; i++) {
                     if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.GARDEN) {
@@ -108,6 +109,11 @@ public class BedrockCageFailsafe extends Failsafe {
                 MovRecPlayer.getInstance().stop();
             LogUtils.sendFailsafeMessage("[Failsafe] You've just passed the failsafe check for bedrock cage!", FailsafeNotificationsPage.tagEveryoneOnBedrockCageFailsafe);
             bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE;
+            if (mc.thePlayer.getPosition().distanceSq(positionBeforeTeleporting) < 10) {
+                bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE;
+            } else {
+                bedrockCageCheckState = BedrockCageCheckState.WARP_GARDEN;
+            }
             FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
         }
     }
@@ -222,6 +228,14 @@ public class BedrockCageFailsafe extends Failsafe {
                 bedrockCageCheckState = BedrockCageCheckState.END;
                 FailsafeManager.getInstance().scheduleRandomDelay(800, 200);
                 break;
+            case WARP_GARDEN:
+                if (mc.thePlayer.getPosition().distanceSq(new BlockPos(PlayerUtils.getSpawnLocation())) < 3) {
+                    bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE;
+                    break;
+                }
+                MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
+                FailsafeManager.getInstance().scheduleRandomDelay(3000, 1000);
+                break;
             case END:
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
@@ -240,6 +254,7 @@ public class BedrockCageFailsafe extends Failsafe {
     public void resetStates() {
         bedrockCageCheckState = BedrockCageCheckState.NONE;
         rotationBeforeTeleporting = null;
+        positionBeforeTeleporting = null;
         bedrockOnLeft = false;
         rotation.reset();
     }
@@ -247,6 +262,7 @@ public class BedrockCageFailsafe extends Failsafe {
     private BedrockCageCheckState bedrockCageCheckState = BedrockCageCheckState.NONE;
     private final RotationHandler rotation = RotationHandler.getInstance();
     private Rotation rotationBeforeTeleporting = null;
+    private BlockPos positionBeforeTeleporting = null;
     private boolean bedrockOnLeft = false;
 
     enum BedrockCageCheckState {
@@ -257,10 +273,9 @@ public class BedrockCageFailsafe extends Failsafe {
         LOOK_AROUND_2,
         SEND_MESSAGE_2,
         WAIT_UNTIL_TP_BACK,
-        GO_BACK_START,
-        GO_BACK_END,
         LOOK_AROUND_3,
         ROTATE_TO_POS_BEFORE,
+        WARP_GARDEN,
         END
     }
 }
