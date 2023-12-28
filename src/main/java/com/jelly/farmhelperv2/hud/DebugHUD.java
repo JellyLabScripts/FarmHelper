@@ -4,6 +4,7 @@ import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.failsafe.impl.GuestVisitFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -25,6 +26,7 @@ public class DebugHUD extends TextHud {
     protected void getLines(List<String> lines, boolean example) {
         if (!FarmHelperConfig.debugMode) return;
         lines.add("§lFarmHelper Debug HUD");
+        lines.add("wasGuestOnGarden: " + GuestVisitFailsafe.getInstance().wasGuestOnGarden);
         if (Minecraft.getMinecraft().thePlayer != null && Minecraft.getMinecraft().theWorld != null) {
             lines.add("Minecraft Yaw: " + Minecraft.getMinecraft().thePlayer.rotationYaw);
             lines.add("get360RotationYaw: " + AngleUtils.get360RotationYaw());

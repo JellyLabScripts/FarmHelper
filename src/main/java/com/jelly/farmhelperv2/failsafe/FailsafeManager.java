@@ -282,7 +282,7 @@ public class FailsafeManager {
         } else if (restartMacroAfterFailsafeDelay.isScheduled()) {
             String text = "Restarting the macro in: " + LogUtils.formatTime(restartMacroAfterFailsafeDelay.getRemainingTime());
             RenderUtils.drawCenterTopText(text, event, Color.ORANGE);
-        } else if (triggeredFailsafe.isPresent()) {
+        } else if (triggeredFailsafe.isPresent() && !triggeredFailsafe.get().equals(GuestVisitFailsafe.getInstance())) {
             ArrayList<String> textLines = new ArrayList<>();
             textLines.add("§3" + StringUtils.stripControlCodes(triggeredFailsafe.get().getType().name()).replace("_", " "));
             textLines.add("§cYOU ARE DURING STAFF CHECK!");
