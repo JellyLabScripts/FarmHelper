@@ -17,7 +17,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.*;
 import java.util.*;
+
+import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.toList;
 
 /*
     Credits to Yuro for this superb class
@@ -111,14 +118,19 @@ public class MovRecPlayer implements IFeature {
 
     public void playRandomRecording(String pattern) {
         String filename = "";
-
-        String filePath = "/farmhelper/movrec/";
         List<String> matchingFiles = new ArrayList<>();
 
-        for (String recording : recordings) {
-            if (recording.contains(pattern)) {
-                matchingFiles.add(recording);
+        try {
+            List<String> resourceFiles = getResourceFiles();
+
+            for (String file : resourceFiles) {
+                if (file.contains(pattern)) {
+                    matchingFiles.add(file);
+                }
             }
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+            return;
         }
 
         if (!matchingFiles.isEmpty()) {
@@ -350,60 +362,34 @@ public class MovRecPlayer implements IFeature {
         return lines;
     }
 
+    private static List<String> getResourceFiles() throws IOException, URISyntaxException {
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        URL resourceFolder = classLoader.getResource("farmhelper/movrec");
 
-    private final String[] recordings = {
-            "BEDROCK_CHECK_Fly_1.movement",
-            "BEDROCK_CHECK_Fly_2.movement",
-            "BEDROCK_CHECK_JumpBoost_1.movement",
-            "BEDROCK_CHECK_JumpBoost_2.movement",
-            "BEDROCK_CHECK_JumpBoost_3.movement",
-            "BEDROCK_CHECK_JumpBoost_4.movement",
-            "BEDROCK_CHECK_Left_2.movement",
-            "BEDROCK_CHECK_Left_3.movement",
-            "BEDROCK_CHECK_Left_Start_1.movement",
-            "BEDROCK_CHECK_OnGround_1.movement",
-            "BEDROCK_CHECK_OnGround_2.movement",
-            "BEDROCK_CHECK_OnGround_3.movement",
-            "BEDROCK_CHECK_OnGround_4.movement",
-            "BEDROCK_CHECK_Right_Start_1.movement",
-            "BEDROCK_CHECK_Right_Start_2.movement",
-            "BEDROCK_CHECK_Right_Start_3.movement",
-            "BEDROCK_CHECK_Wait_1.movement",
-            "BEDROCK_CHECK_Wait_2.movement",
-            "DIRT_CHECK_Left_Fly_1.movement",
-            "DIRT_CHECK_Left_Fly_2.movement",
-            "DIRT_CHECK_Right_Fly_1.movement",
-            "DIRT_CHECK_Right_Fly_2.movement",
-            "DIRT_CHECK_Start_Left_1.movement",
-            "DIRT_CHECK_Start_Left_2.movement",
-            "DIRT_CHECK_Start_Right_1.movement",
-            "DIRT_CHECK_Start_Right_2.movement",
-            "ITEM_CHANGE_1.movement",
-            "ITEM_CHANGE_2.movement",
-            "ITEM_CHANGE_3.movement",
-            "ITEM_CHANGE_4.movement",
-            "ROTATION_CHECK_Continue_1.movement",
-            "ROTATION_CHECK_Continue_2.movement",
-            "ROTATION_CHECK_Continue_3.movement",
-            "ROTATION_CHECK_Start_1.movement",
-            "ROTATION_CHECK_Start_2.movement",
-            "ROTATION_CHECK_Start_3.movement",
-            "ROTATION_CHECK_Start_4.movement",
-            "ROTATION_CHECK_Start_5.movement",
-            "TELEPORT_CHECK_Fly_1.movement",
-            "TELEPORT_CHECK_Fly_2.movement",
-            "TELEPORT_CHECK_Fly_3.movement",
-            "TELEPORT_CHECK_JumpBoost_1.movement",
-            "TELEPORT_CHECK_JumpBoost_2.movement",
-            "TELEPORT_CHECK_JumpBoost_3.movement",
-            "TELEPORT_CHECK_OnGround_1.movement",
-            "TELEPORT_CHECK_OnGround_2.movement",
-            "TELEPORT_CHECK_OnGround_3.movement",
-            "TELEPORT_CHECK_OnGround_4.movement",
-            "TELEPORT_CHECK_Start_1.movement",
-            "TELEPORT_CHECK_Start_2.movement",
-            "TELEPORT_CHECK_Start_3.movement"
-    };
+        if (resourceFolder == null) {
+            LogUtils.sendError("Resource folder not found! Report this to #bug-reports!");
+        }
+
+        URI uri = resourceFolder.toURI();
+        Path path;
+        if (uri.getScheme().equals("jar")) {
+            FileSystem fileSystem = FileSystems.newFileSystem(uri, emptyMap());
+            path = fileSystem.getPath("farmhelper/movrec");
+        } else {
+            path = Paths.get(uri);
+        }
+
+        return Files.walk(path)
+                .filter(Files::isRegularFile)
+                .map(p -> {
+                    if (uri.getScheme().equals("jar")) { // if the resource is within a JAR
+                        return p.getFileName().toString(); // convert the ZipPath to String
+                    } else {
+                        return path.relativize(p).getFileName().toString();
+                    }
+                })
+                .collect(toList());
+    }
 
     // endregion
 }
