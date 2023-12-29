@@ -16,14 +16,8 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.io.*;
+import java.util.*;
 
 /*
     Credits to Yuro for this superb class
@@ -116,25 +110,24 @@ public class MovRecPlayer implements IFeature {
     // endregion
 
     public void playRandomRecording(String pattern) {
-        File[] files;
         String filename = "";
 
         String filePath = "/farmhelper/movrec/";
-        URL resourceUrl = getClass().getResource(filePath);
-        if (resourceUrl != null)
-            files = new File(resourceUrl.getPath()).listFiles((dir, name) -> name.contains(pattern) && name.endsWith(".movement"));
-        else {
-            return;
+        List<String> matchingFiles = new ArrayList<>();
+
+        for (String recording : recordings) {
+            if (recording.contains(pattern)) {
+                matchingFiles.add(recording);
+            }
         }
 
-        if (files != null && files.length > 0) {
-            List<File> matchingFiles = new ArrayList<>(Arrays.asList(files));
-
+        if (!matchingFiles.isEmpty()) {
             Random random = new Random();
             int randomIndex = random.nextInt(matchingFiles.size());
-            LogUtils.sendDebug("[Movement Recorder] Selected recording: " + matchingFiles.get(randomIndex).getName());
-            filename = matchingFiles.get(randomIndex).getName();
+            LogUtils.sendDebug("[Movement Recorder] Selected recording: " + matchingFiles.get(randomIndex));
+            filename = matchingFiles.get(randomIndex);
         }
+
         if (filename.isEmpty()) {
             if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
                 LogUtils.sendWarning("RIP bozo, recording file name is empty! Send logs to #bug-reports!");
@@ -143,6 +136,7 @@ public class MovRecPlayer implements IFeature {
             resetStatesAfterMacroDisabled();
             return;
         }
+
         MovRecPlayer movRecPlayer = new MovRecPlayer();
         movRecPlayer.setRecordingName(filename);
         movRecPlayer.start();
@@ -333,14 +327,20 @@ public class MovRecPlayer implements IFeature {
 
     @Nullable
     private List<String> read() {
-        List<String> lines;
+        List<String> lines = new ArrayList<>();
         try {
             String filePath = "/farmhelper/movrec/" + recordingName;
-            java.net.URL resourceUrl = getClass().getResource(filePath);
-            if (resourceUrl != null) {
-                lines = Files.readAllLines(Paths.get(resourceUrl.toURI()));
+            InputStream inputStream = getClass().getResourceAsStream(filePath);
+
+            if (inputStream != null) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    lines.add(line);
+                }
+                reader.close();
             } else {
-                System.out.println("Resource not found: " + filePath);
+                LogUtils.sendError("Resource not found: " + filePath);
                 return null;
             }
         } catch (Exception e) {
@@ -349,6 +349,61 @@ public class MovRecPlayer implements IFeature {
         }
         return lines;
     }
+
+
+    private final String[] recordings = {
+            "BEDROCK_CHECK_Fly_1.movement",
+            "BEDROCK_CHECK_Fly_2.movement",
+            "BEDROCK_CHECK_JumpBoost_1.movement",
+            "BEDROCK_CHECK_JumpBoost_2.movement",
+            "BEDROCK_CHECK_JumpBoost_3.movement",
+            "BEDROCK_CHECK_JumpBoost_4.movement",
+            "BEDROCK_CHECK_Left_2.movement",
+            "BEDROCK_CHECK_Left_3.movement",
+            "BEDROCK_CHECK_Left_Start_1.movement",
+            "BEDROCK_CHECK_OnGround_1.movement",
+            "BEDROCK_CHECK_OnGround_2.movement",
+            "BEDROCK_CHECK_OnGround_3.movement",
+            "BEDROCK_CHECK_OnGround_4.movement",
+            "BEDROCK_CHECK_Right_Start_1.movement",
+            "BEDROCK_CHECK_Right_Start_2.movement",
+            "BEDROCK_CHECK_Right_Start_3.movement",
+            "BEDROCK_CHECK_Wait_1.movement",
+            "BEDROCK_CHECK_Wait_2.movement",
+            "DIRT_CHECK_Left_Fly_1.movement",
+            "DIRT_CHECK_Left_Fly_2.movement",
+            "DIRT_CHECK_Right_Fly_1.movement",
+            "DIRT_CHECK_Right_Fly_2.movement",
+            "DIRT_CHECK_Start_Left_1.movement",
+            "DIRT_CHECK_Start_Left_2.movement",
+            "DIRT_CHECK_Start_Right_1.movement",
+            "DIRT_CHECK_Start_Right_2.movement",
+            "ITEM_CHANGE_1.movement",
+            "ITEM_CHANGE_2.movement",
+            "ITEM_CHANGE_3.movement",
+            "ITEM_CHANGE_4.movement",
+            "ROTATION_CHECK_Continue_1.movement",
+            "ROTATION_CHECK_Continue_2.movement",
+            "ROTATION_CHECK_Continue_3.movement",
+            "ROTATION_CHECK_Start_1.movement",
+            "ROTATION_CHECK_Start_2.movement",
+            "ROTATION_CHECK_Start_3.movement",
+            "ROTATION_CHECK_Start_4.movement",
+            "ROTATION_CHECK_Start_5.movement",
+            "TELEPORT_CHECK_Fly_1.movement",
+            "TELEPORT_CHECK_Fly_2.movement",
+            "TELEPORT_CHECK_Fly_3.movement",
+            "TELEPORT_CHECK_JumpBoost_1.movement",
+            "TELEPORT_CHECK_JumpBoost_2.movement",
+            "TELEPORT_CHECK_JumpBoost_3.movement",
+            "TELEPORT_CHECK_OnGround_1.movement",
+            "TELEPORT_CHECK_OnGround_2.movement",
+            "TELEPORT_CHECK_OnGround_3.movement",
+            "TELEPORT_CHECK_OnGround_4.movement",
+            "TELEPORT_CHECK_Start_1.movement",
+            "TELEPORT_CHECK_Start_2.movement",
+            "TELEPORT_CHECK_Start_3.movement"
+    };
 
     // endregion
 }

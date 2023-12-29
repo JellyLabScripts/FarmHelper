@@ -1474,10 +1474,10 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="DEBUG">
     //<editor-fold desc="Debug">
-    @KeyBind(
-            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
-    )
-    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
+//    @KeyBind(
+//            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
+//    )
+//    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
     //    @KeyBind(
 //            name = "Debug Keybind 2", category = DEBUG
 //    )
@@ -1721,9 +1721,9 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-        registerKeyBind(debugKeybind, () -> {
-            AutoRepellent.getInstance().start();
-        });
+//        registerKeyBind(debugKeybind, () -> {
+//            AutoRepellent.getInstance().start();
+//        });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
         registerKeyBind(enablePestsDestroyerKeyBind, () -> {
