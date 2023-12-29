@@ -59,18 +59,41 @@ public class FailsafeManager {
     private boolean sendingFailsafeInfo = false;
     public boolean swapItemDuringRecording = false;
     private static final String[] FAILSAFE_MESSAGES = new String[]{
-            "WHAT", "what?", "what", "what??", "what???", "wut?", "?", "what???", "yo huh", "yo huh?", "yo?",
-            "ehhhhh??", "eh", "yo", "ahmm", "ehh", "LOL what", "lol :skull:", "bro wtf was that?", "lmao",
-            "lmfao", "wtf is this", "wtf", "WTF", "wtf is this?", "wtf???", "tf", "tf?", "wth",
-            "lmao what?", "????", "??", "???????", "???", "UMMM???", "umm", "ummm???", "damn wth",
-            "Damn", "damn wtf", "damn", "hmmm", "hm", "sus", "hmm", "ok??", "ok?", "give me a rest",
-            "again lol", "again??", "ok damn", "seriously?", "seriously????", "seriously", "really?", "really",
-            "are you kidding me?", "are you serious?", "are you fr???", "not again",
-            "give me a break", "youre kidding right?", "youre joking", "youre kidding me",
-            "you must be joking", "seriously bro?", "cmon now", "cmon", "this is too much", "stop messing with me"};
+            "WHAT", "what?", "what", "what??", "what???", "wut?", "?", "what???",
+            "yo huh", "yo huh?", "yo?", "ehhhhh??", "eh", "yo", "ahmm", "ehh", "LOL what", "lol :skull:", "bro wtf was that?",
+            "lmao", "lmfao", "wtf is this", "wtf", "WTF", "wtf is this?", "wtf???", "tf", "tf?", "wth", "lmao what?", "????",
+            "??", "???????", "???", "UMMM???", "umm", "ummm???", "damn wth", "Damn", "damn wtf", "damn", "hmmm", "hm", "sus",
+            "hmm", "ok??", "ok?", "give me a rest", "again lol", "again??", "ok damn", "seriously?", "seriously????",
+            "seriously", "really?", "really", "are you kidding me?", "are you serious?", "are you fr???", "not again",
+            "give me a break", "youre kidding right?", "youre joking", "youre kidding me", "you must be joking", "seriously bro?",
+            "cmon now", "cmon", "this is too much", "stop messing with me", "um what's going on?", "yo huh? did something happen?",
+            "lol, what was that?", "ehhh what's happening here?", "bro, wtf was that move?", "wth just happened?", "again seriously?",
+            "ok seriously what's up?", "are you kidding me right now?", "give me a break, what's going on?", "seriously bro?",
+            "lmao, what was that move?", "damn wth just happened?", "ok, damn what's happening?", "you're joking right?",
+            "cmon now whats happening?", "wtf seriously?", "really, again?", "are you serious right now?",
+            "you must be joking, right?", "stop messing with me, seriously", "this is too much, come on!", "give me a rest",
+            "hmmm, what's going on?", "um, seriously, what's up?", "ok, seriously, what's the deal?", "lmao what's going on here?",
+            "damn, wtf is this?", "ok, seriously, really?", "what, again?", "wtf, what's happening?", "yo seriously what's up?",
+            "hmmm, what was that?", "seriously, bro, really?", "again? are you kidding me?", "give me a break",
+            "wtf is this???", "ok damn seriously?", "are you fr? what just happened?", "bro seriously what's wrong with you?",
+            "you're kidding me, right?", "cmon this is too much!", "really, again? why??", "are you joking??",
+            "um whats going on?", "ok seriously give me a rest", "what just happened lmao"};
     private static final String[] FAILSAFE_CONTINUE_MESSAGES = new String[]{
-            "can i keep farming?", "lemme farm ok?", "leave me alone next time ok?"};
-
+            "can i keep farming?", "lemme farm ok?", "leave me alone next time ok?", "leave me alone lol", "let me farm",
+            "nice one admin", "hello admin???", "hello admin", "bro let me farm", "bro let me farm ok?", "bro let me farm pls",
+            "dude leave me alone", "dude tf was that", "hey can i just do my thing?", "can i farm in peace please?",
+            "let me farm bro seriously", "admin can i keep farming?", "hey admin leave me alone this time alright?",
+            "admin seriously let me farm in peace", "admin bro let me farm okay?", "admin let me do my farming thing please",
+            "can i keep doing my thing admin?", "bro seriously let me farm in peace", "admin nice one but can i still farm?",
+            "hello admin can i keep farming?", "admin let me do my farm routine okay?", "admin seriously can i farm in peace?",
+            "can i continue farming?", "admin let me farm in peace please", "can i keep farming admin? pretty please?",
+            "admin seriously let me farm in peace ok?", "can i continue my farming admin?", "admin let me farm please and thank you",
+            "leave me alone this time alright?", "seriously let me farm in peace", "bro let me farm okay?",
+            "let me do my farming thing please", "can i keep doing my thing?", "nice one but can i still farm?",
+            "hello can i keep farming?", "let me do my farm routine okay?", "seriously can i farm in peace?", "let me farm in peace please",
+            "can i keep farming? pretty please?", "seriously let me farm in peace alright?", "can i continue my farming?",
+            "let me farm please and thank you", "let me farm and dont interrupt me please", "let me farm dude seriously",
+            "admin dude let me farm okay?", "dude seriously let me farm in peace", "dude let me farm okay?"};
 
     @Getter
     @Setter
