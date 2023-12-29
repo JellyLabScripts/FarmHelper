@@ -183,7 +183,7 @@ public class BedrockCageFailsafe extends Failsafe {
                 break;
             case WAIT_BEFORE_SENDING_MESSAGE_2:
                 bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE_2;
-                FailsafeManager.getInstance().scheduleRandomDelay(2000, 2000);
+                FailsafeManager.getInstance().scheduleRandomDelay(3500, 2500);
                 break;
             case SEND_MESSAGE_2:
                 if (MovRecPlayer.getInstance().isRunning())

@@ -147,7 +147,7 @@ public class RotationFailsafe extends Failsafe {
                     rotationCheckState = RotationCheckState.SEND_MESSAGE_2;
                 else
                     rotationCheckState = RotationCheckState.GO_BACK_START;
-                FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
+                FailsafeManager.getInstance().scheduleRandomDelay(3500, 2500);
                 break;
             case SEND_MESSAGE_2:
                 if (MovRecPlayer.getInstance().isRunning())
