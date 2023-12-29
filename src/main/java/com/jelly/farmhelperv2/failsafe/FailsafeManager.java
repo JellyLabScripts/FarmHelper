@@ -309,11 +309,11 @@ public class FailsafeManager {
             RenderUtils.drawCenterTopText(text, event, Color.ORANGE);
         } else if (triggeredFailsafe.isPresent() && !triggeredFailsafe.get().equals(GuestVisitFailsafe.getInstance())) {
             ArrayList<String> textLines = new ArrayList<>();
-            textLines.add("§3" + StringUtils.stripControlCodes(triggeredFailsafe.get().getType().name()).replace("_", " "));
-            textLines.add("§cYOU ARE DURING STAFF CHECK!");
-            textLines.add("§dPRESS §3" + FarmHelperConfig.toggleMacro.getDisplay() + "§d TO DISABLE THE MACRO");
-            textLines.add("§dDO §cNOT §dLEAVE! REACT!");
-            RenderUtils.drawMultiLineText(textLines, event, Color.MAGENTA, 3f);
+            textLines.add("§6" + StringUtils.stripControlCodes(triggeredFailsafe.get().getType().name()).replace("_", " "));
+            textLines.add("§c§lYOU ARE DURING STAFF CHECK!");
+            textLines.add("§cPRESS §6" + FarmHelperConfig.toggleMacro.getDisplay() + "§c TO DISABLE THE MACRO");
+            textLines.add("§cDO §6§lNOT §cLEAVE! REACT!");
+            RenderUtils.drawMultiLineText(textLines, event, Color.MAGENTA, 2f);
         }
     }
 

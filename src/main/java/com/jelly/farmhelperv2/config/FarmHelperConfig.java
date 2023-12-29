@@ -6,6 +6,7 @@ import cc.polyfrost.oneconfig.config.annotations.*;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.*;
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.page.AutoSellNPCItemsPage;
 import com.jelly.farmhelperv2.config.page.CustomFailsafeMessagesPage;
@@ -33,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 // THIS IS RAT - CatalizCS
 @SuppressWarnings({"unused", "DefaultAnnotationParam"})
@@ -658,26 +660,34 @@ public class FarmHelperConfig extends Config {
             text = "Test failsafe"
     )
     Runnable _testFailsafe = () -> {
+        if (!MacroHandler.getInstance().isMacroToggled()) {
+            LogUtils.sendError("You need to start the macro first!");
+            return;
+        }
         LogUtils.sendWarning("Testing failsafe...");
-//        Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.values()[testFailsafeTypeSelected + 1]);
+        PlayerUtils.closeScreen();
+        if (testFailsafeTypeSelected == 0)
+            FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected));
+        else
+            FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected+2));
     };
 
     @Dropdown(
             name = "Test Failsafe Type", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "The failsafe type to test",
             options = {
+                    "Banwave",
+//                    "Bedrock Cage Check",
+//                    "Dirt Check",
+                    "Disconnect",
+                    "Evacuate",
+                    "Guest Visit",
+                    "Item Change Check",
+                    "Jacob",
+                    "Lower Average Bps",
                     "Rotation Check",
                     "Teleport Check",
-                    "Dirt Check",
-                    "Item Change Check",
-                    "World Change Check",
-                    "Bedrock Cage Check",
-                    "Evacuate",
-                    "Banwave",
-                    "Disconnect",
-                    "Lower Average Bps",
-                    "Jacob",
-                    "Guest Visit"
+                    "World Change Check"
             }
     )
     public static int testFailsafeTypeSelected = 0;

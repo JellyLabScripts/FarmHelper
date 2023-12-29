@@ -185,7 +185,6 @@ public class RotationFailsafe extends Failsafe {
                 break;
             case ROTATE_TO_POS_BEFORE_2:
                 if (rotation.isRotating()) break;
-                LogUtils.sendSuccess("[Failsafe] Rotation check finished successfully!");
                 rotation.easeTo(new RotationConfiguration(new Rotation(rotationBeforeReacting.getYaw(), rotationBeforeReacting.getPitch()),
                         500, null));
                 this.endOfFailsafeTrigger();
