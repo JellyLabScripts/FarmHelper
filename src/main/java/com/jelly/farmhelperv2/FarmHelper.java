@@ -43,6 +43,7 @@ public class FarmHelper {
     public static final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
     public static FarmHelperConfig config;
     public static boolean sentInfoAboutShittyClient = false;
+    public static boolean isDebug = false;
     private final Minecraft mc = Minecraft.getMinecraft();
 
     @Mod.EventHandler
@@ -54,7 +55,8 @@ public class FarmHelper {
 
         mc.gameSettings.pauseOnLostFocus = false;
         mc.gameSettings.gammaSetting = 1000;
-        Display.setTitle("Farm Helper 〔v" + VERSION + "〕 Bing Chilling ☛ " + Minecraft.getMinecraft().getSession().getUsername());
+        isDebug = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments().toString().contains("-agentlib:jdwp");
+        Display.setTitle("Farm Helper 〔v" + VERSION + "〕 " + (!isDebug ? "Bing Chilling" : "wazzup dev?") + " ☛ " + Minecraft.getMinecraft().getSession().getUsername());
         FailsafeUtils.getInstance();
 
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);

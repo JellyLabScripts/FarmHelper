@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.mixin.gui;
 
+import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.gui.AutoUpdaterGUI;
 import com.jelly.farmhelperv2.gui.WelcomeGUI;
@@ -19,6 +20,10 @@ public class MixinGuiMainMenu {
     @Final
     @Inject(method = "updateScreen", at = @At("RETURN"))
     private void initGui(CallbackInfo ci) {
+        if (FarmHelper.isDebug) {
+            this.splashText = "Fix Farm Helper <3";
+            return;
+        }
         if (!FarmHelperConfig.shownWelcomeGUI) {
             WelcomeGUI.showGUI();
         }
