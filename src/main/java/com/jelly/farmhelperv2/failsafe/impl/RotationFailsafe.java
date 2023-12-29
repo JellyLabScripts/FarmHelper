@@ -98,6 +98,8 @@ public class RotationFailsafe extends Failsafe {
                 break;
             case WAIT_BEFORE_START:
                 MacroHandler.getInstance().pauseMacro();
+                if (rotationBeforeReacting == null)
+                    rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
                 MovRecPlayer.setYawDifference(AngleUtils.getClosest(rotationBeforeReacting.getYaw()));
                 positionBeforeReacting = mc.thePlayer.getPosition();
                 rotationCheckState = RotationCheckState.LOOK_AROUND;

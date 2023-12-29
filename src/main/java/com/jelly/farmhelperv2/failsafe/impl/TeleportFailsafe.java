@@ -115,6 +115,10 @@ public class TeleportFailsafe extends Failsafe {
                 break;
             case WAIT_BEFORE_START:
                 MacroHandler.getInstance().pauseMacro();
+                if (rotationBeforeReacting == null)
+                    rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+                if (positionBeforeReacting == null)
+                    positionBeforeReacting = mc.thePlayer.getPosition();
                 MovRecPlayer.setYawDifference(AngleUtils.getClosest(rotationBeforeReacting.getYaw()));
                 teleportCheckState = TeleportCheckState.LOOK_AROUND;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
