@@ -156,8 +156,10 @@ public class FlyPathfinder {
             LogUtils.sendError("Player is not allowed to fly. Disabling pathfinder.");
             stop();
             return;
-        } else if (!mc.thePlayer.capabilities.isFlying && BlockUtils.getRelativeBlock(0, -1, 1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, -1, 1)))
+        } else if (!mc.thePlayer.capabilities.isFlying && BlockUtils.getRelativeBlock(0, -1, 1).isPassable(mc.theWorld, BlockUtils.getRelativeBlockPos(0, -1, 1))) {
             mc.thePlayer.capabilities.isFlying = true;
+            mc.thePlayer.sendPlayerAbilities();
+        }
         double distance3d = mc.thePlayer.getDistance(pathBlocks.get(0).getX() + 0.5, pathBlocks.get(0).getY() + 0.5, pathBlocks.get(0).getZ() + 0.5);
         if (distance3d < 0.5 || (isPlayerUnderHalfBlock() && distance3d < 1)) {
             pathBlocks.remove(0);

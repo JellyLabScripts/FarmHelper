@@ -8,6 +8,7 @@ import com.jelly.farmhelperv2.command.FarmHelperCommand;
 import com.jelly.farmhelperv2.command.RewarpCommand;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.MillisecondEvent;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -42,6 +43,7 @@ public class FarmHelper {
     public static final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
     public static FarmHelperConfig config;
     public static boolean sentInfoAboutShittyClient = false;
+    public static boolean isDebug = false;
     private final Minecraft mc = Minecraft.getMinecraft();
 
     @Mod.EventHandler
@@ -53,7 +55,8 @@ public class FarmHelper {
 
         mc.gameSettings.pauseOnLostFocus = false;
         mc.gameSettings.gammaSetting = 1000;
-        Display.setTitle("Farm Helper 〔v" + VERSION + "〕 Bing Chilling ☛ " + Minecraft.getMinecraft().getSession().getUsername());
+        isDebug = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments().toString().contains("-agentlib:jdwp");
+        Display.setTitle("Farm Helper 〔v" + VERSION + "〕 " + (!isDebug ? "Bing Chilling" : "wazzup dev?") + " ☛ " + Minecraft.getMinecraft().getSession().getUsername());
         FailsafeUtils.getInstance();
 
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
@@ -91,6 +94,7 @@ public class FarmHelper {
 
     private void initializeListeners() {
         MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(FailsafeManager.getInstance());
         MinecraftForge.EVENT_BUS.register(GameStateHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(MacroHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(TickTask.getInstance());

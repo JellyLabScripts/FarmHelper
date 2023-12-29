@@ -11,6 +11,7 @@ import com.jelly.farmhelperv2.config.page.AutoSellNPCItemsPage;
 import com.jelly.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -654,12 +655,40 @@ public class FarmHelperConfig extends Config {
     @Button(
             name = "Test failsafe", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Tests failsafe",
-            text = "Test failsafe", size = 2
+            text = "Test failsafe"
     )
     Runnable _testFailsafe = () -> {
-        LogUtils.sendDebug("Testing failsafe...");
-        Failsafe.getInstance().addEmergency(Failsafe.EmergencyType.TEST);
+        if (!MacroHandler.getInstance().isMacroToggled()) {
+            LogUtils.sendError("You need to start the macro first!");
+            return;
+        }
+        LogUtils.sendWarning("Testing failsafe...");
+        PlayerUtils.closeScreen();
+        if (testFailsafeTypeSelected == 0)
+            FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected));
+        else
+            FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected+2));
     };
+
+    @Dropdown(
+            name = "Test Failsafe Type", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "The failsafe type to test",
+            options = {
+                    "Banwave",
+//                    "Bedrock Cage Check",
+//                    "Dirt Check",
+                    "Disconnect",
+                    "Evacuate",
+                    "Guest Visit",
+                    "Item Change Check",
+                    "Jacob",
+                    "Lower Average Bps",
+                    "Rotation Check",
+                    "Teleport Check",
+                    "World Change Check"
+            }
+    )
+    public static int testFailsafeTypeSelected = 0;
 
     //</editor-fold>
 

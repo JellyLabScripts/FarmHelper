@@ -1,12 +1,18 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.util.RenderUtils;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+
+import java.awt.*;
+import java.util.ArrayList;
 
 public class Freelook implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
@@ -79,6 +85,18 @@ public class Freelook implements IFeature {
             UngrabMouse.getInstance().ungrabMouse();
         }
         mouseWasGrabbed = false;
+    }
+
+
+    @SubscribeEvent
+    public void onRenderOverlay(RenderGameOverlayEvent.Post event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
+        if (!enabled) return;
+        ArrayList<String> textLines = new ArrayList<>();
+        textLines.add("Freelook");
+        textLines.add("Press " + FarmHelperConfig.freelookKeybind.getDisplay() + " to disable");
+        RenderUtils.drawMultiLineText(textLines, event, Color.YELLOW, 1f);
     }
 
     @Override

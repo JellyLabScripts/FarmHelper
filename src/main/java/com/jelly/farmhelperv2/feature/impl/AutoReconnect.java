@@ -2,6 +2,7 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Notifications;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -82,7 +83,7 @@ public class AutoReconnect implements IFeature {
     @Override
     public void start() {
         if (enabled) return;
-        Failsafe.getInstance().stop();
+        FailsafeManager.getInstance().stopFailsafes();
         FeatureManager.getInstance().disableAllExcept(this);
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();
@@ -167,6 +168,11 @@ public class AutoReconnect implements IFeature {
                     mc.thePlayer.sendChatMessage("/skyblock");
                     state = State.GARDEN;
                     reconnectDelay.schedule(5_000);
+                }
+                if (GameStateHandler.getInstance().inGarden()) {
+                    System.out.println("Reconnected to the garden!");
+                    LogUtils.sendDebug("[Reconnect] Came back to the garden!");
+                    stop();
                 }
                 break;
             case GARDEN:

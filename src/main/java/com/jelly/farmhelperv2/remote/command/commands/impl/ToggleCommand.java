@@ -1,7 +1,7 @@
 package com.jelly.farmhelperv2.remote.command.commands.impl;
 
 import com.google.gson.JsonObject;
-import com.jelly.farmhelperv2.feature.impl.Failsafe;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.remote.command.commands.ClientCommand;
@@ -66,9 +66,9 @@ public class ToggleCommand extends ClientCommand {
             }).start();
             return;
         } else {
-            if (Failsafe.getInstance().isHadEmergency()) {
-                Failsafe.getInstance().setHadEmergency(false);
-                Failsafe.getInstance().getRestartMacroAfterFailsafeDelay().reset();
+            if (FailsafeManager.getInstance().isHadEmergency()) {
+                FailsafeManager.getInstance().setHadEmergency(false);
+                FailsafeManager.getInstance().getRestartMacroAfterFailsafeDelay().reset();
             }
             MacroHandler.getInstance().toggleMacro();
         }
