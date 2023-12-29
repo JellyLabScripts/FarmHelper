@@ -12,7 +12,10 @@ import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
-import com.jelly.farmhelperv2.util.*;
+import com.jelly.farmhelperv2.util.AngleUtils;
+import com.jelly.farmhelperv2.util.BlockUtils;
+import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
@@ -113,7 +116,6 @@ public class TeleportFailsafe extends Failsafe {
             case WAIT_BEFORE_START:
                 MacroHandler.getInstance().pauseMacro();
                 MovRecPlayer.setYawDifference(AngleUtils.getClosest(rotationBeforeReacting.getYaw()));
-                FailsafeManager.getInstance().swapItemDuringRecording = Math.random() < 0.2;
                 teleportCheckState = TeleportCheckState.LOOK_AROUND;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
                 break;
@@ -122,7 +124,7 @@ public class TeleportFailsafe extends Failsafe {
                 teleportCheckState = TeleportCheckState.SEND_MESSAGE;
                 FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                 break;
-            case WAIT:
+            case WAIT_BEFORE_SENDING_MESSAGE:
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
                 teleportCheckState = TeleportCheckState.SEND_MESSAGE;
@@ -145,6 +147,7 @@ public class TeleportFailsafe extends Failsafe {
                 rotation.easeTo(new RotationConfiguration(new Rotation(rotationBeforeReacting.getYaw(), rotationBeforeReacting.getPitch()),
                         500, null));
                 teleportCheckState = TeleportCheckState.LOOK_AROUND_2;
+                FailsafeManager.getInstance().swapItemDuringRecording = Math.random() < 0.2;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 break;
             case LOOK_AROUND_2:
@@ -259,7 +262,7 @@ public class TeleportFailsafe extends Failsafe {
         NONE,
         WAIT_BEFORE_START,
         LOOK_AROUND,
-        WAIT,
+        WAIT_BEFORE_SENDING_MESSAGE,
         SEND_MESSAGE,
         ROTATE_TO_POS_BEFORE,
         LOOK_AROUND_2,

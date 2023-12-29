@@ -19,7 +19,6 @@ import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
-import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;
@@ -109,6 +108,8 @@ public class DirtFailsafe extends Failsafe {
                     MovRecPlayer.getInstance().playRandomRecording("DIRT_CHECK_Start_Left_");
                 else
                     MovRecPlayer.getInstance().playRandomRecording("DIRT_CHECK_Start_Right");
+                break;
+            case WAIT_BEFORE_SENDING_MESSAGE:
                 dirtCheckState = DirtCheckState.SEND_MESSAGE;
                 FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                 break;
@@ -144,7 +145,7 @@ public class DirtFailsafe extends Failsafe {
                 else
                     tempRecordingName += "Right_";
                 if (Math.random() < 0.2) {
-                    dirtCheckState = DirtCheckState.SEND_MESSAGE;
+                    dirtCheckState = DirtCheckState.WAIT_BEFORE_SENDING_MESSAGE;
                     FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                     break;
                 } else if (mc.thePlayer.getActivePotionEffects() != null
@@ -244,9 +245,10 @@ public class DirtFailsafe extends Failsafe {
         WAIT_BEFORE_START,
         ROTATE_INTO_DIRT,
         PLAY_RECORDING,
+        WAIT_BEFORE_SENDING_MESSAGE,
+        SEND_MESSAGE,
         KEEP_PLAYING,
         GO_BACK_END,
-        SEND_MESSAGE,
         GO_BACK_START,
         ROTATE_TO_POS_BEFORE,
         END_DIRT_CHECK

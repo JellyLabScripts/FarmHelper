@@ -10,7 +10,6 @@ import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
 import net.minecraft.util.ChatComponentText;
-import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.concurrent.TimeUnit;

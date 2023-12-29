@@ -245,7 +245,7 @@ public class MovRecPlayer implements IFeature {
         if (currentDelay < movement.delay) {
             currentDelay++;
             if (currentDelay > 7
-                    && movement.delay > 28
+                    && movement.delay > 23
                     && Math.random() < 0.3
                     && FailsafeManager.getInstance().swapItemDuringRecording
                     && FailsafeManager.getInstance().triggeredFailsafe.isPresent())

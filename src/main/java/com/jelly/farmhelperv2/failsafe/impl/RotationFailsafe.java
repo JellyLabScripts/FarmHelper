@@ -18,7 +18,6 @@ import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
-import net.minecraftforge.event.world.WorldEvent;
 
 public class RotationFailsafe extends Failsafe {
     private static RotationFailsafe instance;
@@ -106,10 +105,10 @@ public class RotationFailsafe extends Failsafe {
                 break;
             case LOOK_AROUND:
                 MovRecPlayer.getInstance().playRandomRecording("ROTATION_CHECK_Start");
-                rotationCheckState = RotationCheckState.WAIT;
+                rotationCheckState = RotationCheckState.WAIT_BEFORE_SENDING_MESSAGE_1;
                 FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                 break;
-            case WAIT:
+            case WAIT_BEFORE_SENDING_MESSAGE_1:
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
                 rotationCheckState = RotationCheckState.SEND_MESSAGE;
@@ -138,10 +137,10 @@ public class RotationFailsafe extends Failsafe {
                 if (rotation.isRotating())
                     break;
                 MovRecPlayer.getInstance().playRandomRecording("ROTATION_CHECK_Continue");
-                rotationCheckState = RotationCheckState.WAIT_2;
+                rotationCheckState = RotationCheckState.WAIT_BEFORE_SENDING_MESSAGE_2;
                 FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                 break;
-            case WAIT_2:
+            case WAIT_BEFORE_SENDING_MESSAGE_2:
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
                 if (Math.random() < 0.3)
@@ -219,11 +218,11 @@ public class RotationFailsafe extends Failsafe {
         NONE,
         WAIT_BEFORE_START,
         LOOK_AROUND,
-        WAIT,
+        WAIT_BEFORE_SENDING_MESSAGE_1,
         SEND_MESSAGE,
         ROTATE_TO_POS_BEFORE,
         LOOK_AROUND_2,
-        WAIT_2,
+        WAIT_BEFORE_SENDING_MESSAGE_2,
         SEND_MESSAGE_2,
         ROTATE_TO_POS_BEFORE_2,
         GO_BACK_START,

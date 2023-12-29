@@ -14,7 +14,6 @@ import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
-import net.minecraftforge.event.world.WorldEvent;
 
 import java.util.concurrent.TimeUnit;
 

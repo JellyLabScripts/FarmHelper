@@ -7,7 +7,6 @@ import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
-import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
@@ -20,9 +19,6 @@ import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.Vec3;
-import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.concurrent.TimeUnit;
 
@@ -135,7 +131,6 @@ public class BedrockCageFailsafe extends Failsafe {
             case WAIT_BEFORE_START:
                 MacroHandler.getInstance().pauseMacro();
                 MovRecPlayer.setYawDifference(AngleUtils.getClosest());
-                FailsafeManager.getInstance().swapItemDuringRecording = Math.random() < 0.2;
                 bedrockCageCheckState = BedrockCageCheckState.LOOK_AROUND;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
                 break;
@@ -148,9 +143,13 @@ public class BedrockCageFailsafe extends Failsafe {
                     MovRecPlayer.getInstance().playRandomRecording("BEDROCK_CHECK_Left_Start_");
                 else
                     MovRecPlayer.getInstance().playRandomRecording("BEDROCK_CHECK_Right_Start_");
-                bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE;
+                bedrockCageCheckState = BedrockCageCheckState.WAIT_BEFORE_SENDING_MESSAGE_1;
                 break;
-            case SEND_MESSAGE:
+            case WAIT_BEFORE_SENDING_MESSAGE_1:
+                bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE_1;
+                FailsafeManager.getInstance().scheduleRandomDelay(2000, 2000);
+                break;
+            case SEND_MESSAGE_1:
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
                 String randomMessage;
@@ -162,6 +161,7 @@ public class BedrockCageFailsafe extends Failsafe {
                 }
                 LogUtils.sendDebug("[Failsafe] Chosen message: " + randomMessage);
                 mc.thePlayer.sendChatMessage("/ac " + randomMessage);
+                FailsafeManager.getInstance().swapItemDuringRecording = Math.random() < 0.2;
                 bedrockCageCheckState = BedrockCageCheckState.LOOK_AROUND_2;
                 FailsafeManager.getInstance().scheduleRandomDelay(300, 600);
                 break;
@@ -177,7 +177,13 @@ public class BedrockCageFailsafe extends Failsafe {
                 } else {
                     MovRecPlayer.getInstance().playRandomRecording("BEDROCK_CHECK_OnGround_");
                 }
+                if (FailsafeManager.getInstance().swapItemDuringRecording && Math.random() < 0.3)
+                    FailsafeManager.getInstance().swapItemDuringRecording = false;
+                bedrockCageCheckState = BedrockCageCheckState.WAIT_BEFORE_SENDING_MESSAGE_2;
+                break;
+            case WAIT_BEFORE_SENDING_MESSAGE_2:
                 bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE_2;
+                FailsafeManager.getInstance().scheduleRandomDelay(2000, 2000);
                 break;
             case SEND_MESSAGE_2:
                 if (MovRecPlayer.getInstance().isRunning())
@@ -202,7 +208,7 @@ public class BedrockCageFailsafe extends Failsafe {
                 }
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
-                if (FailsafeManager.getInstance().swapItemDuringRecording && Math.random() > 0.4)
+                if (FailsafeManager.getInstance().swapItemDuringRecording && Math.random() < 0.4)
                     FailsafeManager.getInstance().swapItemDuringRecording = false;
                 MovRecPlayer.getInstance().playRandomRecording("BEDROCK_CHECK_Wait_");
                 break;
@@ -278,8 +284,10 @@ public class BedrockCageFailsafe extends Failsafe {
         NONE,
         WAIT_BEFORE_START,
         LOOK_AROUND,
-        SEND_MESSAGE,
+        WAIT_BEFORE_SENDING_MESSAGE_1,
+        SEND_MESSAGE_1,
         LOOK_AROUND_2,
+        WAIT_BEFORE_SENDING_MESSAGE_2,
         SEND_MESSAGE_2,
         WAIT_UNTIL_TP_BACK,
         LOOK_AROUND_3,
