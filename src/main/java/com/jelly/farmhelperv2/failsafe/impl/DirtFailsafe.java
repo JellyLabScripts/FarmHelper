@@ -243,7 +243,6 @@ public class DirtFailsafe extends Failsafe {
     enum DirtCheckState {
         NONE,
         WAIT_BEFORE_START,
-        ROTATE_INTO_DIRT,
         PLAY_RECORDING,
         WAIT_BEFORE_SENDING_MESSAGE,
         SEND_MESSAGE,
