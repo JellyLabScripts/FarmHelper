@@ -12,6 +12,7 @@ import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.AngleUtils;
 import com.jelly.farmhelperv2.util.BlockUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
@@ -74,6 +75,13 @@ public class DirtFailsafe extends Failsafe {
 
     @Override
     public void duringFailsafeTrigger() {
+        if (mc.currentScreen != null) {
+            PlayerUtils.closeScreen();
+            // just in case something in the hand keeps opening the screen
+            if (FailsafeManager.getInstance().swapItemDuringRecording && mc.thePlayer.inventory.currentItem > 1)
+                FailsafeManager.getInstance().selectNextItemSlot();
+            return;
+        }
         switch (dirtCheckState) {
             case NONE:
                 dirtCheckState = DirtCheckState.WAIT_BEFORE_START;
@@ -90,6 +98,7 @@ public class DirtFailsafe extends Failsafe {
                 LogUtils.sendDebug("[Failsafe] Dirt on left: " + dirtOnLeft);
                 LogUtils.sendDebug("[Failsafe] Yaw difference: " + AngleUtils.getClosest());
                 MovRecPlayer.setYawDifference(AngleUtils.getClosest());
+                FailsafeManager.getInstance().swapItemDuringRecording = Math.random() < 0.2;
                 positionBeforeReacting = mc.thePlayer.getPosition();
                 rotationBeforeReacting = new Rotation(mc.thePlayer.prevRotationYaw, mc.thePlayer.prevRotationPitch);
                 dirtCheckState = DirtCheckState.PLAY_RECORDING;
@@ -121,6 +130,8 @@ public class DirtFailsafe extends Failsafe {
             case KEEP_PLAYING:
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
+                if (FailsafeManager.getInstance().swapItemDuringRecording && Math.random() > 0.6)
+                    FailsafeManager.getInstance().swapItemDuringRecording = false;
                 dirtBlocks.removeIf(blockPos -> !mc.theWorld.getBlockState(blockPos).getBlock().equals(Blocks.dirt));
                 if (dirtBlocks.isEmpty()) {
                     LogUtils.sendDebug("No dirt blocks left!");
@@ -158,6 +169,8 @@ public class DirtFailsafe extends Failsafe {
             case GO_BACK_START:
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
+                if (FailsafeManager.getInstance().swapItemDuringRecording)
+                    FailsafeManager.getInstance().swapItemDuringRecording = false;
                 if (FlyPathfinder.getInstance().isRunning())
                     break;
                 if (mc.thePlayer.getPosition().distanceSq(positionBeforeReacting) < 1) {

@@ -57,6 +57,7 @@ public class FailsafeManager {
     private final Clock restartMacroAfterFailsafeDelay = new Clock();
     public final RotationHandler rotation = RotationHandler.getInstance();
     private boolean sendingFailsafeInfo = false;
+    public boolean swapItemDuringRecording = false;
     private static final String[] FAILSAFE_MESSAGES = new String[]{
             "WHAT", "what?", "what", "what??", "what???", "wut?", "?", "what???", "yo huh", "yo huh?", "yo?",
             "ehhhhh??", "eh", "yo", "ahmm", "ehh", "LOL what", "lol :skull:", "bro wtf was that?", "lmao",
@@ -98,6 +99,7 @@ public class FailsafeManager {
         triggeredFailsafe = Optional.empty();
         emergencyQueue.clear();
         sendingFailsafeInfo = false;
+        swapItemDuringRecording = false;
         chooseEmergencyDelay.reset();
         onTickDelay.reset();
         failsafes.forEach(Failsafe::resetStates);
@@ -396,6 +398,16 @@ public class FailsafeManager {
         } else {
             // should return value between (minFromZero, max)
             return (float) (minFromZero + Math.random() * (max - minFromZero));
+        }
+    }
+
+    public void selectNextItemSlot() {
+        int nextSlot = mc.thePlayer.inventory.currentItem + 1;
+        if (nextSlot > 7) {
+            nextSlot = 0;
+        }
+        if (mc.thePlayer.inventory.currentItem != nextSlot) {
+            mc.thePlayer.inventory.currentItem = nextSlot;
         }
     }
 

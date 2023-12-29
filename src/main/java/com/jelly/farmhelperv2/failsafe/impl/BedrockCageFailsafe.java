@@ -120,6 +120,13 @@ public class BedrockCageFailsafe extends Failsafe {
 
     @Override
     public void duringFailsafeTrigger() {
+        if (mc.currentScreen != null) {
+            PlayerUtils.closeScreen();
+            // just in case something in the hand keeps opening the screen
+            if (FailsafeManager.getInstance().swapItemDuringRecording && mc.thePlayer.inventory.currentItem > 1)
+                FailsafeManager.getInstance().selectNextItemSlot();
+            return;
+        }
         switch (bedrockCageCheckState) {
             case NONE:
                 bedrockCageCheckState = BedrockCageCheckState.WAIT_BEFORE_START;
@@ -128,6 +135,7 @@ public class BedrockCageFailsafe extends Failsafe {
             case WAIT_BEFORE_START:
                 MacroHandler.getInstance().pauseMacro();
                 MovRecPlayer.setYawDifference(AngleUtils.getClosest());
+                FailsafeManager.getInstance().swapItemDuringRecording = Math.random() < 0.2;
                 bedrockCageCheckState = BedrockCageCheckState.LOOK_AROUND;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
                 break;
@@ -194,7 +202,8 @@ public class BedrockCageFailsafe extends Failsafe {
                 }
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
-
+                if (FailsafeManager.getInstance().swapItemDuringRecording && Math.random() > 0.4)
+                    FailsafeManager.getInstance().swapItemDuringRecording = false;
                 MovRecPlayer.getInstance().playRandomRecording("BEDROCK_CHECK_Wait_");
                 break;
 //            case GO_BACK_START:

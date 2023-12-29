@@ -98,6 +98,13 @@ public class TeleportFailsafe extends Failsafe {
 
     @Override
     public void duringFailsafeTrigger() {
+        if (mc.currentScreen != null) {
+            PlayerUtils.closeScreen();
+            // just in case something in the hand keeps opening the screen
+            if (FailsafeManager.getInstance().swapItemDuringRecording && mc.thePlayer.inventory.currentItem > 1)
+                FailsafeManager.getInstance().selectNextItemSlot();
+            return;
+        }
         switch (teleportCheckState) {
             case NONE:
                 teleportCheckState = TeleportCheckState.WAIT_BEFORE_START;
@@ -106,6 +113,7 @@ public class TeleportFailsafe extends Failsafe {
             case WAIT_BEFORE_START:
                 MacroHandler.getInstance().pauseMacro();
                 MovRecPlayer.setYawDifference(AngleUtils.getClosest(rotationBeforeReacting.getYaw()));
+                FailsafeManager.getInstance().swapItemDuringRecording = Math.random() < 0.2;
                 teleportCheckState = TeleportCheckState.LOOK_AROUND;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
                 break;
@@ -143,7 +151,10 @@ public class TeleportFailsafe extends Failsafe {
                 if (rotation.isRotating())
                     break;
                 if (Math.random() < 0.2) {
-                    teleportCheckState = TeleportCheckState.SEND_MESSAGE_2;
+                    if (Math.random() > 0.4)
+                        teleportCheckState = TeleportCheckState.SEND_MESSAGE_2;
+                    else
+                        teleportCheckState = TeleportCheckState.GO_BACK_START;
                     FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                     break;
                 } else if (mc.thePlayer.getActivePotionEffects() != null
@@ -181,6 +192,8 @@ public class TeleportFailsafe extends Failsafe {
             case GO_BACK_START:
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
+                if (FailsafeManager.getInstance().swapItemDuringRecording)
+                    FailsafeManager.getInstance().swapItemDuringRecording = false;
                 if (mc.thePlayer.getPosition().distanceSq(positionBeforeReacting) < 2) {
                     teleportCheckState = TeleportCheckState.ROTATE_TO_POS_BEFORE_2;
                     break;
