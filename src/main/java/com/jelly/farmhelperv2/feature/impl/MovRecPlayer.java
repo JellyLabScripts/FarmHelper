@@ -137,7 +137,7 @@ public class MovRecPlayer implements IFeature {
         }
         if (filename.isEmpty()) {
             if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
-                LogUtils.sendWarning("RIP bozo, no recording found!");
+                LogUtils.sendWarning("RIP bozo, recording file name is empty! Send logs to #bug-reports!");
             }
             stop();
             resetStatesAfterMacroDisabled();
@@ -153,7 +153,7 @@ public class MovRecPlayer implements IFeature {
         if (recordingName.isEmpty()) {
             LogUtils.sendError("[Movement Recorder] No recording selected!");
             if (FailsafeManager.getInstance().triggeredFailsafe.isPresent())
-                LogUtils.sendWarning("RIP bozo, no recording found!");
+                LogUtils.sendWarning("RIP bozo, recording name is empty! Send logs to #bug-reports!");
             return;
         }
         if (isMovementPlaying) {
@@ -169,7 +169,7 @@ public class MovRecPlayer implements IFeature {
             lines = read();
             if (lines == null) {
                 if (FailsafeManager.getInstance().triggeredFailsafe.isPresent())
-                    LogUtils.sendWarning("RIP bozo, the recording is empty!");
+                    LogUtils.sendWarning("RIP bozo, the recording is empty! Send logs to #bug-reports!");
                 return;
             }
             for (String line : lines) {
@@ -181,7 +181,7 @@ public class MovRecPlayer implements IFeature {
             LogUtils.sendError("[Movement Recorder] An error occurred while playing the recording.");
             e.printStackTrace();
             if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
-                LogUtils.sendWarning("RIP bozo, we've got an error!");
+                LogUtils.sendWarning("RIP bozo, we've got an error! Send logs to #bug-reports!");
             }
             stop();
             resetStatesAfterMacroDisabled();

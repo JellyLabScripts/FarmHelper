@@ -106,7 +106,7 @@ public class RotationFailsafe extends Failsafe {
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
                 break;
             case LOOK_AROUND:
-                MovRecPlayer.getInstance().playRandomRecording("ROTATION_CHECK_Start");
+                MovRecPlayer.getInstance().playRandomRecording("ROTATION_CHECK_Start_");
                 rotationCheckState = RotationCheckState.WAIT_BEFORE_SENDING_MESSAGE_1;
                 FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                 break;
@@ -138,7 +138,7 @@ public class RotationFailsafe extends Failsafe {
             case LOOK_AROUND_2:
                 if (rotation.isRotating())
                     break;
-                MovRecPlayer.getInstance().playRandomRecording("ROTATION_CHECK_Continue");
+                MovRecPlayer.getInstance().playRandomRecording("ROTATION_CHECK_Continue_");
                 rotationCheckState = RotationCheckState.WAIT_BEFORE_SENDING_MESSAGE_2;
                 FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                 break;

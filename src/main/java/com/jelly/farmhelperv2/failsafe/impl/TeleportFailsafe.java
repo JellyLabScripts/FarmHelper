@@ -124,7 +124,7 @@ public class TeleportFailsafe extends Failsafe {
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
                 break;
             case LOOK_AROUND:
-                MovRecPlayer.getInstance().playRandomRecording("ROTATION_CHECK_Start");
+                MovRecPlayer.getInstance().playRandomRecording("TELEPORT_CHECK_Start_");
                 teleportCheckState = TeleportCheckState.SEND_MESSAGE;
                 FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                 break;
