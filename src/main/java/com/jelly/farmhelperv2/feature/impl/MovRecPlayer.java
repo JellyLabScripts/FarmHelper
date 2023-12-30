@@ -123,6 +123,15 @@ public class MovRecPlayer implements IFeature {
         try {
             List<String> resourceFiles = getResourceFiles();
 
+            if (resourceFiles == null) {
+                if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
+                    LogUtils.sendError("Resource folder not found! Report this to #bug-reports!");
+                }
+                stop();
+                resetStatesAfterMacroDisabled();
+                return;
+            }
+
             for (String file : resourceFiles) {
                 if (file.contains(pattern)) {
                     matchingFiles.add(file);
@@ -367,7 +376,7 @@ public class MovRecPlayer implements IFeature {
         URL resourceFolder = classLoader.getResource("farmhelper/movrec");
 
         if (resourceFolder == null) {
-            LogUtils.sendError("Resource folder not found! Report this to #bug-reports!");
+            return null;
         }
 
         URI uri = resourceFolder.toURI();
