@@ -1,8 +1,10 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.util.FailsafeUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.OldRotationUtils;
@@ -14,17 +16,18 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.awt.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.*;
+import java.util.List;
 import java.util.*;
-
-import static java.util.Collections.emptyMap;
-import static java.util.stream.Collectors.toList;
 
 /*
     Credits to Yuro for this superb class
@@ -38,15 +41,16 @@ public class MovRecPlayer implements IFeature {
     static Minecraft mc = Minecraft.getMinecraft();
     private static MovRecPlayer instance;
     private static boolean isMovementPlaying = false;
-    private static boolean isMovementReading = false;
     private static int currentDelay = 0;
     private static int playingIndex = 0;
-    @Setter @Getter
+    @Setter
+    @Getter
     public static float yawDifference = 0;
     @Setter
-    public String recordingName = "";
-    private static OldRotationUtils rotateBeforePlaying = new OldRotationUtils();
-    private static OldRotationUtils rotateDuringPlaying = new OldRotationUtils();
+    private List<Movement> selectedRecording = new ArrayList<>();
+    private static final OldRotationUtils rotateBeforePlaying = new OldRotationUtils();
+    private static final OldRotationUtils rotateDuringPlaying = new OldRotationUtils();
+    private final HashMap<String, List<Movement>> recordings = new HashMap<>();
     // endregion
 
     // region CONSTRUCTOR
@@ -56,6 +60,48 @@ public class MovRecPlayer implements IFeature {
             instance = new MovRecPlayer();
         }
         return instance;
+    }
+
+    public MovRecPlayer() {
+        List<String> resourceFiles;
+        try {
+            resourceFiles = getResourceFiles("/farmhelper/movrec");
+            if (resourceFiles.isEmpty()) {
+                FailsafeUtils.getInstance().sendNotification("Resource folder not found! Report this to #bug-reports!", TrayIcon.MessageType.WARNING);
+                LogUtils.sendError("Resource folder not found! Report this to #bug-reports!");
+                return;
+            }
+            for (String file : resourceFiles) {
+                List<String> lines = new ArrayList<>();
+                System.out.println("file: " + file);
+                if (!file.endsWith(".movement")) continue;
+                if (file.contains("/build/classes/")) {
+                    file = file.split("/build/classes/java/main")[1];
+                }
+                InputStream inputStream = FarmHelper.class.getResourceAsStream(file);
+
+                if (inputStream != null) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        lines.add(line);
+                    }
+                    reader.close();
+                } else {
+                    LogUtils.sendError("Resource not found: " + file);
+                    continue;
+                }
+
+                List<Movement> movements = new ArrayList<>();
+                for (String line : lines) {
+                    movements.add(getMovement(line));
+                }
+                System.out.println("Added " + file + " to recordings. Lines for movements: " + movements.size());
+                recordings.put(file, movements);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void resetTimers() {
@@ -70,7 +116,7 @@ public class MovRecPlayer implements IFeature {
 
     @Override
     public boolean isRunning() {
-        return isMovementReading || isMovementPlaying;
+        return isMovementPlaying;
     }
 
     @Override
@@ -98,8 +144,7 @@ public class MovRecPlayer implements IFeature {
         playingIndex = 0;
         currentDelay = 0;
         isMovementPlaying = false;
-        isMovementReading = false;
-        recordingName = "";
+        selectedRecording.clear();
         resetTimers();
     }
 
@@ -117,55 +162,31 @@ public class MovRecPlayer implements IFeature {
     // endregion
 
     public void playRandomRecording(String pattern) {
-        String filename = "";
-        List<String> matchingFiles = new ArrayList<>();
+        List<List<Movement>> matchingFiles = new ArrayList<>();
 
-        try {
-            List<String> resourceFiles = getResourceFiles();
-
-            if (resourceFiles == null) {
-                if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
-                    LogUtils.sendError("Resource folder not found! Report this to #bug-reports!");
-                }
-                stop();
-                resetStatesAfterMacroDisabled();
-                return;
+        for (String file : recordings.keySet()) {
+            if (file.contains(pattern)) {
+                matchingFiles.add(recordings.get(file));
             }
-
-            for (String file : resourceFiles) {
-                if (file.contains(pattern)) {
-                    matchingFiles.add(file);
-                }
-            }
-        } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
-            return;
         }
 
         if (!matchingFiles.isEmpty()) {
             Random random = new Random();
             int randomIndex = random.nextInt(matchingFiles.size());
-            LogUtils.sendDebug("[Movement Recorder] Selected recording: " + matchingFiles.get(randomIndex));
-            filename = matchingFiles.get(randomIndex);
+            String recordingName = recordings.keySet().toArray()[randomIndex].toString()
+                    .replace("/", "")
+                    .replace("\\", "")
+                    .replace(".movement", "")
+                    .replace("farmhelpermovrec", "");
+            LogUtils.sendDebug("[Movement Recorder] Selected recording: " + recordingName);
+            selectedRecording = matchingFiles.get(randomIndex);
+            start();
         }
-
-        if (filename.isEmpty()) {
-            if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
-                LogUtils.sendWarning("RIP bozo, recording file name is empty! Send logs to #bug-reports!");
-            }
-            stop();
-            resetStatesAfterMacroDisabled();
-            return;
-        }
-
-        MovRecPlayer movRecPlayer = new MovRecPlayer();
-        movRecPlayer.setRecordingName(filename);
-        movRecPlayer.start();
     }
 
     @Override
     public void start() {
-        if (recordingName.isEmpty()) {
+        if (selectedRecording.isEmpty()) {
             LogUtils.sendError("[Movement Recorder] No recording selected!");
             if (FailsafeManager.getInstance().triggeredFailsafe.isPresent())
                 LogUtils.sendWarning("RIP bozo, recording name is empty! Send logs to #bug-reports!");
@@ -178,31 +199,7 @@ public class MovRecPlayer implements IFeature {
         movements.clear();
         playingIndex = 0;
         resetTimers();
-        isMovementReading = true;
-        try {
-            List<String> lines;
-            lines = read();
-            if (lines == null) {
-                if (FailsafeManager.getInstance().triggeredFailsafe.isPresent())
-                    LogUtils.sendWarning("RIP bozo, the recording is empty! Send logs to #bug-reports!");
-                return;
-            }
-            for (String line : lines) {
-                if (!isMovementReading)
-                    return;
-                movements.add(getMovement(line));
-            }
-        } catch (Exception e) {
-            LogUtils.sendError("[Movement Recorder] An error occurred while playing the recording.");
-            e.printStackTrace();
-            if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
-                LogUtils.sendWarning("RIP bozo, we've got an error! Send logs to #bug-reports!");
-            }
-            stop();
-            resetStatesAfterMacroDisabled();
-            return;
-        }
-        isMovementReading = false;
+        movements.addAll(selectedRecording);
         isMovementPlaying = true;
         Movement movement = movements.get(0);
 //        yawDifference = AngleUtils.normalizeAngle(AngleUtils.getClosest() - movement.yaw);
@@ -214,7 +211,7 @@ public class MovRecPlayer implements IFeature {
     @Override
     public void stop() {
         KeyBindUtils.stopMovement();
-        if (isMovementPlaying || isMovementReading) {
+        if (isRunning()) {
             LogUtils.sendDebug("[Movement Recorder] Playing has been stopped.");
             return;
         }
@@ -225,7 +222,7 @@ public class MovRecPlayer implements IFeature {
     public void onTickPlayMovement(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null)
             return;
-        if (!isMovementPlaying || isMovementReading)
+        if (!isRunning())
             return;
         if (movements.isEmpty()) {
             if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
@@ -346,58 +343,32 @@ public class MovRecPlayer implements IFeature {
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), movement.attack);
     }
 
-    @Nullable
-    private List<String> read() {
-        List<String> lines = new ArrayList<>();
+    private List<String> getResourceFiles(String path) throws IOException {
+        List<String> filenames = new ArrayList<>();
+        FileSystem fs;
+        URL url = FarmHelper.class.getResource(path);
+        if (url == null) {
+            return filenames;
+        }
         try {
-            String filePath = "/farmhelper/movrec/" + recordingName;
-            InputStream inputStream = getClass().getResourceAsStream(filePath);
-
-            if (inputStream != null) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    lines.add(line);
-                }
-                reader.close();
+            URI uri = url.toURI();
+            Path myPath;
+            if ("file".equals(uri.getScheme())) {
+                myPath = Paths.get(Objects.requireNonNull(FarmHelper.class.getResource(path)).toURI());
             } else {
-                LogUtils.sendError("Resource not found: " + filePath);
-                return null;
+                fs = FileSystems.newFileSystem(uri, new HashMap<>());
+                myPath = fs.getPath(path);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-        return lines;
-    }
-
-    private static List<String> getResourceFiles() throws IOException, URISyntaxException {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        URL resourceFolder = classLoader.getResource("farmhelper/movrec");
-
-        if (resourceFolder == null) {
-            return null;
+            Iterator<Path> it = Files.walk(myPath).iterator();
+            while (it.hasNext()) {
+                Path filename = it.next();
+                filenames.add(filename.toString().replace("\\", "/"));
+            }
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         }
 
-        URI uri = resourceFolder.toURI();
-        Path path;
-        if (uri.getScheme().equals("jar")) {
-            FileSystem fileSystem = FileSystems.newFileSystem(uri, emptyMap());
-            path = fileSystem.getPath("farmhelper/movrec");
-        } else {
-            path = Paths.get(uri);
-        }
-
-        return Files.walk(path)
-                .filter(Files::isRegularFile)
-                .map(p -> {
-                    if (uri.getScheme().equals("jar")) { // if the resource is within a JAR
-                        return p.getFileName().toString(); // convert the ZipPath to String
-                    } else {
-                        return path.relativize(p).getFileName().toString();
-                    }
-                })
-                .collect(toList());
+        return filenames;
     }
 
     // endregion
