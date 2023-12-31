@@ -270,6 +270,12 @@ public class FarmHelperConfig extends Config {
             description = "Set render distance to 2, set max fps to 15 and doesn't render crops"
     )
     public static boolean performanceMode = false;
+    @Number(
+            name = "Max FPS", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+            description = "The maximum FPS to set when performance mode is enabled",
+            min = 10, max = 60
+    )
+    public static int performanceModeMaxFPS = 20;
     @Switch(
             name = "Mute The Game", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "Mutes the game while farming"
