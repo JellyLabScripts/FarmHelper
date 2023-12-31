@@ -552,11 +552,13 @@ public class AutoSprayonator implements IFeature {
         if (!running) return;
         if (!isToggled()) return;
         if (e.type != 0) return;
-        if (e.message.getUnformattedText().contains("You sprayed Plot")) {
+        String message = StringUtils.stripControlCodes(e.message.getUnformattedText());
+        if (message.contains(":")) return;
+        if (message.contains("You sprayed Plot")) {
             String plotNumber = e.message.getUnformattedText().split(" ")[5];
             PlotData data = new PlotData(Integer.parseInt(plotNumber), sprayItem.getItemName(), TimeUnit.MINUTES.toMillis(30));
             sprayonatorPlotStates.put(Integer.parseInt(plotNumber), data);
-        } else if (e.message.getUnformattedText().contains("sprayed with that item recently")) {
+        } else if (message.contains("sprayed with that item recently")) {
             sprayState = AUTO_SPRAYONATOR_STATE.CHECK_PLOTS;
         }
     }
