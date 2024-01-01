@@ -1,6 +1,7 @@
 package com.jelly.farmhelperv2.failsafe.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
@@ -148,17 +149,21 @@ public class BedrockCageFailsafe extends Failsafe {
             case WAIT_BEFORE_SENDING_MESSAGE_1:
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
-                bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE_1;
-                FailsafeManager.getInstance().scheduleRandomDelay(2000, 2000);
-                break;
-            case SEND_MESSAGE_1:
-                String randomMessage;
+                if (!FarmHelperConfig.sendFailsafeMessage) {
+                    bedrockCageCheckState = BedrockCageCheckState.LOOK_AROUND_2;
+                    FailsafeManager.getInstance().scheduleRandomDelay(300, 600);
+                    break;
+                }
                 if (CustomFailsafeMessagesPage.customBedrockMessages.isEmpty()) {
                     randomMessage = FailsafeManager.getRandomMessage();
                 } else {
                     String[] customMessages = CustomFailsafeMessagesPage.customBedrockMessages.split("\\|");
                     randomMessage = FailsafeManager.getRandomMessage(customMessages);
                 }
+                bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE_1;
+                FailsafeManager.getInstance().scheduleRandomDelay((int) (randomMessage.length() / 2.5), 1000);
+                break;
+            case SEND_MESSAGE_1:
                 LogUtils.sendDebug("[Failsafe] Chosen message: " + randomMessage);
                 mc.thePlayer.sendChatMessage("/ac " + randomMessage);
                 FailsafeManager.getInstance().swapItemDuringRecording = Math.random() < 0.2;
@@ -184,17 +189,21 @@ public class BedrockCageFailsafe extends Failsafe {
             case WAIT_BEFORE_SENDING_MESSAGE_2:
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
-                bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE_2;
-                FailsafeManager.getInstance().scheduleRandomDelay(3500, 2500);
-                break;
-            case SEND_MESSAGE_2:
-                String randomContinueMessage;
+                if (!FarmHelperConfig.sendFailsafeMessage) {
+                    bedrockCageCheckState = BedrockCageCheckState.WAIT_UNTIL_TP_BACK;
+                    FailsafeManager.getInstance().scheduleRandomDelay(300, 600);
+                    break;
+                }
                 if (CustomFailsafeMessagesPage.customContinueMessages.isEmpty()) {
                     randomContinueMessage = FailsafeManager.getRandomContinueMessage();
                 } else {
                     String[] customContinueMessages = CustomFailsafeMessagesPage.customContinueMessages.split("\\|");
                     randomContinueMessage = FailsafeManager.getRandomMessage(customContinueMessages);
                 }
+                bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE_2;
+                FailsafeManager.getInstance().scheduleRandomDelay((int) (randomContinueMessage.length() / 2.5), 1000);
+                break;
+            case SEND_MESSAGE_2:
                 LogUtils.sendDebug("[Failsafe] Chosen message: " + randomContinueMessage);
                 mc.thePlayer.sendChatMessage("/ac " + randomContinueMessage);
                 bedrockCageCheckState = BedrockCageCheckState.WAIT_UNTIL_TP_BACK;
@@ -270,6 +279,8 @@ public class BedrockCageFailsafe extends Failsafe {
         bedrockCageCheckState = BedrockCageCheckState.NONE;
         rotationBeforeTeleporting = null;
         positionBeforeTeleporting = null;
+        randomMessage = null;
+        randomContinueMessage = null;
         bedrockOnLeft = false;
         rotation.reset();
     }
@@ -279,6 +290,8 @@ public class BedrockCageFailsafe extends Failsafe {
     private Rotation rotationBeforeTeleporting = null;
     private BlockPos positionBeforeTeleporting = null;
     private boolean bedrockOnLeft = false;
+    String randomMessage;
+    String randomContinueMessage;
 
     enum BedrockCageCheckState {
         NONE,

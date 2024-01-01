@@ -125,23 +125,27 @@ public class TeleportFailsafe extends Failsafe {
                 break;
             case LOOK_AROUND:
                 MovRecPlayer.getInstance().playRandomRecording("TELEPORT_CHECK_Start_");
-                teleportCheckState = TeleportCheckState.SEND_MESSAGE;
+                teleportCheckState = TeleportCheckState.WAIT_BEFORE_SENDING_MESSAGE_1;
                 FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
                 break;
-            case WAIT_BEFORE_SENDING_MESSAGE:
+            case WAIT_BEFORE_SENDING_MESSAGE_1:
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
-                teleportCheckState = TeleportCheckState.SEND_MESSAGE;
-                FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
-                break;
-            case SEND_MESSAGE:
-                String randomMessage;
+                if (!FarmHelperConfig.sendFailsafeMessage) {
+                    teleportCheckState = TeleportCheckState.ROTATE_TO_POS_BEFORE;
+                    FailsafeManager.getInstance().scheduleRandomDelay(300, 600);
+                    break;
+                }
                 if (CustomFailsafeMessagesPage.customTeleportationMessages.isEmpty()) {
                     randomMessage = FailsafeManager.getRandomMessage();
                 } else {
                     String[] customMessages = CustomFailsafeMessagesPage.customTeleportationMessages.split("\\|");
                     randomMessage = FailsafeManager.getRandomMessage(customMessages);
                 }
+                teleportCheckState = TeleportCheckState.SEND_MESSAGE;
+                FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
+                break;
+            case SEND_MESSAGE:
                 LogUtils.sendDebug("[Failsafe] Chosen message: " + randomMessage);
                 mc.thePlayer.sendChatMessage("/ac " + randomMessage);
                 teleportCheckState = TeleportCheckState.ROTATE_TO_POS_BEFORE;
@@ -159,7 +163,7 @@ public class TeleportFailsafe extends Failsafe {
                     break;
                 if (Math.random() < 0.2) {
                     if (Math.random() > 0.4)
-                        teleportCheckState = TeleportCheckState.SEND_MESSAGE_2;
+                        teleportCheckState = TeleportCheckState.WAIT_BEFORE_SENDING_MESSAGE_2;
                     else
                         teleportCheckState = TeleportCheckState.GO_BACK_START;
                     FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
@@ -175,22 +179,24 @@ public class TeleportFailsafe extends Failsafe {
                 }
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 break;
-            case WAIT_2:
+            case WAIT_BEFORE_SENDING_MESSAGE_2:
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
-                teleportCheckState = TeleportCheckState.SEND_MESSAGE_2;
-                FailsafeManager.getInstance().scheduleRandomDelay(3500, 2500);
-                break;
-            case SEND_MESSAGE_2:
-                if (MovRecPlayer.getInstance().isRunning())
+                if (!FarmHelperConfig.sendFailsafeMessage) {
+                    teleportCheckState = TeleportCheckState.GO_BACK_START;
+                    FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                     break;
-                String randomContinueMessage;
+                }
                 if (CustomFailsafeMessagesPage.customContinueMessages.isEmpty()) {
                     randomContinueMessage = FailsafeManager.getRandomContinueMessage();
                 } else {
                     String[] customContinueMessages = CustomFailsafeMessagesPage.customContinueMessages.split("\\|");
                     randomContinueMessage = FailsafeManager.getRandomMessage(customContinueMessages);
                 }
+                teleportCheckState = TeleportCheckState.SEND_MESSAGE_2;
+                FailsafeManager.getInstance().scheduleRandomDelay(3500, 2500);
+                break;
+            case SEND_MESSAGE_2:
                 LogUtils.sendDebug("[Failsafe] Chosen message: " + randomContinueMessage);
                 mc.thePlayer.sendChatMessage("/ac " + randomContinueMessage);
                 teleportCheckState = TeleportCheckState.GO_BACK_START;
@@ -254,6 +260,8 @@ public class TeleportFailsafe extends Failsafe {
         teleportCheckState = TeleportCheckState.NONE;
         rotationBeforeReacting = null;
         positionBeforeReacting = null;
+        randomMessage = null;
+        randomContinueMessage = null;
         rotation.reset();
     }
 
@@ -261,16 +269,18 @@ public class TeleportFailsafe extends Failsafe {
     private final RotationHandler rotation = RotationHandler.getInstance();
     private BlockPos positionBeforeReacting = null;
     private Rotation rotationBeforeReacting = null;
+    String randomMessage;
+    String randomContinueMessage;
 
     enum TeleportCheckState {
         NONE,
         WAIT_BEFORE_START,
         LOOK_AROUND,
-        WAIT_BEFORE_SENDING_MESSAGE,
+        WAIT_BEFORE_SENDING_MESSAGE_1,
         SEND_MESSAGE,
         ROTATE_TO_POS_BEFORE,
         LOOK_AROUND_2,
-        WAIT_2,
+        WAIT_BEFORE_SENDING_MESSAGE_2,
         SEND_MESSAGE_2,
         ROTATE_TO_POS_BEFORE_2,
         GO_BACK_START,

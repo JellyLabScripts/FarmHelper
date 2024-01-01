@@ -1,6 +1,7 @@
 package com.jelly.farmhelperv2.failsafe.impl;
 
 import baritone.api.pathing.goals.GoalBlock;
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.event.BlockChangeEvent;
@@ -108,21 +109,28 @@ public class DirtFailsafe extends Failsafe {
                     MovRecPlayer.getInstance().playRandomRecording("DIRT_CHECK_Start_Left_");
                 else
                     MovRecPlayer.getInstance().playRandomRecording("DIRT_CHECK_Start_Right_");
+                dirtCheckState = DirtCheckState.WAIT_BEFORE_SENDING_MESSAGE;
                 break;
             case WAIT_BEFORE_SENDING_MESSAGE:
-                dirtCheckState = DirtCheckState.SEND_MESSAGE;
-                FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
-                break;
-            case SEND_MESSAGE:
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
-                String randomMessage;
+                if (!FarmHelperConfig.sendFailsafeMessage) {
+                    dirtCheckState = DirtCheckState.KEEP_PLAYING;
+                    FailsafeManager.getInstance().scheduleRandomDelay(300, 600);
+                    break;
+                }
                 if (CustomFailsafeMessagesPage.customDirtMessages.isEmpty()) {
                     randomMessage = FailsafeManager.getRandomMessage();
                 } else {
                     String[] customMessages = CustomFailsafeMessagesPage.customDirtMessages.split("\\|");
                     randomMessage = FailsafeManager.getRandomMessage(customMessages);
                 }
+                dirtCheckState = DirtCheckState.SEND_MESSAGE;
+                FailsafeManager.getInstance().scheduleRandomDelay((int) (randomMessage.length() / 2.5), 1000);
+                break;
+            case SEND_MESSAGE:
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
                 LogUtils.sendDebug("[Failsafe] Chosen message: " + randomMessage);
                 mc.thePlayer.sendChatMessage("/ac " + randomMessage);
                 dirtCheckState = DirtCheckState.KEEP_PLAYING;
@@ -215,6 +223,7 @@ public class DirtFailsafe extends Failsafe {
         dirtCheckState = DirtCheckState.NONE;
         positionBeforeReacting = null;
         rotationBeforeReacting = null;
+        randomMessage = null;
         dirtOnLeft = false;
         maxReactions = 3;
     }
@@ -240,6 +249,7 @@ public class DirtFailsafe extends Failsafe {
     private boolean dirtOnLeft = false;
     private int maxReactions = 3;
     private DirtCheckState dirtCheckState = DirtCheckState.NONE;
+    String randomMessage;
     enum DirtCheckState {
         NONE,
         WAIT_BEFORE_START,

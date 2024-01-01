@@ -113,17 +113,21 @@ public class RotationFailsafe extends Failsafe {
             case WAIT_BEFORE_SENDING_MESSAGE_1:
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
-                rotationCheckState = RotationCheckState.SEND_MESSAGE;
-                FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
-                break;
-            case SEND_MESSAGE:
-                String randomMessage;
+                if (!FarmHelperConfig.sendFailsafeMessage) {
+                    rotationCheckState = RotationCheckState.ROTATE_TO_POS_BEFORE;
+                    FailsafeManager.getInstance().scheduleRandomDelay(300, 600);
+                    break;
+                }
                 if (CustomFailsafeMessagesPage.customRotationMessages.isEmpty()) {
                     randomMessage = FailsafeManager.getRandomMessage();
                 } else {
                     String[] customMessages = CustomFailsafeMessagesPage.customRotationMessages.split("\\|");
                     randomMessage = FailsafeManager.getRandomMessage(customMessages);
                 }
+                rotationCheckState = RotationCheckState.SEND_MESSAGE;
+                FailsafeManager.getInstance().scheduleRandomDelay((int) (randomMessage.length() / 2.5), 1000);
+                break;
+            case SEND_MESSAGE:
                 LogUtils.sendDebug("[Failsafe] Chosen message: " + randomMessage);
                 mc.thePlayer.sendChatMessage("/ac " + randomMessage);
                 rotationCheckState = RotationCheckState.ROTATE_TO_POS_BEFORE;
@@ -145,22 +149,22 @@ public class RotationFailsafe extends Failsafe {
             case WAIT_BEFORE_SENDING_MESSAGE_2:
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
-                if (Math.random() < 0.3)
-                    rotationCheckState = RotationCheckState.SEND_MESSAGE_2;
-                else
+                if (!FarmHelperConfig.sendFailsafeMessage || Math.random() < 0.3) {
                     rotationCheckState = RotationCheckState.GO_BACK_START;
-                FailsafeManager.getInstance().scheduleRandomDelay(3500, 2500);
-                break;
-            case SEND_MESSAGE_2:
-                if (MovRecPlayer.getInstance().isRunning())
-                    break;
-                String randomContinueMessage;
+                    FailsafeManager.getInstance().scheduleRandomDelay(300, 600);
+                }
                 if (CustomFailsafeMessagesPage.customContinueMessages.isEmpty()) {
                     randomContinueMessage = FailsafeManager.getRandomContinueMessage();
                 } else {
                     String[] customContinueMessages = CustomFailsafeMessagesPage.customContinueMessages.split("\\|");
                     randomContinueMessage = FailsafeManager.getRandomMessage(customContinueMessages);
                 }
+                rotationCheckState = RotationCheckState.SEND_MESSAGE_2;
+                FailsafeManager.getInstance().scheduleRandomDelay((int) (randomContinueMessage.length() / 2.5), 1000);
+                break;
+            case SEND_MESSAGE_2:
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
                 LogUtils.sendDebug("[Failsafe] Chosen message: " + randomContinueMessage);
                 mc.thePlayer.sendChatMessage("/ac " + randomContinueMessage);
                 rotationCheckState = RotationCheckState.GO_BACK_START;
@@ -207,6 +211,8 @@ public class RotationFailsafe extends Failsafe {
         rotationCheckState = RotationCheckState.NONE;
         rotationBeforeReacting = null;
         positionBeforeReacting = null;
+        randomMessage = null;
+        randomContinueMessage = null;
         rotation.reset();
     }
 
@@ -214,6 +220,8 @@ public class RotationFailsafe extends Failsafe {
     private final RotationHandler rotation = RotationHandler.getInstance();
     private BlockPos positionBeforeReacting = null;
     private Rotation rotationBeforeReacting = null;
+    String randomMessage;
+    String randomContinueMessage;
 
     enum RotationCheckState {
         NONE,
