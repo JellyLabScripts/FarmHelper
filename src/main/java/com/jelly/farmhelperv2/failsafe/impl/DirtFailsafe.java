@@ -126,7 +126,7 @@ public class DirtFailsafe extends Failsafe {
                     randomMessage = FailsafeManager.getRandomMessage(customMessages);
                 }
                 dirtCheckState = DirtCheckState.SEND_MESSAGE;
-                FailsafeManager.getInstance().scheduleRandomDelay((int) (randomMessage.length() / 2.5), 1000);
+                FailsafeManager.getInstance().scheduleRandomDelay(randomMessage.length() * 150L, 1000);
                 break;
             case SEND_MESSAGE:
                 if (MovRecPlayer.getInstance().isRunning())

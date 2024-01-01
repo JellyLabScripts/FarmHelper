@@ -161,7 +161,7 @@ public class BedrockCageFailsafe extends Failsafe {
                     randomMessage = FailsafeManager.getRandomMessage(customMessages);
                 }
                 bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE_1;
-                FailsafeManager.getInstance().scheduleRandomDelay((int) (randomMessage.length() / 2.5), 1000);
+                FailsafeManager.getInstance().scheduleRandomDelay(randomMessage.length() * 150L, 1000);
                 break;
             case SEND_MESSAGE_1:
                 LogUtils.sendDebug("[Failsafe] Chosen message: " + randomMessage);
@@ -201,7 +201,7 @@ public class BedrockCageFailsafe extends Failsafe {
                     randomContinueMessage = FailsafeManager.getRandomMessage(customContinueMessages);
                 }
                 bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE_2;
-                FailsafeManager.getInstance().scheduleRandomDelay((int) (randomContinueMessage.length() / 2.5), 1000);
+                FailsafeManager.getInstance().scheduleRandomDelay(randomContinueMessage.length() * 150L, 1000);
                 break;
             case SEND_MESSAGE_2:
                 LogUtils.sendDebug("[Failsafe] Chosen message: " + randomContinueMessage);

@@ -125,7 +125,7 @@ public class RotationFailsafe extends Failsafe {
                     randomMessage = FailsafeManager.getRandomMessage(customMessages);
                 }
                 rotationCheckState = RotationCheckState.SEND_MESSAGE;
-                FailsafeManager.getInstance().scheduleRandomDelay((int) (randomMessage.length() / 2.5), 1000);
+                FailsafeManager.getInstance().scheduleRandomDelay(randomMessage.length() * 150L, 1000);
                 break;
             case SEND_MESSAGE:
                 LogUtils.sendDebug("[Failsafe] Chosen message: " + randomMessage);
@@ -160,7 +160,7 @@ public class RotationFailsafe extends Failsafe {
                     randomContinueMessage = FailsafeManager.getRandomMessage(customContinueMessages);
                 }
                 rotationCheckState = RotationCheckState.SEND_MESSAGE_2;
-                FailsafeManager.getInstance().scheduleRandomDelay((int) (randomContinueMessage.length() / 2.5), 1000);
+                FailsafeManager.getInstance().scheduleRandomDelay(randomContinueMessage.length() * 150L, 1000);
                 break;
             case SEND_MESSAGE_2:
                 if (MovRecPlayer.getInstance().isRunning())
