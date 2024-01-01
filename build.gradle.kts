@@ -83,7 +83,7 @@ dependencies {
 
     shadowImpl("org.java-websocket:Java-WebSocket:1.5.4")
 
-    runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.1.2")
+    runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.2.0")
 
     implementation("net.dv8tion:JDA:5.0.0-beta.13")
 
