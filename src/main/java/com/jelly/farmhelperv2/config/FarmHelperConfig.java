@@ -586,11 +586,6 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean popUpNotification = true;
     @Switch(
-            name = "Fake Movements", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Tries to act like a real player by moving around"
-    )
-    public static boolean fakeMovements = true;
-    @Switch(
             name = "Auto alt-tab when failsafe triggered", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Automatically alt-tabs to the game when the dark times come"
     )
@@ -805,14 +800,14 @@ public class FarmHelperConfig extends Config {
     @Slider(
             name = "Restart Delay", category = FAILSAFE, subcategory = "Restart After FailSafe",
             description = "The delay to restart after failsafe (in minutes)",
-            min = 1, max = 60
+            min = 0, max = 60
     )
     public static int restartAfterFailSafeDelay = 5;
 
     @Switch(
-            name = "Always teleport to /warp garden after the delay",
+            name = "Always teleport to /warp garden after the failsafe",
             category = FAILSAFE, subcategory = "Restart After FailSafe",
-            description = "Always teleports to /warp garden after the delay"
+            description = "Always teleports to /warp garden after the failsafe"
     )
     public static boolean alwaysTeleportToGarden = false;
 
@@ -1637,7 +1632,6 @@ public class FarmHelperConfig extends Config {
         this.hideIf("customFailsafeSoundWarning", () -> !failsafeSoundType || !enableFailsafeSound || failsafeSoundSelected != 0);
         this.addDependency("restartAfterFailSafeDelay", "enableRestartAfterFailSafe");
         this.addDependency("alwaysTeleportToGarden", "enableRestartAfterFailSafe");
-        this.addDependency("sendFailsafeMessage", "fakeMovements");
 
         this.addDependency("schedulerFarmingTime", "enableScheduler");
         this.addDependency("schedulerFarmingTimeRandomness", "enableScheduler");

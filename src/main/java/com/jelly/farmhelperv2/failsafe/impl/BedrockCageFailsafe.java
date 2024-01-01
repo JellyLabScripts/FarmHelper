@@ -177,7 +177,7 @@ public class BedrockCageFailsafe extends Failsafe {
                         && mc.thePlayer.getActivePotionEffects().stream().anyMatch(potionEffect -> potionEffect.getPotionID() == 8)
                         && Math.random() < 0.2) {
                     MovRecPlayer.getInstance().playRandomRecording("BEDROCK_CHECK_JumpBoost_");
-                } else if (mc.thePlayer.capabilities.allowFlying && BlockUtils.isAboveHeadClear() && Math.random() < 0.3) {
+                } else if (mc.thePlayer.capabilities.allowFlying && BlockUtils.isAboveHeadClear() && Math.random() < 0.4) {
                     MovRecPlayer.getInstance().playRandomRecording("BEDROCK_CHECK_Fly_");
                 } else {
                     MovRecPlayer.getInstance().playRandomRecording("BEDROCK_CHECK_OnGround_");
@@ -240,25 +240,30 @@ public class BedrockCageFailsafe extends Failsafe {
 //                LogUtils.sendDebug("Distance difference: " + mc.thePlayer.getPosition().distanceSq(positionBeforeReacting));
 //                FailsafeManager.getInstance().scheduleDelay(200);
 //                break;
+            case WARP_GARDEN:
+                if (mc.thePlayer.getPosition().distanceSq(new BlockPos(PlayerUtils.getSpawnLocation())) < 5) {
+                    LogUtils.sendDebug("[Failsafe] You are close to the previous location, continuing...");
+                    bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE;
+                    break;
+                }
+                MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
+                bedrockCageCheckState = BedrockCageCheckState.END;
+                FailsafeManager.getInstance().scheduleRandomDelay(3000, 1000);
+                break;
             case ROTATE_TO_POS_BEFORE:
-                if (rotation.isRotating()) break;
+                if (rotation.isRotating())
+                    break;
                 rotation.easeTo(new RotationConfiguration(new Rotation(rotationBeforeTeleporting.getYaw(), rotationBeforeTeleporting.getPitch()),
                         750, null));
                 bedrockCageCheckState = BedrockCageCheckState.LOOK_AROUND_3;
                 FailsafeManager.getInstance().scheduleRandomDelay(800, 200);
                 break;
             case LOOK_AROUND_3:
+                if (rotation.isRotating())
+                    break;
                 MovRecPlayer.getInstance().playRandomRecording("ITEM_CHANGE_");
                 bedrockCageCheckState = BedrockCageCheckState.END;
                 FailsafeManager.getInstance().scheduleRandomDelay(800, 200);
-                break;
-            case WARP_GARDEN:
-                if (mc.thePlayer.getPosition().distanceSq(new BlockPos(PlayerUtils.getSpawnLocation())) < 3) {
-                    bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE;
-                    break;
-                }
-                MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
-                FailsafeManager.getInstance().scheduleRandomDelay(3000, 1000);
                 break;
             case END:
                 if (MovRecPlayer.getInstance().isRunning())
