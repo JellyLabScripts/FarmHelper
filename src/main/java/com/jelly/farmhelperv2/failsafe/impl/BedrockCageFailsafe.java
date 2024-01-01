@@ -100,18 +100,22 @@ public class BedrockCageFailsafe extends Failsafe {
 //            return;
         if (bedrockCageCheckState != BedrockCageCheckState.NONE
                 && bedrockCageCheckState != BedrockCageCheckState.WAIT_BEFORE_START
-                && bedrockCageCheckState != BedrockCageCheckState.ROTATE_TO_POS_BEFORE
                 && bedrockCageCheckState != BedrockCageCheckState.END) {
             if (MovRecPlayer.getInstance().isRunning())
                 MovRecPlayer.getInstance().stop();
+            if (rotation.isRotating())
+                rotation.reset();
+            if (passedFailsafe)
+                return;
             LogUtils.sendFailsafeMessage("[Failsafe] You've just passed the failsafe check for bedrock cage!", FailsafeNotificationsPage.tagEveryoneOnBedrockCageFailsafe);
-            bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE;
-            if (mc.thePlayer.getPosition().distanceSq(positionBeforeTeleporting) < 10) {
+            FailsafeManager.getInstance().scheduleRandomDelay(3000, 1000);
+            if (mc.thePlayer.getPosition().distanceSq(positionBeforeTeleporting) < 7) {
                 bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE;
+                LogUtils.sendDebug("[Failsafe] Continuing soon. Distance difference: " + mc.thePlayer.getPosition().distanceSq(positionBeforeTeleporting));
             } else {
                 bedrockCageCheckState = BedrockCageCheckState.WARP_GARDEN;
+                LogUtils.sendDebug("[Failsafe] Too far away from the position before teleporting, warping to garden");
             }
-            FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
         }
     }
 
@@ -241,11 +245,6 @@ public class BedrockCageFailsafe extends Failsafe {
 //                FailsafeManager.getInstance().scheduleDelay(200);
 //                break;
             case WARP_GARDEN:
-                if (mc.thePlayer.getPosition().distanceSq(new BlockPos(PlayerUtils.getSpawnLocation())) < 5) {
-                    LogUtils.sendDebug("[Failsafe] You are close to the previous location, continuing...");
-                    bedrockCageCheckState = BedrockCageCheckState.ROTATE_TO_POS_BEFORE;
-                    break;
-                }
                 MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
                 bedrockCageCheckState = BedrockCageCheckState.END;
                 FailsafeManager.getInstance().scheduleRandomDelay(3000, 1000);
@@ -287,6 +286,7 @@ public class BedrockCageFailsafe extends Failsafe {
         randomMessage = null;
         randomContinueMessage = null;
         bedrockOnLeft = false;
+        passedFailsafe = false;
         rotation.reset();
     }
 
@@ -295,6 +295,7 @@ public class BedrockCageFailsafe extends Failsafe {
     private Rotation rotationBeforeTeleporting = null;
     private BlockPos positionBeforeTeleporting = null;
     private boolean bedrockOnLeft = false;
+    private boolean passedFailsafe = false;
     String randomMessage;
     String randomContinueMessage;
 
