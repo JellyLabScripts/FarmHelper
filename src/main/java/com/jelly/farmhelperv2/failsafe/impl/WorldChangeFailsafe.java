@@ -121,26 +121,8 @@ public class WorldChangeFailsafe extends Failsafe {
                 worldChangeState = WorldChangeState.WAIT_BEFORE_START;
                 break;
             case WAIT_BEFORE_START:
-                if (FarmHelperConfig.fakeMovements) {
-                    lookAroundTimes = (int) Math.round(2 + Math.random() * 2);
-                    currentLookAroundTimes = 0;
-                    FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
-                    KeyBindUtils.stopMovement();
-                    worldChangeState = WorldChangeState.LOOK_AROUND;
-                } else {
-                    FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
-                    worldChangeState = WorldChangeState.END;
-                }
-                break;
-            case LOOK_AROUND:
-                if (currentLookAroundTimes >= lookAroundTimes) {
-                    FailsafeManager.getInstance().rotation.reset();
-                    KeyBindUtils.stopMovement();
-                    worldChangeState = WorldChangeState.END;
-                    FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
-                } else {
-                    FailsafeManager.getInstance().randomMoveAndRotate();
-                }
+                FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
+                worldChangeState = WorldChangeState.END;
                 break;
             case END:
                 if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING) {
@@ -176,13 +158,9 @@ public class WorldChangeFailsafe extends Failsafe {
     @Override
     public void endOfFailsafeTrigger() {
         worldChangeState = WorldChangeState.NONE;
-        lookAroundTimes = 0;
-        currentLookAroundTimes = 0;
     }
 
     private WorldChangeState worldChangeState = WorldChangeState.NONE;
-    private int lookAroundTimes = 0;
-    private int currentLookAroundTimes = 0;
     enum WorldChangeState {
         NONE,
         WAIT_BEFORE_START,

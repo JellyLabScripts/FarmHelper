@@ -146,12 +146,12 @@ public class BedrockCageFailsafe extends Failsafe {
                 bedrockCageCheckState = BedrockCageCheckState.WAIT_BEFORE_SENDING_MESSAGE_1;
                 break;
             case WAIT_BEFORE_SENDING_MESSAGE_1:
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
                 bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE_1;
                 FailsafeManager.getInstance().scheduleRandomDelay(2000, 2000);
                 break;
             case SEND_MESSAGE_1:
-                if (MovRecPlayer.getInstance().isRunning())
-                    break;
                 String randomMessage;
                 if (CustomFailsafeMessagesPage.customBedrockMessages.isEmpty()) {
                     randomMessage = FailsafeManager.getRandomMessage();
@@ -182,12 +182,12 @@ public class BedrockCageFailsafe extends Failsafe {
                 bedrockCageCheckState = BedrockCageCheckState.WAIT_BEFORE_SENDING_MESSAGE_2;
                 break;
             case WAIT_BEFORE_SENDING_MESSAGE_2:
+                if (MovRecPlayer.getInstance().isRunning())
+                    break;
                 bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE_2;
                 FailsafeManager.getInstance().scheduleRandomDelay(3500, 2500);
                 break;
             case SEND_MESSAGE_2:
-                if (MovRecPlayer.getInstance().isRunning())
-                    break;
                 String randomContinueMessage;
                 if (CustomFailsafeMessagesPage.customContinueMessages.isEmpty()) {
                     randomContinueMessage = FailsafeManager.getRandomContinueMessage();

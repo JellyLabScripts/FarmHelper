@@ -364,66 +364,6 @@ public class FailsafeManager {
         return getRandomMessage(FAILSAFE_CONTINUE_MESSAGES);
     }
 
-    public void randomMoveAndRotate() {
-        long rotationTime = FarmHelperConfig.getRandomRotationTime();
-        this.rotation.easeTo(
-                new RotationConfiguration(
-                        new Rotation(
-                                mc.thePlayer.rotationYaw + randomValueBetweenExt(-180, 180, 45),
-                                randomValueBetweenExt(-20, 40, 5)),
-                        rotationTime, null));
-        scheduleDelay(rotationTime - 50);
-        double randomKey = Math.random();
-        if (!mc.thePlayer.onGround && FarmHelperConfig.tryToUseJumpingAndFlying) {
-            if (randomKey <= 0.3) {
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
-                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
-            } else if (randomKey <= 0.6) {
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), true);
-                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
-            } else {
-                KeyBindUtils.stopMovement();
-            }
-        } else {
-            if (randomKey <= 0.175 && GameStateHandler.getInstance().isFrontWalkable()) {
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), true);
-                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
-            } else if (randomKey <= 0.35 && GameStateHandler.getInstance().isLeftWalkable()) {
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), true);
-                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
-            } else if (randomKey <= 0.525 && GameStateHandler.getInstance().isRightWalkable()) {
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), true);
-                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
-            } else if (randomKey <= 0.70 && GameStateHandler.getInstance().isBackWalkable()) {
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), true);
-                Multithreading.schedule(() -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), false), (long) (rotationTime + Math.random() * 150), TimeUnit.MILLISECONDS);
-            }
-            if (randomKey > 0.7) {
-                KeyBindUtils.stopMovement();
-                if (FarmHelperConfig.tryToUseJumpingAndFlying) {
-                    mc.thePlayer.jump();
-                    Multithreading.schedule(() -> {
-                        if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.allowEdit && mc.thePlayer.capabilities.allowFlying && !mc.thePlayer.capabilities.isFlying) {
-                            mc.thePlayer.capabilities.isFlying = true;
-                            mc.thePlayer.sendPlayerAbilities();
-                        }
-                    }, (long) (250 + Math.random() * 250), TimeUnit.MILLISECONDS);
-                }
-            }
-        }
-    }
-
-    private float randomValueBetweenExt(float min, float max, float minFromZero) {
-        double random = Math.random();
-        if (random < 0.5) {
-            // should return value between (min, -minFromZero)
-            return (float) (min + Math.random() * (minFromZero - min));
-        } else {
-            // should return value between (minFromZero, max)
-            return (float) (minFromZero + Math.random() * (max - minFromZero));
-        }
-    }
-
     public void selectNextItemSlot() {
         int nextSlot = mc.thePlayer.inventory.currentItem + 1;
         if (nextSlot > 7) {
