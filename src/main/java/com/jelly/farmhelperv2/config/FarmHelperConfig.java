@@ -668,7 +668,7 @@ public class FarmHelperConfig extends Config {
         if (testFailsafeTypeSelected == 0)
             FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected));
         else
-            FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected+2));
+            FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected + 2));
     };
 
     @Dropdown(
@@ -1094,6 +1094,10 @@ public class FarmHelperConfig extends Config {
             text = "Trigger now"
     )
     public static Runnable triggerVisitorsMacro = () -> {
+        if (!VisitorsMacro.getInstance().isInBarn()) {
+            LogUtils.sendError("[Visitors Macro] You need to be in the barn to start the macro!");
+            return;
+        }
         VisitorsMacro.getInstance().setManuallyStarted(true);
         VisitorsMacro.getInstance().start();
     };

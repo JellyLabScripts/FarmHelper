@@ -35,7 +35,7 @@ public class InventoryUtils {
     }
 
     public static int getSlotIdOfItemInContainer(String item, boolean equals) {
-        for (Slot slot: mc.thePlayer.openContainer.inventorySlots) {
+        for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
             if (!slot.getHasStack()) continue;
             String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
             if (equals) {
@@ -261,11 +261,11 @@ public class InventoryUtils {
         int speed = -1;
         if (stack != null && stack.hasTagCompound()) {
             final NBTTagCompound tag = stack.getTagCompound();
-            final Pattern pattern = Pattern.compile("(Current Speed Cap: §a\\d+)", Pattern.MULTILINE);
-            final Matcher matcher = pattern.matcher(tag.toString());
+            final Pattern pattern = Pattern.compile("Current Speed Cap: (\\d+)", Pattern.MULTILINE);
+            final Matcher matcher = pattern.matcher(StringUtils.stripControlCodes(tag.toString()));
             while (matcher.find()) {
-                if (matcher.group(0) != null) {
-                    speed = parseInt((matcher.group(0).replaceAll("Current Speed Cap: §a", "")));
+                if (matcher.group(1) != null) {
+                    speed = parseInt(matcher.group(1));
                 }
             }
         }

@@ -426,6 +426,8 @@ public class ProfitCalculator implements IFeature {
         if (message.contains("Sold")) return;
         if (message.contains(":")) return;
         if (message.contains("[Bazaar]")) return;
+        if (message.contains("[Auction]")) return;
+        if (message.contains("coins")) return;
 
         Optional<String> optional = rngToCountList.stream().filter(message::contains).findFirst();
         if (optional.isPresent()) {

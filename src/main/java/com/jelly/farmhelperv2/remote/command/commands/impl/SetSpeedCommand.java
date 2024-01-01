@@ -1,6 +1,5 @@
 package com.jelly.farmhelperv2.remote.command.commands.impl;
 
-import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.gson.JsonObject;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
@@ -22,7 +21,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 /*
     Credits to mostly Yuro with few changes by May2Bee for this superb class
@@ -131,7 +129,7 @@ public class SetSpeedCommand extends ClientCommand {
                 clock.schedule(500);
                 break;
             case CLOSE_INVENTORY:
-                ClientCommand.mc.currentScreen = null;
+                PlayerUtils.closeScreen();
                 lastRotation = new Rotation(AngleUtils.get360RotationYaw(), ClientCommand.mc.thePlayer.rotationPitch);
                 currentState = State.LOOK_IN_THE_AIR;
                 clock.schedule(500);
@@ -157,7 +155,6 @@ public class SetSpeedCommand extends ClientCommand {
                     clock.schedule(500);
                     break;
                 }
-                Multithreading.schedule(() -> SignUtils.setTextToWriteOnString(String.valueOf(speed)), (long) (400 + Math.random() * 400), TimeUnit.MILLISECONDS);
                 KeyBindUtils.leftClick();
                 currentState = State.TYPE_IN_SPEED;
                 clock.schedule(500);
@@ -168,7 +165,17 @@ public class SetSpeedCommand extends ClientCommand {
                     clock.schedule(500);
                     break;
                 }
-                ClientCommand.mc.currentScreen = null;
+                SignUtils.setTextToWriteOnString(String.valueOf(speed));
+                currentState = State.CLOSE_SIGN;
+                clock.schedule(500);
+                break;
+            case CLOSE_SIGN:
+                if (ClientCommand.mc.currentScreen == null) {
+                    currentState = State.TYPE_IN_SPEED;
+                    clock.schedule(500);
+                    break;
+                }
+                PlayerUtils.closeScreen();
                 currentState = State.LOOK_BACK;
                 clock.schedule(500);
                 break;
@@ -200,7 +207,7 @@ public class SetSpeedCommand extends ClientCommand {
                 clock.schedule(500);
                 break;
             case CLOSE_INVENTORY_AGAIN:
-                ClientCommand.mc.currentScreen = null;
+                PlayerUtils.closeScreen();
                 currentState = State.END;
                 clock.schedule(500);
                 break;
@@ -282,6 +289,7 @@ public class SetSpeedCommand extends ClientCommand {
         HOLD_RANCHER_BOOTS,
         CLICK_RANCHER_BOOTS,
         TYPE_IN_SPEED,
+        CLOSE_SIGN,
         LOOK_BACK,
         OPEN_INVENTORY_AGAIN,
         PUT_ON_BOOTS,
