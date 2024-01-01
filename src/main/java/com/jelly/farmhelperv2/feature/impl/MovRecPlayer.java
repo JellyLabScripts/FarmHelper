@@ -162,24 +162,22 @@ public class MovRecPlayer implements IFeature {
     // endregion
 
     public void playRandomRecording(String pattern) {
-        List<Map.Entry<String, List<Movement>>> matchingFiles = new ArrayList<>();
-
-        for (Map.Entry<String, List<Movement>> entry : recordings.entrySet()) {
-            if (entry.getKey().contains(pattern)) {
-                matchingFiles.add(entry);
+        List<String> matchingFiles = new ArrayList<>();
+        for (String file : recordings.keySet()) {
+            if (file.contains(pattern)) {
+                matchingFiles.add(file);
             }
         }
-
         if (!matchingFiles.isEmpty()) {
             Random random = new Random();
             int randomIndex = random.nextInt(matchingFiles.size());
-            String recordingName = matchingFiles.get(randomIndex).getKey()
+            String recordingName = matchingFiles.get(randomIndex)
                     .replace("/", "")
                     .replace("\\", "")
                     .replace(".movement", "")
                     .replace("farmhelpermovrec", "");
             LogUtils.sendDebug("[Movement Recorder] Selected recording: " + recordingName);
-            selectedRecording = matchingFiles.get(randomIndex).getValue();
+            selectedRecording = new ArrayList<>(recordings.get(matchingFiles.get(randomIndex)));
             start();
         }
     }
