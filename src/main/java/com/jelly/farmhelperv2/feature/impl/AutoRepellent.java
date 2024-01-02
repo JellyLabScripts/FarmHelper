@@ -141,11 +141,11 @@ public class AutoRepellent implements IFeature {
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
 
-        if (FarmHelperConfig.pestRepellentType && GameStateHandler.getInstance().getCopper() < 40 && !notEnoughCopper) {
+        if (FarmHelperConfig.pestRepellentType && !InventoryUtils.hasItemInInventory("Pest Repellent MAX") && GameStateHandler.getInstance().getCopper() < 40 && !notEnoughCopper) {
             notEnoughCopper = true;
             LogUtils.sendError("[Auto Repellent] Not enough copper to buy Repellent! Will activate when enough copper is available.");
             return;
-        } else if (!FarmHelperConfig.pestRepellentType && GameStateHandler.getInstance().getCopper() < 15 && !notEnoughCopper) {
+        } else if (!FarmHelperConfig.pestRepellentType && !InventoryUtils.hasItemInInventory("Pest Repellent") && GameStateHandler.getInstance().getCopper() < 15 && !notEnoughCopper) {
             notEnoughCopper = true;
             LogUtils.sendError("[Auto Repellent] Not enough copper to buy Repellent! Will activate when enough copper is available.");
             return;
