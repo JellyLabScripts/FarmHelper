@@ -21,6 +21,17 @@ public class AngleUtils {
         return angle;
     }
 
+    public static float normalizeYaw(float yaw) {
+        float newYaw = yaw % 360F;
+        if (newYaw < -180F) {
+            newYaw += 360F;
+        }
+        if (newYaw > 180F) {
+            newYaw -= 360F;
+        }
+        return newYaw;
+    }
+
     public static float get360RotationYaw() {
         if (mc.thePlayer == null)
             return 0;

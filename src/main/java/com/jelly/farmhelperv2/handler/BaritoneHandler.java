@@ -46,4 +46,9 @@ public class BaritoneHandler {
         BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().secretInternalSetGoalAndPath(pathingCommand);
         pathing = true;
     }
+
+    public static void stopPathing() {
+        BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
+        pathing = false;
+    }
 }

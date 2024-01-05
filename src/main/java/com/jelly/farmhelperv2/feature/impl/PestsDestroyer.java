@@ -618,12 +618,15 @@ public class PestsDestroyer implements IFeature {
                         break;
                     }
                     if (!RotationHandler.getInstance().isRotating()) {
+                        Rotation rotation = RotationHandler.getInstance().getRotation(entity);
+                        Rotation neededRotation = new Rotation(rotation.getYaw(), rotation.getPitch() + 10);
+                        float distanceRotation = Math.abs(neededRotation.getPitch()) + Math.abs(neededRotation.getYaw());
                         RotationHandler.getInstance().reset();
                         RotationHandler.getInstance().easeTo(new RotationConfiguration(
                                 new Target(entity).additionalY(0.42f),
                                 FarmHelperConfig.getRandomPestsKillerRotationTimeSmallDistance(),
                                 null
-                        ));
+                        ).easeOutBack(distanceRotation > 50));
                     }
                     KeyBindUtils.holdThese(mc.gameSettings.keyBindUseItem);
                 } else {
@@ -666,12 +669,15 @@ public class PestsDestroyer implements IFeature {
                         }
                         manipulateHeight(entity, distance, distanceXZ, yawDifference);
                         if (!RotationHandler.getInstance().isRotating()) {
+                            Rotation rotation = RotationHandler.getInstance().getRotation(entity);
+                            Rotation neededRotation = new Rotation(rotation.getYaw(), rotation.getPitch() + 10);
+                            float distanceRotation = Math.abs(neededRotation.getPitch()) + Math.abs(neededRotation.getYaw());
                             RotationHandler.getInstance().reset();
                             RotationHandler.getInstance().easeTo(new RotationConfiguration(
                                     new Target(entity),
                                     FarmHelperConfig.getRandomPestsKillerRotationTimeMediumDistance(),
                                     null
-                            ).easeOutBack(true).randomness(true));
+                            ).easeOutBack(distanceRotation > 140).randomness(true));
                         }
                     } else {
                         cantReachPest = 0;
@@ -835,8 +841,21 @@ public class PestsDestroyer implements IFeature {
     }
 
     private void manipulateHeight(Entity entity, double distance, double distanceWithoutY, float yawDifference) {
+        Vec3 target = new Vec3(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ);
+        Vec3 playerPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+        List<KeyBinding> keyBindings = new ArrayList<>(KeyBindUtils.getNeededKeyPresses(playerPos, target));
+        System.out.println(keyBindings.stream().map(KeyBinding::getKeyDescription).collect(Collectors.joining(", ")));
         if (objectsInFrontOfPlayer() || entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY >= 2) {
-            KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.thePlayer.capabilities.isFlying ? mc.gameSettings.keyBindJump : null, distanceWithoutY > 6 && yawDifference < 25 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 1 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null, distanceWithoutY > 7 && yawDifference < 25 ? FarmHelperConfig.sprintWhileFlying ? mc.gameSettings.keyBindSprint : null : null);
+            if (distance < 6) {
+                keyBindings.add(mc.gameSettings.keyBindUseItem);
+            }
+            if (mc.thePlayer.capabilities.isFlying) {
+                keyBindings.add(mc.gameSettings.keyBindJump);
+            }
+            if (FarmHelperConfig.sprintWhileFlying) {
+                keyBindings.add(mc.gameSettings.keyBindSprint);
+            }
+            KeyBindUtils.holdThese(keyBindings.toArray(new KeyBinding[0]));
         } else if (entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY <= -2) {
             if (hasBlockUnderThePlayer()) {
                 LogUtils.sendDebug("Has block under the player");
@@ -846,7 +865,16 @@ public class PestsDestroyer implements IFeature {
                 KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindSneak, distanceWithoutY > 6 && yawDifference < 25 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 1 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null, distanceWithoutY > 7 && yawDifference < 25 ? FarmHelperConfig.sprintWhileFlying ? mc.gameSettings.keyBindSprint : null : null);
             }
         } else {
-            KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, distanceWithoutY > 3 && yawDifference < 25 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 1 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null, distanceWithoutY > 7 && yawDifference < 25 ? FarmHelperConfig.sprintWhileFlying ? mc.gameSettings.keyBindSprint : null : null);
+            if (distanceWithoutY > 3) {
+                keyBindings.clear();
+            }
+            if (distance < 6) {
+                keyBindings.add(mc.gameSettings.keyBindUseItem);
+            }
+            if (FarmHelperConfig.sprintWhileFlying) {
+                keyBindings.add(mc.gameSettings.keyBindSprint);
+            }
+            KeyBindUtils.holdThese(keyBindings.toArray(new KeyBinding[0]));
         }
     }
 

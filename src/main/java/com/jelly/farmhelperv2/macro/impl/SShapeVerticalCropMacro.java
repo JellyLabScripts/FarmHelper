@@ -130,6 +130,14 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
             }
             AntiStuck.getInstance().start();
             LogUtils.sendWarning("Probability of lag back detected!");
+            AntiStuck.getInstance().setLagBackCounter(AntiStuck.getInstance().getLagBackCounter() + 1);
+            if (AntiStuck.getInstance().getLagBackCounter() >= 3) {
+                LogUtils.sendWarning("Lag back stuck detected! Resetting state...");
+                changeState(State.NONE);
+                AntiStuck.getInstance().setLagBackCounter(0);
+                AntiStuck.getInstance().stop();
+                return true;
+            }
             return true;
         }
         return false;

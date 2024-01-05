@@ -1,6 +1,5 @@
 package com.jelly.farmhelperv2.feature.impl;
 
-import com.google.common.collect.ImmutableMap;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.failsafe.impl.RotationFailsafe;
@@ -36,19 +35,17 @@ public class AntiStuck implements IFeature {
             new Vec3(1, 0.5, 0.5)  // East
     };
     private static AntiStuck instance;
-    private final Minecraft mc = Minecraft.getMinecraft();
+    public static final Minecraft mc = Minecraft.getMinecraft();
     private final Clock delayBetweenMovementsClock = new Clock();
-    private final Map<Integer, KeyBinding> keyBindMap = ImmutableMap.of(
-            0, mc.gameSettings.keyBindForward,
-            90, mc.gameSettings.keyBindLeft,
-            180, mc.gameSettings.keyBindBack,
-            -90, mc.gameSettings.keyBindRight
-    );
+
     private UnstuckState unstuckState = UnstuckState.NONE;
     private boolean enabled = false;
     @Setter
     private BlockPos intersectingBlockPos = null;
-    private ArrayList<KeyBinding> oppositeKeys = new ArrayList<>();
+    private final ArrayList<KeyBinding> oppositeKeys = new ArrayList<>();
+    @Getter
+    @Setter
+    private int lagBackCounter = 0;
 
     public static AntiStuck getInstance() {
         if (instance == null) {
@@ -106,6 +103,7 @@ public class AntiStuck implements IFeature {
 
     @Override
     public void resetStatesAfterMacroDisabled() {
+        lagBackCounter = 0;
     }
 
     @Override
@@ -227,7 +225,7 @@ public class AntiStuck implements IFeature {
                 }
                 EnumFacing facing = closestSide.get();
                 Vec3 movementTarget = getMovementTarget(intersectingBlockPos, facing);
-                List<KeyBinding> keys = getNeededKeyPresses(mc.thePlayer.getPositionVector(), movementTarget);
+                List<KeyBinding> keys = KeyBindUtils.getNeededKeyPresses(mc.thePlayer.getPositionVector(), movementTarget);
                 oppositeKeys.clear();
                 for (KeyBinding key : keys) {
                     oppositeKeys.add(getOppositeKey(key));
@@ -246,8 +244,7 @@ public class AntiStuck implements IFeature {
                 delayBetweenMovementsClock.schedule(100 + (int) (Math.random() * 100));
                 break;
             case COME_BACK:
-                if (oppositeKeys != null)
-                    KeyBindUtils.holdThese(oppositeKeys.toArray(new KeyBinding[0]));
+                KeyBindUtils.holdThese(oppositeKeys.toArray(new KeyBinding[0]));
                 unstuckState = UnstuckState.DISABLE;
                 delayBetweenMovementsClock.schedule(100 + (int) (Math.random() * 100));
                 break;
@@ -279,33 +276,6 @@ public class AntiStuck implements IFeature {
     private boolean isSideClear(BlockPos pos, EnumFacing facing) {
         BlockPos adjacentPos = pos.add(facing.getDirectionVec());
         return BlockUtils.getBlock(adjacentPos).isPassable(mc.theWorld, adjacentPos);
-    }
-
-    private List<KeyBinding> getNeededKeyPresses(Vec3 orig, Vec3 dest) {
-        List<KeyBinding> keys = new ArrayList<>();
-
-        double[] delta = {orig.xCoord - dest.xCoord, orig.zCoord - dest.zCoord};
-        float requiredAngle = (float) (MathHelper.atan2(delta[0], -delta[1]) * (180.0 / Math.PI));
-
-        float angleDifference = normalizeYaw(requiredAngle - mc.thePlayer.rotationYaw) * -1;
-
-        keyBindMap.forEach((yaw, key) -> {
-            if (Math.abs(yaw - angleDifference) < 67.5 || Math.abs(yaw - (angleDifference + 360.0)) < 67.5) {
-                keys.add(key);
-            }
-        });
-        return keys;
-    }
-
-    private float normalizeYaw(float yaw) {
-        float newYaw = yaw % 360F;
-        if (newYaw < -180F) {
-            newYaw += 360F;
-        }
-        if (newYaw > 180F) {
-            newYaw -= 360F;
-        }
-        return newYaw;
     }
 
     enum UnstuckState {

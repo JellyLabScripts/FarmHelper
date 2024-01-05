@@ -1067,12 +1067,6 @@ public class FarmHelperConfig extends Config {
             min = 1_000, max = 20_000
     )
     public static int visitorsMacroMinMoney = 2_000;
-    @Slider(
-            name = "Price Manipulation Detection Multiplier", category = VISITORS_MACRO, subcategory = "Visitors Macro",
-            description = "How much does Instant Buy price need to be higher than Instant Sell price to detect price manipulation",
-            min = 1.25f, max = 4f
-    )
-    public static float visitorsMacroPriceManipulationMultiplier = 1.75f;
     @Info(
             text = "If you put your compactors in the hotbar, they will be temporarily disabled.",
             type = InfoType.WARNING,
@@ -1479,10 +1473,10 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="DEBUG">
     //<editor-fold desc="Debug">
-//    @KeyBind(
-//            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
-//    )
-//    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
+    @KeyBind(
+            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
+    )
+    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
     //    @KeyBind(
 //            name = "Debug Keybind 2", category = DEBUG
 //    )
@@ -1662,6 +1656,7 @@ public class FarmHelperConfig extends Config {
         this.addDependency("visitorsMacroMinVisitors", "visitorsMacro");
         this.addDependency("visitorsMacroAutosellBeforeServing", "visitorsMacro");
         this.addDependency("visitorsMacroMinMoney", "visitorsMacro");
+        this.addDependency("visitorsMacroMaxSpendLimit", "visitorsMacro");
 
         this.addDependency("sendVisitorsMacroLogs", "visitorsMacro");
         this.addDependency("sendVisitorsMacroLogs", "enableWebHook");
@@ -1726,7 +1721,6 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
 //        registerKeyBind(debugKeybind, () -> {
-//            AutoRepellent.getInstance().start();
 //        });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());

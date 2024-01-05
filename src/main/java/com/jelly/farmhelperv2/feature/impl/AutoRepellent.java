@@ -73,11 +73,14 @@ public class AutoRepellent implements IFeature {
     public void stop() {
         if (enabled)
             LogUtils.sendWarning("[Auto Repellent] Disabled! Resuming macro in 1.5 seconds...");
-        enabled = false;
+        PlayerUtils.closeScreen();
         notEnoughCopper = false;
         state = State.NONE;
         PlayerUtils.closeScreen();
-        Multithreading.schedule(() -> MacroHandler.getInstance().resumeMacro(), 500, TimeUnit.MILLISECONDS);
+        Multithreading.schedule(() -> {
+            MacroHandler.getInstance().resumeMacro();
+            enabled = false;
+        }, 500, TimeUnit.MILLISECONDS);
     }
 
     @Override

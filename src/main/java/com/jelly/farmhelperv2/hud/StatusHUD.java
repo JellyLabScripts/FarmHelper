@@ -31,7 +31,8 @@ public class StatusHUD extends TextHud {
         if (example) {
             lines.add("Break for 25m 35s");
             lines.add("Staff bans in the last 15 minutes: 999");
-            lines.add("FarmHelper's bans in the last 15 minutes: 0");
+            lines.add("Bans in the last 15 minutes");
+            lines.add("detected by FarmHelper: 0");
             lines.set(0, centerText(lines.get(0), scale));
         } else {
             List<String> tempLines = new ArrayList<>();
@@ -43,7 +44,8 @@ public class StatusHUD extends TextHud {
 
             if (BanInfoWS.getInstance().isRunning() && FarmHelperConfig.banwaveCheckerEnabled && BanInfoWS.getInstance().isConnected()) {
                 tempLines.add("Staff bans in the last " + BanInfoWS.getInstance().getMinutes() + " minutes: " + BanInfoWS.getInstance().getStaffBans());
-                tempLines.add("FarmHelper's bans in the last 15 minutes: " + BanInfoWS.getInstance().getBansByMod());
+                lines.add("Bans in the last 15 minutes");
+                lines.add("detected by FarmHelper: " + BanInfoWS.getInstance().getBansByMod());
             } else if (!BanInfoWS.getInstance().isConnected() && FarmHelperConfig.banwaveCheckerEnabled) {
                 tempLines.add("Connecting to the analytics server...");
             }

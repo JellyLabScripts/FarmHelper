@@ -1,7 +1,15 @@
 package com.jelly.farmhelperv2.util;
 
+import com.google.common.collect.ImmutableMap;
+import com.jelly.farmhelperv2.feature.impl.AntiStuck;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.Vec3;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class KeyBindUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -131,5 +139,28 @@ public class KeyBindUtils {
             }
         }
         return keybinds;
+    }
+
+    private static final Map<Integer, KeyBinding> keyBindMap = ImmutableMap.of(
+            0, mc.gameSettings.keyBindForward,
+            90, mc.gameSettings.keyBindLeft,
+            180, mc.gameSettings.keyBindBack,
+            -90, mc.gameSettings.keyBindRight
+    );
+
+    public static List<KeyBinding> getNeededKeyPresses(Vec3 orig, Vec3 dest) {
+        List<KeyBinding> keys = new ArrayList<>();
+
+        double[] delta = {orig.xCoord - dest.xCoord, orig.zCoord - dest.zCoord};
+        float requiredAngle = (float) (MathHelper.atan2(delta[0], -delta[1]) * (180.0 / Math.PI));
+
+        float angleDifference = AngleUtils.normalizeYaw(requiredAngle - AntiStuck.mc.thePlayer.rotationYaw) * -1;
+
+        keyBindMap.forEach((yaw, key) -> {
+            if (Math.abs(yaw - angleDifference) < 67.5 || Math.abs(yaw - (angleDifference + 360.0)) < 67.5) {
+                keys.add(key);
+            }
+        });
+        return keys;
     }
 }

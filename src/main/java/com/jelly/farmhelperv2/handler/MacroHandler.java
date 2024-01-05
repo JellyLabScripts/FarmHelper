@@ -226,6 +226,9 @@ public class MacroHandler {
         if (FlyPathfinder.getInstance().isRunning()) {
             FlyPathfinder.getInstance().stop();
         }
+        if (BaritoneHandler.isPathing()) {
+            BaritoneHandler.stopPathing();
+        }
     }
 
     public void pauseMacro(boolean scheduler) {
@@ -296,7 +299,7 @@ public class MacroHandler {
             if (
 //                    FeatureManager.getInstance().isAnyOtherFeatureEnabled(Failsafe.getInstance()) &&
                     !FeatureManager.getInstance().shouldIgnoreFalseCheck() &&
-                    !FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
+                            !FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
                 FailsafeManager.getInstance().possibleDetection(WorldChangeFailsafe.getInstance());
             }
             return;

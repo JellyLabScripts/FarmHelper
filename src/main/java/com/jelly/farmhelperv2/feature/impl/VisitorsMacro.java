@@ -526,6 +526,11 @@ public class VisitorsMacro implements IFeature {
                 break;
             case HOLD_COMPACTOR:
                 if (rotation.isRotating()) return;
+                if (mc.currentScreen != null) {
+                    PlayerUtils.closeScreen();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
                 LogUtils.sendDebug("[Visitors Macro] Holding compactor");
                 if (compactors.isEmpty()) {
                     LogUtils.sendWarning("[Visitors Macro] All compactors have been disabled");
