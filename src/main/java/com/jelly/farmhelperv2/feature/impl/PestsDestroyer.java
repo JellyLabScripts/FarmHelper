@@ -391,6 +391,7 @@ public class PestsDestroyer implements IFeature {
                 }
                 if (!mc.thePlayer.getPosition().equals(preTpBlockPos.get())) {
                     if (PlayerUtils.isPlayerSuffocating() || !BlockUtils.canFlyHigher(5)) {
+                        LogUtils.sendDebug("[Pests Destroyer] The player is suffocating and/or it can't fly higher. Going back to spawnpoint.");
                         delayClock.schedule(2_000 + Math.random() * 500);
                         Multithreading.schedule(() -> {
                             mc.thePlayer.sendChatMessage("/warp garden");
