@@ -77,10 +77,10 @@ public class StatusHUD extends TextHud {
         float lineWidth = getLineWidth(text, scale);
         int spaces = (int) ((width - lineWidth) / (scale * 4));
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < spaces / 2; i++) {
+        for (int i = 0; i <= spaces / 2; i++) {
             builder.append(" ");
         }
-        return builder + text;
+        return builder + text + builder;
     }
 
     protected float getWidth(float scale, List<String> lines) {
