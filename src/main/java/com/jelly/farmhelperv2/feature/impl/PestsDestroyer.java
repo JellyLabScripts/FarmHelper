@@ -854,7 +854,6 @@ public class PestsDestroyer implements IFeature {
         Vec3 target = new Vec3(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ);
         Vec3 playerPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
         List<KeyBinding> keyBindings = new ArrayList<>(KeyBindUtils.getNeededKeyPresses(playerPos, target));
-        System.out.println(keyBindings.stream().map(KeyBinding::getKeyDescription).collect(Collectors.joining(", ")));
         if (objectsInFrontOfPlayer() || entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY >= 2) {
             if (distance < 6) {
                 keyBindings.add(mc.gameSettings.keyBindUseItem);
@@ -875,7 +874,7 @@ public class PestsDestroyer implements IFeature {
                 KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindSneak, distanceWithoutY > 6 && yawDifference < 25 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 1 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null, distanceWithoutY > 7 && yawDifference < 25 ? FarmHelperConfig.sprintWhileFlying ? mc.gameSettings.keyBindSprint : null : null);
             }
         } else {
-            if (distanceWithoutY > 3) {
+            if (distanceWithoutY < 3) {
                 keyBindings.clear();
             }
             if (distance < 6) {

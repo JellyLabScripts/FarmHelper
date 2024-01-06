@@ -1,7 +1,6 @@
 package com.jelly.farmhelperv2.util;
 
 import com.google.common.collect.ImmutableMap;
-import com.jelly.farmhelperv2.feature.impl.AntiStuck;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.MathHelper;
@@ -155,7 +154,7 @@ public class KeyBindUtils {
         double[] delta = {orig.xCoord - dest.xCoord, orig.zCoord - dest.zCoord};
         float requiredAngle = (float) (MathHelper.atan2(delta[0], -delta[1]) * (180.0 / Math.PI));
 
-        float angleDifference = AngleUtils.normalizeYaw(requiredAngle - AntiStuck.mc.thePlayer.rotationYaw) * -1;
+        float angleDifference = AngleUtils.normalizeYaw(requiredAngle - mc.thePlayer.rotationYaw) * -1;
 
         keyBindMap.forEach((yaw, key) -> {
             if (Math.abs(yaw - angleDifference) < 67.5 || Math.abs(yaw - (angleDifference + 360.0)) < 67.5) {
