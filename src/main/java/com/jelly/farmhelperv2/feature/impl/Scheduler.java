@@ -97,8 +97,8 @@ public class Scheduler implements IFeature {
 
     public String getStatusString() {
         if (FarmHelperConfig.enableScheduler) {
-            return EnumChatFormatting.BOLD + (schedulerState == SchedulerState.FARMING ? (EnumChatFormatting.GREEN + "Farming") : (EnumChatFormatting.DARK_AQUA + "Break")) + EnumChatFormatting.RESET + " for " +
-                    EnumChatFormatting.BOLD + EnumChatFormatting.GOLD + LogUtils.formatTime(Math.max(schedulerClock.getRemainingTime(), 0)) + EnumChatFormatting.RESET + (schedulerClock.isPaused() ? " (Paused)" : "");
+            return (schedulerState == SchedulerState.FARMING ? (EnumChatFormatting.GREEN + "Farming") : (EnumChatFormatting.DARK_AQUA + "Break")) + EnumChatFormatting.RESET + " for " +
+                    EnumChatFormatting.GOLD + LogUtils.formatTime(Math.max(schedulerClock.getRemainingTime(), 0)) + EnumChatFormatting.RESET + (schedulerClock.isPaused() ? " (Paused)" : "");
         } else {
             return "Farming";
         }
