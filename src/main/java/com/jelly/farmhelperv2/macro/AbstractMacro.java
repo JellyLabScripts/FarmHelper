@@ -143,7 +143,7 @@ public abstract class AbstractMacro {
             if (rotated && !LagDetector.getInstance().isLagging() && mc.thePlayer.onGround) {
                 LogUtils.sendDebug("Rotated after warping.");
                 rewarpState = RewarpState.POST_REWARP;
-                Multithreading.schedule(() -> rewarpState = RewarpState.NONE, 1000, TimeUnit.MILLISECONDS);
+                Multithreading.schedule(() -> rewarpState = RewarpState.NONE, 600, TimeUnit.MILLISECONDS);
                 rewarpDelay.schedule(FarmHelperConfig.getRandomTimeBetweenChangingRows());
                 return;
             } else if (rotated && (LagDetector.getInstance().isLagging() || !mc.thePlayer.onGround)) {
@@ -304,9 +304,9 @@ public abstract class AbstractMacro {
             if (!mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround) {
                 return;
             } else if (mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround) {
-                if (!mc.thePlayer.onGround && !mc.gameSettings.keyBindSneak.isKeyDown()) {
+                if (!mc.gameSettings.keyBindSneak.isKeyDown()) {
                     KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
-                    Multithreading.schedule(() -> KeyBindUtils.stopMovement(), (long) (450 + Math.random() * 600), TimeUnit.MILLISECONDS);
+                    Multithreading.schedule(() -> KeyBindUtils.stopMovement(), (long) (350 + Math.random() * 300), TimeUnit.MILLISECONDS);
                 }
                 return;
             }

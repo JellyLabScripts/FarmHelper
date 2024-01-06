@@ -18,6 +18,7 @@ import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -96,8 +97,8 @@ public class Scheduler implements IFeature {
 
     public String getStatusString() {
         if (FarmHelperConfig.enableScheduler) {
-            return (schedulerState == SchedulerState.FARMING ? "Farming" : "Break") + " for "
-                    + LogUtils.formatTime(Math.max(schedulerClock.getRemainingTime(), 0)) + (schedulerClock.isPaused() ? " (Paused)" : "");
+            return EnumChatFormatting.BOLD + (schedulerState == SchedulerState.FARMING ? (EnumChatFormatting.GREEN + "Farming") : (EnumChatFormatting.DARK_AQUA + "Break")) + EnumChatFormatting.RESET + " for " +
+                    EnumChatFormatting.BOLD + EnumChatFormatting.GOLD + LogUtils.formatTime(Math.max(schedulerClock.getRemainingTime(), 0)) + EnumChatFormatting.RESET + (schedulerClock.isPaused() ? " (Paused)" : "");
         } else {
             return "Farming";
         }

@@ -415,7 +415,7 @@ public class GameStateHandler {
         KeyBinding[] holdingKeybinds = KeyBindUtils.getHoldingKeybinds();
         for (KeyBinding key : holdingKeybinds) {
             if (key != null && key.isKeyDown()) {
-                if (key == mc.gameSettings.keyBindForward && !frontWalkable) {
+                if (key == mc.gameSettings.keyBindForward && !frontWalkable && !FarmHelperConfig.alwaysHoldW) {
                     return false;
                 } else if (key == mc.gameSettings.keyBindBack && !backWalkable) {
                     return false;

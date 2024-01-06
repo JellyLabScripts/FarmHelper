@@ -12,6 +12,8 @@ import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.remote.DiscordBotHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StringUtils;
 import net.minecraftforge.fml.common.Loader;
 
 import java.util.ArrayList;
@@ -43,9 +45,9 @@ public class StatusHUD extends TextHud {
             }
 
             if (BanInfoWS.getInstance().isRunning() && FarmHelperConfig.banwaveCheckerEnabled && BanInfoWS.getInstance().isConnected()) {
-                tempLines.add("Staff bans in the last " + BanInfoWS.getInstance().getMinutes() + " minutes: " + BanInfoWS.getInstance().getStaffBans());
-                tempLines.add("Bans in the last 15 minutes");
-                tempLines.add("detected by FarmHelper: " + BanInfoWS.getInstance().getBansByMod());
+                tempLines.add("Ban stats from the last " + BanInfoWS.getInstance().getMinutes() + " minutes");
+                tempLines.add("Staff bans: " + BanInfoWS.getInstance().getStaffBans());
+                tempLines.add("Detected by FarmHelper: " + BanInfoWS.getInstance().getBansByMod());
             } else if (!BanInfoWS.getInstance().isConnected() && FarmHelperConfig.banwaveCheckerEnabled) {
                 tempLines.add("Connecting to the analytics server...");
             }
@@ -71,17 +73,21 @@ public class StatusHUD extends TextHud {
 
     private String centerText(String text, float scale, List<String> lines) {
         if (lines == null || lines.isEmpty()) return text;
-        float maxTextLength = getLineWidth(text, scale);
-        float maxLongestLine = getWidth(scale, false, lines);
-        int difference = (int) (((maxLongestLine - maxTextLength) / 3.5f) / (2 * scale)) - 1;
-        return (difference > 0) ? new String(new char[difference]).replace("\0", " ") + text : text;
+        float width = getWidth(scale, lines);
+        float lineWidth = getLineWidth(text, scale);
+        int spaces = (int) ((width - lineWidth) / (scale * 4));
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < spaces / 2; i++) {
+            builder.append(" ");
+        }
+        return builder + text;
     }
 
-    protected float getWidth(float scale, boolean example, List<String> lines) {
+    protected float getWidth(float scale, List<String> lines) {
         if (lines == null) return 0;
         float width = 0;
         for (String line : lines) {
-            width = Math.max(width, getLineWidth(line, scale));
+            width = Math.max(width, getLineWidth(StringUtils.stripControlCodes(line), scale));
         }
         return width;
     }
@@ -92,7 +98,7 @@ public class StatusHUD extends TextHud {
         } else if (FailsafeManager.getInstance().getRestartMacroAfterFailsafeDelay().isScheduled()) {
             return "§l§6Restarting after failsafe in " + LogUtils.formatTime(FailsafeManager.getInstance().getRestartMacroAfterFailsafeDelay().getRemainingTime()) + "§r";
         } else if (!MacroHandler.getInstance().isMacroToggled()) {
-            return "Idling";
+            return (EnumChatFormatting.AQUA + "Idling");
         } else if (Scheduler.getInstance().isRunning()) {
             return Scheduler.getInstance().getStatusString();
         } else {

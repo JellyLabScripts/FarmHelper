@@ -71,13 +71,13 @@ public class KeyBindUtils {
         if (pressed) {
             if (!key.isKeyDown()) {
                 KeyBinding.onTick(key.getKeyCode());
+                KeyBinding.setKeyBindState(key.getKeyCode(), true);
             }
-            KeyBinding.setKeyBindState(key.getKeyCode(), true);
-
         } else {
-            KeyBinding.setKeyBindState(key.getKeyCode(), false);
+            if (key.isKeyDown()) {
+                KeyBinding.setKeyBindState(key.getKeyCode(), false);
+            }
         }
-
     }
 
     public static void stopMovement() {
@@ -108,14 +108,15 @@ public class KeyBindUtils {
 
     public static void releaseAllExcept(KeyBinding... keyBinding) {
         for (KeyBinding key : allKeys) {
-            if (key != null && !contains(keyBinding, key))
+            if (key != null && !contains(keyBinding, key) && key.isKeyDown()) {
                 realSetKeyBindState(key, false);
+            }
         }
     }
 
     public static boolean contains(KeyBinding[] keyBinding, KeyBinding key) {
         for (KeyBinding keyBind : keyBinding) {
-            if (keyBind == key)
+            if (keyBind != null && keyBind.getKeyCode() == key.getKeyCode())
                 return true;
         }
         return false;

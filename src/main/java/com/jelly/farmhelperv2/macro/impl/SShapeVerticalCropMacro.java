@@ -93,7 +93,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                                 ).easeOutBack(true)
                         );
                     }
-                    KeyBindUtils.stopMovement();
+                    KeyBindUtils.releaseAllExcept(FarmHelperConfig.holdLeftClickWhenChangingRow ? mc.gameSettings.keyBindAttack : null);
                     setLayerY(mc.thePlayer.getPosition().getY());
                     changeState(State.NONE);
                 } else {
