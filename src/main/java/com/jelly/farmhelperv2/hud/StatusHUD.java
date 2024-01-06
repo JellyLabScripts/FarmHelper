@@ -41,7 +41,7 @@ public class StatusHUD extends TextHud {
             tempLines.add(getStatusString());
 
             if (PestsDestroyer.getInstance().getTotalPests() > 0) {
-                tempLines.add("Pests in Garden: " + PestsDestroyer.getInstance().getTotalPests());
+                tempLines.add(EnumChatFormatting.UNDERLINE + "Pests in Garden:" + EnumChatFormatting.RESET + " " + EnumChatFormatting.BOLD + EnumChatFormatting.RED + PestsDestroyer.getInstance().getTotalPests());
             }
 
             if (BanInfoWS.getInstance().isRunning() && FarmHelperConfig.banwaveCheckerEnabled && BanInfoWS.getInstance().isConnected()) {
@@ -77,7 +77,7 @@ public class StatusHUD extends TextHud {
         float lineWidth = getLineWidth(text, scale);
         int spaces = (int) ((width - lineWidth) / (scale * 4));
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i <= spaces / 2; i++) {
+        for (int i = 0; i < spaces / 2; i++) {
             builder.append(" ");
         }
         return builder + text + builder;
