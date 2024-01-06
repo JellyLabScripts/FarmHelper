@@ -92,7 +92,6 @@ public class RotationFailsafe extends Failsafe {
 
         switch (rotationCheckState) {
             case NONE:
-                positionBeforeReacting = mc.thePlayer.getPosition();
                 rotationCheckState = RotationCheckState.WAIT_BEFORE_START;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
                 break;

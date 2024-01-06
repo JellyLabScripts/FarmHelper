@@ -83,7 +83,6 @@ public class TeleportFailsafe extends Failsafe {
         }
 
         rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
-        positionBeforeReacting = mc.thePlayer.getPosition();
         double distance = currentPlayerPos.distanceTo(packetPlayerPos);
         LogUtils.sendDebug("[Failsafe] Teleport 2 detected! Distance: " + distance);
         if (distance >= FarmHelperConfig.teleportCheckSensitivity || (MacroHandler.getInstance().getCurrentMacro().isPresent() && Math.abs(packet.getY()) - Math.abs(MacroHandler.getInstance().getCurrentMacro().get().getLayerY()) > 0.8)) {

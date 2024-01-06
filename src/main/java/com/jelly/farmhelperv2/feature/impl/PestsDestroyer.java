@@ -86,6 +86,7 @@ public class PestsDestroyer implements IFeature {
     private Optional<BlockPos> preTpBlockPos = Optional.empty();
     private Optional<Vec3> lastFireworkLocation = Optional.empty();
     private long lastFireworkTime = 0;
+    private int getLocationTries = 0;
 
     public static PestsDestroyer getInstance() {
         if (instance == null) {
@@ -164,6 +165,7 @@ public class PestsDestroyer implements IFeature {
         preparing = false;
         enabled = false;
         lastFireworkTime = 0;
+        getLocationTries = 0;
         FlyPathfinder.getInstance().stuckCounterWithMotion = 0;
         FlyPathfinder.getInstance().stuckCounterWithoutMotion = 0;
         state = States.IDLE;
@@ -456,7 +458,13 @@ public class PestsDestroyer implements IFeature {
                     break;
                 }
                 state = States.WAIT_FOR_LOCATION;
+                if (getLocationTries > 4) {
+                    LogUtils.sendWarning("[Pests Destroyer] Couldn't find any firework location. Trying to fix it by sending /pq low.");
+                    mc.thePlayer.sendChatMessage("/pq low");
+                    getLocationTries = 0;
+                }
                 KeyBindUtils.leftClick();
+                getLocationTries++;
                 if (!stuckClock.isScheduled())
                     stuckClock.schedule(1_000 * 60 * FarmHelperConfig.pestsKillerStuckTime);
                 delayClock.schedule(300);
@@ -499,6 +507,7 @@ public class PestsDestroyer implements IFeature {
                 break;
             case FLY_TO_PEST:
                 if (isInventoryOpenDelayed()) break;
+                getLocationTries = 0;
                 if (totalPests == 0) {
                     RotationHandler.getInstance().reset();
                     state = States.CHECK_ANOTHER_PEST;
