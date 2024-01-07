@@ -636,7 +636,7 @@ public class PestsDestroyer implements IFeature {
                                 new Target(entity).additionalY(0.42f),
                                 FarmHelperConfig.getRandomPestsKillerRotationTimeSmallDistance(),
                                 null
-                        ).easeOutBack(distanceRotation > 50));
+                        ).easeOutBack(distanceRotation > 50).followTarget(true));
                     }
                     KeyBindUtils.holdThese(mc.gameSettings.keyBindUseItem);
                 } else {
@@ -687,7 +687,7 @@ public class PestsDestroyer implements IFeature {
                                     new Target(entity),
                                     FarmHelperConfig.getRandomPestsKillerRotationTimeMediumDistance(),
                                     null
-                            ).easeOutBack(distanceRotation > 140).randomness(true));
+                            ).easeOutBack(distanceRotation > 140).randomness(true).followTarget(distanceXZ < 5));
                         }
                     } else {
                         cantReachPest = 0;

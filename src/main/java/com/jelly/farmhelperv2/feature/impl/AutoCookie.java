@@ -248,7 +248,7 @@ public class AutoCookie implements IFeature {
                             break;
                         }
 
-                        Rotation rotationNeeded3 = getRotation().getRotation(bazaarNpc.get(), true);
+                        Rotation rotationNeeded3 = getRotation().getRotation(bazaarNpc.get());
 
                         if (AngleUtils.smallestAngleDifference(mc.thePlayer.rotationYaw, rotationNeeded3.getYaw()) > 5 ||
                                 AngleUtils.smallestAngleDifference(mc.thePlayer.rotationPitch, rotationNeeded3.getPitch()) > 5) {

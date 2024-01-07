@@ -133,22 +133,6 @@ public class RotationHandler {
         }
     }
 
-    public Rotation getNextPossibleRotation(Entity entity) {
-        double xDelta = (entity.posX - entity.lastTickPosX) * 0.4d;
-        double zDelta = (entity.posZ - entity.lastTickPosZ) * 0.4d;
-        double d = mc.thePlayer.getDistanceToEntity(entity);
-        d -= d % 0.8d;
-        double xMulti = d / 0.8 * xDelta;
-        double zMulti = d / 0.8 * zDelta;
-        double x = entity.posX + xMulti - mc.thePlayer.posX;
-        double z = entity.posZ + zMulti - mc.thePlayer.posZ;
-        double y = mc.thePlayer.posY + mc.thePlayer.getEyeHeight() - Math.min((entity.posY + (entity.height * 0.85) + randomAddition), (entity.posY + entity.height - 0.05));
-        float yaw = (float) Math.toDegrees(Math.atan2(z, x)) - 90f;
-        double d2 = Math.sqrt(x * x + z * z);
-        float pitch = (float) (-(Math.atan2(y, d2) * 180.0 / Math.PI));
-        return new Rotation(yaw, -pitch);
-    }
-
     public Rotation getNeededChange(Rotation startRot, Vec3 target) {
         Rotation targetRot;
         if (configuration != null && random.nextGaussian() > 0.8) {
@@ -178,11 +162,7 @@ public class RotationHandler {
     }
 
     public Rotation getRotation(Entity to) {
-        return getRotation(mc.thePlayer.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), to.getPositionVector().addVector(0, Math.min(((to.height * 0.85) + randomAddition), (to.height - 0.05)), 0), false);
-    }
-
-    public Rotation getRotation(Entity to, boolean randomness) {
-        return getRotation(mc.thePlayer.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), to.getPositionVector().addVector(0, Math.min(((to.height * 0.85) + randomAddition), (to.height - 0.05)), 0), randomness);
+        return getRotation(mc.thePlayer.getPositionEyes(((MinecraftAccessor) mc).getTimer().renderPartialTicks), to.getPositionVector().addVector(0, Math.min(((to.height * 0.85) + randomAddition), 1.7), 0), false);
     }
 
     public Rotation getRotation(Vec3 from, Vec3 to) {
@@ -204,7 +184,6 @@ public class RotationHandler {
     }
 
     public Rotation getRotation(Vec3 from, Vec3 to, boolean randomness) {
-        System.out.println("Getting rotation from " + from + " to " + to);
         double xDiff = to.xCoord - from.xCoord;
         double yDiff = to.yCoord - from.yCoord;
         double zDiff = to.zCoord - from.zCoord;
@@ -220,6 +199,11 @@ public class RotationHandler {
         }
 
         return new Rotation(yaw, pitch);
+    }
+
+    public boolean shouldRotate(Rotation to) {
+        Rotation neededChange = getNeededChange(to);
+        return Math.abs(neededChange.getYaw()) > 0.1 || Math.abs(neededChange.getPitch()) > 0.1;
     }
 
     public void reset() {
@@ -282,7 +266,7 @@ public class RotationHandler {
         }
 
         if (configuration.followTarget() && configuration.getTarget().isPresent() && delayBetweenTargetFollow.passed()) {
-            adjustTargetRotation();
+            adjustTargetRotation(false);
         }
         mc.thePlayer.rotationYaw = interpolate(startRotation.getYaw(), targetRotation.getYaw(), configuration.easeOutBack() ? this::easeOutBack : this::easeOutExpo);
         mc.thePlayer.rotationPitch = interpolate(startRotation.getPitch(), targetRotation.getPitch(), configuration.easeOutBack() ? this::easeOutBack : this::easeOutQuart);
@@ -290,8 +274,11 @@ public class RotationHandler {
 
     @SubscribeEvent(receiveCanceled = true)
     public void onUpdatePre(MotionUpdateEvent.Pre event) {
-        if (!rotating || configuration == null || configuration.getRotationType() != RotationConfiguration.RotationType.SERVER)
+        if (!rotating || configuration == null || configuration.getRotationType() != RotationConfiguration.RotationType.SERVER) {
+            serverSidePitch = event.pitch;
+            serverSideYaw = event.yaw;
             return;
+        }
 
         if (System.currentTimeMillis() >= endTime) {
             // finish
@@ -309,7 +296,7 @@ public class RotationHandler {
         clientSideYaw = mc.thePlayer.rotationYaw;
         // rotating
         if (configuration.followTarget() && configuration.getTarget().isPresent() && !configuration.goingBackToClientSide() && delayBetweenTargetFollow.passed()) {
-            adjustTargetRotation();
+            adjustTargetRotation(true);
         }
         if (configuration.goingBackToClientSide()) {
             LogUtils.sendDebug("Going back to client side");
@@ -334,11 +321,11 @@ public class RotationHandler {
         mc.thePlayer.rotationPitch = serverSidePitch;
     }
 
-    private void adjustTargetRotation() {
+    private void adjustTargetRotation(boolean serverSide) {
         Target target = configuration.getTarget().get();
         Rotation rot;
         if (target.getEntity() != null) {
-            rot = getNextPossibleRotation(target.getEntity());
+            rot = getRotation(target.getEntity());
         } else if (target.getBlockPos() != null) {
             rot = getRotation(target.getBlockPos());
         } else if (target.getTarget().isPresent()) {
@@ -346,10 +333,13 @@ public class RotationHandler {
         } else {
             throw new IllegalArgumentException("No target specified!");
         }
+        startRotation.setPitch(serverSide ? serverSidePitch : mc.thePlayer.rotationPitch);
+        startRotation.setYaw(serverSide ? serverSideYaw : mc.thePlayer.rotationYaw);
+        startTime = System.currentTimeMillis();
         Rotation neededChange = getNeededChange(startRotation, rot);
         targetRotation.setYaw(startRotation.getYaw() + neededChange.getYaw());
         targetRotation.setPitch(startRotation.getPitch() + neededChange.getPitch());
-        delayBetweenTargetFollow.schedule(180 + Math.random() * 90);
+        delayBetweenTargetFollow.schedule(150 + Math.random() * 75);
     }
 
     @SubscribeEvent(receiveCanceled = true)
