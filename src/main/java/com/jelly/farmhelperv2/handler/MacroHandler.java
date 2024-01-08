@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.handler;
 
+import baritone.api.BaritoneAPI;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
@@ -119,6 +120,11 @@ public class MacroHandler {
         if (isMacroToggled()) {
             this.disableMacro();
         } else {
+            if (FlyPathfinder.getInstance().isRunning()) {
+                FlyPathfinder.getInstance().stop();
+            } else {
+                BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
+            }
             if (VisitorsMacro.getInstance().isRunning()) {
                 VisitorsMacro.getInstance().stop();
                 return;
@@ -225,9 +231,8 @@ public class MacroHandler {
         setCurrentMacro(Optional.empty());
         if (FlyPathfinder.getInstance().isRunning()) {
             FlyPathfinder.getInstance().stop();
-        }
-        if (BaritoneHandler.isPathing()) {
-            BaritoneHandler.stopPathing();
+        } else {
+            BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
         }
     }
 
