@@ -57,13 +57,13 @@ public class RotationHandler {
         easingModifier = (random.nextFloat() * 0.5f - 0.25f);
         dontRotate.reset();
         startTime = System.currentTimeMillis();
-        startRotation.setRotation(configuration.getFrom());
+        startRotation.setRotation(configuration.from());
         Rotation neededChange;
         randomAddition = (Math.random() * 0.3 - 0.15);
-        if (configuration.getTarget().isPresent() && configuration.getTarget().get().getTarget().isPresent()) {
-            neededChange = getNeededChange(startRotation, configuration.getTarget().get().getTarget().get());
-        } else if (configuration.getTo().isPresent()) {
-            neededChange = getNeededChange(startRotation, configuration.getTo().get());
+        if (configuration.target().isPresent() && configuration.target().get().getTarget().isPresent()) {
+            neededChange = getNeededChange(startRotation, configuration.target().get().getTarget().get());
+        } else if (configuration.to().isPresent()) {
+            neededChange = getNeededChange(startRotation, configuration.to().get());
         } else {
             throw new IllegalArgumentException("No target or rotation specified!");
         }
@@ -76,7 +76,7 @@ public class RotationHandler {
         float absYaw = Math.max(Math.abs(neededChange.getYaw()), 1);
         float absPitch = Math.max(Math.abs(neededChange.getPitch()), 1);
         float pythagoras = pythagoras(absYaw, absPitch);
-        float time = getTime(pythagoras, configuration.getTime());
+        float time = getTime(pythagoras, configuration.time());
         endTime = (long) (System.currentTimeMillis() + Math.max(time, 50 + Math.random() * 100));
         rotating = true;
     }
@@ -107,7 +107,7 @@ public class RotationHandler {
         LogUtils.sendDebug("[Rotation] Easing back from server rotation");
         configuration.goingBackToClientSide(true);
         startTime = System.currentTimeMillis();
-        configuration.setTarget(Optional.empty());
+        configuration.target(Optional.empty());
         startRotation.setRotation(new Rotation(serverSideYaw, serverSidePitch));
         Rotation neededChange = getNeededChange(startRotation, new Rotation(clientSideYaw, clientSidePitch));
         targetRotation.setYaw(startRotation.getYaw() + neededChange.getYaw());
@@ -115,9 +115,9 @@ public class RotationHandler {
 
         LogUtils.sendDebug("[Rotation] Needed change: " + neededChange.getYaw() + " " + neededChange.getPitch());
 
-        float time = configuration.getTime();
+        float time = configuration.time();
         endTime = System.currentTimeMillis() + Math.max((long) time, 50);
-        configuration.setCallback(Optional.of(this::reset));
+        configuration.callback(Optional.of(this::reset));
         rotating = true;
     }
 
@@ -126,7 +126,7 @@ public class RotationHandler {
     }
 
     public Rotation getNeededChange(Rotation target) {
-        if (configuration != null && configuration.getRotationType() == RotationConfiguration.RotationType.SERVER) {
+        if (configuration != null && configuration.rotationType() == RotationConfiguration.RotationType.SERVER) {
             return getNeededChange(new Rotation(serverSideYaw, serverSidePitch), target);
         } else {
             return getNeededChange(new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch), target);
@@ -239,18 +239,18 @@ public class RotationHandler {
 
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent event) {
-        if (!rotating || configuration == null || configuration.getRotationType() != RotationConfiguration.RotationType.CLIENT)
+        if (!rotating || configuration == null || configuration.rotationType() != RotationConfiguration.RotationType.CLIENT)
             return;
 
         if (mc.currentScreen != null || dontRotate.isScheduled() && !dontRotate.passed()) {
-            endTime = System.currentTimeMillis() + configuration.getTime();
+            endTime = System.currentTimeMillis() + configuration.time();
             return;
         }
 
         if (System.currentTimeMillis() >= endTime) {
             // finish
-            if (configuration.getCallback().isPresent()) {
-                configuration.getCallback().get().run();
+            if (configuration.callback().isPresent()) {
+                configuration.callback().get().run();
             } else { // No callback, just reset
                 if (Math.abs(mc.thePlayer.rotationYaw - targetRotation.getYaw()) < 0.1 && Math.abs(mc.thePlayer.rotationPitch - targetRotation.getPitch()) < 0.1) {
                     mc.thePlayer.rotationYaw = targetRotation.getYaw();
@@ -265,7 +265,7 @@ public class RotationHandler {
             return;
         }
 
-        if (configuration.followTarget() && configuration.getTarget().isPresent() && delayBetweenTargetFollow.passed()) {
+        if (configuration.followTarget() && configuration.target().isPresent() && delayBetweenTargetFollow.passed()) {
             adjustTargetRotation(false);
         }
         mc.thePlayer.rotationYaw = interpolate(startRotation.getYaw(), targetRotation.getYaw(), configuration.easeOutBack() ? this::easeOutBack : this::easeOutExpo);
@@ -274,7 +274,7 @@ public class RotationHandler {
 
     @SubscribeEvent(receiveCanceled = true)
     public void onUpdatePre(MotionUpdateEvent.Pre event) {
-        if (!rotating || configuration == null || configuration.getRotationType() != RotationConfiguration.RotationType.SERVER) {
+        if (!rotating || configuration == null || configuration.rotationType() != RotationConfiguration.RotationType.SERVER) {
             serverSidePitch = event.pitch;
             serverSideYaw = event.yaw;
             return;
@@ -282,8 +282,8 @@ public class RotationHandler {
 
         if (System.currentTimeMillis() >= endTime) {
             // finish
-            if (configuration.getCallback().isPresent()) {
-                configuration.getCallback().get().run();
+            if (configuration.callback().isPresent()) {
+                configuration.callback().get().run();
             } else { // No callback, just reset
                 reset();
                 return;
@@ -295,7 +295,7 @@ public class RotationHandler {
         clientSidePitch = mc.thePlayer.rotationPitch;
         clientSideYaw = mc.thePlayer.rotationYaw;
         // rotating
-        if (configuration.followTarget() && configuration.getTarget().isPresent() && !configuration.goingBackToClientSide() && delayBetweenTargetFollow.passed()) {
+        if (configuration.followTarget() && configuration.target().isPresent() && !configuration.goingBackToClientSide() && delayBetweenTargetFollow.passed()) {
             adjustTargetRotation(true);
         }
         if (configuration.goingBackToClientSide()) {
@@ -306,7 +306,7 @@ public class RotationHandler {
         if (mc.currentScreen != null || dontRotate.isScheduled() && !dontRotate.passed()) {
             event.yaw = serverSideYaw;
             event.pitch = serverSidePitch;
-            endTime = System.currentTimeMillis() + configuration.getTime();
+            endTime = System.currentTimeMillis() + configuration.time();
         } else {
             float interX = interpolate(startRotation.getYaw(), targetRotation.getYaw(), configuration.easeOutBack() ? this::easeOutBack : this::easeOutExpo);
             float interY = interpolate(startRotation.getPitch(), targetRotation.getPitch(), configuration.easeOutBack() ? this::easeOutBack : this::easeOutExpo);
@@ -322,7 +322,7 @@ public class RotationHandler {
     }
 
     private void adjustTargetRotation(boolean serverSide) {
-        Target target = configuration.getTarget().get();
+        Target target = configuration.target().get();
         Rotation rot;
         if (target.getEntity() != null) {
             rot = getRotation(target.getEntity());
@@ -345,7 +345,7 @@ public class RotationHandler {
     @SubscribeEvent(receiveCanceled = true)
     public void onUpdatePost(MotionUpdateEvent.Post event) {
         if (!rotating) return;
-        if (configuration == null || configuration.getRotationType() != RotationConfiguration.RotationType.SERVER)
+        if (configuration == null || configuration.rotationType() != RotationConfiguration.RotationType.SERVER)
             return;
 
         mc.thePlayer.rotationYaw = clientSideYaw;
