@@ -48,7 +48,7 @@ public class AutoSprayonator implements IFeature {
     private final Clock sprayonatorDelay = new Clock();
     @Getter
     private final Clock enableDelay = new Clock();
-    private final long sprayonatorEnableDelayTime = 500L;
+    private final long sprayonatorEnableDelayTime = 1200L;
     private long sprayonatorEnableDelayTimeRand = 0L;
     {
         updateRandomDelay();
@@ -193,7 +193,7 @@ public class AutoSprayonator implements IFeature {
     }
 
     private void updateRandomDelay() {
-        sprayonatorEnableDelayTimeRand = (long) (Math.random() * 125);
+        sprayonatorEnableDelayTimeRand = (long) (Math.random() * 225);
     }
 
     @SubscribeEvent
@@ -226,9 +226,6 @@ public class AutoSprayonator implements IFeature {
             KeyBindUtils.stopMovement();
             start();
         }
-
-        updateRandomDelay();
-        enableDelay.schedule(sprayonatorEnableDelayTime + sprayonatorEnableDelayTimeRand);
     }
 
     @SubscribeEvent
@@ -588,7 +585,7 @@ public class AutoSprayonator implements IFeature {
         if (!running) return;
         if (!isToggled()) return;
         if (e.type != 0) return;
-        String message = StringUtils.stripControlCodes(e.message.getUnformattedText());
+        String message = StringUtils.stripControlCodes(e.message.getUnformattedTextForChat());
         if (message.contains(":")) return;
         if (message.contains("You sprayed Plot")) {
             String plotNumber = e.message.getUnformattedText().split(" ")[5];
