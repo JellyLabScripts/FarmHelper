@@ -4,6 +4,7 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.FarmHelperConfig.SPRAYONATOR_ITEM;
 import com.jelly.farmhelperv2.event.DrawScreenAfterEvent;
+import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -23,6 +24,7 @@ import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.Slot;
+import net.minecraft.network.play.server.S18PacketEntityTeleport;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -44,6 +46,13 @@ public class AutoSprayonator implements IFeature {
     private final String skymartItemName = "Sprayonator";
     @Getter
     private final Clock sprayonatorDelay = new Clock();
+    @Getter
+    private final Clock enableDelay = new Clock();
+    private final long sprayonatorEnableDelayTime = 500L;
+    private long sprayonatorEnableDelayTimeRand = 0L;
+    {
+        updateRandomDelay();
+    }
     private boolean running;
     @Getter
     private SPRAYONATOR_ITEM sprayItem = SPRAYONATOR_ITEM.values()[FarmHelperConfig.sprayonatorType];
@@ -123,6 +132,7 @@ public class AutoSprayonator implements IFeature {
         skymartPurchaseState = SKYMART_PURCHASE_STATE.NONE;
         bazaarPurchaseState = BAZAAR_PURCHASE_STATE.NONE;
         currentGuiState = CURRENT_GUI_STATE.NONE;
+        updateRandomDelay();
     }
 
     @Override
@@ -182,22 +192,31 @@ public class AutoSprayonator implements IFeature {
         }
     }
 
+    private void updateRandomDelay() {
+        sprayonatorEnableDelayTimeRand = (long) (Math.random() * 125);
+    }
+
     @SubscribeEvent
     public void onTickShouldEnable(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (running) return;
         if (!isToggled()) return;
+        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) {
+            updateRandomDelay();
+            enableDelay.schedule(sprayonatorEnableDelayTime + sprayonatorEnableDelayTimeRand);
+            return;
+        };
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
-        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (sprayState != AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT) return;
         sprayItem = SPRAYONATOR_ITEM.values()[FarmHelperConfig.sprayonatorType];
 
-        if (!hasSprayonator() && GameStateHandler.getInstance().getCopper() < 25) {
+        if (!hasSprayonator()) {
             LogUtils.sendError("[Auto Sprayonator] Disabling due to no sprayonator");
             return;
         }
+        if (!enableDelay.passed()) return;
         PlotData data = sprayonatorPlotStates.get(GameStateHandler.getInstance().getCurrentPlot());
         if (data == null)
             return;
@@ -207,6 +226,9 @@ public class AutoSprayonator implements IFeature {
             KeyBindUtils.stopMovement();
             start();
         }
+
+        updateRandomDelay();
+        enableDelay.schedule(sprayonatorEnableDelayTime + sprayonatorEnableDelayTimeRand);
     }
 
     @SubscribeEvent
@@ -411,6 +433,20 @@ public class AutoSprayonator implements IFeature {
                 break;
             case NONE:
                 break;
+        }
+    }
+
+    @SubscribeEvent
+    public void onTeleport(ReceivePacketEvent e) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!running) return;
+        if (!isToggled()) return;
+        if (e.packet instanceof S18PacketEntityTeleport) {
+            S18PacketEntityTeleport packet = (S18PacketEntityTeleport) e.packet;
+            if (packet.getEntityId() == mc.thePlayer.getEntityId()) {
+                LogUtils.sendError("[Auto Sprayonator] Disabling due to teleport.");
+                stop();
+            }
         }
     }
 
