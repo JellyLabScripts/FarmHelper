@@ -1,14 +1,10 @@
 package com.jelly.farmhelperv2.feature.impl;
 
-import baritone.api.BaritoneAPI;
-import baritone.api.event.events.PathEvent;
-import baritone.api.pathing.goals.GoalNear;
-import baritone.api.process.PathingCommand;
-import baritone.api.process.PathingCommandType;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
+import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
@@ -169,7 +165,7 @@ public class VisitorsMacro implements IFeature {
         rotation.reset();
         PlayerUtils.closeScreen();
         KeyBindUtils.stopMovement();
-        BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
+        BaritoneHandler.stopPathing();
     }
 
     @Override
@@ -389,8 +385,7 @@ public class VisitorsMacro implements IFeature {
                 }
                 LogUtils.sendDebug("[Visitors Macro] Closest visitor: " + closest.getCustomNameTag());
                 if (FarmHelperConfig.visitorsMacroUsePathFinder && mc.thePlayer.getDistance(closest.getPosition().getX(), mc.thePlayer.getPosition().getY(), closest.getPosition().getZ()) > 2.8) {
-                    PathingCommand pathingCommand = new PathingCommand(new GoalNear(closest.getPosition(), 2), PathingCommandType.REVALIDATE_GOAL_AND_PATH);
-                    BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().secretInternalSetGoalAndPath(pathingCommand);
+                    BaritoneHandler.walkCloserToBlockPos(closest.getPosition(), 2);
                     setTravelState(TravelState.END);
                     pathing = true;
                 } else {
@@ -432,7 +427,7 @@ public class VisitorsMacro implements IFeature {
                 setTravelState(TravelState.END);
                 break;
             case END:
-                if (checkForPathingFinish()) return;
+                if (BaritoneHandler.isWalkingToGoalBlock(1.5)) return;
                 if (!mc.thePlayer.onGround) {
                     KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
                     break;
@@ -664,8 +659,7 @@ public class VisitorsMacro implements IFeature {
                 }
                 LogUtils.sendDebug("Position of visitor: " + closest.getPositionEyes(1));
                 if (FarmHelperConfig.visitorsMacroUsePathFinder && mc.thePlayer.getDistance(closest.getPosition().getX(), mc.thePlayer.getPosition().getY(), closest.getPosition().getZ()) > 2.8) {
-                    PathingCommand pathingCommand = new PathingCommand(new GoalNear(closest.getPosition(), 2), PathingCommandType.REVALIDATE_GOAL_AND_PATH);
-                    BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().secretInternalSetGoalAndPath(pathingCommand);
+                    BaritoneHandler.walkCloserToBlockPos(closest.getPosition(), 2);
                     setVisitorsState(VisitorsState.OPEN_VISITOR);
                     pathing = true;
                 } else {
@@ -716,7 +710,7 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                if (checkForPathingFinish()) return;
+                if (BaritoneHandler.isWalkingToGoalBlock(1.5)) return;
                 if (rotation.isRotating()) return;
                 assert currentVisitor.isPresent();
                 if (moveAwayIfPlayerTooClose()) return;
@@ -936,8 +930,7 @@ public class VisitorsMacro implements IFeature {
                 }
                 LogUtils.sendDebug("Position of visitor: " + currentVisitor.get().getPositionEyes(1));
                 if (FarmHelperConfig.visitorsMacroUsePathFinder && mc.thePlayer.getDistance(currentVisitor.get().getPosition().getX(), mc.thePlayer.getPosition().getY(), currentVisitor.get().getPosition().getZ()) > 2.8) {
-                    PathingCommand pathingCommand = new PathingCommand(new GoalNear(currentVisitor.get().getPosition(), 2), PathingCommandType.REVALIDATE_GOAL_AND_PATH);
-                    BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().secretInternalSetGoalAndPath(pathingCommand);
+                    BaritoneHandler.walkCloserToBlockPos(currentVisitor.get().getPosition(), 2);
                     setVisitorsState(VisitorsState.OPEN_VISITOR);
                     pathing = true;
                     setVisitorsState(VisitorsState.OPEN_VISITOR_2);
@@ -959,7 +952,7 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(getRandomDelay());
                     break;
                 }
-                if (checkForPathingFinish()) return;
+                if (BaritoneHandler.isWalkingToGoalBlock(1.5)) return;
                 if (rotation.isRotating()) return;
                 assert currentVisitor.isPresent();
                 if (moveAwayIfPlayerTooClose()) return;
@@ -1067,24 +1060,6 @@ public class VisitorsMacro implements IFeature {
                 .orElse(null);
     }
 
-    private boolean checkForPathingFinish() {
-        if (pathing) {
-            if (!mc.thePlayer.onGround) return true;
-            // Pathing
-            GoalNear goal = (GoalNear) BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().getGoal();
-            double distance = mc.thePlayer.getDistance(goal.getGoalPos().getX() + 0.5f, mc.thePlayer.posY, goal.getGoalPos().getZ() + 0.5);
-            System.out.println(BaritoneEventListener.pathEvent);
-            if (distance <= 1.5 || BaritoneEventListener.pathEvent == PathEvent.AT_GOAL) {
-                BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
-                pathing = false;
-                System.out.println("Finished pathing");
-                return false;
-            }
-            return true;
-        }
-        return false;
-    }
-
     private boolean equalsWithoutFormatting(String name1, String name2) {
         return StringUtils.stripControlCodes(name1).equals(StringUtils.stripControlCodes(name2));
     }
@@ -1177,6 +1152,7 @@ public class VisitorsMacro implements IFeature {
                     LogUtils.sendDebug("[Visitors Macro] Price manipulation detected, skipping...");
                     rejectVisitor = true;
                     setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
+                    setBuyState(BuyState.NONE);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     PlayerUtils.closeScreen();
                     break;
@@ -1185,6 +1161,7 @@ public class VisitorsMacro implements IFeature {
                     LogUtils.sendDebug("[Visitors Macro] Couldn't find " + itemsToBuy.get(0).getLeft() + " amount " + itemsToBuy.get(0).getRight() + ", skipping...");
                     rejectVisitor = true;
                     setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
+                    setBuyState(BuyState.NONE);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     PlayerUtils.closeScreen();
                     break;
