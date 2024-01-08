@@ -48,7 +48,7 @@ public class AutoSprayonator implements IFeature {
     private final Clock sprayonatorDelay = new Clock();
     @Getter
     private final Clock enableDelay = new Clock();
-    private final long sprayonatorEnableDelayTime = 1200L;
+    private final long sprayonatorEnableDelayTime = 5200L;
     private long sprayonatorEnableDelayTimeRand = 0L;
     {
         updateRandomDelay();
@@ -193,7 +193,7 @@ public class AutoSprayonator implements IFeature {
     }
 
     private void updateRandomDelay() {
-        sprayonatorEnableDelayTimeRand = (long) (Math.random() * 225);
+        sprayonatorEnableDelayTimeRand = (long) (Math.random() * 765);
     }
 
     @SubscribeEvent
@@ -426,6 +426,8 @@ public class AutoSprayonator implements IFeature {
                         KeyBindUtils.rightClick();
                         sprayState = AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT;
                     }, 100 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
+                } else {
+                    sprayState = AUTO_SPRAYONATOR_STATE.HOLD_SPRAYONATOR;
                 }
                 break;
             case NONE:
