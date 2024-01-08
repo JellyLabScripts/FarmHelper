@@ -381,7 +381,7 @@ public class AutoCookie implements IFeature {
                     case CLOSE_GUI:
                         if (mc.currentScreen == null) {
                             setBazaarState(BazaarState.TELEPORT_TO_GARDEN);
-                            mc.thePlayer.sendChatMessage("/warp garden");
+                            MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, false));
                             autoCookieDelay.schedule(3_000);
                             break;
                         }

@@ -28,7 +28,7 @@ public class ToggleCommand extends ClientCommand {
                     e.printStackTrace();
                 }
                 if (!GameStateHandler.getInstance().inGarden()) {
-                    mc.thePlayer.sendChatMessage("/warp garden");
+                    MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, false));
                 }
 
                 try {
@@ -48,7 +48,7 @@ public class ToggleCommand extends ClientCommand {
             return;
         } else if (!GameStateHandler.getInstance().inGarden() && !MacroHandler.getInstance().isMacroToggled()) {
             data.addProperty("info", "You are outside the garden! Teleporting");
-            mc.thePlayer.sendChatMessage("/warp garden");
+            MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, false));
             new Thread(() -> {
                 try {
                     Thread.sleep(2500);

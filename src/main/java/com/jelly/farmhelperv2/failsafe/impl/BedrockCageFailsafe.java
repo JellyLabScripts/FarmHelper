@@ -245,7 +245,7 @@ public class BedrockCageFailsafe extends Failsafe {
 //                FailsafeManager.getInstance().scheduleDelay(200);
 //                break;
             case WARP_GARDEN:
-                MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
+                MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, true));
                 bedrockCageCheckState = BedrockCageCheckState.END;
                 FailsafeManager.getInstance().scheduleRandomDelay(3000, 1000);
                 break;

@@ -331,16 +331,8 @@ public class BlockUtils {
     }
 
     public static boolean canFlyHigher(int distance) {
-        AxisAlignedBB playerAABB = mc.thePlayer.getEntityBoundingBox();
-        Vec3[] corners = {
-                new Vec3(playerAABB.minX + 0.0001, playerAABB.minY + mc.thePlayer.height, playerAABB.minZ + 0.0001),
-                new Vec3(playerAABB.minX + 0.0001, playerAABB.minY + mc.thePlayer.height, playerAABB.maxZ - 0.0001),
-                new Vec3(playerAABB.maxX - 0.0001, playerAABB.minY + mc.thePlayer.height, playerAABB.minZ + 0.0001),
-                new Vec3(playerAABB.maxX - 0.0001, playerAABB.minY + mc.thePlayer.height, playerAABB.maxZ - 0.0001)
-        };
-        for (Vec3 corner : corners) {
-            MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(corner, corner.addVector(0, distance, 0), false, true, false);
-            if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+        for (int i = 0; i <= distance; i++) {
+            if (!canWalkThrough(getRelativeBlockPos(0, 2 + i, 0))) {
                 return false;
             }
         }

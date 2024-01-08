@@ -74,7 +74,7 @@ public class MacroHandler {
     }
 
     public boolean isCurrentMacroEnabled() {
-        return currentMacro.isPresent() && currentMacro.get().isEnabled();
+        return currentMacro.isPresent() && currentMacro.get().isEnabledAndNoFeature();
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -270,7 +270,7 @@ public class MacroHandler {
     }
 
     public void enableCurrentMacro() {
-        if (currentMacro.isPresent() && !currentMacro.get().isEnabled() && !startingUp) {
+        if (currentMacro.isPresent() && !currentMacro.get().isEnabledAndNoFeature() && !startingUp) {
             mc.displayGuiScreen(null);
             mc.inGameHasFocus = true;
             mc.mouseHelper.grabMouseCursor();
@@ -301,17 +301,16 @@ public class MacroHandler {
         }
 
         if (!GameStateHandler.getInstance().inGarden()) {
-            if (
-//                    FeatureManager.getInstance().isAnyOtherFeatureEnabled(Failsafe.getInstance()) &&
-                    !FeatureManager.getInstance().shouldIgnoreFalseCheck() &&
-                            !FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
+            if (!FeatureManager.getInstance().shouldIgnoreFalseCheck() && !FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
                 FailsafeManager.getInstance().possibleDetection(WorldChangeFailsafe.getInstance());
             }
             return;
         }
 
         currentMacro.ifPresent(cm -> {
-            if (!cm.isEnabled()) return;
+            if (isMacroToggled())
+                cm.onTickCheckTeleport();
+            if (!cm.isEnabledAndNoFeature()) return;
             cm.onTick();
         });
     }
@@ -332,7 +331,7 @@ public class MacroHandler {
         }
 
         currentMacro.ifPresent(m -> {
-            if (!m.isEnabled()) return;
+            if (!m.isEnabledAndNoFeature()) return;
             m.onChatMessageReceived(event.message.getUnformattedText());
         });
     }
@@ -359,7 +358,7 @@ public class MacroHandler {
             return;
         }
         currentMacro.ifPresent(m -> {
-            if (!m.isEnabled()) return;
+            if (!m.isEnabledAndNoFeature()) return;
             m.onLastRender();
         });
     }
@@ -370,7 +369,7 @@ public class MacroHandler {
             return;
         }
         currentMacro.ifPresent(m -> {
-            if (!m.isEnabled()) return;
+            if (!m.isEnabledAndNoFeature()) return;
             m.onOverlayRender(event);
         });
     }
@@ -381,7 +380,7 @@ public class MacroHandler {
             return;
         }
         currentMacro.ifPresent(m -> {
-            if (!m.isEnabled()) return;
+            if (!m.isEnabledAndNoFeature()) return;
             m.onPacketReceived(event);
         });
     }

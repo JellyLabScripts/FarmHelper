@@ -20,27 +20,27 @@ public class FeatureManager {
 
     public List<IFeature> fillFeatures() {
         List<IFeature> featuresList = Arrays.asList(
-            AutoBazaar.getInstance(),
-            AntiStuck.getInstance(),
-            AutoCookie.getInstance(),
-            AutoGodPot.getInstance(),
-            AutoReconnect.getInstance(),
-            AutoRepellent.getInstance(),
-            AutoSell.getInstance(),
-            BanInfoWS.getInstance(),
-            DesyncChecker.getInstance(),
-            Freelook.getInstance(),
-            LagDetector.getInstance(),
-            LeaveTimer.getInstance(),
-            PerformanceMode.getInstance(),
-            PestsDestroyer.getInstance(),
-            AutoSprayonator.getInstance(),
-            PetSwapper.getInstance(),
-            PlotCleaningHelper.getInstance(),
-            ProfitCalculator.getInstance(),
-            Scheduler.getInstance(),
-            UngrabMouse.getInstance(),
-            VisitorsMacro.getInstance()
+                AutoBazaar.getInstance(),
+                AntiStuck.getInstance(),
+                AutoCookie.getInstance(),
+                AutoGodPot.getInstance(),
+                AutoReconnect.getInstance(),
+                AutoRepellent.getInstance(),
+                AutoSell.getInstance(),
+                BanInfoWS.getInstance(),
+                DesyncChecker.getInstance(),
+                Freelook.getInstance(),
+                LagDetector.getInstance(),
+                LeaveTimer.getInstance(),
+                PerformanceMode.getInstance(),
+                PestsDestroyer.getInstance(),
+                AutoSprayonator.getInstance(),
+                PetSwapper.getInstance(),
+                PlotCleaningHelper.getInstance(),
+                ProfitCalculator.getInstance(),
+                Scheduler.getInstance(),
+                UngrabMouse.getInstance(),
+                VisitorsMacro.getInstance()
         );
         features.addAll(featuresList);
         return features;
@@ -122,5 +122,15 @@ public class FeatureManager {
                 LogUtils.sendDebug("Disabled feature: " + feature.getName());
             }
         });
+    }
+
+    public List<IFeature> getCurrentRunningFeatures() {
+        List<IFeature> runningFeatures = new ArrayList<>();
+        features.forEach(feature -> {
+            if (feature.isRunning() && !feature.shouldStartAtMacroStart()) {
+                runningFeatures.add(feature);
+            }
+        });
+        return runningFeatures;
     }
 }

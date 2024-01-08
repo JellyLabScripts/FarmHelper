@@ -9,41 +9,20 @@ import net.minecraft.client.Minecraft;
 import java.util.Optional;
 
 
+@Getter
+@Setter
+@Accessors(fluent = true)
 public class RotationConfiguration {
     private final Minecraft mc = Minecraft.getMinecraft();
-    @Getter
-    @Setter
     private Rotation from;
-    @Getter
-    @Setter
     private Optional<Rotation> to = Optional.empty();
-    @Getter
-    @Setter
     private Optional<Target> target = Optional.empty();
-    @Getter
-    @Setter
     private long time;
-    @Getter
-    @Setter
     private Optional<Runnable> callback;
-    @Setter
-    @Getter
-    @Accessors(fluent = true)
     private boolean goingBackToClientSide = false;
-    @Getter
-    @Setter
-    @Accessors(fluent = true)
     private boolean followTarget = false;
-    @Getter
-    @Setter
     private RotationType rotationType = RotationType.CLIENT;
-    @Accessors(fluent = true)
-    @Getter
-    @Setter
     private boolean easeOutBack = false;
-    @Accessors(fluent = true)
-    @Getter
-    @Setter
     private boolean randomness = false;
 
     public RotationConfiguration(Rotation from, Rotation to, long time, RotationType rotationType, Runnable callback) {

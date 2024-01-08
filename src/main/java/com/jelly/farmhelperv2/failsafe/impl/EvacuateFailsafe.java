@@ -11,6 +11,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 public class EvacuateFailsafe extends Failsafe {
     private static EvacuateFailsafe instance;
+
     public static EvacuateFailsafe getInstance() {
         if (instance == null) {
             instance = new EvacuateFailsafe();
@@ -84,7 +85,7 @@ public class EvacuateFailsafe extends Failsafe {
                     FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 } else {
                     if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.HUB) {
-                        mc.thePlayer.sendChatMessage("/warp garden");
+                        MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, true));
                         FailsafeManager.getInstance().scheduleRandomDelay(2500, 2000);
                     } else {
                         mc.thePlayer.sendChatMessage("/skyblock");
@@ -111,6 +112,7 @@ public class EvacuateFailsafe extends Failsafe {
     }
 
     private EvacuateState evacuateState = EvacuateState.NONE;
+
     enum EvacuateState {
         NONE,
         EVACUATE_FROM_ISLAND,

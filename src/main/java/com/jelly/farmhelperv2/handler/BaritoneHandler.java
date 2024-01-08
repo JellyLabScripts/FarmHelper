@@ -2,6 +2,7 @@ package com.jelly.farmhelperv2.handler;
 
 import baritone.api.BaritoneAPI;
 import baritone.api.event.events.PathEvent;
+import baritone.api.pathing.goals.Goal;
 import baritone.api.pathing.goals.GoalBlock;
 import baritone.api.pathing.goals.GoalNear;
 import baritone.api.process.PathingCommand;
@@ -23,8 +24,17 @@ public class BaritoneHandler {
     public static boolean isWalkingToGoalBlock(double nearGoalDistance) {
         if (pathing) {
             if (!mc.thePlayer.onGround) return true;
-            GoalBlock goal = (GoalBlock) BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().getGoal();
-            double distance = mc.thePlayer.getDistance(goal.getGoalPos().getX() + 0.5f, mc.thePlayer.posY, goal.getGoalPos().getZ() + 0.5);
+            double distance;
+            Goal goal = BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().getGoal();
+            if (goal instanceof GoalBlock) {
+                GoalBlock goal1 = (GoalBlock) BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().getGoal();
+                distance = mc.thePlayer.getDistance(goal1.getGoalPos().getX() + 0.5f, mc.thePlayer.posY, goal1.getGoalPos().getZ() + 0.5);
+            } else if (goal instanceof GoalNear) {
+                GoalNear goal1 = (GoalNear) BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().getGoal();
+                distance = mc.thePlayer.getDistance(goal1.getGoalPos().getX() + 0.5f, mc.thePlayer.posY, goal1.getGoalPos().getZ() + 0.5);
+            } else {
+                distance = goal.isInGoal(mc.thePlayer.getPosition()) ? 0 : goal.heuristic();
+            }
             System.out.println("Pathing result: " + BaritoneEventListener.pathEvent);
             if (distance <= nearGoalDistance || BaritoneEventListener.pathEvent == PathEvent.AT_GOAL) {
                 BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();

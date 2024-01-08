@@ -35,6 +35,7 @@ public abstract class AbstractMacro {
     @Setter
     public State previousState = State.NONE;
     @Setter
+    @Getter
     private boolean enabled = false;
     @Setter
     private Optional<SavedState> savedState = Optional.empty();
@@ -58,9 +59,10 @@ public abstract class AbstractMacro {
     private WalkingDirection walkingDirection = WalkingDirection.X;
     @Setter
     private int previousWalkingCoord = 0;
+    @Setter
+    private boolean rewarpTeleport = false;
 
-
-    public boolean isEnabled() {
+    public boolean isEnabledAndNoFeature() {
         return enabled && !FeatureManager.getInstance().shouldPauseMacroExecution();
     }
 
@@ -71,6 +73,16 @@ public abstract class AbstractMacro {
     private final Clock checkOnSpawnClock = new Clock();
 
     private boolean sentWarning = false;
+
+    public void onTickCheckTeleport() {
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent() || FailsafeManager.getInstance().getChooseEmergencyDelay().isScheduled()) {
+            return;
+        }
+        if (mc.thePlayer.capabilities.isFlying) {
+            return;
+        }
+        checkForTeleport();
+    }
 
     public void onTick() {
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent() || FailsafeManager.getInstance().getChooseEmergencyDelay().isScheduled()) {
@@ -84,7 +96,6 @@ public abstract class AbstractMacro {
             KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
             return;
         }
-        checkForTeleport();
         LogUtils.webhookStatus();
         if (analyticsClock.passed() && FarmHelperConfig.sendAnalyticData) {
             BanInfoWS.getInstance().sendAnalyticsData();
@@ -123,7 +134,7 @@ public abstract class AbstractMacro {
         if (mc.thePlayer.getPosition().getY() < -5) {
             LogUtils.sendError("Build a wall between the rewarp point and the void to prevent falling out of the garden! Disabling the macro...");
             MacroHandler.getInstance().disableMacro();
-            triggerWarpGarden(true);
+            triggerWarpGarden(true, false);
             return;
         }
 
@@ -288,10 +299,6 @@ public abstract class AbstractMacro {
         }
     }
 
-    public void clearSavedState() {
-        savedState = Optional.empty();
-    }
-
     public void changeState(State state) {
         LogUtils.sendDebug("Changing state from " + currentState + " to " + state);
         setPreviousState(currentState);
@@ -314,46 +321,37 @@ public abstract class AbstractMacro {
             changeState(State.NONE);
             checkOnSpawnClock.reset();
             beforeTeleportationPos = Optional.empty();
-            rewarpState = RewarpState.TELEPORTED;
             rotated = false;
             GameStateHandler.getInstance().scheduleNotMoving(750);
-            rewarpDelay.schedule(FarmHelperConfig.getRandomRewarpDelay());
-            actionAfterTeleport();
+            rewarpDelay.schedule(FarmHelperConfig.getRandomTimeBetweenChangingRows());
+            if (rewarpTeleport) {
+                rewarpState = RewarpState.TELEPORTED;
+                actionAfterTeleport();
+            } else {
+                rewarpState = RewarpState.NONE;
+            }
+            rewarpTeleport = false;
         }
-    }
-
-
-    public boolean shouldFixRotation() {
-        double absYaw = Math.abs(Math.abs(AngleUtils.get360RotationYaw()) - Math.abs(yaw));
-        double absPitch = Math.abs(Math.abs(mc.thePlayer.rotationPitch) - Math.abs(pitch));
-        if (absYaw > 1 || absPitch > 1) {
-            LogUtils.sendDebug("Fixing rotation after warping.");
-            return true;
-        }
-        return false;
     }
 
     public abstract void actionAfterTeleport();
 
     public void triggerWarpGarden() {
-        triggerWarpGarden(false);
+        triggerWarpGarden(false, true);
     }
 
-    public void triggerWarpGarden(boolean force) {
+    public void triggerWarpGarden(boolean force, boolean rewarpTeleport) {
         if (GameStateHandler.getInstance().notMoving()) {
             KeyBindUtils.stopMovement();
         }
         if (force || GameStateHandler.getInstance().canRewarp() && !beforeTeleportationPos.isPresent()) {
             rewarpState = RewarpState.TELEPORTING;
+            this.rewarpTeleport = rewarpTeleport;
             LogUtils.sendDebug("Warping to spawn point");
             mc.thePlayer.sendChatMessage("/warp garden");
             GameStateHandler.getInstance().scheduleRewarp();
             setBeforeTeleportationPos(Optional.ofNullable(mc.thePlayer.getPosition()));
         }
-    }
-
-    public boolean additionalCheck() {
-        return false;
     }
 
     public State calculateDirection() {

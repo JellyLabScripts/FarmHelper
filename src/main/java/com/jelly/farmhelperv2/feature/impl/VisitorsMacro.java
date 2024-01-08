@@ -9,7 +9,10 @@ import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.*;
-import com.jelly.farmhelperv2.util.helper.*;
+import com.jelly.farmhelperv2.util.helper.Clock;
+import com.jelly.farmhelperv2.util.helper.Rotation;
+import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
+import com.jelly.farmhelperv2.util.helper.Target;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -70,7 +73,6 @@ public class VisitorsMacro implements IFeature {
     private boolean manuallyStarted = false;
     private boolean forceStart = false;
     private BlockPos positionBeforeTp = null;
-    private boolean pathing = false;
 
     public static VisitorsMacro getInstance() {
         if (instance == null) {
@@ -130,7 +132,6 @@ public class VisitorsMacro implements IFeature {
             setMainState(MainState.TRAVEL);
             setTravelState(TravelState.ROTATE_TO_CLOSEST);
         }
-        pathing = false;
         forceStart = false;
         haveItemsInSack = false;
         delayClock.reset();
@@ -313,7 +314,7 @@ public class VisitorsMacro implements IFeature {
             case END:
                 setMainState(MainState.DISABLING);
                 Multithreading.schedule(() -> {
-                    MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
+                    MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, true));
                     Multithreading.schedule(() -> {
                         stop();
                         MacroHandler.getInstance().resumeMacro();
@@ -387,7 +388,6 @@ public class VisitorsMacro implements IFeature {
                 if (FarmHelperConfig.visitorsMacroUsePathFinder && mc.thePlayer.getDistance(closest.getPosition().getX(), mc.thePlayer.getPosition().getY(), closest.getPosition().getZ()) > 2.8) {
                     BaritoneHandler.walkCloserToBlockPos(closest.getPosition(), 2);
                     setTravelState(TravelState.END);
-                    pathing = true;
                 } else {
                     rotation.easeTo(
                             new RotationConfiguration(
@@ -661,7 +661,6 @@ public class VisitorsMacro implements IFeature {
                 if (FarmHelperConfig.visitorsMacroUsePathFinder && mc.thePlayer.getDistance(closest.getPosition().getX(), mc.thePlayer.getPosition().getY(), closest.getPosition().getZ()) > 2.8) {
                     BaritoneHandler.walkCloserToBlockPos(closest.getPosition(), 2);
                     setVisitorsState(VisitorsState.OPEN_VISITOR);
-                    pathing = true;
                 } else {
                     rotation.easeTo(
                             new RotationConfiguration(
@@ -932,7 +931,6 @@ public class VisitorsMacro implements IFeature {
                 if (FarmHelperConfig.visitorsMacroUsePathFinder && mc.thePlayer.getDistance(currentVisitor.get().getPosition().getX(), mc.thePlayer.getPosition().getY(), currentVisitor.get().getPosition().getZ()) > 2.8) {
                     BaritoneHandler.walkCloserToBlockPos(currentVisitor.get().getPosition(), 2);
                     setVisitorsState(VisitorsState.OPEN_VISITOR);
-                    pathing = true;
                     setVisitorsState(VisitorsState.OPEN_VISITOR_2);
                 } else {
                     rotation.easeTo(

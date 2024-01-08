@@ -16,6 +16,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 public class LowerAvgBpsFailsafe extends Failsafe {
     private static LowerAvgBpsFailsafe instance;
+
     public static LowerAvgBpsFailsafe getInstance() {
         if (instance == null) {
             instance = new LowerAvgBpsFailsafe();
@@ -91,12 +92,12 @@ public class LowerAvgBpsFailsafe extends Failsafe {
                 break;
             case WARP_BACK:
                 if (GameStateHandler.getInstance().inGarden()) {
-                    MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
+                    MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, true));
                     FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                     lowerBPSState = LowerBPSState.END;
                 } else {
                     if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.HUB) {
-                        mc.thePlayer.sendChatMessage("/warp garden");
+                        MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, false));
                         FailsafeManager.getInstance().scheduleRandomDelay(2500, 2000);
                     } else if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
                         mc.thePlayer.sendChatMessage("/l");

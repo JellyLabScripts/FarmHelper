@@ -218,7 +218,7 @@ public class AntiStuck implements IFeature {
                 Optional<EnumFacing> closestSide = findClosestSide(intersectingBlockPos);
                 if (!closestSide.isPresent()) {
                     LogUtils.sendError("[Anti Stuck] Can't unstuck from this place. That's a rare occurrence. Warping back to spawn...");
-                    MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
+                    MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, true));
                     unstuckState = UnstuckState.DISABLE;
                     delayBetweenMovementsClock.schedule(150 + (int) (Math.random() * 250));
                     return;

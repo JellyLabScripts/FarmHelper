@@ -24,6 +24,7 @@ import net.minecraft.util.Vec3;
 
 public class TeleportFailsafe extends Failsafe {
     private static TeleportFailsafe instance;
+
     public static TeleportFailsafe getInstance() {
         if (instance == null) {
             instance = new TeleportFailsafe();
@@ -238,7 +239,7 @@ public class TeleportFailsafe extends Failsafe {
                     teleportCheckState = TeleportCheckState.ROTATE_TO_POS_BEFORE_2;
                     break;
                 }
-                MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
+                MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, true));
                 FailsafeManager.getInstance().scheduleRandomDelay(3000, 1000);
                 break;
             case END:

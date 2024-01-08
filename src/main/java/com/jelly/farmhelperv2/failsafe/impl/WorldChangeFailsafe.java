@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 public class WorldChangeFailsafe extends Failsafe {
     private static WorldChangeFailsafe instance;
+
     public static WorldChangeFailsafe getInstance() {
         if (instance == null) {
             instance = new WorldChangeFailsafe();
@@ -62,7 +63,8 @@ public class WorldChangeFailsafe extends Failsafe {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()
-                && FailsafeManager.getInstance().triggeredFailsafe.get().getType() == FailsafeManager.EmergencyType.WORLD_CHANGE_CHECK) return;
+                && FailsafeManager.getInstance().triggeredFailsafe.get().getType() == FailsafeManager.EmergencyType.WORLD_CHANGE_CHECK)
+            return;
 
         if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
             FailsafeManager.getInstance().possibleDetection(this);
@@ -73,7 +75,8 @@ public class WorldChangeFailsafe extends Failsafe {
     public void onChatMessageCheckLimbo(ClientChatReceivedEvent event) {
         if (FailsafeManager.getInstance().firstCheckReturn()) return;
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()
-                && FailsafeManager.getInstance().triggeredFailsafe.get().getType() != FailsafeManager.EmergencyType.WORLD_CHANGE_CHECK) return;
+                && FailsafeManager.getInstance().triggeredFailsafe.get().getType() != FailsafeManager.EmergencyType.WORLD_CHANGE_CHECK)
+            return;
 
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains(":")) return;
@@ -87,7 +90,8 @@ public class WorldChangeFailsafe extends Failsafe {
     public void onChatDetection(ClientChatReceivedEvent event) {
         if (event.type != 0) return;
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()
-                && FailsafeManager.getInstance().triggeredFailsafe.get().getType() != FailsafeManager.EmergencyType.WORLD_CHANGE_CHECK) return;
+                && FailsafeManager.getInstance().triggeredFailsafe.get().getType() != FailsafeManager.EmergencyType.WORLD_CHANGE_CHECK)
+            return;
 
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains(":")) return;
@@ -147,7 +151,7 @@ public class WorldChangeFailsafe extends Failsafe {
                     return;
                 } else if (!LagDetector.getInstance().isLagging()) {
                     LogUtils.sendDebug("[Failsafe] Sending /warp garden command...");
-                    mc.thePlayer.sendChatMessage("/warp garden");
+                    MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, true));
                     FailsafeManager.getInstance().scheduleRandomDelay(4500, 1000);
                 }
                 break;
@@ -160,6 +164,7 @@ public class WorldChangeFailsafe extends Failsafe {
     }
 
     private WorldChangeState worldChangeState = WorldChangeState.NONE;
+
     enum WorldChangeState {
         NONE,
         WAIT_BEFORE_START,

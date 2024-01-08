@@ -145,7 +145,7 @@ public class AutoGodPot implements IFeature {
         godPotMode = GodPotMode.NONE;
         KeyBindUtils.stopMovement();
         if (shouldTpToGarden)
-            MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true));
+            MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, true));
         shouldTpToGarden = true;
         Multithreading.schedule(() -> {
             LogUtils.sendWarning("[Auto God Pot] Disabled!");

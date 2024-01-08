@@ -6,13 +6,12 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.failsafe.impl.GuestVisitFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
+import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
-import com.jelly.farmhelperv2.util.AngleUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
-import net.minecraft.client.Minecraft;
 
 import java.util.List;
 import java.util.Map;
@@ -27,10 +26,6 @@ public class DebugHUD extends TextHud {
         if (!FarmHelperConfig.debugMode) return;
         lines.add("§lFarmHelper Debug HUD");
         lines.add("wasGuestOnGarden: " + GuestVisitFailsafe.getInstance().wasGuestOnGarden);
-        if (Minecraft.getMinecraft().thePlayer != null && Minecraft.getMinecraft().theWorld != null) {
-            lines.add("Minecraft Yaw: " + Minecraft.getMinecraft().thePlayer.rotationYaw);
-            lines.add("get360RotationYaw: " + AngleUtils.get360RotationYaw());
-        }
         if (MovRecPlayer.getInstance().isRunning()) {
             lines.add("Yaw Difference: " + MovRecPlayer.getYawDifference());
         }
@@ -40,7 +35,6 @@ public class DebugHUD extends TextHud {
             lines.add("Rotating: " + macro.getRotation().isRotating());
         });
         lines.add("Current plot: " + GameStateHandler.getInstance().getCurrentPlot());
-        lines.add("Speed: " + GameStateHandler.getInstance().getSpeed());
         lines.add("Directions: ");
         lines.add("   Forward: " + GameStateHandler.getInstance().isFrontWalkable());
         lines.add("   Backward: " + GameStateHandler.getInstance().isBackWalkable());
@@ -115,6 +109,10 @@ public class DebugHUD extends TextHud {
             for (Map.Entry<PestsDestroyer.Plot, Integer> pest : PestsDestroyer.getInstance().getPestsPlotMap().entrySet()) {
                 lines.add("   Plot: " + pest.getKey().name + " - " + pest.getValue());
             }
+        }
+        if (!FeatureManager.getInstance().getCurrentRunningFeatures().isEmpty()) {
+            lines.add("Running Features:");
+            FeatureManager.getInstance().getCurrentRunningFeatures().forEach(feature -> lines.add("   " + feature.getName()));
         }
         if (PestsDestroyer.getInstance().isRunning()) {
             lines.add("Pests Destroyer");

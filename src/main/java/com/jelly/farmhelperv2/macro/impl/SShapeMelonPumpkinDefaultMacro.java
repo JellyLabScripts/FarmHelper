@@ -277,11 +277,6 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
     }
 
     @Override
-    public boolean additionalCheck() {
-        return changeLaneDirection != null && changeLaneDirection == ChangeLaneDirection.BACKWARD;
-    }
-
-    @Override
     public void actionAfterTeleport() {
         changeLaneDirection = null;
     }
