@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.handler;
 import baritone.api.BaritoneAPI;
 import baritone.api.event.events.PathEvent;
 import baritone.api.pathing.goals.GoalBlock;
+import baritone.api.pathing.goals.GoalNear;
 import baritone.api.process.PathingCommand;
 import baritone.api.process.PathingCommandType;
 import com.jelly.farmhelperv2.util.helper.BaritoneEventListener;
@@ -16,12 +17,16 @@ public class BaritoneHandler {
     public static boolean pathing = false;
 
     public static boolean isWalkingToGoalBlock() {
+        return isWalkingToGoalBlock(0.75);
+    }
+
+    public static boolean isWalkingToGoalBlock(double nearGoalDistance) {
         if (pathing) {
             if (!mc.thePlayer.onGround) return true;
             GoalBlock goal = (GoalBlock) BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().getGoal();
             double distance = mc.thePlayer.getDistance(goal.getGoalPos().getX() + 0.5f, mc.thePlayer.posY, goal.getGoalPos().getZ() + 0.5);
             System.out.println("Pathing result: " + BaritoneEventListener.pathEvent);
-            if (distance <= 1.5 || BaritoneEventListener.pathEvent == PathEvent.AT_GOAL) {
+            if (distance <= nearGoalDistance || BaritoneEventListener.pathEvent == PathEvent.AT_GOAL) {
                 BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
                 pathing = false;
                 return false;
@@ -43,6 +48,12 @@ public class BaritoneHandler {
 
     public static void walkToBlockPos(BlockPos blockPos) {
         PathingCommand pathingCommand = new PathingCommand(new GoalBlock(blockPos), PathingCommandType.REVALIDATE_GOAL_AND_PATH);
+        BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().secretInternalSetGoalAndPath(pathingCommand);
+        pathing = true;
+    }
+
+    public static void walkCloserToBlockPos(BlockPos blockPos, int range) {
+        PathingCommand pathingCommand = new PathingCommand(new GoalNear(blockPos, range), PathingCommandType.REVALIDATE_GOAL_AND_PATH);
         BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().secretInternalSetGoalAndPath(pathingCommand);
         pathing = true;
     }
