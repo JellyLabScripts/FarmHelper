@@ -426,6 +426,8 @@ public class AutoSprayonator implements IFeature {
                         KeyBindUtils.rightClick();
                         sprayState = AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT;
                     }, 100 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
+                } else {
+                    sprayState = AUTO_SPRAYONATOR_STATE.HOLD_SPRAYONATOR;
                 }
                 break;
             case NONE:
