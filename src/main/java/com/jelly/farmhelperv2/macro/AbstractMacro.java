@@ -80,9 +80,6 @@ public abstract class AbstractMacro {
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent() || FailsafeManager.getInstance().getChooseEmergencyDelay().isScheduled()) {
             return;
         }
-        if (mc.thePlayer.capabilities.isFlying) {
-            return;
-        }
         checkForTeleport();
     }
 
@@ -310,17 +307,25 @@ public abstract class AbstractMacro {
 
     private void checkForTeleport() {
         if (!beforeTeleportationPos.isPresent()) return;
-        if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos.get()) > 2 && !PlayerUtils.isPlayerSuffocating()) {
-            if (!mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround) {
-                return;
-            } else if (mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround) {
-                if (!mc.gameSettings.keyBindSneak.isKeyDown()) {
-                    KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
-                    Multithreading.schedule(() -> KeyBindUtils.stopMovement(), (long) (350 + Math.random() * 300), TimeUnit.MILLISECONDS);
-                }
+        if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos.get()) > 2) {
+            if (PlayerUtils.isPlayerSuffocating()) {
+                LogUtils.sendDebug("Player is suffocating. Waiting");
                 return;
             }
-            afterRewarpDelay.schedule(5_000);
+            if (!mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround) {
+                LogUtils.sendDebug("Player is not on ground, but is not flying. Waiting");
+                return;
+            } else if (mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround) {
+                if (rewarpTeleport) {
+                    LogUtils.sendDebug("Player is flying, but is not on ground. Waiting");
+                    if (!mc.gameSettings.keyBindSneak.isKeyDown()) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
+                        Multithreading.schedule(() -> KeyBindUtils.stopMovement(), (long) (350 + Math.random() * 300), TimeUnit.MILLISECONDS);
+                    }
+                    return;
+                }
+            }
+            afterRewarpDelay.schedule(1_500);
             LogUtils.sendDebug("Teleported!");
             changeState(State.NONE);
             checkOnSpawnClock.reset();
@@ -356,7 +361,7 @@ public abstract class AbstractMacro {
             LogUtils.sendDebug("Warping to spawn point");
             mc.thePlayer.sendChatMessage("/warp garden");
             GameStateHandler.getInstance().scheduleRewarp();
-            
+
         }
     }
 

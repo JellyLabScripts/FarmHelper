@@ -339,7 +339,7 @@ public class RotationHandler {
         Rotation neededChange = getNeededChange(startRotation, rot);
         targetRotation.setYaw(startRotation.getYaw() + neededChange.getYaw());
         targetRotation.setPitch(startRotation.getPitch() + neededChange.getPitch());
-        delayBetweenTargetFollow.schedule(150 + Math.random() * 75);
+        delayBetweenTargetFollow.schedule(250 + Math.random() * 125);
     }
 
     @SubscribeEvent(receiveCanceled = true)

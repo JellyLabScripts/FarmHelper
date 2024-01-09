@@ -943,13 +943,16 @@ public class PestsDestroyer implements IFeature {
         Vec3 playerPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
         List<KeyBinding> keyBindings = new ArrayList<>(KeyBindUtils.getNeededKeyPresses(playerPos, target));
         if (objectsInFrontOfPlayer() || entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY >= 2) {
+            if (distanceWithoutY <= 2.5) {
+                keyBindings.clear();
+            }
             if (distance < 6) {
                 keyBindings.add(mc.gameSettings.keyBindUseItem);
             }
             if (mc.thePlayer.capabilities.isFlying) {
                 keyBindings.add(mc.gameSettings.keyBindJump);
             }
-            if (FarmHelperConfig.sprintWhileFlying) {
+            if (FarmHelperConfig.sprintWhileFlying && keyBindings.contains(mc.gameSettings.keyBindForward)) {
                 keyBindings.add(mc.gameSettings.keyBindSprint);
             }
             KeyBindUtils.holdThese(keyBindings.toArray(new KeyBinding[0]));
@@ -962,13 +965,13 @@ public class PestsDestroyer implements IFeature {
                 KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindSneak, distanceWithoutY > 6 && yawDifference < 25 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 1 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null, distanceWithoutY > 7 && yawDifference < 25 ? FarmHelperConfig.sprintWhileFlying ? mc.gameSettings.keyBindSprint : null : null);
             }
         } else {
-            if (distanceWithoutY < 3) {
+            if (distanceWithoutY <= 2.5 || distance <= 3.5) {
                 keyBindings.clear();
             }
             if (distance < 6) {
                 keyBindings.add(mc.gameSettings.keyBindUseItem);
             }
-            if (FarmHelperConfig.sprintWhileFlying) {
+            if (FarmHelperConfig.sprintWhileFlying && keyBindings.contains(mc.gameSettings.keyBindForward)) {
                 keyBindings.add(mc.gameSettings.keyBindSprint);
             }
             KeyBindUtils.holdThese(keyBindings.toArray(new KeyBinding[0]));
