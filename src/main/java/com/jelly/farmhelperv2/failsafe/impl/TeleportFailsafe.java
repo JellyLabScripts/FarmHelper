@@ -74,6 +74,11 @@ public class TeleportFailsafe extends Failsafe {
             return;
         }
 
+        if (AntiStuck.getInstance().isRunning()) {
+            LogUtils.sendDebug("[Failsafe] Teleportation packet received while AntiStuck is running. Ignoring");
+            return;
+        }
+
         S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
         Vec3 currentPlayerPos = mc.thePlayer.getPositionVector();
         Vec3 packetPlayerPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());

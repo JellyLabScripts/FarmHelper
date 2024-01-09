@@ -493,7 +493,9 @@ public class PestsDestroyer implements IFeature {
                 if (RotationHandler.getInstance().isRotating()) break;
 
                 Rotation rotation = RotationHandler.getInstance().getRotation(new Vec3(plotCenter.getX(), mc.thePlayer.posY + mc.thePlayer.height, plotCenter.getZ()));
-                double diff = Math.abs(rotation.getYaw() - mc.thePlayer.rotationYaw);
+                double diffYaw = Math.abs(rotation.getYaw() - mc.thePlayer.rotationYaw);
+                double diffPitch = Math.abs(rotation.getPitch() - mc.thePlayer.rotationPitch);
+                double diff = diffYaw + diffPitch;
                 if (diff > 5) {
                     RotationHandler.getInstance().easeTo(
                             new RotationConfiguration(

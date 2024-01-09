@@ -30,6 +30,8 @@ public abstract class AbstractMacro {
     private final RotationHandler rotation = RotationHandler.getInstance();
     private final Clock rewarpDelay = new Clock();
     private final Clock analyticsClock = new Clock();
+    @Getter
+    private final Clock afterRewarpDelay = new Clock();
     @Setter
     public State currentState = State.NONE;
     @Setter
@@ -274,6 +276,7 @@ public abstract class AbstractMacro {
             setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
         setEnabled(true);
         setLayerY(mc.thePlayer.getPosition().getY());
+        afterRewarpDelay.reset();
         analyticsClock.schedule(60_000);
         if (getCurrentState() == null)
             changeState(State.NONE);
@@ -317,6 +320,7 @@ public abstract class AbstractMacro {
                 }
                 return;
             }
+            afterRewarpDelay.schedule(5_000);
             LogUtils.sendDebug("Teleported!");
             changeState(State.NONE);
             checkOnSpawnClock.reset();
@@ -346,11 +350,13 @@ public abstract class AbstractMacro {
         }
         if (force || GameStateHandler.getInstance().canRewarp() && !beforeTeleportationPos.isPresent()) {
             rewarpState = RewarpState.TELEPORTING;
+            setBeforeTeleportationPos(Optional.ofNullable(mc.thePlayer.getPosition()));
+            LogUtils.sendDebug("Before tp location: " + beforeTeleportationPos);
             this.rewarpTeleport = rewarpTeleport;
             LogUtils.sendDebug("Warping to spawn point");
             mc.thePlayer.sendChatMessage("/warp garden");
             GameStateHandler.getInstance().scheduleRewarp();
-            setBeforeTeleportationPos(Optional.ofNullable(mc.thePlayer.getPosition()));
+            
         }
     }
 

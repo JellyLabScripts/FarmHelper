@@ -83,7 +83,7 @@ public class MacroHandler {
     }
 
     public boolean isTeleporting() {
-        return currentMacro.isPresent() && currentMacro.get().getRewarpState() != AbstractMacro.RewarpState.NONE;
+        return currentMacro.isPresent() && (currentMacro.get().getRewarpState() != AbstractMacro.RewarpState.NONE || !currentMacro.get().getAfterRewarpDelay().passed() );
     }
 
     public <T extends AbstractMacro> T getMacro() {

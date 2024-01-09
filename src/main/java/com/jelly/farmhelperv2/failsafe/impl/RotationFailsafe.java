@@ -70,6 +70,11 @@ public class RotationFailsafe extends Failsafe {
             return;
         }
 
+        if (AntiStuck.getInstance().isRunning()) {
+            LogUtils.sendDebug("[Failsafe] Rotation packet received while AntiStuck is running. Ignoring");
+            return;
+        }
+
         S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
         double packetYaw = packet.getYaw();
         double packetPitch = packet.getPitch();
