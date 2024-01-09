@@ -133,6 +133,10 @@ public class MacroHandler {
                 PestsDestroyer.getInstance().stop();
                 return;
             }
+            if (AutoPestHunter.getInstance().isRunning()) {
+                AutoPestHunter.getInstance().stop();
+                return;
+            }
             if (VisitorsMacro.getInstance().isInBarn()) {
                 if (VisitorsMacro.getInstance().isToggled()) {
                     VisitorsMacro.getInstance().setManuallyStarted(true);

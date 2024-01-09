@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.util;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.struct.DiscordWebhook;
+import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
 import com.jelly.farmhelperv2.feature.impl.ProfitCalculator;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -127,6 +128,8 @@ public class LogUtils {
                     .addField("Profit / hr", ProfitCalculator.getInstance().getProfitPerHourString(), false)
                     .addField("Crop Type", capitalize(String.valueOf(MacroHandler.getInstance().getCrop())), false)
                     .addField("Location", capitalize(GameStateHandler.getInstance().getLocation().getName()), false)
+                    .addField("Staff Bans", String.valueOf(BanInfoWS.getInstance().getStaffBans()), false)
+                    .addField("SkyBlock Bans", String.valueOf(BanInfoWS.getInstance().getBansByMod()), false)
             );
             Multithreading.schedule(() -> {
                 try {

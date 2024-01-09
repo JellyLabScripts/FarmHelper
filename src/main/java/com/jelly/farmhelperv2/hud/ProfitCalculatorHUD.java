@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.hud;
 
+import cc.polyfrost.oneconfig.config.annotations.Button;
 import cc.polyfrost.oneconfig.config.annotations.Color;
 import cc.polyfrost.oneconfig.config.annotations.Dropdown;
 import cc.polyfrost.oneconfig.config.annotations.Switch;
@@ -27,10 +28,16 @@ public class ProfitCalculatorHUD extends BasicHud {
     public static boolean countRNGToProfitCalc = false;
     @Switch(
             name = "Reset stats between disabling",
-            category = "Miscellaneous",
-            size = 2
+            category = "Miscellaneous"
     )
     public static boolean resetStatsBetweenDisabling = false;
+    @Button(
+            name = "Reset Profit Calculator",
+            category = "Miscellaneous",
+            text = "Reset Now",
+            size = 2
+    )
+    Runnable _resetProfitCalculator = ProfitCalculator.getInstance()::resetProfits;
     private final float iconWidth = 12 * scale;
     private final float iconHeight = 12 * scale;
     protected transient ArrayList<Tuple<String, String>> lines = new ArrayList<>();

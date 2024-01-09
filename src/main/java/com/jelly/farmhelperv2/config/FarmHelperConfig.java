@@ -45,6 +45,7 @@ public class FarmHelperConfig extends Config {
     private transient static final String JACOBS_CONTEST = "Jacob's Contest";
     private transient static final String VISITORS_MACRO = "Visitors Macro";
     private transient static final String PESTS_DESTROYER = "Pests Destroyer";
+    private transient static final String AUTO_PEST_HUNTER = "Auto Pest Hunter";
     private transient static final String DISCORD_INTEGRATION = "Discord Integration";
     private transient static final String DELAYS = "Delays";
     private transient static final String HUD = "HUD";
@@ -1260,6 +1261,52 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
     //</editor-fold>
 
+    //<editor-fold desc="AUTO PEST HUNTER">
+    @Switch(
+            name = "Enable Auto Pest Hunter", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            description = "Automatically hunts pests"
+    )
+    public static boolean autoPestHunter = false;
+    @Button(
+            name = "Trigger now Auto Pest Hunter", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            description = "Triggers the auto pest hunter manually",
+            text = "Trigger now"
+    )
+    public static void triggerManuallyAutoPestHunter() {
+        AutoPestHunter.getInstance().setManuallyStarted(true);
+        AutoPestHunter.getInstance().start();
+    }
+    @Button(
+            name = "Set the pest hunter location", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            description = "Sets the pest hunter location",
+            text = "Set desk"
+    )
+    public static Runnable setPestHunterLocation = () -> {
+        if (!VisitorsMacro.getInstance().isInBarn()) {
+            LogUtils.sendError("[Auto Pest Hunter] You need to be in the barn to set the pest hunter location!");
+            return;
+        }
+        pestHunterDeskX = mc.thePlayer.getPosition().getX();
+        pestHunterDeskY = mc.thePlayer.getPosition().getY();
+        pestHunterDeskZ = mc.thePlayer.getPosition().getZ();
+    };
+    @Number(
+            name = "Pest Hunter Desk X", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            min = -300, max = 300
+    )
+    public static int pestHunterDeskX = 0;
+    @Number(
+            name = "Pest Hunter Desk Y", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            min = 50, max = 150
+    )
+    public static int pestHunterDeskY = 0;
+    @Number(
+            name = "Pest Hunter Desk Z", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            min = -300, max = 300
+    )
+    public static int pestHunterDeskZ = 0;
+    //</editor-fold>
+
     //<editor-fold desc="DISCORD INTEGRATION">
     //<editor-fold desc="Webhook Discord">
     @Switch(
@@ -1707,6 +1754,10 @@ public class FarmHelperConfig extends Config {
         this.addDependency("sendWebhookLogIfPestsDetectionNumberExceeded", "enableWebHook");
         this.addDependency("pingEveryoneOnPestsDetectionNumberExceeded", "sendWebhookLogIfPestsDetectionNumberExceeded");
         this.addDependency("pingEveryoneOnPestsDetectionNumberExceeded", "enableWebHook");
+
+        this.hideIf("pestHunterDeskX", () -> true);
+        this.hideIf("pestHunterDeskY", () -> true);
+        this.hideIf("pestHunterDeskZ", () -> true);
 
         this.addDependency("pestRepellentType", "autoPestRepellent");
 

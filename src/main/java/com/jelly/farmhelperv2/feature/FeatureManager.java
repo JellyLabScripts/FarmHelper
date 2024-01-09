@@ -25,6 +25,7 @@ public class FeatureManager {
                 AutoCookie.getInstance(),
                 AutoGodPot.getInstance(),
                 AutoReconnect.getInstance(),
+                AutoPestHunter.getInstance(),
                 AutoRepellent.getInstance(),
                 AutoSell.getInstance(),
                 BanInfoWS.getInstance(),
