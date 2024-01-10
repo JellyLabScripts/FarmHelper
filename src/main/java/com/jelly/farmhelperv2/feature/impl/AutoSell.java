@@ -499,7 +499,6 @@ public class AutoSell implements IFeature {
                             if (slot == null || !slot.getHasStack() || slot.slotNumber < inv.getSizeInventory())
                                 continue;
                             String name = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
-                            if (slot.getStack().getItem() instanceof ItemTool) continue;
                             if (!shouldSell(name)) continue;
                             LogUtils.sendDebug("[Auto Sell] Selling " + name);
                             InventoryUtils.clickSlotWithId(slot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP, chest.windowId);
@@ -591,6 +590,8 @@ public class AutoSell implements IFeature {
     }
 
     private boolean shouldSell(String name) {
+        if (name.contains("Sack")) return false;
+        if (name.contains("Pouch")) return false;
         if (shouldSellCustomItem(name)) return true;
         return crops.stream().anyMatch(crop -> StringUtils.stripControlCodes(name).startsWith(crop));
     }
@@ -601,7 +602,6 @@ public class AutoSell implements IFeature {
         if (AutoSellNPCItemsPage.autoSellIronHoe && name.contains("Iron Hoe")) return true;
         if (!AutoSellNPCItemsPage.autoSellCustomItems.isEmpty()) {
             List<String> customItems = Arrays.asList(AutoSellNPCItemsPage.autoSellCustomItems.split("\\|"));
-            System.out.println(customItems);
             return customItems.stream().anyMatch(item -> StringUtils.stripControlCodes(name.toLowerCase()).contains(item.toLowerCase()));
         }
         return false;

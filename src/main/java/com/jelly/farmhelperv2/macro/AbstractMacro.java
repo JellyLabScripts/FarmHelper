@@ -17,7 +17,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.BlockPos;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 import java.util.Optional;
@@ -30,8 +30,7 @@ public abstract class AbstractMacro {
     private final RotationHandler rotation = RotationHandler.getInstance();
     private final Clock rewarpDelay = new Clock();
     private final Clock analyticsClock = new Clock();
-    @Getter
-    private final Clock afterRewarpDelay = new Clock();
+
     @Setter
     public State currentState = State.NONE;
     @Setter
@@ -54,15 +53,12 @@ public abstract class AbstractMacro {
     @Setter
     private boolean rotated = false;
     @Setter
-    private Optional<BlockPos> beforeTeleportationPos = Optional.empty();
-    @Setter
     private RewarpState rewarpState = RewarpState.NONE;
     @Setter
     private WalkingDirection walkingDirection = WalkingDirection.X;
     @Setter
     private int previousWalkingCoord = 0;
-    @Setter
-    private boolean rewarpTeleport = false;
+
 
     public boolean isEnabledAndNoFeature() {
         return enabled && !FeatureManager.getInstance().shouldPauseMacroExecution();
@@ -75,13 +71,6 @@ public abstract class AbstractMacro {
     private final Clock checkOnSpawnClock = new Clock();
 
     private boolean sentWarning = false;
-
-    public void onTickCheckTeleport() {
-        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent() || FailsafeManager.getInstance().getChooseEmergencyDelay().isScheduled()) {
-            return;
-        }
-        checkForTeleport();
-    }
 
     public void onTick() {
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent() || FailsafeManager.getInstance().getChooseEmergencyDelay().isScheduled()) {
@@ -113,7 +102,7 @@ public abstract class AbstractMacro {
                 }
                 checkOnSpawnClock.schedule(5000);
             } else {
-                triggerWarpGarden();
+                MacroHandler.getInstance().triggerWarpGarden(false, true);
             }
             return;
         }
@@ -133,7 +122,7 @@ public abstract class AbstractMacro {
         if (mc.thePlayer.getPosition().getY() < -5) {
             LogUtils.sendError("Build a wall between the rewarp point and the void to prevent falling out of the garden! Disabling the macro...");
             MacroHandler.getInstance().disableMacro();
-            triggerWarpGarden(true, false);
+            MacroHandler.getInstance().triggerWarpGarden(true, false);
             return;
         }
 
@@ -239,6 +228,17 @@ public abstract class AbstractMacro {
     }
 
     public void onPacketReceived(ReceivePacketEvent event) {
+        if (!(event.packet instanceof S08PacketPlayerPosLook)) return;
+        if (!MacroHandler.getInstance().isTeleporting()) return;
+
+        S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
+        Rotation packetRotation = new Rotation(packet.getYaw(), packet.getPitch());
+        Rotation currentRotation = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+        Rotation neededChange = RotationHandler.getInstance().getNeededChange(packetRotation, currentRotation);
+        double diff = Math.abs(neededChange.getYaw()) + Math.abs(neededChange.getPitch());
+        if (diff > 5) {
+            LogUtils.sendWarning("Your rotation hasn't been changed after rewarp! Disable any mod that blocks rotation packets!");
+        }
     }
 
     public abstract void updateState();
@@ -273,7 +273,6 @@ public abstract class AbstractMacro {
             setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
         setEnabled(true);
         setLayerY(mc.thePlayer.getPosition().getY());
-        afterRewarpDelay.reset();
         analyticsClock.schedule(60_000);
         if (getCurrentState() == null)
             changeState(State.NONE);
@@ -287,7 +286,6 @@ public abstract class AbstractMacro {
         setClosest90Deg(Optional.empty());
         rotation.reset();
         rewarpDelay.reset();
-        setBeforeTeleportationPos(Optional.empty());
         sentWarning = false;
         setEnabled(false);
     }
@@ -305,65 +303,7 @@ public abstract class AbstractMacro {
         setCurrentState(state);
     }
 
-    private void checkForTeleport() {
-        if (!beforeTeleportationPos.isPresent()) return;
-        if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos.get()) > 2) {
-            if (PlayerUtils.isPlayerSuffocating()) {
-                LogUtils.sendDebug("Player is suffocating. Waiting");
-                return;
-            }
-            if (!mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround) {
-                LogUtils.sendDebug("Player is not on ground, but is not flying. Waiting");
-                return;
-            } else if (mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround) {
-                if (rewarpTeleport) {
-                    LogUtils.sendDebug("Player is flying, but is not on ground. Waiting");
-                    if (!mc.gameSettings.keyBindSneak.isKeyDown()) {
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
-                        Multithreading.schedule(() -> KeyBindUtils.stopMovement(), (long) (350 + Math.random() * 300), TimeUnit.MILLISECONDS);
-                    }
-                    return;
-                }
-            }
-            afterRewarpDelay.schedule(1_500);
-            LogUtils.sendDebug("Teleported!");
-            changeState(State.NONE);
-            checkOnSpawnClock.reset();
-            beforeTeleportationPos = Optional.empty();
-            rotated = false;
-            GameStateHandler.getInstance().scheduleNotMoving(750);
-            rewarpDelay.schedule(FarmHelperConfig.getRandomTimeBetweenChangingRows());
-            if (rewarpTeleport) {
-                rewarpState = RewarpState.TELEPORTED;
-                actionAfterTeleport();
-            } else {
-                rewarpState = RewarpState.NONE;
-            }
-            rewarpTeleport = false;
-        }
-    }
-
     public abstract void actionAfterTeleport();
-
-    public void triggerWarpGarden() {
-        triggerWarpGarden(false, true);
-    }
-
-    public void triggerWarpGarden(boolean force, boolean rewarpTeleport) {
-        if (GameStateHandler.getInstance().notMoving()) {
-            KeyBindUtils.stopMovement();
-        }
-        if (force || GameStateHandler.getInstance().canRewarp() && !beforeTeleportationPos.isPresent()) {
-            rewarpState = RewarpState.TELEPORTING;
-            setBeforeTeleportationPos(Optional.ofNullable(mc.thePlayer.getPosition()));
-            LogUtils.sendDebug("Before tp location: " + beforeTeleportationPos);
-            this.rewarpTeleport = rewarpTeleport;
-            LogUtils.sendDebug("Warping to spawn point");
-            mc.thePlayer.sendChatMessage("/warp garden");
-            GameStateHandler.getInstance().scheduleRewarp();
-
-        }
-    }
 
     public State calculateDirection() {
         if (BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air) && BlockUtils.getRelativeBlock(-1, -1, 0).equals(Blocks.air)) {

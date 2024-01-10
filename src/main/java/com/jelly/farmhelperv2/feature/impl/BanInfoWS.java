@@ -27,7 +27,6 @@ import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.compress.utils.IOUtils;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
@@ -53,6 +52,8 @@ public class BanInfoWS implements IFeature {
     private static BanInfoWS instance;
     private final HttpClient httpClient;
     private final Clock reconnectDelay = new Clock();
+    @Getter
+    private long lastReceivedPacket = System.currentTimeMillis();
     @Unique
     private final List<String> times = Arrays.asList(
             "23h 59m 59s",
@@ -80,7 +81,8 @@ public class BanInfoWS implements IFeature {
     @Setter
     private int bansByMod = 0;
 
-    private int retryCount = 0;
+    @Getter
+    private boolean receivedBanwaveInfo = false;
 
     public BanInfoWS() {
         try {
@@ -225,15 +227,17 @@ public class BanInfoWS implements IFeature {
     }
 
     @SubscribeEvent
+    public void onCheckIfDisconnected(TickEvent.ClientTickEvent event) {
+        if (client != null && client.isOpen() && System.currentTimeMillis() - lastReceivedPacket > 120_000L) {
+            LogUtils.sendDebug("Disconnected from analytics server (no packets received in 2 minutes)");
+            client.close();
+            client = null;
+        }
+    }
+
+    @SubscribeEvent
     public void onTickReconnect(TickEvent.ClientTickEvent event) {
         if (reconnectDelay.isScheduled() && !reconnectDelay.passed()) return;
-        if (retryCount > 5) return;
-        if (retryCount == 4) {
-            LogUtils.sendWarning("Failed to connect to the analytics server 5 times. Restart Minecraft to try again.");
-            reconnectDelay.reset();
-            retryCount = 999;
-            return;
-        }
 
         if (client == null || client.isClosed() || !client.isOpen()) {
             try {
@@ -341,9 +345,8 @@ public class BanInfoWS implements IFeature {
                     post.addHeader(header.getKey(), FarmHelper.gson.toJson(header.getValue()));
                 }
                 Multithreading.schedule(() -> {
-                    HttpResponse response = null;
                     try {
-                        response = httpClient.execute(post);
+                        httpClient.execute(post);
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
@@ -540,7 +543,6 @@ public class BanInfoWS implements IFeature {
             handshake.addProperty("serverId", serverId);
         } catch (AuthenticationException e) {
             e.printStackTrace();
-            retryCount++;
             reconnectDelay.schedule(60_000L);
             return null;
         }
@@ -575,13 +577,14 @@ public class BanInfoWS implements IFeature {
                 String msg = jsonObject.get("message").getAsString();
                 switch (msg) {
                     case "banwaveInfo": {
-                        retryCount = 0;
                         int bans = jsonObject.get("bansInLast15Minutes").getAsInt();
                         int minutes = jsonObject.get("bansInLast15MinutesTime").getAsInt();
                         int bansByMod = jsonObject.get("bansInLast15MinutesMod").getAsInt();
                         BanInfoWS.getInstance().setStaffBans(bans);
                         BanInfoWS.getInstance().setMinutes(minutes);
                         BanInfoWS.getInstance().setBansByMod(bansByMod);
+                        lastReceivedPacket = System.currentTimeMillis();
+                        receivedBanwaveInfo = true;
                         System.out.println("Banwave info received: " + bans + " global staff bans in the last " + minutes + " minutes, " + bansByMod + " bans by this mod");
                         break;
                     }
@@ -598,10 +601,13 @@ public class BanInfoWS implements IFeature {
 
             @Override
             public void onClose(int code, String reason, boolean remote) {
+                if (client != null && client.isOpen()) // double check?? lol
+                    client.close();
+                client = null;
                 LogUtils.sendDebug("Disconnected from analytics server");
                 LogUtils.sendDebug("Code: " + code + ", reason: " + reason + ", remote: " + remote);
-                retryCount++;
-                reconnectDelay.schedule(5_000L * (retryCount + 1));
+                if (!reconnectDelay.isScheduled())
+                    reconnectDelay.schedule(15_000L);
             }
 
             @Override

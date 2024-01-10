@@ -135,7 +135,7 @@ public class WorldChangeFailsafe extends Failsafe {
                 if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY && !LagDetector.getInstance().isLagging()) {
                     LogUtils.sendDebug("[Failsafe] In lobby, sending /skyblock command...");
                     mc.thePlayer.sendChatMessage("/skyblock");
-                    FailsafeManager.getInstance().scheduleRandomDelay(4500, 1000);
+                    FailsafeManager.getInstance().scheduleRandomDelay(10_500, 5000);
                     return;
                 }
                 if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
@@ -151,8 +151,8 @@ public class WorldChangeFailsafe extends Failsafe {
                     return;
                 } else if (!LagDetector.getInstance().isLagging()) {
                     LogUtils.sendDebug("[Failsafe] Sending /warp garden command...");
-                    MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, true));
-                    FailsafeManager.getInstance().scheduleRandomDelay(4500, 1000);
+                    MacroHandler.getInstance().triggerWarpGarden(true, true);
+                    FailsafeManager.getInstance().scheduleRandomDelay(8500, 1000);
                 }
                 break;
         }

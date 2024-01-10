@@ -23,9 +23,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
+import org.lwjgl.input.Keyboard;
 
+import java.awt.*;
+import java.util.List;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -43,6 +47,7 @@ public class VisitorsMacro implements IFeature {
     private final Clock delayClock = new Clock();
     @Getter
     private final Clock stuckClock = new Clock();
+    private final Clock afkDelay = new Clock();
     private final int STUCK_DELAY = (int) (7_500 + FarmHelperConfig.macroGuiDelay + FarmHelperConfig.macroGuiDelayRandomness);
     private final RotationHandler rotation = RotationHandler.getInstance();
     private final ArrayList<String> visitors = new ArrayList<>();
@@ -171,7 +176,9 @@ public class VisitorsMacro implements IFeature {
 
     @Override
     public void resetStatesAfterMacroDisabled() {
-
+        if (!FarmHelperConfig.visitorsMacroAfkInfiniteMode) return;
+        FarmHelperConfig.visitorsMacroAfkInfiniteMode = false;
+        LogUtils.sendWarning("[Visitors Macro] AFK Mode has been disabled");
     }
 
     @Override
@@ -182,6 +189,36 @@ public class VisitorsMacro implements IFeature {
     @Override
     public boolean shouldCheckForFailsafes() {
         return travelState != TravelState.WAIT_FOR_TP && mainState != MainState.DISABLING && mainState != MainState.END;
+    }
+
+    @SubscribeEvent
+    public void onKeyInput(InputEvent.KeyInputEvent event) {
+        if (!FarmHelperConfig.visitorsMacroAfkInfiniteMode) return;
+        if (Keyboard.getEventKeyState() && Keyboard.getEventKey() == Keyboard.KEY_ESCAPE) {
+            LogUtils.sendWarning("[Visitors Macro] AFK Mode has been disabled");
+            stop();
+            FarmHelperConfig.visitorsMacroAfkInfiniteMode = false;
+        }
+    }
+
+    @SubscribeEvent
+    public void onTickAFKMode(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) return;
+        if (!FarmHelperConfig.visitorsMacroAfkInfiniteMode) return;
+        if (mc.thePlayer == null || mc.theWorld == null) {
+            FarmHelperConfig.visitorsMacroAfkInfiniteMode = false;
+            FailsafeUtils.getInstance().sendNotification("[Visitors Macro] AFK Mode has been disabled", TrayIcon.MessageType.WARNING);
+            return;
+        }
+        if (MacroHandler.getInstance().isMacroToggled()) return;
+        if (!isInBarn()) return;
+        if (isRunning()) return;
+        if (!afkDelay.passed()) return;
+
+        if (canEnableMacro(true, true)) {
+            manuallyStarted = true;
+            start();
+        }
     }
 
     public boolean canEnableMacro(boolean manual, boolean withError) {
@@ -195,7 +232,7 @@ public class VisitorsMacro implements IFeature {
             return false;
         }
 
-        if (!manual && !forceStart && (!PlayerUtils.isStandingOnSpawnPoint() && !PlayerUtils.isStandingOnRewarpLocation())) {
+        if (!manual && !forceStart && !PlayerUtils.isStandingOnSpawnPoint() && !PlayerUtils.isStandingOnRewarpLocation()) {
             if (withError)
                 LogUtils.sendError("[Visitors Macro] The player is not standing on spawn location, skipping...");
             return false;
@@ -213,11 +250,19 @@ public class VisitorsMacro implements IFeature {
 
         if (GameStateHandler.getInstance().getCurrentPurse() < FarmHelperConfig.visitorsMacroMinMoney * 1_000) {
             if (withError) LogUtils.sendError("[Visitors Macro] The player's purse is too low, skipping...");
+            if (FarmHelperConfig.visitorsMacroAfkInfiniteMode) {
+                LogUtils.sendWarning("[Visitors Macro] Your purse is too low. Disabling AFK mode");
+                FarmHelperConfig.visitorsMacroAfkInfiniteMode = false;
+            }
             return false;
         }
 
         if (!manual && visitors.size() < FarmHelperConfig.visitorsMacroMinVisitors) {
             if (withError) LogUtils.sendError("[Visitors Macro] Not enough Visitors in queue, skipping...");
+            if (FarmHelperConfig.visitorsMacroAfkInfiniteMode) {
+                LogUtils.sendDebug("[Visitors Macro] Waiting 15 seconds for visitors to spawn...");
+                afkDelay.schedule(15_000);
+            }
             return false;
         }
 
@@ -314,7 +359,7 @@ public class VisitorsMacro implements IFeature {
             case END:
                 setMainState(MainState.DISABLING);
                 Multithreading.schedule(() -> {
-                    MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, true));
+                    MacroHandler.getInstance().triggerWarpGarden(true, true);
                     Multithreading.schedule(() -> {
                         stop();
                         MacroHandler.getInstance().resumeMacro();
@@ -635,7 +680,7 @@ public class VisitorsMacro implements IFeature {
     private void onVisitorsState() {
         switch (visitorsState) {
             case NONE:
-                if (visitors.isEmpty() && manuallyStarted) {
+                if (visitors.isEmpty() && FarmHelperConfig.visitorsMacroAfkInfiniteMode) {
                     LogUtils.sendDebug("[Visitors Macro] No visitors in the queue, waiting...");
                     delayClock.schedule(getRandomDelay());
                     return;
@@ -1031,12 +1076,10 @@ public class VisitorsMacro implements IFeature {
                 currentRewards.clear();
                 LogUtils.sendSuccess("[Visitors Macro] Spent §2" + ProfitCalculator.getInstance().getFormatter().format(spentMoney) + " on visitors");
                 spentMoney = 0;
-                if (!manuallyStarted) {
-                    if (enableCompactors) {
-                        setMainState(MainState.COMPACTORS);
-                    } else {
-                        setMainState(MainState.END);
-                    }
+                if (enableCompactors) {
+                    setMainState(MainState.COMPACTORS);
+                } else {
+                    setMainState(MainState.END);
                 }
                 setVisitorsState(VisitorsState.NONE);
                 delayClock.schedule(1_800);

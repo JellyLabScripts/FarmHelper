@@ -7,6 +7,8 @@ import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
+import net.minecraft.util.StringUtils;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 public class EvacuateFailsafe extends Failsafe {
@@ -63,6 +65,14 @@ public class EvacuateFailsafe extends Failsafe {
     }
 
     @Override
+    public void onChatDetection(ClientChatReceivedEvent event) {
+        String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());
+        if (msg.startsWith("You can't use this when the server is about to")) {
+            FailsafeManager.getInstance().possibleDetection(this);
+        }
+    }
+
+    @Override
     public void duringFailsafeTrigger() {
         switch (evacuateState) {
             case NONE:
@@ -85,7 +95,7 @@ public class EvacuateFailsafe extends Failsafe {
                     FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 } else {
                     if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.HUB) {
-                        MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, true));
+                        MacroHandler.getInstance().triggerWarpGarden(true, true);
                         FailsafeManager.getInstance().scheduleRandomDelay(2500, 2000);
                     } else {
                         mc.thePlayer.sendChatMessage("/skyblock");

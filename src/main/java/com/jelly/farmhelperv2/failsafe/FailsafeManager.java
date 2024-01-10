@@ -42,6 +42,7 @@ public class FailsafeManager {
         }
         return instance;
     }
+
     public final List<Failsafe> failsafes = new ArrayList<>();
     public Optional<Failsafe> triggeredFailsafe = Optional.empty();
     @Getter
@@ -280,7 +281,7 @@ public class FailsafeManager {
                 PlayerUtils.closeScreen();
             }
             if (FarmHelperConfig.alwaysTeleportToGarden) {
-                MacroHandler.getInstance().getCurrentMacro().ifPresent(AbstractMacro::triggerWarpGarden);
+                MacroHandler.getInstance().triggerWarpGarden(true, true);
             }
             restartMacroAfterFailsafeDelay.reset();
             Multithreading.schedule(() -> {

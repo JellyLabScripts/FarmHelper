@@ -92,12 +92,12 @@ public class LowerAvgBpsFailsafe extends Failsafe {
                 break;
             case WARP_BACK:
                 if (GameStateHandler.getInstance().inGarden()) {
-                    MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, true));
+                    MacroHandler.getInstance().triggerWarpGarden(true, true);
                     FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                     lowerBPSState = LowerBPSState.END;
                 } else {
                     if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.HUB) {
-                        MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, false));
+                        MacroHandler.getInstance().triggerWarpGarden(true, false);
                         FailsafeManager.getInstance().scheduleRandomDelay(2500, 2000);
                     } else if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
                         mc.thePlayer.sendChatMessage("/l");

@@ -50,9 +50,11 @@ public class AutoPestHunter implements IFeature {
     @Getter
     private final Clock delayClock = new Clock();
     private BlockPos positionBeforeTp;
+
     private BlockPos deskPos() {
         return new BlockPos(FarmHelperConfig.pestHunterDeskX, FarmHelperConfig.pestHunterDeskY, FarmHelperConfig.pestHunterDeskZ);
     }
+
     private static final RotationHandler rotation = RotationHandler.getInstance();
 
     @Override
@@ -257,7 +259,7 @@ public class AutoPestHunter implements IFeature {
             case GO_BACK:
                 if (!manuallyStarted) {
                     Multithreading.schedule(() -> {
-                        MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, false));
+                        MacroHandler.getInstance().triggerWarpGarden(true, false);
                         Multithreading.schedule(() -> {
                             MacroHandler.getInstance().resumeMacro();
                         }, 1_000, TimeUnit.MILLISECONDS);

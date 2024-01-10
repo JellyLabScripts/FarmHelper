@@ -1083,6 +1083,13 @@ public class FarmHelperConfig extends Config {
     )
     public static int visitorsMacroMaxSpendLimit = 700;
 
+    @Switch(
+            name = "Visitors Macro Afk Infinite mode",
+            description = "Will turn on Visitors Macro automatically when you are not farming and in the barn. Click macro toggle button to disable this option",
+            category = VISITORS_MACRO, subcategory = "Visitors Macro"
+    )
+    public static boolean visitorsMacroAfkInfiniteMode = false;
+
     @Button(
             name = "Start the macro manually", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "Triggers the visitors macro",
@@ -1199,6 +1206,13 @@ public class FarmHelperConfig extends Config {
         }
     }
 
+    @Switch(
+            name = "Pests Destroyer Afk Infinite mode",
+            description = "Will turn on Pests Destroyer automatically when you are not farming. Click macro toggle button to disable this option",
+            category = PESTS_DESTROYER, subcategory = "Pests Destroyer"
+    )
+    public static boolean pestsDestroyerAfkInfiniteMode = false;
+
     @KeyBind(
             name = "Enable Pests Destroyer", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Enables the pests destroyer",
@@ -1267,6 +1281,7 @@ public class FarmHelperConfig extends Config {
             description = "Automatically hunts pests"
     )
     public static boolean autoPestHunter = false;
+
     @Button(
             name = "Trigger now Auto Pest Hunter", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
             description = "Triggers the auto pest hunter manually",
@@ -1276,6 +1291,7 @@ public class FarmHelperConfig extends Config {
         AutoPestHunter.getInstance().setManuallyStarted(true);
         AutoPestHunter.getInstance().start();
     }
+
     @Button(
             name = "Set the pest hunter location", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
             description = "Sets the pest hunter location",

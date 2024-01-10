@@ -8,6 +8,8 @@ import com.jelly.farmhelperv2.macro.AbstractMacro;
 import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
+import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 
 import java.util.Optional;
 
@@ -21,31 +23,45 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
         switch (getCurrentState()) {
             case LEFT:
             case RIGHT: {
-                if (GameStateHandler.getInstance().isLeftWalkable() && getCurrentState() == State.LEFT) {
+                if ((GameStateHandler.getInstance().isLeftWalkable()) && getCurrentState() == State.LEFT) {
                     // Probably stuck in dirt, continue going left
+                    AntiStuck.getInstance().setDirectionBlockPos(BlockUtils.getRelativeBlockPos(0, 0, -1, getYaw()));
+                    AntiStuck.getInstance().start();
                     return;
                 }
-                if (GameStateHandler.getInstance().isRightWalkable() && getCurrentState() == State.RIGHT) {
+                if ((GameStateHandler.getInstance().isRightWalkable()) && getCurrentState() == State.RIGHT) {
                     // Probably stuck in dirt, continue going right
+                    AntiStuck.getInstance().setDirectionBlockPos(BlockUtils.getRelativeBlockPos(0, 0, -1, getYaw()));
+                    AntiStuck.getInstance().start();
                     return;
                 }
                 if (GameStateHandler.getInstance().isFrontWalkable() && !FarmHelperConfig.alwaysHoldW) {
-                    if (changeLaneDirection == ChangeLaneDirection.BACKWARD) {
-                        // Probably stuck in dirt
-                        changeState(State.NONE);
+                    if (stuckInMelonsOrPumpkins()) {
+                        AntiStuck.getInstance().setDirectionBlockPos(BlockUtils.getRelativeBlockPos(0, 0, -1, getYaw()));
+                        AntiStuck.getInstance().start();
                         return;
                     }
+//                    if (changeLaneDirection == ChangeLaneDirection.BACKWARD) {
+//                        // Probably stuck in dirt
+//                        changeState(State.NONE);
+//                        return;
+//                    }
                     changeState(State.SWITCHING_LANE);
-                    changeLaneDirection = ChangeLaneDirection.FORWARD;
+//                    changeLaneDirection = ChangeLaneDirection.FORWARD;
                     setWalkingDirection();
                 } else if (GameStateHandler.getInstance().isBackWalkable() && !FarmHelperConfig.alwaysHoldW) {
-                    if (changeLaneDirection == ChangeLaneDirection.FORWARD) {
-                        // Probably stuck in dirt
-                        changeState(State.NONE);
+//                    if (changeLaneDirection == ChangeLaneDirection.FORWARD) {
+//                        // Probably stuck in dirt
+//                        changeState(State.NONE);
+//                        return;
+//                    }
+                    if (stuckInMelonsOrPumpkins()) {
+                        AntiStuck.getInstance().setDirectionBlockPos(BlockUtils.getRelativeBlockPos(0, 0, -1, getYaw()));
+                        AntiStuck.getInstance().start();
                         return;
                     }
                     changeState(State.SWITCHING_LANE);
-                    changeLaneDirection = ChangeLaneDirection.BACKWARD;
+//                    changeLaneDirection = ChangeLaneDirection.BACKWARD;
                     setWalkingDirection();
                 } else {
                     if (GameStateHandler.getInstance().isLeftWalkable()) {
@@ -113,6 +129,12 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 LogUtils.sendDebug("This shouldn't happen, but it did...");
                 changeState(State.NONE);
         }
+    }
+
+    private boolean stuckInMelonsOrPumpkins() {
+        Block leftBlock = BlockUtils.getBlock(BlockUtils.getRelativeBlockPos(-1, 0, 0, getYaw()));
+        Block rightBlock = BlockUtils.getBlock(BlockUtils.getRelativeBlockPos(1, 0, 0, getYaw()));
+        return leftBlock.equals(Blocks.pumpkin) || leftBlock.equals(Blocks.melon_block) || rightBlock.equals(Blocks.pumpkin) || rightBlock.equals(Blocks.melon_block);
     }
 
     private boolean lagBackDetected(int currentCoord) {

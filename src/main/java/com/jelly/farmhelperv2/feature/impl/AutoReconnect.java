@@ -190,7 +190,7 @@ public class AutoReconnect implements IFeature {
                     state = State.LOBBY;
                     reconnectDelay.schedule(5_000);
                 } else {
-                    MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, false));
+                    MacroHandler.getInstance().triggerWarpGarden(true, false);
                     reconnectDelay.schedule(5_000);
                 }
                 break;

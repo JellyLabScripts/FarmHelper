@@ -163,4 +163,21 @@ public class KeyBindUtils {
         });
         return keys;
     }
+
+    public static List<KeyBinding> getKeyPressesToDecelerate() {
+        double motionX = mc.thePlayer.motionX;
+        double motionZ = mc.thePlayer.motionZ;
+        List<KeyBinding> keys = new ArrayList<>();
+        if (motionX > 0.1) {
+            keys.add(mc.gameSettings.keyBindLeft);
+        } else if (motionX < -0.1) {
+            keys.add(mc.gameSettings.keyBindRight);
+        }
+        if (motionZ > 0.1) {
+            keys.add(mc.gameSettings.keyBindBack);
+        } else if (motionZ < -0.1) {
+            keys.add(mc.gameSettings.keyBindForward);
+        }
+        return keys;
+    }
 }

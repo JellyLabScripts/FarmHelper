@@ -42,6 +42,8 @@ public class AntiStuck implements IFeature {
     private boolean enabled = false;
     @Setter
     private BlockPos intersectingBlockPos = null;
+    @Setter
+    private BlockPos directionBlockPos = null;
     private final ArrayList<KeyBinding> oppositeKeys = new ArrayList<>();
     @Getter
     @Setter
@@ -99,6 +101,7 @@ public class AntiStuck implements IFeature {
         enabled = false;
         unstuckState = UnstuckState.NONE;
         intersectingBlockPos = null;
+        directionBlockPos = null;
     }
 
     @Override
@@ -209,23 +212,27 @@ public class AntiStuck implements IFeature {
                 delayBetweenMovementsClock.schedule(150 + (int) (Math.random() * 150));
                 break;
             case PRESS:
-                if (intersectingBlockPos == null) {
+                if (intersectingBlockPos == null && directionBlockPos == null) {
                     KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak, mc.gameSettings.keyBindBack);
                     unstuckState = UnstuckState.RELEASE;
                     delayBetweenMovementsClock.schedule(100 + (int) (Math.random() * 100));
                     break;
                 }
-                Optional<EnumFacing> closestSide = findClosestSide(intersectingBlockPos);
-                if (!closestSide.isPresent()) {
-                    LogUtils.sendError("[Anti Stuck] Can't unstuck from this place. That's a rare occurrence. Warping back to spawn...");
-                    MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.triggerWarpGarden(true, true));
-                    unstuckState = UnstuckState.DISABLE;
-                    delayBetweenMovementsClock.schedule(150 + (int) (Math.random() * 250));
-                    return;
-                }
-                EnumFacing facing = closestSide.get();
-                Vec3 movementTarget = getMovementTarget(intersectingBlockPos, facing);
-                List<KeyBinding> keys = KeyBindUtils.getNeededKeyPresses(mc.thePlayer.getPositionVector(), movementTarget);
+                List<KeyBinding> keys;
+                if (intersectingBlockPos != null) {
+                    Optional<EnumFacing> closestSide = findClosestSide(intersectingBlockPos);
+                    if (!closestSide.isPresent()) {
+                        LogUtils.sendError("[Anti Stuck] Can't unstuck from this place. That's a rare occurrence. Warping back to spawn...");
+                        MacroHandler.getInstance().triggerWarpGarden(true, true);
+                        unstuckState = UnstuckState.DISABLE;
+                        delayBetweenMovementsClock.schedule(150 + (int) (Math.random() * 250));
+                        return;
+                    }
+                    EnumFacing facing = closestSide.get();
+                    Vec3 movementTarget = getMovementTarget(intersectingBlockPos, facing);
+                    keys = KeyBindUtils.getNeededKeyPresses(mc.thePlayer.getPositionVector(), movementTarget);
+                } else
+                    keys = KeyBindUtils.getNeededKeyPresses(mc.thePlayer.getPositionVector(), new Vec3(directionBlockPos.getX() + 0.5f, directionBlockPos.getY() + 0.5f, directionBlockPos.getZ() + 0.5f));
                 oppositeKeys.clear();
                 for (KeyBinding key : keys) {
                     oppositeKeys.add(getOppositeKey(key));
@@ -236,17 +243,20 @@ public class AntiStuck implements IFeature {
                 keys.add(mc.gameSettings.keyBindAttack);
                 KeyBindUtils.holdThese(keys.toArray(new KeyBinding[0]));
                 unstuckState = UnstuckState.RELEASE;
-                delayBetweenMovementsClock.schedule(100 + (int) (Math.random() * 100));
+                delayBetweenMovementsClock.schedule(80 + (int) (Math.random() * 80));
                 break;
             case RELEASE:
                 KeyBindUtils.stopMovement();
-                unstuckState = UnstuckState.COME_BACK;
-                delayBetweenMovementsClock.schedule(100 + (int) (Math.random() * 100));
+                if (directionBlockPos != null)
+                    unstuckState = UnstuckState.DISABLE;
+                else
+                    unstuckState = UnstuckState.COME_BACK;
+                delayBetweenMovementsClock.schedule(50 + (int) (Math.random() * 50));
                 break;
             case COME_BACK:
                 KeyBindUtils.holdThese(oppositeKeys.toArray(new KeyBinding[0]));
                 unstuckState = UnstuckState.DISABLE;
-                delayBetweenMovementsClock.schedule(100 + (int) (Math.random() * 100));
+                delayBetweenMovementsClock.schedule(80 + (int) (Math.random() * 80));
                 break;
             case DISABLE:
                 KeyBindUtils.stopMovement();

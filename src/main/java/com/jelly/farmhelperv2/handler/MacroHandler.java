@@ -18,6 +18,7 @@ import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.RenderUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
+import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import com.jelly.farmhelperv2.util.helper.Timer;
 import lombok.AllArgsConstructor;
@@ -83,7 +84,7 @@ public class MacroHandler {
     }
 
     public boolean isTeleporting() {
-        return currentMacro.isPresent() && (currentMacro.get().getRewarpState() != AbstractMacro.RewarpState.NONE || !currentMacro.get().getAfterRewarpDelay().passed() );
+        return currentMacro.isPresent() && (currentMacro.get().getRewarpState() != AbstractMacro.RewarpState.NONE || !afterRewarpDelay.passed());
     }
 
     public <T extends AbstractMacro> T getMacro() {
@@ -125,11 +126,19 @@ public class MacroHandler {
             } else {
                 BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
             }
-            if (VisitorsMacro.getInstance().isRunning()) {
+            if (VisitorsMacro.getInstance().isRunning() || FarmHelperConfig.visitorsMacroAfkInfiniteMode) {
+                if (FarmHelperConfig.visitorsMacroAfkInfiniteMode) {
+                    LogUtils.sendWarning("[Visitors Macro] Disabling AFK Mode!");
+                    FarmHelperConfig.visitorsMacroAfkInfiniteMode = false;
+                }
                 VisitorsMacro.getInstance().stop();
                 return;
             }
-            if (PestsDestroyer.getInstance().isRunning()) {
+            if (PestsDestroyer.getInstance().isRunning() || FarmHelperConfig.pestsDestroyerAfkInfiniteMode) {
+                if (FarmHelperConfig.pestsDestroyerAfkInfiniteMode) {
+                    LogUtils.sendWarning("[Pests Destroyer] Disabling AFK Mode!");
+                    FarmHelperConfig.pestsDestroyerAfkInfiniteMode = false;
+                }
                 PestsDestroyer.getInstance().stop();
                 return;
             }
@@ -246,6 +255,7 @@ public class MacroHandler {
             if (cm.isPaused()) return;
             cm.saveState();
             cm.onDisable();
+            beforeTeleportationPos = Optional.empty();
             macroingTimer.pause();
             analyticsTimer.pause();
             LowerAvgBpsFailsafe.getInstance().endOfFailsafeTrigger();
@@ -269,6 +279,7 @@ public class MacroHandler {
             PlayerUtils.getTool();
             macroingTimer.resume();
             analyticsTimer.resume();
+            afterRewarpDelay.reset();
             Scheduler.getInstance().resume();
         });
     }
@@ -310,10 +321,8 @@ public class MacroHandler {
             }
             return;
         }
-
+        onTickCheckTeleport();
         currentMacro.ifPresent(cm -> {
-            if (isMacroToggled())
-                cm.onTickCheckTeleport();
             if (!cm.isEnabledAndNoFeature()) return;
             cm.onTick();
         });
@@ -398,6 +407,75 @@ public class MacroHandler {
             m.setCurrentState(AbstractMacro.State.NONE);
             m.getSavedState().ifPresent(ss -> ss.setState(AbstractMacro.State.NONE));
         });
+    }
+
+    @Setter
+    private Optional<BlockPos> beforeTeleportationPos = Optional.empty();
+    @Getter
+    private final Clock afterRewarpDelay = new Clock();
+    @Setter
+    private boolean rewarpTeleport = false;
+
+    public void onTickCheckTeleport() {
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent() || FailsafeManager.getInstance().getChooseEmergencyDelay().isScheduled()) {
+            return;
+        }
+        checkForTeleport();
+    }
+
+    private void checkForTeleport() {
+        if (!beforeTeleportationPos.isPresent()) return;
+        if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos.get()) > 2) {
+            if (PlayerUtils.isPlayerSuffocating()) {
+                LogUtils.sendDebug("Player is suffocating. Waiting");
+                return;
+            }
+            if (!mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround) {
+                LogUtils.sendDebug("Player is not on ground, but is not flying. Waiting");
+                return;
+            } else if (mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround) {
+                if (rewarpTeleport) {
+                    LogUtils.sendDebug("Player is flying, but is not on ground. Waiting");
+                    if (!mc.gameSettings.keyBindSneak.isKeyDown()) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak);
+                        Multithreading.schedule(KeyBindUtils::stopMovement, (long) (350 + Math.random() * 300), TimeUnit.MILLISECONDS);
+                    }
+                    return;
+                }
+            }
+            afterRewarpDelay.schedule(1_500);
+            LogUtils.sendDebug("Teleported!");
+            currentMacro.ifPresent(cm -> {
+                cm.changeState(AbstractMacro.State.NONE);
+                cm.getCheckOnSpawnClock().reset();
+                cm.setRotated(false);
+                cm.getRewarpDelay().schedule(FarmHelperConfig.getRandomTimeBetweenChangingRows());
+                if (rewarpTeleport) {
+                    cm.setRewarpState(AbstractMacro.RewarpState.TELEPORTED);
+                    cm.actionAfterTeleport();
+                } else {
+                    cm.setRewarpState(AbstractMacro.RewarpState.NONE);
+                }
+            });
+            beforeTeleportationPos = Optional.empty();
+            GameStateHandler.getInstance().scheduleNotMoving(750);
+            rewarpTeleport = false;
+        }
+    }
+
+    public void triggerWarpGarden(boolean force, boolean rewarpTeleport) {
+        if (GameStateHandler.getInstance().notMoving()) {
+            KeyBindUtils.stopMovement();
+        }
+        if (force || GameStateHandler.getInstance().canRewarp() && !beforeTeleportationPos.isPresent()) {
+            currentMacro.ifPresent(cm -> cm.setRewarpState(AbstractMacro.RewarpState.TELEPORTING));
+            setBeforeTeleportationPos(Optional.ofNullable(mc.thePlayer.getPosition()));
+            LogUtils.sendDebug("Before tp location: " + beforeTeleportationPos);
+            this.rewarpTeleport = rewarpTeleport;
+            LogUtils.sendDebug("Warping to spawn point");
+            mc.thePlayer.sendChatMessage("/warp garden");
+            GameStateHandler.getInstance().scheduleRewarp();
+        }
     }
 
     @AllArgsConstructor
