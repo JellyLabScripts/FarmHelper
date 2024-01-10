@@ -1037,9 +1037,26 @@ public class PestsDestroyer implements IFeature {
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().triggerWarpGarden(true, true);
             Multithreading.schedule(() -> {
-                if (MacroHandler.getInstance().isCurrentMacroPaused()) {
-                    LogUtils.sendDebug("Enabling macro after teleportation");
-                    MacroHandler.getInstance().resumeMacro();
+                for (int tries = 1; tries <= 7; tries++) {
+                    LogUtils.sendDebug("Trying to enable macro after teleportation: " + tries);
+                    try {
+                        if (!MacroHandler.getInstance().isLastWarpGardenSuccessful()) {
+                            Thread.sleep(750 * tries);
+                            MacroHandler.getInstance().triggerWarpGarden(true, true);
+                            continue;
+                        }
+                        if (MacroHandler.getInstance().isCurrentMacroPaused()) {
+                            LogUtils.sendDebug("Enabling macro after teleportation");
+                            MacroHandler.getInstance().resumeMacro();
+                            break;
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    if (tries == 7) {
+                        LogUtils.sendError("[Pests Destroyer] Couldn't enable macro after teleportation!");
+                        LogUtils.webhookLog("[Pests Destroyer] Couldn't enable macro after teleportation!");
+                    }
                 }
             }, 1_500 + (long) (Math.random() * 1_500), TimeUnit.MILLISECONDS);
         }

@@ -69,6 +69,7 @@ public class VisitorsMacro implements IFeature {
     private final ArrayList<Tuple<String, String>> currentRewards = new ArrayList<>();
     private boolean rejectVisitor = false;
     private float spentMoney = 0;
+    private int tries = 0;
     @Getter
     private BuyState buyState = BuyState.NONE;
     private boolean haveItemsInSack = false;
@@ -136,6 +137,16 @@ public class VisitorsMacro implements IFeature {
         if (manuallyStarted || forceStart) {
             setMainState(MainState.TRAVEL);
             setTravelState(TravelState.ROTATE_TO_CLOSEST);
+        }
+        if (forceStart) {
+            tries++;
+            if (tries > 3) {
+                tries = 0;
+                LogUtils.sendError("[Visitors Macro] The macro failed multiple times! Stopping the macro...");
+                LogUtils.sendWarning("Report this to #bug-reports!");
+                stop();
+                return;
+            }
         }
         forceStart = false;
         haveItemsInSack = false;
@@ -358,13 +369,16 @@ public class VisitorsMacro implements IFeature {
                 break;
             case END:
                 setMainState(MainState.DISABLING);
-                Multithreading.schedule(() -> {
-                    MacroHandler.getInstance().triggerWarpGarden(true, true);
+                tries = 0;
+                if (!manuallyStarted) {
                     Multithreading.schedule(() -> {
-                        stop();
-                        MacroHandler.getInstance().resumeMacro();
-                    }, 1_000, TimeUnit.MILLISECONDS);
-                }, 500, TimeUnit.MILLISECONDS);
+                        MacroHandler.getInstance().triggerWarpGarden(true, true);
+                        Multithreading.schedule(() -> {
+                            stop();
+                            MacroHandler.getInstance().resumeMacro();
+                        }, 1_000, TimeUnit.MILLISECONDS);
+                    }, 500, TimeUnit.MILLISECONDS);
+                }
                 break;
             case DISABLING:
                 break;

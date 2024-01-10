@@ -129,7 +129,7 @@ public class LogUtils {
                     .addField("Crop Type", capitalize(String.valueOf(MacroHandler.getInstance().getCrop())), false)
                     .addField("Location", capitalize(GameStateHandler.getInstance().getLocation().getName()), false)
                     .addField("Staff Bans", String.valueOf(BanInfoWS.getInstance().getStaffBans()), false)
-                    .addField("SkyBlock Bans", String.valueOf(BanInfoWS.getInstance().getBansByMod()), false)
+                    .addField("Detected by FH", String.valueOf(BanInfoWS.getInstance().getBansByMod()), false)
             );
             Multithreading.schedule(() -> {
                 try {

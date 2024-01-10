@@ -478,6 +478,14 @@ public class MacroHandler {
         }
     }
 
+    public boolean isLastWarpGardenSuccessful() {
+        return !beforeTeleportationPos.isPresent()
+                || mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos.get()) > 2
+                || (mc.thePlayer.getPosition().getX() == FarmHelperConfig.spawnPosX
+                && mc.thePlayer.getPosition().getY() == FarmHelperConfig.spawnPosY
+                && mc.thePlayer.getPosition().getZ() == FarmHelperConfig.spawnPosZ);
+    }
+
     @AllArgsConstructor
     public enum Macros {
         S_SHAPE_MUSHROOM_ROTATE_MACRO(SShapeMushroomRotateMacro.class),
