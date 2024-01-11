@@ -274,8 +274,8 @@ public class BedrockCageFailsafe extends Failsafe {
 
     @Override
     public void endOfFailsafeTrigger() {
-        FailsafeManager.getInstance().restartMacroAfterDelay();
         FailsafeManager.getInstance().stopFailsafes();
+        FailsafeManager.getInstance().restartMacroAfterDelay();
     }
 
     @Override

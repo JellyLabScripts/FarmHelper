@@ -215,6 +215,9 @@ public class AutoPestHunter implements IFeature {
                         filter(entity ->
                                 entity.hasCustomName() && entity.getCustomNameTag().contains(StringUtils.stripControlCodes("Phillip")))
                         .min(Comparator.comparingDouble(entity -> entity.getDistanceSqToCenter(mc.thePlayer.getPosition()))).orElse(null);
+                if (closest == null) {
+                    break;
+                }
                 rotation.easeTo(
                         new RotationConfiguration(
                                 new Target(closest),

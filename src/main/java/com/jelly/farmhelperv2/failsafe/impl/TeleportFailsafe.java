@@ -258,7 +258,7 @@ public class TeleportFailsafe extends Failsafe {
     public void endOfFailsafeTrigger() {
         FailsafeManager.getInstance().stopFailsafes();
         if (mc.thePlayer.getPosition().getY() < 100 && GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.GARDEN)
-            MacroHandler.getInstance().resumeMacro();
+            FailsafeManager.getInstance().restartMacroAfterDelay();
     }
 
     @Override

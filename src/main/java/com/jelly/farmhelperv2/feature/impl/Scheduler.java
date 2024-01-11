@@ -155,11 +155,21 @@ public class Scheduler implements IFeature {
         if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().inJacobContest() && !GameStateHandler.getInstance().isWasInJacobContest()) {
             LogUtils.sendDebug("[Scheduler] Jacob contest started, pausing scheduler");
             schedulerClock.pause();
+            if (schedulerState == SchedulerState.BREAK) {
+                if (mc.currentScreen != null) {
+                    PlayerUtils.closeScreen();
+                }
+                MacroHandler.getInstance().resumeMacro();
+                pause();
+            }
             GameStateHandler.getInstance().setWasInJacobContest(true);
             return;
         } else if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().isWasInJacobContest() && !GameStateHandler.getInstance().inJacobContest()) {
             LogUtils.sendDebug("[Scheduler] Jacob contest ended, resuming scheduler");
             schedulerClock.resume();
+            if (schedulerState == SchedulerState.BREAK) {
+                MacroHandler.getInstance().pauseMacro();
+            }
             GameStateHandler.getInstance().setWasInJacobContest(false);
             return;
         }

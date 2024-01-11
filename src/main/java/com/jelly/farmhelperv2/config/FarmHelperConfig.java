@@ -801,9 +801,14 @@ public class FarmHelperConfig extends Config {
     @Slider(
             name = "Restart Delay", category = FAILSAFE, subcategory = "Restart After FailSafe",
             description = "The delay to restart after failsafe (in minutes)",
-            min = 0, max = 60
+            min = 0, max = 20
     )
     public static int restartAfterFailSafeDelay = 5;
+    @Info(
+            text = "Setting this value to 0 will start the macro a few seconds later, after the failsafe is finished",
+            category = FAILSAFE, subcategory = "Restart After FailSafe",
+            type = InfoType.INFO, size = 2
+    )
 
     @Switch(
             name = "Always teleport to /warp garden after the failsafe",
