@@ -10,22 +10,19 @@ import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
-import com.jelly.farmhelperv2.util.AngleUtils;
-import com.jelly.farmhelperv2.util.BlockUtils;
-import com.jelly.farmhelperv2.util.LogUtils;
-import com.jelly.farmhelperv2.util.PlayerUtils;
+import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.ArrayList;
 
 public class DirtFailsafe extends Failsafe {
     private static DirtFailsafe instance;
+
     public static DirtFailsafe getInstance() {
         if (instance == null) {
             instance = new DirtFailsafe();
@@ -63,11 +60,11 @@ public class DirtFailsafe extends Failsafe {
         return FailsafeNotificationsPage.autoAltTabOnDirtFailsafe;
     }
 
-    @SubscribeEvent
+    @Override
     public void onBlockChange(BlockChangeEvent event) {
         if (FailsafeManager.getInstance().firstCheckReturn()) return;
-        if (event.update.getBlock() == null) return;
-        if (!event.update.getBlock().equals(Blocks.dirt)) return;
+        if (event.update.getBlock() == null || event.update.getBlock().equals(Blocks.air) || CropUtils.isCrop(event.update.getBlock()))
+            return;
 
         LogUtils.sendWarning("[Failsafe] Someone put a block on your garden! Block pos: " + event.pos);
         dirtBlocks.add(event.pos);
@@ -250,6 +247,7 @@ public class DirtFailsafe extends Failsafe {
     private int maxReactions = 3;
     private DirtCheckState dirtCheckState = DirtCheckState.NONE;
     String randomMessage;
+
     enum DirtCheckState {
         NONE,
         WAIT_BEFORE_START,

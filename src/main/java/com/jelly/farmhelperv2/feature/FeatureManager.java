@@ -92,9 +92,6 @@ public class FeatureManager {
         if (AutoReconnect.getInstance().isRunning() && !AutoReconnect.getInstance().shouldCheckForFailsafes()) {
             return true;
         }
-        if (LeaveTimer.getInstance().isRunning() && !LeaveTimer.getInstance().shouldCheckForFailsafes()) {
-            return true;
-        }
         if (PestsDestroyer.getInstance().isRunning() && !PestsDestroyer.getInstance().shouldCheckForFailsafes()) {
             return true;
         }

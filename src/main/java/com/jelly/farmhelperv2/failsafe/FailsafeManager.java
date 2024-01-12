@@ -2,6 +2,7 @@ package com.jelly.farmhelperv2.failsafe;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.event.BlockChangeEvent;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.impl.*;
 import com.jelly.farmhelperv2.feature.FeatureManager;
@@ -128,6 +129,16 @@ public class FailsafeManager {
     public void resetAfterMacroDisable() {
         stopFailsafes();
         restartMacroAfterFailsafeDelay.reset();
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onBlockChange(BlockChangeEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (triggeredFailsafe.isPresent()) return;
+        if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
+
+        failsafes.forEach(failsafe -> failsafe.onBlockChange(event));
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

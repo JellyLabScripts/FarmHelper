@@ -106,4 +106,8 @@ public class CropUtils {
             }
         }
     }
+
+    public static boolean isCrop(Block block) {
+        return block instanceof BlockCrops || block instanceof BlockPotato || block instanceof BlockCarrot || block instanceof BlockNetherWart || block instanceof BlockCocoa || block instanceof BlockCactus || block instanceof BlockReed;
+    }
 }

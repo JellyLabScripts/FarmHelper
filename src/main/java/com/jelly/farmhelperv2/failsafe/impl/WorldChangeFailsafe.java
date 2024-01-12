@@ -13,7 +13,6 @@ import com.jelly.farmhelperv2.util.helper.AudioManager;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.concurrent.TimeUnit;
@@ -71,8 +70,13 @@ public class WorldChangeFailsafe extends Failsafe {
         }
     }
 
-    @SubscribeEvent
-    public void onChatMessageCheckLimbo(ClientChatReceivedEvent event) {
+    @Override
+    public void onChatDetection(ClientChatReceivedEvent event) {
+        chatOne(event);
+        chatTwo(event);
+    }
+
+    public void chatOne(ClientChatReceivedEvent event) {
         if (FailsafeManager.getInstance().firstCheckReturn()) return;
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()
                 && FailsafeManager.getInstance().triggeredFailsafe.get().getType() != FailsafeManager.EmergencyType.WORLD_CHANGE_CHECK)
@@ -86,8 +90,7 @@ public class WorldChangeFailsafe extends Failsafe {
         }
     }
 
-    @Override
-    public void onChatDetection(ClientChatReceivedEvent event) {
+    public void chatTwo(ClientChatReceivedEvent event) {
         if (event.type != 0) return;
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()
                 && FailsafeManager.getInstance().triggeredFailsafe.get().getType() != FailsafeManager.EmergencyType.WORLD_CHANGE_CHECK)

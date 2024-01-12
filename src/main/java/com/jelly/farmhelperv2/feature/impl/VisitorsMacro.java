@@ -136,7 +136,10 @@ public class VisitorsMacro implements IFeature {
         rejectVisitor = false;
         if (manuallyStarted || forceStart) {
             setMainState(MainState.TRAVEL);
-            setTravelState(TravelState.ROTATE_TO_CLOSEST);
+            if (isInBarn())
+                setTravelState(TravelState.ROTATE_TO_CLOSEST);
+            else
+                setTravelState(TravelState.NONE);
         }
         if (forceStart) {
             tries++;
@@ -401,7 +404,7 @@ public class VisitorsMacro implements IFeature {
                 delayClock.schedule((long) (1_000 + Math.random() * 500));
                 break;
             case WAIT_FOR_TP:
-                if (mc.thePlayer.getPosition().equals(positionBeforeTp) || PlayerUtils.isPlayerSuffocating()) {
+                if (mc.thePlayer.getDistanceSqToCenter(positionBeforeTp) < 3 || PlayerUtils.isPlayerSuffocating()) {
                     LogUtils.sendDebug("[Visitors Macro] Waiting for teleportation...");
                     return;
                 }

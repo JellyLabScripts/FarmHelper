@@ -31,7 +31,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.StandardHttpRequestRetryHandler;
 import org.apache.http.message.BasicHeader;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.enums.ReadyState;
@@ -108,8 +107,7 @@ public class BanInfoWS implements IFeature {
                 .setConnectionRequestTimeout(5000)
                 .setSocketTimeout(5000)
                 .build();
-        StandardHttpRequestRetryHandler retryHandler = new StandardHttpRequestRetryHandler(3, true);
-        this.httpClient = HttpClientBuilder.create().setRetryHandler(retryHandler).setDefaultRequestConfig(requestConfig).build();
+        this.httpClient = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
     }
 
     public static BanInfoWS getInstance() {

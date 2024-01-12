@@ -20,6 +20,6 @@ public abstract class MixinFMLHandshakeMessage {
     @Inject(method = "<init>(Ljava/util/List;)V", at = @At("RETURN"), remap = false)
     private void init(List<ModContainer> modList, CallbackInfo ci) {
         if (Minecraft.getMinecraft().isIntegratedServerRunning()) return;
-        modTags.keySet().removeIf(c -> !c.matches("FML|Forge|mcp"));
+        modTags.keySet().removeIf(s -> s.contains("farmhelper"));
     }
 }
