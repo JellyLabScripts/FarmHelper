@@ -90,6 +90,7 @@ public class PestsDestroyer implements IFeature {
     private Optional<Vec3> lastFireworkLocation = Optional.empty();
     private long lastFireworkTime = 0;
     private int getLocationTries = 0;
+    private RotationState rotationState = RotationState.NONE;
 
     public static PestsDestroyer getInstance() {
         if (instance == null) {
@@ -164,6 +165,8 @@ public class PestsDestroyer implements IFeature {
         enabled = false;
         lastFireworkTime = 0;
         getLocationTries = 0;
+        finishTries = 0;
+        rotationState = RotationState.NONE;
         FlyPathfinder.getInstance().stuckCounterWithMotion = 0;
         FlyPathfinder.getInstance().stuckCounterWithoutMotion = 0;
         state = States.IDLE;
@@ -754,6 +757,10 @@ public class PestsDestroyer implements IFeature {
                         }
                         break;
                     }
+                    if (rotationState != RotationState.CLOSE) {
+                        rotationState = RotationState.CLOSE;
+                        RotationHandler.getInstance().reset();
+                    }
                     if (!RotationHandler.getInstance().isRotating()) {
                         Rotation rotation2 = RotationHandler.getInstance().getRotation(entity);
                         Rotation neededRotation = new Rotation(rotation2.getYaw(), rotation2.getPitch() + 10);
@@ -788,11 +795,16 @@ public class PestsDestroyer implements IFeature {
                         break;
                     }
 
-                    if (distance <= 18 || distanceXZ <= 2) {
+                    if (distance <= 12 || distanceXZ <= 2) {
                         if (!mc.thePlayer.capabilities.isFlying && entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY >= 2) {
                             flyAwayFromGround();
                             delayClock.schedule(350);
                             break;
+                        }
+
+                        if (rotationState != RotationState.MEDIUM) {
+                            rotationState = RotationState.MEDIUM;
+                            RotationHandler.getInstance().reset();
                         }
 
                         manipulateHeight(entity, distance, distanceXZ, yawDifference);
@@ -817,6 +829,11 @@ public class PestsDestroyer implements IFeature {
                             flyAwayFromGround();
                             delayClock.schedule(350);
                             break;
+                        }
+
+                        if (rotationState != RotationState.FAR) {
+                            rotationState = RotationState.FAR;
+                            RotationHandler.getInstance().reset();
                         }
 
                         boolean objects2 = objectsInFrontOfPlayer();
@@ -1031,34 +1048,27 @@ public class PestsDestroyer implements IFeature {
         }
     }
 
+    private int finishTries = 0;
+
     private void finishMacro() {
         if (isInventoryOpen()) return;
-        stop();
         if (MacroHandler.getInstance().isMacroToggled()) {
+            if (PlayerUtils.isStandingOnSpawnPoint()) {
+                stop();
+                MacroHandler.getInstance().resumeMacro();
+                return;
+            }
+            if (finishTries == 7) {
+                LogUtils.sendError("[Pests Destroyer] Couldn't enable macro after teleportation!");
+                LogUtils.webhookLog("[Pests Destroyer] Couldn't enable macro after teleportation!");
+                MacroHandler.getInstance().disableMacro();
+                return;
+            }
             MacroHandler.getInstance().triggerWarpGarden(true, true);
-            Multithreading.schedule(() -> {
-                for (int tries = 1; tries <= 7; tries++) {
-                    LogUtils.sendDebug("Trying to enable macro after teleportation: " + tries);
-                    try {
-                        if (!MacroHandler.getInstance().isLastWarpGardenSuccessful()) {
-                            Thread.sleep(750 * tries);
-                            MacroHandler.getInstance().triggerWarpGarden(true, true);
-                            continue;
-                        }
-                        if (MacroHandler.getInstance().isCurrentMacroPaused()) {
-                            LogUtils.sendDebug("Enabling macro after teleportation");
-                            MacroHandler.getInstance().resumeMacro();
-                            break;
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    if (tries == 7) {
-                        LogUtils.sendError("[Pests Destroyer] Couldn't enable macro after teleportation!");
-                        LogUtils.webhookLog("[Pests Destroyer] Couldn't enable macro after teleportation!");
-                    }
-                }
-            }, 1_500 + (long) (Math.random() * 1_500), TimeUnit.MILLISECONDS);
+            finishTries++;
+            delayClock.schedule(1_000 + Math.random() * 500);
+        } else {
+            stop();
         }
     }
 
@@ -1506,6 +1516,13 @@ public class PestsDestroyer implements IFeature {
         KILL_PEST,
         CHECK_ANOTHER_PEST,
         GO_BACK
+    }
+
+    enum RotationState {
+        NONE,
+        CLOSE,
+        MEDIUM,
+        FAR
     }
 
     public enum EscapeState {

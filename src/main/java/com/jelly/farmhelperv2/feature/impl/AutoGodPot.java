@@ -974,7 +974,7 @@ public class AutoGodPot implements IFeature {
             }
         }
         if (consumePotState == ConsumePotState.WAIT_FOR_CONSUME) {
-            if (message.startsWith("GULP! The God Potion grants you powers for")) {
+            if (message.contains("The God Potion grants you powers for") && !message.contains(":")) {
                 if (this.hotbarSlot != -1) {
                     setMovePotState(MovePotState.PUT_ITEM_BACK_PICKUP);
                     setConsumePotState(ConsumePotState.MOVE_POT_TO_HOTBAR);

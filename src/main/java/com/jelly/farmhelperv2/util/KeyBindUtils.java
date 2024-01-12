@@ -165,19 +165,9 @@ public class KeyBindUtils {
     }
 
     public static List<KeyBinding> getKeyPressesToDecelerate() {
-        double motionX = mc.thePlayer.motionX;
-        double motionZ = mc.thePlayer.motionZ;
-        List<KeyBinding> keys = new ArrayList<>();
-        if (motionX > 0.1) {
-            keys.add(mc.gameSettings.keyBindLeft);
-        } else if (motionX < -0.1) {
-            keys.add(mc.gameSettings.keyBindRight);
-        }
-        if (motionZ > 0.1) {
-            keys.add(mc.gameSettings.keyBindBack);
-        } else if (motionZ < -0.1) {
-            keys.add(mc.gameSettings.keyBindForward);
-        }
-        return keys;
+        if (Math.abs(mc.thePlayer.motionX) < 0.05 && Math.abs(mc.thePlayer.motionZ) < 0.05) return new ArrayList<>();
+        Vec3 orig = mc.thePlayer.getPositionVector();
+        Vec3 dest = mc.thePlayer.getPositionVector().addVector(Math.abs(mc.thePlayer.motionX) >= 0.05 ? -mc.thePlayer.motionX : 0, 0, Math.abs(mc.thePlayer.motionZ) >= 0.05 ? -mc.thePlayer.motionZ : 0);
+        return getNeededKeyPresses(orig, dest);
     }
 }
