@@ -16,6 +16,7 @@ import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.Tuple;
 import net.minecraft.util.Vec3;
 
 import java.util.ArrayList;
@@ -63,16 +64,14 @@ public class DirtFailsafe extends Failsafe {
     @Override
     public void onBlockChange(BlockChangeEvent event) {
         if (FailsafeManager.getInstance().firstCheckReturn()) return;
-        if ((!event.old.getBlock().equals(Blocks.air) && !CropUtils.isCrop(event.old.getBlock())) ||
-                event.update.getBlock() == null ||
-                event.update.getBlock().equals(Blocks.air) ||
-                CropUtils.isCrop(event.update.getBlock()) ||
-                !event.update.getBlock().isCollidable() ||
-                event.update.getBlock().equals(Blocks.trapdoor))
-            return;
-
-        LogUtils.sendWarning("[Failsafe] Someone put a block on your garden! Block pos: " + event.pos);
-        dirtBlocks.add(event.pos);
+        if ((event.old.getBlock().equals(Blocks.air) || CropUtils.isCrop(event.old.getBlock()) || event.old.getBlock().equals(Blocks.water) || event.old.getBlock().equals(Blocks.flowing_water)) &&
+                event.update.getBlock() != null && !event.update.getBlock().equals(Blocks.air) &&
+                !CropUtils.isCrop(event.update.getBlock()) && event.update.getBlock().isCollidable() &&
+                !event.update.getBlock().equals(Blocks.trapdoor) && !event.update.getBlock().equals(Blocks.water) &&
+                !event.update.getBlock().equals(Blocks.flowing_water)) { // If old block was air or crop and new block is not air, crop, trapdoor, water or flowing water
+            LogUtils.sendWarning("[Failsafe] Someone put a block on your garden! Block pos: " + event.pos);
+            dirtBlocks.add(new Tuple<>(event.pos, System.currentTimeMillis()));
+        }
     }
 
     @Override
@@ -143,7 +142,13 @@ public class DirtFailsafe extends Failsafe {
                     break;
                 if (FailsafeManager.getInstance().swapItemDuringRecording && Math.random() > 0.6)
                     FailsafeManager.getInstance().swapItemDuringRecording = false;
-                dirtBlocks.removeIf(blockPos -> !mc.theWorld.getBlockState(blockPos).getBlock().equals(Blocks.dirt));
+                dirtBlocks.removeIf(tuple -> {
+                    if (System.currentTimeMillis() - tuple.getSecond() > 120_000 || !mc.theWorld.getBlockState(tuple.getFirst()).getBlock().isCollidable() || BlockUtils.canWalkThrough(tuple.getFirst())) {
+                        LogUtils.sendDebug("[Failsafe] Dirt block removed: " + tuple.getFirst());
+                        return true;
+                    }
+                    return false;
+                });
                 if (dirtBlocks.isEmpty()) {
                     LogUtils.sendDebug("No dirt blocks left!");
                     dirtCheckState = DirtCheckState.GO_BACK_START;
@@ -231,7 +236,8 @@ public class DirtFailsafe extends Failsafe {
     }
 
     public boolean isTouchingDirtBlock() {
-        for (BlockPos dirtBlock : dirtBlocks) {
+        for (Tuple<BlockPos, Long> tuple : dirtBlocks) {
+            BlockPos dirtBlock = tuple.getFirst();
             double distance = Math.sqrt(mc.thePlayer.getPositionEyes(1).distanceTo(new Vec3(dirtBlock.getX() + 0.5, dirtBlock.getY() + 0.5, dirtBlock.getZ() + 0.5)));
             LogUtils.sendDebug(distance + " " + dirtBlock);
             if (distance <= 1.5) {
@@ -245,7 +251,7 @@ public class DirtFailsafe extends Failsafe {
         return !dirtBlocks.isEmpty();
     }
 
-    private final ArrayList<BlockPos> dirtBlocks = new ArrayList<>();
+    private final ArrayList<Tuple<BlockPos, Long>> dirtBlocks = new ArrayList<>();
     private BlockPos positionBeforeReacting = null;
     private Rotation rotationBeforeReacting = null;
     private boolean dirtOnLeft = false;
