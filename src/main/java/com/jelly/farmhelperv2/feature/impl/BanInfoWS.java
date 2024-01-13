@@ -252,6 +252,7 @@ public class BanInfoWS implements IFeature {
                     for (Map.Entry<String, JsonElement> header : headers.entrySet()) {
                         client.addHeader(header.getKey(), header.getValue().getAsString());
                     }
+                    lastReceivedPacket = System.currentTimeMillis();
                     client.connect();
                 }, 0, TimeUnit.MILLISECONDS);
             } catch (Exception e) {

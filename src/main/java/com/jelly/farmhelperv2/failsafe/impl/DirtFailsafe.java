@@ -63,7 +63,7 @@ public class DirtFailsafe extends Failsafe {
     @Override
     public void onBlockChange(BlockChangeEvent event) {
         if (FailsafeManager.getInstance().firstCheckReturn()) return;
-        if (event.update.getBlock() == null || event.update.getBlock().equals(Blocks.air) || CropUtils.isCrop(event.update.getBlock()))
+        if ((!event.old.getBlock().equals(Blocks.air) && !CropUtils.isCrop(event.old.getBlock())) || event.update.getBlock() == null || event.update.getBlock().equals(Blocks.air) || CropUtils.isCrop(event.update.getBlock()))
             return;
 
         LogUtils.sendWarning("[Failsafe] Someone put a block on your garden! Block pos: " + event.pos);
