@@ -117,6 +117,7 @@ public class CropUtils {
                 block instanceof BlockReed ||
                 block instanceof BlockPumpkin ||
                 block instanceof BlockMelon ||
-                block instanceof BlockStem;
+                block instanceof BlockStem ||
+                block instanceof BlockMushroom;
     }
 }
