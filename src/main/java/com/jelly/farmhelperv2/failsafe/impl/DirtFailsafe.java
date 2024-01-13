@@ -67,8 +67,8 @@ public class DirtFailsafe extends Failsafe {
         if ((event.old.getBlock().equals(Blocks.air) || CropUtils.isCrop(event.old.getBlock()) || event.old.getBlock().equals(Blocks.water) || event.old.getBlock().equals(Blocks.flowing_water)) &&
                 event.update.getBlock() != null && !event.update.getBlock().equals(Blocks.air) &&
                 !CropUtils.isCrop(event.update.getBlock()) && event.update.getBlock().isCollidable() &&
-                !event.update.getBlock().equals(Blocks.trapdoor) && !event.update.getBlock().equals(Blocks.water) &&
-                !event.update.getBlock().equals(Blocks.flowing_water)) { // If old block was air or crop and new block is not air, crop, trapdoor, water or flowing water
+                !event.update.getBlock().equals(Blocks.trapdoor) && !event.update.getBlock().equals(Blocks.ladder) &&
+                !event.update.getBlock().equals(Blocks.water) && !event.update.getBlock().equals(Blocks.flowing_water)) { // If old block was air or crop and new block is not air, crop, trapdoor, water or flowing water
             LogUtils.sendWarning("[Failsafe] Someone put a block on your garden! Block pos: " + event.pos);
             dirtBlocks.add(new Tuple<>(event.pos, System.currentTimeMillis()));
         }
