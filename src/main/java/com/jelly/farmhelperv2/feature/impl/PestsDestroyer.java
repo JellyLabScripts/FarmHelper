@@ -1059,7 +1059,7 @@ public class PestsDestroyer implements IFeature {
                 return;
             }
             if (finishTries == 7) {
-                LogUtils.sendError("[Pests Destroyer] Couldn't enable macro after teleportation!");
+                LogUtils.sendError("[Pests Destroyer] Couldn't enable macro after teleportation! Check if your spawn point is set in mod (Yellow rectangle). If not, re-do command /setspawn");
                 LogUtils.webhookLog("[Pests Destroyer] Couldn't enable macro after teleportation!");
                 MacroHandler.getInstance().disableMacro();
                 return;
