@@ -144,7 +144,7 @@ public class DirtFailsafe extends Failsafe {
                 if (FailsafeManager.getInstance().swapItemDuringRecording && Math.random() > 0.6)
                     FailsafeManager.getInstance().swapItemDuringRecording = false;
                 dirtBlocks.removeIf(tuple -> {
-                    if (System.currentTimeMillis() - tuple.getSecond() > 120_000 || !mc.theWorld.getBlockState(tuple.getFirst()).getBlock().isCollidable() || BlockUtils.canWalkThrough(tuple.getFirst())) {
+                    if (System.currentTimeMillis() - tuple.getSecond() > 120_000 || !mc.theWorld.getBlockState(tuple.getFirst()).getBlock().isCollidable() || BlockUtils.canWalkThrough(tuple.getFirst()) || mc.theWorld.getBlockState(tuple.getFirst()).getBlock().equals(Blocks.air) || CropUtils.isCrop(mc.theWorld.getBlockState(tuple.getFirst()).getBlock()) || mc.theWorld.getBlockState(tuple.getFirst()).getBlock().equals(Blocks.water) || mc.theWorld.getBlockState(tuple.getFirst()).getBlock().equals(Blocks.flowing_water)) {
                         LogUtils.sendDebug("[Failsafe] Dirt block removed: " + tuple.getFirst());
                         return true;
                     }
@@ -208,7 +208,7 @@ public class DirtFailsafe extends Failsafe {
                 break;
             case ROTATE_TO_POS_BEFORE:
                 if (FailsafeManager.getInstance().rotation.isRotating()) break;
-                FailsafeManager.getInstance().rotation.easeTo(new RotationConfiguration(new Rotation(rotationBeforeReacting.getYaw(), rotationBeforeReacting.getPitch()),
+                FailsafeManager.getInstance().rotation.easeTo(new RotationConfiguration(new Rotation((float) (rotationBeforeReacting.getYaw() + (Math.random() * 30 - 15)), (float) (Math.random() * 30 + 30)),
                         500, null));
                 dirtCheckState = DirtCheckState.END_DIRT_CHECK;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);

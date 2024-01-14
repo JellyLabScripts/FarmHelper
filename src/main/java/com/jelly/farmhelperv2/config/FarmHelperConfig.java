@@ -1065,7 +1065,7 @@ public class FarmHelperConfig extends Config {
             name = "Use Path finder in Visitors macro between serving visitors", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "Uses path finder between serving visitors"
     )
-    public static boolean visitorsMacroUsePathFinder = false;
+    public static boolean visitorsMacroUsePathFinder = true;
 
     @Slider(
             name = "The minimum amount of coins to start the macro (in thousands)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
@@ -1114,38 +1114,38 @@ public class FarmHelperConfig extends Config {
     @Dropdown(
             name = "Uncommon", category = VISITORS_MACRO, subcategory = "Rarity",
             description = "The action taken when an uncommon visitor arrives",
-            options = {"Accept", "Accept if profitable only", "Decline"},
+            options = {"Accept", "Accept if profitable only", "Decline", "Ignore"},
             size = 2
     )
     public static int visitorsActionUncommon = 0;
     @Dropdown(
             name = "Rare", category = VISITORS_MACRO, subcategory = "Rarity",
             description = "The action taken when a rare visitor arrives",
-            options = {"Accept", "Accept if profitable only", "Decline"},
+            options = {"Accept", "Accept if profitable only", "Decline", "Ignore"},
             size = 2
     )
     public static int visitorsActionRare = 0;
     @Dropdown(
             name = "Legendary", category = VISITORS_MACRO, subcategory = "Rarity",
             description = "The action taken when a legendary visitor arrives",
-            options = {"Accept", "Accept if profitable only", "Decline"},
+            options = {"Accept", "Accept if profitable only", "Decline", "Ignore"},
             size = 2
     )
     public static int visitorsActionLegendary = 0;
     @Dropdown(
             name = "Mythic", category = VISITORS_MACRO, subcategory = "Rarity",
             description = "The action taken when a mythic visitor arrives",
-            options = {"Accept", "Accept if profitable only", "Decline"},
+            options = {"Accept", "Accept if profitable only", "Decline", "Ignore"},
             size = 2
     )
     public static int visitorsActionMythic = 0;
     @Dropdown(
             name = "Special", category = VISITORS_MACRO, subcategory = "Rarity",
             description = "The action taken when a special visitor arrives",
-            options = {"Accept", "Accept if profitable only", "Decline"},
+            options = {"Accept", "Accept if profitable only", "Decline", "Ignore"},
             size = 2
     )
-    public static int visitorsActionSpecial = 0;
+    public static int visitorsActionSpecial = 3;
     //</editor-fold>
     //</editor-fold>
 

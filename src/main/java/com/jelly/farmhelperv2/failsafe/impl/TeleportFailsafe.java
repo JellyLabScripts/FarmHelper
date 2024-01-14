@@ -158,7 +158,7 @@ public class TeleportFailsafe extends Failsafe {
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 break;
             case ROTATE_TO_POS_BEFORE:
-                rotation.easeTo(new RotationConfiguration(new Rotation(rotationBeforeReacting.getYaw(), rotationBeforeReacting.getPitch()),
+                FailsafeManager.getInstance().rotation.easeTo(new RotationConfiguration(new Rotation((float) (rotationBeforeReacting.getYaw() + (Math.random() * 30 - 15)), (float) (Math.random() * 30 + 30)),
                         500, null));
                 teleportCheckState = TeleportCheckState.LOOK_AROUND_2;
                 FailsafeManager.getInstance().swapItemDuringRecording = Math.random() < 0.2;
@@ -235,7 +235,7 @@ public class TeleportFailsafe extends Failsafe {
                 break;
             case ROTATE_TO_POS_BEFORE_2:
                 if (rotation.isRotating()) break;
-                rotation.easeTo(new RotationConfiguration(new Rotation(rotationBeforeReacting.getYaw(), rotationBeforeReacting.getPitch()),
+                FailsafeManager.getInstance().rotation.easeTo(new RotationConfiguration(new Rotation((float) (rotationBeforeReacting.getYaw() + (Math.random() * 30 - 15)), (float) (Math.random() * 30 + 30)),
                         500, null));
                 teleportCheckState = TeleportCheckState.END;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);

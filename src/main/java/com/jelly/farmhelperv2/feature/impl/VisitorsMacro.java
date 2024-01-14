@@ -79,6 +79,8 @@ public class VisitorsMacro implements IFeature {
     private boolean manuallyStarted = false;
     private boolean forceStart = false;
     private BlockPos positionBeforeTp = null;
+    private final List<String> ignoredNPCs = new ArrayList<>();
+    private boolean profitNpc = false;
 
     public static VisitorsMacro getInstance() {
         if (instance == null) {
@@ -174,6 +176,8 @@ public class VisitorsMacro implements IFeature {
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();
         }
+        ignoredNPCs.clear();
+        profitNpc = false;
         LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro started");
     }
 
@@ -190,6 +194,7 @@ public class VisitorsMacro implements IFeature {
 
     @Override
     public void resetStatesAfterMacroDisabled() {
+        ignoredNPCs.clear();
         if (!FarmHelperConfig.visitorsMacroAfkInfiniteMode) return;
         FarmHelperConfig.visitorsMacroAfkInfiniteMode = false;
         LogUtils.sendWarning("[Visitors Macro] AFK Mode has been disabled");
@@ -271,7 +276,9 @@ public class VisitorsMacro implements IFeature {
             return false;
         }
 
-        if (!manual && visitors.size() < FarmHelperConfig.visitorsMacroMinVisitors) {
+        List<String> visitorsWithoutIgnored = visitors.stream().filter(s -> ignoredNPCs.stream().noneMatch(s2 -> StringUtils.stripControlCodes(s2).contains(StringUtils.stripControlCodes(s)))).collect(Collectors.toList());
+
+        if (!manual && visitorsWithoutIgnored.size() < FarmHelperConfig.visitorsMacroMinVisitors) {
             if (withError) LogUtils.sendError("[Visitors Macro] Not enough Visitors in queue, skipping...");
             if (FarmHelperConfig.visitorsMacroAfkInfiniteMode) {
                 LogUtils.sendDebug("[Visitors Macro] Waiting 15 seconds for visitors to spawn...");
@@ -373,7 +380,13 @@ public class VisitorsMacro implements IFeature {
             case END:
                 setMainState(MainState.DISABLING);
                 tries = 0;
-                if (!manuallyStarted) {
+                if (FarmHelperConfig.visitorsMacroAfkInfiniteMode) {
+                    LogUtils.sendWarning("[Visitors Macro] The macro has finished. Waiting 15 seconds for visitors to spawn...");
+                    afkDelay.schedule(15_000);
+                    stop();
+                } else if (manuallyStarted) {
+                    stop();
+                } else {
                     Multithreading.schedule(() -> {
                         MacroHandler.getInstance().triggerWarpGarden(true, true);
                         Multithreading.schedule(() -> {
@@ -708,7 +721,11 @@ public class VisitorsMacro implements IFeature {
                 if (PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, true) != -1) {
                     mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, true);
                 }
-                if (visitors.isEmpty() || visitors.stream().noneMatch(s -> servedCustomers.stream().noneMatch(s2 -> StringUtils.stripControlCodes(s2.getCustomNameTag()).contains(StringUtils.stripControlCodes(s))))) {
+                if (visitors.isEmpty() || visitors.stream().noneMatch(s -> {
+                    boolean flag1 = servedCustomers.stream().noneMatch(s2 -> StringUtils.stripControlCodes(s2.getCustomNameTag()).contains(StringUtils.stripControlCodes(s)));
+                    boolean flag2 = ignoredNPCs.stream().noneMatch(s2 -> StringUtils.stripControlCodes(s2).contains(StringUtils.stripControlCodes(s)));
+                    return flag1 && flag2;
+                })) {
                     LogUtils.sendWarning("[Visitors Macro] No visitors in queue...");
                     setVisitorsState(VisitorsState.END);
                     delayClock.schedule(getRandomDelay());
@@ -851,9 +868,6 @@ public class VisitorsMacro implements IFeature {
                         foundRequiredItems = true;
                         continue;
                     }
-                    if (foundRewards && line.trim().isEmpty()) {
-                        continue;
-                    }
                     if (line.trim().contains("Rewards:") || line.trim().isEmpty() && foundRequiredItems) {
                         foundRewards = true;
                         foundRequiredItems = false;
@@ -870,13 +884,27 @@ public class VisitorsMacro implements IFeature {
                         }
                     }
                     if (foundRewards) {
+                        System.out.println(StringUtils.stripControlCodes(line));
+                        if (StringUtils.stripControlCodes(line).trim().isEmpty()) {
+                            foundRewards = false;
+                            continue;
+                        }
                         if (line.contains("+")) {
                             String[] split = StringUtils.stripControlCodes(line).trim().split(" ");
                             String amount = split[0].trim();
                             String item = String.join(" ", Arrays.copyOfRange(split, 1, split.length)).trim();
                             currentRewards.add(new Tuple<>(item, amount));
+                        } else {
+                            int amount = 1;
+                            String item = StringUtils.stripControlCodes(line).trim();
+                            currentRewards.add(new Tuple<>(item, String.valueOf(amount)));
                         }
                     }
+                }
+
+                LogUtils.sendDebug("Current Rewards:");
+                for (Tuple<String, String> currentReward : currentRewards) {
+                    LogUtils.sendDebug(currentReward.getFirst() + " " + currentReward.getSecond());
                 }
 
                 if (itemsToBuy.isEmpty()) {
@@ -897,6 +925,9 @@ public class VisitorsMacro implements IFeature {
                             LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Accepting...");
                         } else if (FarmHelperConfig.visitorsActionUncommon == 1) {
                             checkIfCurrentVisitorIsProfitable();
+                        } else if (FarmHelperConfig.visitorsActionUncommon == 3) {
+                            LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Ignoring...");
+                            ignoredNPCs.add(npcName);
                         } else {
                             LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Rejecting...");
                             rejectVisitor = true;
@@ -907,6 +938,9 @@ public class VisitorsMacro implements IFeature {
                             LogUtils.sendDebug("[Visitors Macro] The visitor is rare rarity. Accepting...");
                         } else if (FarmHelperConfig.visitorsActionRare == 1) {
                             checkIfCurrentVisitorIsProfitable();
+                        } else if (FarmHelperConfig.visitorsActionRare == 3) {
+                            LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Ignoring...");
+                            ignoredNPCs.add(npcName);
                         } else {
                             LogUtils.sendDebug("[Visitors Macro] The visitor is rare rarity. Rejecting...");
                             rejectVisitor = true;
@@ -917,6 +951,9 @@ public class VisitorsMacro implements IFeature {
                             LogUtils.sendDebug("[Visitors Macro] The visitor is legendary rarity. Accepting...");
                         } else if (FarmHelperConfig.visitorsActionLegendary == 1) {
                             checkIfCurrentVisitorIsProfitable();
+                        } else if (FarmHelperConfig.visitorsActionLegendary == 3) {
+                            LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Ignoring...");
+                            ignoredNPCs.add(npcName);
                         } else {
                             LogUtils.sendDebug("[Visitors Macro] The visitor is legendary rarity. Rejecting...");
                             rejectVisitor = true;
@@ -927,6 +964,9 @@ public class VisitorsMacro implements IFeature {
                             LogUtils.sendDebug("[Visitors Macro] The visitor is mythic rarity. Accepting...");
                         } else if (FarmHelperConfig.visitorsActionMythic == 1) {
                             checkIfCurrentVisitorIsProfitable();
+                        } else if (FarmHelperConfig.visitorsActionMythic == 3) {
+                            LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Ignoring...");
+                            ignoredNPCs.add(npcName);
                         } else {
                             LogUtils.sendDebug("[Visitors Macro] The visitor is mythic rarity. Rejecting...");
                             rejectVisitor = true;
@@ -937,6 +977,9 @@ public class VisitorsMacro implements IFeature {
                             LogUtils.sendDebug("[Visitors Macro] The visitor is special rarity. Accepting...");
                         } else if (FarmHelperConfig.visitorsActionSpecial == 1) {
                             checkIfCurrentVisitorIsProfitable();
+                        } else if (FarmHelperConfig.visitorsActionSpecial == 3) {
+                            LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Ignoring...");
+                            ignoredNPCs.add(npcName);
                         } else {
                             LogUtils.sendDebug("[Visitors Macro] The visitor is special rarity. Rejecting...");
                             rejectVisitor = true;
@@ -945,6 +988,14 @@ public class VisitorsMacro implements IFeature {
                 }
 
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+
+                if (ignoredNPCs.contains(npcName)) {
+                    LogUtils.sendWarning("[Visitors Macro] Ignoring NPC: " + npcName);
+                    setVisitorsState(VisitorsState.ROTATE_TO_VISITOR);
+                    PlayerUtils.closeScreen();
+                    delayClock.schedule(getRandomDelay());
+                    break;
+                }
 
                 if (haveItemsInSack && !rejectVisitor) {
                     setVisitorsState(VisitorsState.FINISH_VISITOR);
@@ -1085,6 +1136,7 @@ public class VisitorsMacro implements IFeature {
                 }
                 currentVisitor.ifPresent(servedCustomers::add);
                 currentRewards.clear();
+                profitNpc = false;
                 setVisitorsState(VisitorsState.ROTATE_TO_VISITOR);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
@@ -1114,6 +1166,8 @@ public class VisitorsMacro implements IFeature {
                                                 StringUtils.stripControlCodes(v).contains(StringUtils.stripControlCodes(entity.getCustomNameTag()))))
                 .filter(entity -> entity.getDistance(mc.thePlayer.posX, entity.posY, mc.thePlayer.posZ) < 10)
                 .filter(entity -> servedCustomers.stream().noneMatch(s -> s.equals(entity)))
+                .filter(entity -> servedCustomers.stream().noneMatch(s -> StringUtils.stripControlCodes(s.getCustomNameTag()).contains(StringUtils.stripControlCodes(entity.getCustomNameTag())) || StringUtils.stripControlCodes(entity.getCustomNameTag()).contains(StringUtils.stripControlCodes(s.getCustomNameTag()))))
+                .filter(entity -> ignoredNPCs.stream().noneMatch(s -> StringUtils.stripControlCodes(s).contains(StringUtils.stripControlCodes(entity.getCustomNameTag())) || StringUtils.stripControlCodes(entity.getCustomNameTag()).contains(StringUtils.stripControlCodes(s))))
                 .min(Comparator.comparingDouble(entity -> entity.getDistanceToEntity(mc.thePlayer)))
                 .orElse(null);
     }
@@ -1150,17 +1204,20 @@ public class VisitorsMacro implements IFeature {
     private void checkIfCurrentVisitorIsProfitable() {
         Optional<Tuple<String, String>> profitableReward = currentRewards.stream().filter(item -> {
             String name = StringUtils.stripControlCodes(item.getFirst());
-            return profitRewards.stream().anyMatch(reward -> reward.contains(name) || name.contains(reward));
+            System.out.println(name);
+            return profitRewards.stream().anyMatch(reward -> reward.toLowerCase().contains(name.toLowerCase()) || name.toLowerCase().contains(reward.toLowerCase()));
         }).findFirst();
         if (profitableReward.isPresent()) {
             LogUtils.sendDebug("[Visitors Macro] The visitor is profitable");
             String reward = profitableReward.get().getFirst();
+            profitNpc = true;
             if (FarmHelperConfig.sendVisitorsMacroLogs)
                 LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro found profitable item: " + reward, FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
             LogUtils.sendDebug("[Visitors Macro] Accepting offer...");
         } else {
             LogUtils.sendWarning("[Visitors Macro] The visitor is not profitable, skipping...");
             rejectVisitor = true;
+            profitNpc = false;
         }
     }
 
@@ -1172,6 +1229,7 @@ public class VisitorsMacro implements IFeature {
         currentRewards.clear();
         delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
         setVisitorsState(VisitorsState.ROTATE_TO_VISITOR);
+        profitNpc = false;
     }
 
     private boolean rejectVisitor() {
@@ -1208,8 +1266,14 @@ public class VisitorsMacro implements IFeature {
             case WAIT_FOR_AUTOBAZAAR_FINISH:
                 if (AutoBazaar.getInstance().wasPriceManipulated()) {
                     LogUtils.sendDebug("[Visitors Macro] Price manipulation detected, skipping...");
-                    rejectVisitor = true;
-                    setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
+                    if (profitNpc) {
+                        LogUtils.sendDebug("[Visitors Macro] The visitor is profitable, adding to ignore list...");
+                        ignoredNPCs.add(StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()));
+                        setVisitorsState(VisitorsState.ROTATE_TO_VISITOR);
+                    } else {
+                        rejectVisitor = true;
+                        setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
+                    }
                     setBuyState(BuyState.NONE);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     PlayerUtils.closeScreen();
@@ -1217,8 +1281,14 @@ public class VisitorsMacro implements IFeature {
                 }
                 if (AutoBazaar.getInstance().hasNotFoundOnBZ()) {
                     LogUtils.sendDebug("[Visitors Macro] Couldn't find " + itemsToBuy.get(0).getLeft() + " amount " + itemsToBuy.get(0).getRight() + ", skipping...");
-                    rejectVisitor = true;
-                    setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
+                    if (profitNpc) {
+                        LogUtils.sendDebug("[Visitors Macro] The visitor is profitable, adding to ignore list...");
+                        ignoredNPCs.add(StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()));
+                        setVisitorsState(VisitorsState.ROTATE_TO_VISITOR);
+                    } else {
+                        rejectVisitor = true;
+                        setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
+                    }
                     setBuyState(BuyState.NONE);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     PlayerUtils.closeScreen();
