@@ -202,7 +202,7 @@ public class VisitorsMacro implements IFeature {
 
     @Override
     public boolean shouldCheckForFailsafes() {
-        return travelState != TravelState.WAIT_FOR_TP && mainState != MainState.DISABLING && mainState != MainState.END && compactorState != CompactorState.NONE;
+        return travelState != TravelState.WAIT_FOR_TP && mainState != MainState.DISABLING && mainState != MainState.END && compactorState == CompactorState.NONE;
     }
 
     @SubscribeEvent
