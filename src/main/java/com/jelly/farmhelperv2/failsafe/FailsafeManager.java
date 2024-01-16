@@ -6,6 +6,7 @@ import com.jelly.farmhelperv2.event.BlockChangeEvent;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.impl.*;
 import com.jelly.farmhelperv2.feature.FeatureManager;
+import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
 import com.jelly.farmhelperv2.feature.impl.Scheduler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
@@ -231,6 +232,7 @@ public class FailsafeManager {
                 }, 750, TimeUnit.MILLISECONDS);
 
                 LogUtils.sendFailsafeMessage(tempFailsafe.getType().label, failsafe.shouldTagEveryone());
+                BanInfoWS.getInstance().sendFailsafeInfo(tempFailsafe.getType());
                 if (failsafe.shouldSendNotification())
                     FailsafeUtils.getInstance().sendNotification(StringUtils.stripControlCodes(tempFailsafe.getType().label), TrayIcon.MessageType.WARNING);
             }, 800, TimeUnit.MILLISECONDS);

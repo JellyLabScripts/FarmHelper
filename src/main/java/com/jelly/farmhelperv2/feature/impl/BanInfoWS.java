@@ -27,10 +27,6 @@ import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.compress.utils.IOUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.enums.ReadyState;
@@ -41,6 +37,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -49,7 +46,6 @@ import java.util.zip.GZIPOutputStream;
 
 public class BanInfoWS implements IFeature {
     private static BanInfoWS instance;
-    private final HttpClient httpClient;
     private final Clock reconnectDelay = new Clock();
     @Getter
     private long lastReceivedPacket = System.currentTimeMillis();
@@ -100,14 +96,9 @@ public class BanInfoWS implements IFeature {
             }, 0, TimeUnit.MILLISECONDS);
         } catch (URISyntaxException e) {
             e.printStackTrace();
-            client = null;
+            if (client != null)
+                client.close();
         }
-        RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(5000)
-                .setConnectionRequestTimeout(5000)
-                .setSocketTimeout(5000)
-                .build();
-        this.httpClient = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
     }
 
     public static BanInfoWS getInstance() {
@@ -229,21 +220,21 @@ public class BanInfoWS implements IFeature {
         if (client != null && client.isOpen() && System.currentTimeMillis() - lastReceivedPacket > 120_000L) {
             LogUtils.sendDebug("Disconnected from analytics server (no packets received in 2 minutes)");
             client.close();
-            client = null;
+            reconnectDelay.schedule(1_000);
         }
     }
 
     @SubscribeEvent
     public void onTickReconnect(TickEvent.ClientTickEvent event) {
-        if (reconnectDelay.isScheduled() && !reconnectDelay.passed()) return;
+        if (!reconnectDelay.isScheduled() || !reconnectDelay.passed()) return;
 
-        if (client == null || client.isClosed() || !client.isOpen()) {
+        if (client.isClosed() && !client.isOpen()) {
             try {
                 reconnectDelay.reset();
+                receivedBanwaveInfo = false;
                 LogUtils.sendDebug("Connecting to analytics server...");
-                client = createNewWebSocketClient();
-                reconnectDelay.schedule(60_000L);
                 Multithreading.schedule(() -> {
+                    lastReceivedPacket = System.currentTimeMillis();
                     JsonObject headers = getHeaders();
                     if (headers == null) {
                         LogUtils.sendDebug("Failed to connect to analytics server. Retrying in 1 minute...");
@@ -252,12 +243,10 @@ public class BanInfoWS implements IFeature {
                     for (Map.Entry<String, JsonElement> header : headers.entrySet()) {
                         client.addHeader(header.getKey(), header.getValue().getAsString());
                     }
-                    lastReceivedPacket = System.currentTimeMillis();
-                    client.connect();
+                    client.reconnect();
                 }, 0, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 e.printStackTrace();
-                client = null;
             }
         }
     }
@@ -331,29 +320,6 @@ public class BanInfoWS implements IFeature {
             client.send(jsonObject.toString());
         } catch (Exception e) {
             e.printStackTrace();
-            try {
-
-                String serverId = mojangAuthentication();
-                jsonObject.remove("config");
-                jsonObject.addProperty("config", compress(configJsonString));
-                jsonObject.addProperty("serverId", serverId);
-                HashMap<String, String> headers = FarmHelper.gson.fromJson(jsonObject, HashMap.class);
-                HttpPost post = new HttpPost("https://ws.may2bee.pl/ban");
-                post.setHeaders(getHttpClientHeaders().stream().map(header -> new BasicHeader(header.getName(), header.getValue())).toArray(BasicHeader[]::new));
-                for (Map.Entry<String, String> header : headers.entrySet()) {
-                    post.addHeader(header.getKey(), FarmHelper.gson.toJson(header.getValue()));
-                }
-                Multithreading.schedule(() -> {
-                    try {
-                        httpClient.execute(post);
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                }, 0, TimeUnit.MILLISECONDS);
-
-            } catch (AuthenticationException | IOException ex) {
-                ex.printStackTrace();
-            }
         }
     }
 
@@ -530,6 +496,26 @@ public class BanInfoWS implements IFeature {
         }
     }
 
+    public void sendFailsafeInfo(FailsafeManager.EmergencyType type) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("message", "staffCheck");
+        jsonObject.addProperty("mod", "farmHelper");
+        jsonObject.addProperty("username", Minecraft.getMinecraft().getSession().getUsername());
+        jsonObject.addProperty("id", Minecraft.getMinecraft().getSession().getPlayerID());
+        jsonObject.addProperty("modVersion", FarmHelper.VERSION);
+        jsonObject.addProperty("checkType", type.name());
+        JsonObject additionalInfo = new JsonObject();
+        additionalInfo.addProperty("cropType", MacroHandler.getInstance().getCrop().toString());
+        additionalInfo.addProperty("fastBreak", FarmHelperConfig.fastBreak);
+        additionalInfo.addProperty("farmType", FarmHelperConfig.getMacro().name());
+        jsonObject.add("additionalInfo", additionalInfo);
+        try {
+            client.send(jsonObject.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private JsonObject getHeaders() {
         JsonObject handshake = new JsonObject();
         handshake.addProperty("reason", "WebSocketConnector");
@@ -542,17 +528,26 @@ public class BanInfoWS implements IFeature {
             handshake.addProperty("serverId", serverId);
         } catch (AuthenticationException e) {
             e.printStackTrace();
-            reconnectDelay.schedule(60_000L);
+            reconnectDelay.schedule(6_000L);
             return null;
         }
         return handshake;
     }
 
     private String mojangAuthentication() throws AuthenticationException {
-        String serverId = UUID.randomUUID().toString().replace("-", "");
+        Random r1 = new Random();
+        Random r2 = new Random(System.identityHashCode(new Object()));
+        BigInteger random1Bi = new BigInteger(128, r1);
+        BigInteger random2Bi = new BigInteger(128, r2);
+        BigInteger serverBi = random1Bi.xor(random2Bi);
+        String serverId = serverBi.toString(16);
         String commentForDecompilers =
                 "This sends a request to Mojang's auth server, used for verification. This is how we verify you are the real user without your session details. This is the exact same system as Skytils and Optifine use.";
-        Minecraft.getMinecraft().getSessionService().joinServer(Minecraft.getMinecraft().getSession().getProfile(), Minecraft.getMinecraft().getSession().getToken(), serverId);
+        try {
+            Minecraft.getMinecraft().getSessionService().joinServer(Minecraft.getMinecraft().getSession().getProfile(), Minecraft.getMinecraft().getSession().getToken(), serverId);
+        } catch (AuthenticationException e) {
+            throw new AuthenticationException("Failed to authenticate with Mojang's servers. " + e.getMessage());
+        }
         return serverId;
     }
 
@@ -560,14 +555,6 @@ public class BanInfoWS implements IFeature {
         return new WebSocketClient(new URI("ws://ws.may2bee.pl")) {
             @Override
             public void onOpen(ServerHandshake handshakedata) {
-                Multithreading.schedule(() -> {
-                    if (client.isOpen() && client.getReadyState() != ReadyState.NOT_YET_CONNECTED) {
-                        LogUtils.sendDebug("Connected to analytics websocket server");
-                        Notifications.INSTANCE.send("FarmHelper INFO", "Connected to analytics websocket server");
-                    }
-                }, 1_500, TimeUnit.MILLISECONDS);
-                if (FarmHelperConfig.banwaveCheckerEnabled)
-                    Multithreading.schedule(() -> client.send("{\"message\":\"banwaveInfo\", \"mod\": \"farmHelper\"}"), 1_000, TimeUnit.MILLISECONDS);
             }
 
             @Override
@@ -583,6 +570,12 @@ public class BanInfoWS implements IFeature {
                         BanInfoWS.getInstance().setMinutes(minutes);
                         BanInfoWS.getInstance().setBansByMod(bansByMod);
                         lastReceivedPacket = System.currentTimeMillis();
+                        if (!receivedBanwaveInfo) {
+                            if (client.isOpen() && client.getReadyState() != ReadyState.NOT_YET_CONNECTED) {
+                                LogUtils.sendDebug("Connected to analytics websocket server");
+                                Notifications.INSTANCE.send("FarmHelper INFO", "Connected to analytics websocket server");
+                            }
+                        }
                         receivedBanwaveInfo = true;
                         System.out.println("Banwave info received: " + bans + " global staff bans in the last " + minutes + " minutes, " + bansByMod + " bans by this mod");
                         break;
@@ -600,13 +593,10 @@ public class BanInfoWS implements IFeature {
 
             @Override
             public void onClose(int code, String reason, boolean remote) {
-                if (client != null && client.isOpen()) // double check?? lol
-                    client.close();
-                client = null;
                 LogUtils.sendDebug("Disconnected from analytics server");
                 LogUtils.sendDebug("Code: " + code + ", reason: " + reason + ", remote: " + remote);
                 if (!reconnectDelay.isScheduled())
-                    reconnectDelay.schedule(15_000L);
+                    reconnectDelay.schedule(5_000L);
             }
 
             @Override
