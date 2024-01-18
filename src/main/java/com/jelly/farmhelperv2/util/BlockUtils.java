@@ -747,6 +747,12 @@ public class BlockUtils {
         return blocks;
     }
 
+    public static boolean hasCollision(BlockPos blockPos) {
+        Block block = mc.theWorld.getBlockState(blockPos).getBlock();
+        return block != null && block.getCollisionBoundingBox(mc.theWorld, blockPos, mc.theWorld.getBlockState(blockPos)) != null;
+    }
+
+
     public enum Direction {
         FORWARD,
         BACKWARD,

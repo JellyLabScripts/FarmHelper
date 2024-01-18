@@ -64,12 +64,21 @@ public class DirtFailsafe extends Failsafe {
     @Override
     public void onBlockChange(BlockChangeEvent event) {
         if (FailsafeManager.getInstance().firstCheckReturn()) return;
+        if (event.update.getBlock().equals(Blocks.air) && !CropUtils.isCrop(event.old.getBlock())) {
+            LogUtils.sendDebug("[Failsafe] Block destroyed: " + event.pos);
+            blocksDestroyedByPlayer.add(new Tuple<>(event.pos, System.currentTimeMillis()));
+        }
+        blocksDestroyedByPlayer.removeIf(tuple -> System.currentTimeMillis() - tuple.getSecond() > 2000);
         if ((event.old.getBlock().equals(Blocks.air) || CropUtils.isCrop(event.old.getBlock()) || event.old.getBlock().equals(Blocks.water) || event.old.getBlock().equals(Blocks.flowing_water)) &&
                 event.update.getBlock() != null && !event.update.getBlock().equals(Blocks.air) &&
                 !CropUtils.isCrop(event.update.getBlock()) && event.update.getBlock().isCollidable() &&
                 !event.update.getBlock().equals(Blocks.trapdoor) && !event.update.getBlock().equals(Blocks.ladder) &&
                 !event.update.getBlock().equals(Blocks.water) && !event.update.getBlock().equals(Blocks.flowing_water) &&
                 event.update.getBlock().isFullCube()) { // If old block was air or crop and new block is not air, crop, trapdoor, water or flowing water
+            if (blocksDestroyedByPlayer.stream().anyMatch(tuple -> tuple.getFirst().equals(event.pos))) {
+                LogUtils.sendDebug("[Failsafe] Block destroyed by player and resynced by hypixel: " + event.pos);
+                return;
+            }
             LogUtils.sendWarning("[Failsafe] Someone put a block on your garden! Block pos: " + event.pos);
             dirtBlocks.add(new Tuple<>(event.pos, System.currentTimeMillis()));
         }
@@ -227,6 +236,7 @@ public class DirtFailsafe extends Failsafe {
 
     @Override
     public void resetStates() {
+        blocksDestroyedByPlayer.clear();
         dirtBlocks.clear();
         dirtCheckState = DirtCheckState.NONE;
         positionBeforeReacting = null;
@@ -253,6 +263,8 @@ public class DirtFailsafe extends Failsafe {
     }
 
     private final ArrayList<Tuple<BlockPos, Long>> dirtBlocks = new ArrayList<>();
+    private final ArrayList<Tuple<BlockPos, Long>> blocksDestroyedByPlayer = new ArrayList<>();
+
     private BlockPos positionBeforeReacting = null;
     private Rotation rotationBeforeReacting = null;
     private boolean dirtOnLeft = false;

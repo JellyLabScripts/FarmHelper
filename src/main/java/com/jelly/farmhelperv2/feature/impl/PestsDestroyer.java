@@ -130,6 +130,7 @@ public class PestsDestroyer implements IFeature {
             KeyBindUtils.stopMovement();
         }
         escapeState = EscapeState.NONE;
+        rotationState = RotationState.NONE;
         state = States.IDLE;
         pestsPlotMap.clear();
         Multithreading.schedule(() -> {
@@ -166,7 +167,6 @@ public class PestsDestroyer implements IFeature {
         lastFireworkTime = 0;
         getLocationTries = 0;
         finishTries = 0;
-        rotationState = RotationState.NONE;
         FlyPathfinder.getInstance().stuckCounterWithMotion = 0;
         FlyPathfinder.getInstance().stuckCounterWithoutMotion = 0;
         state = States.IDLE;
@@ -188,7 +188,12 @@ public class PestsDestroyer implements IFeature {
 
     @Override
     public boolean shouldCheckForFailsafes() {
-        return escapeState == EscapeState.NONE && state != States.TELEPORT_TO_PLOT && state != States.WAIT_FOR_TP && state != States.GET_LOCATION;
+        return escapeState == EscapeState.NONE &&
+                state != States.TELEPORT_TO_PLOT &&
+                state != States.WAIT_FOR_TP &&
+                state != States.CHECKING_PLOT &&
+                state != States.CHECKING_SPAWN &&
+                state != States.GET_LOCATION;
     }
 
     @SubscribeEvent
@@ -434,21 +439,54 @@ public class PestsDestroyer implements IFeature {
                     break;
                 }
                 if (!mc.thePlayer.getPosition().equals(preTpBlockPos.get())) {
-                    if (PlayerUtils.isPlayerSuffocating() || !BlockUtils.canFlyHigher(5)) {
-                        LogUtils.sendDebug("[Pests Destroyer] The player is suffocating and/or it can't fly higher. Going back to spawnpoint.");
-                        delayClock.schedule(1_000 + Math.random() * 500);
-                        MacroHandler.getInstance().triggerWarpGarden(true, false);
-                        state = States.CHECKING_SPAWN;
-                        return;
+                    Block northWest = BlockUtils.getRelativeBlock(-0.3f, 0, -0.3f);
+                    Block northWestTop = BlockUtils.getRelativeBlock(-0.3f, 1, -0.3f);
+
+                    Block northEast = BlockUtils.getRelativeBlock(0.3f, 0, -0.3f);
+                    Block northEastTop = BlockUtils.getRelativeBlock(0.3f, 1, -0.3f);
+
+                    Block southWest = BlockUtils.getRelativeBlock(-0.3f, 0, 0.3f);
+                    Block southWestTop = BlockUtils.getRelativeBlock(-0.3f, 1, 0.3f);
+
+                    Block southEast = BlockUtils.getRelativeBlock(0.3f, 0, 0.3f);
+                    Block southEastTop = BlockUtils.getRelativeBlock(0.3f, 1, 0.3f);
+
+                    if (!northWest.isCollidable() && !northWestTop.isCollidable()
+                            && !northEast.isCollidable() && !northEastTop.isCollidable()) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft);
+                    } else if (!northWest.isCollidable() && !northWestTop.isCollidable()
+                            && !southWest.isCollidable() && !southWestTop.isCollidable()) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindBack);
+                    } else if (!northEast.isCollidable() && !northEastTop.isCollidable()
+                            && !southEast.isCollidable() && !southEastTop.isCollidable()) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindForward);
+                    } else if (!southWest.isCollidable() && !southWestTop.isCollidable()
+                            && !southEast.isCollidable() && !southEastTop.isCollidable()) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindRight);
+                    } else if (BlockUtils.hasCollision(BlockUtils.getRelativeBlockPos(0, 0, 0)) && !BlockUtils.hasCollision(BlockUtils.getRelativeBlockPos(0, 1, 0))) {
+                        if (mc.thePlayer.onGround) {
+                            mc.thePlayer.jump();
+                        } else {
+                            KeyBindUtils.holdThese(mc.gameSettings.keyBindJump);
+                            Multithreading.schedule(KeyBindUtils::stopMovement, (long) (80 + Math.random() * 50), TimeUnit.MILLISECONDS);
+                        }
                     }
-                    if (!mc.thePlayer.capabilities.isFlying) {
-                        flyAwayFromGround();
-                        delayClock.schedule(350);
-                        break;
-                    }
-                    state = States.GET_LOCATION;
-                    delayClock.schedule((long) (500 + Math.random() * 500));
+                    state = States.CHECKING_PLOT;
+                    delayClock.schedule((long) (200 + Math.random() * 200));
                 }
+                break;
+            case CHECKING_PLOT:
+                if (isInventoryOpenDelayed()) break;
+                KeyBindUtils.stopMovement();
+
+                if (PlayerUtils.isPlayerSuffocating() || !BlockUtils.canFlyHigher(5)) {
+                    LogUtils.sendDebug("[Pests Destroyer] The player is suffocating and/or it can't fly higher. Going back to spawnpoint.");
+                    delayClock.schedule(1_000 + Math.random() * 500);
+                    MacroHandler.getInstance().triggerWarpGarden(true, false);
+                    state = States.CHECKING_SPAWN;
+                    return;
+                }
+                state = States.GET_LOCATION;
                 break;
             case CHECKING_SPAWN:
                 if (MacroHandler.getInstance().isTeleporting()) return;
@@ -465,7 +503,6 @@ public class PestsDestroyer implements IFeature {
                 if (isInventoryOpenDelayed()) break;
                 if (!mc.thePlayer.capabilities.isFlying) {
                     flyAwayFromGround();
-                    delayClock.schedule(350);
                     break;
                 }
 
@@ -492,7 +529,6 @@ public class PestsDestroyer implements IFeature {
                 if (isInventoryOpenDelayed()) break;
                 if (!mc.thePlayer.capabilities.isFlying) {
                     flyAwayFromGround();
-                    delayClock.schedule(350);
                     break;
                 }
 
@@ -561,7 +597,6 @@ public class PestsDestroyer implements IFeature {
                 if (isInventoryOpenDelayed()) break;
                 if (!mc.thePlayer.capabilities.isFlying) {
                     flyAwayFromGround();
-                    delayClock.schedule(350);
                     break;
                 }
                 ItemStack currentItem2 = mc.thePlayer.getHeldItem();
@@ -748,13 +783,11 @@ public class PestsDestroyer implements IFeature {
                 }
 
                 if (distance <= 2.5) {
-                    if (Math.abs(mc.thePlayer.motionX) > 0.1 || Math.abs(mc.thePlayer.motionZ) > 0.1) {
-                        if (delayBetweenBackTaps.passed()) {
-                            KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, mc.gameSettings.keyBindUseItem);
-                            delayBetweenBackTaps.schedule(100 + (long) (Math.random() * 100));
-                        } else {
-                            KeyBindUtils.holdThese(mc.gameSettings.keyBindUseItem);
-                        }
+                    if (Math.abs(mc.thePlayer.motionX) > 0.12 || Math.abs(mc.thePlayer.motionZ) > 0.12) {
+                        Vec3 target = new Vec3(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ);
+                        List<KeyBinding> decelerate = KeyBindUtils.getKeyPressesToDecelerate(mc.thePlayer.getPositionVector(), target);
+                        decelerate.add(mc.gameSettings.keyBindUseItem);
+                        KeyBindUtils.holdThese(decelerate.toArray(new KeyBinding[0]));
                         break;
                     }
                     if (rotationState != RotationState.CLOSE) {
@@ -765,7 +798,6 @@ public class PestsDestroyer implements IFeature {
                         Rotation rotation2 = RotationHandler.getInstance().getRotation(entity);
                         Rotation neededRotation = new Rotation(rotation2.getYaw(), rotation2.getPitch() + 10);
                         float distanceRotation = Math.abs(neededRotation.getPitch()) + Math.abs(neededRotation.getYaw());
-                        RotationHandler.getInstance().reset();
                         RotationHandler.getInstance().easeTo(new RotationConfiguration(
                                 new Target(entity).additionalY(0.42f),
                                 FarmHelperConfig.getRandomPestsKillerRotationTimeSmallDistance(),
@@ -798,7 +830,6 @@ public class PestsDestroyer implements IFeature {
                     if (distance <= 12 || distanceXZ <= 2) {
                         if (!mc.thePlayer.capabilities.isFlying && entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY >= 2) {
                             flyAwayFromGround();
-                            delayClock.schedule(350);
                             break;
                         }
 
@@ -812,7 +843,6 @@ public class PestsDestroyer implements IFeature {
                             Rotation rotation3 = RotationHandler.getInstance().getRotation(entity);
                             Rotation neededRotation = new Rotation(rotation3.getYaw(), rotation3.getPitch() + 10);
                             float distanceRotation = Math.abs(neededRotation.getPitch()) + Math.abs(neededRotation.getYaw());
-                            RotationHandler.getInstance().reset();
                             RotationHandler.getInstance().easeTo(new RotationConfiguration(
                                     new Target(entity),
                                     FarmHelperConfig.getRandomPestsKillerRotationTimeMediumDistance(),
@@ -827,7 +857,6 @@ public class PestsDestroyer implements IFeature {
                         }
                         if (!mc.thePlayer.capabilities.isFlying && distanceXZ > 6) {
                             flyAwayFromGround();
-                            delayClock.schedule(350);
                             break;
                         }
 
@@ -847,7 +876,6 @@ public class PestsDestroyer implements IFeature {
                         }
 
                         if (!RotationHandler.getInstance().isRotating()) {
-                            RotationHandler.getInstance().reset();
                             RotationHandler.getInstance().easeTo(new RotationConfiguration(
                                     new Target(entity),
                                     FarmHelperConfig.getRandomRotationTime(),
@@ -991,15 +1019,20 @@ public class PestsDestroyer implements IFeature {
         Vec3 playerPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
         List<KeyBinding> keyBindings = new ArrayList<>(KeyBindUtils.getNeededKeyPresses(playerPos, target));
         if (objectsInFrontOfPlayer() || entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY >= 2) {
-            if (distanceWithoutY <= 1.5) {
+            if (distanceWithoutY <= 1.5 && (Math.abs(mc.thePlayer.motionX) > 0.12 || Math.abs(mc.thePlayer.motionZ) > 0.12)) {
                 keyBindings.clear();
-                keyBindings.addAll(KeyBindUtils.getKeyPressesToDecelerate());
+                keyBindings.addAll(KeyBindUtils.getKeyPressesToDecelerate(playerPos, target));
+            } else if (hasBlockAboveThePlayer()) {
+                if (GameStateHandler.getInstance().isLeftWalkable()) {
+                    keyBindings.add(mc.gameSettings.keyBindLeft);
+                } else if (GameStateHandler.getInstance().isRightWalkable()) {
+                    keyBindings.add(mc.gameSettings.keyBindRight);
+                }
+            } else if (mc.thePlayer.capabilities.isFlying) {
+                keyBindings.add(mc.gameSettings.keyBindJump);
             }
             if (distance < 6) {
                 keyBindings.add(mc.gameSettings.keyBindUseItem);
-            }
-            if (mc.thePlayer.capabilities.isFlying) {
-                keyBindings.add(mc.gameSettings.keyBindJump);
             }
             if (FarmHelperConfig.sprintWhileFlying && keyBindings.contains(mc.gameSettings.keyBindForward) && distanceWithoutY > 2.5) {
                 keyBindings.add(mc.gameSettings.keyBindSprint);
@@ -1011,12 +1044,13 @@ public class PestsDestroyer implements IFeature {
                 KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, getMovementToEvadeBottomBlock(), distanceWithoutY < 1 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null);
             } else {
                 LogUtils.sendDebug("Doesn't have block under the player");
-                KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, !mc.thePlayer.onGround ? mc.gameSettings.keyBindSneak : null, distanceWithoutY > 6 && yawDifference < 25 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 1 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null, distanceWithoutY > 7 && yawDifference < 25 ? FarmHelperConfig.sprintWhileFlying ? mc.gameSettings.keyBindSprint : null : null);
+                KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, distanceWithoutY < 3 && !mc.thePlayer.onGround ? mc.gameSettings.keyBindSneak : null, distanceWithoutY > 1.5 && yawDifference < 25 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 1 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null, distanceWithoutY > 7 && yawDifference < 25 ? FarmHelperConfig.sprintWhileFlying ? mc.gameSettings.keyBindSprint : null : null);
             }
         } else {
             if (distanceWithoutY <= 1.5 || distance <= 3.5) {
                 keyBindings.clear();
-                keyBindings.addAll(KeyBindUtils.getKeyPressesToDecelerate());
+                if ((Math.abs(mc.thePlayer.motionX) > 0.12 || Math.abs(mc.thePlayer.motionZ) > 0.12))
+                    keyBindings.addAll(KeyBindUtils.getKeyPressesToDecelerate(playerPos, target));
             }
             if (distance < 6) {
                 keyBindings.add(mc.gameSettings.keyBindUseItem);
@@ -1082,24 +1116,29 @@ public class PestsDestroyer implements IFeature {
 
         if (mc.thePlayer.onGround && !PlayerUtils.isPlayerSuffocating()) {
             KeyBindUtils.holdThese(mc.gameSettings.keyBindJump);
-            Multithreading.schedule(KeyBindUtils::stopMovement, 280, TimeUnit.MILLISECONDS);
             Multithreading.schedule(() -> {
-                if (!mc.thePlayer.capabilities.isFlying && !mc.thePlayer.onGround) {
+                KeyBindUtils.stopMovement();
+                if (!mc.thePlayer.onGround) {
                     mc.thePlayer.capabilities.isFlying = true;
                     mc.thePlayer.sendPlayerAbilities();
                 }
-            }, 300, TimeUnit.MILLISECONDS);
-            delayClock.schedule(400);
+            }, (long) (150 + Math.random() * 50), TimeUnit.MILLISECONDS);
+            delayClock.schedule(200);
         }
     }
 
     private boolean objectsInFrontOfPlayer() {
-        Vec3 playerPos = mc.thePlayer.getPositionVector().addVector(0, 0.1f, 0);
-        Vec3 leftPos = BlockUtils.getRelativeVec(-0.66f, 0.1f, 0.66f, mc.thePlayer.rotationYaw);
-        Vec3 rightPos = BlockUtils.getRelativeVec(0.66f, 0.1f, 0.66f, mc.thePlayer.rotationYaw);
-        if (getMopFromTopToBottom(playerPos, 6)) return true;
-        if (getMopFromTopToBottom(leftPos, 5)) return true;
-        return getMopFromTopToBottom(rightPos, 5);
+        AxisAlignedBB boundingBox = mc.thePlayer.getEntityBoundingBox().expand(0.5, 0, 0.5);
+        AxisAlignedBB boundingBoxInFront = boundingBox.offset(mc.thePlayer.getLookVec().xCoord * 5, 0, mc.thePlayer.getLookVec().zCoord * 5);
+        List<AxisAlignedBB> boundingBoxes = mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, boundingBoxInFront);
+        System.out.println(boundingBoxes.size());
+        return !boundingBoxes.isEmpty();
+//        Vec3 playerPos = mc.thePlayer.getPositionVector().addVector(0, 0.1f, 0);
+//        Vec3 leftPos = BlockUtils.getRelativeVec(-0.66f, 0.1f, 0.66f, mc.thePlayer.rotationYaw);
+//        Vec3 rightPos = BlockUtils.getRelativeVec(0.66f, 0.1f, 0.66f, mc.thePlayer.rotationYaw);
+//        if (getMopFromTopToBottom(playerPos, 6)) return true;
+//        if (getMopFromTopToBottom(leftPos, 5)) return true;
+//        return getMopFromTopToBottom(rightPos, 5);
     }
 
     private boolean getMopFromTopToBottom(Vec3 start, float distance) {
@@ -1507,6 +1546,7 @@ public class PestsDestroyer implements IFeature {
         TELEPORTING_TO_PLOT,
         TELEPORT_TO_PLOT,
         WAIT_FOR_TP,
+        CHECKING_PLOT,
         CHECKING_SPAWN,
         GET_CLOSEST_PLOT,
         FLY_TO_THE_CLOSEST_PLOT,

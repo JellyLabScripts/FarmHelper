@@ -164,10 +164,28 @@ public class KeyBindUtils {
         return keys;
     }
 
-    public static List<KeyBinding> getKeyPressesToDecelerate() {
-        if (Math.abs(mc.thePlayer.motionX) < 0.05 && Math.abs(mc.thePlayer.motionZ) < 0.05) return new ArrayList<>();
-        Vec3 orig = mc.thePlayer.getPositionVector();
-        Vec3 dest = mc.thePlayer.getPositionVector().addVector(Math.abs(mc.thePlayer.motionX) >= 0.05 ? -mc.thePlayer.motionX : 0, 0, Math.abs(mc.thePlayer.motionZ) >= 0.05 ? -mc.thePlayer.motionZ : 0);
-        return getNeededKeyPresses(orig, dest);
+    public static List<KeyBinding> getOppositeKeys(List<KeyBinding> kbs) {
+        List<KeyBinding> keys = new ArrayList<>();
+        kbs.forEach(key -> {
+            switch (key.getKeyCode()) {
+                case 17:
+                    keys.add(mc.gameSettings.keyBindBack);
+                    break;
+                case 30:
+                    keys.add(mc.gameSettings.keyBindRight);
+                    break;
+                case 31:
+                    keys.add(mc.gameSettings.keyBindLeft);
+                    break;
+                case 32:
+                    keys.add(mc.gameSettings.keyBindForward);
+                    break;
+            }
+        });
+        return keys;
+    }
+
+    public static List<KeyBinding> getKeyPressesToDecelerate(Vec3 orig, Vec3 dest) {
+        return getOppositeKeys(getNeededKeyPresses(orig, dest));
     }
 }

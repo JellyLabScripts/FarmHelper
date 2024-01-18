@@ -916,6 +916,17 @@ public class VisitorsMacro implements IFeature {
                 }
                 LogUtils.sendDebug("[Visitors Macro] Items to buy: " + itemsToBuy);
 
+                Optional<Tuple<String, String>> profitableReward = currentRewards.stream().filter(item -> {
+                    String name = StringUtils.stripControlCodes(item.getFirst());
+                    return profitRewards.stream().anyMatch(reward -> reward.toLowerCase().contains(name.toLowerCase()) || name.toLowerCase().contains(reward.toLowerCase()));
+                }).findFirst();
+
+                profitNpc = profitableReward.isPresent();
+                if (profitNpc && FarmHelperConfig.sendVisitorsMacroLogs) {
+                    String reward = StringUtils.stripControlCodes(profitableReward.get().getFirst());
+                    LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro found profitable item: " + reward, FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
+                }
+
                 switch (npcRarity) {
                     case UNKNOWN:
                         LogUtils.sendDebug("[Visitors Macro] The visitor is unknown rarity. Accepting offer...");
@@ -1202,17 +1213,8 @@ public class VisitorsMacro implements IFeature {
     }
 
     private void checkIfCurrentVisitorIsProfitable() {
-        Optional<Tuple<String, String>> profitableReward = currentRewards.stream().filter(item -> {
-            String name = StringUtils.stripControlCodes(item.getFirst());
-            System.out.println(name);
-            return profitRewards.stream().anyMatch(reward -> reward.toLowerCase().contains(name.toLowerCase()) || name.toLowerCase().contains(reward.toLowerCase()));
-        }).findFirst();
-        if (profitableReward.isPresent()) {
+        if (profitNpc) {
             LogUtils.sendDebug("[Visitors Macro] The visitor is profitable");
-            String reward = profitableReward.get().getFirst();
-            profitNpc = true;
-            if (FarmHelperConfig.sendVisitorsMacroLogs)
-                LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro found profitable item: " + reward, FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs);
             LogUtils.sendDebug("[Visitors Macro] Accepting offer...");
         } else {
             LogUtils.sendWarning("[Visitors Macro] The visitor is not profitable, skipping...");

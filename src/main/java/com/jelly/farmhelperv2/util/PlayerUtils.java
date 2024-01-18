@@ -244,7 +244,7 @@ public class PlayerUtils {
         }
         if (closest == null) return false;
         BlockPos playerPos = BlockUtils.getRelativeBlockPos(0, 0, 0);
-        return playerPos.getX() == closest.getX() && playerPos.getY() == closest.getY() && playerPos.getZ() == closest.getZ();
+        return playerPos.distanceSqToCenter(closest.getX() + 0.5, closest.getY() + 0.5, closest.getZ() + 0.5) < 1;
     }
 
     public static boolean shouldPushBack() {
@@ -302,7 +302,8 @@ public class PlayerUtils {
 
     public static boolean isStandingOnSpawnPoint() {
         BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
-        return pos.getX() == FarmHelperConfig.spawnPosX && pos.getY() == FarmHelperConfig.spawnPosY && pos.getZ() == FarmHelperConfig.spawnPosZ;
+        BlockPos spawnPoint = new BlockPos(FarmHelperConfig.spawnPosX + 0.5, FarmHelperConfig.spawnPosY + 0.5, FarmHelperConfig.spawnPosZ + 0.5);
+        return pos.distanceSqToCenter(spawnPoint.getX(), spawnPoint.getY(), spawnPoint.getZ()) < 1;
     }
 
     public static Vec3 getSpawnLocation() {
