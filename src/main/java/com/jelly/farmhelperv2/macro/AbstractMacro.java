@@ -99,6 +99,8 @@ public abstract class AbstractMacro {
                     PestsDestroyer.getInstance().start();
                 } else if (VisitorsMacro.getInstance().canEnableMacro(false, true)) {
                     VisitorsMacro.getInstance().start();
+                } else if (AutoPestHunter.getInstance().canEnableMacro(false)) {
+                    AutoPestHunter.getInstance().start();
                 }
                 checkOnSpawnClock.schedule(5000);
             } else {
@@ -114,6 +116,11 @@ public abstract class AbstractMacro {
             }
             if (VisitorsMacro.getInstance().canEnableMacro(false, true)) {
                 VisitorsMacro.getInstance().start();
+                rotated = true;
+                return;
+            }
+            if (AutoPestHunter.getInstance().canEnableMacro(false)) {
+                AutoPestHunter.getInstance().start();
                 rotated = true;
                 return;
             }

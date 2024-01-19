@@ -1286,6 +1286,31 @@ public class FarmHelperConfig extends Config {
             description = "Automatically hunts pests"
     )
     public static boolean autoPestHunter = false;
+    @Switch(
+            name = "Pause the Auto Pest Hunter during Jacob's contests", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            description = "Pauses the Auto Pest Hunter during Jacob's contests"
+    )
+    public static boolean pauseAutoPestHunterDuringJacobsContest = true;
+    @Slider(
+            name = "Trigger before contest starts (in minutes)", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            description = "The time before the contest starts to trigger the auto pest hunter",
+            min = 5, max = 25
+    )
+    public static int autoPestHunterTriggerBeforeContestStarts = 5;
+    @Slider(
+            name = "Pests amount required", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            description = "The amount of pests in a vacuum required to start the auto pest hunter",
+            min = 5, max = 200
+    )
+    public static int autoPestHunterMinPests = 10;
+    @Info(
+            text = "The auto pest hunter will start automatically once you rewarp!",
+            type = InfoType.WARNING,
+            category = AUTO_PEST_HUNTER,
+            subcategory = "Auto Pest Hunter",
+            size = 2
+    )
+    public static boolean autoPestHunterInfo;
 
     @Button(
             name = "Trigger now Auto Pest Hunter", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
@@ -1776,6 +1801,9 @@ public class FarmHelperConfig extends Config {
         this.addDependency("pingEveryoneOnPestsDetectionNumberExceeded", "sendWebhookLogIfPestsDetectionNumberExceeded");
         this.addDependency("pingEveryoneOnPestsDetectionNumberExceeded", "enableWebHook");
 
+        this.addDependency("pauseAutoPestHunterDuringJacobsContest", "autoPestHunter");
+        this.addDependency("autoPestHunterTriggerBeforeContestStarts", "autoPestHunter");
+        this.addDependency("autoPestHunterMinPests", "autoPestHunter");
         this.hideIf("pestHunterDeskX", () -> true);
         this.hideIf("pestHunterDeskY", () -> true);
         this.hideIf("pestHunterDeskZ", () -> true);

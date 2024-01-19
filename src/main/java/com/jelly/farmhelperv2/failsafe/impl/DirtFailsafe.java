@@ -9,6 +9,7 @@ import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
+import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
@@ -79,7 +80,7 @@ public class DirtFailsafe extends Failsafe {
                 LogUtils.sendDebug("[Failsafe] Block destroyed by player and resynced by hypixel: " + event.pos);
                 return;
             }
-            LogUtils.sendWarning("[Failsafe] Someone put a block on your garden! Block pos: " + event.pos);
+            LogUtils.sendWarning("[Failsafe] Someone put a block on your garden! Block: " + event.update.getBlock() + " Pos: " + event.pos);
             dirtBlocks.add(new Tuple<>(event.pos, System.currentTimeMillis()));
         }
     }
@@ -130,7 +131,12 @@ public class DirtFailsafe extends Failsafe {
                     FailsafeManager.getInstance().scheduleRandomDelay(300, 600);
                     break;
                 }
-                if (CustomFailsafeMessagesPage.customDirtMessages.isEmpty()) {
+                if (!CustomFailsafeMessagesPage.customJacobMessages.isEmpty()
+                        && GameStateHandler.getInstance().inJacobContest()
+                        && Math.random() > CustomFailsafeMessagesPage.customJacobChance / 100.0) {
+                    String[] customJacobMessages = CustomFailsafeMessagesPage.customJacobMessages.split("\\|");
+                    randomMessage = FailsafeManager.getRandomMessage(customJacobMessages);
+                } else if (CustomFailsafeMessagesPage.customDirtMessages.isEmpty()) {
                     randomMessage = FailsafeManager.getRandomMessage();
                 } else {
                     String[] customMessages = CustomFailsafeMessagesPage.customDirtMessages.split("\\|");

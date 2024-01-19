@@ -15,12 +15,14 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
+import net.minecraft.inventory.Slot;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -34,8 +36,9 @@ public class GameStateHandler {
     private final Timer reWarpTimer = new Timer();
     @Getter
     private final Clock jacobContestLeftClock = new Clock();
-    private final Pattern jacobsRemainingTimePattern = Pattern.compile("([0-9]|[1-2][0-9])m([0-9]|[1-5][0-9])s");
+    public final Pattern jacobsRemainingTimePattern = Pattern.compile("([0-9]|[1-2][0-9])m([0-9]|[1-5][0-9])s");
     private final Pattern serverClosingPattern = Pattern.compile("Server closing: (?<minutes>\\d+):(?<seconds>\\d+) .*");
+    private final Pattern pestsFromVacuumPattern = Pattern.compile("Vacuum Bag:\\s*(\\d+)\\s*Pests\n");
     @Getter
     private Location lastLocation = Location.TELEPORTING;
     @Getter
@@ -474,6 +477,30 @@ public class GameStateHandler {
             }
         }
         return hasGuestsOnTabList && location == Location.GARDEN;
+    }
+
+    public int getPestsFromVacuum() {
+        if (mc.theWorld == null || mc.thePlayer == null) return 0;
+        int pests = 0;
+        for (Slot slot : mc.thePlayer.inventoryContainer.inventorySlots) {
+            if (slot.getHasStack()) {
+                String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
+                if (itemName != null && itemName.contains("Vacuum")) {
+                    ArrayList<String> lore = InventoryUtils.getItemLore(slot.getStack());
+                    for (String line : lore) {
+                        if (line.matches(pestsFromVacuumPattern.pattern())) {
+                            Matcher matcher = pestsFromVacuumPattern.matcher(line);
+                            if (matcher.find()) {
+                                pests = Integer.parseInt(matcher.group(1));
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            return pests;
+        }
+        return 0;
     }
 
     @Getter

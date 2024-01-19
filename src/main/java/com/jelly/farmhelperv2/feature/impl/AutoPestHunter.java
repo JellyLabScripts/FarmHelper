@@ -2,15 +2,13 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
-import com.jelly.farmhelperv2.util.InventoryUtils;
-import com.jelly.farmhelperv2.util.KeyBindUtils;
-import com.jelly.farmhelperv2.util.LogUtils;
-import com.jelly.farmhelperv2.util.PlayerUtils;
+import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import com.jelly.farmhelperv2.util.helper.Target;
@@ -28,6 +26,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 
 public class AutoPestHunter implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
@@ -129,12 +128,39 @@ public class AutoPestHunter implements IFeature {
         GO_BACK,
     }
 
-    public boolean canEnableMacro(boolean manually) {
+    public boolean canEnableMacro(boolean manual) {
         if (!isToggled()) return false;
         if (!GameStateHandler.getInstance().inGarden()) return false;
-        if (!MacroHandler.getInstance().isMacroToggled() && !manually) return false;
+        if (mc.thePlayer == null || mc.theWorld == null) return false;
+        if (!MacroHandler.getInstance().isMacroToggled() && !manual) return false;
+        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return false;
         if (FarmHelperConfig.pestHunterDeskX == 0 && FarmHelperConfig.pestHunterDeskY == 0 && FarmHelperConfig.pestHunterDeskZ == 0) {
-            LogUtils.sendError("[Auto Pest Hunter] The desk position is not set!");
+            FarmHelperConfig.autoPestHunter = false;
+            LogUtils.sendError("[Auto Pest Hunter] The desk position is not set! Disabling...");
+            return false;
+        }
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
+            LogUtils.sendError("[Auto Pest Hunter] Server is closing in " + GameStateHandler.getInstance().getServerClosingSeconds().get() + " seconds!");
+            return false;
+        }
+        if (!manual && FarmHelperConfig.pauseAutoPestHunterDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) {
+            LogUtils.sendDebug("[Auto Pest Hunter] Jacob's contest is active, skipping...");
+            return false;
+        }
+        if (!manual && GameStateHandler.getInstance().inJacobContest()) {
+            for (String line : TablistUtils.getTabList()) {
+                Matcher matcher = GameStateHandler.getInstance().jacobsRemainingTimePattern.matcher(line);
+                if (matcher.find()) {
+                    String minutes = matcher.group(1);
+                    if (Integer.parseInt(minutes) > FarmHelperConfig.autoPestHunterTriggerBeforeContestStarts) {
+                        LogUtils.sendDebug("[Auto Pest Hunter] Jacob's contest is starting in " + minutes + " minutes, skipping...");
+                        return false;
+                    }
+                }
+            }
+        }
+        if (!manual && FarmHelperConfig.autoPestHunterMinPests > 0 && GameStateHandler.getInstance().getPestsFromVacuum() < FarmHelperConfig.autoPestHunterMinPests) {
+            LogUtils.sendDebug("[Auto Pest Hunter] There are not enough pests to start the macro!");
             return false;
         }
         return true;
@@ -284,7 +310,7 @@ public class AutoPestHunter implements IFeature {
             "When you've done that, come back and tell me all about how much fun you had!"
     };
 
-    @SubscribeEvent
+    @SubscribeEvent(receiveCanceled = true)
     public void onChatMessageReceived(ClientChatReceivedEvent event) {
         if (enabled && event.type == 0 && event.message != null && state == State.WAIT_FOR_VACUUM) {
             if (event.message.getFormattedText().contains("§e[NPC] §6Phillip§f: Thanks for the §6Pests§f,"))

@@ -158,7 +158,12 @@ public class BedrockCageFailsafe extends Failsafe {
                     FailsafeManager.getInstance().scheduleRandomDelay(300, 600);
                     break;
                 }
-                if (CustomFailsafeMessagesPage.customBedrockMessages.isEmpty()) {
+                if (!CustomFailsafeMessagesPage.customJacobMessages.isEmpty()
+                        && GameStateHandler.getInstance().inJacobContest()
+                        && Math.random() > CustomFailsafeMessagesPage.customJacobChance / 100.0) {
+                    String[] customJacobMessages = CustomFailsafeMessagesPage.customJacobMessages.split("\\|");
+                    randomMessage = FailsafeManager.getRandomMessage(customJacobMessages);
+                } else if (CustomFailsafeMessagesPage.customBedrockMessages.isEmpty()) {
                     randomMessage = FailsafeManager.getRandomMessage();
                 } else {
                     String[] customMessages = CustomFailsafeMessagesPage.customBedrockMessages.split("\\|");

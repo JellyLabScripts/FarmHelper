@@ -142,7 +142,12 @@ public class TeleportFailsafe extends Failsafe {
                     FailsafeManager.getInstance().scheduleRandomDelay(300, 600);
                     break;
                 }
-                if (CustomFailsafeMessagesPage.customTeleportationMessages.isEmpty()) {
+                if (!CustomFailsafeMessagesPage.customJacobMessages.isEmpty()
+                        && GameStateHandler.getInstance().inJacobContest()
+                        && Math.random() > CustomFailsafeMessagesPage.customJacobChance / 100.0) {
+                    String[] customJacobMessages = CustomFailsafeMessagesPage.customJacobMessages.split("\\|");
+                    randomMessage = FailsafeManager.getRandomMessage(customJacobMessages);
+                } else if (CustomFailsafeMessagesPage.customTeleportationMessages.isEmpty()) {
                     randomMessage = FailsafeManager.getRandomMessage();
                 } else {
                     String[] customMessages = CustomFailsafeMessagesPage.customTeleportationMessages.split("\\|");
