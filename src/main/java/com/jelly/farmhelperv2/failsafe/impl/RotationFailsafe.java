@@ -7,7 +7,6 @@ import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.AntiStuck;
-import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -67,10 +66,10 @@ public class RotationFailsafe extends Failsafe {
         if (!(event.packet instanceof S08PacketPlayerPosLook)) {
             return;
         }
-        if (LagDetector.getInstance().isLagging() || LagDetector.getInstance().wasJustLagging()) {
-            LogUtils.sendWarning("[Failsafe] Got rotation packet while lagging! Ignoring that one.");
-            return;
-        }
+//        if (LagDetector.getInstance().isLagging() || LagDetector.getInstance().wasJustLagging()) {
+//            LogUtils.sendWarning("[Failsafe] Got rotation packet while lagging! Ignoring that one.");
+//            return;
+//        }
 
         if (AntiStuck.getInstance().isRunning()) {
             LogUtils.sendDebug("[Failsafe] Rotation packet received while AntiStuck is running. Ignoring");

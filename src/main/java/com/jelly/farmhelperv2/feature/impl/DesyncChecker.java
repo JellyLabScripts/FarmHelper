@@ -7,7 +7,7 @@ import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
-import com.jelly.farmhelperv2.util.helper.CircularFifoQueue;
+import com.jelly.farmhelperv2.util.helper.FifoQueue;
 import lombok.Getter;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCocoa;
@@ -26,7 +26,7 @@ public class DesyncChecker implements IFeature {
     private static DesyncChecker instance;
     private final Minecraft mc = Minecraft.getMinecraft();
     @Getter
-    private final CircularFifoQueue<ClickedBlockEvent> clickedBlocks = new CircularFifoQueue<>(120);
+    private final FifoQueue<ClickedBlockEvent> clickedBlocks = new FifoQueue<>(120);
     private boolean enabled = false;
 
     public static DesyncChecker getInstance() {

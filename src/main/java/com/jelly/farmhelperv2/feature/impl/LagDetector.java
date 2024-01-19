@@ -2,8 +2,8 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.feature.IFeature;
-import com.jelly.farmhelperv2.util.helper.CircularFifoQueue;
 import com.jelly.farmhelperv2.util.helper.Clock;
+import com.jelly.farmhelperv2.util.helper.FifoQueue;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.play.server.S03PacketTimeUpdate;
@@ -22,7 +22,7 @@ public class LagDetector implements IFeature {
     @Getter
     private long lastReceivedPacketTime = -1;
     private Vec3 lastPacketPosition = null;
-    private final CircularFifoQueue<Float> tpsHistory = new CircularFifoQueue<>(20);
+    private final FifoQueue<Float> tpsHistory = new FifoQueue<>(20);
     private float timeJoined = 0;
 
     public static LagDetector getInstance() {

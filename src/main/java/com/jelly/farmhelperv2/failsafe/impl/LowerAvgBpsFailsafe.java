@@ -9,7 +9,7 @@ import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
-import com.jelly.farmhelperv2.util.helper.CircularFifoQueue;
+import com.jelly.farmhelperv2.util.helper.FifoQueue;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -155,6 +155,6 @@ public class LowerAvgBpsFailsafe extends Failsafe {
 
     private LowerBPSState lowerBPSState = LowerBPSState.NONE;
     private final RotationHandler rotation = RotationHandler.getInstance();
-    private final CircularFifoQueue<Float> bpsQueue = new CircularFifoQueue<>(20);
+    private final FifoQueue<Float> bpsQueue = new FifoQueue<>(20);
     private long lastTimeCheckedBPS = System.currentTimeMillis();
 }

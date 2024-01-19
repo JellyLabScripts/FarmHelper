@@ -19,7 +19,7 @@ public class Clock {
     }
 
     public void schedule(double milliseconds) {
-        this.endTime = (long) (System.currentTimeMillis() + milliseconds);
+        this.endTime = (System.currentTimeMillis() + (long) milliseconds);
         this.remainingTime = (long) milliseconds;
         this.scheduled = true;
         this.paused = false;

@@ -106,7 +106,7 @@ public class AutoReconnect implements IFeature {
         state = State.NONE;
         reconnectDelay.reset();
         LogUtils.sendDebug("[Reconnect] Finished reconnecting to the server.");
-        if (macroWasToggled) {
+        if (macroWasToggled && mc.theWorld != null && mc.thePlayer != null) {
             MacroHandler.getInstance().resumeMacro();
             macroWasToggled = false;
             if (UngrabMouse.getInstance().isToggled()) {

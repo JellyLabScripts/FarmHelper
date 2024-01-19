@@ -39,6 +39,7 @@ public class PlayerUtils {
         boolean foundCropUnderMouse = false;
         if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             BlockPos pos = mc.objectMouseOver.getBlockPos();
+            if (mc.theWorld == null) return FarmHelperConfig.CropEnum.NONE;
             if (mc.theWorld.getBlockState(pos) == null) return FarmHelperConfig.CropEnum.NONE;
             Block block = mc.theWorld.getBlockState(pos).getBlock();
             if (block instanceof BlockCrops || block instanceof BlockReed || block instanceof BlockCocoa || block instanceof BlockNetherWart || block instanceof BlockMelon || block instanceof BlockPumpkin || block instanceof BlockMushroom || block instanceof BlockCactus) {

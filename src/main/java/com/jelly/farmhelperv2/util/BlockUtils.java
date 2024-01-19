@@ -735,6 +735,14 @@ public class BlockUtils {
         return new Vec3(MathHelper.sin(-yaw * 0.017453292f - 3.1415927f) * f2, MathHelper.sin(-pitch * 0.017453292f), MathHelper.cos(-yaw * 0.017453292f - 3.1415927f) * f2);
     }
 
+    public static AxisAlignedBB getBlocksAround(BlockPos blockPos) {
+        List<BlockPos> blocks = new ArrayList<>();
+        int x = blockPos.getX();
+        int y = blockPos.getY();
+        int z = blockPos.getZ();
+        return new AxisAlignedBB(x - 2, y - 2, z - 1, x + 2, y + 1, z + 2);
+    }
+
     public static List<BlockPos> getBlocksAroundEntity(Entity entity) {
         List<BlockPos> blocks = new ArrayList<>();
         int x = (int) Math.floor(entity.posX);
@@ -750,6 +758,23 @@ public class BlockUtils {
     public static boolean hasCollision(BlockPos blockPos) {
         Block block = mc.theWorld.getBlockState(blockPos).getBlock();
         return block != null && block.getCollisionBoundingBox(mc.theWorld, blockPos, mc.theWorld.getBlockState(blockPos)) != null;
+    }
+
+    public static int cropAroundAmount(BlockPos blockPos) {
+        AxisAlignedBB axisAlignedBB = getBlocksAround(blockPos);
+        int count = 0;
+        for (int x = (int) axisAlignedBB.minX; x < axisAlignedBB.maxX; x++) {
+            for (int y = (int) axisAlignedBB.minY; y < axisAlignedBB.maxY; y++) {
+                for (int z = (int) axisAlignedBB.minZ; z < axisAlignedBB.maxZ; z++) {
+                    BlockPos blockPos1 = new BlockPos(x, y, z);
+                    Block block = mc.theWorld.getBlockState(blockPos1).getBlock();
+                    if (CropUtils.isCropReady(block, blockPos1)) {
+                        count++;
+                    }
+                }
+            }
+        }
+        return count;
     }
 
 

@@ -30,6 +30,8 @@ public abstract class AbstractMacro {
     private final RotationHandler rotation = RotationHandler.getInstance();
     private final Clock rewarpDelay = new Clock();
     private final Clock analyticsClock = new Clock();
+    private final Clock delayBeforeBreakTime = new Clock();
+    private final Clock breakTime = new Clock();
 
     @Setter
     public State currentState = State.NONE;
@@ -78,6 +80,17 @@ public abstract class AbstractMacro {
                 LogUtils.sendWarning("Failsafe is running! Blocking main onTick event!");
                 sentWarning = true;
             }
+            return;
+        }
+        if (!delayBeforeBreakTime.passed()) {
+            LogUtils.sendDebug("Delay before break time: " + delayBeforeBreakTime.getRemainingTime());
+            return;
+        }
+        if (!breakTime.passed()) {
+            System.out.println(breakTime.getRemainingTime());
+            KeyBindUtils.stopMovement();
+            LogUtils.sendDebug("Blocking movement due to breaking!");
+            GameStateHandler.getInstance().scheduleNotMoving();
             return;
         }
         if (mc.thePlayer.capabilities.isFlying) {
@@ -196,10 +209,10 @@ public abstract class AbstractMacro {
             return;
         }
 
-        if (LagDetector.getInstance().isLagging()) {
-            LogUtils.sendDebug("Blocking changing movement due to lag!");
-            return;
-        }
+//        if (LagDetector.getInstance().isLagging()) {
+//            LogUtils.sendDebug("Blocking changing movement due to lag!");
+//            return;
+//        }
 
         if (FarmHelperConfig.autoSwitchTool) {
             FarmHelperConfig.CropEnum crop = PlayerUtils.getCropBasedOnMouseOver();
@@ -342,6 +355,11 @@ public abstract class AbstractMacro {
 
     public boolean shouldRotateAfterWarp() {
         return true;
+    }
+
+    public void setBreakTime(double time, double timeBefore) {
+        breakTime.schedule((long) time);
+        delayBeforeBreakTime.schedule((long) timeBefore);
     }
 
     public enum State {

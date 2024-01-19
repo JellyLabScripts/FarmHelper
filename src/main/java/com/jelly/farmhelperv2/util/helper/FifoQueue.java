@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class CircularFifoQueue<E> extends AbstractCollection<E>
+public class FifoQueue<E> extends AbstractCollection<E>
         implements Queue<E> {
 
     private final transient E[] elements;
@@ -34,7 +34,7 @@ public class CircularFifoQueue<E> extends AbstractCollection<E>
      * @throws IllegalArgumentException if the size is &lt; 1
      */
     @SuppressWarnings("unchecked")
-    public CircularFifoQueue(final int size) {
+    public FifoQueue(final int size) {
         if (size <= 0) {
             throw new IllegalArgumentException("The size must be greater than 0");
         }
@@ -183,6 +183,13 @@ public class CircularFifoQueue<E> extends AbstractCollection<E>
             return null;
         }
         return elements[start];
+    }
+
+    public E seek() {
+        if (isEmpty()) {
+            return null;
+        }
+        return elements[end];
     }
 
     @Override

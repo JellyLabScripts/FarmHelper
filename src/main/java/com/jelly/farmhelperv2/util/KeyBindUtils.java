@@ -186,6 +186,7 @@ public class KeyBindUtils {
     }
 
     public static List<KeyBinding> getKeyPressesToDecelerate(Vec3 orig, Vec3 dest) {
+        LogUtils.sendDebug("getKeyPressesToDecelerate");
         return getOppositeKeys(getNeededKeyPresses(orig, dest));
     }
 }

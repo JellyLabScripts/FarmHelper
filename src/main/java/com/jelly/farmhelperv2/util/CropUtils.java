@@ -4,6 +4,7 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.mixin.block.IBlockAccessor;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
@@ -119,5 +120,27 @@ public class CropUtils {
                 block instanceof BlockMelon ||
                 block instanceof BlockStem ||
                 block instanceof BlockMushroom;
+    }
+
+    public static boolean isCropReady(Block block, BlockPos blockPos) {
+        if (block instanceof BlockCrops) {
+            return Minecraft.getMinecraft().theWorld.getBlockState(blockPos).getValue(BlockCrops.AGE) == 7;
+        } else if (block instanceof BlockPotato) {
+            return Minecraft.getMinecraft().theWorld.getBlockState(blockPos).getValue(BlockPotato.AGE) == 7;
+        } else if (block instanceof BlockCarrot) {
+            return Minecraft.getMinecraft().theWorld.getBlockState(blockPos).getValue(BlockCarrot.AGE) == 7;
+        } else if (block instanceof BlockNetherWart) {
+            return Minecraft.getMinecraft().theWorld.getBlockState(blockPos).getValue(BlockNetherWart.AGE) == 3;
+        } else if (block instanceof BlockCocoa) {
+            return Minecraft.getMinecraft().theWorld.getBlockState(blockPos).getValue(BlockCocoa.AGE) == 2;
+        } else if (block instanceof BlockCactus) {
+            return true;
+        } else if (block instanceof BlockReed) {
+            return true;
+        } else if (block instanceof BlockPumpkin) {
+            return true;
+        } else if (block instanceof BlockMelon) {
+            return true;
+        } else return block instanceof BlockMushroom;
     }
 }

@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.failsafe.impl;
 
+import com.google.common.collect.EvictingQueue;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
@@ -13,15 +14,18 @@ import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
-import com.jelly.farmhelperv2.util.AngleUtils;
-import com.jelly.farmhelperv2.util.BlockUtils;
-import com.jelly.farmhelperv2.util.LogUtils;
-import com.jelly.farmhelperv2.util.PlayerUtils;
+import com.jelly.farmhelperv2.macro.AbstractMacro;
+import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.Tuple;
 import net.minecraft.util.Vec3;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
+
+import java.awt.*;
+import java.util.Optional;
 
 public class TeleportFailsafe extends Failsafe {
     private static TeleportFailsafe instance;
@@ -32,6 +36,8 @@ public class TeleportFailsafe extends Failsafe {
         }
         return instance;
     }
+
+    private final EvictingQueue<Tuple<BlockPos, AbstractMacro.State>> lastWalkedPositions = EvictingQueue.create(400);
 
     @Override
     public int getPriority() {
@@ -64,16 +70,35 @@ public class TeleportFailsafe extends Failsafe {
     }
 
     @Override
+    public void onTickDetection(TickEvent.ClientTickEvent event) {
+        if (MacroHandler.getInstance().isTeleporting()) {
+            if (!lastWalkedPositions.isEmpty())
+                lastWalkedPositions.clear();
+            return;
+        }
+        BlockPos playerPos = mc.thePlayer.getPosition();
+        if (lastWalkedPositions.isEmpty()) {
+            lastWalkedPositions.add(new Tuple<>(playerPos, MacroHandler.getInstance().getCurrentMacro().map(AbstractMacro::getCurrentState).orElse(null)));
+            return;
+        }
+        BlockPos last = ((Tuple<BlockPos, AbstractMacro.State>) lastWalkedPositions.toArray()[lastWalkedPositions.size() - 1]).getFirst();
+        if (last.distanceSq(playerPos) < 1) {
+            return;
+        }
+        lastWalkedPositions.add(new Tuple<>(playerPos, MacroHandler.getInstance().getCurrentMacro().map(AbstractMacro::getCurrentState).orElse(null)));
+    }
+
+    @Override
     public void onReceivedPacketDetection(ReceivePacketEvent event) {
         if (MacroHandler.getInstance().isTeleporting())
             return;
         if (!(event.packet instanceof S08PacketPlayerPosLook)) {
             return;
         }
-        if (LagDetector.getInstance().isLagging() || LagDetector.getInstance().wasJustLagging()) {
-            LogUtils.sendWarning("[Failsafe] Got rotation packet while lagging! Ignoring that one.");
-            return;
-        }
+//        if (LagDetector.getInstance().isLagging() || LagDetector.getInstance().wasJustLagging()) {
+//            LogUtils.sendWarning("[Failsafe] Got rotation packet while lagging! Ignoring that one.");
+//            return;
+//        }
 
         if (AntiStuck.getInstance().isRunning()) {
             LogUtils.sendDebug("[Failsafe] Teleportation packet received while AntiStuck is running. Ignoring");
@@ -83,11 +108,37 @@ public class TeleportFailsafe extends Failsafe {
         S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
         Vec3 currentPlayerPos = mc.thePlayer.getPositionVector();
         Vec3 packetPlayerPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
+        BlockPos packetPlayerBlockPos = new BlockPos(packetPlayerPos);
+        Optional<Tuple<BlockPos, AbstractMacro.State>> lastWalkedPosition = lastWalkedPositions.stream().filter(pos -> pos.getFirst().distanceSq(packetPlayerBlockPos) < 2).findFirst();
+        if (lastWalkedPosition.isPresent()) {
+            AbstractMacro.State currentState = MacroHandler.getInstance().getCurrentMacro().map(AbstractMacro::getCurrentState).orElse(null);
+            LowerAvgBpsFailsafe.getInstance().resetStates();
+            if (currentState == null || currentState != lastWalkedPosition.get().getSecond()) {
+                LogUtils.sendFailsafeMessage("[Failsafe] You got lag backed into previous row! Fixing state", shouldTagEveryone());
+                FailsafeUtils.getInstance().sendNotification("You got lag backed into previous row! Fixing state", TrayIcon.MessageType.WARNING);
+                MacroHandler.getInstance().getCurrentMacro().ifPresent(macro -> {
+                    macro.setCurrentState(lastWalkedPosition.get().getSecond());
+                    long delay = (long) (1_500 + Math.random() * 1_000);
+                    long delayBefore = Math.max(500, delay - 500);
+                    macro.setBreakTime(delay, delayBefore);
+                });
+                return;
+            }
+            LogUtils.sendFailsafeMessage("[Failsafe] You got lag backed! Not reacting", shouldTagEveryone());
+            FailsafeUtils.getInstance().sendNotification("You got lag backed! Not reacting", TrayIcon.MessageType.WARNING);
+            return;
+        }
 
         if (packet.getY() >= 90 || BlockUtils.bedrockCount() > 2) {
             LogUtils.sendDebug("[Failsafe] Most likely a bedrock check! Will check in a moment to be sure.");
             return;
         }
+
+//        if (BlockUtils.cropAroundAmount(packetPlayerBlockPos) > 5) {
+//            LogUtils.sendDebug("[Failsafe] Still in the farm! Not reacting");
+//            LogUtils.sendFailsafeMessage("[Failsafe] You probably got tp check forward into farm! Not reacting", shouldTagEveryone());
+//            return;
+//        }
 
         rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
         double distance = currentPlayerPos.distanceTo(packetPlayerPos);
@@ -274,6 +325,7 @@ public class TeleportFailsafe extends Failsafe {
         randomMessage = null;
         randomContinueMessage = null;
         rotation.reset();
+        lastWalkedPositions.clear();
     }
 
     private TeleportCheckState teleportCheckState = TeleportCheckState.NONE;

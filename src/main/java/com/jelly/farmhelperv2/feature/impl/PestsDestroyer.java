@@ -782,13 +782,12 @@ public class PestsDestroyer implements IFeature {
                     return;
                 }
 
-                if (distance <= 2.5) {
+                if (distance <= 3.5 && canEntityBeSeenIgnoreNonCollidable(entity)) {
                     if (Math.abs(mc.thePlayer.motionX) > 0.12 || Math.abs(mc.thePlayer.motionZ) > 0.12) {
                         Vec3 target = new Vec3(entity.posX, entity.posY + entity.getEyeHeight() + 1, entity.posZ);
                         List<KeyBinding> decelerate = KeyBindUtils.getKeyPressesToDecelerate(mc.thePlayer.getPositionVector(), target);
                         decelerate.add(mc.gameSettings.keyBindUseItem);
                         KeyBindUtils.holdThese(decelerate.toArray(new KeyBinding[0]));
-                        break;
                     }
                     if (rotationState != RotationState.CLOSE) {
                         rotationState = RotationState.CLOSE;
@@ -827,7 +826,7 @@ public class PestsDestroyer implements IFeature {
                         break;
                     }
 
-                    if (distance <= 12 || distanceXZ <= 2) {
+                    if (distance <= 12 || distanceXZ <= 3) {
                         if (!mc.thePlayer.capabilities.isFlying && entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY >= 2) {
                             flyAwayFromGround();
                             break;
@@ -1019,7 +1018,7 @@ public class PestsDestroyer implements IFeature {
         Vec3 playerPos = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
         List<KeyBinding> keyBindings = new ArrayList<>(KeyBindUtils.getNeededKeyPresses(playerPos, target));
         if (objectsInFrontOfPlayer() || entity.posY + entity.getEyeHeight() + 1 - mc.thePlayer.posY >= 2) {
-            if (distanceWithoutY <= 1.5 && (Math.abs(mc.thePlayer.motionX) > 0.12 || Math.abs(mc.thePlayer.motionZ) > 0.12)) {
+            if (distanceWithoutY <= 3 && (Math.abs(mc.thePlayer.motionX) > 0.12 || Math.abs(mc.thePlayer.motionZ) > 0.12)) {
                 keyBindings.clear();
                 keyBindings.addAll(KeyBindUtils.getKeyPressesToDecelerate(playerPos, target));
             } else if (hasBlockAboveThePlayer()) {
@@ -1047,7 +1046,7 @@ public class PestsDestroyer implements IFeature {
                 KeyBindUtils.holdThese(distance < 6 ? mc.gameSettings.keyBindUseItem : null, distanceWithoutY < 3 && !mc.thePlayer.onGround ? mc.gameSettings.keyBindSneak : null, distanceWithoutY > 1.5 && yawDifference < 25 ? mc.gameSettings.keyBindForward : null, distanceWithoutY < 1 && (GameStateHandler.getInstance().getDx() > 0.04 || GameStateHandler.getInstance().getDz() > 0.04) ? mc.gameSettings.keyBindBack : null, distanceWithoutY > 7 && yawDifference < 25 ? FarmHelperConfig.sprintWhileFlying ? mc.gameSettings.keyBindSprint : null : null);
             }
         } else {
-            if (distanceWithoutY <= 1.5 || distance <= 3.5) {
+            if (distanceWithoutY <= 4 || distance <= 5.5) {
                 keyBindings.clear();
                 if ((Math.abs(mc.thePlayer.motionX) > 0.12 || Math.abs(mc.thePlayer.motionZ) > 0.12))
                     keyBindings.addAll(KeyBindUtils.getKeyPressesToDecelerate(playerPos, target));
@@ -1128,7 +1127,7 @@ public class PestsDestroyer implements IFeature {
     }
 
     private boolean objectsInFrontOfPlayer() {
-        AxisAlignedBB boundingBox = mc.thePlayer.getEntityBoundingBox().expand(0.5, 0, 0.5);
+        AxisAlignedBB boundingBox = mc.thePlayer.getEntityBoundingBox().expand(0.5, 0.1, 0.5);
         AxisAlignedBB boundingBoxInFront = boundingBox.offset(mc.thePlayer.getLookVec().xCoord * 5, 0, mc.thePlayer.getLookVec().zCoord * 5);
         List<AxisAlignedBB> boundingBoxes = mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, boundingBoxInFront);
         System.out.println(boundingBoxes.size());
@@ -1316,7 +1315,7 @@ public class PestsDestroyer implements IFeature {
         Vec3 vec3 = new Vec3(entity.posX, entity.posY + entity.getEyeHeight() + 0.5, entity.posZ);
         Vec3 vec31 = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
         MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(vec31, vec3, false, true, false);
-        return mop == null || mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && mc.theWorld.getBlockState(mop.getBlockPos()).getBlock().equals(Blocks.cactus);
+        return mop == null || mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && (mc.theWorld.getBlockState(mop.getBlockPos()).getBlock().equals(Blocks.cactus) || !BlockUtils.hasCollision(mop.getBlockPos()));
     }
 
     @SubscribeEvent(receiveCanceled = true)
