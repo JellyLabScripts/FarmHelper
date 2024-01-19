@@ -16,6 +16,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.event.world.WorldEvent;
@@ -38,7 +39,7 @@ public class GameStateHandler {
     private final Clock jacobContestLeftClock = new Clock();
     public final Pattern jacobsRemainingTimePattern = Pattern.compile("([0-9]|[1-2][0-9])m([0-9]|[1-5][0-9])s");
     private final Pattern serverClosingPattern = Pattern.compile("Server closing: (?<minutes>\\d+):(?<seconds>\\d+) .*");
-    private final Pattern pestsFromVacuumPattern = Pattern.compile("Vacuum Bag:\\s*(\\d+)\\s*Pests\n");
+    private final Pattern pestsFromVacuumPattern = Pattern.compile("Vacuum Bag: (\\d+) Pest(s)?");
     @Getter
     private Location lastLocation = Location.TELEPORTING;
     @Getter
@@ -480,25 +481,33 @@ public class GameStateHandler {
     }
 
     public int getPestsFromVacuum() {
-        if (mc.theWorld == null || mc.thePlayer == null) return 0;
-        int pests = 0;
+        if (mc.theWorld == null || mc.thePlayer == null)
+            return 0;
         for (Slot slot : mc.thePlayer.inventoryContainer.inventorySlots) {
-            if (slot.getHasStack()) {
-                String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
-                if (itemName != null && itemName.contains("Vacuum")) {
-                    ArrayList<String> lore = InventoryUtils.getItemLore(slot.getStack());
-                    for (String line : lore) {
-                        if (line.matches(pestsFromVacuumPattern.pattern())) {
-                            Matcher matcher = pestsFromVacuumPattern.matcher(line);
-                            if (matcher.find()) {
-                                pests = Integer.parseInt(matcher.group(1));
-                            }
-                            break;
+            if (!slot.getHasStack())
+                continue;
+            ItemStack stack = slot.getStack();
+            if (stack == null)
+                continue;
+            String itemName = StringUtils.stripControlCodes(stack.getDisplayName());
+            if (itemName == null || !itemName.toLowerCase().contains("vacuum"))
+                continue;
+            ArrayList<String> lore = InventoryUtils.getItemLore(stack);
+            if (lore.isEmpty())
+                continue;
+            for (String line : lore) {
+                if (line.contains("Vacuum Bag:")) {
+                    Matcher matcher = pestsFromVacuumPattern.matcher(line);
+                    if (matcher.find()) {
+                        try {
+                            return Integer.parseInt(matcher.group(1));
+                        } catch (NumberFormatException e) {
+                            LogUtils.sendError("Failed to parse pests from vacuum bag! Please report this to the developer!");
+                            return 0;
                         }
                     }
                 }
             }
-            return pests;
         }
         return 0;
     }

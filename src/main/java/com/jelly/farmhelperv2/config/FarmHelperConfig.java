@@ -1335,6 +1335,10 @@ public class FarmHelperConfig extends Config {
         pestHunterDeskX = mc.thePlayer.getPosition().getX();
         pestHunterDeskY = mc.thePlayer.getPosition().getY();
         pestHunterDeskZ = mc.thePlayer.getPosition().getZ();
+        LogUtils.sendSuccess("[Auto Pest Hunter] Set the pest hunter location to "
+                + FarmHelperConfig.pestHunterDeskX + ", "
+                + FarmHelperConfig.pestHunterDeskY + ", "
+                + FarmHelperConfig.pestHunterDeskZ);
     };
     @Number(
             name = "Pest Hunter Desk X", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
