@@ -341,13 +341,14 @@ public class GameStateHandler {
                 if (DirtFailsafe.getInstance().hasDirtBlocks() && DirtFailsafe.getInstance().isTouchingDirtBlock()) {
                     FailsafeManager.getInstance().possibleDetection(DirtFailsafe.getInstance());
                 } else {
-                    randomValueToWaitNextTime = -1;
-                    notMovingTimer.reset();
+                    if (notMovingTimer.isScheduled()) {
+                        randomValueToWaitNextTime = -1;
+                        notMovingTimer.reset();
+                        randomValueToWait = FarmHelperConfig.getRandomTimeBetweenChangingRows();
+                    }
                 }
             }
         } else {
-            if (!notMovingTimer.isScheduled())
-                randomValueToWait = FarmHelperConfig.getRandomTimeBetweenChangingRows();
             notMovingTimer.schedule();
         }
         float yaw;
