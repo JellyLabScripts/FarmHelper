@@ -502,7 +502,8 @@ public class GameStateHandler {
                         try {
                             return Integer.parseInt(matcher.group(1));
                         } catch (NumberFormatException e) {
-                            LogUtils.sendError("Failed to parse pests from vacuum bag! Please report this to the developer!");
+                            LogUtils.sendError("Failed to parse pests from vacuum bag!");
+                            LogUtils.sendWarning("Report this to #bug-reports!");
                             return 0;
                         }
                     }

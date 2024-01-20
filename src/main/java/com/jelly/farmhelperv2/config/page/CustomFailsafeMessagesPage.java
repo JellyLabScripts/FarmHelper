@@ -10,7 +10,7 @@ public class CustomFailsafeMessagesPage {
     @Text(
             name = "Custom messages sent during Jacob's Contest",
             description = "The messages to send to the chat when the failsafe has been triggered and you are during Jacob's Contest (use '|' to split the messages)",
-            placeholder = "Leave empty to use a random message",
+            placeholder = "Leave empty to disable",
             multiline = true
     )
     public static String customJacobMessages = "";

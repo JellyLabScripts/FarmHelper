@@ -2,7 +2,6 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
-import com.jelly.farmhelperv2.config.page.AutoSellNPCItemsPage;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -189,6 +188,7 @@ public class AutoSell implements IFeature {
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
+        if (FarmHelperConfig.pauseAutoSellDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) return;
         if (dontEnableForClock.isScheduled() && !dontEnableForClock.passed()) return;
 
         if (inventoryFilledClock.isScheduled() && inventoryFilledClock.passed()) {
@@ -597,11 +597,11 @@ public class AutoSell implements IFeature {
     }
 
     private boolean shouldSellCustomItem(String name) {
-        if (AutoSellNPCItemsPage.autoSellRunes && name.contains(" Rune") && !name.contains("Music")) return true;
-        if (AutoSellNPCItemsPage.autoSellDeadBush && name.contains("Dead Bush")) return true;
-        if (AutoSellNPCItemsPage.autoSellIronHoe && name.contains("Iron Hoe")) return true;
-        if (!AutoSellNPCItemsPage.autoSellCustomItems.isEmpty()) {
-            List<String> customItems = Arrays.asList(AutoSellNPCItemsPage.autoSellCustomItems.split("\\|"));
+        if (FarmHelperConfig.autoSellRunes && name.contains(" Rune") && !name.contains("Music")) return true;
+        if (FarmHelperConfig.autoSellDeadBush && name.contains("Dead Bush")) return true;
+        if (FarmHelperConfig.autoSellIronHoe && name.contains("Iron Hoe")) return true;
+        if (!FarmHelperConfig.autoSellCustomItems.isEmpty()) {
+            List<String> customItems = Arrays.asList(FarmHelperConfig.autoSellCustomItems.split("\\|"));
             return customItems.stream().anyMatch(item -> StringUtils.stripControlCodes(name.toLowerCase()).contains(item.toLowerCase()));
         }
         return false;

@@ -143,6 +143,7 @@ public class AutoRepellent implements IFeature {
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
+        if (FarmHelperConfig.pauseAutoPestRepellentDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) return;
 
         if (FarmHelperConfig.pestRepellentType && !InventoryUtils.hasItemInInventory("Pest Repellent MAX") && GameStateHandler.getInstance().getCopper() < 40 && !notEnoughCopper) {
             notEnoughCopper = true;

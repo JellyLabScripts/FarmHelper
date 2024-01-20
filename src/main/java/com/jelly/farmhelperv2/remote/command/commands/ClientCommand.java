@@ -81,7 +81,7 @@ abstract public class ClientCommand {
     private static void disableEssentialsShit() {
         try {
             Class<?> klazz = Class.forName("gg.essential.config.EssentialConfig");
-            Field field = klazz.getDeclaredField("essentialScreenshots");
+            Field field = klazz.getDeclaredField("essentialScreenshotsState");
             field.setAccessible(true);
             if (field.getBoolean(klazz)) {
                 LogUtils.sendWarning("Disabling Essential Mod's Screenshot Manager");

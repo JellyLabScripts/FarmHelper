@@ -7,7 +7,6 @@ import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.*;
 import com.jelly.farmhelperv2.FarmHelper;
-import com.jelly.farmhelperv2.config.page.AutoSellNPCItemsPage;
 import com.jelly.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
@@ -46,6 +45,10 @@ public class FarmHelperConfig extends Config {
     private transient static final String VISITORS_MACRO = "Visitors Macro";
     private transient static final String PESTS_DESTROYER = "Pests Destroyer";
     private transient static final String AUTO_PEST_HUNTER = "Auto Pest Hunter";
+    private transient static final String AUTO_GOD_POT = "Auto God Pot";
+    private transient static final String AUTO_SELL = "Auto Sell";
+    private transient static final String AUTO_REPELLANT = "Auto Repellant";
+    private transient static final String AUTO_SPRAYONATOR = "Auto Sprayonator";
     private transient static final String DISCORD_INTEGRATION = "Discord Integration";
     private transient static final String DELAYS = "Delays";
     private transient static final String HUD = "HUD";
@@ -300,164 +303,6 @@ public class FarmHelperConfig extends Config {
     public static boolean autoUngrabMouse = true;
     //</editor-fold>
 
-    //<editor-fold desc="God Pot">
-    @Switch(
-            name = "Auto God Pot", category = MISCELLANEOUS, subcategory = "God Pot",
-            description = "Automatically purchases and consumes a God Pot", size = 2
-    )
-    public static boolean autoGodPot = false;
-
-    @Switch(
-            name = "Get God Pot from Backpack", category = MISCELLANEOUS, subcategory = "God Pot", size = 2
-    )
-    public static boolean autoGodPotFromBackpack = true;
-
-    @DualOption(
-            name = "Storage Type", category = MISCELLANEOUS, subcategory = "God Pot",
-            description = "The storage type to get god pots from",
-            left = "Backpack",
-            right = "Ender Chest"
-    )
-    public static boolean autoGodPotStorageType = true;
-
-    @Number(
-            name = "Backpack Number", category = MISCELLANEOUS, subcategory = "God Pot",
-            description = "The backpack number, that contains god pots",
-            min = 1, max = 18
-    )
-    public static int autoGodPotBackpackNumber = 1;
-
-    @Switch(
-            name = "Buy God Pot using Bits", category = MISCELLANEOUS, subcategory = "God Pot"
-    )
-    public static boolean autoGodPotFromBits = false;
-
-    @Switch(
-            name = "Get God Pot from Auction House", category = MISCELLANEOUS, subcategory = "God Pot",
-            description = "If the user doesn't have a cookie, it will go to the hub and buy from AH"
-    )
-    public static boolean autoGodPotFromAH = false;
-
-    @Info(
-            text = "Priority getting God Pot is: Backpack -> Bits -> AH",
-            type = InfoType.INFO, size = 2, category = MISCELLANEOUS, subcategory = "God Pot"
-    )
-    private static int godPotInfo;
-
-    //</editor-fold>
-
-    //<editor-fold desc="Auto Sell">
-    @Info(
-            text = "Click ESC during Auto Sell, to stop it and pause for the next 15 minutes",
-            category = MISCELLANEOUS, subcategory = "Auto Sell", type = InfoType.INFO, size = 2
-    )
-    public static boolean autoSellInfo;
-
-    @Switch(
-            name = "Enable Auto Sell", category = MISCELLANEOUS, subcategory = "Auto Sell",
-            description = "Enables auto sell"
-    )
-    public static boolean enableAutoSell = false;
-
-    @DualOption(
-            name = "Market type", category = MISCELLANEOUS, subcategory = "Auto Sell",
-            description = "The market type to sell crops to",
-            left = "BZ",
-            right = "NPC"
-    )
-    public static boolean autoSellMarketType = false;
-
-    @Switch(
-            name = "Sell Items In Sacks", category = MISCELLANEOUS, subcategory = "Auto Sell",
-            description = "Sells items in your sacks and inventory"
-    )
-    public static boolean autoSellSacks = false;
-
-    @DualOption(
-            name = "Sacks placement",
-            category = MISCELLANEOUS, subcategory = "Auto Sell",
-            description = "The sacks placement",
-            left = "Inventory",
-            right = "Sack of sacks"
-    )
-    public static boolean autoSellSacksPlacement = true;
-
-    @Number(
-            name = "Inventory Full Time", category = MISCELLANEOUS, subcategory = "Auto Sell",
-            description = "The time to wait to test if inventory fullness ratio is still the same (or higher)",
-            min = 1, max = 20
-    )
-    public static int inventoryFullTime = 6;
-
-    @Number(
-            name = "Inventory Full Ratio", category = MISCELLANEOUS, subcategory = "Auto Sell",
-            description = "After reaching this ratio, the macro will start counting from 0 to Inventory Full Time. If the fullness ratio is still the same (or higher) after the time has passed, it will start selling items.",
-            min = 1, max = 100
-    )
-    public static int inventoryFullRatio = 65;
-
-    @Button(
-            name = "Sell Inventory Now", category = MISCELLANEOUS, subcategory = "Auto Sell",
-            description = "Sells crops in your inventory",
-            text = "Sell Inventory Now"
-    )
-    Runnable autoSellFunction = () -> {
-        PlayerUtils.closeScreen();
-        AutoSell.getInstance().enable(true);
-    };
-
-    @Page(
-            name = "Customize items sold to NPC", category = MISCELLANEOUS, subcategory = "Auto Sell", location = PageLocation.BOTTOM,
-            description = "Click here to customize items that are sold to NPC automatically"
-    )
-    public AutoSellNPCItemsPage autoSellNPCItemsPage = new AutoSellNPCItemsPage();
-    //</editor-fold>
-
-    //<editor-fold desc="Pest Repellant">
-    @Switch(
-            name = "Auto Pest Repellent", category = MISCELLANEOUS, subcategory = "Pest Repellent",
-            description = "Automatically uses pest repellent when it's not active"
-    )
-    public static boolean autoPestRepellent = false;
-
-    @DualOption(
-            name = "Pest Repellent Type", category = MISCELLANEOUS, subcategory = "Pest Repellent",
-            description = "The pest repellent type to use",
-            left = "Pest Repellent",
-            right = "Pest Repellent MAX"
-    )
-    public static boolean pestRepellentType = true;
-
-    @Button(
-            name = "Reset Failsafe", category = MISCELLANEOUS, subcategory = "Pest Repellent",
-            text = "Click Here",
-            description = "Resets the failsafe timer for repellent"
-    )
-    Runnable resetFailsafe = () -> {
-        AutoRepellent.repellentFailsafeClock.schedule(0);
-    };
-    //</editor-fold>
-
-    //<editor-fold desc="Pet Swapper">
-    @Switch(
-            name = "Swap pet during Jacob's contest", category = MISCELLANEOUS, subcategory = "Pet Swapper",
-            description = "Swaps pet to the selected pet during Jacob's contest. Selects the first one from the pet list."
-    )
-    public static boolean enablePetSwapper = false;
-
-    @Slider(
-            name = "Pet Swap Delay", category = MISCELLANEOUS, subcategory = "Pet Swapper",
-            description = "The delay between clicking GUI during swapping the pet (in milliseconds)",
-            min = 200, max = 3000
-    )
-    public static int petSwapperDelay = 1000;
-    @Text(
-            name = "Pet Name", placeholder = "Type your pet name here",
-            category = MISCELLANEOUS, subcategory = "Pet Swapper"
-    )
-    public static String petSwapperName = null;
-    //</editor-fold>
-
     //<editor-fold desc="Crop Utils">
     @Switch(
             name = "Increase Cocoa Hitboxes", category = MISCELLANEOUS, subcategory = "Crop Utils",
@@ -496,85 +341,6 @@ public class FarmHelperConfig extends Config {
             description = "Sends analytic data to the server to improve the macro and learn how to detect staff checks"
     )
     public static boolean sendAnalyticData = true;
-    //</editor-fold>
-
-    //<editor-fold desc="Auto Sprayonator">
-    @Switch(
-            name = "Auto Sprayonator", category = MISCELLANEOUS, subcategory = "AutoSprayonator"
-    )
-    public static boolean autoSprayonatorEnable = false;
-
-    @Dropdown(
-            name = "Type", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
-            description = "Item to spray plot with",
-            options = {
-                    "Compost (Earthworm & Mosquito)",
-                    "Honey Jar (Moth & Cricket)",
-                    "Dung (Beetle & Fly)",
-                    "Plant Matter (Locust & Slug)",
-                    "Tasty Cheese (Rat & Mite)"
-            }, size = 5
-    )
-    public static int sprayonatorType;
-
-    @Getter
-    public enum SPRAYONATOR_ITEM {
-        COMPOST("Compost"),
-        HONEY_JAR("Honey Jar"),
-        DUNG("Dung"),
-        PLANT_MATTER("Plant Matter"),
-        TASTY_CHEESE("Tasty Cheese"),
-        NONE("NONE");
-
-        final String itemName;
-
-        SPRAYONATOR_ITEM(final String item_name) {
-            this.itemName = item_name;
-        }
-    }
-
-    @Switch(
-            name = "Inventory Only", category = MISCELLANEOUS, subcategory = "Sprayonator"
-    )
-    public static boolean sprayonatorItemInventoryOnly;
-
-    @Slider(
-            name = "Sprayonator Slot", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
-            min = 1, max = 8,
-            step = 1,
-            description = "Slot to move sprayonator to"
-    )
-    public static int autoSprayonatorSlot = 1;
-
-    @Slider(
-            name = "Additional Delay", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
-            description = "Additional delay between actions (in milliseconds)",
-            min = 0, max = 5000, step = 1
-    )
-    public static int autoSprayonatorAdditionalDelay = 500;
-
-    @Switch(
-            name = "Auto Buy item from Bazaar", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
-            description = "Auto buy necessary sprayonator item from bazaar if none is in the inventory"
-    )
-    public static boolean autoSprayonatorAutoBuyItem = false;
-
-    @Number(
-            name = "Buy Amount", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
-            description = "Amount of item to buy from bazaar",
-            min = 1, max = 64
-    )
-    public static int autoSprayonatorAutoBuyAmount = 1;
-
-    @Button(
-            name = "Reset Plots", category = MISCELLANEOUS, subcategory = "AutoSprayonator",
-            text = "Click Here",
-            description = "Resets the cached data for sprayonator"
-    )
-    Runnable _autoSprayonatorResetPlots = () -> {
-        AutoSprayonator.getInstance().resetPlots();
-    };
-
     //</editor-fold>
 
     //</editor-fold>
@@ -726,7 +492,8 @@ public class FarmHelperConfig extends Config {
             name = "Failsafe Sound Type", category = FAILSAFE, subcategory = "Failsafe Trigger Sound",
             description = "The failsafe sound type to play when a failsafe has been triggered",
             left = "Minecraft",
-            right = "Custom"
+            right = "Custom",
+            size = 2
     )
     public static boolean failsafeSoundType = false;
     @Dropdown(
@@ -943,6 +710,27 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     //<editor-fold desc="JACOB'S CONTEST">
+
+    //<editor-fold desc="Pet Swapper">
+    @Switch(
+            name = "Swap pet during Jacob's contest", category = JACOBS_CONTEST, subcategory = "Pet Swapper",
+            description = "Swaps pet to the selected pet during Jacob's contest. Selects the first one from the pet list."
+    )
+    public static boolean enablePetSwapper = false;
+
+    @Slider(
+            name = "Pet Swap Delay", category = JACOBS_CONTEST, subcategory = "Pet Swapper",
+            description = "The delay between clicking GUI during swapping the pet (in milliseconds)",
+            min = 200, max = 3000
+    )
+    public static int petSwapperDelay = 1000;
+    @Text(
+            name = "Pet Name", placeholder = "Type your pet name here",
+            category = JACOBS_CONTEST, subcategory = "Pet Swapper"
+    )
+    public static String petSwapperName = null;
+    //</editor-fold>
+
     @Switch(
             name = "Enable Jacob Failsafes", category = JACOBS_CONTEST, subcategory = "Jacob's Contest",
             description = "Stops farming once a crop threshold has been met"
@@ -1280,83 +1068,6 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
     //</editor-fold>
 
-    //<editor-fold desc="AUTO PEST HUNTER">
-    @Switch(
-            name = "Enable Auto Pest Hunter", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            description = "Automatically hunts pests"
-    )
-    public static boolean autoPestHunter = false;
-    @Switch(
-            name = "Pause the Auto Pest Hunter during Jacob's contests", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            description = "Pauses the Auto Pest Hunter during Jacob's contests"
-    )
-    public static boolean pauseAutoPestHunterDuringJacobsContest = true;
-    @Slider(
-            name = "Trigger before contest starts (in minutes)", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            description = "The time before the contest starts to trigger the auto pest hunter",
-            min = 5, max = 25
-    )
-    public static int autoPestHunterTriggerBeforeContestStarts = 5;
-    @Slider(
-            name = "Pests amount required", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            description = "The amount of pests in a vacuum required to start the auto pest hunter",
-            min = 5, max = 200
-    )
-    public static int autoPestHunterMinPests = 10;
-    @Info(
-            text = "The auto pest hunter will start automatically once you rewarp!",
-            type = InfoType.WARNING,
-            category = AUTO_PEST_HUNTER,
-            subcategory = "Auto Pest Hunter",
-            size = 2
-    )
-    public static boolean autoPestHunterInfo;
-
-    @Button(
-            name = "Trigger now Auto Pest Hunter", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            description = "Triggers the auto pest hunter manually",
-            text = "Trigger now"
-    )
-    public static void triggerManuallyAutoPestHunter() {
-        AutoPestHunter.getInstance().setManuallyStarted(true);
-        AutoPestHunter.getInstance().start();
-    }
-
-    @Button(
-            name = "Set the pest hunter location", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            description = "Sets the pest hunter location",
-            text = "Set desk"
-    )
-    public static Runnable setPestHunterLocation = () -> {
-        if (!VisitorsMacro.getInstance().isInBarn()) {
-            LogUtils.sendError("[Auto Pest Hunter] You need to be in the barn to set the pest hunter location!");
-            return;
-        }
-        pestHunterDeskX = mc.thePlayer.getPosition().getX();
-        pestHunterDeskY = mc.thePlayer.getPosition().getY();
-        pestHunterDeskZ = mc.thePlayer.getPosition().getZ();
-        LogUtils.sendSuccess("[Auto Pest Hunter] Set the pest hunter location to "
-                + FarmHelperConfig.pestHunterDeskX + ", "
-                + FarmHelperConfig.pestHunterDeskY + ", "
-                + FarmHelperConfig.pestHunterDeskZ);
-    };
-    @Number(
-            name = "Pest Hunter Desk X", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            min = -300, max = 300
-    )
-    public static int pestHunterDeskX = 0;
-    @Number(
-            name = "Pest Hunter Desk Y", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            min = 50, max = 150
-    )
-    public static int pestHunterDeskY = 0;
-    @Number(
-            name = "Pest Hunter Desk Z", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            min = -300, max = 300
-    )
-    public static int pestHunterDeskZ = 0;
-    //</editor-fold>
-
     //<editor-fold desc="DISCORD INTEGRATION">
     //<editor-fold desc="Webhook Discord">
     @Switch(
@@ -1436,6 +1147,323 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean infoRemoteControl;
     //</editor-fold>
+    //</editor-fold>
+
+    //<editor-fold desc="AUTO PEST HUNTER">
+    @Switch(
+            name = "Enable Auto Pest Hunter", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            description = "Automatically hunts pests"
+    )
+    public static boolean autoPestHunter = false;
+    @Switch(
+            name = "Pause the Auto Pest Hunter during Jacob's contests", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            description = "Pauses the Auto Pest Hunter during Jacob's contests"
+    )
+    public static boolean pauseAutoPestHunterDuringJacobsContest = true;
+    @Slider(
+            name = "Trigger before contest starts (in minutes)", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            description = "The time before the contest starts to trigger the auto pest hunter",
+            min = 5, max = 25
+    )
+    public static int autoPestHunterTriggerBeforeContestStarts = 5;
+    @Slider(
+            name = "Pests amount required", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            description = "The amount of pests in a vacuum required to start the auto pest hunter",
+            min = 5, max = 200
+    )
+    public static int autoPestHunterMinPests = 10;
+    @Info(
+            text = "The auto pest hunter will start automatically once you rewarp!",
+            type = InfoType.WARNING,
+            category = AUTO_PEST_HUNTER,
+            subcategory = "Auto Pest Hunter",
+            size = 2
+    )
+    public static boolean autoPestHunterInfo;
+
+    @Button(
+            name = "Trigger now Auto Pest Hunter", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            description = "Triggers the auto pest hunter manually",
+            text = "Trigger now"
+    )
+    public static void triggerManuallyAutoPestHunter() {
+        AutoPestHunter.getInstance().setManuallyStarted(true);
+        AutoPestHunter.getInstance().start();
+    }
+
+    @Button(
+            name = "Set the pest hunter location", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            description = "Sets the pest hunter location",
+            text = "Set desk"
+    )
+    public static Runnable setPestHunterLocation = () -> {
+        if (!VisitorsMacro.getInstance().isInBarn()) {
+            LogUtils.sendError("[Auto Pest Hunter] You need to be in the barn to set the pest hunter location!");
+            return;
+        }
+        pestHunterDeskX = mc.thePlayer.getPosition().getX();
+        pestHunterDeskY = mc.thePlayer.getPosition().getY();
+        pestHunterDeskZ = mc.thePlayer.getPosition().getZ();
+        LogUtils.sendSuccess("[Auto Pest Hunter] Set the pest hunter location to "
+                + FarmHelperConfig.pestHunterDeskX + ", "
+                + FarmHelperConfig.pestHunterDeskY + ", "
+                + FarmHelperConfig.pestHunterDeskZ);
+    };
+    @Number(
+            name = "Pest Hunter Desk X", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            min = -300, max = 300
+    )
+    public static int pestHunterDeskX = 0;
+    @Number(
+            name = "Pest Hunter Desk Y", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            min = 50, max = 150
+    )
+    public static int pestHunterDeskY = 0;
+    @Number(
+            name = "Pest Hunter Desk Z", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            min = -300, max = 300
+    )
+    public static int pestHunterDeskZ = 0;
+    //</editor-fold>
+
+    //<editor-fold desc="God Pot">
+    @Switch(
+            name = "Auto God Pot", category = AUTO_GOD_POT, subcategory = "God Pot",
+            description = "Automatically purchases and consumes a God Pot", size = 2
+    )
+    public static boolean autoGodPot = false;
+
+    @Switch(
+            name = "Get God Pot from Backpack", category = AUTO_GOD_POT, subcategory = "God Pot", size = 2
+    )
+    public static boolean autoGodPotFromBackpack = true;
+
+    @DualOption(
+            name = "Storage Type", category = AUTO_GOD_POT, subcategory = "God Pot",
+            description = "The storage type to get god pots from",
+            left = "Backpack",
+            right = "Ender Chest"
+    )
+    public static boolean autoGodPotStorageType = true;
+
+    @Number(
+            name = "Backpack Number", category = AUTO_GOD_POT, subcategory = "God Pot",
+            description = "The backpack number, that contains god pots",
+            min = 1, max = 18
+    )
+    public static int autoGodPotBackpackNumber = 1;
+
+    @Switch(
+            name = "Buy God Pot using Bits", category = AUTO_GOD_POT, subcategory = "God Pot"
+    )
+    public static boolean autoGodPotFromBits = false;
+
+    @Switch(
+            name = "Get God Pot from Auction House", category = AUTO_GOD_POT, subcategory = "God Pot",
+            description = "If the user doesn't have a cookie, it will go to the hub and buy from AH"
+    )
+    public static boolean autoGodPotFromAH = false;
+
+    @Info(
+            text = "Priority getting God Pot is: Backpack -> Bits -> AH",
+            type = InfoType.INFO, size = 2, category = AUTO_GOD_POT, subcategory = "God Pot"
+    )
+    private static int godPotInfo;
+
+    //</editor-fold>
+
+    //<editor-fold desc="Auto Sell">
+    @Info(
+            text = "Click ESC during Auto Sell, to stop it and pause for the next 15 minutes",
+            category = AUTO_SELL, subcategory = "Auto Sell", type = InfoType.INFO, size = 2
+    )
+    public static boolean autoSellInfo;
+
+    @Switch(
+            name = "Enable Auto Sell", category = AUTO_SELL, subcategory = "Auto Sell",
+            description = "Enables auto sell"
+    )
+    public static boolean enableAutoSell = false;
+
+    @DualOption(
+            name = "Market type", category = AUTO_SELL, subcategory = "Auto Sell",
+            description = "The market type to sell crops to",
+            left = "BZ",
+            right = "NPC"
+    )
+    public static boolean autoSellMarketType = false;
+
+    @Switch(
+            name = "Sell Items In Sacks", category = AUTO_SELL, subcategory = "Auto Sell",
+            description = "Sells items in your sacks and inventory"
+    )
+    public static boolean autoSellSacks = false;
+
+    @DualOption(
+            name = "Sacks placement",
+            category = AUTO_SELL, subcategory = "Auto Sell",
+            description = "The sacks placement",
+            left = "Inventory",
+            right = "Sack of sacks"
+    )
+    public static boolean autoSellSacksPlacement = true;
+
+    @Switch(
+            name = "Pause Auto Sell during Jacob's contest", category = AUTO_SELL, subcategory = "Auto Sell",
+            description = "Pauses auto sell during Jacob's contest"
+    )
+    public static boolean pauseAutoSellDuringJacobsContest = false;
+
+    @Number(
+            name = "Inventory Full Time", category = AUTO_SELL, subcategory = "Auto Sell",
+            description = "The time to wait to test if inventory fullness ratio is still the same (or higher)",
+            min = 1, max = 20
+    )
+    public static int inventoryFullTime = 6;
+
+    @Number(
+            name = "Inventory Full Ratio", category = AUTO_SELL, subcategory = "Auto Sell",
+            description = "After reaching this ratio, the macro will start counting from 0 to Inventory Full Time. If the fullness ratio is still the same (or higher) after the time has passed, it will start selling items.",
+            min = 1, max = 100
+    )
+    public static int inventoryFullRatio = 65;
+
+    @Button(
+            name = "Sell Inventory Now", category = AUTO_SELL, subcategory = "Auto Sell",
+            description = "Sells crops in your inventory",
+            text = "Sell Inventory Now"
+    )
+    Runnable autoSellFunction = () -> {
+        PlayerUtils.closeScreen();
+        AutoSell.getInstance().enable(true);
+    };
+
+    @Switch(name = "Runes", category = AUTO_SELL, subcategory = "Customize items sold to NPC")
+    public static boolean autoSellRunes = true;
+
+    @Switch(name = "Dead Bush", category = AUTO_SELL, subcategory = "Customize items sold to NPC")
+    public static boolean autoSellDeadBush = true;
+
+    @Switch(name = "Iron Hoe", category = AUTO_SELL, subcategory = "Customize items sold to NPC")
+    public static boolean autoSellIronHoe = true;
+
+    @Text(
+            name = "Custom Items", category = AUTO_SELL, subcategory = "Customize items sold to NPC",
+            description = "Add custom items to AutoSell here. Use | to split the messages.",
+            placeholder = "Custom items to auto sell. Use | to split the messages.",
+            size = 2
+    )
+    public static String autoSellCustomItems = "";
+    //</editor-fold>
+
+    //<editor-fold desc="Pest Repellant">
+    @Switch(
+            name = "Auto Pest Repellent", category = AUTO_REPELLANT, subcategory = "Pest Repellent",
+            description = "Automatically uses pest repellent when it's not active"
+    )
+    public static boolean autoPestRepellent = false;
+
+    @DualOption(
+            name = "Pest Repellent Type", category = AUTO_REPELLANT, subcategory = "Pest Repellent",
+            description = "The pest repellent type to use",
+            left = "Pest Repellent",
+            right = "Pest Repellent MAX"
+    )
+    public static boolean pestRepellentType = true;
+
+    @Switch(
+            name = "Pause Auto Pest Repellent during Jacob's contest", category = AUTO_REPELLANT, subcategory = "Pest Repellent",
+            description = "Pauses auto pest repellent during Jacob's contest"
+    )
+    public static boolean pauseAutoPestRepellentDuringJacobsContest = false;
+
+    @Button(
+            name = "Reset Failsafe", category = AUTO_REPELLANT, subcategory = "Pest Repellent",
+            text = "Click Here",
+            description = "Resets the failsafe timer for repellent"
+    )
+    Runnable resetFailsafe = () -> {
+        AutoRepellent.repellentFailsafeClock.schedule(0);
+    };
+    //</editor-fold>
+
+    //<editor-fold desc="Auto Sprayonator">
+    @Switch(
+            name = "Auto Sprayonator", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator"
+    )
+    public static boolean autoSprayonatorEnable = false;
+
+    @Dropdown(
+            name = "Type", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
+            description = "Item to spray plot with",
+            options = {
+                    "Compost (Earthworm & Mosquito)",
+                    "Honey Jar (Moth & Cricket)",
+                    "Dung (Beetle & Fly)",
+                    "Plant Matter (Locust & Slug)",
+                    "Tasty Cheese (Rat & Mite)"
+            }, size = 5
+    )
+    public static int sprayonatorType;
+
+    @Getter
+    public enum SPRAYONATOR_ITEM {
+        COMPOST("Compost"),
+        HONEY_JAR("Honey Jar"),
+        DUNG("Dung"),
+        PLANT_MATTER("Plant Matter"),
+        TASTY_CHEESE("Tasty Cheese"),
+        NONE("NONE");
+
+        final String itemName;
+
+        SPRAYONATOR_ITEM(final String item_name) {
+            this.itemName = item_name;
+        }
+    }
+
+    @Switch(
+            name = "Inventory Only", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator"
+    )
+    public static boolean sprayonatorItemInventoryOnly;
+
+    @Slider(
+            name = "Sprayonator Slot", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
+            min = 1, max = 8,
+            step = 1,
+            description = "Slot to move sprayonator to"
+    )
+    public static int autoSprayonatorSlot = 1;
+
+    @Slider(
+            name = "Additional Delay", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
+            description = "Additional delay between actions (in milliseconds)",
+            min = 0, max = 5000, step = 1
+    )
+    public static int autoSprayonatorAdditionalDelay = 500;
+
+    @Switch(
+            name = "Auto Buy item from Bazaar", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
+            description = "Auto buy necessary sprayonator item from bazaar if none is in the inventory"
+    )
+    public static boolean autoSprayonatorAutoBuyItem = false;
+
+    @Number(
+            name = "Buy Amount", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
+            description = "Amount of item to buy from bazaar",
+            min = 1, max = 64
+    )
+    public static int autoSprayonatorAutoBuyAmount = 1;
+
+    @Button(
+            name = "Reset Plots", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
+            text = "Click Here",
+            description = "Resets the cached data for sprayonator"
+    )
+    Runnable _autoSprayonatorResetPlots = () -> {
+        AutoSprayonator.getInstance().resetPlots();
+    };
+
     //</editor-fold>
 
     //<editor-fold desc="DELAYS">
