@@ -49,6 +49,7 @@ public class AutoPestHunter implements IFeature {
     @Getter
     private final Clock delayClock = new Clock();
     private BlockPos positionBeforeTp;
+    private int finishTries = 0;
 
     private BlockPos deskPos() {
         return new BlockPos(FarmHelperConfig.pestHunterDeskX, FarmHelperConfig.pestHunterDeskY, FarmHelperConfig.pestHunterDeskZ);
@@ -85,6 +86,7 @@ public class AutoPestHunter implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         resetStatesAfterMacroDisabled();
         enabled = true;
+        state = State.TELEPORT_TO_DESK;
         LogUtils.sendWarning("[Auto Pest Hunter] Starting...");
     }
 
@@ -105,6 +107,7 @@ public class AutoPestHunter implements IFeature {
         stuckClock.reset();
         delayClock.reset();
         positionBeforeTp = null;
+        finishTries = 0;
     }
 
     @Override
@@ -114,12 +117,13 @@ public class AutoPestHunter implements IFeature {
 
     @Override
     public boolean shouldCheckForFailsafes() {
-        return false;
+        return state == State.NONE || state == State.GO_BACK || state == State.EMPTY_VACUUM || state == State.GO_TO_PHILLIP || state == State.TELEPORT_TO_DESK;
     }
 
     enum State {
         NONE,
         TELEPORT_TO_DESK,
+        WAIT_FOR_TP,
         GO_TO_PHILLIP,
         CLICK_PHILLIP,
         WAIT_FOR_GUI,
@@ -185,18 +189,20 @@ public class AutoPestHunter implements IFeature {
 
         switch (state) {
             case NONE:
+                break;
+            case TELEPORT_TO_DESK:
                 if (mc.currentScreen != null) {
                     PlayerUtils.closeScreen();
                     break;
                 }
                 positionBeforeTp = mc.thePlayer.getPosition();
-                state = State.TELEPORT_TO_DESK;
+                state = State.WAIT_FOR_TP;
                 mc.thePlayer.sendChatMessage("/tptoplot barn");
                 delayClock.schedule((long) (1_000 + Math.random() * 500));
                 stuckClock.schedule(10_000L);
                 break;
-            case TELEPORT_TO_DESK:
-                if (mc.thePlayer.getPosition().equals(positionBeforeTp) || PlayerUtils.isPlayerSuffocating()) {
+            case WAIT_FOR_TP:
+                if (mc.thePlayer.getPosition().equals(positionBeforeTp)) {
                     LogUtils.sendDebug("[Auto Pest Hunter] Waiting for teleportation...");
                     break;
                 }
@@ -287,12 +293,20 @@ public class AutoPestHunter implements IFeature {
                 break;
             case GO_BACK:
                 if (!manuallyStarted) {
-                    Multithreading.schedule(() -> {
-                        MacroHandler.getInstance().triggerWarpGarden(true, false);
-                        Multithreading.schedule(() -> {
-                            MacroHandler.getInstance().resumeMacro();
-                        }, 1_000, TimeUnit.MILLISECONDS);
-                    }, 500, TimeUnit.MILLISECONDS);
+                    if (PlayerUtils.isStandingOnSpawnPoint()) {
+                        stop();
+                        MacroHandler.getInstance().resumeMacro();
+                        return;
+                    }
+                    if (finishTries == 7) {
+                        LogUtils.sendError("[Auto Pest Hunter] Couldn't enable macro after teleportation! Check if your spawn point is set in mod (Yellow rectangle). If not, re-do command /setspawn");
+                        LogUtils.webhookLog("[Auto Pest Hunter] Couldn't enable macro after teleportation!");
+                        MacroHandler.getInstance().disableMacro();
+                        return;
+                    }
+                    MacroHandler.getInstance().triggerWarpGarden(true, true);
+                    finishTries++;
+                    delayClock.schedule(1_000 + Math.random() * 500);
                 }
                 stop();
                 break;

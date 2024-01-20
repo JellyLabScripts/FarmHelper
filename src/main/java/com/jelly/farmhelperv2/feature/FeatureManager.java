@@ -101,6 +101,9 @@ public class FeatureManager {
         if (VisitorsMacro.getInstance().isRunning() && !VisitorsMacro.getInstance().shouldCheckForFailsafes()) {
             return true;
         }
+        if (AutoPestHunter.getInstance().isRunning() && !AutoPestHunter.getInstance().shouldCheckForFailsafes()) {
+            return true;
+        }
         return false;
     }
 
