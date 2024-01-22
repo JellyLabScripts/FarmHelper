@@ -43,6 +43,13 @@ public class CustomFailsafeMessagesPage {
             multiline = true
     )
     public static String customTeleportationMessages = "";
+    @Text(
+            name = "Knockback failsafe messages",
+            description = "The messages to send to the chat when the knockback failsafe has been triggered (use '|' to split the messages)",
+            placeholder = "Leave empty to use a random message",
+            multiline = true
+    )
+    public static String customKnockbackMessages = "";
 
     @Text(
             name = "Bedrock failsafe messages",

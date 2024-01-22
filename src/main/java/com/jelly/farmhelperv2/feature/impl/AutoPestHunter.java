@@ -1,6 +1,5 @@
 package com.jelly.farmhelperv2.feature.impl;
 
-import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
@@ -20,12 +19,15 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.StringUtils;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.Comparator;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
 public class AutoPestHunter implements IFeature {
@@ -50,9 +52,15 @@ public class AutoPestHunter implements IFeature {
     private final Clock delayClock = new Clock();
     private BlockPos positionBeforeTp;
     private int finishTries = 0;
+    private final BlockPos initialDeskPos = new BlockPos(-24, 71, -7);
+    private Entity phillip = null;
 
     private BlockPos deskPos() {
         return new BlockPos(FarmHelperConfig.pestHunterDeskX, FarmHelperConfig.pestHunterDeskY, FarmHelperConfig.pestHunterDeskZ);
+    }
+
+    private boolean isDeskPosSet() {
+        return FarmHelperConfig.pestHunterDeskX != 0 && FarmHelperConfig.pestHunterDeskY != 0 && FarmHelperConfig.pestHunterDeskZ != 0;
     }
 
     private static final RotationHandler rotation = RotationHandler.getInstance();
@@ -124,7 +132,9 @@ public class AutoPestHunter implements IFeature {
         NONE,
         TELEPORT_TO_DESK,
         WAIT_FOR_TP,
+        FIND_PHILLIP,
         GO_TO_PHILLIP,
+        WAIT_UNTIL_REACHED_DESK,
         CLICK_PHILLIP,
         WAIT_FOR_GUI,
         EMPTY_VACUUM,
@@ -138,11 +148,6 @@ public class AutoPestHunter implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return false;
         if (!MacroHandler.getInstance().isMacroToggled() && !manual) return false;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return false;
-        if (FarmHelperConfig.pestHunterDeskX == 0 && FarmHelperConfig.pestHunterDeskY == 0 && FarmHelperConfig.pestHunterDeskZ == 0) {
-            FarmHelperConfig.autoPestHunter = false;
-            LogUtils.sendError("[Auto Pest Hunter] The desk position is not set! Disabling...");
-            return false;
-        }
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
             LogUtils.sendError("[Auto Pest Hunter] Server is closing in " + GameStateHandler.getInstance().getServerClosingSeconds().get() + " seconds!");
             return false;
@@ -189,12 +194,15 @@ public class AutoPestHunter implements IFeature {
 
         switch (state) {
             case NONE:
+            case WAIT_FOR_VACUUM:
                 break;
             case TELEPORT_TO_DESK:
                 if (mc.currentScreen != null) {
                     PlayerUtils.closeScreen();
                     break;
                 }
+                if (FarmHelperConfig.logAutoPestHunterEvents)
+                    LogUtils.webhookLog("[Auto Pest Hunter] Starting the macro!\\n" + GameStateHandler.getInstance().getPestsFromVacuum() + " pests in total!");
                 positionBeforeTp = mc.thePlayer.getPosition();
                 state = State.WAIT_FOR_TP;
                 mc.thePlayer.sendChatMessage("/tptoplot barn");
@@ -213,46 +221,122 @@ public class AutoPestHunter implements IFeature {
                     break;
                 }
                 KeyBindUtils.stopMovement();
-                if (positionBeforeTp.distanceSq(mc.thePlayer.getPosition()) > 3) {
-                    state = State.GO_TO_PHILLIP;
+                if (positionBeforeTp.distanceSq(mc.thePlayer.getPosition()) > 7) {
+                    if (FarmHelperConfig.pestHunterDeskX == 0 && FarmHelperConfig.pestHunterDeskY == 0 && FarmHelperConfig.pestHunterDeskZ == 0) {
+                        LogUtils.sendWarning("[Auto Pest Hunter] The desk position is not set! Trying to find Phillip...");
+                        state = State.FIND_PHILLIP;
+                    } else {
+                        state = State.GO_TO_PHILLIP;
+                    }
                     delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
                     stuckClock.schedule(30_000L);
                     break;
                 }
-            case GO_TO_PHILLIP:
-                if (BaritoneHandler.hasFailed() && deskPos().distanceSq(mc.thePlayer.getPosition()) > 3) {
+            case FIND_PHILLIP:
+                if (mc.currentScreen != null) {
+                    PlayerUtils.closeScreen();
+                }
+                if (BaritoneHandler.hasFailed() && initialDeskPos.distanceSq(mc.thePlayer.getPosition()) > 7) {
                     LogUtils.sendError("[Auto Pest Hunter] Baritone failed to reach the destination!");
                     state = State.GO_BACK;
                     break;
                 }
-                if (BaritoneHandler.isWalkingToGoalBlock()) break;
-                if (mc.thePlayer.getDistanceSqToCenter(deskPos()) < 2) {
+                if (!BaritoneHandler.isWalkingToGoalBlock()) {
+                    BaritoneHandler.walkToBlockPos(initialDeskPos);
+                    delayClock.schedule(250L);
+                    break;
+                }
+                phillip = getPhillip();
+                if (phillip == null)
+                    break;
+                if (BlockUtils.getHorizontalDistance(mc.thePlayer.getPositionVector(), phillip.getPositionVector()) < 7) {
+                    BaritoneHandler.stopPathing();
                     state = State.CLICK_PHILLIP;
                     delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
                     stuckClock.schedule(30_000L);
                     break;
                 }
-                BaritoneHandler.walkToBlockPos(deskPos());
+                LogUtils.sendSuccess("[Auto Pest Hunter] Found Phillip! " + phillip.getPosition().toString());
+                BaritoneHandler.stopPathing();
+                state = State.GO_TO_PHILLIP;
+                delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
+                stuckClock.schedule(30_000L);
+                break;
+            case GO_TO_PHILLIP:
+                if (mc.currentScreen != null) {
+                    PlayerUtils.closeScreen();
+                }
+                if (BaritoneHandler.hasFailed() && deskPos().distanceSq(mc.thePlayer.getPosition()) > 7) {
+                    LogUtils.sendError("[Auto Pest Hunter] Baritone failed to reach the destination!");
+                    state = State.GO_BACK;
+                    break;
+                }
+                if (BaritoneHandler.isWalkingToGoalBlock())
+                    break;
+                if (mc.thePlayer.getDistanceSqToCenter(deskPos()) < 7) {
+                    BaritoneHandler.stopPathing();
+                    state = State.CLICK_PHILLIP;
+                    delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
+                    stuckClock.schedule(30_000L);
+                    break;
+                }
+                if (isDeskPosSet()) {
+                    LogUtils.sendDebug("[Auto Pest Hunter] Walking to the desk position...");
+                    BaritoneHandler.walkToBlockPos(deskPos());
+                } else if (phillip != null) {
+                    LogUtils.sendDebug("[Auto Pest Hunter] Phillip is found, but the desk position is not set! Walking to Phillip...");
+                    BaritoneHandler.walkCloserToBlockPos(phillip.getPosition(), 2);
+                    state = State.WAIT_UNTIL_REACHED_DESK;
+                } else {
+                    LogUtils.sendError("[Auto Pest Hunter] Can't find Phillip!");
+                    state = State.GO_BACK;
+                    break;
+                }
+                stuckClock.schedule(30_000L);
                 delayClock.schedule(1000L);
                 break;
+            case WAIT_UNTIL_REACHED_DESK:
+                if (mc.currentScreen != null) {
+                    PlayerUtils.closeScreen();
+                }
+                if (BaritoneHandler.hasFailed()) {
+                    LogUtils.sendError("[Auto Pest Hunter] Baritone failed to reach the destination!");
+                    state = State.GO_BACK;
+                    break;
+                }
+                if (BaritoneHandler.isPathing())
+                    break;
+                if (BlockUtils.getHorizontalDistance(mc.thePlayer.getPositionVector(), phillip.getPositionVector()) > 7) {
+                    LogUtils.sendDebug("Distance: " + BlockUtils.getHorizontalDistance(mc.thePlayer.getPositionVector(), phillip.getPositionVector()));
+                    break;
+                }
+                LogUtils.sendDebug("[Auto Pest Hunter] Desk position reached!");
+                BaritoneHandler.stopPathing();
+                FarmHelperConfig.pestHunterDeskX = mc.thePlayer.getPosition().getX();
+                FarmHelperConfig.pestHunterDeskY = mc.thePlayer.getPosition().getY();
+                FarmHelperConfig.pestHunterDeskZ = mc.thePlayer.getPosition().getZ();
+                state = State.CLICK_PHILLIP;
+                stuckClock.schedule(30_000L);
+                delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
+                break;
             case CLICK_PHILLIP:
-                if (mc.thePlayer.getDistanceSqToCenter(deskPos()) > 3) {
+                if (BlockUtils.getHorizontalDistance(mc.thePlayer.getPositionVector(),
+                        new Vec3(deskPos().getX() + 0.5, deskPos().getY() + 0.5, deskPos().getZ() + 0.5)) > 7) {
+                    LogUtils.sendDebug("[Auto Pest Hunter] Can't click Phillip! Walking to the desk position...");
                     state = State.GO_TO_PHILLIP;
                     delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
                     stuckClock.schedule(15_000L);
                     break;
                 }
-                Entity closest = mc.theWorld.getLoadedEntityList().
-                        stream().
-                        filter(entity ->
-                                entity.hasCustomName() && entity.getCustomNameTag().contains(StringUtils.stripControlCodes("Phillip")))
-                        .min(Comparator.comparingDouble(entity -> entity.getDistanceSqToCenter(mc.thePlayer.getPosition()))).orElse(null);
-                if (closest == null) {
+                phillip = getPhillip();
+                if (phillip == null) {
                     break;
                 }
+                if (rotation.isRotating())
+                    break;
                 rotation.easeTo(
                         new RotationConfiguration(
-                                new Target(closest),
+                                new Target(phillip),
                                 FarmHelperConfig.getRandomRotationTime(),
                                 () -> {
                                     KeyBindUtils.leftClick();
@@ -280,14 +364,17 @@ public class AutoPestHunter implements IFeature {
                     break;
                 }
                 ItemStack itemLore = vacuumSlot.getStack();
-                if (InventoryUtils.getItemLore(itemLore).contains("Click to empty the vacuum")) {
+                if (InventoryUtils.getItemLore(itemLore).contains("Click to empty")) { // not necessary but yeah :shrugger:
+                    if (FarmHelperConfig.logAutoPestHunterEvents)
+                        LogUtils.webhookLog("[Auto Pest Hunter] Emptied the vacuum!\\n" + GameStateHandler.getInstance().getPestsFromVacuum() + " pests in total!");
                     state = State.WAIT_FOR_VACUUM;
                 } else {
+                    if (FarmHelperConfig.logAutoPestHunterEvents)
+                        LogUtils.webhookLog("[Auto Pest Hunter] Failed to empty your vacuum because it's empty!");
+                    LogUtils.sendError("[Auto Pest Hunter] The vacuum is empty!");
                     state = State.GO_BACK;
-                    LogUtils.sendWarning("[Auto Pest Hunter] The vacuum is empty!");
                 }
                 InventoryUtils.clickContainerSlot(vacuumSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                state = State.WAIT_FOR_VACUUM;
                 stuckClock.schedule(10_000L);
                 delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
                 break;
@@ -311,6 +398,15 @@ public class AutoPestHunter implements IFeature {
                 stop();
                 break;
         }
+    }
+
+    @Nullable
+    private Entity getPhillip() {
+        return mc.theWorld.getLoadedEntityList().
+                stream().
+                filter(entity ->
+                        entity.hasCustomName() && entity.getCustomNameTag().contains(StringUtils.stripControlCodes("Phillip")))
+                .min(Comparator.comparingDouble(entity -> entity.getDistanceSqToCenter(mc.thePlayer.getPosition()))).orElse(null);
     }
 
     private final String[] dialogueMessages = {
@@ -340,5 +436,13 @@ public class AutoPestHunter implements IFeature {
             state = State.GO_BACK;
             delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
         }
+    }
+
+
+    @SubscribeEvent
+    public void onRenderWorldLast(RenderWorldLastEvent event) {
+        if (!isRunning()) return;
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        RenderUtils.drawBlockBox(deskPos().add(0, 0, 0), new Color(0, 155, 255, 50));
     }
 }

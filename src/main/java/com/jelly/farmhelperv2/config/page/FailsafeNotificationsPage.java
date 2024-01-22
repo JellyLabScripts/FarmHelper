@@ -18,6 +18,13 @@ public class FailsafeNotificationsPage {
     public static boolean notifyOnTeleportationFailsafe = true;
 
     @Switch(
+            name = "Knockback Check Notifications",
+            description = "Whether or not to send a notification when the knockback check failsafe is triggered.",
+            category = "Failsafe Notifications"
+    )
+    public static boolean notifyOnKnockbackFailsafe = true;
+
+    @Switch(
             name = "Dirt Check Notifications",
             description = "Whether or not to send a notification when the dirt check failsafe is triggered.",
             category = "Failsafe Notifications"
@@ -107,6 +114,13 @@ public class FailsafeNotificationsPage {
             category = "Failsafe Sound Alerts"
     )
     public static boolean alertOnTeleportationFailsafe = true;
+
+    @Switch(
+            name = "Knockback Check Sound Alert",
+            description = "Whether or not to play a sound when the knockback check failsafe is triggered.",
+            category = "Failsafe Sound Alerts"
+    )
+    public static boolean alertOnKnockbackFailsafe = true;
 
     @Switch(
             name = "Dirt Check Sound Alert",
@@ -201,6 +215,13 @@ public class FailsafeNotificationsPage {
     public static boolean tagEveryoneOnTeleportationFailsafe = true;
 
     @Switch(
+            name = "Knockback Check Tag Everyone",
+            description = "Whether or not to tag everyone in the webhook message when the knockback check failsafe is triggered.",
+            category = "Failsafe Tag Everyone"
+    )
+    public static boolean tagEveryoneOnKnockbackFailsafe = true;
+
+    @Switch(
             name = "Dirt Check Tag Everyone",
             description = "Whether or not to tag everyone in the webhook message when the dirt check failsafe is triggered.",
             category = "Failsafe Tag Everyone"
@@ -290,6 +311,13 @@ public class FailsafeNotificationsPage {
             category = "Failsafe Auto Alt-tab"
     )
     public static boolean autoAltTabOnTeleportationFailsafe = true;
+
+    @Switch(
+            name = "Knockback Check Auto Alt-tab",
+            description = "Whether or not to automatically alt-tab when the knockback check failsafe is triggered.",
+            category = "Failsafe Auto Alt-tab"
+    )
+    public static boolean autoAltTabOnKnockbackFailsafe = true;
 
     @Switch(
             name = "Dirt Check Auto Alt-tab",

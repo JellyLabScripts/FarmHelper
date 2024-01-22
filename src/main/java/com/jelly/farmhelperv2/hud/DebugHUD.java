@@ -8,6 +8,7 @@ import com.jelly.farmhelperv2.failsafe.impl.GuestVisitFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.*;
+import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
@@ -136,7 +137,7 @@ public class DebugHUD extends TextHud {
             lines.add("      Forward: " + FlyPathfinder.getInstance().isDeceleratingForward);
             lines.add("      Backward: " + FlyPathfinder.getInstance().isDeceleratingBackward);
         }
-        if (AutoSprayonator.getInstance().isToggled()) {
+        if (AutoSprayonator.getInstance().isRunning()) {
             lines.add("Auto Sprayonator");
             lines.add("   Running: " + AutoSprayonator.getInstance().isRunning());
             lines.add("   Enable Delay: " + AutoSprayonator.getInstance().getEnableDelay().getRemainingTime());
@@ -153,6 +154,14 @@ public class DebugHUD extends TextHud {
                 lines.add("   Plot Spray Clock: " + plotData.getSprayClock().getRemainingTime());
                 lines.add("   Plot Spray Item: " + plotData.getSprayItem());
             }
+        }
+        if (AutoPestHunter.getInstance().isRunning()) {
+            lines.add("Auto Pest Hunter");
+            lines.add("   State: " + AutoPestHunter.getInstance().getState());
+            lines.add("   Clock: " + AutoPestHunter.getInstance().getDelayClock().getRemainingTime());
+            lines.add("   Stuck clock: " + AutoPestHunter.getInstance().getStuckClock().getRemainingTime());
+            lines.add("   isPathing: " + BaritoneHandler.isPathing());
+            lines.add("   isWalkingToGoalBlock: " + BaritoneHandler.isWalkingToGoalBlock());
         }
     }
 }

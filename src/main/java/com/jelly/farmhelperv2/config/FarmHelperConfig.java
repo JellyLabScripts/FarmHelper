@@ -406,6 +406,12 @@ public class FarmHelperConfig extends Config {
             min = 0.5f, max = 20f
     )
     public static float teleportCheckSensitivity = 4;
+    @Slider(
+            name = "Knockback Check Vertical Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "The minimum power of vertical knockback (motionY) to trigger failsafe",
+            min = 2000, max = 10000, step = 1000
+    )
+    public static float knockbackCheckVerticalSensitivity = 4000;
 
     @Switch(
             name = "Average BPS Drop check", category = FAILSAFE, subcategory = "Miscellaneous",
@@ -1172,6 +1178,11 @@ public class FarmHelperConfig extends Config {
             min = 5, max = 200
     )
     public static int autoPestHunterMinPests = 10;
+    @Switch(
+            name = "Send Webhook Log", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            description = "Logs all events related to the auto pest hunter"
+    )
+    public static boolean logAutoPestHunterEvents = true;
     @Info(
             text = "The auto pest hunter will start automatically once you rewarp!",
             type = InfoType.WARNING,
@@ -1190,7 +1201,6 @@ public class FarmHelperConfig extends Config {
         AutoPestHunter.getInstance().setManuallyStarted(true);
         AutoPestHunter.getInstance().start();
     }
-
     @Button(
             name = "Set the pest hunter location", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
             description = "Sets the pest hunter location",
@@ -1224,6 +1234,15 @@ public class FarmHelperConfig extends Config {
             min = -300, max = 300
     )
     public static int pestHunterDeskZ = 0;
+    @Info(
+            text = "You don't have to set the pest hunter location, it will be set automatically. Check the guide for more info.",
+            type = InfoType.INFO,
+            category = AUTO_PEST_HUNTER,
+            subcategory = "Auto Pest Hunter",
+            size = 2
+    )
+    public static boolean autoPestHunterInfo2;
+
     //</editor-fold>
 
     //<editor-fold desc="God Pot">
