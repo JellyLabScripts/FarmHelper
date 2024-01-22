@@ -345,6 +345,11 @@ public class VisitorsMacro implements IFeature {
         }
 
         if (stuckClock.isScheduled() && stuckClock.passed()) {
+            if (visitors.isEmpty()) {
+                LogUtils.sendWarning("[Visitors Macro] The player is stuck but there are no visitors in the queue, pretending it never happened...");
+                stop();
+                return;
+            }
             LogUtils.sendError("[Visitors Macro] The player is stuck, restarting the macro...");
             stop();
             forceStart = true;
@@ -615,6 +620,13 @@ public class VisitorsMacro implements IFeature {
             case OPEN_COMPACTOR:
                 if (mc.currentScreen != null) {
                     PlayerUtils.closeScreen();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                ItemStack currentItem = mc.thePlayer.inventory.getCurrentItem();
+                if (currentItem == null || !currentItem.getDisplayName().contains("Compactor")) {
+                    LogUtils.sendDebug("[Visitors Macro] Not holding compactor, holding compactor again...");
+                    setCompactorState(CompactorState.HOLD_COMPACTOR);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
