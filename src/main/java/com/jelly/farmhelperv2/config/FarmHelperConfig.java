@@ -1166,16 +1166,21 @@ public class FarmHelperConfig extends Config {
             description = "Pauses the Auto Pest Hunter during Jacob's contests"
     )
     public static boolean pauseAutoPestHunterDuringJacobsContest = true;
+    @Switch(
+            name = "Ignore Jacob's Contest", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            description = "Start the Auto Pest Hunter regardless of the next Jacob's contests"
+    )
+    public static boolean autoPestHunterIgnoreJacobsContest = false;
     @Slider(
             name = "Trigger before contest starts (in minutes)", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
             description = "The time before the contest starts to trigger the auto pest hunter",
-            min = 5, max = 25
+            min = 1, max = 40
     )
     public static int autoPestHunterTriggerBeforeContestStarts = 5;
     @Slider(
             name = "Pests amount required", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
             description = "The amount of pests in a vacuum required to start the auto pest hunter",
-            min = 5, max = 200
+            min = 1, max = 40
     )
     public static int autoPestHunterMinPests = 10;
     @Switch(
@@ -1853,8 +1858,12 @@ public class FarmHelperConfig extends Config {
         this.addDependency("pingEveryoneOnPestsDetectionNumberExceeded", "enableWebHook");
 
         this.addDependency("pauseAutoPestHunterDuringJacobsContest", "autoPestHunter");
+        this.addDependency("autoPestHunterIgnoreJacobsContest", "autoPestHunter");
         this.addDependency("autoPestHunterTriggerBeforeContestStarts", "autoPestHunter");
         this.addDependency("autoPestHunterMinPests", "autoPestHunter");
+        this.addDependency("logAutoPestHunterEvents", "autoPestHunter");
+        this.addDependency("autoPestHunterTriggerBeforeContestStarts",
+                "You can either wait until Jacob's Contest or run it regardless.", () -> !autoPestHunterIgnoreJacobsContest);
         this.hideIf("pestHunterDeskX", () -> true);
         this.hideIf("pestHunterDeskY", () -> true);
         this.hideIf("pestHunterDeskZ", () -> true);

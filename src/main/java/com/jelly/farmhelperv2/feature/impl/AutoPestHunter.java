@@ -27,7 +27,9 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Matcher;
 
 public class AutoPestHunter implements IFeature {
@@ -50,6 +52,7 @@ public class AutoPestHunter implements IFeature {
     private final Clock stuckClock = new Clock();
     @Getter
     private final Clock delayClock = new Clock();
+    private final Clock delayToggle = new Clock();
     private BlockPos positionBeforeTp;
     private int finishTries = 0;
     private final BlockPos initialDeskPos = new BlockPos(-24, 71, -7);
@@ -156,7 +159,16 @@ public class AutoPestHunter implements IFeature {
             LogUtils.sendDebug("[Auto Pest Hunter] Jacob's contest is active, skipping...");
             return false;
         }
-        if (!manual && GameStateHandler.getInstance().inJacobContest()) {
+        List<String> tabList = TablistUtils.getTabList();
+        if (tabList.size() < 2)
+            return false;
+        for (String line : tabList) {
+            if (line.contains("Pesthunter Bonus:")) {
+                LogUtils.sendDebug("[Auto Pest Hunter] Pesthunter bonus is active, skipping...");
+                return false;
+            }
+        }
+        if (!manual && GameStateHandler.getInstance().inJacobContest() && !FarmHelperConfig.autoPestHunterIgnoreJacobsContest) {
             for (String line : TablistUtils.getTabList()) {
                 Matcher matcher = GameStateHandler.getInstance().jacobsRemainingTimePattern.matcher(line);
                 if (matcher.find()) {
@@ -168,7 +180,7 @@ public class AutoPestHunter implements IFeature {
                 }
             }
         }
-        if (!manual && FarmHelperConfig.autoPestHunterMinPests > 0 && GameStateHandler.getInstance().getPestsFromVacuum() < FarmHelperConfig.autoPestHunterMinPests) {
+        if (!manual && GameStateHandler.getInstance().getPestsFromVacuum() < FarmHelperConfig.autoPestHunterMinPests) {
             LogUtils.sendDebug("[Auto Pest Hunter] There are not enough pests to start the macro!");
             return false;
         }
@@ -370,8 +382,8 @@ public class AutoPestHunter implements IFeature {
                     state = State.WAIT_FOR_VACUUM;
                 } else {
                     if (FarmHelperConfig.logAutoPestHunterEvents)
-                        LogUtils.webhookLog("[Auto Pest Hunter] Failed to empty your vacuum because it's empty!");
-                    LogUtils.sendError("[Auto Pest Hunter] The vacuum is empty!");
+                        LogUtils.webhookLog("[Auto Pest Hunter] Failed to empty your vacuum!");
+                    LogUtils.sendError("[Auto Pest Hunter] Failed to empty your vacuum!");
                     state = State.GO_BACK;
                 }
                 InventoryUtils.clickContainerSlot(vacuumSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
