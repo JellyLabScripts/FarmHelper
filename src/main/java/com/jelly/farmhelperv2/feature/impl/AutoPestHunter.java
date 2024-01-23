@@ -199,7 +199,6 @@ public class AutoPestHunter implements IFeature {
         if (stuckClock.isScheduled() && stuckClock.passed()) {
             LogUtils.sendError("[Auto Pest Hunter] The player is stuck!");
             state = State.GO_BACK;
-            return;
         }
 
         if (delayClock.isScheduled() && !delayClock.passed()) return;
