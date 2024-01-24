@@ -89,7 +89,7 @@ public abstract class AbstractMacro {
         if (!breakTime.passed()) {
             System.out.println(breakTime.getRemainingTime());
             KeyBindUtils.stopMovement();
-            LogUtils.sendDebug("Blocking movement due to breaking!");
+            LogUtils.sendDebug("Blocking movement due to break time!");
             GameStateHandler.getInstance().scheduleNotMoving();
             return;
         }

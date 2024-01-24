@@ -466,6 +466,55 @@ public class FarmHelperConfig extends Config {
 
     //</editor-fold>
 
+    //<editor-fold desc="Clip Capturing">
+
+    @Switch(
+            name = "Capture Clip After Failsafe", category = FAILSAFE, subcategory = "Clip Capturing",
+            description = "Captures a clip after triggering failsafe by pressing a key combination"
+    )
+    public static boolean captureClipAfterFailsafe = false;
+
+    @KeyBind(
+            name = "Keybind to capture a clip after triggering failsafe",
+            category = FAILSAFE, subcategory = "Clip Capturing",
+            description = "Captures a clip after triggering failsafe"
+    )
+    public static OneKeyBind captureClipKeybind = new OneKeyBind(Keyboard.KEY_NONE);
+
+    @DualOption(
+            name = "Clip Capturing Type", category = FAILSAFE, subcategory = "Clip Capturing",
+            description = "The clip capturing type to use",
+            left = "Replay Buffer",
+            right = "Recording"
+    )
+    public static boolean clipCapturingType = false;
+
+    @Slider(
+            name = "Clip Capturing Delay (in seconds)", category = FAILSAFE, subcategory = "Clip Capturing",
+            description = "The delay to capture a clip after triggering failsafe (in seconds)",
+            min = 10, max = 200
+    )
+    public static int captureClipDelay = 30;
+
+    @Info(
+            text = "You need to use ShadowPlay (or any alternative with Replay Buffer) and configure it to capture clips!",
+            type = InfoType.WARNING,
+            category = FAILSAFE,
+            subcategory = "Clip Capturing",
+            size = 2
+    )
+    public static boolean captureClipWarning;
+    @Info(
+            text = "Remember to use key combinations instead of single keys!",
+            type = InfoType.WARNING,
+            category = FAILSAFE,
+            subcategory = "Clip Capturing",
+            size = 2
+    )
+    public static boolean captureClipWarning2;
+
+    //</editor-fold>
+
     //<editor-fold desc="Failsafes conf page">
     @Page(
             name = "Failsafe Notifications", category = FAILSAFE, subcategory = "Failsafe Notifications", location = PageLocation.BOTTOM,
@@ -576,7 +625,7 @@ public class FarmHelperConfig extends Config {
             description = "The delay to restart after failsafe (in minutes)",
             min = 0, max = 20
     )
-    public static int restartAfterFailSafeDelay = 5;
+    public static int restartAfterFailSafeDelay = 0;
     @Info(
             text = "Setting this value to 0 will start the macro a few seconds later, after the failsafe is finished",
             category = FAILSAFE, subcategory = "Restart After FailSafe",
@@ -1871,6 +1920,10 @@ public class FarmHelperConfig extends Config {
         this.addDependency("pestRepellentType", "autoPestRepellent");
 
         this.addDependency("averageBPSDrop", "averageBPSDropCheck");
+
+        this.addDependency("captureClipKeybind", "captureClipAfterFailsafe");
+        this.addDependency("clipCapturingType", "captureClipAfterFailsafe");
+        this.addDependency("captureClipDelay", "captureClipAfterFailsafe");
 
         this.addDependency("leaveTime", "leaveTimer");
 

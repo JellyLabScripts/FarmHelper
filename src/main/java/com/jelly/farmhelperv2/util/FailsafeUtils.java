@@ -1,5 +1,7 @@
 package com.jelly.farmhelperv2.util;
 
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.util.helper.KeyCodeConverter;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
@@ -13,6 +15,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class FailsafeUtils {
@@ -108,7 +111,36 @@ public class FailsafeUtils {
                 e.printStackTrace();
             }
         });
+    }
 
+    public static void captureClip() {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                ArrayList<Integer> keys = FarmHelperConfig.captureClipKeybind.getKeyBinds();
+                if (hasUndefinedKey(keys)) {
+                    LogUtils.sendError("Failed to capture clip, got undefined key code.");
+                    return;
+                }
+                Robot robot = new Robot();
+                keys.forEach(key -> {
+                    robot.keyPress(KeyCodeConverter.convertToAwtKeyCode(key));
+                });
+                robot.delay(250);
+                keys.forEach(key -> {
+                    robot.keyRelease(KeyCodeConverter.convertToAwtKeyCode(key));
+                });
+            } catch (AWTException e) {
+                System.out.println("Failed to use Robot, got exception: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private static boolean hasUndefinedKey(ArrayList<Integer> keys) {
+        for (int key : keys)
+            if (KeyCodeConverter.convertToAwtKeyCode(key) == KeyEvent.VK_UNDEFINED)
+                return true;
+        return false;
     }
 
     public void sendNotification(String text, TrayIcon.MessageType type) {
