@@ -988,6 +988,13 @@ public class FarmHelperConfig extends Config {
     public static boolean sprintWhileFlying = false;
 
     @Switch(
+            name = "Fly Pathfinder Oringo Compatible",
+            description = "Makes the fly pathfinder compatible with Oringo, but worse, zzz...",
+            category = PESTS_DESTROYER, subcategory = "Pests Destroyer"
+    )
+    public static boolean flyPathfinderOringoCompatible = false;
+
+    @Switch(
             name = "Pause the Pests Destroyer during Jacob's contests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Pauses the Pests Destroyer during Jacob's contests",
             size = 2
@@ -1201,6 +1208,7 @@ public class FarmHelperConfig extends Config {
         AutoPestHunter.getInstance().setManuallyStarted(true);
         AutoPestHunter.getInstance().start();
     }
+
     @Button(
             name = "Set the pest hunter location", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
             description = "Sets the pest hunter location",
@@ -1629,6 +1637,7 @@ public class FarmHelperConfig extends Config {
 //            name = "Debug Keybind 3", category = DEBUG
 //    )
 //    public static OneKeyBind debugKeybind3 = new OneKeyBind(Keyboard.KEY_J);
+
     @Switch(
             name = "Debug Mode", category = DEBUG, subcategory = "Debug",
             description = "Prints to chat what the bot is currently executing. Useful if you are having issues."

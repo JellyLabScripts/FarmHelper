@@ -7,7 +7,6 @@ import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
-import com.jelly.farmhelperv2.util.helper.Target;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -59,7 +58,10 @@ public class RotationHandler {
         startTime = System.currentTimeMillis();
         startRotation.setRotation(configuration.from());
         Rotation neededChange;
-        randomAddition = (Math.random() * 0.3 - 0.15);
+        if (configuration.randomness())
+            randomAddition = (Math.random() * 0.3 - 0.15);
+        else
+            randomAddition = 0;
         if (configuration.target().isPresent() && configuration.target().get().getTarget().isPresent()) {
             neededChange = getNeededChange(startRotation, configuration.target().get().getTarget().get());
         } else if (configuration.to().isPresent()) {
@@ -202,8 +204,12 @@ public class RotationHandler {
     }
 
     public boolean shouldRotate(Rotation to) {
+        return shouldRotate(to, 0.1f);
+    }
+
+    public boolean shouldRotate(Rotation to, float difference) {
         Rotation neededChange = getNeededChange(to);
-        return Math.abs(neededChange.getYaw()) > 0.1 || Math.abs(neededChange.getPitch()) > 0.1;
+        return Math.abs(neededChange.getYaw()) > difference || Math.abs(neededChange.getPitch()) > difference;
     }
 
     public void reset() {
@@ -322,24 +328,30 @@ public class RotationHandler {
     }
 
     private void adjustTargetRotation(boolean serverSide) {
-        Target target = configuration.target().get();
         Rotation rot;
-        if (target.getEntity() != null) {
-            rot = getRotation(target.getEntity());
-        } else if (target.getBlockPos() != null) {
-            rot = getRotation(target.getBlockPos());
-        } else if (target.getTarget().isPresent()) {
-            rot = getRotation(target.getTarget().get());
+        if (configuration.target().isPresent() && configuration.target().get().getTarget().isPresent()) {
+            rot = getRotation(configuration.target().get().getTarget().get());
+        } else if (configuration.to().isPresent()) {
+            rot = configuration.to().get();
         } else {
-            throw new IllegalArgumentException("No target specified!");
+            throw new IllegalArgumentException("No target or rotation specified!");
         }
+//        if (target.getEntity() != null) {
+//            rot = getRotation(target.getEntity());
+//        } else if (target.getBlockPos() != null) {
+//            rot = getRotation(target.getBlockPos());
+//        } else if (target.getTarget().isPresent()) {
+//            rot = getRotation(target.getTarget().get());
+//        } else {
+//            throw new IllegalArgumentException("No target specified!");
+//        }
         startRotation.setPitch(serverSide ? serverSidePitch : mc.thePlayer.rotationPitch);
         startRotation.setYaw(serverSide ? serverSideYaw : mc.thePlayer.rotationYaw);
         startTime = System.currentTimeMillis();
         Rotation neededChange = getNeededChange(startRotation, rot);
         targetRotation.setYaw(startRotation.getYaw() + neededChange.getYaw());
         targetRotation.setPitch(startRotation.getPitch() + neededChange.getPitch());
-        delayBetweenTargetFollow.schedule(250 + Math.random() * 125);
+        delayBetweenTargetFollow.schedule(160 + Math.random() * 80);
     }
 
     @SubscribeEvent(receiveCanceled = true)

@@ -58,7 +58,7 @@ public class KeyBindUtils {
 
     public static void setKeyBindState(KeyBinding key, boolean pressed) {
         if (pressed) {
-            if (mc.currentScreen != null) {
+            if (mc.currentScreen != null && key != null) {
                 realSetKeyBindState(key, false);
                 return;
             }
@@ -67,6 +67,7 @@ public class KeyBindUtils {
     }
 
     private static void realSetKeyBindState(KeyBinding key, boolean pressed) {
+        if (key == null) return;
         if (pressed) {
             if (!key.isKeyDown()) {
                 KeyBinding.onTick(key.getKeyCode());
@@ -90,11 +91,22 @@ public class KeyBindUtils {
         realSetKeyBindState(mc.gameSettings.keyBindLeft, false);
         if (!ignoreAttack) {
             realSetKeyBindState(mc.gameSettings.keyBindAttack, false);
+            realSetKeyBindState(mc.gameSettings.keyBindUseItem, false);
         }
-        realSetKeyBindState(mc.gameSettings.keyBindUseItem, false);
         realSetKeyBindState(mc.gameSettings.keyBindSneak, false);
         realSetKeyBindState(mc.gameSettings.keyBindJump, false);
         realSetKeyBindState(mc.gameSettings.keyBindSprint, false);
+    }
+
+    public static void holdThese(boolean withAttack, KeyBinding... keyBinding) {
+        releaseAllExcept(keyBinding);
+        for (KeyBinding key : keyBinding) {
+            if (key != null)
+                realSetKeyBindState(key, true);
+        }
+        if (withAttack) {
+            realSetKeyBindState(mc.gameSettings.keyBindAttack, true);
+        }
     }
 
     public static void holdThese(KeyBinding... keyBinding) {
@@ -158,6 +170,18 @@ public class KeyBindUtils {
 
         keyBindMap.forEach((yaw, key) -> {
             if (Math.abs(yaw - angleDifference) < 67.5 || Math.abs(yaw - (angleDifference + 360.0)) < 67.5) {
+                keys.add(key);
+            }
+        });
+        return keys;
+    }
+
+    public static List<KeyBinding> getNeededKeyPresses(float neededYaw) {
+        List<KeyBinding> keys = new ArrayList<>();
+        neededYaw = AngleUtils.normalizeYaw(neededYaw - mc.thePlayer.rotationYaw) * -1;
+        float finalNeededYaw = neededYaw;
+        keyBindMap.forEach((yaw, key) -> {
+            if (Math.abs(yaw - finalNeededYaw) < 67.5 || Math.abs(yaw - (finalNeededYaw + 360.0)) < 67.5) {
                 keys.add(key);
             }
         });

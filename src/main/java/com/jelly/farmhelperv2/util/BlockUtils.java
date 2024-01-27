@@ -4,6 +4,7 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
+import com.jelly.farmhelperv2.pathfinder.WorldCache;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
@@ -13,6 +14,7 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.*;
+import net.minecraft.world.IBlockAccess;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -313,6 +315,40 @@ public class BlockUtils {
     private static boolean blockHasCollision(BlockPos blockPos) {
         AxisAlignedBB axisAlignedBB = mc.theWorld.getBlockState(blockPos).getBlock().getCollisionBoundingBox(mc.theWorld, blockPos, mc.theWorld.getBlockState(blockPos));
         return !mc.theWorld.getBlockState(blockPos).getBlock().isPassable(mc.theWorld, blockPos) || axisAlignedBB != null;
+    }
+
+    public static boolean blockHasCollision(BlockPos blockPos, IBlockState blockState, Block block) {
+        if (block.equals(Blocks.air) || block.equals(Blocks.water) || block.equals(Blocks.flowing_water) || block.equals(Blocks.lava) || block.equals(Blocks.flowing_lava)) {
+            return false;
+        }
+
+        if (CropUtils.isCrop(block) && !block.equals(Blocks.melon_block) && !block.equals(Blocks.pumpkin) && !block.equals(Blocks.cactus) && !block.equals(Blocks.cocoa)) {
+            return false;
+        }
+
+        return true;
+
+//        if (block instanceof BlockStainedGlass || block instanceof BlockStainedGlassPane) {
+//            return true;
+//        }
+//
+//        if (block instanceof BlockSlab && !block.equals(Blocks.double_stone_slab) && !block.equals(Blocks.double_wooden_slab) && !block.equals(Blocks.double_stone_slab2)) {
+//            return true;
+//        }
+//
+//        if (block instanceof BlockFence) {
+//            return true;
+//        }
+//
+//        if (block instanceof BlockDoor) {
+//            return true;
+//        }
+//
+//        if (!block.isPassable(mc.theWorld, blockPos)) {
+//            return true;
+//        }
+//        AxisAlignedBB axisAlignedBB = block.getCollisionBoundingBox(mc.theWorld, blockPos, blockState);
+//        return axisAlignedBB != null;
     }
 
     public static boolean canWalkThroughDoor(Direction direction) {
@@ -777,6 +813,27 @@ public class BlockUtils {
         return count;
     }
 
+    public static boolean isFree(float x, float y, float z, IBlockAccess blockaccess) {
+        BlockPos blockpos = new BlockPos(x, y, z);
+        IBlockState blockState = blockaccess.getBlockState(blockpos);
+        Block block = blockState.getBlock();
+        WorldCache.CacheEntry pathnodetype = WorldCache.getInstance().getWorldCache().get(blockpos);
+        if (pathnodetype != null) {
+            if (pathnodetype.getBlock().equals(blockaccess.getBlockState(blockpos).getBlock()))
+                return pathnodetype.getPathNodeType() == PathNodeType.OPEN;
+        }
+        if (blockHasCollision(blockpos, blockState, block)) {
+            WorldCache.getInstance().getWorldCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.BLOCKED));
+            return false;
+        }
+        WorldCache.getInstance().getWorldCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.OPEN));
+        return true;
+    }
+
+    public enum PathNodeType {
+        OPEN,
+        BLOCKED
+    }
 
     public enum Direction {
         FORWARD,

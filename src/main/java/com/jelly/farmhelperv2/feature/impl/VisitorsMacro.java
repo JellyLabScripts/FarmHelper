@@ -251,11 +251,11 @@ public class VisitorsMacro implements IFeature {
             return false;
         }
 
-        if (!manual && !forceStart && !PlayerUtils.isStandingOnSpawnPoint() && !PlayerUtils.isStandingOnRewarpLocation()) {
-            if (withError)
-                LogUtils.sendError("[Visitors Macro] The player is not standing on spawn location, skipping...");
-            return false;
-        }
+//        if (!manual && !forceStart && !PlayerUtils.isStandingOnSpawnPoint() && !PlayerUtils.isStandingOnRewarpLocation()) {
+//            if (withError)
+//                LogUtils.sendError("[Visitors Macro] The player is not standing on spawn location, skipping...");
+//            return false;
+//        }
 
         if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
             if (withError) LogUtils.sendError("[Visitors Macro] Cookie buff is not active, skipping...");

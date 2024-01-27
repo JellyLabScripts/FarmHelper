@@ -50,9 +50,11 @@ public class AutoSprayonator implements IFeature {
     private final Clock enableDelay = new Clock();
     private final long sprayonatorEnableDelayTime = 5200L;
     private long sprayonatorEnableDelayTimeRand = 0L;
+
     {
         updateRandomDelay();
     }
+
     private boolean running;
     @Getter
     private SPRAYONATOR_ITEM sprayItem = SPRAYONATOR_ITEM.values()[FarmHelperConfig.sprayonatorType];
@@ -70,7 +72,7 @@ public class AutoSprayonator implements IFeature {
     private boolean hasCopper = true;
     private String bazaarItemName;
 
-    private float[] prevRotation = new float[]{0f,0f};
+    private float[] prevRotation = new float[]{0f, 0f};
     private int rotationState = 0;
 
     @Override
@@ -205,7 +207,8 @@ public class AutoSprayonator implements IFeature {
             updateRandomDelay();
             enableDelay.schedule(sprayonatorEnableDelayTime + sprayonatorEnableDelayTimeRand);
             return;
-        };
+        }
+        ;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
@@ -276,8 +279,7 @@ public class AutoSprayonator implements IFeature {
                     sprayState = AUTO_SPRAYONATOR_STATE.CHECK_PLOTS;
                     return;
                 }
-                if (!hasSprayItem() && !shouldBuySprayItem())
-                {
+                if (!hasSprayItem() && !shouldBuySprayItem()) {
                     stop();
                     LogUtils.sendError("[Auto Sprayonator] Disabling until restart due to no spray item");
                     sprayState = AUTO_SPRAYONATOR_STATE.NONE;
@@ -317,7 +319,7 @@ public class AutoSprayonator implements IFeature {
                 }
                 break;
             case HOLD_SPRAYONATOR:
-                sprayonatorDelay.schedule(2000);
+                sprayonatorDelay.schedule(1000);
                 if (sprayonatorInHotbar() && InventoryUtils.getSlotIdOfItemInHotbar("Sprayonator") == getChosenSprayonatorSlot()) {
                     sprayState = AUTO_SPRAYONATOR_STATE.SET_SPRAYONATOR;
                 } else {
@@ -560,8 +562,8 @@ public class AutoSprayonator implements IFeature {
                                             currentGuiState = CURRENT_GUI_STATE.NONE;
                                             sprayState = AUTO_SPRAYONATOR_STATE.CHECK_ITEM;
                                         }, 300 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
-                                    }, FarmHelperConfig.autoSprayonatorAdditionalDelay/2 + 300 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
-                                }, FarmHelperConfig.autoSprayonatorAdditionalDelay/2 + 300 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
+                                    }, FarmHelperConfig.autoSprayonatorAdditionalDelay / 2 + 300 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
+                                }, FarmHelperConfig.autoSprayonatorAdditionalDelay / 2 + 300 + (long) (Math.random() * 50), TimeUnit.MILLISECONDS);
                                 bazaarPurchaseState = BAZAAR_PURCHASE_STATE.NONE;
                             } else {
                                 LogUtils.sendDebug("Invalid GUI: " + guiName);
@@ -689,7 +691,8 @@ public class AutoSprayonator implements IFeature {
         @Getter
         private final Clock sprayClock = new Clock();
 
-        @Setter @Getter
+        @Setter
+        @Getter
         private String sprayItem = "none";
         @Setter
         private long sprayTime;

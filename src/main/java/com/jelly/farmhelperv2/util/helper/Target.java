@@ -34,11 +34,11 @@ public class Target {
 
     public Optional<Vec3> getTarget() {
         if (vec != null) {
-            return Optional.of(vec);
+            return Optional.of(vec.addVector(0, this.additionalY, 0));
         } else if (entity != null) {
-            return Optional.of(entity.getPositionVector().add(new Vec3(0, Math.min(((entity.height * 0.85)), (entity.height - 0.05)), 0)));
+            return Optional.of(entity.getPositionVector().add(new Vec3(0, Math.min(((entity.height * 0.85)), (entity.height - 0.05)) + this.additionalY, 0)));
         } else if (blockPos != null) {
-            return Optional.of(new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
+            return Optional.of(new Vec3(blockPos.getX(), blockPos.getY() + this.additionalY, blockPos.getZ()));
         } else {
             return Optional.empty();
         }

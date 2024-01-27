@@ -18,6 +18,13 @@ public class FailsafeNotificationsPage {
     public static boolean notifyOnTeleportationFailsafe = true;
 
     @Switch(
+            name = "Lag Back Notifications",
+            description = "Whether or not to send a notification when the lag back failsafe is triggered.",
+            category = "Failsafe Notifications"
+    )
+    public static boolean notifyOnLagBackFailsafe = true;
+
+    @Switch(
             name = "Knockback Check Notifications",
             description = "Whether or not to send a notification when the knockback check failsafe is triggered.",
             category = "Failsafe Notifications"
@@ -213,6 +220,13 @@ public class FailsafeNotificationsPage {
             category = "Failsafe Tag Everyone"
     )
     public static boolean tagEveryoneOnTeleportationFailsafe = true;
+
+    @Switch(
+            name = "Lag Back Tag Everyone",
+            description = "Whether or not to tag everyone in the webhook message when the lag back failsafe is triggered.",
+            category = "Failsafe Tag Everyone"
+    )
+    public static boolean tagEveryoneOnLagBackFailsafe = false;
 
     @Switch(
             name = "Knockback Check Tag Everyone",

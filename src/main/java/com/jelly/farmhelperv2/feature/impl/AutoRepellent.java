@@ -7,6 +7,7 @@ import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
@@ -143,7 +144,9 @@ public class AutoRepellent implements IFeature {
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
-        if (FarmHelperConfig.pauseAutoPestRepellentDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) return;
+        if (RotationHandler.getInstance().isRotating()) return;
+        if (FarmHelperConfig.pauseAutoPestRepellentDuringJacobsContest && GameStateHandler.getInstance().inJacobContest())
+            return;
 
         if (FarmHelperConfig.pestRepellentType && !InventoryUtils.hasItemInInventory("Pest Repellent MAX") && GameStateHandler.getInstance().getCopper() < 40 && !notEnoughCopper) {
             notEnoughCopper = true;

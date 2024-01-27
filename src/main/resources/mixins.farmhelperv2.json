@@ -9,7 +9,9 @@
     "block.MixinBlockCrops",
     "block.MixinBlockMushroom",
     "block.MixinBlockNetherWart",
+    "client.EntityPlayerAccessor",
     "client.MixinChunk",
+    "client.MixinEntity",
     "client.MixinMouse",
     "fml.MixinFMLHandshakeMessage",
     "network.MixinNetworkManager"

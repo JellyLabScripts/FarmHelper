@@ -2,9 +2,10 @@ package com.jelly.farmhelperv2;
 
 import baritone.api.BaritoneAPI;
 import cc.polyfrost.oneconfig.utils.Notifications;
+import cc.polyfrost.oneconfig.utils.commands.CommandManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.jelly.farmhelperv2.command.FarmHelperCommand;
+import com.jelly.farmhelperv2.command.FarmHelperMainCommand;
 import com.jelly.farmhelperv2.command.RewarpCommand;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.MillisecondEvent;
@@ -14,6 +15,8 @@ import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
+import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
+import com.jelly.farmhelperv2.pathfinder.WorldCache;
 import com.jelly.farmhelperv2.remote.DiscordBotHandler;
 import com.jelly.farmhelperv2.remote.WebsocketHandler;
 import com.jelly.farmhelperv2.util.FailsafeUtils;
@@ -105,6 +108,8 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(AudioManager.getInstance());
         MinecraftForge.EVENT_BUS.register(RotationHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(FlyPathfinder.getInstance());
+        MinecraftForge.EVENT_BUS.register(WorldCache.getInstance());
+        MinecraftForge.EVENT_BUS.register(FlyPathFinderExecutor.getInstance());
     }
 
     private void initializeFields() {
@@ -113,6 +118,6 @@ public class FarmHelper {
 
     private void initializeCommands() {
         ClientCommandHandler.instance.registerCommand(new RewarpCommand());
-        ClientCommandHandler.instance.registerCommand(new FarmHelperCommand());
+        CommandManager.register(new FarmHelperMainCommand());
     }
 }

@@ -109,13 +109,18 @@ public class TeleportFailsafe extends Failsafe {
         Vec3 currentPlayerPos = mc.thePlayer.getPositionVector();
         Vec3 packetPlayerPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
         BlockPos packetPlayerBlockPos = new BlockPos(packetPlayerPos);
-        Optional<Tuple<BlockPos, AbstractMacro.State>> lastWalkedPosition = lastWalkedPositions.stream().filter(pos -> pos.getFirst().distanceSq(packetPlayerBlockPos) < 2).findFirst();
+        Optional<Tuple<BlockPos, AbstractMacro.State>> lastWalkedPosition = lastWalkedPositions.stream().filter(pos -> pos.getFirst().equals(packetPlayerBlockPos)).findFirst();
         if (lastWalkedPosition.isPresent()) {
+            if (packetPlayerPos.distanceTo(currentPlayerPos) < 1) {
+                LogUtils.sendDebug("[Failsafe] AntiStuck should trigger there. Ignoring");
+                return;
+            }
             AbstractMacro.State currentState = MacroHandler.getInstance().getCurrentMacro().map(AbstractMacro::getCurrentState).orElse(null);
             LowerAvgBpsFailsafe.getInstance().resetStates();
             if (currentState == null || currentState != lastWalkedPosition.get().getSecond()) {
-                LogUtils.sendFailsafeMessage("[Failsafe] You got lag backed into previous row! Fixing state", shouldTagEveryone());
-                FailsafeUtils.getInstance().sendNotification("You got lag backed into previous row! Fixing state", TrayIcon.MessageType.WARNING);
+                LogUtils.sendFailsafeMessage("[Failsafe] You got lag backed into previous row! Fixing state", FailsafeNotificationsPage.tagEveryoneOnLagBackFailsafe);
+                if (FailsafeNotificationsPage.notifyOnLagBackFailsafe)
+                    FailsafeUtils.getInstance().sendNotification("You got lag backed into previous row! Fixing state", TrayIcon.MessageType.WARNING);
                 MacroHandler.getInstance().getCurrentMacro().ifPresent(macro -> {
                     macro.setCurrentState(lastWalkedPosition.get().getSecond());
                     long delay = (long) (1_500 + Math.random() * 1_000);
@@ -124,8 +129,9 @@ public class TeleportFailsafe extends Failsafe {
                 });
                 return;
             }
-            LogUtils.sendFailsafeMessage("[Failsafe] You got lag backed! Not reacting", shouldTagEveryone());
-            FailsafeUtils.getInstance().sendNotification("You got lag backed! Not reacting", TrayIcon.MessageType.WARNING);
+            LogUtils.sendFailsafeMessage("[Failsafe] You got lag backed! Not reacting", FailsafeNotificationsPage.tagEveryoneOnLagBackFailsafe);
+            if (FailsafeNotificationsPage.notifyOnLagBackFailsafe)
+                FailsafeUtils.getInstance().sendNotification("You got lag backed! Not reacting", TrayIcon.MessageType.WARNING);
             return;
         }
 

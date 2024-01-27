@@ -468,6 +468,10 @@ public class MacroHandler {
             KeyBindUtils.stopMovement();
         }
         if (force || GameStateHandler.getInstance().canRewarp() && !beforeTeleportationPos.isPresent()) {
+            if (canTriggerFeatureAfterWarp()) {
+                LogUtils.sendDebug("Not warping because of feature");
+                return;
+            }
             currentMacro.ifPresent(cm -> cm.setRewarpState(AbstractMacro.RewarpState.TELEPORTING));
             setBeforeTeleportationPos(Optional.ofNullable(mc.thePlayer.getPosition()));
             LogUtils.sendDebug("Before tp location: " + beforeTeleportationPos);
@@ -478,12 +482,18 @@ public class MacroHandler {
         }
     }
 
-    public boolean isLastWarpGardenSuccessful() {
-        return !beforeTeleportationPos.isPresent()
-                || mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos.get()) > 2
-                || (mc.thePlayer.getPosition().getX() == FarmHelperConfig.spawnPosX
-                && mc.thePlayer.getPosition().getY() == FarmHelperConfig.spawnPosY
-                && mc.thePlayer.getPosition().getZ() == FarmHelperConfig.spawnPosZ);
+    public boolean canTriggerFeatureAfterWarp() {
+        if (PestsDestroyer.getInstance().canEnableMacro()) {
+            PestsDestroyer.getInstance().start();
+            return true;
+        } else if (VisitorsMacro.getInstance().canEnableMacro(false, true)) {
+            VisitorsMacro.getInstance().start();
+            return true;
+        } else if (AutoPestHunter.getInstance().canEnableMacro(false)) {
+            AutoPestHunter.getInstance().start();
+            return true;
+        }
+        return false;
     }
 
     @AllArgsConstructor

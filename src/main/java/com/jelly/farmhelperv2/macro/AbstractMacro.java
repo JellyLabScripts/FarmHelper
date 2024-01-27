@@ -5,7 +5,9 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
-import com.jelly.farmhelperv2.feature.impl.*;
+import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
+import com.jelly.farmhelperv2.feature.impl.DesyncChecker;
+import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
@@ -106,36 +108,34 @@ public abstract class AbstractMacro {
             MacroHandler.getInstance().disableMacro();
             return;
         }
-        if (PlayerUtils.isStandingOnRewarpLocation() && !FailsafeManager.getInstance().triggeredFailsafe.isPresent() && GameStateHandler.getInstance().notMoving()) {
-            if (checkOnSpawnClock.passed()) {
-                if (PestsDestroyer.getInstance().canEnableMacro()) {
-                    PestsDestroyer.getInstance().start();
-                } else if (VisitorsMacro.getInstance().canEnableMacro(false, true)) {
-                    VisitorsMacro.getInstance().start();
-                } else if (AutoPestHunter.getInstance().canEnableMacro(false)) {
-                    AutoPestHunter.getInstance().start();
-                }
-                checkOnSpawnClock.schedule(5000);
-            } else {
-                MacroHandler.getInstance().triggerWarpGarden(false, true);
-            }
+
+        if (PlayerUtils.isStandingOnRewarpLocation() && !FailsafeManager.getInstance().triggeredFailsafe.isPresent() && GameStateHandler.getInstance().canRewarp()) {
+            MacroHandler.getInstance().triggerWarpGarden(false, true);
+            checkOnSpawnClock.schedule(5000);
             return;
         }
+
         if (PlayerUtils.isStandingOnSpawnPoint() && !FailsafeManager.getInstance().triggeredFailsafe.isPresent() && GameStateHandler.getInstance().notMoving() && checkOnSpawnClock.passed()) {
-            if (PestsDestroyer.getInstance().canEnableMacro()) {
-                PestsDestroyer.getInstance().start();
-                rotated = true;
-                return;
-            }
-            if (VisitorsMacro.getInstance().canEnableMacro(false, true)) {
-                VisitorsMacro.getInstance().start();
-                rotated = true;
-                return;
-            }
-            if (AutoPestHunter.getInstance().canEnableMacro(false)) {
-                AutoPestHunter.getInstance().start();
-                rotated = true;
-                return;
+            if (checkOnSpawnClock.passed()) {
+                if (MacroHandler.getInstance().canTriggerFeatureAfterWarp()) {
+                    rotated = false;
+                    return;
+                }
+//                if (PestsDestroyer.getInstance().canEnableMacro()) {
+//                    PestsDestroyer.getInstance().start();
+//                    rotated = true;
+//                    return;
+//                }
+//                if (VisitorsMacro.getInstance().canEnableMacro(false, true)) {
+//                    VisitorsMacro.getInstance().start();
+//                    rotated = true;
+//                    return;
+//                }
+//                if (AutoPestHunter.getInstance().canEnableMacro(false)) {
+//                    AutoPestHunter.getInstance().start();
+//                    rotated = true;
+//                    return;
+//                }
             }
             checkOnSpawnClock.schedule(5000);
         }
