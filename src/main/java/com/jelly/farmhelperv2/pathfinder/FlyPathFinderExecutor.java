@@ -4,6 +4,7 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.mixin.client.EntityPlayerAccessor;
+import com.jelly.farmhelperv2.mixin.pathfinder.PathfinderAccessor;
 import com.jelly.farmhelperv2.util.BlockUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
@@ -56,7 +57,7 @@ public class FlyPathFinderExecutor {
     @Getter
     private State state = State.NONE;
     private int tick = 0;
-    private CopyOnWriteArrayList<Vec3> path;
+    private final CopyOnWriteArrayList<Vec3> path = new CopyOnWriteArrayList<>();
     private Vec3 target;
     private Entity targetEntity;
     private Vec3 lookingTarget;
@@ -93,7 +94,8 @@ public class FlyPathFinderExecutor {
                 long startTime = System.currentTimeMillis();
                 int maxDistance = Math.min(MAX_DISTANCE, (int) mc.thePlayer.getPositionVector().distanceTo(pos) + 5);
                 LogUtils.sendDebug("Max distance: " + maxDistance);
-                PathEntity route = pathFinder.createEntityPathTo(mc.theWorld, mc.thePlayer, new BlockPos(pos), maxDistance);
+                LogUtils.sendDebug("Pathfinding to " + pos);
+                PathEntity route = ((PathfinderAccessor) pathFinder).createPath(mc.theWorld, mc.thePlayer, pos.xCoord, pos.yCoord, pos.zCoord, maxDistance);
                 if (!isRunning()) return;
                 LogUtils.sendDebug("Pathfinding took " + (System.currentTimeMillis() - startTime) + "ms");
                 if (route == null) {
@@ -115,7 +117,8 @@ public class FlyPathFinderExecutor {
                 if (smooth) {
                     finalRoute = smoothPath(finalRoute);
                 }
-                this.path = finalRoute.stream().map(vec3 -> vec3.addVector(0.5f, 0.1, 0.5)).collect(Collectors.toCollection(CopyOnWriteArrayList::new));
+                this.path.clear();
+                this.path.addAll(finalRoute.stream().map(vec3 -> vec3.addVector(0.5f, 0.1, 0.5)).collect(Collectors.toCollection(CopyOnWriteArrayList::new)));
                 state = State.PATHING;
                 LogUtils.sendDebug("Path smoothing took " + (System.currentTimeMillis() - startTime) + "ms");
                 if (timeoutTask != null) {
@@ -212,8 +215,7 @@ public class FlyPathFinderExecutor {
 
     public void stop() {
         RotationHandler.getInstance().reset();
-        path = new CopyOnWriteArrayList<>();
-        path.add(mc.thePlayer.getPositionVector());
+        path.clear();
         target = null;
         targetEntity = null;
         yModifier = 0;
@@ -263,7 +265,7 @@ public class FlyPathFinderExecutor {
         else
             target = new Target(this.target);
 
-        if (path != null && !this.dontRotate) {
+        if (!this.dontRotate) {
             Vec3 lastElement = path.get(path.size() - 1);
             if (mc.thePlayer.getPositionVector().distanceTo(lastElement) > 2 && !RotationHandler.getInstance().isRotating() && target.getTarget().isPresent()) {
                 RotationHandler.getInstance().easeTo(new RotationConfiguration(
@@ -297,7 +299,7 @@ public class FlyPathFinderExecutor {
             neededYaw = Integer.MIN_VALUE;
             return;
         }
-        if (path == null) {
+        if (path.isEmpty()) {
             KeyBindUtils.stopMovement(true);
             return;
         }
@@ -328,12 +330,17 @@ public class FlyPathFinderExecutor {
             Multithreading.schedule(() -> KeyBindUtils.stopMovement(true), 500, TimeUnit.MILLISECONDS);
             return;
         }
-        if (targetEntity != null)
+        if (targetEntity != null) {
             System.out.println(mc.thePlayer.getPositionVector().distanceTo(targetEntity.getPositionVector().addVector(0, this.yModifier, 0)));
-        if (targetEntity != null && mc.thePlayer.getPositionVector().distanceTo(targetEntity.getPositionVector().addVector(0, this.yModifier, 0)) < 1) {
-            stop();
-            return;
-        } else if (targetEntity == null && (current.distanceTo(path.get(path.size() - 1)) < 2 || ((target != null && mc.thePlayer.getDistance(target.xCoord, target.yCoord, target.zCoord) < 2.5)))) {
+            float velocity = (float) Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
+            if (velocity < 0.1 && mc.thePlayer.getPositionVector().distanceTo(targetEntity.getPositionVector().addVector(0, this.yModifier, 0)) < 2.5) {
+                stopAndDecelerate();
+                return;
+            } else if (velocity > 0.2 && mc.thePlayer.getPositionVector().distanceTo(targetEntity.getPositionVector().addVector(0, this.yModifier, 0)) < 1) {
+                stop();
+                return;
+            }
+        } else if ((current.distanceTo(path.get(path.size() - 1)) < 2 || ((target != null && mc.thePlayer.getDistance(target.xCoord, target.yCoord, target.zCoord) < 2.5)))) {
             stopAndDecelerate();
             return;
         }
@@ -373,20 +380,20 @@ public class FlyPathFinderExecutor {
             if (fly(next, current)) return;
             if (verticalDirection.equals(VerticalDirection.HIGHER)) {
                 keyBindings.add(mc.gameSettings.keyBindJump);
-//                System.out.println("Raising");
+                System.out.println("Raising");
             } else if (verticalDirection.equals(VerticalDirection.LOWER)) {
                 if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.isFlying) {
                     keyBindings.add(mc.gameSettings.keyBindSneak);
-//                    System.out.println("Lowering");
+                    System.out.println("Lowering");
                 }
             } else {
                 if ((getBlockUnder() instanceof BlockCactus || distanceY > 0.15) && (((EntityPlayerAccessor) mc.thePlayer).getFlyToggleTimer() == 0 || mc.gameSettings.keyBindJump.isKeyDown())) {
                     keyBindings.add(mc.gameSettings.keyBindJump);
-//                    System.out.println("Raising 2");
+                    System.out.println("Raising 2");
                 } else if (distanceY < -0.15) {
                     if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.isFlying && !(getBlockUnder() instanceof BlockCactus)) {
                         keyBindings.add(mc.gameSettings.keyBindSneak);
-//                        System.out.println("Lowering 2");
+                        System.out.println("Lowering 2");
                     }
                 }
             }
@@ -396,10 +403,13 @@ public class FlyPathFinderExecutor {
             }
         }
 
-        mc.thePlayer.setSprinting(FarmHelperConfig.sprintWhileFlying && neededKeys.contains(mc.gameSettings.keyBindForward) && current.distanceTo(next) > 6);
+        mc.thePlayer.setSprinting(FarmHelperConfig.sprintWhileFlying && neededKeys.contains(mc.gameSettings.keyBindForward) && current.distanceTo(new Vec3(next.xCoord, current.yCoord, next.zCoord)) > 6);
 
 //        System.out.println("Buttons: " + keyBindings.stream().map(keyBinding -> keyBinding == null ? "null" : keyBinding.getKeyDescription()).collect(Collectors.joining(", ")));
-        KeyBindUtils.holdThese(keyBindings.toArray(new KeyBinding[0]));
+        if (neededYaw != Integer.MIN_VALUE)
+            KeyBindUtils.holdThese(keyBindings.toArray(new KeyBinding[0]));
+        else
+            KeyBindUtils.stopMovement(true);
     }
 
     private void stopAndDecelerate() {
@@ -521,7 +531,7 @@ public class FlyPathFinderExecutor {
 
     @SubscribeEvent
     public void onDraw(RenderWorldLastEvent event) {
-        if (path == null) return;
+        if (path.isEmpty()) return;
         if (!isRunning()) return;
         RenderManager renderManager = mc.getRenderManager();
         Vec3 current = mc.thePlayer.getPositionVector();
@@ -545,7 +555,7 @@ public class FlyPathFinderExecutor {
         try {
             return path.get(1);
         } catch (IndexOutOfBoundsException e) {
-            return path.get(path.size() - 1);
+            return path.get(Math.max(0, path.size() - 1));
         }
     }
 

@@ -271,6 +271,16 @@ public class FailsafeManager {
             if (!Scheduler.getInstance().isFarming()) {
                 Scheduler.getInstance().farmingTime();
             }
+            if (FarmHelperConfig.captureClipAfterFailsafe && !FarmHelperConfig.captureClipKeybind.getKeyBinds().isEmpty()) {
+                if (FarmHelperConfig.clipCapturingType) {
+                    FailsafeUtils.captureClip();
+                    LogUtils.sendDebug("[Failsafe] Recording clip!");
+                }
+                Multithreading.schedule(() -> {
+                    FailsafeUtils.captureClip();
+                    LogUtils.sendDebug("[Failsafe] Clip captured!");
+                }, FarmHelperConfig.captureClipDelay, TimeUnit.SECONDS);
+            }
         }
     }
 

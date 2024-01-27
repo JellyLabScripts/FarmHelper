@@ -466,6 +466,55 @@ public class FarmHelperConfig extends Config {
 
     //</editor-fold>
 
+    //<editor-fold desc="Clip Capturing">
+
+    @Switch(
+            name = "Capture Clip After Failsafe", category = FAILSAFE, subcategory = "Clip Capturing",
+            description = "Captures a clip after triggering failsafe by pressing a key combination"
+    )
+    public static boolean captureClipAfterFailsafe = false;
+
+    @KeyBind(
+            name = "Keybind to capture a clip after triggering failsafe",
+            category = FAILSAFE, subcategory = "Clip Capturing",
+            description = "Captures a clip after triggering failsafe"
+    )
+    public static OneKeyBind captureClipKeybind = new OneKeyBind(Keyboard.KEY_NONE);
+
+    @DualOption(
+            name = "Clip Capturing Type", category = FAILSAFE, subcategory = "Clip Capturing",
+            description = "The clip capturing type to use",
+            left = "Replay Buffer",
+            right = "Recording"
+    )
+    public static boolean clipCapturingType = false;
+
+    @Slider(
+            name = "Clip Capturing Delay (in seconds)", category = FAILSAFE, subcategory = "Clip Capturing",
+            description = "The delay to capture a clip after triggering failsafe (in seconds)",
+            min = 10, max = 200
+    )
+    public static int captureClipDelay = 30;
+
+    @Info(
+            text = "You need to use ShadowPlay (or any alternative with Replay Buffer) and configure it to capture clips!",
+            type = InfoType.WARNING,
+            category = FAILSAFE,
+            subcategory = "Clip Capturing",
+            size = 2
+    )
+    public static boolean captureClipWarning;
+    @Info(
+            text = "Remember to use key combinations instead of single keys!",
+            type = InfoType.WARNING,
+            category = FAILSAFE,
+            subcategory = "Clip Capturing",
+            size = 2
+    )
+    public static boolean captureClipWarning2;
+
+    //</editor-fold>
+
     //<editor-fold desc="Failsafes conf page">
     @Page(
             name = "Failsafe Notifications", category = FAILSAFE, subcategory = "Failsafe Notifications", location = PageLocation.BOTTOM,
@@ -576,7 +625,7 @@ public class FarmHelperConfig extends Config {
             description = "The delay to restart after failsafe (in minutes)",
             min = 0, max = 20
     )
-    public static int restartAfterFailSafeDelay = 5;
+    public static int restartAfterFailSafeDelay = 0;
     @Info(
             text = "Setting this value to 0 will start the macro a few seconds later, after the failsafe is finished",
             category = FAILSAFE, subcategory = "Restart After FailSafe",
@@ -1173,16 +1222,21 @@ public class FarmHelperConfig extends Config {
             description = "Pauses the Auto Pest Hunter during Jacob's contests"
     )
     public static boolean pauseAutoPestHunterDuringJacobsContest = true;
+    @Switch(
+            name = "Ignore Jacob's Contest", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            description = "Start the Auto Pest Hunter regardless of the next Jacob's contests"
+    )
+    public static boolean autoPestHunterIgnoreJacobsContest = false;
     @Slider(
             name = "Trigger before contest starts (in minutes)", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
             description = "The time before the contest starts to trigger the auto pest hunter",
-            min = 5, max = 25
+            min = 1, max = 40
     )
     public static int autoPestHunterTriggerBeforeContestStarts = 5;
     @Slider(
             name = "Pests amount required", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
             description = "The amount of pests in a vacuum required to start the auto pest hunter",
-            min = 5, max = 200
+            min = 1, max = 40
     )
     public static int autoPestHunterMinPests = 10;
     @Switch(
@@ -1526,32 +1580,6 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="Pests Destroyer Time">
     @Slider(
-            name = "Pests Destroyer Small Distance Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
-            description = "The time it takes to rotate the player",
-            min = 50f, max = 750
-    )
-    public static float pestsKillerRotationTimeSmallDistance = 200f;
-    @Slider(
-            name = "Additional random Pests Destroyer Small Distance Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
-            description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
-            min = 0f, max = 750
-    )
-    public static float pestsKillerRotationTimeRandomnessSmallDistance = 150;
-
-    @Slider(
-            name = "Pests Destroyer Medium Distance Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
-            description = "The time it takes to rotate the player",
-            min = 50f, max = 750
-    )
-    public static float pestsKillerRotationTimeMediumDistance = 300f;
-    @Slider(
-            name = "Additional random Pests Destroyer Medium Distance Rotation Time", category = DELAYS, subcategory = "Pests Destroyer",
-            description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
-            min = 0f, max = 750
-    )
-    public static float pestsKillerRotationTimeRandomnessMediumDistance = 120;
-
-    @Slider(
             name = "Pests Destroyer Stuck Time (in minutes)", category = DELAYS, subcategory = "Pests Destroyer",
             description = "Pests Destroyer Stuck Time (in minutes) for single pest",
             min = 1, max = 7
@@ -1862,8 +1890,12 @@ public class FarmHelperConfig extends Config {
         this.addDependency("pingEveryoneOnPestsDetectionNumberExceeded", "enableWebHook");
 
         this.addDependency("pauseAutoPestHunterDuringJacobsContest", "autoPestHunter");
+        this.addDependency("autoPestHunterIgnoreJacobsContest", "autoPestHunter");
         this.addDependency("autoPestHunterTriggerBeforeContestStarts", "autoPestHunter");
         this.addDependency("autoPestHunterMinPests", "autoPestHunter");
+        this.addDependency("logAutoPestHunterEvents", "autoPestHunter");
+        this.addDependency("autoPestHunterTriggerBeforeContestStarts",
+                "You can either wait until Jacob's Contest or run it regardless.", () -> !autoPestHunterIgnoreJacobsContest);
         this.hideIf("pestHunterDeskX", () -> true);
         this.hideIf("pestHunterDeskY", () -> true);
         this.hideIf("pestHunterDeskZ", () -> true);
@@ -1871,6 +1903,10 @@ public class FarmHelperConfig extends Config {
         this.addDependency("pestRepellentType", "autoPestRepellent");
 
         this.addDependency("averageBPSDrop", "averageBPSDropCheck");
+
+        this.addDependency("captureClipKeybind", "captureClipAfterFailsafe");
+        this.addDependency("clipCapturingType", "captureClipAfterFailsafe");
+        this.addDependency("captureClipDelay", "captureClipAfterFailsafe");
 
         this.addDependency("leaveTime", "leaveTimer");
 
@@ -1967,14 +2003,6 @@ public class FarmHelperConfig extends Config {
 
     public static long getRandomRotationTime() {
         return (long) (rotationTime + (float) Math.random() * rotationTimeRandomness);
-    }
-
-    public static long getRandomPestsKillerRotationTimeSmallDistance() {
-        return (long) (pestsKillerRotationTimeSmallDistance + (float) Math.random() * pestsKillerRotationTimeRandomnessSmallDistance);
-    }
-
-    public static long getRandomPestsKillerRotationTimeMediumDistance() {
-        return (long) (pestsKillerRotationTimeMediumDistance + (float) Math.random() * pestsKillerRotationTimeRandomnessMediumDistance);
     }
 
     public static long getRandomGUIMacroDelay() {

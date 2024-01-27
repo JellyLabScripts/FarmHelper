@@ -91,7 +91,7 @@ public abstract class AbstractMacro {
         if (!breakTime.passed()) {
             System.out.println(breakTime.getRemainingTime());
             KeyBindUtils.stopMovement();
-            LogUtils.sendDebug("Blocking movement due to breaking!");
+            LogUtils.sendDebug("Blocking movement due to break time!");
             GameStateHandler.getInstance().scheduleNotMoving();
             return;
         }
@@ -109,9 +109,11 @@ public abstract class AbstractMacro {
             return;
         }
 
-        if (PlayerUtils.isStandingOnRewarpLocation() && !FailsafeManager.getInstance().triggeredFailsafe.isPresent() && GameStateHandler.getInstance().canRewarp()) {
-            MacroHandler.getInstance().triggerWarpGarden(false, true);
-            checkOnSpawnClock.schedule(5000);
+        if (PlayerUtils.isStandingOnRewarpLocation() && !FailsafeManager.getInstance().triggeredFailsafe.isPresent() && (GameStateHandler.getInstance().notMoving() || GameStateHandler.getInstance().canRewarp())) {
+            if (GameStateHandler.getInstance().canRewarp()) {
+                MacroHandler.getInstance().triggerWarpGarden(false, true);
+                checkOnSpawnClock.schedule(5000);
+            }
             return;
         }
 
@@ -121,21 +123,6 @@ public abstract class AbstractMacro {
                     rotated = false;
                     return;
                 }
-//                if (PestsDestroyer.getInstance().canEnableMacro()) {
-//                    PestsDestroyer.getInstance().start();
-//                    rotated = true;
-//                    return;
-//                }
-//                if (VisitorsMacro.getInstance().canEnableMacro(false, true)) {
-//                    VisitorsMacro.getInstance().start();
-//                    rotated = true;
-//                    return;
-//                }
-//                if (AutoPestHunter.getInstance().canEnableMacro(false)) {
-//                    AutoPestHunter.getInstance().start();
-//                    rotated = true;
-//                    return;
-//                }
             }
             checkOnSpawnClock.schedule(5000);
         }

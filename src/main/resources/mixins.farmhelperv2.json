@@ -14,7 +14,8 @@
     "client.MixinEntity",
     "client.MixinMouse",
     "fml.MixinFMLHandshakeMessage",
-    "network.MixinNetworkManager"
+    "network.MixinNetworkManager",
+    "pathfinder.PathfinderAccessor"
   ],
   "client": [
     "block.MixinBlockRendererDispatcher",
