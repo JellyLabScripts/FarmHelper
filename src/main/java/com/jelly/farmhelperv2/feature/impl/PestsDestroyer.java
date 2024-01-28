@@ -552,10 +552,14 @@ public class PestsDestroyer implements IFeature {
                     break;
                 }
 
-                if (mc.thePlayer.posY < 78) {
+                if (hasBlocksAround()) {
                     System.out.println("Going up");
                     fly();
                     break;
+                } else {
+                    if (mc.gameSettings.keyBindJump.isKeyDown()) {
+                        KeyBindUtils.stopMovement();
+                    }
                 }
 
                 lastFireworkLocation = Optional.empty();
@@ -676,7 +680,7 @@ public class PestsDestroyer implements IFeature {
                     return;
                 }
                 Entity entity = currentEntityTarget.get();
-                if (entity.isDead) {
+                if (entity.isDead || killedEntities.contains(entity)) {
                     RotationHandler.getInstance().reset();
                     state = States.CHECK_ANOTHER_PEST;
                     return;
@@ -701,8 +705,14 @@ public class PestsDestroyer implements IFeature {
                     return;
                 }
 
-                System.out.println(distance);
+//                System.out.println(distance);
                 if (distance < 3) {
+                    if (distance < 1.3) {
+                        if (FlyPathFinderExecutor.getInstance().isRunning()) {
+                            FlyPathFinderExecutor.getInstance().stop();
+                        }
+                        KeyBindUtils.onTick(mc.gameSettings.keyBindBack);
+                    }
                     if (rotationState != RotationState.CLOSE) {
                         rotationState = RotationState.CLOSE;
                     }
@@ -720,8 +730,8 @@ public class PestsDestroyer implements IFeature {
                         rotationState = RotationState.FAR;
                     }
                     if (!FlyPathFinderExecutor.getInstance().isRunning()) {
-                        LogUtils.sendDebug("Should pathfind to: " + entity.posX + " " + (entity.posY + 1.75) + " " + entity.posZ);
-                        FlyPathFinderExecutor.getInstance().findPath(entity, true, true, 1.75f, true);
+                        LogUtils.sendDebug("Should pathfind to: " + entity.posX + " " + (entity.posY + 2.75) + " " + entity.posZ);
+                        FlyPathFinderExecutor.getInstance().findPath(entity, true, true, 2.75f, true);
                     }
                     if (!RotationHandler.getInstance().isRotating()) {
                         RotationHandler.getInstance().easeTo(new RotationConfiguration(
@@ -839,6 +849,14 @@ public class PestsDestroyer implements IFeature {
         } else {
             stop();
         }
+    }
+
+    private boolean hasBlocksAround() {
+        BlockPos left = BlockUtils.getRelativeBlockPos(-1, 0, 0);
+        BlockPos right = BlockUtils.getRelativeBlockPos(1, 0, 0);
+        BlockPos front = BlockUtils.getRelativeBlockPos(0, 0, 1);
+        BlockPos back = BlockUtils.getRelativeBlockPos(0, 0, -1);
+        return BlockUtils.hasCollision(left) || BlockUtils.hasCollision(right) || BlockUtils.hasCollision(front) || BlockUtils.hasCollision(back);
     }
 
     @SubscribeEvent(receiveCanceled = true)
@@ -971,6 +989,7 @@ public class PestsDestroyer implements IFeature {
 
         Entity entity = event.entity;
         LogUtils.sendDebug("[Pests Destroyer] Entity died: " + entity.getName() + " at: " + entity.getPosition());
+        killedEntities.add(entity);
         int plotNumber = PlotUtils.getPlotNumberBasedOnLocation(entity.getPosition());
         if (plotNumber == -1) {
             if (isRunning())
@@ -991,7 +1010,6 @@ public class PestsDestroyer implements IFeature {
             pestsPlotMap.remove(plot);
             LogUtils.sendDebug("[Pests Destroyer] Removed all pests from plot number: " + plotNumber);
         }
-        killedEntities.add(entity);
         lastFireworkLocation = Optional.empty();
         lastFireworkTime = 0;
         currentEntityTarget.ifPresent(e -> {

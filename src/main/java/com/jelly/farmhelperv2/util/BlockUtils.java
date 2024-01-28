@@ -318,15 +318,17 @@ public class BlockUtils {
     }
 
     public static boolean blockHasCollision(BlockPos blockPos, IBlockState blockState, Block block) {
-        if (block.equals(Blocks.air) || block.equals(Blocks.water) || block.equals(Blocks.flowing_water) || block.equals(Blocks.lava) || block.equals(Blocks.flowing_lava)) {
-            return false;
-        }
-
-        if (CropUtils.isCrop(block) && !block.equals(Blocks.melon_block) && !block.equals(Blocks.pumpkin) && !block.equals(Blocks.cactus) && !block.equals(Blocks.cocoa)) {
+        if (block.equals(Blocks.air) || block.equals(Blocks.water) || block.equals(Blocks.flowing_water)) {
             return false;
         }
 
         return true;
+
+//        if (CropUtils.isCrop(block) && !block.equals(Blocks.melon_block) && !block.equals(Blocks.pumpkin) && !block.equals(Blocks.cactus) && !block.equals(Blocks.cocoa)) {
+//            return false;
+//        }
+
+//        return true;
 
 //        if (block instanceof BlockStainedGlass || block instanceof BlockStainedGlassPane) {
 //            return true;
@@ -817,16 +819,34 @@ public class BlockUtils {
         BlockPos blockpos = new BlockPos(x, y, z);
         IBlockState blockState = blockaccess.getBlockState(blockpos);
         Block block = blockState.getBlock();
-        WorldCache.CacheEntry pathnodetype = WorldCache.getInstance().getWorldCache().get(blockpos);
-        if (pathnodetype != null) {
-            if (pathnodetype.getBlock().equals(blockaccess.getBlockState(blockpos).getBlock()))
-                return pathnodetype.getPathNodeType() == PathNodeType.OPEN;
+        WorldCache.WorldCacheEntry worldCacheEntry = WorldCache.getInstance().getWorldCache().get(blockaccess);
+        if (worldCacheEntry != null) {
+            // World is cached
+            WorldCache.CacheEntry cacheEntry = worldCacheEntry.getCache().get(blockpos);
+            if (cacheEntry != null) {
+                // Block is cached
+                if (cacheEntry.getBlock().equals(blockaccess.getBlockState(blockpos).getBlock()))
+                    return cacheEntry.getPathNodeType() == PathNodeType.OPEN;
+                else {
+                    System.out.println("Block is different from cache. Block cache: " + cacheEntry.getBlock() + " Block current: " + blockaccess.getBlockState(blockpos).getBlock() + " Blockpos: " + blockpos);
+                }
+            }
+            if (blockHasCollision(blockpos, blockState, block)) {
+                worldCacheEntry.getCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.BLOCKED));
+                return false;
+            }
+            worldCacheEntry.getCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.OPEN));
+            return true;
         }
+        // No cache for this world, create one
+        WorldCache.WorldCacheEntry entry = new WorldCache.WorldCacheEntry();
+        WorldCache.getInstance().getWorldCache().put(blockaccess, entry);
+
         if (blockHasCollision(blockpos, blockState, block)) {
-            WorldCache.getInstance().getWorldCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.BLOCKED));
+            entry.getCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.BLOCKED));
             return false;
         }
-        WorldCache.getInstance().getWorldCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.OPEN));
+        entry.getCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.OPEN));
         return true;
     }
 

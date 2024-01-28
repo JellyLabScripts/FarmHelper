@@ -15,6 +15,7 @@
     "client.MixinMouse",
     "fml.MixinFMLHandshakeMessage",
     "network.MixinNetworkManager",
+    "pathfinder.MixinChunkProviderClient",
     "pathfinder.PathfinderAccessor"
   ],
   "client": [

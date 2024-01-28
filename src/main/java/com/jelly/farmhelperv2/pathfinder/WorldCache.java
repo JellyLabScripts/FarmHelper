@@ -1,32 +1,34 @@
 package com.jelly.farmhelperv2.pathfinder;
 
 import com.google.common.collect.Lists;
-import com.jelly.farmhelperv2.event.BlockChangeEvent;
+import com.jelly.farmhelperv2.event.ChunkServerLoadEvent;
 import com.jelly.farmhelperv2.event.MotionUpdateEvent;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
-import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.util.BlockUtils;
 import lombok.Getter;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDoor;
 import net.minecraft.block.BlockStairs;
 import net.minecraft.block.BlockTrapDoor;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.play.server.S21PacketChunkData;
 import net.minecraft.network.play.server.S26PacketMapChunkBulk;
 import net.minecraft.util.BlockPos;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Getter
 public class WorldCache {
     private static WorldCache instance;
-    private final HashMap<Coordinate, Chunk> chunkCache = new HashMap<>();
     private final List<Class<? extends Block>> directionDependentBlocks = Lists.newArrayList(BlockDoor.class, BlockTrapDoor.class, BlockStairs.class);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(30);
 
     @Getter
     private BlockPos currentPos;
@@ -40,7 +42,7 @@ public class WorldCache {
         return instance;
     }
 
-    private final HashMap<BlockPos, CacheEntry> worldCache = new HashMap<>();
+    private final HashMap<IBlockAccess, WorldCacheEntry> worldCache = new HashMap<>();
     private final Minecraft mc = Minecraft.getMinecraft();
 
     @SubscribeEvent
@@ -55,67 +57,48 @@ public class WorldCache {
     }
 
     @SubscribeEvent
-    public void onBlockChange(BlockChangeEvent event) {
-        if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.GARDEN) return;
-
-        if (!worldCache.containsKey(event.pos)) return;
-
-        if (!BlockUtils.blockHasCollision(event.pos, event.update, event.update.getBlock())) {
-            worldCache.put(event.pos, new CacheEntry(event.update.getBlock(), event.pos, BlockUtils.PathNodeType.OPEN));
-        } else {
-            worldCache.put(event.pos, new CacheEntry(event.update.getBlock(), event.pos, BlockUtils.PathNodeType.BLOCKED));
-        }
-    }
-
-    @SubscribeEvent
-    public void onWorldUnload(WorldEvent.Unload event) {
-        worldCache.clear();
-        chunkCache.clear();
-    }
-
-    @SubscribeEvent
-    public void onWorldLoad(WorldEvent.Load event) {
-        if (mc.thePlayer == null) return;
-        currentPos = mc.thePlayer.getPosition();
-        lastPos = currentPos;
+    public void onChunkLoad(ChunkServerLoadEvent event) {
+//        cacheChunk(event.getChunk(), new Coordinate(event.getX(), event.getZ()));
     }
 
     @SubscribeEvent
     public void onPacketReceive(ReceivePacketEvent event) {
         if (mc.theWorld == null) return;
-
-        if (event.packet instanceof S21PacketChunkData) {
+        if ((event.packet instanceof S21PacketChunkData)) {
             S21PacketChunkData packet = (S21PacketChunkData) event.packet;
-            if (packet.getExtractedSize() == 0) return;
             Chunk c = mc.theWorld.getChunkFromChunkCoords(packet.getChunkX(), packet.getChunkZ());
-            Coordinate coordinate = new Coordinate(packet.getChunkX(), packet.getChunkZ());
-            cacheChunk(c, coordinate);
+            cacheChunk(c, new Coordinate(packet.getChunkX(), packet.getChunkZ()));
         } else if (event.packet instanceof S26PacketMapChunkBulk) {
             S26PacketMapChunkBulk packet = (S26PacketMapChunkBulk) event.packet;
             for (int i = 0; i < packet.getChunkCount(); i++) {
                 Chunk c = mc.theWorld.getChunkFromChunkCoords(packet.getChunkX(i), packet.getChunkZ(i));
-                Coordinate coordinate = new Coordinate(packet.getChunkX(i), packet.getChunkZ(i));
-                cacheChunk(c, coordinate);
+                cacheChunk(c, new Coordinate(packet.getChunkX(i), packet.getChunkZ(i)));
             }
         }
     }
 
-    private void cacheChunk(Chunk c, Coordinate coordinate) {
-        if (chunkCache.containsKey(coordinate)) return;
+    public void cacheChunk(Chunk c, Coordinate coordinate) {
+        WorldCacheEntry worldCacheEntry = worldCache.get(mc.theWorld);
+        if (worldCacheEntry == null) {
+            worldCacheEntry = new WorldCacheEntry();
+            worldCache.put(mc.theWorld, worldCacheEntry);
+        }
+        if (worldCacheEntry.getChunksCached().contains(coordinate)) return;
+        worldCacheEntry.getChunksCached().add(coordinate);
         for (int x = 0; x < 16; x++)
-            for (int y = 60; y < 100; y++)
+            for (int y = 66; y < 83; y++)
                 for (int z = 0; z < 16; z++) {
-                    BlockPos pos = new BlockPos(x + coordinate.x * 16, y, z + coordinate.z * 16);
-                    if (!BlockUtils.blockHasCollision(pos, c.getBlockState(pos), c.getBlock(pos))) {
-                        worldCache.put(pos, new CacheEntry(c.getBlock(x, y, z), pos, BlockUtils.PathNodeType.OPEN));
+                    BlockPos pos = new BlockPos(x + (coordinate.x << 4), y, z + (coordinate.z << 4));
+                    IBlockState chunkBlock = mc.theWorld.getBlockState(pos);
+                    if (!BlockUtils.blockHasCollision(pos, chunkBlock, chunkBlock.getBlock())) {
+                        worldCacheEntry.getCache().put(pos, new CacheEntry(chunkBlock.getBlock(), pos, BlockUtils.PathNodeType.OPEN));
                     } else {
-                        worldCache.put(pos, new CacheEntry(c.getBlock(x, y, z), pos, BlockUtils.PathNodeType.BLOCKED));
+                        worldCacheEntry.getCache().put(pos, new CacheEntry(chunkBlock.getBlock(), pos, BlockUtils.PathNodeType.BLOCKED));
                     }
                 }
-        chunkCache.put(coordinate, c);
     }
 
-    private static class Coordinate {
+    public static class Coordinate {
         private final int x;
         private final int z;
 
@@ -148,5 +131,11 @@ public class WorldCache {
             this.pos = pos;
             this.pathNodeType = pathNodeType;
         }
+    }
+
+    @Getter
+    public static class WorldCacheEntry {
+        private final List<Coordinate> chunksCached = Lists.newArrayList();
+        private final HashMap<BlockPos, CacheEntry> cache = new HashMap<>();
     }
 }

@@ -2,6 +2,7 @@ package com.jelly.farmhelperv2.pathfinder;
 
 import cc.polyfrost.oneconfig.libs.checker.nullness.qual.Nullable;
 import com.jelly.farmhelperv2.util.BlockUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.EnumFacing;
@@ -36,7 +37,7 @@ public class FlyNodeProcessor extends NodeProcessor {
         for (int x = startX; x < startX + entitySizeX; ++x) {
             for (int y = startY; y < startY + entitySizeY; ++y) {
                 for (int z = startZ; z < startZ + entitySizeZ; ++z) {
-                    if (!BlockUtils.isFree(x, y, z, blockaccess)) {
+                    if (!BlockUtils.isFree(x, y, z, Minecraft.getMinecraft().theWorld != null ? Minecraft.getMinecraft().theWorld : blockaccess)) {
                         return null;
                     }
                 }

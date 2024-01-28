@@ -21,8 +21,8 @@ public class FarmHelperMainCommand {
         FarmHelper.config.openGui();
     }
 
-    @SubCommand(aliases = {"pf"})
-    public void pathfind(
+    @SubCommand(aliases = {"pfm"})
+    public void pathfindmob(
             @Description("Name of a mob, to pathfind to, for example 'Zombie', 'Slime' etc") String mobName,
             @Description(value = "Tell the pathfinder, to constantly follow and recalibrate path until arrive", autoCompletesTo = {"true", "false"}) boolean follow,
             @Description(value = "Tell the pathfinder, to smooth out the path", autoCompletesTo = {"true", "false"}) boolean smooth) {
@@ -32,6 +32,20 @@ public class FarmHelperMainCommand {
             return;
         }
         FlyPathFinderExecutor.getInstance().findPath(entity.get(), follow, smooth);
+    }
+
+    @SubCommand(aliases = {"pfm"})
+    public void pathfindmob(
+            @Description("Name of a mob, to pathfind to, for example 'Zombie', 'Slime' etc") String mobName,
+            @Description(value = "Tell the pathfinder, to constantly follow and recalibrate path until arrive", autoCompletesTo = {"true", "false"}) boolean follow,
+            @Description(value = "Tell the pathfinder, to smooth out the path", autoCompletesTo = {"true", "false"}) boolean smooth,
+            @Description(value = "Y modifier") float yModifier) {
+        Optional<Entity> entity = Minecraft.getMinecraft().theWorld.loadedEntityList.stream().filter(e -> e.getName().toLowerCase().contains(mobName.toLowerCase())).findFirst();
+        if (!entity.isPresent()) {
+            LogUtils.sendError("[Pathfinder] Could not find entity with name: " + mobName);
+            return;
+        }
+        FlyPathFinderExecutor.getInstance().findPath(entity.get(), follow, smooth, yModifier, false);
     }
 
     @SubCommand(aliases = {"pf"})

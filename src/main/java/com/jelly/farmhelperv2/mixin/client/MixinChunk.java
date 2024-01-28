@@ -21,6 +21,6 @@ public abstract class MixinChunk {
     public void onBlockSet(BlockPos pos, IBlockState state, CallbackInfoReturnable<IBlockState> cir) {
         IBlockState old = getBlockState(pos);
         if (state != old)
-            MinecraftForge.EVENT_BUS.post(new BlockChangeEvent(pos, old, state));
+            MinecraftForge.EVENT_BUS.post(new BlockChangeEvent(pos, old, state, ((Chunk) (Object) this).getWorld()));
     }
 }

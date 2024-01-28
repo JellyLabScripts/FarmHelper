@@ -1,5 +1,7 @@
 package com.jelly.farmhelperv2.pathfinder;
 
+import baritone.api.BaritoneAPI;
+import baritone.pathing.movement.CalculationContext;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.handler.RotationHandler;
@@ -17,6 +19,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCactus;
+import net.minecraft.block.BlockSoulSand;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.settings.KeyBinding;
@@ -36,8 +39,12 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class FlyPathFinderExecutor {
@@ -52,8 +59,8 @@ public class FlyPathFinderExecutor {
 
     private final Minecraft mc = Minecraft.getMinecraft();
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    private ScheduledFuture<?> pathfinderTask;
-    private ScheduledFuture<?> timeoutTask;
+    private Thread pathfinderTask;
+    private Thread timeoutTask;
     @Getter
     private State state = State.NONE;
     private int tick = 0;
@@ -76,6 +83,7 @@ public class FlyPathFinderExecutor {
     @Getter
     @Setter
     private boolean dontRotate = false;
+    private CalculationContext context;
 
     public void findPath(Vec3 pos, boolean follow, boolean smooth) {
         if (mc.thePlayer.getDistance(pos.xCoord, pos.yCoord, pos.zCoord) < 1) {
@@ -90,12 +98,25 @@ public class FlyPathFinderExecutor {
         LogUtils.sendDebug("Cache size: " + WorldCache.getInstance().getWorldCache().size());
         try {
             System.out.println("Starting pathfinding");
-            pathfinderTask = executor.schedule(() -> {
+            if (context == null) {
+                context = new CalculationContext(BaritoneAPI.getProvider().getPrimaryBaritone(), false);
+            }
+            pathfinderTask = new Thread(() -> {
                 long startTime = System.currentTimeMillis();
                 int maxDistance = Math.min(MAX_DISTANCE, (int) mc.thePlayer.getPositionVector().distanceTo(pos) + 5);
                 LogUtils.sendDebug("Max distance: " + maxDistance);
                 LogUtils.sendDebug("Pathfinding to " + pos);
                 PathEntity route = ((PathfinderAccessor) pathFinder).createPath(mc.theWorld, mc.thePlayer, pos.xCoord, pos.yCoord, pos.zCoord, maxDistance);
+//                GoalNear goal = new GoalNear(new BlockPos(pos), 1);
+//                BlockPos playerPos = BlockUtils.getRelativeBlockPos(0, 0, 0);
+//                FlyAStar finder = new FlyAStar(playerPos.getX(), playerPos.getY(), playerPos.getZ(), goal, context);
+//                BaritoneAPI.getSettings().movementTimeoutTicks.value = 500;
+//                PathCalculationResult calcResult = finder.calculate(500L, 2000L);
+//                Optional<IPath> path = calcResult.getPath();
+//                if (!path.isPresent() || path.get().positions().isEmpty()) {
+//                    LogUtils.sendError("The path is empty!");
+//                    return;
+//                }
                 if (!isRunning()) return;
                 LogUtils.sendDebug("Pathfinding took " + (System.currentTimeMillis() - startTime) + "ms");
                 if (route == null) {
@@ -110,6 +131,7 @@ public class FlyPathFinderExecutor {
                 }
                 startTime = System.currentTimeMillis();
                 List<Vec3> finalRoute = new ArrayList<>();
+//                List<Vec3> finalRoute = path.get().positions().stream().map(blockPos -> new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ())).collect(Collectors.toList());
                 for (int i = 0; i < route.getCurrentPathLength(); i++) {
                     PathPoint pathPoint = route.getPathPointFromIndex(i);
                     finalRoute.add(new Vec3(pathPoint.xCoord, pathPoint.yCoord, pathPoint.zCoord));
@@ -122,12 +144,30 @@ public class FlyPathFinderExecutor {
                 state = State.PATHING;
                 LogUtils.sendDebug("Path smoothing took " + (System.currentTimeMillis() - startTime) + "ms");
                 if (timeoutTask != null) {
-                    timeoutTask.cancel(true);
+                    timeoutTask.stop();
                 }
-            }, 0, TimeUnit.MILLISECONDS);
-        } catch (RejectedExecutionException e) {
+            });
+            pathfinderTask.start();
+            timeoutTask = new Thread(() -> {
+                try {
+                    Thread.sleep(7_500);
+                    if (isCalculating()) {
+                        LogUtils.sendError("Pathfinding took too long");
+                        RotationHandler.getInstance().reset();
+                        state = State.FAILED;
+                        if (pathfinderTask != null) {
+                            pathfinderTask.stop();
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    LogUtils.sendDebug("Pathfinding finished before timeout");
+                }
+            });
+            timeoutTask.start();
+        } catch (Exception e) {
             LogUtils.sendError("Pathfinding took too long");
-            RotationHandler.getInstance().reset();
+            if (!this.follow)
+                stop();
         }
     }
 
@@ -225,11 +265,11 @@ public class FlyPathFinderExecutor {
         neededYaw = Integer.MIN_VALUE;
         minimumDelayBetweenSpaces.reset();
         if (pathfinderTask != null) {
-            pathfinderTask.cancel(true);
+            pathfinderTask.interrupt();
             pathfinderTask = null;
         }
         if (timeoutTask != null) {
-            timeoutTask.cancel(true);
+            timeoutTask.interrupt();
             timeoutTask = null;
         }
         ticksAtLastPos = 0;
@@ -249,8 +289,8 @@ public class FlyPathFinderExecutor {
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) return;
+        if (path.isEmpty()) return;
         if (target == null) return;
-        if (!this.follow) return;
         tick = (tick + 1) % 8;
 
         if (tick != 0) return;
@@ -266,7 +306,7 @@ public class FlyPathFinderExecutor {
             target = new Target(this.target);
 
         if (!this.dontRotate) {
-            Vec3 lastElement = path.get(path.size() - 1);
+            Vec3 lastElement = path.get(Math.max(0, path.size() - 1));
             if (mc.thePlayer.getPositionVector().distanceTo(lastElement) > 2 && !RotationHandler.getInstance().isRotating() && target.getTarget().isPresent()) {
                 RotationHandler.getInstance().easeTo(new RotationConfiguration(
                         target,
@@ -276,10 +316,11 @@ public class FlyPathFinderExecutor {
             }
         }
 
+        if (!this.follow) return;
         if (this.targetEntity != null) {
-            findPath(this.targetEntity, this.follow, this.smooth, this.yModifier, this.dontRotate);
+            findPath(this.targetEntity, true, this.smooth, this.yModifier, this.dontRotate);
         } else {
-            findPath(this.target, this.follow, this.smooth);
+            findPath(this.target, true, this.smooth);
         }
     }
 
@@ -290,7 +331,6 @@ public class FlyPathFinderExecutor {
         if (event.phase == TickEvent.Phase.END) return;
         if (state == State.NONE) return;
         if (state == State.FAILED) {
-            KeyBindUtils.stopMovement(true);
             neededYaw = Integer.MIN_VALUE;
             return;
         }
@@ -333,14 +373,17 @@ public class FlyPathFinderExecutor {
         if (targetEntity != null) {
             System.out.println(mc.thePlayer.getPositionVector().distanceTo(targetEntity.getPositionVector().addVector(0, this.yModifier, 0)));
             float velocity = (float) Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
-            if (velocity < 0.1 && mc.thePlayer.getPositionVector().distanceTo(targetEntity.getPositionVector().addVector(0, this.yModifier, 0)) < 2.5) {
+            float distance = (float) mc.thePlayer.getPositionVector().distanceTo(targetEntity.getPositionVector().addVector(0, this.yModifier, 0));
+            System.out.println("Velo: " + velocity);
+            System.out.println("Dist: " + distance);
+            if (velocity < 0.2 && distance < 3.5) {
                 stopAndDecelerate();
                 return;
-            } else if (velocity > 0.2 && mc.thePlayer.getPositionVector().distanceTo(targetEntity.getPositionVector().addVector(0, this.yModifier, 0)) < 1) {
+            } else if (velocity > 0.25 && distance < 2) {
                 stop();
                 return;
             }
-        } else if ((current.distanceTo(path.get(path.size() - 1)) < 2 || ((target != null && mc.thePlayer.getDistance(target.xCoord, target.yCoord, target.zCoord) < 2.5)))) {
+        } else if ((current.distanceTo(path.get(path.size() - 1)) < 1.5 || ((target != null && mc.thePlayer.getDistance(target.xCoord, target.yCoord, target.zCoord) < 2.5)))) {
             stopAndDecelerate();
             return;
         }
@@ -387,11 +430,12 @@ public class FlyPathFinderExecutor {
                     System.out.println("Lowering");
                 }
             } else {
-                if ((getBlockUnder() instanceof BlockCactus || distanceY > 0.15) && (((EntityPlayerAccessor) mc.thePlayer).getFlyToggleTimer() == 0 || mc.gameSettings.keyBindJump.isKeyDown())) {
+                if ((getBlockUnder() instanceof BlockCactus || distanceY > 0.185) && (((EntityPlayerAccessor) mc.thePlayer).getFlyToggleTimer() == 0 || mc.gameSettings.keyBindJump.isKeyDown())) {
                     keyBindings.add(mc.gameSettings.keyBindJump);
                     System.out.println("Raising 2");
-                } else if (distanceY < -0.15) {
-                    if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.isFlying && !(getBlockUnder() instanceof BlockCactus)) {
+                } else if (distanceY < -0.185) {
+                    Block blockUnder = getBlockUnder();
+                    if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.isFlying && !(blockUnder instanceof BlockCactus) && !(blockUnder instanceof BlockSoulSand)) {
                         keyBindings.add(mc.gameSettings.keyBindSneak);
                         System.out.println("Lowering 2");
                     }
@@ -553,7 +597,9 @@ public class FlyPathFinderExecutor {
 
     private Vec3 getNext() {
         try {
-            return path.get(1);
+            Vec3 current = mc.thePlayer.getPositionVector();
+            Vec3 closestToPlayer = path.stream().min(Comparator.comparingDouble(vec -> vec.distanceTo(current))).orElse(path.get(0));
+            return path.get(path.indexOf(closestToPlayer) + 1);
         } catch (IndexOutOfBoundsException e) {
             return path.get(Math.max(0, path.size() - 1));
         }
