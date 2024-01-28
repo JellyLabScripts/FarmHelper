@@ -774,7 +774,6 @@ public class BlockUtils {
     }
 
     public static AxisAlignedBB getBlocksAround(BlockPos blockPos) {
-        List<BlockPos> blocks = new ArrayList<>();
         int x = blockPos.getX();
         int y = blockPos.getY();
         int z = blockPos.getZ();
@@ -816,37 +815,26 @@ public class BlockUtils {
     }
 
     public static boolean isFree(float x, float y, float z, IBlockAccess blockaccess) {
+        GameStateHandler.Location location = GameStateHandler.getInstance().getLocation();
+        if (location.equals(GameStateHandler.Location.GARDEN)) {
+            if (y < 65 || x < -300 || x > 300 || z < -300 || z > 300) return false;
+        }
         BlockPos blockpos = new BlockPos(x, y, z);
         IBlockState blockState = blockaccess.getBlockState(blockpos);
         Block block = blockState.getBlock();
-        WorldCache.WorldCacheEntry worldCacheEntry = WorldCache.getInstance().getWorldCache().get(blockaccess);
-        if (worldCacheEntry != null) {
-            // World is cached
-            WorldCache.CacheEntry cacheEntry = worldCacheEntry.getCache().get(blockpos);
-            if (cacheEntry != null) {
-                // Block is cached
-                if (cacheEntry.getBlock().equals(blockaccess.getBlockState(blockpos).getBlock()))
-                    return cacheEntry.getPathNodeType() == PathNodeType.OPEN;
-                else {
-                    System.out.println("Block is different from cache. Block cache: " + cacheEntry.getBlock() + " Block current: " + blockaccess.getBlockState(blockpos).getBlock() + " Blockpos: " + blockpos);
-                }
-            }
-            if (blockHasCollision(blockpos, blockState, block)) {
-                worldCacheEntry.getCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.BLOCKED));
-                return false;
-            }
-            worldCacheEntry.getCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.OPEN));
-            return true;
+        WorldCache.CacheEntry pathnodetype = WorldCache.getInstance().getWorldCache().get(blockpos);
+        if (pathnodetype != null) {
+            if (pathnodetype.getBlock().equals(blockaccess.getBlockState(blockpos).getBlock()))
+                return pathnodetype.getPathNodeType() == PathNodeType.OPEN;
         }
-        // No cache for this world, create one
-        WorldCache.WorldCacheEntry entry = new WorldCache.WorldCacheEntry();
-        WorldCache.getInstance().getWorldCache().put(blockaccess, entry);
-
         if (blockHasCollision(blockpos, blockState, block)) {
-            entry.getCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.BLOCKED));
+            WorldCache.getInstance().getWorldCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.BLOCKED));
+            if (block instanceof BlockFenceGate) {
+                WorldCache.getInstance().getWorldCache().put(blockpos.up(), new WorldCache.CacheEntry(blockaccess.getBlockState(blockpos.up()).getBlock(), blockpos.up(), PathNodeType.BLOCKED));
+            }
             return false;
         }
-        entry.getCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.OPEN));
+        WorldCache.getInstance().getWorldCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.OPEN));
         return true;
     }
 

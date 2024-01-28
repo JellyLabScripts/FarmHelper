@@ -1,7 +1,7 @@
 package com.jelly.farmhelperv2.pathfinder;
 
 import com.google.common.collect.Lists;
-import com.jelly.farmhelperv2.event.ChunkServerLoadEvent;
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.MotionUpdateEvent;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.util.BlockUtils;
@@ -15,8 +15,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.play.server.S21PacketChunkData;
 import net.minecraft.network.play.server.S26PacketMapChunkBulk;
 import net.minecraft.util.BlockPos;
-import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.HashMap;
@@ -27,8 +27,9 @@ import java.util.concurrent.Executors;
 @Getter
 public class WorldCache {
     private static WorldCache instance;
+    private final ExecutorService executorService = Executors.newScheduledThreadPool(10);
+    private final HashMap<Coordinate, Chunk> chunkCache = new HashMap<>();
     private final List<Class<? extends Block>> directionDependentBlocks = Lists.newArrayList(BlockDoor.class, BlockTrapDoor.class, BlockStairs.class);
-    private final ExecutorService executorService = Executors.newFixedThreadPool(30);
 
     @Getter
     private BlockPos currentPos;
@@ -42,7 +43,7 @@ public class WorldCache {
         return instance;
     }
 
-    private final HashMap<IBlockAccess, WorldCacheEntry> worldCache = new HashMap<>();
+    private final HashMap<BlockPos, CacheEntry> worldCache = new HashMap<>();
     private final Minecraft mc = Minecraft.getMinecraft();
 
     @SubscribeEvent
@@ -57,45 +58,49 @@ public class WorldCache {
     }
 
     @SubscribeEvent
-    public void onChunkLoad(ChunkServerLoadEvent event) {
-//        cacheChunk(event.getChunk(), new Coordinate(event.getX(), event.getZ()));
+    public void onWorldUnload(WorldEvent.Unload event) {
+        worldCache.clear();
+        chunkCache.clear();
     }
 
     @SubscribeEvent
     public void onPacketReceive(ReceivePacketEvent event) {
         if (mc.theWorld == null) return;
-        if ((event.packet instanceof S21PacketChunkData)) {
+        if (!FarmHelperConfig.useCachingInFlyPathfinder) return;
+
+        if (event.packet instanceof S21PacketChunkData) {
             S21PacketChunkData packet = (S21PacketChunkData) event.packet;
-            Chunk c = mc.theWorld.getChunkFromChunkCoords(packet.getChunkX(), packet.getChunkZ());
-            cacheChunk(c, new Coordinate(packet.getChunkX(), packet.getChunkZ()));
+            if (packet.getExtractedSize() == 0) return;
+            Chunk c = new Chunk(mc.theWorld, packet.getChunkX(), packet.getChunkZ());
+            c.fillChunk(packet.getExtractedDataBytes(), packet.getExtractedSize(), packet.func_149274_i());
+            Coordinate coordinate = new Coordinate(packet.getChunkX(), packet.getChunkZ());
+            cacheChunk(c, coordinate);
         } else if (event.packet instanceof S26PacketMapChunkBulk) {
             S26PacketMapChunkBulk packet = (S26PacketMapChunkBulk) event.packet;
             for (int i = 0; i < packet.getChunkCount(); i++) {
-                Chunk c = mc.theWorld.getChunkFromChunkCoords(packet.getChunkX(i), packet.getChunkZ(i));
-                cacheChunk(c, new Coordinate(packet.getChunkX(i), packet.getChunkZ(i)));
+                Chunk c = new Chunk(mc.theWorld, packet.getChunkX(i), packet.getChunkZ(i));
+                c.fillChunk(packet.getChunkBytes(i), packet.getChunkSize(i), true);
+                Coordinate coordinate = new Coordinate(packet.getChunkX(i), packet.getChunkZ(i));
+                cacheChunk(c, coordinate);
             }
         }
     }
 
-    public void cacheChunk(Chunk c, Coordinate coordinate) {
-        WorldCacheEntry worldCacheEntry = worldCache.get(mc.theWorld);
-        if (worldCacheEntry == null) {
-            worldCacheEntry = new WorldCacheEntry();
-            worldCache.put(mc.theWorld, worldCacheEntry);
-        }
-        if (worldCacheEntry.getChunksCached().contains(coordinate)) return;
-        worldCacheEntry.getChunksCached().add(coordinate);
+    private void cacheChunk(Chunk c, Coordinate coordinate) {
+        if (chunkCache.containsKey(coordinate)) return;
         for (int x = 0; x < 16; x++)
-            for (int y = 66; y < 83; y++)
+            for (int y = 66; y < 82; y++)
                 for (int z = 0; z < 16; z++) {
-                    BlockPos pos = new BlockPos(x + (coordinate.x << 4), y, z + (coordinate.z << 4));
-                    IBlockState chunkBlock = mc.theWorld.getBlockState(pos);
-                    if (!BlockUtils.blockHasCollision(pos, chunkBlock, chunkBlock.getBlock())) {
-                        worldCacheEntry.getCache().put(pos, new CacheEntry(chunkBlock.getBlock(), pos, BlockUtils.PathNodeType.OPEN));
+                    BlockPos pos = new BlockPos(x + coordinate.x * 16, y, z + coordinate.z * 16);
+                    BlockPos chunkPos = new BlockPos(x, y, z);
+                    IBlockState chunkState = c.getBlockState(chunkPos);
+                    if (!BlockUtils.blockHasCollision(pos, chunkState, chunkState.getBlock())) {
+                        worldCache.put(pos, new CacheEntry(chunkState.getBlock(), pos, BlockUtils.PathNodeType.OPEN));
                     } else {
-                        worldCacheEntry.getCache().put(pos, new CacheEntry(chunkBlock.getBlock(), pos, BlockUtils.PathNodeType.BLOCKED));
+                        worldCache.put(pos, new CacheEntry(chunkState.getBlock(), pos, BlockUtils.PathNodeType.BLOCKED));
                     }
                 }
+        chunkCache.put(coordinate, c);
     }
 
     public static class Coordinate {
@@ -131,11 +136,5 @@ public class WorldCache {
             this.pos = pos;
             this.pathNodeType = pathNodeType;
         }
-    }
-
-    @Getter
-    public static class WorldCacheEntry {
-        private final List<Coordinate> chunksCached = Lists.newArrayList();
-        private final HashMap<BlockPos, CacheEntry> cache = new HashMap<>();
     }
 }

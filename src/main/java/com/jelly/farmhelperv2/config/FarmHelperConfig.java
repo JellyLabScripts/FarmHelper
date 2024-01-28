@@ -1044,6 +1044,13 @@ public class FarmHelperConfig extends Config {
     public static boolean flyPathfinderOringoCompatible = false;
 
     @Switch(
+            name = "Use caching in fly pathfinder",
+            description = "Speeds up finding path (You need to re-enter the world to trigger first caching scan)",
+            category = PESTS_DESTROYER, subcategory = "Pests Destroyer"
+    )
+    public static boolean useCachingInFlyPathfinder = true;
+
+    @Switch(
             name = "Pause the Pests Destroyer during Jacob's contests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Pauses the Pests Destroyer during Jacob's contests",
             size = 2

@@ -14,7 +14,6 @@ import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.pathfinder.WorldCache;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
-import net.minecraft.client.Minecraft;
 
 import java.util.List;
 import java.util.Map;
@@ -37,8 +36,7 @@ public class DebugHUD extends TextHud {
             lines.add("Current state: " + macro.getCurrentState());
             lines.add("Rotating: " + macro.getRotation().isRotating());
         });
-        if (Minecraft.getMinecraft().theWorld != null && WorldCache.getInstance().getWorldCache().get(Minecraft.getMinecraft().theWorld) != null)
-            lines.add("Cached blocks: " + WorldCache.getInstance().getWorldCache().get(Minecraft.getMinecraft().theWorld).getCache().size());
+        lines.add("Cached blocks: " + WorldCache.getInstance().getWorldCache().size());
         lines.add("Current plot: " + GameStateHandler.getInstance().getCurrentPlot());
         lines.add("Directions: ");
         lines.add("   Forward: " + GameStateHandler.getInstance().isFrontWalkable());

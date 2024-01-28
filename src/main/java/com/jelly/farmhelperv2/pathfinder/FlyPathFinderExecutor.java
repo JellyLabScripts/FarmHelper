@@ -7,7 +7,7 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.mixin.client.EntityPlayerAccessor;
 import com.jelly.farmhelperv2.mixin.pathfinder.PathfinderAccessor;
-import com.jelly.farmhelperv2.util.BlockUtils;
+import com.jelly.farmhelperv2.util.AngleUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.RenderUtils;
@@ -29,7 +29,6 @@ import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -42,8 +41,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -58,7 +55,6 @@ public class FlyPathFinderExecutor {
     }
 
     private final Minecraft mc = Minecraft.getMinecraft();
-    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private Thread pathfinderTask;
     private Thread timeoutTask;
     @Getter
@@ -74,7 +70,7 @@ public class FlyPathFinderExecutor {
     private final PathFinder pathFinder = new PathFinder(flyNodeProcessor);
     @Getter
     private float neededYaw = Integer.MIN_VALUE;
-    private final int MAX_DISTANCE = 400;
+    private final int MAX_DISTANCE = 1500;
     private int ticksAtLastPos = 0;
     private Vec3 lastPosCheck = new Vec3(0, 0, 0);
     private float yModifier = 0;
@@ -103,35 +99,24 @@ public class FlyPathFinderExecutor {
             }
             pathfinderTask = new Thread(() -> {
                 long startTime = System.currentTimeMillis();
-                int maxDistance = Math.min(MAX_DISTANCE, (int) mc.thePlayer.getPositionVector().distanceTo(pos) + 5);
-                LogUtils.sendDebug("Max distance: " + maxDistance);
+                float maxDistance = (float) Math.min(mc.thePlayer.getPositionVector().distanceTo(pos) + 5, MAX_DISTANCE);
+                LogUtils.sendDebug("Distance to target: " + maxDistance);
                 LogUtils.sendDebug("Pathfinding to " + pos);
                 PathEntity route = ((PathfinderAccessor) pathFinder).createPath(mc.theWorld, mc.thePlayer, pos.xCoord, pos.yCoord, pos.zCoord, maxDistance);
-//                GoalNear goal = new GoalNear(new BlockPos(pos), 1);
-//                BlockPos playerPos = BlockUtils.getRelativeBlockPos(0, 0, 0);
-//                FlyAStar finder = new FlyAStar(playerPos.getX(), playerPos.getY(), playerPos.getZ(), goal, context);
-//                BaritoneAPI.getSettings().movementTimeoutTicks.value = 500;
-//                PathCalculationResult calcResult = finder.calculate(500L, 2000L);
-//                Optional<IPath> path = calcResult.getPath();
-//                if (!path.isPresent() || path.get().positions().isEmpty()) {
-//                    LogUtils.sendError("The path is empty!");
-//                    return;
-//                }
-                if (!isRunning()) return;
-                LogUtils.sendDebug("Pathfinding took " + (System.currentTimeMillis() - startTime) + "ms");
                 if (route == null) {
-                    state = State.FAILED;
                     LogUtils.sendError("Failed to find path to " + pos);
+                    state = State.FAILED;
                     double distance = mc.thePlayer.getPositionVector().distanceTo(this.target);
-                    if (distance > maxDistance) {
-                        LogUtils.sendError("Distance to target is too far. Distance: " + distance + ", Max distance: " + maxDistance);
+                    if (distance > MAX_DISTANCE) {
+                        LogUtils.sendError("Distance to target is too far. Distance: " + distance + ", Max distance: " + MAX_DISTANCE);
                         stop();
                     }
                     return;
                 }
+                if (!isRunning()) return;
+                LogUtils.sendDebug("Pathfinding took " + (System.currentTimeMillis() - startTime) + "ms");
                 startTime = System.currentTimeMillis();
                 List<Vec3> finalRoute = new ArrayList<>();
-//                List<Vec3> finalRoute = path.get().positions().stream().map(blockPos -> new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ())).collect(Collectors.toList());
                 for (int i = 0; i < route.getCurrentPathLength(); i++) {
                     PathPoint pathPoint = route.getPathPointFromIndex(i);
                     finalRoute.add(new Vec3(pathPoint.xCoord, pathPoint.yCoord, pathPoint.zCoord));
@@ -150,7 +135,7 @@ public class FlyPathFinderExecutor {
             pathfinderTask.start();
             timeoutTask = new Thread(() -> {
                 try {
-                    Thread.sleep(7_500);
+                    Thread.sleep(5_000);
                     if (isCalculating()) {
                         LogUtils.sendError("Pathfinding took too long");
                         RotationHandler.getInstance().reset();
@@ -423,22 +408,18 @@ public class FlyPathFinderExecutor {
             if (fly(next, current)) return;
             if (verticalDirection.equals(VerticalDirection.HIGHER)) {
                 keyBindings.add(mc.gameSettings.keyBindJump);
-                System.out.println("Raising");
+                System.out.println("Raising 1");
             } else if (verticalDirection.equals(VerticalDirection.LOWER)) {
-                if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.isFlying) {
+                keyBindings.add(mc.gameSettings.keyBindSneak);
+                System.out.println("Lowering 1");
+            } else if ((getBlockUnder() instanceof BlockCactus || distanceY > 0.201) && (((EntityPlayerAccessor) mc.thePlayer).getFlyToggleTimer() == 0 || mc.gameSettings.keyBindJump.isKeyDown())) {
+                keyBindings.add(mc.gameSettings.keyBindJump);
+                System.out.println("Raising 2");
+            } else if (distanceY < -0.201) {
+                Block blockUnder = getBlockUnder();
+                if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.isFlying && !(blockUnder instanceof BlockCactus) && !(blockUnder instanceof BlockSoulSand)) {
                     keyBindings.add(mc.gameSettings.keyBindSneak);
-                    System.out.println("Lowering");
-                }
-            } else {
-                if ((getBlockUnder() instanceof BlockCactus || distanceY > 0.185) && (((EntityPlayerAccessor) mc.thePlayer).getFlyToggleTimer() == 0 || mc.gameSettings.keyBindJump.isKeyDown())) {
-                    keyBindings.add(mc.gameSettings.keyBindJump);
-                    System.out.println("Raising 2");
-                } else if (distanceY < -0.185) {
-                    Block blockUnder = getBlockUnder();
-                    if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.isFlying && !(blockUnder instanceof BlockCactus) && !(blockUnder instanceof BlockSoulSand)) {
-                        keyBindings.add(mc.gameSettings.keyBindSneak);
-                        System.out.println("Lowering 2");
-                    }
+                    System.out.println("Lowering 2");
                 }
             }
         } else { // only walking
@@ -498,18 +479,15 @@ public class FlyPathFinderExecutor {
         if (Math.abs(relativeDistanceX) < 0.75 && Math.abs(relativeDistanceZ) < 0.75) {
             return VerticalDirection.NONE;
         }
-        BlockPos relative = new BlockPos(0, 0, 1);
-        if (mc.thePlayer.posY % 1 > 0.5
-                && !BlockUtils.isFree(relative.getX(), relative.getY(), relative.getZ(), mc.theWorld)
-                && !BlockUtils.isFree(relative.getX(), relative.getY() + 1, relative.getZ(), mc.theWorld)
-                && !BlockUtils.isFree(relative.getX(), relative.getY() + 2, relative.getZ(), mc.theWorld)
-        ) {
+        Vec3 directionGoing = AngleUtils.getVectorForRotation(0, neededYaw);
+        Vec3 target = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.6, 0, directionGoing.zCoord * 0.6);
+        MovingObjectPosition trace = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), target, false, true, false);
+        if (trace != null && trace.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             return VerticalDirection.HIGHER;
-        } else if (mc.thePlayer.posY % 1 < 0.5 && mc.thePlayer.posY % 1 > 0.201
-                && !BlockUtils.isFree(relative.getX(), relative.getY() + 2, relative.getZ(), mc.theWorld)
-                && !BlockUtils.isFree(relative.getX(), relative.getY() + 1, relative.getZ(), mc.theWorld)
-                && !BlockUtils.isFree(relative.getX(), relative.getY(), relative.getZ(), mc.theWorld)
-        ) {
+        }
+        Vec3 targetUp = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.6, mc.thePlayer.height, directionGoing.zCoord * 0.6);
+        MovingObjectPosition traceUp = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), targetUp, false, true, false);
+        if (traceUp != null && traceUp.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             return VerticalDirection.LOWER;
         }
         return VerticalDirection.NONE;

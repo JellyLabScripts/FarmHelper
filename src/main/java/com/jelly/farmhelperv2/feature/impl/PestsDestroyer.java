@@ -535,7 +535,7 @@ public class PestsDestroyer implements IFeature {
                 }
 
                 if (!FlyPathFinderExecutor.getInstance().isRunning()) {
-                    FlyPathFinderExecutor.getInstance().findPath(new Vec3(plotCenter.getX(), 80, plotCenter.getZ()), false, true);
+                    FlyPathFinderExecutor.getInstance().findPath(new Vec3(plotCenter.getX(), 80, plotCenter.getZ()), true, true);
                 }
                 break;
             case GET_LOCATION:
@@ -566,7 +566,18 @@ public class PestsDestroyer implements IFeature {
                 lastFireworkTime = System.currentTimeMillis();
                 MovingObjectPosition mop = mc.objectMouseOver;
                 if (RotationHandler.getInstance().isRotating()) break;
-                Rotation upRotation = new Rotation((float) (mc.thePlayer.rotationYaw + (Math.random() * 5 - 2.5)), (float) (-84 + (Math.random() * 6 - 4)));
+                float yaw = -1;
+                Vec3 playerPos = mc.thePlayer.getPositionEyes(1);
+                for (float i = 0; i < 360; i += 10) {
+                    Vec3 testRotation = AngleUtils.getVectorForRotation(0, i);
+                    Vec3 lookVector = playerPos.addVector(testRotation.xCoord * 5, testRotation.yCoord * 5, testRotation.zCoord * 5);
+                    MovingObjectPosition mop2 = mc.theWorld.rayTraceBlocks(playerPos, lookVector, false, true, false);
+                    if (mop2 == null || mop2.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
+                        yaw = i;
+                        break;
+                    }
+                }
+                Rotation upRotation = new Rotation((float) (yaw + (Math.random() * 5 - 2.5)), (float) (-20 + (Math.random() * 6 - 4)));
                 if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && RotationHandler.getInstance().shouldRotate(upRotation, 10)) {
                     RotationHandler.getInstance().easeTo(new RotationConfiguration(
                             upRotation,
@@ -575,17 +586,6 @@ public class PestsDestroyer implements IFeature {
                     ).easeOutBack(true));
                     delayClock.schedule(300);
                     break;
-                } else if (mc.thePlayer.rotationYaw < -82 && BlockUtils.getRelativeBlock(0, 2, 0).equals(Blocks.air)) {
-                    Rotation middleRotation = new Rotation((float) (mc.thePlayer.rotationYaw + (Math.random() * 5 - 2.5)), (float) (-10 + (Math.random() * 6 - 4)));
-                    if (RotationHandler.getInstance().shouldRotate(middleRotation, 10)) {
-                        RotationHandler.getInstance().easeTo(new RotationConfiguration(
-                                middleRotation,
-                                FarmHelperConfig.getRandomRotationTime(),
-                                null
-                        ).easeOutBack(true));
-                        delayClock.schedule(300);
-                        break;
-                    }
                 }
                 state = States.WAIT_FOR_LOCATION;
                 if (getLocationTries > 4) {
@@ -611,12 +611,11 @@ public class PestsDestroyer implements IFeature {
 
                 if (lastFireworkLocation.isPresent()) {
                     if (lastFireworkTime + 250 < System.currentTimeMillis()) {
+                        RotationHandler.getInstance().reset();
                         if (state != States.WAIT_FOR_LOCATION) {
-                            RotationHandler.getInstance().reset();
                             return;
                         }
                         state = States.FLY_TO_PEST;
-                        RotationHandler.getInstance().reset();
                         delayBetweenFireworks.schedule(3_000);
                         delayClock.schedule(300);
                     }
@@ -852,11 +851,23 @@ public class PestsDestroyer implements IFeature {
     }
 
     private boolean hasBlocksAround() {
-        BlockPos left = BlockUtils.getRelativeBlockPos(-1, 0, 0);
-        BlockPos right = BlockUtils.getRelativeBlockPos(1, 0, 0);
-        BlockPos front = BlockUtils.getRelativeBlockPos(0, 0, 1);
-        BlockPos back = BlockUtils.getRelativeBlockPos(0, 0, -1);
-        return BlockUtils.hasCollision(left) || BlockUtils.hasCollision(right) || BlockUtils.hasCollision(front) || BlockUtils.hasCollision(back);
+        Vec3 angle0 = AngleUtils.getVectorForRotation(0, mc.thePlayer.rotationYaw);
+        Vec3 angle90 = AngleUtils.getVectorForRotation(90, mc.thePlayer.rotationYaw);
+        Vec3 angle180 = AngleUtils.getVectorForRotation(180, mc.thePlayer.rotationYaw);
+        Vec3 angle270 = AngleUtils.getVectorForRotation(270, mc.thePlayer.rotationYaw);
+        Vec3 playerPos = mc.thePlayer.getPositionEyes(1);
+        if (checkIfBlockExists(angle0, playerPos)) return true;
+        if (checkIfBlockExists(angle90, playerPos)) return true;
+        if (checkIfBlockExists(angle180, playerPos)) return true;
+        return checkIfBlockExists(angle270, playerPos);
+    }
+
+    private boolean checkIfBlockExists(Vec3 angle0, Vec3 playerPos) {
+        MovingObjectPosition mop0 = mc.theWorld.rayTraceBlocks(playerPos, playerPos.addVector(angle0.xCoord * 1.5, angle0.yCoord * 1.5, angle0.zCoord * 1.5), false, true, false);
+        if (mop0 != null && mop0.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            return true;
+        }
+        return false;
     }
 
     @SubscribeEvent(receiveCanceled = true)
