@@ -11,10 +11,7 @@ import com.jelly.farmhelperv2.util.AngleUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.RenderUtils;
-import com.jelly.farmhelperv2.util.helper.Clock;
-import com.jelly.farmhelperv2.util.helper.Rotation;
-import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
-import com.jelly.farmhelperv2.util.helper.Target;
+import com.jelly.farmhelperv2.util.helper.*;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.block.Block;
@@ -358,10 +355,11 @@ public class FlyPathFinderExecutor {
         if (targetEntity != null) {
             System.out.println(mc.thePlayer.getPositionVector().distanceTo(targetEntity.getPositionVector().addVector(0, this.yModifier, 0)));
             float velocity = (float) Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
-            float distance = (float) mc.thePlayer.getPositionVector().distanceTo(targetEntity.getPositionVector().addVector(0, this.yModifier, 0));
+            Vec3 targetPos = targetEntity.getPositionVector().addVector(0, this.yModifier, 0);
+            float distance = (float) mc.thePlayer.getPositionVector().distanceTo(targetPos);
             System.out.println("Velo: " + velocity);
-            System.out.println("Dist: " + distance);
-            if (velocity < 0.2 && distance < 3.5) {
+            System.out.println("TargetPos: " + targetPos);
+            if (shouldDecelerate(velocity, targetPos)) {
                 stopAndDecelerate();
                 return;
             } else if (velocity > 0.25 && distance < 2) {
@@ -435,6 +433,27 @@ public class FlyPathFinderExecutor {
             KeyBindUtils.holdThese(keyBindings.toArray(new KeyBinding[0]));
         else
             KeyBindUtils.stopMovement(true);
+    }
+
+    private boolean shouldDecelerate(float velocity, Vec3 targetPos) {
+        Vec3 stoppingPosition = predictStoppingPosition();
+        double stoppingDistance = stoppingPosition.distanceTo(targetPos);
+        return stoppingDistance < 0.5 && velocity > 0.1;
+    }
+
+    private Vec3 predictStoppingPosition() {
+        PlayerSimulation playerSimulation = new PlayerSimulation(mc.theWorld);
+        playerSimulation.copy(mc.thePlayer);
+        playerSimulation.isFlying = true;
+        playerSimulation.rotationYaw = mc.thePlayer.rotationYaw;
+        for (int i = 0; i < 30; i++) {
+            playerSimulation.moveForward = -mc.thePlayer.moveForward;
+            playerSimulation.onLivingUpdate();
+            if (playerSimulation.motionX < 0.005D || playerSimulation.motionX > -0.005D && playerSimulation.motionZ < 0.005D || playerSimulation.motionZ > -0.005D) {
+                break;
+            }
+        }
+        return new Vec3(playerSimulation.posX, playerSimulation.posY, playerSimulation.posZ);
     }
 
     private void stopAndDecelerate() {
