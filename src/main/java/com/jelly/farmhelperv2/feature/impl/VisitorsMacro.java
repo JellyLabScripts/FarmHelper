@@ -548,6 +548,11 @@ public class VisitorsMacro implements IFeature {
                 setCompactorState(CompactorState.GET_LIST);
                 break;
             case GET_LIST:
+                if (mc.currentScreen != null) {
+                    PlayerUtils.closeScreen();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
                 compactors.clear();
                 for (int i = 0; i < 9; i++) {
                     ItemStack itemStack = mc.thePlayer.inventory.getStackInSlot(i);
@@ -613,7 +618,6 @@ public class VisitorsMacro implements IFeature {
                     return;
                 }
                 mc.thePlayer.inventory.currentItem = compactors.get(0);
-                compactors.remove(0);
                 setCompactorState(CompactorState.OPEN_COMPACTOR);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
@@ -636,14 +640,14 @@ public class VisitorsMacro implements IFeature {
                 break;
             case TOGGLE_COMPACTOR:
                 if (mc.currentScreen == null) {
-                    setCompactorState(CompactorState.GET_LIST);
+                    setCompactorState(CompactorState.OPEN_COMPACTOR);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
                 String invName = InventoryUtils.getInventoryName();
                 if (invName != null && !invName.contains("Compactor")) {
                     LogUtils.sendDebug("[Visitors Macro] Not in compactor, opening compactor again...");
-                    setCompactorState(CompactorState.GET_LIST);
+                    setCompactorState(CompactorState.OPEN_COMPACTOR);
                     PlayerUtils.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
@@ -666,6 +670,7 @@ public class VisitorsMacro implements IFeature {
                     LogUtils.sendDebug("[Visitors Macro] Enabling compactor in slot " + slot);
                     InventoryUtils.clickContainerSlot(slot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                 }
+                compactors.remove(0);
                 setCompactorState(CompactorState.CLOSE_COMPACTOR);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
