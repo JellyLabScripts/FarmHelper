@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.feature;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.TickRate;
 
 import java.util.ArrayList;
 import java.util.Arrays;

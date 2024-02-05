@@ -22,6 +22,7 @@ import com.jelly.farmhelperv2.remote.WebsocketHandler;
 import com.jelly.farmhelperv2.util.FailsafeUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.ReflectionUtils;
+import com.jelly.farmhelperv2.util.TickRate;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
 import com.jelly.farmhelperv2.util.helper.BaritoneEventListener;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
@@ -97,6 +98,7 @@ public class FarmHelper {
 
     private void initializeListeners() {
         MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(TickRate.INSTANCE);
         MinecraftForge.EVENT_BUS.register(FailsafeManager.getInstance());
         MinecraftForge.EVENT_BUS.register(GameStateHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(MacroHandler.getInstance());

@@ -14,6 +14,7 @@ import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.AngleUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.TickRate;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
@@ -66,6 +67,12 @@ public class RotationFailsafe extends Failsafe {
         if (!(event.packet instanceof S08PacketPlayerPosLook)) {
             return;
         }
+
+        if (TickRate.INSTANCE.getTimeSinceLastTick() > 1.15) {
+            LogUtils.sendWarning("[Failsafe] Got rotation packet while lagging! Ignoring that one.");
+            return;
+        }
+
 //        if (LagDetector.getInstance().isLagging() || LagDetector.getInstance().wasJustLagging()) {
 //            LogUtils.sendWarning("[Failsafe] Got rotation packet while lagging! Ignoring that one.");
 //            return;
