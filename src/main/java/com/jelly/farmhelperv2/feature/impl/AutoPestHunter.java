@@ -27,7 +27,6 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -52,7 +51,6 @@ public class AutoPestHunter implements IFeature {
     private final Clock stuckClock = new Clock();
     @Getter
     private final Clock delayClock = new Clock();
-    private final Clock delayToggle = new Clock();
     private BlockPos positionBeforeTp;
     private int finishTries = 0;
     private final BlockPos initialDeskPos = new BlockPos(-24, 71, -7);
