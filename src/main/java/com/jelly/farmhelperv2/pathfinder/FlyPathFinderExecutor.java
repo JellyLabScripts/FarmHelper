@@ -473,6 +473,7 @@ public class FlyPathFinderExecutor {
             float rotationBasedOnMotion = (float) Math.toDegrees(Math.atan2(mc.thePlayer.motionZ, mc.thePlayer.motionX)) - 90;
             LogUtils.sendDebug("Decelerating. Rotation based on motion: " + rotationBasedOnMotion);
             neededYaw = rotationBasedOnMotion;
+            mc.thePlayer.setSprinting(false);
             if (FarmHelperConfig.flyPathfinderOringoCompatible) {
                 List<KeyBinding> keyBindings = new ArrayList<>(KeyBindUtils.getOppositeKeys(KeyBindUtils.getNeededKeyPresses(neededYaw)));
                 keyBindings.add(mc.gameSettings.keyBindUseItem.isKeyDown() ? mc.gameSettings.keyBindUseItem : null);

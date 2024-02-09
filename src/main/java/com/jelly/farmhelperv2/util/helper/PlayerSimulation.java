@@ -88,6 +88,7 @@ public class PlayerSimulation {
         stepHeight = entity.stepHeight;
         moveStrafing = 0;
         moveForward = 0;
+        isSprinting = false;
         depthStriderModifier = EnchantmentHelper.getDepthStriderModifier(entity);
     }
 
