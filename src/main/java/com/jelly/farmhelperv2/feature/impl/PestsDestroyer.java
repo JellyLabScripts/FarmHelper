@@ -1089,17 +1089,28 @@ public class PestsDestroyer implements IFeature {
         if (type != EnumParticleTypes.REDSTONE) return;
 
         if (lastFireworkLocation.isPresent()) {
-            if (lastFireworkLocation.get().distanceTo(event.getPos()) > 5) {
+            if (lastFireworkLocation.get().distanceTo(event.getPos()) > 10) {
                 return;
             }
         } else {
-            if (mc.thePlayer.getPositionVector().distanceTo(event.getPos()) > 5) {
+            if (mc.thePlayer.getPositionVector().distanceTo(event.getPos()) > 10) {
                 return;
             }
         }
 
         lastFireworkTime = System.currentTimeMillis();
         lastFireworkLocation = Optional.of(event.getPos());
+    }
+
+    @SubscribeEvent
+    public void onRenderWorldLast(RenderWorldLastEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!GameStateHandler.getInstance().inGarden()) return;
+        if (state != States.WAIT_FOR_LOCATION) return;
+        if (!lastFireworkLocation.isPresent()) return;
+        AxisAlignedBB boundingBox = new AxisAlignedBB(lastFireworkLocation.get().xCoord - 0.05, lastFireworkLocation.get().yCoord - 0.05, lastFireworkLocation.get().zCoord - 0.05, lastFireworkLocation.get().xCoord + 0.05, lastFireworkLocation.get().yCoord + 0.05, lastFireworkLocation.get().zCoord + 0.05);
+        RenderUtils.drawBox(boundingBox, Color.GREEN);
+
     }
 
     private int getAmountOfPestsInPlots() {

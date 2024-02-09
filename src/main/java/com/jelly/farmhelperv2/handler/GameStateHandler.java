@@ -122,7 +122,7 @@ public class GameStateHandler {
         }
 
         for (String line : scoreboardLines) {
-            String cleanedLine = StringUtils.stripControlCodes(ScoreboardUtils.cleanSB(line));
+            String cleanedLine = StringUtils.stripControlCodes(ScoreboardUtils.cleanSB(line)).trim();
             Matcher serverClosingMatcher = serverClosingPattern.matcher(StringUtils.stripControlCodes(ScoreboardUtils.cleanSB(line)));
             if (serverClosingMatcher.find()) {
                 int minutes = Integer.parseInt(serverClosingMatcher.group("minutes"));

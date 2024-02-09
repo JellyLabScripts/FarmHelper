@@ -28,6 +28,7 @@ public class DebugHUD extends TextHud {
         if (!FarmHelperConfig.debugMode) return;
         lines.add("§lFarmHelper Debug HUD");
         lines.add("wasGuestOnGarden: " + GuestVisitFailsafe.getInstance().wasGuestOnGarden);
+        lines.add("Jacob's Contest Collected: " + GameStateHandler.getInstance().getJacobsContestCropNumber());
         if (MovRecPlayer.getInstance().isRunning()) {
             lines.add("Yaw Difference: " + MovRecPlayer.getYawDifference());
         }
