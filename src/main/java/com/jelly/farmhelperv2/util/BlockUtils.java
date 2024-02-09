@@ -322,6 +322,10 @@ public class BlockUtils {
             return false;
         }
 
+        if (block.equals(Blocks.brown_mushroom) || block.equals(Blocks.red_mushroom) || block.equals(Blocks.melon_stem) || block.equals(Blocks.pumpkin_stem) || block.equals(Blocks.reeds)) {
+            return false;
+        }
+
         return true;
 
 //        if (CropUtils.isCrop(block) && !block.equals(Blocks.melon_block) && !block.equals(Blocks.pumpkin) && !block.equals(Blocks.cactus) && !block.equals(Blocks.cocoa)) {

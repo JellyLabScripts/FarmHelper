@@ -132,7 +132,7 @@ public class FlyPathFinderExecutor {
             pathfinderTask.start();
             timeoutTask = new Thread(() -> {
                 try {
-                    Thread.sleep(5_000);
+                    Thread.sleep(10_000);
                     if (isCalculating()) {
                         LogUtils.sendError("Pathfinding took too long");
                         RotationHandler.getInstance().reset();

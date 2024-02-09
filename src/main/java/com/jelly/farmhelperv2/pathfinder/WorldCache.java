@@ -89,7 +89,7 @@ public class WorldCache {
     private void cacheChunk(Chunk c, Coordinate coordinate) {
         if (chunkCache.containsKey(coordinate)) return;
         for (int x = 0; x < 16; x++)
-            for (int y = 66; y < 82; y++)
+            for (int y = 65; y < 100; y++)
                 for (int z = 0; z < 16; z++) {
                     BlockPos pos = new BlockPos(x + coordinate.x * 16, y, z + coordinate.z * 16);
                     BlockPos chunkPos = new BlockPos(x, y, z);

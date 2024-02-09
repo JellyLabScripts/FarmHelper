@@ -548,12 +548,16 @@ public class PestsDestroyer implements IFeature {
                 if (getVacuum(currentItem2)) return;
 
                 if (!pestsLocations.isEmpty()) {
+                    FlyPathFinderExecutor.getInstance().stop();
                     state = States.FLY_TO_PEST;
                     break;
                 }
 
+                if (FlyPathFinderExecutor.getInstance().isRunning()) {
+                    return;
+                }
+
                 if (hasBlocksAround()) {
-                    System.out.println("Going up");
                     fly();
                     break;
                 } else {
@@ -612,9 +616,6 @@ public class PestsDestroyer implements IFeature {
                 if (lastFireworkLocation.isPresent()) {
                     if (lastFireworkTime + 250 < System.currentTimeMillis()) {
                         RotationHandler.getInstance().reset();
-                        if (state != States.WAIT_FOR_LOCATION) {
-                            return;
-                        }
                         state = States.FLY_TO_PEST;
                         delayBetweenFireworks.schedule(3_000);
                         delayClock.schedule(300);
@@ -645,8 +646,9 @@ public class PestsDestroyer implements IFeature {
                         Vec3 firework = new Vec3(lastFireworkLocation.get().xCoord, mc.thePlayer.posY, lastFireworkLocation.get().zCoord);
                         Vec3 player = mc.thePlayer.getPositionVector();
                         Vec3 direction = firework.subtract(player).normalize();
-                        Vec3 target = firework.addVector(direction.xCoord * 15, Math.min(direction.yCoord * 15, 10), direction.zCoord * 15);
+                        Vec3 target = firework.addVector(direction.xCoord * 25, Math.min(direction.yCoord * 25, 7), direction.zCoord * 25);
                         FlyPathFinderExecutor.getInstance().findPath(target, false, true);
+                        state = States.GET_LOCATION;
                     }
                     break;
                 }
@@ -1089,7 +1091,7 @@ public class PestsDestroyer implements IFeature {
         if (type != EnumParticleTypes.REDSTONE) return;
 
         if (lastFireworkLocation.isPresent()) {
-            if (lastFireworkLocation.get().distanceTo(event.getPos()) > 10) {
+            if (lastFireworkLocation.get().distanceTo(event.getPos()) > 5) {
                 return;
             }
         } else {
