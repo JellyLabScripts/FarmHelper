@@ -109,7 +109,10 @@ public abstract class AbstractMacro {
             return;
         }
 
-        if (PlayerUtils.isStandingOnRewarpLocation() && !FailsafeManager.getInstance().triggeredFailsafe.isPresent() && (GameStateHandler.getInstance().notMoving() || GameStateHandler.getInstance().canRewarp())) {
+        if (PlayerUtils.isStandingOnRewarpLocation() && !FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
+            if (GameStateHandler.getInstance().notMoving() && KeyBindUtils.getHoldingKeybinds().length > 0) {
+                KeyBindUtils.stopMovement();
+            }
             if (GameStateHandler.getInstance().canRewarp()) {
                 MacroHandler.getInstance().triggerWarpGarden(false, true);
                 checkOnSpawnClock.schedule(5000);

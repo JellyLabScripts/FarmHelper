@@ -761,7 +761,7 @@ public class PestsDestroyer implements IFeature {
                     } else {
                         LogUtils.sendDebug("Teleporting to plot");
                         state = States.TELEPORT_TO_PLOT;
-                        delayClock.schedule(400 + (long) (Math.random() * 400));
+                        delayClock.schedule(600 + (long) (Math.random() * 500));
                     }
                 }
                 KeyBindUtils.stopMovement();
@@ -832,6 +832,9 @@ public class PestsDestroyer implements IFeature {
 
     private void finishMacro() {
         if (isInventoryOpen()) return;
+        if (FlyPathFinderExecutor.getInstance().isPathing()) {
+            FlyPathFinderExecutor.getInstance().stop();
+        }
         if (MacroHandler.getInstance().isMacroToggled()) {
             if (PlayerUtils.isStandingOnSpawnPoint()) {
                 stop();
@@ -844,6 +847,7 @@ public class PestsDestroyer implements IFeature {
                 MacroHandler.getInstance().disableMacro();
                 return;
             }
+            PlayerUtils.getTool();
             MacroHandler.getInstance().triggerWarpGarden(true, true);
             finishTries++;
             delayClock.schedule(1_000 + Math.random() * 500);

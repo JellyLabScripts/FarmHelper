@@ -7,7 +7,6 @@ import com.jelly.farmhelperv2.util.LogUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FeatureManager {
     private static FeatureManager instance;
@@ -96,21 +95,17 @@ public class FeatureManager {
         }
         if (PestsDestroyer.getInstance().isRunning()) {
             if (!PestsDestroyer.getInstance().shouldCheckForFailsafes()) return true;
-            AtomicBoolean result = new AtomicBoolean(false);
-            FailsafeManager.getInstance().triggeredFailsafe.ifPresent(failsafe -> {
-                if (failsafe.getType().equals(FailsafeManager.EmergencyType.KNOCKBACK_CHECK)) {
-                    result.set(true);
-                    return;
+            boolean result = false;
+            result = FailsafeManager.getInstance().emergencyQueue.stream().anyMatch(f -> {
+                if (f.getType().equals(FailsafeManager.EmergencyType.KNOCKBACK_CHECK)) {
+                    return true;
                 }
-                if (failsafe.getType().equals(FailsafeManager.EmergencyType.TELEPORT_CHECK)) {
-                    result.set(true);
-                    return;
+                if (f.getType().equals(FailsafeManager.EmergencyType.TELEPORT_CHECK)) {
+                    return true;
                 }
-                if (failsafe.getType().equals(FailsafeManager.EmergencyType.ROTATION_CHECK)) {
-                    result.set(true);
-                }
+                return f.getType().equals(FailsafeManager.EmergencyType.ROTATION_CHECK);
             });
-            return result.get();
+            return result;
         }
         if (PlotCleaningHelper.getInstance().isRunning() && !PlotCleaningHelper.getInstance().shouldCheckForFailsafes()) {
             return true;

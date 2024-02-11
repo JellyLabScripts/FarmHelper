@@ -594,6 +594,9 @@ public class FlyPathFinderExecutor {
     }
 
     private Vec3 getNext() {
+        if (path.isEmpty()) {
+            return mc.thePlayer.getPositionVector();
+        }
         try {
             Vec3 current = mc.thePlayer.getPositionVector();
             Vec3 closestToPlayer = path.stream().min(Comparator.comparingDouble(vec -> vec.distanceTo(current))).orElse(path.get(0));

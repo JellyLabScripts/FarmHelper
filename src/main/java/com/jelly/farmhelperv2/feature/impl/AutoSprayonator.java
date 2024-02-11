@@ -208,7 +208,7 @@ public class AutoSprayonator implements IFeature {
             enableDelay.schedule(sprayonatorEnableDelayTime + sprayonatorEnableDelayTimeRand);
             return;
         }
-        ;
+        if (!Scheduler.getInstance().isFarming()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
