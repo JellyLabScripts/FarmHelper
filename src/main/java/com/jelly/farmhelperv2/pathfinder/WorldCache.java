@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.MotionUpdateEvent;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
+import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.util.BlockUtils;
 import lombok.Getter;
 import net.minecraft.block.Block;
@@ -67,6 +68,9 @@ public class WorldCache {
     public void onPacketReceive(ReceivePacketEvent event) {
         if (mc.theWorld == null) return;
         if (!FarmHelperConfig.useCachingInFlyPathfinder) return;
+        if (!GameStateHandler.getInstance().getLocation().equals(GameStateHandler.Location.TELEPORTING) && !GameStateHandler.getInstance().inGarden())
+            return;
+
 
         if (event.packet instanceof S21PacketChunkData) {
             S21PacketChunkData packet = (S21PacketChunkData) event.packet;
@@ -89,7 +93,7 @@ public class WorldCache {
     private void cacheChunk(Chunk c, Coordinate coordinate) {
         if (chunkCache.containsKey(coordinate)) return;
         for (int x = 0; x < 16; x++)
-            for (int y = 65; y < 100; y++)
+            for (int y = 66; y < 100; y++)
                 for (int z = 0; z < 16; z++) {
                     BlockPos pos = new BlockPos(x + coordinate.x * 16, y, z + coordinate.z * 16);
                     BlockPos chunkPos = new BlockPos(x, y, z);

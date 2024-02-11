@@ -1219,6 +1219,16 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     //<editor-fold desc="AUTO PEST HUNTER">
+
+    @Info(
+            text = "Once you collect enough pests, the macro will go to the Phillip NPC and exchange pests in your vacuum for Farming Fortune for 30 minutes.",
+            type = InfoType.INFO,
+            category = AUTO_PEST_HUNTER,
+            subcategory = "Auto Pest Hunter",
+            size = 2
+    )
+    public static boolean autoPestHunterInfo1;
+
     @Switch(
             name = "Enable Auto Pest Hunter", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
             description = "Automatically hunts pests"
@@ -1688,6 +1698,13 @@ public class FarmHelperConfig extends Config {
             description = "Shows rotation debug messages"
     )
     public static boolean showRotationDebugMessages = false;
+
+    @Switch(
+            name = "Show debug pathfinding route", category = DEBUG, subcategory = "Debug",
+            description = "Shows debug pathfinding route"
+    )
+    public static boolean showDebugPathfindingRoute = false;
+
     //</editor-fold>
 
     //<editor-fold desc="Debug Hud">

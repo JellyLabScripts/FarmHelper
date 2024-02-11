@@ -12,6 +12,7 @@ import cc.polyfrost.oneconfig.renderer.NanoVGHelper;
 import cc.polyfrost.oneconfig.renderer.TextRenderer;
 import com.jelly.farmhelperv2.feature.impl.ProfitCalculator;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
+import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Tuple;
@@ -37,7 +38,11 @@ public class ProfitCalculatorHUD extends BasicHud {
             text = "Reset Now",
             size = 2
     )
-    Runnable _resetProfitCalculator = ProfitCalculator.getInstance()::resetProfits;
+    Runnable _resetProfitCalculator = () -> {
+        MacroHandler.getInstance().getMacroingTimer().reset();
+        ProfitCalculator.getInstance().resetProfits();
+    };
+
     private final float iconWidth = 12 * scale;
     private final float iconHeight = 12 * scale;
     protected transient ArrayList<Tuple<String, String>> lines = new ArrayList<>();
