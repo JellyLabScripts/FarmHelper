@@ -880,10 +880,14 @@ public class PestsDestroyer implements IFeature {
     public void onChat(ClientChatReceivedEvent event) {
         if (event.type != 0 || event.message == null) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText().trim());
-        if (message.startsWith("You can't fast travel while in combat!")) {
+        if (message.startsWith("You can't fast travel while in combat!") && enabled) {
             LogUtils.sendWarning("[Pests Destroyer] Can't fast travel while in combat, will try again to teleport.");
-            enabled = true;
             Multithreading.schedule(this::finishMacro, 1_000 + (long) (Math.random() * 1_000), TimeUnit.MILLISECONDS);
+            return;
+        }
+        if (message.toLowerCase().startsWith("there are not any pests on your garden right now") && enabled && state != States.GO_BACK) {
+            LogUtils.sendDebug("[Pests Destroyer] There are not any Pests on your Garden right now! Keep farming!");
+            state = States.GO_BACK;
             return;
         }
         if (message.contains("The worm seems to have burrowed")) {

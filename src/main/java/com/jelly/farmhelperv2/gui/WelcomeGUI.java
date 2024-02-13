@@ -22,6 +22,9 @@ public class WelcomeGUI extends GuiScreen {
     static final int CLOSE_BUTTON_ID = 2;
     private static final Minecraft mc = Minecraft.getMinecraft();
     private final String[] welcomeMessage = {
+            "⚠ If you downloaded this mod from somewhere else than discord.gg/jellylab or GitHub ⚠",
+            "⚠ such as YouTube videos, MediaFire, etc. - immediately remove it! It's a virus! ⚠",
+            "",
             "Before you use, you NEED to: ",
             "1. Read the guide first! (Click \"Read the guide\").",
             "2. Build the farm using schematics provided in our guide.",
@@ -70,7 +73,7 @@ public class WelcomeGUI extends GuiScreen {
         GL11.glScalef(scale, scale, 0.0F);
         for (int i = 0; i < welcomeMessage.length; i++) {
             String item = welcomeMessage[i];
-            this.drawCenteredString(mc.fontRendererObj, item, (fontSize % 2 == 0 ? fontSize : fontSize - 1), (int) (this.height / 2f / scale - 50) + 20 * i, 0xFFFFFF);
+            this.drawCenteredString(mc.fontRendererObj, item, (fontSize % 2 == 0 ? fontSize : fontSize - 1), (int) (this.height / 2f / scale - 80) + 16 * i, (i < 2 ? 0xFF0000 : 0xFFFFFF));
         }
         GL11.glScalef(1.0F / scale, 1.0F / scale, 0.0F);
         textField.drawTextBox();
