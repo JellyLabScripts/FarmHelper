@@ -21,8 +21,8 @@ public class ScoreboardUtils {
     private static long lastUpdateTimestamp = 0;
 
     public static List<String> getCleanScoreboardLines() {
-        long currentTime = System.nanoTime();
-        if (!cachedScoreboardLines.isEmpty() && TimeUnit.NANOSECONDS.toMillis(currentTime - lastUpdateTimestamp) < 50) {
+        long currentTime = System.currentTimeMillis();
+        if (!cachedScoreboardLines.isEmpty() && currentTime - lastUpdateTimestamp < 50) {
             return cachedScoreboardLines;
         }
         cachedScoreboardLines.clear();

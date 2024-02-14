@@ -18,6 +18,9 @@ public class TablistUtils {
 
     private static final Ordering<NetworkPlayerInfo> playerOrdering = Ordering.from(new PlayerComparator());
 
+    private static List<String> cachedTablist = new ArrayList<>();
+    private static long lastUpdateTimestamp = 0;
+
     public static List<String> getTabListPlayersUnprocessed() {
         try {
             List<NetworkPlayerInfo> players =
@@ -60,19 +63,23 @@ public class TablistUtils {
     }
 
     public static List<String> getTabList() {
+        long currentTime = System.currentTimeMillis();
+        if (!cachedTablist.isEmpty() && currentTime - lastUpdateTimestamp < 50)
+            return cachedTablist;
+        cachedTablist.clear();
+        if (Minecraft.getMinecraft().theWorld == null)
+            return cachedTablist;
         try {
             List<NetworkPlayerInfo> players =
                     playerOrdering.sortedCopy(Minecraft.getMinecraft().thePlayer.sendQueue.getPlayerInfoMap());
 
-            List<String> result = new ArrayList<>();
-
             for (NetworkPlayerInfo info : players) {
-                String name = Minecraft.getMinecraft().ingameGUI.getTabList().getPlayerName(info);
-                result.add(StringUtils.stripControlCodes(name));
+                cachedTablist.add(StringUtils.stripControlCodes(Minecraft.getMinecraft().ingameGUI.getTabList().getPlayerName(info)));
             }
-            return result;
+            lastUpdateTimestamp = currentTime;
+            return cachedTablist;
         } catch (Exception e) {
-            return new ArrayList<>();
+            return cachedTablist;
         }
     }
 

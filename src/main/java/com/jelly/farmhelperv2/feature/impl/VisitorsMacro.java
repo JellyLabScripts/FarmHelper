@@ -294,6 +294,7 @@ public class VisitorsMacro implements IFeature {
     public void onTickCheckVisitors(TickEvent.ClientTickEvent event) {
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (event.phase != TickEvent.Phase.START) return;
 
         List<String> tabList = TablistUtils.getTabList();
         if (tabList.size() < 2) return;
