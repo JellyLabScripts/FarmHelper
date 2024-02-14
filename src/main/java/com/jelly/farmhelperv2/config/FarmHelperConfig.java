@@ -1050,6 +1050,15 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean useCachingInFlyPathfinder = true;
 
+    @Info(
+            text = "You need to have at least 4 GB of RAM to use the fly pathfinder caching feature to avoid stutters.",
+            type = InfoType.INFO,
+            category = PESTS_DESTROYER,
+            subcategory = "Pests Destroyer",
+            size = 2
+    )
+    public static boolean pestsDestroyerInfo2;
+
     @Switch(
             name = "Pause the Pests Destroyer during Jacob's contests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Pauses the Pests Destroyer during Jacob's contests",

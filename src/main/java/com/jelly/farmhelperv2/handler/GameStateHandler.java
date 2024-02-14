@@ -44,6 +44,9 @@ public class GameStateHandler {
     private Location lastLocation = Location.TELEPORTING;
     @Getter
     private Location location = Location.TELEPORTING;
+
+    private boolean isInJacobContest = false;
+    private boolean isGuestOnGarden = false;
     @Getter
     private boolean frontWalkable;
     @Getter
@@ -107,23 +110,32 @@ public class GameStateHandler {
         location = Location.TELEPORTING;
     }
 
-
     @SubscribeEvent
-    public void onTickCheckCoins(TickEvent.PlayerTickEvent event) {
-        if (mc.theWorld == null || mc.thePlayer == null) return;
+    public void onTickCheckScoreboard(TickEvent.PlayerTickEvent event) {
+        if (mc.theWorld == null || mc.thePlayer == null) {
+            isGuestOnGarden = false;
+            return;
+        }
+        if (event.phase != TickEvent.Phase.START) return;
 
-        List<String> scoreboardLines = ScoreboardUtils.getScoreboardLines();
-        if (scoreboardLines.isEmpty()) return;
+        List<String> cleanScoreboardLines = ScoreboardUtils.getCleanScoreboardLines();
+        List<String> tabList = TablistUtils.getTabList();
 
+        onTickCheckCoins(cleanScoreboardLines);
+        onTickCheckLocation(cleanScoreboardLines, tabList);
+        checkGuestOnGarden(cleanScoreboardLines, tabList);
+    }
+
+    public void onTickCheckCoins(List<String> scoreboardLines) {
         if (inGarden()) {
             currentPlot = PlotUtils.getPlotNumberBasedOnLocation();
         } else {
             currentPlot = -5;
         }
 
-        for (String line : scoreboardLines) {
-            String cleanedLine = StringUtils.stripControlCodes(ScoreboardUtils.cleanSB(line)).trim();
-            Matcher serverClosingMatcher = serverClosingPattern.matcher(StringUtils.stripControlCodes(ScoreboardUtils.cleanSB(line)));
+        boolean foundJacobContest = false;
+        for (String cleanedLine : scoreboardLines) {
+            Matcher serverClosingMatcher = serverClosingPattern.matcher(cleanedLine);
             if (serverClosingMatcher.find()) {
                 int minutes = Integer.parseInt(serverClosingMatcher.group("minutes"));
                 int seconds = Integer.parseInt(serverClosingMatcher.group("seconds"));
@@ -140,7 +152,7 @@ public class GameStateHandler {
                     long tempCurrentPurse = Long.parseLong(stringPurse);
                     previousPurse = currentPurse;
                     currentPurse = tempCurrentPurse;
-                } catch (NumberFormatException ignored) {
+                } catch (Exception ignored) {
                 }
             } else if (cleanedLine.contains("Bits:")) {
                 try {
@@ -149,7 +161,7 @@ public class GameStateHandler {
                         stringBits = stringBits.substring(0, stringBits.indexOf("("));
                     }
                     bits = Long.parseLong(stringBits);
-                } catch (NumberFormatException ignored) {
+                } catch (Exception ignored) {
                 }
             } else if (cleanedLine.contains("Copper:")) {
                 try {
@@ -158,15 +170,18 @@ public class GameStateHandler {
                         stringCopper = stringCopper.substring(0, stringCopper.indexOf("("));
                     }
                     copper = Long.parseLong(stringCopper);
-                } catch (NumberFormatException ignored) {
+                } catch (Exception ignored) {
                 }
+            } else if (cleanedLine.toLowerCase().contains("jacob's contest")) {
+                isInJacobContest = true;
+                foundJacobContest = true;
             }
             if (inJacobContest()) {
                 try {
                     if (cleanedLine.contains("with") || cleanedLine.startsWith("Collected")) {
                         jacobsContestCropNumber = Integer.parseInt(cleanedLine.substring(cleanedLine.lastIndexOf(" ") + 1).replace(",", ""));
                     }
-                } catch (NumberFormatException ignored) {
+                } catch (Exception ignored) {
                     jacobsContestCropNumber = 0;
                 }
                 if (!jacobContestLeftClock.isScheduled()) {
@@ -216,6 +231,66 @@ public class GameStateHandler {
                 jacobMedal = JacobMedal.NONE;
             }
         }
+        if (!foundJacobContest) {
+            isInJacobContest = false;
+        }
+    }
+
+    public void onTickCheckLocation(List<String> scoreboardLines, List<String> tabList) {
+        if (mc.theWorld == null || mc.thePlayer == null) return;
+
+        if (mc.getCurrentServerData() != null && mc.getCurrentServerData().serverIP != null) {
+            serverIP = mc.getCurrentServerData().serverIP;
+        }
+
+        if (tabList.size() == 1 && scoreboardLines.isEmpty() && PlayerUtils.isInventoryEmpty(mc.thePlayer)) {
+            lastLocation = location;
+            location = Location.LIMBO;
+            return;
+        }
+
+        for (String line : tabList) {
+            Matcher matcher = areaPattern.matcher(line);
+            if (matcher.find()) {
+                String area = matcher.group(1);
+                for (Location island : Location.values()) {
+                    if (area.equals(island.getName())) {
+                        lastLocation = location;
+                        location = island;
+                        return;
+                    }
+                }
+            }
+        }
+
+        if (!ScoreboardUtils.getScoreboardTitle().contains("SKYBLOCK") && !scoreboardLines.isEmpty() && scoreboardLines.get(0).contains("www.hypixel.net")) {
+            lastLocation = location;
+            location = Location.LOBBY;
+            return;
+        }
+        if (location != Location.TELEPORTING) {
+            lastLocation = location;
+        }
+        location = Location.TELEPORTING;
+    }
+
+
+
+    private void checkGuestOnGarden(List<String> scoreboardLines, List<String> tabList) {
+        for (String line : scoreboardLines) {
+            if (ScoreboardUtils.cleanSB(line).contains("✌ (")) {
+                isGuestOnGarden = true;
+            }
+        }
+        boolean hasGuestsOnTabList = false;
+        for (String name : tabList) {
+            if (name.contains("Guests "))
+                hasGuestsOnTabList = true;
+            if (name.contains("Guests (0)")) {
+                isGuestOnGarden = false;
+            }
+        }
+        isGuestOnGarden = hasGuestsOnTabList && location == Location.GARDEN;
     }
 
     @SubscribeEvent
@@ -278,45 +353,6 @@ public class GameStateHandler {
         cookieBuffState = foundCookieBuff ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
         godPotState = foundGodPotBuff ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
         pestRepellentState = foundPestRepellent ? BuffState.ACTIVE : (!AutoRepellent.repellentFailsafeClock.passed() ? BuffState.FAILSAFE : BuffState.NOT_ACTIVE);
-    }
-
-    @SubscribeEvent
-    public void onTickCheckLocation(TickEvent.ClientTickEvent event) {
-        if (mc.theWorld == null || mc.thePlayer == null) return;
-
-        if (mc.getCurrentServerData() != null && mc.getCurrentServerData().serverIP != null) {
-            serverIP = mc.getCurrentServerData().serverIP;
-        }
-
-        if (TablistUtils.getTabList().size() == 1 && ScoreboardUtils.getScoreboardLines().isEmpty() && PlayerUtils.isInventoryEmpty(mc.thePlayer)) {
-            lastLocation = location;
-            location = Location.LIMBO;
-            return;
-        }
-
-        for (String line : TablistUtils.getTabList()) {
-            Matcher matcher = areaPattern.matcher(line);
-            if (matcher.find()) {
-                String area = matcher.group(1);
-                for (Location island : Location.values()) {
-                    if (area.equals(island.getName())) {
-                        lastLocation = location;
-                        location = island;
-                        return;
-                    }
-                }
-            }
-        }
-
-        if (!ScoreboardUtils.getScoreboardTitle().contains("SKYBLOCK") && !ScoreboardUtils.getScoreboardLines().isEmpty() && ScoreboardUtils.cleanSB(ScoreboardUtils.getScoreboardLines().get(0)).contains("www.hypixel.net")) {
-            lastLocation = location;
-            location = Location.LOBBY;
-            return;
-        }
-        if (location != Location.TELEPORTING) {
-            lastLocation = location;
-        }
-        location = Location.TELEPORTING;
     }
 
     @SubscribeEvent
@@ -453,32 +489,11 @@ public class GameStateHandler {
     }
 
     public boolean inJacobContest() {
-        for (String line : ScoreboardUtils.getScoreboardLines()) {
-            String cleanedLine = ScoreboardUtils.cleanSB(line);
-            if ((cleanedLine.toLowerCase()).contains("jacob's contest")) {
-                return true;
-            }
-        }
-        return false;
+        return isInJacobContest;
     }
 
     public boolean isGuestOnGarden() {
-        if (mc.theWorld == null || mc.thePlayer == null) return false;
-        for (String line : ScoreboardUtils.getScoreboardLines()) {
-            String cleanedLine = ScoreboardUtils.cleanSB(line);
-            if ((cleanedLine.toLowerCase()).contains("✌ (")) {
-                return true;
-            }
-        }
-        boolean hasGuestsOnTabList = false;
-        for (String name : TablistUtils.getTabList()) {
-            if (StringUtils.stripControlCodes(name).contains("Guests "))
-                hasGuestsOnTabList = true;
-            if (StringUtils.stripControlCodes(name).contains("Guests (0)")) {
-                return false;
-            }
-        }
-        return hasGuestsOnTabList && location == Location.GARDEN;
+        return isGuestOnGarden;
     }
 
     public int getPestsFromVacuum() {
@@ -502,7 +517,7 @@ public class GameStateHandler {
                     if (matcher.find()) {
                         try {
                             return Integer.parseInt(matcher.group(1));
-                        } catch (NumberFormatException e) {
+                        } catch (Exception e) {
                             LogUtils.sendError("Failed to parse pests from vacuum bag!");
                             LogUtils.sendWarning("Report this to #bug-reports!");
                             return 0;
@@ -513,6 +528,7 @@ public class GameStateHandler {
         }
         return 0;
     }
+
 
     @Getter
     public enum Location {

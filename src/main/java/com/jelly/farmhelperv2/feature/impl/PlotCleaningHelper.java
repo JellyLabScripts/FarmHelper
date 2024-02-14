@@ -129,7 +129,7 @@ public class PlotCleaningHelper implements IFeature {
             return;
         }
 
-        if (ScoreboardUtils.getScoreboardLines().stream().noneMatch(line -> line.contains("Cleanup"))) {
+        if (ScoreboardUtils.getCleanScoreboardLines().stream().noneMatch(line -> line.contains("Cleanup"))) {
             scytheBlockPos.clear();
             treeCapitatorBlockPos.clear();
             pickaxeBlockPos.clear();

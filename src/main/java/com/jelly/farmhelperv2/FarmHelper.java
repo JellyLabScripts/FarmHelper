@@ -96,6 +96,11 @@ public class FarmHelper {
             Notifications.INSTANCE.send("FarmHelper", "Pests Killer Ticks Of Not Seeing Pest While Attacking has been set to 100 ticks because of a bug in the previous version.", 15000);
             LogUtils.sendWarning("Pests Killer Ticks Of Not Seeing Pest While Attacking has been set to 100 ticks because of a bug in the previous version.");
         }
+        if (getAllocatedMemoryMB() < 2500 && FarmHelperConfig.useCachingInFlyPathfinder) {
+            FarmHelperConfig.useCachingInFlyPathfinder = false;
+            Notifications.INSTANCE.send("FarmHelper", "You don't have enough of RAM allocated to Minecraft need for pathfinder caching! Disabling it...", 15000);
+            LogUtils.sendWarning("You don't have enough of RAM allocated to Minecraft need for pathfinder caching. Disabling it... It's recommended to have at least 4GB of RAM allocated to Minecraft to avoid stutters.");
+        }
         if (FarmHelperConfig.configVersion == 1)
             FarmHelperConfig.configVersion = 2;
         sentInfoAboutShittyClient = true;
@@ -148,5 +153,11 @@ public class FarmHelper {
                 }
             }
         }
+    }
+
+    public int getAllocatedMemoryMB() {
+        Runtime runtime = Runtime.getRuntime();
+        long maxMemory = runtime.maxMemory();
+        return (int) (maxMemory / (1024 * 1024));
     }
 }

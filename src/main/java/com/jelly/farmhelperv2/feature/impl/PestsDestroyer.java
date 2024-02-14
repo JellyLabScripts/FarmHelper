@@ -1052,7 +1052,7 @@ public class PestsDestroyer implements IFeature {
         if (event.phase != TickEvent.Phase.START) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
 
-        List<String> scoreBoard = ScoreboardUtils.getScoreboardLines();
+        List<String> scoreBoard = ScoreboardUtils.getCleanScoreboardLines();
 
         for (String line : scoreBoard) {
             String withoutColors = StringUtils.stripControlCodes(line);

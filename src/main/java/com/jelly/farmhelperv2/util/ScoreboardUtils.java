@@ -12,19 +12,26 @@ import net.minecraft.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class ScoreboardUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    private static List<String> cachedScoreboardLines = new ArrayList<>();
+    private static long lastUpdateTimestamp = 0;
 
-    public static List<String> getScoreboardLines() {
-        List<String> lines = new ArrayList<>();
-        if (mc.theWorld == null) return lines;
+    public static List<String> getCleanScoreboardLines() {
+        long currentTime = System.nanoTime();
+        if (!cachedScoreboardLines.isEmpty() && TimeUnit.NANOSECONDS.toMillis(currentTime - lastUpdateTimestamp) < 50) {
+            return cachedScoreboardLines;
+        }
+        cachedScoreboardLines.clear();
+        if (mc.theWorld == null) return cachedScoreboardLines;
         Scoreboard scoreboard = mc.theWorld.getScoreboard();
-        if (scoreboard == null) return lines;
+        if (scoreboard == null) return cachedScoreboardLines;
 
         ScoreObjective objective = scoreboard.getObjectiveInDisplaySlot(1);
-        if (objective == null) return lines;
+        if (objective == null) return cachedScoreboardLines;
 
         Collection<Score> scores = scoreboard.getSortedScores(objective);
         List<Score> list = scores.stream()
@@ -40,10 +47,11 @@ public class ScoreboardUtils {
 
         for (Score score : scores) {
             ScorePlayerTeam team = scoreboard.getPlayersTeam(score.getPlayerName());
-            lines.add(ScorePlayerTeam.formatPlayerName(team, score.getPlayerName()));
+            cachedScoreboardLines.add(cleanSB(ScorePlayerTeam.formatPlayerName(team, score.getPlayerName())));
         }
 
-        return lines;
+        lastUpdateTimestamp = currentTime;
+        return cachedScoreboardLines;
     }
 
     public static String getScoreboardTitle() {
