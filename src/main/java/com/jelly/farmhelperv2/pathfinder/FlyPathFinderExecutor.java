@@ -426,7 +426,7 @@ public class FlyPathFinderExecutor {
             }
         }
 
-        mc.thePlayer.setSprinting(FarmHelperConfig.sprintWhileFlying && neededKeys.contains(mc.gameSettings.keyBindForward) && current.distanceTo(new Vec3(next.xCoord, current.yCoord, next.zCoord)) > 6);
+        mc.thePlayer.setSprinting(FarmHelperConfig.sprintWhileFlying && neededKeys.contains(mc.gameSettings.keyBindForward) && !neededKeys.contains(mc.gameSettings.keyBindSneak) && current.distanceTo(new Vec3(next.xCoord, current.yCoord, next.zCoord)) > 6);
 
 //        System.out.println("Buttons: " + keyBindings.stream().map(keyBinding -> keyBinding == null ? "null" : keyBinding.getKeyDescription()).collect(Collectors.joining(", ")));
         if (neededYaw != Integer.MIN_VALUE)

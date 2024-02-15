@@ -5,6 +5,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.jelly.farmhelperv2.event.ClickedBlockEvent;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
+import com.jelly.farmhelperv2.failsafe.Failsafe;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -280,6 +283,7 @@ public class ProfitCalculator implements IFeature {
         itemsDropped.clear();
         cropsToCount.forEach(crop -> crop.currentAmount = 0);
         rngDropToCount.forEach(drop -> drop.currentAmount = 0);
+        LowerAvgBpsFailsafe.getInstance().resetStates();
     }
 
     @SubscribeEvent

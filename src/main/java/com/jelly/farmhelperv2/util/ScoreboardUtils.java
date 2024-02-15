@@ -12,26 +12,27 @@ import net.minecraft.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class ScoreboardUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static List<String> cachedScoreboardLines = new ArrayList<>();
+    private static List<String> cachedCleanScoreboardLines = new ArrayList<>();
     private static long lastUpdateTimestamp = 0;
 
-    public static List<String> getCleanScoreboardLines() {
+    public static List<String> getScoreboardLines(boolean clean) {
         long currentTime = System.currentTimeMillis();
         if (!cachedScoreboardLines.isEmpty() && currentTime - lastUpdateTimestamp < 50) {
-            return cachedScoreboardLines;
+            return (clean ? cachedCleanScoreboardLines : cachedScoreboardLines);
         }
         cachedScoreboardLines.clear();
-        if (mc.theWorld == null) return cachedScoreboardLines;
+        cachedCleanScoreboardLines.clear();
+        if (mc.theWorld == null) return (clean ? cachedCleanScoreboardLines : cachedScoreboardLines);
         Scoreboard scoreboard = mc.theWorld.getScoreboard();
-        if (scoreboard == null) return cachedScoreboardLines;
+        if (scoreboard == null) return (clean ? cachedCleanScoreboardLines : cachedScoreboardLines);
 
         ScoreObjective objective = scoreboard.getObjectiveInDisplaySlot(1);
-        if (objective == null) return cachedScoreboardLines;
+        if (objective == null) return (clean ? cachedCleanScoreboardLines : cachedScoreboardLines);
 
         Collection<Score> scores = scoreboard.getSortedScores(objective);
         List<Score> list = scores.stream()
@@ -47,11 +48,12 @@ public class ScoreboardUtils {
 
         for (Score score : scores) {
             ScorePlayerTeam team = scoreboard.getPlayersTeam(score.getPlayerName());
-            cachedScoreboardLines.add(cleanSB(ScorePlayerTeam.formatPlayerName(team, score.getPlayerName())));
+            cachedScoreboardLines.add(ScorePlayerTeam.formatPlayerName(team, score.getPlayerName()));
+            cachedCleanScoreboardLines.add(cleanSB(ScorePlayerTeam.formatPlayerName(team, score.getPlayerName())));
         }
 
         lastUpdateTimestamp = currentTime;
-        return cachedScoreboardLines;
+        return (clean ? cachedCleanScoreboardLines : cachedScoreboardLines);
     }
 
     public static String getScoreboardTitle() {

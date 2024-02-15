@@ -87,6 +87,7 @@ public class PestsDestroyer implements IFeature {
     private Optional<Vec3> lastFireworkLocation = Optional.empty();
     private long lastFireworkTime = 0;
     private int getLocationTries = 0;
+    private int flyPathfinderTries = 0;
     private RotationState rotationState = RotationState.NONE;
 
     public static PestsDestroyer getInstance() {
@@ -161,6 +162,7 @@ public class PestsDestroyer implements IFeature {
         enabled = false;
         lastFireworkTime = 0;
         getLocationTries = 0;
+        flyPathfinderTries = 0;
         finishTries = 0;
         FlyPathfinder.getInstance().stuckCounterWithMotion = 0;
         FlyPathfinder.getInstance().stuckCounterWithoutMotion = 0;
@@ -527,6 +529,11 @@ public class PestsDestroyer implements IFeature {
                     break;
                 }
 
+                if ((mc.thePlayer.onGround || !flyDelay.passed()) && mc.thePlayer.capabilities.allowFlying && !mc.thePlayer.capabilities.isFlying) {
+                    fly();
+                    break;
+                }
+
                 if (mc.thePlayer.getDistance(plotCenter.getX(), mc.thePlayer.posY, plotCenter.getZ()) < 15) {
                     state = States.GET_LOCATION;
                     KeyBindUtils.stopMovement();
@@ -733,6 +740,21 @@ public class PestsDestroyer implements IFeature {
                     if (!FlyPathFinderExecutor.getInstance().isRunning()) {
                         LogUtils.sendDebug("Should pathfind to: " + entity.posX + " " + (entity.posY + 2.75) + " " + entity.posZ);
                         FlyPathFinderExecutor.getInstance().findPath(entity, true, true, 2.75f, true);
+                    }
+                    if (FlyPathFinderExecutor.getInstance().getState() == FlyPathFinderExecutor.State.FAILED
+                            && mc.thePlayer.motionX == 0 && mc.thePlayer.motionZ == 0) {
+                        flyPathfinderTries++;
+                    } else {
+                        flyPathfinderTries = 0;
+                    }
+                    if (flyPathfinderTries > 5) {
+                        LogUtils.sendWarning("[Pests Destroyer] Couldn't pathfind to the pest. Flying from the spawnpoint.");
+                        flyPathfinderTries = 0;
+                        KeyBindUtils.stopMovement();
+                        delayClock.schedule(1_000 + Math.random() * 500);
+                        MacroHandler.getInstance().triggerWarpGarden(true, false);
+                        state = States.CHECKING_SPAWN;
+                        return;
                     }
                     if (!RotationHandler.getInstance().isRotating()) {
                         RotationHandler.getInstance().easeTo(new RotationConfiguration(
@@ -1052,11 +1074,12 @@ public class PestsDestroyer implements IFeature {
         if (event.phase != TickEvent.Phase.START) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
 
-        List<String> scoreBoard = ScoreboardUtils.getCleanScoreboardLines();
+        List<String> scoreBoard = ScoreboardUtils.getScoreboardLines(false);
+        List<String> cleanScoreBoard = ScoreboardUtils.getScoreboardLines(true);
 
-        for (String line : scoreBoard) {
-            String withoutColors = StringUtils.stripControlCodes(line);
-            String clean = ScoreboardUtils.cleanSB(withoutColors);
+        for (int i = 0; i < scoreBoard.size(); i++) {
+            String line = scoreBoard.get(i);
+            String clean = cleanScoreBoard.get(i);
             if (line.contains("ൠ")) {
                 String[] split = clean.split(" ");
                 try {

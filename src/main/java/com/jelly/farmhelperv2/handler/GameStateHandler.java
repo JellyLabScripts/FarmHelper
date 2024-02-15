@@ -118,7 +118,7 @@ public class GameStateHandler {
         }
         if (event.phase != TickEvent.Phase.START) return;
 
-        List<String> cleanScoreboardLines = ScoreboardUtils.getCleanScoreboardLines();
+        List<String> cleanScoreboardLines = ScoreboardUtils.getScoreboardLines(true);
         List<String> tabList = TablistUtils.getTabList();
 
         onTickCheckCoins(cleanScoreboardLines);
