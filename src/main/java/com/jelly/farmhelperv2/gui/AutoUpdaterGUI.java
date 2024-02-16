@@ -44,6 +44,7 @@ public class AutoUpdaterGUI extends GuiScreen {
     private static boolean shownGui = false;
     private static String latestVersion = "";
     private static List<String> releaseMessage = new ArrayList<>();
+    private static List<String> previousReleasesMessage = new ArrayList<>();
     private static List<String> splitReleaseMessage = new ArrayList<>();
     private static String downloadURL = null;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -74,63 +75,72 @@ public class AutoUpdaterGUI extends GuiScreen {
             connection.setRequestMethod("GET");
 
             int responseCode = connection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                System.out.println("Failed to fetch data from GitHub API. Response code: " + responseCode);
+                return;
+            }
 
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                JsonArray releasesArray = getJsonElements(connection);
+            JsonArray releasesArray = getJsonElements(connection);
+            JsonObject latestRelease = null;
+            int releaseCount = 0;
+            for (JsonElement release : releasesArray) {
+                JsonObject releaseObject = release.getAsJsonObject();
+                if (latestRelease == null || releaseObject.get("created_at").getAsString().compareTo(latestRelease.get("created_at").getAsString()) > 0) {
+                    latestRelease = releaseObject;
+                }
+                if (releaseCount < 10) {
+                    previousReleasesMessage.add("§3" + releaseObject.get("tag_name").getAsString() + "\n" + releaseObject.get("body").getAsString() + "\n");
+                    releaseCount++;
+                }
+            }
 
-                JsonObject latestRelease = null;
+            if (latestRelease == null) {
+                System.out.println("No releases found for the repository.");
+                return;
+            }
+
+            boolean isPreRelease = latestRelease.get("prerelease").getAsBoolean();
+            String selectedReleaseMessage = "";
+            if (isPreRelease && !FarmHelperConfig.autoUpdaterDownloadBetaVersions) {
+                // If the latest version is pre-release and the user doesn't want to get pre-releases, find the latest release version
                 for (JsonElement release : releasesArray) {
                     JsonObject releaseObject = release.getAsJsonObject();
-                    if (latestRelease == null || releaseObject.get("created_at").getAsString().compareTo(latestRelease.get("created_at").getAsString()) > 0) {
-                        latestRelease = releaseObject;
+                    if (!releaseObject.get("prerelease").getAsBoolean()) {
+                        latestVersion = releaseObject.get("tag_name").getAsString();
+                        System.out.println("Latest full release: " + latestVersion);
+                        selectedReleaseMessage = releaseObject.get("body").getAsString();
+                        downloadURL = releaseObject.get("assets").getAsJsonArray().get(0).getAsJsonObject().get("browser_download_url").getAsString();
+                        break;
                     }
-                }
-
-                if (latestRelease != null) {
-                    boolean isPreRelease = latestRelease.get("prerelease").getAsBoolean();
-                    String message = "";
-                    if (isPreRelease && !FarmHelperConfig.autoUpdaterDownloadBetaVersions) {
-                        // If the latest version is pre-release and the user doesn't want to get pre-releases, find the latest release version
-                        for (JsonElement release : releasesArray) {
-                            JsonObject releaseObject = release.getAsJsonObject();
-                            if (!releaseObject.get("prerelease").getAsBoolean()) {
-                                latestVersion = releaseObject.get("tag_name").getAsString();
-                                System.out.println("Latest full release: " + latestVersion);
-                                message = releaseObject.get("body").getAsString();
-                                downloadURL = releaseObject.get("assets").getAsJsonArray().get(0).getAsJsonObject().get("browser_download_url").getAsString();
-                                break;
-                            }
-                        }
-                    } else {
-                        // If the latest version is release or the user wants to get pre-release, get the latest version
-                        latestVersion = latestRelease.get("tag_name").getAsString();
-                        System.out.println("Latest release: " + latestVersion);
-                        message = latestRelease.get("body").getAsString();
-                        downloadURL = latestRelease.get("assets").getAsJsonArray().get(0).getAsJsonObject().get("browser_download_url").getAsString();
-                    }
-
-                    isOutdated = isOutdated();
-
-                    if (isOutdated) {
-                        if (message.isEmpty()) {
-                            releaseMessage = Arrays.asList("\nWell... We forgot to add something to the changelog. Oops. Just umm... update the mod I guess? \n \n".split("\n"));
-                            return;
-                        }
-                        String cleanedMessage = "\n" + message
-                                .replaceAll("\r", "")
-                                .replace("+ ", "§a+ ")
-                                .replace("= ", "§f= ")
-                                .replace("- ", "§c- ") + " \n \n"; // fix for top and bottom padding
-                        releaseMessage = Arrays.asList(cleanedMessage.split("\n"));
-                    } else {
-                        System.out.println("Farm Helper is up to date!");
-                    }
-                } else {
-                    System.out.println("No releases found for the repository.");
                 }
             } else {
-                System.out.println("Failed to fetch data from GitHub API. Response code: " + responseCode);
+                // If the latest version is release or the user wants to get pre-release, get the latest version
+                latestVersion = latestRelease.get("tag_name").getAsString();
+                System.out.println("Latest release: " + latestVersion);
+                selectedReleaseMessage = latestRelease.get("body").getAsString();
+                downloadURL = latestRelease.get("assets").getAsJsonArray().get(0).getAsJsonObject().get("browser_download_url").getAsString();
             }
+
+            isOutdated = isOutdated();
+
+            if (!isOutdated) {
+                System.out.println("Farm Helper is up to date!");
+                return;
+            }
+
+            if (selectedReleaseMessage.isEmpty()) {
+                releaseMessage = Arrays.asList("\nWell... We forgot to add something to the changelog. Oops. Just umm... update the mod I guess? \n \n".split("\n"));
+                return;
+            }
+            selectedReleaseMessage += "\n\n§6Latest changelogs: \n\n" + String.join("\n", previousReleasesMessage);
+            String cleanedMessage = "\n" + selectedReleaseMessage
+                    .replaceAll("\r", "")
+                    .replace("+ ", "§a+ ")
+                    .replace("= ", "§7= ")
+                    .replace("\n- ", "\n§c- ")
+                    .replace("Changelog:", "")
+                    + " \n \n"; // fix for top and bottom padding
+            releaseMessage = Arrays.asList(cleanedMessage.split("\n"));
         } catch (IOException e) {
             e.printStackTrace();
         }

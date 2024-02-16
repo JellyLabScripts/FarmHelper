@@ -119,7 +119,11 @@ public class PlayerUtils {
         changeItemEveryClock.schedule(1_500L);
         int id = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, false);
         if (id == -1) {
-            LogUtils.sendDebug("No tool found!");
+            LogUtils.sendDebug("No tool found! Trying to find any tool.");
+            id = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, true);
+        }
+        if (id == -1) {
+            LogUtils.sendError("No tool found!");
             return;
         }
         LogUtils.sendDebug("Tool id: " + id + " current item: " + mc.thePlayer.inventory.currentItem);
