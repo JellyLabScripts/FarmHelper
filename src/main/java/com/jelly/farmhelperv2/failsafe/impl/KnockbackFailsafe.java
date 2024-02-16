@@ -11,13 +11,17 @@ import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
+import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
 import com.jelly.farmhelperv2.util.AngleUtils;
 import com.jelly.farmhelperv2.util.BlockUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
+import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 
 public class KnockbackFailsafe extends Failsafe {
@@ -71,6 +75,17 @@ public class KnockbackFailsafe extends Failsafe {
             return;
         if (((S12PacketEntityVelocity) event.packet).getMotionY() < FarmHelperConfig.knockbackCheckVerticalSensitivity)
             return;
+
+        if (FlyPathFinderExecutor.getInstance().isRunning()) {
+            AxisAlignedBB boundingBox = mc.thePlayer.getEntityBoundingBox().expand(1, 1, 1);
+            for (BlockPos blockPos : BlockUtils.getBlocksInBB(boundingBox)) {
+                Block block = mc.theWorld.getBlockState(blockPos).getBlock();
+                if (block.equals(Blocks.cactus)) {
+                    LogUtils.sendDebug("[Failsafe] Knockback detected, but cactus is inside the bounding box. Ignoring.");
+                    return;
+                }
+            }
+        }
 
         rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
         positionBeforeReacting = mc.thePlayer.getPosition();

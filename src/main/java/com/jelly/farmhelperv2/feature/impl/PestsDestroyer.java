@@ -650,11 +650,8 @@ public class PestsDestroyer implements IFeature {
                     }
 
                     if (!FlyPathFinderExecutor.getInstance().isRunning()) {
-                        Vec3 firework = new Vec3(lastFireworkLocation.get().xCoord, mc.thePlayer.posY, lastFireworkLocation.get().zCoord);
-                        Vec3 player = mc.thePlayer.getPositionVector();
-                        Vec3 direction = firework.subtract(player).normalize();
-                        Vec3 target = firework.addVector(direction.xCoord * 25, Math.min(direction.yCoord * 25, 7), direction.zCoord * 25);
-                        FlyPathFinderExecutor.getInstance().findPath(target, false, true);
+                        Vec3 firework = new Vec3(lastFireworkLocation.get().xCoord, Math.min(mc.thePlayer.posY + 1, 80), lastFireworkLocation.get().zCoord);
+                        FlyPathFinderExecutor.getInstance().findPath(firework, true, true);
                         state = States.GET_LOCATION;
                     }
                     break;
@@ -713,29 +710,34 @@ public class PestsDestroyer implements IFeature {
                     return;
                 }
 
-//                System.out.println(distance);
+
                 if (distance < 3) {
-                    if (distance < 1.3) {
+                    float targetVelocity = (float) (Math.abs(entity.motionX) + Math.abs(entity.motionZ));
+                    if (distance < 2 && targetVelocity < 0.15 && mc.thePlayer.canEntityBeSeen(entity)) {
                         if (FlyPathFinderExecutor.getInstance().isRunning()) {
                             FlyPathFinderExecutor.getInstance().stop();
                         }
-                        KeyBindUtils.onTick(mc.gameSettings.keyBindBack);
+                        float playerVelocity = (float) (Math.abs(mc.thePlayer.motionX) + Math.abs(mc.thePlayer.motionZ));
+                        if (playerVelocity > 0.15)
+                            KeyBindUtils.onTick(mc.gameSettings.keyBindBack);
                     }
                     if (rotationState != RotationState.CLOSE) {
                         rotationState = RotationState.CLOSE;
+                        RotationHandler.getInstance().reset();
                     }
                     if (!RotationHandler.getInstance().isRotating()) {
                         RotationHandler.getInstance().easeTo(new RotationConfiguration(
                                 new Target(entity).additionalY(0.5f),
                                 (long) (400 + Math.random() * 200),
                                 null
-                        ));
+                        ).followTarget(true));
                     }
                     KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindUseItem, true);
                 } else {
                     if (rotationState != RotationState.FAR) {
                         FlyPathFinderExecutor.getInstance().stop();
                         rotationState = RotationState.FAR;
+                        RotationHandler.getInstance().reset();
                     }
                     if (!FlyPathFinderExecutor.getInstance().isRunning()) {
                         LogUtils.sendDebug("Should pathfind to: " + entity.posX + " " + (entity.posY + 2.75) + " " + entity.posZ);
@@ -781,9 +783,16 @@ public class PestsDestroyer implements IFeature {
                         state = States.GET_LOCATION;
                         delayClock.schedule(300 + (long) (Math.random() * 250));
                     } else {
-                        LogUtils.sendDebug("Teleporting to plot");
-                        state = States.TELEPORT_TO_PLOT;
-                        delayClock.schedule(600 + (long) (Math.random() * 500));
+                        Optional<Map.Entry<Plot, Integer>> closestOptionalPlot = pestsPlotMap.entrySet().stream().min(Comparator.comparingDouble(entry -> mc.thePlayer.getDistanceSqToCenter(PlotUtils.getPlotCenter(entry.getKey().plotNumber))));
+                        if (Math.sqrt(mc.thePlayer.getDistanceSqToCenter(PlotUtils.getPlotCenter(closestOptionalPlot.get().getKey().plotNumber))) < 150) {
+                            LogUtils.sendDebug("Going manually another plot");
+                            state = States.GET_CLOSEST_PLOT;
+                            delayClock.schedule(300 + (long) (Math.random() * 250));
+                        } else {
+                            LogUtils.sendDebug("Teleporting to plot");
+                            state = States.TELEPORT_TO_PLOT;
+                            delayClock.schedule(600 + (long) (Math.random() * 500));
+                        }
                     }
                 }
                 KeyBindUtils.stopMovement();
@@ -1053,6 +1062,8 @@ public class PestsDestroyer implements IFeature {
             pestsPlotMap.remove(plot);
             LogUtils.sendDebug("[Pests Destroyer] Removed all pests from plot number: " + plotNumber);
         }
+        RotationHandler.getInstance().reset();
+        FlyPathFinderExecutor.getInstance().stop();
         lastFireworkLocation = Optional.empty();
         lastFireworkTime = 0;
         currentEntityTarget.ifPresent(e -> {
@@ -1062,8 +1073,6 @@ public class PestsDestroyer implements IFeature {
             KeyBindUtils.stopMovement();
             currentEntityTarget = Optional.empty();
             stuckClock.reset();
-            FlyPathFinderExecutor.getInstance().stop();
-            RotationHandler.getInstance().reset();
             delayClock.schedule(150);
         });
     }

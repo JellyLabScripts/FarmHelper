@@ -103,23 +103,12 @@ public class PlotUtils {
 
     public static BlockPos getPlotCenter(int plotNumber) {
         List<Tuple<Integer, Integer>> chunks = getPlotBasedOnNumber(plotNumber);
-        int minX = chunks.stream().mapToInt(Tuple::getFirst).min().orElse(0);
-        int maxX = chunks.stream().mapToInt(Tuple::getFirst).max().orElse(0);
-        int minZ = chunks.stream().mapToInt(Tuple::getSecond).min().orElse(0);
-        int maxZ = chunks.stream().mapToInt(Tuple::getSecond).max().orElse(0);
-        return new BlockPos((minX + maxX) / 2 * 16, 80, (minZ + maxZ) / 2 * 16);
-    }
-
-    public static BlockPos getPlotNearestEdgeToPlayer(int plotNumber) {
-        List<Tuple<Integer, Integer>> chunks = getPlotBasedOnNumber(plotNumber);
-        int minX = chunks.stream().mapToInt(Tuple::getFirst).min().orElse(0);
-        int maxX = chunks.stream().mapToInt(Tuple::getFirst).max().orElse(0);
-        int minZ = chunks.stream().mapToInt(Tuple::getSecond).min().orElse(0);
-        int maxZ = chunks.stream().mapToInt(Tuple::getSecond).max().orElse(0);
-        int playerX = (int) mc.thePlayer.posX;
-        int playerZ = (int) mc.thePlayer.posZ;
-        int x = playerX < (minX + maxX) / 2 * 16 ? minX * 16 : maxX * 16;
-        int z = playerZ < (minZ + maxZ) / 2 * 16 ? minZ * 16 : maxZ * 16;
-        return new BlockPos(x, 80, z);
+        int minX = chunks.get(0).getFirst();
+        int maxX = chunks.get(0).getFirst();
+        int minZ = chunks.get(chunks.size() - 1).getSecond();
+        int maxZ = chunks.get(chunks.size() - 1).getSecond();
+        float centerX = (float) (minX + (maxX - minX) / 2);
+        float centerZ = (float) (minZ + (maxZ - minZ) / 2);
+        return new BlockPos(centerX, 80, centerZ);
     }
 }

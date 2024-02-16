@@ -1,6 +1,5 @@
 package com.jelly.farmhelperv2.feature;
 
-import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.util.LogUtils;
 
@@ -95,17 +94,6 @@ public class FeatureManager {
         }
         if (PestsDestroyer.getInstance().isRunning()) {
             if (!PestsDestroyer.getInstance().shouldCheckForFailsafes()) return true;
-            boolean result = false;
-            result = FailsafeManager.getInstance().emergencyQueue.stream().anyMatch(f -> {
-                if (f.getType().equals(FailsafeManager.EmergencyType.KNOCKBACK_CHECK)) {
-                    return true;
-                }
-                if (f.getType().equals(FailsafeManager.EmergencyType.TELEPORT_CHECK)) {
-                    return true;
-                }
-                return f.getType().equals(FailsafeManager.EmergencyType.ROTATION_CHECK);
-            });
-            return result;
         }
         if (PlotCleaningHelper.getInstance().isRunning() && !PlotCleaningHelper.getInstance().shouldCheckForFailsafes()) {
             return true;

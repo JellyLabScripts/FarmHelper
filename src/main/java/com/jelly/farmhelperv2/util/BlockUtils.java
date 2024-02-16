@@ -842,6 +842,18 @@ public class BlockUtils {
         return true;
     }
 
+    public static List<BlockPos> getBlocksInBB(AxisAlignedBB bb) {
+        List<BlockPos> blocks = new ArrayList<>();
+        for (int x = (int) bb.minX; x < bb.maxX; x++) {
+            for (int y = (int) bb.minY; y < bb.maxY; y++) {
+                for (int z = (int) bb.minZ; z < bb.maxZ; z++) {
+                    blocks.add(new BlockPos(x, y, z));
+                }
+            }
+        }
+        return blocks;
+    }
+
     public enum PathNodeType {
         OPEN,
         BLOCKED

@@ -253,7 +253,7 @@ public class RotationHandler {
             return;
         }
 
-        if (System.currentTimeMillis() >= endTime) {
+        if (System.currentTimeMillis() >= endTime && !configuration.followTarget()) {
             // finish
             if (configuration.callback().isPresent()) {
                 configuration.callback().get().run();
@@ -273,9 +273,23 @@ public class RotationHandler {
 
         if (configuration.followTarget() && configuration.target().isPresent() && delayBetweenTargetFollow.passed()) {
             adjustTargetRotation(false);
+            float currentYaw = mc.thePlayer.rotationYaw;
+            float currentPitch = mc.thePlayer.rotationPitch;
+            if (shouldRotate(targetRotation, 0.1f)) {
+                float needYaw = (targetRotation.getYaw() - currentYaw);
+                float needPitch = (targetRotation.getPitch() - currentPitch);
+                System.out.println("Need yaw: " + needYaw + " need pitch: " + needPitch);
+                float pythagoras = pythagoras(Math.abs(needYaw), Math.abs(needPitch));
+                needYaw *= (float) (Math.random() * 0.04f + getTime(pythagoras, 0.055f));
+                needPitch *= (float) (Math.random() * 0.04f + getTime(pythagoras, 0.055f));
+                System.out.println("Scaled Need yaw: " + needYaw + " Scaled need pitch: " + needPitch);
+                mc.thePlayer.rotationYaw += needYaw;
+                mc.thePlayer.rotationPitch += needPitch;
+            }
+        } else {
+            mc.thePlayer.rotationYaw = interpolate(startRotation.getYaw(), targetRotation.getYaw(), configuration.easeOutBack() ? this::easeOutBack : this::easeOutExpo);
+            mc.thePlayer.rotationPitch = interpolate(startRotation.getPitch(), targetRotation.getPitch(), configuration.easeOutBack() ? this::easeOutBack : this::easeOutQuart);
         }
-        mc.thePlayer.rotationYaw = interpolate(startRotation.getYaw(), targetRotation.getYaw(), configuration.easeOutBack() ? this::easeOutBack : this::easeOutExpo);
-        mc.thePlayer.rotationPitch = interpolate(startRotation.getPitch(), targetRotation.getPitch(), configuration.easeOutBack() ? this::easeOutBack : this::easeOutQuart);
     }
 
     @SubscribeEvent(receiveCanceled = true)
@@ -336,22 +350,13 @@ public class RotationHandler {
         } else {
             throw new IllegalArgumentException("No target or rotation specified!");
         }
-//        if (target.getEntity() != null) {
-//            rot = getRotation(target.getEntity());
-//        } else if (target.getBlockPos() != null) {
-//            rot = getRotation(target.getBlockPos());
-//        } else if (target.getTarget().isPresent()) {
-//            rot = getRotation(target.getTarget().get());
-//        } else {
-//            throw new IllegalArgumentException("No target specified!");
-//        }
         startRotation.setPitch(serverSide ? serverSidePitch : mc.thePlayer.rotationPitch);
         startRotation.setYaw(serverSide ? serverSideYaw : mc.thePlayer.rotationYaw);
-        startTime = System.currentTimeMillis();
+//        startTime = System.currentTimeMillis();
         Rotation neededChange = getNeededChange(startRotation, rot);
         targetRotation.setYaw(startRotation.getYaw() + neededChange.getYaw());
         targetRotation.setPitch(startRotation.getPitch() + neededChange.getPitch());
-        delayBetweenTargetFollow.schedule(160 + Math.random() * 80);
+//        delayBetweenTargetFollow.schedule(160 + Math.random() * 80);
     }
 
     @SubscribeEvent(receiveCanceled = true)

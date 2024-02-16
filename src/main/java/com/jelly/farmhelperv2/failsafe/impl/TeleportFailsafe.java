@@ -15,6 +15,7 @@ import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.macro.AbstractMacro;
+import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
 import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
@@ -95,10 +96,6 @@ public class TeleportFailsafe extends Failsafe {
         if (!(event.packet instanceof S08PacketPlayerPosLook)) {
             return;
         }
-//        if (LagDetector.getInstance().isLagging() || LagDetector.getInstance().wasJustLagging()) {
-//            LogUtils.sendWarning("[Failsafe] Got rotation packet while lagging! Ignoring that one.");
-//            return;
-//        }
 
         if (AntiStuck.getInstance().isRunning()) {
             LogUtils.sendDebug("[Failsafe] Teleportation packet received while AntiStuck is running. Ignoring");
@@ -109,6 +106,10 @@ public class TeleportFailsafe extends Failsafe {
         Vec3 currentPlayerPos = mc.thePlayer.getPositionVector();
         Vec3 packetPlayerPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
         BlockPos packetPlayerBlockPos = new BlockPos(packetPlayerPos);
+        if (FlyPathFinderExecutor.getInstance().isRunning() && FlyPathFinderExecutor.getInstance().isPositionInCache(packetPlayerBlockPos)) {
+            LogUtils.sendDebug("[Failsafe] Teleport packet received while Fly pathfinder is running. Ignoring");
+            return;
+        }
         Optional<Tuple<BlockPos, AbstractMacro.State>> lastWalkedPosition = lastWalkedPositions.stream().filter(pos -> pos.getFirst().equals(packetPlayerBlockPos)).findFirst();
         if (lastWalkedPosition.isPresent()) {
             if (packetPlayerPos.distanceTo(currentPlayerPos) < 1) {

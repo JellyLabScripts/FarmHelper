@@ -101,6 +101,11 @@ public class FarmHelper {
             Notifications.INSTANCE.send("FarmHelper", "You don't have enough of RAM allocated to Minecraft need for pathfinder caching! Disabling it...", 15000);
             LogUtils.sendWarning("You don't have enough of RAM allocated to Minecraft need for pathfinder caching. Disabling it... It's recommended to have at least 4GB of RAM allocated to Minecraft to avoid stutters.");
         }
+        if (!FarmHelperConfig.flyPathfinderOringoCompatible && ReflectionUtils.hasModFile("oringo")) {
+            FarmHelperConfig.flyPathfinderOringoCompatible = true;
+            Notifications.INSTANCE.send("FarmHelper", "You've got Oringo installed in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.", 15000);
+            LogUtils.sendWarning("You've got §6§lOringo §cinstalled in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.");
+        }
         if (FarmHelperConfig.configVersion == 1)
             FarmHelperConfig.configVersion = 2;
         sentInfoAboutShittyClient = true;

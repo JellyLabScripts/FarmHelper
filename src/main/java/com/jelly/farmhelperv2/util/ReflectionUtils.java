@@ -1,7 +1,11 @@
 package com.jelly.farmhelperv2.util;
 
+import net.minecraft.client.Minecraft;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.util.Arrays;
 
 public class ReflectionUtils {
 
@@ -35,5 +39,11 @@ public class ReflectionUtils {
             }
         }
         return false;
+    }
+
+    public static boolean hasModFile(String name) {
+        Path modsDir = Minecraft.getMinecraft().mcDataDir.toPath().resolve("mods");
+        String[] modFiles = modsDir.toFile().list();
+        return modFiles != null && Arrays.stream(modFiles).anyMatch(modFile -> modFile.toLowerCase().contains(name.toLowerCase()));
     }
 }

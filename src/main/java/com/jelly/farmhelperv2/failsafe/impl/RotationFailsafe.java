@@ -12,6 +12,7 @@ import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
+import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
 import com.jelly.farmhelperv2.util.AngleUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Rotation;
@@ -66,10 +67,6 @@ public class RotationFailsafe extends Failsafe {
         if (!(event.packet instanceof S08PacketPlayerPosLook)) {
             return;
         }
-//        if (LagDetector.getInstance().isLagging() || LagDetector.getInstance().wasJustLagging()) {
-//            LogUtils.sendWarning("[Failsafe] Got rotation packet while lagging! Ignoring that one.");
-//            return;
-//        }
 
         if (AntiStuck.getInstance().isRunning()) {
             LogUtils.sendDebug("[Failsafe] Rotation packet received while AntiStuck is running. Ignoring");
@@ -83,6 +80,10 @@ public class RotationFailsafe extends Failsafe {
         double playerPitch = mc.thePlayer.rotationPitch;
         double yawDiff = Math.abs(packetYaw - playerYaw);
         double pitchDiff = Math.abs(packetPitch - playerPitch);
+        if (FlyPathFinderExecutor.getInstance().isRunning() && FlyPathFinderExecutor.getInstance().isRotationInCache((float) packetYaw, (float) packetPitch)) {
+            LogUtils.sendDebug("[Failsafe] Rotation packet received while Fly pathfinder is running. Ignoring");
+            return;
+        }
         double threshold = FarmHelperConfig.rotationCheckSensitivity;
         if (yawDiff == 360 && pitchDiff == 0) // prevents false checks
             return;

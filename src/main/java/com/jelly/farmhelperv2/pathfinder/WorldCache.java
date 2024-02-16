@@ -68,7 +68,7 @@ public class WorldCache {
     public void onPacketReceive(ReceivePacketEvent event) {
         if (mc.theWorld == null) return;
         if (!FarmHelperConfig.useCachingInFlyPathfinder) return;
-        if (!GameStateHandler.getInstance().getLocation().equals(GameStateHandler.Location.TELEPORTING) && !GameStateHandler.getInstance().inGarden())
+        if (!GameStateHandler.getInstance().getLocation().equals(GameStateHandler.Location.TELEPORTING) && !GameStateHandler.getInstance().getLocation().equals(GameStateHandler.Location.GARDEN))
             return;
 
 

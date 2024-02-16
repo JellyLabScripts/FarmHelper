@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.pathfinder;
 import baritone.api.BaritoneAPI;
 import baritone.pathing.movement.CalculationContext;
 import cc.polyfrost.oneconfig.utils.Multithreading;
+import com.google.common.collect.EvictingQueue;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.mixin.client.EntityPlayerAccessor;
@@ -26,6 +27,7 @@ import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -77,6 +79,9 @@ public class FlyPathFinderExecutor {
     @Setter
     private boolean dontRotate = false;
     private CalculationContext context;
+    private final EvictingQueue<Position> lastPositions = EvictingQueue.create(100);
+    private Position lastPosition;
+
 
     public void findPath(Vec3 pos, boolean follow, boolean smooth) {
         if (mc.thePlayer.getDistance(pos.xCoord, pos.yCoord, pos.zCoord) < 1) {
@@ -84,6 +89,9 @@ public class FlyPathFinderExecutor {
             LogUtils.sendSuccess("Already at destination");
             return;
         }
+        lastPositions.clear();
+        lastPosition = new Position(mc.thePlayer.getPosition(), new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch));
+        lastPositions.add(lastPosition);
         state = State.CALCULATING;
         this.follow = follow;
         this.target = pos;
@@ -168,7 +176,15 @@ public class FlyPathFinderExecutor {
         findPath(targetNextPos.addVector(0, this.yModifier, 0), follow, smooth);
     }
 
-    public List<Vec3> smoothPath(List<Vec3> path) {
+    public boolean isRotationInCache(float yaw, float pitch) {
+        return lastPositions.stream().anyMatch(position -> Math.abs(position.rotation.getYaw() - yaw) < 1 && Math.abs(position.rotation.getPitch() - pitch) < 1);
+    }
+
+    public boolean isPositionInCache(BlockPos pos) {
+        return lastPositions.stream().anyMatch(position -> position.pos.equals(pos));
+    }
+
+    private List<Vec3> smoothPath(List<Vec3> path) {
         if (path.size() < 2) {
             return path;
         }
@@ -201,7 +217,7 @@ public class FlyPathFinderExecutor {
             new Vec3(0.9, 0, 0.9)
     };
 
-    public boolean traversable(Vec3 from, Vec3 to) {
+    private boolean traversable(Vec3 from, Vec3 to) {
         for (Vec3 offset : BLOCK_SIDE_MULTIPLIERS) {
             Vec3 fromVec = new Vec3(from.xCoord + offset.xCoord, from.yCoord + offset.yCoord, from.zCoord + offset.zCoord);
             Vec3 toVec = new Vec3(to.xCoord + offset.xCoord, to.yCoord + offset.yCoord, to.zCoord + offset.zCoord);
@@ -327,6 +343,9 @@ public class FlyPathFinderExecutor {
         }
         if (stuckBreak.isScheduled() && !stuckBreak.passed()) return;
         Vec3 current = mc.thePlayer.getPositionVector();
+        BlockPos currentPos = mc.thePlayer.getPosition();
+        lastPosition = new Position(currentPos, new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch));
+        lastPositions.add(lastPosition);
         if (checkForStuck(current)) {
             LogUtils.sendDebug("Stuck");
             stuckBreak.schedule(800);
@@ -353,16 +372,18 @@ public class FlyPathFinderExecutor {
             return;
         }
         if (targetEntity != null) {
-            System.out.println(mc.thePlayer.getPositionVector().distanceTo(targetEntity.getPositionVector().addVector(0, this.yModifier, 0)));
             float velocity = (float) Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
+            float entityVelocity = (float) Math.sqrt(targetEntity.motionX * targetEntity.motionX + targetEntity.motionZ * targetEntity.motionZ);
             Vec3 targetPos = targetEntity.getPositionVector().addVector(0, this.yModifier, 0);
             float distance = (float) mc.thePlayer.getPositionVector().distanceTo(targetPos);
             System.out.println("Velo: " + velocity);
             System.out.println("TargetPos: " + targetPos);
-            if (shouldDecelerate(velocity, targetPos)) {
-                stopAndDecelerate();
-                return;
-            } else if (velocity > 0.25 && distance < 2) {
+            System.out.println("Distance: " + distance);
+            System.out.println("EntityVelo: " + entityVelocity);
+            if (entityVelocity > 0.2) {
+                targetPos = targetPos.addVector(targetEntity.motionX * 1.5, targetEntity.motionY, targetEntity.motionZ * 1.5);
+            }
+            if (willArriveAtDestinationAfterStopping(velocity, targetPos)) {
                 stop();
                 return;
             }
@@ -435,7 +456,7 @@ public class FlyPathFinderExecutor {
             KeyBindUtils.stopMovement(true);
     }
 
-    private boolean shouldDecelerate(float velocity, Vec3 targetPos) {
+    private boolean willArriveAtDestinationAfterStopping(float velocity, Vec3 targetPos) {
         Vec3 stoppingPosition = predictStoppingPosition();
         double stoppingDistance = stoppingPosition.distanceTo(targetPos);
         return stoppingDistance < 0.5 && velocity > 0.1;
@@ -602,7 +623,7 @@ public class FlyPathFinderExecutor {
             Vec3 closestToPlayer = path.stream().min(Comparator.comparingDouble(vec -> vec.distanceTo(current))).orElse(path.get(0));
             return path.get(path.indexOf(closestToPlayer) + 1);
         } catch (IndexOutOfBoundsException e) {
-            return path.get(Math.max(0, path.size() - 1));
+            return mc.thePlayer.getPositionVector();
         }
     }
 
@@ -613,5 +634,15 @@ public class FlyPathFinderExecutor {
         PATHING,
         DECELERATING,
         WAITING_FOR_DECELERATION
+    }
+
+    public static class Position {
+        public BlockPos pos;
+        public Rotation rotation;
+
+        Position(BlockPos pos, Rotation rotation) {
+            this.pos = pos;
+            this.rotation = rotation;
+        }
     }
 }
