@@ -85,22 +85,17 @@ public class RotationHandler {
 
     private float getTime(float pythagoras, float time) {
         if (pythagoras < 25) {
-            LogUtils.sendDebug("[Rotation] Very close rotation, speeding up by 0.65");
             return (long) (time * 0.65);
         }
         if (pythagoras < 45) {
-            LogUtils.sendDebug("[Rotation] Close rotation, speeding up by 0.77");
             return (long) (time * 0.77);
         }
         if (pythagoras < 80) {
-            LogUtils.sendDebug("[Rotation] Not so close, but not that far rotation, speeding up by 0.9");
             return (long) (time * 0.9);
         }
         if (pythagoras > 100) {
-            LogUtils.sendDebug("[Rotation] Far rotation, slowing down by 1.1");
             return (long) (time * 1.1);
         }
-        LogUtils.sendDebug("[Rotation] Normal rotation");
         return (long) (time * 1.0);
     }
 
@@ -271,18 +266,16 @@ public class RotationHandler {
             return;
         }
 
-        if (configuration.followTarget() && configuration.target().isPresent() && delayBetweenTargetFollow.passed()) {
+        if (configuration.followTarget() && configuration.target().isPresent()) {
             adjustTargetRotation(false);
             float currentYaw = mc.thePlayer.rotationYaw;
             float currentPitch = mc.thePlayer.rotationPitch;
             if (shouldRotate(targetRotation, 0.1f)) {
                 float needYaw = (targetRotation.getYaw() - currentYaw);
                 float needPitch = (targetRotation.getPitch() - currentPitch);
-                System.out.println("Need yaw: " + needYaw + " need pitch: " + needPitch);
                 float pythagoras = pythagoras(Math.abs(needYaw), Math.abs(needPitch));
-                needYaw *= (float) (Math.random() * 0.04f + getTime(pythagoras, 0.055f));
-                needPitch *= (float) (Math.random() * 0.04f + getTime(pythagoras, 0.055f));
-                System.out.println("Scaled Need yaw: " + needYaw + " Scaled need pitch: " + needPitch);
+                needYaw *= (float) (Math.random() * 0.04f + getTime(pythagoras, 0.065f));
+                needPitch *= (float) (Math.random() * 0.04f + getTime(pythagoras, 0.065f));
                 mc.thePlayer.rotationYaw += needYaw;
                 mc.thePlayer.rotationPitch += needPitch;
             }
@@ -352,11 +345,11 @@ public class RotationHandler {
         }
         startRotation.setPitch(serverSide ? serverSidePitch : mc.thePlayer.rotationPitch);
         startRotation.setYaw(serverSide ? serverSideYaw : mc.thePlayer.rotationYaw);
-//        startTime = System.currentTimeMillis();
+        startTime = System.currentTimeMillis();
         Rotation neededChange = getNeededChange(startRotation, rot);
         targetRotation.setYaw(startRotation.getYaw() + neededChange.getYaw());
         targetRotation.setPitch(startRotation.getPitch() + neededChange.getPitch());
-//        delayBetweenTargetFollow.schedule(160 + Math.random() * 80);
+        delayBetweenTargetFollow.schedule(160 + Math.random() * 80);
     }
 
     @SubscribeEvent(receiveCanceled = true)

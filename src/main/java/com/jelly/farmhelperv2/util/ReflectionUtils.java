@@ -44,6 +44,6 @@ public class ReflectionUtils {
     public static boolean hasModFile(String name) {
         Path modsDir = Minecraft.getMinecraft().mcDataDir.toPath().resolve("mods");
         String[] modFiles = modsDir.toFile().list();
-        return modFiles != null && Arrays.stream(modFiles).anyMatch(modFile -> modFile.toLowerCase().contains(name.toLowerCase()));
+        return modFiles != null && Arrays.stream(modFiles).anyMatch(modFile -> modFile.toLowerCase().contains(name.toLowerCase()) && !modFile.toLowerCase().endsWith(".disabled"));
     }
 }

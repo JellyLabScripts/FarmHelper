@@ -1954,13 +1954,16 @@ public class FarmHelperConfig extends Config {
 //            if (objectMouseOver == null || objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY)
 //                return;
 //            Entity entity = objectMouseOver.entityHit;
-//            RotationHandler.getInstance().easeTo(
-//                    new RotationConfiguration(
-//                            new Target(entity),
-//                            0,
-//                            null
-//                    ).followTarget(true)
-//            );
+//            Multithreading.schedule(() -> {
+//                RotationHandler.getInstance().easeTo(
+//                        new RotationConfiguration(
+//                                new Target(entity),
+//                                1000,
+//                                RotationConfiguration.RotationType.SERVER,
+//                                null
+//                        ).followTarget(true)
+//                );
+//            }, 2, TimeUnit.SECONDS);
         });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());

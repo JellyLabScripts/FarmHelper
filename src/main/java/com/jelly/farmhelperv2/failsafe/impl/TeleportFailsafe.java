@@ -141,12 +141,6 @@ public class TeleportFailsafe extends Failsafe {
             return;
         }
 
-//        if (BlockUtils.cropAroundAmount(packetPlayerBlockPos) > 5) {
-//            LogUtils.sendDebug("[Failsafe] Still in the farm! Not reacting");
-//            LogUtils.sendFailsafeMessage("[Failsafe] You probably got tp check forward into farm! Not reacting", shouldTagEveryone());
-//            return;
-//        }
-
         rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
         double distance = currentPlayerPos.distanceTo(packetPlayerPos);
         LogUtils.sendDebug("[Failsafe] Teleport 2 detected! Distance: " + distance);

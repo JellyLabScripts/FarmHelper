@@ -98,7 +98,7 @@ public class WorldCache {
                     BlockPos pos = new BlockPos(x + coordinate.x * 16, y, z + coordinate.z * 16);
                     BlockPos chunkPos = new BlockPos(x, y, z);
                     IBlockState chunkState = c.getBlockState(chunkPos);
-                    if (!BlockUtils.blockHasCollision(pos, chunkState, chunkState.getBlock())) {
+                    if (!BlockUtils.blockHasCollision(pos, chunkState, chunkState.getBlock(), c.getWorld())) {
                         worldCache.put(pos, new CacheEntry(chunkState.getBlock(), pos, BlockUtils.PathNodeType.OPEN));
                     } else {
                         worldCache.put(pos, new CacheEntry(chunkState.getBlock(), pos, BlockUtils.PathNodeType.BLOCKED));

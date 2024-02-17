@@ -103,10 +103,10 @@ public class PlotUtils {
 
     public static BlockPos getPlotCenter(int plotNumber) {
         List<Tuple<Integer, Integer>> chunks = getPlotBasedOnNumber(plotNumber);
-        int minX = chunks.get(0).getFirst();
-        int maxX = chunks.get(0).getFirst();
-        int minZ = chunks.get(chunks.size() - 1).getSecond();
-        int maxZ = chunks.get(chunks.size() - 1).getSecond();
+        int minX = chunks.get(0).getFirst() * 16;
+        int maxX = chunks.get(chunks.size() - 1).getFirst() * 16;
+        int minZ = chunks.get(0).getSecond() * 16;
+        int maxZ = chunks.get(chunks.size() - 1).getSecond() * 16;
         float centerX = (float) (minX + (maxX - minX) / 2);
         float centerZ = (float) (minZ + (maxZ - minZ) / 2);
         return new BlockPos(centerX, 80, centerZ);

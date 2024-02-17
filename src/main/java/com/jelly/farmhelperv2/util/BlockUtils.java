@@ -15,6 +15,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.*;
 import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -317,7 +318,7 @@ public class BlockUtils {
         return !mc.theWorld.getBlockState(blockPos).getBlock().isPassable(mc.theWorld, blockPos) || axisAlignedBB != null;
     }
 
-    public static boolean blockHasCollision(BlockPos blockPos, IBlockState blockState, Block block) {
+    public static boolean blockHasCollision(BlockPos blockPos, IBlockState blockState, Block block, IBlockAccess blockAccess) {
         if (block.equals(Blocks.air) || block.equals(Blocks.water) || block.equals(Blocks.flowing_water)) {
             return false;
         }
@@ -326,35 +327,11 @@ public class BlockUtils {
             return false;
         }
 
-        return true;
-
-//        if (CropUtils.isCrop(block) && !block.equals(Blocks.melon_block) && !block.equals(Blocks.pumpkin) && !block.equals(Blocks.cactus) && !block.equals(Blocks.cocoa)) {
-//            return false;
-//        }
-
-//        return true;
-
-//        if (block instanceof BlockStainedGlass || block instanceof BlockStainedGlassPane) {
-//            return true;
-//        }
-//
-//        if (block instanceof BlockSlab && !block.equals(Blocks.double_stone_slab) && !block.equals(Blocks.double_wooden_slab) && !block.equals(Blocks.double_stone_slab2)) {
-//            return true;
-//        }
-//
-//        if (block instanceof BlockFence) {
-//            return true;
-//        }
-//
-//        if (block instanceof BlockDoor) {
-//            return true;
-//        }
-//
-//        if (!block.isPassable(mc.theWorld, blockPos)) {
-//            return true;
-//        }
-//        AxisAlignedBB axisAlignedBB = block.getCollisionBoundingBox(mc.theWorld, blockPos, blockState);
-//        return axisAlignedBB != null;
+        try {
+            return !block.isPassable(blockAccess, blockPos) || block.getCollisionBoundingBox((World) blockAccess, blockPos, blockState) != null;
+        } catch (Exception e) {
+            return true;
+        }
     }
 
     public static boolean canWalkThroughDoor(Direction direction) {
@@ -831,7 +808,7 @@ public class BlockUtils {
             if (pathnodetype.getBlock().equals(blockaccess.getBlockState(blockpos).getBlock()))
                 return pathnodetype.getPathNodeType() == PathNodeType.OPEN;
         }
-        if (blockHasCollision(blockpos, blockState, block)) {
+        if (blockHasCollision(blockpos, blockState, block, blockaccess)) {
             WorldCache.getInstance().getWorldCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.BLOCKED));
             if (block instanceof BlockFenceGate) {
                 WorldCache.getInstance().getWorldCache().put(blockpos.up(), new WorldCache.CacheEntry(blockaccess.getBlockState(blockpos.up()).getBlock(), blockpos.up(), PathNodeType.BLOCKED));

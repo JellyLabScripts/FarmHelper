@@ -89,7 +89,6 @@ public class FlyPathFinderExecutor {
             LogUtils.sendSuccess("Already at destination");
             return;
         }
-        lastPositions.clear();
         lastPosition = new Position(mc.thePlayer.getPosition(), new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch));
         lastPositions.add(lastPosition);
         state = State.CALCULATING;
@@ -181,7 +180,7 @@ public class FlyPathFinderExecutor {
     }
 
     public boolean isPositionInCache(BlockPos pos) {
-        return lastPositions.stream().anyMatch(position -> position.pos.equals(pos));
+        return lastPositions.stream().anyMatch(position -> position.pos.equals(pos) || Math.sqrt(position.pos.distanceSq(pos)) < 1);
     }
 
     private List<Vec3> smoothPath(List<Vec3> path) {
@@ -431,10 +430,10 @@ public class FlyPathFinderExecutor {
             } else if (verticalDirection.equals(VerticalDirection.LOWER)) {
                 keyBindings.add(mc.gameSettings.keyBindSneak);
                 System.out.println("Lowering 1");
-            } else if ((getBlockUnder() instanceof BlockCactus || distanceY > 0.201) && (((EntityPlayerAccessor) mc.thePlayer).getFlyToggleTimer() == 0 || mc.gameSettings.keyBindJump.isKeyDown())) {
+            } else if ((getBlockUnder() instanceof BlockCactus || distanceY > 0.25) && (((EntityPlayerAccessor) mc.thePlayer).getFlyToggleTimer() == 0 || mc.gameSettings.keyBindJump.isKeyDown())) {
                 keyBindings.add(mc.gameSettings.keyBindJump);
                 System.out.println("Raising 2");
-            } else if (distanceY < -0.201) {
+            } else if (distanceY < -0.25) {
                 Block blockUnder = getBlockUnder();
                 if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.isFlying && !(blockUnder instanceof BlockCactus) && !(blockUnder instanceof BlockSoulSand)) {
                     keyBindings.add(mc.gameSettings.keyBindSneak);
@@ -521,12 +520,12 @@ public class FlyPathFinderExecutor {
             return VerticalDirection.NONE;
         }
         Vec3 directionGoing = AngleUtils.getVectorForRotation(0, neededYaw);
-        Vec3 target = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.6, 0, directionGoing.zCoord * 0.6);
+        Vec3 target = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.6, -0.05, directionGoing.zCoord * 0.6);
         MovingObjectPosition trace = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), target, false, true, false);
         if (trace != null && trace.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             return VerticalDirection.HIGHER;
         }
-        Vec3 targetUp = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.6, mc.thePlayer.height, directionGoing.zCoord * 0.6);
+        Vec3 targetUp = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.6, mc.thePlayer.height + 0.05, directionGoing.zCoord * 0.6);
         MovingObjectPosition traceUp = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), targetUp, false, true, false);
         if (traceUp != null && traceUp.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             return VerticalDirection.LOWER;
@@ -581,7 +580,12 @@ public class FlyPathFinderExecutor {
             flyDelay.schedule(80 + (long) (Math.random() * 80));
             return true;
         } else {
-            Vec3 closestToPlayer = path.stream().min((vec1, vec2) -> (int) (vec1.distanceTo(mc.thePlayer.getPositionVector()) - vec2.distanceTo(mc.thePlayer.getPositionVector()))).orElse(path.get(0));
+            Vec3 closestToPlayer;
+            try {
+                closestToPlayer = path.stream().min((vec1, vec2) -> (int) (vec1.distanceTo(mc.thePlayer.getPositionVector()) - vec2.distanceTo(mc.thePlayer.getPositionVector()))).orElse(path.get(0));
+            } catch (IndexOutOfBoundsException e) {
+                return false;
+            }
             if (next.yCoord - closestToPlayer.yCoord > 0.5) {
                 if (!flyDelay.isScheduled()) {
                     flyDelay.schedule(80 + (long) (Math.random() * 80));
