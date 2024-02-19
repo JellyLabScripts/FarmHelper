@@ -6,7 +6,7 @@ plugins {
     id("cc.polyfrost.loom") version "0.10.0.+"
     id("dev.architectury.architectury-pack200") version "0.1.3"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("io.freefair.lombok") version "8.4"
+    id("io.freefair.lombok") version "8.6"
     id("net.kyori.blossom") version "1.3.1"
 }
 
