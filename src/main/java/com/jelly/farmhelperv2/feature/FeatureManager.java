@@ -41,7 +41,8 @@ public class FeatureManager {
                 ProfitCalculator.getInstance(),
                 Scheduler.getInstance(),
                 UngrabMouse.getInstance(),
-                VisitorsMacro.getInstance()
+                VisitorsMacro.getInstance(),
+                RewardClaimer.getInstance()
         );
         features.addAll(featuresList);
         return features;
