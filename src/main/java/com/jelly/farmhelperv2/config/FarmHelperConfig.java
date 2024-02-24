@@ -262,7 +262,7 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="Miscellaneous">
     @Switch(
-            name = "Reward Claimer", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+            name = "Reward Claimer (BETA)", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "Automatically claims contest rewards once you open Jacob's GUI"
     )
     public static boolean rewardClaimer = false;
