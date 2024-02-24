@@ -690,6 +690,12 @@ public class FarmHelperConfig extends Config {
             description = "Prevents the macro from getting stuck in the same position"
     )
     public static boolean enableAntiStuck = true;
+    @Slider(
+            name = "Anti Stuck Tries Until Rewarp", category = FAILSAFE, subcategory = "Anti Stuck",
+            description = "The number of tries until rewarp",
+            min = 3, max = 10
+    )
+    public static int antiStuckTriesUntilRewarp = 5;
     //</editor-fold>
 
     //<editor-fold desc="Failsafe Messages">
@@ -1917,6 +1923,8 @@ public class FarmHelperConfig extends Config {
         this.addDependency("banwaveThresholdType", "enableLeavePauseOnBanwave");
         this.addDependency("delayBeforeReconnecting", "enableLeavePauseOnBanwave");
         this.addDependency("banwaveDontLeaveDuringJacobsContest", "enableLeavePauseOnBanwave");
+
+        this.addDependency("antiStuckTriesUntilRewarp", "enableAntiStuck");
 
         this.addDependency("sendWebhookLogIfPestsDetectionNumberExceeded", "enableWebHook");
         this.addDependency("pingEveryoneOnPestsDetectionNumberExceeded", "sendWebhookLogIfPestsDetectionNumberExceeded");

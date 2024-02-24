@@ -48,6 +48,7 @@ public class AntiStuck implements IFeature {
     @Getter
     @Setter
     private int lagBackCounter = 0;
+    private int unstuckTries = 0;
 
     public static AntiStuck getInstance() {
         if (instance == null) {
@@ -102,11 +103,13 @@ public class AntiStuck implements IFeature {
         unstuckState = UnstuckState.NONE;
         intersectingBlockPos = null;
         directionBlockPos = null;
+        unstuckTries++;
     }
 
     @Override
     public void resetStatesAfterMacroDisabled() {
         lagBackCounter = 0;
+        unstuckTries = 0;
     }
 
     @Override
@@ -183,6 +186,10 @@ public class AntiStuck implements IFeature {
         return Optional.empty();
     }
 
+    public void resetUnstuckTries() {
+        unstuckTries = 0;
+    }
+
     @SubscribeEvent
     public void onTickUnstuck(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) return;
@@ -221,7 +228,8 @@ public class AntiStuck implements IFeature {
                 List<KeyBinding> keys;
                 if (intersectingBlockPos != null) {
                     Optional<EnumFacing> closestSide = findClosestSide(intersectingBlockPos);
-                    if (!closestSide.isPresent()) {
+                    if (!closestSide.isPresent() || unstuckTries > FarmHelperConfig.antiStuckTriesUntilRewarp) {
+                        unstuckTries = 0;
                         LogUtils.sendError("[Anti Stuck] Can't unstuck from this place. That's a rare occurrence. Warping back to spawn...");
                         MacroHandler.getInstance().triggerWarpGarden(true, true);
                         unstuckState = UnstuckState.DISABLE;

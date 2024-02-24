@@ -2,6 +2,7 @@ package com.jelly.farmhelperv2.hud;
 
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
+import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.failsafe.impl.GuestVisitFailsafe;
@@ -26,7 +27,7 @@ public class DebugHUD extends TextHud {
     @Override
     protected void getLines(List<String> lines, boolean example) {
         if (!FarmHelperConfig.debugMode) return;
-        lines.add("§lFarmHelper Debug HUD");
+        lines.add("§lFarmHelper v" + FarmHelper.VERSION + " Debug HUD");
         lines.add("wasGuestOnGarden: " + GuestVisitFailsafe.getInstance().wasGuestOnGarden);
         lines.add("Jacob's Contest Collected: " + GameStateHandler.getInstance().getJacobsContestCropNumber());
         if (MovRecPlayer.getInstance().isRunning()) {
@@ -92,7 +93,7 @@ public class DebugHUD extends TextHud {
             lines.add("Emergency: " + (FailsafeManager.getInstance().triggeredFailsafe.map(failsafe -> failsafe.getType().name()).orElse("None")));
         if (VisitorsMacro.getInstance().isRunning()) {
             lines.add("Visitors Macro");
-            lines.add("   State: " + VisitorsMacro.getInstance().getVisitorsState());
+            lines.add("   State: " + VisitorsMacro.getInstance().getMainState());
             lines.add("   Travel State: " + VisitorsMacro.getInstance().getTravelState());
             lines.add("   Compactor State: " + VisitorsMacro.getInstance().getCompactorState());
             lines.add("   Visitors State: " + VisitorsMacro.getInstance().getVisitorsState());
