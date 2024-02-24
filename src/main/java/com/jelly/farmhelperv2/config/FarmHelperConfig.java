@@ -261,6 +261,11 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     //<editor-fold desc="Miscellaneous">
+    @Switch(
+            name = "Reward Claimer", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+            description = "Automatically claims contest rewards once you open Jacob's GUI"
+    )
+    public static boolean rewardClaimer = false;
     @DualOption(
             name = "AutoUpdater Version Type", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "The version type to use",
