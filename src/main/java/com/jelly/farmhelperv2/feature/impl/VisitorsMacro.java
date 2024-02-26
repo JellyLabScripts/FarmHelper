@@ -197,7 +197,7 @@ public class VisitorsMacro implements IFeature {
 
     @Override
     public boolean shouldCheckForFailsafes() {
-        return travelState != TravelState.WAIT_FOR_TP && mainState != MainState.DISABLING && mainState != MainState.END && compactorState == CompactorState.NONE;
+        return travelState != TravelState.WAIT_FOR_TP && mainState != MainState.DISABLED && mainState != MainState.END && compactorState == CompactorState.NONE;
     }
 
     @SubscribeEvent
@@ -236,8 +236,7 @@ public class VisitorsMacro implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return false;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return false;
 
-        if (VisitorsMacro.getInstance().getMainState() == VisitorsMacro.MainState.DISABLING
-        || VisitorsMacro.getInstance().getMainState() == VisitorsMacro.MainState.END) {
+        if (VisitorsMacro.getInstance().getMainState() == VisitorsMacro.MainState.END) {
             // if (withError) LogUtils.sendError("[Visitors Macro] The macro is currently disabling, skipping...");
             return false;
         }
@@ -380,16 +379,18 @@ public class VisitorsMacro implements IFeature {
                 onVisitorsState();
                 break;
             case END:
-                setMainState(MainState.DISABLING);
                 tries = 0;
                 if (FarmHelperConfig.visitorsMacroAfkInfiniteMode) {
                     LogUtils.sendWarning("[Visitors Macro] The macro has finished. Waiting 15 seconds for visitors to spawn...");
                     afkDelay.schedule(15_000);
+                    setMainState(MainState.DISABLED);
                     stop();
                 } else if (manuallyStarted) {
+                    setMainState(MainState.DISABLED);
                     stop();
                 } else {
                     Multithreading.schedule(() -> {
+                        setMainState(MainState.DISABLED);
                         MacroHandler.getInstance().triggerWarpGarden(true, true);
                         Multithreading.schedule(() -> {
                             stop();
@@ -398,7 +399,7 @@ public class VisitorsMacro implements IFeature {
                     }, 500, TimeUnit.MILLISECONDS);
                 }
                 break;
-            case DISABLING:
+            case DISABLED:
                 break;
         }
     }
@@ -1414,7 +1415,7 @@ public class VisitorsMacro implements IFeature {
         COMPACTORS,
         VISITORS,
         END,
-        DISABLING
+        DISABLED
     }
 
     enum TravelState {
