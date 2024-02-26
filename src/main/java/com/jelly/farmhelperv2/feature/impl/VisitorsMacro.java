@@ -117,7 +117,7 @@ public class VisitorsMacro implements IFeature {
         }
         MacroHandler.getInstance().getCurrentMacro().ifPresent(macro -> macro.getRotation().reset());
         if (forceStart)
-            mainState = (compactorsDisabled ? MainState.COMPACTORS : MainState.NONE);
+            mainState = (compactorsDisabled ? MainState.VISITORS : MainState.NONE);
         else {
             mainState = MainState.NONE;
             compactorsDisabled = false;
