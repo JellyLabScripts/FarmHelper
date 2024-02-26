@@ -27,7 +27,7 @@ public class MixinPlayerControllerMP {
     @Shadow
     private int blockHitDelay;
 
-    @Inject(method = {"clickBlock"}, at = {@At(value = "HEAD")})
+    @Inject(method = {"clickBlock"}, at = {@At(value = "TAIL")})
     public void clickBlock(BlockPos loc, EnumFacing face, CallbackInfoReturnable<Boolean> cir) {
         Block block = Minecraft.getMinecraft().theWorld.getBlockState(loc).getBlock();
         ClickedBlockEvent event = new ClickedBlockEvent(loc, face, block);
