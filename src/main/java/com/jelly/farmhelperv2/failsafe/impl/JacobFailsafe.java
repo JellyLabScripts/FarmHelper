@@ -131,6 +131,7 @@ public class JacobFailsafe extends Failsafe {
     @Override
     public void endOfFailsafeTrigger() {
         FailsafeManager.getInstance().stopFailsafes();
+        FailsafeManager.getInstance().setHadEmergency(false);
         MacroHandler.getInstance().resumeMacro();
     }
 }
