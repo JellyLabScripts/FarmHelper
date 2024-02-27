@@ -1014,6 +1014,7 @@ public class PestsDestroyer implements IFeature {
 
         for (Map.Entry<Plot, Integer> plotNumber : pestsPlotMap.entrySet()) {
             List<Tuple<Integer, Integer>> chunks = PlotUtils.getPlotBasedOnNumber(plotNumber.getKey().plotNumber);
+            if (chunks == null) continue;
             AxisAlignedBB boundingBox = new AxisAlignedBB(chunks.get(0).getFirst() * 16, 66, chunks.get(0).getSecond() * 16, chunks.get(chunks.size() - 1).getFirst() * 16 + 16, 80, chunks.get(chunks.size() - 1).getSecond() * 16 + 16);
             double d0 = Minecraft.getMinecraft().getRenderManager().viewerPosX;
             double d1 = Minecraft.getMinecraft().getRenderManager().viewerPosY;

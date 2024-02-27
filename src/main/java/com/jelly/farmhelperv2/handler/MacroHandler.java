@@ -13,6 +13,7 @@ import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.jelly.farmhelperv2.macro.AbstractMacro;
 import com.jelly.farmhelperv2.macro.impl.*;
+import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
@@ -126,6 +127,8 @@ public class MacroHandler {
             } else {
                 BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
             }
+            if (FlyPathFinderExecutor.getInstance().isRunning())
+                FlyPathFinderExecutor.getInstance().stop();
             if (VisitorsMacro.getInstance().isRunning() || FarmHelperConfig.visitorsMacroAfkInfiniteMode) {
                 if (FarmHelperConfig.visitorsMacroAfkInfiniteMode) {
                     LogUtils.sendWarning("[Visitors Macro] Disabling AFK Mode!");
