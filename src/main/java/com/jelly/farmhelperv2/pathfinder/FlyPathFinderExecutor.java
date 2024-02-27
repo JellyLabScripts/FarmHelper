@@ -382,7 +382,7 @@ public class FlyPathFinderExecutor {
             if (entityVelocity > 0.2) {
                 targetPos = targetPos.addVector(targetEntity.motionX * 1.5, targetEntity.motionY, targetEntity.motionZ * 1.5);
             }
-            if (willArriveAtDestinationAfterStopping(velocity, targetPos)) {
+            if (willArriveAtDestinationAfterStopping(targetPos)) {
                 stop();
                 return;
             }
@@ -455,10 +455,8 @@ public class FlyPathFinderExecutor {
             KeyBindUtils.stopMovement(true);
     }
 
-    private boolean willArriveAtDestinationAfterStopping(float velocity, Vec3 targetPos) {
-        Vec3 stoppingPosition = predictStoppingPosition();
-        double stoppingDistance = stoppingPosition.distanceTo(targetPos);
-        return stoppingDistance < 0.5 && velocity > 0.1;
+    private boolean willArriveAtDestinationAfterStopping(Vec3 targetPos) {
+        return predictStoppingPosition().distanceTo(targetPos) < 0.5;
     }
 
     private Vec3 predictStoppingPosition() {

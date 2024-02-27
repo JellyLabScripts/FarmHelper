@@ -474,6 +474,7 @@ public class MacroHandler {
             }
             currentMacro.ifPresent(cm -> cm.setRewarpState(AbstractMacro.RewarpState.TELEPORTING));
             setBeforeTeleportationPos(Optional.ofNullable(mc.thePlayer.getPosition()));
+            AntiStuck.getInstance().resetUnstuckTries();
             LogUtils.sendDebug("Before tp location: " + beforeTeleportationPos);
             this.rewarpTeleport = rewarpTeleport;
             LogUtils.sendDebug("Warping to spawn point");

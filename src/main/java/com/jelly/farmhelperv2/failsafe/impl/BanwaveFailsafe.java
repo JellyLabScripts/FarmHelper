@@ -87,6 +87,7 @@ public class BanwaveFailsafe extends Failsafe {
     public void endOfFailsafeTrigger() {
         LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because banwave is over!", false);
         FailsafeManager.getInstance().stopFailsafes();
+        FailsafeManager.getInstance().setHadEmergency(false);
         MacroHandler.getInstance().resumeMacro();
     }
 

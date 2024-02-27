@@ -146,6 +146,10 @@ public class LowerAvgBpsFailsafe extends Failsafe {
         return averageBPS;
     }
 
+    public void clearQueue() {
+        bpsQueue.clear();
+    }
+
     enum LowerBPSState {
         NONE,
         WAIT_BEFORE_START,

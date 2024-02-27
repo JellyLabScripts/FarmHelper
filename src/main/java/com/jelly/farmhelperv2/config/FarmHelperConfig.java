@@ -11,6 +11,7 @@ import com.jelly.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -261,6 +262,11 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     //<editor-fold desc="Miscellaneous">
+    @Switch(
+            name = "Reward Claimer (BETA)", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+            description = "Automatically claims contest rewards once you open Jacob's GUI"
+    )
+    public static boolean rewardClaimer = false;
     @DualOption(
             name = "AutoUpdater Version Type", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "The version type to use",
@@ -441,6 +447,8 @@ public class FarmHelperConfig extends Config {
         if (testFailsafeTypeSelected == 0)
             FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected));
         else
+            if (testFailsafeTypeSelected != 6)
+                LowerAvgBpsFailsafe.getInstance().clearQueue(); // Clear the queue to avoid false positives
             FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected + 2));
     };
 
@@ -690,6 +698,12 @@ public class FarmHelperConfig extends Config {
             description = "Prevents the macro from getting stuck in the same position"
     )
     public static boolean enableAntiStuck = true;
+    @Slider(
+            name = "Anti Stuck Tries Until Rewarp", category = FAILSAFE, subcategory = "Anti Stuck",
+            description = "The number of tries until rewarp",
+            min = 3, max = 10
+    )
+    public static int antiStuckTriesUntilRewarp = 5;
     //</editor-fold>
 
     //<editor-fold desc="Failsafe Messages">
@@ -1917,6 +1931,8 @@ public class FarmHelperConfig extends Config {
         this.addDependency("banwaveThresholdType", "enableLeavePauseOnBanwave");
         this.addDependency("delayBeforeReconnecting", "enableLeavePauseOnBanwave");
         this.addDependency("banwaveDontLeaveDuringJacobsContest", "enableLeavePauseOnBanwave");
+
+        this.addDependency("antiStuckTriesUntilRewarp", "enableAntiStuck");
 
         this.addDependency("sendWebhookLogIfPestsDetectionNumberExceeded", "enableWebHook");
         this.addDependency("pingEveryoneOnPestsDetectionNumberExceeded", "sendWebhookLogIfPestsDetectionNumberExceeded");

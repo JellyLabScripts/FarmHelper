@@ -58,7 +58,7 @@ public class VisitorsMacro implements IFeature {
     private TravelState travelState = TravelState.NONE;
     @Getter
     private CompactorState compactorState = CompactorState.NONE;
-    private boolean enableCompactors = false;
+    private boolean compactorsDisabled = false;
     @Getter
     private VisitorsState visitorsState = VisitorsState.NONE;
     @Getter
@@ -116,24 +116,16 @@ public class VisitorsMacro implements IFeature {
             return;
         }
         MacroHandler.getInstance().getCurrentMacro().ifPresent(macro -> macro.getRotation().reset());
-        if (forceStart) {
-            if (enableCompactors) {
-                mainState = MainState.VISITORS;
-            } else {
-                mainState = MainState.NONE;
-            }
-            travelState = TravelState.NONE;
-            compactorState = CompactorState.NONE;
-            visitorsState = VisitorsState.NONE;
-            buyState = BuyState.NONE;
-        } else {
+        if (forceStart)
+            mainState = (compactorsDisabled ? MainState.VISITORS : MainState.NONE);
+        else {
             mainState = MainState.NONE;
-            travelState = TravelState.NONE;
-            compactorState = CompactorState.NONE;
-            visitorsState = VisitorsState.NONE;
-            buyState = BuyState.NONE;
-            enableCompactors = false;
+            compactorsDisabled = false;
         }
+        travelState = TravelState.NONE;
+        compactorState = CompactorState.NONE;
+        visitorsState = VisitorsState.NONE;
+        buyState = BuyState.NONE;
         enabled = true;
         rejectVisitor = false;
         if (manuallyStarted || forceStart) {
@@ -145,10 +137,8 @@ public class VisitorsMacro implements IFeature {
         }
         if (forceStart) {
             tries++;
-            if (tries > 3) {
+            if (tries > 2) {
                 tries = 0;
-                LogUtils.sendError("[Visitors Macro] The macro failed multiple times! Stopping the macro...");
-                LogUtils.sendWarning("Report this to #bug-reports!");
                 stop();
                 return;
             }
@@ -207,7 +197,7 @@ public class VisitorsMacro implements IFeature {
 
     @Override
     public boolean shouldCheckForFailsafes() {
-        return travelState != TravelState.WAIT_FOR_TP && mainState != MainState.DISABLING && mainState != MainState.END && compactorState == CompactorState.NONE;
+        return travelState != TravelState.WAIT_FOR_TP && mainState != MainState.DISABLED && mainState != MainState.END && compactorState == CompactorState.NONE;
     }
 
     @SubscribeEvent
@@ -245,6 +235,11 @@ public class VisitorsMacro implements IFeature {
         if (!GameStateHandler.getInstance().inGarden()) return false;
         if (mc.thePlayer == null || mc.theWorld == null) return false;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return false;
+
+        if (VisitorsMacro.getInstance().getMainState() == VisitorsMacro.MainState.END) {
+            // if (withError) LogUtils.sendError("[Visitors Macro] The macro is currently disabling, skipping...");
+            return false;
+        }
 
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
             LogUtils.sendError("[Visitors Macro] Server is closing in " + GameStateHandler.getInstance().getServerClosingSeconds().get() + " seconds!");
@@ -368,7 +363,7 @@ public class VisitorsMacro implements IFeature {
                 break;
             case AUTO_SELL:
                 AutoSell.getInstance().start();
-                enableCompactors = false;
+                compactorsDisabled = false;
                 setMainState(MainState.COMPACTORS);
                 delayClock.schedule(getRandomDelay());
                 break;
@@ -384,13 +379,14 @@ public class VisitorsMacro implements IFeature {
                 onVisitorsState();
                 break;
             case END:
-                setMainState(MainState.DISABLING);
                 tries = 0;
                 if (FarmHelperConfig.visitorsMacroAfkInfiniteMode) {
                     LogUtils.sendWarning("[Visitors Macro] The macro has finished. Waiting 15 seconds for visitors to spawn...");
                     afkDelay.schedule(15_000);
+                    setMainState(MainState.DISABLED);
                     stop();
                 } else if (manuallyStarted) {
+                    setMainState(MainState.DISABLED);
                     stop();
                 } else {
                     Multithreading.schedule(() -> {
@@ -403,7 +399,7 @@ public class VisitorsMacro implements IFeature {
                     }, 500, TimeUnit.MILLISECONDS);
                 }
                 break;
-            case DISABLING:
+            case DISABLED:
                 break;
         }
     }
@@ -518,7 +514,7 @@ public class VisitorsMacro implements IFeature {
                 if (FarmHelperConfig.visitorsMacroAutosellBeforeServing) {
                     setMainState(MainState.AUTO_SELL);
                 } else if (InventoryUtils.hasItemInHotbar("Compactor")) {
-                    enableCompactors = false;
+                    compactorsDisabled = false;
                     setMainState(MainState.COMPACTORS);
                 } else {
                     setMainState(MainState.VISITORS);
@@ -584,7 +580,7 @@ public class VisitorsMacro implements IFeature {
                     }
                 }
                 if (!foundRotationToEntity) {
-                    LogUtils.sendError("[Visitors Macro] Couldn't find a rotation to the compactor, moving away a little");
+                    LogUtils.sendError("[Visitors Macro] Couldn't find a rotation to the entity, moving away a little");
                     if (GameStateHandler.getInstance().isBackWalkable()) {
                         KeyBindUtils.holdThese(mc.gameSettings.keyBindBack);
                         Multithreading.schedule(KeyBindUtils::stopMovement, 150, TimeUnit.MILLISECONDS);
@@ -595,7 +591,7 @@ public class VisitorsMacro implements IFeature {
                         KeyBindUtils.holdThese(mc.gameSettings.keyBindRight);
                         Multithreading.schedule(KeyBindUtils::stopMovement, 150, TimeUnit.MILLISECONDS);
                     } else {
-                        LogUtils.sendError("[Visitors Macro] Couldn't find a way to move away from the compactor, restarting the macro...");
+                        LogUtils.sendError("[Visitors Macro] Couldn't find a way to move away from the entity, restarting the macro...");
                         stop();
                         forceStart = true;
                         start();
@@ -660,15 +656,15 @@ public class VisitorsMacro implements IFeature {
                 if (slotObject == null) break;
                 ItemStack itemStack = slotObject.getStack();
                 if (itemStack == null) break;
-                if (itemStack.getDisplayName().contains("OFF") && !enableCompactors) {
+                if (itemStack.getDisplayName().contains("OFF") && !compactorsDisabled) {
                     LogUtils.sendDebug("[Visitors Macro] Compactor is already OFF, skipping...");
-                } else if (!enableCompactors && itemStack.getDisplayName().contains("ON")) {
+                } else if (!compactorsDisabled && itemStack.getDisplayName().contains("ON")) {
                     LogUtils.sendDebug("[Visitors Macro] Disabling compactor in slot " + slot);
                     InventoryUtils.clickContainerSlot(slot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                 }
-                if (itemStack.getDisplayName().contains("ON") && enableCompactors) {
+                if (itemStack.getDisplayName().contains("ON") && compactorsDisabled) {
                     LogUtils.sendDebug("[Visitors Macro] Compactor is already ON, skipping...");
-                } else if (enableCompactors && itemStack.getDisplayName().contains("OFF")) {
+                } else if (compactorsDisabled && itemStack.getDisplayName().contains("OFF")) {
                     LogUtils.sendDebug("[Visitors Macro] Enabling compactor in slot " + slot);
                     InventoryUtils.clickContainerSlot(slot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                 }
@@ -685,11 +681,11 @@ public class VisitorsMacro implements IFeature {
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case END:
-                if (enableCompactors) {
+                if (compactorsDisabled) {
                     setMainState(MainState.END);
-                    enableCompactors = false;
+                    compactorsDisabled = false;
                 } else {
-                    enableCompactors = true;
+                    compactorsDisabled = true;
                     setMainState(MainState.VISITORS);
                 }
                 setCompactorState(CompactorState.NONE);
@@ -1175,7 +1171,7 @@ public class VisitorsMacro implements IFeature {
                 currentRewards.clear();
                 LogUtils.sendSuccess("[Visitors Macro] Spent §2" + ProfitCalculator.getInstance().getFormatter().format(spentMoney) + " on visitors");
                 spentMoney = 0;
-                if (enableCompactors) {
+                if (compactorsDisabled) {
                     setMainState(MainState.COMPACTORS);
                 } else {
                     setMainState(MainState.END);
@@ -1412,14 +1408,14 @@ public class VisitorsMacro implements IFeature {
         }
     }
 
-    enum MainState {
+    public enum MainState {
         NONE,
         TRAVEL,
         AUTO_SELL,
         COMPACTORS,
         VISITORS,
         END,
-        DISABLING
+        DISABLED
     }
 
     enum TravelState {

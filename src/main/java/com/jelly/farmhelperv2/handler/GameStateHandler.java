@@ -529,6 +529,23 @@ public class GameStateHandler {
         return 0;
     }
 
+    Pattern cultivatingPattern = Pattern.compile(".*?(\\d{1,3}(?:,\\d{3})*)(?!\\d)");
+
+    public int getCultivating() {
+        if (mc.theWorld == null || mc.thePlayer == null)
+            return 0;
+        for (String lore : InventoryUtils.getItemLore(mc.thePlayer.getHeldItem())) {
+            if (lore.contains("Cultivating")) {
+                Matcher matcher = cultivatingPattern.matcher(lore);
+                if (matcher.find()) {
+                    String foundInteger = matcher.group(1).replace(",", "");
+                    return Integer.parseInt(foundInteger);
+                }
+            }
+        }
+        return 0;
+    }
+
 
     @Getter
     public enum Location {
