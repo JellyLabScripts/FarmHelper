@@ -463,14 +463,14 @@ public class MacroHandler {
         }
     }
 
-    public void triggerWarpGarden(boolean force, boolean rewarpTeleport) {
+    public boolean triggerWarpGarden(boolean force, boolean rewarpTeleport) {
         if (GameStateHandler.getInstance().notMoving()) {
             KeyBindUtils.stopMovement();
         }
         if (force || GameStateHandler.getInstance().canRewarp() && !beforeTeleportationPos.isPresent()) {
             if (canTriggerFeatureAfterWarp()) {
                 LogUtils.sendDebug("Not warping because of feature");
-                return;
+                return false;
             }
             currentMacro.ifPresent(cm -> cm.setRewarpState(AbstractMacro.RewarpState.TELEPORTING));
             setBeforeTeleportationPos(Optional.ofNullable(mc.thePlayer.getPosition()));
@@ -479,7 +479,9 @@ public class MacroHandler {
             LogUtils.sendDebug("Warping to spawn point");
             mc.thePlayer.sendChatMessage("/warp garden");
             GameStateHandler.getInstance().scheduleRewarp();
+            return true;
         }
+        return false;
     }
 
     public boolean canTriggerFeatureAfterWarp() {

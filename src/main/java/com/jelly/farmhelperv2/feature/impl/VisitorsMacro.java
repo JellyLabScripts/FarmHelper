@@ -394,11 +394,12 @@ public class VisitorsMacro implements IFeature {
                     stop();
                 } else {
                     Multithreading.schedule(() -> {
-                        MacroHandler.getInstance().triggerWarpGarden(true, true);
-                        Multithreading.schedule(() -> {
-                            stop();
-                            MacroHandler.getInstance().resumeMacro();
-                        }, 1_000, TimeUnit.MILLISECONDS);
+                        if (MacroHandler.getInstance().triggerWarpGarden(true, true)) {
+                            Multithreading.schedule(() -> {
+                                stop();
+                                MacroHandler.getInstance().resumeMacro();
+                            }, 1_000, TimeUnit.MILLISECONDS);
+                        }
                     }, 500, TimeUnit.MILLISECONDS);
                 }
                 break;
