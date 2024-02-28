@@ -20,6 +20,7 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StringUtils;
@@ -554,13 +555,14 @@ public class GameStateHandler {
     public Long getCultivating(ItemStack item) {
         if (mc.theWorld == null || mc.thePlayer == null)
             return 0L;
-        for (String lore : InventoryUtils.getItemLore(item)) {
-            if (lore.contains("Cultivating")) {
-                Matcher matcher = cultivatingPattern.matcher(lore);
-                if (matcher.find()) {
-                    String foundInteger = matcher.group(1).replace(",", "");
-                    return Long.parseLong(foundInteger);
-                }
+        NBTTagCompound tag = item.getTagCompound();
+        if (tag == null)
+            return 0L;
+        if (tag.hasKey("ExtraAttributes", 10)) {
+            NBTTagCompound ea = tag.getCompoundTag("ExtraAttributes");
+
+            if (ea.hasKey("farmed_cultivating", 99)) {
+                return (long) ea.getInteger("farmed_cultivating");
             }
         }
         return 0L;

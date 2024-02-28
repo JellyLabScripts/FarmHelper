@@ -12,9 +12,10 @@ import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
-import com.jelly.farmhelperv2.pathfinder.WorldCache;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
+import net.minecraft.client.Minecraft;
+import net.minecraft.item.ItemStack;
 
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,6 @@ public class DebugHUD extends TextHud {
             lines.add("Current state: " + macro.getCurrentState());
             lines.add("Rotating: " + macro.getRotation().isRotating());
         });
-        lines.add("Cached blocks: " + WorldCache.getInstance().getWorldCache().size());
         lines.add("Current plot: " + GameStateHandler.getInstance().getCurrentPlot());
         lines.add("Directions: ");
         lines.add("   Forward: " + GameStateHandler.getInstance().isFrontWalkable());
@@ -47,18 +47,14 @@ public class DebugHUD extends TextHud {
         lines.add("   Right: " + GameStateHandler.getInstance().isRightWalkable());
         lines.add("   Not moving: " + GameStateHandler.getInstance().notMoving());
         lines.add("   HasPassedSinceStopped: " + GameStateHandler.getInstance().hasPassedSinceStopped());
+        ItemStack heldItem = Minecraft.getMinecraft().thePlayer.getHeldItem();
+        lines.add("Cultivating: " + GameStateHandler.getInstance().getCurrentCultivating().getOrDefault(heldItem != null ? heldItem.getDisplayName() : "", 0L));
         if (Scheduler.getInstance().isToggled()) {
             lines.add("Scheduler: ");
             lines.add("  State: " + LogUtils.capitalize(Scheduler.getInstance().getSchedulerState().toString()));
             lines.add("  Clock: " + Scheduler.getInstance().getSchedulerClock().getRemainingTime());
             lines.add("  isFarming: " + Scheduler.getInstance().isFarming());
         }
-        lines.add("Buffs");
-        lines.add("   Cookie: " + GameStateHandler.getInstance().getCookieBuffState());
-        lines.add("   God Pot: " + GameStateHandler.getInstance().getGodPotState());
-        final boolean isRepellentFailsafe = GameStateHandler.getInstance().getPestRepellentState() == GameStateHandler.BuffState.FAILSAFE;
-        lines.add("   Repellent: " + GameStateHandler.getInstance().getPestRepellentState() +
-                (isRepellentFailsafe ? "" : AutoRepellent.repellentFailsafeClock.passed() ? "" : " & FAILSAFE"));
         if (AutoCookie.getInstance().isRunning()) {
             lines.add("AutoCookie");
             lines.add("   Main State: " + AutoCookie.getInstance().getMainState());
