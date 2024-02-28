@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.feature.impl;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ClickedBlockEvent;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
@@ -38,76 +39,6 @@ import java.util.regex.Pattern;
 
 public class ProfitCalculator implements IFeature {
     private static ProfitCalculator instance;
-    public final HashMap<String, Integer> itemsDropped = new HashMap<>();
-    public final List<BazaarItem> visitorsMacroPrices = new ArrayList<BazaarItem>() {
-        {
-            add(new BazaarItem("_Wheat", "WHEAT", 6));
-            add(new BazaarItem("_Enchanted Bread", "ENCHANTED_BREAD", 60));
-            add(new BazaarItem("_Hay Bale", "HAY_BLOCK", 54));
-            add(new BazaarItem("_Enchanted Hay Bale", "ENCHANTED_HAY_BLOCK", 7_780));
-            add(new BazaarItem("_Tightly-Tied Hay Bale", "TIGHTLY_TIED_HAY_BALE", 1_119_744));
-
-            add(new BazaarItem("_Potato", "POTATO_ITEM", 3));
-            add(new BazaarItem("_Enchanted Potato", "ENCHANTED_POTATO", 480));
-            add(new BazaarItem("_Enchanted Baked Potato", "ENCHANTED_BAKED_POTATO", 76_800));
-
-            add(new BazaarItem("_Nether Wart", "NETHER_STALK", 4));
-            add(new BazaarItem("_Enchanted Nether Wart", "ENCHANTED_NETHER_STALK", 640));
-            add(new BazaarItem("_Mutant Nether Wart", "MUTANT_NETHER_STALK", 102_400));
-
-            add(new BazaarItem("_Carrot", "CARROT_ITEM", 3));
-            add(new BazaarItem("_Enchanted Carrot", "ENCHANTED_CARROT", 480));
-            add(new BazaarItem("_Enchanted Golden Carrot", "ENCHANTED_GOLDEN_CARROT", 61_440));
-
-            add(new BazaarItem("_Cactus", "CACTUS", 3));
-            add(new BazaarItem("_Enchanted Cactus Green", "ENCHANTED_CACTUS_GREEN", 900)); // Not real npc price, temporary fix
-            add(new BazaarItem("_Enchanted Cactus", "ENCHANTED_CACTUS", 110_800));
-
-            add(new BazaarItem("_Sugar Cane", "SUGAR_CANE", 4));
-            add(new BazaarItem("_Enchanted Sugar", "ENCHANTED_SUGAR", 640));
-            add(new BazaarItem("_Enchanted Sugar Cane", "ENCHANTED_SUGAR_CANE", 102_400));
-
-            add(new BazaarItem("_Melon", "MELON", 2));
-            add(new BazaarItem("_Enchanted Melon", "ENCHANTED_MELON", 320));
-            add(new BazaarItem("_Melon Block", "MELON_BLOCK", 18));
-            add(new BazaarItem("_Enchanted Melon Block", "ENCHANTED_MELON_BLOCK", 51_200));
-
-            add(new BazaarItem("_Cocoa Beans", "INK_SACK:3", 3));
-            add(new BazaarItem("_Enchanted Cocoa Beans", "ENCHANTED_COCOA", 480));
-            add(new BazaarItem("_Enchanted Cookie", "ENCHANTED_COOKIE", 61_500));
-
-            add(new BazaarItem("_Red Mushroom", "RED_MUSHROOM", 10));
-            add(new BazaarItem("_Enchanted Red Mushroom", "ENCHANTED_RED_MUSHROOM", 1_600));
-            add(new BazaarItem("_Red Mushroom Block", "HUGE_MUSHROOM_2", 10));
-            add(new BazaarItem("_Enchanted Red Mushroom Block", "ENCHANTED_HUGE_MUSHROOM_2", 51_200));
-
-            add(new BazaarItem("_Brown Mushroom", "BROWN_MUSHROOM", 10));
-            add(new BazaarItem("_Enchanted Brown Mushroom", "ENCHANTED_BROWN_MUSHROOM", 1_600));
-            add(new BazaarItem("_Brown Mushroom Block", "HUGE_MUSHROOM_1", 10));
-            add(new BazaarItem("_Enchanted Brown Mushroom Block", "ENCHANTED_HUGE_MUSHROOM_1", 51_200));
-
-            add(new BazaarItem("_Pumpkin", "PUMPKIN", 10));
-            add(new BazaarItem("_Enchanted Pumpkin", "ENCHANTED_PUMPKIN", 1_600));
-            add(new BazaarItem("_Polished Pumpkin", "POLISHED_PUMPKIN", 256_000));
-
-            add(new BazaarItem("_Raw Porkchop", "PORK", 5));
-            add(new BazaarItem("_Enchanted Pork", "ENCHANTED_PORK", 800));
-            add(new BazaarItem("_Enchanted Grilled Pork", "ENCHANTED_GRILLED_PORK", 128_000));
-
-            add(new BazaarItem("_Raw Rabbit", "RABBIT", 4));
-            add(new BazaarItem("_Enchanted Raw Rabbit", "ENCHANTED_RABBIT", 640));
-
-            add(new BazaarItem("_Compost", "COMPOST", 21_300));
-
-            add(new BazaarItem("_Mutton", "MUTTON", 5));
-            add(new BazaarItem("_Enchanted Mutton", "ENCHANTED_MUTTON", 800));
-            add(new BazaarItem("_Enchanted Cookied Mutton", "ENCHANTED_COOKED_MUTTON", 128_000));
-
-            add(new BazaarItem("_Seeds", "SEEDS", 3));
-            add(new BazaarItem("_Enchanted Seeds", "ENCHANTED_SEEDS", 480));
-            add(new BazaarItem("_Box of Seeds", "BOX_OF_SEEDS", 76_800));
-        }
-    };
     public final List<BazaarItem> cropsToCount = new ArrayList<BazaarItem>() {{
         final int HAY_ENCHANTED_TIER_1 = 144;
         final int ENCHANTED_TIER_1 = 160;
@@ -147,6 +78,8 @@ public class ProfitCalculator implements IFeature {
     public double realHourlyProfit = 0;
     public double bountifulProfit = 0;
     public double blocksBroken = 0;
+    private long previousCultivating = 0;
+
     public HashMap<String, APICrop> bazaarPrices = new HashMap<>();
     private boolean cantConnectToApi = false;
 
@@ -222,10 +155,6 @@ public class ProfitCalculator implements IFeature {
         return (float) (blocksBroken / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f));
     }
 
-    public BazaarItem getVisitorsItem(String localizedName) {
-        return visitorsMacroPrices.stream().filter(item -> item.localizedName.equals(localizedName)).findFirst().orElse(null);
-    }
-
     @Override
     public String getName() {
         return "Profit Calculator";
@@ -278,7 +207,7 @@ public class ProfitCalculator implements IFeature {
         realHourlyProfit = 0;
         bountifulProfit = 0;
         blocksBroken = 0;
-        itemsDropped.clear();
+        previousCultivating = 0;
         cropsToCount.forEach(crop -> crop.currentAmount = 0);
         rngDropToCount.forEach(drop -> drop.currentAmount = 0);
         LowerAvgBpsFailsafe.getInstance().resetStates();
@@ -291,6 +220,22 @@ public class ProfitCalculator implements IFeature {
         if (!GameStateHandler.getInstance().inGarden()) return;
 
         double profit = 0;
+        ItemStack currentItem = mc.thePlayer.getHeldItem();
+        if (currentItem != null && currentItem.getItem() != null && FarmHelperConfig.profitCalculatorCultivatingEnchant) {
+            long cultivatingCounter = GameStateHandler.getInstance().getCurrentCultivating().getOrDefault(currentItem.getDisplayName(), 0L);
+            if (previousCultivating == 0) {
+                previousCultivating = cultivatingCounter;
+            }
+            if (cultivatingCounter > previousCultivating) {
+                long diff = cultivatingCounter - previousCultivating;
+                previousCultivating = cultivatingCounter;
+                BazaarItem item = cropsToCount.stream().filter(crop -> crop.localizedName.equals(MacroHandler.getInstance().getCrop().getLocalizedName())).findFirst().orElse(null);
+                if (item != null) {
+                    item.currentAmount += diff;
+                }
+            }
+        }
+
         for (BazaarItem item : cropsToCount) {
             if (cantConnectToApi) {
                 profit += item.currentAmount * item.npcPrice;
@@ -321,7 +266,6 @@ public class ProfitCalculator implements IFeature {
             }
         }
 
-        ItemStack currentItem = mc.thePlayer.inventory.getCurrentItem();
         if (currentItem != null && StringUtils.stripControlCodes(currentItem.getDisplayName()).startsWith("Bountiful")) {
             double value = GameStateHandler.getInstance().getCurrentPurse() - GameStateHandler.getInstance().getPreviousPurse();
             if (value > 0)
@@ -396,24 +340,29 @@ public class ProfitCalculator implements IFeature {
 
         if (event.packet instanceof S2FPacketSetSlot) {
             S2FPacketSetSlot packet = (S2FPacketSetSlot) event.packet;
+
             int slotNumber = packet.func_149173_d();
             if (slotNumber < 0 || slotNumber > 44) return;
             Slot currentSlot = mc.thePlayer.inventoryContainer.getSlot(slotNumber);
+            ItemStack heldItem = mc.thePlayer.getHeldItem();
             ItemStack newItem = packet.func_149174_e();
-            ItemStack oldItem = currentSlot.getStack();
-            if (newItem == null) return;
-            if (newItem.getItem() instanceof ItemTool || newItem.getItem() instanceof ItemArmor || newItem.getItem() instanceof ItemHoe)
+            if (FarmHelperConfig.profitCalculatorCultivatingEnchant && newItem != null && heldItem != null && StringUtils.stripControlCodes(newItem.getDisplayName()).equals(MacroHandler.getInstance().getCrop().getLocalizedName()) && GameStateHandler.getInstance().getCurrentCultivating().getOrDefault(heldItem.getDisplayName(), 0L) > 0) {
                 return;
+            }
+            ItemStack oldItem = currentSlot.getStack();
+            if (newItem == null || newItem.getItem() instanceof ItemTool || newItem.getItem() instanceof ItemArmor || newItem.getItem() instanceof ItemHoe)
+                return;
+
             if (oldItem == null || !oldItem.getItem().equals(newItem.getItem())) {
                 int newStackSize = newItem.stackSize;
                 String name = StringUtils.stripControlCodes(newItem.getDisplayName());
-                addDroppedItem(name, (int) Math.ceil(newStackSize * 0.98f));
+                addDroppedItem(name, newStackSize);
             } else if (oldItem.getItem().equals(newItem.getItem())) {
                 int newStackSize = newItem.stackSize;
                 int oldStackSize = oldItem.stackSize;
                 String name = StringUtils.stripControlCodes(newItem.getDisplayName());
                 int amount = Math.max((newStackSize - oldStackSize), 0);
-                addDroppedItem(name, (int) Math.ceil(amount * 0.98f));
+                addDroppedItem(name, amount);
             }
         }
     }
@@ -513,7 +462,6 @@ public class ProfitCalculator implements IFeature {
 
     private void getPrices(JsonObject json1, List<BazaarItem> cropsToCount) {
         getPricesPerList(json1, cropsToCount);
-        getPricesPerList(json1, visitorsMacroPrices);
     }
 
     private void getPricesPerList(JsonObject json1, List<BazaarItem> list) {

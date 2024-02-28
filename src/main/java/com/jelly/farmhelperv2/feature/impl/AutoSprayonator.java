@@ -92,7 +92,7 @@ public class AutoSprayonator implements IFeature {
 
     @Override
     public boolean shouldStartAtMacroStart() {
-        return true;
+        return false;
     }
 
     @Override
@@ -215,6 +215,7 @@ public class AutoSprayonator implements IFeature {
         if (sprayState != AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT) return;
         sprayItem = SPRAYONATOR_ITEM.values()[FarmHelperConfig.sprayonatorType];
 
+        System.out.println("Has sprayonator: " + hasSprayonator());
         if (!hasSprayonator()) {
             LogUtils.sendError("[Auto Sprayonator] Disabling due to no sprayonator");
             return;

@@ -69,7 +69,6 @@ public class VisitorsMacro implements IFeature {
     private final ArrayList<Tuple<String, String>> currentRewards = new ArrayList<>();
     private boolean rejectVisitor = false;
     private float spentMoney = 0;
-    private int tries = 0;
     @Getter
     private BuyState buyState = BuyState.NONE;
     private boolean haveItemsInSack = false;
@@ -77,7 +76,6 @@ public class VisitorsMacro implements IFeature {
     @Getter
     @Setter
     private boolean manuallyStarted = false;
-    private boolean forceStart = false;
     private BlockPos positionBeforeTp = null;
     private final List<String> ignoredNPCs = new ArrayList<>();
     private boolean profitNpc = false;
@@ -111,39 +109,19 @@ public class VisitorsMacro implements IFeature {
 
     @Override
     public void start() {
-        if (!canEnableMacro(manuallyStarted, true) && !forceStart) {
-            setManuallyStarted(false);
-            return;
-        }
         MacroHandler.getInstance().getCurrentMacro().ifPresent(macro -> macro.getRotation().reset());
-        if (forceStart)
-            mainState = (compactorsDisabled ? MainState.VISITORS : MainState.NONE);
-        else {
-            mainState = MainState.NONE;
-            compactorsDisabled = false;
-        }
+        mainState = MainState.NONE;
+        compactorsDisabled = false;
         travelState = TravelState.NONE;
         compactorState = CompactorState.NONE;
         visitorsState = VisitorsState.NONE;
         buyState = BuyState.NONE;
         enabled = true;
         rejectVisitor = false;
-        if (manuallyStarted || forceStart) {
-            setMainState(MainState.TRAVEL);
-            if (isInBarn())
-                setTravelState(TravelState.ROTATE_TO_CLOSEST);
-            else
-                setTravelState(TravelState.NONE);
-        }
-        if (forceStart) {
-            tries++;
-            if (tries > 2) {
-                tries = 0;
-                stop();
-                return;
-            }
-        }
-        forceStart = false;
+        if (PlayerUtils.isInBarn())
+            setTravelState(TravelState.ROTATE_TO_CLOSEST);
+        else
+            setTravelState(TravelState.NONE);
         haveItemsInSack = false;
         delayClock.reset();
         rotation.reset();
@@ -220,7 +198,7 @@ public class VisitorsMacro implements IFeature {
             return;
         }
         if (MacroHandler.getInstance().isMacroToggled()) return;
-        if (!isInBarn()) return;
+        if (!PlayerUtils.isInBarn()) return;
         if (isRunning()) return;
         if (!afkDelay.passed()) return;
 
@@ -234,10 +212,10 @@ public class VisitorsMacro implements IFeature {
         if (!isToggled()) return false;
         if (!GameStateHandler.getInstance().inGarden()) return false;
         if (mc.thePlayer == null || mc.theWorld == null) return false;
-        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return false;
+        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this, PestsDestroyer.getInstance())) return false;
 
-        if (VisitorsMacro.getInstance().getMainState() == VisitorsMacro.MainState.END) {
-            // if (withError) LogUtils.sendError("[Visitors Macro] The macro is currently disabling, skipping...");
+        if (mainState == VisitorsMacro.MainState.END) {
+            if (withError) LogUtils.sendError("[Visitors Macro] The macro is currently disabling, skipping...");
             return false;
         }
 
@@ -246,18 +224,12 @@ public class VisitorsMacro implements IFeature {
             return false;
         }
 
-//        if (!manual && !forceStart && !PlayerUtils.isStandingOnSpawnPoint() && !PlayerUtils.isStandingOnRewarpLocation()) {
-//            if (withError)
-//                LogUtils.sendError("[Visitors Macro] The player is not standing on spawn location, skipping...");
-//            return false;
-//        }
-
         if (GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE) {
             if (withError) LogUtils.sendError("[Visitors Macro] Cookie buff is not active, skipping...");
             return false;
         }
 
-        if (!manual && !forceStart && FarmHelperConfig.pauseVisitorsMacroDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) {
+        if (!manual && FarmHelperConfig.pauseVisitorsMacroDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) {
             if (withError) LogUtils.sendError("[Visitors Macro] Jacob's contest is active, skipping...");
             return false;
         }
@@ -348,7 +320,6 @@ public class VisitorsMacro implements IFeature {
             }
             LogUtils.sendError("[Visitors Macro] The player is stuck, restarting the macro...");
             stop();
-            forceStart = true;
             start();
             return;
         }
@@ -379,7 +350,6 @@ public class VisitorsMacro implements IFeature {
                 onVisitorsState();
                 break;
             case END:
-                tries = 0;
                 if (FarmHelperConfig.visitorsMacroAfkInfiniteMode) {
                     LogUtils.sendWarning("[Visitors Macro] The macro has finished. Waiting 15 seconds for visitors to spawn...");
                     afkDelay.schedule(15_000);
@@ -389,18 +359,24 @@ public class VisitorsMacro implements IFeature {
                     setMainState(MainState.DISABLED);
                     stop();
                 } else {
-                    Multithreading.schedule(() -> {
-                        if (MacroHandler.getInstance().triggerWarpGarden(true, true)) {
-                            Multithreading.schedule(() -> {
-                                stop();
-                                MacroHandler.getInstance().resumeMacro();
-                            }, 1_000, TimeUnit.MILLISECONDS);
-                        }
-                    }, 500, TimeUnit.MILLISECONDS);
+                    stop();
+                    teleportBackToFarm();
+                    delayClock.schedule(2_500);
                 }
                 break;
             case DISABLED:
                 break;
+        }
+    }
+
+    private void teleportBackToFarm() {
+        if (MacroHandler.getInstance().triggerWarpGarden(true, true)) {
+            Multithreading.schedule(() -> {
+                if (!PlayerUtils.isInBarn()) {
+                    setMainState(MainState.DISABLED);
+                    MacroHandler.getInstance().resumeMacro();
+                }
+            }, 1_000, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -458,7 +434,6 @@ public class VisitorsMacro implements IFeature {
                 if (closest == null) {
                     LogUtils.sendError("[Visitors Macro] Couldn't find the closest visitor, restarting the macro...");
                     stop();
-                    forceStart = true;
                     start();
                     return;
                 }
@@ -491,7 +466,6 @@ public class VisitorsMacro implements IFeature {
                 if (closest2 == null) {
                     LogUtils.sendError("[Visitors Macro] Couldn't find the closest visitor, restarting the macro...");
                     stop();
-                    forceStart = true;
                     start();
                     return;
                 }
@@ -526,17 +500,23 @@ public class VisitorsMacro implements IFeature {
 
     private boolean shouldJump() {
         if (!mc.thePlayer.onGround) return false;
-        Vec3 playerPos = mc.thePlayer.getPositionVector().addVector(0, 0.5, 0);
+        Vec3 playerPos = mc.thePlayer.getPositionVector();
         Vec3 lookVector = mc.thePlayer.getLookVec();
-        Vec3 feetBlock = playerPos.addVector(lookVector.xCoord * 2.5, 0, lookVector.zCoord * 2.5);
-        System.out.println(feetBlock);
-        List<AxisAlignedBB> collidingBoxes = mc.theWorld.getCollidingBoundingBoxes(mc.thePlayer, mc.thePlayer.getEntityBoundingBox().addCoord(lookVector.xCoord * 2.5, 0, lookVector.zCoord * 2.5));
-        if (!collidingBoxes.isEmpty()) {
-            for (AxisAlignedBB axisAlignedBB : collidingBoxes) {
-                System.out.println(axisAlignedBB);
+        Vec3 feetBlock = playerPos.addVector(lookVector.xCoord * 0.6, 0.1, lookVector.zCoord * 0.6);
+        Vec3 feetBlockUp = playerPos.addVector(lookVector.xCoord * 0.6, 0.6, lookVector.zCoord * 0.6);
+        MovingObjectPosition movingObjectPosition = mc.theWorld.rayTraceBlocks(feetBlock, feetBlockUp, false, true, false);
+        if (movingObjectPosition != null && movingObjectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            BlockPos blockPos = movingObjectPosition.getBlockPos();
+            if (BlockUtils.hasCollision(blockPos)) {
+                return true;
             }
-            return true;
         }
+        MovingObjectPosition movingObjectPosition2 = mc.theWorld.rayTraceBlocks(playerPos, feetBlock, false, true, false);
+        if (movingObjectPosition2 != null && movingObjectPosition2.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            BlockPos blockPos = movingObjectPosition2.getBlockPos();
+            return BlockUtils.hasCollision(blockPos);
+        }
+
         return false;
     }
 
@@ -593,7 +573,6 @@ public class VisitorsMacro implements IFeature {
                     } else {
                         LogUtils.sendError("[Visitors Macro] Couldn't find a way to move away from the entity, restarting the macro...");
                         stop();
-                        forceStart = true;
                         start();
                         return;
                     }
@@ -770,7 +749,6 @@ public class VisitorsMacro implements IFeature {
                 if (character == null) {
                     LogUtils.sendError("[Visitors Macro] Couldn't find the character of closest visitor, restarting the macro...");
                     stop();
-                    forceStart = true;
                     start();
                     return;
                 }
@@ -925,7 +903,6 @@ public class VisitorsMacro implements IFeature {
                 if (itemsToBuy.isEmpty()) {
                     LogUtils.sendDebug("[Visitors Macro] Something went wrong with collecting required items...");
                     stop();
-                    forceStart = true;
                     start();
                     return;
                 }
@@ -1365,13 +1342,6 @@ public class VisitorsMacro implements IFeature {
         buyState = state;
         LogUtils.sendDebug("[Visitors Macro] Buy state: " + state.name());
         stuckClock.schedule(STUCK_DELAY);
-    }
-
-    public boolean isInBarn() {
-        BlockPos barn1 = new BlockPos(-30, 65, -45);
-        BlockPos barn2 = new BlockPos(36, 80, -2);
-        AxisAlignedBB axisAlignedBB = new AxisAlignedBB(barn1, barn2);
-        return axisAlignedBB.isVecInside(mc.thePlayer.getPositionVector());
     }
 
     @SubscribeEvent(receiveCanceled = true)

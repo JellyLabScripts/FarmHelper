@@ -446,10 +446,9 @@ public class FarmHelperConfig extends Config {
         PlayerUtils.closeScreen();
         if (testFailsafeTypeSelected == 0)
             FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected));
-        else
-            if (testFailsafeTypeSelected != 6)
-                LowerAvgBpsFailsafe.getInstance().clearQueue(); // Clear the queue to avoid false positives
-            FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected + 2));
+        else if (testFailsafeTypeSelected != 6)
+            LowerAvgBpsFailsafe.getInstance().clearQueue(); // Clear the queue to avoid false positives
+        FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected + 2));
     };
 
     @Dropdown(
@@ -958,7 +957,7 @@ public class FarmHelperConfig extends Config {
             text = "Trigger now"
     )
     public static Runnable triggerVisitorsMacro = () -> {
-        if (!VisitorsMacro.getInstance().isInBarn()) {
+        if (!PlayerUtils.isInBarn()) {
             LogUtils.sendError("[Visitors Macro] You need to be in the barn to start the macro!");
             return;
         }
@@ -1309,7 +1308,7 @@ public class FarmHelperConfig extends Config {
             text = "Set desk"
     )
     public static Runnable setPestHunterLocation = () -> {
-        if (!VisitorsMacro.getInstance().isInBarn()) {
+        if (!PlayerUtils.isInBarn()) {
             LogUtils.sendError("[Auto Pest Hunter] You need to be in the barn to set the pest hunter location!");
             return;
         }
@@ -1815,6 +1814,13 @@ public class FarmHelperConfig extends Config {
             description = "Locks the rotation to multipliers of 45 degrees"
     )
     public static boolean flightLockRotationToMultipliersOf45Degrees = false;
+
+    @Switch(
+            name = "Count profit based on Cultivating enchant", category = EXPERIMENTAL, subcategory = "Profit Calculator",
+            description = "Counts profit based on Cultivating enchant"
+    )
+    public static boolean profitCalculatorCultivatingEnchant = true;
+
     //</editor-fold>
     //</editor-fold>
 
@@ -2103,19 +2109,27 @@ public class FarmHelperConfig extends Config {
         S_MUSHROOM_SDS
     }
 
+    @Getter
     public enum CropEnum {
-        NONE,
-        CARROT,
-        NETHER_WART,
-        POTATO,
-        WHEAT,
-        SUGAR_CANE,
-        MELON,
-        PUMPKIN,
-        PUMPKIN_MELON_UNKNOWN,
-        CACTUS,
-        COCOA_BEANS,
-        MUSHROOM,
-        MUSHROOM_ROTATE,
+        NONE("None"),
+        CARROT("Carrot"),
+        NETHER_WART("Nether Wart"),
+        POTATO("Potato"),
+        WHEAT("Wheat"),
+        SUGAR_CANE("Sugar Cane"),
+        MELON("Melon"),
+        PUMPKIN("Pumpkin"),
+        PUMPKIN_MELON_UNKNOWN("Pumpkin/Melon"),
+        CACTUS("Cactus"),
+        COCOA_BEANS("Cocoa Beans"),
+        MUSHROOM("Mushroom"),
+        MUSHROOM_ROTATE("Mushroom"),
+        ;
+
+        final String localizedName;
+
+        CropEnum(String localizedName) {
+            this.localizedName = localizedName;
+        }
     }
 }

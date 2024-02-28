@@ -1,6 +1,7 @@
 package com.jelly.farmhelperv2.handler;
 
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.failsafe.impl.DirtFailsafe;
 import com.jelly.farmhelperv2.feature.impl.AutoRepellent;
@@ -16,7 +17,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemAxe;
+import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.event.world.WorldEvent;
@@ -24,6 +28,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -275,7 +280,6 @@ public class GameStateHandler {
     }
 
 
-
     private void checkGuestOnGarden(List<String> scoreboardLines, List<String> tabList) {
         for (String line : scoreboardLines) {
             if (ScoreboardUtils.cleanSB(line).contains("✌ (")) {
@@ -418,6 +422,20 @@ public class GameStateHandler {
         }
     }
 
+    @SubscribeEvent
+    public void onReceivePacket(ReceivePacketEvent event) {
+        if (mc.theWorld == null || mc.thePlayer == null) return;
+        if (event.packet instanceof S2FPacketSetSlot) {
+            S2FPacketSetSlot packet = (S2FPacketSetSlot) event.packet;
+            ItemStack slot = packet.func_149174_e();
+            if (slot == null || slot.getItem() == null || (!(slot.getItem() instanceof ItemHoe) && !(slot.getItem() instanceof ItemAxe)))
+                return;
+            long cult = getCultivating(slot);
+            if (cult == 0) return;
+            currentCultivating.put(slot.getDisplayName(), cult);
+        }
+    }
+
     public boolean canRewarp() {
         return reWarpTimer.hasPassed(randomRewarpValueToWait);
     }
@@ -530,20 +548,22 @@ public class GameStateHandler {
     }
 
     Pattern cultivatingPattern = Pattern.compile(".*?(\\d{1,3}(?:,\\d{3})*)(?!\\d)");
+    @Getter
+    private HashMap<String, Long> currentCultivating = new HashMap<>();
 
-    public int getCultivating() {
+    public Long getCultivating(ItemStack item) {
         if (mc.theWorld == null || mc.thePlayer == null)
-            return 0;
-        for (String lore : InventoryUtils.getItemLore(mc.thePlayer.getHeldItem())) {
+            return 0L;
+        for (String lore : InventoryUtils.getItemLore(item)) {
             if (lore.contains("Cultivating")) {
                 Matcher matcher = cultivatingPattern.matcher(lore);
                 if (matcher.find()) {
                     String foundInteger = matcher.group(1).replace(",", "");
-                    return Integer.parseInt(foundInteger);
+                    return Long.parseLong(foundInteger);
                 }
             }
         }
-        return 0;
+        return 0L;
     }
 
 

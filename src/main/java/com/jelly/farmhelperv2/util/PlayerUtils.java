@@ -356,4 +356,11 @@ public class PlayerUtils {
             mc.thePlayer.closeScreen();
         }
     }
+
+    public static boolean isInBarn() {
+        BlockPos barn1 = new BlockPos(-30, 65, -45);
+        BlockPos barn2 = new BlockPos(36, 80, -2);
+        AxisAlignedBB axisAlignedBB = new AxisAlignedBB(barn1, barn2);
+        return axisAlignedBB.isVecInside(Minecraft.getMinecraft().thePlayer.getPositionVector());
+    }
 }

@@ -191,6 +191,10 @@ public abstract class AbstractMacro {
             return;
         } else if (rewarpState == RewarpState.TELEPORTING) {
             // teleporting
+            if (System.currentTimeMillis() - MacroHandler.getInstance().getLastTpTry() > 5_000) {
+                LogUtils.sendDebug("Teleporting again");
+                MacroHandler.getInstance().triggerWarpGarden(true, MacroHandler.getInstance().isRewarpTeleport());
+            }
             return;
         }
 

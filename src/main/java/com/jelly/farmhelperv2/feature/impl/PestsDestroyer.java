@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.feature.impl;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.DrawScreenAfterEvent;
+import com.jelly.farmhelperv2.event.SpawnObjectEvent;
 import com.jelly.farmhelperv2.event.SpawnParticleEvent;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -80,6 +81,7 @@ public class PestsDestroyer implements IFeature {
     @Getter
     public int cantReachPest = 0;
     @Getter
+    @Setter
     private States state = States.IDLE;
     @Getter
     private EscapeState escapeState = EscapeState.NONE;
@@ -163,7 +165,6 @@ public class PestsDestroyer implements IFeature {
         lastFireworkTime = 0;
         getLocationTries = 0;
         flyPathfinderTries = 0;
-        finishTries = 0;
         FlyPathfinder.getInstance().stuckCounterWithMotion = 0;
         FlyPathfinder.getInstance().stuckCounterWithoutMotion = 0;
         state = States.IDLE;
@@ -554,7 +555,7 @@ public class PestsDestroyer implements IFeature {
                 ItemStack currentItem2 = mc.thePlayer.getHeldItem();
                 if (getVacuum(currentItem2)) return;
 
-                if (!pestsLocations.isEmpty()) {
+                if (getClosestPest() != null) {
                     FlyPathFinderExecutor.getInstance().stop();
                     state = States.FLY_TO_PEST;
                     break;
@@ -615,7 +616,7 @@ public class PestsDestroyer implements IFeature {
 
                 if (RotationHandler.getInstance().isRotating()) return;
 
-                if (!pestsLocations.isEmpty()) {
+                if (getClosestPest() != null) {
                     state = States.FLY_TO_PEST;
                     break;
                 }
@@ -642,17 +643,35 @@ public class PestsDestroyer implements IFeature {
                     return;
                 }
 
-                if (getClosestPest() == null) {
+                Entity closestPest = getClosestPest();
+
+                if (closestPest == null) {
                     if (!lastFireworkLocation.isPresent()) {
                         LogUtils.sendDebug("[Pests Destroyer] No firework location found. Looking for a firework.");
                         state = States.GET_LOCATION;
                         break;
                     }
 
+                    if (System.currentTimeMillis() - lastFireworkTime > 1_500) {
+                        state = States.GET_LOCATION;
+                        break;
+                    }
+
                     if (!FlyPathFinderExecutor.getInstance().isRunning()) {
                         Vec3 firework = new Vec3(lastFireworkLocation.get().xCoord, Math.min(mc.thePlayer.posY + 1, 80), lastFireworkLocation.get().zCoord);
-                        FlyPathFinderExecutor.getInstance().findPath(firework, true, true);
                         state = States.GET_LOCATION;
+                        if (mc.thePlayer.getDistance(firework.xCoord, firework.yCoord, firework.zCoord) < 2) {
+                            int y = 130;
+                            Block block = mc.theWorld.getBlockState(new BlockPos(firework.xCoord, y, firework.zCoord)).getBlock();
+                            while (y > 90 && block.equals(Blocks.air)) {
+                                y--;
+                            }
+                            y += 3;
+                            FlyPathFinderExecutor.getInstance().findPath(new Vec3(firework.xCoord, y, firework.zCoord), true, true);
+                            LogUtils.sendWarning("[Pests Destroyer] Firework is too close to player. Flying to x: " + firework.xCoord + " y: " + y + " z: " + firework.zCoord);
+                            break;
+                        }
+                        FlyPathFinderExecutor.getInstance().findPath(firework, true, true);
                     }
                     break;
                 }
@@ -661,12 +680,6 @@ public class PestsDestroyer implements IFeature {
                     FlyPathFinderExecutor.getInstance().stop();
                 }
 
-                Entity closestPest = getClosestPest();
-
-                if (closestPest == null) {
-                    state = States.GET_LOCATION;
-                    return;
-                }
 
                 currentEntityTarget = Optional.of(closestPest);
 
@@ -859,7 +872,6 @@ public class PestsDestroyer implements IFeature {
         return false;
     }
 
-    private int finishTries = 0;
 
     private void finishMacro() {
         if (isInventoryOpen()) return;
@@ -867,21 +879,18 @@ public class PestsDestroyer implements IFeature {
             FlyPathFinderExecutor.getInstance().stop();
         }
         if (MacroHandler.getInstance().isMacroToggled()) {
-            if (PlayerUtils.isStandingOnSpawnPoint()) {
-                stop();
-                MacroHandler.getInstance().resumeMacro();
-                return;
-            }
-            if (finishTries == 7) {
-                LogUtils.sendError("[Pests Destroyer] Couldn't enable macro after teleportation! Check if your spawn point is set in mod (Yellow rectangle). If not, re-do command /setspawn");
-                LogUtils.webhookLog("[Pests Destroyer] Couldn't enable macro after teleportation!");
-                MacroHandler.getInstance().disableMacro();
-                return;
-            }
             PlayerUtils.getTool();
-            MacroHandler.getInstance().triggerWarpGarden(true, true);
-            finishTries++;
-            delayClock.schedule(1_000 + Math.random() * 500);
+            if (!MacroHandler.getInstance().triggerWarpGarden(true, true)) {
+                stop();
+            } else {
+                Multithreading.schedule(() -> {
+                    if (PlayerUtils.isStandingOnSpawnPoint()) {
+                        stop();
+                        MacroHandler.getInstance().resumeMacro();
+                    }
+                }, 1_000, TimeUnit.MILLISECONDS);
+            }
+            delayClock.schedule(2_000 + Math.random() * 500);
         } else {
             stop();
         }
@@ -1135,13 +1144,35 @@ public class PestsDestroyer implements IFeature {
                 return;
             }
         } else {
-            if (mc.thePlayer.getPositionVector().distanceTo(event.getPos()) > 10) {
+            if (mc.thePlayer.getPositionVector().distanceTo(event.getPos()) > 5) {
                 return;
             }
         }
 
         lastFireworkTime = System.currentTimeMillis();
         lastFireworkLocation = Optional.of(event.getPos());
+    }
+
+    @SubscribeEvent
+    public void onSpawnObject(SpawnObjectEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!GameStateHandler.getInstance().inGarden()) return;
+        if (event.type != 76) return;
+        if (!enabled) return;
+        if (state != States.WAIT_FOR_LOCATION) return;
+
+        double distance = mc.thePlayer.getDistance(event.pos.xCoord, event.pos.yCoord, event.pos.zCoord);
+        if (distance < 3) {
+            int y = 130;
+            Block block = mc.theWorld.getBlockState(new BlockPos(event.pos.xCoord, y, event.pos.zCoord)).getBlock();
+            while (y > 90 && block.equals(Blocks.air)) {
+                y--;
+            }
+            y += 3;
+            FlyPathFinderExecutor.getInstance().findPath(new Vec3(event.pos.xCoord, y, event.pos.zCoord), true, true);
+            LogUtils.sendWarning("[Pests Destroyer] Firework is too close to player. Flying to x: " + event.pos.xCoord + " y: " + y + " z: " + event.pos.zCoord);
+            state = States.GET_LOCATION;
+        }
     }
 
     @SubscribeEvent
@@ -1292,7 +1323,7 @@ public class PestsDestroyer implements IFeature {
         }
     }
 
-    enum States {
+    public enum States {
         IDLE,
         OPEN_DESK,
         OPEN_PLOTS,

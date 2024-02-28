@@ -8,10 +8,7 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.mixin.client.EntityPlayerAccessor;
 import com.jelly.farmhelperv2.mixin.pathfinder.PathfinderAccessor;
-import com.jelly.farmhelperv2.util.AngleUtils;
-import com.jelly.farmhelperv2.util.KeyBindUtils;
-import com.jelly.farmhelperv2.util.LogUtils;
-import com.jelly.farmhelperv2.util.RenderUtils;
+import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -95,9 +92,7 @@ public class FlyPathFinderExecutor {
         this.follow = follow;
         this.target = pos;
         this.smooth = smooth;
-        LogUtils.sendDebug("Cache size: " + WorldCache.getInstance().getWorldCache().size());
         try {
-            System.out.println("Starting pathfinding");
             if (context == null) {
                 context = new CalculationContext(BaritoneAPI.getProvider().getPrimaryBaritone(), false);
             }
@@ -117,7 +112,10 @@ public class FlyPathFinderExecutor {
                     }
                     return;
                 }
-                if (!isRunning()) return;
+                if (!isRunning()) {
+                    stop();
+                    return;
+                }
                 LogUtils.sendDebug("Pathfinding took " + (System.currentTimeMillis() - startTime) + "ms");
                 startTime = System.currentTimeMillis();
                 List<Vec3> finalRoute = new ArrayList<>();
@@ -129,7 +127,7 @@ public class FlyPathFinderExecutor {
                     finalRoute = smoothPath(finalRoute);
                 }
                 this.path.clear();
-                this.path.addAll(finalRoute.stream().map(vec3 -> vec3.addVector(0.5f, 0.1, 0.5)).collect(Collectors.toCollection(CopyOnWriteArrayList::new)));
+                this.path.addAll(finalRoute.stream().map(vec3 -> vec3.addVector(0.5f, 0.05, 0.5)).collect(Collectors.toCollection(CopyOnWriteArrayList::new)));
                 state = State.PATHING;
                 LogUtils.sendDebug("Path smoothing took " + (System.currentTimeMillis() - startTime) + "ms");
                 if (timeoutTask != null) {
@@ -195,10 +193,10 @@ public class FlyPathFinderExecutor {
             Vec3 lastValid = path.get(lowerIndex + 1);
             for (int upperIndex = lowerIndex + 2; upperIndex < path.size(); upperIndex++) {
                 Vec3 end = path.get(upperIndex);
-                if (traversable(start.addVector(0, 0.15, 0), end.addVector(0, 0.15, 0)) &&
-                        traversable(start.addVector(0, 0.85, 0), end.addVector(0, 0.85, 0)) &&
-                        traversable(start.addVector(0, 1.15, 0), end.addVector(0, 1.15, 0)) &&
-                        traversable(start.addVector(0, 1.85, 0), end.addVector(0, 1.85, 0))) {
+                if (traversable(start, end) &&
+                        traversable(start.addVector(0, 0.9, 0), end.addVector(0, 0.9, 0)) &&
+                        traversable(start.addVector(0, 1, 0), end.addVector(0, 1, 0)) &&
+                        traversable(start.addVector(0, 1.9, 0), end.addVector(0, 1.9, 0))) {
                     lastValid = end;
                 }
             }
@@ -210,10 +208,10 @@ public class FlyPathFinderExecutor {
     }
 
     private static final Vec3[] BLOCK_SIDE_MULTIPLIERS = new Vec3[]{
-            new Vec3(0.1, 0, 0.1),
-            new Vec3(0.1, 0, 0.9),
-            new Vec3(0.9, 0, 0.1),
-            new Vec3(0.9, 0, 0.9)
+            new Vec3(0.05, 0, 0.05),
+            new Vec3(0.05, 0, 0.95),
+            new Vec3(0.95, 0, 0.05),
+            new Vec3(0.95, 0, 0.95)
     };
 
     private boolean traversable(Vec3 from, Vec3 to) {
@@ -259,8 +257,8 @@ public class FlyPathFinderExecutor {
         lookingTarget = null;
         state = State.NONE;
         KeyBindUtils.stopMovement(true);
+        loweringRaisingDelay.reset();
         neededYaw = Integer.MIN_VALUE;
-        minimumDelayBetweenSpaces.reset();
         if (pathfinderTask != null) {
             pathfinderTask.interrupt();
             pathfinderTask = null;
@@ -288,7 +286,7 @@ public class FlyPathFinderExecutor {
         if (event.phase == TickEvent.Phase.END) return;
         if (path.isEmpty()) return;
         if (target == null) return;
-        tick = (tick + 1) % 8;
+        tick = (tick + 1) % 12;
 
         if (tick != 0) return;
         if (isCalculating()) return;
@@ -321,7 +319,7 @@ public class FlyPathFinderExecutor {
         }
     }
 
-    private final Clock minimumDelayBetweenSpaces = new Clock();
+    private final Clock loweringRaisingDelay = new Clock();
 
     @SubscribeEvent
     public void onTickNeededYaw(TickEvent.ClientTickEvent event) {
@@ -336,7 +334,8 @@ public class FlyPathFinderExecutor {
             neededYaw = Integer.MIN_VALUE;
             return;
         }
-        if (path.isEmpty()) {
+        ArrayList<Vec3> copyPath = new ArrayList<>(path);
+        if (copyPath.isEmpty()) {
             KeyBindUtils.stopMovement(true);
             return;
         }
@@ -351,10 +350,10 @@ public class FlyPathFinderExecutor {
             float rotationToEscape;
             for (rotationToEscape = 0; rotationToEscape < 360; rotationToEscape += 20) {
                 Vec3 escape = current.addVector(Math.cos(Math.toRadians(rotationToEscape)), 0, Math.sin(Math.toRadians(rotationToEscape)));
-                if (traversable(current.addVector(0, 0.15, 0), escape.addVector(0, 0.15, 0)) &&
-                        traversable(current.addVector(0, 0.85, 0), escape.addVector(0, 0.85, 0)) &&
-                        traversable(current.addVector(0, 1.15, 0), escape.addVector(0, 1.15, 0)) &&
-                        traversable(current.addVector(0, 1.85, 0), escape.addVector(0, 1.85, 0))) {
+                if (traversable(current, escape) &&
+                        traversable(current.addVector(0, 0.9, 0), escape.addVector(0, 0.9, 0)) &&
+                        traversable(current.addVector(0, 1., 0), escape.addVector(0, 1., 0)) &&
+                        traversable(current.addVector(0, 1.9, 0), escape.addVector(0, 1.9, 0))) {
                     break;
                 }
             }
@@ -386,19 +385,19 @@ public class FlyPathFinderExecutor {
                 stop();
                 return;
             }
-        } else if ((current.distanceTo(path.get(path.size() - 1)) < 1.5 || ((target != null && mc.thePlayer.getDistance(target.xCoord, target.yCoord, target.zCoord) < 2.5)))) {
+        } else if ((current.distanceTo(copyPath.get(copyPath.size() - 1)) < 1.5 || ((target != null && mc.thePlayer.getDistance(target.xCoord, target.yCoord, target.zCoord) < 2.5)))) {
             stopAndDecelerate();
             return;
         }
         if (!mc.thePlayer.capabilities.allowFlying) {
-            Vec3 lastWithoutY = new Vec3(path.get(path.size() - 1).xCoord, current.yCoord, path.get(path.size() - 1).zCoord);
+            Vec3 lastWithoutY = new Vec3(copyPath.get(copyPath.size() - 1).xCoord, current.yCoord, copyPath.get(copyPath.size() - 1).zCoord);
             if (current.distanceTo(lastWithoutY) < 1) {
                 stop();
                 LogUtils.sendSuccess("Arrived at destination");
                 return;
             }
         }
-        Vec3 next = getNext();
+        Vec3 next = getNext(copyPath);
 
         Rotation rotation = RotationHandler.getInstance().getRotation(current, next);
         List<KeyBinding> keyBindings = new ArrayList<>();
@@ -415,7 +414,6 @@ public class FlyPathFinderExecutor {
 
         double distanceX = next.xCoord - mc.thePlayer.posX;
         double distanceY = next.yCoord - mc.thePlayer.posY;
-//        System.out.println("next y: " + next.yCoord + ", current y: " + mc.thePlayer.posY + ", distance y: " + distanceY);
         double distanceZ = next.zCoord - mc.thePlayer.posZ;
         float yaw = neededYaw * (float) Math.PI / 180.0f;
         double relativeDistanceX = distanceX * Math.cos(yaw) + distanceZ * Math.sin(yaw);
@@ -427,13 +425,15 @@ public class FlyPathFinderExecutor {
             if (verticalDirection.equals(VerticalDirection.HIGHER)) {
                 keyBindings.add(mc.gameSettings.keyBindJump);
                 System.out.println("Raising 1");
+                loweringRaisingDelay.schedule(750);
             } else if (verticalDirection.equals(VerticalDirection.LOWER)) {
                 keyBindings.add(mc.gameSettings.keyBindSneak);
                 System.out.println("Lowering 1");
-            } else if ((getBlockUnder() instanceof BlockCactus || distanceY > 0.25) && (((EntityPlayerAccessor) mc.thePlayer).getFlyToggleTimer() == 0 || mc.gameSettings.keyBindJump.isKeyDown())) {
+                loweringRaisingDelay.schedule(750);
+            } else if (loweringRaisingDelay.passed() && (getBlockUnder() instanceof BlockCactus || distanceY > 0.5) && (((EntityPlayerAccessor) mc.thePlayer).getFlyToggleTimer() == 0 || mc.gameSettings.keyBindJump.isKeyDown())) {
                 keyBindings.add(mc.gameSettings.keyBindJump);
                 System.out.println("Raising 2");
-            } else if (distanceY < -0.25) {
+            } else if (loweringRaisingDelay.passed() && distanceY < -0.5) {
                 Block blockUnder = getBlockUnder();
                 if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.isFlying && !(blockUnder instanceof BlockCactus) && !(blockUnder instanceof BlockSoulSand)) {
                     keyBindings.add(mc.gameSettings.keyBindSneak);
@@ -448,7 +448,6 @@ public class FlyPathFinderExecutor {
 
         mc.thePlayer.setSprinting(FarmHelperConfig.sprintWhileFlying && neededKeys.contains(mc.gameSettings.keyBindForward) && !neededKeys.contains(mc.gameSettings.keyBindSneak) && current.distanceTo(new Vec3(next.xCoord, current.yCoord, next.zCoord)) > 6);
 
-//        System.out.println("Buttons: " + keyBindings.stream().map(keyBinding -> keyBinding == null ? "null" : keyBinding.getKeyDescription()).collect(Collectors.joining(", ")));
         if (neededYaw != Integer.MIN_VALUE)
             KeyBindUtils.holdThese(keyBindings.toArray(new KeyBinding[0]));
         else
@@ -518,15 +517,21 @@ public class FlyPathFinderExecutor {
             return VerticalDirection.NONE;
         }
         Vec3 directionGoing = AngleUtils.getVectorForRotation(0, neededYaw);
-        Vec3 target = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.6, -0.05, directionGoing.zCoord * 0.6);
+        Vec3 target = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.3, 0.1, directionGoing.zCoord * 0.3);
         MovingObjectPosition trace = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), target, false, true, false);
         if (trace != null && trace.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            return VerticalDirection.HIGHER;
+            BlockPos blockPos = trace.getBlockPos();
+            if (BlockUtils.hasCollision(blockPos)) {
+                return VerticalDirection.HIGHER;
+            }
         }
-        Vec3 targetUp = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.6, mc.thePlayer.height + 0.05, directionGoing.zCoord * 0.6);
+        Vec3 targetUp = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.3, mc.thePlayer.height - 0.1, directionGoing.zCoord * 0.3);
         MovingObjectPosition traceUp = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), targetUp, false, true, false);
         if (traceUp != null && traceUp.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            return VerticalDirection.LOWER;
+            BlockPos blockPos = traceUp.getBlockPos();
+            if (BlockUtils.hasCollision(blockPos)) {
+                return VerticalDirection.LOWER;
+            }
         }
         return VerticalDirection.NONE;
     }
@@ -539,7 +544,7 @@ public class FlyPathFinderExecutor {
 
     private boolean checkForStuck(Vec3 positionVec3) {
         if (!stuckCheckDelay.passed()) return false;
-        if (this.ticksAtLastPos > 25) {
+        if (this.ticksAtLastPos > 15) {
             this.ticksAtLastPos = 0;
             this.lastPosCheck = positionVec3;
             return positionVec3.squareDistanceTo(this.lastPosCheck) < 2.25;
@@ -547,7 +552,6 @@ public class FlyPathFinderExecutor {
         double diff = positionVec3.squareDistanceTo(this.lastPosCheck);
         if (diff < 2.25) {
             this.ticksAtLastPos++;
-            System.out.println(this.ticksAtLastPos);
         } else {
             this.ticksAtLastPos = 0;
             this.lastPosCheck = positionVec3;
@@ -575,18 +579,18 @@ public class FlyPathFinderExecutor {
         }
         if (mc.thePlayer.onGround && next.yCoord - current.yCoord > 0.5) {
             mc.thePlayer.jump();
-            flyDelay.schedule(80 + (long) (Math.random() * 80));
+            flyDelay.schedule(180 + (long) (Math.random() * 180));
             return true;
         } else {
             Vec3 closestToPlayer;
             try {
-                closestToPlayer = path.stream().min((vec1, vec2) -> (int) (vec1.distanceTo(mc.thePlayer.getPositionVector()) - vec2.distanceTo(mc.thePlayer.getPositionVector()))).orElse(path.get(0));
+                closestToPlayer = path.stream().min(Comparator.comparingDouble((vec1) -> vec1.distanceTo(mc.thePlayer.getPositionVector()))).orElse(path.get(0));
             } catch (IndexOutOfBoundsException e) {
                 return false;
             }
             if (next.yCoord - closestToPlayer.yCoord > 0.5) {
                 if (!flyDelay.isScheduled()) {
-                    flyDelay.schedule(80 + (long) (Math.random() * 80));
+                    flyDelay.schedule(180 + (long) (Math.random() * 180));
                 }
                 return !mc.thePlayer.capabilities.isFlying;
             }
@@ -596,11 +600,12 @@ public class FlyPathFinderExecutor {
 
     @SubscribeEvent
     public void onDraw(RenderWorldLastEvent event) {
-        if (path.isEmpty()) return;
+        ArrayList<Vec3> copyPath = new ArrayList<>(path);
+        if (copyPath.isEmpty()) return;
         if (!isRunning()) return;
         RenderManager renderManager = mc.getRenderManager();
         Vec3 current = mc.thePlayer.getPositionVector();
-        Vec3 next = getNext();
+        Vec3 next = getNext(copyPath);
         AxisAlignedBB currenNode = new AxisAlignedBB(current.xCoord - 0.05, current.yCoord - 0.05, current.zCoord - 0.05, current.xCoord + 0.05, current.yCoord + 0.05, current.zCoord + 0.05);
         AxisAlignedBB nextBB = new AxisAlignedBB(next.xCoord - 0.05, next.yCoord - 0.05, next.zCoord - 0.05, next.xCoord + 0.05, next.yCoord + 0.05, next.zCoord + 0.05);
         RenderManager rendermanager = Minecraft.getMinecraft().getRenderManager();
@@ -608,24 +613,50 @@ public class FlyPathFinderExecutor {
         nextBB = nextBB.offset(-rendermanager.viewerPosX, -rendermanager.viewerPosY, -rendermanager.viewerPosZ);
         RenderUtils.drawBox(currenNode, Color.GREEN);
         RenderUtils.drawBox(nextBB, Color.BLUE);
-        for (int i = 0; i < path.size() - 1; i++) {
-            Vec3 from = new Vec3(path.get(i).xCoord, path.get(i).yCoord, path.get(i).zCoord);
-            Vec3 to = new Vec3(path.get(i + 1).xCoord, path.get(i + 1).yCoord, path.get(i + 1).zCoord);
+        for (int i = 0; i < copyPath.size() - 1; i++) {
+            Vec3 from = new Vec3(copyPath.get(i).xCoord, copyPath.get(i).yCoord, copyPath.get(i).zCoord);
+            Vec3 to = new Vec3(copyPath.get(i + 1).xCoord, copyPath.get(i + 1).yCoord, copyPath.get(i + 1).zCoord);
             from = from.addVector(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ);
             RenderUtils.drawTracer(from, to, Color.RED);
         }
+        if (!FarmHelperConfig.debugMode) return;
+        Vec3 directionGoing = AngleUtils.getVectorForRotation(0, neededYaw);
+        Vec3 target = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.3, 0.1, directionGoing.zCoord * 0.3);
+        Vec3 targetUp = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.3, mc.thePlayer.height - 0.1, directionGoing.zCoord * 0.3);
+        MovingObjectPosition trace = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), target, false, true, false);
+        MovingObjectPosition traceUp = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), targetUp, false, true, false);
+        if (trace != null && trace.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            BlockPos blockPos = trace.getBlockPos();
+            if (BlockUtils.hasCollision(blockPos)) {
+                RenderUtils.drawBox(new AxisAlignedBB(blockPos.getX(), blockPos.getY(), blockPos.getZ(), blockPos.getX() + 1, blockPos.getY() + 1, blockPos.getZ() + 1).offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ), Color.RED);
+            } else {
+                RenderUtils.drawBox(new AxisAlignedBB(target.xCoord, target.yCoord, target.zCoord, target.xCoord + 0.1, target.yCoord + 0.1, target.zCoord + 0.1).offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ), Color.GREEN);
+            }
+        } else {
+            RenderUtils.drawBox(new AxisAlignedBB(target.xCoord, target.yCoord, target.zCoord, target.xCoord + 0.1, target.yCoord + 0.1, target.zCoord + 0.1).offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ), Color.GREEN);
+        }
+        if (traceUp != null && traceUp.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            BlockPos blockPos = traceUp.getBlockPos();
+            if (BlockUtils.hasCollision(blockPos)) {
+                RenderUtils.drawBox(new AxisAlignedBB(blockPos.getX(), blockPos.getY(), blockPos.getZ(), blockPos.getX() + 1, blockPos.getY() + 1, blockPos.getZ() + 1).offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ), Color.RED);
+            } else {
+                RenderUtils.drawBox(new AxisAlignedBB(targetUp.xCoord, targetUp.yCoord, targetUp.zCoord, targetUp.xCoord + 0.1, targetUp.yCoord + 0.1, targetUp.zCoord + 0.1).offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ), Color.GREEN);
+            }
+        } else {
+            RenderUtils.drawBox(new AxisAlignedBB(targetUp.xCoord, targetUp.yCoord, targetUp.zCoord, targetUp.xCoord + 0.1, targetUp.yCoord + 0.1, targetUp.zCoord + 0.1).offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ), Color.GREEN);
+        }
     }
 
-    private Vec3 getNext() {
+    private Vec3 getNext(ArrayList<Vec3> path) {
         if (path.isEmpty()) {
             return mc.thePlayer.getPositionVector();
         }
         try {
             Vec3 current = mc.thePlayer.getPositionVector();
-            Vec3 closestToPlayer = path.stream().min(Comparator.comparingDouble(vec -> vec.distanceTo(current))).orElse(path.get(0));
+            Vec3 closestToPlayer = path.stream().min(Comparator.comparingDouble(vec -> vec.distanceTo(current))).orElse(path.get(path.size() - 2));
             return path.get(path.indexOf(closestToPlayer) + 1);
         } catch (IndexOutOfBoundsException e) {
-            return mc.thePlayer.getPositionVector();
+            return path.get(path.size() - 1);
         }
     }
 

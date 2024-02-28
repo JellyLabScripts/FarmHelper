@@ -5,6 +5,7 @@ import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
+import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import com.jelly.farmhelperv2.util.helper.Target;
@@ -53,7 +54,7 @@ public class RewardClaimer implements IFeature {
         if (!isRunning()) return;
         if (delayClock.isScheduled() && !delayClock.passed()) return;
 
-        if (InventoryUtils.getInventoryName() == null && VisitorsMacro.getInstance().isInBarn()) {
+        if (InventoryUtils.getInventoryName() == null && PlayerUtils.isInBarn()) {
             jacob = getJacob();
             if (jacob == null || jacob.getDistanceSqToEntity(mc.thePlayer) > 4 * 4) {
                 return;

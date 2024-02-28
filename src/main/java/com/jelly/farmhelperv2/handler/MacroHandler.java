@@ -146,7 +146,7 @@ public class MacroHandler {
                 AutoPestHunter.getInstance().stop();
                 return;
             }
-            if (VisitorsMacro.getInstance().isInBarn()) {
+            if (PlayerUtils.isInBarn()) {
                 if (VisitorsMacro.getInstance().isToggled()) {
                     VisitorsMacro.getInstance().setManuallyStarted(true);
                     VisitorsMacro.getInstance().start();
@@ -414,6 +414,7 @@ public class MacroHandler {
     @Getter
     private final Clock afterRewarpDelay = new Clock();
     @Setter
+    @Getter
     private boolean rewarpTeleport = false;
 
     public void onTickCheckTeleport() {
@@ -463,6 +464,9 @@ public class MacroHandler {
         }
     }
 
+    @Getter
+    private long lastTpTry = 0;
+
     public boolean triggerWarpGarden(boolean force, boolean rewarpTeleport) {
         if (GameStateHandler.getInstance().notMoving()) {
             KeyBindUtils.stopMovement();
@@ -472,6 +476,7 @@ public class MacroHandler {
                 LogUtils.sendDebug("Not warping because of feature");
                 return false;
             }
+            lastTpTry = System.currentTimeMillis();
             currentMacro.ifPresent(cm -> cm.setRewarpState(AbstractMacro.RewarpState.TELEPORTING));
             setBeforeTeleportationPos(Optional.ofNullable(mc.thePlayer.getPosition()));
             AntiStuck.getInstance().resetUnstuckTries();
@@ -487,12 +492,15 @@ public class MacroHandler {
 
     public boolean canTriggerFeatureAfterWarp() {
         if (PestsDestroyer.getInstance().canEnableMacro()) {
+            LogUtils.sendDebug("Activating Pests Destroyer");
             PestsDestroyer.getInstance().start();
             return true;
         } else if (VisitorsMacro.getInstance().canEnableMacro(false, true)) {
+            LogUtils.sendDebug("Activating Visitors Macro");
             VisitorsMacro.getInstance().start();
             return true;
         } else if (AutoPestHunter.getInstance().canEnableMacro(false)) {
+            LogUtils.sendDebug("Activating Auto Pest Hunter");
             AutoPestHunter.getInstance().start();
             return true;
         }

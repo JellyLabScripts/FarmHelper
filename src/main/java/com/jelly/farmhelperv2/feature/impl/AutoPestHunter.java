@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
@@ -29,6 +30,8 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
 public class AutoPestHunter implements IFeature {
@@ -93,9 +96,14 @@ public class AutoPestHunter implements IFeature {
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (!isToggled()) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (MacroHandler.getInstance().isMacroToggled()) {
+            MacroHandler.getInstance().pauseMacro();
+            MacroHandler.getInstance().getCurrentMacro().ifPresent(am -> am.setSavedState(Optional.empty()));
+            KeyBindUtils.stopMovement();
+        }
         resetStatesAfterMacroDisabled();
         enabled = true;
-        state = State.TELEPORT_TO_DESK;
+        state = State.NONE;
         LogUtils.sendWarning("[Auto Pest Hunter] Starting...");
     }
 
@@ -145,10 +153,11 @@ public class AutoPestHunter implements IFeature {
 
     public boolean canEnableMacro(boolean manual) {
         if (!isToggled()) return false;
+        if (isRunning()) return false;
         if (!GameStateHandler.getInstance().inGarden()) return false;
         if (mc.thePlayer == null || mc.theWorld == null) return false;
         if (!MacroHandler.getInstance().isMacroToggled() && !manual) return false;
-        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return false;
+        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this, VisitorsMacro.getInstance())) return false;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
             LogUtils.sendError("[Auto Pest Hunter] Server is closing in " + GameStateHandler.getInstance().getServerClosingSeconds().get() + " seconds!");
             return false;
@@ -162,7 +171,7 @@ public class AutoPestHunter implements IFeature {
             return false;
         for (String line : tabList) {
             if (line.contains("Pesthunter Bonus:")) {
-                LogUtils.sendDebug("[Auto Pest Hunter] Pesthunter bonus is active, skipping...");
+                LogUtils.sendWarning("[Auto Pest Hunter] Pesthunter bonus is active, skipping...");
                 return false;
             }
         }
@@ -203,15 +212,30 @@ public class AutoPestHunter implements IFeature {
 
         switch (state) {
             case NONE:
+                if (mc.currentScreen != null) {
+                    PlayerUtils.closeScreen();
+                    delayClock.schedule(1_000 + Math.random() * 500);
+                    break;
+                }
+                if (FarmHelperConfig.logAutoPestHunterEvents)
+                    LogUtils.webhookLog("[Auto Pest Hunter] Starting the macro!\\n" + GameStateHandler.getInstance().getPestsFromVacuum() + " pests in total!");
+                state = State.TELEPORT_TO_DESK;
+                delayClock.schedule((long) (1_000 + Math.random() * 500));
+                break;
             case WAIT_FOR_VACUUM:
                 break;
             case TELEPORT_TO_DESK:
                 if (mc.currentScreen != null) {
                     PlayerUtils.closeScreen();
+                    delayClock.schedule(1_000 + Math.random() * 500);
                     break;
                 }
-                if (FarmHelperConfig.logAutoPestHunterEvents)
-                    LogUtils.webhookLog("[Auto Pest Hunter] Starting the macro!\\n" + GameStateHandler.getInstance().getPestsFromVacuum() + " pests in total!");
+                if (PlayerUtils.isInBarn()) {
+                    state = State.GO_TO_PHILLIP;
+                    delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
+                    stuckClock.schedule(30_000L);
+                    break;
+                }
                 positionBeforeTp = mc.thePlayer.getPosition();
                 state = State.WAIT_FOR_TP;
                 mc.thePlayer.sendChatMessage("/tptoplot barn");
@@ -244,6 +268,8 @@ public class AutoPestHunter implements IFeature {
             case FIND_PHILLIP:
                 if (mc.currentScreen != null) {
                     PlayerUtils.closeScreen();
+                    delayClock.schedule(1_000 + Math.random() * 500);
+                    break;
                 }
                 if (BaritoneHandler.hasFailed() && initialDeskPos.distanceSq(mc.thePlayer.getPosition()) > 7) {
                     LogUtils.sendError("[Auto Pest Hunter] Baritone failed to reach the destination!");
@@ -274,6 +300,8 @@ public class AutoPestHunter implements IFeature {
             case GO_TO_PHILLIP:
                 if (mc.currentScreen != null) {
                     PlayerUtils.closeScreen();
+                    delayClock.schedule(1_000 + Math.random() * 500);
+                    break;
                 }
                 if (BaritoneHandler.hasFailed() && deskPos().distanceSq(mc.thePlayer.getPosition()) > 7) {
                     LogUtils.sendError("[Auto Pest Hunter] Baritone failed to reach the destination!");
@@ -307,6 +335,8 @@ public class AutoPestHunter implements IFeature {
             case WAIT_UNTIL_REACHED_DESK:
                 if (mc.currentScreen != null) {
                     PlayerUtils.closeScreen();
+                    delayClock.schedule(1_000 + Math.random() * 500);
+                    break;
                 }
                 if (BaritoneHandler.hasFailed()) {
                     LogUtils.sendError("[Auto Pest Hunter] Baritone failed to reach the destination!");
@@ -388,23 +418,22 @@ public class AutoPestHunter implements IFeature {
                 delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
                 break;
             case GO_BACK:
+                if (mc.currentScreen != null) {
+                    PlayerUtils.closeScreen();
+                    delayClock.schedule(1_000 + Math.random() * 500);
+                    break;
+                }
                 if (!manuallyStarted) {
-                    if (PlayerUtils.isStandingOnSpawnPoint()) {
-                        stop();
-                        MacroHandler.getInstance().resumeMacro();
-                        return;
+                    if (MacroHandler.getInstance().triggerWarpGarden(true, true)) {
+                        Multithreading.schedule(() -> {
+                            if (!PlayerUtils.isInBarn()) {
+                                stop();
+                                MacroHandler.getInstance().resumeMacro();
+                            }
+                        }, 1_000, TimeUnit.MILLISECONDS);
                     }
-                    if (finishTries == 7) {
-                        LogUtils.sendError("[Auto Pest Hunter] Couldn't enable macro after teleportation! Check if your spawn point is set in mod (Yellow rectangle). If not, re-do command /setspawn");
-                        LogUtils.webhookLog("[Auto Pest Hunter] Couldn't enable macro after teleportation!");
-                        MacroHandler.getInstance().disableMacro();
-                        return;
-                    }
-                    MacroHandler.getInstance().triggerWarpGarden(true, true);
-                    finishTries++;
                     delayClock.schedule(1_000 + Math.random() * 500);
                 }
-                stop();
                 break;
         }
     }
