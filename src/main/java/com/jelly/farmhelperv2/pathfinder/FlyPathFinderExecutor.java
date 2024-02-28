@@ -127,7 +127,7 @@ public class FlyPathFinderExecutor {
                     finalRoute = smoothPath(finalRoute);
                 }
                 this.path.clear();
-                this.path.addAll(finalRoute.stream().map(vec3 -> vec3.addVector(0.5f, 0.05, 0.5)).collect(Collectors.toCollection(CopyOnWriteArrayList::new)));
+                this.path.addAll(finalRoute.stream().map(vec3 -> vec3.addVector(0.5f, 0.15, 0.5)).collect(Collectors.toCollection(CopyOnWriteArrayList::new)));
                 state = State.PATHING;
                 LogUtils.sendDebug("Path smoothing took " + (System.currentTimeMillis() - startTime) + "ms");
                 if (timeoutTask != null) {
@@ -193,9 +193,9 @@ public class FlyPathFinderExecutor {
             Vec3 lastValid = path.get(lowerIndex + 1);
             for (int upperIndex = lowerIndex + 2; upperIndex < path.size(); upperIndex++) {
                 Vec3 end = path.get(upperIndex);
-                if (traversable(start, end) &&
+                if (traversable(start.addVector(0, 0.1, 0), end.addVector(0, 0.1, 0)) &&
                         traversable(start.addVector(0, 0.9, 0), end.addVector(0, 0.9, 0)) &&
-                        traversable(start.addVector(0, 1, 0), end.addVector(0, 1, 0)) &&
+                        traversable(start.addVector(0, 1.1, 0), end.addVector(0, 1.1, 0)) &&
                         traversable(start.addVector(0, 1.9, 0), end.addVector(0, 1.9, 0))) {
                     lastValid = end;
                 }
@@ -350,9 +350,9 @@ public class FlyPathFinderExecutor {
             float rotationToEscape;
             for (rotationToEscape = 0; rotationToEscape < 360; rotationToEscape += 20) {
                 Vec3 escape = current.addVector(Math.cos(Math.toRadians(rotationToEscape)), 0, Math.sin(Math.toRadians(rotationToEscape)));
-                if (traversable(current, escape) &&
+                if (traversable(current.addVector(0, 0.1, 0), escape.addVector(0, 0.1, 0)) &&
                         traversable(current.addVector(0, 0.9, 0), escape.addVector(0, 0.9, 0)) &&
-                        traversable(current.addVector(0, 1., 0), escape.addVector(0, 1., 0)) &&
+                        traversable(current.addVector(0, 1.1, 0), escape.addVector(0, 1.1, 0)) &&
                         traversable(current.addVector(0, 1.9, 0), escape.addVector(0, 1.9, 0))) {
                     break;
                 }
@@ -362,6 +362,15 @@ public class FlyPathFinderExecutor {
                 List<KeyBinding> keyBindings = new ArrayList<>(KeyBindUtils.getNeededKeyPresses(neededYaw));
                 keyBindings.add(mc.gameSettings.keyBindUseItem.isKeyDown() ? mc.gameSettings.keyBindUseItem : null);
                 keyBindings.add(mc.gameSettings.keyBindAttack.isKeyDown() ? mc.gameSettings.keyBindAttack : null);
+                Vec3 above = current.addVector(0, mc.thePlayer.height + 0.5f, 0);
+                Vec3 below = current.addVector(0, -0.5f, 0);
+                MovingObjectPosition traceAbove = mc.theWorld.rayTraceBlocks(current, above, false, true, false);
+                MovingObjectPosition traceBelow = mc.theWorld.rayTraceBlocks(current, below, false, true, false);
+                if (traceBelow == null || traceBelow.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
+                    keyBindings.add(mc.gameSettings.keyBindSneak);
+                } else if (traceAbove == null || traceAbove.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
+                    keyBindings.add(mc.gameSettings.keyBindJump);
+                }
                 KeyBindUtils.holdThese(keyBindings.toArray(new KeyBinding[0]));
             } else {
                 KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, mc.gameSettings.keyBindUseItem.isKeyDown() ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindAttack.isKeyDown() ? mc.gameSettings.keyBindAttack : null);
@@ -517,7 +526,7 @@ public class FlyPathFinderExecutor {
             return VerticalDirection.NONE;
         }
         Vec3 directionGoing = AngleUtils.getVectorForRotation(0, neededYaw);
-        Vec3 target = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.3, 0.1, directionGoing.zCoord * 0.3);
+        Vec3 target = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.3, -0.1, directionGoing.zCoord * 0.3);
         MovingObjectPosition trace = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), target, false, true, false);
         if (trace != null && trace.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             BlockPos blockPos = trace.getBlockPos();
@@ -525,7 +534,7 @@ public class FlyPathFinderExecutor {
                 return VerticalDirection.HIGHER;
             }
         }
-        Vec3 targetUp = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.3, mc.thePlayer.height - 0.1, directionGoing.zCoord * 0.3);
+        Vec3 targetUp = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.3, mc.thePlayer.height + 0.1, directionGoing.zCoord * 0.3);
         MovingObjectPosition traceUp = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), targetUp, false, true, false);
         if (traceUp != null && traceUp.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             BlockPos blockPos = traceUp.getBlockPos();
@@ -621,8 +630,8 @@ public class FlyPathFinderExecutor {
         }
         if (!FarmHelperConfig.debugMode) return;
         Vec3 directionGoing = AngleUtils.getVectorForRotation(0, neededYaw);
-        Vec3 target = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.3, 0.1, directionGoing.zCoord * 0.3);
-        Vec3 targetUp = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.3, mc.thePlayer.height - 0.1, directionGoing.zCoord * 0.3);
+        Vec3 target = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.3, -0.1, directionGoing.zCoord * 0.3);
+        Vec3 targetUp = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.3, mc.thePlayer.height + 0.1, directionGoing.zCoord * 0.3);
         MovingObjectPosition trace = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), target, false, true, false);
         MovingObjectPosition traceUp = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), targetUp, false, true, false);
         if (trace != null && trace.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {

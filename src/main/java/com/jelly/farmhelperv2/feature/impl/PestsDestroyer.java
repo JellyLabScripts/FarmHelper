@@ -225,6 +225,7 @@ public class PestsDestroyer implements IFeature {
 
     public boolean canEnableMacro(boolean manually) {
         if (!isToggled()) return false;
+        if (isRunning()) return false;
         if (!GameStateHandler.getInstance().inGarden()) return false;
         if (!MacroHandler.getInstance().isMacroToggled() && !manually) return false;
         if (enabled || preparing) return false;

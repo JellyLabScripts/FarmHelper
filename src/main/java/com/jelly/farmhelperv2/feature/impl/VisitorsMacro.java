@@ -109,6 +109,15 @@ public class VisitorsMacro implements IFeature {
 
     @Override
     public void start() {
+        if (visitors.isEmpty()) {
+            LogUtils.sendWarning("[Visitors Macro] No visitors in queue, disabling...");
+            if (enabled) {
+                setMainState(MainState.END);
+                return;
+            }
+            stop();
+            return;
+        }
         MacroHandler.getInstance().getCurrentMacro().ifPresent(macro -> macro.getRotation().reset());
         mainState = MainState.NONE;
         compactorsDisabled = false;
@@ -210,6 +219,7 @@ public class VisitorsMacro implements IFeature {
 
     public boolean canEnableMacro(boolean manual, boolean withError) {
         if (!isToggled()) return false;
+        if (isRunning()) return false;
         if (!GameStateHandler.getInstance().inGarden()) return false;
         if (mc.thePlayer == null || mc.theWorld == null) return false;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this, PestsDestroyer.getInstance())) return false;
