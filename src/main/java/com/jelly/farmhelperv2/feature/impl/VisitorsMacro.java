@@ -350,10 +350,10 @@ public class VisitorsMacro implements IFeature {
                 onVisitorsState();
                 break;
             case END:
+                setMainState(MainState.DISABLED);
                 if (FarmHelperConfig.visitorsMacroAfkInfiniteMode) {
                     LogUtils.sendWarning("[Visitors Macro] The macro has finished. Waiting 15 seconds for visitors to spawn...");
                     afkDelay.schedule(15_000);
-                    setMainState(MainState.DISABLED);
                     stop();
                 } else if (manuallyStarted) {
                     setMainState(MainState.DISABLED);
