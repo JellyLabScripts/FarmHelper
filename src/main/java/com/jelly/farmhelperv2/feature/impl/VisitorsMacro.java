@@ -369,8 +369,8 @@ public class VisitorsMacro implements IFeature {
                     setMainState(MainState.DISABLED);
                     stop();
                 } else {
-                    stop();
                     teleportBackToFarm();
+                    stop();
                     delayClock.schedule(2_500);
                 }
                 break;

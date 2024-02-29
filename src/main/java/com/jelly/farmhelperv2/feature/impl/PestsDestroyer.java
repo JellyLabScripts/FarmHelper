@@ -19,6 +19,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
+import net.minecraft.entity.monster.EntitySilverfish;
+import net.minecraft.entity.passive.EntityBat;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.Slot;
@@ -676,7 +678,12 @@ public class PestsDestroyer implements IFeature {
                     }
                     break;
                 }
-
+                if (closestPest instanceof EntityArmorStand) {
+                    Entity realEntity = PlayerUtils.getEntityCuttingOtherEntity(closestPest, (e) -> e instanceof EntityBat || e instanceof EntitySilverfish);
+                    if (realEntity != null) {
+                        closestPest = realEntity;
+                    }
+                }
                 if (FlyPathFinderExecutor.getInstance().isRunning()) {
                     FlyPathFinderExecutor.getInstance().stop();
                 }
@@ -694,6 +701,7 @@ public class PestsDestroyer implements IFeature {
             case KILL_PEST:
                 if (isInventoryOpenDelayed()) break;
                 if (!currentEntityTarget.isPresent()) {
+                    FlyPathFinderExecutor.getInstance().stop();
                     RotationHandler.getInstance().reset();
                     state = States.CHECK_ANOTHER_PEST;
                     return;
@@ -730,10 +738,11 @@ public class PestsDestroyer implements IFeature {
                     if (distance < 2 && targetVelocity < 0.15 && mc.thePlayer.canEntityBeSeen(entity)) {
                         if (FlyPathFinderExecutor.getInstance().isRunning()) {
                             FlyPathFinderExecutor.getInstance().stop();
+                        } else {
+                            float playerVelocity = (float) (Math.abs(mc.thePlayer.motionX) + Math.abs(mc.thePlayer.motionZ));
+                            if (playerVelocity > 0.15)
+                                KeyBindUtils.onTick(mc.gameSettings.keyBindBack);
                         }
-                        float playerVelocity = (float) (Math.abs(mc.thePlayer.motionX) + Math.abs(mc.thePlayer.motionZ));
-                        if (playerVelocity > 0.15)
-                            KeyBindUtils.onTick(mc.gameSettings.keyBindBack);
                     }
                     if (rotationState != RotationState.CLOSE) {
                         rotationState = RotationState.CLOSE;

@@ -429,7 +429,7 @@ public class MacroHandler {
 
     private void checkForTeleport() {
         if (!beforeTeleportationPos.isPresent()) return;
-        if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos.get()) > 2) {
+        if (mc.thePlayer.getPosition().distanceSq(beforeTeleportationPos.get()) > 2 || PlayerUtils.isStandingOnSpawnPoint()) {
             if (PlayerUtils.isPlayerSuffocating()) {
                 LogUtils.sendDebug("Player is suffocating. Waiting");
                 return;

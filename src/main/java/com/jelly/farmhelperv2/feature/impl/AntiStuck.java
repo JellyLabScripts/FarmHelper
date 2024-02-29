@@ -229,11 +229,11 @@ public class AntiStuck implements IFeature {
                 if (intersectingBlockPos != null) {
                     Optional<EnumFacing> closestSide = findClosestSide(intersectingBlockPos);
                     if (!closestSide.isPresent() || unstuckTries > FarmHelperConfig.antiStuckTriesUntilRewarp) {
-                        unstuckTries = 0;
                         LogUtils.sendError("[Anti Stuck] Can't unstuck from this place. That's a rare occurrence. Warping back to spawn...");
+                        KeyBindUtils.stopMovement();
+                        stop();
+                        unstuckTries = 0;
                         MacroHandler.getInstance().triggerWarpGarden(true, true);
-                        unstuckState = UnstuckState.DISABLE;
-                        delayBetweenMovementsClock.schedule(150 + (int) (Math.random() * 250));
                         return;
                     }
                     EnumFacing facing = closestSide.get();

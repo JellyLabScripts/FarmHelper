@@ -134,7 +134,7 @@ public class AutoPestHunter implements IFeature {
 
     @Override
     public boolean shouldCheckForFailsafes() {
-        return state == State.NONE || state == State.GO_BACK || state == State.EMPTY_VACUUM || state == State.GO_TO_PHILLIP || state == State.TELEPORT_TO_DESK;
+        return state == State.NONE || state == State.GO_BACK || state == State.EMPTY_VACUUM || state == State.GO_TO_PHILLIP;
     }
 
     enum State {

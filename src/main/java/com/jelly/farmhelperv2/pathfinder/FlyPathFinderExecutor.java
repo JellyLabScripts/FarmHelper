@@ -464,7 +464,7 @@ public class FlyPathFinderExecutor {
     }
 
     private boolean willArriveAtDestinationAfterStopping(Vec3 targetPos) {
-        return predictStoppingPosition().distanceTo(targetPos) < 0.5;
+        return predictStoppingPosition().distanceTo(targetPos) < 0.75;
     }
 
     private Vec3 predictStoppingPosition() {
@@ -485,7 +485,7 @@ public class FlyPathFinderExecutor {
     private void stopAndDecelerate() {
         float velocity = (float) Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
         LogUtils.sendDebug("Stopping and decelerating. Velocity: " + velocity);
-        if (Math.abs(velocity) < 0.1) {
+        if (Math.abs(velocity) < 0.2) {
             LogUtils.sendSuccess("Arrived at destination");
             stop();
         } else {
