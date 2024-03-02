@@ -212,7 +212,7 @@ public class AutoSprayonator implements IFeature {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
-        if (sprayState != AUTO_SPRAYONATOR_STATE.NONE && sprayState != AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT) return;
+        if (sprayState != AUTO_SPRAYONATOR_STATE.NONE) return;
         sprayItem = SPRAYONATOR_ITEM.values()[FarmHelperConfig.sprayonatorType];
 
         System.out.println("Has sprayonator: " + hasSprayonator());
@@ -222,9 +222,7 @@ public class AutoSprayonator implements IFeature {
         }
         if (!enableDelay.passed()) return;
         PlotData data = sprayonatorPlotStates.get(GameStateHandler.getInstance().getCurrentPlot());
-        if (data == null)
-            return;
-        if (sprayonatorPlotStates.isEmpty() || !data.isSprayed()) {
+        if (sprayonatorPlotStates.isEmpty() || (data != null && !data.isSprayed())) {
             LogUtils.sendWarning("[Auto Sprayonator] Activating!");
             LogUtils.sendDebug("[Auto Sprayonator] Plot Data: " + data);
             KeyBindUtils.stopMovement();
