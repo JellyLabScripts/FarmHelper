@@ -212,7 +212,7 @@ public class AutoSprayonator implements IFeature {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
-        if (sprayState != AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT) return;
+        if (sprayState != AUTO_SPRAYONATOR_STATE.NONE) return;
         sprayItem = SPRAYONATOR_ITEM.values()[FarmHelperConfig.sprayonatorType];
 
         System.out.println("Has sprayonator: " + hasSprayonator());
