@@ -588,16 +588,13 @@ public class AutoSprayonator implements IFeature {
     @SubscribeEvent
     public void onChatReceived(ClientChatReceivedEvent e) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!running) return;
-        if (!isToggled()) return;
-        if (e.type != 0) return;
+
         String message = StringUtils.stripControlCodes(e.message.getUnformattedText());
-        String message2 = StringUtils.stripControlCodes(e.message.getFormattedText());
-        if (message.contains("sprayed with that item recently") || message2.contains("sprayed with that item recently")) {
+        if (message.contains("sprayed with that item recently")) {
             sprayState = AUTO_SPRAYONATOR_STATE.CHECK_PLOTS;
         }
-        if (message.contains(":") || message2.contains(":")) return;
-        if (message.contains("You sprayed Plot") || message2.contains("You sprayed Plot")) {
+        if (!e.message.getUnformattedTextForChat().contains("SPRAYONATOR!")) return;
+        if (message.contains("sprayed")) {
             String plotNumber = e.message.getUnformattedText().split(" ")[5];
             PlotData data = new PlotData(Integer.parseInt(plotNumber), sprayItem.getItemName(), TimeUnit.MINUTES.toMillis(30));
             sprayonatorPlotStates.put(Integer.parseInt(plotNumber), data);
