@@ -288,10 +288,10 @@ public class AutoSprayonator implements IFeature {
                 if (data != null && (!data.isSprayed() || !data.sprayItem.equals(sprayItem.getItemName()))) {
                     LogUtils.sendSuccess("[Auto Sprayonator] Spraying plot " + GameStateHandler.getInstance().getCurrentPlot());
                     sprayState = AUTO_SPRAYONATOR_STATE.CHECK_SPRAYONATOR;
+                    running = true;
                     return;
                 }
                 if (running && MacroHandler.getInstance().isCurrentMacroPaused()) {
-                    MacroHandler.getInstance().resumeMacro();
                     stop();
                 }
                 break;
