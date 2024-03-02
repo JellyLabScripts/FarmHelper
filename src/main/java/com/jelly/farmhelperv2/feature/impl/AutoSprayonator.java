@@ -24,6 +24,7 @@ import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S18PacketEntityTeleport;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -343,7 +344,9 @@ public class AutoSprayonator implements IFeature {
                 if (mc.thePlayer.inventory.currentItem != getChosenSprayonatorSlot()) {
                     mc.thePlayer.inventory.currentItem = getChosenSprayonatorSlot();
                 }
-                List<String> itemLore = InventoryUtils.getItemLore(mc.thePlayer.inventory.getStackInSlot(getChosenSprayonatorSlot()));
+                ItemStack stack = mc.thePlayer.inventory.getStackInSlot(getChosenSprayonatorSlot());
+                if (stack == null) return;
+                List<String> itemLore = InventoryUtils.getItemLore(stack);
                 if (itemLore.isEmpty()) return;
                 if (itemLore.size() < 19) return;
 
