@@ -286,13 +286,13 @@ public class AutoSprayonator implements IFeature {
                 }
                 PlotData data = sprayonatorPlotStates.get(GameStateHandler.getInstance().getCurrentPlot());
                 if (data != null && (!data.isSprayed() || !data.sprayItem.equals(sprayItem.getItemName()))) {
+                    LogUtils.sendSuccess("[Auto Sprayonator] Spraying plot " + GameStateHandler.getInstance().getCurrentPlot());
                     sprayState = AUTO_SPRAYONATOR_STATE.CHECK_SPRAYONATOR;
                     return;
-                } else {
-                    if (running && MacroHandler.getInstance().isCurrentMacroPaused()) {
-                        MacroHandler.getInstance().resumeMacro();
-                        stop();
-                    }
+                }
+                if (running && MacroHandler.getInstance().isCurrentMacroPaused()) {
+                    MacroHandler.getInstance().resumeMacro();
+                    stop();
                 }
                 break;
             case CHECK_SPRAYONATOR:
@@ -596,6 +596,7 @@ public class AutoSprayonator implements IFeature {
             String plotNumber = e.message.getUnformattedText().split(" ")[5];
             PlotData data = new PlotData(Integer.parseInt(plotNumber), sprayItem.getItemName(), TimeUnit.MINUTES.toMillis(30));
             sprayonatorPlotStates.put(Integer.parseInt(plotNumber), data);
+            sprayState = AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT;
         }
     }
 
