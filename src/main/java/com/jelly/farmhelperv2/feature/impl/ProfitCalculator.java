@@ -464,23 +464,26 @@ public class ProfitCalculator implements IFeature {
         getPricesPerList(json1, cropsToCount);
     }
 
-    private void getPricesPerList(JsonObject json1, List<BazaarItem> list) {
-        for (BazaarItem item : list) {
-            JsonObject json2 = json1.getAsJsonObject(item.bazaarId);
-            JsonArray json3 = json2.getAsJsonArray("sell_summary");
-            JsonObject json4 = json3.size() > 1 ? json3.get(1).getAsJsonObject() : json3.get(0).getAsJsonObject();
+    private void updatePrices(JsonObject bazaarData, List<BazaarItem> itemList) {
+        for (BazaarItem item : itemList) {
+            JsonObject itemData = bazaarData.getAsJsonObject(item.bazaarId);
+            JsonArray sellSummary = itemData.getAsJsonArray("sell_summary");
+        
+            JsonObject summaryData = (sellSummary.size() > 1) ? sellSummary.get(1).getAsJsonObject() :
+                                (sellSummary.size() > 0) ? sellSummary.get(0).getAsJsonObject() : null;
 
-            double buyPrice = json4.get("pricePerUnit").getAsDouble();
-            APICrop apiCrop;
-            if (bazaarPrices.containsKey(item.localizedName)) {
-                apiCrop = bazaarPrices.get(item.localizedName);
-                apiCrop.currentPrice = buyPrice;
-            } else {
-                apiCrop = new APICrop(item.localizedName, buyPrice);
+            if (summaryData != null) {
+                double buyPrice = summaryData.get("pricePerUnit").getAsDouble();
+                bazaarPrices.computeIfPresent(item.localizedName, (name, apiCrop) -> {
+                    apiCrop.currentPrice = buyPrice;
+                    return apiCrop;
+                });
+                bazaarPrices.putIfAbsent(item.localizedName, new APICrop(item.localizedName, buyPrice));
             }
-            bazaarPrices.put(item.localizedName, apiCrop);
         }
     }
+
+
 
     public static class BazaarItem {
         public String localizedName;
