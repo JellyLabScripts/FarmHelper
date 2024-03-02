@@ -285,9 +285,7 @@ public class AutoSprayonator implements IFeature {
                     sprayState = AUTO_SPRAYONATOR_STATE.NONE;
                 }
                 PlotData data = sprayonatorPlotStates.get(GameStateHandler.getInstance().getCurrentPlot());
-                if (data == null)
-                    return;
-                if (!data.isSprayed() || !data.sprayItem.equals(sprayItem.getItemName())) {
+                if (data != null && (!data.isSprayed() || !data.sprayItem.equals(sprayItem.getItemName()))) {
                     sprayState = AUTO_SPRAYONATOR_STATE.CHECK_SPRAYONATOR;
                     return;
                 } else {
@@ -593,7 +591,7 @@ public class AutoSprayonator implements IFeature {
         if (message.contains("sprayed with that item recently")) {
             sprayState = AUTO_SPRAYONATOR_STATE.CHECK_PLOTS;
         }
-        if (!e.message.getUnformattedTextForChat().contains("SPRAYONATOR!")) return;
+        if (!StringUtils.stripControlCodes(e.message.getUnformattedText()).startsWith("SPRAYONATOR!")) return;
         if (message.contains("sprayed")) {
             String plotNumber = e.message.getUnformattedText().split(" ")[5];
             PlotData data = new PlotData(Integer.parseInt(plotNumber), sprayItem.getItemName(), TimeUnit.MINUTES.toMillis(30));
