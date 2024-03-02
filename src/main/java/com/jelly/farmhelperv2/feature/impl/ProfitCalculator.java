@@ -483,8 +483,6 @@ public class ProfitCalculator implements IFeature {
         }
     }
 
-
-
     public static class BazaarItem {
         public String localizedName;
         public String bazaarId;
