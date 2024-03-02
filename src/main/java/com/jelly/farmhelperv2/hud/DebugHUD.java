@@ -138,7 +138,7 @@ public class DebugHUD extends TextHud {
             lines.add("      Forward: " + FlyPathfinder.getInstance().isDeceleratingForward);
             lines.add("      Backward: " + FlyPathfinder.getInstance().isDeceleratingBackward);
         }
-        if (AutoSprayonator.getInstance().isRunning()) {
+        if (AutoSprayonator.getInstance().isToggled()) {
             lines.add("Auto Sprayonator");
             lines.add("   Running: " + AutoSprayonator.getInstance().isRunning());
             lines.add("   Enable Delay: " + AutoSprayonator.getInstance().getEnableDelay().getRemainingTime());

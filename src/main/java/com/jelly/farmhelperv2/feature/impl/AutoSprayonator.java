@@ -24,6 +24,7 @@ import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S18PacketEntityTeleport;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -212,7 +213,7 @@ public class AutoSprayonator implements IFeature {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
-        if (sprayState != AUTO_SPRAYONATOR_STATE.NONE && sprayState != AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT) return;
+        if (sprayState != AUTO_SPRAYONATOR_STATE.NONE) return;
         sprayItem = SPRAYONATOR_ITEM.values()[FarmHelperConfig.sprayonatorType];
 
         System.out.println("Has sprayonator: " + hasSprayonator());
@@ -222,9 +223,7 @@ public class AutoSprayonator implements IFeature {
         }
         if (!enableDelay.passed()) return;
         PlotData data = sprayonatorPlotStates.get(GameStateHandler.getInstance().getCurrentPlot());
-        if (data == null)
-            return;
-        if (sprayonatorPlotStates.isEmpty() || !data.isSprayed()) {
+        if (sprayonatorPlotStates.isEmpty() || (data != null && !data.isSprayed())) {
             LogUtils.sendWarning("[Auto Sprayonator] Activating!");
             LogUtils.sendDebug("[Auto Sprayonator] Plot Data: " + data);
             KeyBindUtils.stopMovement();
@@ -286,16 +285,14 @@ public class AutoSprayonator implements IFeature {
                     sprayState = AUTO_SPRAYONATOR_STATE.NONE;
                 }
                 PlotData data = sprayonatorPlotStates.get(GameStateHandler.getInstance().getCurrentPlot());
-                if (data == null)
-                    return;
-                if (!data.isSprayed() || !data.sprayItem.equals(sprayItem.getItemName())) {
+                if (data != null && (!data.isSprayed() || !data.sprayItem.equals(sprayItem.getItemName()))) {
+                    LogUtils.sendSuccess("[Auto Sprayonator] Spraying plot " + GameStateHandler.getInstance().getCurrentPlot());
                     sprayState = AUTO_SPRAYONATOR_STATE.CHECK_SPRAYONATOR;
+                    running = true;
                     return;
-                } else {
-                    if (running && MacroHandler.getInstance().isCurrentMacroPaused()) {
-                        MacroHandler.getInstance().resumeMacro();
-                        stop();
-                    }
+                }
+                if (running && MacroHandler.getInstance().isCurrentMacroPaused()) {
+                    stop();
                 }
                 break;
             case CHECK_SPRAYONATOR:
@@ -345,7 +342,9 @@ public class AutoSprayonator implements IFeature {
                 if (mc.thePlayer.inventory.currentItem != getChosenSprayonatorSlot()) {
                     mc.thePlayer.inventory.currentItem = getChosenSprayonatorSlot();
                 }
-                List<String> itemLore = InventoryUtils.getItemLore(mc.thePlayer.inventory.getStackInSlot(getChosenSprayonatorSlot()));
+                ItemStack stack = mc.thePlayer.inventory.getStackInSlot(getChosenSprayonatorSlot());
+                if (stack == null) return;
+                List<String> itemLore = InventoryUtils.getItemLore(stack);
                 if (itemLore.isEmpty()) return;
                 if (itemLore.size() < 19) return;
 
@@ -587,19 +586,17 @@ public class AutoSprayonator implements IFeature {
     @SubscribeEvent
     public void onChatReceived(ClientChatReceivedEvent e) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!running) return;
-        if (!isToggled()) return;
-        if (e.type != 0) return;
+
         String message = StringUtils.stripControlCodes(e.message.getUnformattedText());
-        String message2 = StringUtils.stripControlCodes(e.message.getFormattedText());
-        if (message.contains("sprayed with that item recently") || message2.contains("sprayed with that item recently")) {
+        if (message.contains("sprayed with that item recently")) {
             sprayState = AUTO_SPRAYONATOR_STATE.CHECK_PLOTS;
         }
-        if (message.contains(":") || message2.contains(":")) return;
-        if (message.contains("You sprayed Plot") || message2.contains("You sprayed Plot")) {
+        if (!StringUtils.stripControlCodes(e.message.getUnformattedText()).startsWith("SPRAYONATOR!")) return;
+        if (message.contains("sprayed")) {
             String plotNumber = e.message.getUnformattedText().split(" ")[5];
             PlotData data = new PlotData(Integer.parseInt(plotNumber), sprayItem.getItemName(), TimeUnit.MINUTES.toMillis(30));
             sprayonatorPlotStates.put(Integer.parseInt(plotNumber), data);
+            sprayState = AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT;
         }
     }
 
