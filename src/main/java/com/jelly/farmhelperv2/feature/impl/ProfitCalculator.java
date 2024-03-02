@@ -464,7 +464,7 @@ public class ProfitCalculator implements IFeature {
         getPricesPerList(json1, cropsToCount);
     }
 
-    private void updatePrices(JsonObject bazaarData, List<BazaarItem> itemList) {
+    private void getPricesPerList(JsonObject bazaarData, List<BazaarItem> itemList) {
         for (BazaarItem item : itemList) {
             JsonObject itemData = bazaarData.getAsJsonObject(item.bazaarId);
             JsonArray sellSummary = itemData.getAsJsonArray("sell_summary");
