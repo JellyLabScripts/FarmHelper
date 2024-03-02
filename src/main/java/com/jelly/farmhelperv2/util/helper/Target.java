@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.util.helper;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
@@ -36,7 +37,7 @@ public class Target {
         if (vec != null) {
             return Optional.of(vec.addVector(0, this.additionalY, 0));
         } else if (entity != null) {
-            return Optional.of(entity.getPositionVector().add(new Vec3(0, Math.min(((entity.height * 0.85)), (entity.height - 0.05)) + this.additionalY, 0)));
+            return Optional.of(entity.getPositionVector().add(new Vec3(0, Minecraft.getMinecraft().thePlayer.eyeHeight + this.additionalY, 0)));
         } else if (blockPos != null) {
             return Optional.of(new Vec3(blockPos.getX(), blockPos.getY() + this.additionalY, blockPos.getZ()));
         } else {

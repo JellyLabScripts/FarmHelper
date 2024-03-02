@@ -1,6 +1,5 @@
 package com.jelly.farmhelperv2.feature.impl;
 
-import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
@@ -31,7 +30,6 @@ import java.awt.*;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
 public class AutoPestHunter implements IFeature {
@@ -310,7 +308,7 @@ public class AutoPestHunter implements IFeature {
                 }
                 if (BaritoneHandler.isWalkingToGoalBlock())
                     break;
-                if (mc.thePlayer.getDistanceSqToCenter(deskPos()) < 7) {
+                if (Math.sqrt(mc.thePlayer.getDistanceSqToCenter(deskPos())) < 4.5) {
                     BaritoneHandler.stopPathing();
                     state = State.CLICK_PHILLIP;
                     delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
@@ -424,14 +422,8 @@ public class AutoPestHunter implements IFeature {
                     break;
                 }
                 if (!manuallyStarted) {
-                    if (MacroHandler.getInstance().triggerWarpGarden(true, true)) {
-                        Multithreading.schedule(() -> {
-                            if (!PlayerUtils.isInBarn()) {
-                                stop();
-                                MacroHandler.getInstance().resumeMacro();
-                            }
-                        }, 1_000, TimeUnit.MILLISECONDS);
-                    }
+                    stop();
+                    MacroHandler.getInstance().triggerWarpGarden(true, true, false);
                     delayClock.schedule(1_000 + Math.random() * 500);
                 }
                 break;
@@ -464,6 +456,9 @@ public class AutoPestHunter implements IFeature {
             if (event.message.getFormattedText().contains("§e[NPC] §6Phillip§f: Thanks for the §6Pests§f,"))
                 LogUtils.sendSuccess("[Auto Pest Hunter] Successfully emptied the vacuum!");
             else {
+                if (event.message.getUnformattedText().startsWith("You've exchanged enough Pests recently! Try emptying your Vacuum Bag later!")) {
+                    LogUtils.sendDebug("[Auto Pest Hunter] Already emptied the vacuum.");
+                }
                 for (String message : dialogueMessages) {
                     if (event.message.getFormattedText().contains("§e[NPC] §6Phillip§f: " + message)) {
                         LogUtils.sendError("[Auto Pest Hunter] You haven't unlocked Phillip yet!");

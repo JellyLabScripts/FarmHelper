@@ -1821,6 +1821,12 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean profitCalculatorCultivatingEnchant = true;
 
+    @Switch(
+            name = "Count only current crops for Jacob's Contest excludes", category = EXPERIMENTAL, subcategory = "Jacob's Contest",
+            description = "Counts only current crops for Jacob's Contest excludes"
+    )
+    public static boolean jacobContestCurrentCropsOnly = true;
+
     //</editor-fold>
     //</editor-fold>
 
