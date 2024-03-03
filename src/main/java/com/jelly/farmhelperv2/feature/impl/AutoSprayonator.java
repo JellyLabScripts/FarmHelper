@@ -589,7 +589,10 @@ public class AutoSprayonator implements IFeature {
 
         String message = StringUtils.stripControlCodes(e.message.getUnformattedText());
 
-        if (message.contains("sprayed with that item recently")) sprayState = AUTO_SPRAYONATOR_STATE.CHECK_PLOTS;
+        if (message.contains("sprayed with that item recently")) {
+            sprayState = AUTO_SPRAYONATOR_STATE.CHECK_PLOTS;
+            return; // Avoids additional processing if the condition is met
+        }
 
         if (!message.startsWith("SPRAYONATOR!")) return;
 
