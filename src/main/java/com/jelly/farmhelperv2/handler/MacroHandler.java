@@ -204,7 +204,7 @@ public class MacroHandler {
 
         setMacroToggled(true);
         enableCurrentMacro();
-        getCurrentMacro().ifPresent(cm -> cm.getCheckOnSpawnClock().schedule(5_000));
+        getCurrentMacro().ifPresent(cm -> cm.getCheckOnSpawnClock().reset());
         if (FarmHelperConfig.sendAnalyticData) {
             try {
                 BanInfoWS.getInstance().sendAnalyticsData(BanInfoWS.AnalyticsState.START_SESSION);
@@ -455,7 +455,6 @@ public class MacroHandler {
                     resumeMacro();
                 }
                 cm.changeState(AbstractMacro.State.NONE);
-                cm.getCheckOnSpawnClock().reset();
                 cm.setRotated(false);
                 cm.getRewarpDelay().schedule(FarmHelperConfig.getRandomTimeBetweenChangingRows());
                 if (rewarpTeleport) {
