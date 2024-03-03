@@ -585,18 +585,24 @@ public class AutoSprayonator implements IFeature {
 
     @SubscribeEvent
     public void onChatReceived(ClientChatReceivedEvent e) {
-        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (mc.thePlayer == null || mc.theWorld == null || e.message == null) return;
 
         String message = StringUtils.stripControlCodes(e.message.getUnformattedText());
-        if (message.contains("sprayed with that item recently")) {
-            sprayState = AUTO_SPRAYONATOR_STATE.CHECK_PLOTS;
-        }
-        if (!StringUtils.stripControlCodes(e.message.getUnformattedText()).startsWith("SPRAYONATOR!")) return;
-        if (message.contains("sprayed")) {
-            String plotNumber = e.message.getUnformattedText().split(" ")[5];
-            PlotData data = new PlotData(Integer.parseInt(plotNumber), sprayItem.getItemName(), TimeUnit.MINUTES.toMillis(30));
-            sprayonatorPlotStates.put(Integer.parseInt(plotNumber), data);
-            sprayState = AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT;
+
+        if (message.contains("sprayed with that item recently")) sprayState = AUTO_SPRAYONATOR_STATE.CHECK_PLOTS;
+
+        if (!message.startsWith("SPRAYONATOR!")) return;
+
+        String[] messageParts = message.split(" ");
+        if (messageParts.length >= 6) {
+            String plotNumberString = messageParts[5];
+
+            if (plotNumberString.matches("\\d+")) {
+                int plotNumber = Integer.parseInt(plotNumberString);
+                PlotData data = new PlotData(plotNumber, sprayItem.getItemName(), TimeUnit.MINUTES.toMillis(30));
+                sprayonatorPlotStates.put(plotNumber, data);
+                sprayState = AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT;
+            }
         }
     }
 
