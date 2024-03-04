@@ -451,7 +451,7 @@ public class MacroHandler {
             afterRewarpDelay.schedule(1_500);
             LogUtils.sendDebug("Teleported!");
             currentMacro.ifPresent(cm -> {
-                if (cm.isPaused()) {
+                if (cm.isPaused() && this.rewarpTeleport) {
                     resumeMacro();
                 }
                 cm.changeState(AbstractMacro.State.NONE);
@@ -467,6 +467,11 @@ public class MacroHandler {
             beforeTeleportationPos = Optional.empty();
             GameStateHandler.getInstance().scheduleNotMoving(750);
             rewarpTeleport = false;
+        } else {
+            if (System.currentTimeMillis() - MacroHandler.getInstance().getLastTpTry() > 5_000) {
+                LogUtils.sendDebug("Teleporting again");
+                this.triggerWarpGarden(true, this.rewarpTeleport);
+            }
         }
     }
 
@@ -487,14 +492,14 @@ public class MacroHandler {
                 return;
             }
             lastTpTry = System.currentTimeMillis();
-            currentMacro.ifPresent(cm -> cm.setRewarpState(AbstractMacro.RewarpState.TELEPORTING));
             setBeforeTeleportationPos(Optional.ofNullable(mc.thePlayer.getPosition()));
-            AntiStuck.getInstance().resetUnstuckTries();
             LogUtils.sendDebug("Before tp location: " + beforeTeleportationPos);
-            this.rewarpTeleport = rewarpTeleport;
             LogUtils.sendDebug("Warping to spawn point");
             mc.thePlayer.sendChatMessage("/warp garden");
+            this.rewarpTeleport = rewarpTeleport;
+            AntiStuck.getInstance().resetUnstuckTries();
             GameStateHandler.getInstance().scheduleRewarp();
+            currentMacro.ifPresent(cm -> cm.setRewarpState(AbstractMacro.RewarpState.TELEPORTING));
         }
     }
 

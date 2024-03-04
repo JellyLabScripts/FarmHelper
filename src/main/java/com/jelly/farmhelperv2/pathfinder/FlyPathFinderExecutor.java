@@ -372,6 +372,10 @@ public class FlyPathFinderExecutor {
             if (entityVelocity > 0.12) {
                 targetPos = targetPos.addVector(targetEntity.motionX * 1.5, targetEntity.motionY, targetEntity.motionZ * 1.5);
             }
+            if (distance < 1.75) {
+                stop();
+                return;
+            }
             if (willArriveAtDestinationAfterStopping(targetPos)) {
                 stop();
                 return;

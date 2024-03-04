@@ -281,7 +281,7 @@ public class RotationHandler {
                     mc.thePlayer.rotationPitch += needPitch;
                 } else if (mc.thePlayer.rotationPitch + needPitch < -63 && needPitch > 0) {
                     mc.thePlayer.rotationPitch += needPitch;
-                } else if (mc.thePlayer.rotationPitch + needPitch < -63 && mc.thePlayer.rotationPitch + needPitch > 63) {
+                } else if (mc.thePlayer.rotationPitch + needPitch > -63 && mc.thePlayer.rotationPitch + needPitch < 63) {
                     mc.thePlayer.rotationPitch += needPitch;
                 }
             }
