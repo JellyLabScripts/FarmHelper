@@ -34,15 +34,18 @@ public class FlyNodeProcessor extends NodeProcessor {
 
     @Nullable
     private PathPoint getAirNode(int startX, int startY, int startZ) {
+        World world = Minecraft.getMinecraft().theWorld;
+    
         for (int x = startX; x < startX + entitySizeX; ++x) {
             for (int y = startY; y < startY + entitySizeY; ++y) {
                 for (int z = startZ; z < startZ + entitySizeZ; ++z) {
-                    if (!BlockUtils.isFree(x, y, z, Minecraft.getMinecraft().theWorld != null ? Minecraft.getMinecraft().theWorld : blockaccess)) {
+                    if (world != null && !BlockUtils.isFree(x, y, z, world)) {
                         return null;
                     }
                 }
             }
         }
-        return this.openPoint(startX, startY, startZ);
+
+        return openPoint(startX, startY, startZ);
     }
 }
