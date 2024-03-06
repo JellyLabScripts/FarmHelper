@@ -596,10 +596,8 @@ public class AutoSprayonator implements IFeature {
 
         if (!message.startsWith("SPRAYONATOR!")) return;
 
-        String[] messageParts = message.split(" ");
-        if (messageParts.length >= 6) {
-            String plotNumberString = messageParts[5];
-
+        if (message.contains("sprayed")) {
+            String plotNumberString = message.split(" ")[5];
             if (plotNumberString.matches("\\d+")) {
                 int plotNumber = Integer.parseInt(plotNumberString);
                 PlotData data = new PlotData(plotNumber, sprayItem.getItemName(), TimeUnit.MINUTES.toMillis(30));
