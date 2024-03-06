@@ -283,6 +283,7 @@ public abstract class AbstractMacro {
         analyticsClock.schedule(60_000);
         if (getCurrentState() == null)
             changeState(State.NONE);
+        KeyBindUtils.onTick(mc.gameSettings.keyBindAttack);
     }
 
     public void onDisable() {

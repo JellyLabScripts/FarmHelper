@@ -169,9 +169,16 @@ public class FlyPathFinderExecutor {
         this.targetEntity = target;
         this.yModifier = yModifier;
         this.dontRotate = dontRotate;
-        // get 1 block closer to the player
-        Vec3 targetNextPos = new Vec3(target.posX + target.motionX, target.posY + target.motionY, target.posZ + target.motionZ);
-        findPath(targetNextPos.addVector(0, this.yModifier, 0), follow, smooth);
+        if (Math.abs(target.motionX) > 0.15 || Math.abs(target.motionZ) > 0.15) {
+            Vec3 targetNextPos = new Vec3(target.posX + target.motionX, target.posY + target.motionY, target.posZ + target.motionZ);
+            findPath(targetNextPos.addVector(0, this.yModifier, 0), follow, smooth);
+        } else {
+            Vec3 targetPos = new Vec3(target.posX, target.posY, target.posZ);
+            Rotation rotation = RotationHandler.getInstance().getRotation(targetPos, mc.thePlayer.getPositionVector());
+            Vec3 direction = AngleUtils.getVectorForRotation(0, rotation.getYaw());
+            targetPos = targetPos.addVector(direction.xCoord * 1, 0, direction.zCoord * 1);
+            findPath(targetPos.addVector(0, this.yModifier, 0), follow, smooth);
+        }
     }
 
     public boolean isRotationInCache(float yaw, float pitch) {
@@ -372,11 +379,12 @@ public class FlyPathFinderExecutor {
             if (entityVelocity > 0.12) {
                 targetPos = targetPos.addVector(targetEntity.motionX * 1.5, targetEntity.motionY, targetEntity.motionZ * 1.5);
             }
-            if (distance < 1.75) {
+            if (willArriveAtDestinationAfterStopping(targetPos)) {
+                System.out.println("Will arrive");
                 stop();
                 return;
             }
-            if (willArriveAtDestinationAfterStopping(targetPos)) {
+            if (distance < 1.75) {
                 stop();
                 return;
             }
@@ -486,8 +494,6 @@ public class FlyPathFinderExecutor {
         playerSimulation.copy(mc.thePlayer);
         playerSimulation.isFlying = true;
         playerSimulation.rotationYaw = neededYaw != Integer.MIN_VALUE ? neededYaw : mc.thePlayer.rotationYaw;
-        playerSimulation.moveForward = 0;
-        playerSimulation.moveStrafing = 0;
         for (int i = 0; i < 30; i++) {
             playerSimulation.onLivingUpdate();
             if (Math.abs(playerSimulation.motionX) < 0.01D && Math.abs(playerSimulation.motionZ) < 0.01D) {

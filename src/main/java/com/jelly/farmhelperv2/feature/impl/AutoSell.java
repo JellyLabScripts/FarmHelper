@@ -2,6 +2,7 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.event.InventoryInputEvent;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -188,7 +189,8 @@ public class AutoSell implements IFeature {
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
-        if (FarmHelperConfig.pauseAutoSellDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) return;
+        if (FarmHelperConfig.pauseAutoSellDuringJacobsContest && GameStateHandler.getInstance().inJacobContest())
+            return;
         if (dontEnableForClock.isScheduled() && !dontEnableForClock.passed()) return;
 
         if (inventoryFilledClock.isScheduled() && inventoryFilledClock.passed()) {
@@ -541,6 +543,18 @@ public class AutoSell implements IFeature {
         if (!isRunning()) return;
 
         if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
+            LogUtils.sendWarning("[Auto Sell] Stopping Auto Sell manually");
+            stop();
+        }
+    }
+
+    @SubscribeEvent
+    public void onInventoryKeyPress(InventoryInputEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!isRunning()) return;
+
+        if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
+            event.setCanceled(true);
             LogUtils.sendWarning("[Auto Sell] Stopping Auto Sell manually");
             stop();
         }

@@ -350,12 +350,10 @@ public class BlockUtils {
     }
 
     public static boolean canFlyHigher(int distance) {
-        for (int i = 0; i <= distance; i++) {
-            if (!canWalkThrough(getRelativeBlockPos(0, 2 + i, 0))) {
-                return false;
-            }
-        }
-        return true;
+        Vec3 vec = mc.thePlayer.getPositionEyes(1);
+        Vec3 vec1 = vec.addVector(0, distance, 0);
+        MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(vec, vec1, false, true, false);
+        return mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK;
     }
 
     public static BlockPos getBlockPosLookingAt() {
