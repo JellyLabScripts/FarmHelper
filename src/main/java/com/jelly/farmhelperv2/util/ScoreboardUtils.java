@@ -71,7 +71,7 @@ public class ScoreboardUtils {
         StringBuilder cleaned = new StringBuilder();
 
         for (char c : StringUtils.stripControlCodes(scoreboard).toCharArray()) {
-            if (c > 20 && c < 127) {
+            if (c >= 32 && c < 127) {
                 cleaned.append(c);
             }
         }
