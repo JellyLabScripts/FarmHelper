@@ -143,7 +143,7 @@ public class RenderUtils {
 
         double distance = Math.sqrt(renderPosX * renderPosX + renderPosY * renderPosY + renderPosZ * renderPosZ);
         double multiplier = Math.max(distance / 150f, 0.1f);
-        lScale *= 0.45f * multiplier;
+        lScale *= (float) (0.45f * multiplier);
 
         float xMultiplier = Minecraft.getMinecraft().gameSettings.thirdPersonView == 2 ? -1 : 1;
 
