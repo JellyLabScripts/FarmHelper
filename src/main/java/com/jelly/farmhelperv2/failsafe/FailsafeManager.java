@@ -328,7 +328,12 @@ public class FailsafeManager {
         } else if (restartMacroAfterFailsafeDelay.isScheduled()) {
             String text = "Restarting the macro in: " + LogUtils.formatTime(restartMacroAfterFailsafeDelay.getRemainingTime());
             RenderUtils.drawCenterTopText(text, event, Color.ORANGE);
-        } else if (triggeredFailsafe.isPresent() && !triggeredFailsafe.get().equals(GuestVisitFailsafe.getInstance())) {
+        } else if (triggeredFailsafe.isPresent()
+                && !triggeredFailsafe.get().equals(BanwaveFailsafe.getInstance())
+                && !triggeredFailsafe.get().equals(EvacuateFailsafe.getInstance())
+                && !triggeredFailsafe.get().equals(GuestVisitFailsafe.getInstance())
+                && !triggeredFailsafe.get().equals(JacobFailsafe.getInstance())
+        ) {
             ArrayList<String> textLines = new ArrayList<>();
             textLines.add("§6" + StringUtils.stripControlCodes(triggeredFailsafe.get().getType().name()).replace("_", " "));
             textLines.add("§c§lYOU ARE DURING STAFF CHECK!");
