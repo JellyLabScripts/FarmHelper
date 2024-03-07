@@ -176,7 +176,7 @@ public class FlyPathFinderExecutor {
             Vec3 targetPos = new Vec3(target.posX, target.posY, target.posZ);
             Rotation rotation = RotationHandler.getInstance().getRotation(targetPos, mc.thePlayer.getPositionVector());
             Vec3 direction = AngleUtils.getVectorForRotation(0, rotation.getYaw());
-            targetPos = targetPos.addVector(direction.xCoord * 1, 0, direction.zCoord * 1);
+            targetPos = targetPos.addVector(direction.xCoord * 1.2, 0.5, direction.zCoord * 1.2);
             findPath(targetPos.addVector(0, this.yModifier, 0), follow, smooth);
         }
     }
@@ -371,15 +371,15 @@ public class FlyPathFinderExecutor {
             float velocity = (float) Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
             float entityVelocity = (float) Math.sqrt(targetEntity.motionX * targetEntity.motionX + targetEntity.motionZ * targetEntity.motionZ);
             Vec3 targetPos = targetEntity.getPositionVector().addVector(0, this.yModifier, 0);
+            if (entityVelocity > 0.12) {
+                targetPos = targetPos.addVector(targetEntity.motionX * 1, targetEntity.motionY, targetEntity.motionZ * 1);
+            }
             float distance = (float) mc.thePlayer.getPositionVector().distanceTo(targetPos);
             System.out.println("Velo: " + velocity);
             System.out.println("TargetPos: " + targetPos);
             System.out.println("Distance: " + distance);
             System.out.println("EntityVelo: " + entityVelocity);
-            if (entityVelocity > 0.12) {
-                targetPos = targetPos.addVector(targetEntity.motionX * 1.5, targetEntity.motionY, targetEntity.motionZ * 1.5);
-            }
-            if (willArriveAtDestinationAfterStopping(targetPos)) {
+            if (willArriveAtDestinationAfterStopping(copyPath.get(copyPath.size() - 1))) {
                 System.out.println("Will arrive");
                 stop();
                 return;
@@ -493,7 +493,7 @@ public class FlyPathFinderExecutor {
         PlayerSimulation playerSimulation = new PlayerSimulation(mc.theWorld);
         playerSimulation.copy(mc.thePlayer);
         playerSimulation.isFlying = true;
-        playerSimulation.rotationYaw = neededYaw != Integer.MIN_VALUE ? neededYaw : mc.thePlayer.rotationYaw;
+        playerSimulation.rotationYaw = neededYaw != Integer.MIN_VALUE && !FarmHelperConfig.flyPathfinderOringoCompatible ? neededYaw : mc.thePlayer.rotationYaw;
         for (int i = 0; i < 30; i++) {
             playerSimulation.onLivingUpdate();
             if (Math.abs(playerSimulation.motionX) < 0.01D && Math.abs(playerSimulation.motionZ) < 0.01D) {

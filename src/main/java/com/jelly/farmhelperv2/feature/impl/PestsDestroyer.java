@@ -170,8 +170,8 @@ public class PestsDestroyer implements IFeature {
         FlyPathfinder.getInstance().stuckCounterWithMotion = 0;
         FlyPathfinder.getInstance().stuckCounterWithoutMotion = 0;
         state = States.IDLE;
-        KeyBindUtils.stopMovement();
         FlyPathFinderExecutor.getInstance().stop();
+        KeyBindUtils.stopMovement();
     }
 
     @Override
@@ -424,7 +424,7 @@ public class PestsDestroyer implements IFeature {
                     delayClock.schedule((long) (500 + Math.random() * 500));
                     return;
                 }
-                if (GameStateHandler.getInstance().getCurrentPlot() == plotNumberOpt.get().plotNumber) {
+                if (GameStateHandler.getInstance().getCurrentPlot() == plotNumberOpt.get().plotNumber && BlockUtils.canFlyHigher(8)) {
                     state = States.GET_LOCATION;
                     break;
                 }

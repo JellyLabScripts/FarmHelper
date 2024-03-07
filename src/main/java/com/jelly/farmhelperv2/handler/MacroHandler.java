@@ -319,7 +319,7 @@ public class MacroHandler {
             return;
         }
 
-        if (!GameStateHandler.getInstance().inGarden()) {
+        if (!GameStateHandler.getInstance().inGarden() && !this.isTeleporting()) {
             if (!FeatureManager.getInstance().shouldIgnoreFalseCheck() && !FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
                 FailsafeManager.getInstance().possibleDetection(WorldChangeFailsafe.getInstance());
             }
