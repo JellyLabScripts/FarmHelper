@@ -24,7 +24,7 @@ public class LogUtils {
     private static long statusMsgTime = -1;
 
     public synchronized static void sendLog(ChatComponentText chat) {
-        if (mc.thePlayer != null && !FarmHelperConfig.hideLogs)
+        if (mc.thePlayer != null && !FarmHelperConfig.streamerMode)
             mc.thePlayer.addChatMessage(chat);
         else if (mc.thePlayer == null)
             System.out.println("[Farm Helper] " + chat.getUnformattedText());

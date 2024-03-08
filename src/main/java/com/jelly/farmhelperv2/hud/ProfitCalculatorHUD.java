@@ -10,6 +10,7 @@ import cc.polyfrost.oneconfig.libs.universal.UMatrixStack;
 import cc.polyfrost.oneconfig.platform.Platform;
 import cc.polyfrost.oneconfig.renderer.NanoVGHelper;
 import cc.polyfrost.oneconfig.renderer.TextRenderer;
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.impl.ProfitCalculator;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -119,7 +120,7 @@ public class ProfitCalculatorHUD extends BasicHud {
         if (!super.shouldShow()) {
             return false;
         }
-        return GameStateHandler.getInstance().inGarden();
+        return !FarmHelperConfig.streamerMode && GameStateHandler.getInstance().inGarden();
     }
 
     public void addLines() {

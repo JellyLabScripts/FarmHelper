@@ -34,7 +34,7 @@ public class MixinGuiMainMenu {
                 AutoUpdaterGUI.showGUI();
             }
         }
-        if (AutoUpdaterGUI.isOutdated)
+        if (AutoUpdaterGUI.isOutdated && !FarmHelperConfig.streamerMode)
             this.splashText = "Update Farm Helper <3";
     }
 }

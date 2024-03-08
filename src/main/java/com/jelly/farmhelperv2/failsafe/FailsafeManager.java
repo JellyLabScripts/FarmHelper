@@ -329,6 +329,7 @@ public class FailsafeManager {
             String text = "Restarting the macro in: " + LogUtils.formatTime(restartMacroAfterFailsafeDelay.getRemainingTime());
             RenderUtils.drawCenterTopText(text, event, Color.ORANGE);
         } else if (triggeredFailsafe.isPresent()
+                && !FarmHelperConfig.streamerMode
                 && !triggeredFailsafe.get().equals(BanwaveFailsafe.getInstance())
                 && !triggeredFailsafe.get().equals(EvacuateFailsafe.getInstance())
                 && !triggeredFailsafe.get().equals(GuestVisitFailsafe.getInstance())

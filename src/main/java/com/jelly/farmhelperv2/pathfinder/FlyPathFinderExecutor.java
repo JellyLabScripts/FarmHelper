@@ -643,6 +643,7 @@ public class FlyPathFinderExecutor {
         ArrayList<Vec3> copyPath = new ArrayList<>(path);
         if (copyPath.isEmpty()) return;
         if (!isRunning()) return;
+        if (FarmHelperConfig.streamerMode) return;
         RenderManager renderManager = mc.getRenderManager();
         Vec3 current = mc.thePlayer.getPositionVector();
         Vec3 next = getNext(copyPath);

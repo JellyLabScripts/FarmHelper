@@ -995,6 +995,7 @@ public class PestsDestroyer implements IFeature {
     public void onRender(RenderWorldLastEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
+        if (FarmHelperConfig.streamerMode) return;
 
         List<Entity> pests = mc.theWorld.loadedEntityList.stream().filter(entity -> {
             if (entity.isDead) return false;
@@ -1214,17 +1215,6 @@ public class PestsDestroyer implements IFeature {
             LogUtils.sendWarning("[Pests Destroyer] Firework is too close to player. Flying to x: " + event.pos.xCoord + " y: " + y + " z: " + event.pos.zCoord);
             state = States.GET_LOCATION;
         }
-    }
-
-    @SubscribeEvent
-    public void onRenderWorldLast(RenderWorldLastEvent event) {
-        if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!GameStateHandler.getInstance().inGarden()) return;
-        if (state != States.WAIT_FOR_LOCATION) return;
-        if (!lastFireworkLocation.isPresent()) return;
-        AxisAlignedBB boundingBox = new AxisAlignedBB(lastFireworkLocation.get().xCoord - 0.05, lastFireworkLocation.get().yCoord - 0.05, lastFireworkLocation.get().zCoord - 0.05, lastFireworkLocation.get().xCoord + 0.05, lastFireworkLocation.get().yCoord + 0.05, lastFireworkLocation.get().zCoord + 0.05);
-        RenderUtils.drawBox(boundingBox, Color.GREEN);
-
     }
 
     private int getAmountOfPestsInPlots() {

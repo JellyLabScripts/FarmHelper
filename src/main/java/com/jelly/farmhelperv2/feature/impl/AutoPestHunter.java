@@ -476,6 +476,11 @@ public class AutoPestHunter implements IFeature {
     public void onRenderWorldLast(RenderWorldLastEvent event) {
         if (!isRunning()) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (FarmHelperConfig.streamerMode) return;
+        if (!FarmHelperConfig.highlightPestHunterDeskLocation) return;
+        if (FarmHelperConfig.pestHunterDeskX == 0
+                && FarmHelperConfig.pestHunterDeskY == 0
+                && FarmHelperConfig.pestHunterDeskZ == 0) return;
         RenderUtils.drawBlockBox(deskPos().add(0, 0, 0), new Color(0, 155, 255, 50));
     }
 }

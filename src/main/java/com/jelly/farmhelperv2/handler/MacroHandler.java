@@ -356,6 +356,7 @@ public class MacroHandler {
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (FarmHelperConfig.streamerMode) return;
 
         if (FarmHelperConfig.highlightRewarp && FarmHelperConfig.rewarpList != null && GameStateHandler.getInstance().inGarden()) {
             Color chroma = Color.getHSBColor((float) ((System.currentTimeMillis() / 10) % 2000) / 2000, 1, 1);

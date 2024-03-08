@@ -8,6 +8,7 @@ import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
 import com.jelly.farmhelperv2.feature.impl.LeaveTimer;
 import com.jelly.farmhelperv2.feature.impl.PestsDestroyer;
 import com.jelly.farmhelperv2.feature.impl.Scheduler;
+import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.remote.DiscordBotHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
@@ -83,6 +84,14 @@ public class StatusHUD extends TextHud {
             width = Math.max(width, getLineWidth(EnumChatFormatting.getTextWithoutFormattingCodes(line).trim(), scale));
         }
         return width;
+    }
+
+    @Override
+    protected boolean shouldShow() {
+        if (!super.shouldShow()) {
+            return false;
+        }
+        return !FarmHelperConfig.streamerMode;
     }
 
     public String getStatusString() {
