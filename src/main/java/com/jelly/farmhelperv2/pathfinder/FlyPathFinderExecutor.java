@@ -20,6 +20,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.pathfinding.PathPoint;
@@ -369,10 +370,16 @@ public class FlyPathFinderExecutor {
         }
         if (targetEntity != null) {
             float velocity = (float) Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
+            if (targetEntity instanceof EntityArmorStand) {
+                Entity properEntity = PlayerUtils.getEntityCuttingOtherEntity(targetEntity, e -> !(e instanceof EntityArmorStand));
+                if (properEntity != null) {
+                    targetEntity = properEntity;
+                }
+            }
             float entityVelocity = (float) Math.sqrt(targetEntity.motionX * targetEntity.motionX + targetEntity.motionZ * targetEntity.motionZ);
             Vec3 targetPos = targetEntity.getPositionVector().addVector(0, this.yModifier, 0);
-            if (entityVelocity > 0.12) {
-                targetPos = targetPos.addVector(targetEntity.motionX * 1, targetEntity.motionY, targetEntity.motionZ * 1);
+            if (entityVelocity > 0.1) {
+                targetPos = targetPos.addVector(targetEntity.motionX * 1.3, targetEntity.motionY, targetEntity.motionZ * 1.3);
             }
             float distance = (float) mc.thePlayer.getPositionVector().distanceTo(targetPos);
             float distancePath = (float) mc.thePlayer.getPositionVector().distanceTo(copyPath.get(copyPath.size() - 1));
