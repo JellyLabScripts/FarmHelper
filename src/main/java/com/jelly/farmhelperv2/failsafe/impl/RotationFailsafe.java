@@ -84,10 +84,11 @@ public class RotationFailsafe extends Failsafe {
             LogUtils.sendDebug("[Failsafe] Rotation packet received while Fly pathfinder is running. Ignoring");
             return;
         }
-        double threshold = FarmHelperConfig.rotationCheckSensitivity;
+        double pitchThreshold = FarmHelperConfig.rotationCheckPitchSensitivity;
+        double yawThreshold = FarmHelperConfig.rotationCheckYawSensitivity;
         if (yawDiff == 360 && pitchDiff == 0) // prevents false checks
             return;
-        if (yawDiff >= threshold || pitchDiff >= threshold) {
+        if (yawDiff >= yawThreshold || pitchDiff >= pitchThreshold) {
             rotationBeforeReacting = new Rotation((float) playerYaw, (float) playerPitch);
             LogUtils.sendDebug("[Failsafe] Rotation detected! Yaw diff: " + yawDiff + ", Pitch diff: " + pitchDiff);
             FailsafeManager.getInstance().possibleDetection(this);

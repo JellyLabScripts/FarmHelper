@@ -401,11 +401,17 @@ public class FarmHelperConfig extends Config {
     )
     public static float teleportCheckLagSensitivity = 0.5f;
     @Slider(
-            name = "Rotation Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
+            name = "Rotation Check Pitch Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "The sensitivity of the rotation check; the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives.",
-            min = 1, max = 10
+            min = 1, max = 30
     )
-    public static float rotationCheckSensitivity = 2;
+    public static float rotationCheckPitchSensitivity = 7;
+    @Slider(
+            name = "Rotation Check Yaw Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "The sensitivity of the rotation check; the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives.",
+            min = 1, max = 30
+    )
+    public static float rotationCheckYawSensitivity = 5;
     @Slider(
             name = "Teleport Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "The minimum distance between the previous and teleported position to trigger failsafe",
