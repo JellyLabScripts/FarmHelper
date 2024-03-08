@@ -204,6 +204,7 @@ public class MacroHandler {
 
         setMacroToggled(true);
         enableCurrentMacro();
+        getCurrentMacro().ifPresent(cm -> cm.getCheckOnSpawnClock().reset());
         if (FarmHelperConfig.sendAnalyticData) {
             try {
                 BanInfoWS.getInstance().sendAnalyticsData(BanInfoWS.AnalyticsState.START_SESSION);
@@ -318,7 +319,7 @@ public class MacroHandler {
             return;
         }
 
-        if (!GameStateHandler.getInstance().inGarden()) {
+        if (!GameStateHandler.getInstance().inGarden() && !this.isTeleporting()) {
             if (!FeatureManager.getInstance().shouldIgnoreFalseCheck() && !FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
                 FailsafeManager.getInstance().possibleDetection(WorldChangeFailsafe.getInstance());
             }
@@ -450,8 +451,10 @@ public class MacroHandler {
             afterRewarpDelay.schedule(1_500);
             LogUtils.sendDebug("Teleported!");
             currentMacro.ifPresent(cm -> {
+                if (cm.isPaused() && this.rewarpTeleport) {
+                    resumeMacro();
+                }
                 cm.changeState(AbstractMacro.State.NONE);
-                cm.getCheckOnSpawnClock().reset();
                 cm.setRotated(false);
                 cm.getRewarpDelay().schedule(FarmHelperConfig.getRandomTimeBetweenChangingRows());
                 if (rewarpTeleport) {
@@ -464,41 +467,48 @@ public class MacroHandler {
             beforeTeleportationPos = Optional.empty();
             GameStateHandler.getInstance().scheduleNotMoving(750);
             rewarpTeleport = false;
+        } else {
+            if (System.currentTimeMillis() - MacroHandler.getInstance().getLastTpTry() > 5_000) {
+                LogUtils.sendDebug("Teleporting again");
+                this.triggerWarpGarden(true, this.rewarpTeleport);
+            }
         }
     }
 
     @Getter
     private long lastTpTry = 0;
 
-    public boolean triggerWarpGarden(boolean force, boolean rewarpTeleport) {
+    public void triggerWarpGarden(boolean force, boolean rewarpTeleport) {
+        triggerWarpGarden(force, rewarpTeleport, true);
+    }
+
+    public void triggerWarpGarden(boolean force, boolean rewarpTeleport, boolean sendErrors) {
         if (GameStateHandler.getInstance().notMoving()) {
             KeyBindUtils.stopMovement();
         }
         if (force || GameStateHandler.getInstance().canRewarp() && !beforeTeleportationPos.isPresent()) {
-            if (canTriggerFeatureAfterWarp()) {
+            if (canTriggerFeatureAfterWarp(sendErrors)) {
                 LogUtils.sendDebug("Not warping because of feature");
-                return false;
+                return;
             }
             lastTpTry = System.currentTimeMillis();
-            currentMacro.ifPresent(cm -> cm.setRewarpState(AbstractMacro.RewarpState.TELEPORTING));
             setBeforeTeleportationPos(Optional.ofNullable(mc.thePlayer.getPosition()));
-            AntiStuck.getInstance().resetUnstuckTries();
             LogUtils.sendDebug("Before tp location: " + beforeTeleportationPos);
-            this.rewarpTeleport = rewarpTeleport;
             LogUtils.sendDebug("Warping to spawn point");
             mc.thePlayer.sendChatMessage("/warp garden");
+            this.rewarpTeleport = rewarpTeleport;
+            AntiStuck.getInstance().resetUnstuckTries();
             GameStateHandler.getInstance().scheduleRewarp();
-            return true;
+            currentMacro.ifPresent(cm -> cm.setRewarpState(AbstractMacro.RewarpState.TELEPORTING));
         }
-        return false;
     }
 
-    public boolean canTriggerFeatureAfterWarp() {
+    public boolean canTriggerFeatureAfterWarp(boolean sendErrors) {
         if (PestsDestroyer.getInstance().canEnableMacro()) {
             LogUtils.sendDebug("Activating Pests Destroyer");
             PestsDestroyer.getInstance().start();
             return true;
-        } else if (VisitorsMacro.getInstance().canEnableMacro(false, true)) {
+        } else if (VisitorsMacro.getInstance().canEnableMacro(false, sendErrors)) {
             LogUtils.sendDebug("Activating Visitors Macro");
             VisitorsMacro.getInstance().start();
             return true;

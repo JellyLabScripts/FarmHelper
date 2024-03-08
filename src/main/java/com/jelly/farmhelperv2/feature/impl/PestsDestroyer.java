@@ -170,8 +170,8 @@ public class PestsDestroyer implements IFeature {
         FlyPathfinder.getInstance().stuckCounterWithMotion = 0;
         FlyPathfinder.getInstance().stuckCounterWithoutMotion = 0;
         state = States.IDLE;
-        KeyBindUtils.stopMovement();
         FlyPathFinderExecutor.getInstance().stop();
+        KeyBindUtils.stopMovement();
     }
 
     @Override
@@ -275,6 +275,8 @@ public class PestsDestroyer implements IFeature {
         }
 
         if (delayClock.isScheduled() && !delayClock.passed()) return;
+
+        LogUtils.sendDebug("[Pests Destroyer] State: " + state);
 
         if (escapeState != EscapeState.NONE) {
             if (stuckClock.isScheduled()) {
@@ -422,6 +424,10 @@ public class PestsDestroyer implements IFeature {
                     delayClock.schedule((long) (500 + Math.random() * 500));
                     return;
                 }
+                if (GameStateHandler.getInstance().getCurrentPlot() == plotNumberOpt.get().plotNumber && BlockUtils.canFlyHigher(8)) {
+                    state = States.GET_LOCATION;
+                    break;
+                }
                 String plotNumber = plotNumberOpt.get().name;
                 preTpBlockPos = Optional.of(mc.thePlayer.getPosition());
                 mc.thePlayer.sendChatMessage("/tptoplot " + plotNumber);
@@ -486,7 +492,7 @@ public class PestsDestroyer implements IFeature {
             case CHECKING_SPAWN:
                 if (MacroHandler.getInstance().isTeleporting()) return;
 
-                if (!BlockUtils.canFlyHigher(5)) {
+                if (!BlockUtils.canFlyHigher(4)) {
                     LogUtils.sendError("[Pests Destroyer] Your spawnpoint is obstructed! Make sure there is no block above your spawnpoint!");
                     stop();
                 } else {
@@ -699,7 +705,15 @@ public class PestsDestroyer implements IFeature {
                 delayClock.schedule(300);
                 break;
             case KILL_PEST:
+                ItemStack currentItem3 = mc.thePlayer.getHeldItem();
+                if (getVacuum(currentItem3)) return;
                 if (isInventoryOpenDelayed()) break;
+                if (mc.thePlayer.posY < 67 && FlyPathFinderExecutor.getInstance().isRunning()) {
+                    FlyPathFinderExecutor.getInstance().stop();
+                    RotationHandler.getInstance().reset();
+                    state = States.GET_LOCATION;
+                    return;
+                }
                 if (!currentEntityTarget.isPresent()) {
                     FlyPathFinderExecutor.getInstance().stop();
                     RotationHandler.getInstance().reset();
@@ -707,9 +721,10 @@ public class PestsDestroyer implements IFeature {
                     return;
                 }
                 Entity entity = currentEntityTarget.get();
-                if (entity.isDead || killedEntities.contains(entity)) {
+                if (entity.isDead || killedEntities.contains(entity) || !mc.theWorld.loadedEntityList.contains(entity)) {
                     RotationHandler.getInstance().reset();
                     state = States.CHECK_ANOTHER_PEST;
+                    FlyPathFinderExecutor.getInstance().stop();
                     return;
                 }
 
@@ -735,9 +750,10 @@ public class PestsDestroyer implements IFeature {
 
                 if (distance < 3) {
                     float targetVelocity = (float) (Math.abs(entity.motionX) + Math.abs(entity.motionZ));
-                    if (distance < 2 && targetVelocity < 0.15 && mc.thePlayer.canEntityBeSeen(entity)) {
+                    if (distanceXZ < 3 && targetVelocity < 0.15) {
                         if (FlyPathFinderExecutor.getInstance().isRunning()) {
-                            FlyPathFinderExecutor.getInstance().stop();
+                            if (distance < 2)
+                                FlyPathFinderExecutor.getInstance().stop();
                         } else {
                             float playerVelocity = (float) (Math.abs(mc.thePlayer.motionX) + Math.abs(mc.thePlayer.motionZ));
                             if (playerVelocity > 0.15)
@@ -750,7 +766,7 @@ public class PestsDestroyer implements IFeature {
                     }
                     if (!RotationHandler.getInstance().isRotating()) {
                         RotationHandler.getInstance().easeTo(new RotationConfiguration(
-                                new Target(entity).additionalY(0.5f),
+                                new Target(entity).additionalY(-0.5f),
                                 (long) (400 + Math.random() * 200),
                                 null
                         ).followTarget(true));
@@ -783,7 +799,7 @@ public class PestsDestroyer implements IFeature {
                     }
                     if (!RotationHandler.getInstance().isRotating()) {
                         RotationHandler.getInstance().easeTo(new RotationConfiguration(
-                                new Target(entity).additionalY(0.8f),
+                                new Target(entity).additionalY(-0.3f),
                                 (long) (400 + Math.random() * 200),
                                 null
                         ));
@@ -795,30 +811,32 @@ public class PestsDestroyer implements IFeature {
                 LogUtils.sendDebug(totalPests + " pest" + (totalPests == 1 ? "" : "s") + " left");
                 if (totalPests == 0) {
                     state = States.GO_BACK;
-                    delayClock.schedule((long) (1_000 + Math.random() * 500));
+                    delayClock.schedule((long) (500 + Math.random() * 500));
+                    break;
+                }
+                Entity closestPest2 = getClosestPest();
+                KeyBindUtils.stopMovement();
+                if (closestPest2 != null) {
+                    LogUtils.sendDebug("Found another pest");
+                    state = States.KILL_PEST;
+                    currentEntityTarget = Optional.of(closestPest2);
+                    delayClock.schedule(50 + (long) (Math.random() * 100));
+                } else if (pestsPlotMap.isEmpty()) {
+                    LogUtils.sendDebug("Manually searching for pest");
+                    state = States.GET_LOCATION;
+                    delayClock.schedule(300 + (long) (Math.random() * 250));
                 } else {
-                    if (getClosestPest() != null) {
-                        LogUtils.sendDebug("Found another pest");
-                        state = States.FLY_TO_PEST;
-                        delayClock.schedule(50 + (long) (Math.random() * 100));
-                    } else if (pestsPlotMap.isEmpty()) {
-                        LogUtils.sendDebug("Manually searching for pest");
-                        state = States.GET_LOCATION;
+                    Optional<Map.Entry<Plot, Integer>> closestOptionalPlot = pestsPlotMap.entrySet().stream().min(Comparator.comparingDouble(entry -> mc.thePlayer.getDistanceSqToCenter(PlotUtils.getPlotCenter(entry.getKey().plotNumber))));
+                    if (Math.sqrt(mc.thePlayer.getDistanceSqToCenter(PlotUtils.getPlotCenter(closestOptionalPlot.get().getKey().plotNumber))) < 150) {
+                        LogUtils.sendDebug("Going manually to another plot");
+                        state = States.GET_CLOSEST_PLOT;
                         delayClock.schedule(300 + (long) (Math.random() * 250));
                     } else {
-                        Optional<Map.Entry<Plot, Integer>> closestOptionalPlot = pestsPlotMap.entrySet().stream().min(Comparator.comparingDouble(entry -> mc.thePlayer.getDistanceSqToCenter(PlotUtils.getPlotCenter(entry.getKey().plotNumber))));
-                        if (Math.sqrt(mc.thePlayer.getDistanceSqToCenter(PlotUtils.getPlotCenter(closestOptionalPlot.get().getKey().plotNumber))) < 150) {
-                            LogUtils.sendDebug("Going manually another plot");
-                            state = States.GET_CLOSEST_PLOT;
-                            delayClock.schedule(300 + (long) (Math.random() * 250));
-                        } else {
-                            LogUtils.sendDebug("Teleporting to plot");
-                            state = States.TELEPORT_TO_PLOT;
-                            delayClock.schedule(600 + (long) (Math.random() * 500));
-                        }
+                        LogUtils.sendDebug("Teleporting to plot");
+                        state = States.TELEPORT_TO_PLOT;
+                        delayClock.schedule(600 + (long) (Math.random() * 500));
                     }
                 }
-                KeyBindUtils.stopMovement();
                 break;
             case GO_BACK:
                 finishMacro();
@@ -832,6 +850,10 @@ public class PestsDestroyer implements IFeature {
         double closestDistance = Double.MAX_VALUE;
         for (Entity entity : pestsLocations) {
             if (killedEntities.contains(entity)) continue;
+            Entity realEntity = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityBat || e instanceof EntitySilverfish);
+            if (realEntity != null && (killedEntities.contains(realEntity) || realEntity.isDead)) continue;
+            if (mc.thePlayer.getDistanceToEntity(entity) < 5 && killedEntities.stream().anyMatch(ke -> ke.getDistanceToEntity(entity) < 1.5))
+                continue;
             double distance = mc.thePlayer.getDistanceToEntity(entity);
             if (distance < closestDistance) {
                 closestDistance = distance;
@@ -889,17 +911,8 @@ public class PestsDestroyer implements IFeature {
             FlyPathFinderExecutor.getInstance().stop();
         }
         if (MacroHandler.getInstance().isMacroToggled()) {
-            PlayerUtils.getTool();
-            if (!MacroHandler.getInstance().triggerWarpGarden(true, true)) {
-                stop();
-            } else {
-                Multithreading.schedule(() -> {
-                    if (PlayerUtils.isStandingOnSpawnPoint()) {
-                        stop();
-                        MacroHandler.getInstance().resumeMacro();
-                    }
-                }, 1_000, TimeUnit.MILLISECONDS);
-            }
+            stop();
+            MacroHandler.getInstance().triggerWarpGarden(true, true, false);
             delayClock.schedule(2_000 + Math.random() * 500);
         } else {
             stop();
@@ -938,6 +951,7 @@ public class PestsDestroyer implements IFeature {
         if (message.toLowerCase().startsWith("there are not any pests on your garden right now") && enabled && state != States.GO_BACK) {
             LogUtils.sendDebug("[Pests Destroyer] There are not any Pests on your Garden right now! Keep farming!");
             state = States.GO_BACK;
+            delayClock.schedule((long) (500 + Math.random() * 500));
             return;
         }
         if (message.contains("The worm seems to have burrowed")) {
@@ -1060,12 +1074,26 @@ public class PestsDestroyer implements IFeature {
         if (!GameStateHandler.getInstance().inGarden()) return;
 
         Entity entity = event.entity;
-        LogUtils.sendDebug("[Pests Destroyer] Entity died: " + entity.getName() + " at: " + entity.getPosition());
+        LogUtils.sendDebug("[Pests Destroyer] Entity died: " + entity.getName() + "(" + entity.getEntityId() + ")" + " at: " + entity.getPosition());
         killedEntities.add(entity);
+        if (entity instanceof EntityArmorStand) {
+            Entity realEntity = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityBat || e instanceof EntitySilverfish);
+            if (realEntity != null) {
+                LogUtils.sendDebug("[Pests Destroyer] Found real entity: " + realEntity.getName() + "(" + realEntity.getEntityId() + ")" + " at: " + realEntity.getPosition());
+                killedEntities.add(realEntity);
+            }
+        }
+        if (entity instanceof EntityBat || entity instanceof EntitySilverfish) {
+            Entity armorStand = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityArmorStand);
+            if (armorStand != null) {
+                LogUtils.sendDebug("[Pests Destroyer] Found armor stand: " + armorStand.getName() + "(" + armorStand.getEntityId() + ")" + " at: " + armorStand.getPosition());
+                killedEntities.add(armorStand);
+            }
+        }
         int plotNumber = PlotUtils.getPlotNumberBasedOnLocation(entity.getPosition());
         if (plotNumber == -1) {
             if (isRunning())
-                LogUtils.sendError("[Pests Destroyer] Failed to get plot number for entity: " + entity.getName() + " at: " + entity.getPosition());
+                LogUtils.sendDebug("[Pests Destroyer] Failed to get plot number for entity: " + entity.getName() + " at: " + entity.getPosition());
             return;
         }
         Plot plot;
@@ -1093,6 +1121,7 @@ public class PestsDestroyer implements IFeature {
             KeyBindUtils.stopMovement();
             currentEntityTarget = Optional.empty();
             stuckClock.reset();
+            state = States.CHECK_ANOTHER_PEST;
             delayClock.schedule(150);
         });
     }
@@ -1115,8 +1144,9 @@ public class PestsDestroyer implements IFeature {
                     String pests = split[split.length - 1].replace("x", "").trim();
                     int pestsAmount = Integer.parseInt(pests);
                     if (pestsAmount != totalPests) {
+                        int pestsBefore = totalPests;
                         totalPests = pestsAmount;
-                        if (!isRunning() && totalPests >= FarmHelperConfig.startKillingPestsAt) {
+                        if (!isRunning() && totalPests >= FarmHelperConfig.startKillingPestsAt && totalPests > pestsBefore) {
                             if (FarmHelperConfig.sendWebhookLogIfPestsDetectionNumberExceeded) {
                                 LogUtils.webhookLog("[Pests Destroyer]\\nThere " + (totalPests > 1 ? "are" : "is") + " currently **" + totalPests + "** " + (totalPests > 1 ? "pests" : "pest") + " in the garden!", FarmHelperConfig.pingEveryoneOnPestsDetectionNumberExceeded);
                             }
@@ -1317,15 +1347,16 @@ public class PestsDestroyer implements IFeature {
             KeyBindUtils.holdThese(mc.gameSettings.keyBindJump);
             return;
         }
-        if (flyDelay.passed()) {
-            if (!mc.thePlayer.capabilities.isFlying) {
-                mc.thePlayer.capabilities.isFlying = true;
-                mc.thePlayer.sendPlayerAbilities();
+        if (mc.thePlayer.motionY < -0.0784000015258789 || BlockUtils.getRelativeBlock(0, 0, 0).getMaterial().isLiquid())
+            if (flyDelay.passed()) {
+                if (!mc.thePlayer.capabilities.isFlying) {
+                    mc.thePlayer.capabilities.isFlying = true;
+                    mc.thePlayer.sendPlayerAbilities();
+                }
+                flyDelay.reset();
+            } else if (flyDelay.isScheduled()) {
+                return;
             }
-            flyDelay.reset();
-        } else if (flyDelay.isScheduled()) {
-            return;
-        }
         if (mc.thePlayer.onGround) {
             mc.thePlayer.jump();
             flyDelay.schedule(80 + (long) (Math.random() * 80));

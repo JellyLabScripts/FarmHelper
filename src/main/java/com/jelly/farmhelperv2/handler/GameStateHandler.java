@@ -508,7 +508,11 @@ public class GameStateHandler {
     }
 
     public boolean inJacobContest() {
-        return isInJacobContest;
+        if (FarmHelperConfig.jacobContestCurrentCropsOnly) {
+            return isInJacobContest && jacobsContestCrop.isPresent() && jacobsContestCrop.get() == MacroHandler.getInstance().getCrop();
+        } else {
+            return isInJacobContest;
+        }
     }
 
     public boolean isGuestOnGarden() {
@@ -548,7 +552,6 @@ public class GameStateHandler {
         return 0;
     }
 
-    Pattern cultivatingPattern = Pattern.compile(".*?(\\d{1,3}(?:,\\d{3})*)(?!\\d)");
     @Getter
     private HashMap<String, Long> currentCultivating = new HashMap<>();
 

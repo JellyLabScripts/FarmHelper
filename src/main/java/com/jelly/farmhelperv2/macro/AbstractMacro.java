@@ -121,11 +121,9 @@ public abstract class AbstractMacro {
         }
 
         if (PlayerUtils.isStandingOnSpawnPoint() && !FailsafeManager.getInstance().triggeredFailsafe.isPresent() && GameStateHandler.getInstance().notMoving() && checkOnSpawnClock.passed()) {
-            if (checkOnSpawnClock.passed()) {
-                if (MacroHandler.getInstance().canTriggerFeatureAfterWarp()) {
-                    rotated = false;
-                    return;
-                }
+            if (MacroHandler.getInstance().canTriggerFeatureAfterWarp(true)) {
+                rotated = false;
+                return;
             }
             checkOnSpawnClock.schedule(5000);
         }
@@ -191,10 +189,6 @@ public abstract class AbstractMacro {
             return;
         } else if (rewarpState == RewarpState.TELEPORTING) {
             // teleporting
-            if (System.currentTimeMillis() - MacroHandler.getInstance().getLastTpTry() > 5_000) {
-                LogUtils.sendDebug("Teleporting again");
-                MacroHandler.getInstance().triggerWarpGarden(true, MacroHandler.getInstance().isRewarpTeleport());
-            }
             return;
         }
 
@@ -260,7 +254,6 @@ public abstract class AbstractMacro {
     public abstract void invokeState();
 
     public void onEnable() {
-        checkOnSpawnClock.reset();
         FarmHelperConfig.CropEnum crop = PlayerUtils.getFarmingCrop();
         LogUtils.sendDebug("Crop: " + crop);
         MacroHandler.getInstance().setCrop(crop);
@@ -290,6 +283,7 @@ public abstract class AbstractMacro {
         analyticsClock.schedule(60_000);
         if (getCurrentState() == null)
             changeState(State.NONE);
+        KeyBindUtils.onTick(mc.gameSettings.keyBindAttack);
     }
 
     public void onDisable() {

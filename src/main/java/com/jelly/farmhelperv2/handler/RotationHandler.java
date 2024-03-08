@@ -277,7 +277,13 @@ public class RotationHandler {
                 needYaw *= (float) (Math.random() * 0.1f + getTime(pythagoras, 0.1f));
                 needPitch *= (float) (Math.random() * 0.1f + getTime(pythagoras, 0.1f));
                 mc.thePlayer.rotationYaw += needYaw;
-                mc.thePlayer.rotationPitch += needPitch;
+                if (mc.thePlayer.rotationPitch + needPitch > 63 && needPitch < 0) {
+                    mc.thePlayer.rotationPitch += needPitch;
+                } else if (mc.thePlayer.rotationPitch + needPitch < -63 && needPitch > 0) {
+                    mc.thePlayer.rotationPitch += needPitch;
+                } else if (mc.thePlayer.rotationPitch + needPitch > -63 && mc.thePlayer.rotationPitch + needPitch < 63) {
+                    mc.thePlayer.rotationPitch += needPitch;
+                }
             }
         } else {
             mc.thePlayer.rotationYaw = interpolate(startRotation.getYaw(), targetRotation.getYaw(), configuration.easeOutBack() ? this::easeOutBack : this::easeOutExpo);

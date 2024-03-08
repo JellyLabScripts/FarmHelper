@@ -86,11 +86,11 @@ public class PlayerSimulation {
         rotationYaw = entity.rotationYaw;
         noClip = entity.noClip;
         isSneaking = entity.isSneaking();
+        isSprinting = entity.isSprinting();
         isFlying = false;
         stepHeight = entity.stepHeight;
         moveStrafing = 0;
         moveForward = 0;
-        isSprinting = false;
         depthStriderModifier = EnchantmentHelper.getDepthStriderModifier(entity);
     }
 
@@ -127,20 +127,16 @@ public class PlayerSimulation {
         moveEntityWithHeading_EntityPlayer(moveStrafing, moveForward);
     }
 
-    public void moveEntityWithHeading_EntityPlayer(float strafe, float forward)
-    {
+    public void moveEntityWithHeading_EntityPlayer(float strafe, float forward) {
 //        if (this.isFlying && this.ridingEntity == null)
-        if (this.isFlying)
-        {
+        if (this.isFlying) {
             double d3 = this.motionY;
             float f = this.jumpMovementFactor;
-            this.jumpMovementFactor = 0.05F * (float)(this.isSprinting ? 2 : 1);
+            this.jumpMovementFactor = 0.05F * (float) (this.isSprinting ? 2 : 1);
             this.moveEntityWithHeading(strafe, forward);
             this.motionY = d3 * 0.6D;
             this.jumpMovementFactor = f;
-        }
-        else
-        {
+        } else {
             this.moveEntityWithHeading(strafe, forward);
         }
     }
@@ -162,24 +158,17 @@ public class PlayerSimulation {
 
                 this.moveEntity(this.motionX, this.motionY, this.motionZ);
 
-                if (this.isCollidedHorizontally && this.isOnLadder)
-                {
+                if (this.isCollidedHorizontally && this.isOnLadder) {
                     this.motionY = 0.2D;
                 }
 
-                if (this.worldObj.isRemote && (!this.worldObj.isBlockLoaded(new BlockPos((int)this.posX, 0, (int)this.posZ)) || !this.worldObj.getChunkFromBlockCoords(new BlockPos((int)this.posX, 0, (int)this.posZ)).isLoaded()))
-                {
-                    if (this.posY > 0.0D)
-                    {
+                if (this.worldObj.isRemote && (!this.worldObj.isBlockLoaded(new BlockPos((int) this.posX, 0, (int) this.posZ)) || !this.worldObj.getChunkFromBlockCoords(new BlockPos((int) this.posX, 0, (int) this.posZ)).isLoaded())) {
+                    if (this.posY > 0.0D) {
                         this.motionY = -0.1D;
-                    }
-                    else
-                    {
+                    } else {
                         this.motionY = 0.0D;
                     }
-                }
-                else
-                {
+                } else {
                     this.motionY -= 0.08D;
                 }
 
@@ -194,7 +183,7 @@ public class PlayerSimulation {
                 this.motionY *= 0.5;
                 this.motionZ *= 0.5;
                 this.motionY -= 0.02;
-                if (this.isCollidedHorizontally && this.isOffsetPositionInLiquid(this.motionX, this.motionY + (double)0.6f - this.posY + d1, this.motionZ)) {
+                if (this.isCollidedHorizontally && this.isOffsetPositionInLiquid(this.motionX, this.motionY + (double) 0.6f - this.posY + d1, this.motionZ)) {
                     this.motionY = 0.3f;
                 }
             }
@@ -216,7 +205,7 @@ public class PlayerSimulation {
             this.motionY *= 0.8f;
             this.motionZ *= f1;
             this.motionY -= 0.02;
-            if (this.isCollidedHorizontally && this.isOffsetPositionInLiquid(this.motionX, this.motionY + (double)0.6f - this.posY + d0, this.motionZ)) {
+            if (this.isCollidedHorizontally && this.isOffsetPositionInLiquid(this.motionX, this.motionY + (double) 0.6f - this.posY + d0, this.motionZ)) {
                 this.motionY = 0.3f;
             }
         }
@@ -229,8 +218,8 @@ public class PlayerSimulation {
                 f = 1.0f;
             }
             f = friction / f;
-            float f1 = MathHelper.sin(this.rotationYaw * (float)Math.PI / 180.0f);
-            float f2 = MathHelper.cos(this.rotationYaw * (float)Math.PI / 180.0f);
+            float f1 = MathHelper.sin(this.rotationYaw * (float) Math.PI / 180.0f);
+            float f2 = MathHelper.cos(this.rotationYaw * (float) Math.PI / 180.0f);
             this.motionX += ((strafe *= f) * f2 - (forward *= f) * f1);
             this.motionZ += (forward * f2 + strafe * f1);
         }
@@ -376,7 +365,7 @@ public class PlayerSimulation {
                 this.fallDistance = 0.0f;
             }
         } else if (y < 0.0) {
-            this.fallDistance = (float)((double)this.fallDistance - y);
+            this.fallDistance = (float) ((double) this.fallDistance - y);
         }
     }
 }

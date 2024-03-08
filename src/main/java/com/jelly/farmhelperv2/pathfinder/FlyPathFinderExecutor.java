@@ -14,6 +14,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCactus;
+import net.minecraft.block.BlockFenceGate;
 import net.minecraft.block.BlockSoulSand;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -168,9 +169,16 @@ public class FlyPathFinderExecutor {
         this.targetEntity = target;
         this.yModifier = yModifier;
         this.dontRotate = dontRotate;
-        // get 1 block closer to the player
-        Vec3 targetNextPos = new Vec3(target.posX + target.motionX, target.posY + target.motionY, target.posZ + target.motionZ);
-        findPath(targetNextPos.addVector(0, this.yModifier, 0), follow, smooth);
+        if (Math.abs(target.motionX) > 0.15 || Math.abs(target.motionZ) > 0.15) {
+            Vec3 targetNextPos = new Vec3(target.posX + target.motionX, target.posY + target.motionY, target.posZ + target.motionZ);
+            findPath(targetNextPos.addVector(0, this.yModifier, 0), follow, smooth);
+        } else {
+            Vec3 targetPos = new Vec3(target.posX, target.posY, target.posZ);
+            Rotation rotation = RotationHandler.getInstance().getRotation(targetPos, mc.thePlayer.getPositionVector());
+            Vec3 direction = AngleUtils.getVectorForRotation(0, rotation.getYaw());
+            targetPos = targetPos.addVector(direction.xCoord * 1.2, 0.5, direction.zCoord * 1.2);
+            findPath(targetPos.addVector(0, this.yModifier, 0), follow, smooth);
+        }
     }
 
     public boolean isRotationInCache(float yaw, float pitch) {
@@ -292,25 +300,6 @@ public class FlyPathFinderExecutor {
         if (isCalculating()) return;
         if (isDecelerating()) return;
 
-        Target target;
-        if (lookingTarget != null)
-            target = new Target(this.lookingTarget);
-        else if (this.targetEntity != null)
-            target = new Target(this.targetEntity).additionalY(this.yModifier);
-        else
-            target = new Target(this.target);
-
-        if (!this.dontRotate) {
-            Vec3 lastElement = path.get(Math.max(0, path.size() - 1));
-            if (mc.thePlayer.getPositionVector().distanceTo(lastElement) > 2 && !RotationHandler.getInstance().isRotating() && target.getTarget().isPresent()) {
-                RotationHandler.getInstance().easeTo(new RotationConfiguration(
-                        target,
-                        (long) (600 + Math.random() * 300),
-                        null
-                ).randomness(true));
-            }
-        }
-
         if (!this.follow) return;
         if (this.targetEntity != null) {
             findPath(this.targetEntity, true, this.smooth, this.yModifier, this.dontRotate);
@@ -382,20 +371,27 @@ public class FlyPathFinderExecutor {
             float velocity = (float) Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
             float entityVelocity = (float) Math.sqrt(targetEntity.motionX * targetEntity.motionX + targetEntity.motionZ * targetEntity.motionZ);
             Vec3 targetPos = targetEntity.getPositionVector().addVector(0, this.yModifier, 0);
+            if (entityVelocity > 0.12) {
+                targetPos = targetPos.addVector(targetEntity.motionX * 1, targetEntity.motionY, targetEntity.motionZ * 1);
+            }
             float distance = (float) mc.thePlayer.getPositionVector().distanceTo(targetPos);
+            float distancePath = (float) mc.thePlayer.getPositionVector().distanceTo(copyPath.get(copyPath.size() - 1));
             System.out.println("Velo: " + velocity);
             System.out.println("TargetPos: " + targetPos);
             System.out.println("Distance: " + distance);
             System.out.println("EntityVelo: " + entityVelocity);
-            if (entityVelocity > 0.2) {
-                targetPos = targetPos.addVector(targetEntity.motionX * 1.5, targetEntity.motionY, targetEntity.motionZ * 1.5);
-            }
-            if (willArriveAtDestinationAfterStopping(targetPos)) {
+            if (willArriveAtDestinationAfterStopping(copyPath.get(copyPath.size() - 1)) && entityVelocity < 0.15) {
+                System.out.println("Will arrive");
                 stop();
                 return;
             }
-        } else if ((current.distanceTo(copyPath.get(copyPath.size() - 1)) < 1.5 || ((target != null && mc.thePlayer.getDistance(target.xCoord, target.yCoord, target.zCoord) < 2.5)))) {
-            stopAndDecelerate();
+            if ((distance < 1 && entityVelocity > 0.15) || (distancePath < 0.5 && entityVelocity < 0.15)) {
+                stop();
+                return;
+            }
+        } else if (willArriveAtDestinationAfterStopping(copyPath.get(copyPath.size() - 1))) {
+            System.out.println("stopping");
+            stop();
             return;
         }
         if (!mc.thePlayer.capabilities.allowFlying) {
@@ -407,6 +403,32 @@ public class FlyPathFinderExecutor {
             }
         }
         Vec3 next = getNext(copyPath);
+
+        if (!RotationHandler.getInstance().isRotating() && mc.thePlayer.getDistance(next.xCoord, next.yCoord, next.zCoord) > 2) {
+            Target target;
+            if (lookingTarget != null)
+                target = new Target(this.lookingTarget);
+            else if (this.targetEntity != null)
+                target = new Target(this.targetEntity).additionalY(this.yModifier);
+            else if (this.neededYaw != Integer.MIN_VALUE) {
+                Vec3 directionHeading = AngleUtils.getVectorForRotation(0, this.neededYaw);
+                Vec3 directionHeadingPlayer = mc.thePlayer.getPositionEyes(1).addVector(directionHeading.xCoord * 5, 0, directionHeading.zCoord * 5);
+                target = new Target(directionHeadingPlayer);
+            } else {
+                target = new Target(this.target).additionalY(this.yModifier);
+            }
+
+            if (!this.dontRotate) {
+                Vec3 lastElement = path.get(Math.max(0, path.size() - 1));
+                if (mc.thePlayer.getPositionVector().distanceTo(lastElement) > 2 && target.getTarget().isPresent()) {
+                    RotationHandler.getInstance().easeTo(new RotationConfiguration(
+                            target,
+                            (long) (600 + Math.random() * 300),
+                            null
+                    ).randomness(true));
+                }
+            }
+        }
 
         Rotation rotation = RotationHandler.getInstance().getRotation(current, next);
         List<KeyBinding> keyBindings = new ArrayList<>();
@@ -471,11 +493,10 @@ public class FlyPathFinderExecutor {
         PlayerSimulation playerSimulation = new PlayerSimulation(mc.theWorld);
         playerSimulation.copy(mc.thePlayer);
         playerSimulation.isFlying = true;
-        playerSimulation.rotationYaw = mc.thePlayer.rotationYaw;
+        playerSimulation.rotationYaw = neededYaw != Integer.MIN_VALUE && !FarmHelperConfig.flyPathfinderOringoCompatible ? neededYaw : mc.thePlayer.rotationYaw;
         for (int i = 0; i < 30; i++) {
-            playerSimulation.moveForward = -mc.thePlayer.moveForward;
             playerSimulation.onLivingUpdate();
-            if (playerSimulation.motionX < 0.005D || playerSimulation.motionX > -0.005D && playerSimulation.motionZ < 0.005D || playerSimulation.motionZ > -0.005D) {
+            if (Math.abs(playerSimulation.motionX) < 0.01D && Math.abs(playerSimulation.motionZ) < 0.01D) {
                 break;
             }
         }
@@ -523,26 +544,28 @@ public class FlyPathFinderExecutor {
 
     public VerticalDirection shouldChangeHeight(double relativeDistanceX, double relativeDistanceZ) {
         if (Math.abs(relativeDistanceX) < 0.75 && Math.abs(relativeDistanceZ) < 0.75) {
+            System.out.println("No need to avoid blocks");
             return VerticalDirection.NONE;
         }
-        Vec3 directionGoing = AngleUtils.getVectorForRotation(0, neededYaw);
-        Vec3 target = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.3, -0.1, directionGoing.zCoord * 0.3);
-        MovingObjectPosition trace = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), target, false, true, false);
-        if (trace != null && trace.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            BlockPos blockPos = trace.getBlockPos();
-            if (BlockUtils.hasCollision(blockPos)) {
-                return VerticalDirection.HIGHER;
-            }
+
+        BlocksInFront blocksInFront = getCollidingBlocks();
+
+        if (isBlockInFront(blocksInFront.leftUp) || isBlockInFront(blocksInFront.centerUp) || isBlockInFront(blocksInFront.rightUp)) {
+            return VerticalDirection.LOWER;
         }
-        Vec3 targetUp = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.3, mc.thePlayer.height + 0.1, directionGoing.zCoord * 0.3);
-        MovingObjectPosition traceUp = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), targetUp, false, true, false);
-        if (traceUp != null && traceUp.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            BlockPos blockPos = traceUp.getBlockPos();
-            if (BlockUtils.hasCollision(blockPos)) {
-                return VerticalDirection.LOWER;
-            }
+
+        if (isBlockInFront(blocksInFront.leftDown) || isBlockInFront(blocksInFront.centerDown) || isBlockInFront(blocksInFront.rightDown) || isFenceDown(blocksInFront.fenceGateTrace)) {
+            return VerticalDirection.HIGHER;
         }
         return VerticalDirection.NONE;
+    }
+
+    private boolean isBlockInFront(MovingObjectPosition trace) {
+        return trace != null && trace.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && BlockUtils.hasCollision(trace.getBlockPos());
+    }
+
+    private boolean isFenceDown(MovingObjectPosition trace) {
+        return trace != null && trace.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && BlockUtils.hasCollision(trace.getBlockPos()) && BlockUtils.getBlock(trace.getBlockPos()) instanceof BlockFenceGate;
     }
 
     public enum VerticalDirection {
@@ -577,15 +600,16 @@ public class FlyPathFinderExecutor {
     private final Clock flyDelay = new Clock();
 
     private boolean fly(Vec3 next, Vec3 current) {
-        if (flyDelay.passed()) {
-            if (!mc.thePlayer.capabilities.isFlying) {
-                mc.thePlayer.capabilities.isFlying = true;
-                mc.thePlayer.sendPlayerAbilities();
+        if (mc.thePlayer.motionY < -0.0784000015258789 || BlockUtils.getRelativeBlock(0, 0, 0).getMaterial().isLiquid())
+            if (flyDelay.passed()) {
+                if (!mc.thePlayer.capabilities.isFlying) {
+                    mc.thePlayer.capabilities.isFlying = true;
+                    mc.thePlayer.sendPlayerAbilities();
+                }
+                flyDelay.reset();
+            } else if (flyDelay.isScheduled()) {
+                return true;
             }
-            flyDelay.reset();
-        } else if (flyDelay.isScheduled()) {
-            return true;
-        }
         if (mc.thePlayer.onGround && next.yCoord - current.yCoord > 0.5) {
             mc.thePlayer.jump();
             flyDelay.schedule(180 + (long) (Math.random() * 180));
@@ -629,31 +653,47 @@ public class FlyPathFinderExecutor {
             RenderUtils.drawTracer(from, to, Color.RED);
         }
         if (!FarmHelperConfig.debugMode) return;
+        BlocksInFront blocksInFront = getCollidingBlocks();
+        drawCollidingBlock(blocksInFront.leftUp, renderManager, blocksInFront.leftUpTarget);
+        drawCollidingBlock(blocksInFront.centerUp, renderManager, blocksInFront.centerUpTarget);
+        drawCollidingBlock(blocksInFront.rightUp, renderManager, blocksInFront.rightUpTarget);
+        drawCollidingBlock(blocksInFront.leftDown, renderManager, blocksInFront.leftDownTarget);
+        drawCollidingBlock(blocksInFront.centerDown, renderManager, blocksInFront.centerDownTarget);
+        drawCollidingBlock(blocksInFront.rightDown, renderManager, blocksInFront.rightDownTarget);
+        drawCollidingBlock(blocksInFront.fenceGateTrace, renderManager, blocksInFront.fenceGateCheck);
+    }
+
+    private final Color blockedColor = new Color(255, 0, 0, 100);
+    private final Color freeColor = new Color(0, 255, 0, 100);
+
+    public void drawCollidingBlock(MovingObjectPosition mop, RenderManager renderManager, Vec3 target) {
+        if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && BlockUtils.hasCollision(mop.getBlockPos())) {
+            BlockPos blockPos = mop.getBlockPos();
+            RenderUtils.drawBox(new AxisAlignedBB(blockPos.getX(), blockPos.getY(), blockPos.getZ(), blockPos.getX() + 1, blockPos.getY() + 1, blockPos.getZ() + 1).offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ), blockedColor);
+        } else {
+            RenderUtils.drawBox(new AxisAlignedBB(target.xCoord, target.yCoord, target.zCoord, target.xCoord + 0.1, target.yCoord + 0.1, target.zCoord + 0.1).offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ), freeColor);
+        }
+    }
+
+    public BlocksInFront getCollidingBlocks() {
         Vec3 directionGoing = AngleUtils.getVectorForRotation(0, neededYaw);
-        Vec3 target = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.3, -0.1, directionGoing.zCoord * 0.3);
-        Vec3 targetUp = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.3, mc.thePlayer.height + 0.1, directionGoing.zCoord * 0.3);
+        Vec3 directionGoingLeft = AngleUtils.getVectorForRotation(0, neededYaw - 20);
+        Vec3 directionGoingRight = AngleUtils.getVectorForRotation(0, neededYaw + 20);
+        Vec3 target = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.75, -0.1, directionGoing.zCoord * 0.75);
+        Vec3 targetLeft = mc.thePlayer.getPositionVector().addVector(directionGoingLeft.xCoord * 0.75, -0.1, directionGoingLeft.zCoord * 0.75);
+        Vec3 targetRight = mc.thePlayer.getPositionVector().addVector(directionGoingRight.xCoord * 0.75, -0.1, directionGoingRight.zCoord * 0.75);
+        Vec3 targetUp = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.75, mc.thePlayer.height + 0.1, directionGoing.zCoord * 0.75);
+        Vec3 targetLeftUp = mc.thePlayer.getPositionVector().addVector(directionGoingLeft.xCoord * 0.75, mc.thePlayer.height + 0.1, directionGoingLeft.zCoord * 0.75);
+        Vec3 targetRightUp = mc.thePlayer.getPositionVector().addVector(directionGoingRight.xCoord * 0.75, mc.thePlayer.height + 0.1, directionGoingRight.zCoord * 0.75);
+        Vec3 fenceGateCheck = mc.thePlayer.getPositionVector().addVector(directionGoing.xCoord * 0.25, -0.75, directionGoing.zCoord * 0.25);
         MovingObjectPosition trace = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), target, false, true, false);
-        MovingObjectPosition traceUp = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), targetUp, false, true, false);
-        if (trace != null && trace.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            BlockPos blockPos = trace.getBlockPos();
-            if (BlockUtils.hasCollision(blockPos)) {
-                RenderUtils.drawBox(new AxisAlignedBB(blockPos.getX(), blockPos.getY(), blockPos.getZ(), blockPos.getX() + 1, blockPos.getY() + 1, blockPos.getZ() + 1).offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ), Color.RED);
-            } else {
-                RenderUtils.drawBox(new AxisAlignedBB(target.xCoord, target.yCoord, target.zCoord, target.xCoord + 0.1, target.yCoord + 0.1, target.zCoord + 0.1).offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ), Color.GREEN);
-            }
-        } else {
-            RenderUtils.drawBox(new AxisAlignedBB(target.xCoord, target.yCoord, target.zCoord, target.xCoord + 0.1, target.yCoord + 0.1, target.zCoord + 0.1).offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ), Color.GREEN);
-        }
-        if (traceUp != null && traceUp.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            BlockPos blockPos = traceUp.getBlockPos();
-            if (BlockUtils.hasCollision(blockPos)) {
-                RenderUtils.drawBox(new AxisAlignedBB(blockPos.getX(), blockPos.getY(), blockPos.getZ(), blockPos.getX() + 1, blockPos.getY() + 1, blockPos.getZ() + 1).offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ), Color.RED);
-            } else {
-                RenderUtils.drawBox(new AxisAlignedBB(targetUp.xCoord, targetUp.yCoord, targetUp.zCoord, targetUp.xCoord + 0.1, targetUp.yCoord + 0.1, targetUp.zCoord + 0.1).offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ), Color.GREEN);
-            }
-        } else {
-            RenderUtils.drawBox(new AxisAlignedBB(targetUp.xCoord, targetUp.yCoord, targetUp.zCoord, targetUp.xCoord + 0.1, targetUp.yCoord + 0.1, targetUp.zCoord + 0.1).offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ), Color.GREEN);
-        }
+        MovingObjectPosition traceLeft = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), targetLeft, false, true, false);
+        MovingObjectPosition traceRight = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), targetRight, false, true, false);
+        MovingObjectPosition traceUp = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector().addVector(0, mc.thePlayer.height, 0), targetUp, false, true, false);
+        MovingObjectPosition traceLeftUp = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector().addVector(0, mc.thePlayer.height, 0), targetLeftUp, false, true, false);
+        MovingObjectPosition traceRightUp = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector().addVector(0, mc.thePlayer.height, 0), targetRightUp, false, true, false);
+        MovingObjectPosition fenceGateTrace = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), fenceGateCheck, false, true, false);
+        return new BlocksInFront(targetLeftUp, traceLeftUp, targetUp, traceUp, targetRightUp, traceRightUp, targetLeft, traceLeft, target, trace, targetRight, traceRight, fenceGateCheck, fenceGateTrace);
     }
 
     private Vec3 getNext(ArrayList<Vec3> path) {
@@ -685,6 +725,40 @@ public class FlyPathFinderExecutor {
         Position(BlockPos pos, Rotation rotation) {
             this.pos = pos;
             this.rotation = rotation;
+        }
+    }
+
+    public static class BlocksInFront {
+        public Vec3 leftUpTarget;
+        public MovingObjectPosition leftUp;
+        public Vec3 centerUpTarget;
+        public MovingObjectPosition centerUp;
+        public Vec3 rightUpTarget;
+        public MovingObjectPosition rightUp;
+        public Vec3 leftDownTarget;
+        public MovingObjectPosition leftDown;
+        public Vec3 centerDownTarget;
+        public MovingObjectPosition centerDown;
+        public Vec3 rightDownTarget;
+        public MovingObjectPosition rightDown;
+        public Vec3 fenceGateCheck;
+        public MovingObjectPosition fenceGateTrace;
+
+        public BlocksInFront(Vec3 leftUpTarget, MovingObjectPosition leftUp, Vec3 centerUpTarget, MovingObjectPosition centerUp, Vec3 rightUpTarget, MovingObjectPosition rightUp, Vec3 leftDownTarget, MovingObjectPosition leftDown, Vec3 centerDownTarget, MovingObjectPosition centerDown, Vec3 rightDownTarget, MovingObjectPosition rightDown, Vec3 fenceGateCheck, MovingObjectPosition fenceGateTrace) {
+            this.leftUpTarget = leftUpTarget;
+            this.leftUp = leftUp;
+            this.centerUpTarget = centerUpTarget;
+            this.centerUp = centerUp;
+            this.rightUpTarget = rightUpTarget;
+            this.rightUp = rightUp;
+            this.leftDownTarget = leftDownTarget;
+            this.leftDown = leftDown;
+            this.centerDownTarget = centerDownTarget;
+            this.centerDown = centerDown;
+            this.rightDownTarget = rightDownTarget;
+            this.rightDown = rightDown;
+            this.fenceGateCheck = fenceGateCheck;
+            this.fenceGateTrace = fenceGateTrace;
         }
     }
 }

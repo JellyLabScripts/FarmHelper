@@ -76,9 +76,12 @@ public class RewardClaimer implements IFeature {
 
         if (InventoryUtils.getInventoryName() == null) return;
         if (InventoryUtils.getInventoryName().contains("Jacob's Farming Contest")) {
-            int slot = InventoryUtils.getSlotIdOfItemInContainer("Claim your rewards!");
-            if (slot == -1) return;
-            InventoryUtils.clickContainerSlot(slot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+            Slot slot = InventoryUtils.getSlotOfItemInContainer("Claim your rewards!");
+            if (slot == null) return;
+            List<String> lore = InventoryUtils.getItemLore(slot.getStack());
+            if (lore.stream().noneMatch(line -> line.contains("You have ") && line.contains(" unclaimed award")))
+                return;
+            InventoryUtils.clickContainerSlot(slot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
             delayClock.schedule(Math.random() * 300 + 700);
             return;
         }
@@ -104,7 +107,8 @@ public class RewardClaimer implements IFeature {
 
     @Override
     public boolean isRunning() {
-        return InventoryUtils.getInventoryName() != null && InventoryUtils.getInventoryName().contains("Your Contests");
+        String invName = InventoryUtils.getInventoryName();
+        return invName != null && (invName.contains("Your Contests") || invName.contains("Jacob's Farming Contests"));
     }
 
     @Override
