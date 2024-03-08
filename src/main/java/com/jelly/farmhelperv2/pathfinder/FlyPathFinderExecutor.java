@@ -375,21 +375,21 @@ public class FlyPathFinderExecutor {
                 targetPos = targetPos.addVector(targetEntity.motionX * 1, targetEntity.motionY, targetEntity.motionZ * 1);
             }
             float distance = (float) mc.thePlayer.getPositionVector().distanceTo(targetPos);
+            float distancePath = (float) mc.thePlayer.getPositionVector().distanceTo(copyPath.get(copyPath.size() - 1));
             System.out.println("Velo: " + velocity);
             System.out.println("TargetPos: " + targetPos);
             System.out.println("Distance: " + distance);
             System.out.println("EntityVelo: " + entityVelocity);
-            if (willArriveAtDestinationAfterStopping(copyPath.get(copyPath.size() - 1))) {
+            if (willArriveAtDestinationAfterStopping(copyPath.get(copyPath.size() - 1)) && entityVelocity < 0.15) {
                 System.out.println("Will arrive");
                 stop();
                 return;
             }
-            if (distance < 1.75) {
+            if ((distance < 1 && entityVelocity > 0.15) || (distancePath < 0.5 && entityVelocity < 0.15)) {
                 stop();
                 return;
             }
         } else if (willArriveAtDestinationAfterStopping(copyPath.get(copyPath.size() - 1))) {
-//            stopAndDecelerate();
             System.out.println("stopping");
             stop();
             return;
