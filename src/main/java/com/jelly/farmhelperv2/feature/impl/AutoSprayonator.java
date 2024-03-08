@@ -103,6 +103,11 @@ public class AutoSprayonator implements IFeature {
         running = true;
 
         sprayItem = SPRAYONATOR_ITEM.values()[FarmHelperConfig.sprayonatorType];
+        if (!hasSprayItem()) {
+            sprayState = AUTO_SPRAYONATOR_STATE.NO_ITEM;
+            running = false;
+            return;
+        }
         if (sprayonatorPlotStates.isEmpty()) {
             sprayState = AUTO_SPRAYONATOR_STATE.CHECK_PLOTS;
         } else {
@@ -213,6 +218,7 @@ public class AutoSprayonator implements IFeature {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
+        if (sprayState == AUTO_SPRAYONATOR_STATE.NO_ITEM) return;
         if (sprayState != AUTO_SPRAYONATOR_STATE.NONE) return;
         sprayItem = SPRAYONATOR_ITEM.values()[FarmHelperConfig.sprayonatorType];
 
@@ -239,6 +245,7 @@ public class AutoSprayonator implements IFeature {
         if (event.phase != TickEvent.Phase.START) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (sprayState == AUTO_SPRAYONATOR_STATE.NO_ITEM) return;
         if (sprayState != AUTO_SPRAYONATOR_STATE.NONE && sprayState != AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT && !MacroHandler.getInstance().isCurrentMacroPaused()) {
             MacroHandler.getInstance().pauseMacro();
             return;
@@ -282,7 +289,7 @@ public class AutoSprayonator implements IFeature {
                 if (!hasSprayItem() && !shouldBuySprayItem()) {
                     stop();
                     LogUtils.sendError("[Auto Sprayonator] Disabling until restart due to no spray item");
-                    sprayState = AUTO_SPRAYONATOR_STATE.NONE;
+                    sprayState = AUTO_SPRAYONATOR_STATE.NO_ITEM;
                 }
                 PlotData data = sprayonatorPlotStates.get(GameStateHandler.getInstance().getCurrentPlot());
                 if (data != null && (!data.isSprayed() || !data.sprayItem.equals(sprayItem.getItemName()))) {
@@ -652,6 +659,7 @@ public class AutoSprayonator implements IFeature {
         CHECK_ITEM, // check if item is in inventory
         BAZAAR_PURCHASE, // buy item if not in inventory
         USE_SPRAYONATOR, // use sprayonator on current plot
+        NO_ITEM,
         NONE,
     }
 
