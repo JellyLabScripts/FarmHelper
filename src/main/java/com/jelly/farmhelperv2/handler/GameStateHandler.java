@@ -451,18 +451,24 @@ public class GameStateHandler {
     }
 
     public boolean notMoving() {
-        return (dx < 0.01 && dz < 0.01 && dyIsRest() && mc.currentScreen == null) || (!holdingKeybindIsWalkable() && mc.thePlayer != null && (playerIsInFlowingWater(0) || playerIsInFlowingWater(1)) && mc.thePlayer.isInWater());
+        if ((dx < 0.01 && dz < 0.01 && dyIsRest() && mc.currentScreen == null)) {
+            return true;
+        }
+        return !holdingKeybindIsWalkable() && (playerIsInFlowingWater(0) || playerIsInFlowingWater(1)) && mc.thePlayer.isInWater();
     }
 
     private boolean dyIsRest() {
         return dy < 0.05 || dy <= 0.079 && dy >= 0.078; // weird calculation of motionY being -0.0784000015258789 while resting at block and 0.0 is while flying for some reason
     }
 
-    private boolean playerIsInFlowingWater(int y) {
+    public boolean playerIsInFlowingWater(int y) {
         IBlockState state = mc.theWorld.getBlockState(BlockUtils.getRelativeBlockPos(0, y, 0));
         if (!state.getBlock().equals(Blocks.water)) return false;
         int level = state.getValue(BlockLiquid.LEVEL);
         if (level == 0) {
+            if (FarmHelperConfig.alwaysHoldW) {
+                return false;
+            }
             double motionX = mc.thePlayer.motionX;
             double motionZ = mc.thePlayer.motionZ;
             return motionX > 0.01 || motionX < -0.01 || motionZ > 0.01 || motionZ < -0.01;

@@ -13,6 +13,7 @@
     "client.MixinChunk",
     "client.MixinEntity",
     "client.MixinMouse",
+    "client.MixinScoreboard",
     "fml.MixinFMLHandshakeMessage",
     "network.MixinNetworkManager",
     "pathfinder.MixinChunkProviderClient",

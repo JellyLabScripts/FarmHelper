@@ -357,8 +357,9 @@ public class BlockUtils {
     };
 
     public static boolean canFlyHigher(int distance) {
-        Vec3 vec = mc.thePlayer.getPositionEyes(1);
+        BlockPos blockPos = getRelativeBlockPos(0, 1, 0);
         for (Vec3 vec3 : BLOCK_SIDE_MULTIPLIERS) {
+            Vec3 vec = new Vec3(blockPos.getX() + 0.5, blockPos.getY(), blockPos.getZ() + 0.5);
             MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(vec.add(vec3), vec.addVector(0, distance, 0).add(vec3), false, true, false);
             if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                 return false;
