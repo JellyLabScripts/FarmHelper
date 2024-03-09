@@ -481,7 +481,7 @@ public class PestsDestroyer implements IFeature {
                 KeyBindUtils.stopMovement();
 
                 if (PlayerUtils.isPlayerSuffocating() || !BlockUtils.canFlyHigher(5)) {
-                    LogUtils.sendDebug("[Pests Destroyer] The player is suffocating and/or it can't fly higher. Going back to spawnpoint.");
+                    LogUtils.sendWarning("[Pests Destroyer] The player is suffocating and/or it can't fly higher. Going back to spawnpoint.");
                     delayClock.schedule(1_000 + Math.random() * 500);
                     MacroHandler.getInstance().triggerWarpGarden(true, false);
                     state = States.CHECKING_SPAWN;
@@ -493,8 +493,10 @@ public class PestsDestroyer implements IFeature {
                 if (MacroHandler.getInstance().isTeleporting()) return;
 
                 if (!BlockUtils.canFlyHigher(4)) {
-                    LogUtils.sendError("[Pests Destroyer] Your spawnpoint is obstructed! Make sure there is no block above your spawnpoint!");
+                    LogUtils.sendError("[Pests Destroyer] Your spawnpoint is obstructed! Make sure there is no block above your spawnpoint! Disabling Pests Destroyer!");
                     stop();
+                    FarmHelperConfig.enablePestsDestroyer = false;
+                    finishMacro();
                 } else {
                     state = States.GET_CLOSEST_PLOT;
                     LogUtils.sendDebug("[Pests Destroyer] Spawnpoint is not obstructed");
@@ -574,8 +576,12 @@ public class PestsDestroyer implements IFeature {
                     return;
                 }
 
-                if (hasBlocksAround()) {
+                if (!mc.thePlayer.capabilities.isFlying) {
                     fly();
+                    break;
+                }
+                if (hasBlocksAround()) {
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindJump);
                     break;
                 } else {
                     if (mc.gameSettings.keyBindJump.isKeyDown()) {

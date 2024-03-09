@@ -36,6 +36,7 @@ public class PetSwapper implements IFeature {
     List<ItemStack> inventory;
     @Setter
     private boolean enabled;
+    private boolean dontEnableUntilEndOfContest = false;
 
     public static PetSwapper getInstance() {
         if (instance == null) {
@@ -74,19 +75,23 @@ public class PetSwapper implements IFeature {
         if (enabled)
             LogUtils.sendWarning("[Pet Swapper] Disabled!");
         enabled = false;
-        resetStatesAfterMacroDisabled();
+        inventory = null;
+        currentState = State.NONE;
+        delayClock.reset();
         PlayerUtils.closeScreen();
         KeyBindUtils.stopMovement();
+        if (MacroHandler.getInstance().isMacroToggled()) {
+            MacroHandler.getInstance().resumeMacro();
+        }
     }
 
     @Override
     public void resetStatesAfterMacroDisabled() {
         currentState = State.NONE;
-        delayClock.reset();
         previousPet = null;
         getPreviousPet = false;
         hasPetChangedDuringThisContest = false;
-        inventory = null;
+        dontEnableUntilEndOfContest = false;
     }
 
     @Override
@@ -102,10 +107,13 @@ public class PetSwapper implements IFeature {
     public void start(boolean getPreviousPet) {
         if (enabled) return;
         PlayerUtils.closeScreen();
-        LogUtils.sendDebug("[Pet Swapper] Starting...");
+        LogUtils.sendWarning("[Pet Swapper] Starting...");
         currentState = State.STARTING;
         enabled = true;
         PetSwapper.getPreviousPet = getPreviousPet;
+        if (MacroHandler.getInstance().isMacroToggled()) {
+            MacroHandler.getInstance().pauseMacro();
+        }
     }
 
     @SubscribeEvent
@@ -117,7 +125,20 @@ public class PetSwapper implements IFeature {
         if (GameStateHandler.getInstance().getCookieBuffState() != GameStateHandler.BuffState.ACTIVE) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
-        if (!GameStateHandler.getInstance().inJacobContest()) return;
+        if (dontEnableUntilEndOfContest) {
+            if (!GameStateHandler.getInstance().inJacobContest()) {
+                dontEnableUntilEndOfContest = false;
+            } else {
+                return;
+            }
+        }
+        if (!GameStateHandler.getInstance().inJacobContest()) {
+            if (hasPetChangedDuringThisContest) {
+                hasPetChangedDuringThisContest = false;
+                start(true);
+            }
+            return;
+        }
         if (hasPetChangedDuringThisContest) return;
         if (FarmHelperConfig.petSwapperName.trim().isEmpty()) {
             LogUtils.sendError("[Pet Swapper] You have not set a pet name in the settings! Disabling this feature...");
@@ -163,13 +184,13 @@ public class PetSwapper implements IFeature {
                     if (getPreviousPet) {
                         if (petName.toLowerCase().trim().contains(previousPet.toLowerCase())) {
                             LogUtils.sendDebug("[Pet Swapper] found previous pet: " + petName);
-                            InventoryUtils.clickSlot(InventoryUtils.getSlotIdOfItemInContainer(petName), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                            InventoryUtils.clickContainerSlot(InventoryUtils.getSlotIdOfItemInContainer(petName), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                             currentState = State.WAITING_FOR_SPAWN;
                             delayClock.schedule(FarmHelperConfig.petSwapperDelay);
                             return;
                         }
                         if (petName.toLowerCase().contains("next page")) {
-                            InventoryUtils.clickSlot(InventoryUtils.getSlotIdOfItemInContainer("next page"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                            InventoryUtils.clickContainerSlot(InventoryUtils.getSlotIdOfItemInContainer("next page"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                             delayClock.schedule(FarmHelperConfig.petSwapperDelay);
                             return;
                         }
@@ -179,6 +200,7 @@ public class PetSwapper implements IFeature {
                         if (petName.toLowerCase().trim().contains(FarmHelperConfig.petSwapperName.toLowerCase())) {
                             LogUtils.sendError("The current pet is already the one we want! The pet won't be swapped at the end of this contest.");
                             hasPetChangedDuringThisContest = false;
+                            dontEnableUntilEndOfContest = true;
                             PlayerUtils.closeScreen();
                             stop();
                             return;
@@ -187,12 +209,10 @@ public class PetSwapper implements IFeature {
                         LogUtils.sendDebug("[Pet Swapper] previous pet: " + previousPet);
                         currentState = State.FIND_NEW;
                         delayClock.schedule(FarmHelperConfig.petSwapperDelay);
-                        PlayerUtils.closeScreen();
-                        mc.thePlayer.sendChatMessage("/pets");
                         break;
                     }
                     if (petName.toLowerCase().contains("next page")) {
-                        InventoryUtils.clickSlot(InventoryUtils.getSlotIdOfItemInContainer("next page"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        InventoryUtils.clickContainerSlot(InventoryUtils.getSlotIdOfItemInContainer("next page"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         delayClock.schedule(FarmHelperConfig.petSwapperDelay);
                         return;
                     }
@@ -219,13 +239,13 @@ public class PetSwapper implements IFeature {
                     }
                     if (petName.toLowerCase().trim().contains(FarmHelperConfig.petSwapperName.toLowerCase())) {
                         LogUtils.sendDebug("[Pet Swapper] found new pet: " + petName);
-                        InventoryUtils.clickSlot(InventoryUtils.getSlotIdOfItemInContainer(petName), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        InventoryUtils.clickContainerSlot(InventoryUtils.getSlotIdOfItemInContainer(petName), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         currentState = State.WAITING_FOR_SPAWN;
                         delayClock.schedule(FarmHelperConfig.petSwapperDelay);
                         return;
                     }
                     if (petName.toLowerCase().contains("next page")) {
-                        InventoryUtils.clickSlot(InventoryUtils.getSlotIdOfItemInContainer("next page"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        InventoryUtils.clickContainerSlot(InventoryUtils.getSlotIdOfItemInContainer("next page"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         delayClock.schedule(FarmHelperConfig.petSwapperDelay);
                         return;
                     }
@@ -252,12 +272,14 @@ public class PetSwapper implements IFeature {
             String spawnMessage = "you summoned your " + (getPreviousPet ? previousPet : FarmHelperConfig.petSwapperName).toLowerCase();
             if (msg.toLowerCase().contains(spawnMessage)) {
                 if (!isRunning() || currentState != State.WAITING_FOR_SPAWN) {
-                    hasPetChangedDuringThisContest = false;
                     return;
                 }
                 currentState = State.NONE;
                 LogUtils.sendDebug("[Pet Swapper] pet spawned");
                 delayClock.schedule(1000);
+                if (GameStateHandler.getInstance().inJacobContest()) {
+                    hasPetChangedDuringThisContest = true;
+                }
             }
         }
     }
