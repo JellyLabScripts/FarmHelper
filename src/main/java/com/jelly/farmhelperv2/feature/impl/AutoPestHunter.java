@@ -7,6 +7,7 @@ import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
+import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
 import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
@@ -15,9 +16,11 @@ import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -111,8 +114,7 @@ public class AutoPestHunter implements IFeature {
         LogUtils.sendWarning("[Auto Pest Hunter] Stopping...");
         KeyBindUtils.stopMovement();
         resetStatesAfterMacroDisabled();
-        if (BaritoneHandler.isPathing())
-            BaritoneHandler.stopPathing();
+        BaritoneHandler.stopPathing();
     }
 
     @Override
@@ -251,6 +253,10 @@ public class AutoPestHunter implements IFeature {
                     stuckClock.schedule(5_000L);
                     break;
                 }
+                if (PlayerUtils.isPlayerSuffocating()) {
+                    stuckClock.schedule(5_000L);
+                    break;
+                }
                 KeyBindUtils.stopMovement();
                 if (positionBeforeTp.distanceSq(mc.thePlayer.getPosition()) > 7) {
                     if (FarmHelperConfig.pestHunterDeskX == 0 && FarmHelperConfig.pestHunterDeskY == 0 && FarmHelperConfig.pestHunterDeskZ == 0) {
@@ -318,6 +324,7 @@ public class AutoPestHunter implements IFeature {
                 if (isDeskPosSet()) {
                     LogUtils.sendDebug("[Auto Pest Hunter] Walking to the desk position...");
                     BaritoneHandler.walkToBlockPos(deskPos());
+                    state = State.WAIT_UNTIL_REACHED_DESK;
                 } else if (phillip != null) {
                     LogUtils.sendDebug("[Auto Pest Hunter] Phillip is found, but the desk position is not set! Walking to Phillip...");
                     BaritoneHandler.walkCloserToBlockPos(phillip.getPosition(), 2);
@@ -338,20 +345,41 @@ public class AutoPestHunter implements IFeature {
                 }
                 if (BaritoneHandler.hasFailed()) {
                     LogUtils.sendError("[Auto Pest Hunter] Baritone failed to reach the destination!");
-                    state = State.GO_BACK;
+                    FlyPathFinderExecutor.getInstance().setDontRotate(true);
+                    FlyPathFinderExecutor.getInstance().findPath(new Vec3(deskPos()).addVector(0.5, 0.5, 0.5), false, true);
                     break;
                 }
+                phillip = getPhillip();
                 if (BaritoneHandler.isPathing())
                     break;
-                if (BlockUtils.getHorizontalDistance(mc.thePlayer.getPositionVector(), phillip.getPositionVector()) > 7) {
-                    LogUtils.sendDebug("Distance: " + BlockUtils.getHorizontalDistance(mc.thePlayer.getPositionVector(), phillip.getPositionVector()));
+                if (FlyPathFinderExecutor.getInstance().isRunning()) {
+                    if (phillip == null) {
+                        break;
+                    }
+                    Entity rotateTo;
+                    if (phillip instanceof EntityArmorStand) {
+                        rotateTo = PlayerUtils.getEntityCuttingOtherEntity(phillip, e -> !(e instanceof EntityArmorStand));
+                    } else {
+                        rotateTo = phillip;
+                    }
+                    if (rotateTo == null) {
+                        break;
+                    }
+
+                    if (rotation.isRotating()) break;
+                    rotation.easeTo(
+                            new RotationConfiguration(
+                                    new Target(rotateTo),
+                                    FarmHelperConfig.getRandomRotationTime(),
+                                    null
+                            ).easeOutBack(true)
+                    );
                     break;
                 }
+                KeyBindUtils.stopMovement();
                 LogUtils.sendDebug("[Auto Pest Hunter] Desk position reached!");
                 BaritoneHandler.stopPathing();
-                FarmHelperConfig.pestHunterDeskX = mc.thePlayer.getPosition().getX();
-                FarmHelperConfig.pestHunterDeskY = mc.thePlayer.getPosition().getY();
-                FarmHelperConfig.pestHunterDeskZ = mc.thePlayer.getPosition().getZ();
+                FlyPathFinderExecutor.getInstance().stop();
                 state = State.CLICK_PHILLIP;
                 stuckClock.schedule(30_000L);
                 delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
@@ -371,16 +399,23 @@ public class AutoPestHunter implements IFeature {
                 }
                 if (rotation.isRotating())
                     break;
+                MovingObjectPosition mop = mc.objectMouseOver;
+                if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY) {
+                    Entity entity = mop.entityHit;
+                    Entity armorStand = PlayerUtils.getEntityCuttingOtherEntity(entity, e -> e instanceof EntityArmorStand);
+                    if (entity.getCustomNameTag().contains("Phillip") || armorStand != null && armorStand.getCustomNameTag().contains("Phillip")) {
+                        KeyBindUtils.leftClick();
+                        state = State.WAIT_FOR_GUI;
+                        RotationHandler.getInstance().reset();
+                        stuckClock.schedule(10_000L);
+                        break;
+                    }
+                }
                 rotation.easeTo(
                         new RotationConfiguration(
                                 new Target(phillip),
                                 FarmHelperConfig.getRandomRotationTime(),
-                                () -> {
-                                    KeyBindUtils.leftClick();
-                                    state = State.WAIT_FOR_GUI;
-                                    RotationHandler.getInstance().reset();
-                                    stuckClock.schedule(10_000L);
-                                }
+                                null
                         ).easeOutBack(true)
                 );
                 delayClock.schedule(FarmHelperConfig.getRandomRotationTime() + 500L);

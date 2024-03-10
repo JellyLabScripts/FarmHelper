@@ -12,6 +12,7 @@ import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 
 public class DisconnectFailsafe extends Failsafe {
     private static DisconnectFailsafe instance;
+
     public static DisconnectFailsafe getInstance() {
         if (instance == null) {
             instance = new DisconnectFailsafe();
@@ -51,7 +52,7 @@ public class DisconnectFailsafe extends Failsafe {
 
     @Override
     public void onDisconnectDetection(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
-        if (MacroHandler.getInstance().isTeleporting()) return;
+//        if (MacroHandler.getInstance().isTeleporting()) return;
         if (BanInfoWS.getInstance().isBanwave() && FarmHelperConfig.enableLeavePauseOnBanwave && !FarmHelperConfig.banwaveAction)
             return;
 

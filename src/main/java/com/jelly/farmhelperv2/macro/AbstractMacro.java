@@ -62,6 +62,7 @@ public abstract class AbstractMacro {
     private WalkingDirection walkingDirection = WalkingDirection.X;
     @Setter
     private int previousWalkingCoord = 0;
+    private boolean hitOnce = false;
 
 
     public boolean isEnabledAndNoFeature() {
@@ -112,6 +113,9 @@ public abstract class AbstractMacro {
         if (PlayerUtils.isStandingOnRewarpLocation() && !FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
             if (GameStateHandler.getInstance().notMoving() && KeyBindUtils.getHoldingKeybinds().length > 0) {
                 KeyBindUtils.stopMovement();
+            }
+            if (!GameStateHandler.getInstance().notMoving()) {
+                return;
             }
             if (GameStateHandler.getInstance().canRewarp()) {
                 MacroHandler.getInstance().triggerWarpGarden(false, true);
@@ -212,6 +216,11 @@ public abstract class AbstractMacro {
 
         PlayerUtils.getTool();
 
+        if (!hitOnce) {
+            KeyBindUtils.onTick(mc.gameSettings.keyBindAttack);
+            hitOnce = true;
+        }
+
         // Update or invoke state, based on if player is moving or not
         if (GameStateHandler.getInstance().canChangeDirection()) {
             KeyBindUtils.stopMovement(FarmHelperConfig.holdLeftClickWhenChangingRow);
@@ -283,7 +292,6 @@ public abstract class AbstractMacro {
         analyticsClock.schedule(60_000);
         if (getCurrentState() == null)
             changeState(State.NONE);
-        KeyBindUtils.onTick(mc.gameSettings.keyBindAttack);
     }
 
     public void onDisable() {
@@ -295,6 +303,7 @@ public abstract class AbstractMacro {
         rotation.reset();
         rewarpDelay.reset();
         sentWarning = false;
+        hitOnce = false;
         setEnabled(false);
     }
 

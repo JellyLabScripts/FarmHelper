@@ -350,10 +350,10 @@ public class BlockUtils {
     }
 
     private static final Vec3[] BLOCK_SIDE_MULTIPLIERS = new Vec3[]{
-            new Vec3(-0.45, 0, -0.45),
-            new Vec3(-0.45, 0, 0.45),
-            new Vec3(0.45, 0, -0.45),
-            new Vec3(0.45, 0, 0.45)
+            new Vec3(-0.25, 0.1, -0.25),
+            new Vec3(-0.25, 0.1, 0.25),
+            new Vec3(0.25, 0.1, -0.25),
+            new Vec3(0.25, 0.1, 0.25)
     };
 
     public static boolean canFlyHigher(int distance) {

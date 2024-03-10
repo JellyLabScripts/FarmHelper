@@ -193,7 +193,7 @@ public class FailsafeManager {
     public void onDisconnectDetection(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (triggeredFailsafe.isPresent()) return;
-        if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
+//        if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
 
         failsafes.forEach(failsafe -> failsafe.onDisconnectDetection(event));
     }
