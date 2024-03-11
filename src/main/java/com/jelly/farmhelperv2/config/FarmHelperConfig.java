@@ -1785,9 +1785,9 @@ public class FarmHelperConfig extends Config {
     @Slider(
             name = "Fast Break Randomization Chance", category = EXPERIMENTAL, subcategory = "Fast Break",
             description = "The chance to break the block",
-            min = 1, max = 100
+            min = 1, max = 100, step = 1
     )
-    public static int fastBreakRandomizationChance = 50;
+    public static int fastBreakRandomizationChance = 5;
 
     @Info(
             text = "Fast Break will most likely ban you. Use at your own risk.",
@@ -1974,7 +1974,8 @@ public class FarmHelperConfig extends Config {
         this.addDependency("streamerModeInfo2", "debugMode");
 
         this.addDependency("fastBreakSpeed", "fastBreak");
-        this.addDependency("fastBreakRandomizationChance", "fastBreakRandomization");
+        this.addDependency("fastBreakRandomization", "fastBreak");
+        this.addDependency("fastBreakRandomizationChance", "fastBreak");
         this.addDependency("disableFastBreakDuringBanWave", "fastBreak");
         this.addDependency("disableFastBreakDuringJacobsContest", "fastBreak");
 

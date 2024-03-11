@@ -7,6 +7,7 @@ import com.jelly.farmhelperv2.handler.MacroHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
+import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiScreen;
@@ -63,37 +64,44 @@ public class MixinMinecraft {
         }
 
 //        make a random true or false with percent chance can customize in config
-        if (FarmHelperConfig.randomFastBreak) {
-            if (Math.random() * 100 > FarmHelperConfig.fastBreakRandomChance) {
+        if (FarmHelperConfig.fastBreakRandomization) {
+            if (Math.random() * 100 > (100 - FarmHelperConfig.fastBreakRandomizationChance)) {
                 boolean shouldClick = this.currentScreen == null && this.gameSettings.keyBindAttack.isKeyDown() && this.inGameHasFocus;
                 if (this.objectMouseOver != null && shouldClick) {
+                    boolean isCactus = false;
+
                     for (int i = 0; i < FarmHelperConfig.fastBreakSpeed + 1; i++) {
                         BlockPos clickedBlock = this.objectMouseOver.getBlockPos();
+                        Block block = this.theWorld.getBlockState(clickedBlock).getBlock();
                         this.objectMouseOver = this.renderViewEntity.rayTrace(this.playerController.getBlockReachDistance(), 1.0F);
+
+                        if (block == Blocks.cactus) {
+                            isCactus = true;
+                        } else {
+                            isCactus = false;
+                        }
 
                         if (this.objectMouseOver == null || this.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
                             break;
                         }
 
-                        // checking first block
                         BlockPos newBlock = this.objectMouseOver.getBlockPos();
                         Block blockTryBreak = this.theWorld.getBlockState(newBlock).getBlock();
 
-                        if (!newBlock.equals(clickedBlock)
-                                && (blockTryBreak instanceof BlockCrops ||
-                                blockTryBreak instanceof BlockNetherWart ||
-                                blockTryBreak == Blocks.reeds ||
-                                blockTryBreak == Blocks.cactus ||
-                                blockTryBreak == Blocks.brown_mushroom ||
-                                blockTryBreak == Blocks.red_mushroom ||
-                                blockTryBreak == Blocks.pumpkin ||
-                                blockTryBreak == Blocks.melon_block ||
-                                blockTryBreak == Blocks.cocoa)
-                        ) {
-                            this.playerController.clickBlock(newBlock, this.objectMouseOver.sideHit);
+                        if (this.theWorld.getBlockState(newBlock).getBlock().getPlayerRelativeBlockHardness(this.thePlayer, this.theWorld, clickedBlock) < 1.0F) {
+                            return;
                         }
 
-                        if (i % 3 == 0) this.thePlayer.swingItem();
+                        if (isCactus) {
+                            this.playerController.resetBlockRemoving();
+                        }
+
+                        if (newBlock == null || this.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK || newBlock.equals(clickedBlock) || blockTryBreak.getMaterial() == Material.air) {
+                            break;
+                        }
+
+                        this.thePlayer.swingItem();
+                        this.playerController.clickBlock(newBlock, this.objectMouseOver.sideHit);
                     }
                 }
             }
