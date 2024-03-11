@@ -319,7 +319,7 @@ public class MacroHandler {
             return;
         }
 
-        if (!GameStateHandler.getInstance().inGarden()) {
+        if (!GameStateHandler.getInstance().inGarden() && !this.isTeleporting()) {
             if (!FeatureManager.getInstance().shouldIgnoreFalseCheck() && !FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
                 FailsafeManager.getInstance().possibleDetection(WorldChangeFailsafe.getInstance());
             }
@@ -356,19 +356,26 @@ public class MacroHandler {
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (FarmHelperConfig.streamerMode) return;
 
         if (FarmHelperConfig.highlightRewarp && FarmHelperConfig.rewarpList != null && GameStateHandler.getInstance().inGarden()) {
             Color chroma = Color.getHSBColor((float) ((System.currentTimeMillis() / 10) % 2000) / 2000, 1, 1);
-            Color chromaLowerAlpha = new Color(chroma.getRed(), chroma.getGreen(), chroma.getBlue(), 120);
 
             for (Rewarp rewarp : FarmHelperConfig.rewarpList) {
-                RenderUtils.drawBlockBox(new BlockPos(rewarp.x, rewarp.y, rewarp.z), chromaLowerAlpha);
+                double distance = mc.thePlayer.getDistance(rewarp.x, rewarp.y, rewarp.z);
+                Color chromaLowerAlpha = new Color(chroma.getRed(), chroma.getGreen(), chroma.getBlue(), Math.max(0, 120 - (int) (distance * 2)));
+                if (distance < 50) {
+                    RenderUtils.drawBlockBox(new BlockPos(rewarp.x, rewarp.y, rewarp.z), chromaLowerAlpha);
+                }
             }
         }
 
         if (FarmHelperConfig.drawSpawnLocation && PlayerUtils.isSpawnLocationSet() && GameStateHandler.getInstance().inGarden()) {
             BlockPos spawnLocation = new BlockPos(PlayerUtils.getSpawnLocation());
-            RenderUtils.drawBlockBox(spawnLocation, new Color(Color.orange.getRed(), Color.orange.getGreen(), Color.orange.getBlue(), 80));
+            double distance = mc.thePlayer.getDistance(spawnLocation.getX(), spawnLocation.getY(), spawnLocation.getZ());
+            if (distance < 50) {
+                RenderUtils.drawBlockBox(spawnLocation, new Color(Color.orange.getRed(), Color.orange.getGreen(), Color.orange.getBlue(), Math.max(0, 80 - (int) (distance * 1.6))));
+            }
         }
 
         if (!isMacroToggled()) {
@@ -385,6 +392,16 @@ public class MacroHandler {
         if (!isMacroToggled()) {
             return;
         }
+
+        if (currentMacro.isPresent() && currentMacro.get().getRewarpState().equals(AbstractMacro.RewarpState.TELEPORTING)) {
+            long timeLeft = MacroHandler.getInstance().getLastTpTry() + 5_000 - System.currentTimeMillis();
+            if (timeLeft < 0) {
+                timeLeft = 0;
+            }
+            String formattedTime = LogUtils.formatTime(timeLeft);
+            RenderUtils.drawCenterTopText("Retrying to teleport in: " + formattedTime, event, Color.orange, 1.5f);
+        }
+
         currentMacro.ifPresent(m -> {
             if (!m.isEnabledAndNoFeature()) return;
             m.onOverlayRender(event);
@@ -460,8 +477,10 @@ public class MacroHandler {
                 if (rewarpTeleport) {
                     cm.setRewarpState(AbstractMacro.RewarpState.TELEPORTED);
                     cm.actionAfterTeleport();
+                    LogUtils.sendDebug("Teleporting to spawn point. Doing actions");
                 } else {
                     cm.setRewarpState(AbstractMacro.RewarpState.NONE);
+                    LogUtils.sendDebug("Teleporting to spawn point. Not doing actions");
                 }
             });
             beforeTeleportationPos = Optional.empty();

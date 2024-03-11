@@ -349,9 +349,19 @@ public class BlockUtils {
         return canWalkThroughDoorWithDirection(direction, playerFacing, doorFacing, standingOnDoor);
     }
 
+    private static final Vec3[] BLOCK_SIDE_MULTIPLIERS = new Vec3[]{
+            new Vec3(-0.25, 0.1, -0.25),
+            new Vec3(-0.25, 0.1, 0.25),
+            new Vec3(0.25, 0.1, -0.25),
+            new Vec3(0.25, 0.1, 0.25)
+    };
+
     public static boolean canFlyHigher(int distance) {
-        for (int i = 0; i <= distance; i++) {
-            if (!canWalkThrough(getRelativeBlockPos(0, 2 + i, 0))) {
+        BlockPos blockPos = getRelativeBlockPos(0, 1, 0);
+        for (Vec3 vec3 : BLOCK_SIDE_MULTIPLIERS) {
+            Vec3 vec = new Vec3(blockPos.getX() + 0.5, blockPos.getY(), blockPos.getZ() + 0.5);
+            MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(vec.add(vec3), vec.addVector(0, distance, 0).add(vec3), false, true, false);
+            if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                 return false;
             }
         }

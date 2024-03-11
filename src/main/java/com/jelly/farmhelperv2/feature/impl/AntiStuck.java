@@ -48,7 +48,7 @@ public class AntiStuck implements IFeature {
     @Getter
     @Setter
     private int lagBackCounter = 0;
-    private int unstuckTries = 0;
+    private ArrayList<Long> lastUnstuckTimes = new ArrayList<>();
 
     public static AntiStuck getInstance() {
         if (instance == null) {
@@ -86,6 +86,7 @@ public class AntiStuck implements IFeature {
             FailsafeManager.getInstance().stopFailsafes();
         enabled = true;
         unstuckState = UnstuckState.NONE;
+        lastUnstuckTimes.add(System.currentTimeMillis());
         KeyBindUtils.stopMovement();
     }
 
@@ -103,13 +104,12 @@ public class AntiStuck implements IFeature {
         unstuckState = UnstuckState.NONE;
         intersectingBlockPos = null;
         directionBlockPos = null;
-        unstuckTries++;
     }
 
     @Override
     public void resetStatesAfterMacroDisabled() {
         lagBackCounter = 0;
-        unstuckTries = 0;
+        lastUnstuckTimes.clear();
     }
 
     @Override
@@ -187,7 +187,7 @@ public class AntiStuck implements IFeature {
     }
 
     public void resetUnstuckTries() {
-        unstuckTries = 0;
+        lastUnstuckTimes.clear();
     }
 
     @SubscribeEvent
@@ -212,6 +212,8 @@ public class AntiStuck implements IFeature {
             return;
         }
 
+        lastUnstuckTimes.removeIf(time -> System.currentTimeMillis() - time > FarmHelperConfig.antiStuckTriesUntilRewarp * 3500L);
+
         switch (unstuckState) {
             case NONE:
                 KeyBindUtils.stopMovement();
@@ -219,6 +221,14 @@ public class AntiStuck implements IFeature {
                 delayBetweenMovementsClock.schedule(150 + (int) (Math.random() * 150));
                 break;
             case PRESS:
+                if (lastUnstuckTimes.size() > FarmHelperConfig.antiStuckTriesUntilRewarp) {
+                    LogUtils.sendError("[Anti Stuck] Can't unstuck from this place. That's a rare occurrence. Warping back to spawn...");
+                    KeyBindUtils.stopMovement();
+                    stop();
+                    lastUnstuckTimes.clear();
+                    MacroHandler.getInstance().triggerWarpGarden(true, true);
+                    return;
+                }
                 if (intersectingBlockPos == null && directionBlockPos == null) {
                     KeyBindUtils.holdThese(mc.gameSettings.keyBindSneak, mc.gameSettings.keyBindBack);
                     unstuckState = UnstuckState.RELEASE;
@@ -228,14 +238,6 @@ public class AntiStuck implements IFeature {
                 List<KeyBinding> keys;
                 if (intersectingBlockPos != null) {
                     Optional<EnumFacing> closestSide = findClosestSide(intersectingBlockPos);
-                    if (!closestSide.isPresent() || unstuckTries > FarmHelperConfig.antiStuckTriesUntilRewarp) {
-                        LogUtils.sendError("[Anti Stuck] Can't unstuck from this place. That's a rare occurrence. Warping back to spawn...");
-                        KeyBindUtils.stopMovement();
-                        stop();
-                        unstuckTries = 0;
-                        MacroHandler.getInstance().triggerWarpGarden(true, true);
-                        return;
-                    }
                     EnumFacing facing = closestSide.get();
                     Vec3 movementTarget = getMovementTarget(intersectingBlockPos, facing);
                     keys = KeyBindUtils.getNeededKeyPresses(mc.thePlayer.getPositionVector(), movementTarget);

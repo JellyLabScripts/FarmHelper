@@ -68,11 +68,10 @@ public class ScoreboardUtils {
     }
 
     public static String cleanSB(String scoreboard) {
-        char[] nvString = StringUtils.stripControlCodes(scoreboard).toCharArray();
         StringBuilder cleaned = new StringBuilder();
 
-        for (char c : nvString) {
-            if ((int) c > 20 && (int) c < 127) {
+        for (char c : StringUtils.stripControlCodes(scoreboard).toCharArray()) {
+            if (c >= 32 && c < 127) {
                 cleaned.append(c);
             }
         }

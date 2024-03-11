@@ -61,7 +61,8 @@ public class FarmHelper {
         mc.gameSettings.pauseOnLostFocus = false;
         mc.gameSettings.gammaSetting = 1000;
         isDebug = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments().toString().contains("-agentlib:jdwp");
-        Display.setTitle("Farm Helper 〔v" + VERSION + "〕 " + (!isDebug ? "Bing Chilling" : "wazzup dev?") + " ☛ " + Minecraft.getMinecraft().getSession().getUsername());
+        if (!FarmHelperConfig.streamerMode)
+            Display.setTitle("Farm Helper 〔v" + VERSION + "〕 " + (!isDebug ? "Bing Chilling" : "wazzup dev?") + " ☛ " + Minecraft.getMinecraft().getSession().getUsername());
         FailsafeUtils.getInstance();
 
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
@@ -141,6 +142,7 @@ public class FarmHelper {
     public void onLastRender(RenderWorldLastEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!FarmHelperConfig.showDebugPathfindingRoute) return;
+        if (FarmHelperConfig.streamerMode) return;
 
         Vec3 position = mc.thePlayer.getPositionVector();
 

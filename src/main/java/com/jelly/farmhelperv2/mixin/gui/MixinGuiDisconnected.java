@@ -76,6 +76,11 @@ public class MixinGuiDisconnected {
                 }
             }
         }
+        
+        if (!AutoReconnect.getInstance().isRunning() && AutoReconnect.getInstance().isToggled()) {
+            AutoReconnect.getInstance().getReconnectDelay().schedule(FarmHelperConfig.delayBeforeReconnecting * 1_000L);
+            AutoReconnect.getInstance().start();
+        }
 
         if (AutoReconnect.getInstance().isRunning() && AutoReconnect.getInstance().getState() == AutoReconnect.State.CONNECTING) {
             multilineMessage = farmHelperV2$multilineMessageCopy;

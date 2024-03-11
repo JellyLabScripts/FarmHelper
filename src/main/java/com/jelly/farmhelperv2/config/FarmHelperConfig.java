@@ -262,11 +262,6 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     //<editor-fold desc="Miscellaneous">
-    @Switch(
-            name = "Reward Claimer (BETA)", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-            description = "Automatically claims contest rewards once you open Jacob's GUI"
-    )
-    public static boolean rewardClaimer = false;
     @DualOption(
             name = "AutoUpdater Version Type", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "The version type to use",
@@ -276,16 +271,10 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean autoUpdaterDownloadBetaVersions = false;
     @Switch(
-            name = "Performance Mode", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-            description = "Set render distance to 2, set max fps to 15 and doesn't render crops"
+            name = "Reward Claimer (BETA)", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+            description = "Automatically claims contest rewards once you open Jacob's GUI"
     )
-    public static boolean performanceMode = false;
-    @Number(
-            name = "Max FPS", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-            description = "The maximum FPS to set when performance mode is enabled",
-            min = 10, max = 60
-    )
-    public static int performanceModeMaxFPS = 20;
+    public static boolean rewardClaimer = false;
     @Switch(
             name = "Mute The Game", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "Mutes the game while farming"
@@ -307,6 +296,20 @@ public class FarmHelperConfig extends Config {
             description = "Automatically ungrabs your mouse, so you can safely alt-tab"
     )
     public static boolean autoUngrabMouse = true;
+    //</editor-fold>
+
+    //<editor-fold desc="Performance Mod">
+    @Switch(
+            name = "Performance Mode", category = MISCELLANEOUS, subcategory = "Performance Mode",
+            description = "Set render distance to 2, set max fps to 15 and doesn't render crops"
+    )
+    public static boolean performanceMode = false;
+    @Number(
+            name = "Max FPS", category = MISCELLANEOUS, subcategory = "Performance Mode",
+            description = "The maximum FPS to set when performance mode is enabled",
+            min = 10, max = 60
+    )
+    public static int performanceModeMaxFPS = 20;
     //</editor-fold>
 
     //<editor-fold desc="Crop Utils">
@@ -401,11 +404,17 @@ public class FarmHelperConfig extends Config {
     )
     public static float teleportCheckLagSensitivity = 0.5f;
     @Slider(
-            name = "Rotation Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
+            name = "Rotation Check Pitch Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "The sensitivity of the rotation check; the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives.",
-            min = 1, max = 10
+            min = 1, max = 30
     )
-    public static float rotationCheckSensitivity = 2;
+    public static float rotationCheckPitchSensitivity = 7;
+    @Slider(
+            name = "Rotation Check Yaw Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "The sensitivity of the rotation check; the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives.",
+            min = 1, max = 30
+    )
+    public static float rotationCheckYawSensitivity = 5;
     @Slider(
             name = "Teleport Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "The minimum distance between the previous and teleported position to trigger failsafe",
@@ -480,14 +489,11 @@ public class FarmHelperConfig extends Config {
             description = "Captures a clip after triggering failsafe by pressing a key combination"
     )
     public static boolean captureClipAfterFailsafe = false;
-
-    @KeyBind(
-            name = "Keybind to capture a clip after triggering failsafe",
-            category = FAILSAFE, subcategory = "Clip Capturing",
-            description = "Captures a clip after triggering failsafe"
+    @Switch(
+            name = "Capture Clip After Getting Banned (Replay Buffer Only)", category = FAILSAFE, subcategory = "Clip Capturing",
+            description = "Captures a clip after getting banned by pressing a key combination"
     )
-    public static OneKeyBind captureClipKeybind = new OneKeyBind(Keyboard.KEY_NONE);
-
+    public static boolean captureClipAfterGettingBanned = false;
     @DualOption(
             name = "Clip Capturing Type", category = FAILSAFE, subcategory = "Clip Capturing",
             description = "The clip capturing type to use",
@@ -495,7 +501,12 @@ public class FarmHelperConfig extends Config {
             right = "Recording"
     )
     public static boolean clipCapturingType = false;
-
+    @KeyBind(
+            name = "Keybind",
+            category = FAILSAFE, subcategory = "Clip Capturing",
+            description = "Captures a clip after triggering failsafe"
+    )
+    public static OneKeyBind captureClipKeybind = new OneKeyBind(Keyboard.KEY_NONE);
     @Slider(
             name = "Clip Capturing Delay (in seconds)", category = FAILSAFE, subcategory = "Clip Capturing",
             description = "The delay to capture a clip after triggering failsafe (in seconds)",
@@ -1283,6 +1294,11 @@ public class FarmHelperConfig extends Config {
             description = "Logs all events related to the auto pest hunter"
     )
     public static boolean logAutoPestHunterEvents = true;
+    @Switch(
+            name = "Highlight desk location", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            description = "Highlights the pest hunter desk location"
+    )
+    public static boolean highlightPestHunterDeskLocation = true;
     @Info(
             text = "The auto pest hunter will start automatically once you rewarp!",
             type = InfoType.WARNING,
@@ -1680,6 +1696,26 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     //<editor-fold desc="HUD">
+    @Switch(
+            name = "Streamer mode", category = HUD, subcategory = "Streamer mode",
+            description = "Hides everything Farm Helper related from the screen."
+    )
+    public static boolean streamerMode = false;
+    @Info(
+            text = "Streamer mode does NOT disable failsafe notifications or sounds! It only hides visual elements.",
+            type = InfoType.WARNING,
+            category = HUD,
+            subcategory = "Streamer mode",
+            size = 2
+    )
+    public static boolean streamerModeInfo;
+    @Info(
+            text = "You must restart the game if you want to hide the window title after enabling the streamer mode.",
+            type = InfoType.WARNING,
+            category = HUD,
+            subcategory = "Streamer mode"
+    )
+    public static boolean streamerModeInfo2;
     @HUD(
             name = "Status HUD", category = HUD
     )
@@ -1710,11 +1746,6 @@ public class FarmHelperConfig extends Config {
             description = "Prints to chat what the bot is currently executing. Useful if you are having issues."
     )
     public static boolean debugMode = false;
-    @Switch(
-            name = "Hide Logs (Not Recommended)", category = DEBUG, subcategory = "Debug",
-            description = "Hides all logs from the console. Not recommended."
-    )
-    public static boolean hideLogs = false;
     @Switch(
             name = "Show rotation debug messages", category = DEBUG, subcategory = "Debug",
             description = "Shows rotation debug messages"
@@ -1937,8 +1968,10 @@ public class FarmHelperConfig extends Config {
         this.hideIf("infoRemoteControl", () -> Loader.isModLoaded("farmhelperjdadependency"));
         this.hideIf("failsafeSoundTimes", () -> true);
 
-        this.addDependency("debugMode", "Debug Mode", () -> !hideLogs);
-        this.addDependency("hideLogs", "Hide Logs (Not Recommended)", () -> !debugMode);
+        this.addDependency("debugMode", "Streamer Mode", () -> !streamerMode);
+        this.addDependency("streamerMode", "Debug Mode", () -> !debugMode);
+        this.addDependency("streamerModeInfo", "debugMode");
+        this.addDependency("streamerModeInfo2", "debugMode");
 
         this.addDependency("fastBreakSpeed", "fastBreak");
         this.addDependency("fastBreakRandomizationChance", "fastBreakRandomization");
@@ -1979,9 +2012,9 @@ public class FarmHelperConfig extends Config {
 
         this.addDependency("averageBPSDrop", "averageBPSDropCheck");
 
-        this.addDependency("captureClipKeybind", "captureClipAfterFailsafe");
-        this.addDependency("clipCapturingType", "captureClipAfterFailsafe");
-        this.addDependency("captureClipDelay", "captureClipAfterFailsafe");
+        this.addDependency("captureClipKeybind", "", () -> captureClipAfterFailsafe || captureClipAfterGettingBanned);
+        this.addDependency("clipCapturingType", "", () -> captureClipAfterFailsafe || captureClipAfterGettingBanned);
+        this.addDependency("captureClipDelay", "", () -> captureClipAfterFailsafe || captureClipAfterGettingBanned);
 
         this.addDependency("leaveTime", "leaveTimer");
 

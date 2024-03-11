@@ -20,6 +20,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.pathfinding.PathPoint;
@@ -169,9 +170,16 @@ public class FlyPathFinderExecutor {
         this.targetEntity = target;
         this.yModifier = yModifier;
         this.dontRotate = dontRotate;
-        // get 1 block closer to the player
-        Vec3 targetNextPos = new Vec3(target.posX + target.motionX, target.posY + target.motionY, target.posZ + target.motionZ);
-        findPath(targetNextPos.addVector(0, this.yModifier, 0), follow, smooth);
+        if (Math.abs(target.motionX) > 0.15 || Math.abs(target.motionZ) > 0.15) {
+            Vec3 targetNextPos = new Vec3(target.posX + target.motionX, target.posY + target.motionY, target.posZ + target.motionZ);
+            findPath(targetNextPos.addVector(0, this.yModifier, 0), follow, smooth);
+        } else {
+            Vec3 targetPos = new Vec3(target.posX, target.posY, target.posZ);
+            Rotation rotation = RotationHandler.getInstance().getRotation(targetPos, mc.thePlayer.getPositionVector());
+            Vec3 direction = AngleUtils.getVectorForRotation(0, rotation.getYaw());
+            targetPos = targetPos.addVector(direction.xCoord * 1.2, 0.5, direction.zCoord * 1.2);
+            findPath(targetPos.addVector(0, this.yModifier, 0), follow, smooth);
+        }
     }
 
     public boolean isRotationInCache(float yaw, float pitch) {
@@ -362,26 +370,33 @@ public class FlyPathFinderExecutor {
         }
         if (targetEntity != null) {
             float velocity = (float) Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
+            if (targetEntity instanceof EntityArmorStand) {
+                Entity properEntity = PlayerUtils.getEntityCuttingOtherEntity(targetEntity, e -> !(e instanceof EntityArmorStand));
+                if (properEntity != null) {
+                    targetEntity = properEntity;
+                }
+            }
             float entityVelocity = (float) Math.sqrt(targetEntity.motionX * targetEntity.motionX + targetEntity.motionZ * targetEntity.motionZ);
             Vec3 targetPos = targetEntity.getPositionVector().addVector(0, this.yModifier, 0);
+            if (entityVelocity > 0.1) {
+                targetPos = targetPos.addVector(targetEntity.motionX * 1.3, targetEntity.motionY, targetEntity.motionZ * 1.3);
+            }
             float distance = (float) mc.thePlayer.getPositionVector().distanceTo(targetPos);
+            float distancePath = (float) mc.thePlayer.getPositionVector().distanceTo(copyPath.get(copyPath.size() - 1));
             System.out.println("Velo: " + velocity);
             System.out.println("TargetPos: " + targetPos);
             System.out.println("Distance: " + distance);
             System.out.println("EntityVelo: " + entityVelocity);
-            if (entityVelocity > 0.12) {
-                targetPos = targetPos.addVector(targetEntity.motionX * 1.5, targetEntity.motionY, targetEntity.motionZ * 1.5);
-            }
-            if (distance < 1.75) {
+            if (willArriveAtDestinationAfterStopping(copyPath.get(copyPath.size() - 1)) && entityVelocity < 0.15) {
+                System.out.println("Will arrive");
                 stop();
                 return;
             }
-            if (willArriveAtDestinationAfterStopping(targetPos)) {
+            if ((distance < 1 && entityVelocity > 0.15) || (distancePath < 0.5 && entityVelocity < 0.15)) {
                 stop();
                 return;
             }
         } else if (willArriveAtDestinationAfterStopping(copyPath.get(copyPath.size() - 1))) {
-//            stopAndDecelerate();
             System.out.println("stopping");
             stop();
             return;
@@ -485,9 +500,7 @@ public class FlyPathFinderExecutor {
         PlayerSimulation playerSimulation = new PlayerSimulation(mc.theWorld);
         playerSimulation.copy(mc.thePlayer);
         playerSimulation.isFlying = true;
-        playerSimulation.rotationYaw = neededYaw != Integer.MIN_VALUE ? neededYaw : mc.thePlayer.rotationYaw;
-        playerSimulation.moveForward = 0;
-        playerSimulation.moveStrafing = 0;
+        playerSimulation.rotationYaw = neededYaw != Integer.MIN_VALUE && !FarmHelperConfig.flyPathfinderOringoCompatible ? neededYaw : mc.thePlayer.rotationYaw;
         for (int i = 0; i < 30; i++) {
             playerSimulation.onLivingUpdate();
             if (Math.abs(playerSimulation.motionX) < 0.01D && Math.abs(playerSimulation.motionZ) < 0.01D) {
@@ -630,6 +643,7 @@ public class FlyPathFinderExecutor {
         ArrayList<Vec3> copyPath = new ArrayList<>(path);
         if (copyPath.isEmpty()) return;
         if (!isRunning()) return;
+        if (FarmHelperConfig.streamerMode) return;
         RenderManager renderManager = mc.getRenderManager();
         Vec3 current = mc.thePlayer.getPositionVector();
         Vec3 next = getNext(copyPath);

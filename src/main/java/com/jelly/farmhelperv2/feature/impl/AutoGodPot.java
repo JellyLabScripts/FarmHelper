@@ -2,14 +2,15 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
-import com.jelly.farmhelperv2.failsafe.Failsafe;
-import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
-import com.jelly.farmhelperv2.util.*;
+import com.jelly.farmhelperv2.util.InventoryUtils;
+import com.jelly.farmhelperv2.util.KeyBindUtils;
+import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
@@ -27,7 +28,6 @@ import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
@@ -133,7 +133,14 @@ public class AutoGodPot implements IFeature {
 
     @Override
     public void stop() {
-        if (!enabled) return;
+        resetStates();
+        LogUtils.sendWarning("[Auto God Pot] Disabled!");
+        if (shouldTpToGarden) {
+            MacroHandler.getInstance().triggerWarpGarden(true, true);
+        }
+    }
+
+    private void resetStates() {
         enabled = false;
         stuckClock.reset();
         delayClock.reset();
@@ -145,28 +152,7 @@ public class AutoGodPot implements IFeature {
         resetBitsShopState();
         godPotMode = GodPotMode.NONE;
         KeyBindUtils.stopMovement();
-        LogUtils.sendWarning("[Auto God Pot] Disabled!");
         shouldTpToGarden = true;
-        teleportToGarden();
-    }
-
-    private void teleportToGarden() {
-        if (teleportTries >= 3) {
-            LogUtils.sendError("[Auto God Pot] Could not teleport to garden after 3 tries! Disabling Auto God Pot!");
-            LogUtils.webhookLog("[Auto God Pot]\\nCould not teleport to garden after 3 tries! Disabling Auto God Pot!");
-            teleportTries = 0;
-            return;
-        }
-        Multithreading.schedule(() -> {
-            if (!GameStateHandler.getInstance().inGarden() && shouldTpToGarden) {
-                MacroHandler.getInstance().triggerWarpGarden(true, true);
-                teleportToGarden();
-                teleportTries++;
-            } else if (GameStateHandler.getInstance().inGarden() && MacroHandler.getInstance().isMacroToggled()) {
-                MacroHandler.getInstance().resumeMacro();
-                teleportTries = 0;
-            }
-        }, 4_000, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -220,6 +206,13 @@ public class AutoGodPot implements IFeature {
 
         if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING) {
             stuckClock.schedule(STUCK_DELAY);
+            return;
+        }
+
+        if (stuckClock.isScheduled() && stuckClock.passed()) {
+            LogUtils.sendWarning("[Auto God Pot] Stuck for too long! Restarting!");
+            resetStates();
+            start();
             return;
         }
 
@@ -907,7 +900,14 @@ public class AutoGodPot implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("Community Shop")) break;
+                String invNam = InventoryUtils.getInventoryName();
+                if (invNam == null) break;
+                if (!invNam.contains("Community Shop")) {
+                    PlayerUtils.closeScreen();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    stuckClock.schedule(STUCK_DELAY);
+                    break;
+                }
                 Slot bitsShopTab = InventoryUtils.getSlotOfItemInContainer("Bits Shop");
                 if (bitsShopTab == null) break;
                 ArrayList<String> lore = InventoryUtils.getItemLore(bitsShopTab.getStack());
@@ -933,7 +933,7 @@ public class AutoGodPot implements IFeature {
                 if (confirm == null) break;
                 ArrayList<String> lore2 = InventoryUtils.getItemLore(confirm.getStack());
                 for (String line : lore2) {
-                    if (line.contains("Confirmation: Enabled!")) {
+                    if (line.contains("Confirmations: Enabled!")) {
                         InventoryUtils.clickContainerSlot(confirm.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         setBitsShopState(BitsShopState.CLICK_GOD_POT);
                         delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
@@ -999,11 +999,9 @@ public class AutoGodPot implements IFeature {
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
             }
         }
-        if (bitsShopState == BitsShopState.WAITING_FOR_BUY) {
-            if (message.startsWith("You bought God Potion!")) {
-                setBitsShopState(BitsShopState.END);
-                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-            }
+        if (message.startsWith("You bought God Potion!")) {
+            setBitsShopState(BitsShopState.END);
+            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
         }
     }
 

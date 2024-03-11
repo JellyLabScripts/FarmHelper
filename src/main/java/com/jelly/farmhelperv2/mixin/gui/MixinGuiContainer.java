@@ -1,6 +1,7 @@
 package com.jelly.farmhelperv2.mixin.gui;
 
 import com.jelly.farmhelperv2.event.DrawScreenAfterEvent;
+import com.jelly.farmhelperv2.event.InventoryInputEvent;
 import com.jelly.farmhelperv2.util.InventoryUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -17,5 +18,12 @@ public class MixinGuiContainer {
     public void drawScreen_after(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
         String name = InventoryUtils.getInventoryName();
         MinecraftForge.EVENT_BUS.post(new DrawScreenAfterEvent(Minecraft.getMinecraft().currentScreen));
+    }
+
+    @Inject(method = "keyTyped", at = @At("RETURN"), cancellable = true)
+    public void keyTyped_after(char typedChar, int keyCode, CallbackInfo ci) {
+        if (MinecraftForge.EVENT_BUS.post(new InventoryInputEvent(keyCode, typedChar))) {
+            ci.cancel();
+        }
     }
 }
