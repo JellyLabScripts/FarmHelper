@@ -1133,39 +1133,47 @@ public class PestsDestroyer implements IFeature {
         });
     }
 
+    private long lastNotification = 0;
+
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (event.phase != TickEvent.Phase.START) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
 
-        List<String> scoreBoard = ScoreboardUtils.getScoreboardLines(false);
-        List<String> cleanScoreBoard = ScoreboardUtils.getScoreboardLines(true);
-
-        for (int i = 0; i < scoreBoard.size(); i++) {
-            String line = scoreBoard.get(i);
-            String clean = cleanScoreBoard.get(i);
-            if (line.contains("ൠ")) {
-                String[] split = clean.split(" ");
-                try {
-                    String pests = split[split.length - 1].replace("x", "").trim();
-                    int pestsAmount = Integer.parseInt(pests);
-                    if (pestsAmount != totalPests) {
-                        int pestsBefore = totalPests;
-                        totalPests = pestsAmount;
-                        if (!isRunning() && totalPests >= FarmHelperConfig.startKillingPestsAt && totalPests > pestsBefore) {
-                            if (FarmHelperConfig.sendWebhookLogIfPestsDetectionNumberExceeded) {
-                                LogUtils.webhookLog("[Pests Destroyer]\\nThere " + (totalPests > 1 ? "are" : "is") + " currently **" + totalPests + "** " + (totalPests > 1 ? "pests" : "pest") + " in the garden!", FarmHelperConfig.pingEveryoneOnPestsDetectionNumberExceeded);
-                            }
-                            if (FarmHelperConfig.sendNotificationIfPestsDetectionNumberExceeded) {
-                                FailsafeUtils.getInstance().sendNotification("There " + (totalPests > 1 ? "are" : "is") + " currently " + totalPests + " " + (totalPests > 1 ? "pests" : "pest") + " in the garden!", TrayIcon.MessageType.WARNING);
-                            }
-                        }
+        List<String> tabList = TablistUtils.getTabList();
+        if (tabList.size() < 2) return;
+        for (String line : tabList) {
+            if (!line.contains(" Alive:"))
+                continue;
+            try {
+                String[] split = line.split(" ");
+                String pests = split[split.length - 1].trim();
+                int pestsAmount = Integer.parseInt(pests);
+                if (pestsAmount == totalPests)
+                    return;
+                int pestsBefore = totalPests;
+                totalPests = pestsAmount;
+                if (System.currentTimeMillis() < lastNotification + 5000)
+                    return;
+                lastNotification = System.currentTimeMillis();
+                if (!isRunning() && totalPests >= FarmHelperConfig.startKillingPestsAt && totalPests > pestsBefore) {
+                    if (FarmHelperConfig.sendWebhookLogIfPestsDetectionNumberExceeded) {
+                        LogUtils.webhookLog("[Pests Destroyer]\\nThere " + (totalPests > 1 ? "are" : "is") + " currently **" + totalPests + "** " + (totalPests > 1 ? "pests" : "pest") + " in the garden!", FarmHelperConfig.pingEveryoneOnPestsDetectionNumberExceeded);
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    if (FarmHelperConfig.sendNotificationIfPestsDetectionNumberExceeded) {
+                        FailsafeUtils.getInstance().sendNotification("There " + (totalPests > 1 ? "are" : "is") + " currently " + totalPests + " " + (totalPests > 1 ? "pests" : "pest") + " in the garden!", TrayIcon.MessageType.WARNING);
+                    }
                 }
-            } else if (line.contains("Garden") || line.contains("Plot")) {
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        List<String> scoreBoard = ScoreboardUtils.getScoreboardLines(false);
+
+        for (String line : scoreBoard) {
+            if (line.contains("Garden") || line.contains("Plot")) {
                 if (totalPests > 0) {
                     totalPests = 0;
                 }

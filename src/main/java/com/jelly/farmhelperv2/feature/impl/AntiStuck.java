@@ -236,8 +236,8 @@ public class AntiStuck implements IFeature {
                     break;
                 }
                 List<KeyBinding> keys;
-                if (intersectingBlockPos != null) {
-                    Optional<EnumFacing> closestSide = findClosestSide(intersectingBlockPos);
+                Optional<EnumFacing> closestSide = findClosestSide(intersectingBlockPos);
+                if (intersectingBlockPos != null && closestSide.isPresent()) {
                     EnumFacing facing = closestSide.get();
                     Vec3 movementTarget = getMovementTarget(intersectingBlockPos, facing);
                     keys = KeyBindUtils.getNeededKeyPresses(mc.thePlayer.getPositionVector(), movementTarget);
