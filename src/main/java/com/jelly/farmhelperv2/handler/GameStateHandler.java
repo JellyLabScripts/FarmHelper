@@ -28,6 +28,7 @@ import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -88,6 +89,10 @@ public class GameStateHandler {
     @Getter
     private int currentPlot = 0;
     @Getter
+    private List<Integer> infestedPlots = new ArrayList<>();
+    @Getter
+    private int pestsCount = 0;
+    @Getter
     private Optional<FarmHelperConfig.CropEnum> jacobsContestCrop = Optional.empty();
     @Getter
     private int jacobsContestCropNumber = 0;
@@ -129,12 +134,59 @@ public class GameStateHandler {
 
         onTickCheckCoins(cleanScoreboardLines);
         onTickCheckLocation(cleanScoreboardLines, tabList);
-        checkGuestOnGarden(tabList);
-        onTickCheckPlot();
+        if (inGarden()) {
+            onTickCheckPests(tabList);
+            checkGuestOnGarden(tabList);
+            onTickCheckPlot();
+        }
         onTickCheckBuffs();
         onTickCheckSpeed();
         onTickCheckMoving();
         onTickCheckRewarp();
+    }
+
+    private void onTickCheckPests(List<String> tabList) {
+        boolean foundPests = false;
+        for (String cleanedLine : tabList) {
+            if (cleanedLine.contains("Pests:")) {
+                foundPests = true;
+                continue;
+            }
+            if (!foundPests) continue;
+            if (cleanedLine.contains("Alive:")) {
+                try {
+                    int temp = Integer.parseInt(cleanedLine.trim().split(" ")[1].trim());
+                    int previousPestsCount = pestsCount;
+                    pestsCount = temp;
+                    if (pestsCount > previousPestsCount) {
+                        if (FarmHelperConfig.sendWebhookLogIfPestsDetectionNumberExceeded) {
+                            LogUtils.webhookLog("[Pests Destroyer]\\nThere " + (pestsCount > 1 ? "are" : "is") + " currently **" + pestsCount + "** " + (pestsCount > 1 ? "pests" : "pest") + " in the garden!", FarmHelperConfig.pingEveryoneOnPestsDetectionNumberExceeded);
+                        }
+                        if (FarmHelperConfig.sendNotificationIfPestsDetectionNumberExceeded) {
+                            FailsafeUtils.getInstance().sendNotification("There " + (pestsCount > 1 ? "are" : "is") + " currently " + pestsCount + " " + (pestsCount > 1 ? "pests" : "pest") + " in the garden!", TrayIcon.MessageType.WARNING);
+                        }
+                    }
+                } catch (NumberFormatException ignored) {
+                    pestsCount = 0;
+                }
+                if (pestsCount == 0) {
+                    infestedPlots.clear();
+                }
+                continue;
+            }
+            if (cleanedLine.contains("Infested Plots:")) {
+                try {
+                    String[] split = cleanedLine.trim().split(" ");
+                    infestedPlots.clear();
+                    for (int i = 2; i < split.length; i++) {
+                        infestedPlots.add(Integer.parseInt(split[i].replace(",", "")));
+                    }
+                } catch (Exception ignored) {
+                    infestedPlots.clear();
+                }
+                break;
+            }
+        }
     }
 
     public void onTickCheckCoins(List<String> scoreboardLines) {
@@ -291,7 +343,12 @@ public class GameStateHandler {
 
     public void onTickCheckPlot() {
         if (inGarden()) {
-            currentPlot = PlotUtils.getPlotNumberBasedOnLocation();
+            PlotUtils.Plot plot = PlotUtils.getPlotNumberBasedOnLocation();
+            if (plot == null) {
+                currentPlot = -5;
+                return;
+            }
+            currentPlot = plot.number;
         } else {
             currentPlot = -5;
         }

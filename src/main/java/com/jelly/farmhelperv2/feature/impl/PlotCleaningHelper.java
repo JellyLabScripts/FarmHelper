@@ -148,7 +148,9 @@ public class PlotCleaningHelper implements IFeature {
             if (brokenBlockPosArrayList.stream().anyMatch(tup -> tup.getFirst().equals(blockpos))) continue;
             List<Tuple<Integer, Integer>> chunks = PlotUtils.getPlotChunksBasedOnLocation(blockpos);
             if (chunks == null || chunks.isEmpty()) continue;
-            int plotNumber = PlotUtils.getPlotNumberBasedOnLocation(blockpos);
+            PlotUtils.Plot plot = PlotUtils.getPlotNumberBasedOnLocation(blockpos);
+            if (plot == null) continue;
+            int plotNumber = plot.number;
             if (plotNumber != GameStateHandler.getInstance().getCurrentPlot()) continue;
             AxisAlignedBB aabb = new AxisAlignedBB(chunks.get(0).getFirst() * 16 + 1, 66, chunks.get(0).getSecond() * 16 + 1, chunks.get(chunks.size() - 1).getFirst() * 16 + 16 - 1, 200, chunks.get(chunks.size() - 1).getSecond() * 16 + 16 - 1);
             if (!aabb.isVecInside(new Vec3(blockpos))) continue;

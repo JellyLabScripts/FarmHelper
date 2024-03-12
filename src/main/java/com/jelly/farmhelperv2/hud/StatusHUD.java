@@ -6,7 +6,6 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
 import com.jelly.farmhelperv2.feature.impl.LeaveTimer;
-import com.jelly.farmhelperv2.feature.impl.PestsDestroyer;
 import com.jelly.farmhelperv2.feature.impl.Scheduler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -35,8 +34,8 @@ public class StatusHUD extends TextHud {
         List<String> tempLines = new ArrayList<>();
         tempLines.add(getStatusString());
 
-        if (PestsDestroyer.getInstance().getTotalPests() > 0) {
-            tempLines.add(EnumChatFormatting.UNDERLINE + "Pests in Garden:" + EnumChatFormatting.RESET + " " + EnumChatFormatting.RED + PestsDestroyer.getInstance().getTotalPests());
+        if (GameStateHandler.getInstance().getPestsCount() > 0) {
+            tempLines.add(EnumChatFormatting.UNDERLINE + "Pests in Garden:" + EnumChatFormatting.RESET + " " + EnumChatFormatting.RED + GameStateHandler.getInstance().getPestsCount());
         }
 
         if (BanInfoWS.getInstance().isRunning() && FarmHelperConfig.banwaveCheckerEnabled && BanInfoWS.getInstance().isConnected()) {

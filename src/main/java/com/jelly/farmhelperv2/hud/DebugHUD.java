@@ -18,7 +18,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
 
 import java.util.List;
-import java.util.Map;
 
 public class DebugHUD extends TextHud {
     public DebugHUD() {
@@ -105,12 +104,6 @@ public class DebugHUD extends TextHud {
             lines.add("   Going To AH State: " + AutoGodPot.getInstance().getGoingToAHState());
             lines.add("   Consume Pot State: " + AutoGodPot.getInstance().getConsumePotState());
             lines.add("   Clock: " + AutoGodPot.getInstance().getDelayClock().getRemainingTime());
-        }
-        if (FarmHelperConfig.highlightPlotWithPests && !PestsDestroyer.getInstance().getPestsPlotMap().isEmpty()) {
-            lines.add("Pests:");
-            for (Map.Entry<PestsDestroyer.Plot, Integer> pest : PestsDestroyer.getInstance().getPestsPlotMap().entrySet()) {
-                lines.add("   Plot: " + pest.getKey().name + " - " + pest.getValue());
-            }
         }
         if (!FeatureManager.getInstance().getCurrentRunningFeatures().isEmpty()) {
             lines.add("Running Features:");

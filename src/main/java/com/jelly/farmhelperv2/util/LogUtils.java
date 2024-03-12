@@ -4,7 +4,6 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.struct.DiscordWebhook;
 import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
-import com.jelly.farmhelperv2.feature.impl.PestsDestroyer;
 import com.jelly.farmhelperv2.feature.impl.ProfitCalculator;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -129,7 +128,7 @@ public class LogUtils {
                     .addField("Profit / hr", ProfitCalculator.getInstance().getProfitPerHourString(), false)
                     .addField("Crop Type", capitalize(String.valueOf(MacroHandler.getInstance().getCrop())), false)
                     .addField("Location", capitalize(GameStateHandler.getInstance().getLocation().getName()), false)
-                    .addField("Pests", String.valueOf(PestsDestroyer.getInstance().getTotalPests()), false)
+                    .addField("Pests", String.valueOf(GameStateHandler.getInstance().getPestsCount()), false)
                     .addField("Staff Bans", String.valueOf(BanInfoWS.getInstance().getStaffBans()), false)
                     .addField("Detected by FH", String.valueOf(BanInfoWS.getInstance().getBansByMod()), false)
             );
