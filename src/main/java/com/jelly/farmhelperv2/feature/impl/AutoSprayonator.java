@@ -44,7 +44,6 @@ public class AutoSprayonator implements IFeature {
     @Getter
     private final HashMap<Integer, PlotData> sprayonatorPlotStates = new HashMap<>();
     private final Minecraft mc = Minecraft.getMinecraft();
-    private final String skymartItemName = "Sprayonator";
     @Getter
     private final Clock sprayonatorDelay = new Clock();
     @Getter
@@ -225,6 +224,10 @@ public class AutoSprayonator implements IFeature {
         System.out.println("Has sprayonator: " + hasSprayonator());
         if (!hasSprayonator()) {
             LogUtils.sendError("[Auto Sprayonator] Disabling due to no sprayonator");
+            return;
+        }
+        if (GameStateHandler.getInstance().getSprayonatorState() == GameStateHandler.BuffState.ACTIVE) {
+            LogUtils.sendError("[Auto Sprayonator] Disabling due to active sprayonator buff");
             return;
         }
         if (!enableDelay.passed()) return;

@@ -79,6 +79,10 @@ public class GameStateHandler {
     @Getter
     private BuffState pestRepellentState = BuffState.UNKNOWN;
     @Getter
+    private BuffState pestHunterBonus = BuffState.UNKNOWN;
+    @Getter
+    private BuffState sprayonatorState = BuffState.UNKNOWN;
+    @Getter
     private double currentPurse = 0;
     @Getter
     private double previousPurse = 0;
@@ -358,6 +362,8 @@ public class GameStateHandler {
         boolean foundGodPotBuff = false;
         boolean foundCookieBuff = false;
         boolean foundPestRepellent = false;
+        boolean foundPestHunterBonus = false;
+        boolean foundSpray = false;
         boolean loaded = false;
 
         IGuiPlayerTabOverlayAccessor tabOverlay = (IGuiPlayerTabOverlayAccessor) mc.ingameGUI.getTabList();
@@ -399,18 +405,30 @@ public class GameStateHandler {
                 }
                 break;
             }
+            if (unformattedLine.contains("Bonus: +")) {
+                foundPestHunterBonus = true;
+                break;
+            }
+            if (unformattedLine.contains("Spray") && !unformattedLine.contains("None")) {
+                foundSpray = true;
+                break;
+            }
         }
 
         if (!loaded) {
             cookieBuffState = BuffState.UNKNOWN;
             godPotState = BuffState.UNKNOWN;
             pestRepellentState = BuffState.UNKNOWN;
+            pestHunterBonus = BuffState.UNKNOWN;
+            sprayonatorState = BuffState.UNKNOWN;
             return;
         }
 
         cookieBuffState = foundCookieBuff ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
         godPotState = foundGodPotBuff ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
         pestRepellentState = foundPestRepellent ? BuffState.ACTIVE : (!AutoRepellent.repellentFailsafeClock.passed() ? BuffState.FAILSAFE : BuffState.NOT_ACTIVE);
+        pestHunterBonus = foundPestHunterBonus ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
+        sprayonatorState = foundSpray ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
     }
 
     public void onTickCheckSpeed() {

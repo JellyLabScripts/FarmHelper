@@ -169,11 +169,9 @@ public class AutoPestHunter implements IFeature {
         List<String> tabList = TablistUtils.getTabList();
         if (tabList.size() < 2)
             return false;
-        for (String line : tabList) {
-            if (line.contains("Pesthunter Bonus:")) {
-                LogUtils.sendWarning("[Auto Pest Hunter] Pesthunter bonus is active, skipping...");
-                return false;
-            }
+        if (GameStateHandler.getInstance().getPestHunterBonus() == GameStateHandler.BuffState.ACTIVE) {
+            LogUtils.sendWarning("[Auto Pest Hunter] Pesthunter bonus is active, skipping...");
+            return false;
         }
         if (!manual && GameStateHandler.getInstance().inJacobContest() && !FarmHelperConfig.autoPestHunterIgnoreJacobsContest) {
             for (String line : TablistUtils.getTabList()) {
