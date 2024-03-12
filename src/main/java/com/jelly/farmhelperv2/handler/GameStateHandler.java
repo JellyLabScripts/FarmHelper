@@ -117,28 +117,27 @@ public class GameStateHandler {
     }
 
     @SubscribeEvent
-    public void onTickCheckScoreboard(TickEvent.PlayerTickEvent event) {
+    public void onTickCheckGameState(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.START) return;
         if (mc.theWorld == null || mc.thePlayer == null) {
             isGuestOnGarden = false;
             return;
         }
-        if (event.phase != TickEvent.Phase.START) return;
 
         List<String> cleanScoreboardLines = ScoreboardUtils.getScoreboardLines(true);
         List<String> tabList = TablistUtils.getTabList();
 
         onTickCheckCoins(cleanScoreboardLines);
         onTickCheckLocation(cleanScoreboardLines, tabList);
-        checkGuestOnGarden(cleanScoreboardLines, tabList);
+        checkGuestOnGarden(tabList);
+        onTickCheckPlot();
+        onTickCheckBuffs();
+        onTickCheckSpeed();
+        onTickCheckMoving();
+        onTickCheckRewarp();
     }
 
     public void onTickCheckCoins(List<String> scoreboardLines) {
-        if (inGarden()) {
-            currentPlot = PlotUtils.getPlotNumberBasedOnLocation();
-        } else {
-            currentPlot = -5;
-        }
-
         boolean foundJacobContest = false;
         for (String cleanedLine : scoreboardLines) {
             Matcher serverClosingMatcher = serverClosingPattern.matcher(cleanedLine);
@@ -243,8 +242,6 @@ public class GameStateHandler {
     }
 
     public void onTickCheckLocation(List<String> scoreboardLines, List<String> tabList) {
-        if (mc.theWorld == null || mc.thePlayer == null) return;
-
         if (mc.getCurrentServerData() != null && mc.getCurrentServerData().serverIP != null) {
             serverIP = mc.getCurrentServerData().serverIP;
         }
@@ -280,13 +277,7 @@ public class GameStateHandler {
         location = Location.TELEPORTING;
     }
 
-
-    private void checkGuestOnGarden(List<String> scoreboardLines, List<String> tabList) {
-        for (String line : scoreboardLines) {
-            if (ScoreboardUtils.cleanSB(line).contains("✌ (")) {
-                isGuestOnGarden = true;
-            }
-        }
+    private void checkGuestOnGarden(List<String> tabList) {
         boolean hasGuestsOnTabList = false;
         for (String name : tabList) {
             if (name.contains("Guests "))
@@ -298,10 +289,15 @@ public class GameStateHandler {
         isGuestOnGarden = hasGuestsOnTabList && location == Location.GARDEN;
     }
 
-    @SubscribeEvent
-    public void onTickCheckBuffs(TickEvent.ClientTickEvent event) {
-        if (mc.theWorld == null || mc.thePlayer == null) return;
+    public void onTickCheckPlot() {
+        if (inGarden()) {
+            currentPlot = PlotUtils.getPlotNumberBasedOnLocation();
+        } else {
+            currentPlot = -5;
+        }
+    }
 
+    public void onTickCheckBuffs() {
         boolean foundGodPotBuff = false;
         boolean foundCookieBuff = false;
         boolean foundPestRepellent = false;
@@ -360,22 +356,15 @@ public class GameStateHandler {
         pestRepellentState = foundPestRepellent ? BuffState.ACTIVE : (!AutoRepellent.repellentFailsafeClock.passed() ? BuffState.FAILSAFE : BuffState.NOT_ACTIVE);
     }
 
-    @SubscribeEvent
-    public void onTickCheckSpeed(TickEvent.ClientTickEvent event) {
-        if (mc.theWorld == null || mc.thePlayer == null) return;
-
+    public void onTickCheckSpeed() {
         float speed = mc.thePlayer.capabilities.getWalkSpeed();
         this.speed = (int) (speed * 1_000);
     }
 
-    @SubscribeEvent
-    public void onTickCheckMoving(TickEvent.ClientTickEvent event) {
-        if (mc.theWorld == null || mc.thePlayer == null) return;
-
+    public void onTickCheckMoving() {
         dx = Math.abs(mc.thePlayer.motionX);
         dy = Math.abs(mc.thePlayer.motionY);
         dz = Math.abs(mc.thePlayer.motionZ);
-
 
         if (notMoving() && mc.currentScreen == null) {
             if (hasPassedSinceStopped() && !PlayerUtils.isStandingOnRewarpLocation()) {
@@ -409,9 +398,7 @@ public class GameStateHandler {
         leftWalkable = BlockUtils.canWalkThroughDoor(BlockUtils.Direction.LEFT) && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-1, 0, 0, yaw), BlockUtils.Direction.LEFT);
     }
 
-    @SubscribeEvent
-    public void onTickCheckRewarp(TickEvent.ClientTickEvent event) {
-        if (mc.theWorld == null || mc.thePlayer == null) return;
+    public void onTickCheckRewarp() {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
 
         if (PlayerUtils.isStandingOnRewarpLocation()) {

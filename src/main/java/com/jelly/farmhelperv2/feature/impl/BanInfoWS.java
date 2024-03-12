@@ -13,6 +13,7 @@ import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.util.FailsafeUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.mojang.authlib.exceptions.AuthenticationException;
@@ -276,6 +277,12 @@ public class BanInfoWS implements IFeature {
             String banId = StringUtils.stripControlCodes(multilineMessage.get(5)).replace("Ban ID: ", "").trim();
             BanInfoWS.getInstance().playerBanned(durationDays, reason, banId, wholeReason);
             LogUtils.webhookLog("[Banned]\\nBanned for " + durationDays + " days for " + reason, true);
+            if (!FarmHelperConfig.captureClipAfterFailsafe && !FarmHelperConfig.captureClipKeybind.getKeyBinds().isEmpty()) {
+                Multithreading.schedule(() -> {
+                    FailsafeUtils.captureClip();
+                    LogUtils.sendDebug("[Failsafe] Clip captured!");
+                }, FarmHelperConfig.captureClipDelay, TimeUnit.SECONDS);
+            }
             if (MacroHandler.getInstance().isMacroToggled()) {
                 MacroHandler.getInstance().disableMacro();
             }

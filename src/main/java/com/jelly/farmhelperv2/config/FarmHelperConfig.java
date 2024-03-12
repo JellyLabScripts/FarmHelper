@@ -489,14 +489,11 @@ public class FarmHelperConfig extends Config {
             description = "Captures a clip after triggering failsafe by pressing a key combination"
     )
     public static boolean captureClipAfterFailsafe = false;
-
-    @KeyBind(
-            name = "Keybind to capture a clip after triggering failsafe",
-            category = FAILSAFE, subcategory = "Clip Capturing",
-            description = "Captures a clip after triggering failsafe"
+    @Switch(
+            name = "Capture Clip After Getting Banned (Replay Buffer Only)", category = FAILSAFE, subcategory = "Clip Capturing",
+            description = "Captures a clip after getting banned by pressing a key combination"
     )
-    public static OneKeyBind captureClipKeybind = new OneKeyBind(Keyboard.KEY_NONE);
-
+    public static boolean captureClipAfterGettingBanned = false;
     @DualOption(
             name = "Clip Capturing Type", category = FAILSAFE, subcategory = "Clip Capturing",
             description = "The clip capturing type to use",
@@ -504,7 +501,12 @@ public class FarmHelperConfig extends Config {
             right = "Recording"
     )
     public static boolean clipCapturingType = false;
-
+    @KeyBind(
+            name = "Keybind",
+            category = FAILSAFE, subcategory = "Clip Capturing",
+            description = "Captures a clip after triggering failsafe"
+    )
+    public static OneKeyBind captureClipKeybind = new OneKeyBind(Keyboard.KEY_NONE);
     @Slider(
             name = "Clip Capturing Delay (in seconds)", category = FAILSAFE, subcategory = "Clip Capturing",
             description = "The delay to capture a clip after triggering failsafe (in seconds)",
@@ -1996,9 +1998,9 @@ public class FarmHelperConfig extends Config {
 
         this.addDependency("averageBPSDrop", "averageBPSDropCheck");
 
-        this.addDependency("captureClipKeybind", "captureClipAfterFailsafe");
-        this.addDependency("clipCapturingType", "captureClipAfterFailsafe");
-        this.addDependency("captureClipDelay", "captureClipAfterFailsafe");
+        this.addDependency("captureClipKeybind", "", () -> captureClipAfterFailsafe || captureClipAfterGettingBanned);
+        this.addDependency("clipCapturingType", "", () -> captureClipAfterFailsafe || captureClipAfterGettingBanned);
+        this.addDependency("captureClipDelay", "", () -> captureClipAfterFailsafe || captureClipAfterGettingBanned);
 
         this.addDependency("leaveTime", "leaveTimer");
 

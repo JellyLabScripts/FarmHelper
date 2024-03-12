@@ -279,7 +279,9 @@ public class VisitorsMacro implements IFeature {
                 foundVisitors = true;
                 continue;
             }
-            if (StringUtils.stripControlCodes(line).trim().isEmpty() || newVisitors.size() == 5) {
+            if (StringUtils.stripControlCodes(line).trim().isEmpty()
+                    || newVisitors.size() == 5
+                    || StringUtils.stripControlCodes(line).trim().contains("Next Visitor")) {
                 if (foundVisitors) {
                     break;
                 }
