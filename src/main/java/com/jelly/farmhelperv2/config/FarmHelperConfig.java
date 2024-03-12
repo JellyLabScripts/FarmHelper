@@ -271,11 +271,6 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean autoUpdaterDownloadBetaVersions = false;
     @Switch(
-            name = "Reward Claimer (BETA)", category = MISCELLANEOUS, subcategory = "Miscellaneous",
-            description = "Automatically claims contest rewards once you open Jacob's GUI"
-    )
-    public static boolean rewardClaimer = false;
-    @Switch(
             name = "Mute The Game", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "Mutes the game while farming"
     )
