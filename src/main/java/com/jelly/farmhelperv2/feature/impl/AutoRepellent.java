@@ -338,18 +338,25 @@ public class AutoRepellent implements IFeature {
 
         switch (state) {
             case OPEN_SKYMART:
-                if (!guiName.equals("Desk")) {
+                if (guiName.equals("Desk")) {
+                    Slot skymartSlot = InventoryUtils.getSlotOfItemInContainer("SkyMart");
+                    if (skymartSlot == null) {
+                        break;
+                    }
+                    InventoryUtils.clickContainerSlot(skymartSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                } else if (guiName.equals("SkyMart")) {
+                    Slot pestsSlot = InventoryUtils.getSlotOfItemInContainer("Pests");
+                    if (pestsSlot == null) {
+                        break;
+                    }
+                    InventoryUtils.clickContainerSlot(pestsSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                    state = State.CLICK_REPELLENT;
+                } else {
                     state = State.OPEN_DESK;
                     PlayerUtils.closeScreen();
                     delay.schedule(300 + (long) (Math.random() * 300));
                     break;
                 }
-                Slot skymartSlot = InventoryUtils.getSlotOfItemInContainer("SkyMart");
-                if (skymartSlot == null) {
-                    break;
-                }
-                InventoryUtils.clickContainerSlot(skymartSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                state = State.CLICK_REPELLENT;
                 delay.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case CLICK_REPELLENT:
@@ -358,7 +365,7 @@ public class AutoRepellent implements IFeature {
                     delay.schedule(300 + (long) (Math.random() * 300));
                     break;
                 }
-                if (!guiName.equals("SkyMart")) {
+                if (!guiName.equals("SkyMart") && !guiName.equals("SkyMart Pests")) {
                     state = State.OPEN_DESK;
                     PlayerUtils.closeScreen();
                     delay.schedule(300 + (long) (Math.random() * 300));

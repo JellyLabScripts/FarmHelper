@@ -44,7 +44,6 @@ public class AutoSprayonator implements IFeature {
     @Getter
     private final HashMap<Integer, PlotData> sprayonatorPlotStates = new HashMap<>();
     private final Minecraft mc = Minecraft.getMinecraft();
-    private final String skymartItemName = "Sprayonator";
     @Getter
     private final Clock sprayonatorDelay = new Clock();
     @Getter
