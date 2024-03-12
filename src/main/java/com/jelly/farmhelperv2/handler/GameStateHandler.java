@@ -465,16 +465,7 @@ public class GameStateHandler {
         IBlockState state = mc.theWorld.getBlockState(BlockUtils.getRelativeBlockPos(0, y, 0));
         if (!state.getBlock().equals(Blocks.water)) return false;
         int level = state.getValue(BlockLiquid.LEVEL);
-        if (level == 0) {
-            if (FarmHelperConfig.alwaysHoldW) {
-                return false;
-            }
-            double motionX = mc.thePlayer.motionX;
-            double motionZ = mc.thePlayer.motionZ;
-            return motionX > 0.01 || motionX < -0.01 || motionZ > 0.01 || motionZ < -0.01;
-        } else {
-            return true;
-        }
+        return level != 0;
     }
 
     public boolean holdingKeybindIsWalkable() {

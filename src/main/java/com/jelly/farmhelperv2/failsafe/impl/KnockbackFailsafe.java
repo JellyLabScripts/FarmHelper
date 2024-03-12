@@ -77,7 +77,7 @@ public class KnockbackFailsafe extends Failsafe {
             return;
 
         if (FlyPathFinderExecutor.getInstance().isRunning()) {
-            AxisAlignedBB boundingBox = mc.thePlayer.getEntityBoundingBox().expand(2, 2, 2);
+            AxisAlignedBB boundingBox = mc.thePlayer.getEntityBoundingBox().expand(2, 2.5, 2);
             for (BlockPos blockPos : BlockUtils.getBlocksInBB(boundingBox)) {
                 Block block = mc.theWorld.getBlockState(blockPos).getBlock();
                 if (block.equals(Blocks.cactus)) {

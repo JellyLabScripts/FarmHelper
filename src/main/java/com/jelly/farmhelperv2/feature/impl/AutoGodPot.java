@@ -142,6 +142,7 @@ public class AutoGodPot implements IFeature {
 
     private void resetStates() {
         enabled = false;
+        activating = false;
         stuckClock.reset();
         delayClock.reset();
         rotation.reset();
@@ -157,6 +158,7 @@ public class AutoGodPot implements IFeature {
 
     @Override
     public void resetStatesAfterMacroDisabled() {
+        resetStates();
     }
 
     @Override
@@ -190,6 +192,8 @@ public class AutoGodPot implements IFeature {
                     if (GameStateHandler.getInstance().getGodPotState() == GameStateHandler.BuffState.NOT_ACTIVE) {
                         start();
                         activating = false;
+                    } else {
+                        resetStates();
                     }
                 }, 1_500, TimeUnit.MILLISECONDS);
             }
