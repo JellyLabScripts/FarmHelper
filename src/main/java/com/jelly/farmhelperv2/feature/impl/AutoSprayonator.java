@@ -226,6 +226,10 @@ public class AutoSprayonator implements IFeature {
             LogUtils.sendError("[Auto Sprayonator] Disabling due to no sprayonator");
             return;
         }
+        if (GameStateHandler.getInstance().getSprayonatorState() == GameStateHandler.BuffState.ACTIVE) {
+            LogUtils.sendError("[Auto Sprayonator] Disabling due to active sprayonator buff");
+            return;
+        }
         if (!enableDelay.passed()) return;
         PlotData data = sprayonatorPlotStates.get(GameStateHandler.getInstance().getCurrentPlot());
         if (sprayonatorPlotStates.isEmpty() || (data != null && !data.isSprayed())) {
