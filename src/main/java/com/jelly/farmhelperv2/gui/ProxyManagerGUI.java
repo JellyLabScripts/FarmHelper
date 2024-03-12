@@ -110,15 +110,13 @@ public class ProxyManagerGUI extends GuiScreen {
         if (keyCode == Keyboard.KEY_ESCAPE) {
             mc.displayGuiScreen(parent);
         }
-        if (hostField.isFocused()) {
-            hostField.textboxKeyTyped(typedChar, keyCode);
+
+        if (hostField.isFocused() || usernameField.isFocused() || passwordField.isFocused()) {
+            TextFieldWidget focusedField = hostField.isFocused() ? hostField :
+                    (usernameField.isFocused() ? usernameField : passwordField);
+            focusedField.textboxKeyTyped(typedChar, keyCode);
         }
-        if (usernameField.isFocused()) {
-            usernameField.textboxKeyTyped(typedChar, keyCode);
-        }
-        if (passwordField.isFocused()) {
-            passwordField.textboxKeyTyped(typedChar, keyCode);
-        }
+
         super.keyTyped(typedChar, keyCode);
     }
 
