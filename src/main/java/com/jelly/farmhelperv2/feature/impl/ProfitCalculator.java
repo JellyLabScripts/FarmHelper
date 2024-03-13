@@ -215,11 +215,15 @@ public class ProfitCalculator implements IFeature {
 
     @SubscribeEvent
     public void onTickUpdateProfit(TickEvent.ClientTickEvent event) {
-        if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
-        if (!GameStateHandler.getInstance().inGarden()) return;
+        if (!MacroHandler.getInstance().isMacroToggled() || 
+        !MacroHandler.getInstance().isCurrentMacroEnabled() || 
+        !GameStateHandler.getInstance().inGarden()) 
+        return;
+
 
         double profit = 0;
+        double rngPrice = 0;
+
         ItemStack currentItem = mc.thePlayer.getHeldItem();
         if (currentItem != null && currentItem.getItem() != null && FarmHelperConfig.profitCalculatorCultivatingEnchant) {
             long cultivatingCounter = GameStateHandler.getInstance().getCurrentCultivating().getOrDefault(currentItem.getDisplayName(), 0L);
@@ -240,28 +244,16 @@ public class ProfitCalculator implements IFeature {
             if (cantConnectToApi) {
                 profit += item.currentAmount * item.npcPrice;
             } else {
-                double price;
-                if (!bazaarPrices.containsKey(item.localizedName)) {
-                    LogUtils.sendDebug("No price or is manipulated for " + item.localizedName);
-                    price = item.npcPrice;
-                } else {
-                    price = bazaarPrices.get(item.localizedName).currentPrice;
-                }
+                double price = bazaarPrices.containsKey(item.localizedName) ? bazaarPrices.get(item.localizedName).currentPrice : item.npcPrice;
                 profit += (float) (item.currentAmount / item.amountToEnchanted * price);
             }
         }
-        double rngPrice = 0;
+
         for (BazaarItem item : rngDropToCount) {
             if (cantConnectToApi) {
                 rngPrice += item.currentAmount * item.npcPrice;
             } else {
-                double price;
-                if (!bazaarPrices.containsKey(item.localizedName)) {
-                    LogUtils.sendDebug("No price or is manipulated for " + item.localizedName);
-                    price = item.npcPrice;
-                } else {
-                    price = bazaarPrices.get(item.localizedName).currentPrice;
-                }
+                double price = bazaarPrices.containsKey(item.localizedName) ? bazaarPrices.get(item.localizedName).currentPrice : item.npcPrice;
                 rngPrice += (float) (item.currentAmount * price);
             }
         }
@@ -272,14 +264,11 @@ public class ProfitCalculator implements IFeature {
                 bountifulProfit += value;
         }
         profit += bountifulProfit;
-        realProfit = profit;
-        realProfit += rngPrice;
 
-        if (ProfitCalculatorHUD.countRNGToProfitCalc) {
-            realHourlyProfit = (realProfit / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f / 60 / 60));
-        } else {
-            realHourlyProfit = profit / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f / 60 / 60);
-        }
+        realProfit = profit + rngPrice;
+
+        float elapsedTime = MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f / 60 / 60;
+        realHourlyProfit = ProfitCalculatorHUD.countRNGToProfitCalc ? realProfit / elapsedTime : profit / elapsedTime;
     }
 
     @SubscribeEvent
