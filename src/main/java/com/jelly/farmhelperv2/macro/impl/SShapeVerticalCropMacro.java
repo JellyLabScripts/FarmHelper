@@ -25,12 +25,14 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
             case RIGHT: {
                 if ((GameStateHandler.getInstance().isLeftWalkable()) && getCurrentState() == State.LEFT) {
                     // Probably stuck in dirt, continue going left
+                    setCurrentState(State.LEFT);
                     AntiStuck.getInstance().setDirectionBlockPos(BlockUtils.getRelativeBlockPos(0, 0, -1, getYaw()));
                     AntiStuck.getInstance().start();
                     return;
                 }
                 if ((GameStateHandler.getInstance().isRightWalkable()) && getCurrentState() == State.RIGHT) {
                     // Probably stuck in dirt, continue going right
+                    setCurrentState(State.RIGHT);
                     AntiStuck.getInstance().setDirectionBlockPos(BlockUtils.getRelativeBlockPos(0, 0, -1, getYaw()));
                     AntiStuck.getInstance().start();
                     return;
@@ -41,27 +43,15 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                         AntiStuck.getInstance().start();
                         return;
                     }
-//                    if (changeLaneDirection == ChangeLaneDirection.BACKWARD) {
-//                        // Probably stuck in dirt
-//                        changeState(State.NONE);
-//                        return;
-//                    }
                     changeState(State.SWITCHING_LANE);
-//                    changeLaneDirection = ChangeLaneDirection.FORWARD;
                     setWalkingDirection();
                 } else if (GameStateHandler.getInstance().isBackWalkable() && !FarmHelperConfig.alwaysHoldW) {
-//                    if (changeLaneDirection == ChangeLaneDirection.FORWARD) {
-//                        // Probably stuck in dirt
-//                        changeState(State.NONE);
-//                        return;
-//                    }
                     if (stuckInMelonsOrPumpkins()) {
                         AntiStuck.getInstance().setDirectionBlockPos(BlockUtils.getRelativeBlockPos(0, 0, -1, getYaw()));
                         AntiStuck.getInstance().start();
                         return;
                     }
                     changeState(State.SWITCHING_LANE);
-//                    changeLaneDirection = ChangeLaneDirection.BACKWARD;
                     setWalkingDirection();
                 } else {
                     if (GameStateHandler.getInstance().isLeftWalkable()) {

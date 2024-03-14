@@ -100,10 +100,14 @@ public class RotationFailsafe extends Failsafe {
 
         switch (rotationCheckState) {
             case NONE:
+                if (checkIfRotatedBack())
+                    return;
                 rotationCheckState = RotationCheckState.WAIT_BEFORE_START;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
                 break;
             case WAIT_BEFORE_START:
+                if (checkIfRotatedBack())
+                    return;
                 MacroHandler.getInstance().pauseMacro();
                 if (rotationBeforeReacting == null)
                     rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
@@ -226,6 +230,18 @@ public class RotationFailsafe extends Failsafe {
         randomMessage = null;
         randomContinueMessage = null;
         rotation.reset();
+    }
+
+    private boolean checkIfRotatedBack() {
+        if ((Math.abs(AngleUtils.get360RotationYaw(rotationBeforeReacting.getYaw()) - AngleUtils.get360RotationYaw()) < 0.1)
+                && (Math.abs(AngleUtils.get360RotationYaw(rotationBeforeReacting.getPitch()) - mc.thePlayer.rotationPitch) < 0.1)) {
+            FailsafeManager.getInstance().stopFailsafes();
+            LogUtils.sendWarning("[Failsafe] Rotation check failsafe was triggered but the admin rotated you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
+            if (FailsafeNotificationsPage.notifyOnRotationFailsafe)
+                LogUtils.webhookLog("[Failsafe]\nRotation check failsafe was triggered but the admin rotated you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
+            return true;
+        }
+        return false;
     }
 
     private RotationCheckState rotationCheckState = RotationCheckState.NONE;

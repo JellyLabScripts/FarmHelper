@@ -399,6 +399,12 @@ public class FarmHelperConfig extends Config {
     )
     public static float teleportCheckLagSensitivity = 0.5f;
     @Slider(
+            name = "Teleport Check Time Window (in milliseconds)", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "The time window to check for teleports (in seconds)",
+            min = 50, max = 4000, step = 50
+    )
+    public static int teleportCheckTimeWindow = 500;
+    @Slider(
             name = "Rotation Check Pitch Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "The sensitivity of the rotation check; the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives.",
             min = 1, max = 30
@@ -1771,6 +1777,19 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean fastBreak = false;
 
+    @Switch(
+            name = "Enable Fast Break Randomization", category = EXPERIMENTAL, subcategory = "Fast Break",
+            description = "Randomizes the Fast Break chance"
+    )
+    public static boolean fastBreakRandomization = false;
+
+    @Slider(
+            name = "Fast Break Randomization Chance", category = EXPERIMENTAL, subcategory = "Fast Break",
+            description = "The chance to break the block",
+            min = 1, max = 100, step = 1
+    )
+    public static int fastBreakRandomizationChance = 5;
+
     @Info(
             text = "Fast Break will most likely ban you. Use at your own risk.",
             type = InfoType.ERROR,
@@ -1956,6 +1975,8 @@ public class FarmHelperConfig extends Config {
         this.addDependency("streamerModeInfo2", "debugMode");
 
         this.addDependency("fastBreakSpeed", "fastBreak");
+        this.addDependency("fastBreakRandomization", "fastBreak");
+        this.addDependency("fastBreakRandomizationChance", "fastBreak");
         this.addDependency("disableFastBreakDuringBanWave", "fastBreak");
         this.addDependency("disableFastBreakDuringJacobsContest", "fastBreak");
 
