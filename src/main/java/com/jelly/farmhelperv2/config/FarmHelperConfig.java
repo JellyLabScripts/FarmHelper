@@ -399,6 +399,12 @@ public class FarmHelperConfig extends Config {
     )
     public static float teleportCheckLagSensitivity = 0.5f;
     @Slider(
+            name = "Teleport Check Time Window (in milliseconds)", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "The time window to check for teleports (in seconds)",
+            min = 50, max = 4000, step = 50
+    )
+    public static int teleportCheckTimeWindow = 500;
+    @Slider(
             name = "Rotation Check Pitch Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "The sensitivity of the rotation check; the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives.",
             min = 1, max = 30

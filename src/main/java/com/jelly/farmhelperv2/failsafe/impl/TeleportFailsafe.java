@@ -26,7 +26,10 @@ import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
+import java.util.Queue;
+import java.util.LinkedList;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 public class TeleportFailsafe extends Failsafe {
     private static TeleportFailsafe instance;
@@ -39,6 +42,7 @@ public class TeleportFailsafe extends Failsafe {
     }
 
     private final EvictingQueue<Tuple<BlockPos, AbstractMacro.State>> lastWalkedPositions = EvictingQueue.create(400);
+    private Queue<Long> teleportTimestamps = new LinkedList<>();
 
     @Override
     public int getPriority() {
@@ -94,6 +98,20 @@ public class TeleportFailsafe extends Failsafe {
         if (MacroHandler.getInstance().isTeleporting())
             return;
         if (!(event.packet instanceof S08PacketPlayerPosLook)) {
+            return;
+        }
+
+        // Detected rapid teleport events and cancel the failsafe
+        long currentTimestamp = System.currentTimeMillis();
+        teleportTimestamps.add(currentTimestamp);
+        while (!teleportTimestamps.isEmpty() && currentTimestamp - teleportTimestamps.peek() > FarmHelperConfig.teleportCheckTimeWindow) {
+            teleportTimestamps.poll();
+        }
+        if (teleportTimestamps.size() > 1) {
+            FailsafeManager.getInstance().stopFailsafes();
+            LogUtils.sendWarning("[Failsafe] Teleport check failsafe was triggered but the admin teleported you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
+            if (FailsafeNotificationsPage.notifyOnTeleportationFailsafe)
+                LogUtils.webhookLog("[Failsafe]\nTeleport check failsafe was triggered but the admin teleported you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
             return;
         }
 
