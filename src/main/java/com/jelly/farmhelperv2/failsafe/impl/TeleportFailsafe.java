@@ -17,6 +17,7 @@ import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.macro.AbstractMacro;
 import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
 import com.jelly.farmhelperv2.util.*;
+import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
@@ -26,10 +27,9 @@ import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
-import java.util.Queue;
-import java.util.LinkedList;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class TeleportFailsafe extends Failsafe {
     private static TeleportFailsafe instance;
@@ -41,8 +41,21 @@ public class TeleportFailsafe extends Failsafe {
         return instance;
     }
 
+    class TeleportData {
+        public Vec3 position;
+        public long timestamp;
+
+        public TeleportData(Vec3 position, long timestamp) {
+            this.position = position;
+            this.timestamp = timestamp;
+        }
+    }
+
     private final EvictingQueue<Tuple<BlockPos, AbstractMacro.State>> lastWalkedPositions = EvictingQueue.create(400);
-    private Queue<Long> teleportTimestamps = new LinkedList<>();
+    private Queue<TeleportData> teleportationEvents = new LinkedList<>();
+    private Vec3 originalPosition = null;
+    private static final Clock triggerTeleport = new Clock();
+
 
     @Override
     public int getPriority() {
@@ -81,6 +94,11 @@ public class TeleportFailsafe extends Failsafe {
                 lastWalkedPositions.clear();
             return;
         }
+
+        if (triggerTeleport.passed() && triggerTeleport.isScheduled()) {
+            evaluateDisplacement();
+            triggerTeleport.reset();
+        }
         BlockPos playerPos = mc.thePlayer.getPosition();
         if (lastWalkedPositions.isEmpty()) {
             lastWalkedPositions.add(new Tuple<>(playerPos, MacroHandler.getInstance().getCurrentMacro().map(AbstractMacro::getCurrentState).orElse(null)));
@@ -98,20 +116,6 @@ public class TeleportFailsafe extends Failsafe {
         if (MacroHandler.getInstance().isTeleporting())
             return;
         if (!(event.packet instanceof S08PacketPlayerPosLook)) {
-            return;
-        }
-
-        // Detected rapid teleport events and cancel the failsafe
-        long currentTimestamp = System.currentTimeMillis();
-        teleportTimestamps.add(currentTimestamp);
-        while (!teleportTimestamps.isEmpty() && currentTimestamp - teleportTimestamps.peek() > FarmHelperConfig.teleportCheckTimeWindow) {
-            teleportTimestamps.poll();
-        }
-        if (teleportTimestamps.size() > 1) {
-            FailsafeManager.getInstance().stopFailsafes();
-            LogUtils.sendWarning("[Failsafe] Teleport check failsafe was triggered but the admin teleported you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
-            if (FailsafeNotificationsPage.notifyOnTeleportationFailsafe)
-                LogUtils.webhookLog("[Failsafe]\nTeleport check failsafe was triggered but the admin teleported you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
             return;
         }
 
@@ -161,7 +165,8 @@ public class TeleportFailsafe extends Failsafe {
 
         rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
         double distance = currentPlayerPos.distanceTo(packetPlayerPos);
-        LogUtils.sendDebug("[Failsafe] Teleport 2 detected! Distance: " + distance);
+
+        LogUtils.sendDebug("[Failsafe] Teleport packet received! Distance: " + distance);
         if (distance >= FarmHelperConfig.teleportCheckSensitivity || (MacroHandler.getInstance().getCurrentMacro().isPresent() && Math.abs(packet.getY()) - Math.abs(MacroHandler.getInstance().getCurrentMacro().get().getLayerY()) > 0.8)) {
             LogUtils.sendDebug("[Failsafe] Teleport detected! Distance: " + distance);
             final double lastReceivedPacketDistance = currentPlayerPos.distanceTo(LagDetector.getInstance().getLastPacketPosition());
@@ -171,7 +176,11 @@ public class TeleportFailsafe extends Failsafe {
             final double estimatedMovement = playerMovementSpeed * ticksSinceLastPacket;
             if (lastReceivedPacketDistance > 7.5D && Math.abs(lastReceivedPacketDistance - estimatedMovement) < FarmHelperConfig.teleportCheckLagSensitivity)
                 return;
-            FailsafeManager.getInstance().possibleDetection(this);
+            if (originalPosition == null) {
+                originalPosition = mc.thePlayer.getPositionVector();
+            }
+            teleportationEvents.add(new TeleportData(packetPlayerPos, System.currentTimeMillis()));
+            triggerTeleport.schedule(FarmHelperConfig.teleportCheckTimeWindow);
         }
     }
 
@@ -345,6 +354,24 @@ public class TeleportFailsafe extends Failsafe {
         randomContinueMessage = null;
         rotation.reset();
         lastWalkedPositions.clear();
+        teleportationEvents.clear();
+        originalPosition = null;
+    }
+
+    private void evaluateDisplacement() {
+        Vec3 currentPosition = mc.thePlayer.getPositionVector();
+        double totalDisplacement = currentPosition.distanceTo(originalPosition);
+        if (totalDisplacement > FarmHelperConfig.teleportCheckSensitivity) {
+            FailsafeManager.getInstance().possibleDetection(this);
+        } else {
+            FailsafeManager.getInstance().stopFailsafes();
+            LogUtils.sendWarning("[Failsafe] Teleport check failsafe was triggered but the admin teleported you back. §c§lDO NOT REACT§e TO THIS OR YOU WILL GET BANNED!");
+            if (FailsafeNotificationsPage.notifyOnRotationFailsafe)
+                LogUtils.webhookLog("[Failsafe]\nTeleport check failsafe was triggered but the admin teleported you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
+            return;
+        }
+        teleportationEvents.clear();
+        originalPosition = null;
     }
 
     private TeleportCheckState teleportCheckState = TeleportCheckState.NONE;

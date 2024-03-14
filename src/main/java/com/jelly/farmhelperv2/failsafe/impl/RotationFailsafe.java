@@ -233,9 +233,8 @@ public class RotationFailsafe extends Failsafe {
     }
 
     private boolean checkIfRotatedBack() {
-        if (rotationBeforeReacting.getYaw() == AngleUtils.get360RotationYaw()
-                && rotationBeforeReacting.getPitch() == mc.thePlayer.rotationPitch
-                && Math.abs(AngleUtils.get360RotationYaw(rotationBeforeReacting.getYaw()) - AngleUtils.get360RotationYaw()) < 0.1) {
+        if ((Math.abs(AngleUtils.get360RotationYaw(rotationBeforeReacting.getYaw()) - AngleUtils.get360RotationYaw()) < 0.1)
+                && (Math.abs(AngleUtils.get360RotationYaw(rotationBeforeReacting.getPitch()) - mc.thePlayer.rotationPitch) < 0.1)) {
             FailsafeManager.getInstance().stopFailsafes();
             LogUtils.sendWarning("[Failsafe] Rotation check failsafe was triggered but the admin rotated you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
             if (FailsafeNotificationsPage.notifyOnRotationFailsafe)
