@@ -5,8 +5,7 @@ import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockCrops;
-import net.minecraft.block.BlockNetherWart;
+import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiScreen;
@@ -63,34 +62,52 @@ public class MixinMinecraft {
         }
 
         boolean shouldClick = this.currentScreen == null && this.gameSettings.keyBindAttack.isKeyDown() && this.inGameHasFocus;
-        if (this.objectMouseOver != null && shouldClick)
+        if (this.objectMouseOver != null && shouldClick) {
+            boolean isCactus = false;
+
             for (int i = 0; i < FarmHelperConfig.fastBreakSpeed + 1; i++) {
-                BlockPos clickedBlock = this.objectMouseOver.getBlockPos();
-                this.objectMouseOver = this.renderViewEntity.rayTrace(this.playerController.getBlockReachDistance(), 1.0F);
+//          try catch when player break block and the block is not exist(ghost block?) or some player in front of the block
+                try {
+                    if (FarmHelperConfig.fastBreakRandomization && (Math.random() * 100 < (100 - FarmHelperConfig.fastBreakRandomizationChance))) {
+                        break;
+                    }
 
-                if (this.objectMouseOver == null || this.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
-                    break;
-                }
+                    BlockPos clickedBlock = this.objectMouseOver.getBlockPos();
+                    Block block = this.theWorld.getBlockState(clickedBlock).getBlock();
+                    this.objectMouseOver = this.renderViewEntity.rayTrace(this.playerController.getBlockReachDistance(), 1.0F);
 
-                // checking first block
-                BlockPos newBlock = this.objectMouseOver.getBlockPos();
-                Block blockTryBreak = this.theWorld.getBlockState(newBlock).getBlock();
+                    if (block == Blocks.cactus) {
+                        isCactus = true;
+                    } else {
+                        isCactus = false;
+                    }
 
-                if (!newBlock.equals(clickedBlock)
-                        && (blockTryBreak instanceof BlockCrops ||
-                        blockTryBreak instanceof BlockNetherWart ||
-                        blockTryBreak == Blocks.reeds ||
-                        blockTryBreak == Blocks.cactus ||
-                        blockTryBreak == Blocks.brown_mushroom ||
-                        blockTryBreak == Blocks.red_mushroom ||
-                        blockTryBreak == Blocks.pumpkin ||
-                        blockTryBreak == Blocks.melon_block ||
-                        blockTryBreak == Blocks.cocoa)
-                ) {
+                    if (this.objectMouseOver == null || this.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
+                        break;
+                    }
+
+                    BlockPos newBlock = this.objectMouseOver.getBlockPos();
+                    Block blockTryBreak = this.theWorld.getBlockState(newBlock).getBlock();
+
+                    if (this.theWorld.getBlockState(newBlock).getBlock().getPlayerRelativeBlockHardness(this.thePlayer, this.theWorld, clickedBlock) < 1.0F) {
+                        return;
+                    }
+
+                    if (isCactus) {
+                        this.playerController.resetBlockRemoving();
+                    }
+
+                    if (newBlock == null || this.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK || newBlock.equals(clickedBlock) || blockTryBreak.getMaterial() == Material.air) {
+                        break;
+                    }
+
+                    this.thePlayer.swingItem();
                     this.playerController.clickBlock(newBlock, this.objectMouseOver.sideHit);
-                }
+                } catch (Exception ignored) {
 
-                if (i % 3 == 0) this.thePlayer.swingItem();
+                }
             }
+
+        }
     }
 }
