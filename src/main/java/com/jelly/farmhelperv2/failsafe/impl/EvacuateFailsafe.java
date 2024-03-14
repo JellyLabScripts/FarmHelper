@@ -96,10 +96,10 @@ public class EvacuateFailsafe extends Failsafe {
                 } else {
                     if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.HUB) {
                         MacroHandler.getInstance().triggerWarpGarden(true, true);
-                        FailsafeManager.getInstance().scheduleRandomDelay(2500, 2000);
+                        FailsafeManager.getInstance().scheduleRandomDelay(5500, 2000);
                     } else {
                         mc.thePlayer.sendChatMessage("/skyblock");
-                        FailsafeManager.getInstance().scheduleRandomDelay(5500, 4000);
+                        FailsafeManager.getInstance().scheduleRandomDelay(60_000, 4000);
                     }
                 }
                 break;

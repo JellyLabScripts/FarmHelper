@@ -175,7 +175,9 @@ public class AntiStuck implements IFeature {
 
                     if (mc.thePlayer.getEntityBoundingBox().intersectsWith(blockBox)) {
                         Vec3 posCenter = BlockUtils.getBlockPosCenter(pos);
-                        if (BlockUtils.getHorizontalDistance(mc.thePlayer.getPositionVector(), posCenter) < 0.95) {
+                        double dist = BlockUtils.getHorizontalDistance(mc.thePlayer.getPositionVector(), posCenter);
+                        System.out.println(dist);
+                        if (dist < 0.95) {
                             return Optional.of(pos);
                         }
                     }

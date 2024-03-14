@@ -187,7 +187,6 @@ public class PlotUtils {
     }
 
     public static boolean needToUpdatePlots() {
-        PLOTS.values().forEach(p -> System.out.println(p.number + " " + p.name));
         return PLOTS.values().stream().anyMatch(plot -> plot.name.isEmpty());
     }
 }

@@ -128,6 +128,8 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(FlyPathfinder.getInstance());
         MinecraftForge.EVENT_BUS.register(WorldCache.getInstance());
         MinecraftForge.EVENT_BUS.register(FlyPathFinderExecutor.getInstance());
+        MinecraftForge.EVENT_BUS.register(new TablistUtils());
+        MinecraftForge.EVENT_BUS.register(new ScoreboardUtils());
     }
 
     private void initializeFields() {

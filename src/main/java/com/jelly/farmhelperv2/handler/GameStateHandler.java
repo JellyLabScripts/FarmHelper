@@ -1,11 +1,11 @@
 package com.jelly.farmhelperv2.handler;
 
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
-import com.jelly.farmhelperv2.event.ReceivePacketEvent;
+import com.jelly.farmhelperv2.event.*;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.failsafe.impl.DirtFailsafe;
 import com.jelly.farmhelperv2.feature.impl.AutoRepellent;
-import com.jelly.farmhelperv2.mixin.gui.IGuiPlayerTabOverlayAccessor;
+import com.jelly.farmhelperv2.feature.impl.PestsDestroyer;
 import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.Timer;
@@ -22,8 +22,6 @@ import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
-import net.minecraft.util.IChatComponent;
-import net.minecraft.util.StringUtils;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -97,6 +95,8 @@ public class GameStateHandler {
     @Getter
     private int pestsCount = 0;
     @Getter
+    private int currentPlotPestsCount = 0;
+    @Getter
     private Optional<FarmHelperConfig.CropEnum> jacobsContestCrop = Optional.empty();
     @Getter
     private int jacobsContestCropNumber = 0;
@@ -126,201 +126,64 @@ public class GameStateHandler {
     }
 
     @SubscribeEvent
-    public void onTickCheckGameState(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) return;
-        if (mc.theWorld == null || mc.thePlayer == null) {
-            isGuestOnGarden = false;
-            return;
-        }
-
-        List<String> cleanScoreboardLines = ScoreboardUtils.getScoreboardLines(true);
-        List<String> tabList = TablistUtils.getTabList();
-
-        onTickCheckCoins(cleanScoreboardLines);
-        onTickCheckLocation(cleanScoreboardLines, tabList);
-        if (inGarden()) {
-            onTickCheckPests(tabList);
-            checkGuestOnGarden(tabList);
-            onTickCheckPlot();
-        }
-        onTickCheckBuffs();
-        onTickCheckSpeed();
-        onTickCheckMoving();
-        onTickCheckRewarp();
-    }
-
-    private void onTickCheckPests(List<String> tabList) {
-        boolean foundPests = false;
-        for (String cleanedLine : tabList) {
-            if (cleanedLine.contains("Pests:")) {
-                foundPests = true;
-                continue;
-            }
-            if (!foundPests) continue;
-            if (cleanedLine.contains("Alive:")) {
-                try {
-                    int temp = Integer.parseInt(cleanedLine.trim().split(" ")[1].trim());
-                    int previousPestsCount = pestsCount;
-                    pestsCount = temp;
-                    if (pestsCount > previousPestsCount) {
-                        if (FarmHelperConfig.sendWebhookLogIfPestsDetectionNumberExceeded) {
-                            LogUtils.webhookLog("[Pests Destroyer]\\nThere " + (pestsCount > 1 ? "are" : "is") + " currently **" + pestsCount + "** " + (pestsCount > 1 ? "pests" : "pest") + " in the garden!", FarmHelperConfig.pingEveryoneOnPestsDetectionNumberExceeded);
-                        }
-                        if (FarmHelperConfig.sendNotificationIfPestsDetectionNumberExceeded) {
-                            FailsafeUtils.getInstance().sendNotification("There " + (pestsCount > 1 ? "are" : "is") + " currently " + pestsCount + " " + (pestsCount > 1 ? "pests" : "pest") + " in the garden!", TrayIcon.MessageType.WARNING);
-                        }
-                    }
-                } catch (NumberFormatException ignored) {
-                    pestsCount = 0;
-                }
-                if (pestsCount == 0) {
-                    infestedPlots.clear();
-                }
-                continue;
-            }
-            if (cleanedLine.contains("Infested Plots:")) {
-                try {
-                    String[] split = cleanedLine.trim().split(" ");
-                    infestedPlots.clear();
-                    for (int i = 2; i < split.length; i++) {
-                        infestedPlots.add(Integer.parseInt(split[i].replace(",", "")));
-                    }
-                } catch (Exception ignored) {
-                    infestedPlots.clear();
-                }
-                break;
-            }
-        }
-    }
-
-    public void onTickCheckCoins(List<String> scoreboardLines) {
-        boolean foundJacobContest = false;
-        for (String cleanedLine : scoreboardLines) {
-            Matcher serverClosingMatcher = serverClosingPattern.matcher(cleanedLine);
-            if (serverClosingMatcher.find()) {
-                int minutes = Integer.parseInt(serverClosingMatcher.group("minutes"));
-                int seconds = Integer.parseInt(serverClosingMatcher.group("seconds"));
-                serverClosingSeconds = Optional.of(minutes * 60 + seconds);
-            } else {
-                serverClosingSeconds = Optional.empty();
-            }
-            if (cleanedLine.contains("Purse:") || cleanedLine.contains("Piggy:")) {
-                try {
-                    String stringPurse = cleanedLine.split(" ")[1].replace(",", "").trim();
-                    if (stringPurse.contains("(+")) {
-                        stringPurse = stringPurse.substring(0, stringPurse.indexOf("("));
-                    }
-                    long tempCurrentPurse = Long.parseLong(stringPurse);
-                    previousPurse = currentPurse;
-                    currentPurse = tempCurrentPurse;
-                } catch (Exception ignored) {
-                }
-            } else if (cleanedLine.contains("Bits:")) {
-                try {
-                    String stringBits = cleanedLine.split(" ")[1].replace(",", "").trim();
-                    if (stringBits.contains("(+")) {
-                        stringBits = stringBits.substring(0, stringBits.indexOf("("));
-                    }
-                    bits = Long.parseLong(stringBits);
-                } catch (Exception ignored) {
-                }
-            } else if (cleanedLine.contains("Copper:")) {
-                try {
-                    String stringCopper = cleanedLine.split(" ")[1].replace(",", "").trim();
-                    if (stringCopper.contains("(+")) {
-                        stringCopper = stringCopper.substring(0, stringCopper.indexOf("("));
-                    }
-                    copper = Long.parseLong(stringCopper);
-                } catch (Exception ignored) {
-                }
-            } else if (cleanedLine.toLowerCase().contains("jacob's contest")) {
-                isInJacobContest = true;
-                foundJacobContest = true;
-            }
-            if (inJacobContest()) {
-                try {
-                    if (cleanedLine.contains("with") || cleanedLine.startsWith("Collected")) {
-                        jacobsContestCropNumber = Integer.parseInt(cleanedLine.substring(cleanedLine.lastIndexOf(" ") + 1).replace(",", ""));
-                    }
-                } catch (Exception ignored) {
-                    jacobsContestCropNumber = 0;
-                }
-                if (!jacobContestLeftClock.isScheduled()) {
-                    Matcher matcher = jacobsRemainingTimePattern.matcher(cleanedLine);
-                    if (matcher.find()) {
-                        if (cleanedLine.contains("Wheat")) {
-                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.WHEAT);
-                        } else if (cleanedLine.contains("Carrot")) {
-                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.CARROT);
-                        } else if (cleanedLine.contains("Potato")) {
-                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.POTATO);
-                        } else if (cleanedLine.contains("Nether") || cleanedLine.contains("Wart")) {
-                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.NETHER_WART);
-                        } else if (cleanedLine.contains("Sugar") || cleanedLine.contains("Cane")) {
-                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.SUGAR_CANE);
-                        } else if (cleanedLine.contains("Mushroom")) {
-                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.MUSHROOM);
-                        } else if (cleanedLine.contains("Melon")) {
-                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.MELON);
-                        } else if (cleanedLine.contains("Pumpkin")) {
-                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.PUMPKIN);
-                        } else if (cleanedLine.contains("Cocoa") || cleanedLine.contains("Bean")) {
-                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.COCOA_BEANS);
-                        } else if (cleanedLine.contains("Cactus")) {
-                            jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.CACTUS);
-                        }
-
-                        String minutes = matcher.group(1);
-                        String seconds = matcher.group(2);
-                        jacobContestLeftClock.schedule((Long.parseLong(minutes) * 60 + Long.parseLong(seconds)) * 1_000L);
-                    }
-                }
-                if (cleanedLine.contains("BRONZE with")) {
-                    jacobMedal = JacobMedal.BRONZE;
-                } else if (cleanedLine.contains("SILVER with")) {
-                    jacobMedal = JacobMedal.SILVER;
-                } else if (cleanedLine.contains("GOLD with")) {
-                    jacobMedal = JacobMedal.GOLD;
-                } else if (cleanedLine.contains("PLATINUM with")) {
-                    jacobMedal = JacobMedal.PLATINUM;
-                } else if (cleanedLine.contains("DIAMOND with")) {
-                    jacobMedal = JacobMedal.DIAMOND;
-                }
-            } else {
-                jacobsContestCrop = Optional.empty();
-                jacobsContestCropNumber = 0;
-                jacobMedal = JacobMedal.NONE;
-            }
-        }
-        if (!foundJacobContest) {
-            isInJacobContest = false;
-        }
-    }
-
-    public void onTickCheckLocation(List<String> scoreboardLines, List<String> tabList) {
+    public void onWorldLoad(WorldEvent.Load event) {
         if (mc.getCurrentServerData() != null && mc.getCurrentServerData().serverIP != null) {
             serverIP = mc.getCurrentServerData().serverIP;
         }
+    }
 
+    @SubscribeEvent
+    public void onTablistUpdate(UpdateTablistEvent event) {
+        if (event.tablist.isEmpty()) return;
+        List<String> tabList = new ArrayList<>(event.tablist);
+
+        List<String> scoreboardLines = ScoreboardUtils.getScoreboardLines(true);
         if (tabList.size() == 1 && scoreboardLines.isEmpty() && PlayerUtils.isInventoryEmpty(mc.thePlayer)) {
             lastLocation = location;
             location = Location.LIMBO;
             return;
         }
 
-        for (String line : tabList) {
-            Matcher matcher = areaPattern.matcher(line);
-            if (matcher.find()) {
-                String area = matcher.group(1);
-                for (Location island : Location.values()) {
-                    if (area.equals(island.getName())) {
-                        lastLocation = location;
-                        location = island;
-                        return;
+        boolean hasGuestsOnTabList = false;
+        boolean foundPestHunterBonus = false;
+        boolean foundLocation = false;
+
+        for (String cleanedLine : tabList) {
+            if (cleanedLine.matches(areaPattern.pattern())) {
+                Matcher matcher = areaPattern.matcher(cleanedLine);
+                if (matcher.find()) {
+                    String area = matcher.group(1);
+                    for (Location island : Location.values()) {
+                        if (area.equals(island.getName())) {
+                            lastLocation = location;
+                            location = island;
+                            foundLocation = true;
+                            continue;
+                        }
                     }
                 }
             }
+            if (!hasGuestsOnTabList) {
+                if (checkGuestOnGardenTabList(cleanedLine)) {
+                    hasGuestsOnTabList = true;
+                }
+            }
+            checkInfestedPlotsTabList(cleanedLine);
+            if (!foundPestHunterBonus) {
+                int retPestHunter = checkPestHunterBonusTabList(cleanedLine);
+                if (retPestHunter == 1) {
+                    pestHunterBonus = BuffState.ACTIVE;
+                    foundPestHunterBonus = true;
+                } else if (retPestHunter == 2) {
+                    pestHunterBonus = BuffState.NOT_ACTIVE;
+                    foundPestHunterBonus = true;
+                }
+            }
         }
+        if (!foundPestHunterBonus) {
+            pestHunterBonus = BuffState.UNKNOWN;
+        }
+        if (foundLocation) return;
 
         if (!ScoreboardUtils.getScoreboardTitle().contains("SKYBLOCK") && !scoreboardLines.isEmpty() && scoreboardLines.get(0).contains("www.hypixel.net")) {
             lastLocation = location;
@@ -333,16 +196,228 @@ public class GameStateHandler {
         location = Location.TELEPORTING;
     }
 
-    private void checkGuestOnGarden(List<String> tabList) {
-        boolean hasGuestsOnTabList = false;
-        for (String name : tabList) {
-            if (name.contains("Guests "))
-                hasGuestsOnTabList = true;
-            if (name.contains("Guests (0)")) {
-                isGuestOnGarden = false;
+    @SubscribeEvent
+    public void onUpdateScoreboardLine(UpdateScoreboardLineEvent event) {
+        String updatedLine = event.getLine();
+        checkServerClosing(updatedLine);
+        checkCoins(updatedLine);
+        checkJacob(updatedLine);
+    }
+
+    @SubscribeEvent
+    public void onUpdateScoreboardList(UpdateScoreboardListEvent event) {
+        checkCurrentPests(event.cleanScoreboardLines);
+    }
+
+    @SubscribeEvent
+    public void onTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) return;
+        if (mc.theWorld == null || mc.thePlayer == null) {
+            return;
+        }
+        onTickCheckMoving();
+        onTickCheckRewarp();
+        onTickCheckPlot();
+        onTickCheckSpeed();
+    }
+
+    @SubscribeEvent
+    public void onUpdateTabFooter(UpdateTablistFooterEvent event) {
+        if (mc.theWorld == null || mc.thePlayer == null) {
+            return;
+        }
+        List<String> footer = event.footer;
+        checkBuffsTabList(footer);
+    }
+
+    private void checkJacob(String cleanedLine) {
+        if (cleanedLine.toLowerCase().contains("jacob's contest") && !isInJacobContest) {
+            isInJacobContest = true;
+        }
+        if (isInJacobContest) {
+            try {
+                if (cleanedLine.contains("with") || cleanedLine.startsWith("Collected")) {
+                    jacobsContestCropNumber = Integer.parseInt(cleanedLine.substring(cleanedLine.lastIndexOf(" ") + 1).replace(",", ""));
+                    return;
+                }
+            } catch (Exception ignored) {
+                jacobsContestCropNumber = 0;
+            }
+            if (jacobContestLeftClock.isScheduled() && jacobContestLeftClock.passed()) {
+                LogUtils.sendDebug("Jacob's contest left clock passed");
+                jacobContestLeftClock.reset();
+                isInJacobContest = false;
+            }
+            if (!jacobContestLeftClock.isScheduled() || !jacobsContestCrop.isPresent()) {
+                Matcher matcher = jacobsRemainingTimePattern.matcher(cleanedLine);
+                if (matcher.find()) {
+                    if (cleanedLine.contains("Wheat")) {
+                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.WHEAT);
+                    } else if (cleanedLine.contains("Carrot")) {
+                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.CARROT);
+                    } else if (cleanedLine.contains("Potato")) {
+                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.POTATO);
+                    } else if (cleanedLine.contains("Nether") || cleanedLine.contains("Wart")) {
+                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.NETHER_WART);
+                    } else if (cleanedLine.contains("Sugar") || cleanedLine.contains("Cane")) {
+                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.SUGAR_CANE);
+                    } else if (cleanedLine.contains("Mushroom")) {
+                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.MUSHROOM);
+                    } else if (cleanedLine.contains("Melon")) {
+                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.MELON);
+                    } else if (cleanedLine.contains("Pumpkin")) {
+                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.PUMPKIN);
+                    } else if (cleanedLine.contains("Cocoa") || cleanedLine.contains("Bean")) {
+                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.COCOA_BEANS);
+                    } else if (cleanedLine.contains("Cactus")) {
+                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.CACTUS);
+                    }
+
+                    String minutes = matcher.group(1);
+                    String seconds = matcher.group(2);
+                    jacobContestLeftClock.schedule((Long.parseLong(minutes) * 60 + Long.parseLong(seconds)) * 1_000L + 1_000L);
+                    return;
+                }
+            }
+            if (cleanedLine.contains("BRONZE with")) {
+                jacobMedal = JacobMedal.BRONZE;
+            } else if (cleanedLine.contains("SILVER with")) {
+                jacobMedal = JacobMedal.SILVER;
+            } else if (cleanedLine.contains("GOLD with")) {
+                jacobMedal = JacobMedal.GOLD;
+            } else if (cleanedLine.contains("PLATINUM with")) {
+                jacobMedal = JacobMedal.PLATINUM;
+            } else if (cleanedLine.contains("DIAMOND with")) {
+                jacobMedal = JacobMedal.DIAMOND;
+            }
+        } else {
+            jacobsContestCrop = Optional.empty();
+            jacobsContestCropNumber = 0;
+            jacobContestLeftClock.reset();
+            jacobMedal = JacobMedal.NONE;
+        }
+    }
+
+    private void checkCoins(String cleanedLine) {
+        if (cleanedLine.contains("Purse:") || cleanedLine.contains("Piggy:")) {
+            try {
+                String stringPurse = cleanedLine.split(" ")[1].replace(",", "").trim();
+                if (stringPurse.contains("(+")) {
+                    stringPurse = stringPurse.substring(0, stringPurse.indexOf("("));
+                }
+                long tempCurrentPurse = Long.parseLong(stringPurse);
+                previousPurse = currentPurse;
+                currentPurse = tempCurrentPurse;
+            } catch (Exception ignored) {
+            }
+        } else if (cleanedLine.contains("Bits:")) {
+            try {
+                String stringBits = cleanedLine.split(" ")[1].replace(",", "").trim();
+                if (stringBits.contains("(+")) {
+                    stringBits = stringBits.substring(0, stringBits.indexOf("("));
+                }
+                bits = Long.parseLong(stringBits);
+            } catch (Exception ignored) {
+            }
+        } else if (cleanedLine.contains("Copper:")) {
+            try {
+                String stringCopper = cleanedLine.split(" ")[1].replace(",", "").trim();
+                if (stringCopper.contains("(+")) {
+                    stringCopper = stringCopper.substring(0, stringCopper.indexOf("("));
+                }
+                copper = Long.parseLong(stringCopper);
+            } catch (Exception ignored) {
             }
         }
-        isGuestOnGarden = hasGuestsOnTabList && location == Location.GARDEN;
+    }
+
+    private void checkServerClosing(String cleanedLine) {
+        Matcher serverClosingMatcher = serverClosingPattern.matcher(cleanedLine);
+        if (serverClosingMatcher.find()) {
+            int minutes = Integer.parseInt(serverClosingMatcher.group("minutes"));
+            int seconds = Integer.parseInt(serverClosingMatcher.group("seconds"));
+            serverClosingSeconds = Optional.of(minutes * 60 + seconds);
+        } else {
+            serverClosingSeconds = Optional.empty();
+        }
+    }
+
+    private void checkCurrentPests(List<String> list) {
+        int pestsCountTemp = 0;
+        for (String cleanedLine : list) {
+            if (cleanedLine.contains("The Garden") && cleanedLine.contains("x")) {
+                try {
+                    String[] split = cleanedLine.trim().split(" ");
+                    int temp = Integer.parseInt(split[split.length - 1].trim().replace("x", ""));
+                    int previousPestsCount = pestsCount;
+                    pestsCount = temp;
+                    pestsCountTemp = temp;
+                    if (pestsCount > previousPestsCount && !PestsDestroyer.getInstance().isRunning()) {
+                        if (FarmHelperConfig.sendWebhookLogIfPestsDetectionNumberExceeded) {
+                            LogUtils.webhookLog("[Pests Destroyer]\\nThere " + (pestsCount > 1 ? "are" : "is") + " currently **" + pestsCount + "** " + (pestsCount > 1 ? "pests" : "pest") + " in the garden!", FarmHelperConfig.pingEveryoneOnPestsDetectionNumberExceeded);
+                        }
+                        if (FarmHelperConfig.sendNotificationIfPestsDetectionNumberExceeded) {
+                            FailsafeUtils.getInstance().sendNotification("There " + (pestsCount > 1 ? "are" : "is") + " currently " + pestsCount + " " + (pestsCount > 1 ? "pests" : "pest") + " in the garden!", TrayIcon.MessageType.WARNING);
+                        }
+                    }
+                } catch (NumberFormatException ignored) {
+                    pestsCount = 0;
+                }
+            }
+            if (cleanedLine.contains("Plot") && cleanedLine.contains("x")) {
+                String[] split = cleanedLine.trim().split(" ");
+                String last = split[split.length - 1];
+                try {
+                    currentPlotPestsCount = Integer.parseInt(last.replace("x", ""));
+                } catch (NumberFormatException ignored) {
+                    currentPlotPestsCount = 0;
+                }
+            } else if (cleanedLine.contains("Plot")) {
+                currentPlotPestsCount = 0;
+            }
+        }
+        if (pestsCountTemp != pestsCount) {
+            pestsCount = pestsCountTemp;
+        }
+        if (pestsCount == 0) {
+            infestedPlots.clear();
+        }
+    }
+
+    private int checkPestHunterBonusTabList(String cleanedLine) {
+        if (cleanedLine.contains("Bonus: +")) {
+            return 1;
+        }
+        if (cleanedLine.contains("Bonus: INACTIVE")) {
+            return 2;
+        }
+        return -1;
+    }
+
+    private void checkInfestedPlotsTabList(String cleanedLine) {
+        if (cleanedLine.contains("Infested Plots:")) {
+            try {
+                String[] split = cleanedLine.trim().split(" ");
+                infestedPlots.clear();
+                for (int i = 2; i < split.length; i++) {
+                    infestedPlots.add(Integer.parseInt(split[i].replace(",", "")));
+                }
+            } catch (Exception ignored) {
+                infestedPlots.clear();
+            }
+        }
+    }
+
+    private boolean checkGuestOnGardenTabList(String cleanedLine) {
+        if (cleanedLine.contains("Guests (0)")) {
+            isGuestOnGarden = false;
+            return true;
+        }
+        if (cleanedLine.contains("Guests ")) {
+            isGuestOnGarden = true;
+            return true;
+        }
+        return false;
     }
 
     public void onTickCheckPlot() {
@@ -358,33 +433,25 @@ public class GameStateHandler {
         }
     }
 
-    public void onTickCheckBuffs() {
+    public void checkBuffsTabList(List<String> footerString) {
         boolean foundGodPotBuff = false;
         boolean foundCookieBuff = false;
         boolean foundPestRepellent = false;
-        boolean foundPestHunterBonus = false;
         boolean foundSpray = false;
         boolean loaded = false;
 
-        IGuiPlayerTabOverlayAccessor tabOverlay = (IGuiPlayerTabOverlayAccessor) mc.ingameGUI.getTabList();
-        if (tabOverlay == null) return;
-        IChatComponent footer = tabOverlay.getFooter();
-        if (footer == null || footer.getFormattedText().isEmpty()) return;
-        String[] footerString = footer.getFormattedText().split("\n");
-
         for (String line : footerString) {
-            String unformattedLine = StringUtils.stripControlCodes(line);
-            if (unformattedLine.contains("Active Effects")) {
+            if (line.contains("Active Effects")) {
                 loaded = true;
             }
-            if (unformattedLine.contains("You have a God Potion active!")) {
+            if (line.contains("You have a God Potion active!")) {
                 foundGodPotBuff = true;
                 continue;
             }
-            if (unformattedLine.contains("Pest Repellant") || unformattedLine.contains("Pest Repellent")) {
+            if (line.contains("Pest Repellant") || line.contains("Pest Repellent")) {
                 foundPestRepellent = true;
                 if (!AutoRepellent.repellentFailsafeClock.isScheduled()) {
-                    String[] split = unformattedLine.split(" ");
+                    String[] split = line.split(" ");
                     String time = split[split.length - 1];
                     if (time.contains("m")) {
                         AutoRepellent.repellentFailsafeClock.schedule(Long.parseLong(time.replace("m", "").trim()) * 60 * 1_000L);
@@ -395,21 +462,17 @@ public class GameStateHandler {
                 }
                 continue;
             }
-            if (unformattedLine.contains("Cookie Buff")) {
+            if (line.contains("Cookie Buff")) {
                 foundCookieBuff = true;
                 continue;
             }
             if (foundCookieBuff) {
-                if (unformattedLine.contains("Not active")) {
+                if (line.contains("Not active")) {
                     foundCookieBuff = false;
                 }
                 break;
             }
-            if (unformattedLine.contains("Bonus: +")) {
-                foundPestHunterBonus = true;
-                break;
-            }
-            if (unformattedLine.contains("Spray") && !unformattedLine.contains("None")) {
+            if (line.contains("Spray") && !line.contains("None")) {
                 foundSpray = true;
                 break;
             }
@@ -419,7 +482,6 @@ public class GameStateHandler {
             cookieBuffState = BuffState.UNKNOWN;
             godPotState = BuffState.UNKNOWN;
             pestRepellentState = BuffState.UNKNOWN;
-            pestHunterBonus = BuffState.UNKNOWN;
             sprayonatorState = BuffState.UNKNOWN;
             return;
         }
@@ -427,7 +489,6 @@ public class GameStateHandler {
         cookieBuffState = foundCookieBuff ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
         godPotState = foundGodPotBuff ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
         pestRepellentState = foundPestRepellent ? BuffState.ACTIVE : (!AutoRepellent.repellentFailsafeClock.passed() ? BuffState.FAILSAFE : BuffState.NOT_ACTIVE);
-        pestHunterBonus = foundPestHunterBonus ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
         sprayonatorState = foundSpray ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
     }
 
@@ -581,33 +642,32 @@ public class GameStateHandler {
     public int getPestsFromVacuum() {
         if (mc.theWorld == null || mc.thePlayer == null)
             return 0;
-        for (Slot slot : mc.thePlayer.inventoryContainer.inventorySlots) {
-            if (!slot.getHasStack())
-                continue;
-            ItemStack stack = slot.getStack();
-            if (stack == null)
-                continue;
-            String itemName = StringUtils.stripControlCodes(stack.getDisplayName());
-            if (itemName == null || !itemName.toLowerCase().contains("vacuum"))
-                continue;
-            ArrayList<String> lore = InventoryUtils.getItemLore(stack);
-            if (lore.isEmpty())
-                continue;
-            for (String line : lore) {
-                if (line.contains("Vacuum Bag:")) {
-                    Matcher matcher = pestsFromVacuumPattern.matcher(line);
-                    if (matcher.find()) {
-                        try {
-                            return Integer.parseInt(matcher.group(1));
-                        } catch (Exception e) {
-                            LogUtils.sendError("Failed to parse pests from vacuum bag!");
-                            LogUtils.sendWarning("Report this to #bug-reports!");
-                            return 0;
-                        }
+        Slot slot = InventoryUtils.getSlotOfItemInInventory("Vacuum");
+        if (slot == null)
+            return 0;
+        if (!slot.getHasStack())
+            return 0;
+        ItemStack stack = slot.getStack();
+        if (stack == null)
+            return 0;
+        ArrayList<String> lore = InventoryUtils.getItemLore(stack);
+        if (lore.isEmpty())
+            return 0;
+        for (String line : lore) {
+            if (line.contains("Vacuum Bag:")) {
+                Matcher matcher = pestsFromVacuumPattern.matcher(line);
+                if (matcher.find()) {
+                    try {
+                        return Integer.parseInt(matcher.group(1));
+                    } catch (Exception e) {
+                        LogUtils.sendError("Failed to parse pests from vacuum bag!");
+                        LogUtils.sendWarning("Report this to #bug-reports!");
+                        return 0;
                     }
                 }
             }
         }
+//        }
         return 0;
     }
 
@@ -630,7 +690,6 @@ public class GameStateHandler {
         return 0L;
     }
 
-
     @Getter
     public enum Location {
         PRIVATE_ISLAND("Private Island"),
@@ -650,6 +709,7 @@ public class GameStateHandler {
         LOBBY("PROTOTYPE"),
         GARDEN("Garden"),
         DUNGEON("Dungeon"),
+        UNKNOWN(""),
         TELEPORTING("Teleporting");
 
         private final String name;

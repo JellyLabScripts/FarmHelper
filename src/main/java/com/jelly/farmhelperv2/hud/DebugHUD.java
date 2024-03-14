@@ -34,7 +34,12 @@ public class DebugHUD extends TextHud {
         if (MovRecPlayer.getInstance().isRunning()) {
             lines.add("Yaw Difference: " + MovRecPlayer.getYawDifference());
         }
+        lines.add("Buffs:");
+        lines.add("   God Pot: " + GameStateHandler.getInstance().getGodPotState());
+        lines.add("   Cookie: " + GameStateHandler.getInstance().getCookieBuffState());
+        lines.add("   Pest Hunter: " + GameStateHandler.getInstance().getPestHunterBonus());
         lines.add("Location: " + GameStateHandler.getInstance().getLocation());
+        lines.add("Pests in Vacuum: " + GameStateHandler.getInstance().getPestsFromVacuum());
         MacroHandler.getInstance().getCurrentMacro().ifPresent(macro -> {
             lines.add("Current state: " + macro.getCurrentState());
             lines.add("Rotating: " + macro.getRotation().isRotating());

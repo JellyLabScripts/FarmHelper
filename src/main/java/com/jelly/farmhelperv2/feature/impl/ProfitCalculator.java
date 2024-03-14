@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ClickedBlockEvent;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
+import com.jelly.farmhelperv2.event.UpdateScoreboardLineEvent;
 import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -28,6 +29,7 @@ import net.minecraft.item.ItemTool;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -266,11 +268,6 @@ public class ProfitCalculator implements IFeature {
             }
         }
 
-        if (currentItem != null && StringUtils.stripControlCodes(currentItem.getDisplayName()).startsWith("Bountiful")) {
-            double value = GameStateHandler.getInstance().getCurrentPurse() - GameStateHandler.getInstance().getPreviousPurse();
-            if (value > 0)
-                bountifulProfit += value;
-        }
         profit += bountifulProfit;
         realProfit = profit;
         realProfit += rngPrice;
@@ -279,6 +276,20 @@ public class ProfitCalculator implements IFeature {
             realHourlyProfit = (realProfit / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f / 60 / 60));
         } else {
             realHourlyProfit = profit / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f / 60 / 60);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOW)
+    public void onScoreboardUpdate(UpdateScoreboardLineEvent event) {
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
+        if (!GameStateHandler.getInstance().inGarden()) return;
+
+        ItemStack currentItem = mc.thePlayer.getHeldItem();
+        if (currentItem != null && StringUtils.stripControlCodes(currentItem.getDisplayName()).startsWith("Bountiful")) {
+            double value = GameStateHandler.getInstance().getCurrentPurse() - GameStateHandler.getInstance().getPreviousPurse();
+            if (value > 0)
+                bountifulProfit += value;
         }
     }
 
@@ -468,9 +479,9 @@ public class ProfitCalculator implements IFeature {
         for (BazaarItem item : itemList) {
             JsonObject itemData = bazaarData.getAsJsonObject(item.bazaarId);
             JsonArray sellSummary = itemData.getAsJsonArray("sell_summary");
-        
+
             JsonObject summaryData = (sellSummary.size() > 1) ? sellSummary.get(1).getAsJsonObject() :
-                                (sellSummary.size() > 0) ? sellSummary.get(0).getAsJsonObject() : null;
+                    (sellSummary.size() > 0) ? sellSummary.get(0).getAsJsonObject() : null;
 
             if (summaryData != null) {
                 double buyPrice = summaryData.get("pricePerUnit").getAsDouble();

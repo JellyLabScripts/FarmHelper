@@ -2,85 +2,29 @@ package com.jelly.farmhelperv2.util;
 
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.scoreboard.ScorePlayerTeam;
-import net.minecraft.util.StringUtils;
 import net.minecraft.world.WorldSettings;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class TablistUtils {
 
-    private static final Ordering<NetworkPlayerInfo> playerOrdering = Ordering.from(new PlayerComparator());
+    public static final Ordering<NetworkPlayerInfo> playerOrdering = Ordering.from(new PlayerComparator());
 
-    private static List<String> cachedTablist = new ArrayList<>();
-    private static long lastUpdateTimestamp = 0;
-
-    public static List<String> getTabListPlayersUnprocessed() {
-        try {
-            List<NetworkPlayerInfo> players =
-                    playerOrdering.sortedCopy(Minecraft.getMinecraft().thePlayer.sendQueue.getPlayerInfoMap());
-
-            List<String> result = new ArrayList<>();
-
-            for (NetworkPlayerInfo info : players) {
-                String name = Minecraft.getMinecraft().ingameGUI.getTabList().getPlayerName(info);
-                result.add(name);
-            }
-            return result;
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
-    }
-
-    public static List<String> getTabListPlayersSkyblock() {
-        try {
-            List<String> tabListPlayersFormatted = getTabListPlayersUnprocessed();
-            List<String> playerList = new ArrayList<>();
-            tabListPlayersFormatted.remove(0); // remove "Players (x)"
-            String firstPlayer = null;
-            for (String s : tabListPlayersFormatted) {
-                int a = s.indexOf("]");
-                if (a == -1) continue;
-                if (s.length() < a + 2) continue; // if the player name is too short (e.g. "§c[§f]"
-
-                s = s.substring(a + 2).replaceAll("§([0-9]|[a-z])", "").replace("♲", "").trim();
-                if (firstPlayer == null)
-                    firstPlayer = s;
-                else if (s.equals(firstPlayer)) // it returns two copy of the player list for some reason
-                    break;
-                playerList.add(s);
-            }
-            return playerList;
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
-    }
+    private static final CopyOnWriteArrayList<String> cachedTablist = new CopyOnWriteArrayList<>();
 
     public static List<String> getTabList() {
-        long currentTime = System.currentTimeMillis();
-        if (!cachedTablist.isEmpty() && currentTime - lastUpdateTimestamp < 50)
-            return cachedTablist;
-        cachedTablist.clear();
-        if (Minecraft.getMinecraft().theWorld == null)
-            return cachedTablist;
-        try {
-            List<NetworkPlayerInfo> players =
-                    playerOrdering.sortedCopy(Minecraft.getMinecraft().thePlayer.sendQueue.getPlayerInfoMap());
+        return cachedTablist;
+    }
 
-            for (NetworkPlayerInfo info : players) {
-                cachedTablist.add(StringUtils.stripControlCodes(Minecraft.getMinecraft().ingameGUI.getTabList().getPlayerName(info)));
-            }
-            lastUpdateTimestamp = currentTime;
-            return cachedTablist;
-        } catch (Exception e) {
-            return cachedTablist;
-        }
+    public static void setCachedTablist(List<String> tablist) {
+        cachedTablist.clear();
+        cachedTablist.addAll(tablist);
     }
 
     @SideOnly(Side.CLIENT)

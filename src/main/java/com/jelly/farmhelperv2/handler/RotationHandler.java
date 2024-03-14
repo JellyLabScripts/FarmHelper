@@ -273,9 +273,8 @@ public class RotationHandler {
             if (shouldRotate(targetRotation, 0.1f)) {
                 float needYaw = (targetRotation.getYaw() - currentYaw);
                 float needPitch = (targetRotation.getPitch() - currentPitch);
-                float pythagoras = pythagoras(Math.abs(needYaw), Math.abs(needPitch));
-                needYaw *= (float) (Math.random() * 0.1f + getTime(pythagoras, 0.1f));
-                needPitch *= (float) (Math.random() * 0.1f + getTime(pythagoras, 0.1f));
+                needYaw *= (float) (0.1f + Math.random() * 0.1f);
+                needPitch *= (float) (0.1f + Math.random() * 0.1f);
                 mc.thePlayer.rotationYaw += needYaw;
                 if (mc.thePlayer.rotationPitch + needPitch > 63 && needPitch < 0) {
                     mc.thePlayer.rotationPitch += needPitch;

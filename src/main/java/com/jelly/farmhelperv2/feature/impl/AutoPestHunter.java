@@ -56,7 +56,6 @@ public class AutoPestHunter implements IFeature {
     @Getter
     private final Clock delayClock = new Clock();
     private BlockPos positionBeforeTp;
-    private int finishTries = 0;
     private final BlockPos initialDeskPos = new BlockPos(-24, 71, -7);
     private Entity phillip = null;
 
@@ -124,7 +123,6 @@ public class AutoPestHunter implements IFeature {
         stuckClock.reset();
         delayClock.reset();
         positionBeforeTp = null;
-        finishTries = 0;
     }
 
     @Override
@@ -166,11 +164,8 @@ public class AutoPestHunter implements IFeature {
             LogUtils.sendDebug("[Auto Pest Hunter] Jacob's contest is active, skipping...");
             return false;
         }
-        List<String> tabList = TablistUtils.getTabList();
-        if (tabList.size() < 2)
-            return false;
-        if (GameStateHandler.getInstance().getPestHunterBonus() == GameStateHandler.BuffState.ACTIVE) {
-            LogUtils.sendWarning("[Auto Pest Hunter] Pesthunter bonus is active, skipping...");
+        if (GameStateHandler.getInstance().getPestHunterBonus() != GameStateHandler.BuffState.NOT_ACTIVE) {
+            LogUtils.sendWarning("[Auto Pest Hunter] Pesthunter bonus is active or unknown, skipping...");
             return false;
         }
         if (!manual && GameStateHandler.getInstance().inJacobContest() && !FarmHelperConfig.autoPestHunterIgnoreJacobsContest) {
@@ -434,10 +429,15 @@ public class AutoPestHunter implements IFeature {
                     break;
                 }
                 ItemStack itemLore = vacuumSlot.getStack();
-                if (InventoryUtils.getItemLore(itemLore).contains("Click to empty")) { // not necessary but yeah :shrugger:
+                List<String> lore = InventoryUtils.getItemLore(itemLore);
+                if (lore.stream().anyMatch(l -> l.contains("Click to empty"))) { // not necessary but yeah :shrugger:
                     if (FarmHelperConfig.logAutoPestHunterEvents)
                         LogUtils.webhookLog("[Auto Pest Hunter] Emptied the vacuum!\\n" + GameStateHandler.getInstance().getPestsFromVacuum() + " pests in total!");
                     state = State.WAIT_FOR_VACUUM;
+                } else if (lore.stream().anyMatch(l -> l.contains("You've exchanged enough Pests"))) {
+                    if (FarmHelperConfig.logAutoPestHunterEvents)
+                        LogUtils.webhookLog("[Auto Pest Hunter] Already emptied the vacuum!");
+                    state = State.GO_BACK;
                 } else {
                     if (FarmHelperConfig.logAutoPestHunterEvents)
                         LogUtils.webhookLog("[Auto Pest Hunter] Failed to empty your vacuum!");
