@@ -378,8 +378,7 @@ public class AutoPestHunter implements IFeature {
                 delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
                 break;
             case CLICK_PHILLIP:
-                if (BlockUtils.getHorizontalDistance(mc.thePlayer.getPositionVector(),
-                        new Vec3(deskPos().getX() + 0.5, deskPos().getY() + 0.5, deskPos().getZ() + 0.5)) > 7) {
+                if (BlockUtils.getHorizontalDistance(mc.thePlayer.getPositionVector(), phillip.getPositionVector()) > 7) {
                     LogUtils.sendDebug("[Auto Pest Hunter] Can't click Phillip! Walking to the desk position...");
                     state = State.GO_TO_PHILLIP;
                     delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));

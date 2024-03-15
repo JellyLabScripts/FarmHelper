@@ -327,6 +327,10 @@ public class BlockUtils {
             return false;
         }
 
+        if (block.equals(Blocks.ladder)) {
+            return false;
+        }
+
         try {
             return !block.isPassable(blockAccess, blockPos) || block.getCollisionBoundingBox((World) blockAccess, blockPos, blockState) != null;
         } catch (Exception e) {

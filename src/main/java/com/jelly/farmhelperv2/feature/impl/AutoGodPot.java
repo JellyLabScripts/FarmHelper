@@ -67,7 +67,7 @@ public class AutoGodPot implements IFeature {
     @Getter
     private BitsShopState bitsShopState = BitsShopState.NONE;
     private Slot godPotItem;
-    private int teleportTries = 0;
+    private int tries = 0;
 
     public static AutoGodPot getInstance() {
         if (instance == null) {
@@ -138,6 +138,7 @@ public class AutoGodPot implements IFeature {
         if (shouldTpToGarden) {
             MacroHandler.getInstance().triggerWarpGarden(true, true);
         }
+        tries = 0;
     }
 
     private void resetStates() {
@@ -216,6 +217,11 @@ public class AutoGodPot implements IFeature {
         if (stuckClock.isScheduled() && stuckClock.passed()) {
             LogUtils.sendWarning("[Auto God Pot] Stuck for too long! Restarting!");
             resetStates();
+            tries++;
+            if (tries >= 3) {
+                LogUtils.sendError("[Auto God Pot] Failed too many times! Stopping");
+                stop();
+            }
             start();
             return;
         }
@@ -225,7 +231,7 @@ public class AutoGodPot implements IFeature {
         switch (godPotMode) {
 
             case NONE:
-                LogUtils.sendWarning("[Auto God Pot] You didn't activate any God Pot source! Disabling");
+                LogUtils.sendWarning("[Auto God Pot] You didn't activate any God Pot source! Stopping");
                 stop();
                 break;
             case FROM_AH_COOKIE:
@@ -457,8 +463,13 @@ public class AutoGodPot implements IFeature {
                 }
                 if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("Auction House")) break;
                 Slot viewBids = InventoryUtils.getSlotOfItemInContainer("View Bids");
-                if (viewBids == null) break;
-                InventoryUtils.clickContainerSlot(viewBids.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                Slot manageBids = InventoryUtils.getSlotOfItemInContainer("Manage Bids");
+                if (viewBids == null && manageBids == null) break;
+                if (viewBids != null) {
+                    InventoryUtils.clickContainerSlot(viewBids.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                } else {
+                    InventoryUtils.clickContainerSlot(manageBids.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                }
                 setAhState(AhState.COLLECT_ITEM_CLICK_ITEM);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
@@ -481,7 +492,7 @@ public class AutoGodPot implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("BIN Auction View")) break;
+                if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("Auction View")) break;
                 Slot collectItem = InventoryUtils.getSlotOfItemInContainer("Collect Auction");
                 if (collectItem == null) break;
                 InventoryUtils.clickContainerSlot(collectItem.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);

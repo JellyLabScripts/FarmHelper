@@ -95,6 +95,7 @@ public class PestsDestroyer implements IFeature {
     private float currentVacuumRange = 5F;
 
     private boolean gotRangeOfVacuum = false;
+    private boolean isPlotObstructed = false;
 
     private final List<Integer> killedPestsFrom = new ArrayList<>();
 
@@ -129,6 +130,7 @@ public class PestsDestroyer implements IFeature {
     public void start() {
         if (enabled) return;
         gotRangeOfVacuum = false;
+        isPlotObstructed = false;
         preparing = true;
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();
@@ -168,6 +170,7 @@ public class PestsDestroyer implements IFeature {
         stuckClock.reset();
         preparing = false;
         enabled = false;
+        isPlotObstructed = false;
         lastFireworkTime = 0;
         getLocationTries = 0;
         flyPathfinderTries = 0;
@@ -510,6 +513,7 @@ public class PestsDestroyer implements IFeature {
                     LogUtils.sendWarning("[Pests Destroyer] The player is suffocating and/or it can't fly higher. Going back to spawnpoint.");
                     delayClock.schedule(1_000 + Math.random() * 500);
                     MacroHandler.getInstance().triggerWarpGarden(true, false);
+                    isPlotObstructed = true;
                     state = States.CHECKING_SPAWN;
                     return;
                 }
@@ -542,14 +546,16 @@ public class PestsDestroyer implements IFeature {
                 double distance = Math.sqrt(mc.thePlayer.getDistanceSq(PlotUtils.getPlotCenter(closestPlot.number)));
 
                 this.closestPlot = Optional.of(closestPlot);
-                if (distance > 80) {
+                if (distance > 80 && !isPlotObstructed) {
                     state = States.TELEPORT_TO_PLOT;
                 } else {
                     state = States.FLY_TO_THE_CLOSEST_PLOT;
+                    isPlotObstructed = false;
                 }
                 delayClock.schedule((long) (500 + Math.random() * 500));
                 break;
             case FLY_TO_THE_CLOSEST_PLOT:
+                if (MacroHandler.getInstance().isTeleporting()) return;
                 if (isInventoryOpenDelayed()) break;
 
                 if (!this.closestPlot.isPresent()) {
@@ -868,7 +874,7 @@ public class PestsDestroyer implements IFeature {
                     if (plotOpt != null) {
                         double distanceToPlot = Math.sqrt(mc.thePlayer.getDistanceSqToCenter(PlotUtils.getPlotCenter(plotOpt.number)));
                         LogUtils.sendDebug("Distance to plot: " + distanceToPlot);
-                        if (distanceToPlot < 100) {
+                        if (distanceToPlot < 100 || isPlotObstructed) {
                             LogUtils.sendDebug("Going manually to another plot");
                             state = States.GET_CLOSEST_PLOT;
                             delayClock.schedule(300 + (long) (Math.random() * 250));
@@ -1234,7 +1240,7 @@ public class PestsDestroyer implements IFeature {
         LogUtils.sendDebug("[Pests Destroyer] Updated plots");
         if (state == States.WAIT_FOR_INFO) {
             PlayerUtils.closeScreen();
-            state = States.TELEPORTING_TO_PLOT;
+            state = States.TELEPORT_TO_PLOT;
             delayClock.schedule(300 + (long) (Math.random() * 300));
         }
     }
@@ -1294,7 +1300,6 @@ public class PestsDestroyer implements IFeature {
         OPEN_DESK,
         OPEN_PLOTS,
         WAIT_FOR_INFO,
-        TELEPORTING_TO_PLOT,
         TELEPORT_TO_PLOT,
         WAIT_FOR_TP,
         CHECKING_PLOT,
