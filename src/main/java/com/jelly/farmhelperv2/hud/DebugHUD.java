@@ -12,7 +12,6 @@ import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
-import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
@@ -34,17 +33,18 @@ public class DebugHUD extends TextHud {
         if (MovRecPlayer.getInstance().isRunning()) {
             lines.add("Yaw Difference: " + MovRecPlayer.getYawDifference());
         }
+        lines.add("Bountiful: " + ProfitCalculator.getInstance().getBountifulProfit());
         lines.add("Buffs:");
         lines.add("   God Pot: " + GameStateHandler.getInstance().getGodPotState());
         lines.add("   Cookie: " + GameStateHandler.getInstance().getCookieBuffState());
         lines.add("   Pest Hunter: " + GameStateHandler.getInstance().getPestHunterBonus());
         lines.add("Location: " + GameStateHandler.getInstance().getLocation());
-        lines.add("Pests in Vacuum: " + GameStateHandler.getInstance().getPestsFromVacuum());
+//        lines.add("Pests in Vacuum: " + GameStateHandler.getInstance().getPestsFromVacuum());
         MacroHandler.getInstance().getCurrentMacro().ifPresent(macro -> {
             lines.add("Current state: " + macro.getCurrentState());
             lines.add("Rotating: " + macro.getRotation().isRotating());
         });
-        lines.add("Current plot: " + GameStateHandler.getInstance().getCurrentPlot());
+//        lines.add("Current plot: " + GameStateHandler.getInstance().getCurrentPlot());
         lines.add("Directions: ");
         lines.add("   Forward: " + GameStateHandler.getInstance().isFrontWalkable());
         lines.add("   Backward: " + GameStateHandler.getInstance().isBackWalkable());
@@ -54,12 +54,12 @@ public class DebugHUD extends TextHud {
         lines.add("   HasPassedSinceStopped: " + GameStateHandler.getInstance().hasPassedSinceStopped());
         ItemStack heldItem = Minecraft.getMinecraft().thePlayer.getHeldItem();
         lines.add("Cultivating: " + GameStateHandler.getInstance().getCurrentCultivating().getOrDefault(heldItem != null ? heldItem.getDisplayName() : "", 0L));
-        if (Scheduler.getInstance().isToggled()) {
-            lines.add("Scheduler: ");
-            lines.add("  State: " + LogUtils.capitalize(Scheduler.getInstance().getSchedulerState().toString()));
-            lines.add("  Clock: " + Scheduler.getInstance().getSchedulerClock().getRemainingTime());
-            lines.add("  isFarming: " + Scheduler.getInstance().isFarming());
-        }
+//        if (Scheduler.getInstance().isToggled()) {
+//            lines.add("Scheduler: ");
+//            lines.add("  State: " + LogUtils.capitalize(Scheduler.getInstance().getSchedulerState().toString()));
+//            lines.add("  Clock: " + Scheduler.getInstance().getSchedulerClock().getRemainingTime());
+//            lines.add("  isFarming: " + Scheduler.getInstance().isFarming());
+//        }
         if (AutoCookie.getInstance().isRunning()) {
             lines.add("AutoCookie");
             lines.add("   Main State: " + AutoCookie.getInstance().getMainState());
@@ -73,11 +73,11 @@ public class DebugHUD extends TextHud {
             lines.add("   State: " + AntiStuck.getInstance().getUnstuckState());
             lines.add("   Delay between change state: " + AntiStuck.getInstance().getDelayBetweenMovementsClock().getRemainingTime());
         }
-        lines.add("LagDetector");
-        lines.add("   TPS: " + LagDetector.getInstance().getTickRate());
-        if (LagDetector.getInstance().isLagging()) {
-            lines.add("   Lagging for: " + LagDetector.getInstance().getLaggingTime());
-        }
+//        lines.add("LagDetector");
+//        lines.add("   TPS: " + LagDetector.getInstance().getTickRate());
+//        if (LagDetector.getInstance().isLagging()) {
+//            lines.add("   Lagging for: " + LagDetector.getInstance().getLaggingTime());
+//        }
         lines.add("Average BPS: " + LowerAvgBpsFailsafe.getInstance().getAverageBPS());
         if (DesyncChecker.getInstance().isToggled()) {
             lines.add("Desync Checker");

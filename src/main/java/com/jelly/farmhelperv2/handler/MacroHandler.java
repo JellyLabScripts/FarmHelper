@@ -290,7 +290,7 @@ public class MacroHandler {
 
     public void enableCurrentMacro() {
         if (currentMacro.isPresent() && !currentMacro.get().isEnabledAndNoFeature() && !startingUp) {
-            mc.displayGuiScreen(null);
+            mc.thePlayer.closeScreen();
             mc.inGameHasFocus = true;
             mc.mouseHelper.grabMouseCursor();
             startingUp = true;

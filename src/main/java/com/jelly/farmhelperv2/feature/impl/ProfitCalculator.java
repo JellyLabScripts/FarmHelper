@@ -78,7 +78,8 @@ public class ProfitCalculator implements IFeature {
     private final Pattern regex = Pattern.compile("Dicer dropped (\\d+)x ([\\w\\s]+)!");
     public double realProfit = 0;
     public double realHourlyProfit = 0;
-    public double bountifulProfit = 0;
+    @Getter
+    private double bountifulProfit = 0;
     public double blocksBroken = 0;
     private long previousCultivating = 0;
 
@@ -210,6 +211,7 @@ public class ProfitCalculator implements IFeature {
         bountifulProfit = 0;
         blocksBroken = 0;
         previousCultivating = 0;
+        previousCurrentPurse = 0;
         cropsToCount.forEach(crop -> crop.currentAmount = 0);
         rngDropToCount.forEach(drop -> drop.currentAmount = 0);
         LowerAvgBpsFailsafe.getInstance().resetStates();
@@ -279,6 +281,8 @@ public class ProfitCalculator implements IFeature {
         }
     }
 
+    private double previousCurrentPurse = 0;
+
     @SubscribeEvent(priority = EventPriority.LOW)
     public void onScoreboardUpdate(UpdateScoreboardLineEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
@@ -287,9 +291,11 @@ public class ProfitCalculator implements IFeature {
 
         ItemStack currentItem = mc.thePlayer.getHeldItem();
         if (currentItem != null && StringUtils.stripControlCodes(currentItem.getDisplayName()).startsWith("Bountiful")) {
+            if (GameStateHandler.getInstance().getCurrentPurse() == previousCurrentPurse) return;
             double value = GameStateHandler.getInstance().getCurrentPurse() - GameStateHandler.getInstance().getPreviousPurse();
             if (value > 0)
                 bountifulProfit += value;
+            previousCurrentPurse = GameStateHandler.getInstance().getCurrentPurse();
         }
     }
 

@@ -158,9 +158,10 @@ public class GameStateHandler {
                             lastLocation = location;
                             location = island;
                             foundLocation = true;
-                            continue;
+                            break;
                         }
                     }
+                    if (foundLocation) continue;
                 }
             }
             if (!hasGuestsOnTabList) {
@@ -300,6 +301,7 @@ public class GameStateHandler {
 
     private void checkCoins(String cleanedLine) {
         if (cleanedLine.contains("Purse:") || cleanedLine.contains("Piggy:")) {
+            if (cleanedLine.endsWith(",")) return;
             try {
                 String stringPurse = cleanedLine.split(" ")[1].replace(",", "").trim();
                 if (stringPurse.contains("(+")) {

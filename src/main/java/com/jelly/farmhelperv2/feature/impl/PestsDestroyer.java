@@ -96,6 +96,7 @@ public class PestsDestroyer implements IFeature {
 
     private boolean gotRangeOfVacuum = false;
     private boolean isPlotObstructed = false;
+    private long lastKillTimestamp = 0;
 
     private final List<Integer> killedPestsFrom = new ArrayList<>();
 
@@ -132,6 +133,7 @@ public class PestsDestroyer implements IFeature {
         gotRangeOfVacuum = false;
         isPlotObstructed = false;
         preparing = true;
+        lastKillTimestamp = 0;
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();
             MacroHandler.getInstance().getCurrentMacro().ifPresent(am -> am.setSavedState(Optional.empty()));
@@ -546,11 +548,10 @@ public class PestsDestroyer implements IFeature {
                 double distance = Math.sqrt(mc.thePlayer.getDistanceSq(PlotUtils.getPlotCenter(closestPlot.number)));
 
                 this.closestPlot = Optional.of(closestPlot);
-                if (distance > 80 && !isPlotObstructed) {
+                if (distance > 150 && !isPlotObstructed) {
                     state = States.TELEPORT_TO_PLOT;
                 } else {
                     state = States.FLY_TO_THE_CLOSEST_PLOT;
-                    isPlotObstructed = false;
                 }
                 delayClock.schedule((long) (500 + Math.random() * 500));
                 break;
@@ -857,11 +858,13 @@ public class PestsDestroyer implements IFeature {
                 break;
             case CHECK_ANOTHER_PEST:
                 LogUtils.sendDebug(GameStateHandler.getInstance().getPestsCount() + " pest" + (GameStateHandler.getInstance().getPestsCount() == 1 ? "" : "s") + " left");
-                if (GameStateHandler.getInstance().getCurrentPlotPestsCount() == 0 && GameStateHandler.getInstance().getPestsCount() <= 1 || GameStateHandler.getInstance().getPestsCount() == 0) {
+                if (GameStateHandler.getInstance().getPestsCount() == 0 ||
+                        (GameStateHandler.getInstance().getPestsCount() == 1 && GameStateHandler.getInstance().getCurrentPlotPestsCount() == 1 && System.currentTimeMillis() - lastKillTimestamp < 1_000)) {
                     state = States.GO_BACK;
                     delayClock.schedule((long) (500 + Math.random() * 500));
                     break;
                 }
+                isPlotObstructed = false;
                 Entity closestPest2 = getClosestPest();
                 KeyBindUtils.stopMovement();
                 if (closestPest2 != null) {
@@ -874,7 +877,7 @@ public class PestsDestroyer implements IFeature {
                     if (plotOpt != null) {
                         double distanceToPlot = Math.sqrt(mc.thePlayer.getDistanceSqToCenter(PlotUtils.getPlotCenter(plotOpt.number)));
                         LogUtils.sendDebug("Distance to plot: " + distanceToPlot);
-                        if (distanceToPlot < 100 || isPlotObstructed) {
+                        if (distanceToPlot < 150) {
                             LogUtils.sendDebug("Going manually to another plot");
                             state = States.GET_CLOSEST_PLOT;
                             delayClock.schedule(300 + (long) (Math.random() * 250));
@@ -1128,6 +1131,7 @@ public class PestsDestroyer implements IFeature {
         FlyPathFinderExecutor.getInstance().stop();
         lastFireworkLocation = Optional.empty();
         lastFireworkTime = 0;
+        lastKillTimestamp = System.currentTimeMillis();
         currentEntityTarget.ifPresent(e -> {
             if (!e.equals(event.entity)) {
                 return;

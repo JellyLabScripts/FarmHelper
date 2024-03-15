@@ -26,6 +26,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
@@ -439,12 +440,12 @@ public class VisitorsMacro implements IFeature {
                     setTravelState(TravelState.NONE);
                     return;
                 }
-                Entity character = PlayerUtils.getEntityCuttingOtherEntity(closest, (entity2 -> !entity2.getCustomNameTag().contains("CLICK")));
+                Entity character = PlayerUtils.getEntityCuttingOtherEntity(closest, (entity2 -> !(entity2 instanceof EntityArmorStand)));
                 LogUtils.sendDebug("[Visitors Macro] Closest visitor: " + closest.getCustomNameTag());
                 if (character != null) {
                     closest = character;
                 }
-                if (FarmHelperConfig.visitorsMacroUsePathFinder && mc.thePlayer.getDistance(closest.getPosition().getX(), mc.thePlayer.getPosition().getY(), closest.getPosition().getZ()) > 2.8) {
+                if (FarmHelperConfig.visitorsMacroUsePathFinder && mc.thePlayer.getDistance(closest.getPosition().getX(), mc.thePlayer.getPosition().getY(), closest.getPosition().getZ()) > 1.8) {
                     BaritoneHandler.walkCloserToBlockPos(closest.getPosition(), 2);
                     setTravelState(TravelState.END);
                 } else {
@@ -477,7 +478,7 @@ public class VisitorsMacro implements IFeature {
                     return;
                 }
                 LogUtils.sendDebug("[Visitors Macro] Closest visitor: " + closest2.getCustomNameTag());
-                if (mc.thePlayer.getDistance(closest2.getPosition().getX(), mc.thePlayer.getPosition().getY(), closest2.getPosition().getZ()) > 2.8) {
+                if (mc.thePlayer.getDistance(closest2.getPosition().getX(), mc.thePlayer.getPosition().getY(), closest2.getPosition().getZ()) > 1.8) {
                     KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, shouldJump() ? mc.gameSettings.keyBindJump : null);
                     stuckClock.schedule(STUCK_DELAY);
                     break;
@@ -742,30 +743,30 @@ public class VisitorsMacro implements IFeature {
                     // waiting
                     return;
                 }
-                Entity character = PlayerUtils.getEntityCuttingOtherEntity(closest, (entity2 -> !entity2.getCustomNameTag().contains("CLICK")));
+                VisitorEntities result = getVisitorEntities(closest);
 
-                if (character == null) {
+                if (result == null) {
                     LogUtils.sendError("[Visitors Macro] Couldn't find the character of closest visitor, restarting the macro...");
                     stop();
                     start();
                     return;
                 }
-                LogUtils.sendDebug("Position of visitor: " + character.getPositionEyes(1));
-                if (FarmHelperConfig.visitorsMacroUsePathFinder && mc.thePlayer.getDistance(character.getPosition().getX(), mc.thePlayer.getPosition().getY(), character.getPosition().getZ()) > 2.8) {
-                    BaritoneHandler.walkCloserToBlockPos(character.getPosition(), 2);
+                LogUtils.sendDebug("Position of visitor: " + result.entityCharacter.getPositionEyes(1));
+                if (FarmHelperConfig.visitorsMacroUsePathFinder && mc.thePlayer.getDistance(result.entityCharacter.getPosition().getX(), mc.thePlayer.getPosition().getY(), result.entityCharacter.getPosition().getZ()) > 1.8) {
+                    BaritoneHandler.walkCloserToBlockPos(result.entityCharacter.getPosition(), 2);
                     setVisitorsState(VisitorsState.OPEN_VISITOR);
                 } else {
                     rotation.easeTo(
                             new RotationConfiguration(
-                                    new Target(character),
+                                    new Target(result.entityCharacter),
                                     FarmHelperConfig.getRandomRotationTime(),
                                     null
                             ).easeOutBack(Math.random() > 0.5)
                     );
                     setVisitorsState(VisitorsState.GET_CLOSEST_VISITOR);
                 }
-                currentVisitor = Optional.of(closest);
-                currentCharacter = Optional.of(character);
+                currentVisitor = Optional.of(result.nameArmorStand);
+                currentCharacter = Optional.of(result.entityCharacter);
                 delayClock.schedule(FarmHelperConfig.getRandomRotationTime());
                 break;
             case GET_CLOSEST_VISITOR:
@@ -795,17 +796,18 @@ public class VisitorsMacro implements IFeature {
                 if (moveAwayIfPlayerTooClose()) return;
                 if (mc.objectMouseOver != null && mc.objectMouseOver.entityHit != null) {
                     Entity entity = mc.objectMouseOver.entityHit;
-                    Entity entity1 = PlayerUtils.getEntityCuttingOtherEntity(entity, (entity2 -> !entity2.getCustomNameTag().contains("CLICK")));
-                    assert currentCharacter.isPresent();
-                    if ((visitors.stream().anyMatch(v -> equalsWithoutFormatting(v, entity.getName()) || entity1 != null && equalsWithoutFormatting(v, entity1.getName())))) {
+                    VisitorEntities result2 = getVisitorEntities(entity);
+                    if (result2 == null) break;
+                    List<Entity> visitorsFiltered =
+                            mc.theWorld.getLoadedEntityList().stream()
+                                    .filter(e -> e instanceof EntityArmorStand)
+                                    .filter(e -> !servedCustomers.contains(e))
+                                    .filter(entity2 -> entity2.hasCustomName() && visitors.stream().anyMatch(v -> equalsWithoutFormatting(v, entity2.getName())))
+                                    .filter(entity2 -> entity2.hasCustomName() && ignoredNPCs.stream().noneMatch(s -> equalsWithoutFormatting(s, entity2.getName())))
+                                    .collect(Collectors.toList());
+
+                    if (visitorsFiltered.contains(result2.nameArmorStand)) {
                         LogUtils.sendDebug("[Visitors Macro] Looking at Visitor");
-                        if (entity instanceof EntityArmorStand) {
-                            currentVisitor = Optional.of(entity);
-                            currentCharacter = Optional.ofNullable(entity1);
-                        } else {
-                            currentVisitor = Optional.ofNullable(entity1);
-                            currentCharacter = Optional.of(entity);
-                        }
                         delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                         setVisitorsState(VisitorsState.GET_LIST);
                         KeyBindUtils.leftClick();
@@ -813,12 +815,19 @@ public class VisitorsMacro implements IFeature {
                         LogUtils.sendDebug("[Visitors Macro] Looking at something else");
                         LogUtils.sendDebug("[Visitors Macro] Looking at: " + entity.getName());
                         setVisitorsState(VisitorsState.ROTATE_TO_VISITOR);
+                        moveSideways();
                     }
                     break;
                 } else {
                     LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
-                    LogUtils.sendDebug("[Visitors Macro] Distance: " + mc.thePlayer.getDistanceToEntity(currentVisitor.get()));
-                    delayClock.schedule(300);
+                    LogUtils.sendDebug("[Visitors Macro] Distance: " + mc.thePlayer.getDistanceToEntity(currentCharacter.get()));
+                    if (mc.thePlayer.getDistanceToEntity(currentCharacter.get()) > 1.8) {
+                        KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, shouldJump() ? mc.gameSettings.keyBindJump : null, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
+                        stuckClock.schedule(STUCK_DELAY);
+                        break;
+                    }
+                    delayClock.schedule(200);
+                    KeyBindUtils.stopMovement();
                     setVisitorsState(VisitorsState.ROTATE_TO_VISITOR);
                 }
                 break;
@@ -1045,10 +1054,14 @@ public class VisitorsMacro implements IFeature {
                     mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, true);
                 }
                 assert currentVisitor.isPresent();
+                assert currentCharacter.isPresent();
+
                 if (mc.objectMouseOver != null && mc.objectMouseOver.entityHit != null) {
                     Entity entity = mc.objectMouseOver.entityHit;
-                    assert currentCharacter.isPresent();
-                    if (entity.equals(currentVisitor.get()) || entity.equals(currentCharacter.get()) || entity.getCustomNameTag().contains("CLICK") && entity.getDistanceToEntity(currentVisitor.get()) < 1) {
+                    VisitorEntities result2 = getVisitorEntities(entity);
+                    if (result2 == null) break;
+
+                    if (result2.entityCharacter.equals(currentVisitor.get()) || result2.entityCharacter.equals(currentCharacter.get()) || entity.equals(result2.entityClickStand)) {
                         LogUtils.sendDebug("[Visitors Macro] Looking at Visitor");
                         setVisitorsState(VisitorsState.OPEN_VISITOR_2);
                         delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
@@ -1056,9 +1069,8 @@ public class VisitorsMacro implements IFeature {
                     }
                 }
                 LogUtils.sendDebug("Position of visitor: " + currentCharacter.get().getPositionEyes(1));
-                if (FarmHelperConfig.visitorsMacroUsePathFinder && mc.thePlayer.getDistance(currentCharacter.get().getPosition().getX(), mc.thePlayer.getPosition().getY(), currentCharacter.get().getPosition().getZ()) > 2.8) {
+                if (FarmHelperConfig.visitorsMacroUsePathFinder && mc.thePlayer.getDistance(currentCharacter.get().getPosition().getX(), mc.thePlayer.getPosition().getY(), currentCharacter.get().getPosition().getZ()) > 1.8) {
                     BaritoneHandler.walkCloserToBlockPos(currentCharacter.get().getPosition(), 2);
-                    setVisitorsState(VisitorsState.OPEN_VISITOR);
                     setVisitorsState(VisitorsState.OPEN_VISITOR_2);
                 } else {
                     rotation.easeTo(
@@ -1081,18 +1093,21 @@ public class VisitorsMacro implements IFeature {
                 if (BaritoneHandler.isWalkingToGoalBlock(1.5)) return;
                 if (rotation.isRotating()) return;
                 assert currentVisitor.isPresent();
+                assert currentCharacter.isPresent();
                 if (moveAwayIfPlayerTooClose()) return;
                 if (mc.objectMouseOver != null && mc.objectMouseOver.entityHit != null) {
                     Entity entity = mc.objectMouseOver.entityHit;
+                    VisitorEntities result2 = getVisitorEntities(entity);
+                    if (result2 == null) break;
 
-                    assert currentCharacter.isPresent();
-                    if (entity.equals(currentVisitor.get()) || entity.equals(currentCharacter.get()) || entity.getCustomNameTag().contains("CLICK") && entity.getDistanceToEntity(currentVisitor.get()) < 1) {
+                    if (result2.nameArmorStand.equals(currentVisitor.get()) || result2.entityCharacter.equals(currentCharacter.get()) || entity.equals(result2.entityClickStand)) {
                         LogUtils.sendDebug("[Visitors Macro] Looking at Visitor");
                         KeyBindUtils.leftClick();
                     } else {
                         LogUtils.sendDebug("[Visitors Macro] Looking at someone else");
                         LogUtils.sendDebug("[Visitors Macro] Looking at: " + entity.getName());
-                        mc.playerController.interactWithEntitySendPacket(mc.thePlayer, entity);
+                        moveSideways();
+                        break;
                     }
                     setVisitorsState(VisitorsState.FINISH_VISITOR);
                     delayClock.schedule(getRandomDelay());
@@ -1100,13 +1115,13 @@ public class VisitorsMacro implements IFeature {
                 }
                 LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
                 LogUtils.sendDebug("[Visitors Macro] Distance: " + mc.thePlayer.getDistanceToEntity(currentCharacter.get()));
-                if (mc.thePlayer.getDistanceToEntity(currentCharacter.get()) > 2.8) {
+                if (mc.thePlayer.getDistanceToEntity(currentCharacter.get()) > 1.8) {
                     KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, shouldJump() ? mc.gameSettings.keyBindJump : null, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
                     stuckClock.schedule(STUCK_DELAY);
                     break;
                 }
                 stuckClock.schedule(STUCK_DELAY);
-                delayClock.schedule(300);
+                delayClock.schedule(150);
                 setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
                 break;
             case FINISH_VISITOR:
@@ -1170,47 +1185,110 @@ public class VisitorsMacro implements IFeature {
         }
     }
 
+    @Nullable
+    private VisitorEntities getVisitorEntities(Entity entity) {
+        Entity entityCharacter;
+        Entity nameArmorStand;
+        Entity entityClickStand;
+        if (entity instanceof EntityArmorStand) {
+            if (entity.getCustomNameTag().contains("CLICK")) {
+                Entity realName = PlayerUtils.getEntityCuttingOtherEntity(entity, (entity2 -> (entity2 instanceof EntityArmorStand) && !entity2.equals(entity)));
+                if (realName == null) {
+                    LogUtils.sendError("[Visitors Macro] Couldn't find the real name of the visitor");
+                    stop();
+                    return null;
+                }
+                entityClickStand = entity;
+                nameArmorStand = realName;
+            } else {
+                nameArmorStand = entity;
+                Entity realClick = PlayerUtils.getEntityCuttingOtherEntity(entity, (entity2 -> (entity2 instanceof EntityArmorStand) && entity2.getCustomNameTag().contains("CLICK")));
+                if (realClick == null) {
+                    LogUtils.sendError("[Visitors Macro] Couldn't find the real click of the visitor");
+                    stop();
+                    return null;
+                }
+                entityClickStand = realClick;
+            }
+            Entity realCharacter = PlayerUtils.getEntityCuttingOtherEntity(nameArmorStand, (entity2 -> !(entity2 instanceof EntityArmorStand)));
+            if (realCharacter == null) {
+                LogUtils.sendError("[Visitors Macro] Couldn't find the real character of the visitor");
+                stop();
+                return null;
+            }
+            entityCharacter = realCharacter;
+        } else {
+            entityCharacter = entity;
+            Entity realName = PlayerUtils.getEntityCuttingOtherEntity(entity, (entity2 -> (entity2 instanceof EntityArmorStand) && !entity2.getCustomNameTag().contains("CLICK")));
+            if (realName == null) {
+                LogUtils.sendError("[Visitors Macro] Couldn't find the real name of the visitor");
+                stop();
+                return null;
+            }
+            nameArmorStand = realName;
+            Entity realClick = PlayerUtils.getEntityCuttingOtherEntity(entity, (entity2 -> (entity2 instanceof EntityArmorStand) && entity2.getCustomNameTag().contains("CLICK")));
+            if (realClick == null) {
+                LogUtils.sendError("[Visitors Macro] Couldn't find the real click of the visitor");
+                stop();
+                return null;
+            }
+            entityClickStand = realClick;
+        }
+        return new VisitorEntities(entityCharacter, nameArmorStand, entityClickStand);
+    }
+
+    private static class VisitorEntities {
+        public final Entity entityCharacter;
+        public final Entity nameArmorStand;
+        public final Entity entityClickStand;
+
+        public VisitorEntities(Entity entityCharacter, Entity nameArmorStand, Entity entityClickStand) {
+            this.entityCharacter = entityCharacter;
+            this.nameArmorStand = nameArmorStand;
+            this.entityClickStand = entityClickStand;
+        }
+    }
+
     private Entity getClosestVisitor() {
-        return mc.theWorld.getLoadedEntityList().
-                stream().
-                filter(entity ->
-                        entity.hasCustomName() &&
-                                visitors.stream().anyMatch(
-                                        v ->
-                                                StringUtils.stripControlCodes(v).contains(StringUtils.stripControlCodes(entity.getCustomNameTag()))))
-                .filter(entity -> entity.getDistance(mc.thePlayer.posX, entity.posY, mc.thePlayer.posZ) < 10)
-                .filter(entity -> servedCustomers.stream().noneMatch(s -> s.equals(entity)))
-                .filter(entity -> servedCustomers.stream().noneMatch(s -> StringUtils.stripControlCodes(s.getCustomNameTag()).contains(StringUtils.stripControlCodes(entity.getCustomNameTag())) || StringUtils.stripControlCodes(entity.getCustomNameTag()).contains(StringUtils.stripControlCodes(s.getCustomNameTag()))))
-                .filter(entity -> ignoredNPCs.stream().noneMatch(s -> StringUtils.stripControlCodes(s).contains(StringUtils.stripControlCodes(entity.getCustomNameTag())) || StringUtils.stripControlCodes(entity.getCustomNameTag()).contains(StringUtils.stripControlCodes(s))))
-                .min(Comparator.comparingDouble(entity -> entity.getDistanceToEntity(mc.thePlayer)))
-                .orElse(null);
+        Optional<Entity> visitorsFiltered = mc.theWorld.getLoadedEntityList().stream()
+                .filter(e -> e instanceof EntityArmorStand)
+                .filter(e -> !servedCustomers.contains(e))
+                .filter(entity2 -> entity2.hasCustomName() && visitors.stream().anyMatch(v -> equalsWithoutFormatting(v, entity2.getName())))
+                .filter(entity2 -> entity2.hasCustomName() && ignoredNPCs.stream().noneMatch(s -> equalsWithoutFormatting(s, entity2.getName())))
+                .min(Comparator.comparingDouble(e -> mc.thePlayer.getDistanceToEntity(e)));
+        return visitorsFiltered.orElse(null);
     }
 
     private boolean equalsWithoutFormatting(String name1, String name2) {
-        return StringUtils.stripControlCodes(name1).equals(StringUtils.stripControlCodes(name2));
+        return StringUtils.stripControlCodes(name1.toLowerCase()).trim().equals(StringUtils.stripControlCodes(name2.toLowerCase()).trim());
     }
 
     private boolean moveAwayIfPlayerTooClose() {
         try {
             assert currentCharacter.isPresent();
-            if (mc.thePlayer.getDistanceToEntity(currentCharacter.get()) < 1.25) {
+            if (mc.thePlayer.getDistanceToEntity(currentCharacter.get()) < 0.25) {
                 if (GameStateHandler.getInstance().isBackWalkable()) {
                     KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
                     Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
                     return true;
                 }
-                if (GameStateHandler.getInstance().isLeftWalkable()) {
-                    KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
-                    Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
-                    return true;
-                }
-                if (GameStateHandler.getInstance().isRightWalkable()) {
-                    KeyBindUtils.holdThese(mc.gameSettings.keyBindRight, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
-                    Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
-                    return true;
-                }
+                if (moveSideways()) return true;
             }
         } catch (Exception ignored) {
+        }
+        return false;
+    }
+
+    private boolean moveSideways() {
+        if (GameStateHandler.getInstance().isLeftWalkable()) {
+            KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
+            Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
+            return true;
+        }
+        if (GameStateHandler.getInstance().isRightWalkable()) {
+            KeyBindUtils.holdThese(mc.gameSettings.keyBindRight, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
+            Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
+            return true;
         }
         return false;
     }

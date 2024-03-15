@@ -614,6 +614,7 @@ public class AutoSell implements IFeature {
         if (FarmHelperConfig.autoSellRunes && name.contains(" Rune") && !name.contains("Music")) return true;
         if (FarmHelperConfig.autoSellDeadBush && name.contains("Dead Bush")) return true;
         if (FarmHelperConfig.autoSellIronHoe && name.contains("Iron Hoe")) return true;
+        if (FarmHelperConfig.autoSellPestVinyls && name.contains("Vinyl")) return true;
         if (!FarmHelperConfig.autoSellCustomItems.isEmpty()) {
             List<String> customItems = Arrays.asList(FarmHelperConfig.autoSellCustomItems.split("\\|"));
             return customItems.stream().anyMatch(item -> StringUtils.stripControlCodes(name.toLowerCase()).contains(item.toLowerCase()));

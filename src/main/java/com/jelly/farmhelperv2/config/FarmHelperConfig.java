@@ -1484,6 +1484,9 @@ public class FarmHelperConfig extends Config {
     @Switch(name = "Iron Hoe", category = AUTO_SELL, subcategory = "Customize items sold to NPC")
     public static boolean autoSellIronHoe = true;
 
+    @Switch(name = "Pest Vinyls", category = AUTO_SELL, subcategory = "Customize items sold to NPC")
+    public static boolean autoSellPestVinyls = true;
+
     @Text(
             name = "Custom Items", category = AUTO_SELL, subcategory = "Customize items sold to NPC",
             description = "Add custom items to AutoSell here. Use | to split the messages.",
@@ -1608,7 +1611,7 @@ public class FarmHelperConfig extends Config {
     @Slider(
             name = "Time between changing rows", category = DELAYS, subcategory = "Changing rows",
             description = "The minimum time to wait before changing rows (in milliseconds)",
-            min = 70, max = 2000
+            min = 80, max = 2000
     )
     public static float timeBetweenChangingRows = 400f;
     @Slider(
