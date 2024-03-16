@@ -1,12 +1,18 @@
 package com.jelly.farmhelperv2.mixin.network;
 
-import com.jelly.farmhelperv2.event.*;
+import com.jelly.farmhelperv2.event.SpawnObjectEvent;
+import com.jelly.farmhelperv2.event.SpawnParticleEvent;
+import com.jelly.farmhelperv2.event.UpdateTablistEvent;
+import com.jelly.farmhelperv2.event.UpdateTablistFooterEvent;
 import com.jelly.farmhelperv2.util.TablistUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiPlayerTabOverlay;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.network.NetworkPlayerInfo;
-import net.minecraft.network.play.server.*;
+import net.minecraft.network.play.server.S0EPacketSpawnObject;
+import net.minecraft.network.play.server.S2APacketParticles;
+import net.minecraft.network.play.server.S38PacketPlayerListItem;
+import net.minecraft.network.play.server.S47PacketPlayerListHeaderFooter;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.common.MinecraftForge;
 import org.spongepowered.asm.mixin.Mixin;
@@ -89,12 +95,5 @@ public class MixinNetHandlerPlayClient {
         farmHelperV2$previousFooter.clear();
         farmHelperV2$previousFooter.addAll(footer);
         MinecraftForge.EVENT_BUS.post(new UpdateTablistFooterEvent(footer));
-    }
-
-    @Inject(method = "handleTeams", at = @At("RETURN"))
-    public void handleTeams(S3EPacketTeams packetIn, CallbackInfo ci) {
-        String updated = packetIn.getPrefix() + packetIn.getSuffix();
-        String updatedUnformatted = StringUtils.stripControlCodes(updated);
-        MinecraftForge.EVENT_BUS.post(new UpdateScoreboardLineEvent(updatedUnformatted));
     }
 }

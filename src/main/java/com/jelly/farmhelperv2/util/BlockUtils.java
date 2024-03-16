@@ -4,7 +4,6 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
-import com.jelly.farmhelperv2.pathfinder.WorldCache;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
@@ -817,20 +816,8 @@ public class BlockUtils {
         BlockPos blockpos = new BlockPos(x, y, z);
         IBlockState blockState = blockaccess.getBlockState(blockpos);
         Block block = blockState.getBlock();
-        WorldCache.CacheEntry pathnodetype = WorldCache.getInstance().getWorldCache().get(blockpos);
-        if (pathnodetype != null) {
-            if (pathnodetype.getBlock().equals(blockaccess.getBlockState(blockpos).getBlock()))
-                return pathnodetype.getPathNodeType() == PathNodeType.OPEN;
-        }
-        if (blockHasCollision(blockpos, blockState, block, blockaccess)) {
-            WorldCache.getInstance().getWorldCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.BLOCKED));
-            if (block instanceof BlockFenceGate) {
-                WorldCache.getInstance().getWorldCache().put(blockpos.up(), new WorldCache.CacheEntry(blockaccess.getBlockState(blockpos.up()).getBlock(), blockpos.up(), PathNodeType.BLOCKED));
-            }
-            return false;
-        }
-        WorldCache.getInstance().getWorldCache().put(blockpos, new WorldCache.CacheEntry(block, blockpos, PathNodeType.OPEN));
-        return true;
+
+        return !blockHasCollision(blockpos, blockState, block, blockaccess);
     }
 
     public static List<BlockPos> getBlocksInBB(AxisAlignedBB bb) {

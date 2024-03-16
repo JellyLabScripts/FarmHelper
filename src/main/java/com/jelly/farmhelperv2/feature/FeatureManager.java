@@ -35,6 +35,7 @@ public class FeatureManager {
                 LeaveTimer.getInstance(),
                 PerformanceMode.getInstance(),
                 PestsDestroyer.getInstance(),
+                PestsDestroyerOnTheTrack.getInstance(),
                 AutoSprayonator.getInstance(),
                 PetSwapper.getInstance(),
                 PlotCleaningHelper.getInstance(),
