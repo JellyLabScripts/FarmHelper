@@ -91,7 +91,7 @@ public class MixinNetHandlerPlayClient {
         MinecraftForge.EVENT_BUS.post(new UpdateTablistFooterEvent(footer));
     }
 
-    @Inject(method = "handleTeams", at = @At("HEAD"))
+    @Inject(method = "handleTeams", at = @At("RETURN"))
     public void handleTeams(S3EPacketTeams packetIn, CallbackInfo ci) {
         String updated = packetIn.getPrefix() + packetIn.getSuffix();
         String updatedUnformatted = StringUtils.stripControlCodes(updated);

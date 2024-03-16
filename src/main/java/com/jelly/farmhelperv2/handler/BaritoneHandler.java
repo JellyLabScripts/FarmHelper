@@ -41,7 +41,7 @@ public class BaritoneHandler {
                 pathing = false;
                 return false;
             }
-            return true;
+            return BaritoneEventListener.pathEvent != PathEvent.CANCELED;
         }
         return false;
     }

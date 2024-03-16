@@ -29,6 +29,7 @@ import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -97,6 +98,7 @@ public class PestsDestroyer implements IFeature {
     private boolean gotRangeOfVacuum = false;
     private boolean isPlotObstructed = false;
     private long lastKillTimestamp = 0;
+    private int previousCurrentPlotPestsCount = 0;
 
     private final List<Integer> killedPestsFrom = new ArrayList<>();
 
@@ -853,17 +855,20 @@ public class PestsDestroyer implements IFeature {
                                 null
                         ));
                     }
-                    KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindUseItem, distance2 < 4.5);
+                    KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindUseItem, distance2 < currentVacuumRange);
                 }
                 break;
             case CHECK_ANOTHER_PEST:
+                if (previousCurrentPlotPestsCount == GameStateHandler.getInstance().getCurrentPlotPestsCount() && System.currentTimeMillis() - lastKillTimestamp < 2_000)
+                    return;
+
                 LogUtils.sendDebug(GameStateHandler.getInstance().getPestsCount() + " pest" + (GameStateHandler.getInstance().getPestsCount() == 1 ? "" : "s") + " left");
-                if (GameStateHandler.getInstance().getPestsCount() == 0 ||
-                        (GameStateHandler.getInstance().getPestsCount() == 1 && GameStateHandler.getInstance().getCurrentPlotPestsCount() == 1 && System.currentTimeMillis() - lastKillTimestamp < 1_000)) {
+                if (GameStateHandler.getInstance().getPestsCount() == 0) {
                     state = States.GO_BACK;
                     delayClock.schedule((long) (500 + Math.random() * 500));
                     break;
                 }
+                System.out.println("Curr plot pests: " + GameStateHandler.getInstance().getCurrentPlotPestsCount());
                 isPlotObstructed = false;
                 Entity closestPest2 = getClosestPest();
                 KeyBindUtils.stopMovement();
@@ -1105,7 +1110,7 @@ public class PestsDestroyer implements IFeature {
         return mop == null || mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && (mc.theWorld.getBlockState(mop.getBlockPos()).getBlock().equals(Blocks.cactus) || !BlockUtils.hasCollision(mop.getBlockPos()));
     }
 
-    @SubscribeEvent(receiveCanceled = true)
+    @SubscribeEvent(receiveCanceled = true, priority = EventPriority.HIGHEST)
     public void onEntityDeath(LivingDeathEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
@@ -1113,6 +1118,11 @@ public class PestsDestroyer implements IFeature {
         Entity entity = event.entity;
         LogUtils.sendDebug("[Pests Destroyer] Entity died: " + entity.getName() + "(" + entity.getEntityId() + ")" + " at: " + entity.getPosition());
         killedEntities.add(entity);
+        if (mc.thePlayer.getDistanceToEntity(entity) < 20) {
+            lastKillTimestamp = System.currentTimeMillis();
+            previousCurrentPlotPestsCount = GameStateHandler.getInstance().getCurrentPlotPestsCount();
+            state = States.CHECK_ANOTHER_PEST;
+        }
         if (entity instanceof EntityArmorStand) {
             Entity realEntity = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityBat || e instanceof EntitySilverfish);
             if (realEntity != null) {
@@ -1131,7 +1141,6 @@ public class PestsDestroyer implements IFeature {
         FlyPathFinderExecutor.getInstance().stop();
         lastFireworkLocation = Optional.empty();
         lastFireworkTime = 0;
-        lastKillTimestamp = System.currentTimeMillis();
         currentEntityTarget.ifPresent(e -> {
             if (!e.equals(event.entity)) {
                 return;
@@ -1139,8 +1148,6 @@ public class PestsDestroyer implements IFeature {
             KeyBindUtils.stopMovement();
             currentEntityTarget = Optional.empty();
             stuckClock.reset();
-            state = States.CHECK_ANOTHER_PEST;
-            delayClock.schedule(150);
         });
         PlotUtils.Plot plot = PlotUtils.getPlotNumberBasedOnLocation(entity.getPosition());
         if (plot == null) {
