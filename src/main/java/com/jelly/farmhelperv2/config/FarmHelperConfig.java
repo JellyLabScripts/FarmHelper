@@ -1069,22 +1069,6 @@ public class FarmHelperConfig extends Config {
     public static boolean flyPathfinderOringoCompatible = false;
 
     @Switch(
-            name = "Use caching in fly pathfinder",
-            description = "Speeds up finding path (You need to re-enter the world to trigger first caching scan)",
-            category = PESTS_DESTROYER, subcategory = "Pests Destroyer"
-    )
-    public static boolean useCachingInFlyPathfinder = true;
-
-    @Info(
-            text = "You need to have at least 4 GB of RAM to use the fly pathfinder caching feature to avoid stutters.",
-            type = InfoType.INFO,
-            category = PESTS_DESTROYER,
-            subcategory = "Pests Destroyer",
-            size = 2
-    )
-    public static boolean pestsDestroyerInfo2;
-
-    @Switch(
             name = "Pause the Pests Destroyer during Jacob's contests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Pauses the Pests Destroyer during Jacob's contests",
             size = 2
@@ -1108,6 +1092,28 @@ public class FarmHelperConfig extends Config {
             category = PESTS_DESTROYER, subcategory = "Pests Destroyer"
     )
     public static boolean pestsDestroyerAfkInfiniteMode = false;
+
+    @Switch(
+            name = "Pests Destroyer on the track",
+            description = "Will kill pests if they are in your range while farming",
+            category = PESTS_DESTROYER, subcategory = "Pests Destroyer on the track"
+    )
+    public static boolean pestsDestroyerOnTheTrack = false;
+
+    @Slider(
+            name = "Pests Destroyer on the track FOV",
+            description = "The field of view of the pests destroyer on the track",
+            category = PESTS_DESTROYER, subcategory = "Pests Destroyer on the track",
+            min = 1, max = 360
+    )
+    public static int pestsDestroyerOnTheTrackFOV = 360;
+
+    @Switch(
+            name = "Don't kill pests on track during Jacob's Contest",
+            description = "Prevents the macro from killing pests on the track during Jacob's Contest",
+            category = PESTS_DESTROYER, subcategory = "Pests Destroyer on the track"
+    )
+    public static boolean dontKillPestsOnTrackDuringJacobsContest = true;
 
     @KeyBind(
             name = "Enable Pests Destroyer", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
@@ -1756,11 +1762,6 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean showRotationDebugMessages = false;
 
-    @Switch(
-            name = "Show debug pathfinding route", category = DEBUG, subcategory = "Debug",
-            description = "Shows debug pathfinding route"
-    )
-    public static boolean showDebugPathfindingRoute = false;
 
     //</editor-fold>
 
@@ -2020,6 +2021,10 @@ public class FarmHelperConfig extends Config {
         this.addDependency("captureClipKeybind", "", () -> captureClipAfterFailsafe || captureClipAfterGettingBanned);
         this.addDependency("clipCapturingType", "", () -> captureClipAfterFailsafe || captureClipAfterGettingBanned);
         this.addDependency("captureClipDelay", "", () -> captureClipAfterFailsafe || captureClipAfterGettingBanned);
+
+        this.addDependency("pestsDestroyerOnTheTrackFOV", "pestsDestroyerOnTheTrack");
+        this.addDependency("dontKillPestsOnTrackDuringJacobsContest", "pestsDestroyerOnTheTrack");
+
 
         this.addDependency("leaveTime", "leaveTimer");
 

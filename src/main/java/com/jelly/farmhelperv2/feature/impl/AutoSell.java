@@ -554,7 +554,6 @@ public class AutoSell implements IFeature {
         if (!isRunning()) return;
 
         if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
-            event.setCanceled(true);
             LogUtils.sendWarning("[Auto Sell] Stopping Auto Sell manually");
             stop();
         }

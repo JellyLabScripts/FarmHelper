@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
 
 public class ScoreboardUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private static List<String> cachedScoreboardLines = new ArrayList<>();
-    private static List<String> cachedCleanScoreboardLines = new ArrayList<>();
+    public static List<String> cachedScoreboardLines = new ArrayList<>();
+    public static List<String> cachedCleanScoreboardLines = new ArrayList<>();
 
     public static List<String> getScoreboardLines(boolean clean) {
         return (clean ? cachedCleanScoreboardLines : cachedScoreboardLines);
@@ -68,10 +68,10 @@ public class ScoreboardUtils {
             cleanScoreboardLines.add(cleanSB(playerName));
         }
 
-        if (previousScoreboard.equals(scoreboardLines)) return;
+        if (previousScoreboard.equals(cleanScoreboardLines)) return;
 
         previousScoreboard.clear();
-        previousScoreboard.addAll(scoreboardLines);
+        previousScoreboard.addAll(cleanScoreboardLines);
         cachedScoreboardLines = scoreboardLines;
         cachedCleanScoreboardLines = cleanScoreboardLines;
         MinecraftForge.EVENT_BUS.post(new UpdateScoreboardListEvent(scoreboardLines, cleanScoreboardLines, currentTime));
@@ -81,7 +81,7 @@ public class ScoreboardUtils {
         StringBuilder cleaned = new StringBuilder();
 
         for (char c : StringUtils.stripControlCodes(scoreboard).toCharArray()) {
-            if (c >= 32 && c < 127) {
+            if (c >= 32 && c < 127 || c == 'ൠ') {
                 cleaned.append(c);
             }
         }

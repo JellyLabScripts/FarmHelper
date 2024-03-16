@@ -347,7 +347,7 @@ public class GameStateHandler {
     private void checkCurrentPests(List<String> list) {
         int pestsCountTemp = 0;
         for (String cleanedLine : list) {
-            if (cleanedLine.contains("The Garden") && cleanedLine.contains("x")) {
+            if (cleanedLine.contains("The Garden") && cleanedLine.contains("ൠ")) {
                 try {
                     String[] split = cleanedLine.trim().split(" ");
                     int temp = Integer.parseInt(split[split.length - 1].trim().replace("x", ""));
@@ -375,7 +375,11 @@ public class GameStateHandler {
                     currentPlotPestsCount = 0;
                 }
             } else if (cleanedLine.contains("Plot")) {
-                currentPlotPestsCount = 0;
+                if (cleanedLine.contains("ൠ")) {
+                    currentPlotPestsCount = 1;
+                } else {
+                    currentPlotPestsCount = 0;
+                }
             }
         }
         if (pestsCountTemp != pestsCount) {

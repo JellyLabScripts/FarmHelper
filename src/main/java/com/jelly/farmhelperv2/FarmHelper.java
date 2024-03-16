@@ -16,7 +16,6 @@ import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
-import com.jelly.farmhelperv2.pathfinder.WorldCache;
 import com.jelly.farmhelperv2.remote.DiscordBotHandler;
 import com.jelly.farmhelperv2.remote.WebsocketHandler;
 import com.jelly.farmhelperv2.util.*;
@@ -25,10 +24,7 @@ import com.jelly.farmhelperv2.util.helper.BaritoneEventListener;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import com.jelly.farmhelperv2.util.helper.TickTask;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.Vec3;
 import net.minecraftforge.client.ClientCommandHandler;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
@@ -37,7 +33,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.Display;
 
-import java.awt.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -98,11 +93,6 @@ public class FarmHelper {
             Notifications.INSTANCE.send("FarmHelper", "Pests Killer Ticks Of Not Seeing Pest While Attacking has been set to 100 ticks because of a bug in the previous version.", 15000);
             LogUtils.sendWarning("Pests Killer Ticks Of Not Seeing Pest While Attacking has been set to 100 ticks because of a bug in the previous version.");
         }
-        if (getAllocatedMemoryMB() < 2500 && FarmHelperConfig.useCachingInFlyPathfinder) {
-            FarmHelperConfig.useCachingInFlyPathfinder = false;
-            Notifications.INSTANCE.send("FarmHelper", "You don't have enough of RAM allocated to Minecraft need for pathfinder caching! Disabling it...", 15000);
-            LogUtils.sendWarning("You don't have enough of RAM allocated to Minecraft need for pathfinder caching. Disabling it... It's recommended to have at least 4GB of RAM allocated to Minecraft to avoid stutters.");
-        }
         if (!FarmHelperConfig.flyPathfinderOringoCompatible && ReflectionUtils.hasModFile("oringo")) {
             FarmHelperConfig.flyPathfinderOringoCompatible = true;
             Notifications.INSTANCE.send("FarmHelper", "You've got Oringo installed in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.", 15000);
@@ -126,7 +116,6 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(AudioManager.getInstance());
         MinecraftForge.EVENT_BUS.register(RotationHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(FlyPathfinder.getInstance());
-        MinecraftForge.EVENT_BUS.register(WorldCache.getInstance());
         MinecraftForge.EVENT_BUS.register(FlyPathFinderExecutor.getInstance());
         MinecraftForge.EVENT_BUS.register(new TablistUtils());
         MinecraftForge.EVENT_BUS.register(new ScoreboardUtils());
@@ -139,30 +128,6 @@ public class FarmHelper {
     private void initializeCommands() {
         ClientCommandHandler.instance.registerCommand(new RewarpCommand());
         CommandManager.register(new FarmHelperMainCommand());
-    }
-
-    @SubscribeEvent
-    public void onLastRender(RenderWorldLastEvent event) {
-        if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!FarmHelperConfig.showDebugPathfindingRoute) return;
-        if (FarmHelperConfig.streamerMode) return;
-
-        Vec3 position = mc.thePlayer.getPositionVector();
-
-        for (int x = (int) (position.xCoord - 5); x < position.xCoord + 5; x++) {
-            for (int y = (int) (position.yCoord - 5); y < position.yCoord + 5; y++) {
-                for (int z = (int) (position.zCoord - 5); z < position.zCoord + 5; z++) {
-                    WorldCache.CacheEntry pathNodeType = WorldCache.getInstance().getWorldCache().get(new BlockPos(x, y, z));
-                    if (pathNodeType == null)
-                        continue;
-                    if (pathNodeType.getPathNodeType().equals(BlockUtils.PathNodeType.OPEN)) {
-                        RenderUtils.drawBlockBox(new BlockPos(x, y, z), new Color(0, 200, 0, 35));
-                    } else if (pathNodeType.getPathNodeType().equals(BlockUtils.PathNodeType.BLOCKED)) {
-                        RenderUtils.drawBlockBox(new BlockPos(x, y, z), new Color(200, 0, 0, 35));
-                    }
-                }
-            }
-        }
     }
 
     public int getAllocatedMemoryMB() {

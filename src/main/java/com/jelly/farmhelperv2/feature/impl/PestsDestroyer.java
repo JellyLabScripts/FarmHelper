@@ -93,7 +93,8 @@ public class PestsDestroyer implements IFeature {
         put("InfiniVacuum™ Hooverius", 15F);
         put("InfiniVacuum", 12.5F);
     }};
-    private float currentVacuumRange = 5F;
+    @Getter
+    private float currentVacuumRange = -1;
 
     private boolean gotRangeOfVacuum = false;
     private boolean isPlotObstructed = false;
@@ -188,6 +189,7 @@ public class PestsDestroyer implements IFeature {
     @Override
     public void resetStatesAfterMacroDisabled() {
         stop();
+        gotRangeOfVacuum = false;
         if (!FarmHelperConfig.pestsDestroyerAfkInfiniteMode) return;
         FarmHelperConfig.pestsDestroyerAfkInfiniteMode = false;
         LogUtils.sendWarning("[Pests Destroyer] AFK Mode has been disabled");
@@ -273,8 +275,7 @@ public class PestsDestroyer implements IFeature {
         if (mc.currentScreen == null && checkedThisGui) {
             checkedThisGui = false;
         }
-        if (!isToggled()) return;
-        if (!gotRangeOfVacuum) {
+        if (!gotRangeOfVacuum && (isToggled() || PestsDestroyerOnTheTrack.getInstance().isToggled())) {
             Slot vacuumSlot = InventoryUtils.getSlotOfItemInInventory("Vacuum");
             if (vacuumSlot != null) {
                 ItemStack vacuumItem = vacuumSlot.getStack();
@@ -288,6 +289,7 @@ public class PestsDestroyer implements IFeature {
                 }
             }
         }
+        if (!isToggled()) return;
         if (event.phase != TickEvent.Phase.START) return;
         if (!GameStateHandler.getInstance().inGarden() && escapeState == EscapeState.NONE) return;
         if (!enabled) return;
@@ -909,11 +911,6 @@ public class PestsDestroyer implements IFeature {
         Entity closestPest = null;
         double closestDistance = Double.MAX_VALUE;
         for (Entity entity : pestsLocations) {
-            if (killedEntities.contains(entity)) continue;
-            Entity realEntity = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityBat || e instanceof EntitySilverfish);
-            if (realEntity != null && (killedEntities.contains(realEntity) || realEntity.isDead)) continue;
-            if (mc.thePlayer.getDistanceToEntity(entity) < 5 && killedEntities.stream().anyMatch(ke -> ke.getDistanceToEntity(entity) < 1.5))
-                continue;
             double distance = mc.thePlayer.getDistanceToEntity(entity);
             if (distance < closestDistance) {
                 closestDistance = distance;
@@ -923,7 +920,7 @@ public class PestsDestroyer implements IFeature {
         return closestPest;
     }
 
-    private boolean getVacuum(ItemStack currentItem2) {
+    public boolean getVacuum(ItemStack currentItem2) {
         if (currentItem2 == null || !currentItem2.getDisplayName().contains("Vacuum")) {
             int vacuum = InventoryUtils.getSlotIdOfItemInHotbar("Vacuum");
             if (vacuum == -1) {
@@ -1029,6 +1026,8 @@ public class PestsDestroyer implements IFeature {
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (FarmHelperConfig.streamerMode) return;
 
+        killedEntities.removeIf(e -> !mc.theWorld.loadedEntityList.contains(e));
+
         List<Entity> pests = mc.theWorld.loadedEntityList.stream().filter(entity -> {
             if (entity.isDead) return false;
             if (entity.posY < 50) return false;
@@ -1038,7 +1037,13 @@ public class PestsDestroyer implements IFeature {
                 if (itemStack != null && itemStack.hasTagCompound()) {
                     String displayName = itemStack.getTagCompound().toString();
                     if (!displayName.contains("display:")) {
-                        return this.pests.stream().anyMatch(pest -> displayName.contains(pest.getSecond()));
+                        if (this.pests.stream().anyMatch(pest -> displayName.contains(pest.getSecond()))) {
+                            if (killedEntities.contains(entity)) return false;
+                            Entity realEntity = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityBat || e instanceof EntitySilverfish);
+                            if (realEntity != null && (killedEntities.contains(realEntity) || realEntity.isDead))
+                                return false;
+                            return killedEntities.stream().noneMatch(ke -> ke.getDistanceToEntity(entity) < 1.5);
+                        }
                     }
                 }
             }
@@ -1056,8 +1061,10 @@ public class PestsDestroyer implements IFeature {
             boundingBox = boundingBox.offset(-d0, -d1, -d2);
             if (FarmHelperConfig.pestsESP) {
                 Color color = FarmHelperConfig.pestsESPColor.toJavaColor();
-                if (canEntityBeSeenIgnoreNonCollidable(entity)) {
-                    color = new Color(color.getRed(), color.getGreen(), color.getBlue(), Math.min(50, color.getAlpha()));
+                Vec3 entityPos = new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ);
+                boolean isInVacuumRange = mc.thePlayer.getPositionEyes(1).distanceTo(entityPos) < currentVacuumRange;
+                if (isInVacuumRange) {
+                    color = new Color(color.getRed(), 255, color.getBlue(), Math.min(50, color.getAlpha()));
                 }
                 float distance = mc.thePlayer.getDistanceToEntity(entity);
                 if (distance > 5) {
@@ -1284,7 +1291,7 @@ public class PestsDestroyer implements IFeature {
     private PlotUtils.Plot getClosestPlot() {
         List<Integer> infestedPlots = GameStateHandler.getInstance().getInfestedPlots();
         if (infestedPlots.isEmpty()) {
-            LogUtils.sendDebug("[Pests Destroyer] No infested plots found");
+            LogUtils.sendError("[Pests Destroyer] Couldn't find infested plots on Tablist! Make sure you have it enabled in Tablist Widgets");
             return null;
         }
         if (GameStateHandler.getInstance().getCurrentPlotPestsCount() == 0) {
