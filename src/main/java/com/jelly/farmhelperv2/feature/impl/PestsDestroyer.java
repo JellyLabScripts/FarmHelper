@@ -1040,8 +1040,13 @@ public class PestsDestroyer implements IFeature {
                         if (this.pests.stream().anyMatch(pest -> displayName.contains(pest.getSecond()))) {
                             if (killedEntities.contains(entity)) return false;
                             Entity realEntity = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityBat || e instanceof EntitySilverfish);
-                            if (realEntity != null && (killedEntities.contains(realEntity) || realEntity.isDead))
+                            Entity nameEntity = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityArmorStand && e != entity);
+                            if (realEntity != null && (killedEntities.contains(realEntity) || realEntity.isDead)) {
                                 return false;
+                            }
+                            if (nameEntity != null && (killedEntities.contains(nameEntity))) {
+                                return false;
+                            }
                             return killedEntities.stream().noneMatch(ke -> ke.getDistanceToEntity(entity) < 1.5);
                         }
                     }
@@ -1132,16 +1137,26 @@ public class PestsDestroyer implements IFeature {
         }
         if (entity instanceof EntityArmorStand) {
             Entity realEntity = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityBat || e instanceof EntitySilverfish);
+            Entity nameEntity = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityArmorStand && e != entity);
             if (realEntity != null) {
                 LogUtils.sendDebug("[Pests Destroyer] Found real entity: " + realEntity.getName() + "(" + realEntity.getEntityId() + ")" + " at: " + realEntity.getPosition());
                 killedEntities.add(realEntity);
             }
+            if (nameEntity != null) {
+                LogUtils.sendDebug("[Pests Destroyer] Found name entity: " + nameEntity.getName() + "(" + nameEntity.getEntityId() + ")" + " at: " + nameEntity.getPosition());
+                killedEntities.add(nameEntity);
+            }
         }
         if (entity instanceof EntityBat || entity instanceof EntitySilverfish) {
-            Entity armorStand = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityArmorStand);
+            Entity armorStand = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityArmorStand && e.getName().contains("Armor Stand"));
+            Entity nameEntity = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityArmorStand && e != armorStand);
             if (armorStand != null) {
                 LogUtils.sendDebug("[Pests Destroyer] Found armor stand: " + armorStand.getName() + "(" + armorStand.getEntityId() + ")" + " at: " + armorStand.getPosition());
                 killedEntities.add(armorStand);
+            }
+            if (nameEntity != null) {
+                LogUtils.sendDebug("[Pests Destroyer] Found name entity: " + nameEntity.getName() + "(" + nameEntity.getEntityId() + ")" + " at: " + nameEntity.getPosition());
+                killedEntities.add(nameEntity);
             }
         }
         RotationHandler.getInstance().reset();

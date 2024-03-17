@@ -73,8 +73,6 @@ public class RotationHandler {
         targetRotation.setYaw(startRotation.getYaw() + neededChange.getYaw());
         targetRotation.setPitch(startRotation.getPitch() + neededChange.getPitch());
 
-        LogUtils.sendDebug("[Rotation] Needed change: " + neededChange.getYaw() + " " + neededChange.getPitch());
-
         float absYaw = Math.max(Math.abs(neededChange.getYaw()), 1);
         float absPitch = Math.max(Math.abs(neededChange.getPitch()), 1);
         float pythagoras = pythagoras(absYaw, absPitch);
@@ -109,8 +107,6 @@ public class RotationHandler {
         Rotation neededChange = getNeededChange(startRotation, new Rotation(clientSideYaw, clientSidePitch));
         targetRotation.setYaw(startRotation.getYaw() + neededChange.getYaw());
         targetRotation.setPitch(startRotation.getPitch() + neededChange.getPitch());
-
-        LogUtils.sendDebug("[Rotation] Needed change: " + neededChange.getYaw() + " " + neededChange.getPitch());
 
         float time = configuration.time();
         endTime = System.currentTimeMillis() + Math.max((long) time, 50);
@@ -208,7 +204,6 @@ public class RotationHandler {
     }
 
     public void reset() {
-        LogUtils.sendDebug("[Rotation] Resetting");
         rotating = false;
         configuration = null;
         startTime = 0;

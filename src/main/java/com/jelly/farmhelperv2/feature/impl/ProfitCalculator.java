@@ -400,7 +400,6 @@ public class ProfitCalculator implements IFeature {
         Optional<String> optional = rngToCountList.stream().filter(message::contains).findFirst();
         if (optional.isPresent()) {
             String name = optional.get();
-            LogUtils.sendDebug("RNG DROP. Adding " + name + " to rng drops");
             addRngDrop(name);
             return;
         }
@@ -425,7 +424,6 @@ public class ProfitCalculator implements IFeature {
             if (matcher.group(2).contains("Block") || matcher.group(2).contains("Polished")) {
                 amountDropped *= 160;
             }
-            LogUtils.sendDebug("RNG DROP. Adding " + amountDropped + " " + itemDropped + " to drops");
             addDroppedItem(itemDropped, amountDropped);
         }
     }

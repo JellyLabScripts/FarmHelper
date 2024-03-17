@@ -104,8 +104,18 @@ public class PestsDestroyerOnTheTrack implements IFeature {
         if (!isToggled()) return;
 
         if (getPest(true).isPresent()) {
-            start();
-            delayStart.schedule(500);
+            if (delayStart.isScheduled() && delayStart.passed()) {
+                start();
+                return;
+            }
+            if (delayStart.isScheduled() && !delayStart.passed()) return;
+            if (!delayStart.isScheduled()) {
+                delayStart.reset();
+                delayStart.schedule(1_500);
+                LogUtils.sendDebug("[" + getName() + "] Found pest, waiting for him to stay in range!");
+            }
+        } else {
+            delayStart.reset();
         }
     }
 
@@ -118,7 +128,9 @@ public class PestsDestroyerOnTheTrack implements IFeature {
             stop();
             return;
         }
-        if (delayStart.isScheduled() && !delayStart.passed()) return;
+
+        ItemStack currentItem = mc.thePlayer.getHeldItem();
+        PestsDestroyer.getInstance().getVacuum(currentItem);
 
         Optional<Entity> entity = getPest(false);
         if (entity.isPresent()) {
@@ -152,7 +164,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
                         float yaw = (float) Math.toDegrees(Math.atan2(zDiff, xDiff)) - 90F;
                         return dist <= vacuumRange - 2 && yaw < FarmHelperConfig.pestsDestroyerOnTheTrackFOV / 2f;
                     }
-                    return dist <= vacuumRange - 2;
+                    return dist <= vacuumRange + 1.5;
                 }).min((e1, e2) -> {
                     double d1 = e1.getDistanceToEntity(mc.thePlayer);
                     double d2 = e2.getDistanceToEntity(mc.thePlayer);

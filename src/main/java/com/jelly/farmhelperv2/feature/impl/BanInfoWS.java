@@ -584,7 +584,6 @@ public class BanInfoWS implements IFeature {
                             }
                         }
                         receivedBanwaveInfo = true;
-                        System.out.println("Banwave info received: " + bans + " global staff bans in the last " + minutes + " minutes, " + bansByMod + " bans by this mod");
                         break;
                     }
                     case "playerGotBanned": {
