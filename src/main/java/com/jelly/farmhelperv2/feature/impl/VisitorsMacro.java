@@ -1448,6 +1448,14 @@ public class VisitorsMacro implements IFeature {
             PlayerUtils.closeScreen();
             delayClock.schedule(getRandomDelay());
         }
+        if (msg.startsWith("[Bazaar] You don't have enough inventory space")) {
+            LogUtils.sendWarning("[Visitors Macro] You don't have enough inventory space! Ignoring that visitor...");
+            servedCustomers.remove(currentVisitor.get());
+            ignoredNPCs.add(currentVisitor.get());
+            setVisitorsState(VisitorsState.ROTATE_TO_VISITOR);
+            PlayerUtils.closeScreen();
+            delayClock.schedule(getRandomDelay());
+        }
     }
 
     public enum MainState {

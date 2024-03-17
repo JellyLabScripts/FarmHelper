@@ -233,6 +233,8 @@ public class RotationFailsafe extends Failsafe {
     }
 
     private boolean checkIfRotatedBack() {
+        if (rotationBeforeReacting == null) // Test failsafe
+            return true;
         if ((Math.abs(AngleUtils.get360RotationYaw(rotationBeforeReacting.getYaw()) - AngleUtils.get360RotationYaw()) < 0.1)
                 && (Math.abs(AngleUtils.get360RotationYaw(rotationBeforeReacting.getPitch()) - mc.thePlayer.rotationPitch) < 0.1)) {
             FailsafeManager.getInstance().stopFailsafes();

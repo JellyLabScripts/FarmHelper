@@ -458,7 +458,8 @@ public class FarmHelperConfig extends Config {
             FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected));
         else if (testFailsafeTypeSelected != 6)
             LowerAvgBpsFailsafe.getInstance().clearQueue(); // Clear the queue to avoid false positives
-        FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected + 2));
+        else
+            FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected + 2));
     };
 
     @Dropdown(
