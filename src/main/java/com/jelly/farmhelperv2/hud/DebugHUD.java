@@ -34,8 +34,9 @@ public class DebugHUD extends TextHud {
             lines.add("Yaw Difference: " + MovRecPlayer.getYawDifference());
         }
         lines.add("Bountiful: " + ProfitCalculator.getInstance().getBountifulProfit());
-        lines.add("Pests Destroyer OTT scheduled: " + PestsDestroyerOnTheTrack.getInstance().getDelayStart().isScheduled());
-        lines.add("Pests Destroyer OTT remaining: " + PestsDestroyerOnTheTrack.getInstance().getDelayStart().getRemainingTime());
+        lines.add("PD OTT scheduled: " + PestsDestroyerOnTheTrack.getInstance().getDelayStart().isScheduled());
+        lines.add("PD OTT remaining: " + PestsDestroyerOnTheTrack.getInstance().getDelayStart().getRemainingTime());
+        lines.add("PD OTT stuck remaining: " + PestsDestroyerOnTheTrack.getInstance().getStuckTimer().getRemainingTime());
         lines.add("Buffs:");
         lines.add("   God Pot: " + GameStateHandler.getInstance().getGodPotState());
         lines.add("   Cookie: " + GameStateHandler.getInstance().getCookieBuffState());

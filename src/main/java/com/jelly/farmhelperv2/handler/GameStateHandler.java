@@ -354,7 +354,7 @@ public class GameStateHandler {
                     int previousPestsCount = pestsCount;
                     pestsCount = temp;
                     pestsCountTemp = temp;
-                    if (pestsCount > previousPestsCount && !PestsDestroyer.getInstance().isRunning()) {
+                    if (pestsCount > previousPestsCount && !PestsDestroyer.getInstance().isRunning() && pestsCount > FarmHelperConfig.startKillingPestsAt) {
                         if (FarmHelperConfig.sendWebhookLogIfPestsDetectionNumberExceeded) {
                             LogUtils.webhookLog("[Pests Destroyer]\\nThere " + (pestsCount > 1 ? "are" : "is") + " currently **" + pestsCount + "** " + (pestsCount > 1 ? "pests" : "pest") + " in the garden!", FarmHelperConfig.pingEveryoneOnPestsDetectionNumberExceeded);
                         }

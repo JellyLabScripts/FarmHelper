@@ -1108,6 +1108,14 @@ public class FarmHelperConfig extends Config {
     )
     public static int pestsDestroyerOnTheTrackFOV = 360;
 
+    @Slider(
+            name = "Stuck timer (ms)",
+            description = "The time after which macro will count as being stuck",
+            category = PESTS_DESTROYER, subcategory = "Pests Destroyer on the track",
+            min = 4_000, max = 25_000
+    )
+    public static int pestsDestroyerOnTheTrackStuckTimer = 5_000;
+
     @Switch(
             name = "Don't kill pests on track during Jacob's Contest",
             description = "Prevents the macro from killing pests on the track during Jacob's Contest",

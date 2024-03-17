@@ -38,6 +38,10 @@ public class PestsDestroyerOnTheTrack implements IFeature {
 
     @Getter
     private final Clock delayStart = new Clock();
+    @Getter
+    private final Clock stuckTimer = new Clock();
+
+    private Entity currentTarget = null;
 
     @Override
     public String getName() {
@@ -62,12 +66,14 @@ public class PestsDestroyerOnTheTrack implements IFeature {
     @Override
     public void start() {
         isRunning = true;
+        currentTarget = null;
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();
         }
         ItemStack currentItem = mc.thePlayer.getHeldItem();
         PestsDestroyer.getInstance().getVacuum(currentItem);
         LogUtils.sendWarning("[" + getName() + "] Started!");
+        stuckTimer.schedule(FarmHelperConfig.pestsDestroyerOnTheTrackStuckTimer);
     }
 
     @Override
@@ -108,7 +114,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
 
         if (getPest(true).isPresent()) {
             if (!delayStart.isScheduled()) {
-                delayStart.schedule(750);
+                delayStart.schedule(900);
                 LogUtils.sendDebug("[" + getName() + "] Found pest, waiting for him to stay in range!");
             }
             if (delayStart.isScheduled() && delayStart.passed()) {
@@ -132,11 +138,21 @@ public class PestsDestroyerOnTheTrack implements IFeature {
             return;
         }
 
+        if (stuckTimer.isScheduled() && stuckTimer.passed()) {
+            LogUtils.sendWarning("[" + getName() + "] Stuck for too long, stopping!");
+            stop();
+            return;
+        }
+
         ItemStack currentItem = mc.thePlayer.getHeldItem();
         PestsDestroyer.getInstance().getVacuum(currentItem);
 
         Optional<Entity> entity = getPest(false);
         if (entity.isPresent()) {
+            if (currentTarget == null || !currentTarget.equals(entity.get())) {
+                currentTarget = entity.get();
+                stuckTimer.schedule(FarmHelperConfig.pestsDestroyerOnTheTrackStuckTimer);
+            }
             KeyBindUtils.holdThese(mc.gameSettings.keyBindUseItem);
             if (!RotationHandler.getInstance().isRotating()) {
                 RotationHandler.getInstance().easeTo(
@@ -165,9 +181,9 @@ public class PestsDestroyerOnTheTrack implements IFeature {
                         double zDiff = entityPosition.zCoord - playerPosition.zCoord;
 
                         float yaw = (float) Math.toDegrees(Math.atan2(zDiff, xDiff)) - 90F;
-                        return dist <= vacuumRange && yaw < FarmHelperConfig.pestsDestroyerOnTheTrackFOV / 2f;
+                        return dist <= vacuumRange - 0.5 && yaw < FarmHelperConfig.pestsDestroyerOnTheTrackFOV / 2f;
                     }
-                    return dist <= vacuumRange + 1.5;
+                    return dist <= vacuumRange - 0.5;
                 }).min((e1, e2) -> {
                     double d1 = e1.getDistanceToEntity(mc.thePlayer);
                     double d2 = e2.getDistanceToEntity(mc.thePlayer);
