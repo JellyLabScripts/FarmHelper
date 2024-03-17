@@ -11,6 +11,7 @@ import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import com.jelly.farmhelperv2.util.helper.Target;
+import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
@@ -35,6 +36,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
 
     private boolean isRunning = false;
 
+    @Getter
     private final Clock delayStart = new Clock();
 
     @Override
@@ -76,6 +78,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
             MacroHandler.getInstance().resumeMacro();
             PlayerUtils.getTool();
         }
+        delayStart.reset();
     }
 
     @Override
@@ -104,18 +107,18 @@ public class PestsDestroyerOnTheTrack implements IFeature {
         if (!isToggled()) return;
 
         if (getPest(true).isPresent()) {
-            if (delayStart.isScheduled() && delayStart.passed()) {
-                start();
-                return;
-            }
-            if (delayStart.isScheduled() && !delayStart.passed()) return;
             if (!delayStart.isScheduled()) {
-                delayStart.reset();
-                delayStart.schedule(1_500);
+                delayStart.schedule(750);
                 LogUtils.sendDebug("[" + getName() + "] Found pest, waiting for him to stay in range!");
             }
+            if (delayStart.isScheduled() && delayStart.passed()) {
+                start();
+            }
         } else {
-            delayStart.reset();
+            if (delayStart.isScheduled()) {
+                delayStart.reset();
+                LogUtils.sendDebug("[" + getName() + "] Pest left!");
+            }
         }
     }
 
@@ -162,7 +165,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
                         double zDiff = entityPosition.zCoord - playerPosition.zCoord;
 
                         float yaw = (float) Math.toDegrees(Math.atan2(zDiff, xDiff)) - 90F;
-                        return dist <= vacuumRange - 2 && yaw < FarmHelperConfig.pestsDestroyerOnTheTrackFOV / 2f;
+                        return dist <= vacuumRange && yaw < FarmHelperConfig.pestsDestroyerOnTheTrackFOV / 2f;
                     }
                     return dist <= vacuumRange + 1.5;
                 }).min((e1, e2) -> {
