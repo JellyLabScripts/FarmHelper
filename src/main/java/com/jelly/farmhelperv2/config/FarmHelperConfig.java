@@ -45,7 +45,7 @@ public class FarmHelperConfig extends Config {
     private transient static final String JACOBS_CONTEST = "Jacob's Contest";
     private transient static final String VISITORS_MACRO = "Visitors Macro";
     private transient static final String PESTS_DESTROYER = "Pests Destroyer";
-    private transient static final String AUTO_PEST_HUNTER = "Auto Pest Hunter";
+    private transient static final String AUTO_PEST_EXCHANGE = "Auto Pest Exchange";
     private transient static final String AUTO_GOD_POT = "Auto God Pot";
     private transient static final String AUTO_SELL = "Auto Sell";
     private transient static final String AUTO_REPELLANT = "Auto Repellant";
@@ -952,10 +952,10 @@ public class FarmHelperConfig extends Config {
     public static boolean infoCompactors;
 
     @Slider(
-            name = "Max Spend Limit (in Thousands Per Purchase)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
-            min = 10, max = 2000, step = 1
+            name = "Max Spend Limit (in Millions Per Purchase)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+            min = 0.2f, max = 7.5f
     )
-    public static int visitorsMacroMaxSpendLimit = 700;
+    public static float visitorsMacroMaxSpendLimit = 0.7f;
 
     @Switch(
             name = "Visitors Macro Afk Infinite mode",
@@ -1267,114 +1267,114 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
     //</editor-fold>
 
-    //<editor-fold desc="AUTO PEST HUNTER">
+    //<editor-fold desc="AUTO PEST EXCHANGE">
 
     @Info(
             text = "Once you collect enough pests, the macro will go to the Phillip NPC and exchange pests in your vacuum for Farming Fortune for 30 minutes.",
             type = InfoType.INFO,
-            category = AUTO_PEST_HUNTER,
-            subcategory = "Auto Pest Hunter",
+            category = AUTO_PEST_EXCHANGE,
+            subcategory = "Auto Pest Exchange",
             size = 2
     )
-    public static boolean autoPestHunterInfo1;
+    public static boolean autoPestExchangeInfo1;
 
     @Switch(
-            name = "Enable Auto Pest Hunter", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            name = "Enable Auto Pest Exchange", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
             description = "Automatically hunts pests"
     )
-    public static boolean autoPestHunter = false;
+    public static boolean autoPestExchange = false;
     @Switch(
-            name = "Pause the Auto Pest Hunter during Jacob's contests", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            description = "Pauses the Auto Pest Hunter during Jacob's contests"
+            name = "Pause the Auto Pest Exchange during Jacob's contests", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
+            description = "Pauses the Auto Pest Exchange during Jacob's contests"
     )
-    public static boolean pauseAutoPestHunterDuringJacobsContest = true;
+    public static boolean pauseAutoPestExchangeDuringJacobsContest = true;
     @Switch(
-            name = "Ignore Jacob's Contest", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            description = "Start the Auto Pest Hunter regardless of the next Jacob's contests"
+            name = "Ignore Jacob's Contest", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
+            description = "Start the Auto Pest Exchange regardless of the next Jacob's contests"
     )
-    public static boolean autoPestHunterIgnoreJacobsContest = false;
+    public static boolean autoPestExchangeIgnoreJacobsContest = false;
     @Slider(
-            name = "Trigger before contest starts (in minutes)", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            description = "The time before the contest starts to trigger the auto pest hunter",
+            name = "Trigger before contest starts (in minutes)", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
+            description = "The time before the contest starts to trigger the auto pest exchange",
             min = 1, max = 40
     )
-    public static int autoPestHunterTriggerBeforeContestStarts = 5;
+    public static int autoPestExchangeTriggerBeforeContestStarts = 5;
     @Slider(
-            name = "Pests amount required", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            description = "The amount of pests in a vacuum required to start the auto pest hunter",
+            name = "Pests amount required", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
+            description = "The amount of pests in a vacuum required to start the auto pest exchange",
             min = 1, max = 40
     )
-    public static int autoPestHunterMinPests = 10;
+    public static int autoPestExchangeMinPests = 10;
     @Switch(
-            name = "Send Webhook Log", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            description = "Logs all events related to the auto pest hunter"
+            name = "Send Webhook Log", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
+            description = "Logs all events related to the auto pest exchange"
     )
-    public static boolean logAutoPestHunterEvents = true;
+    public static boolean logAutoPestExchangeEvents = true;
     @Switch(
-            name = "Highlight desk location", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            description = "Highlights the pest hunter desk location"
+            name = "Highlight desk location", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
+            description = "Highlights the pest exchange desk location"
     )
-    public static boolean highlightPestHunterDeskLocation = true;
+    public static boolean highlightPestExchangeDeskLocation = true;
     @Info(
-            text = "The auto pest hunter will start automatically once you rewarp!",
+            text = "The auto pest exchange will start automatically once you rewarp!",
             type = InfoType.WARNING,
-            category = AUTO_PEST_HUNTER,
-            subcategory = "Auto Pest Hunter",
+            category = AUTO_PEST_EXCHANGE,
+            subcategory = "Auto Pest Exchange",
             size = 2
     )
-    public static boolean autoPestHunterInfo;
+    public static boolean autoPestExchangeInfo;
 
     @Button(
-            name = "Trigger now Auto Pest Hunter", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            description = "Triggers the auto pest hunter manually",
+            name = "Trigger now Auto Pest Exchange", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
+            description = "Triggers the auto pest exchange manually",
             text = "Trigger now"
     )
-    public static void triggerManuallyAutoPestHunter() {
-        AutoPestHunter.getInstance().setManuallyStarted(true);
-        AutoPestHunter.getInstance().start();
+    public static void triggerManuallyAutoPestExchange() {
+        AutoPestExchange.getInstance().setManuallyStarted(true);
+        AutoPestExchange.getInstance().start();
     }
 
     @Button(
-            name = "Set the pest hunter location", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
-            description = "Sets the pest hunter location",
+            name = "Set the pest exchange location", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
+            description = "Sets the pest exchange location",
             text = "Set desk"
     )
-    public static Runnable setPestHunterLocation = () -> {
+    public static Runnable setPestExchangeLocation = () -> {
         if (!PlayerUtils.isInBarn()) {
-            LogUtils.sendError("[Auto Pest Hunter] You need to be in the barn to set the pest hunter location!");
+            LogUtils.sendError("[Auto Pest Exchange] You need to be in the barn to set the pest exchange location!");
             return;
         }
-        pestHunterDeskX = mc.thePlayer.getPosition().getX();
-        pestHunterDeskY = mc.thePlayer.getPosition().getY();
-        pestHunterDeskZ = mc.thePlayer.getPosition().getZ();
-        LogUtils.sendSuccess("[Auto Pest Hunter] Set the pest hunter location to "
-                + FarmHelperConfig.pestHunterDeskX + ", "
-                + FarmHelperConfig.pestHunterDeskY + ", "
-                + FarmHelperConfig.pestHunterDeskZ);
+        pestExchangeDeskX = mc.thePlayer.getPosition().getX();
+        pestExchangeDeskY = mc.thePlayer.getPosition().getY();
+        pestExchangeDeskZ = mc.thePlayer.getPosition().getZ();
+        LogUtils.sendSuccess("[Auto Pest Exchange] Set the pest exchange location to "
+                + FarmHelperConfig.pestExchangeDeskX + ", "
+                + FarmHelperConfig.pestExchangeDeskY + ", "
+                + FarmHelperConfig.pestExchangeDeskZ);
     };
     @Number(
-            name = "Pest Hunter Desk X", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            name = "Pest Exchange Desk X", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
             min = -300, max = 300
     )
-    public static int pestHunterDeskX = 0;
+    public static int pestExchangeDeskX = 0;
     @Number(
-            name = "Pest Hunter Desk Y", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            name = "Pest Exchange Desk Y", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
             min = 50, max = 150
     )
-    public static int pestHunterDeskY = 0;
+    public static int pestExchangeDeskY = 0;
     @Number(
-            name = "Pest Hunter Desk Z", category = AUTO_PEST_HUNTER, subcategory = "Auto Pest Hunter",
+            name = "Pest Exchange Desk Z", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
             min = -300, max = 300
     )
-    public static int pestHunterDeskZ = 0;
+    public static int pestExchangeDeskZ = 0;
     @Info(
-            text = "You don't have to set the pest hunter location, it will be set automatically. Check the guide for more info.",
+            text = "You don't have to set the pest exchange location, it will be set automatically. Check the guide for more info.",
             type = InfoType.INFO,
-            category = AUTO_PEST_HUNTER,
-            subcategory = "Auto Pest Hunter",
+            category = AUTO_PEST_EXCHANGE,
+            subcategory = "Auto Pest Exchange",
             size = 2
     )
-    public static boolean autoPestHunterInfo2;
+    public static boolean autoPestExchangeInfo2;
 
     //</editor-fold>
 
@@ -1889,7 +1889,7 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     @Number(name = "Config Version", category = EXPERIMENTAL, subcategory = "Experimental", min = 0, max = 1337)
-    public static int configVersion = 2;
+    public static int configVersion = 3;
     @Switch(
             name = "Shown Welcome GUI", category = EXPERIMENTAL, subcategory = "Experimental"
     )
@@ -2012,16 +2012,16 @@ public class FarmHelperConfig extends Config {
         this.addDependency("pingEveryoneOnPestsDetectionNumberExceeded", "sendWebhookLogIfPestsDetectionNumberExceeded");
         this.addDependency("pingEveryoneOnPestsDetectionNumberExceeded", "enableWebHook");
 
-        this.addDependency("pauseAutoPestHunterDuringJacobsContest", "autoPestHunter");
-        this.addDependency("autoPestHunterIgnoreJacobsContest", "autoPestHunter");
-        this.addDependency("autoPestHunterTriggerBeforeContestStarts", "autoPestHunter");
-        this.addDependency("autoPestHunterMinPests", "autoPestHunter");
-        this.addDependency("logAutoPestHunterEvents", "autoPestHunter");
-        this.addDependency("autoPestHunterTriggerBeforeContestStarts",
-                "You can either wait until Jacob's Contest or run it regardless.", () -> !autoPestHunterIgnoreJacobsContest);
-        this.hideIf("pestHunterDeskX", () -> true);
-        this.hideIf("pestHunterDeskY", () -> true);
-        this.hideIf("pestHunterDeskZ", () -> true);
+        this.addDependency("pauseAutoPestExchangeDuringJacobsContest", "autoPestExchange");
+        this.addDependency("autoPestExchangeIgnoreJacobsContest", "autoPestExchange");
+        this.addDependency("autoPestExchangeTriggerBeforeContestStarts", "autoPestExchange");
+        this.addDependency("autoPestExchangeMinPests", "autoPestExchange");
+        this.addDependency("logAutoPestExchangeEvents", "autoPestExchange");
+        this.addDependency("autoPestExchangeTriggerBeforeContestStarts",
+                "You can either wait until Jacob's Contest or run it regardless.", () -> !autoPestExchangeIgnoreJacobsContest);
+        this.hideIf("pestExchangeDeskX", () -> true);
+        this.hideIf("pestExchangeDeskY", () -> true);
+        this.hideIf("pestExchangeDeskZ", () -> true);
 
         this.addDependency("pestRepellentType", "autoPestRepellent");
 

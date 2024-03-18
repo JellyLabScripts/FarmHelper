@@ -34,6 +34,8 @@ public class DebugHUD extends TextHud {
             lines.add("Yaw Difference: " + MovRecPlayer.getYawDifference());
         }
         lines.add("Bountiful: " + ProfitCalculator.getInstance().getBountifulProfit());
+        lines.add("Purse: " + GameStateHandler.getInstance().getCurrentPurse());
+        lines.add("Copper: " + GameStateHandler.getInstance().getCopper());
         lines.add("PD OTT scheduled: " + PestsDestroyerOnTheTrack.getInstance().getDelayStart().isScheduled());
         lines.add("PD OTT remaining: " + PestsDestroyerOnTheTrack.getInstance().getDelayStart().getRemainingTime());
         lines.add("PD OTT stuck remaining: " + PestsDestroyerOnTheTrack.getInstance().getStuckTimer().getRemainingTime());
@@ -157,11 +159,11 @@ public class DebugHUD extends TextHud {
                 lines.add("   Plot Spray Item: " + plotData.getSprayItem());
             }
         }
-        if (AutoPestHunter.getInstance().isRunning()) {
+        if (AutoPestExchange.getInstance().isRunning()) {
             lines.add("Auto Pest Hunter");
-            lines.add("   State: " + AutoPestHunter.getInstance().getState());
-            lines.add("   Clock: " + AutoPestHunter.getInstance().getDelayClock().getRemainingTime());
-            lines.add("   Stuck clock: " + AutoPestHunter.getInstance().getStuckClock().getRemainingTime());
+            lines.add("   State: " + AutoPestExchange.getInstance().getState());
+            lines.add("   Clock: " + AutoPestExchange.getInstance().getDelayClock().getRemainingTime());
+            lines.add("   Stuck clock: " + AutoPestExchange.getInstance().getStuckClock().getRemainingTime());
             lines.add("   isPathing: " + BaritoneHandler.isPathing());
             lines.add("   isWalkingToGoalBlock: " + BaritoneHandler.isWalkingToGoalBlock());
         }

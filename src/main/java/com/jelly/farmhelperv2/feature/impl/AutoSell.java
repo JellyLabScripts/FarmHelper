@@ -248,6 +248,7 @@ public class AutoSell implements IFeature {
                     setSacksState(SacksState.OPEN_MENU);
                     return;
                 }
+                int sacksSlot;
                 if (FarmHelperConfig.autoSellSacksPlacement) {
                     if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Sacks")) {
                         LogUtils.sendDebug("[Auto Sell] Wrong menu detected!");
@@ -258,17 +259,18 @@ public class AutoSell implements IFeature {
                     } else if (InventoryUtils.getInventoryName() == null) {
                         return;
                     }
+                    int closeSlot = InventoryUtils.getSlotIdOfItemInContainer("Close");
+                    if (closeSlot == -1) return;
+                    sacksSlot = InventoryUtils.getSlotIdOfItemInContainer("Enchanted Agronomy Sack");
                 } else {
                     if (!(mc.currentScreen instanceof GuiInventory)) {
                         return;
                     }
+                    sacksSlot = InventoryUtils.getSlotIdOfItemInInventory("Enchanted Agronomy Sack");
                 }
 
-                int closeSlot = InventoryUtils.getSlotIdOfItemInContainer("Close");
-                if (closeSlot == -1) return;
-
                 LogUtils.sendDebug("[Auto Sell] Detected the Sacks menu");
-                int sacksSlot = InventoryUtils.getSlotIdOfItemInContainer("Enchanted Agronomy Sack");
+
                 if (sacksSlot == -1) {
                     LogUtils.sendDebug("[Auto Sell] Couldn't find the \"Enchanted Agronomy Sack\" item in the Sacks menu, closing Sacks menu");
                     PlayerUtils.closeScreen();
@@ -298,8 +300,6 @@ public class AutoSell implements IFeature {
                 } else if (InventoryUtils.getInventoryName() == null) {
                     return;
                 }
-                int closeSlot1 = InventoryUtils.getSlotIdOfItemInContainer("Go Back");
-                if (closeSlot1 == -1) return;
                 int pickUpAll = InventoryUtils.getSlotIdOfItemInContainer("Pickup All");
                 if (pickUpAll != -1) {
                     if (mc.thePlayer.inventory.getFirstEmptyStack() != -1) {
@@ -382,6 +382,7 @@ public class AutoSell implements IFeature {
                             if (FarmHelperConfig.autoSellSacks && sellSacksSlot != -1) {
                                 InventoryUtils.clickContainerSlot(sellSacksSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                                 setBazaarState(BazaarState.SELL_INV_CONFIRM);
+                                emptySacks = true;
                             } else {
                                 LogUtils.sendDebug("[Auto Sell] Nothing to sell, closing Bazaar menu");
                                 PlayerUtils.closeScreen();

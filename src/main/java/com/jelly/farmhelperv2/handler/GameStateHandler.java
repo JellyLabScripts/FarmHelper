@@ -308,7 +308,11 @@ public class GameStateHandler {
                     stringPurse = stringPurse.substring(0, stringPurse.indexOf("("));
                 }
                 long tempCurrentPurse = Long.parseLong(stringPurse);
-                previousPurse = currentPurse;
+                if (previousPurse == 0) {
+                    previousPurse = tempCurrentPurse;
+                } else {
+                    previousPurse = currentPurse;
+                }
                 currentPurse = tempCurrentPurse;
             } catch (Exception ignored) {
             }
@@ -673,7 +677,6 @@ public class GameStateHandler {
                 }
             }
         }
-//        }
         return 0;
     }
 

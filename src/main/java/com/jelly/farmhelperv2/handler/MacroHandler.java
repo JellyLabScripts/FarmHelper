@@ -145,8 +145,8 @@ public class MacroHandler {
                 PestsDestroyer.getInstance().stop();
                 return;
             }
-            if (AutoPestHunter.getInstance().isRunning()) {
-                AutoPestHunter.getInstance().stop();
+            if (AutoPestExchange.getInstance().isRunning()) {
+                AutoPestExchange.getInstance().stop();
                 return;
             }
             if (PlayerUtils.isInBarn()) {
@@ -531,9 +531,9 @@ public class MacroHandler {
             LogUtils.sendDebug("Activating Visitors Macro");
             VisitorsMacro.getInstance().start();
             return true;
-        } else if (AutoPestHunter.getInstance().canEnableMacro(false)) {
+        } else if (AutoPestExchange.getInstance().canEnableMacro(false)) {
             LogUtils.sendDebug("Activating Auto Pest Hunter");
-            AutoPestHunter.getInstance().start();
+            AutoPestExchange.getInstance().start();
             return true;
         }
         return false;

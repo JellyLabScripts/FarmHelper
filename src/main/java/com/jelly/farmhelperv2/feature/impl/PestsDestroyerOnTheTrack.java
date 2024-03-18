@@ -15,6 +15,7 @@ import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -85,6 +86,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
             PlayerUtils.getTool();
         }
         delayStart.reset();
+        stuckTimer.reset();
     }
 
     @Override
@@ -174,14 +176,14 @@ public class PestsDestroyerOnTheTrack implements IFeature {
         return entities.stream()
                 .filter(e -> {
                     Vec3 entityPosition = new Vec3(e.posX, e.posY + e.getEyeHeight(), e.posZ);
-                    Vec3 playerPosition = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
-                    double dist = entityPosition.distanceTo(playerPosition);
+                    Vec3 playerPosition = mc.thePlayer.getPositionEyes(1);
+                    double dist = playerPosition.distanceTo(entityPosition);
                     if (start) {
                         double xDiff = entityPosition.xCoord - playerPosition.xCoord;
                         double zDiff = entityPosition.zCoord - playerPosition.zCoord;
 
                         float yaw = (float) Math.toDegrees(Math.atan2(zDiff, xDiff)) - 90F;
-                        float yawDiff = Math.abs(mc.thePlayer.rotationYaw - yaw);
+                        float yawDiff = Math.abs(MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw) - yaw);
                         return dist <= vacuumRange - 0.5 && yawDiff < FarmHelperConfig.pestsDestroyerOnTheTrackFOV / 2f;
                     }
                     return dist <= vacuumRange - 0.5;

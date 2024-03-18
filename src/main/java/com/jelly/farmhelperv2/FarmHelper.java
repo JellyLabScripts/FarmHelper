@@ -88,18 +88,18 @@ public class FarmHelper {
             Notifications.INSTANCE.send("FarmHelper", "Auto Ungrab Mouse feature doesn't work properly on Mac OS. It has been disabled automatically.", 15000);
             LogUtils.sendError("Auto Ungrab Mouse feature doesn't work properly on Mac OS. It has been disabled automatically.");
         }
-        if (FarmHelperConfig.configVersion == 1 && FarmHelperConfig.pestsKillerTicksOfNotSeeingPestWhileAttacking < 80) {
-            FarmHelperConfig.pestsKillerTicksOfNotSeeingPestWhileAttacking = 100;
-            Notifications.INSTANCE.send("FarmHelper", "Pests Killer Ticks Of Not Seeing Pest While Attacking has been set to 100 ticks because of a bug in the previous version.", 15000);
-            LogUtils.sendWarning("Pests Killer Ticks Of Not Seeing Pest While Attacking has been set to 100 ticks because of a bug in the previous version.");
+        if (FarmHelperConfig.configVersion != 3) {
+            FarmHelperConfig.visitorsMacroMaxSpendLimit = 0.7f;
+            Notifications.INSTANCE.send("FarmHelper", "'Max Spend Limit' in Visitors Macro settings has been set to 0.7 automatically, because of change of type. Make sure to update it to your preferences", 15000);
+            LogUtils.sendWarning("'Max Spend Limit' in Visitors Macro settings has been set to 0.7 automatically, because of change of type. Make sure to update it to your preferences");
         }
         if (!FarmHelperConfig.flyPathfinderOringoCompatible && ReflectionUtils.hasModFile("oringo")) {
             FarmHelperConfig.flyPathfinderOringoCompatible = true;
             Notifications.INSTANCE.send("FarmHelper", "You've got Oringo installed in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.", 15000);
             LogUtils.sendWarning("You've got §6§lOringo §cinstalled in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.");
         }
-        if (FarmHelperConfig.configVersion == 1)
-            FarmHelperConfig.configVersion = 2;
+        if (FarmHelperConfig.configVersion != 3)
+            FarmHelperConfig.configVersion = 3;
         sentInfoAboutShittyClient = true;
     }
 

@@ -19,7 +19,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-@Mixin(GuiIngame.class)
+@Mixin(value = GuiIngame.class, priority = Integer.MAX_VALUE)
 public class MixinGuiIngame {
 
     @Unique

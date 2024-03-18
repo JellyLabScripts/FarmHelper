@@ -18,7 +18,7 @@ public class BaritoneHandler {
     public static boolean pathing = false;
 
     public static boolean isWalkingToGoalBlock() {
-        return isWalkingToGoalBlock(0.75);
+        return pathing && BaritoneEventListener.pathEvent != PathEvent.CANCELED && BaritoneEventListener.pathEvent != PathEvent.AT_GOAL;
     }
 
     public static boolean isWalkingToGoalBlock(double nearGoalDistance) {
@@ -36,6 +36,8 @@ public class BaritoneHandler {
                 distance = goal.isInGoal(mc.thePlayer.getPosition()) ? 0 : goal.heuristic();
             }
             System.out.println("Pathing result: " + BaritoneEventListener.pathEvent);
+            System.out.println("Distance: " + distance);
+            System.out.println("Goal: " + goal);
             if (distance <= nearGoalDistance || BaritoneEventListener.pathEvent == PathEvent.AT_GOAL) {
                 BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
                 pathing = false;

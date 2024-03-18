@@ -81,7 +81,6 @@ public class ProfitCalculator implements IFeature {
     @Getter
     private double bountifulProfit = 0;
     public double blocksBroken = 0;
-    private long previousCultivating = 0;
 
     public HashMap<String, APICrop> bazaarPrices = new HashMap<>();
     private boolean cantConnectToApi = false;
@@ -210,12 +209,14 @@ public class ProfitCalculator implements IFeature {
         realHourlyProfit = 0;
         bountifulProfit = 0;
         blocksBroken = 0;
-        previousCultivating = 0;
         previousCurrentPurse = 0;
+        previousCultivating.clear();
         cropsToCount.forEach(crop -> crop.currentAmount = 0);
         rngDropToCount.forEach(drop -> drop.currentAmount = 0);
         LowerAvgBpsFailsafe.getInstance().resetStates();
     }
+
+    private final HashMap<String, Long> previousCultivating = new HashMap<>();
 
     @SubscribeEvent
     public void onTickUpdateProfit(TickEvent.ClientTickEvent event) {
@@ -227,16 +228,15 @@ public class ProfitCalculator implements IFeature {
         ItemStack currentItem = mc.thePlayer.getHeldItem();
         if (currentItem != null && currentItem.getItem() != null && FarmHelperConfig.profitCalculatorCultivatingEnchant) {
             long cultivatingCounter = GameStateHandler.getInstance().getCurrentCultivating().getOrDefault(currentItem.getDisplayName(), 0L);
-            if (previousCultivating == 0) {
-                previousCultivating = cultivatingCounter;
+            long previousCultivatingCounter = previousCultivating.getOrDefault(currentItem.getDisplayName(), 0L);
+            if (previousCultivatingCounter == 0) {
+                previousCultivating.put(currentItem.getDisplayName(), cultivatingCounter);
+                previousCultivatingCounter = cultivatingCounter;
             }
-            if (cultivatingCounter > previousCultivating) {
-                long diff = cultivatingCounter - previousCultivating;
-                previousCultivating = cultivatingCounter;
-                BazaarItem item = cropsToCount.stream().filter(crop -> crop.localizedName.equals(MacroHandler.getInstance().getCrop().getLocalizedName())).findFirst().orElse(null);
-                if (item != null) {
-                    item.currentAmount += diff;
-                }
+            if (cultivatingCounter > previousCultivatingCounter) {
+                long diff = cultivatingCounter - previousCultivatingCounter;
+                cropsToCount.stream().filter(crop -> crop.localizedName.equals(MacroHandler.getInstance().getCrop().getLocalizedName())).findFirst().ifPresent(item -> item.currentAmount += diff);
+                previousCultivating.put(currentItem.getDisplayName(), cultivatingCounter);
             }
         }
 
@@ -292,6 +292,7 @@ public class ProfitCalculator implements IFeature {
         ItemStack currentItem = mc.thePlayer.getHeldItem();
         if (currentItem != null && StringUtils.stripControlCodes(currentItem.getDisplayName()).startsWith("Bountiful")) {
             if (GameStateHandler.getInstance().getCurrentPurse() == previousCurrentPurse) return;
+            if (GameStateHandler.getInstance().getPreviousPurse() == 0) return;
             double value = GameStateHandler.getInstance().getCurrentPurse() - GameStateHandler.getInstance().getPreviousPurse();
             if (value > 0)
                 bountifulProfit += value;

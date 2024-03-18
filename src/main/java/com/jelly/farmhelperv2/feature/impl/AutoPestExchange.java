@@ -35,13 +35,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 
-public class AutoPestHunter implements IFeature {
+public class AutoPestExchange implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
-    private static AutoPestHunter instance;
+    private static AutoPestExchange instance;
 
-    public static AutoPestHunter getInstance() {
+    public static AutoPestExchange getInstance() {
         if (instance == null) {
-            instance = new AutoPestHunter();
+            instance = new AutoPestExchange();
         }
         return instance;
     }
@@ -60,18 +60,18 @@ public class AutoPestHunter implements IFeature {
     private Entity phillip = null;
 
     private BlockPos deskPos() {
-        return new BlockPos(FarmHelperConfig.pestHunterDeskX, FarmHelperConfig.pestHunterDeskY, FarmHelperConfig.pestHunterDeskZ);
+        return new BlockPos(FarmHelperConfig.pestExchangeDeskX, FarmHelperConfig.pestExchangeDeskY, FarmHelperConfig.pestExchangeDeskZ);
     }
 
     private boolean isDeskPosSet() {
-        return FarmHelperConfig.pestHunterDeskX != 0 && FarmHelperConfig.pestHunterDeskY != 0 && FarmHelperConfig.pestHunterDeskZ != 0;
+        return FarmHelperConfig.pestExchangeDeskX != 0 && FarmHelperConfig.pestExchangeDeskY != 0 && FarmHelperConfig.pestExchangeDeskZ != 0;
     }
 
     private static final RotationHandler rotation = RotationHandler.getInstance();
 
     @Override
     public String getName() {
-        return "Auto Pest Hunter";
+        return "Auto Pest Exchange";
     }
 
     @Override
@@ -104,13 +104,13 @@ public class AutoPestHunter implements IFeature {
         resetStatesAfterMacroDisabled();
         enabled = true;
         state = State.NONE;
-        LogUtils.sendWarning("[Auto Pest Hunter] Starting...");
+        LogUtils.sendWarning("[Auto Pest Exchange] Starting...");
     }
 
     @Override
     public void stop() {
         enabled = false;
-        LogUtils.sendWarning("[Auto Pest Hunter] Stopping...");
+        LogUtils.sendWarning("[Auto Pest Exchange] Stopping...");
         KeyBindUtils.stopMovement();
         resetStatesAfterMacroDisabled();
         BaritoneHandler.stopPathing();
@@ -127,7 +127,7 @@ public class AutoPestHunter implements IFeature {
 
     @Override
     public boolean isToggled() {
-        return FarmHelperConfig.autoPestHunter;
+        return FarmHelperConfig.autoPestExchange;
     }
 
     @Override
@@ -157,31 +157,31 @@ public class AutoPestHunter implements IFeature {
         if (!MacroHandler.getInstance().isMacroToggled() && !manual) return false;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this, VisitorsMacro.getInstance())) return false;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
-            LogUtils.sendError("[Auto Pest Hunter] Server is closing in " + GameStateHandler.getInstance().getServerClosingSeconds().get() + " seconds!");
+            LogUtils.sendError("[Auto Pest Exchange] Server is closing in " + GameStateHandler.getInstance().getServerClosingSeconds().get() + " seconds!");
             return false;
         }
-        if (!manual && FarmHelperConfig.pauseAutoPestHunterDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) {
-            LogUtils.sendDebug("[Auto Pest Hunter] Jacob's contest is active, skipping...");
+        if (!manual && FarmHelperConfig.pauseAutoPestExchangeDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) {
+            LogUtils.sendDebug("[Auto Pest Exchange] Jacob's contest is active, skipping...");
             return false;
         }
         if (GameStateHandler.getInstance().getPestHunterBonus() != GameStateHandler.BuffState.NOT_ACTIVE) {
-            LogUtils.sendWarning("[Auto Pest Hunter] Pesthunter bonus is active or unknown, skipping...");
+            LogUtils.sendWarning("[Auto Pest Exchange] Pest Hunter bonus is active or unknown, skipping...");
             return false;
         }
-        if (!manual && GameStateHandler.getInstance().inJacobContest() && !FarmHelperConfig.autoPestHunterIgnoreJacobsContest) {
+        if (!manual && GameStateHandler.getInstance().inJacobContest() && !FarmHelperConfig.autoPestExchangeIgnoreJacobsContest) {
             for (String line : TablistUtils.getTabList()) {
                 Matcher matcher = GameStateHandler.getInstance().jacobsRemainingTimePattern.matcher(line);
                 if (matcher.find()) {
                     String minutes = matcher.group(1);
-                    if (Integer.parseInt(minutes) > FarmHelperConfig.autoPestHunterTriggerBeforeContestStarts) {
-                        LogUtils.sendDebug("[Auto Pest Hunter] Jacob's contest is starting in " + minutes + " minutes, skipping...");
+                    if (Integer.parseInt(minutes) > FarmHelperConfig.autoPestExchangeTriggerBeforeContestStarts) {
+                        LogUtils.sendDebug("[Auto Pest Exchange] Jacob's contest is starting in " + minutes + " minutes, skipping...");
                         return false;
                     }
                 }
             }
         }
-        if (!manual && GameStateHandler.getInstance().getPestsFromVacuum() < FarmHelperConfig.autoPestHunterMinPests) {
-            LogUtils.sendDebug("[Auto Pest Hunter] There are not enough pests to start the macro!");
+        if (!manual && GameStateHandler.getInstance().getPestsFromVacuum() < FarmHelperConfig.autoPestExchangeMinPests) {
+            LogUtils.sendDebug("[Auto Pest Exchange] There are not enough pests to start the macro!");
             return false;
         }
         return true;
@@ -197,7 +197,7 @@ public class AutoPestHunter implements IFeature {
         if (!enabled) return;
 
         if (stuckClock.isScheduled() && stuckClock.passed()) {
-            LogUtils.sendError("[Auto Pest Hunter] The player is stuck!");
+            LogUtils.sendError("[Auto Pest Exchange] The player is stuck!");
             state = State.GO_BACK;
         }
 
@@ -210,8 +210,8 @@ public class AutoPestHunter implements IFeature {
                     delayClock.schedule(1_000 + Math.random() * 500);
                     break;
                 }
-                if (FarmHelperConfig.logAutoPestHunterEvents)
-                    LogUtils.webhookLog("[Auto Pest Hunter] Starting the macro!\\n" + GameStateHandler.getInstance().getPestsFromVacuum() + " pests in total!");
+                if (FarmHelperConfig.logAutoPestExchangeEvents)
+                    LogUtils.webhookLog("[Auto Pest Exchange] Starting the macro!\\n" + GameStateHandler.getInstance().getPestsFromVacuum() + " pests in total!");
                 state = State.TELEPORT_TO_DESK;
                 delayClock.schedule((long) (1_000 + Math.random() * 500));
                 break;
@@ -237,12 +237,12 @@ public class AutoPestHunter implements IFeature {
                 break;
             case WAIT_FOR_TP:
                 if (mc.thePlayer.getPosition().equals(positionBeforeTp)) {
-                    LogUtils.sendDebug("[Auto Pest Hunter] Waiting for teleportation...");
+                    LogUtils.sendDebug("[Auto Pest Exchange] Waiting for teleportation...");
                     break;
                 }
                 if (!mc.thePlayer.onGround || mc.thePlayer.capabilities.isFlying) {
                     KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
-                    LogUtils.sendDebug("[Auto Pest Hunter] The player is not on the ground, waiting...");
+                    LogUtils.sendDebug("[Auto Pest Exchange] The player is not on the ground, waiting...");
                     stuckClock.schedule(5_000L);
                     break;
                 }
@@ -252,8 +252,8 @@ public class AutoPestHunter implements IFeature {
                 }
                 KeyBindUtils.stopMovement();
                 if (positionBeforeTp.distanceSq(mc.thePlayer.getPosition()) > 7) {
-                    if (FarmHelperConfig.pestHunterDeskX == 0 && FarmHelperConfig.pestHunterDeskY == 0 && FarmHelperConfig.pestHunterDeskZ == 0) {
-                        LogUtils.sendWarning("[Auto Pest Hunter] The desk position is not set! Trying to find Phillip...");
+                    if (FarmHelperConfig.pestExchangeDeskX == 0 && FarmHelperConfig.pestExchangeDeskY == 0 && FarmHelperConfig.pestExchangeDeskZ == 0) {
+                        LogUtils.sendWarning("[Auto Pest Exchange] The desk position is not set! Trying to find Phillip...");
                         state = State.FIND_PHILLIP;
                     } else {
                         state = State.GO_TO_PHILLIP;
@@ -269,7 +269,7 @@ public class AutoPestHunter implements IFeature {
                     break;
                 }
                 if (BaritoneHandler.hasFailed() && initialDeskPos.distanceSq(mc.thePlayer.getPosition()) > 7) {
-                    LogUtils.sendError("[Auto Pest Hunter] Baritone failed to reach the destination!");
+                    LogUtils.sendError("[Auto Pest Exchange] Baritone failed to reach the destination!");
                     state = State.GO_BACK;
                     break;
                 }
@@ -288,7 +288,7 @@ public class AutoPestHunter implements IFeature {
                     stuckClock.schedule(30_000L);
                     break;
                 }
-                LogUtils.sendSuccess("[Auto Pest Hunter] Found Phillip! " + phillip.getPosition().toString());
+                LogUtils.sendSuccess("[Auto Pest Exchange] Found Phillip! " + phillip.getPosition().toString());
                 BaritoneHandler.stopPathing();
                 state = State.GO_TO_PHILLIP;
                 delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
@@ -301,7 +301,7 @@ public class AutoPestHunter implements IFeature {
                     break;
                 }
                 if (BaritoneHandler.hasFailed() && deskPos().distanceSq(mc.thePlayer.getPosition()) > 7) {
-                    LogUtils.sendError("[Auto Pest Hunter] Baritone failed to reach the destination!");
+                    LogUtils.sendError("[Auto Pest Exchange] Baritone failed to reach the destination!");
                     state = State.GO_BACK;
                     break;
                 }
@@ -315,15 +315,15 @@ public class AutoPestHunter implements IFeature {
                     break;
                 }
                 if (isDeskPosSet()) {
-                    LogUtils.sendDebug("[Auto Pest Hunter] Walking to the desk position...");
+                    LogUtils.sendDebug("[Auto Pest Exchange] Walking to the desk position...");
                     BaritoneHandler.walkToBlockPos(deskPos());
                     state = State.WAIT_UNTIL_REACHED_DESK;
                 } else if (phillip != null) {
-                    LogUtils.sendDebug("[Auto Pest Hunter] Phillip is found, but the desk position is not set! Walking to Phillip...");
+                    LogUtils.sendDebug("[Auto Pest Exchange] Phillip is found, but the desk position is not set! Walking to Phillip...");
                     BaritoneHandler.walkCloserToBlockPos(phillip.getPosition(), 2);
                     state = State.WAIT_UNTIL_REACHED_DESK;
                 } else {
-                    LogUtils.sendError("[Auto Pest Hunter] Can't find Phillip!");
+                    LogUtils.sendError("[Auto Pest Exchange] Can't find Phillip!");
                     state = State.GO_BACK;
                     break;
                 }
@@ -337,7 +337,7 @@ public class AutoPestHunter implements IFeature {
                     break;
                 }
                 if (BaritoneHandler.hasFailed()) {
-                    LogUtils.sendError("[Auto Pest Hunter] Baritone failed to reach the destination!");
+                    LogUtils.sendError("[Auto Pest Exchange] Baritone failed to reach the destination!");
                     FlyPathFinderExecutor.getInstance().setDontRotate(true);
                     FlyPathFinderExecutor.getInstance().findPath(new Vec3(deskPos()).addVector(0.5, 0.5, 0.5), false, true);
                     break;
@@ -370,7 +370,7 @@ public class AutoPestHunter implements IFeature {
                     break;
                 }
                 KeyBindUtils.stopMovement();
-                LogUtils.sendDebug("[Auto Pest Hunter] Desk position reached!");
+                LogUtils.sendDebug("[Auto Pest Exchange] Desk position reached!");
                 BaritoneHandler.stopPathing();
                 FlyPathFinderExecutor.getInstance().stop();
                 state = State.CLICK_PHILLIP;
@@ -379,7 +379,7 @@ public class AutoPestHunter implements IFeature {
                 break;
             case CLICK_PHILLIP:
                 if (BlockUtils.getHorizontalDistance(mc.thePlayer.getPositionVector(), phillip.getPositionVector()) > 7) {
-                    LogUtils.sendDebug("[Auto Pest Hunter] Can't click Phillip! Walking to the desk position...");
+                    LogUtils.sendDebug("[Auto Pest Exchange] Can't click Phillip! Walking to the desk position...");
                     state = State.GO_TO_PHILLIP;
                     delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
                     stuckClock.schedule(15_000L);
@@ -430,17 +430,17 @@ public class AutoPestHunter implements IFeature {
                 ItemStack itemLore = vacuumSlot.getStack();
                 List<String> lore = InventoryUtils.getItemLore(itemLore);
                 if (lore.stream().anyMatch(l -> l.contains("Click to empty"))) { // not necessary but yeah :shrugger:
-                    if (FarmHelperConfig.logAutoPestHunterEvents)
-                        LogUtils.webhookLog("[Auto Pest Hunter] Emptied the vacuum!\\n" + GameStateHandler.getInstance().getPestsFromVacuum() + " pests in total!");
+                    if (FarmHelperConfig.logAutoPestExchangeEvents)
+                        LogUtils.webhookLog("[Auto Pest Exchange] Emptied the vacuum!\\n" + GameStateHandler.getInstance().getPestsFromVacuum() + " pests in total!");
                     state = State.WAIT_FOR_VACUUM;
                 } else if (lore.stream().anyMatch(l -> l.contains("You've exchanged enough Pests"))) {
-                    if (FarmHelperConfig.logAutoPestHunterEvents)
-                        LogUtils.webhookLog("[Auto Pest Hunter] Already emptied the vacuum!");
+                    if (FarmHelperConfig.logAutoPestExchangeEvents)
+                        LogUtils.webhookLog("[Auto Pest Exchange] Already emptied the vacuum!");
                     state = State.GO_BACK;
                 } else {
-                    if (FarmHelperConfig.logAutoPestHunterEvents)
-                        LogUtils.webhookLog("[Auto Pest Hunter] Failed to empty your vacuum!");
-                    LogUtils.sendError("[Auto Pest Hunter] Failed to empty your vacuum!");
+                    if (FarmHelperConfig.logAutoPestExchangeEvents)
+                        LogUtils.webhookLog("[Auto Pest Exchange] Failed to empty your vacuum!");
+                    LogUtils.sendError("[Auto Pest Exchange] Failed to empty your vacuum!");
                     state = State.GO_BACK;
                 }
                 InventoryUtils.clickContainerSlot(vacuumSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
@@ -486,14 +486,14 @@ public class AutoPestHunter implements IFeature {
     public void onChatMessageReceived(ClientChatReceivedEvent event) {
         if (enabled && event.type == 0 && event.message != null && state == State.WAIT_FOR_VACUUM) {
             if (event.message.getFormattedText().contains("§e[NPC] §6Phillip§f: Thanks for the §6Pests§f,"))
-                LogUtils.sendSuccess("[Auto Pest Hunter] Successfully emptied the vacuum!");
+                LogUtils.sendSuccess("[Auto Pest Exchange] Successfully emptied the vacuum!");
             else {
                 if (event.message.getUnformattedText().startsWith("You've exchanged enough Pests recently! Try emptying your Vacuum Bag later!")) {
-                    LogUtils.sendDebug("[Auto Pest Hunter] Already emptied the vacuum.");
+                    LogUtils.sendDebug("[Auto Pest Exchange] Already emptied the vacuum.");
                 }
                 for (String message : dialogueMessages) {
                     if (event.message.getFormattedText().contains("§e[NPC] §6Phillip§f: " + message)) {
-                        LogUtils.sendError("[Auto Pest Hunter] You haven't unlocked Phillip yet!");
+                        LogUtils.sendError("[Auto Pest Exchange] You haven't unlocked Phillip yet!");
                         break;
                     }
                 }
@@ -509,10 +509,10 @@ public class AutoPestHunter implements IFeature {
         if (!isRunning()) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (FarmHelperConfig.streamerMode) return;
-        if (!FarmHelperConfig.highlightPestHunterDeskLocation) return;
-        if (FarmHelperConfig.pestHunterDeskX == 0
-                && FarmHelperConfig.pestHunterDeskY == 0
-                && FarmHelperConfig.pestHunterDeskZ == 0) return;
+        if (!FarmHelperConfig.highlightPestExchangeDeskLocation) return;
+        if (FarmHelperConfig.pestExchangeDeskX == 0
+                && FarmHelperConfig.pestExchangeDeskY == 0
+                && FarmHelperConfig.pestExchangeDeskZ == 0) return;
         RenderUtils.drawBlockBox(deskPos().add(0, 0, 0), new Color(0, 155, 255, 50));
     }
 }

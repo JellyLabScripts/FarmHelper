@@ -25,7 +25,7 @@ public class FeatureManager {
                 AutoCookie.getInstance(),
                 AutoGodPot.getInstance(),
                 AutoReconnect.getInstance(),
-                AutoPestHunter.getInstance(),
+                AutoPestExchange.getInstance(),
                 AutoRepellent.getInstance(),
                 AutoSell.getInstance(),
                 BanInfoWS.getInstance(),
@@ -102,7 +102,7 @@ public class FeatureManager {
         if (VisitorsMacro.getInstance().isRunning() && !VisitorsMacro.getInstance().shouldCheckForFailsafes()) {
             return true;
         }
-        if (AutoPestHunter.getInstance().isRunning() && !AutoPestHunter.getInstance().shouldCheckForFailsafes()) {
+        if (AutoPestExchange.getInstance().isRunning() && !AutoPestExchange.getInstance().shouldCheckForFailsafes()) {
             return true;
         }
         return false;
