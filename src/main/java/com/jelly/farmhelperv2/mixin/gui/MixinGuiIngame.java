@@ -1,6 +1,7 @@
 package com.jelly.farmhelperv2.mixin.gui;
 
 import com.jelly.farmhelperv2.event.UpdateScoreboardLineEvent;
+import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.scoreboard.Score;
@@ -19,7 +20,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-@Mixin(value = GuiIngame.class, priority = Integer.MAX_VALUE)
+@Mixin(GuiIngame.class)
 public class MixinGuiIngame {
 
     @Unique
@@ -36,6 +37,7 @@ public class MixinGuiIngame {
             ScorePlayerTeam scorePlayerTeam = scoreboard.getPlayersTeam(score.getPlayerName());
             String string = ScorePlayerTeam.formatPlayerName(scorePlayerTeam, score.getPlayerName());
             String clean = farmHelperV2$cleanSB(string);
+            LogUtils.sendDebug(clean);
             if (!clean.equals(farmHelperV2$cachedScoreboard.get(index)) || !farmHelperV2$cachedScoreboard.containsKey(index)) {
                 farmHelperV2$cachedScoreboard.put(index, clean);
                 MinecraftForge.EVENT_BUS.post(new UpdateScoreboardLineEvent(clean));
