@@ -1148,7 +1148,7 @@ public class VisitorsMacro implements IFeature {
     }
 
     private boolean getCloserToEntity() {
-        if (mc.thePlayer.getDistanceToEntity(currentCharacter.get()) > 1.8) {
+        if (currentCharacter.isPresent() && mc.thePlayer.getDistanceToEntity(currentCharacter.get()) > 1.8) {
             KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, shouldJump() ? mc.gameSettings.keyBindJump : null, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
             stuckClock.schedule(STUCK_DELAY);
             return true;

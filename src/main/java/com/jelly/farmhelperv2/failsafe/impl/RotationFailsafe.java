@@ -15,10 +15,12 @@ import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
 import com.jelly.farmhelperv2.util.AngleUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 public class RotationFailsafe extends Failsafe {
     private static RotationFailsafe instance;
@@ -84,15 +86,52 @@ public class RotationFailsafe extends Failsafe {
             LogUtils.sendDebug("[Failsafe] Rotation packet received while Fly pathfinder is running. Ignoring");
             return;
         }
-        double pitchThreshold = FarmHelperConfig.rotationCheckPitchSensitivity;
-        double yawThreshold = FarmHelperConfig.rotationCheckYawSensitivity;
         if (yawDiff == 360 && pitchDiff == 0) // prevents false checks
             return;
-        if (yawDiff >= yawThreshold || pitchDiff >= pitchThreshold) {
-            rotationBeforeReacting = new Rotation((float) playerYaw, (float) playerPitch);
-            LogUtils.sendDebug("[Failsafe] Rotation detected! Yaw diff: " + yawDiff + ", Pitch diff: " + pitchDiff);
-            FailsafeManager.getInstance().possibleDetection(this);
+        if (shouldTriggerCheck(packetYaw, packetPitch))
+            if (rotationBeforeReacting == null)
+                rotationBeforeReacting = new Rotation((float) playerYaw, (float) playerPitch);
+        triggerCheck.schedule(FarmHelperConfig.teleportRotationCheckTimeWindow);
+    }
+
+    private static final Clock triggerCheck = new Clock();
+
+    @Override
+    public void onTickDetection(TickEvent.ClientTickEvent event) {
+        if (triggerCheck.passed() && triggerCheck.isScheduled()) {
+            if (FailsafeManager.getInstance().getEmergencyQueue().isEmpty())
+                evaluateRotation();
+            else
+                rotationBeforeReacting = null;
+            triggerCheck.reset();
         }
+    }
+
+    private void evaluateRotation() {
+        if (rotationBeforeReacting == null) {
+            LogUtils.sendDebug("[Failsafe] Original rotation is null. Ignoring");
+            return;
+        } if (shouldTriggerCheck(rotationBeforeReacting.getYaw(), rotationBeforeReacting.getPitch())) {
+            FailsafeManager.getInstance().possibleDetection(this);
+        } else {
+            FailsafeManager.getInstance().stopFailsafes();
+            LogUtils.sendWarning("[Failsafe] Rotation check failsafe was triggered but the admin rotated you back. §c§lDO NOT REACT§e TO THIS OR YOU WILL GET BANNED!");
+            if (FailsafeNotificationsPage.notifyOnRotationFailsafe)
+                LogUtils.webhookLog("[Failsafe]\nRotation check failsafe was triggered but the admin rotated you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
+        }
+        rotationBeforeReacting = null;
+    }
+
+    private boolean shouldTriggerCheck(double newYaw, double newPitch) {
+        double yawDiff = Math.abs(newYaw -  mc.thePlayer.rotationYaw);
+        double pitchDiff = Math.abs(newPitch - mc.thePlayer.rotationPitch);
+        double yawThreshold = FarmHelperConfig.rotationCheckYawSensitivity;
+        double pitchThreshold = FarmHelperConfig.rotationCheckPitchSensitivity;
+        if (yawDiff >= yawThreshold || pitchDiff >= pitchThreshold) {
+            LogUtils.sendDebug("[Failsafe] Rotation detected! Yaw diff: " + yawDiff + ", Pitch diff: " + pitchDiff);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -100,14 +139,10 @@ public class RotationFailsafe extends Failsafe {
 
         switch (rotationCheckState) {
             case NONE:
-                if (checkIfRotatedBack())
-                    return;
                 rotationCheckState = RotationCheckState.WAIT_BEFORE_START;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
                 break;
             case WAIT_BEFORE_START:
-                if (checkIfRotatedBack())
-                    return;
                 MacroHandler.getInstance().pauseMacro();
                 if (rotationBeforeReacting == null)
                     rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
@@ -230,20 +265,6 @@ public class RotationFailsafe extends Failsafe {
         randomMessage = null;
         randomContinueMessage = null;
         rotation.reset();
-    }
-
-    private boolean checkIfRotatedBack() {
-        if (rotationBeforeReacting == null) // Test failsafe
-            return true;
-        if ((Math.abs(AngleUtils.get360RotationYaw(rotationBeforeReacting.getYaw()) - AngleUtils.get360RotationYaw()) < 0.1)
-                && (Math.abs(AngleUtils.get360RotationYaw(rotationBeforeReacting.getPitch()) - mc.thePlayer.rotationPitch) < 0.1)) {
-            FailsafeManager.getInstance().stopFailsafes();
-            LogUtils.sendWarning("[Failsafe] Rotation check failsafe was triggered but the admin rotated you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
-            if (FailsafeNotificationsPage.notifyOnRotationFailsafe)
-                LogUtils.webhookLog("[Failsafe]\nRotation check failsafe was triggered but the admin rotated you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
-            return true;
-        }
-        return false;
     }
 
     private RotationCheckState rotationCheckState = RotationCheckState.NONE;

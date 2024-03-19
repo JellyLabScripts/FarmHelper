@@ -28,8 +28,6 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
 import java.util.Optional;
-import java.util.LinkedList;
-import java.util.Queue;
 
 public class TeleportFailsafe extends Failsafe {
     private static TeleportFailsafe instance;
@@ -41,20 +39,9 @@ public class TeleportFailsafe extends Failsafe {
         return instance;
     }
 
-    class TeleportData {
-        public Vec3 position;
-        public long timestamp;
-
-        public TeleportData(Vec3 position, long timestamp) {
-            this.position = position;
-            this.timestamp = timestamp;
-        }
-    }
-
     private final EvictingQueue<Tuple<BlockPos, AbstractMacro.State>> lastWalkedPositions = EvictingQueue.create(400);
-    private Queue<TeleportData> teleportationEvents = new LinkedList<>();
     private Vec3 originalPosition = null;
-    private static final Clock triggerTeleport = new Clock();
+    private static final Clock triggerCheck = new Clock();
 
 
     @Override
@@ -85,30 +72,6 @@ public class TeleportFailsafe extends Failsafe {
     @Override
     public boolean shouldAltTab() {
         return FailsafeNotificationsPage.autoAltTabOnTeleportationFailsafe;
-    }
-
-    @Override
-    public void onTickDetection(TickEvent.ClientTickEvent event) {
-        if (MacroHandler.getInstance().isTeleporting()) {
-            if (!lastWalkedPositions.isEmpty())
-                lastWalkedPositions.clear();
-            return;
-        }
-
-        if (triggerTeleport.passed() && triggerTeleport.isScheduled()) {
-            evaluateDisplacement();
-            triggerTeleport.reset();
-        }
-        BlockPos playerPos = mc.thePlayer.getPosition();
-        if (lastWalkedPositions.isEmpty()) {
-            lastWalkedPositions.add(new Tuple<>(playerPos, MacroHandler.getInstance().getCurrentMacro().map(AbstractMacro::getCurrentState).orElse(null)));
-            return;
-        }
-        BlockPos last = ((Tuple<BlockPos, AbstractMacro.State>) lastWalkedPositions.toArray()[lastWalkedPositions.size() - 1]).getFirst();
-        if (last.distanceSq(playerPos) < 1) {
-            return;
-        }
-        lastWalkedPositions.add(new Tuple<>(playerPos, MacroHandler.getInstance().getCurrentMacro().map(AbstractMacro::getCurrentState).orElse(null)));
     }
 
     @Override
@@ -179,9 +142,57 @@ public class TeleportFailsafe extends Failsafe {
             if (originalPosition == null) {
                 originalPosition = mc.thePlayer.getPositionVector();
             }
-            teleportationEvents.add(new TeleportData(packetPlayerPos, System.currentTimeMillis()));
-            triggerTeleport.schedule(FarmHelperConfig.teleportCheckTimeWindow);
+            triggerCheck.schedule(FarmHelperConfig.teleportRotationCheckTimeWindow);
         }
+    }
+
+    @Override
+    public void onTickDetection(TickEvent.ClientTickEvent event) {
+        if (MacroHandler.getInstance().isTeleporting()) {
+            if (!lastWalkedPositions.isEmpty())
+                lastWalkedPositions.clear();
+            return;
+        }
+
+        if (triggerCheck.passed() && triggerCheck.isScheduled()) {
+            if (FailsafeManager.getInstance().getEmergencyQueue().isEmpty()
+                    || FailsafeManager.getInstance().getEmergencyQueue().stream().anyMatch(failsafe -> failsafe.getType() == FailsafeManager.EmergencyType.ROTATION_CHECK))
+                evaluateDisplacement();
+            else {
+                rotationBeforeReacting = null;
+                originalPosition = null;
+            }
+            triggerCheck.reset();
+        }
+
+        BlockPos playerPos = mc.thePlayer.getPosition();
+        if (lastWalkedPositions.isEmpty()) {
+            lastWalkedPositions.add(new Tuple<>(playerPos, MacroHandler.getInstance().getCurrentMacro().map(AbstractMacro::getCurrentState).orElse(null)));
+            return;
+        }
+        BlockPos last = ((Tuple<BlockPos, AbstractMacro.State>) lastWalkedPositions.toArray()[lastWalkedPositions.size() - 1]).getFirst();
+        if (last.distanceSq(playerPos) < 1) {
+            return;
+        }
+        lastWalkedPositions.add(new Tuple<>(playerPos, MacroHandler.getInstance().getCurrentMacro().map(AbstractMacro::getCurrentState).orElse(null)));
+    }
+
+    private void evaluateDisplacement() {
+        Vec3 currentPosition = mc.thePlayer.getPositionVector();
+        if (originalPosition == null) {
+            LogUtils.sendDebug("[Failsafe] Original position is null. Ignoring");
+            return;
+        }
+        double totalDisplacement = currentPosition.distanceTo(originalPosition);
+        if (totalDisplacement > FarmHelperConfig.teleportCheckSensitivity) {
+            FailsafeManager.getInstance().possibleDetection(this);
+        } else {
+            FailsafeManager.getInstance().stopFailsafes();
+            LogUtils.sendWarning("[Failsafe] Teleport check failsafe was triggered but the admin teleported you back. §c§lDO NOT REACT§e TO THIS OR YOU WILL GET BANNED!");
+            if (FailsafeNotificationsPage.notifyOnRotationFailsafe)
+                LogUtils.webhookLog("[Failsafe]\nTeleport check failsafe was triggered but the admin teleported you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
+        }
+        originalPosition = null;
     }
 
     @Override
@@ -354,23 +365,6 @@ public class TeleportFailsafe extends Failsafe {
         randomContinueMessage = null;
         rotation.reset();
         lastWalkedPositions.clear();
-        teleportationEvents.clear();
-        originalPosition = null;
-    }
-
-    private void evaluateDisplacement() {
-        Vec3 currentPosition = mc.thePlayer.getPositionVector();
-        double totalDisplacement = currentPosition.distanceTo(originalPosition);
-        if (totalDisplacement > FarmHelperConfig.teleportCheckSensitivity) {
-            FailsafeManager.getInstance().possibleDetection(this);
-        } else {
-            FailsafeManager.getInstance().stopFailsafes();
-            LogUtils.sendWarning("[Failsafe] Teleport check failsafe was triggered but the admin teleported you back. §c§lDO NOT REACT§e TO THIS OR YOU WILL GET BANNED!");
-            if (FailsafeNotificationsPage.notifyOnRotationFailsafe)
-                LogUtils.webhookLog("[Failsafe]\nTeleport check failsafe was triggered but the admin teleported you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
-            return;
-        }
-        teleportationEvents.clear();
         originalPosition = null;
     }
 

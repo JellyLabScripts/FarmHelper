@@ -240,12 +240,16 @@ public class FarmHelperConfig extends Config {
             description = "Locks rotation, lets you freely look", size = 2
     )
     public static OneKeyBind freelookKeybind = new OneKeyBind(Keyboard.KEY_L);
-
     @Info(
             text = "Freelook doesn't work properly with Oringo!", type = InfoType.WARNING,
             category = MISCELLANEOUS, subcategory = "Keybinds"
     )
     private int freelookWarning;
+    @KeyBind(
+            name = "Cancel failsafe", category = MISCELLANEOUS, subcategory = "Keybinds",
+            description = "Cancels failsafe and continues macroing", size = 2
+    )
+    public static OneKeyBind cancelFailsafeKeybind = new OneKeyBind(Keyboard.KEY_NONE);
     //</editor-fold>
 
     //<editor-fold desc="Plot Cleaning Helper">
@@ -399,11 +403,11 @@ public class FarmHelperConfig extends Config {
     )
     public static float teleportCheckLagSensitivity = 0.5f;
     @Slider(
-            name = "Teleport Check Time Window (in milliseconds)", category = FAILSAFE, subcategory = "Miscellaneous",
+            name = "Teleport/Rotation Check Time Window (in milliseconds)", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "The time window to check for teleports (in seconds)",
             min = 50, max = 4000, step = 50
     )
-    public static int teleportCheckTimeWindow = 500;
+    public static int teleportRotationCheckTimeWindow = 500;
     @Slider(
             name = "Rotation Check Pitch Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "The sensitivity of the rotation check; the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives.",
@@ -2064,6 +2068,12 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(enablePestsDestroyerKeyBind, () -> {
             if (PestsDestroyer.getInstance().canEnableMacro(true)) {
                 PestsDestroyer.getInstance().start();
+            }
+        });
+        registerKeyBind(cancelFailsafeKeybind, () -> {
+            if (FailsafeManager.getInstance().getChooseEmergencyDelay().isScheduled()) {
+                FailsafeManager.getInstance().stopFailsafes();
+                LogUtils.sendWarning("[Failsafe] Emergency has been cancelled!");
             }
         });
 //        registerKeyBind(debugKeybind2, () -> {

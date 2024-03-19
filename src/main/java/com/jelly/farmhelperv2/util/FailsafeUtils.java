@@ -118,7 +118,7 @@ public class FailsafeUtils {
             try {
                 ArrayList<Integer> keys = FarmHelperConfig.captureClipKeybind.getKeyBinds();
                 if (hasUndefinedKey(keys)) {
-                    LogUtils.sendError("Failed to capture clip, got undefined key code.");
+                    LogUtils.sendError("Failed to capture a clip! Keybind is either not set or invalid!");
                     return;
                 }
                 Robot robot = new Robot();
