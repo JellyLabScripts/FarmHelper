@@ -707,7 +707,6 @@ public class VisitorsMacro implements IFeature {
                         );
                         setVisitorsState(VisitorsState.GET_TO_CLOSEST_VISITOR);
                     }
-                    return;
                 } else {
                     rotation.easeTo(
                             new RotationConfiguration(
