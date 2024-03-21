@@ -270,6 +270,7 @@ public class BedrockCageFailsafe extends Failsafe {
                 FailsafeManager.getInstance().scheduleRandomDelay(800, 200);
                 break;
             case END:
+                if (MacroHandler.getInstance().isTeleporting()) break;
                 if (MovRecPlayer.getInstance().isRunning())
                     break;
                 this.endOfFailsafeTrigger();

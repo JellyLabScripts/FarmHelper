@@ -233,9 +233,9 @@ public class AutoRepellent implements IFeature {
                         }
                         int cookieSlot = InventoryUtils.getSlotIdOfItemInInventory("Pest Repellent");
                         if (cookieSlot == -1) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the Pest Repellent! Restarting...");
+                            LogUtils.sendError("Something went wrong while trying to get the slot of the Pest Repellent! Disabling Auto Repellent until manual check");
+                            FarmHelperConfig.autoPestRepellent = false;
                             stop();
-                            enabled = true;
                             break;
                         }
                         this.hotbarSlot = cookieSlot;
@@ -301,9 +301,9 @@ public class AutoRepellent implements IFeature {
                 int repellentSlot = InventoryUtils.getSlotIdOfItemInHotbar(!FarmHelperConfig.pestRepellentType ? "Pest Repellent" : "Pest Repellent MAX");
                 LogUtils.sendDebug("Repellent slot: " + repellentSlot);
                 if (repellentSlot == -1 || repellentSlot > 8) {
-                    LogUtils.sendError("Something went wrong while trying to get the slot of the Pest Repellent! Restarting...");
+                    LogUtils.sendError("Something went wrong while trying to get the slot of the Pest Repellent! Disabling Auto Repellent until manual check");
+                    FarmHelperConfig.autoPestRepellent = false;
                     stop();
-                    enabled = true;
                     break;
                 }
                 mc.thePlayer.inventory.currentItem = repellentSlot;

@@ -14,7 +14,9 @@ import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Tuple;
 
 import java.util.List;
 
@@ -39,6 +41,10 @@ public class DebugHUD extends TextHud {
         lines.add("PD OTT scheduled: " + PestsDestroyerOnTheTrack.getInstance().getDelayStart().isScheduled());
         lines.add("PD OTT remaining: " + PestsDestroyerOnTheTrack.getInstance().getDelayStart().getRemainingTime());
         lines.add("PD OTT stuck remaining: " + PestsDestroyerOnTheTrack.getInstance().getStuckTimer().getRemainingTime());
+        lines.add("PD OTT entities: ");
+        for (Tuple<Entity, Double> entity : PestsDestroyerOnTheTrack.getInstance().getEntities()) {
+            lines.add("   " + entity.getFirst().getPosition() + " Yaw diff: " + String.format("%.2f", entity.getSecond()));
+        }
         lines.add("Buffs:");
         lines.add("   God Pot: " + GameStateHandler.getInstance().getGodPotState());
         lines.add("   Cookie: " + GameStateHandler.getInstance().getCookieBuffState());

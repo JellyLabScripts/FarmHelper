@@ -16,12 +16,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.Tuple;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class PestsDestroyerOnTheTrack implements IFeature {
 
@@ -92,6 +94,8 @@ public class PestsDestroyerOnTheTrack implements IFeature {
     @Override
     public void resetStatesAfterMacroDisabled() {
         isRunning = false;
+        delayStart.reset();
+        stuckTimer.reset();
     }
 
     @Override
@@ -173,24 +177,34 @@ public class PestsDestroyerOnTheTrack implements IFeature {
     private Optional<Entity> getPest(boolean start) {
         List<Entity> entities = PestsDestroyer.getInstance().getPestsLocations();
         float vacuumRange = PestsDestroyer.getInstance().getCurrentVacuumRange();
+        this.entities.clear();
         return entities.stream()
                 .filter(e -> {
                     Vec3 entityPosition = new Vec3(e.posX, e.posY + e.getEyeHeight(), e.posZ);
                     Vec3 playerPosition = mc.thePlayer.getPositionEyes(1);
                     double dist = playerPosition.distanceTo(entityPosition);
+                    boolean returnResult;
                     if (start) {
                         double xDiff = entityPosition.xCoord - playerPosition.xCoord;
                         double zDiff = entityPosition.zCoord - playerPosition.zCoord;
 
                         float yaw = (float) Math.toDegrees(Math.atan2(zDiff, xDiff)) - 90F;
                         float yawDiff = Math.abs(MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw) - yaw);
-                        return dist <= vacuumRange - 0.5 && yawDiff < FarmHelperConfig.pestsDestroyerOnTheTrackFOV / 2f;
+                        returnResult = dist <= vacuumRange - 0.5 && yawDiff <= FarmHelperConfig.pestsDestroyerOnTheTrackFOV / 2f;
+                    } else {
+                        returnResult = dist <= vacuumRange - 0.5;
                     }
-                    return dist <= vacuumRange - 0.5;
+                    if (returnResult) {
+                        this.entities.add(new Tuple<>(e, dist));
+                    }
+                    return returnResult;
                 }).min((e1, e2) -> {
                     double d1 = e1.getDistanceToEntity(mc.thePlayer);
                     double d2 = e2.getDistanceToEntity(mc.thePlayer);
                     return Double.compare(d1, d2);
                 });
     }
+
+    @Getter
+    private final CopyOnWriteArrayList<Tuple<Entity, Double>> entities = new CopyOnWriteArrayList<>();
 }

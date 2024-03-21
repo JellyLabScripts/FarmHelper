@@ -1,7 +1,5 @@
 package com.jelly.farmhelperv2.pathfinder;
 
-import baritone.api.BaritoneAPI;
-import baritone.pathing.movement.CalculationContext;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.common.collect.EvictingQueue;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
@@ -64,6 +62,8 @@ public class FlyPathFinderExecutor {
     private Vec3 lookingTarget;
     private boolean follow;
     private boolean smooth;
+    @Setter
+    private boolean sprinting = false;
     private final FlyNodeProcessor flyNodeProcessor = new FlyNodeProcessor();
     private final PathFinder pathFinder = new PathFinder(flyNodeProcessor);
     @Getter
@@ -77,7 +77,6 @@ public class FlyPathFinderExecutor {
     @Getter
     @Setter
     private boolean dontRotate = false;
-    private CalculationContext context;
     private final EvictingQueue<Position> lastPositions = EvictingQueue.create(100);
     private Position lastPosition;
 
@@ -95,9 +94,6 @@ public class FlyPathFinderExecutor {
         this.target = pos;
         this.smooth = smooth;
         try {
-            if (context == null) {
-                context = new CalculationContext(BaritoneAPI.getProvider().getPrimaryBaritone(), false);
-            }
             pathfinderTask = new Thread(() -> {
                 long startTime = System.currentTimeMillis();
                 float maxDistance = (float) Math.min(mc.thePlayer.getPositionVector().distanceTo(pos) + 5, MAX_DISTANCE);
@@ -484,7 +480,10 @@ public class FlyPathFinderExecutor {
             }
         }
 
-        mc.thePlayer.setSprinting(FarmHelperConfig.sprintWhileFlying && neededKeys.contains(mc.gameSettings.keyBindForward) && !neededKeys.contains(mc.gameSettings.keyBindSneak) && current.distanceTo(new Vec3(next.xCoord, current.yCoord, next.zCoord)) > 6);
+        if (sprinting) {
+//            mc.thePlayer.setSprinting(FarmHelperConfig.sprintWhileFlying && neededKeys.contains(mc.gameSettings.keyBindForward) && !neededKeys.contains(mc.gameSettings.keyBindSneak) && current.distanceTo(new Vec3(next.xCoord, current.yCoord, next.zCoord)) > 6);
+            keyBindings.add(mc.gameSettings.keyBindSprint);
+        }
 
         if (neededYaw != Integer.MIN_VALUE)
             KeyBindUtils.holdThese(keyBindings.toArray(new KeyBinding[0]));

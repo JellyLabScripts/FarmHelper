@@ -229,17 +229,15 @@ public class KnockbackFailsafe extends Failsafe {
                 break;
             case ROTATE_TO_POS_BEFORE_2:
                 if (rotation.isRotating()) break;
+                if (MacroHandler.getInstance().isTeleporting()) break;
                 FailsafeManager.getInstance().rotation.easeTo(new RotationConfiguration(new Rotation((float) (rotationBeforeReacting.getYaw() + (Math.random() * 30 - 15)), (float) (Math.random() * 30 + 30)),
                         500, null));
                 knockbackCheckState = KnockbackCheckState.END;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 break;
             case WARP_GARDEN:
-                if (mc.thePlayer.getPosition().distanceSq(new BlockPos(PlayerUtils.getSpawnLocation())) < 3) {
-                    knockbackCheckState = KnockbackCheckState.ROTATE_TO_POS_BEFORE_2;
-                    break;
-                }
                 MacroHandler.getInstance().triggerWarpGarden(true, true);
+                knockbackCheckState = KnockbackCheckState.ROTATE_TO_POS_BEFORE_2;
                 FailsafeManager.getInstance().scheduleRandomDelay(3000, 1000);
                 break;
             case END:

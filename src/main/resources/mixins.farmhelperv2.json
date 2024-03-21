@@ -32,7 +32,6 @@
     "gui.MixinGuiContainer",
     "gui.MixinGuiDisconnected",
     "gui.MixinGuiEditSign",
-    "gui.MixinGuiIngame",
     "gui.MixinGuiMainMenu",
     "gui.MixinGuiMultiplayer",
     "network.MixinNetHandlerPlayClient",

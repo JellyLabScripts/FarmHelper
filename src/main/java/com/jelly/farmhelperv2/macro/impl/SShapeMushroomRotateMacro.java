@@ -35,7 +35,7 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                 new RotationConfiguration(
                         new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + (getCurrentState() == State.LEFT ? -30 : 30) + (Math.random() * 4 - 2)), getPitch()),
                         FarmHelperConfig.getRandomRotationTime(), null
-                ).easeOutBack(true)
+                ).easeOutBack(!MacroHandler.getInstance().isResume())
         );
     }
 

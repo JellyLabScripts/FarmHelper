@@ -2057,7 +2057,7 @@ public class FarmHelperConfig extends Config {
 //                        new RotationConfiguration(
 //                                new Target(entity),
 //                                1000,
-//                                RotationConfiguration.RotationType.SERVER,
+//                                RotationConfiguration.RotationType.CLIENT,
 //                                null
 //                        ).followTarget(true)
 //                );

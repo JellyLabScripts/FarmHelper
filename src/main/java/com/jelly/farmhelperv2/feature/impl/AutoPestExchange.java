@@ -113,6 +113,7 @@ public class AutoPestExchange implements IFeature {
         LogUtils.sendWarning("[Auto Pest Exchange] Stopping...");
         KeyBindUtils.stopMovement();
         resetStatesAfterMacroDisabled();
+        FlyPathFinderExecutor.getInstance().stop();
         BaritoneHandler.stopPathing();
     }
 
@@ -224,7 +225,7 @@ public class AutoPestExchange implements IFeature {
                     break;
                 }
                 if (PlayerUtils.isInBarn()) {
-                    state = State.GO_TO_PHILLIP;
+                    state = State.FIND_PHILLIP;
                     delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
                     stuckClock.schedule(30_000L);
                     break;
@@ -255,6 +256,8 @@ public class AutoPestExchange implements IFeature {
                     if (FarmHelperConfig.pestExchangeDeskX == 0 && FarmHelperConfig.pestExchangeDeskY == 0 && FarmHelperConfig.pestExchangeDeskZ == 0) {
                         LogUtils.sendWarning("[Auto Pest Exchange] The desk position is not set! Trying to find Phillip...");
                         state = State.FIND_PHILLIP;
+                        FlyPathFinderExecutor.getInstance().setDontRotate(true);
+                        FlyPathFinderExecutor.getInstance().findPath(new Vec3(initialDeskPos).addVector(0.5f, 0.5f, 0.5f), false, true);
                     } else {
                         state = State.GO_TO_PHILLIP;
                     }
@@ -268,28 +271,30 @@ public class AutoPestExchange implements IFeature {
                     delayClock.schedule(1_000 + Math.random() * 500);
                     break;
                 }
-                if (BaritoneHandler.hasFailed() && initialDeskPos.distanceSq(mc.thePlayer.getPosition()) > 7) {
-                    LogUtils.sendError("[Auto Pest Exchange] Baritone failed to reach the destination!");
-                    state = State.GO_BACK;
-                    break;
-                }
-                if (!BaritoneHandler.isWalkingToGoalBlock()) {
-                    BaritoneHandler.walkToBlockPos(initialDeskPos);
-                    delayClock.schedule(250L);
-                    break;
-                }
+//                if (BaritoneHandler.hasFailed() && initialDeskPos.distanceSq(mc.thePlayer.getPosition()) > 7) {
+//                    LogUtils.sendError("[Auto Pest Exchange] Baritone failed to reach the destination!");
+//                    state = State.GO_BACK;
+//                    break;
+//                }
+//                if (!BaritoneHandler.isWalkingToGoalBlock()) {
+//                    BaritoneHandler.walkToBlockPos(initialDeskPos);
+//                    delayClock.schedule(250L);
+//                    break;
+//                }
                 phillip = getPhillip();
                 if (phillip == null)
                     break;
                 if (BlockUtils.getHorizontalDistance(mc.thePlayer.getPositionVector(), phillip.getPositionVector()) < 7) {
-                    BaritoneHandler.stopPathing();
+//                    BaritoneHandler.stopPathing();
+                    FlyPathFinderExecutor.getInstance().stop();
                     state = State.CLICK_PHILLIP;
                     delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
                     stuckClock.schedule(30_000L);
                     break;
                 }
                 LogUtils.sendSuccess("[Auto Pest Exchange] Found Phillip! " + phillip.getPosition().toString());
-                BaritoneHandler.stopPathing();
+                FlyPathFinderExecutor.getInstance().stop();
+//                BaritoneHandler.stopPathing();
                 state = State.GO_TO_PHILLIP;
                 delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
                 stuckClock.schedule(30_000L);
@@ -300,15 +305,20 @@ public class AutoPestExchange implements IFeature {
                     delayClock.schedule(1_000 + Math.random() * 500);
                     break;
                 }
-                if (BaritoneHandler.hasFailed() && deskPos().distanceSq(mc.thePlayer.getPosition()) > 7) {
-                    LogUtils.sendError("[Auto Pest Exchange] Baritone failed to reach the destination!");
-                    state = State.GO_BACK;
+//                if (BaritoneHandler.hasFailed() && deskPos().distanceSq(mc.thePlayer.getPosition()) > 7) {
+//                    LogUtils.sendError("[Auto Pest Exchange] Baritone failed to reach the destination!");
+//                    state = State.GO_BACK;
+//                    break;
+//                }
+//                if (BaritoneHandler.isWalkingToGoalBlock())
+//                    break;
+                if (FlyPathFinderExecutor.getInstance().isRunning()) {
                     break;
                 }
-                if (BaritoneHandler.isWalkingToGoalBlock())
-                    break;
-                if (Math.sqrt(mc.thePlayer.getDistanceSqToCenter(deskPos())) < 4.5) {
-                    BaritoneHandler.stopPathing();
+                if (Math.sqrt(mc.thePlayer.getDistanceSqToCenter(deskPos())) < 3.5) {
+//                    BaritoneHandler.stopPathing();
+                    FlyPathFinderExecutor.getInstance().stop();
+                    RotationHandler.getInstance().reset();
                     state = State.CLICK_PHILLIP;
                     delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
                     stuckClock.schedule(30_000L);
@@ -316,15 +326,36 @@ public class AutoPestExchange implements IFeature {
                 }
                 if (isDeskPosSet()) {
                     LogUtils.sendDebug("[Auto Pest Exchange] Walking to the desk position...");
-                    BaritoneHandler.walkToBlockPos(deskPos());
+//                    BaritoneHandler.walkToBlockPos(deskPos());
+                    FlyPathFinderExecutor.getInstance().setDontRotate(true);
+                    FlyPathFinderExecutor.getInstance().findPath(new Vec3(deskPos()).addVector(0.5f, 0.5f, 0.5f), false, true);
+                    RotationHandler.getInstance().easeTo(
+                            new RotationConfiguration(
+                                    new Target(deskPos().up()),
+                                    FarmHelperConfig.getRandomRotationTime(),
+                                    null
+                            ).followTarget(true)
+                    );
                     state = State.WAIT_UNTIL_REACHED_DESK;
                 } else if (phillip != null) {
                     LogUtils.sendDebug("[Auto Pest Exchange] Phillip is found, but the desk position is not set! Walking to Phillip...");
-                    BaritoneHandler.walkCloserToBlockPos(phillip.getPosition(), 2);
+//                    BaritoneHandler.walkCloserToBlockPos(phillip.getPosition(), 2);
+                    Vec3 closestVec = PlayerUtils.getClosestVecAround(phillip, 2.5);
+                    if (closestVec == null) {
+                        LogUtils.sendError("[Auto Pest Exchange] Can't find a valid position around Phillip!");
+                        state = State.GO_BACK;
+                        break;
+                    }
+                    FlyPathFinderExecutor.getInstance().setDontRotate(true);
+                    FlyPathFinderExecutor.getInstance().findPath(closestVec, false, true);
                     state = State.WAIT_UNTIL_REACHED_DESK;
+                    FarmHelperConfig.pestExchangeDeskX = (int) closestVec.xCoord;
+                    FarmHelperConfig.pestExchangeDeskY = (int) (closestVec.yCoord - 1.4f);
+                    FarmHelperConfig.pestExchangeDeskZ = (int) closestVec.zCoord;
                 } else {
                     LogUtils.sendError("[Auto Pest Exchange] Can't find Phillip!");
                     state = State.GO_BACK;
+                    FarmHelperConfig.autoPestExchange = false;
                     break;
                 }
                 stuckClock.schedule(30_000L);
@@ -336,14 +367,14 @@ public class AutoPestExchange implements IFeature {
                     delayClock.schedule(1_000 + Math.random() * 500);
                     break;
                 }
-                if (BaritoneHandler.hasFailed()) {
-                    LogUtils.sendError("[Auto Pest Exchange] Baritone failed to reach the destination!");
-                    FlyPathFinderExecutor.getInstance().setDontRotate(true);
-                    FlyPathFinderExecutor.getInstance().findPath(new Vec3(deskPos()).addVector(0.5, 0.5, 0.5), false, true);
-                    break;
-                }
-                if (BaritoneHandler.isWalkingToGoalBlock())
-                    break;
+//                if (BaritoneHandler.hasFailed()) {
+////                    LogUtils.sendError("[Auto Pest Exchange] Baritone failed to reach the destination!");
+////                    FlyPathFinderExecutor.getInstance().setDontRotate(true);
+////                    FlyPathFinderExecutor.getInstance().findPath(new Vec3(deskPos()).addVector(0.5, 0.5, 0.5), false, true);
+////                    break;
+////                }
+////                if (BaritoneHandler.isWalkingToGoalBlock())
+////                    break;
                 phillip = getPhillip();
                 if (FlyPathFinderExecutor.getInstance().isRunning()) {
                     if (phillip == null) {
@@ -371,7 +402,7 @@ public class AutoPestExchange implements IFeature {
                 }
                 KeyBindUtils.stopMovement();
                 LogUtils.sendDebug("[Auto Pest Exchange] Desk position reached!");
-                BaritoneHandler.stopPathing();
+//                BaritoneHandler.stopPathing();
                 FlyPathFinderExecutor.getInstance().stop();
                 state = State.CLICK_PHILLIP;
                 stuckClock.schedule(30_000L);

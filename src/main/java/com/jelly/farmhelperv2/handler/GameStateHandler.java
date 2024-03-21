@@ -639,7 +639,7 @@ public class GameStateHandler {
 
     public boolean inJacobContest() {
         if (FarmHelperConfig.jacobContestCurrentCropsOnly) {
-            return isInJacobContest && jacobsContestCrop.isPresent() && jacobsContestCrop.get() == MacroHandler.getInstance().getCrop();
+            return isInJacobContest && (!jacobsContestCrop.isPresent() || jacobsContestCrop.get() == MacroHandler.getInstance().getCrop());
         } else {
             return isInJacobContest;
         }

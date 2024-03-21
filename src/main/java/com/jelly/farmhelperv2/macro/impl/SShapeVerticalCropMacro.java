@@ -238,7 +238,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),
                         FarmHelperConfig.getRandomRotationTime(), null
-                ).easeOutBack(true)
+                ).easeOutBack(!MacroHandler.getInstance().isResume())
         );
     }
 

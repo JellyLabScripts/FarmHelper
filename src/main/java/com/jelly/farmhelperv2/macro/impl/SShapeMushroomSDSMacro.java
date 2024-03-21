@@ -35,7 +35,7 @@ public class SShapeMushroomSDSMacro extends AbstractMacro {
                 new RotationConfiguration(
                         newRotation,
                         FarmHelperConfig.getRandomRotationTime(), null
-                ).easeOutBack(true)
+                ).easeOutBack(!MacroHandler.getInstance().isResume())
         );
 
         setYaw(newRotation.getYaw());

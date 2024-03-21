@@ -275,11 +275,16 @@ public class MacroHandler {
         pauseMacro(false);
     }
 
+    @Getter
+    private boolean resume = false;
+
     public void resumeMacro() {
         currentMacro.ifPresent(cm -> {
             if (!cm.isPaused()) return;
             mc.inGameHasFocus = true;
+            resume = true;
             cm.onEnable();
+            resume = false;
             PlayerUtils.getTool();
             macroingTimer.resume();
             analyticsTimer.resume();

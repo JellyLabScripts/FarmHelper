@@ -224,6 +224,7 @@ public class AutoSprayonator implements IFeature {
         System.out.println("Has sprayonator: " + hasSprayonator());
         if (!hasSprayonator()) {
             LogUtils.sendError("[Auto Sprayonator] Disabling due to no sprayonator");
+            FarmHelperConfig.autoSprayonatorEnable = false;
             return;
         }
         if (GameStateHandler.getInstance().getSprayonatorState() == GameStateHandler.BuffState.ACTIVE) {
@@ -411,7 +412,8 @@ public class AutoSprayonator implements IFeature {
                     } else {
                         stop();
                         LogUtils.sendError("[Auto Sprayonator] Disabling until restart due to no spray item");
-                        sprayState = AUTO_SPRAYONATOR_STATE.NONE;
+                        FarmHelperConfig.autoSprayonatorEnable = false;
+                        stop();
                     }
                 }
                 break;

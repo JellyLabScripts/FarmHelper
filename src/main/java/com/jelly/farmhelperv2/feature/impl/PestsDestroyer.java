@@ -590,6 +590,8 @@ public class PestsDestroyer implements IFeature {
                 }
 
                 if (!FlyPathFinderExecutor.getInstance().isRunning()) {
+                    FlyPathFinderExecutor.getInstance().setSprinting(true);
+                    FlyPathFinderExecutor.getInstance().setDontRotate(false);
                     FlyPathFinderExecutor.getInstance().findPath(new Vec3(plotCenter.getX(), 80, plotCenter.getZ()), true, true);
                 }
                 break;
@@ -726,10 +728,14 @@ public class PestsDestroyer implements IFeature {
                                 y--;
                             }
                             y += 3;
+                            FlyPathFinderExecutor.getInstance().setSprinting(false);
+                            FlyPathFinderExecutor.getInstance().setDontRotate(true);
                             FlyPathFinderExecutor.getInstance().findPath(new Vec3(firework.xCoord, y, firework.zCoord), true, true);
                             LogUtils.sendWarning("[Pests Destroyer] Firework is too close to player. Flying to x: " + firework.xCoord + " y: " + y + " z: " + firework.zCoord);
                             break;
                         }
+                        FlyPathFinderExecutor.getInstance().setSprinting(true);
+                        FlyPathFinderExecutor.getInstance().setDontRotate(false);
                         FlyPathFinderExecutor.getInstance().findPath(firework, true, true);
                     }
                     break;
@@ -833,6 +839,7 @@ public class PestsDestroyer implements IFeature {
                     }
                     if (!FlyPathFinderExecutor.getInstance().isRunning()) {
                         LogUtils.sendDebug("Should pathfind to: " + entity.posX + " " + (entity.posY + 2.75) + " " + entity.posZ);
+                        FlyPathFinderExecutor.getInstance().setSprinting(FarmHelperConfig.sprintWhileFlying);
                         FlyPathFinderExecutor.getInstance().findPath(entity, true, true, 2.75f, true);
                     }
                     if (FlyPathFinderExecutor.getInstance().getState() == FlyPathFinderExecutor.State.FAILED
@@ -1221,6 +1228,8 @@ public class PestsDestroyer implements IFeature {
                 y--;
             }
             y += 3;
+            FlyPathFinderExecutor.getInstance().setDontRotate(true);
+            FlyPathFinderExecutor.getInstance().setSprinting(false);
             FlyPathFinderExecutor.getInstance().findPath(new Vec3(event.pos.xCoord, y, event.pos.zCoord), true, true);
             LogUtils.sendWarning("[Pests Destroyer] Firework is too close to player. Flying to x: " + event.pos.xCoord + " y: " + y + " z: " + event.pos.zCoord);
             state = States.GET_LOCATION;
