@@ -342,9 +342,9 @@ public class AutoPestExchange implements IFeature {
                     FlyPathFinderExecutor.getInstance().findPath(new Vec3(deskPos()).addVector(0.5, 0.5, 0.5), false, true);
                     break;
                 }
-                phillip = getPhillip();
-                if (BaritoneHandler.isPathing())
+                if (BaritoneHandler.isWalkingToGoalBlock())
                     break;
+                phillip = getPhillip();
                 if (FlyPathFinderExecutor.getInstance().isRunning()) {
                     if (phillip == null) {
                         break;
