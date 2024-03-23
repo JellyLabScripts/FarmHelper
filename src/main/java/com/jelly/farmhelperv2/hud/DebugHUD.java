@@ -9,7 +9,6 @@ import com.jelly.farmhelperv2.failsafe.impl.GuestVisitFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.*;
-import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
@@ -49,6 +48,7 @@ public class DebugHUD extends TextHud {
         lines.add("   God Pot: " + GameStateHandler.getInstance().getGodPotState());
         lines.add("   Cookie: " + GameStateHandler.getInstance().getCookieBuffState());
         lines.add("   Pest Hunter: " + GameStateHandler.getInstance().getPestHunterBonus());
+        lines.add("   Pest Repellent: " + GameStateHandler.getInstance().getPestRepellentState());
         lines.add("Location: " + GameStateHandler.getInstance().getLocation());
 //        lines.add("Pests in Vacuum: " + GameStateHandler.getInstance().getPestsFromVacuum());
         MacroHandler.getInstance().getCurrentMacro().ifPresent(macro -> {
@@ -147,9 +147,8 @@ public class DebugHUD extends TextHud {
             lines.add("      Forward: " + FlyPathfinder.getInstance().isDeceleratingForward);
             lines.add("      Backward: " + FlyPathfinder.getInstance().isDeceleratingBackward);
         }
-        if (AutoSprayonator.getInstance().isToggled()) {
+        if (AutoSprayonator.getInstance().isRunning()) {
             lines.add("Auto Sprayonator");
-            lines.add("   Running: " + AutoSprayonator.getInstance().isRunning());
             lines.add("   Enable Delay: " + AutoSprayonator.getInstance().getEnableDelay().getRemainingTime());
             lines.add("   State: " + AutoSprayonator.getInstance().getSprayState());
             lines.add("   Item: " + AutoSprayonator.getInstance().getSprayItem());
@@ -167,11 +166,9 @@ public class DebugHUD extends TextHud {
         }
         if (AutoPestExchange.getInstance().isRunning()) {
             lines.add("Auto Pest Hunter");
-            lines.add("   State: " + AutoPestExchange.getInstance().getState());
+            lines.add("   State: " + AutoPestExchange.getInstance().getNewState());
             lines.add("   Clock: " + AutoPestExchange.getInstance().getDelayClock().getRemainingTime());
             lines.add("   Stuck clock: " + AutoPestExchange.getInstance().getStuckClock().getRemainingTime());
-            lines.add("   isPathing: " + BaritoneHandler.isPathing());
-            lines.add("   isWalkingToGoalBlock: " + BaritoneHandler.isWalkingToGoalBlock());
         }
     }
 }

@@ -1043,7 +1043,7 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="Pests Destroyer Main">
     @Switch(
-            name = "Enable Pests Destroyer (USE AT YOUR OWN RISK)", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            name = "Enable Pests Destroyer", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Destroys pests"
     )
     public static boolean enablePestsDestroyer = false;
@@ -1356,6 +1356,19 @@ public class FarmHelperConfig extends Config {
                 + FarmHelperConfig.pestExchangeDeskY + ", "
                 + FarmHelperConfig.pestExchangeDeskZ);
     };
+
+    @Button(
+            name = "Reset the pest exchange location", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
+            description = "Resets the pest exchange location",
+            text = "Reset desk"
+    )
+    public static Runnable resetPestExchangeLocation = () -> {
+        pestExchangeDeskX = 0;
+        pestExchangeDeskY = 0;
+        pestExchangeDeskZ = 0;
+        LogUtils.sendSuccess("[Auto Pest Exchange] Reset the pest exchange location");
+    };
+
     @Number(
             name = "Pest Exchange Desk X", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
             min = -300, max = 300
@@ -1888,6 +1901,12 @@ public class FarmHelperConfig extends Config {
             description = "Counts only current crops for Jacob's Contest excludes"
     )
     public static boolean jacobContestCurrentCropsOnly = true;
+
+    @Switch(
+            name = "Show Debug logs about PD OTT", category = EXPERIMENTAL, subcategory = "Debug",
+            description = "Shows debug logs about PD OTT"
+    )
+    public static boolean showDebugLogsAboutPDOTT = false;
 
     //</editor-fold>
     //</editor-fold>

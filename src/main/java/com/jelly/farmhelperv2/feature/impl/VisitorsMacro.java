@@ -700,8 +700,8 @@ public class VisitorsMacro implements IFeature {
                     return;
                 }
                 LogUtils.sendDebug("Position of visitor: " + result.entityCharacter.getPositionEyes(1));
-                if (mc.thePlayer.getDistanceToEntity(result.entityCharacter) > 2.5) {
-                    Vec3 closestVec = PlayerUtils.getClosestVecAround(result.entityCharacter, 1.5);
+                if (mc.thePlayer.getDistanceToEntity(result.entityCharacter) > 3) {
+                    Vec3 closestVec = PlayerUtils.getClosestVecAround(result.entityCharacter, 1.5, 45, 45);
                     if (closestVec == null) {
                         LogUtils.sendError("[Visitors Macro] Couldn't find a position to get closer");
                         stop();
@@ -714,7 +714,7 @@ public class VisitorsMacro implements IFeature {
 //                        BaritoneHandler.walkCloserToBlockPos(result.entityCharacter.getPosition(), 1);
                         FlyPathFinderExecutor.getInstance().setSprinting(false);
                         FlyPathFinderExecutor.getInstance().setDontRotate(true);
-                        FlyPathFinderExecutor.getInstance().findPath(closestVec.addVector(0, 1.4, 0), false, true);
+                        FlyPathFinderExecutor.getInstance().findPath(closestVec.addVector(0, 1.8, 0), false, true);
                         rotation.easeTo(
                                 new RotationConfiguration(
                                         new Target(result.entityCharacter),
@@ -1024,8 +1024,8 @@ public class VisitorsMacro implements IFeature {
                     }
                 }
                 LogUtils.sendDebug("Position of visitor: " + currentCharacter.get().getPositionEyes(1));
-                if (mc.thePlayer.getDistanceToEntity(currentCharacter.get()) > 2.5) {
-                    Vec3 closestVec = PlayerUtils.getClosestVecAround(currentCharacter.get(), 1.5);
+                if (mc.thePlayer.getDistanceToEntity(currentCharacter.get()) > 3) {
+                    Vec3 closestVec = PlayerUtils.getClosestVecAround(currentCharacter.get(), 1.5, 45, 45);
                     if (closestVec == null) {
                         LogUtils.sendError("[Visitors Macro] Couldn't find a position to get closer");
                         stop();
@@ -1036,7 +1036,7 @@ public class VisitorsMacro implements IFeature {
 //                        BaritoneHandler.walkCloserToBlockPos(currentCharacter.get().getPosition(), 1);
                         FlyPathFinderExecutor.getInstance().setSprinting(false);
                         FlyPathFinderExecutor.getInstance().setDontRotate(true);
-                        FlyPathFinderExecutor.getInstance().findPath(closestVec.addVector(0, 1.4, 0), false, true);
+                        FlyPathFinderExecutor.getInstance().findPath(closestVec.addVector(0, 1.8, 0), false, true);
                         rotation.easeTo(
                                 new RotationConfiguration(
                                         new Target(currentCharacter.get()),

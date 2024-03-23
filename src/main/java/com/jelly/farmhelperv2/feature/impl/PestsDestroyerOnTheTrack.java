@@ -21,6 +21,7 @@ import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -177,8 +178,9 @@ public class PestsDestroyerOnTheTrack implements IFeature {
     private Optional<Entity> getPest(boolean start) {
         List<Entity> entities = PestsDestroyer.getInstance().getPestsLocations();
         float vacuumRange = PestsDestroyer.getInstance().getCurrentVacuumRange();
-        this.entities.clear();
-        return entities.stream()
+        List<Tuple<Entity, Double>> temp = new ArrayList<>();
+
+        Optional<Entity> opt = entities.stream()
                 .filter(e -> {
                     Vec3 entityPosition = new Vec3(e.posX, e.posY + e.getEyeHeight(), e.posZ);
                     Vec3 playerPosition = mc.thePlayer.getPositionEyes(1);
@@ -190,12 +192,14 @@ public class PestsDestroyerOnTheTrack implements IFeature {
 
                         float yaw = (float) Math.toDegrees(Math.atan2(zDiff, xDiff)) - 90F;
                         float yawDiff = Math.abs(MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw) - yaw);
+                        if (FarmHelperConfig.showDebugLogsAboutPDOTT)
+                            LogUtils.sendDebug("Entity Pos: " + e.getPositionVector() + " | CurrenYaw: " + MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw) + " | YawNeeded: " + yaw + " | YawDiff: " + yawDiff + " | Dist: " + dist);
                         returnResult = dist <= vacuumRange - 0.5 && yawDiff <= FarmHelperConfig.pestsDestroyerOnTheTrackFOV / 2f;
                     } else {
                         returnResult = dist <= vacuumRange - 0.5;
                     }
                     if (returnResult) {
-                        this.entities.add(new Tuple<>(e, dist));
+                        temp.add(new Tuple<>(e, dist));
                     }
                     return returnResult;
                 }).min((e1, e2) -> {
@@ -203,6 +207,9 @@ public class PestsDestroyerOnTheTrack implements IFeature {
                     double d2 = e2.getDistanceToEntity(mc.thePlayer);
                     return Double.compare(d1, d2);
                 });
+        this.entities.clear();
+        this.entities.addAll(temp);
+        return opt;
     }
 
     @Getter

@@ -75,6 +75,7 @@ public class GameStateHandler {
     @Getter
     private BuffState godPotState = BuffState.UNKNOWN;
     @Getter
+    @Setter
     private BuffState pestRepellentState = BuffState.UNKNOWN;
     @Getter
     private BuffState pestHunterBonus = BuffState.UNKNOWN;

@@ -364,6 +364,7 @@ public class FlyPathFinderExecutor {
             Multithreading.schedule(() -> KeyBindUtils.stopMovement(true), 500, TimeUnit.MILLISECONDS);
             return;
         }
+        Vec3 lastElem = copyPath.get(copyPath.size() - 1);
         if (targetEntity != null) {
             float velocity = (float) Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
             if (targetEntity instanceof EntityArmorStand) {
@@ -378,12 +379,12 @@ public class FlyPathFinderExecutor {
                 targetPos = targetPos.addVector(targetEntity.motionX * 1.3, targetEntity.motionY, targetEntity.motionZ * 1.3);
             }
             float distance = (float) mc.thePlayer.getPositionVector().distanceTo(targetPos);
-            float distancePath = (float) mc.thePlayer.getPositionVector().distanceTo(copyPath.get(copyPath.size() - 1));
+            float distancePath = (float) mc.thePlayer.getPositionVector().distanceTo(lastElem);
             System.out.println("Velo: " + velocity);
             System.out.println("TargetPos: " + targetPos);
             System.out.println("Distance: " + distance);
             System.out.println("EntityVelo: " + entityVelocity);
-            if (willArriveAtDestinationAfterStopping(copyPath.get(copyPath.size() - 1)) && entityVelocity < 0.15) {
+            if (willArriveAtDestinationAfterStopping(lastElem) && entityVelocity < 0.15) {
                 System.out.println("Will arrive");
                 stop();
                 return;
@@ -392,13 +393,13 @@ public class FlyPathFinderExecutor {
                 stop();
                 return;
             }
-        } else if (willArriveAtDestinationAfterStopping(copyPath.get(copyPath.size() - 1))) {
+        } else if (willArriveAtDestinationAfterStopping(lastElem) || mc.thePlayer.getDistance(lastElem.xCoord, lastElem.yCoord, lastElem.zCoord) < 0.3) {
             System.out.println("stopping");
             stop();
             return;
         }
         if (!mc.thePlayer.capabilities.allowFlying) {
-            Vec3 lastWithoutY = new Vec3(copyPath.get(copyPath.size() - 1).xCoord, current.yCoord, copyPath.get(copyPath.size() - 1).zCoord);
+            Vec3 lastWithoutY = new Vec3(lastElem.xCoord, current.yCoord, lastElem.zCoord);
             if (current.distanceTo(lastWithoutY) < 1) {
                 stop();
                 LogUtils.sendSuccess("Arrived at destination");

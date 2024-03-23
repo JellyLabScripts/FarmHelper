@@ -248,8 +248,10 @@ public class RotationHandler {
             if (configuration.callback().isPresent()) {
                 configuration.callback().get().run();
             } else { // No callback, just reset
-                if (Math.abs(mc.thePlayer.rotationYaw - targetRotation.getYaw()) < 0.1 && Math.abs(mc.thePlayer.rotationPitch - targetRotation.getPitch()) < 0.1) {
+                if (Math.abs(mc.thePlayer.rotationYaw - targetRotation.getYaw()) < 0.1) {
                     mc.thePlayer.rotationYaw = targetRotation.getYaw();
+                }
+                if (Math.abs(mc.thePlayer.rotationPitch - targetRotation.getPitch()) < 0.1) {
                     mc.thePlayer.rotationPitch = targetRotation.getPitch();
                 }
                 reset();

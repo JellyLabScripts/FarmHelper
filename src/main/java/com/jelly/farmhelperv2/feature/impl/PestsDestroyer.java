@@ -1074,21 +1074,21 @@ public class PestsDestroyer implements IFeature {
             if (FarmHelperConfig.pestsESP) {
                 Color color = FarmHelperConfig.pestsESPColor.toJavaColor();
                 Vec3 entityPos = new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ);
-                boolean isInVacuumRange = mc.thePlayer.getPositionEyes(1).distanceTo(entityPos) < currentVacuumRange;
+                double distance = mc.thePlayer.getPositionEyes(1).distanceTo(entityPos);
+                boolean isInVacuumRange = distance < currentVacuumRange;
                 if (isInVacuumRange) {
                     color = new Color(color.getRed(), 255, color.getBlue(), Math.min(50, color.getAlpha()));
                 }
-                float distance = mc.thePlayer.getDistanceToEntity(entity);
                 if (distance > 5) {
                     try {
+                        EnumChatFormatting distanceColor = distance > currentVacuumRange ? EnumChatFormatting.RED : EnumChatFormatting.GREEN;
                         ItemStack itemStack = ((EntityArmorStand) entity).getEquipmentInSlot(4);
                         String pestName = this.pests.stream().filter(pest -> itemStack.getTagCompound().toString().contains(pest.getSecond())).findFirst().get().getFirst();
-                        RenderUtils.drawText(pestName, entity.posX, entity.posY + entity.getEyeHeight() + 0.65 + 0.5, entity.posZ, 1 + Math.min((distance / 20), 3));
+                        RenderUtils.drawText(pestName + String.format(distanceColor + " %.1fm", distance), entity.posX, entity.posY + entity.getEyeHeight() + 0.65 + 0.5, entity.posZ, (float) (1 + Math.min((distance / 20f), 2f)));
                     } catch (Exception ignored) {
                     }
                 }
                 RenderUtils.drawBox(boundingBox, color);
-
             }
             if (FarmHelperConfig.pestsTracers) {
                 RenderUtils.drawTracer(new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), FarmHelperConfig.pestsTracersColor.toJavaColor());

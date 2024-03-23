@@ -364,9 +364,13 @@ public class PlayerUtils {
     }
 
     public static Vec3 getClosestVecAround(Entity entity, double distance) {
+        return getClosestVecAround(entity, distance, 20, 0);
+    }
+
+    public static Vec3 getClosestVecAround(Entity entity, double distance, int angleStep, int angleStart) {
         Vec3 vec = new Vec3(entity.posX, entity.posY, entity.posZ);
         Vec3 closest = null;
-        for (int i = 0; i < 360; i += 20) {
+        for (int i = angleStart; i < 360; i += angleStep) {
             Vec3 vec1 = vec.addVector(Math.sin(Math.toRadians(i)) * distance, 0, Math.cos(Math.toRadians(i)) * distance);
             if (closest == null || vec1.distanceTo(entity.getPositionVector()) < closest.distanceTo(entity.getPositionVector()) && !BlockUtils.hasCollision(new BlockPos(vec1))) {
                 closest = vec1;

@@ -30,7 +30,7 @@ public class AutoRepellent implements IFeature {
     private static AutoRepellent instance;
 
     public final static Clock repellentFailsafeClock = new Clock();
-    private final Pattern repellentRegex = Pattern.compile("(\\d+?)m?\\s?(\\d+)s");
+    private final Pattern repellentRegex = Pattern.compile("(\\d+m\\s)?(\\d+s)");
 
     public static AutoRepellent getInstance() {
         if (instance == null) {
@@ -391,17 +391,18 @@ public class AutoRepellent implements IFeature {
 
     @SubscribeEvent(receiveCanceled = true)
     public void onChatReceived(ClientChatReceivedEvent event) {
-        if (!isRunning()) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText()); // just to be sure lol
-        if (state == State.CONFIRM_BUY) {
+        if (isRunning() && state == State.CONFIRM_BUY) {
             if (message.startsWith("You bought Pest")) {
                 state = State.CLOSE_GUI;
                 delay.schedule(300 + (long) (Math.random() * 300));
             }
-        } else if (state == State.WAIT_FOR_REPELLENT) {
-            if (message.startsWith("YUM! Pests will now spawn")) {
-                repellentFailsafeClock.schedule(TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS) + 5_000);
-                LogUtils.sendDebug("Repellent used!");
+        }
+        if (message.startsWith("YUM! Pests will now spawn")) {
+            repellentFailsafeClock.schedule(TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS) + 5_000);
+            GameStateHandler.getInstance().setPestRepellentState(GameStateHandler.BuffState.ACTIVE);
+            LogUtils.sendDebug("Repellent used!");
+            if (isRunning()) {
                 if (this.hotbarSlot == -1) {
                     state = State.NONE;
                     LogUtils.sendWarning("[Auto Repellent] Successfully used Repellent! Resuming macro...");
@@ -411,19 +412,34 @@ public class AutoRepellent implements IFeature {
                     moveRepellentState = MoveRepellentState.PUT_ITEM_BACK_PICKUP;
                 }
                 delay.schedule(2_000);
-            } else if (message.startsWith("You already have this effect active!")) {
-                state = State.END;
-                Matcher matcher = repellentRegex.matcher(message);
-                if (matcher.find()) {
-                    int minutes = Integer.parseInt(matcher.group(1));
-                    int seconds = Integer.parseInt(matcher.group(2));
+            }
+        } else if (message.startsWith("You already have this effect active!")) {
+            Matcher matcher = repellentRegex.matcher(message);
+            if (matcher.find()) {
+                try {
+                    int minutes;
+                    int seconds;
+                    if (matcher.group(1).contains("m")) {
+                        minutes = Integer.parseInt(matcher.group(1).replace("m", "").trim());
+                        seconds = Integer.parseInt(matcher.group(2).replace("s", "").trim());
+                    } else {
+                        minutes = 0;
+                        seconds = Integer.parseInt(matcher.group(1).replace("s", "").trim());
+                    }
 
-                    long totalMilliseconds = (minutes * 60L + seconds) * 1000;
+                    long totalMilliseconds = (minutes * 60L + seconds) * 1000 + 5_000;
                     repellentFailsafeClock.schedule(totalMilliseconds);
-                } else {
-                    LogUtils.sendError("Failed to get repellent remaining time.");
+                    GameStateHandler.getInstance().setPestRepellentState(GameStateHandler.BuffState.FAILSAFE);
+                } catch (NumberFormatException e) {
+                    LogUtils.sendError("Failed to parse repellent remaining time.");
+                    e.printStackTrace();
                 }
+            } else {
+                LogUtils.sendError("Failed to get repellent remaining time.");
+            }
 
+            if (isRunning()) {
+                state = State.END;
                 LogUtils.sendWarning("[Auto Repellent] Already used Repellent! Resuming macro...");
                 stop();
             }
