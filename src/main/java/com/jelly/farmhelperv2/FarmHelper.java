@@ -28,11 +28,13 @@ import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.Display;
 
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -111,7 +113,7 @@ public class FarmHelper {
         MinecraftForge.EVENT_BUS.register(TickTask.getInstance());
         MinecraftForge.EVENT_BUS.register(MovRecPlayer.getInstance());
         MinecraftForge.EVENT_BUS.register(WebsocketHandler.getInstance());
-        if (Loader.isModLoaded("farmhelperjdadependency"))
+        if (Loader.isModLoaded("farmhelperjdadependency")) // && checkIfJDAVersionCorrect()
             MinecraftForge.EVENT_BUS.register(DiscordBotHandler.getInstance());
         MinecraftForge.EVENT_BUS.register(AudioManager.getInstance());
         MinecraftForge.EVENT_BUS.register(RotationHandler.getInstance());
@@ -130,9 +132,13 @@ public class FarmHelper {
         CommandManager.register(new FarmHelperMainCommand());
     }
 
-    public int getAllocatedMemoryMB() {
-        Runtime runtime = Runtime.getRuntime();
-        long maxMemory = runtime.maxMemory();
-        return (int) (maxMemory / (1024 * 1024));
-    }
+//    public static boolean isJDAVersionCorrect = false;
+//
+//    public static boolean checkIfJDAVersionCorrect() {
+//        Optional<ModContainer> modContainer = Loader.instance().getActiveModList().stream()
+//                .filter(mod -> "farmhelperjdadependency".equals(mod.getModId()))
+//                .findFirst();
+//        isJDAVersionCorrect = modContainer.map(container -> container.getVersion().equals("1.0.1")).orElse(false);
+//        return isJDAVersionCorrect;
+//    }
 }

@@ -1,6 +1,7 @@
 package com.jelly.farmhelperv2.remote;
 
 import cc.polyfrost.oneconfig.utils.Notifications;
+import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.remote.command.discordCommands.DiscordCommand;
 import com.jelly.farmhelperv2.remote.command.discordCommands.impl.*;
@@ -141,11 +142,17 @@ public class DiscordBotHandler extends ListenerAdapter {
         }
 
         if (!Loader.isModLoaded("farmhelperjdadependency")) {
-            Notifications.INSTANCE.send("Farm Helper", "FarmHelperJDA is not loaded, disabling remote control..");
-            LogUtils.sendDebug("FarmHelperJDA is not loaded, disabling remote control..");
+            Notifications.INSTANCE.send("Farm Helper", "FarmHelperJDA is not loaded, disabling remote control...");
+            LogUtils.sendDebug("FarmHelperJDA is not loaded, disabling remote control...");
             FarmHelperConfig.enableRemoteControl = false;
             return;
         }
+//        else if (!FarmHelper.isJDAVersionCorrect) {
+//            FarmHelperConfig.enableRemoteControl = false;
+//            LogUtils.sendError("[Remote Control] Farm Helper JDA Dependency is outdated! Please update it and try again. Disabling remote control...");
+//            Notifications.INSTANCE.send("Farm Helper", "Farm Helper JDA Dependency is outdated! Please update it and try again. Disabling remote control...");
+//            return;
+//        }
         if (Minecraft.getMinecraft().thePlayer == null || Minecraft.getMinecraft().theWorld == null) return;
         if (FarmHelperConfig.discordRemoteControlToken == null || FarmHelperConfig.discordRemoteControlToken.isEmpty()) {
             if (WebsocketHandler.getInstance().getWebsocketState() != WebsocketHandler.WebsocketState.CLIENT) {
