@@ -406,7 +406,7 @@ public class GameStateHandler {
     }
 
     private void checkInfestedPlotsTabList(String cleanedLine) {
-        if (cleanedLine.contains("Infested Plots:")) {
+        if (cleanedLine.contains("Plots:")) {
             try {
                 String[] split = cleanedLine.trim().split(" ");
                 infestedPlots.clear();
