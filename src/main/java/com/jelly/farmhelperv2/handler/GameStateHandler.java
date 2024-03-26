@@ -410,8 +410,10 @@ public class GameStateHandler {
             try {
                 String[] split = cleanedLine.trim().split(" ");
                 infestedPlots.clear();
-                for (int i = 2; i < split.length; i++) {
-                    infestedPlots.add(Integer.parseInt(split[i].replace(",", "")));
+                for (int i = 1; i < split.length; i++) {
+                    try {
+                        infestedPlots.add(Integer.parseInt(split[i].replace(",", "")));
+                    } catch (Exception ignored) {}
                 }
             } catch (Exception ignored) {
                 infestedPlots.clear();
