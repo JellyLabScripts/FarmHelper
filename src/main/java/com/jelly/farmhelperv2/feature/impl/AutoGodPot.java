@@ -329,7 +329,10 @@ public class AutoGodPot implements IFeature {
                 InventoryUtils.clickContainerSlot(searchItem.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                 setAhState(AhState.SORT_ITEMS);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                Multithreading.schedule(() -> SignUtils.setTextToWriteOnString("God Potion"), (long) (400 + Math.random() * 400), TimeUnit.MILLISECONDS);
+                Multithreading.schedule(() -> {
+                    SignUtils.setTextToWriteOnString("God Potion");
+                    Multithreading.schedule(SignUtils::confirmSign, 500, TimeUnit.MILLISECONDS);
+                }, (long) (400 + Math.random() * 400), TimeUnit.MILLISECONDS);
                 break;
             case SORT_ITEMS:
                 if (mc.currentScreen == null) {

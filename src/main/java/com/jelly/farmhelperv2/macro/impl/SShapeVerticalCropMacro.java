@@ -213,7 +213,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
     public void onEnable() {
         super.onEnable();
         changeLaneDirection = null;
-        if (!FarmHelperConfig.customPitch && !isRestoredState()) {
+        if (!FarmHelperConfig.customPitch && !isRestoredState() && !isPitchSet()) {
             if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_V_NORMAL_TYPE) {
                 setPitch((float) (2.8f + Math.random() * 0.5f));
             } else if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_PUMPKIN_MELON) {
@@ -228,7 +228,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 setPitch(-90f);
             }
         }
-        if (!FarmHelperConfig.customYaw && !isRestoredState()) {
+        if (!FarmHelperConfig.customYaw && !isRestoredState() && !isYawSet()) {
             setYaw(AngleUtils.getClosest());
             setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
         }

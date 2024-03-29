@@ -48,10 +48,8 @@ public abstract class AbstractMacro {
     private boolean restoredState = false;
     @Setter
     private int layerY = 0;
-    @Setter
-    private float yaw;
-    @Setter
-    private float pitch;
+    private Optional<Float> yaw = Optional.empty();
+    private Optional<Float> pitch = Optional.empty();
     @Setter
     private Optional<Float> closest90Deg = Optional.empty();
     @Setter
@@ -75,6 +73,30 @@ public abstract class AbstractMacro {
     private final Clock checkOnSpawnClock = new Clock();
 
     private boolean sentWarning = false;
+
+    public boolean isYawSet() {
+        return yaw.isPresent();
+    }
+
+    public boolean isPitchSet() {
+        return pitch.isPresent();
+    }
+
+    public float getYaw() {
+        return yaw.orElse(0f);
+    }
+
+    public float getPitch() {
+        return pitch.orElse(0f);
+    }
+
+    public void setYaw(float yaw) {
+        this.yaw = Optional.of(yaw);
+    }
+
+    public void setPitch(float pitch) {
+        this.pitch = Optional.of(pitch);
+    }
 
     public void onTick() {
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent() || FailsafeManager.getInstance().getChooseEmergencyDelay().isScheduled()) {
@@ -179,7 +201,7 @@ public abstract class AbstractMacro {
             }
 
             if (shouldRotateAfterWarp()) {
-                Rotation newRotation = new Rotation(yaw, pitch);
+                Rotation newRotation = new Rotation(getYaw(), getPitch());
                 Rotation curretnRotation = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
                 Rotation neededChange = RotationHandler.getInstance().getNeededChange(newRotation, curretnRotation);
                 if (FarmHelperConfig.dontFixAfterWarping) {
@@ -249,7 +271,7 @@ public abstract class AbstractMacro {
         Rotation neededChange = RotationHandler.getInstance().getNeededChange(packetRotation, currentRotation);
         double diff = Math.abs(neededChange.getYaw()) + Math.abs(neededChange.getPitch());
         if (diff > 5) {
-            LogUtils.sendWarning("Your rotation hasn't been changed after rewarp! Disable any mod that blocks rotation packets!");
+            LogUtils.sendWarning("Your rotation hasn't been changed after rewarp! Disable any mod that blocks rotation packets or fix your /setspawn so look directly at the crops!");
         }
     }
 
@@ -298,13 +320,15 @@ public abstract class AbstractMacro {
         rotation.reset();
         rewarpDelay.reset();
         sentWarning = false;
+        yaw = Optional.empty();
+        pitch = Optional.empty();
         setEnabled(false);
     }
 
     public void saveState() {
         if (!savedState.isPresent()) {
             LogUtils.sendDebug("Saving state: " + currentState);
-            savedState = Optional.of(new SavedState(currentState, yaw, pitch, closest90Deg.orElse(AngleUtils.getClosest())));
+            savedState = Optional.of(new SavedState(currentState, getYaw(), getPitch(), closest90Deg.orElse(AngleUtils.getClosest())));
         }
     }
 
@@ -327,8 +351,8 @@ public abstract class AbstractMacro {
     }
 
     public void doAfterRewarpRotation() {
-        yaw = AngleUtils.get360RotationYaw(yaw + 180);
-        setClosest90Deg(Optional.of(AngleUtils.getClosest(yaw)));
+        setYaw(AngleUtils.get360RotationYaw(getYaw() + 180));
+        setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
     }
 
     protected void setWalkingDirection() {

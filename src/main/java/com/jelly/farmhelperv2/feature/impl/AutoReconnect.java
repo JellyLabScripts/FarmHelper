@@ -110,8 +110,12 @@ public class AutoReconnect implements IFeature {
             MacroHandler.getInstance().resumeMacro();
             macroWasToggled = false;
             if (UngrabMouse.getInstance().isToggled()) {
-                UngrabMouse.getInstance().regrabMouse(true);
-                UngrabMouse.getInstance().ungrabMouse();
+                try {
+                    UngrabMouse.getInstance().regrabMouse(true);
+                    UngrabMouse.getInstance().ungrabMouse();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

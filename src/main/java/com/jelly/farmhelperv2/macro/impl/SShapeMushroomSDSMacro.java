@@ -19,11 +19,11 @@ public class SShapeMushroomSDSMacro extends AbstractMacro {
     public void onEnable() {
         super.onEnable();
 
-        if (!FarmHelperConfig.customPitch && !isRestoredState()) {
+        if (!FarmHelperConfig.customPitch && !isRestoredState() && !isPitchSet()) {
             setPitch((float) (6.5f + Math.random() * 1f)); // 6.5 - 7.5
         }
 
-        if (!FarmHelperConfig.customYaw && !isRestoredState()) {
+        if (!FarmHelperConfig.customYaw && !isRestoredState() && !isYawSet()) {
             setYaw(AngleUtils.getClosest());
             setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
         }

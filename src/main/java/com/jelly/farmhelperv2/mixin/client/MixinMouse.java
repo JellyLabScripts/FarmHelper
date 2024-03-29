@@ -14,8 +14,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MixinMouse {
     @Inject(method = "getEventDWheel()I", at = @At("RETURN"), remap = false, cancellable = true)
     private static void getEventDWheel(CallbackInfoReturnable<Integer> cir) {
+        if (Minecraft.getMinecraft().currentScreen != null) return;
         if (Freelook.getInstance().isRunning()) {
-            Freelook.getInstance().setDistance(Math.min(20, Math.max(1, Freelook.getInstance().getDistance() + (cir.getReturnValue() / 120f))));
+            Freelook.getInstance().setDistance(Math.min(20, Math.max(1, Freelook.getInstance().getDistance() - (cir.getReturnValue() / 120f))));
             cir.setReturnValue(0);
             return;
         }

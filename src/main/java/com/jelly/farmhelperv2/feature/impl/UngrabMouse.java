@@ -77,12 +77,20 @@ public class UngrabMouse implements IFeature {
 
     @Override
     public void start() {
-        ungrabMouse();
+        try {
+            ungrabMouse();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void stop() {
-        regrabMouse();
+        try {
+            regrabMouse();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

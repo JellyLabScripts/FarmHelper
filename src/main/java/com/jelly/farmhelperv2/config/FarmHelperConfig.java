@@ -279,6 +279,13 @@ public class FarmHelperConfig extends Config {
             description = "Mutes the game while farming"
     )
     public static boolean muteTheGame = false;
+
+    @Switch(
+            name = "Change window's title", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+            description = "Changes the window's title"
+    )
+    public static boolean changeWindowTitle = true;
+
     @Switch(
             name = "Auto Cookie", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "Automatically purchases and consumes a booster cookie"

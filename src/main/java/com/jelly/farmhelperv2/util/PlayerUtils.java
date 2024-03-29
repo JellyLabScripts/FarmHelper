@@ -372,7 +372,8 @@ public class PlayerUtils {
         Vec3 closest = null;
         for (int i = angleStart; i < 360; i += angleStep) {
             Vec3 vec1 = vec.addVector(Math.sin(Math.toRadians(i)) * distance, 0, Math.cos(Math.toRadians(i)) * distance);
-            if (closest == null || vec1.distanceTo(entity.getPositionVector()) < closest.distanceTo(entity.getPositionVector()) && !BlockUtils.hasCollision(new BlockPos(vec1))) {
+            System.out.println(vec1);
+            if ((closest == null || vec1.distanceTo(entity.getPositionVector()) < closest.distanceTo(entity.getPositionVector())) && !BlockUtils.hasCollision(new BlockPos(vec1))) {
                 closest = vec1;
             }
         }

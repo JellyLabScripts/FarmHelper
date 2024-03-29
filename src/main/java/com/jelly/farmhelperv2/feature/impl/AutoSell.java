@@ -606,6 +606,7 @@ public class AutoSell implements IFeature {
     private boolean shouldSell(String name) {
         if (name.contains("Sack")) return false;
         if (name.contains("Pouch")) return false;
+        if (name.contains("Knife")) return false;
         if (shouldSellCustomItem(name)) return true;
         return crops.stream().anyMatch(crop -> StringUtils.stripControlCodes(name).startsWith(crop));
     }

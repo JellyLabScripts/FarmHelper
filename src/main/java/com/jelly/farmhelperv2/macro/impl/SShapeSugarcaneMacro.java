@@ -115,10 +115,10 @@ public class SShapeSugarcaneMacro extends AbstractMacro {
     @Override
     public void onEnable() {
         super.onEnable();
-        if (!FarmHelperConfig.customPitch && !isRestoredState()) {
+        if (!FarmHelperConfig.customPitch && !isRestoredState() && !isPitchSet()) {
             setPitch((float) (Math.random() * 1) - 0.5f); // -0.5 to 0.5
         }
-        if (!FarmHelperConfig.customYaw && !isRestoredState()) {
+        if (!FarmHelperConfig.customYaw && !isRestoredState() && !isYawSet()) {
             setYaw(AngleUtils.getClosestDiagonal());
             setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
         }

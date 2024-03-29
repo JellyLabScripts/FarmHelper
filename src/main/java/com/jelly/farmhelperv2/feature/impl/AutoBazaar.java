@@ -306,6 +306,12 @@ public class AutoBazaar implements IFeature {
                 if (!this.hasTimerEnded()) return;
 
                 SignUtils.setTextToWriteOnString(String.valueOf(this.buyAmount));
+                this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                this.buyState = BuyState.CONFIRM_SIGN;
+                break;
+            case CONFIRM_SIGN:
+                if (!this.hasTimerEnded()) return;
+                SignUtils.confirmSign();
                 this.timer.schedule(2000);
                 this.buyState = BuyState.VERIFY_CONFIRM_PAGE;
                 break;
@@ -328,8 +334,13 @@ public class AutoBazaar implements IFeature {
                     return;
                 }
 
+                Slot slot = InventoryUtils.getSlotOfId(instaBuySlot);
+                if (slot == null || !slot.getHasStack()) return;
+
+                boolean foundPrice = false;
+
                 if (this.maxSpendLimit != 0) {
-                    String lore = String.join(" ", InventoryUtils.getLoreOfItemInContainer(instaBuySlot)).replace(",", "");
+                    String lore = String.join(" ", InventoryUtils.getItemLore(slot.getStack())).replace(",", "");
                     Matcher matcher = this.totalCostPattern.matcher(lore);
                     System.out.println(lore);
 
@@ -337,6 +348,7 @@ public class AutoBazaar implements IFeature {
                         float amount = Float.parseFloat(matcher.group(1));
                         System.out.println("Amount: " + amount);
                         System.out.println("Max spend limit: " + this.maxSpendLimit);
+                        foundPrice = true;
                         if (amount > this.maxSpendLimit) {
                             log("Attempting to spend more than allowed. Price: " + amount + ", limit: " + this.maxSpendLimit);
                             log("Disabling.");
@@ -347,10 +359,17 @@ public class AutoBazaar implements IFeature {
                     }
                     // For high pong gamers - Might get stuck in an inf loop here if internet is bad
                     if (lore.contains("Loading...")) return;
+                } else {
+                    foundPrice = true;
                 }
 
-                InventoryUtils.clickContainerSlot(instaBuySlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                if (!foundPrice) {
+                    this.disable("Could not find price.");
+                    return;
+                }
+
                 this.buyState = BuyState.BUY_VERIFY;
+                InventoryUtils.clickContainerSlot(instaBuySlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                 this.timer.schedule(2000);
                 break;
             case BUY_VERIFY:
@@ -522,7 +541,7 @@ public class AutoBazaar implements IFeature {
 
     // Insta Buy
     enum BuyState {
-        STARTING, OPEN_BZ, BZ_VERIFY, CLICK_ON_PRODUCT, PRODUCT_VERIFY, CLICK_BUY_INSTANTLY, BUY_INSTANTLY_VERIFY, OPEN_SIGN, OPEN_SIGN_VERIFY, EDIT_SIGN, VERIFY_CONFIRM_PAGE, CLICK_BUY, BUY_VERIFY, DISABLE
+        STARTING, OPEN_BZ, BZ_VERIFY, CLICK_ON_PRODUCT, PRODUCT_VERIFY, CLICK_BUY_INSTANTLY, BUY_INSTANTLY_VERIFY, OPEN_SIGN, OPEN_SIGN_VERIFY, EDIT_SIGN, CONFIRM_SIGN, VERIFY_CONFIRM_PAGE, CLICK_BUY, BUY_VERIFY, DISABLE
     }
 
     // Insta Sell

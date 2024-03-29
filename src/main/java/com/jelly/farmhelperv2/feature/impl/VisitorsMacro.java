@@ -701,7 +701,7 @@ public class VisitorsMacro implements IFeature {
                 }
                 LogUtils.sendDebug("Position of visitor: " + result.entityCharacter.getPositionEyes(1));
                 if (mc.thePlayer.getDistanceToEntity(result.entityCharacter) > 3) {
-                    Vec3 closestVec = PlayerUtils.getClosestVecAround(result.entityCharacter, 1.5, 45, 45);
+                    Vec3 closestVec = PlayerUtils.getClosestVecAround(result.entityCharacter, 1.35, 90, 45);
                     if (closestVec == null) {
                         LogUtils.sendError("[Visitors Macro] Couldn't find a position to get closer");
                         stop();
@@ -748,7 +748,14 @@ public class VisitorsMacro implements IFeature {
             case GET_TO_CLOSEST_VISITOR:
                 LogUtils.sendDebug("[Visitors Macro] Getting the closest visitor");
                 assert currentVisitor.isPresent();
-                if (rotation.isRotating()) return;
+                if (!rotation.isRotating())
+                    rotation.easeTo(
+                            new RotationConfiguration(
+                                    new Target(closestVec.get().addVector(0, 1.6, 0)),
+                                    FarmHelperConfig.getRandomRotationTime(),
+                                    null
+                            ).easeOutBack(Math.random() > 0.5)
+                    );
                 if (getCloserToEntity()) break;
                 KeyBindUtils.stopMovement();
 
@@ -762,9 +769,7 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                if (rotation.isRotating()) return;
                 assert currentVisitor.isPresent();
-                if (moveAwayIfPlayerTooClose()) return;
                 if (mc.objectMouseOver != null && mc.objectMouseOver.entityHit != null) {
                     Entity entity = mc.objectMouseOver.entityHit;
                     VisitorEntities result2 = getVisitorEntities(entity);
@@ -782,6 +787,8 @@ public class VisitorsMacro implements IFeature {
                     }
                     break;
                 }
+                if (rotation.isRotating()) return;
+                if (moveAwayIfPlayerTooClose()) return;
                 LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
                 LogUtils.sendDebug("[Visitors Macro] Distance: " + mc.thePlayer.getDistanceToEntity(currentCharacter.get()));
                 setVisitorsState(VisitorsState.ROTATE_TO_VISITOR);
@@ -1025,13 +1032,14 @@ public class VisitorsMacro implements IFeature {
                 }
                 LogUtils.sendDebug("Position of visitor: " + currentCharacter.get().getPositionEyes(1));
                 if (mc.thePlayer.getDistanceToEntity(currentCharacter.get()) > 3) {
-                    Vec3 closestVec = PlayerUtils.getClosestVecAround(currentCharacter.get(), 1.5, 45, 45);
+                    Vec3 closestVec = PlayerUtils.getClosestVecAround(currentCharacter.get(), 1.35, 90, 45);
                     if (closestVec == null) {
                         LogUtils.sendError("[Visitors Macro] Couldn't find a position to get closer");
                         stop();
                         FarmHelperConfig.visitorsMacro = false;
                         return;
                     }
+                    this.closestVec = Optional.of(closestVec);
                     if (FarmHelperConfig.visitorsMacroUsePathFinder) {
 //                        BaritoneHandler.walkCloserToBlockPos(currentCharacter.get().getPosition(), 1);
                         FlyPathFinderExecutor.getInstance().setSprinting(false);
@@ -1068,7 +1076,14 @@ public class VisitorsMacro implements IFeature {
             case GET_TO_CLOSEST_VISITOR_2:
                 LogUtils.sendDebug("[Visitors Macro] Getting the closest visitor");
                 assert currentVisitor.isPresent();
-                if (rotation.isRotating()) return;
+                if (!rotation.isRotating())
+                    rotation.easeTo(
+                            new RotationConfiguration(
+                                    new Target(closestVec.get().addVector(0, 1.6, 0)),
+                                    FarmHelperConfig.getRandomRotationTime(),
+                                    null
+                            ).easeOutBack(Math.random() > 0.5)
+                    );
                 if (getCloserToEntity()) break;
                 KeyBindUtils.stopMovement();
 
@@ -1082,11 +1097,9 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(getRandomDelay());
                     break;
                 }
-                if (BaritoneHandler.isWalkingToGoalBlock()) return;
-                if (rotation.isRotating()) return;
+//                if (BaritoneHandler.isWalkingToGoalBlock()) return;
                 assert currentVisitor.isPresent();
                 assert currentCharacter.isPresent();
-                if (moveAwayIfPlayerTooClose()) return;
                 if (mc.objectMouseOver != null && mc.objectMouseOver.entityHit != null) {
                     Entity entity = mc.objectMouseOver.entityHit;
                     VisitorEntities result2 = getVisitorEntities(entity);
@@ -1103,11 +1116,12 @@ public class VisitorsMacro implements IFeature {
                         moveSideways();
                     }
                     break;
-                } else {
-                    LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
-                    LogUtils.sendDebug("[Visitors Macro] Distance: " + mc.thePlayer.getDistanceToEntity(currentCharacter.get()));
-                    setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
                 }
+                if (rotation.isRotating()) return;
+                if (moveAwayIfPlayerTooClose()) return;
+                LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
+                LogUtils.sendDebug("[Visitors Macro] Distance: " + mc.thePlayer.getDistanceToEntity(currentCharacter.get()));
+                setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
                 break;
             case FINISH_VISITOR:
                 if (mc.currentScreen == null) {
@@ -1187,8 +1201,8 @@ public class VisitorsMacro implements IFeature {
     }
 
     private boolean getCloserToEntity() {
-        if (closestVec.isPresent() && currentCharacter.isPresent() && mc.thePlayer.getDistance(closestVec.get().xCoord, closestVec.get().yCoord, closestVec.get().zCoord) > 0.3) {
-            KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, shouldJump() ? mc.gameSettings.keyBindJump : null, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
+        if (closestVec.isPresent() && currentCharacter.isPresent() && mc.thePlayer.getDistance(closestVec.get().xCoord, closestVec.get().yCoord, closestVec.get().zCoord) > 0.6) {
+            KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, shouldJump() ? mc.gameSettings.keyBindJump : null, GameStateHandler.getInstance().getSpeed() > 250 && (mc.thePlayer.motionX > 0.1 || mc.thePlayer.motionZ > 0.1) ? mc.gameSettings.keyBindSneak : null);
             stuckClock.schedule(STUCK_DELAY);
             return true;
         }
@@ -1268,6 +1282,7 @@ public class VisitorsMacro implements IFeature {
     private Stream<Entity> getVisitors() {
         return mc.theWorld.getLoadedEntityList().stream()
                 .filter(e -> e instanceof EntityArmorStand)
+                .filter(e -> e.getDistanceToEntity(mc.thePlayer) < 12)
                 .filter(e -> !servedCustomers.contains(e))
                 .filter(entity2 -> entity2.hasCustomName() && visitors.stream().anyMatch(v -> equalsWithoutFormatting(v, entity2.getCustomNameTag())))
                 .filter(entity2 -> !ignoredNPCs.contains(entity2));
@@ -1282,7 +1297,7 @@ public class VisitorsMacro implements IFeature {
             assert currentCharacter.isPresent();
             if (mc.thePlayer.getDistanceToEntity(currentCharacter.get()) < 0.25) {
                 if (GameStateHandler.getInstance().isBackWalkable()) {
-                    KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, GameStateHandler.getInstance().getSpeed() > 250 && (mc.thePlayer.motionX > 0.1 || mc.thePlayer.motionZ > 0.1) ? mc.gameSettings.keyBindSneak : null);
                     Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
                     return true;
                 }
@@ -1295,12 +1310,12 @@ public class VisitorsMacro implements IFeature {
 
     private boolean moveSideways() {
         if (GameStateHandler.getInstance().isLeftWalkable()) {
-            KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
+            KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft, GameStateHandler.getInstance().getSpeed() > 250 && (mc.thePlayer.motionX > 0.1 || mc.thePlayer.motionZ > 0.1) ? mc.gameSettings.keyBindSneak : null);
             Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
             return true;
         }
         if (GameStateHandler.getInstance().isRightWalkable()) {
-            KeyBindUtils.holdThese(mc.gameSettings.keyBindRight, GameStateHandler.getInstance().getSpeed() > 250 ? mc.gameSettings.keyBindSneak : null);
+            KeyBindUtils.holdThese(mc.gameSettings.keyBindRight, GameStateHandler.getInstance().getSpeed() > 250 && (mc.thePlayer.motionX > 0.1 || mc.thePlayer.motionZ > 0.1) ? mc.gameSettings.keyBindSneak : null);
             Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
             return true;
         }

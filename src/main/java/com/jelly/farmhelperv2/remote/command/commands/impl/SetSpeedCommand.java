@@ -175,7 +175,7 @@ public class SetSpeedCommand extends ClientCommand {
                     clock.schedule(500);
                     break;
                 }
-                PlayerUtils.closeScreen();
+                SignUtils.confirmSign();
                 currentState = State.LOOK_BACK;
                 clock.schedule(500);
                 break;
