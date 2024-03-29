@@ -328,14 +328,11 @@ public class AutoBazaar implements IFeature {
             case CLICK_BUY:
                 if (!this.hasTimerEnded()) return;
 
-                int instaBuySlot = (this.buyNowButtonSlot == -1) ? InventoryUtils.getSlotIdOfItemInContainer("Custom Amount") : this.buyNowButtonSlot;
-                if (instaBuySlot == -1) {
-                    System.out.println("Could not find slot to click to buy. Waiting");
+                Slot slot = InventoryUtils.getSlotOfItemInContainer("Custom Amount");
+                if (slot == null || !slot.getHasStack()) {
+                    System.out.println("Slot is null");
                     return;
                 }
-
-                Slot slot = InventoryUtils.getSlotOfId(instaBuySlot);
-                if (slot == null || !slot.getHasStack()) return;
 
                 boolean foundPrice = false;
 
@@ -369,7 +366,7 @@ public class AutoBazaar implements IFeature {
                 }
 
                 this.buyState = BuyState.BUY_VERIFY;
-                InventoryUtils.clickContainerSlot(instaBuySlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                InventoryUtils.clickContainerSlot(slot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                 this.timer.schedule(2000);
                 break;
             case BUY_VERIFY:
