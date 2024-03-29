@@ -330,7 +330,7 @@ public class AutoBazaar implements IFeature {
 
                 int instaBuySlot = (this.buyNowButtonSlot == -1) ? InventoryUtils.getSlotIdOfItemInContainer("Custom Amount") : this.buyNowButtonSlot;
                 if (instaBuySlot == -1) {
-                    this.disable("Could not find slot to click to buy.");
+                    System.out.println("Could not find slot to click to buy. Waiting");
                     return;
                 }
 
