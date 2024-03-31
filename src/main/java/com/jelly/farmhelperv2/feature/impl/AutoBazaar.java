@@ -336,7 +336,7 @@ public class AutoBazaar implements IFeature {
             case CLICK_BUY:
                 if (!this.hasTimerEnded()) return;
 
-                Slot slot = InventoryUtils.getSlotOfItemInContainer("Custom Amount");
+                Slot slot = InventoryUtils.getSlotOfIdInContainer(buyNowButtonSlot);
                 if (slot == null || !slot.getHasStack()) {
                     System.out.println("Slot is null");
                     return;
