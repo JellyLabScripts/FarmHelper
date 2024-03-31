@@ -288,7 +288,7 @@ public class AutoBazaar implements IFeature {
             case OPEN_SIGN:
                 if (!this.hasTimerEnded()) return;
 
-                Slot signSlot = InventoryUtils.getSlotOfIdInContainer(this.buyNowButtonSlot);
+                Slot signSlot = InventoryUtils.getSlotOfItemInContainer("Custom Amount");
                 if (signSlot == null || !signSlot.getHasStack()) {
                     this.disable("Could not find sign.");
                     return;
@@ -326,6 +326,7 @@ public class AutoBazaar implements IFeature {
             case VERIFY_CONFIRM_PAGE:
                 if (this.openedChestGuiNameContains("Confirm Instant Buy")) {
                     log("Opened confirm buy page");
+                    this.buyNowButtonSlot = InventoryUtils.getSlotIdOfItemInContainer("Custom Amount");
                     this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     this.buyState = BuyState.CLICK_BUY;
                 }
