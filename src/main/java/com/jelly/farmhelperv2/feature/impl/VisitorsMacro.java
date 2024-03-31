@@ -669,6 +669,15 @@ public class VisitorsMacro implements IFeature {
                     return;
                 }
                 if (FlyPathFinderExecutor.getInstance().isRunning()) {
+                    if (!rotation.isRotating() && currentCharacter.isPresent()) {
+                        rotation.easeTo(
+                                new RotationConfiguration(
+                                        new Target(currentCharacter.get()),
+                                        FarmHelperConfig.getRandomRotationTime(),
+                                        null
+                                ).followTarget(true)
+                        );
+                    }
                     return;
                 }
                 if (PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, true) != -1) {
@@ -1011,6 +1020,18 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
+                if (FlyPathFinderExecutor.getInstance().isRunning()) {
+                    if (!rotation.isRotating() && currentCharacter.isPresent()) {
+                        rotation.easeTo(
+                                new RotationConfiguration(
+                                        new Target(currentCharacter.get()),
+                                        FarmHelperConfig.getRandomRotationTime(),
+                                        null
+                                ).followTarget(true)
+                        );
+                    }
+                    return;
+                }
                 if (rotation.isRotating()) return;
                 if (PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, true) != -1) {
                     mc.thePlayer.inventory.currentItem = PlayerUtils.getFarmingTool(MacroHandler.getInstance().getCrop(), true, true);
@@ -1282,7 +1303,7 @@ public class VisitorsMacro implements IFeature {
     private Stream<Entity> getVisitors() {
         return mc.theWorld.getLoadedEntityList().stream()
                 .filter(e -> e instanceof EntityArmorStand)
-                .filter(e -> e.getDistanceToEntity(mc.thePlayer) < 12)
+                .filter(e -> e.getDistanceToEntity(mc.thePlayer) < 25)
                 .filter(e -> !servedCustomers.contains(e))
                 .filter(entity2 -> entity2.hasCustomName() && visitors.stream().anyMatch(v -> equalsWithoutFormatting(v, entity2.getCustomNameTag())))
                 .filter(entity2 -> !ignoredNPCs.contains(entity2));

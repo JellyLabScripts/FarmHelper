@@ -249,10 +249,9 @@ public class AutoBazaar implements IFeature {
                 if (this.openedChestGuiNameStartsWith(this.itemToBuy + " ➜ Instant Buy")) {
                     log("Opened instant buy page");
                     this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    this.buyState = BuyState.OPEN_SIGN;
 
                     Predicate<Slot> buyPredicate = slot -> slot.getHasStack()
-                            && StringUtils.stripControlCodes(slot.getStack().getDisplayName()).startsWith("Buy")
+                            && (StringUtils.stripControlCodes(slot.getStack().getDisplayName()).startsWith("Buy") || StringUtils.stripControlCodes(slot.getStack().getDisplayName()).startsWith("Fill"))
                             && slot.slotNumber < mc.thePlayer.openContainer.inventorySlots.size() - 37;
                     List<Slot> buySlots = InventoryUtils.getIndexesOfItemsFromContainer(buyPredicate);
 
@@ -262,15 +261,24 @@ public class AutoBazaar implements IFeature {
                         String lore = String.join(" ", InventoryUtils.getItemLore(slot.getStack()));
                         Matcher matcher = this.instabuyAmountPattern.matcher(lore);
 
-                        if (matcher.find() && this.buyAmount == Integer.parseInt(matcher.group(1))) {
+                        if (matcher.find() && this.buyAmount == Integer.parseInt(matcher.group(1).replace(",", ""))) {
                             this.buyNowButtonSlot = slot.slotNumber;
                             this.buyState = BuyState.CLICK_BUY;
+                            System.out.println("Clicking button at slot: " + slot.slotNumber);
                             return;
                         }
                         if (lore.contains("Loading...")) { // Makes more sense down here
                             this.buyState = BuyState.BUY_INSTANTLY_VERIFY;
                             return;
                         }
+                    }
+
+                    Slot customAmount = InventoryUtils.getSlotOfItemInContainer("Custom Amount");
+                    if (customAmount != null && customAmount.getHasStack()) {
+                        this.buyState = BuyState.OPEN_SIGN;
+                        this.buyNowButtonSlot = customAmount.slotNumber;
+                        LogUtils.sendDebug("[Auto Bazaar] Buying custom amount");
+                        return;
                     }
                 }
                 if (this.hasTimerEnded()) {
@@ -280,13 +288,13 @@ public class AutoBazaar implements IFeature {
             case OPEN_SIGN:
                 if (!this.hasTimerEnded()) return;
 
-                int signSlot = InventoryUtils.getSlotIdOfItemInContainer("Custom Amount");
-                if (signSlot == -1) {
+                Slot signSlot = InventoryUtils.getSlotOfIdInContainer(this.buyNowButtonSlot);
+                if (signSlot == null || !signSlot.getHasStack()) {
                     this.disable("Could not find sign.");
                     return;
                 }
 
-                InventoryUtils.clickContainerSlot(signSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                InventoryUtils.clickContainerSlot(signSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                 this.timer.schedule(2000);
                 this.buyState = BuyState.OPEN_SIGN_VERIFY;
                 log("In open Sign.");
