@@ -2091,20 +2091,6 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
         registerKeyBind(debugKeybind, () -> {
-//            MovingObjectPosition objectMouseOver = Minecraft.getMinecraft().objectMouseOver;
-//            if (objectMouseOver == null || objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY)
-//                return;
-//            Entity entity = objectMouseOver.entityHit;
-//            Multithreading.schedule(() -> {
-//                RotationHandler.getInstance().easeTo(
-//                        new RotationConfiguration(
-//                                new Target(entity),
-//                                1000,
-//                                RotationConfiguration.RotationType.CLIENT,
-//                                null
-//                        ).followTarget(true)
-//                );
-//            }, 2, TimeUnit.SECONDS);
         });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());

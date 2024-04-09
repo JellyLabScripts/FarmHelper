@@ -2,12 +2,11 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.IFeature;
-import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
-import com.sun.jna.Native;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -47,7 +46,7 @@ public class PiPMode implements IFeature {
 
     @Override
     public boolean isRunning() {
-        return false;
+        return width != 0 && height != 0;
     }
 
     @Override
@@ -165,34 +164,44 @@ public class PiPMode implements IFeature {
 
                 width = 0;
                 height = 0;
+
+                previousX = 0;
+                previousY = 0;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    int previousX = 0;
+    int previousY = 0;
+
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
-        if (!FarmHelperConfig.pipMode || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || !MacroHandler.getInstance().getCurrentMacro().isPresent())
+        if (!FarmHelperConfig.pipMode || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || !isRunning())
             return;
 
 //        Need optimize this code later
         if (Mouse.isButtonDown(2)) {
             Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-            float damping = 0.8f;
 
-            int dx = Mouse.getDX();
-            int dy = Mouse.getDY();
+            Point mouseLocation = MouseInfo.getPointerInfo().getLocation();
+            int mouseX = (int) mouseLocation.getX();
+            int mouseY = (int) mouseLocation.getY();
 
-            if (Display.getX() + dx * damping < 0 || Display.getX() + dx * damping + Display.getWidth() > dimension.getWidth()) {
-                dx = 0;
-            }
-            if (Display.getY() + dy * damping < 0 || Display.getY() + dy * damping + Display.getHeight() > dimension.getHeight()) {
-                dy = 0;
+            if (previousX == 0 && previousY == 0) {
+                previousX = mouseX;
+                previousY = mouseY;
             }
 
-            int newX = (int)(Display.getX() + dx * damping);
-            int newY = (int)(Display.getY() + dy * damping);
+            int dx = mouseX - previousX;
+            int dy = mouseY - previousY;
+
+            int newX = Display.getX() + dx;
+            int newY = Display.getY() + dy;
+
+            previousX = mouseX;
+            previousY = mouseY;
 
             Display.setLocation(newX, newY);
         }
