@@ -302,6 +302,12 @@ public class FarmHelperConfig extends Config {
             description = "Automatically ungrabs your mouse, so you can safely alt-tab"
     )
     public static boolean autoUngrabMouse = true;
+
+    @Switch(
+            name = "PiP Mode", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+            description = "Enables Picture-in-Picture mode, hold middle mouse while macroing to move the game window"
+    )
+    public static boolean pipMode = false;
     //</editor-fold>
 
     //<editor-fold desc="Performance Mod">
