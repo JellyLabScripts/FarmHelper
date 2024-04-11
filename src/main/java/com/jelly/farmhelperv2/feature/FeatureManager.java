@@ -43,7 +43,8 @@ public class FeatureManager {
                 Scheduler.getInstance(),
                 UngrabMouse.getInstance(),
                 VisitorsMacro.getInstance(),
-                PiPMode.getInstance()
+                PiPMode.getInstance(),
+                RussianRoulette.getInstance()
         );
         features.addAll(featuresList);
         return features;
