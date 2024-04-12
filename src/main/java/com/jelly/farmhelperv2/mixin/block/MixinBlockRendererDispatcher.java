@@ -49,9 +49,7 @@ public class MixinBlockRendererDispatcher {
                 if (playerPos.distanceSq(pos) > 25 && FarmHelperConfig.fastRender) {
                     cir.setReturnValue(false);
                 }
-            }
-
-            if (cropBlocks.contains(state.getBlock())) {
+            } else if (cropBlocks.contains(state.getBlock())) {
                 cir.setReturnValue(false);
             }
         }
