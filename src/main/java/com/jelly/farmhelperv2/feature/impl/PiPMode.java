@@ -143,7 +143,7 @@ public class PiPMode implements IFeature {
                 setAlwaysOnTop(true);
 
 
-            } else {
+            } else if (isToggled() && !enabled) {
                 System.setProperty("org.lwjgl.opengl.Window.undecorated", "false");
                 Display.setDisplayMode(new DisplayMode(width, height));
                 Display.setFullscreen(true);
@@ -181,10 +181,7 @@ public class PiPMode implements IFeature {
         if (!FarmHelperConfig.pipMode || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || !isRunning())
             return;
 
-//        Need optimize this code later
         if (Mouse.isButtonDown(2)) {
-            Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-
             Point mouseLocation = MouseInfo.getPointerInfo().getLocation();
             int mouseX = (int) mouseLocation.getX();
             int mouseY = (int) mouseLocation.getY();
@@ -192,6 +189,10 @@ public class PiPMode implements IFeature {
             if (previousX == 0 && previousY == 0) {
                 previousX = mouseX;
                 previousY = mouseY;
+            }
+
+            if (Display.getX() == 0 && Display.getY() == 0) {
+                return;
             }
 
             int dx = mouseX - previousX;

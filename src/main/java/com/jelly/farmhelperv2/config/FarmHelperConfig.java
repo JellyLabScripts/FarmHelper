@@ -316,6 +316,12 @@ public class FarmHelperConfig extends Config {
             description = "Set render distance to 2, set max fps to 15 and doesn't render crops"
     )
     public static boolean performanceMode = false;
+
+    @Switch(name = "Fast Render", category = MISCELLANEOUS, subcategory = "Performance Mode",
+            description = "Using new fast render method to increase performance"
+    )
+    public static boolean fastRender = true;
+
     @Number(
             name = "Max FPS", category = MISCELLANEOUS, subcategory = "Performance Mode",
             description = "The maximum FPS to set when performance mode is enabled",
