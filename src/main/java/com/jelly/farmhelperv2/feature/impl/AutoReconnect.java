@@ -153,7 +153,7 @@ public class AutoReconnect implements IFeature {
                     } catch (Exception e) {
                         e.printStackTrace();
                         System.out.println("Failed to reconnect to server! Trying again in 5 seconds...");
-                        Notifications.INSTANCE.send("Farm Helper", "Failed to reconnect to server! Trying again in 5 seconds...");
+                        LogUtils.sendNotification("Farm Helper", "Failed to reconnect to server! Trying again in 5 seconds...");
                         reconnectDelay.schedule(5_000);
                         start();
                     }

@@ -91,6 +91,10 @@ public class TeleportFailsafe extends Failsafe {
         Vec3 currentPlayerPos = mc.thePlayer.getPositionVector();
         Vec3 packetPlayerPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
         BlockPos packetPlayerBlockPos = new BlockPos(packetPlayerPos);
+        if (currentPlayerPos.yCoord < 0) {
+            LogUtils.sendDebug("[Failsafe] Player is below Y = 0. Ignoring");
+            return;
+        }
         if (FlyPathFinderExecutor.getInstance().isRunning() && FlyPathFinderExecutor.getInstance().isPositionInCache(packetPlayerBlockPos)) {
             LogUtils.sendDebug("[Failsafe] Teleport packet received while Fly pathfinder is running. Ignoring");
             return;

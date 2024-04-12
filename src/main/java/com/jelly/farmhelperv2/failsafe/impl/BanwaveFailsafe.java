@@ -98,6 +98,7 @@ public class BanwaveFailsafe extends Failsafe {
         if (!FarmHelperConfig.enableLeavePauseOnBanwave) return;
         if (FarmHelperConfig.banwaveDontLeaveDuringJacobsContest && GameStateHandler.getInstance().inJacobContest())
             return;
+        if (!MacroHandler.getInstance().getMacro().isEnabledAndNoFeature()) return;
         FailsafeManager.getInstance().possibleDetection(this);
     }
 }

@@ -87,26 +87,26 @@ public class DiscordBotHandler extends ListenerAdapter {
             jdaClient.addEventListener(new InteractionAutoComplete());
             jdaClient.addEventListener(new InteractionCreate());
             WebsocketHandler.getInstance().setWebsocketState(WebsocketHandler.WebsocketState.SERVER);
-            Notifications.INSTANCE.send("Farm Helper", "Connected to the Discord Bot!");
+            LogUtils.sendNotification("Farm Helper", "Connected to the Discord Bot!");
             LogUtils.sendSuccess("Connected to the Discord Bot!");
         } catch (InvalidTokenException | ErrorResponseException e) {
             e.printStackTrace();
-            Notifications.INSTANCE.send("Farm Helper", "Failed to connect to the Discord Bot! Check your token. Disabling remote control and removing the token...");
+            LogUtils.sendNotification("Farm Helper", "Failed to connect to the Discord Bot! Check your token. Disabling remote control and removing the token...");
             LogUtils.sendError("Failed to connect to the Discord Bot! Check your token. Disabling remote control and removing the token...");
             WebsocketHandler.getInstance().setWebsocketState(WebsocketHandler.WebsocketState.NONE);
             FarmHelperConfig.discordRemoteControlToken = "";
         } catch (IllegalStateException e) {
             if (e.getMessage().contains("im-getting-closecode4014-disallowed-intents")) {
-                Notifications.INSTANCE.send("Farm Helper", "You need to enable Intents in the Discord Developer Portal! Disabling remote control...");
+                LogUtils.sendNotification("Farm Helper", "You need to enable Intents in the Discord Developer Portal! Disabling remote control...");
                 LogUtils.sendError("You need to enable Intents in the Discord Developer Portal! Disabling remote control...");
                 FarmHelperConfig.enableRemoteControl = false;
             } else {
-                Notifications.INSTANCE.send("Farm Helper", "Discord Bot is already connected, connecting as a client...");
+                LogUtils.sendNotification("Farm Helper", "Discord Bot is already connected, connecting as a client...");
                 LogUtils.sendWarning("Discord Bot is already connected, connecting as a client...");
                 WebsocketHandler.getInstance().setWebsocketState(WebsocketHandler.WebsocketState.CLIENT);
             }
         } catch (InterruptedException e) {
-            Notifications.INSTANCE.send("Farm Helper", "Unexpected error while connecting to the Discord Bot, disabling remote control...");
+            LogUtils.sendNotification("Farm Helper", "Unexpected error while connecting to the Discord Bot, disabling remote control...");
             LogUtils.sendError("Unexpected error while connecting to the Discord Bot, disabling remote control...");
             FarmHelperConfig.enableRemoteControl = false;
             WebsocketHandler.getInstance().setWebsocketState(WebsocketHandler.WebsocketState.NONE);
@@ -142,7 +142,7 @@ public class DiscordBotHandler extends ListenerAdapter {
         }
 
         if (!Loader.isModLoaded("farmhelperjdadependency")) {
-            Notifications.INSTANCE.send("Farm Helper", "FarmHelperJDA is not loaded, disabling remote control...");
+            LogUtils.sendNotification("Farm Helper", "FarmHelperJDA is not loaded, disabling remote control...");
             LogUtils.sendDebug("FarmHelperJDA is not loaded, disabling remote control...");
             FarmHelperConfig.enableRemoteControl = false;
             return;
@@ -150,7 +150,7 @@ public class DiscordBotHandler extends ListenerAdapter {
 //        else if (!FarmHelper.isJDAVersionCorrect) {
 //            FarmHelperConfig.enableRemoteControl = false;
 //            LogUtils.sendError("[Remote Control] Farm Helper JDA Dependency is outdated! Please update it and try again. Disabling remote control...");
-//            Notifications.INSTANCE.send("Farm Helper", "Farm Helper JDA Dependency is outdated! Please update it and try again. Disabling remote control...");
+//            LogUtils.sendNotification("Farm Helper", "Farm Helper JDA Dependency is outdated! Please update it and try again. Disabling remote control...");
 //            return;
 //        }
         if (Minecraft.getMinecraft().thePlayer == null || Minecraft.getMinecraft().theWorld == null) return;

@@ -948,7 +948,7 @@ public class FarmHelperConfig extends Config {
     public static boolean pauseVisitorsMacroDuringJacobsContest = true;
 
     @Switch(
-            name = "Use Path finder in Visitors macro between serving visitors", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+            name = "Use Path finder in Visitors macro between serving visitors (recommended for higher speeds)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "Uses path finder between serving visitors"
     )
     public static boolean visitorsMacroUsePathFinder = true;

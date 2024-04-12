@@ -94,13 +94,13 @@ public class WebsocketHandler {
             if (FarmHelperConfig.enableRemoteControl) {
                 FarmHelperConfig.enableRemoteControl = false;
                 LogUtils.sendError("[Remote Control] Farm Helper JDA Dependency is not installed, disabling remote control..");
-                Notifications.INSTANCE.send("Farm Helper", "Farm Helper JDA Dependency is not installed, disabling remote control..");
+                LogUtils.sendNotification("Farm Helper", "Farm Helper JDA Dependency is not installed, disabling remote control..");
             }
             return;
 //            else if (!FarmHelper.isJDAVersionCorrect) {
 //                FarmHelperConfig.enableRemoteControl = false;
 //                LogUtils.sendError("[Remote Control] Farm Helper JDA Dependency is outdated! Please update it and try again. Disabling remote control...");
-//                Notifications.INSTANCE.send("Farm Helper", "Farm Helper JDA Dependency is outdated! Please update it and try again. Disabling remote control...");
+//                LogUtils.sendNotification("Farm Helper", "Farm Helper JDA Dependency is outdated! Please update it and try again. Disabling remote control...");
 //                return;
 //            }
         }
@@ -137,7 +137,7 @@ public class WebsocketHandler {
                         websocketClient.addHeader("auth", FarmHelper.gson.toJson(data));
                         LogUtils.sendDebug("[Remote Control] Connecting to websocket server...");
                         websocketClient.connectBlocking();
-                        Notifications.INSTANCE.send("Farm Helper", "Connected to websocket server as a client!");
+                        LogUtils.sendNotification("Farm Helper", "Connected to websocket server as a client!");
                     } catch (URISyntaxException | InterruptedException e) {
                         LogUtils.sendDebug("[Remote Control] Failed to connect to the websocket server!");
                         e.printStackTrace();
@@ -146,7 +146,7 @@ public class WebsocketHandler {
                     if (reconnectAttempts > 5) {
                         reconnectAttempts = 0;
                         websocketState = WebsocketState.NONE;
-                        Notifications.INSTANCE.send("Farm Helper", "Failed to connect to the websocket server, disabling remote control..");
+                        LogUtils.sendNotification("Farm Helper", "Failed to connect to the websocket server, disabling remote control..");
                         LogUtils.sendError("[Remote Control] Failed to connect to the websocket server, disabling remote control..");
                         FarmHelperConfig.enableRemoteControl = false;
                         return;
@@ -164,7 +164,7 @@ public class WebsocketHandler {
                 if (websocketServer == null) {
                     websocketServer = new WebsocketServer(FarmHelperConfig.remoteControlPort);
                     websocketServer.start();
-                    Notifications.INSTANCE.send("Farm Helper", "Started websocket server on port " + FarmHelperConfig.remoteControlPort);
+                    LogUtils.sendNotification("Farm Helper", "Started websocket server on port " + FarmHelperConfig.remoteControlPort);
                 } else if (websocketServer.websocketServerState == WebsocketServer.WebsocketServerState.NOT_CONNECTED) {
                     try {
                         websocketServer.stop();
