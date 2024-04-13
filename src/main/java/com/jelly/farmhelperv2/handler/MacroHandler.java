@@ -398,16 +398,15 @@ public class MacroHandler {
             return;
         }
 
-        if (currentMacro.isPresent() && currentMacro.get().getRewarpState().equals(AbstractMacro.RewarpState.TELEPORTING)) {
-            long timeLeft = MacroHandler.getInstance().getLastTpTry() + 5_000 - System.currentTimeMillis();
-            if (timeLeft < 0) {
-                timeLeft = 0;
-            }
-            String formattedTime = LogUtils.formatTime(timeLeft);
-            RenderUtils.drawCenterTopText("Retrying to teleport in: " + formattedTime, event, Color.orange, 1.5f);
-        }
-
         currentMacro.ifPresent(m -> {
+            if (m.getRewarpState().equals(AbstractMacro.RewarpState.TELEPORTING)) {
+                long timeLeft = MacroHandler.getInstance().getLastTpTry() + 5_000 - System.currentTimeMillis();
+                if (timeLeft < 0) {
+                    timeLeft = 0;
+                }
+                String formattedTime = LogUtils.formatTime(timeLeft);
+                RenderUtils.drawCenterTopText("Retrying to teleport in: " + formattedTime, event, Color.orange, 1.5f);
+            }
             if (!m.isEnabledAndNoFeature()) return;
             m.onOverlayRender(event);
         });

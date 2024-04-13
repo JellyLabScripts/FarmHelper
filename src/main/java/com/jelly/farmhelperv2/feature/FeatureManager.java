@@ -51,7 +51,7 @@ public class FeatureManager {
 
     public boolean shouldPauseMacroExecution() {
         return features.stream().anyMatch(feature -> {
-            if (feature.isRunning()) {
+            if (feature.isToggled() && feature.isRunning()) {
                 return feature.shouldPauseMacroExecution();
             }
             return false;

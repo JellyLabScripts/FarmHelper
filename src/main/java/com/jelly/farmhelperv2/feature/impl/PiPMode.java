@@ -28,10 +28,6 @@ import java.util.concurrent.TimeUnit;
 public class PiPMode implements IFeature {
     private boolean enabled = false;
     private DisplayMode displayMode;
-    private int x;
-    private int y;
-    private int width;
-    private int height;
     private final Minecraft mc = Minecraft.getMinecraft();
 
     private static PiPMode instance;
@@ -70,10 +66,6 @@ public class PiPMode implements IFeature {
             FarmHelperConfig.pipMode = false;
             return;
         }
-
-        DisplayMode displayMode = Display.getDisplayMode();
-        width = displayMode.getWidth();
-        height = displayMode.getHeight();
 
         LogUtils.sendDebug("[PiPMode] Enabled.");
         setPiPMode(true);
@@ -126,12 +118,7 @@ public class PiPMode implements IFeature {
     public void setPiPMode(boolean enabled) {
         try {
             if (enabled) {
-                width = Display.getWidth();
-                height = Display.getHeight();
-                x = Display.getX();
-                y = Display.getY();
                 displayMode = Display.getDisplayMode();
-                LogUtils.sendDebug("Width: " + width + " Height: " + height + " X: " + x + " Y: " + y);
                 System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
                 Display.setDisplayMode(new DisplayMode(420, 252));
                 Display.setFullscreen(false);
@@ -162,14 +149,8 @@ public class PiPMode implements IFeature {
                 user32.PostMessage(User32.INSTANCE.GetForegroundWindow(), 0x0112, new WinDef.WPARAM(0xF030), new WinDef.LPARAM(0));
                 Multithreading.schedule(() -> mc.gameSettings.mouseSensitivity = prevMouseSpeed, 200, TimeUnit.MILLISECONDS);
 
-                width = 0;
-                height = 0;
-
                 previousX = 0;
                 previousY = 0;
-
-                x = 0;
-                y = 0;
 
                 displayMode = null;
             }

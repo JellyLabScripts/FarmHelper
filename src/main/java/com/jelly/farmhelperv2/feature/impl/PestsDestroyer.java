@@ -25,6 +25,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -1054,7 +1055,11 @@ public class PestsDestroyer implements IFeature {
                             if (nameEntity != null && (killedEntities.contains(nameEntity))) {
                                 return false;
                             }
-                            return killedEntities.stream().noneMatch(ke -> ke.getDistanceToEntity(entity) < 1.5);
+                            if (killedEntities.stream().noneMatch(ke -> ke.getDistanceToEntity(entity) < 1.5)) {
+                                drawESP(entity);
+                                return true;
+                            }
+                            return false;
                         }
                     }
                 }
@@ -1064,36 +1069,6 @@ public class PestsDestroyer implements IFeature {
 
         pestsLocations.clear();
         pestsLocations.addAll(pests);
-
-        for (Entity entity : pests) {
-            AxisAlignedBB boundingBox = new AxisAlignedBB(entity.posX - 0.5, entity.posY + entity.getEyeHeight() - 0.35, entity.posZ - 0.5, entity.posX + 0.5, entity.posY + entity.getEyeHeight() + 0.65, entity.posZ + 0.5);
-            double d0 = Minecraft.getMinecraft().getRenderManager().viewerPosX;
-            double d1 = Minecraft.getMinecraft().getRenderManager().viewerPosY;
-            double d2 = Minecraft.getMinecraft().getRenderManager().viewerPosZ;
-            boundingBox = boundingBox.offset(-d0, -d1, -d2);
-            if (FarmHelperConfig.pestsESP) {
-                Color color = FarmHelperConfig.pestsESPColor.toJavaColor();
-                Vec3 entityPos = new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ);
-                double distance = mc.thePlayer.getPositionEyes(1).distanceTo(entityPos);
-                boolean isInVacuumRange = distance < currentVacuumRange;
-                if (isInVacuumRange) {
-                    color = new Color(color.getRed(), 255, color.getBlue(), Math.min(50, color.getAlpha()));
-                }
-                if (distance > 5) {
-                    try {
-                        EnumChatFormatting distanceColor = distance > currentVacuumRange ? EnumChatFormatting.RED : EnumChatFormatting.GREEN;
-                        ItemStack itemStack = ((EntityArmorStand) entity).getEquipmentInSlot(4);
-                        String pestName = this.pests.stream().filter(pest -> itemStack.getTagCompound().toString().contains(pest.getSecond())).findFirst().get().getFirst();
-                        RenderUtils.drawText(pestName + String.format(distanceColor + " %.1fm", distance), entity.posX, entity.posY + entity.getEyeHeight() + 0.65 + 0.5, entity.posZ, (float) (1 + Math.min((distance / 20f), 2f)));
-                    } catch (Exception ignored) {
-                    }
-                }
-                RenderUtils.drawBox(boundingBox, color);
-            }
-            if (FarmHelperConfig.pestsTracers) {
-                RenderUtils.drawTracer(new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), FarmHelperConfig.pestsTracersColor.toJavaColor());
-            }
-        }
 
         if (!FarmHelperConfig.highlightPlotWithPests) return;
 
@@ -1120,6 +1095,38 @@ public class PestsDestroyer implements IFeature {
         Vec3 vacuumRange = playerPos.addVector(lookVec.xCoord * currentVacuumRange, lookVec.yCoord * currentVacuumRange, lookVec.zCoord * currentVacuumRange);
         AxisAlignedBB aabb = new AxisAlignedBB(vacuumRange.xCoord - 0.05, vacuumRange.yCoord - 0.05, vacuumRange.zCoord - 0.05, vacuumRange.xCoord + 0.05, vacuumRange.yCoord + 0.05, vacuumRange.zCoord + 0.05);
         RenderUtils.drawBox(aabb, vacuumRangeColor);
+    }
+
+    private void drawESP(Entity entity) {
+        AxisAlignedBB boundingBox = new AxisAlignedBB(entity.posX - 0.5, entity.posY + entity.getEyeHeight() - 0.35, entity.posZ - 0.5, entity.posX + 0.5, entity.posY + entity.getEyeHeight() + 0.65, entity.posZ + 0.5);
+        double d0 = Minecraft.getMinecraft().getRenderManager().viewerPosX;
+        double d1 = Minecraft.getMinecraft().getRenderManager().viewerPosY;
+        double d2 = Minecraft.getMinecraft().getRenderManager().viewerPosZ;
+        boundingBox = boundingBox.offset(-d0, -d1, -d2);
+        if (FarmHelperConfig.pestsESP) {
+            Color color = FarmHelperConfig.pestsESPColor.toJavaColor();
+            Vec3 entityPos = new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ);
+            double distance = mc.thePlayer.getPositionEyes(1).distanceTo(entityPos);
+            boolean isInVacuumRange = distance < currentVacuumRange;
+            if (isInVacuumRange) {
+                color = new Color(color.getRed(), 255, color.getBlue(), Math.min(50, color.getAlpha()));
+            }
+            if (distance > 5) {
+                try {
+                    EnumChatFormatting distanceColor = distance > currentVacuumRange ? EnumChatFormatting.RED : EnumChatFormatting.GREEN;
+                    ItemStack itemStack = ((EntityArmorStand) entity).getEquipmentInSlot(4);
+                    NBTTagCompound tagCompound = itemStack.getTagCompound();
+                    String texture = tagCompound.getCompoundTag("SkullOwner").getCompoundTag("Properties").getTagList("textures", 10).getCompoundTagAt(0).getString("Value");
+                    String pestName = this.pests.stream().filter(pest -> texture.equals(pest.getSecond())).findFirst().get().getFirst();
+                    RenderUtils.drawText(pestName + String.format(distanceColor + " %.1fm", distance), entity.posX, entity.posY + entity.getEyeHeight() + 0.65 + 0.5, entity.posZ, (float) (1 + Math.min((distance / 20f), 2f)));
+                } catch (Exception ignored) {
+                }
+            }
+            RenderUtils.drawBox(boundingBox, color);
+        }
+        if (FarmHelperConfig.pestsTracers) {
+            RenderUtils.drawTracer(new Vec3(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), FarmHelperConfig.pestsTracersColor.toJavaColor());
+        }
     }
 
     private boolean canEntityBeSeenIgnoreNonCollidable(Entity entity) {

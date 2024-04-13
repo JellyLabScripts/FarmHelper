@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ClickedBlockEvent;
+import com.jelly.farmhelperv2.event.MillisecondEvent;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.event.UpdateScoreboardLineEvent;
 import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
@@ -194,7 +195,8 @@ public class ProfitCalculator implements IFeature {
 
     @Override
     public void resetStatesAfterMacroDisabled() {
-
+        blocksBroken = 0;
+        bpsClock.reset();
     }
 
     @Override
@@ -225,15 +227,15 @@ public class ProfitCalculator implements IFeature {
     private final HashMap<String, Long> previousCultivating = new HashMap<>();
 
     @SubscribeEvent
-    public void onTickUpdateBPS(TickEvent.ClientTickEvent event) {
+    public void onTickUpdateBPS(MillisecondEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
-        if (!GameStateHandler.getInstance().inGarden()) return;
 
         if (bpsClock.passed()) {
             bpsClock.schedule(1_000);
             bpsQueue.add(blocksBroken);
+            LogUtils.sendDebug("Blocks Broken last second: " + blocksBroken);
             bps += blocksBroken;
+            LogUtils.sendDebug("BPS: " + bps);
             blocksBroken = 0;
             if (bpsQueue.size() == 61) {
                 bps -= bpsQueue.poll();
