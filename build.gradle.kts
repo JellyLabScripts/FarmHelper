@@ -6,7 +6,7 @@ plugins {
     id("cc.polyfrost.loom") version "0.10.0.+"
     id("dev.architectury.architectury-pack200") version "0.1.3"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("io.freefair.lombok") version "8.4"
+    id("io.freefair.lombok") version "8.6"
     id("net.kyori.blossom") version "1.3.1"
 }
 
@@ -77,6 +77,8 @@ dependencies {
 
     compileOnly("cc.polyfrost:oneconfig-1.8.9-forge:0.2.1-alpha+")
     shadowImpl("cc.polyfrost:oneconfig-wrapper-launchwrapper:1.0.0-beta+")
+
+    compileOnly("org.projectlombok:lombok:1.18.32")
 
     compileOnly("org.spongepowered:mixin:0.8.5")
     annotationProcessor("org.spongepowered:mixin:0.8.5")

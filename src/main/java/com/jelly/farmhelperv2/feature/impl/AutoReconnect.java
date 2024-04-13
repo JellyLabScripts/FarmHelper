@@ -1,6 +1,5 @@
 package com.jelly.farmhelperv2.feature.impl;
 
-import cc.polyfrost.oneconfig.utils.Notifications;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
@@ -84,11 +83,11 @@ public class AutoReconnect implements IFeature {
     public void start() {
         if (enabled) return;
         FailsafeManager.getInstance().stopFailsafes();
-        FeatureManager.getInstance().disableAllExcept(this);
+        FeatureManager.getInstance().disableAllExcept(this, Scheduler.getInstance());
         if (MacroHandler.getInstance().isMacroToggled()) {
-            MacroHandler.getInstance().pauseMacro();
             macroWasToggled = true;
         }
+        MacroHandler.getInstance().pauseMacro();
         enabled = true;
         try {
             mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText("Reconnecting in " + LogUtils.formatTime(reconnectDelay.getRemainingTime())));
@@ -192,7 +191,7 @@ public class AutoReconnect implements IFeature {
                     stop();
                 } else if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY) {
                     state = State.LOBBY;
-                    reconnectDelay.schedule(5_000);
+                    reconnectDelay.schedule(60_000);
                 } else {
                     MacroHandler.getInstance().triggerWarpGarden(true, false);
                     reconnectDelay.schedule(5_000);

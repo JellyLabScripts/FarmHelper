@@ -1,6 +1,5 @@
 package com.jelly.farmhelperv2.failsafe.impl;
 
-import cc.polyfrost.oneconfig.utils.Notifications;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
@@ -8,6 +7,7 @@ import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.AutoReconnect;
 import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 
 public class DisconnectFailsafe extends Failsafe {

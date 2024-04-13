@@ -80,7 +80,10 @@ public class ProfitCalculator implements IFeature {
     public double realHourlyProfit = 0;
     @Getter
     private double bountifulProfit = 0;
-    public double blocksBroken = 0;
+    public long blocksBroken = 0;
+    private final Queue<Long> bpsQueue = new LinkedList<>();
+    private final Clock bpsClock = new Clock();
+    private long bps = 0;
 
     public HashMap<String, APICrop> bazaarPrices = new HashMap<>();
     private boolean cantConnectToApi = false;
@@ -154,7 +157,7 @@ public class ProfitCalculator implements IFeature {
 
     public float getBPSFloat() {
         if (!MacroHandler.getInstance().getMacroingTimer().isScheduled()) return 0;
-        return (float) (blocksBroken / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f));
+        return ((int) ((double) this.bps / this.bpsQueue.size() * 10.0D)) / 10.0F;
     }
 
     @Override
@@ -209,6 +212,9 @@ public class ProfitCalculator implements IFeature {
         realHourlyProfit = 0;
         bountifulProfit = 0;
         blocksBroken = 0;
+        bpsQueue.clear();
+        bpsClock.reset();
+        bps = 0;
         previousCurrentPurse = 0;
         previousCultivating.clear();
         cropsToCount.forEach(crop -> crop.currentAmount = 0);
@@ -217,6 +223,23 @@ public class ProfitCalculator implements IFeature {
     }
 
     private final HashMap<String, Long> previousCultivating = new HashMap<>();
+
+    @SubscribeEvent
+    public void onTickUpdateBPS(TickEvent.ClientTickEvent event) {
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
+        if (!GameStateHandler.getInstance().inGarden()) return;
+
+        if (bpsClock.passed()) {
+            bpsClock.schedule(1_000);
+            bpsQueue.add(blocksBroken);
+            bps += blocksBroken;
+            blocksBroken = 0;
+            if (bpsQueue.size() == 61) {
+                bps -= bpsQueue.poll();
+            }
+        }
+    }
 
     @SubscribeEvent
     public void onTickUpdateProfit(TickEvent.ClientTickEvent event) {

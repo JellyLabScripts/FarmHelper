@@ -56,7 +56,12 @@ public class LogUtils {
         if (FarmHelperConfig.showRotationDebugMessages)
             sendDebug(message);
     }
-    
+
+    public static void sendNotification(String title, String message, float duration) {
+        if (!FarmHelperConfig.streamerMode)
+            Notifications.INSTANCE.send(title, message, duration);
+    }
+
     public static void sendNotification(String title, String message) {
         if (!FarmHelperConfig.streamerMode)
             Notifications.INSTANCE.send(title, message);
