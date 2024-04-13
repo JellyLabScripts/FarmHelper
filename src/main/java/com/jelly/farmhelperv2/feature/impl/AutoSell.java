@@ -399,10 +399,6 @@ public class AutoSell implements IFeature {
                     case SELL_INV_CONFIRM:
                         if (mc.currentScreen == null) return;
                         if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Are you sure?")) {
-                            LogUtils.sendError("[Auto Sell] Couldn't find the \"Are you sure?\" inventory, opening the menu again...");
-                            PlayerUtils.closeScreen();
-                            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                            setBazaarState(BazaarState.OPEN_MENU);
                             break;
                         } else if (InventoryUtils.getInventoryName() == null) {
                             break;

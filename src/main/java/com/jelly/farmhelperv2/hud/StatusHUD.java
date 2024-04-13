@@ -4,6 +4,7 @@ import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.feature.impl.AutoReconnect;
 import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
 import com.jelly.farmhelperv2.feature.impl.LeaveTimer;
 import com.jelly.farmhelperv2.feature.impl.Scheduler;
@@ -94,6 +95,9 @@ public class StatusHUD extends TextHud {
     }
 
     public String getStatusString() {
+        if (AutoReconnect.getInstance().isRunning()) {
+            return EnumChatFormatting.DARK_BLUE + "Coming back from Auto Reconnect...";
+        }
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
             return "Emergency: §l§5" + LogUtils.capitalize(FailsafeManager.getInstance().triggeredFailsafe.get().getType().name()) + "§r";
         } else if (FailsafeManager.getInstance().getRestartMacroAfterFailsafeDelay().isScheduled()) {

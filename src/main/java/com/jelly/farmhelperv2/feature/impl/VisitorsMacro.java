@@ -1222,8 +1222,12 @@ public class VisitorsMacro implements IFeature {
     }
 
     private boolean getCloserToEntity() {
+        if (rotation.isRotating()) {
+            KeyBindUtils.stopMovement();
+            return true;
+        }
         if (closestVec.isPresent() && currentCharacter.isPresent() && mc.thePlayer.getDistance(closestVec.get().xCoord, closestVec.get().yCoord, closestVec.get().zCoord) > 0.6) {
-            KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, shouldJump() ? mc.gameSettings.keyBindJump : null, GameStateHandler.getInstance().getSpeed() > 250 && (mc.thePlayer.motionX > 0.1 || mc.thePlayer.motionZ > 0.1) ? mc.gameSettings.keyBindSneak : null);
+            KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, shouldJump() ? mc.gameSettings.keyBindJump : null, GameStateHandler.getInstance().getSpeed() > 250 && (Math.abs(mc.thePlayer.motionX) > 0.1 || Math.abs(mc.thePlayer.motionZ) > 0.1) ? mc.gameSettings.keyBindSneak : null);
             stuckClock.schedule(STUCK_DELAY);
             return true;
         }
@@ -1303,7 +1307,7 @@ public class VisitorsMacro implements IFeature {
     private Stream<Entity> getVisitors() {
         return mc.theWorld.getLoadedEntityList().stream()
                 .filter(e -> e instanceof EntityArmorStand)
-                .filter(e -> e.getDistanceToEntity(mc.thePlayer) < 25)
+                .filter(e -> e.hasCustomName() && e.getCustomNameTag().startsWith("§"))
                 .filter(e -> !servedCustomers.contains(e))
                 .filter(entity2 -> entity2.hasCustomName() && visitors.stream().anyMatch(v -> equalsWithoutFormatting(v, entity2.getCustomNameTag())))
                 .filter(entity2 -> !ignoredNPCs.contains(entity2));
