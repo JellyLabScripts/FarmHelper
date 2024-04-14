@@ -223,7 +223,7 @@ public class PlayerUtils {
             }
         }
 
-        int gardeningHoe = InventoryUtils.getSlotIdOfItemInHotbar("Gardening Hoe");
+        int gardeningHoe = InventoryUtils.getSlotIdOfItemInHotbar("Gardening Hoe", "Gardening Axe");
         if (gardeningHoe != -1) {
             return gardeningHoe;
         }

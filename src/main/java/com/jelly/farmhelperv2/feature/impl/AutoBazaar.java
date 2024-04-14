@@ -276,7 +276,7 @@ public class AutoBazaar implements IFeature {
                     Slot customAmount = InventoryUtils.getSlotOfItemInContainer("Custom Amount");
                     if (customAmount != null && customAmount.getHasStack()) {
                         this.buyState = BuyState.OPEN_SIGN;
-                        this.buyNowButtonSlot = customAmount.slotNumber;
+                        this.buyNowButtonSlot = 13;
                         LogUtils.sendDebug("[Auto Bazaar] Buying custom amount");
                         return;
                     }

@@ -229,6 +229,7 @@ public class ProfitCalculator implements IFeature {
     @SubscribeEvent
     public void onTickUpdateBPS(MillisecondEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (MacroHandler.getInstance().isCurrentMacroPaused()) return;
 
         if (bpsClock.passed()) {
             bpsClock.schedule(1_000);
@@ -246,8 +247,7 @@ public class ProfitCalculator implements IFeature {
     @SubscribeEvent
     public void onTickUpdateProfit(TickEvent.ClientTickEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
-        if (!GameStateHandler.getInstance().inGarden()) return;
+        if (MacroHandler.getInstance().isCurrentMacroPaused()) return;
 
         double profit = 0;
         ItemStack currentItem = mc.thePlayer.getHeldItem();

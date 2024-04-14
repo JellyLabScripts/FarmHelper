@@ -191,7 +191,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
                         double zDiff = entityPosition.zCoord - playerPosition.zCoord;
 
                         float yaw = (float) Math.toDegrees(Math.atan2(zDiff, xDiff)) - 90F;
-                        float yawDiff = Math.abs(MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw) - yaw);
+                        float yawDiff = Math.abs(MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw) - MathHelper.wrapAngleTo180_float(yaw));
                         if (FarmHelperConfig.showDebugLogsAboutPDOTT)
                             LogUtils.sendDebug("Entity Pos: " + e.getPositionVector() + " | CurrenYaw: " + MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw) + " | YawNeeded: " + yaw + " | YawDiff: " + yawDiff + " | Dist: " + dist);
                         returnResult = dist <= vacuumRange - 0.5 && yawDiff <= FarmHelperConfig.pestsDestroyerOnTheTrackFOV / 2f;
