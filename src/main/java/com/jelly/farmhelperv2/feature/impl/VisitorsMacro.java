@@ -711,7 +711,7 @@ public class VisitorsMacro implements IFeature {
                 }
                 LogUtils.sendDebug("Position of visitor: " + result.entityCharacter.getPositionEyes(1));
                 if (mc.thePlayer.getDistanceToEntity(result.entityCharacter) > 3) {
-                    Vec3 closestVec = PlayerUtils.getClosestVecAround(result.entityCharacter, 1.35, 45, 0);
+                    Vec3 closestVec = PlayerUtils.getClosestVecAround(result.entityCharacter, 1.25, 90, 45);
                     if (closestVec == null) {
                         LogUtils.sendError("[Visitors Macro] Couldn't find a position to get closer");
                         stop();
@@ -1054,7 +1054,7 @@ public class VisitorsMacro implements IFeature {
                 }
                 LogUtils.sendDebug("Position of visitor: " + currentCharacter.get().getPositionEyes(1));
                 if (mc.thePlayer.getDistanceToEntity(currentCharacter.get()) > 3) {
-                    Vec3 closestVec = PlayerUtils.getClosestVecAround(currentCharacter.get(), 1.35, 45, 0);
+                    Vec3 closestVec = PlayerUtils.getClosestVecAround(currentCharacter.get(), 1.25, 90, 45);
                     if (closestVec == null) {
                         LogUtils.sendError("[Visitors Macro] Couldn't find a position to get closer");
                         stop();
