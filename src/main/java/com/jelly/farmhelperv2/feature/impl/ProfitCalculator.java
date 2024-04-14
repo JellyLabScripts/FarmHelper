@@ -4,7 +4,6 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
-import com.jelly.farmhelperv2.event.MillisecondEvent;
 import com.jelly.farmhelperv2.event.PlayerDestroyBlockEvent;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.event.UpdateScoreboardLineEvent;
@@ -213,6 +212,7 @@ public class ProfitCalculator implements IFeature {
         realProfit = 0;
         realHourlyProfit = 0;
         bountifulProfit = 0;
+        ticksElapsed = 0;
         blocksBroken = 0;
         bpsQueue.clear();
         bpsClock.reset();
@@ -225,24 +225,6 @@ public class ProfitCalculator implements IFeature {
     }
 
     private final HashMap<String, Long> previousCultivating = new HashMap<>();
-
-    @SubscribeEvent
-    public void onTickUpdateBPS(MillisecondEvent event) {
-        if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (MacroHandler.getInstance().isCurrentMacroPaused()) return;
-
-        if (bpsClock.passed()) {
-            bpsClock.schedule(1_000);
-            bpsQueue.add(blocksBroken);
-            LogUtils.sendDebug("Blocks Broken last second: " + blocksBroken);
-            bps += blocksBroken;
-            LogUtils.sendDebug("BPS: " + bps);
-            blocksBroken = 0;
-            if (bpsQueue.size() == 61) {
-                bps -= bpsQueue.poll();
-            }
-        }
-    }
 
     @SubscribeEvent
     public void onTickUpdateProfit(TickEvent.ClientTickEvent event) {
@@ -325,11 +307,29 @@ public class ProfitCalculator implements IFeature {
         }
     }
 
+    private int ticksElapsed = 0;
+
+    @SubscribeEvent
+    public void onTickCheckBPS(TickEvent.ClientTickEvent event) {
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
+        if (event.phase != TickEvent.Phase.START) return;
+
+        if (++ticksElapsed == 20) {
+            ticksElapsed = 0;
+            bpsQueue.add(blocksBroken);
+            bps += blocksBroken;
+            if (bpsQueue.size() == 61) {
+                bps -= bpsQueue.poll();
+            }
+            blocksBroken = 0;
+        }
+    }
+
     @SubscribeEvent
     public void onBlockChange(PlayerDestroyBlockEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
-        LogUtils.sendDebug("Block broken: " + event.block.getLocalizedName());
 
         switch (MacroHandler.getInstance().getCrop()) {
             case NETHER_WART:
