@@ -1032,7 +1032,6 @@ public class PestsDestroyer implements IFeature {
     public void onRender(RenderWorldLastEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
-        if (FarmHelperConfig.streamerMode) return;
 
         killedEntities.removeIf(e -> !mc.theWorld.loadedEntityList.contains(e));
 
@@ -1056,7 +1055,8 @@ public class PestsDestroyer implements IFeature {
                                 return false;
                             }
                             if (killedEntities.stream().noneMatch(ke -> ke.getDistanceToEntity(entity) < 1.5)) {
-                                drawESP(entity);
+                                if (!FarmHelperConfig.streamerMode)
+                                    drawESP(entity);
                                 return true;
                             }
                             return false;

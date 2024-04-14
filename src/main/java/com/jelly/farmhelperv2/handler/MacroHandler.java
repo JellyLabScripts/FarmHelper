@@ -405,7 +405,8 @@ public class MacroHandler {
                     timeLeft = 0;
                 }
                 String formattedTime = LogUtils.formatTime(timeLeft);
-                RenderUtils.drawCenterTopText("Retrying to teleport in: " + formattedTime, event, Color.orange, 1.5f);
+                if (!FarmHelperConfig.streamerMode)
+                    RenderUtils.drawCenterTopText("Retrying to teleport in: " + formattedTime, event, Color.orange, 1.5f);
             }
             if (!m.isEnabledAndNoFeature()) return;
             m.onOverlayRender(event);

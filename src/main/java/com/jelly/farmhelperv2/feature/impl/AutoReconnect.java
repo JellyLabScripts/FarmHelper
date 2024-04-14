@@ -218,6 +218,7 @@ public class AutoReconnect implements IFeature {
     public void onRenderOverlay(RenderGameOverlayEvent.Post event) {
         if (!isRunning()) return;
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
+        if (FarmHelperConfig.streamerMode) return;
 
         String text = "Reconnect delay: " + String.format("%.1f", reconnectDelay.getRemainingTime() / 1000.0) + "s";
         RenderUtils.drawCenterTopText(text, event, Color.RED, 1.5f);
