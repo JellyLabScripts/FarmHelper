@@ -4,8 +4,8 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
-import com.jelly.farmhelperv2.event.ClickedBlockEvent;
 import com.jelly.farmhelperv2.event.MillisecondEvent;
+import com.jelly.farmhelperv2.event.PlayerDestroyBlockEvent;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.event.UpdateScoreboardLineEvent;
 import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
@@ -326,48 +326,49 @@ public class ProfitCalculator implements IFeature {
     }
 
     @SubscribeEvent
-    public void onBlockChange(ClickedBlockEvent event) {
+    public void onBlockChange(PlayerDestroyBlockEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
+        LogUtils.sendDebug("Block broken: " + event.block.getLocalizedName());
 
         switch (MacroHandler.getInstance().getCrop()) {
             case NETHER_WART:
             case CARROT:
             case POTATO:
             case WHEAT:
-                if (event.getBlock() instanceof BlockCrops ||
-                        event.getBlock() instanceof BlockNetherWart) {
+                if (event.block instanceof BlockCrops ||
+                        event.block instanceof BlockNetherWart) {
                     blocksBroken++;
                 }
                 break;
             case SUGAR_CANE:
-                if (event.getBlock() instanceof BlockReed) {
+                if (event.block instanceof BlockReed) {
                     blocksBroken++;
                 }
                 break;
             case MELON:
-                if (event.getBlock().equals(Blocks.melon_block)) {
+                if (event.block.equals(Blocks.melon_block)) {
                     blocksBroken++;
                 }
                 break;
             case PUMPKIN:
-                if (event.getBlock().equals(Blocks.pumpkin)) {
+                if (event.block.equals(Blocks.pumpkin)) {
                     blocksBroken++;
                 }
                 break;
             case CACTUS:
-                if (event.getBlock().equals(Blocks.cactus)) {
+                if (event.block.equals(Blocks.cactus)) {
                     blocksBroken++;
                 }
                 break;
             case COCOA_BEANS:
-                if (event.getBlock().equals(Blocks.cocoa)) {
+                if (event.block.equals(Blocks.cocoa)) {
                     blocksBroken++;
                 }
                 break;
             case MUSHROOM:
-                if (event.getBlock().equals(Blocks.red_mushroom) ||
-                        event.getBlock().equals(Blocks.brown_mushroom)) {
+                if (event.block.equals(Blocks.red_mushroom) ||
+                        event.block.equals(Blocks.brown_mushroom)) {
                     blocksBroken++;
                 }
                 break;
