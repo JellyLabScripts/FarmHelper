@@ -54,7 +54,7 @@ public class AutoSell implements IFeature {
     private NPCState npcState = NPCState.NONE;
 
     public void setNpcState(NPCState npcState) {
-        timeoutClock.schedule(30_000);
+        timeoutClock.schedule(5_000);
         this.npcState = npcState;
     }
 
@@ -62,7 +62,7 @@ public class AutoSell implements IFeature {
     private BazaarState bazaarState = BazaarState.NONE;
 
     public void setBazaarState(BazaarState bazaarState) {
-        timeoutClock.schedule(30_000);
+        timeoutClock.schedule(5_000);
         this.bazaarState = bazaarState;
     }
 
@@ -70,7 +70,7 @@ public class AutoSell implements IFeature {
     private SacksState sacksState = SacksState.NONE;
 
     public void setSacksState(SacksState sacksState) {
-        timeoutClock.schedule(30_000);
+        timeoutClock.schedule(5_000);
         this.sacksState = sacksState;
     }
 
@@ -166,7 +166,7 @@ public class AutoSell implements IFeature {
         bazaarState = BazaarState.NONE;
         sacksState = SacksState.NONE;
         delayClock.reset();
-        timeoutClock.schedule(30_000);
+        timeoutClock.schedule(5_000);
         if (manually) {
             dontEnableForClock.reset();
         }
@@ -354,6 +354,7 @@ public class AutoSell implements IFeature {
                             setBazaarState(BazaarState.SELL_INV);
                             break;
                         }
+                        setBazaarState(BazaarState.SELL_INV);
                         break;
                     case SELL_INV:
                         if (mc.currentScreen == null) {
@@ -502,6 +503,7 @@ public class AutoSell implements IFeature {
                             LogUtils.sendDebug("[Auto Sell] Selling " + name);
                             InventoryUtils.clickSlotWithId(slot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP, chest.windowId);
                             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                            timeoutClock.schedule(5_000);
                             return;
                         }
 

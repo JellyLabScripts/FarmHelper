@@ -165,17 +165,31 @@ public class AutoReconnect implements IFeature {
                     reconnectDelay.schedule(5_000);
                     break;
                 }
-                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY || !GameStateHandler.getInstance().inGarden()) {
+                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY) {
                     System.out.println("Reconnected to the lobby!");
                     LogUtils.sendDebug("[Reconnect] Came back to the lobby.");
                     mc.thePlayer.sendChatMessage("/skyblock");
                     state = State.GARDEN;
                     reconnectDelay.schedule(5_000);
+                    break;
                 }
                 if (GameStateHandler.getInstance().inGarden()) {
                     System.out.println("Reconnected to the garden!");
                     LogUtils.sendDebug("[Reconnect] Came back to the garden!");
                     stop();
+                    break;
+                }
+                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
+                    System.out.println("In limbo!");
+                    LogUtils.sendDebug("[Reconnect] In limbo.");
+                    mc.thePlayer.sendChatMessage("/lobby");
+                    state = State.LOBBY;
+                    reconnectDelay.schedule(5_000);
+                    break;
+                }
+                if (!GameStateHandler.getInstance().inGarden()) {
+                    MacroHandler.getInstance().triggerWarpGarden(true, false);
+                    reconnectDelay.schedule(5_000);
                 }
                 break;
             case GARDEN:
@@ -192,6 +206,12 @@ public class AutoReconnect implements IFeature {
                 } else if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY) {
                     state = State.LOBBY;
                     reconnectDelay.schedule(60_000);
+                } else if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
+                    System.out.println("In limbo!");
+                    LogUtils.sendDebug("[Reconnect] In limbo.");
+                    mc.thePlayer.sendChatMessage("/lobby");
+                    state = State.LOBBY;
+                    reconnectDelay.schedule(5_000);
                 } else {
                     MacroHandler.getInstance().triggerWarpGarden(true, false);
                     reconnectDelay.schedule(5_000);
