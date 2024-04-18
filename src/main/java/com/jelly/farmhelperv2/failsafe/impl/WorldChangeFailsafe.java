@@ -67,6 +67,7 @@ public class WorldChangeFailsafe extends Failsafe {
 
         if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
             FailsafeManager.getInstance().possibleDetection(this);
+            sendOnce = false;
         }
     }
 
@@ -104,6 +105,8 @@ public class WorldChangeFailsafe extends Failsafe {
         }
     }
 
+    private boolean sendOnce = false;
+
     @Override
     public void duringFailsafeTrigger() {
         if (!FarmHelperConfig.autoTPOnWorldChange) {
@@ -138,12 +141,18 @@ public class WorldChangeFailsafe extends Failsafe {
                 if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY && !LagDetector.getInstance().isLagging()) {
                     LogUtils.sendDebug("[Failsafe] In lobby, sending /skyblock command...");
                     mc.thePlayer.sendChatMessage("/skyblock");
-                    FailsafeManager.getInstance().scheduleRandomDelay(10_500, 5000);
+                    if (sendOnce) {
+                        FailsafeManager.getInstance().scheduleRandomDelay(60_000, 4000);
+                    } else {
+                        FailsafeManager.getInstance().scheduleRandomDelay(4_500, 5000);
+                        sendOnce = true;
+                    }
                     return;
                 }
                 if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
                     LogUtils.sendDebug("[Failsafe] In Limbo, sending /l command...");
                     mc.thePlayer.sendChatMessage("/l");
+                    sendOnce = false;
                     FailsafeManager.getInstance().scheduleRandomDelay(4500, 1000);
                     return;
                 }
@@ -164,6 +173,7 @@ public class WorldChangeFailsafe extends Failsafe {
     @Override
     public void endOfFailsafeTrigger() {
         worldChangeState = WorldChangeState.NONE;
+        sendOnce = false;
     }
 
     private WorldChangeState worldChangeState = WorldChangeState.NONE;
