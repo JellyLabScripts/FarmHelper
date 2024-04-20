@@ -227,7 +227,9 @@ public class ProfitCalculator implements IFeature {
     private final HashMap<String, Long> previousCultivating = new HashMap<>();
 
     @SubscribeEvent
-    public void onTickUpdateProfit(TickEvent.ClientTickEvent event) {
+    public void onTickUpdateProfit(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.START) return;
+        if (mc.thePlayer == null) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (MacroHandler.getInstance().isCurrentMacroPaused()) return;
 

@@ -224,6 +224,13 @@ public class AutoSell implements IFeature {
         }
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this, VisitorsMacro.getInstance())) return;
 
+
+        if (timeoutClock.isScheduled() && timeoutClock.passed()) {
+            LogUtils.sendWarning("[Auto Sell] Timeout reached, disabling Auto Sell");
+            stop();
+            return;
+        }
+
         if (delayClock.isScheduled() && !delayClock.passed()) return;
 
         switch (sacksState) {
@@ -359,17 +366,9 @@ public class AutoSell implements IFeature {
                         break;
                     case SELL_INV:
                         if (mc.currentScreen == null) {
-                            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                            setBazaarState(BazaarState.OPEN_MENU);
                             break;
                         }
-                        if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Bazaar")) {
-                            LogUtils.sendDebug("[Auto Sell] Wrong menu detected!");
-                            PlayerUtils.closeScreen();
-                            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                            setBazaarState(BazaarState.OPEN_MENU);
-                            break;
-                        } else if (InventoryUtils.getInventoryName() == null) {
+                        if (InventoryUtils.getInventoryName() == null || !InventoryUtils.getInventoryName().contains("Bazaar")) {
                             break;
                         }
                         LogUtils.sendDebug("[Auto Sell] Detected BZ menu");
@@ -400,9 +399,7 @@ public class AutoSell implements IFeature {
                         break;
                     case SELL_INV_CONFIRM:
                         if (mc.currentScreen == null) return;
-                        if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Are you sure?")) {
-                            break;
-                        } else if (InventoryUtils.getInventoryName() == null) {
+                        if (InventoryUtils.getInventoryName() == null || !InventoryUtils.getInventoryName().contains("Are you sure?")) {
                             break;
                         }
                         LogUtils.sendDebug("[Auto Sell] Detected sell confirmation menu");
@@ -529,11 +526,6 @@ public class AutoSell implements IFeature {
                         break;
                 }
                 break;
-        }
-
-        if (timeoutClock.isScheduled() && timeoutClock.passed()) {
-            LogUtils.sendWarning("[Auto Sell] Timeout reached, disabling Auto Sell");
-            stop();
         }
     }
 
