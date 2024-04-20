@@ -1,6 +1,7 @@
 package com.jelly.farmhelperv2.util;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
+import cc.polyfrost.oneconfig.utils.Notifications;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.struct.DiscordWebhook;
 import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
@@ -54,6 +55,16 @@ public class LogUtils {
     public static void sendDebugRotation(String message) {
         if (FarmHelperConfig.showRotationDebugMessages)
             sendDebug(message);
+    }
+
+    public static void sendNotification(String title, String message, float duration) {
+        if (!FarmHelperConfig.streamerMode)
+            Notifications.INSTANCE.send(title, message, duration);
+    }
+
+    public static void sendNotification(String title, String message) {
+        if (!FarmHelperConfig.streamerMode)
+            Notifications.INSTANCE.send(title, message);
     }
 
     public static void sendFailsafeMessage(String message) {

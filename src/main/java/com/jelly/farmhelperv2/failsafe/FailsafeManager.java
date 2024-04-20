@@ -255,8 +255,8 @@ public class FailsafeManager {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (triggeredFailsafe.isPresent()) return;
         if (!chooseEmergencyDelay.isScheduled()) return;
+        triggeredFailsafe = Optional.of(getHighestPriorityEmergency());
         if (chooseEmergencyDelay.passed()) {
-            triggeredFailsafe = Optional.of(getHighestPriorityEmergency());
             if (triggeredFailsafe.get().getType() == EmergencyType.NONE) {
                 // Should never happen, but yeh...
                 LogUtils.sendDebug("[Failsafe] No emergency chosen!");
@@ -267,10 +267,8 @@ public class FailsafeManager {
             chooseEmergencyDelay.reset();
             hadEmergency = true;
             LogUtils.sendDebug("[Failsafe] Emergency chosen: " + StringUtils.stripControlCodes(triggeredFailsafe.get().getType().name()));
-            FeatureManager.getInstance().disableCurrentlyRunning(null);
-            if (!Scheduler.getInstance().isFarming()) {
-                Scheduler.getInstance().farmingTime();
-            }
+            FeatureManager.getInstance().disableCurrentlyRunning(Scheduler.getInstance());
+            Scheduler.getInstance().pause();
             if (FarmHelperConfig.captureClipAfterFailsafe && !FarmHelperConfig.captureClipKeybind.getKeyBinds().isEmpty()) {
                 if (FarmHelperConfig.clipCapturingType) {
                     FailsafeUtils.captureClip();

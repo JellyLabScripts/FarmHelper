@@ -256,6 +256,11 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                 break;
             }
             case SWITCHING_LANE:
+                double velocity = Math.abs(mc.thePlayer.motionX) + Math.abs(mc.thePlayer.motionZ);
+                if (velocity < 0.15 && !GameStateHandler.getInstance().isFrontWalkable()) {
+                    KeyBindUtils.stopMovement(FarmHelperConfig.holdLeftClickWhenChangingRow);
+                    break;
+                }
                 KeyBindUtils.holdThese(
                         mc.gameSettings.keyBindForward,
                         mc.gameSettings.keyBindSprint

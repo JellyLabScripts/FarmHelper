@@ -580,7 +580,7 @@ public class BanInfoWS implements IFeature {
                         if (!receivedBanwaveInfo) {
                             if (client.isOpen() && client.getReadyState() != ReadyState.NOT_YET_CONNECTED) {
                                 LogUtils.sendDebug("Connected to analytics websocket server");
-                                Notifications.INSTANCE.send("FarmHelper INFO", "Connected to analytics websocket server");
+                                LogUtils.sendNotification("FarmHelper", "Connected to analytics websocket server");
                             }
                         }
                         receivedBanwaveInfo = true;
@@ -591,7 +591,7 @@ public class BanInfoWS implements IFeature {
                         String days = jsonObject.get("days").getAsString();
                         String reason = jsonObject.get("reason").getAsString();
                         LogUtils.sendWarning("Detected ban screen in " + username + "'s client for " + days + " days (reason: " + reason + ")");
-                        Notifications.INSTANCE.send("FarmHelper INFO", "Detected ban screen in " + username + "'s client for " + days + " days");
+                        LogUtils.sendNotification("FarmHelper", "Detected ban screen in " + username + "'s client for " + days + " days");
                         break;
                     }
                 }

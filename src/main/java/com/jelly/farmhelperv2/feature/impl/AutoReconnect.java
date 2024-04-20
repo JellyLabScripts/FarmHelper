@@ -1,6 +1,5 @@
 package com.jelly.farmhelperv2.feature.impl;
 
-import cc.polyfrost.oneconfig.utils.Notifications;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
@@ -84,11 +83,11 @@ public class AutoReconnect implements IFeature {
     public void start() {
         if (enabled) return;
         FailsafeManager.getInstance().stopFailsafes();
-        FeatureManager.getInstance().disableAllExcept(this);
+        FeatureManager.getInstance().disableAllExcept(this, Scheduler.getInstance());
         if (MacroHandler.getInstance().isMacroToggled()) {
-            MacroHandler.getInstance().pauseMacro();
             macroWasToggled = true;
         }
+        MacroHandler.getInstance().pauseMacro();
         enabled = true;
         try {
             mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText("Reconnecting in " + LogUtils.formatTime(reconnectDelay.getRemainingTime())));
@@ -153,7 +152,7 @@ public class AutoReconnect implements IFeature {
                     } catch (Exception e) {
                         e.printStackTrace();
                         System.out.println("Failed to reconnect to server! Trying again in 5 seconds...");
-                        Notifications.INSTANCE.send("Farm Helper", "Failed to reconnect to server! Trying again in 5 seconds...");
+                        LogUtils.sendNotification("Farm Helper", "Failed to reconnect to server! Trying again in 5 seconds...");
                         reconnectDelay.schedule(5_000);
                         start();
                     }
@@ -166,17 +165,31 @@ public class AutoReconnect implements IFeature {
                     reconnectDelay.schedule(5_000);
                     break;
                 }
-                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY || !GameStateHandler.getInstance().inGarden()) {
+                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY) {
                     System.out.println("Reconnected to the lobby!");
                     LogUtils.sendDebug("[Reconnect] Came back to the lobby.");
                     mc.thePlayer.sendChatMessage("/skyblock");
                     state = State.GARDEN;
                     reconnectDelay.schedule(5_000);
+                    break;
                 }
                 if (GameStateHandler.getInstance().inGarden()) {
                     System.out.println("Reconnected to the garden!");
                     LogUtils.sendDebug("[Reconnect] Came back to the garden!");
                     stop();
+                    break;
+                }
+                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
+                    System.out.println("In limbo!");
+                    LogUtils.sendDebug("[Reconnect] In limbo.");
+                    mc.thePlayer.sendChatMessage("/lobby");
+                    state = State.LOBBY;
+                    reconnectDelay.schedule(5_000);
+                    break;
+                }
+                if (!GameStateHandler.getInstance().inGarden()) {
+                    MacroHandler.getInstance().triggerWarpGarden(true, false);
+                    reconnectDelay.schedule(5_000);
                 }
                 break;
             case GARDEN:
@@ -191,6 +204,12 @@ public class AutoReconnect implements IFeature {
                     LogUtils.sendDebug("[Reconnect] Came back to the garden!");
                     stop();
                 } else if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY) {
+                    state = State.LOBBY;
+                    reconnectDelay.schedule(60_000);
+                } else if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
+                    System.out.println("In limbo!");
+                    LogUtils.sendDebug("[Reconnect] In limbo.");
+                    mc.thePlayer.sendChatMessage("/lobby");
                     state = State.LOBBY;
                     reconnectDelay.schedule(5_000);
                 } else {
@@ -219,6 +238,7 @@ public class AutoReconnect implements IFeature {
     public void onRenderOverlay(RenderGameOverlayEvent.Post event) {
         if (!isRunning()) return;
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
+        if (FarmHelperConfig.streamerMode) return;
 
         String text = "Reconnect delay: " + String.format("%.1f", reconnectDelay.getRemainingTime() / 1000.0) + "s";
         RenderUtils.drawCenterTopText(text, event, Color.RED, 1.5f);

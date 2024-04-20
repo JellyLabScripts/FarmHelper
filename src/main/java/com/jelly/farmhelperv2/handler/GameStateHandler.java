@@ -139,7 +139,7 @@ public class GameStateHandler {
         List<String> tabList = new ArrayList<>(event.tablist);
 
         List<String> scoreboardLines = ScoreboardUtils.getScoreboardLines(true);
-        if (tabList.size() == 1 && scoreboardLines.isEmpty() && PlayerUtils.isInventoryEmpty(mc.thePlayer)) {
+        if (tabList.size() == 1 && PlayerUtils.isInventoryEmpty(mc.thePlayer)) {
             lastLocation = location;
             location = Location.LIMBO;
             return;
@@ -413,7 +413,8 @@ public class GameStateHandler {
                 for (int i = 1; i < split.length; i++) {
                     try {
                         infestedPlots.add(Integer.parseInt(split[i].replace(",", "")));
-                    } catch (Exception ignored) {}
+                    } catch (Exception ignored) {
+                    }
                 }
             } catch (Exception ignored) {
                 infestedPlots.clear();
@@ -695,7 +696,7 @@ public class GameStateHandler {
         if (tag.hasKey("ExtraAttributes", 10)) {
             NBTTagCompound ea = tag.getCompoundTag("ExtraAttributes");
 
-            if (ea.hasKey("farmed_cultivating", 99)) {
+            if (ea.hasKey("farmed_cultivating", 99) || ea.hasKey("mined_crops", 99)) {
                 return (long) ea.getInteger("farmed_cultivating");
             }
         }

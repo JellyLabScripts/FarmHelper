@@ -2,6 +2,7 @@ package com.jelly.farmhelperv2.mixin.client;
 
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ClickedBlockEvent;
+import com.jelly.farmhelperv2.event.PlayerDestroyBlockEvent;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCactus;
@@ -51,5 +52,12 @@ public class MixinPlayerControllerMP {
             ClickedBlockEvent event = new ClickedBlockEvent(loc, face, Blocks.cactus);
             MinecraftForge.EVENT_BUS.post(event);
         }
+    }
+
+    @Inject(method = {"onPlayerDestroyBlock"}, at = {@At(value = "HEAD")})
+    public void onPlayerDestroyBlock(BlockPos pos, EnumFacing side, CallbackInfoReturnable<Boolean> cir) {
+        Block block = this.mc.theWorld.getBlockState(pos).getBlock();
+        PlayerDestroyBlockEvent event = new PlayerDestroyBlockEvent(pos, side, block);
+        MinecraftForge.EVENT_BUS.post(event);
     }
 }

@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.util.LogUtils;
@@ -16,6 +17,7 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 
 import java.awt.*;
+import java.util.concurrent.TimeUnit;
 
 // This class is responsible for the Picture-in-Picture mode feature.
 // This feature is only available on Windows.
@@ -24,11 +26,9 @@ import java.awt.*;
 // spent 6 hours coding and debugging this feature :pray:
 
 public class PiPMode implements IFeature {
-    private int width;
-    private int height;
+    private boolean enabled = false;
+    private DisplayMode displayMode;
     private final Minecraft mc = Minecraft.getMinecraft();
-
-    public boolean borderlessMode;
 
     private static PiPMode instance;
 
@@ -46,7 +46,7 @@ public class PiPMode implements IFeature {
 
     @Override
     public boolean isRunning() {
-        return width != 0 && height != 0;
+        return enabled;
     }
 
     @Override
@@ -67,22 +67,21 @@ public class PiPMode implements IFeature {
             return;
         }
 
-        DisplayMode displayMode = Display.getDisplayMode();
-        width = displayMode.getWidth();
-        height = displayMode.getHeight();
-
         LogUtils.sendDebug("[PiPMode] Enabled.");
         setPiPMode(true);
+        enabled = true;
     }
 
     @Override
     public void stop() {
         LogUtils.sendDebug("[PiPMode] Disabled.");
         setPiPMode(false);
+        enabled = false;
     }
 
     @Override
     public void resetStatesAfterMacroDisabled() {
+        if (!isToggled() || !isRunning()) return;
         setPiPMode(false);
     }
 
@@ -96,7 +95,7 @@ public class PiPMode implements IFeature {
         return false;
     }
 
-    public boolean setAlwaysOnTop(boolean enabled) {
+    public void setAlwaysOnTop(boolean enabled) {
         try {
             User32 user32 = User32.INSTANCE;
             char[] buffer = new char[1024];
@@ -112,61 +111,46 @@ public class PiPMode implements IFeature {
             }, null);
         } catch (Exception e) {
             LogUtils.sendError("[PiPMode] Failed to set or unset always on top: " + e.getMessage());
-            return false;
         }
 
-        return enabled;
     }
 
     public void setPiPMode(boolean enabled) {
         try {
-            if (width == 0 || height == 0) {
-                DisplayMode displayMode = Display.getDisplayMode();
-                width = displayMode.getWidth();
-                height = displayMode.getHeight();
-            }
-
             if (enabled) {
+                displayMode = Display.getDisplayMode();
                 System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
                 Display.setDisplayMode(new DisplayMode(420, 252));
                 Display.setFullscreen(false);
                 Display.setResizable(false);
 
-                Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-                int x = (int) ((dimension.getWidth() - Display.getWidth()) / 2);
-                int y = (int) ((dimension.getHeight() - Display.getHeight()) / 2);
-                Display.setLocation(x, y);
-
                 mc.resize(Display.getWidth(), Display.getHeight());
-                Mouse.setCursorPosition((Display.getX() + Display.getWidth()) / 2, (Display.getY() + Display.getHeight()) / 2);
 
-                setAlwaysOnTop(true);
-
-
-            } else if (isToggled() && !enabled) {
+                Display.setLocation(-1, -1);
+                Robot robot = new Robot();
+                robot.mouseMove(Display.getX() + Display.getWidth() / 2, Display.getY() + Display.getHeight() / 2);
+            } else {
                 System.setProperty("org.lwjgl.opengl.Window.undecorated", "false");
-                Display.setDisplayMode(new DisplayMode(width, height));
-                Display.setFullscreen(true);
+                Display.setDisplayMode(this.displayMode);
                 Display.setResizable(true);
 
                 Display.setResizable(false);
                 Display.setResizable(true);
 
                 mc.resize(Display.getWidth(), Display.getHeight());
-                Mouse.setCursorPosition((Display.getX() + Display.getWidth()) / 2, (Display.getY() + Display.getHeight()) / 2);
 
-                Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-                int x = (int) ((dimension.getWidth() - Display.getWidth()) / 2);
-                int y = (int) ((dimension.getHeight() - Display.getHeight()) / 2);
-                Display.setLocation(x, y);
-
+                Display.setLocation(-1, -1);
                 setAlwaysOnTop(false);
-
-                width = 0;
-                height = 0;
+                User32 user32 = User32.INSTANCE;
+                float prevMouseSpeed = mc.gameSettings.mouseSensitivity;
+                mc.gameSettings.mouseSensitivity = 0;
+                user32.PostMessage(User32.INSTANCE.GetForegroundWindow(), 0x0112, new WinDef.WPARAM(0xF030), new WinDef.LPARAM(0));
+                Multithreading.schedule(() -> mc.gameSettings.mouseSensitivity = prevMouseSpeed, 200, TimeUnit.MILLISECONDS);
 
                 previousX = 0;
                 previousY = 0;
+
+                displayMode = null;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -205,13 +189,6 @@ public class PiPMode implements IFeature {
             previousY = mouseY;
 
             Display.setLocation(newX, newY);
-        }
-
-        if (borderlessMode) {
-            DisplayMode displayMode = Display.getDisplayMode();
-            if (displayMode.getWidth() != width || displayMode.getHeight() != height) {
-                setPiPMode(true);
-            }
         }
     }
 }

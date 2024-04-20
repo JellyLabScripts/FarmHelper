@@ -90,6 +90,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
         }
         delayStart.reset();
         stuckTimer.reset();
+        noPestTimer.reset();
     }
 
     @Override
@@ -135,6 +136,8 @@ public class PestsDestroyerOnTheTrack implements IFeature {
         }
     }
 
+    private final Clock noPestTimer = new Clock();
+
     @SubscribeEvent
     public void onTickExecution(TickEvent.PlayerTickEvent event) {
         if (mc.thePlayer == null) return;
@@ -160,6 +163,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
                 currentTarget = entity.get();
                 stuckTimer.schedule(FarmHelperConfig.pestsDestroyerOnTheTrackStuckTimer);
             }
+            noPestTimer.reset();
             KeyBindUtils.holdThese(mc.gameSettings.keyBindUseItem);
             if (!RotationHandler.getInstance().isRotating()) {
                 RotationHandler.getInstance().easeTo(
@@ -171,7 +175,13 @@ public class PestsDestroyerOnTheTrack implements IFeature {
                 );
             }
         } else {
-            stop();
+            if (!noPestTimer.isScheduled()) {
+                noPestTimer.schedule(500);
+            }
+            if (noPestTimer.isScheduled() && noPestTimer.passed()) {
+                LogUtils.sendWarning("[" + getName() + "] Pest left your range, stopping!");
+                stop();
+            }
         }
     }
 
@@ -191,7 +201,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
                         double zDiff = entityPosition.zCoord - playerPosition.zCoord;
 
                         float yaw = (float) Math.toDegrees(Math.atan2(zDiff, xDiff)) - 90F;
-                        float yawDiff = Math.abs(MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw) - yaw);
+                        float yawDiff = Math.abs(MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw) - MathHelper.wrapAngleTo180_float(yaw));
                         if (FarmHelperConfig.showDebugLogsAboutPDOTT)
                             LogUtils.sendDebug("Entity Pos: " + e.getPositionVector() + " | CurrenYaw: " + MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw) + " | YawNeeded: " + yaw + " | YawDiff: " + yawDiff + " | Dist: " + dist);
                         returnResult = dist <= vacuumRange - 0.5 && yawDiff <= FarmHelperConfig.pestsDestroyerOnTheTrackFOV / 2f;

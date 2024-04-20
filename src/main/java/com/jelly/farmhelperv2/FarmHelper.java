@@ -1,7 +1,6 @@
 package com.jelly.farmhelperv2;
 
 import baritone.api.BaritoneAPI;
-import cc.polyfrost.oneconfig.utils.Notifications;
 import cc.polyfrost.oneconfig.utils.commands.CommandManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -72,30 +71,30 @@ public class FarmHelper {
         if (sentInfoAboutShittyClient) return;
 
         if (ReflectionUtils.hasPackageInstalled("feather")) {
-            Notifications.INSTANCE.send("FarmHelper", "You've got Feather Client installed! Be aware, you might have a lot of bugs because of this shitty client!", 15000);
+            LogUtils.sendNotification("FarmHelper", "You've got Feather Client installed! Be aware, you might have a lot of bugs because of this shitty client!", 15000);
             LogUtils.sendError("You've got §6§lFeather Client §cinstalled! Be aware, you might have a lot of bugs because of this shitty client!");
         }
         if (ReflectionUtils.hasPackageInstalled("cc.woverflow.hytils.HytilsReborn")) {
-            Notifications.INSTANCE.send("FarmHelper", "You've got Hytils installed in your mods folder! This will cause many issues with rewarping as it sends tons of commands every minute.", 15000);
+            LogUtils.sendNotification("FarmHelper", "You've got Hytils installed in your mods folder! This will cause many issues with rewarping as it sends tons of commands every minute.", 15000);
             LogUtils.sendError("You've got §6§lHytils §cinstalled in your mods folder! This will cause many issues with rewarping as it sends tons of commands every minute.");
         }
         if (ReflectionUtils.hasPackageInstalled("com.tterrag.blur")) {
-            Notifications.INSTANCE.send("FarmHelper", "You've got BlurMC installed in your mods folder! This will break AutoSell, Pests Destroyer and other features that need to work with inventories!", 15000);
+            LogUtils.sendNotification("FarmHelper", "You've got BlurMC installed in your mods folder! This will break AutoSell, Pests Destroyer and other features that need to work with inventories!", 15000);
             LogUtils.sendError("You've got §6§lBlurMC §cinstalled in your mods folder! This will break AutoSell, Pests Destroyer and other features that need to work with inventories!");
         }
         if (Minecraft.isRunningOnMac && FarmHelperConfig.autoUngrabMouse) {
             FarmHelperConfig.autoUngrabMouse = false;
-            Notifications.INSTANCE.send("FarmHelper", "Auto Ungrab Mouse feature doesn't work properly on Mac OS. It has been disabled automatically.", 15000);
+            LogUtils.sendNotification("FarmHelper", "Auto Ungrab Mouse feature doesn't work properly on Mac OS. It has been disabled automatically.", 15000);
             LogUtils.sendError("Auto Ungrab Mouse feature doesn't work properly on Mac OS. It has been disabled automatically.");
         }
         if (FarmHelperConfig.configVersion != 3) {
             FarmHelperConfig.visitorsMacroMaxSpendLimit = 0.7f;
-            Notifications.INSTANCE.send("FarmHelper", "'Max Spend Limit' in Visitors Macro settings has been set to 0.7 automatically, because of change of type. Make sure to update it to your preferences", 15000);
+            LogUtils.sendNotification("FarmHelper", "'Max Spend Limit' in Visitors Macro settings has been set to 0.7 automatically, because of change of type. Make sure to update it to your preferences", 15000);
             LogUtils.sendWarning("'Max Spend Limit' in Visitors Macro settings has been set to 0.7 automatically, because of change of type. Make sure to update it to your preferences");
         }
         if (!FarmHelperConfig.flyPathfinderOringoCompatible && ReflectionUtils.hasModFile("oringo")) {
             FarmHelperConfig.flyPathfinderOringoCompatible = true;
-            Notifications.INSTANCE.send("FarmHelper", "You've got Oringo installed in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.", 15000);
+            LogUtils.sendNotification("FarmHelper", "You've got Oringo installed in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.", 15000);
             LogUtils.sendWarning("You've got §6§lOringo §cinstalled in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.");
         }
         if (FarmHelperConfig.configVersion != 3)

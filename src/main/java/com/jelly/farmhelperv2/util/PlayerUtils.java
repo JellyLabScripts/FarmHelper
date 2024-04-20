@@ -223,7 +223,7 @@ public class PlayerUtils {
             }
         }
 
-        int gardeningHoe = InventoryUtils.getSlotIdOfItemInHotbar("Gardening Hoe");
+        int gardeningHoe = InventoryUtils.getSlotIdOfItemInHotbar("Gardening Hoe", "Gardening Axe");
         if (gardeningHoe != -1) {
             return gardeningHoe;
         }
@@ -368,12 +368,12 @@ public class PlayerUtils {
     }
 
     public static Vec3 getClosestVecAround(Entity entity, double distance, int angleStep, int angleStart) {
-        Vec3 vec = new Vec3(entity.posX, entity.posY, entity.posZ);
         Vec3 closest = null;
-        for (int i = angleStart; i < 360; i += angleStep) {
-            Vec3 vec1 = vec.addVector(Math.sin(Math.toRadians(i)) * distance, 0, Math.cos(Math.toRadians(i)) * distance);
-            System.out.println(vec1);
-            if ((closest == null || vec1.distanceTo(entity.getPositionVector()) < closest.distanceTo(entity.getPositionVector())) && !BlockUtils.hasCollision(new BlockPos(vec1))) {
+        for (int i = angleStart; i <= 360; i += angleStep) {
+            double x = entity.posX + distance * Math.cos(Math.toRadians(i));
+            double z = entity.posZ + distance * Math.sin(Math.toRadians(i));
+            Vec3 vec1 = new Vec3(x, entity.posY + 0.6, z);
+            if ((closest == null || vec1.distanceTo(mc.thePlayer.getPositionVector()) < closest.distanceTo(mc.thePlayer.getPositionVector())) && !BlockUtils.hasCollision(new BlockPos(vec1))) {
                 closest = vec1;
             }
         }

@@ -279,7 +279,6 @@ public class AutoPestExchange implements IFeature {
                 }
                 FlyPathFinderExecutor.getInstance().stop();
                 BlockPos closestPos = new BlockPos(closestVec);
-                System.out.println("Closest pos: " + closestPos.toString());
                 FarmHelperConfig.pestExchangeDeskX = closestPos.getX();
                 FarmHelperConfig.pestExchangeDeskY = closestPos.getY();
                 FarmHelperConfig.pestExchangeDeskZ = closestPos.getZ();
@@ -324,7 +323,7 @@ public class AutoPestExchange implements IFeature {
                     }
                 } else {
                     if (RotationHandler.getInstance().isRotating()) break;
-                    if (mc.thePlayer.getDistanceToEntity(phillip) > 4) {
+                    if (mc.thePlayer.getDistanceToEntity(phillip) > 3) {
                         newState = NewState.GO_TO_DESK;
                     } else {
                         RotationHandler.getInstance().easeTo(

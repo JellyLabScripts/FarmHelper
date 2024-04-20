@@ -1021,6 +1021,13 @@ public class AutoGodPot implements IFeature {
             setBitsShopState(BitsShopState.END);
             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
         }
+        if ((message.contains("Your inventory does not have enough")
+                || message.contains("You don't have enough inventory space"))
+                && !message.contains(":")) {
+            setBitsShopState(BitsShopState.END);
+            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+            LogUtils.sendWarning("[Auto God Pot] You don't have enough inventory space to buy a God Pot! Stopping...");
+        }
     }
 
     private void setAhState(AhState state) {

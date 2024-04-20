@@ -953,12 +953,6 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean pauseVisitorsMacroDuringJacobsContest = true;
 
-    @Switch(
-            name = "Use Path finder in Visitors macro between serving visitors", category = VISITORS_MACRO, subcategory = "Visitors Macro",
-            description = "Uses path finder between serving visitors"
-    )
-    public static boolean visitorsMacroUsePathFinder = true;
-
     @Slider(
             name = "The minimum amount of coins to start the macro (in thousands)", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "The minimum amount of coins you need to have in your purse to start the visitors macro",
@@ -1999,7 +1993,6 @@ public class FarmHelperConfig extends Config {
         this.addDependency("jacobFailsafeAction", "enableJacobFailsafes");
 
         this.addDependency("pauseVisitorsMacroDuringJacobsContest", "visitorsMacro");
-        this.addDependency("visitorsMacroUsePathFinder", "visitorsMacro");
         this.addDependency("triggerVisitorsMacro", "visitorsMacro");
         this.addDependency("visitorsMacroPriceManipulationMultiplier", "visitorsMacro");
         this.addDependency("visitorsMacroMinVisitors", "visitorsMacro");
@@ -2097,6 +2090,7 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
         registerKeyBind(debugKeybind, () -> {
+//            mc.thePlayer.sendChatMessage("§");
         });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());

@@ -54,7 +54,7 @@ public class AutoSell implements IFeature {
     private NPCState npcState = NPCState.NONE;
 
     public void setNpcState(NPCState npcState) {
-        timeoutClock.schedule(30_000);
+        timeoutClock.schedule(5_000);
         this.npcState = npcState;
     }
 
@@ -62,7 +62,7 @@ public class AutoSell implements IFeature {
     private BazaarState bazaarState = BazaarState.NONE;
 
     public void setBazaarState(BazaarState bazaarState) {
-        timeoutClock.schedule(30_000);
+        timeoutClock.schedule(5_000);
         this.bazaarState = bazaarState;
     }
 
@@ -70,7 +70,7 @@ public class AutoSell implements IFeature {
     private SacksState sacksState = SacksState.NONE;
 
     public void setSacksState(SacksState sacksState) {
-        timeoutClock.schedule(30_000);
+        timeoutClock.schedule(5_000);
         this.sacksState = sacksState;
     }
 
@@ -166,7 +166,7 @@ public class AutoSell implements IFeature {
         bazaarState = BazaarState.NONE;
         sacksState = SacksState.NONE;
         delayClock.reset();
-        timeoutClock.schedule(30_000);
+        timeoutClock.schedule(5_000);
         if (manually) {
             dontEnableForClock.reset();
         }
@@ -223,6 +223,13 @@ public class AutoSell implements IFeature {
             return;
         }
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this, VisitorsMacro.getInstance())) return;
+
+
+        if (timeoutClock.isScheduled() && timeoutClock.passed()) {
+            LogUtils.sendWarning("[Auto Sell] Timeout reached, disabling Auto Sell");
+            stop();
+            return;
+        }
 
         if (delayClock.isScheduled() && !delayClock.passed()) return;
 
@@ -345,6 +352,7 @@ public class AutoSell implements IFeature {
                 switch (bazaarState) {
                     case NONE:
                         setBazaarState(BazaarState.OPEN_MENU);
+                        delayClock.schedule(1_000);
                         break;
                     case OPEN_MENU:
                         if (mc.currentScreen == null) {
@@ -354,20 +362,13 @@ public class AutoSell implements IFeature {
                             setBazaarState(BazaarState.SELL_INV);
                             break;
                         }
+                        setBazaarState(BazaarState.SELL_INV);
                         break;
                     case SELL_INV:
                         if (mc.currentScreen == null) {
-                            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                            setBazaarState(BazaarState.OPEN_MENU);
                             break;
                         }
-                        if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Bazaar")) {
-                            LogUtils.sendDebug("[Auto Sell] Wrong menu detected!");
-                            PlayerUtils.closeScreen();
-                            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                            setBazaarState(BazaarState.OPEN_MENU);
-                            break;
-                        } else if (InventoryUtils.getInventoryName() == null) {
+                        if (InventoryUtils.getInventoryName() == null || !InventoryUtils.getInventoryName().contains("Bazaar")) {
                             break;
                         }
                         LogUtils.sendDebug("[Auto Sell] Detected BZ menu");
@@ -398,13 +399,7 @@ public class AutoSell implements IFeature {
                         break;
                     case SELL_INV_CONFIRM:
                         if (mc.currentScreen == null) return;
-                        if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Are you sure?")) {
-                            LogUtils.sendError("[Auto Sell] Couldn't find the \"Are you sure?\" inventory, opening the menu again...");
-                            PlayerUtils.closeScreen();
-                            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                            setBazaarState(BazaarState.OPEN_MENU);
-                            break;
-                        } else if (InventoryUtils.getInventoryName() == null) {
+                        if (InventoryUtils.getInventoryName() == null || !InventoryUtils.getInventoryName().contains("Are you sure?")) {
                             break;
                         }
                         LogUtils.sendDebug("[Auto Sell] Detected sell confirmation menu");
@@ -506,6 +501,7 @@ public class AutoSell implements IFeature {
                             LogUtils.sendDebug("[Auto Sell] Selling " + name);
                             InventoryUtils.clickSlotWithId(slot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP, chest.windowId);
                             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                            timeoutClock.schedule(5_000);
                             return;
                         }
 
@@ -530,11 +526,6 @@ public class AutoSell implements IFeature {
                         break;
                 }
                 break;
-        }
-
-        if (timeoutClock.isScheduled() && timeoutClock.passed()) {
-            LogUtils.sendWarning("[Auto Sell] Timeout reached, disabling Auto Sell");
-            stop();
         }
     }
 
