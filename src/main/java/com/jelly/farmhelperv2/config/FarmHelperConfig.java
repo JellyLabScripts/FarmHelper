@@ -990,8 +990,8 @@ public class FarmHelperConfig extends Config {
     };
 
     @Switch(
-            name = "Ignore hungry hiker",
-            description = "will reject hungry hiker",
+            name = "Ignore Hungry Hiker",
+            description = "Will reject Hungry Hiker",
             category = VISITORS_MACRO, subcategory = "Visitors Macro"
     )
     public static boolean rejectHungryHiker = false;
