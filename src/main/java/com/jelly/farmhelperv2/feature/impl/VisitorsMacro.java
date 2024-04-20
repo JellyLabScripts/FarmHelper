@@ -766,7 +766,7 @@ public class VisitorsMacro implements IFeature {
                     break;
                 }
 
-                if(npcName.equalsIgnoreCase("hungry hiker")) {
+                if(npcName.equalsIgnoreCase("hungry hiker") && FarmHelperConfig.rejectHungryHiker) {
                     setVisitorsState(VisitorsState.CLOSE_VISITOR);
                     rejectVisitor = true;
                     break;

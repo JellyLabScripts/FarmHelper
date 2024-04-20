@@ -988,6 +988,13 @@ public class FarmHelperConfig extends Config {
         VisitorsMacro.getInstance().setManuallyStarted(true);
         VisitorsMacro.getInstance().start();
     };
+
+    @Switch(
+            name = "Ignore hungry hiker",
+            description = "will reject hungry hiker",
+            category = VISITORS_MACRO, subcategory = "Visitors Macro"
+    )
+    public static boolean rejectHungryHiker = false;
     //</editor-fold>
 
     //<editor-fold desc="Rarity">
