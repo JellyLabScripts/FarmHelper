@@ -129,8 +129,6 @@ public class PiPMode implements IFeature {
                 Display.setLocation(-1, -1);
                 Robot robot = new Robot();
                 robot.mouseMove(Display.getX() + Display.getWidth() / 2, Display.getY() + Display.getHeight() / 2);
-
-                setAlwaysOnTop(true);
             } else {
                 System.setProperty("org.lwjgl.opengl.Window.undecorated", "false");
                 Display.setDisplayMode(this.displayMode);
@@ -167,9 +165,7 @@ public class PiPMode implements IFeature {
         if (!FarmHelperConfig.pipMode || event.phase == TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null || !isRunning())
             return;
 
-//        Need optimize this code later
         if (Mouse.isButtonDown(2)) {
-
             Point mouseLocation = MouseInfo.getPointerInfo().getLocation();
             int mouseX = (int) mouseLocation.getX();
             int mouseY = (int) mouseLocation.getY();
@@ -177,6 +173,10 @@ public class PiPMode implements IFeature {
             if (previousX == 0 && previousY == 0) {
                 previousX = mouseX;
                 previousY = mouseY;
+            }
+
+            if (Display.getX() == 0 && Display.getY() == 0) {
+                return;
             }
 
             int dx = mouseX - previousX;
