@@ -345,6 +345,7 @@ public class AutoSell implements IFeature {
                 switch (bazaarState) {
                     case NONE:
                         setBazaarState(BazaarState.OPEN_MENU);
+                        delayClock.schedule(1_000);
                         break;
                     case OPEN_MENU:
                         if (mc.currentScreen == null) {
