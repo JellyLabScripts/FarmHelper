@@ -765,6 +765,12 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(getRandomDelay());
                     break;
                 }
+
+                if(npcName.equalsIgnoreCase("hungry hiker")) {
+                    setVisitorsState(VisitorsState.CLOSE_VISITOR);
+                    rejectVisitor = true;
+                    break;
+                }
                 Rarity npcRarity = Rarity.getRarityFromNpcName(npcSlot.getStack().getDisplayName());
                 LogUtils.sendDebug("[Visitors Macro] Opened NPC: " + npcName + " Rarity: " + npcRarity);
 
