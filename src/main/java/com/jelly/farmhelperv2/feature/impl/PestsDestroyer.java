@@ -152,8 +152,8 @@ public class PestsDestroyer implements IFeature {
             if (!preparing) return;
             enabled = true;
             preparing = false;
-            LogUtils.sendWarning("[Pests Destroyer] Starting killing shitters!");
-            LogUtils.webhookLog("[Pests Destroyer]\\nStarting killing shitters!");
+            LogUtils.sendWarning("[Pests Destroyer] Starting killing pests!");
+            LogUtils.webhookLog("[Pests Destroyer]\\nStarting killing pests!");
         }, MacroHandler.getInstance().isMacroToggled() ? (800 + (long) (Math.random() * 500)) : 0, TimeUnit.MILLISECONDS);
     }
 
@@ -251,14 +251,7 @@ public class PestsDestroyer implements IFeature {
             LogUtils.sendError("[Pests Destroyer] Pests Destroyer won't activate during Jacob's Contest!");
             return false;
         }
-        if (InventoryUtils.hasItemInHotbar("SkyMart Vacuum")) {
-            LogUtils.sendError("[Pests Destroyer] You need higher tier (at least second) of Vacuum to use Pests Destroyer!");
-            if (FarmHelperConfig.pestsDestroyerAfkInfiniteMode) {
-                LogUtils.sendWarning("[Pests Destroyer] Disabling Pests Destroyer AFK Infinite Mode!");
-                FarmHelperConfig.pestsDestroyerAfkInfiniteMode = false;
-            }
-            return false;
-        }
+
         if (!mc.thePlayer.capabilities.allowFlying) {
             LogUtils.sendError("[Pests Destroyer] You need to be able to fly!");
             if (FarmHelperConfig.pestsDestroyerAfkInfiniteMode) {
