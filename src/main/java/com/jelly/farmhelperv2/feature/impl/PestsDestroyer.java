@@ -251,14 +251,6 @@ public class PestsDestroyer implements IFeature {
             LogUtils.sendError("[Pests Destroyer] Pests Destroyer won't activate during Jacob's Contest!");
             return false;
         }
-        if (InventoryUtils.hasItemInHotbar("SkyMart Vacuum")) {
-            LogUtils.sendError("[Pests Destroyer] You need higher tier (at least second) of Vacuum to use Pests Destroyer!");
-            if (FarmHelperConfig.pestsDestroyerAfkInfiniteMode) {
-                LogUtils.sendWarning("[Pests Destroyer] Disabling Pests Destroyer AFK Infinite Mode!");
-                FarmHelperConfig.pestsDestroyerAfkInfiniteMode = false;
-            }
-            return false;
-        }
         if (!mc.thePlayer.capabilities.allowFlying) {
             LogUtils.sendError("[Pests Destroyer] You need to be able to fly!");
             if (FarmHelperConfig.pestsDestroyerAfkInfiniteMode) {
@@ -1041,28 +1033,25 @@ public class PestsDestroyer implements IFeature {
             if (entity instanceof EntityArmorStand) {
                 if (killedEntities.contains(entity)) return false;
                 ItemStack itemStack = ((EntityArmorStand) entity).getEquipmentInSlot(4);
-                if (itemStack != null && itemStack.hasTagCompound()) {
-                    String displayName = itemStack.getTagCompound().toString();
-                    if (!displayName.contains("display:")) {
-                        if (this.pests.stream().anyMatch(pest -> displayName.contains(pest.getSecond()))) {
-                            if (killedEntities.contains(entity)) return false;
-                            Entity realEntity = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityBat || e instanceof EntitySilverfish);
-                            Entity nameEntity = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityArmorStand && e != entity);
-                            if (realEntity != null && (killedEntities.contains(realEntity) || realEntity.isDead)) {
-                                return false;
-                            }
-                            if (nameEntity != null && (killedEntities.contains(nameEntity))) {
-                                return false;
-                            }
-                            if (killedEntities.stream().noneMatch(ke -> ke.getDistanceToEntity(entity) < 1.5)) {
-                                if (!FarmHelperConfig.streamerMode)
-                                    drawESP(entity);
-                                return true;
-                            }
-                            return false;
-                        }
-                    }
+                if (itemStack == null || !itemStack.hasTagCompound()) return false;
+                String displayName = itemStack.getTagCompound().toString();
+                if (displayName.contains("display:")) return false;
+                if (this.pests.stream().noneMatch(pest -> displayName.contains(pest.getSecond()))) return false;
+                if (killedEntities.contains(entity)) return false;
+                Entity realEntity = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityBat || e instanceof EntitySilverfish);
+                Entity nameEntity = PlayerUtils.getEntityCuttingOtherEntity(entity, (e) -> e instanceof EntityArmorStand && e != entity);
+                if (realEntity != null && (killedEntities.contains(realEntity) || realEntity.isDead)) {
+                    return false;
                 }
+                if (nameEntity != null && (killedEntities.contains(nameEntity))) {
+                    return false;
+                }
+                if (killedEntities.stream().noneMatch(ke -> ke.getDistanceToEntity(entity) < 1.5)) {
+                    if (!FarmHelperConfig.streamerMode)
+                        drawESP(entity);
+                    return true;
+                }
+                return false;
             }
             return false;
         }).collect(Collectors.toList());

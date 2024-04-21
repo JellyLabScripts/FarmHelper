@@ -160,13 +160,6 @@ public abstract class AbstractMacro {
             return;
         }
 
-        if (FarmHelperConfig.autoSwitchTool) {
-            FarmHelperConfig.CropEnum crop = PlayerUtils.getCropBasedOnMouseOver();
-            if (crop != FarmHelperConfig.CropEnum.NONE && crop != MacroHandler.getInstance().getCrop()) {
-                LogUtils.sendWarning("Crop changed from " + MacroHandler.getInstance().getCrop() + " to " + crop);
-                MacroHandler.getInstance().setCrop(crop);
-            }
-        }
 
         if (getRotation().isRotating()) {
             if (!mc.gameSettings.keyBindSneak.isKeyDown())
@@ -175,6 +168,14 @@ public abstract class AbstractMacro {
             return;
         }
 
+        if (FarmHelperConfig.autoSwitchTool) {
+            FarmHelperConfig.CropEnum crop = PlayerUtils.getCropBasedOnMouseOver();
+            if (crop != FarmHelperConfig.CropEnum.NONE && crop != MacroHandler.getInstance().getCrop()) {
+                LogUtils.sendWarning("Crop changed from " + MacroHandler.getInstance().getCrop() + " to " + crop);
+                MacroHandler.getInstance().setCrop(crop);
+            }
+        }
+        
         if (rewarpDelay.isScheduled() && !rewarpDelay.passed()) {
             return;
         }
