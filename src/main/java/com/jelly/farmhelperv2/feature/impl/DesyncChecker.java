@@ -48,7 +48,7 @@ public class DesyncChecker implements IFeature {
 
     @Override
     public boolean shouldPauseMacroExecution() {
-        return true;
+        return enabled;
     }
 
     @Override

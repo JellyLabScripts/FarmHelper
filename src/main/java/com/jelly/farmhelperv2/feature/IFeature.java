@@ -1,5 +1,7 @@
 package com.jelly.farmhelperv2.feature;
 
+import com.jelly.farmhelperv2.util.LogUtils;
+
 public interface IFeature {
     String getName();
 
@@ -11,6 +13,7 @@ public interface IFeature {
 
     default void start() {
         if (!shouldPauseMacroExecution()) return;
+        LogUtils.sendDebug("Enabled pausing feature: " + getName());
         FeatureManager.getInstance().getPauseExecutionFeatures().add(this);
     }
 
