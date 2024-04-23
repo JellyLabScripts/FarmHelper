@@ -1,7 +1,6 @@
 package com.jelly.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
-import cc.polyfrost.oneconfig.utils.Notifications;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -465,6 +464,8 @@ public class BanInfoWS implements IFeature {
         farmHelper.addProperty("crop", MacroHandler.getInstance().getCrop().name());
         farmHelper.addProperty("macroType", FarmHelperConfig.getMacro().name());
         farmHelper.addProperty("fastBreak", FarmHelperConfig.fastBreak);
+        farmHelper.addProperty("autoCookie", FarmHelperConfig.autoCookie);
+        farmHelper.addProperty("autoGodPot", FarmHelperConfig.autoGodPot);
         extraData.add("farmHelper", farmHelper);
         obj.add("extraData", extraData);
     }

@@ -2,10 +2,10 @@ package com.jelly.farmhelperv2.feature;
 
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.util.LogUtils;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class FeatureManager {
     private static FeatureManager instance;
@@ -17,6 +17,10 @@ public class FeatureManager {
         }
         return instance;
     }
+
+    @Getter
+    @Setter
+    private Set<IFeature> pauseExecutionFeatures = new HashSet<>();
 
     public List<IFeature> fillFeatures() {
         List<IFeature> featuresList = Arrays.asList(
@@ -50,12 +54,7 @@ public class FeatureManager {
     }
 
     public boolean shouldPauseMacroExecution() {
-        return features.stream().anyMatch(feature -> {
-            if (feature.isToggled() && feature.isRunning()) {
-                return feature.shouldPauseMacroExecution();
-            }
-            return false;
-        });
+        return !pauseExecutionFeatures.isEmpty();
     }
 
     public void disableAll() {
@@ -65,12 +64,14 @@ public class FeatureManager {
                 LogUtils.sendDebug("Disabled feature: " + feature.getName());
             }
         });
+        pauseExecutionFeatures.clear();
     }
 
     public void disableAllExcept(IFeature... sender) {
         features.forEach(feature -> {
             if (feature.isToggled() && feature.isRunning() && !Arrays.asList(sender).contains(feature)) {
                 feature.stop();
+                pauseExecutionFeatures.remove(feature);
                 LogUtils.sendDebug("Disabled feature: " + feature.getName());
             }
         });
@@ -80,8 +81,13 @@ public class FeatureManager {
         features.forEach(IFeature::resetStatesAfterMacroDisabled);
     }
 
+    public boolean isAnyOtherFeatureEnabled(IFeature sender) {
+        return pauseExecutionFeatures.stream().anyMatch(f -> f != sender);
+    }
+
     public boolean isAnyOtherFeatureEnabled(IFeature... sender) {
-        return features.stream().anyMatch(feature -> feature.shouldPauseMacroExecution() && feature.isRunning() && !Arrays.asList(sender).contains(feature));
+        return pauseExecutionFeatures.stream().anyMatch(f -> !Arrays.asList(sender).contains(f));
+//        return features.stream().anyMatch(feature -> feature.shouldPauseMacroExecution() && feature.isRunning() && !Arrays.asList(sender).contains(feature));
     }
 
     public boolean shouldIgnoreFalseCheck() {

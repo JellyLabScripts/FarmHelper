@@ -78,9 +78,9 @@ public class AutoBazaar implements IFeature {
         return false;
     }
 
-    // Cant use this prob idk
     @Override
     public void start() {
+        IFeature.super.start();
     }
 
     @Override
@@ -96,6 +96,7 @@ public class AutoBazaar implements IFeature {
         this.maxSpendLimit = 0;
 
         log("Disabling");
+        IFeature.super.stop();
     }
 
     @Override
@@ -135,6 +136,7 @@ public class AutoBazaar implements IFeature {
         this.maxSpendLimit = maxSpendLimit;
 
         log("Enabling");
+        start();
     }
 
     public void sell(Integer... sellTypes) {
@@ -276,7 +278,7 @@ public class AutoBazaar implements IFeature {
                     Slot customAmount = InventoryUtils.getSlotOfItemInContainer("Custom Amount");
                     if (customAmount != null && customAmount.getHasStack()) {
                         this.buyState = BuyState.OPEN_SIGN;
-                        this.buyNowButtonSlot = 13;
+                        this.buyNowButtonSlot = -1;
                         LogUtils.sendDebug("[Auto Bazaar] Buying custom amount");
                         return;
                     }
@@ -336,6 +338,16 @@ public class AutoBazaar implements IFeature {
                 break;
             case CLICK_BUY:
                 if (!this.hasTimerEnded()) return;
+
+                if (buyNowButtonSlot == -1) {
+                    Slot customAmount = InventoryUtils.getSlotOfItemInContainer("Custom Amount");
+                    if (customAmount != null && customAmount.getHasStack()) {
+                        this.buyNowButtonSlot = customAmount.slotNumber;
+                    } else {
+                        System.out.println("Slot is null 2");
+                        return;
+                    }
+                }
 
                 Slot slot = InventoryUtils.getSlotOfIdInContainer(buyNowButtonSlot);
                 if (slot == null || !slot.getHasStack()) {

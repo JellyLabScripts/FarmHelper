@@ -4,6 +4,7 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.*;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.failsafe.impl.DirtFailsafe;
+import com.jelly.farmhelperv2.failsafe.impl.JacobFailsafe;
 import com.jelly.farmhelperv2.feature.impl.AutoRepellent;
 import com.jelly.farmhelperv2.feature.impl.PestsDestroyer;
 import com.jelly.farmhelperv2.util.*;
@@ -642,11 +643,15 @@ public class GameStateHandler {
     }
 
     public boolean inJacobContest() {
-        if (FarmHelperConfig.jacobContestCurrentCropsOnly) {
-            return isInJacobContest && (!jacobsContestCrop.isPresent() || jacobsContestCrop.get() == MacroHandler.getInstance().getCrop());
-        } else {
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent() && FailsafeManager.getInstance().triggeredFailsafe.get().equals(JacobFailsafe.getInstance())) {
             return isInJacobContest;
         }
+        if (FarmHelperConfig.jacobContestCurrentCropsOnly) {
+            if (jacobsContestCrop.isPresent()) {
+                return isInJacobContest && jacobsContestCrop.get() == MacroHandler.getInstance().getCrop();
+            }
+        }
+        return isInJacobContest;
     }
 
     public boolean isGuestOnGarden() {

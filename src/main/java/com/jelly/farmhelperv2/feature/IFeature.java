@@ -9,9 +9,15 @@ public interface IFeature {
 
     boolean shouldStartAtMacroStart();
 
-    void start();
+    default void start() {
+        if (!shouldPauseMacroExecution()) return;
+        FeatureManager.getInstance().getPauseExecutionFeatures().add(this);
+    }
 
-    void stop();
+    default void stop() {
+        if (!shouldPauseMacroExecution()) return;
+        FeatureManager.getInstance().getPauseExecutionFeatures().remove(this);
+    }
 
     void resetStatesAfterMacroDisabled();
 

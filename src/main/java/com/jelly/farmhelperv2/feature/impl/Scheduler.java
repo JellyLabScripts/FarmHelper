@@ -68,12 +68,14 @@ public class Scheduler implements IFeature {
         if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) {
             schedulerClock.pause();
         }
+        IFeature.super.start();
     }
 
     @Override
     public void stop() {
         schedulerState = SchedulerState.NONE;
         schedulerClock.reset();
+        IFeature.super.stop();
     }
 
     @Override

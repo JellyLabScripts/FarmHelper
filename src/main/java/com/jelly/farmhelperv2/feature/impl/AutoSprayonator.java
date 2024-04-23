@@ -113,6 +113,7 @@ public class AutoSprayonator implements IFeature {
             sprayState = AUTO_SPRAYONATOR_STATE.WAITING_FOR_PLOT;
         }
         sprayonatorDelay.schedule(100);
+        IFeature.super.start();
     }
 
     @Override
@@ -126,6 +127,7 @@ public class AutoSprayonator implements IFeature {
         if (MacroHandler.getInstance().isMacroToggled())
             Multithreading.schedule(() -> MacroHandler.getInstance().resumeMacro(), 1_500, TimeUnit.MILLISECONDS);
         running = false;
+        IFeature.super.stop();
     }
 
     @Override

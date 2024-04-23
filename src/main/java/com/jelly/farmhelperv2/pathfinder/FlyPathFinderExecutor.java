@@ -366,7 +366,6 @@ public class FlyPathFinderExecutor {
         }
         Vec3 lastElem = copyPath.get(copyPath.size() - 1);
         if (targetEntity != null) {
-            float velocity = (float) Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
             if (targetEntity instanceof EntityArmorStand) {
                 Entity properEntity = PlayerUtils.getEntityCuttingOtherEntity(targetEntity, e -> !(e instanceof EntityArmorStand));
                 if (properEntity != null) {
@@ -380,12 +379,7 @@ public class FlyPathFinderExecutor {
             }
             float distance = (float) mc.thePlayer.getPositionVector().distanceTo(targetPos);
             float distancePath = (float) mc.thePlayer.getPositionVector().distanceTo(lastElem);
-            System.out.println("Velo: " + velocity);
-            System.out.println("TargetPos: " + targetPos);
-            System.out.println("Distance: " + distance);
-            System.out.println("EntityVelo: " + entityVelocity);
             if (willArriveAtDestinationAfterStopping(lastElem) && entityVelocity < 0.15) {
-                System.out.println("Will arrive");
                 stop();
                 return;
             }
@@ -394,7 +388,6 @@ public class FlyPathFinderExecutor {
                 return;
             }
         } else if (willArriveAtDestinationAfterStopping(lastElem) || mc.thePlayer.getDistance(lastElem.xCoord, lastElem.yCoord, lastElem.zCoord) < 0.3) {
-            System.out.println("stopping");
             stop();
             return;
         }
@@ -459,20 +452,16 @@ public class FlyPathFinderExecutor {
             if (fly(next, current)) return;
             if (verticalDirection.equals(VerticalDirection.HIGHER)) {
                 keyBindings.add(mc.gameSettings.keyBindJump);
-                System.out.println("Raising 1");
                 loweringRaisingDelay.schedule(750);
             } else if (verticalDirection.equals(VerticalDirection.LOWER)) {
                 keyBindings.add(mc.gameSettings.keyBindSneak);
-                System.out.println("Lowering 1");
                 loweringRaisingDelay.schedule(750);
             } else if (loweringRaisingDelay.passed() && (getBlockUnder() instanceof BlockCactus || distanceY > 0.5) && (((EntityPlayerAccessor) mc.thePlayer).getFlyToggleTimer() == 0 || mc.gameSettings.keyBindJump.isKeyDown())) {
                 keyBindings.add(mc.gameSettings.keyBindJump);
-                System.out.println("Raising 2");
             } else if (loweringRaisingDelay.passed() && distanceY < -0.5) {
                 Block blockUnder = getBlockUnder();
                 if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.isFlying && !(blockUnder instanceof BlockCactus) && !(blockUnder instanceof BlockSoulSand)) {
                     keyBindings.add(mc.gameSettings.keyBindSneak);
-                    System.out.println("Lowering 2");
                 }
             }
         } else { // only walking
@@ -482,7 +471,6 @@ public class FlyPathFinderExecutor {
         }
 
         if (sprinting) {
-//            mc.thePlayer.setSprinting(FarmHelperConfig.sprintWhileFlying && neededKeys.contains(mc.gameSettings.keyBindForward) && !neededKeys.contains(mc.gameSettings.keyBindSneak) && current.distanceTo(new Vec3(next.xCoord, current.yCoord, next.zCoord)) > 6);
             keyBindings.add(mc.gameSettings.keyBindSprint);
         }
 
@@ -508,35 +496,6 @@ public class FlyPathFinderExecutor {
             }
         }
         return new Vec3(playerSimulation.posX, playerSimulation.posY, playerSimulation.posZ);
-    }
-
-    private void stopAndDecelerate() {
-        float velocity = (float) Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionZ * mc.thePlayer.motionZ);
-        LogUtils.sendDebug("Stopping and decelerating. Velocity: " + velocity);
-        if (Math.abs(velocity) < 0.2) {
-            LogUtils.sendSuccess("Arrived at destination");
-            stop();
-        } else {
-            state = State.DECELERATING;
-            if (this.target == null) {
-                LogUtils.sendDebug("????????");
-                stop();
-                return;
-            }
-
-            float rotationBasedOnMotion = (float) Math.toDegrees(Math.atan2(mc.thePlayer.motionZ, mc.thePlayer.motionX)) - 90;
-            LogUtils.sendDebug("Decelerating. Rotation based on motion: " + rotationBasedOnMotion);
-            neededYaw = rotationBasedOnMotion;
-            mc.thePlayer.setSprinting(false);
-            if (FarmHelperConfig.flyPathfinderOringoCompatible) {
-                List<KeyBinding> keyBindings = new ArrayList<>(KeyBindUtils.getOppositeKeys(KeyBindUtils.getNeededKeyPresses(neededYaw)));
-                keyBindings.add(mc.gameSettings.keyBindUseItem.isKeyDown() ? mc.gameSettings.keyBindUseItem : null);
-                keyBindings.add(mc.gameSettings.keyBindAttack.isKeyDown() ? mc.gameSettings.keyBindAttack : null);
-                KeyBindUtils.holdThese(keyBindings.toArray(new KeyBinding[0]));
-            } else {
-                KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, mc.gameSettings.keyBindUseItem.isKeyDown() ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindAttack.isKeyDown() ? mc.gameSettings.keyBindAttack : null);
-            }
-        }
     }
 
     private Block getBlockUnder() {

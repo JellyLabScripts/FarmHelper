@@ -3,7 +3,6 @@ package com.jelly.farmhelperv2.feature.impl;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
-import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
@@ -102,6 +101,7 @@ public class AutoPestExchange implements IFeature {
         enabled = true;
         newState = NewState.NONE;
         LogUtils.sendWarning("[Auto Pest Exchange] Starting...");
+        IFeature.super.start();
     }
 
     @Override
@@ -111,8 +111,9 @@ public class AutoPestExchange implements IFeature {
         KeyBindUtils.stopMovement();
         resetStatesAfterMacroDisabled();
         FlyPathFinderExecutor.getInstance().stop();
-        BaritoneHandler.stopPathing();
+//        BaritoneHandler.stopPathing();
         manuallyStarted = false;
+        IFeature.super.stop();
     }
 
     @Override

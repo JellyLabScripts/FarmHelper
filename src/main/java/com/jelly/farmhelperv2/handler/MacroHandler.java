@@ -1,6 +1,5 @@
 package com.jelly.farmhelperv2.handler;
 
-import baritone.api.BaritoneAPI;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
@@ -20,7 +19,6 @@ import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.RenderUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
 import com.jelly.farmhelperv2.util.helper.Clock;
-import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import com.jelly.farmhelperv2.util.helper.Timer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -122,11 +120,6 @@ public class MacroHandler {
         if (isMacroToggled()) {
             this.disableMacro();
         } else {
-            if (FlyPathfinder.getInstance().isRunning()) {
-                FlyPathfinder.getInstance().stop();
-            } else {
-                BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
-            }
             if (FlyPathFinderExecutor.getInstance().isRunning())
                 FlyPathFinderExecutor.getInstance().stop();
             if (VisitorsMacro.getInstance().isRunning() || FarmHelperConfig.visitorsMacroAfkInfiniteMode) {
@@ -246,11 +239,6 @@ public class MacroHandler {
             UngrabMouse.getInstance().stop();
         disableCurrentMacro();
         setCurrentMacro(Optional.empty());
-        if (FlyPathfinder.getInstance().isRunning()) {
-            FlyPathfinder.getInstance().stop();
-        } else {
-            BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
-        }
     }
 
     public void pauseMacro(boolean scheduler) {

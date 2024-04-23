@@ -175,7 +175,7 @@ public class FailsafeManager {
         if (event.message == null) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (triggeredFailsafe.isPresent()) return;
-        if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
+//        if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
 
         failsafes.forEach(failsafe -> failsafe.onChatDetection(event));
     }

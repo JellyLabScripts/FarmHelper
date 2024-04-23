@@ -175,7 +175,7 @@ public abstract class AbstractMacro {
                 MacroHandler.getInstance().setCrop(crop);
             }
         }
-        
+
         if (rewarpDelay.isScheduled() && !rewarpDelay.passed()) {
             return;
         }
@@ -231,11 +231,6 @@ public abstract class AbstractMacro {
             LogUtils.sendDebug("Blocking changing movement due to emergency!");
             return;
         }
-
-//        if (LagDetector.getInstance().isLagging()) {
-//            LogUtils.sendDebug("Blocking changing movement due to lag!");
-//            return;
-//        }
 
         PlayerUtils.getTool();
 

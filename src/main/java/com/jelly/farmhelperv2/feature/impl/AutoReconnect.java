@@ -96,6 +96,7 @@ public class AutoReconnect implements IFeature {
         }
         state = State.CONNECTING;
         LogUtils.sendDebug("[Reconnect] Reconnecting to the server...");
+        IFeature.super.start();
     }
 
     @Override
@@ -117,6 +118,7 @@ public class AutoReconnect implements IFeature {
                 }
             }
         }
+        IFeature.super.stop();
     }
 
     @Override

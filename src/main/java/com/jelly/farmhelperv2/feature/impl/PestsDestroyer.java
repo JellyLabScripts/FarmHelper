@@ -11,7 +11,10 @@ import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
 import com.jelly.farmhelperv2.util.*;
-import com.jelly.farmhelperv2.util.helper.*;
+import com.jelly.farmhelperv2.util.helper.Clock;
+import com.jelly.farmhelperv2.util.helper.Rotation;
+import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
+import com.jelly.farmhelperv2.util.helper.Target;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.block.Block;
@@ -81,7 +84,6 @@ public class PestsDestroyer implements IFeature {
     @Getter
     private EscapeState escapeState = EscapeState.NONE;
     private Optional<BlockPos> preTpBlockPos = Optional.empty();
-    private Optional<Vec3> lastFireworkLocation = Optional.empty();
     private long lastFireworkTime = 0;
     private int getLocationTries = 0;
     private int flyPathfinderTries = 0;
@@ -155,6 +157,7 @@ public class PestsDestroyer implements IFeature {
             LogUtils.sendWarning("[Pests Destroyer] Starting killing shitters!");
             LogUtils.webhookLog("[Pests Destroyer]\\nStarting killing shitters!");
         }, MacroHandler.getInstance().isMacroToggled() ? (800 + (long) (Math.random() * 500)) : 0, TimeUnit.MILLISECONDS);
+        IFeature.super.start();
     }
 
     @Override
@@ -168,7 +171,7 @@ public class PestsDestroyer implements IFeature {
         }
         PlayerUtils.closeScreen();
         currentEntityTarget = Optional.empty();
-        lastFireworkLocation = Optional.empty();
+        resetFireworkInfo();
         preTpBlockPos = Optional.empty();
         delayBetweenBackTaps.reset();
         delayBetweenFireworks.reset();
@@ -180,11 +183,10 @@ public class PestsDestroyer implements IFeature {
         lastFireworkTime = 0;
         getLocationTries = 0;
         flyPathfinderTries = 0;
-        FlyPathfinder.getInstance().stuckCounterWithMotion = 0;
-        FlyPathfinder.getInstance().stuckCounterWithoutMotion = 0;
         state = States.IDLE;
         FlyPathFinderExecutor.getInstance().stop();
         KeyBindUtils.stopMovement();
+        IFeature.super.stop();
     }
 
     @Override
@@ -620,7 +622,7 @@ public class PestsDestroyer implements IFeature {
                     }
                 }
 
-                lastFireworkLocation = Optional.empty();
+                resetFireworkInfo();
                 lastFireworkTime = System.currentTimeMillis();
                 MovingObjectPosition mop = mc.objectMouseOver;
                 if (RotationHandler.getInstance().isRotating()) break;
@@ -667,7 +669,7 @@ public class PestsDestroyer implements IFeature {
                     break;
                 }
 
-                if (lastFireworkLocation.isPresent()) {
+                if (lastLocation != null) {
                     if (lastFireworkTime + 250 < System.currentTimeMillis()) {
                         RotationHandler.getInstance().reset();
                         state = States.FLY_TO_PEST;
@@ -693,7 +695,7 @@ public class PestsDestroyer implements IFeature {
                 Entity closestPest = getClosestPest();
 
                 if (closestPest == null) {
-                    if (!lastFireworkLocation.isPresent()) {
+                    if (lastLocation == null) {
                         LogUtils.sendDebug("[Pests Destroyer] No firework location found. Looking for a firework.");
                         state = States.GET_LOCATION;
                         break;
@@ -705,7 +707,7 @@ public class PestsDestroyer implements IFeature {
                     }
 
                     if (!FlyPathFinderExecutor.getInstance().isRunning()) {
-                        Vec3 firework = new Vec3(lastFireworkLocation.get().xCoord, Math.min(mc.thePlayer.posY + 1, 80), lastFireworkLocation.get().zCoord);
+                        Vec3 firework = calculateWaypoint();
                         state = States.GET_LOCATION;
                         if (mc.thePlayer.getDistance(firework.xCoord, firework.yCoord, firework.zCoord) < 2) {
                             int y = 150;
@@ -1162,15 +1164,16 @@ public class PestsDestroyer implements IFeature {
                 killedEntities.add(nameEntity);
             }
         }
-        RotationHandler.getInstance().reset();
-        FlyPathFinderExecutor.getInstance().stop();
-        lastFireworkLocation = Optional.empty();
+        if (isRunning())
+            FlyPathFinderExecutor.getInstance().stop();
+        resetFireworkInfo();
         lastFireworkTime = 0;
         currentEntityTarget.ifPresent(e -> {
             if (!e.equals(event.entity)) {
                 return;
             }
-            KeyBindUtils.stopMovement();
+            if (isRunning())
+                KeyBindUtils.stopMovement();
             currentEntityTarget = Optional.empty();
             stuckClock.reset();
         });
@@ -1184,6 +1187,13 @@ public class PestsDestroyer implements IFeature {
         killedPestsFrom.add(plot.number);
     }
 
+    private int particles = 0;
+    private final List<Vec3> locations = new ArrayList<>();
+    private Vec3 firstLocation = null;
+    private Vec3 secondLocation = null;
+    private Vec3 lastLocation = null;
+
+    // Skyhanni credits
     @SubscribeEvent(receiveCanceled = true)
     public void onFirework(SpawnParticleEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
@@ -1194,18 +1204,52 @@ public class PestsDestroyer implements IFeature {
         EnumParticleTypes type = event.getParticleTypes();
         if (type != EnumParticleTypes.REDSTONE) return;
 
-        if (lastFireworkLocation.isPresent()) {
-            if (lastFireworkLocation.get().distanceTo(event.getPos()) > 5) {
-                return;
-            }
+        if (particles > 5) return;
+        if (firstLocation == null) {
+            if (mc.thePlayer.getPositionVector().distanceTo(event.getPos()) > 5) return;
+            firstLocation = event.getPos();
+        } else if (secondLocation == null) {
+            secondLocation = event.getPos();
+            lastLocation = event.getPos();
+            locations.add(event.getPos());
         } else {
-            if (mc.thePlayer.getPositionVector().distanceTo(event.getPos()) > 5) {
+            double distanceFromFirst = secondLocation.distanceTo(event.getPos());
+            double distance = lastLocation.distanceTo(event.getPos());
+            if (Math.abs(distanceFromFirst - distance) > 0.1) {
                 return;
             }
+            lastLocation = event.getPos();
+            lastFireworkTime = System.currentTimeMillis();
+            locations.add(event.getPos());
         }
+        ++particles;
+    }
 
-        lastFireworkTime = System.currentTimeMillis();
-        lastFireworkLocation = Optional.of(event.getPos());
+    private void resetFireworkInfo() {
+        particles = 0;
+        locations.clear();
+        firstLocation = null;
+        secondLocation = null;
+        lastLocation = null;
+        lastFireworkTime = 0;
+    }
+
+    private Vec3 calculateWaypoint() {
+        if (firstLocation == null) return null;
+        Vec3 pos = new Vec3(0, 0, 0);
+        for (int i = 0; i < locations.size(); i++) {
+            Vec3 particle = locations.get(i);
+            pos = pos.add(divideVec(particle.subtract(firstLocation), i + 1.0));
+        }
+        return firstLocation.add(multiplyVec(pos, 120.0 / locations.size()));
+    }
+
+    private Vec3 divideVec(Vec3 vec, double div) {
+        return new Vec3(vec.xCoord / div, vec.yCoord / div, vec.zCoord / div);
+    }
+
+    private Vec3 multiplyVec(Vec3 vec, double mul) {
+        return new Vec3(vec.xCoord * mul, vec.yCoord * mul, vec.zCoord * mul);
     }
 
     @SubscribeEvent

@@ -51,7 +51,7 @@ public class PlayerUtils {
         if (!foundCropUnderMouse) {
             for (int x = -3; x < 3; x++) {
                 for (int y = -1; y < 5; y++) {
-                    for (int z = -1; z < 3; z++) {
+                    for (int z = 0; z < 3; z++) {
                         float yaw;
                         if (MacroHandler.getInstance().getCurrentMacro().isPresent()) {
                             yaw = MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().orElse(AngleUtils.getClosest());
@@ -67,7 +67,7 @@ public class PlayerUtils {
                         if (!(block instanceof BlockCrops || block instanceof BlockReed || block instanceof BlockCocoa || block instanceof BlockNetherWart || block instanceof BlockMelon || block instanceof BlockPumpkin || block instanceof BlockMushroom || block instanceof BlockCactus))
                             continue;
 
-                        if (closestCrop == null || mc.thePlayer.getPosition().distanceSq(pos.getX(), pos.getY(), pos.getZ()) < mc.thePlayer.getPosition().distanceSq(closestCrop.getRight().getX(), closestCrop.getRight().getY(), closestCrop.getRight().getZ())) {
+                        if (closestCrop == null || mc.thePlayer.getPositionVector().distanceTo(new Vec3(pos.getX() + 0.5f, pos.getY(), pos.getZ() + 0.5f)) < mc.thePlayer.getPositionVector().distanceTo(new Vec3(closestCrop.getRight().getX() + 0.5f, closestCrop.getRight().getY(), closestCrop.getRight().getZ() + 0.5f))) {
                             closestCrop = Pair.of(block, pos);
                         }
                     }
@@ -239,16 +239,16 @@ public class PlayerUtils {
         if (FarmHelperConfig.rewarpList.isEmpty()) return false;
         Rewarp closest = null;
         double closestDistance = Double.MAX_VALUE;
+        BlockPos playerPos = BlockUtils.getRelativeBlockPos(0, 0, 0);
         for (Rewarp rewarp : FarmHelperConfig.rewarpList) {
-            double distance = rewarp.getDistance(new BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ));
+            double distance = rewarp.getDistance(playerPos);
             if (distance < closestDistance) {
                 closest = rewarp;
                 closestDistance = distance;
             }
         }
         if (closest == null) return false;
-        BlockPos playerPos = BlockUtils.getRelativeBlockPos(0, 0, 0);
-        return playerPos.distanceSqToCenter(closest.getX() + 0.5, closest.getY() + 0.5, closest.getZ() + 0.5) < 1;
+        return closest.isTheSameAs(playerPos);
     }
 
     public static boolean shouldPushBack() {
@@ -307,7 +307,7 @@ public class PlayerUtils {
     public static boolean isStandingOnSpawnPoint() {
         BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
         BlockPos spawnPoint = new BlockPos(FarmHelperConfig.spawnPosX + 0.5, FarmHelperConfig.spawnPosY + 0.5, FarmHelperConfig.spawnPosZ + 0.5);
-        return pos.distanceSqToCenter(spawnPoint.getX(), spawnPoint.getY(), spawnPoint.getZ()) < 1;
+        return pos.equals(spawnPoint);
     }
 
     public static Vec3 getSpawnLocation() {

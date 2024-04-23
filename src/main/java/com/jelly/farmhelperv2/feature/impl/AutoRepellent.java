@@ -68,6 +68,7 @@ public class AutoRepellent implements IFeature {
         LogUtils.sendWarning("[Auto Repellent] Enabled!");
         delay.reset();
         MacroHandler.getInstance().pauseMacro();
+        IFeature.super.start();
     }
 
     @Override
@@ -82,6 +83,7 @@ public class AutoRepellent implements IFeature {
             MacroHandler.getInstance().resumeMacro();
             enabled = false;
         }, 500, TimeUnit.MILLISECONDS);
+        IFeature.super.stop();
     }
 
     @Override
@@ -318,12 +320,15 @@ public class AutoRepellent implements IFeature {
                 }
                 state = State.WAIT_FOR_REPELLENT;
                 KeyBindUtils.rightClick();
-                delay.schedule(300 + (long) (Math.random() * 300));
+                delay.schedule(2_500 + (long) (Math.random() * 1_000));
                 break;
             case OPEN_SKYMART:
             case CLICK_REPELLENT:
             case CONFIRM_BUY:
             case WAIT_FOR_REPELLENT:
+                if (!delay.passed()) break;
+                LogUtils.sendError("[Auto Repellent] Repellent hasn't been used. Trying to use again.");
+                state = State.USE_REPELLENT;
             case END:
                 break;
         }

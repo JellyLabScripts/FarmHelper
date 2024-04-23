@@ -48,6 +48,7 @@ public class PerformanceMode implements IFeature {
         mc.gameSettings.renderDistanceChunks = 1;
         mc.gameSettings.limitFramerate = FarmHelperConfig.performanceModeMaxFPS;
         mc.addScheduledTask(() -> mc.renderGlobal.loadRenderers());
+        IFeature.super.start();
     }
 
     @Override
@@ -58,6 +59,7 @@ public class PerformanceMode implements IFeature {
         renderDistanceBefore = 0;
         maxFpsBefore = 0;
         mc.addScheduledTask(() -> mc.renderGlobal.loadRenderers());
+        IFeature.super.stop();
     }
 
     @Override

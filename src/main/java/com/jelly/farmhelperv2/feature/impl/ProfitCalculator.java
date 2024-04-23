@@ -185,11 +185,13 @@ public class ProfitCalculator implements IFeature {
         if (ProfitCalculatorHUD.resetStatsBetweenDisabling) {
             resetProfits();
         }
+        IFeature.super.start();
     }
 
     @Override
     public void stop() {
         updateClock.reset();
+        IFeature.super.stop();
     }
 
     @Override

@@ -55,11 +55,13 @@ public class LeaveTimer implements IFeature {
     @Override
     public void start() {
         leaveClock.schedule(FarmHelperConfig.leaveTime * 60 * 1000L);
+        IFeature.super.start();
     }
 
     @Override
     public void stop() {
         leaveClock.reset();
+        IFeature.super.stop();
     }
 
     @Override

@@ -11,7 +11,6 @@ import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
-import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
@@ -122,6 +121,7 @@ public class DebugHUD extends TextHud {
             lines.add("   Clock: " + AutoGodPot.getInstance().getDelayClock().getRemainingTime());
         }
         if (!FeatureManager.getInstance().getCurrentRunningFeatures().isEmpty()) {
+            lines.add("Blocking Main Thread: " + FeatureManager.getInstance().getPauseExecutionFeatures().size());
             lines.add("Running Features:");
             FeatureManager.getInstance().getCurrentRunningFeatures().forEach(feature -> lines.add("   " + feature.getName()));
         }
@@ -135,17 +135,6 @@ public class DebugHUD extends TextHud {
             PestsDestroyer.getInstance().getCurrentEntityTarget().ifPresent(target -> lines.add(
                     String.format("   Current Entity Target: %.2f %.2f %.2f", target.getPositionVector().xCoord, target.getPositionVector().yCoord, target.getPositionVector().zCoord))
             );
-        }
-        if (FlyPathfinder.getInstance().isRunning()) {
-            lines.add("FlyPathfinder");
-            lines.add("   Path size: " + FlyPathfinder.getInstance().getPathBlocks().size());
-            lines.add(String.format("   Player speed: %.2f", FlyPathfinder.getInstance().getPlayerSpeed()));
-            lines.add("   Goal: " + FlyPathfinder.getInstance().getGoal());
-            lines.add("   Deceleration:");
-            lines.add("      Left: " + FlyPathfinder.getInstance().isDeceleratingLeft);
-            lines.add("      Right: " + FlyPathfinder.getInstance().isDeceleratingRight);
-            lines.add("      Forward: " + FlyPathfinder.getInstance().isDeceleratingForward);
-            lines.add("      Backward: " + FlyPathfinder.getInstance().isDeceleratingBackward);
         }
         if (AutoSprayonator.getInstance().isRunning()) {
             lines.add("Auto Sprayonator");

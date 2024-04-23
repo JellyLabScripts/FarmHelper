@@ -73,6 +73,7 @@ public class Freelook implements IFeature {
             UngrabMouse.getInstance().regrabMouse();
             mouseWasGrabbed = true;
         }
+        IFeature.super.start();
     }
 
     @Override
@@ -85,6 +86,7 @@ public class Freelook implements IFeature {
             UngrabMouse.getInstance().ungrabMouse();
         }
         mouseWasGrabbed = false;
+        IFeature.super.stop();
     }
 
 

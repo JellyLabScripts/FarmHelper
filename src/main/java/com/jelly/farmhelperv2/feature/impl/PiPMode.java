@@ -70,6 +70,7 @@ public class PiPMode implements IFeature {
         LogUtils.sendDebug("[PiPMode] Enabled.");
         setPiPMode(true);
         enabled = true;
+        IFeature.super.start();
     }
 
     @Override
@@ -77,6 +78,7 @@ public class PiPMode implements IFeature {
         LogUtils.sendDebug("[PiPMode] Disabled.");
         setPiPMode(false);
         enabled = false;
+        IFeature.super.stop();
     }
 
     @Override

@@ -82,6 +82,7 @@ public class UngrabMouse implements IFeature {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        IFeature.super.start();
     }
 
     @Override
@@ -91,6 +92,7 @@ public class UngrabMouse implements IFeature {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        IFeature.super.stop();
     }
 
     @Override

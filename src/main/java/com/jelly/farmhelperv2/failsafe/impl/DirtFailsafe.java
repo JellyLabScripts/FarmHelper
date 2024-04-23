@@ -1,6 +1,5 @@
 package com.jelly.farmhelperv2.failsafe.impl;
 
-import baritone.api.pathing.goals.GoalBlock;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
@@ -11,8 +10,8 @@ import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
 import com.jelly.farmhelperv2.util.*;
-import com.jelly.farmhelperv2.util.helper.FlyPathfinder;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.init.Blocks;
@@ -193,7 +192,7 @@ public class DirtFailsafe extends Failsafe {
                     MovRecPlayer.getInstance().playRandomRecording(tempRecordingName);
                     maxReactions--;
                 } else {
-                    FlyPathfinder.getInstance().getPathTo(new GoalBlock(positionBeforeReacting.getX(), positionBeforeReacting.getY() + 3, positionBeforeReacting.getZ()));
+                    FlyPathFinderExecutor.getInstance().findPath(new Vec3(positionBeforeReacting.getX() + 0.5, positionBeforeReacting.getY() + 3, positionBeforeReacting.getZ() + 0.5), true, true);
                     dirtCheckState = DirtCheckState.GO_BACK_END;
                 }
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
@@ -203,7 +202,7 @@ public class DirtFailsafe extends Failsafe {
                     break;
                 if (FailsafeManager.getInstance().swapItemDuringRecording)
                     FailsafeManager.getInstance().swapItemDuringRecording = false;
-                if (FlyPathfinder.getInstance().isRunning())
+                if (FlyPathFinderExecutor.getInstance().isRunning())
                     break;
                 if (mc.thePlayer.getPosition().distanceSq(positionBeforeReacting) < 1) {
                     dirtCheckState = DirtCheckState.ROTATE_TO_POS_BEFORE;
@@ -213,7 +212,7 @@ public class DirtFailsafe extends Failsafe {
                 dirtCheckState = DirtCheckState.GO_BACK_END;
                 break;
             case GO_BACK_END:
-                if (FlyPathfinder.getInstance().isRunning())
+                if (FlyPathFinderExecutor.getInstance().isRunning())
                     break;
                 if (BaritoneHandler.isWalkingToGoalBlock()) {
                     LogUtils.sendDebug("Distance difference: " + mc.thePlayer.getPosition().distanceSq(positionBeforeReacting));

@@ -1,6 +1,7 @@
 package com.jelly.farmhelperv2.feature.impl;
 
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -78,6 +79,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
         PestsDestroyer.getInstance().getVacuum(currentItem);
         LogUtils.sendWarning("[" + getName() + "] Started!");
         stuckTimer.schedule(FarmHelperConfig.pestsDestroyerOnTheTrackStuckTimer);
+        IFeature.super.start();
     }
 
     @Override
@@ -91,6 +93,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
         delayStart.reset();
         stuckTimer.reset();
         noPestTimer.reset();
+        IFeature.super.stop();
     }
 
     @Override
@@ -114,6 +117,8 @@ public class PestsDestroyerOnTheTrack implements IFeature {
     public void onTickShouldEnable(TickEvent.PlayerTickEvent event) {
         if (mc.thePlayer == null) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (FeatureManager.getInstance().shouldPauseMacroExecution()) return;
+        if (MacroHandler.getInstance().isCurrentMacroPaused()) return;
         if (PestsDestroyer.getInstance().isRunning()) return;
         if (GameStateHandler.getInstance().inJacobContest() && FarmHelperConfig.dontKillPestsOnTrackDuringJacobsContest)
             return;
@@ -179,7 +184,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
                 noPestTimer.schedule(500);
             }
             if (noPestTimer.isScheduled() && noPestTimer.passed()) {
-                LogUtils.sendWarning("[" + getName() + "] Pest left your range, stopping!");
+                LogUtils.sendWarning("[" + getName() + "] No pests found, stopping!");
                 stop();
             }
         }

@@ -266,8 +266,8 @@ public class RotationHandler {
             if (shouldRotate(targetRotation, 0.1f)) {
                 float needYaw = (targetRotation.getYaw() - currentYaw);
                 float needPitch = (targetRotation.getPitch() - currentPitch);
-                needYaw *= (float) (0.08f + Math.random() * 0.08f);
-                needPitch *= (float) (0.08f + Math.random() * 0.08f);
+                needYaw *= (float) (0.04f + Math.random() * 0.04f);
+                needPitch *= (float) (0.04f + Math.random() * 0.04f);
                 float scaledFps = 60f / Minecraft.getDebugFPS();
                 needYaw *= scaledFps;
                 needPitch *= scaledFps;

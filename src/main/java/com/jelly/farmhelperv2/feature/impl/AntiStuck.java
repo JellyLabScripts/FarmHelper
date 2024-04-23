@@ -87,6 +87,7 @@ public class AntiStuck implements IFeature {
         enabled = true;
         unstuckState = UnstuckState.NONE;
         KeyBindUtils.stopMovement();
+        IFeature.super.start();
     }
 
     @Override
@@ -104,6 +105,7 @@ public class AntiStuck implements IFeature {
         intersectingBlockPos = null;
         directionBlockPos = null;
         unstuckTries++;
+        IFeature.super.stop();
     }
 
     @Override

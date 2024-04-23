@@ -54,11 +54,12 @@ public class LagDetector implements IFeature {
 
     @Override
     public void start() {
+        IFeature.super.start();
     }
 
     @Override
     public void stop() {
-
+        IFeature.super.stop();
     }
 
     @Override

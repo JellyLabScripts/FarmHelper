@@ -68,6 +68,7 @@ public class PetSwapper implements IFeature {
     @Override
     public void start() {
         start(false);
+        IFeature.super.start();
     }
 
     @Override
@@ -83,6 +84,7 @@ public class PetSwapper implements IFeature {
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().resumeMacro();
         }
+        IFeature.super.stop();
     }
 
     @Override

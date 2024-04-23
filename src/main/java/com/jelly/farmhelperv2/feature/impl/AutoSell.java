@@ -109,6 +109,7 @@ public class AutoSell implements IFeature {
     @Override
     public void start() {
         this.enable(false);
+        IFeature.super.start();
     }
 
     @Override
@@ -131,6 +132,7 @@ public class AutoSell implements IFeature {
         }
         if (FarmHelperConfig.enableScheduler && !VisitorsMacro.getInstance().isRunning())
             Scheduler.getInstance().resume();
+        IFeature.super.stop();
     }
 
     @Override

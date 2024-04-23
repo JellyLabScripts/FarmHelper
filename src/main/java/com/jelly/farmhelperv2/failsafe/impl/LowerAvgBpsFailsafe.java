@@ -4,6 +4,7 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.ProfitCalculator;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -56,7 +57,7 @@ public class LowerAvgBpsFailsafe extends Failsafe {
 
     @Override
     public void onTickDetection(TickEvent.ClientTickEvent event) {
-        if (MacroHandler.getInstance().isCurrentMacroPaused()) {
+        if (MacroHandler.getInstance().isCurrentMacroPaused() || FeatureManager.getInstance().shouldPauseMacroExecution()) {
             bpsQueue.clear();
             lastTimeCheckedBPS = System.currentTimeMillis();
             return;

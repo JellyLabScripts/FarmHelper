@@ -29,6 +29,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -44,8 +45,6 @@ public class AutoGodPot implements IFeature {
     private final RotationHandler rotation = RotationHandler.getInstance();
     private final Vec3 ahLocation1 = new Vec3(-17.5, 72, -91.5);
     private final Vec3 ahLocation2 = new Vec3(-30.5, 73, -87.5);
-    private final Vec3 bitsShopLocation1 = new Vec3(5.5, 72, -97.5);
-    private final Vec3 bitsShopLocation2 = new Vec3(1.5, 72, -100.5);
     private final ArrayList<Integer> badItems = new ArrayList<>();
     private final AxisAlignedBB ahArea = new AxisAlignedBB(-31, 75, -87, -33, 70, -89);
     private boolean shouldTpToGarden = true;
@@ -129,16 +128,21 @@ public class AutoGodPot implements IFeature {
         }
         LogUtils.sendWarning("[Auto God Pot] Enabled!");
         stuckClock.schedule(STUCK_DELAY);
+        IFeature.super.start();
     }
 
     @Override
     public void stop() {
         resetStates();
+        PlayerUtils.closeScreen();
         LogUtils.sendWarning("[Auto God Pot] Disabled!");
-        if (shouldTpToGarden) {
+        if (shouldTpToGarden && !GameStateHandler.getInstance().inGarden()) {
             MacroHandler.getInstance().triggerWarpGarden(true, true);
+        } else {
+            MacroHandler.getInstance().resumeMacro();
         }
         tries = 0;
+        IFeature.super.stop();
     }
 
     private void resetStates() {
@@ -170,7 +174,7 @@ public class AutoGodPot implements IFeature {
     @Override
     public boolean shouldCheckForFailsafes() {
         return goingToAHState != GoingToAHState.NONE && bitsShopState != BitsShopState.NONE
-                && goingToAHState != GoingToAHState.TELEPORT_TO_HUB && bitsShopState != BitsShopState.TELEPORT_TO_HUB;
+                && goingToAHState != GoingToAHState.TELEPORT_TO_HUB && bitsShopState != BitsShopState.TELEPORT_TO_ELIZABETH;
     }
 
     @SubscribeEvent
@@ -203,6 +207,7 @@ public class AutoGodPot implements IFeature {
 
     @SubscribeEvent
     public void onTickUpdate(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isToggled()) return;
         if (!enabled) return;
@@ -293,10 +298,11 @@ public class AutoGodPot implements IFeature {
                         delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                         break;
                     }
+                    setAhState(AhState.OPEN_BROWSER);
                 } else {
-                    mc.thePlayer.sendChatMessage("/ah");
+                    mc.thePlayer.sendChatMessage("/ahs God Potion");
+                    setAhState(AhState.SORT_ITEMS);
                 }
-                setAhState(AhState.OPEN_BROWSER);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case OPEN_BROWSER:
@@ -803,104 +809,18 @@ public class AutoGodPot implements IFeature {
                     stop();
                     return;
                 }
-                setBitsShopState(BitsShopState.TELEPORT_TO_HUB);
+                setBitsShopState(BitsShopState.TELEPORT_TO_ELIZABETH);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
-            case TELEPORT_TO_HUB:
+            case TELEPORT_TO_ELIZABETH:
                 if (mc.currentScreen != null) {
                     PlayerUtils.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                mc.thePlayer.sendChatMessage("/hub");
-                setBitsShopState(BitsShopState.ROTATE_TO_BITS_SHOP_1);
-                delayClock.schedule(5_000);
-                break;
-            case ROTATE_TO_BITS_SHOP_1:
-                if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.HUB) {
-                    setBitsShopState(BitsShopState.TELEPORT_TO_HUB);
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    break;
-                }
-                KeyBindUtils.stopMovement();
-                long randomTime = FarmHelperConfig.getRandomRotationTime();
-                Rotation rot = rotation.getRotation(bitsShopLocation1);
-                rotation.easeTo(
-                        new RotationConfiguration(new Rotation(rot.getYaw(), rot.getPitch()), randomTime, null
-                        ));
-                delayClock.schedule(randomTime + 150);
-                setBitsShopState(BitsShopState.GO_TO_BITS_SHOP_1);
-                break;
-            case GO_TO_BITS_SHOP_1:
-                if (mc.currentScreen != null) {
-                    KeyBindUtils.stopMovement();
-                    setBitsShopState(BitsShopState.ROTATE_TO_BITS_SHOP_1);
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    break;
-                }
-                if (rotation.isRotating()) break;
-                if (mc.thePlayer.getPositionVector().distanceTo(bitsShopLocation1) < 1.5) {
-                    KeyBindUtils.stopMovement();
-                    setBitsShopState(BitsShopState.ROTATE_TO_BITS_SHOP_2);
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    break;
-                }
-                KeyBindUtils.holdThese(mc.gameSettings.keyBindSprint, mc.gameSettings.keyBindForward);
-                stuckClock.schedule(STUCK_DELAY);
-                break;
-            case ROTATE_TO_BITS_SHOP_2:
-                if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.HUB) {
-                    setBitsShopState(BitsShopState.TELEPORT_TO_HUB);
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    break;
-                }
-                KeyBindUtils.stopMovement();
-                long randomTime2 = FarmHelperConfig.getRandomRotationTime();
-                Rotation rot2 = rotation.getRotation(bitsShopLocation2);
-                rotation.easeTo(
-                        new RotationConfiguration(new Rotation(rot2.getYaw(), rot2.getPitch()), randomTime2, null
-                        ));
-                delayClock.schedule(randomTime2 + 150);
-                setBitsShopState(BitsShopState.GO_TO_BITS_SHOP_2);
-                break;
-            case GO_TO_BITS_SHOP_2:
-                if (mc.currentScreen != null) {
-                    KeyBindUtils.stopMovement();
-                    setBitsShopState(BitsShopState.ROTATE_TO_BITS_SHOP_2);
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    break;
-                }
-                if (rotation.isRotating()) break;
-                if (mc.thePlayer.getPositionVector().distanceTo(bitsShopLocation2) < 1.5) {
-                    KeyBindUtils.stopMovement();
-                    setBitsShopState(BitsShopState.ROTATE_TO_BITS_SHOP);
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    break;
-                }
-                KeyBindUtils.holdThese(mc.gameSettings.keyBindSprint, mc.gameSettings.keyBindForward);
-                stuckClock.schedule(STUCK_DELAY);
-                break;
-            case ROTATE_TO_BITS_SHOP:
-                if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.HUB) {
-                    setBitsShopState(BitsShopState.TELEPORT_TO_HUB);
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    break;
-                }
-                Optional<Entity> elizabeth = mc.theWorld.loadedEntityList.stream().filter(entity -> entity instanceof EntityArmorStand).filter(entity -> entity.getDisplayName().getUnformattedText().contains("Elizabeth")).findFirst();
-                if (!elizabeth.isPresent()) {
-                    LogUtils.sendError("[Auto God Pot] Could not find Elizabeth! Trying again!");
-                    setBitsShopState(BitsShopState.TELEPORT_TO_HUB);
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    return;
-                }
-                KeyBindUtils.stopMovement();
-                long randomTime3 = FarmHelperConfig.getRandomRotationTime();
-                Rotation rot3 = rotation.getRotation(elizabeth.get());
-                rotation.easeTo(
-                        new RotationConfiguration(new Rotation(rot3.getYaw(), rot3.getPitch()), randomTime3, null
-                        ));
-                delayClock.schedule(randomTime3 + 150);
+                mc.thePlayer.sendChatMessage("/warp elizabeth");
                 setBitsShopState(BitsShopState.OPEN_BITS_SHOP);
+                delayClock.schedule(1_500);
                 break;
             case OPEN_BITS_SHOP:
                 if (mc.currentScreen != null) {
@@ -908,7 +828,39 @@ public class AutoGodPot implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                KeyBindUtils.rightClick();
+                if (rotation.isRotating()) break;
+
+                Entity elizabethArmorStand = mc.theWorld.loadedEntityList.stream().filter(e -> {
+                    if (!(e instanceof EntityArmorStand)) return false;
+                    String name = StringUtils.stripControlCodes(e.getCustomNameTag());
+                    return name != null && name.equals("Elizabeth");
+                }).min(Comparator.comparingDouble(e -> mc.thePlayer.getDistanceToEntity(e))).orElse(null);
+
+                if (elizabethArmorStand == null) {
+                    return;
+                }
+
+                Entity elizabethCharacter = PlayerUtils.getEntityCuttingOtherEntity(elizabethArmorStand, e -> !(e instanceof EntityArmorStand));
+                if (elizabethCharacter == null) {
+                    return;
+                }
+
+                Rotation rot = rotation.getRotation(elizabethCharacter);
+                if (RotationHandler.getInstance().shouldRotate(rot, 5)) {
+                    KeyBindUtils.stopMovement();
+                    rotation.easeTo(new RotationConfiguration(new Rotation(rot.getYaw(), rot.getPitch()), 500, null));
+                    break;
+                }
+
+                if (mc.thePlayer.getDistanceToEntity(elizabethCharacter) > 3) {
+                    KeyBindUtils.holdThese(mc.gameSettings.keyBindForward);
+                    stuckClock.schedule(STUCK_DELAY);
+                    break;
+                }
+
+                KeyBindUtils.stopMovement();
+                mc.thePlayer.swingItem();
+                mc.playerController.interactWithEntitySendPacket(mc.thePlayer, elizabethCharacter);
                 setBitsShopState(BitsShopState.BITS_SHOP_TAB);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
@@ -1102,7 +1054,7 @@ public class AutoGodPot implements IFeature {
             return true;
         }
         if (InventoryUtils.getInventoryName() == null)
-            return true;
+            return false;
         if (!InventoryUtils.getInventoryName().startsWith(inventoryNameStartsWith)) {
             LogUtils.sendError("[Auto God Pot] Opened wrong Auction Menu! Restarting...");
             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
@@ -1174,12 +1126,7 @@ public class AutoGodPot implements IFeature {
 
     enum BitsShopState {
         NONE,
-        TELEPORT_TO_HUB,
-        ROTATE_TO_BITS_SHOP_1,
-        GO_TO_BITS_SHOP_1,
-        ROTATE_TO_BITS_SHOP_2,
-        GO_TO_BITS_SHOP_2,
-        ROTATE_TO_BITS_SHOP,
+        TELEPORT_TO_ELIZABETH,
         OPEN_BITS_SHOP,
         BITS_SHOP_TAB,
         CHECK_CONFIRM,

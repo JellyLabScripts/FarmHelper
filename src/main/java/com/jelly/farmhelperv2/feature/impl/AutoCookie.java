@@ -81,6 +81,7 @@ public class AutoCookie implements IFeature {
         timeoutClock.schedule(7_500);
         if (MacroHandler.getInstance().isMacroToggled())
             MacroHandler.getInstance().pauseMacro();
+        IFeature.super.start();
     }
 
     @Override
@@ -99,6 +100,7 @@ public class AutoCookie implements IFeature {
         KeyBindUtils.stopMovement();
         if (MacroHandler.getInstance().isMacroToggled())
             MacroHandler.getInstance().resumeMacro();
+        IFeature.super.stop();
     }
 
     @Override
@@ -263,6 +265,7 @@ public class AutoCookie implements IFeature {
                             break;
                         }
 
+                        mc.thePlayer.swingItem();
                         mc.playerController.interactWithEntitySendPacket(mc.thePlayer, bazaarNpc.get());
                         setBazaarState(BazaarState.CLICK_ODDITIES);
                         autoCookieDelay.schedule(getRandomDelay());

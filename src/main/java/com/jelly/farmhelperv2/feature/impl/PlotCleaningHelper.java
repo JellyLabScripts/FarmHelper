@@ -86,6 +86,7 @@ public class PlotCleaningHelper implements IFeature {
         lastBlockBroken = 0;
         stuckClock.schedule(7_000);
         LogUtils.sendSuccess("[Plot Cleaning Helper] Enabled.");
+        IFeature.super.start();
     }
 
     @Override
@@ -95,6 +96,7 @@ public class PlotCleaningHelper implements IFeature {
         longBreakTarget = null;
         target = null;
         LogUtils.sendSuccess("[Plot Cleaning Helper] Disabled.");
+        stop();
     }
 
     public void toggle() {

@@ -204,11 +204,13 @@ public class MovRecPlayer implements IFeature {
 //        LogUtils.sendSuccess("movement.yaw: " + movement.yaw + " yawDifference: " + yawDifference);
 //        LogUtils.sendSuccess("easeTo: " + (movement.yaw + yawDifference));
         rotateBeforePlaying.easeTo(movement.yaw + yawDifference, movement.pitch, 500);
+        IFeature.super.start();
     }
 
     @Override
     public void stop() {
         KeyBindUtils.stopMovement();
+        IFeature.super.stop();
         if (isRunning()) {
             LogUtils.sendDebug("[Movement Recorder] Playing has been stopped.");
             return;

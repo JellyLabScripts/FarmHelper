@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 public class JacobFailsafe extends Failsafe {
     private static JacobFailsafe instance;
+
     public static JacobFailsafe getInstance() {
         if (instance == null) {
             instance = new JacobFailsafe();
@@ -105,11 +106,9 @@ public class JacobFailsafe extends Failsafe {
             if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
                 LogUtils.sendFailsafeMessage("[Failsafe] Paused the macro because of extended Jacob's Content!", false);
                 MacroHandler.getInstance().pauseMacro();
-            } else {
-                if (!GameStateHandler.getInstance().inJacobContest()) {
-                    LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because Jacob's Contest is over!", false);
-                    endOfFailsafeTrigger();
-                }
+            } else if (!GameStateHandler.getInstance().inJacobContest()) {
+                LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because Jacob's Contest is over!", false);
+                endOfFailsafeTrigger();
             }
         } else {
             // leave
