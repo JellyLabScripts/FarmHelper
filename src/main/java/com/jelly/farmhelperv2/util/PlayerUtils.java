@@ -209,9 +209,16 @@ public class PlayerUtils {
                         }
                         continue;
                     case PUMPKIN_MELON_UNKNOWN:
-                    case MELON:
-                    case PUMPKIN:
                         if (name.contains("Dicer")) {
+                            return i - 36;
+                        }
+                        continue;
+                    case MELON:
+                        if (name.contains("Melon Dicer")) {
+                            return i - 36;
+                        }
+                    case PUMPKIN:
+                        if (name.contains("Pumpkin Dicer")) {
                             return i - 36;
                         }
                         continue;

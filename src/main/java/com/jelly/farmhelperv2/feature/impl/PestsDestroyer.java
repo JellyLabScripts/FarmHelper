@@ -510,7 +510,7 @@ public class PestsDestroyer implements IFeature {
                 if (isInventoryOpenDelayed()) break;
                 KeyBindUtils.stopMovement();
 
-                if (PlayerUtils.isPlayerSuffocating() || !BlockUtils.canFlyHigher(5)) {
+                if (PlayerUtils.isPlayerSuffocating() && !BlockUtils.canFlyHigher(5)) {
                     LogUtils.sendWarning("[Pests Destroyer] The player is suffocating and/or it can't fly higher. Going back to spawnpoint.");
                     delayClock.schedule(1_000 + Math.random() * 500);
                     MacroHandler.getInstance().triggerWarpGarden(true, false);
@@ -523,7 +523,7 @@ public class PestsDestroyer implements IFeature {
             case CHECKING_SPAWN:
                 if (MacroHandler.getInstance().isTeleporting()) return;
 
-                if (!BlockUtils.canFlyHigher(4)) {
+                if (PlayerUtils.isPlayerSuffocating() && !BlockUtils.canFlyHigher(5)) {
                     LogUtils.sendError("[Pests Destroyer] Your spawnpoint is obstructed! Make sure there is no block above your spawnpoint! Disabling Pests Destroyer!");
                     stop();
                     FarmHelperConfig.enablePestsDestroyer = false;
@@ -568,7 +568,7 @@ public class PestsDestroyer implements IFeature {
 
                 if (getClosestPest() != null) {
                     KeyBindUtils.stopMovement();
-                    state = States.FLY_TO_PEST;
+                    state = States.FIND_PEST;
                     break;
                 }
 
@@ -601,7 +601,7 @@ public class PestsDestroyer implements IFeature {
 
                 if (getClosestPest() != null) {
                     FlyPathFinderExecutor.getInstance().stop();
-                    state = States.FLY_TO_PEST;
+                    state = States.FIND_PEST;
                     break;
                 }
 
@@ -665,25 +665,49 @@ public class PestsDestroyer implements IFeature {
                 if (RotationHandler.getInstance().isRotating()) return;
 
                 if (getClosestPest() != null) {
-                    state = States.FLY_TO_PEST;
+                    state = States.FIND_PEST;
                     break;
                 }
 
-                if (lastLocation != null) {
-                    if (lastFireworkTime + 250 < System.currentTimeMillis()) {
-                        RotationHandler.getInstance().reset();
-                        state = States.FLY_TO_PEST;
-                        delayBetweenFireworks.schedule(3_000);
-                        delayClock.schedule(300);
+                if (lastLocation != null && lastFireworkTime + 250 < System.currentTimeMillis()) {
+                    Vec3 firework = calculateWaypoint();
+                    if (firework == null) {
+                        LogUtils.sendDebug("[Pests Destroyer] Couldn't find any firework location. Looking for a firework.");
+                        state = States.GET_LOCATION;
                         break;
                     }
+                    if (mc.thePlayer.getDistance(firework.xCoord, firework.yCoord, firework.zCoord) < 2) {
+                        int y = 150;
+                        Block block = mc.theWorld.getBlockState(new BlockPos(firework.xCoord, y, firework.zCoord)).getBlock();
+                        Block[] blocksAround = new Block[]{
+                                mc.theWorld.getBlockState(new BlockPos(firework.xCoord + 1, y, firework.zCoord)).getBlock(),
+                                mc.theWorld.getBlockState(new BlockPos(firework.xCoord - 1, y, firework.zCoord)).getBlock(),
+                                mc.theWorld.getBlockState(new BlockPos(firework.xCoord, y, firework.zCoord + 1)).getBlock(),
+                                mc.theWorld.getBlockState(new BlockPos(firework.xCoord, y, firework.zCoord - 1)).getBlock(),
+                                block
+                        };
+                        while (y > 90 && Arrays.stream(blocksAround).allMatch(b -> b.equals(Blocks.air))) {
+                            y--;
+                        }
+                        y += 3;
+                        FlyPathFinderExecutor.getInstance().setSprinting(false);
+                        FlyPathFinderExecutor.getInstance().setDontRotate(true);
+                        FlyPathFinderExecutor.getInstance().findPath(new Vec3(firework.xCoord, y, firework.zCoord), true, true);
+                        LogUtils.sendWarning("[Pests Destroyer] Firework is too close to player. Flying to x: " + firework.xCoord + " y: " + y + " z: " + firework.zCoord);
+                        break;
+                    }
+                    RotationHandler.getInstance().reset();
+                    state = States.FIND_PEST;
+                    delayBetweenFireworks.schedule(3_000);
+                    delayClock.schedule(300);
+                    break;
                 }
                 if (System.currentTimeMillis() - lastFireworkTime > 6_000) {
                     state = States.GET_LOCATION;
                     break;
                 }
                 break;
-            case FLY_TO_PEST:
+            case FIND_PEST:
                 if (isInventoryOpenDelayed()) break;
                 getLocationTries = 0;
                 if (GameStateHandler.getInstance().getPestsCount() == 0) {
@@ -701,32 +725,15 @@ public class PestsDestroyer implements IFeature {
                         break;
                     }
 
-                    if (System.currentTimeMillis() - lastFireworkTime > 1_500) {
-                        state = States.GET_LOCATION;
-                        break;
-                    }
-
                     if (!FlyPathFinderExecutor.getInstance().isRunning()) {
                         Vec3 firework = calculateWaypoint();
-                        state = States.GET_LOCATION;
+                        if (firework == null) {
+                            LogUtils.sendDebug("[Pests Destroyer] Couldn't find any firework location. Looking for a firework.");
+                            state = States.GET_LOCATION;
+                            break;
+                        }
                         if (mc.thePlayer.getDistance(firework.xCoord, firework.yCoord, firework.zCoord) < 2) {
-                            int y = 150;
-                            Block block = mc.theWorld.getBlockState(new BlockPos(firework.xCoord, y, firework.zCoord)).getBlock();
-                            Block[] blocksAround = new Block[]{
-                                    mc.theWorld.getBlockState(new BlockPos(firework.xCoord + 1, y, firework.zCoord)).getBlock(),
-                                    mc.theWorld.getBlockState(new BlockPos(firework.xCoord - 1, y, firework.zCoord)).getBlock(),
-                                    mc.theWorld.getBlockState(new BlockPos(firework.xCoord, y, firework.zCoord + 1)).getBlock(),
-                                    mc.theWorld.getBlockState(new BlockPos(firework.xCoord, y, firework.zCoord - 1)).getBlock(),
-                                    block
-                            };
-                            while (y > 90 && Arrays.stream(blocksAround).allMatch(b -> b.equals(Blocks.air))) {
-                                y--;
-                            }
-                            y += 3;
-                            FlyPathFinderExecutor.getInstance().setSprinting(false);
-                            FlyPathFinderExecutor.getInstance().setDontRotate(true);
-                            FlyPathFinderExecutor.getInstance().findPath(new Vec3(firework.xCoord, y, firework.zCoord), true, true);
-                            LogUtils.sendWarning("[Pests Destroyer] Firework is too close to player. Flying to x: " + firework.xCoord + " y: " + y + " z: " + firework.zCoord);
+                            state = States.GET_LOCATION;
                             break;
                         }
                         FlyPathFinderExecutor.getInstance().setSprinting(true);
@@ -744,7 +751,6 @@ public class PestsDestroyer implements IFeature {
                 if (FlyPathFinderExecutor.getInstance().isRunning()) {
                     FlyPathFinderExecutor.getInstance().stop();
                 }
-
 
                 currentEntityTarget = Optional.of(closestPest);
 
@@ -1187,14 +1193,11 @@ public class PestsDestroyer implements IFeature {
         killedPestsFrom.add(plot.number);
     }
 
-    private int particles = 0;
     private final List<Vec3> locations = new ArrayList<>();
     private Vec3 firstLocation = null;
-    private Vec3 secondLocation = null;
     private Vec3 lastLocation = null;
 
-    // Skyhanni credits
-    @SubscribeEvent(receiveCanceled = true)
+    @SubscribeEvent(receiveCanceled = true, priority = EventPriority.HIGHEST)
     public void onFirework(SpawnParticleEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
@@ -1202,54 +1205,35 @@ public class PestsDestroyer implements IFeature {
         if (state != States.WAIT_FOR_LOCATION) return;
 
         EnumParticleTypes type = event.getParticleTypes();
-        if (type != EnumParticleTypes.REDSTONE) return;
+        if (type != EnumParticleTypes.VILLAGER_ANGRY) return;
 
-        if (particles > 5) return;
+        lastFireworkTime = System.currentTimeMillis();
         if (firstLocation == null) {
             if (mc.thePlayer.getPositionVector().distanceTo(event.getPos()) > 5) return;
             firstLocation = event.getPos();
-        } else if (secondLocation == null) {
-            secondLocation = event.getPos();
-            lastLocation = event.getPos();
-            locations.add(event.getPos());
-        } else {
-            double distanceFromFirst = secondLocation.distanceTo(event.getPos());
-            double distance = lastLocation.distanceTo(event.getPos());
-            if (Math.abs(distanceFromFirst - distance) > 0.1) {
-                return;
-            }
-            lastLocation = event.getPos();
-            lastFireworkTime = System.currentTimeMillis();
-            locations.add(event.getPos());
+            locations.add(firstLocation);
+            lastLocation = firstLocation;
+            return;
         }
-        ++particles;
-    }
-
-    private void resetFireworkInfo() {
-        particles = 0;
-        locations.clear();
-        firstLocation = null;
-        secondLocation = null;
-        lastLocation = null;
-        lastFireworkTime = 0;
+        double dist = lastLocation.distanceTo(event.getPos());
+        if (dist > 1.75) {
+            return;
+        }
+        locations.add(event.getPos());
+        lastLocation = event.getPos();
     }
 
     private Vec3 calculateWaypoint() {
-        if (firstLocation == null) return null;
-        Vec3 pos = new Vec3(0, 0, 0);
-        for (int i = 0; i < locations.size(); i++) {
-            Vec3 particle = locations.get(i);
-            pos = pos.add(divideVec(particle.subtract(firstLocation), i + 1.0));
-        }
-        return firstLocation.add(multiplyVec(pos, 120.0 / locations.size()));
+        if (lastLocation == null) return null;
+        Vec3 direction = lastLocation.subtract(firstLocation).normalize();
+        return lastLocation.addVector(direction.xCoord * 10, 0, direction.zCoord * 10);
     }
 
-    private Vec3 divideVec(Vec3 vec, double div) {
-        return new Vec3(vec.xCoord / div, vec.yCoord / div, vec.zCoord / div);
-    }
-
-    private Vec3 multiplyVec(Vec3 vec, double mul) {
-        return new Vec3(vec.xCoord * mul, vec.yCoord * mul, vec.zCoord * mul);
+    public void resetFireworkInfo() {
+        locations.clear();
+        firstLocation = null;
+        lastLocation = null;
+        lastFireworkTime = 0;
     }
 
     @SubscribeEvent
@@ -1390,7 +1374,7 @@ public class PestsDestroyer implements IFeature {
         FLY_TO_THE_CLOSEST_PLOT,
         GET_LOCATION,
         WAIT_FOR_LOCATION,
-        FLY_TO_PEST,
+        FIND_PEST,
         KILL_PEST,
         CHECK_ANOTHER_PEST,
         GO_BACK
