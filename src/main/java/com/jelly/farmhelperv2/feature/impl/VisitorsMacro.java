@@ -540,7 +540,8 @@ public class VisitorsMacro implements IFeature {
                     break;
                 }
                 String invName = InventoryUtils.getInventoryName();
-                if (invName != null && !invName.contains("Compactor")) {
+                if (invName == null) break;
+                if (!invName.contains("Compactor")) {
                     LogUtils.sendDebug("[Visitors Macro] Not in compactor, opening compactor again...");
                     setCompactorState(CompactorState.OPEN_COMPACTOR);
                     PlayerUtils.closeScreen();
@@ -738,6 +739,7 @@ public class VisitorsMacro implements IFeature {
                     break;
                 }
                 if (moveAwayIfPlayerTooClose()) return;
+                if (RotationHandler.getInstance().isRotating()) break;
                 LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
                 LogUtils.sendDebug("[Visitors Macro] Distance: " + mc.thePlayer.getDistanceToEntity(currentCharacter.get()));
                 setVisitorsState(VisitorsState.GET_CLOSE_TO_VISITOR);
@@ -1228,7 +1230,7 @@ public class VisitorsMacro implements IFeature {
                 setBuyState(BuyState.BUY_ITEMS);
                 break;
             case BUY_ITEMS:
-                AutoBazaar.getInstance().buy(itemsToBuy.get(0).getLeft(), itemsToBuy.get(0).getRight(), (int) FarmHelperConfig.visitorsMacroMaxSpendLimit * 1_000_000);
+                AutoBazaar.getInstance().buy(itemsToBuy.get(0).getLeft(), itemsToBuy.get(0).getRight(), FarmHelperConfig.visitorsMacroMaxSpendLimit * 1_000_000);
                 setBuyState(BuyState.WAIT_FOR_AUTOBAZAAR_FINISH);
                 break;
             case WAIT_FOR_AUTOBAZAAR_FINISH:

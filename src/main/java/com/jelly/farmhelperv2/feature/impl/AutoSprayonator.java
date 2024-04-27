@@ -5,6 +5,7 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.FarmHelperConfig.SPRAYONATOR_ITEM;
 import com.jelly.farmhelperv2.event.DrawScreenAfterEvent;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -218,6 +219,7 @@ public class AutoSprayonator implements IFeature {
         if (!Scheduler.getInstance().isFarming()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (sprayState == AUTO_SPRAYONATOR_STATE.NO_ITEM) return;
         if (sprayState != AUTO_SPRAYONATOR_STATE.NONE) return;

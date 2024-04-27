@@ -51,6 +51,7 @@ public class FailsafeManager {
     public final ArrayList<Failsafe> emergencyQueue = new ArrayList<>();
     @Getter
     public final Clock chooseEmergencyDelay = new Clock();
+    @Getter
     private final Clock onTickDelay = new Clock();
     @Getter
     private final Clock restartMacroAfterFailsafeDelay = new Clock();
@@ -255,30 +256,29 @@ public class FailsafeManager {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (triggeredFailsafe.isPresent()) return;
         if (!chooseEmergencyDelay.isScheduled()) return;
+        if (!chooseEmergencyDelay.passed()) return;
         triggeredFailsafe = Optional.of(getHighestPriorityEmergency());
-        if (chooseEmergencyDelay.passed()) {
-            if (triggeredFailsafe.get().getType() == EmergencyType.NONE) {
-                // Should never happen, but yeh...
-                LogUtils.sendDebug("[Failsafe] No emergency chosen!");
-                stopFailsafes();
-                return;
+        if (triggeredFailsafe.get().getType() == EmergencyType.NONE) {
+            // Should never happen, but yeh...
+            LogUtils.sendDebug("[Failsafe] No emergency chosen!");
+            stopFailsafes();
+            return;
+        }
+        emergencyQueue.clear();
+        chooseEmergencyDelay.reset();
+        hadEmergency = true;
+        LogUtils.sendDebug("[Failsafe] Emergency chosen: " + StringUtils.stripControlCodes(triggeredFailsafe.get().getType().name()));
+        FeatureManager.getInstance().disableCurrentlyRunning(Scheduler.getInstance());
+        Scheduler.getInstance().pause();
+        if (FarmHelperConfig.captureClipAfterFailsafe && !FarmHelperConfig.captureClipKeybind.getKeyBinds().isEmpty()) {
+            if (FarmHelperConfig.clipCapturingType) {
+                FailsafeUtils.captureClip();
+                LogUtils.sendDebug("[Failsafe] Recording clip!");
             }
-            emergencyQueue.clear();
-            chooseEmergencyDelay.reset();
-            hadEmergency = true;
-            LogUtils.sendDebug("[Failsafe] Emergency chosen: " + StringUtils.stripControlCodes(triggeredFailsafe.get().getType().name()));
-            FeatureManager.getInstance().disableCurrentlyRunning(Scheduler.getInstance());
-            Scheduler.getInstance().pause();
-            if (FarmHelperConfig.captureClipAfterFailsafe && !FarmHelperConfig.captureClipKeybind.getKeyBinds().isEmpty()) {
-                if (FarmHelperConfig.clipCapturingType) {
-                    FailsafeUtils.captureClip();
-                    LogUtils.sendDebug("[Failsafe] Recording clip!");
-                }
-                Multithreading.schedule(() -> {
-                    FailsafeUtils.captureClip();
-                    LogUtils.sendDebug("[Failsafe] Clip captured!");
-                }, FarmHelperConfig.captureClipDelay, TimeUnit.SECONDS);
-            }
+            Multithreading.schedule(() -> {
+                FailsafeUtils.captureClip();
+                LogUtils.sendDebug("[Failsafe] Clip captured!");
+            }, FarmHelperConfig.captureClipDelay, TimeUnit.SECONDS);
         }
     }
 

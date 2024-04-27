@@ -11,6 +11,7 @@ import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
@@ -130,6 +131,7 @@ public class DebugHUD extends TextHud {
             lines.add("   State: " + PestsDestroyer.getInstance().getState());
             lines.add("   Clock: " + PestsDestroyer.getInstance().getDelayClock().getRemainingTime());
             lines.add("   Stuck clock: " + PestsDestroyer.getInstance().getStuckClock().getRemainingTime());
+            lines.add("   Use AOTV: " + FlyPathFinderExecutor.getInstance().isUseAOTV());
             if (PestsDestroyer.getInstance().getCantReachPest() != 0)
                 lines.add("   Can't reach pests for: " + PestsDestroyer.getInstance().getCantReachPest());
             PestsDestroyer.getInstance().getCurrentEntityTarget().ifPresent(target -> lines.add(

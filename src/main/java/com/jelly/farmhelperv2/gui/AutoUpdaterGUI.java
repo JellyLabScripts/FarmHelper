@@ -261,13 +261,14 @@ public class AutoUpdaterGUI extends GuiScreen {
 
     private static void deleteAndClose() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            File[] filesToDelete = new File(mc.mcDataDir + "/mods").listFiles(
+            File currentModsFolder = FarmHelper.jarFile.getParentFile();
+            File[] filesToDelete = currentModsFolder.listFiles(
                     (dir, name) -> name.toLowerCase().startsWith("farmhelper") && !name.toLowerCase().contains("jda") && !name.toLowerCase().contains(latestVersion));
             if (filesToDelete != null) {
                 for (File fileToDelete : filesToDelete) {
                     if (SystemUtils.IS_OS_WINDOWS) {
                         try {
-                            Runtime.getRuntime().exec("cmd /c ping 0 -n 3 & del \"" + fileToDelete.getAbsolutePath() + "\"");
+                            Runtime.getRuntime().exec("cmd /c ping 0 -n 2 & del \"" + fileToDelete.getAbsolutePath() + "\"");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

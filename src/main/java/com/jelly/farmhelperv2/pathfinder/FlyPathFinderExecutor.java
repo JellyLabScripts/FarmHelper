@@ -59,11 +59,13 @@ public class FlyPathFinderExecutor {
     private final CopyOnWriteArrayList<Vec3> path = new CopyOnWriteArrayList<>();
     private Vec3 target;
     private Entity targetEntity;
-    private Vec3 lookingTarget;
     private boolean follow;
     private boolean smooth;
     @Setter
     private boolean sprinting = false;
+    @Setter
+    @Getter
+    private boolean useAOTV = false;
     private final FlyNodeProcessor flyNodeProcessor = new FlyNodeProcessor();
     private final PathFinder pathFinder = new PathFinder(flyNodeProcessor);
     @Getter
@@ -259,7 +261,6 @@ public class FlyPathFinderExecutor {
         target = null;
         targetEntity = null;
         yModifier = 0;
-        lookingTarget = null;
         state = State.NONE;
         KeyBindUtils.stopMovement(true);
         loweringRaisingDelay.reset();
@@ -306,6 +307,7 @@ public class FlyPathFinderExecutor {
     }
 
     private final Clock loweringRaisingDelay = new Clock();
+    private final Clock aotvDely = new Clock();
 
     @SubscribeEvent
     public void onTickNeededYaw(TickEvent.ClientTickEvent event) {
@@ -401,15 +403,24 @@ public class FlyPathFinderExecutor {
         }
         Vec3 next = getNext(copyPath);
 
+        if (FarmHelperConfig.useAoteVInPestsDestroyer && useAOTV && aotvDely.passed() && mc.thePlayer.getDistance(next.xCoord, mc.thePlayer.getPositionVector().yCoord, next.zCoord) > 7.5 && !RotationHandler.getInstance().isRotating()) {
+            int aotv = InventoryUtils.getSlotIdOfItemInHotbar("Aspect of the Void", "Aspect of the End");
+            if (aotv != mc.thePlayer.inventory.currentItem) {
+                mc.thePlayer.inventory.currentItem = aotv;
+                aotvDely.schedule(180);
+            } else {
+                KeyBindUtils.rightClick();
+                aotvDely.schedule(150 + Math.random() * 100);
+            }
+        }
+
         if (!RotationHandler.getInstance().isRotating() && mc.thePlayer.getDistance(next.xCoord, next.yCoord, next.zCoord) > 2) {
             Target target;
-            if (lookingTarget != null)
-                target = new Target(this.lookingTarget);
-            else if (this.targetEntity != null)
+            if (this.targetEntity != null)
                 target = new Target(this.targetEntity).additionalY(this.yModifier);
             else if (this.neededYaw != Integer.MIN_VALUE) {
-                Vec3 directionHeading = AngleUtils.getVectorForRotation(0, this.neededYaw);
-                Vec3 directionHeadingPlayer = mc.thePlayer.getPositionEyes(1).addVector(directionHeading.xCoord * 5, 0, directionHeading.zCoord * 5);
+                Vec3 directionHeading = AngleUtils.getVectorForRotation(5, this.neededYaw);
+                Vec3 directionHeadingPlayer = mc.thePlayer.getPositionEyes(1).addVector(directionHeading.xCoord * 5, directionHeading.yCoord * 5, directionHeading.zCoord * 5);
                 target = new Target(directionHeadingPlayer);
             } else {
                 target = new Target(this.target).additionalY(this.yModifier);

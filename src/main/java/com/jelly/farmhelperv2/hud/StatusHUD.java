@@ -2,6 +2,7 @@ package com.jelly.farmhelperv2.hud;
 
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
+import com.google.common.collect.Lists;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.AutoReconnect;
@@ -32,8 +33,7 @@ public class StatusHUD extends TextHud {
 
     @Override
     protected void getLines(List<String> lines, boolean example) {
-        List<String> tempLines = new ArrayList<>();
-        tempLines.add(getStatusString());
+        List<String> tempLines = new ArrayList<>(getStatusString());
 
         if (GameStateHandler.getInstance().getPestsCount() > 0) {
             tempLines.add(EnumChatFormatting.UNDERLINE + "Pests in Garden:" + EnumChatFormatting.RESET + " " + EnumChatFormatting.RED + GameStateHandler.getInstance().getPestsCount());
@@ -68,7 +68,7 @@ public class StatusHUD extends TextHud {
 
     private String centerText(String text, float maxWidth) {
         float lineWidth = getLineWidth(EnumChatFormatting.getTextWithoutFormattingCodes(text).trim(), scale);
-        float charWidth = getCharWidth(' ');
+        float charWidth = getCharWidth(' ') * scale;
         int spaces = (int) ((maxWidth - lineWidth) / charWidth);
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < spaces / 2; i++) {
@@ -94,20 +94,33 @@ public class StatusHUD extends TextHud {
         return !FarmHelperConfig.streamerMode;
     }
 
-    public String getStatusString() {
+    public List<String> getStatusString() {
         if (AutoReconnect.getInstance().isRunning()) {
-            return EnumChatFormatting.DARK_BLUE + "Coming back from Auto Reconnect...";
+            return Lists.newArrayList(
+                    EnumChatFormatting.DARK_BLUE + "Coming back from Auto Reconnect..."
+            );
         }
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
-            return "Emergency: §l§5" + LogUtils.capitalize(FailsafeManager.getInstance().triggeredFailsafe.get().getType().name()) + "§r";
+            return Lists.newArrayList(
+                    "Emergency: §l§5" + LogUtils.capitalize(FailsafeManager.getInstance().triggeredFailsafe.get().getType().name()) + "§r",
+                    "Delay: §l§5" + LogUtils.formatTime(FailsafeManager.getInstance().getOnTickDelay().getRemainingTime()) + "§r"
+            );
         } else if (FailsafeManager.getInstance().getRestartMacroAfterFailsafeDelay().isScheduled()) {
-            return "§l§6Restarting after failsafe in " + LogUtils.formatTime(FailsafeManager.getInstance().getRestartMacroAfterFailsafeDelay().getRemainingTime()) + "§r";
+            return Lists.newArrayList(
+                    "§l§6Restarting after failsafe in " + LogUtils.formatTime(FailsafeManager.getInstance().getRestartMacroAfterFailsafeDelay().getRemainingTime()) + "§r"
+            );
         } else if (!MacroHandler.getInstance().isMacroToggled()) {
-            return (EnumChatFormatting.AQUA + "Idling");
+            return Lists.newArrayList(
+                    EnumChatFormatting.AQUA + "Idling"
+            );
         } else if (Scheduler.getInstance().isRunning()) {
-            return Scheduler.getInstance().getStatusString();
+            return Lists.newArrayList(
+                    Scheduler.getInstance().getStatusString()
+            );
         } else {
-            return "Macroing";
+            return Lists.newArrayList(
+                    "Macroing"
+            );
         }
     }
 }

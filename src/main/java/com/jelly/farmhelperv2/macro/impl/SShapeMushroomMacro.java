@@ -22,7 +22,7 @@ public class SShapeMushroomMacro extends AbstractMacro {
         }
         if (!FarmHelperConfig.customYaw && !isRestoredState() && !isYawSet()) {
             setYaw(AngleUtils.getClosestDiagonal());
-            setClosest90Deg(Optional.of(AngleUtils.getClosest(mc.thePlayer.rotationYaw)));
+            setClosest90Deg(Optional.of(AngleUtils.getClosest()));
         }
         if (MacroHandler.getInstance().isTeleporting()) return;
         setRestoredState(false);

@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.feature.impl;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.DrawScreenAfterEvent;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -145,6 +146,7 @@ public class AutoRepellent implements IFeature {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (RotationHandler.getInstance().isRotating()) return;
         if (FarmHelperConfig.pauseAutoPestRepellentDuringJacobsContest && GameStateHandler.getInstance().inJacobContest())
@@ -181,6 +183,10 @@ public class AutoRepellent implements IFeature {
         if (!enabled) return;
         if (!isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
+            stop();
+            return;
+        }
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
 
@@ -325,11 +331,12 @@ public class AutoRepellent implements IFeature {
             case OPEN_SKYMART:
             case CLICK_REPELLENT:
             case CONFIRM_BUY:
+            case END:
+                break;
             case WAIT_FOR_REPELLENT:
                 if (!delay.passed()) break;
                 LogUtils.sendError("[Auto Repellent] Repellent hasn't been used. Trying to use again.");
                 state = State.USE_REPELLENT;
-            case END:
                 break;
         }
     }

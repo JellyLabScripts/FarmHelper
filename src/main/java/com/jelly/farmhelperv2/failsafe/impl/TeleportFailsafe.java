@@ -27,6 +27,7 @@ import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
+import java.util.Collections;
 import java.util.Optional;
 
 public class TeleportFailsafe extends Failsafe {
@@ -99,7 +100,7 @@ public class TeleportFailsafe extends Failsafe {
             LogUtils.sendDebug("[Failsafe] Teleport packet received while Fly pathfinder is running. Ignoring");
             return;
         }
-        Optional<Tuple<BlockPos, AbstractMacro.State>> lastWalkedPosition = lastWalkedPositions.stream().filter(pos -> pos.getFirst().equals(packetPlayerBlockPos)).findFirst();
+        Optional<Tuple<BlockPos, AbstractMacro.State>> lastWalkedPosition = lastWalkedPositions.stream().filter(pos -> pos.getFirst().equals(packetPlayerBlockPos)).min(Collections.reverseOrder());
         if (lastWalkedPosition.isPresent()) {
             if (packetPlayerPos.distanceTo(currentPlayerPos) < 1) {
                 LogUtils.sendDebug("[Failsafe] AntiStuck should trigger there. Ignoring");
@@ -170,14 +171,6 @@ public class TeleportFailsafe extends Failsafe {
         }
 
         BlockPos playerPos = mc.thePlayer.getPosition();
-        if (lastWalkedPositions.isEmpty()) {
-            lastWalkedPositions.add(new Tuple<>(playerPos, MacroHandler.getInstance().getCurrentMacro().map(AbstractMacro::getCurrentState).orElse(null)));
-            return;
-        }
-        BlockPos last = ((Tuple<BlockPos, AbstractMacro.State>) lastWalkedPositions.toArray()[lastWalkedPositions.size() - 1]).getFirst();
-        if (last.distanceSq(playerPos) < 1) {
-            return;
-        }
         lastWalkedPositions.add(new Tuple<>(playerPos, MacroHandler.getInstance().getCurrentMacro().map(AbstractMacro::getCurrentState).orElse(null)));
     }
 

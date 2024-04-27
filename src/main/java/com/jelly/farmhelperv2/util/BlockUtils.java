@@ -383,7 +383,7 @@ public class BlockUtils {
         if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().isPresent()) {
             yaw = MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().get();
         } else {
-            yaw = mc.thePlayer.rotationYaw;
+            yaw = AngleUtils.get360RotationYaw();
         }
         yaw = (float) wrapAngleTo180(yaw);
         List<BlockPos> crops;

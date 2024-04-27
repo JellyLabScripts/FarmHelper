@@ -2,6 +2,7 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -183,6 +184,7 @@ public class AutoGodPot implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isToggled()) return;
         if (isRunning()) return;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;

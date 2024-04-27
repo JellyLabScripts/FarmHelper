@@ -403,7 +403,11 @@ public class PestsDestroyer implements IFeature {
                 if (needToUpdatePlots || PlotUtils.needToUpdatePlots()) {
                     state = States.OPEN_DESK;
                 } else {
-                    state = States.TELEPORT_TO_PLOT;
+                    if (FarmHelperConfig.dontTeleportToPlots) {
+                        state = States.GET_CLOSEST_PLOT;
+                    } else {
+                        state = States.TELEPORT_TO_PLOT;
+                    }
                 }
                 delayClock.schedule((long) (200 + Math.random() * 200));
                 break;
@@ -510,7 +514,7 @@ public class PestsDestroyer implements IFeature {
                 if (isInventoryOpenDelayed()) break;
                 KeyBindUtils.stopMovement();
 
-                if (PlayerUtils.isPlayerSuffocating() && !BlockUtils.canFlyHigher(5)) {
+                if (PlayerUtils.isPlayerSuffocating() || !BlockUtils.canFlyHigher(5)) {
                     LogUtils.sendWarning("[Pests Destroyer] The player is suffocating and/or it can't fly higher. Going back to spawnpoint.");
                     delayClock.schedule(1_000 + Math.random() * 500);
                     MacroHandler.getInstance().triggerWarpGarden(true, false);
@@ -523,7 +527,7 @@ public class PestsDestroyer implements IFeature {
             case CHECKING_SPAWN:
                 if (MacroHandler.getInstance().isTeleporting()) return;
 
-                if (PlayerUtils.isPlayerSuffocating() && !BlockUtils.canFlyHigher(5)) {
+                if (PlayerUtils.isPlayerSuffocating() || !BlockUtils.canFlyHigher(5)) {
                     LogUtils.sendError("[Pests Destroyer] Your spawnpoint is obstructed! Make sure there is no block above your spawnpoint! Disabling Pests Destroyer!");
                     stop();
                     FarmHelperConfig.enablePestsDestroyer = false;
@@ -547,7 +551,7 @@ public class PestsDestroyer implements IFeature {
                 double distance = Math.sqrt(mc.thePlayer.getDistanceSq(PlotUtils.getPlotCenter(closestPlot.number)));
 
                 this.closestPlot = Optional.of(closestPlot);
-                if (distance > 150 && !isPlotObstructed) {
+                if (distance > 150 && !isPlotObstructed && !FarmHelperConfig.dontTeleportToPlots) {
                     state = States.TELEPORT_TO_PLOT;
                 } else {
                     state = States.FLY_TO_THE_CLOSEST_PLOT;
@@ -587,6 +591,7 @@ public class PestsDestroyer implements IFeature {
                 if (!FlyPathFinderExecutor.getInstance().isRunning()) {
                     FlyPathFinderExecutor.getInstance().setSprinting(true);
                     FlyPathFinderExecutor.getInstance().setDontRotate(false);
+                    FlyPathFinderExecutor.getInstance().setUseAOTV(InventoryUtils.hasItemInHotbar("Aspect of the Void", "Aspect of the End"));
                     FlyPathFinderExecutor.getInstance().findPath(new Vec3(plotCenter.getX(), 80, plotCenter.getZ()), true, true);
                 }
                 break;
@@ -738,6 +743,7 @@ public class PestsDestroyer implements IFeature {
                         }
                         FlyPathFinderExecutor.getInstance().setSprinting(true);
                         FlyPathFinderExecutor.getInstance().setDontRotate(false);
+                        FlyPathFinderExecutor.getInstance().setUseAOTV(InventoryUtils.hasItemInHotbar("Aspect of the Void", "Aspect of the End"));
                         FlyPathFinderExecutor.getInstance().findPath(firework, true, true);
                     }
                     break;
@@ -762,8 +768,6 @@ public class PestsDestroyer implements IFeature {
                 delayClock.schedule(300);
                 break;
             case KILL_PEST:
-                ItemStack currentItem3 = mc.thePlayer.getHeldItem();
-                if (getVacuum(currentItem3)) return;
                 if (isInventoryOpenDelayed()) break;
                 if (mc.thePlayer.posY < 67 && FlyPathFinderExecutor.getInstance().isRunning()) {
                     FlyPathFinderExecutor.getInstance().stop();
@@ -831,6 +835,11 @@ public class PestsDestroyer implements IFeature {
                                 null
                         ).followTarget(true));
                     }
+                    FlyPathFinderExecutor.getInstance().setUseAOTV(false);
+                    ItemStack currentItem3 = mc.thePlayer.getHeldItem();
+                    if (getVacuum(currentItem3)) {
+                        break;
+                    }
                     KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindUseItem, true);
                 } else {
                     if (rotationState != RotationState.FAR) {
@@ -841,7 +850,8 @@ public class PestsDestroyer implements IFeature {
                     if (!FlyPathFinderExecutor.getInstance().isRunning()) {
                         LogUtils.sendDebug("Should pathfind to: " + entity.posX + " " + (entity.posY + 2.75) + " " + entity.posZ);
                         FlyPathFinderExecutor.getInstance().setSprinting(FarmHelperConfig.sprintWhileFlying);
-                        FlyPathFinderExecutor.getInstance().findPath(entity, true, true, 2.75f, true);
+                        FlyPathFinderExecutor.getInstance().setUseAOTV(InventoryUtils.hasItemInHotbar("Aspect of the Void", "Aspect of the End"));
+                        FlyPathFinderExecutor.getInstance().findPath(entity, true, true, 5.75f, true);
                     }
                     if (FlyPathFinderExecutor.getInstance().getState() == FlyPathFinderExecutor.State.FAILED
                             && mc.thePlayer.motionX == 0 && mc.thePlayer.motionZ == 0) {
@@ -866,6 +876,7 @@ public class PestsDestroyer implements IFeature {
                         ));
                     }
                     KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindUseItem, distance2 < currentVacuumRange);
+                    FlyPathFinderExecutor.getInstance().setUseAOTV(distanceXZ > vacuumMinRange && InventoryUtils.hasItemInHotbar("Aspect of the Void", "Aspect of the End"));
                 }
                 break;
             case CHECK_ANOTHER_PEST:
@@ -892,7 +903,7 @@ public class PestsDestroyer implements IFeature {
                     if (plotOpt != null) {
                         double distanceToPlot = Math.sqrt(mc.thePlayer.getDistanceSqToCenter(PlotUtils.getPlotCenter(plotOpt.number)));
                         LogUtils.sendDebug("Distance to plot: " + distanceToPlot);
-                        if (distanceToPlot < 150) {
+                        if (distanceToPlot < 150 || FarmHelperConfig.dontTeleportToPlots) {
                             LogUtils.sendDebug("Going manually to another plot");
                             state = States.GET_CLOSEST_PLOT;
                             delayClock.schedule(300 + (long) (Math.random() * 250));
@@ -1306,8 +1317,12 @@ public class PestsDestroyer implements IFeature {
         LogUtils.sendDebug("[Pests Destroyer] Updated plots");
         if (state == States.WAIT_FOR_INFO) {
             PlayerUtils.closeScreen();
-            state = States.TELEPORT_TO_PLOT;
-            delayClock.schedule(300 + (long) (Math.random() * 300));
+            if (FarmHelperConfig.dontTeleportToPlots) {
+                state = States.GET_CLOSEST_PLOT;
+            } else {
+                state = States.TELEPORT_TO_PLOT;
+            }
+            delayClock.schedule(300 + (long) (Math.random() * 250));
         }
     }
 

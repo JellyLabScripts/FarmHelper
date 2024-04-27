@@ -51,7 +51,7 @@ public class AutoBazaar implements IFeature {
     private BuyState buyState = BuyState.STARTING;
     private String itemToBuy = null;
     private int buyAmount = 0;
-    private int maxSpendLimit = 0;
+    private float maxSpendLimit = 0;
     private int buyNowButtonSlot = -1;
 
     // Sell
@@ -120,7 +120,7 @@ public class AutoBazaar implements IFeature {
         this.buy(itemName, amount, 0);
     }
 
-    public void buy(String itemName, int amount, int maxSpendLimit) {
+    public void buy(String itemName, int amount, float maxSpendLimit) {
         if (this.enabled) return;
 
         this.enabled = true;
@@ -357,29 +357,25 @@ public class AutoBazaar implements IFeature {
 
                 boolean foundPrice = false;
 
-                if (this.maxSpendLimit != 0) {
-                    String lore = String.join(" ", InventoryUtils.getItemLore(slot.getStack())).replace(",", "");
-                    Matcher matcher = this.totalCostPattern.matcher(lore);
-                    System.out.println(lore);
+                String lore = String.join(" ", InventoryUtils.getItemLore(slot.getStack())).replace(",", "");
+                Matcher matcher = this.totalCostPattern.matcher(lore);
+                System.out.println(lore);
 
-                    if (matcher.find()) {
-                        float amount = Float.parseFloat(matcher.group(1));
-                        System.out.println("Amount: " + amount);
-                        System.out.println("Max spend limit: " + this.maxSpendLimit);
-                        foundPrice = true;
-                        if (amount > this.maxSpendLimit) {
-                            log("Attempting to spend more than allowed. Price: " + amount + ", limit: " + this.maxSpendLimit);
-                            log("Disabling.");
-                            this.wasManipulated = true;
-                            this.disable("Spending more than allowed.");
-                            return;
-                        }
-                    }
-                    // For high pong gamers - Might get stuck in an inf loop here if internet is bad
-                    if (lore.contains("Loading...")) return;
-                } else {
+                if (matcher.find()) {
+                    float amount = Float.parseFloat(matcher.group(1));
+                    System.out.println("Amount: " + amount);
+                    System.out.println("Max spend limit: " + this.maxSpendLimit);
                     foundPrice = true;
+                    if (this.maxSpendLimit > 0 && amount > this.maxSpendLimit) {
+                        log("Attempting to spend more than allowed. Price: " + amount + ", limit: " + this.maxSpendLimit);
+                        log("Disabling.");
+                        this.wasManipulated = true;
+                        this.disable("Spending more than allowed.");
+                        return;
+                    }
                 }
+                // For high pong gamers - Might get stuck in an inf loop here if internet is bad
+                if (lore.contains("Loading...")) return;
 
                 if (!foundPrice) {
                     this.disable("Could not find price.");

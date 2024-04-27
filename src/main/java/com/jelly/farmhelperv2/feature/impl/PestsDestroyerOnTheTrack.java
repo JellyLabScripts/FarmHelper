@@ -1,6 +1,7 @@
 package com.jelly.farmhelperv2.feature.impl;
 
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -119,6 +120,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (FeatureManager.getInstance().shouldPauseMacroExecution()) return;
         if (MacroHandler.getInstance().isCurrentMacroPaused()) return;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return;
         if (PestsDestroyer.getInstance().isRunning()) return;
         if (GameStateHandler.getInstance().inJacobContest() && FarmHelperConfig.dontKillPestsOnTrackDuringJacobsContest)
             return;

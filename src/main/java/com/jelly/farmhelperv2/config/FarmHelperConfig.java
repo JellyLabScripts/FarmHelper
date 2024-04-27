@@ -11,6 +11,7 @@ import com.jelly.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.failsafe.impl.EvacuateFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -70,6 +71,13 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     //<editor-fold desc="GENERAL">
+    @Info(
+            text = "Remember! In any gui related features, such as Auto God Pot, Auto Cookie, Auto Repellent, don't lock hotbar slot 7",
+            category = GENERAL,
+            type = InfoType.INFO
+    )
+    public static boolean guiInfo;
+
     @Dropdown(
             name = "Macro Type", category = GENERAL,
             description = "Farm Types",
@@ -1080,6 +1088,12 @@ public class FarmHelperConfig extends Config {
     public static boolean sprintWhileFlying = false;
 
     @Switch(
+            name = "Don't teleport to plots", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            description = "Prevents the macro from teleporting to plots"
+    )
+    public static boolean dontTeleportToPlots = false;
+
+    @Switch(
             name = "Fly Pathfinder Oringo Compatible",
             description = "Makes the fly pathfinder compatible with Oringo, but worse, zzz...",
             category = PESTS_DESTROYER, subcategory = "Pests Destroyer"
@@ -1875,42 +1889,11 @@ public class FarmHelperConfig extends Config {
     public static boolean autoSwitchTool = true;
     //</editor-fold>
 
-    //<editor-fold desc="Fly Path Finder">
-    @Slider(
-            name = "Allowed Overshoot Threshold", category = EXPERIMENTAL, subcategory = "Flight",
-            description = "The minimum distance from the block at which the fly path finder would allow overshooting",
-            min = 0.05f, max = 0.4f
-    )
-    public static float flightAllowedOvershootThreshold = 0.1f;
-    @Slider(
-            name = "Max stuck time without motion (in ticks)", category = EXPERIMENTAL, subcategory = "Flight",
-            description = "The maximum time to wait before unstucking (in ticks)",
-            min = 30, max = 150
-    )
-    public static int flightMaxStuckTimeWithoutMotion = 40;
-    @Slider(
-            name = "Max stuck time with motion (in ticks)", category = EXPERIMENTAL, subcategory = "Flight",
-            description = "The maximum time to wait before unstucking (in ticks)",
-            min = 30, max = 150
-    )
-    public static int flightMaxStuckTimeWithMotion = 100;
-    @Slider(
-            name = "Deceleration offset", category = EXPERIMENTAL, subcategory = "Flight",
-            description = "",
-            min = 0, max = 15
-    )
-    public static int flightDecelerationOffset = 5;
-    @Slider(
-            name = "Maximum stuck distance threshold", category = EXPERIMENTAL, subcategory = "Flight",
-            description = "The maximum distance threshold before unstucking (Vec3)",
-            min = 0.3f, max = 1.5f
-    )
-    public static float flightMaximumStuckDistanceThreshold = 0.75f;
     @Switch(
-            name = "Lock rotation to multipliers of 45 degrees", category = EXPERIMENTAL, subcategory = "Flight",
-            description = "Locks the rotation to multipliers of 45 degrees"
+            name = "Use AOTE/V in Pests Destroyer", category = EXPERIMENTAL, subcategory = "Pests Destroyer",
+            description = "Uses AOTE/V in Pests Destroyer"
     )
-    public static boolean flightLockRotationToMultipliersOf45Degrees = false;
+    public static boolean useAoteVInPestsDestroyer = true;
 
     @Switch(
             name = "Count profit based on Cultivating enchant", category = EXPERIMENTAL, subcategory = "Profit Calculator",
@@ -2091,7 +2074,7 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
         registerKeyBind(debugKeybind, () -> {
 
-            PestsDestroyer.getInstance().resetFireworkInfo();
+            FailsafeManager.getInstance().possibleDetection(EvacuateFailsafe.getInstance());
         });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());

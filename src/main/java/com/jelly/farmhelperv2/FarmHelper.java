@@ -27,10 +27,12 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.Display;
 
+import java.io.File;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -43,6 +45,12 @@ public class FarmHelper {
     public static boolean sentInfoAboutShittyClient = false;
     public static boolean isDebug = false;
     private final Minecraft mc = Minecraft.getMinecraft();
+    public static File jarFile = null;
+
+    @Mod.EventHandler
+    public void preInit(FMLPreInitializationEvent event) {
+        jarFile = event.getSourceFile();
+    }
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
