@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.pathfinder;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.common.collect.EvictingQueue;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.mixin.client.EntityPlayerAccessor;
 import com.jelly.farmhelperv2.mixin.pathfinder.PathfinderAccessor;
@@ -19,6 +20,7 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.pathfinding.PathPoint;
@@ -29,6 +31,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -259,6 +262,8 @@ public class FlyPathFinderExecutor {
         RotationHandler.getInstance().reset();
         path.clear();
         target = null;
+        tped = true;
+        aotvDely.reset();
         targetEntity = null;
         yModifier = 0;
         state = State.NONE;
@@ -308,6 +313,7 @@ public class FlyPathFinderExecutor {
 
     private final Clock loweringRaisingDelay = new Clock();
     private final Clock aotvDely = new Clock();
+    private boolean tped = true;
 
     @SubscribeEvent
     public void onTickNeededYaw(TickEvent.ClientTickEvent event) {
@@ -403,13 +409,14 @@ public class FlyPathFinderExecutor {
         }
         Vec3 next = getNext(copyPath);
 
-        if (FarmHelperConfig.useAoteVInPestsDestroyer && useAOTV && aotvDely.passed() && mc.thePlayer.getDistance(next.xCoord, mc.thePlayer.getPositionVector().yCoord, next.zCoord) > 7.5 && !RotationHandler.getInstance().isRotating()) {
+        if (FarmHelperConfig.useAoteVInPestsDestroyer && tped && useAOTV && aotvDely.passed() && mc.thePlayer.getDistance(next.xCoord, mc.thePlayer.getPositionVector().yCoord, next.zCoord) > 7.5 && !RotationHandler.getInstance().isRotating()) {
             int aotv = InventoryUtils.getSlotIdOfItemInHotbar("Aspect of the Void", "Aspect of the End");
             if (aotv != mc.thePlayer.inventory.currentItem) {
                 mc.thePlayer.inventory.currentItem = aotv;
                 aotvDely.schedule(180);
             } else {
                 KeyBindUtils.rightClick();
+                tped = false;
                 aotvDely.schedule(150 + Math.random() * 100);
             }
         }
@@ -489,6 +496,21 @@ public class FlyPathFinderExecutor {
             KeyBindUtils.holdThese(keyBindings.toArray(new KeyBinding[0]));
         else
             KeyBindUtils.stopMovement(true);
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOW)
+    public void onTeleportPacket(ReceivePacketEvent event) {
+        if (!isRunning()) return;
+        if (event.packet instanceof S08PacketPlayerPosLook) {
+            S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
+            if (packet.func_179834_f().contains(S08PacketPlayerPosLook.EnumFlags.X) || packet.func_179834_f().contains(S08PacketPlayerPosLook.EnumFlags.Y) || packet.func_179834_f().contains(S08PacketPlayerPosLook.EnumFlags.Z)) {
+                tped = true;
+            }
+        }
+    }
+
+    public boolean isTping() {
+        return !tped;
     }
 
     private boolean willArriveAtDestinationAfterStopping(Vec3 targetPos) {

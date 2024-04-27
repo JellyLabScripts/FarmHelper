@@ -875,8 +875,11 @@ public class PestsDestroyer implements IFeature {
                                 null
                         ));
                     }
-                    KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindUseItem, distance2 < currentVacuumRange);
                     FlyPathFinderExecutor.getInstance().setUseAOTV(distanceXZ > vacuumMinRange && InventoryUtils.hasItemInHotbar("Aspect of the Void", "Aspect of the End"));
+                    if (distance2 < currentVacuumRange && getVacuum(mc.thePlayer.getHeldItem())) {
+                        break;
+                    }
+                    KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindUseItem, distance2 < currentVacuumRange);
                 }
                 break;
             case CHECK_ANOTHER_PEST:
