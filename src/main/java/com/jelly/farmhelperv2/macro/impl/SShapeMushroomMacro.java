@@ -17,10 +17,10 @@ public class SShapeMushroomMacro extends AbstractMacro {
     @Override
     public void onEnable() {
         super.onEnable();
-        if (!FarmHelperConfig.customPitch && !isRestoredState() && !isPitchSet()) {
+        if (!isPitchSet()) {
             setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
         }
-        if (!FarmHelperConfig.customYaw && !isRestoredState() && !isYawSet()) {
+        if (!isYawSet()) {
             setYaw(AngleUtils.getClosestDiagonal());
             setClosest90Deg(Optional.of(AngleUtils.getClosest()));
         }
