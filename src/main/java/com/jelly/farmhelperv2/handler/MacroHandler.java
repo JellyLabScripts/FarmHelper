@@ -277,8 +277,7 @@ public class MacroHandler {
             macroingTimer.resume();
             analyticsTimer.resume();
             afterRewarpDelay.reset();
-            if (!Scheduler.getInstance().getSchedulerClock().isPaused())
-                Scheduler.getInstance().resume();
+            Scheduler.getInstance().resume();
         });
     }
 

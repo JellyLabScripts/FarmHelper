@@ -131,8 +131,6 @@ public class AutoSell implements IFeature {
         if (MacroHandler.getInstance().isMacroToggled() && !VisitorsMacro.getInstance().isRunning()) {
             Multithreading.schedule(() -> MacroHandler.getInstance().resumeMacro(), 1000, TimeUnit.MILLISECONDS);
         }
-        if (FarmHelperConfig.enableScheduler && !VisitorsMacro.getInstance().isRunning())
-            Scheduler.getInstance().resume();
         IFeature.super.stop();
     }
 
@@ -174,8 +172,6 @@ public class AutoSell implements IFeature {
             dontEnableForClock.reset();
         }
         KeyBindUtils.stopMovement();
-        if (FarmHelperConfig.enableScheduler)
-            Scheduler.getInstance().pause();
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();
         }
