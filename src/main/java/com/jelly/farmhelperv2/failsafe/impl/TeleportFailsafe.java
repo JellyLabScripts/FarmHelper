@@ -96,7 +96,7 @@ public class TeleportFailsafe extends Failsafe {
             LogUtils.sendDebug("[Failsafe] Player is below Y = 0. Ignoring");
             return;
         }
-        if (FlyPathFinderExecutor.getInstance().isRunning() && (FlyPathFinderExecutor.getInstance().isTping() || FlyPathFinderExecutor.getInstance().isPositionInCache(packetPlayerBlockPos))) {
+        if (FlyPathFinderExecutor.getInstance().isRunning() && (FlyPathFinderExecutor.getInstance().isTping() || FlyPathFinderExecutor.getInstance().getLastTpTime() + 100 > System.currentTimeMillis() || FlyPathFinderExecutor.getInstance().isPositionInCache(packetPlayerBlockPos))) {
             LogUtils.sendDebug("[Failsafe] Teleport packet received while Fly pathfinder is running. Ignoring");
             return;
         }

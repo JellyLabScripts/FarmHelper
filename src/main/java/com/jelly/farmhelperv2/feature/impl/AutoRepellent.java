@@ -253,7 +253,6 @@ public class AutoRepellent implements IFeature {
                         break;
                     case SWAP_REPELLENT_TO_HOTBAR_PUT:
                         if (mc.currentScreen == null) {
-                            moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PICKUP;
                             delay.schedule(300 + (long) (Math.random() * 300));
                             break;
                         }
@@ -269,7 +268,6 @@ public class AutoRepellent implements IFeature {
                         break;
                     case SWAP_REPELLENT_TO_HOTBAR_PUT_BACK:
                         if (mc.currentScreen == null) {
-                            moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PICKUP;
                             delay.schedule(300 + (long) (Math.random() * 300));
                             break;
                         }
@@ -290,7 +288,6 @@ public class AutoRepellent implements IFeature {
                         break;
                     case PUT_ITEM_BACK_PUT:
                         if (mc.currentScreen == null) {
-                            moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PICKUP;
                             delay.schedule(300 + (long) (Math.random() * 300));
                             break;
                         }

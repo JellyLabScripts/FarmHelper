@@ -275,9 +275,9 @@ public class AutoCookie implements IFeature {
                     case CLICK_ODDITIES:
                         if (mc.currentScreen == null) {
                             autoCookieDelay.schedule(getRandomDelay());
-                            setBazaarState(BazaarState.OPEN_BAZAAR);
                             break;
                         }
+                        if (!InventoryUtils.isInventoryLoaded()) return;
                         if (InventoryUtils.getInventoryName() != null && InventoryUtils.getInventoryName().startsWith("Bazaar ➜ Oddities")) {
                             setBazaarState(BazaarState.CLICK_COOKIE);
                             autoCookieDelay.schedule(getRandomDelay());
@@ -307,6 +307,7 @@ public class AutoCookie implements IFeature {
                             break;
                         }
 
+                        if (!InventoryUtils.isInventoryLoaded()) return;
                         if (InventoryUtils.getInventoryName() != null && InventoryUtils.getInventoryName().startsWith("Bazaar ➜") && !InventoryUtils.getInventoryName().startsWith("Bazaar ➜ Oddities")) {
                             setBazaarState(BazaarState.CLICK_ODDITIES);
                             autoCookieDelay.schedule(getRandomDelay());
@@ -337,6 +338,7 @@ public class AutoCookie implements IFeature {
                             autoCookieDelay.schedule(getRandomDelay());
                             break;
                         }
+                        if (!InventoryUtils.isInventoryLoaded()) return;
                         if (InventoryUtils.getInventoryName() != null && InventoryUtils.getInventoryName().startsWith("Oddities ➜") && !InventoryUtils.getInventoryName().startsWith("Oddities ➜ Booster Cookie")) {
                             setBazaarState(BazaarState.OPEN_BAZAAR);
                             autoCookieDelay.schedule(getRandomDelay());
@@ -361,6 +363,7 @@ public class AutoCookie implements IFeature {
                             autoCookieDelay.schedule(getRandomDelay());
                             break;
                         }
+                        if (!InventoryUtils.isInventoryLoaded()) return;
                         if (InventoryUtils.getInventoryName() != null && InventoryUtils.getInventoryName().startsWith("Booster Cookie ➜") && !InventoryUtils.getInventoryName().startsWith("Booster Cookie ➜ Instant Buy")) {
                             setBazaarState(BazaarState.OPEN_BAZAAR);
                             autoCookieDelay.schedule(getRandomDelay());

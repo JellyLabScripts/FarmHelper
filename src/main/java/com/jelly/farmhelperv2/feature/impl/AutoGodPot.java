@@ -309,10 +309,10 @@ public class AutoGodPot implements IFeature {
                 break;
             case OPEN_BROWSER:
                 if (mc.currentScreen == null) {
-                    setAhState(AhState.OPEN_AH);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("Auction House")) break;
                 Slot ahBrowserItem = InventoryUtils.getSlotOfItemInContainer("Auctions Browser");
                 if (ahBrowserItem == null) break;
@@ -322,10 +322,10 @@ public class AutoGodPot implements IFeature {
                 break;
             case CLICK_SEARCH:
                 if (mc.currentScreen == null) {
-                    setAhState(AhState.OPEN_AH);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (Objects.requireNonNull(InventoryUtils.getInventoryName()).startsWith("Auctions: \"God Potion\"")) {
                     setAhState(AhState.SORT_ITEMS);
                     break;
@@ -344,10 +344,10 @@ public class AutoGodPot implements IFeature {
                 break;
             case SORT_ITEMS:
                 if (mc.currentScreen == null) {
-                    setAhState(AhState.OPEN_AH);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (checkIfWrongInventory("Auctions: \"God Potion\"")) break;
                 Slot sortItem = InventoryUtils.getSlotOfItemInContainer("Sort");
                 if (sortItem == null) break;
@@ -362,10 +362,10 @@ public class AutoGodPot implements IFeature {
                 break;
             case CHECK_IF_BIN:
                 if (mc.currentScreen == null) {
-                    setAhState(AhState.OPEN_AH);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (checkIfWrongInventory("Auctions: \"God Potion\"")) break;
                 Slot binItem = InventoryUtils.getSlotOfItemInContainer("BIN Filter");
                 if (binItem == null) break;
@@ -380,10 +380,10 @@ public class AutoGodPot implements IFeature {
                 break;
             case SELECT_ITEM:
                 if (mc.currentScreen == null) {
-                    setAhState(AhState.OPEN_AH);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (checkIfWrongInventory("Auctions: \"God Potion\"")) break;
                 for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
                     if (!slot.getHasStack()) continue;
@@ -412,10 +412,10 @@ public class AutoGodPot implements IFeature {
                 break;
             case BUY_ITEM:
                 if (mc.currentScreen == null) {
-                    setAhState(AhState.OPEN_AH);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (checkIfWrongInventory("BIN Auction View")) break;
                 Slot buyItem = InventoryUtils.getSlotOfItemInContainer("Buy Item Right Now");
                 if (buyItem == null) {
@@ -442,10 +442,10 @@ public class AutoGodPot implements IFeature {
                 break;
             case CONFIRM_PURCHASE:
                 if (mc.currentScreen == null) {
-                    setAhState(AhState.OPEN_AH);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (checkIfWrongInventory("Confirm Purchase")) break;
                 Slot confirmPurchase = InventoryUtils.getSlotOfItemInContainer("Confirm");
                 if (confirmPurchase == null) break;
@@ -468,10 +468,10 @@ public class AutoGodPot implements IFeature {
                 break;
             case COLLECT_ITEM_VIEW_BIDS:
                 if (mc.currentScreen == null) {
-                    setAhState(AhState.COLLECT_ITEM_OPEN_AH);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("Auction House")) break;
                 Slot viewBids = InventoryUtils.getSlotOfItemInContainer("View Bids");
                 Slot manageBids = InventoryUtils.getSlotOfItemInContainer("Manage Bids");
@@ -486,10 +486,10 @@ public class AutoGodPot implements IFeature {
                 break;
             case COLLECT_ITEM_CLICK_ITEM:
                 if (mc.currentScreen == null) {
-                    setAhState(AhState.COLLECT_ITEM_OPEN_AH);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("Bids")) break;
                 Slot godPotSlot = InventoryUtils.getSlotOfItemInContainer("God Potion");
                 if (godPotSlot == null) break;
@@ -499,10 +499,10 @@ public class AutoGodPot implements IFeature {
                 break;
             case COLLECT_ITEM_CLICK_COLLECT:
                 if (mc.currentScreen == null) {
-                    setAhState(AhState.COLLECT_ITEM_OPEN_AH);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("Auction View")) break;
                 Slot collectItem = InventoryUtils.getSlotOfItemInContainer("Collect Auction");
                 if (collectItem == null) break;
@@ -746,9 +746,9 @@ public class AutoGodPot implements IFeature {
             case MOVE_POT_TO_INVENTORY:
                 if (mc.currentScreen == null) {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    setBackpackState(BackpackState.OPEN_STORAGE);
                     break;
                 }
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (InventoryUtils.getInventoryName() == null) break;
 
                 for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
@@ -868,12 +868,12 @@ public class AutoGodPot implements IFeature {
                 break;
             case BITS_SHOP_TAB:
                 if (mc.currentScreen == null) {
-                    setBitsShopState(BitsShopState.OPEN_BITS_SHOP);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
                 String invNam = InventoryUtils.getInventoryName();
                 if (invNam == null) break;
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (!invNam.contains("Community Shop")) {
                     PlayerUtils.closeScreen();
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
@@ -896,10 +896,10 @@ public class AutoGodPot implements IFeature {
                 break;
             case CHECK_CONFIRM:
                 if (mc.currentScreen == null) {
-                    setBitsShopState(BitsShopState.OPEN_BITS_SHOP);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("Community Shop")) break;
                 Slot confirm = InventoryUtils.getSlotOfItemInContainer("Purchase Confirmation");
                 if (confirm == null) break;
@@ -917,10 +917,10 @@ public class AutoGodPot implements IFeature {
                 break;
             case CLICK_GOD_POT:
                 if (mc.currentScreen == null) {
-                    setBitsShopState(BitsShopState.OPEN_BITS_SHOP);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (!Objects.requireNonNull(InventoryUtils.getInventoryName()).contains("Community Shop")) break;
                 Slot godPot = InventoryUtils.getSlotOfItemInContainer("God Potion");
                 if (godPot == null) break;
@@ -1051,7 +1051,6 @@ public class AutoGodPot implements IFeature {
 
     private boolean checkIfWrongInventory(String inventoryNameStartsWith) {
         if (mc.currentScreen == null) {
-            setAhState(AhState.OPEN_AH);
             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
             return true;
         }

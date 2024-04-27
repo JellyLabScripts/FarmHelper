@@ -82,8 +82,8 @@ public class RotationFailsafe extends Failsafe {
         double playerPitch = mc.thePlayer.rotationPitch;
         double yawDiff = Math.abs(packetYaw - playerYaw);
         double pitchDiff = Math.abs(packetPitch - playerPitch);
-        if (FlyPathFinderExecutor.getInstance().isRunning() && FlyPathFinderExecutor.getInstance().isRotationInCache((float) packetYaw, (float) packetPitch)) {
-            LogUtils.sendDebug("[Failsafe] Rotation packet received while Fly pathfinder is running. Ignoring");
+        if (FlyPathFinderExecutor.getInstance().isRunning() && (FlyPathFinderExecutor.getInstance().isTping() || FlyPathFinderExecutor.getInstance().getLastTpTime() + 100 > System.currentTimeMillis() || FlyPathFinderExecutor.getInstance().isRotationInCache((float) packetYaw, (float) packetPitch))) {
+            LogUtils.sendDebug("[Failsafe] Teleport packet received while Fly pathfinder is running. Ignoring");
             return;
         }
         if (yawDiff == 360 && pitchDiff == 0) // prevents false checks
@@ -111,7 +111,8 @@ public class RotationFailsafe extends Failsafe {
         if (rotationBeforeReacting == null) {
             LogUtils.sendDebug("[Failsafe] Original rotation is null. Ignoring");
             return;
-        } if (shouldTriggerCheck(rotationBeforeReacting.getYaw(), rotationBeforeReacting.getPitch())) {
+        }
+        if (shouldTriggerCheck(rotationBeforeReacting.getYaw(), rotationBeforeReacting.getPitch())) {
             FailsafeManager.getInstance().possibleDetection(this);
         } else {
             FailsafeManager.getInstance().stopFailsafes();
@@ -123,7 +124,7 @@ public class RotationFailsafe extends Failsafe {
     }
 
     private boolean shouldTriggerCheck(double newYaw, double newPitch) {
-        double yawDiff = Math.abs(newYaw -  mc.thePlayer.rotationYaw);
+        double yawDiff = Math.abs(newYaw - mc.thePlayer.rotationYaw);
         double pitchDiff = Math.abs(newPitch - mc.thePlayer.rotationPitch);
         double yawThreshold = FarmHelperConfig.rotationCheckYawSensitivity;
         double pitchThreshold = FarmHelperConfig.rotationCheckPitchSensitivity;

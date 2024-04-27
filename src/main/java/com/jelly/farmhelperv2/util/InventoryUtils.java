@@ -272,6 +272,15 @@ public class InventoryUtils {
         return speed;
     }
 
+    public static boolean isInventoryLoaded() {
+        if (mc.thePlayer == null || mc.thePlayer.openContainer == null) return false;
+        if (!(mc.currentScreen instanceof GuiChest)) return false;
+        ContainerChest chest = (ContainerChest) mc.thePlayer.openContainer;
+        int lowerChestSize = chest.getLowerChestInventory().getSizeInventory();
+        ItemStack lastSlot = chest.getLowerChestInventory().getStackInSlot(lowerChestSize - 1);
+        return lastSlot != null && lastSlot.getItem() != null;
+    }
+
     public static enum ClickType {
         LEFT,
         RIGHT

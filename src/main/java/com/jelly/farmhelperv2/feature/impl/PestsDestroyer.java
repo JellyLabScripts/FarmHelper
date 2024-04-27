@@ -247,7 +247,7 @@ public class PestsDestroyer implements IFeature {
         if (!GameStateHandler.getInstance().inGarden()) return false;
         if (!MacroHandler.getInstance().isMacroToggled() && !manually) return false;
         if (enabled || preparing) return false;
-        if (GameStateHandler.getInstance().getPestsCount() < FarmHelperConfig.startKillingPestsAt || (manually && GameStateHandler.getInstance().getPestsCount() == 0))
+        if (GameStateHandler.getInstance().getPestsCount() < FarmHelperConfig.startKillingPestsAt && !manually || (manually && GameStateHandler.getInstance().getPestsCount() == 0))
             return false;
         if (!manually && FarmHelperConfig.pausePestsDestroyerDuringJacobsContest && GameStateHandler.getInstance().inJacobContest()) {
             LogUtils.sendError("[Pests Destroyer] Pests Destroyer won't activate during Jacob's Contest!");
@@ -420,36 +420,22 @@ public class PestsDestroyer implements IFeature {
             case OPEN_PLOTS:
                 String chestName = InventoryUtils.getInventoryName();
                 if (mc.currentScreen == null) {
-                    state = States.OPEN_DESK;
                     delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
                     break;
                 }
-                if (chestName != null && !chestName.equals("Desk")) {
-                    PlayerUtils.closeScreen();
-                    delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
-                    state = States.OPEN_DESK;
+                if (!InventoryUtils.isInventoryLoaded()) return;
+                if (chestName == null || !chestName.equals("Desk")) {
                     break;
                 }
-                if (chestName != null) {
-                    Slot configurePlots = InventoryUtils.getSlotOfItemInContainer("Configure Plots");
-                    if (configurePlots == null) {
-                        return;
-                    }
-                    state = States.WAIT_FOR_INFO;
-                    InventoryUtils.clickContainerSlot(configurePlots.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                    delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 500 + Math.random() * 500));
-                    break;
+                Slot configurePlots = InventoryUtils.getSlotOfItemInContainer("Configure Plots");
+                if (configurePlots == null) {
+                    return;
                 }
+                state = States.WAIT_FOR_INFO;
+                InventoryUtils.clickContainerSlot(configurePlots.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 500 + Math.random() * 500));
                 break;
             case WAIT_FOR_INFO:
-                String chestName2 = InventoryUtils.getInventoryName();
-                if (chestName2 != null && !chestName2.equals("Configure Plots")) {
-                    LogUtils.sendDebug("Wrong GUI: " + chestName2);
-                    PlayerUtils.closeScreen();
-                    delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 500 + Math.random() * 500));
-                    state = States.OPEN_DESK;
-                    break;
-                }
                 break;
             case TELEPORT_TO_PLOT:
                 PlotUtils.Plot plot = getClosestPlot();
@@ -848,10 +834,11 @@ public class PestsDestroyer implements IFeature {
                         RotationHandler.getInstance().reset();
                     }
                     if (!FlyPathFinderExecutor.getInstance().isRunning()) {
-                        LogUtils.sendDebug("Should pathfind to: " + entity.posX + " " + (entity.posY + 2.75) + " " + entity.posZ);
+                        double yAddition = Math.max(2.75, Math.min(currentVacuumRange - 5, 10));
+                        LogUtils.sendDebug("Should pathfind to: " + entity.posX + " " + yAddition + " " + entity.posZ);
                         FlyPathFinderExecutor.getInstance().setSprinting(FarmHelperConfig.sprintWhileFlying);
                         FlyPathFinderExecutor.getInstance().setUseAOTV(InventoryUtils.hasItemInHotbar("Aspect of the Void", "Aspect of the End"));
-                        FlyPathFinderExecutor.getInstance().findPath(entity, true, true, 5.75f, true);
+                        FlyPathFinderExecutor.getInstance().findPath(entity, true, true, (float) yAddition, true);
                     }
                     if (FlyPathFinderExecutor.getInstance().getState() == FlyPathFinderExecutor.State.FAILED
                             && mc.thePlayer.motionX == 0 && mc.thePlayer.motionZ == 0) {
@@ -1287,10 +1274,7 @@ public class PestsDestroyer implements IFeature {
         if (!delayClock.passed()) return;
         ContainerChest guiChest = (ContainerChest) ((GuiChest) event.guiScreen).inventorySlots;
 
-        Slot lastSlot = guiChest.inventorySlots.get(42); // last plot in gui
-        if (lastSlot == null || !lastSlot.getHasStack() || !lastSlot.getStack().getDisplayName().contains("Plot")) {
-            return;
-        }
+        if (!InventoryUtils.isInventoryLoaded()) return;
 
         int plotCounter = 0;
         if (StringUtils.stripControlCodes(guiName).equals("Configure Plots")) {
@@ -1312,6 +1296,7 @@ public class PestsDestroyer implements IFeature {
             }
 
         } else {
+            checkedThisGui = true;
             return;
         }
         needToUpdatePlots = false;

@@ -69,6 +69,8 @@ public class FlyPathFinderExecutor {
     @Setter
     @Getter
     private boolean useAOTV = false;
+    @Getter
+    private long lastTpTime = 0;
     private final FlyNodeProcessor flyNodeProcessor = new FlyNodeProcessor();
     private final PathFinder pathFinder = new PathFinder(flyNodeProcessor);
     @Getter
@@ -266,6 +268,7 @@ public class FlyPathFinderExecutor {
         aotvDely.reset();
         targetEntity = null;
         yModifier = 0;
+        lastTpTime = 0;
         state = State.NONE;
         KeyBindUtils.stopMovement(true);
         loweringRaisingDelay.reset();
@@ -409,24 +412,12 @@ public class FlyPathFinderExecutor {
         }
         Vec3 next = getNext(copyPath);
 
-        if (FarmHelperConfig.useAoteVInPestsDestroyer && tped && useAOTV && aotvDely.passed() && mc.thePlayer.getDistance(next.xCoord, mc.thePlayer.getPositionVector().yCoord, next.zCoord) > 7.5 && !RotationHandler.getInstance().isRotating()) {
-            int aotv = InventoryUtils.getSlotIdOfItemInHotbar("Aspect of the Void", "Aspect of the End");
-            if (aotv != mc.thePlayer.inventory.currentItem) {
-                mc.thePlayer.inventory.currentItem = aotv;
-                aotvDely.schedule(180);
-            } else {
-                KeyBindUtils.rightClick();
-                tped = false;
-                aotvDely.schedule(150 + Math.random() * 100);
-            }
-        }
-
         if (!RotationHandler.getInstance().isRotating() && mc.thePlayer.getDistance(next.xCoord, next.yCoord, next.zCoord) > 2) {
             Target target;
             if (this.targetEntity != null)
                 target = new Target(this.targetEntity).additionalY(this.yModifier);
             else if (this.neededYaw != Integer.MIN_VALUE) {
-                Vec3 directionHeading = AngleUtils.getVectorForRotation(5, this.neededYaw);
+                Vec3 directionHeading = AngleUtils.getVectorForRotation(4, this.neededYaw);
                 Vec3 directionHeadingPlayer = mc.thePlayer.getPositionEyes(1).addVector(directionHeading.xCoord * 5, directionHeading.yCoord * 5, directionHeading.zCoord * 5);
                 target = new Target(directionHeadingPlayer);
             } else {
@@ -441,6 +432,18 @@ public class FlyPathFinderExecutor {
                             (long) (600 + Math.random() * 300),
                             null
                     ).randomness(true));
+                }
+            }
+
+            if (FarmHelperConfig.useAoteVInPestsDestroyer && tped && useAOTV && aotvDely.passed() && mc.thePlayer.getDistance(next.xCoord, mc.thePlayer.getPositionVector().yCoord, next.zCoord) > 7.5 && !RotationHandler.getInstance().isRotating() && isFrontClean(target.getTarget().get())) {
+                int aotv = InventoryUtils.getSlotIdOfItemInHotbar("Aspect of the Void", "Aspect of the End");
+                if (aotv != mc.thePlayer.inventory.currentItem) {
+                    mc.thePlayer.inventory.currentItem = aotv;
+                    aotvDely.schedule(180);
+                } else {
+                    KeyBindUtils.rightClick();
+                    tped = false;
+                    aotvDely.schedule(150 + Math.random() * 100);
                 }
             }
         }
@@ -505,8 +508,16 @@ public class FlyPathFinderExecutor {
             S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
             if (packet.func_179834_f().contains(S08PacketPlayerPosLook.EnumFlags.X) || packet.func_179834_f().contains(S08PacketPlayerPosLook.EnumFlags.Y) || packet.func_179834_f().contains(S08PacketPlayerPosLook.EnumFlags.Z)) {
                 tped = true;
+                lastTpTime = System.currentTimeMillis();
             }
         }
+    }
+
+    private boolean isFrontClean(Vec3 target) {
+        Vec3 direction = target.subtract(mc.thePlayer.getPositionVector()).normalize();
+        Vec3 tpPosition = mc.thePlayer.getPositionEyes(1).addVector(direction.xCoord * 10, direction.yCoord * 10, direction.zCoord * 10);
+        MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), tpPosition, false, true, false);
+        return mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK;
     }
 
     public boolean isTping() {

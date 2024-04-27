@@ -256,7 +256,6 @@ public class AutoSell implements IFeature {
             case SELECT_SACK:
                 if (mc.currentScreen == null) {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    setSacksState(SacksState.OPEN_MENU);
                     return;
                 }
                 int sacksSlot;
@@ -299,7 +298,6 @@ public class AutoSell implements IFeature {
             case PICKUP:
                 if (mc.currentScreen == null) {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    setSacksState(SacksState.OPEN_MENU);
                     return;
                 }
                 if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Enchanted Agronomy Sack")) {
@@ -480,7 +478,6 @@ public class AutoSell implements IFeature {
                     case SELL:
                         if (mc.currentScreen == null) {
                             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                            setNpcState(NPCState.OPEN_MENU);
                             break;
                         }
                         if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Trades")) {

@@ -199,6 +199,7 @@ public class AutoBazaar implements IFeature {
                 this.buyState = BuyState.BZ_VERIFY;
                 break;
             case BZ_VERIFY:
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (this.openedChestGuiNameStartsWith("Bazaar ➜ \"")) {
                     log("Opened Bz.");
                     this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
@@ -226,6 +227,7 @@ public class AutoBazaar implements IFeature {
                 this.buyState = BuyState.PRODUCT_VERIFY;
                 break;
             case PRODUCT_VERIFY:
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (this.openedChestGuiProductNameStartsWith(this.itemToBuy)) {
                     log("Opened item page.");
                     this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
@@ -248,6 +250,7 @@ public class AutoBazaar implements IFeature {
                 this.timer.schedule(2000);
                 break;
             case BUY_INSTANTLY_VERIFY:
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (this.openedChestGuiNameStartsWith(this.itemToBuy + " ➜ Instant Buy")) {
                     log("Opened instant buy page");
                     this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
@@ -288,6 +291,7 @@ public class AutoBazaar implements IFeature {
                 }
                 break;
             case OPEN_SIGN:
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (!this.hasTimerEnded()) return;
 
                 Slot signSlot = InventoryUtils.getSlotOfItemInContainer("Custom Amount");
@@ -326,6 +330,7 @@ public class AutoBazaar implements IFeature {
                 this.buyState = BuyState.VERIFY_CONFIRM_PAGE;
                 break;
             case VERIFY_CONFIRM_PAGE:
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (this.openedChestGuiNameContains("Confirm Instant Buy")) {
                     log("Opened confirm buy page");
                     this.buyNowButtonSlot = InventoryUtils.getSlotIdOfItemInContainer("Custom Amount");

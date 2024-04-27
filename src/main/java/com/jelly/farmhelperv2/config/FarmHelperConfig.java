@@ -1724,7 +1724,7 @@ public class FarmHelperConfig extends Config {
     @Slider(
             name = "GUI Delay", category = DELAYS, subcategory = "GUI Delays",
             description = "The delay between clicking during GUI macros (in milliseconds)",
-            min = 250f, max = 2000f
+            min = 50f, max = 2000f
     )
     public static float macroGuiDelay = 400f;
     @Slider(

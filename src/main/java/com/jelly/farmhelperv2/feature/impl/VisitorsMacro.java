@@ -438,6 +438,8 @@ public class VisitorsMacro implements IFeature {
         }
     }
 
+    private boolean clickedInCompactor = false;
+
     private void onCompactorState() {
         switch (compactorState) {
             case NONE:
@@ -525,50 +527,51 @@ public class VisitorsMacro implements IFeature {
                 ItemStack currentItem = mc.thePlayer.inventory.getCurrentItem();
                 if (currentItem == null || !currentItem.getDisplayName().contains("Compactor")) {
                     LogUtils.sendDebug("[Visitors Macro] Not holding compactor, holding compactor again...");
-                    setCompactorState(CompactorState.HOLD_COMPACTOR);
+                    setCompactorState(CompactorState.GET_LIST);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
                 KeyBindUtils.rightClick();
+                clickedInCompactor = false;
                 setCompactorState(CompactorState.TOGGLE_COMPACTOR);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case TOGGLE_COMPACTOR:
                 if (mc.currentScreen == null) {
-                    setCompactorState(CompactorState.OPEN_COMPACTOR);
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
                 String invName = InventoryUtils.getInventoryName();
                 if (invName == null) break;
-                if (!invName.contains("Compactor")) {
-                    LogUtils.sendDebug("[Visitors Macro] Not in compactor, opening compactor again...");
-                    setCompactorState(CompactorState.OPEN_COMPACTOR);
-                    PlayerUtils.closeScreen();
-                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                    break;
-                }
+                if (!invName.contains("Compactor")) break;
                 int slot = InventoryUtils.getSlotIdOfItemInContainer("Compactor Currently");
                 if (slot == -1) break;
                 Slot slotObject = InventoryUtils.getSlotOfIdInContainer(slot);
                 if (slotObject == null) break;
                 ItemStack itemStack = slotObject.getStack();
                 if (itemStack == null) break;
+                if (!InventoryUtils.isInventoryLoaded()) break;
                 if (itemStack.getDisplayName().contains("OFF") && !compactorsDisabled) {
-                    LogUtils.sendDebug("[Visitors Macro] Compactor is already OFF, skipping...");
+                    LogUtils.sendDebug("[Visitors Macro] Compactor is OFF");
+                    compactors.remove(0);
+                    setCompactorState(CompactorState.CLOSE_COMPACTOR);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 } else if (!compactorsDisabled && itemStack.getDisplayName().contains("ON")) {
+                    if (clickedInCompactor) break;
                     LogUtils.sendDebug("[Visitors Macro] Disabling compactor in slot " + slot);
                     InventoryUtils.clickContainerSlot(slot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                    clickedInCompactor = true;
                 }
                 if (itemStack.getDisplayName().contains("ON") && compactorsDisabled) {
-                    LogUtils.sendDebug("[Visitors Macro] Compactor is already ON, skipping...");
+                    LogUtils.sendDebug("[Visitors Macro] Compactor is ON");
+                    compactors.remove(0);
+                    setCompactorState(CompactorState.CLOSE_COMPACTOR);
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 } else if (compactorsDisabled && itemStack.getDisplayName().contains("OFF")) {
+                    if (clickedInCompactor) break;
                     LogUtils.sendDebug("[Visitors Macro] Enabling compactor in slot " + slot);
                     InventoryUtils.clickContainerSlot(slot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                    clickedInCompactor = true;
                 }
-                compactors.remove(0);
-                setCompactorState(CompactorState.CLOSE_COMPACTOR);
-                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case CLOSE_COMPACTOR:
                 LogUtils.sendDebug("[Visitors Macro] Closing compactor");
@@ -734,7 +737,7 @@ public class VisitorsMacro implements IFeature {
                     } else {
                         LogUtils.sendDebug("[Visitors Macro] Looking at something else");
                         LogUtils.sendDebug("[Visitors Macro] Looking at: " + entity.getName());
-
+                        setVisitorsState(VisitorsState.GET_CLOSE_TO_VISITOR);
                     }
                     break;
                 }
@@ -746,7 +749,6 @@ public class VisitorsMacro implements IFeature {
                 break;
             case CHECK_VISITOR:
                 if (mc.currentScreen == null) {
-                    setVisitorsState(VisitorsState.OPEN_VISITOR);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
@@ -978,6 +980,7 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(getRandomDelay());
                     break;
                 }
+                if (!InventoryUtils.isInventoryLoaded()) return;
                 if (inventoryName == null || inventoryName.isEmpty()) {
                     break;
                 }
@@ -1202,6 +1205,7 @@ public class VisitorsMacro implements IFeature {
     }
 
     private boolean rejectVisitor() {
+        if (!InventoryUtils.isInventoryLoaded()) return true;
         LogUtils.sendDebug("[Visitors Macro] Rejecting the visitor");
         Slot rejectOfferSlot = InventoryUtils.getSlotOfItemInContainer("Refuse Offer");
         if (rejectOfferSlot == null || rejectOfferSlot.getStack() == null) {
@@ -1329,16 +1333,6 @@ public class VisitorsMacro implements IFeature {
             delayClock.schedule(getRandomDelay());
             return;
         }
-//        if (visitorsState == VisitorsState.OPEN_VISITOR) {
-//            String npcName = StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag());
-//            if (msg.startsWith("[NPC] " + npcName + ":")) {
-//                Multithreading.schedule(() -> {
-//                    if (mc.currentScreen == null) {
-//                        KeyBindUtils.leftClick();
-//                    }
-//                }, (long) (250 + Math.random() * 150), TimeUnit.MILLISECONDS);
-//            }
-//        }
         if (buyState == BuyState.WAIT_FOR_AUTOBAZAAR_FINISH) {
             if (msg.startsWith("[Bazaar] Bought ")) {
                 LogUtils.sendDebug("[Visitors Macro] Bought item");
