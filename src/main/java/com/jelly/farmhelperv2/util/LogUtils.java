@@ -44,7 +44,10 @@ public class LogUtils {
     }
 
     public static void sendDebug(String message) {
-        if (lastDebugMessage != null && lastDebugMessage.equals(message)) return;
+        if (lastDebugMessage != null && lastDebugMessage.equals(message)) {
+            System.out.println("[Farm Helper] " + message + " (Duplicate message, not sending)");
+            return;
+        }
         if (FarmHelperConfig.debugMode && mc.thePlayer != null)
             sendLog(new ChatComponentText("§3§lFarm Helper §8» §7" + message));
         else

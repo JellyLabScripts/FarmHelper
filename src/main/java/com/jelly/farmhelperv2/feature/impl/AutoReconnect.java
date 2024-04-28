@@ -92,7 +92,7 @@ public class AutoReconnect implements IFeature {
         try {
             mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText("Reconnecting in " + LogUtils.formatTime(reconnectDelay.getRemainingTime())));
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtils.sendDebug("[Reconnect] Failed to close the channel. Probably not in game.");
         }
         state = State.CONNECTING;
         LogUtils.sendDebug("[Reconnect] Reconnecting to the server...");

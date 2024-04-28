@@ -432,9 +432,6 @@ public class MacroHandler {
     private boolean rewarpTeleport = false;
 
     public void onTickCheckTeleport() {
-        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent() || FailsafeManager.getInstance().getChooseEmergencyDelay().isScheduled()) {
-            return;
-        }
         checkForTeleport();
     }
 
@@ -477,7 +474,6 @@ public class MacroHandler {
                 }
             });
             beforeTeleportationPos = Optional.empty();
-            GameStateHandler.getInstance().scheduleNotMoving(750);
             rewarpTeleport = false;
         } else {
             if (System.currentTimeMillis() - MacroHandler.getInstance().getLastTpTry() > 5_000) {

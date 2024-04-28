@@ -23,14 +23,14 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
         switch (getCurrentState()) {
             case LEFT:
             case RIGHT: {
-                if ((GameStateHandler.getInstance().isLeftWalkable()) && getCurrentState() == State.LEFT) {
+                if (GameStateHandler.getInstance().isLeftWalkable() && getCurrentState() == State.LEFT) {
                     // Probably stuck in dirt, continue going left
                     setCurrentState(State.LEFT);
                     AntiStuck.getInstance().setDirectionBlockPos(BlockUtils.getRelativeBlockPos(0, 0, -1, getYaw()));
                     AntiStuck.getInstance().start();
                     return;
                 }
-                if ((GameStateHandler.getInstance().isRightWalkable()) && getCurrentState() == State.RIGHT) {
+                if (GameStateHandler.getInstance().isRightWalkable() && getCurrentState() == State.RIGHT) {
                     // Probably stuck in dirt, continue going right
                     setCurrentState(State.RIGHT);
                     AntiStuck.getInstance().setDirectionBlockPos(BlockUtils.getRelativeBlockPos(0, 0, -1, getYaw()));
@@ -99,11 +99,12 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                                 ).easeOutBack(true)
                         );
                     }
-                    KeyBindUtils.releaseAllExcept(FarmHelperConfig.holdLeftClickWhenChangingRow ? mc.gameSettings.keyBindAttack : null);
+                    KeyBindUtils.stopMovement(FarmHelperConfig.holdLeftClickWhenChangingRow);
                     setLayerY(mc.thePlayer.getPosition().getY());
                     changeState(State.NONE);
                 } else {
                     if (mc.thePlayer.onGround) {
+                        setLayerY(mc.thePlayer.getPosition().getY());
                         changeState(State.NONE);
                     } else {
                         GameStateHandler.getInstance().scheduleNotMoving();

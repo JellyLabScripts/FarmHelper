@@ -303,12 +303,17 @@ public class FailsafeManager {
                 PlayerUtils.closeScreen();
             }
             if (FarmHelperConfig.alwaysTeleportToGarden) {
-                MacroHandler.getInstance().triggerWarpGarden(true, true);
+                MacroHandler.getInstance().triggerWarpGarden(true, false);
+                MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.setSavedState(Optional.empty()));
             }
             restartMacroAfterFailsafeDelay.reset();
             Multithreading.schedule(() -> {
                 LogUtils.sendDebug("[Failsafe] Restarting the macro...");
-                MacroHandler.getInstance().enableMacro();
+                if (MacroHandler.getInstance().isCurrentMacroPaused()) {
+                    MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.setSavedState(Optional.empty()));
+                    MacroHandler.getInstance().resumeMacro();
+                } else
+                    MacroHandler.getInstance().enableMacro();
                 FailsafeManager.getInstance().setHadEmergency(false);
                 FailsafeManager.getInstance().getRestartMacroAfterFailsafeDelay().reset();
             }, FarmHelperConfig.alwaysTeleportToGarden ? 1_500 : 0, TimeUnit.MILLISECONDS);
@@ -345,7 +350,9 @@ public class FailsafeManager {
     public void restartMacroAfterDelay() {
         if (FarmHelperConfig.enableRestartAfterFailSafe) {
             MacroHandler.getInstance().pauseMacro();
+            MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.setSavedState(Optional.empty()));
             Multithreading.schedule(() -> {
+                if (!MacroHandler.getInstance().isMacroToggled()) return;
                 InventoryUtils.openInventory();
                 LogUtils.sendDebug("[Failsafe] Finished " + (triggeredFailsafe.map(failsafe -> (failsafe.getType().label + " ")).orElse("")) + "failsafe");
                 if (FarmHelperConfig.enableRestartAfterFailSafe) {

@@ -83,7 +83,20 @@ public class RotationFailsafe extends Failsafe {
         double yawDiff = Math.abs(packetYaw - playerYaw);
         double pitchDiff = Math.abs(packetPitch - playerPitch);
         if (FlyPathFinderExecutor.getInstance().isRunning() && (FlyPathFinderExecutor.getInstance().isTping() || FlyPathFinderExecutor.getInstance().getLastTpTime() + 100 > System.currentTimeMillis() || FlyPathFinderExecutor.getInstance().isRotationInCache((float) packetYaw, (float) packetPitch))) {
-            LogUtils.sendDebug("[Failsafe] Teleport packet received while Fly pathfinder is running. Ignoring");
+            LogUtils.sendDebug("tp: " + FlyPathFinderExecutor.getInstance().isTping() + " lastTpTime: " + (FlyPathFinderExecutor.getInstance().getLastTpTime() + 100 > System.currentTimeMillis()) + " isInCache: " + FlyPathFinderExecutor.getInstance().isRotationInCache((float) packetYaw, (float) packetPitch));
+            if (FlyPathFinderExecutor.getInstance().isTping()) {
+                LogUtils.sendDebug("[Failsafe] Rotation packet received while Fly pathfinder is teleporting. Ignoring");
+                return;
+            }
+            if (FlyPathFinderExecutor.getInstance().getLastTpTime() + 100 > System.currentTimeMillis()) {
+                LogUtils.sendDebug("[Failsafe] Rotation packet received while Fly pathfinder is waiting for teleport. Ignoring");
+                return;
+            }
+            if (FlyPathFinderExecutor.getInstance().isRotationInCache((float) packetYaw, (float) packetPitch)) {
+                LogUtils.sendDebug("[Failsafe] Rotation packet received while Fly pathfinder is in cache. Ignoring");
+                return;
+            }
+            LogUtils.sendDebug("[Failsafe] Rotation packet received while Fly pathfinder is running. Ignoring");
             return;
         }
         if (yawDiff == 360 && pitchDiff == 0) // prevents false checks
@@ -204,6 +217,7 @@ public class RotationFailsafe extends Failsafe {
                 if (!FarmHelperConfig.sendFailsafeMessage || Math.random() < 0.3) {
                     rotationCheckState = RotationCheckState.GO_BACK_START;
                     FailsafeManager.getInstance().scheduleRandomDelay(300, 600);
+                    break;
                 }
                 if (CustomFailsafeMessagesPage.customContinueMessages.isEmpty()) {
                     randomContinueMessage = FailsafeManager.getRandomContinueMessage();

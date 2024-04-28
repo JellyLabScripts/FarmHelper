@@ -93,7 +93,7 @@ public class LowerAvgBpsFailsafe extends Failsafe {
                 break;
             case WARP_BACK:
                 if (GameStateHandler.getInstance().inGarden()) {
-                    MacroHandler.getInstance().triggerWarpGarden(true, true);
+                    MacroHandler.getInstance().triggerWarpGarden(true, false);
                     FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                     lowerBPSState = LowerBPSState.END;
                 } else {
@@ -118,11 +118,6 @@ public class LowerAvgBpsFailsafe extends Failsafe {
                                         (float) (30 + Math.random() * 20 - 10))
                                 , (long) randomTime, null));
                 FailsafeManager.getInstance().stopFailsafes();
-                if (FarmHelperConfig.enableRestartAfterFailSafe) {
-                    MacroHandler.getInstance().pauseMacro();
-                } else {
-                    MacroHandler.getInstance().disableMacro();
-                }
                 FailsafeManager.getInstance().restartMacroAfterDelay();
                 break;
         }

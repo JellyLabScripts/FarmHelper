@@ -683,6 +683,7 @@ public class FarmHelperConfig extends Config {
             category = FAILSAFE, subcategory = "Restart After FailSafe",
             type = InfoType.INFO, size = 2
     )
+    public static boolean restartAfterFailSafeInfo;
 
     @Switch(
             name = "Always teleport to /warp garden after the failsafe",
@@ -1680,7 +1681,7 @@ public class FarmHelperConfig extends Config {
     @Slider(
             name = "Time between changing rows", category = DELAYS, subcategory = "Changing rows",
             description = "The minimum time to wait before changing rows (in milliseconds)",
-            min = 80, max = 2000
+            min = 0, max = 2000
     )
     public static float timeBetweenChangingRows = 400f;
     @Slider(
@@ -1802,10 +1803,10 @@ public class FarmHelperConfig extends Config {
     //<editor-fold desc="DEBUG">
     //<editor-fold desc="Debug">
 
-//    @KeyBind(
-//            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
-//    )
-//    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
+    @KeyBind(
+            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
+    )
+    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
 //    @KeyBind(
 //            name = "Debug Keybind 2", category = DEBUG
 //    )
@@ -2074,8 +2075,13 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-//        registerKeyBind(debugKeybind, () -> {
-//        });
+        registerKeyBind(debugKeybind, () -> {
+//            if (MacroHandler.getInstance().isCurrentMacroPaused()) {
+//                MacroHandler.getInstance().resumeMacro();
+//            } else {
+//                MacroHandler.getInstance().pauseMacro();
+//            }
+        });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
         registerKeyBind(enablePestsDestroyerKeyBind, () -> {

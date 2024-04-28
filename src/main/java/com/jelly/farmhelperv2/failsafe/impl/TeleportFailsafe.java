@@ -27,7 +27,6 @@ import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
-import java.util.Comparator;
 import java.util.Optional;
 
 public class TeleportFailsafe extends Failsafe {
@@ -90,18 +89,42 @@ public class TeleportFailsafe extends Failsafe {
 
         S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
         Vec3 currentPlayerPos = mc.thePlayer.getPositionVector();
-        Vec3 packetPlayerPos = new Vec3(packet.getX(), packet.getY(), packet.getZ());
+        Vec3 packetPlayerPos = new Vec3(
+                packet.getX() + (packet.func_179834_f().contains(S08PacketPlayerPosLook.EnumFlags.X) ? currentPlayerPos.xCoord : 0),
+                packet.getY() + (packet.func_179834_f().contains(S08PacketPlayerPosLook.EnumFlags.Y) ? currentPlayerPos.yCoord : 0),
+                packet.getZ() + (packet.func_179834_f().contains(S08PacketPlayerPosLook.EnumFlags.Z) ? currentPlayerPos.zCoord : 0)
+        );
+
         BlockPos packetPlayerBlockPos = new BlockPos(packetPlayerPos);
         if (currentPlayerPos.yCoord < 0) {
             LogUtils.sendDebug("[Failsafe] Player is below Y = 0. Ignoring");
             return;
         }
         if (FlyPathFinderExecutor.getInstance().isRunning() && (FlyPathFinderExecutor.getInstance().isTping() || FlyPathFinderExecutor.getInstance().getLastTpTime() + 100 > System.currentTimeMillis() || FlyPathFinderExecutor.getInstance().isPositionInCache(packetPlayerBlockPos))) {
+            LogUtils.sendDebug("tp: " + FlyPathFinderExecutor.getInstance().isTping() + " lastTpTime: " + (FlyPathFinderExecutor.getInstance().getLastTpTime() + 100 > System.currentTimeMillis()) + " isInCache: " + FlyPathFinderExecutor.getInstance().isPositionInCache(packetPlayerBlockPos));
+            if (FlyPathFinderExecutor.getInstance().isTping()) {
+                LogUtils.sendDebug("[Failsafe] Teleport packet received while Fly pathfinder is teleporting. Ignoring");
+                return;
+            }
+            if (FlyPathFinderExecutor.getInstance().getLastTpTime() + 100 > System.currentTimeMillis()) {
+                LogUtils.sendDebug("[Failsafe] Teleport packet received while Fly pathfinder is waiting for teleport. Ignoring");
+                return;
+            }
+            if (FlyPathFinderExecutor.getInstance().isPositionInCache(packetPlayerBlockPos)) {
+                LogUtils.sendDebug("[Failsafe] Teleport packet received while Fly pathfinder is in cache. Ignoring");
+                return;
+            }
             LogUtils.sendDebug("[Failsafe] Teleport packet received while Fly pathfinder is running. Ignoring");
             return;
         }
-        Comparator<Tuple<BlockPos, AbstractMacro.State>> comparator = Comparator.comparing(Tuple::getFirst, Comparator.reverseOrder());
-        Optional<Tuple<BlockPos, AbstractMacro.State>> lastWalkedPosition = lastWalkedPositions.stream().filter(pos -> pos.getFirst().equals(packetPlayerBlockPos)).min(comparator);
+        Optional<Tuple<BlockPos, AbstractMacro.State>> lastWalkedPosition = Optional.empty();
+        for (int i = lastWalkedPositions.size() - 1; i >= 0; i--) {
+            Tuple<BlockPos, AbstractMacro.State> pos = lastWalkedPositions.toArray(new Tuple[0])[i];
+            if (pos.getFirst().equals(packetPlayerBlockPos)) {
+                lastWalkedPosition = Optional.of(pos);
+                break;
+            }
+        }
         if (lastWalkedPosition.isPresent()) {
             if (packetPlayerPos.distanceTo(currentPlayerPos) < 1) {
                 LogUtils.sendDebug("[Failsafe] AntiStuck should trigger there. Ignoring");
@@ -113,8 +136,9 @@ public class TeleportFailsafe extends Failsafe {
                 LogUtils.sendFailsafeMessage("[Failsafe] You got lag backed into previous row! Fixing state", FailsafeNotificationsPage.tagEveryoneOnLagBackFailsafe);
                 if (FailsafeNotificationsPage.notifyOnLagBackFailsafe)
                     FailsafeUtils.getInstance().sendNotification("You got lag backed into previous row! Fixing state", TrayIcon.MessageType.WARNING);
+                Optional<Tuple<BlockPos, AbstractMacro.State>> finalLastWalkedPosition = lastWalkedPosition;
                 MacroHandler.getInstance().getCurrentMacro().ifPresent(macro -> {
-                    macro.setCurrentState(lastWalkedPosition.get().getSecond());
+                    macro.setCurrentState(finalLastWalkedPosition.get().getSecond());
                     long delay = (long) (1_500 + Math.random() * 1_000);
                     long delayBefore = Math.max(500, delay - 500);
                     macro.setBreakTime(delay, delayBefore);
@@ -335,7 +359,7 @@ public class TeleportFailsafe extends Failsafe {
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 break;
             case WARP_GARDEN:
-                MacroHandler.getInstance().triggerWarpGarden(true, true);
+                MacroHandler.getInstance().triggerWarpGarden(true, false);
                 teleportCheckState = TeleportCheckState.ROTATE_TO_POS_BEFORE_2;
                 FailsafeManager.getInstance().scheduleRandomDelay(3000, 1000);
                 break;

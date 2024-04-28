@@ -236,7 +236,7 @@ public class KnockbackFailsafe extends Failsafe {
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 break;
             case WARP_GARDEN:
-                MacroHandler.getInstance().triggerWarpGarden(true, true);
+                MacroHandler.getInstance().triggerWarpGarden(true, false);
                 knockbackCheckState = KnockbackCheckState.ROTATE_TO_POS_BEFORE_2;
                 FailsafeManager.getInstance().scheduleRandomDelay(3000, 1000);
                 break;

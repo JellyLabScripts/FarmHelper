@@ -237,11 +237,18 @@ public abstract class AbstractMacro {
         // Update or invoke state, based on if player is moving or not
         if (GameStateHandler.getInstance().canChangeDirection()) {
             KeyBindUtils.stopMovement(FarmHelperConfig.holdLeftClickWhenChangingRow);
-            GameStateHandler.getInstance().scheduleNotMoving();
+            if (getCurrentState().equals(State.DROPPING) && !mc.thePlayer.onGround) {
+                return;
+            }
             updateState();
+            if (getCurrentState() == State.NONE) {
+                return;
+            }
+            GameStateHandler.getInstance().setUpdatedState(true);
         } else {
-            if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75 && mc.thePlayer.posY < 80) {
+            if (!mc.thePlayer.onGround && Math.abs(layerY - mc.thePlayer.posY) > 0.75 && mc.thePlayer.posY < 80 && !getCurrentState().equals(State.DROPPING)) {
                 changeState(State.DROPPING);
+                GameStateHandler.getInstance().setUpdatedState(true);
                 GameStateHandler.getInstance().scheduleNotMoving();
             }
             invokeState();
@@ -295,8 +302,7 @@ public abstract class AbstractMacro {
             setClosest90Deg(savedState.get().getClosest90Deg());
             restoredState = true;
             savedState = Optional.empty();
-        } else if (currentState == State.NONE || currentState == null) {
-            changeState(calculateDirection());
+            GameStateHandler.getInstance().setUpdatedState(true);
         }
         if (!closest90Deg.isPresent())
             setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));

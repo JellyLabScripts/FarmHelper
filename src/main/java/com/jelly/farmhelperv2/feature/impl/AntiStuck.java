@@ -228,7 +228,7 @@ public class AntiStuck implements IFeature {
                     KeyBindUtils.stopMovement();
                     stop();
                     unstuckTries = 0;
-                    MacroHandler.getInstance().triggerWarpGarden(true, true);
+                    MacroHandler.getInstance().triggerWarpGarden(true, false);
                     return;
                 }
                 if (intersectingBlockPos == null && directionBlockPos == null) {

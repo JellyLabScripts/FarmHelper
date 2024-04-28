@@ -113,6 +113,8 @@ public class GameStateHandler {
     private Optional<Integer> serverClosingSeconds = Optional.empty();
     @Getter
     private int speed = 0;
+    @Setter
+    private boolean updatedState = false;
 
     public static GameStateHandler getInstance() {
         if (INSTANCE == null) {
@@ -213,7 +215,7 @@ public class GameStateHandler {
     }
 
     @SubscribeEvent
-    public void onTick(TickEvent.PlayerTickEvent event) {
+    public void onTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) return;
         if (mc.theWorld == null || mc.thePlayer == null) {
             return;
@@ -526,12 +528,14 @@ public class GameStateHandler {
                         randomValueToWaitNextTime = -1;
                         notMovingTimer.reset();
                         randomValueToWait = FarmHelperConfig.getRandomTimeBetweenChangingRows();
+                        updatedState = false;
                     }
                 }
             }
         } else {
             notMovingTimer.schedule();
         }
+
         float yaw;
         if (MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().isPresent()) {
             yaw = MacroHandler.getInstance().getCurrentMacro().get().getClosest90Deg().get();
@@ -545,6 +549,7 @@ public class GameStateHandler {
             frontWalkable = BlockUtils.canWalkThroughDoor(BlockUtils.Direction.FORWARD) && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, 1, yaw), BlockUtils.Direction.FORWARD);
             backWalkable = BlockUtils.canWalkThroughDoor(BlockUtils.Direction.BACKWARD) && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(0, 0, -1, yaw), BlockUtils.Direction.BACKWARD);
         }
+
         rightWalkable = BlockUtils.canWalkThroughDoor(BlockUtils.Direction.RIGHT) && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(1, 0, 0, yaw), BlockUtils.Direction.RIGHT);
         leftWalkable = BlockUtils.canWalkThroughDoor(BlockUtils.Direction.LEFT) && BlockUtils.canWalkThrough(BlockUtils.getRelativeBlockPos(-1, 0, 0, yaw), BlockUtils.Direction.LEFT);
     }
@@ -589,7 +594,7 @@ public class GameStateHandler {
     }
 
     public boolean notMoving() {
-        if ((dx < 0.01 && dz < 0.01 && dyIsRest() && mc.currentScreen == null)) {
+        if (dx < 0.01 && dz < 0.01 && dyIsRest() && mc.currentScreen == null) {
             return true;
         }
         return !holdingKeybindIsWalkable() && (playerIsInFlowingWater(0) || playerIsInFlowingWater(1)) && mc.thePlayer.isInWater();
@@ -625,7 +630,7 @@ public class GameStateHandler {
     }
 
     public boolean canChangeDirection() {
-        return !notMovingTimer.isScheduled();
+        return !updatedState && !notMovingTimer.isScheduled();
     }
 
     public void scheduleNotMoving(int time) {

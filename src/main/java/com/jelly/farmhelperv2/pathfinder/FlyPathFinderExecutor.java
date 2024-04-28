@@ -186,11 +186,11 @@ public class FlyPathFinderExecutor {
     }
 
     public boolean isRotationInCache(float yaw, float pitch) {
-        return lastPositions.stream().anyMatch(position -> Math.abs(position.rotation.getYaw() - yaw) < 1 && Math.abs(position.rotation.getPitch() - pitch) < 1);
+        return lastPositions.stream().anyMatch(position -> position.pos.distanceSq(mc.thePlayer.getPosition()) <= 1 && Math.abs(position.rotation.getYaw() - yaw) < 1 && Math.abs(position.rotation.getPitch() - pitch) < 1);
     }
 
     public boolean isPositionInCache(BlockPos pos) {
-        return lastPositions.stream().anyMatch(position -> position.pos.equals(pos) || Math.sqrt(position.pos.distanceSq(pos)) < 1);
+        return lastPositions.stream().anyMatch(position -> position.pos.equals(pos));
     }
 
     private List<Vec3> smoothPath(List<Vec3> path) {
@@ -426,20 +426,27 @@ public class FlyPathFinderExecutor {
 
             if (!this.dontRotate) {
                 Vec3 lastElement = path.get(Math.max(0, path.size() - 1));
-                if (mc.thePlayer.getPositionVector().distanceTo(lastElement) > 2 && target.getTarget().isPresent()) {
+                Rotation rot = RotationHandler.getInstance().getRotation(target.getTarget().get());
+                if (mc.thePlayer.getPositionVector().distanceTo(lastElement) > 2 && target.getTarget().isPresent() && RotationHandler.getInstance().shouldRotate(rot, 5)) {
                     RotationHandler.getInstance().easeTo(new RotationConfiguration(
-                            target,
-                            (long) (600 + Math.random() * 300),
+                            rot,
+                            (long) (500 + Math.random() * 300),
                             null
-                    ).randomness(true));
+                    ));
                 }
             }
 
-            if (FarmHelperConfig.useAoteVInPestsDestroyer && tped && useAOTV && aotvDely.passed() && mc.thePlayer.getDistance(next.xCoord, mc.thePlayer.getPositionVector().yCoord, next.zCoord) > 7.5 && !RotationHandler.getInstance().isRotating() && isFrontClean(target.getTarget().get())) {
+
+            if (aotvDely.isScheduled() && !tped && System.currentTimeMillis() - aotvDely.getEndTime() > 1_500) {
+                tped = true;
+                aotvDely.reset();
+            }
+
+            if (FarmHelperConfig.useAoteVInPestsDestroyer && tped && useAOTV && aotvDely.passed() && mc.thePlayer.getDistance(next.xCoord, mc.thePlayer.getPositionVector().yCoord, next.zCoord) > 7.5 && !RotationHandler.getInstance().isRotating() && isFrontClean()) {
                 int aotv = InventoryUtils.getSlotIdOfItemInHotbar("Aspect of the Void", "Aspect of the End");
                 if (aotv != mc.thePlayer.inventory.currentItem) {
                     mc.thePlayer.inventory.currentItem = aotv;
-                    aotvDely.schedule(180);
+                    aotvDely.schedule(150);
                 } else {
                     KeyBindUtils.rightClick();
                     tped = false;
@@ -505,16 +512,13 @@ public class FlyPathFinderExecutor {
     public void onTeleportPacket(ReceivePacketEvent event) {
         if (!isRunning()) return;
         if (event.packet instanceof S08PacketPlayerPosLook) {
-            S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.packet;
-            if (packet.func_179834_f().contains(S08PacketPlayerPosLook.EnumFlags.X) || packet.func_179834_f().contains(S08PacketPlayerPosLook.EnumFlags.Y) || packet.func_179834_f().contains(S08PacketPlayerPosLook.EnumFlags.Z)) {
-                tped = true;
-                lastTpTime = System.currentTimeMillis();
-            }
+            tped = true;
+            lastTpTime = System.currentTimeMillis();
         }
     }
 
-    private boolean isFrontClean(Vec3 target) {
-        Vec3 direction = target.subtract(mc.thePlayer.getPositionVector()).normalize();
+    private boolean isFrontClean() {
+        Vec3 direction = mc.thePlayer.getLookVec();
         Vec3 tpPosition = mc.thePlayer.getPositionEyes(1).addVector(direction.xCoord * 10, direction.yCoord * 10, direction.zCoord * 10);
         MovingObjectPosition mop = mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionVector(), tpPosition, false, true, false);
         return mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK;

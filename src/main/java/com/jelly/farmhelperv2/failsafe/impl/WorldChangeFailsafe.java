@@ -163,7 +163,7 @@ public class WorldChangeFailsafe extends Failsafe {
                     return;
                 } else if (!LagDetector.getInstance().isLagging()) {
                     LogUtils.sendDebug("[Failsafe] Sending /warp garden command...");
-                    MacroHandler.getInstance().triggerWarpGarden(true, true);
+                    MacroHandler.getInstance().triggerWarpGarden(true, false);
                     FailsafeManager.getInstance().scheduleRandomDelay(8500, 1000);
                 }
                 break;

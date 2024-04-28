@@ -423,13 +423,13 @@ public class PestsDestroyer implements IFeature {
                     delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
                     break;
                 }
-                if (!InventoryUtils.isInventoryLoaded()) return;
+                if (!InventoryUtils.isInventoryLoaded()) break;
                 if (chestName == null || !chestName.equals("Desk")) {
                     break;
                 }
                 Slot configurePlots = InventoryUtils.getSlotOfItemInContainer("Configure Plots");
                 if (configurePlots == null) {
-                    return;
+                    break;
                 }
                 state = States.WAIT_FOR_INFO;
                 InventoryUtils.clickContainerSlot(configurePlots.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
@@ -1296,7 +1296,6 @@ public class PestsDestroyer implements IFeature {
             }
 
         } else {
-            checkedThisGui = true;
             return;
         }
         needToUpdatePlots = false;
