@@ -2076,11 +2076,11 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
         registerKeyBind(debugKeybind, () -> {
-//            if (MacroHandler.getInstance().isCurrentMacroPaused()) {
-//                MacroHandler.getInstance().resumeMacro();
-//            } else {
-//                MacroHandler.getInstance().pauseMacro();
-//            }
+            if (MacroHandler.getInstance().isCurrentMacroPaused()) {
+                MacroHandler.getInstance().resumeMacro();
+            } else {
+                MacroHandler.getInstance().pauseMacro();
+            }
         });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
