@@ -27,7 +27,7 @@ import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.Optional;
 
 public class TeleportFailsafe extends Failsafe {
@@ -100,7 +100,8 @@ public class TeleportFailsafe extends Failsafe {
             LogUtils.sendDebug("[Failsafe] Teleport packet received while Fly pathfinder is running. Ignoring");
             return;
         }
-        Optional<Tuple<BlockPos, AbstractMacro.State>> lastWalkedPosition = lastWalkedPositions.stream().filter(pos -> pos.getFirst().equals(packetPlayerBlockPos)).min(Collections.reverseOrder());
+        Comparator<Tuple<BlockPos, AbstractMacro.State>> comparator = Comparator.comparing(Tuple::getFirst, Comparator.reverseOrder());
+        Optional<Tuple<BlockPos, AbstractMacro.State>> lastWalkedPosition = lastWalkedPositions.stream().filter(pos -> pos.getFirst().equals(packetPlayerBlockPos)).min(comparator);
         if (lastWalkedPosition.isPresent()) {
             if (packetPlayerPos.distanceTo(currentPlayerPos) < 1) {
                 LogUtils.sendDebug("[Failsafe] AntiStuck should trigger there. Ignoring");

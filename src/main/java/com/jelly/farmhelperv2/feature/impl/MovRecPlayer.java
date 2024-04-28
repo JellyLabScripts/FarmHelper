@@ -213,9 +213,7 @@ public class MovRecPlayer implements IFeature {
         IFeature.super.stop();
         if (isRunning()) {
             LogUtils.sendDebug("[Movement Recorder] Playing has been stopped.");
-            return;
         }
-        LogUtils.sendDebug("[Movement Recorder] No recording has been started.");
     }
 
     @SubscribeEvent
@@ -235,8 +233,8 @@ public class MovRecPlayer implements IFeature {
         if (!MacroHandler.getInstance().isMacroToggled()) {
             if (isRunning()) {
                 LogUtils.sendDebug("[Movement Recorder] Macro has been disabled. Stopping playing.");
-                stop();
             }
+            stop();
             resetStatesAfterMacroDisabled();
             return;
         }
@@ -267,8 +265,8 @@ public class MovRecPlayer implements IFeature {
         currentDelay = 0;
         if (playingIndex >= movements.size()) {
             isMovementPlaying = false;
-            resetTimers();
             LogUtils.sendDebug("[Movement Recorder] Playing has been finished.");
+            stop();
             resetStatesAfterMacroDisabled();
         }
     }

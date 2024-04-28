@@ -71,9 +71,10 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="GENERAL">
     @Info(
-            text = "Remember! In any gui related features, such as Auto God Pot, Auto Cookie, Auto Repellent, don't lock hotbar slot 7",
+            text = "DO NOT lock slot 7 in the hotbar if you're using any gui related features, such as Auto God Pot, Auto Cookie, Auto Repellent",
             category = GENERAL,
-            type = InfoType.INFO
+            type = InfoType.WARNING,
+            size = 2
     )
     public static boolean guiInfo;
 
@@ -1800,11 +1801,12 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="DEBUG">
     //<editor-fold desc="Debug">
-    @KeyBind(
-            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
-    )
-    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
-    //    @KeyBind(
+
+//    @KeyBind(
+//            name = "Debug Keybind", category = DEBUG, subcategory = "Debug"
+//    )
+//    public static OneKeyBind debugKeybind = new OneKeyBind(Keyboard.KEY_NONE);
+//    @KeyBind(
 //            name = "Debug Keybind 2", category = DEBUG
 //    )
 //    public static OneKeyBind debugKeybind2 = new OneKeyBind(Keyboard.KEY_H);
@@ -2072,8 +2074,8 @@ public class FarmHelperConfig extends Config {
 
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
-        registerKeyBind(debugKeybind, () -> {
-        });
+//        registerKeyBind(debugKeybind, () -> {
+//        });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
         registerKeyBind(enablePestsDestroyerKeyBind, () -> {

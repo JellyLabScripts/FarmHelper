@@ -8,6 +8,7 @@ import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.failsafe.impl.GuestVisitFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.feature.FeatureManager;
+import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -123,6 +124,9 @@ public class DebugHUD extends TextHud {
         }
         if (!FeatureManager.getInstance().getCurrentRunningFeatures().isEmpty()) {
             lines.add("Blocking Main Thread: " + FeatureManager.getInstance().getPauseExecutionFeatures().size());
+            for (IFeature feature : FeatureManager.getInstance().getPauseExecutionFeatures()) {
+                lines.add("   " + feature.getName());
+            }
             lines.add("Running Features:");
             FeatureManager.getInstance().getCurrentRunningFeatures().forEach(feature -> lines.add("   " + feature.getName()));
         }
