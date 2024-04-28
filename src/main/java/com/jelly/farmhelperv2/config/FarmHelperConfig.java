@@ -11,7 +11,6 @@ import com.jelly.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
-import com.jelly.farmhelperv2.failsafe.impl.EvacuateFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -485,12 +484,12 @@ public class FarmHelperConfig extends Config {
         }
         LogUtils.sendWarning("Testing failsafe...");
         PlayerUtils.closeScreen();
-        if (testFailsafeTypeSelected == 0)
+        if (testFailsafeTypeSelected == 0) {
             FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected));
-        else if (testFailsafeTypeSelected != 6)
+            return;
+        } else if (testFailsafeTypeSelected != 6)
             LowerAvgBpsFailsafe.getInstance().clearQueue(); // Clear the queue to avoid false positives
-        else
-            FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected + 2));
+        FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected + 2));
     };
 
     @Dropdown(
@@ -505,6 +504,7 @@ public class FarmHelperConfig extends Config {
                     "Guest Visit",
                     "Item Change Check",
                     "Jacob",
+                    "Knockback Check",
                     "Lower Average Bps",
                     "Rotation Check",
                     "Teleport Check",
@@ -2073,8 +2073,6 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
         registerKeyBind(debugKeybind, () -> {
-
-            FailsafeManager.getInstance().possibleDetection(EvacuateFailsafe.getInstance());
         });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());

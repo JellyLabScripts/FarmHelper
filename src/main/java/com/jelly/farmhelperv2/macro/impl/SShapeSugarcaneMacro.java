@@ -126,6 +126,7 @@ public class SShapeSugarcaneMacro extends AbstractMacro {
         rowStartZ = mc.thePlayer.posZ;
         if (MacroHandler.getInstance().isTeleporting()) return;
         setRestoredState(false);
+        if (FarmHelperConfig.dontFixAfterWarping && Math.abs(getYaw() - AngleUtils.get360RotationYaw()) < 0.1) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),

@@ -234,6 +234,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
         }
         setRestoredState(false);
         if (MacroHandler.getInstance().isTeleporting()) return;
+        if (FarmHelperConfig.dontFixAfterWarping && Math.abs(getYaw() - AngleUtils.get360RotationYaw()) < 0.1) return;
         getRotation().easeTo(
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),
