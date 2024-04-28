@@ -115,8 +115,6 @@ public class GameStateHandler {
     private int speed = 0;
     @Setter
     private boolean updatedState = false;
-    @Setter
-    private boolean startedMoving = false;
 
     public static GameStateHandler getInstance() {
         if (INSTANCE == null) {
@@ -522,7 +520,7 @@ public class GameStateHandler {
         dz = Math.abs(mc.thePlayer.motionZ);
 
         if (notMoving() && mc.currentScreen == null) {
-            if (startedMoving && hasPassedSinceStopped() && !PlayerUtils.isStandingOnRewarpLocation()) {
+            if (hasPassedSinceStopped() && !PlayerUtils.isStandingOnRewarpLocation()) {
                 if (DirtFailsafe.getInstance().hasDirtBlocks() && DirtFailsafe.getInstance().isTouchingDirtBlock()) {
                     FailsafeManager.getInstance().possibleDetection(DirtFailsafe.getInstance());
                 } else {
@@ -535,7 +533,6 @@ public class GameStateHandler {
                 }
             }
         } else {
-            startedMoving = true;
             notMovingTimer.schedule();
         }
 
