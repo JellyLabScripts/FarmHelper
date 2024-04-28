@@ -82,8 +82,8 @@ public class RotationFailsafe extends Failsafe {
         double playerPitch = mc.thePlayer.rotationPitch;
         double yawDiff = Math.abs(packetYaw - playerYaw);
         double pitchDiff = Math.abs(packetPitch - playerPitch);
+        LogUtils.sendDebug("tp: " + FlyPathFinderExecutor.getInstance().isTping() + " lastTpTime: " + (FlyPathFinderExecutor.getInstance().getLastTpTime() + 100 > System.currentTimeMillis()) + " isInCache: " + FlyPathFinderExecutor.getInstance().isRotationInCache((float) packetYaw, (float) packetPitch));
         if (FlyPathFinderExecutor.getInstance().isRunning() && (FlyPathFinderExecutor.getInstance().isTping() || FlyPathFinderExecutor.getInstance().getLastTpTime() + 100 > System.currentTimeMillis() || FlyPathFinderExecutor.getInstance().isRotationInCache((float) packetYaw, (float) packetPitch))) {
-            LogUtils.sendDebug("tp: " + FlyPathFinderExecutor.getInstance().isTping() + " lastTpTime: " + (FlyPathFinderExecutor.getInstance().getLastTpTime() + 100 > System.currentTimeMillis()) + " isInCache: " + FlyPathFinderExecutor.getInstance().isRotationInCache((float) packetYaw, (float) packetPitch));
             if (FlyPathFinderExecutor.getInstance().isTping()) {
                 LogUtils.sendDebug("[Failsafe] Rotation packet received while Fly pathfinder is teleporting. Ignoring");
                 return;

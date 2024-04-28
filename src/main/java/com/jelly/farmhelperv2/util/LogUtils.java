@@ -45,7 +45,6 @@ public class LogUtils {
 
     public static void sendDebug(String message) {
         if (lastDebugMessage != null && lastDebugMessage.equals(message)) {
-            System.out.println("[Farm Helper] " + message + " (Duplicate message, not sending)");
             return;
         }
         if (FarmHelperConfig.debugMode && mc.thePlayer != null)

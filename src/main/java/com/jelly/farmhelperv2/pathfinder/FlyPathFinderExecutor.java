@@ -427,7 +427,7 @@ public class FlyPathFinderExecutor {
             if (!this.dontRotate) {
                 Vec3 lastElement = path.get(Math.max(0, path.size() - 1));
                 Rotation rot = RotationHandler.getInstance().getRotation(target.getTarget().get());
-                if (mc.thePlayer.getPositionVector().distanceTo(lastElement) > 2 && target.getTarget().isPresent() && RotationHandler.getInstance().shouldRotate(rot, 5)) {
+                if (mc.thePlayer.getPositionVector().distanceTo(lastElement) > 2 && target.getTarget().isPresent() && RotationHandler.getInstance().shouldRotate(rot, 3)) {
                     RotationHandler.getInstance().easeTo(new RotationConfiguration(
                             rot,
                             (long) (500 + Math.random() * 300),
@@ -442,7 +442,7 @@ public class FlyPathFinderExecutor {
                 aotvDely.reset();
             }
 
-            if (FarmHelperConfig.useAoteVInPestsDestroyer && tped && useAOTV && aotvDely.passed() && mc.thePlayer.getDistance(next.xCoord, mc.thePlayer.getPositionVector().yCoord, next.zCoord) > 7.5 && !RotationHandler.getInstance().isRotating() && isFrontClean()) {
+            if (FarmHelperConfig.useAoteVInPestsDestroyer && tped && useAOTV && aotvDely.passed() && mc.thePlayer.getDistance(next.xCoord, mc.thePlayer.getPositionVector().yCoord, next.zCoord) > 12 && !RotationHandler.getInstance().isRotating() && isFrontClean()) {
                 int aotv = InventoryUtils.getSlotIdOfItemInHotbar("Aspect of the Void", "Aspect of the End");
                 if (aotv != mc.thePlayer.inventory.currentItem) {
                     mc.thePlayer.inventory.currentItem = aotv;
@@ -450,7 +450,6 @@ public class FlyPathFinderExecutor {
                 } else {
                     KeyBindUtils.rightClick();
                     tped = false;
-                    aotvDely.schedule(150 + Math.random() * 100);
                 }
             }
         }
@@ -508,12 +507,18 @@ public class FlyPathFinderExecutor {
             KeyBindUtils.stopMovement(true);
     }
 
-    @SubscribeEvent(priority = EventPriority.LOW)
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onTeleportPacket(ReceivePacketEvent event) {
         if (!isRunning()) return;
         if (event.packet instanceof S08PacketPlayerPosLook) {
-            tped = true;
-            lastTpTime = System.currentTimeMillis();
+            System.out.println("Tped");
+            Multithreading.schedule(() -> {
+                if (isRunning()) {
+                    aotvDely.schedule(150 + Math.random() * 100);
+                    tped = true;
+                    lastTpTime = System.currentTimeMillis();
+                }
+            }, 50, TimeUnit.MILLISECONDS);
         }
     }
 

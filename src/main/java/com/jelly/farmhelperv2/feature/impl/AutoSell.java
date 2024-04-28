@@ -254,6 +254,7 @@ public class AutoSell implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     return;
                 }
+                if (!InventoryUtils.isInventoryLoaded()) break;
                 int sacksSlot;
                 if (FarmHelperConfig.autoSellSacksPlacement) {
                     if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Sacks")) {
@@ -296,6 +297,7 @@ public class AutoSell implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     return;
                 }
+                if (!InventoryUtils.isInventoryLoaded()) break;
                 if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Enchanted Agronomy Sack")) {
                     LogUtils.sendDebug("[Auto Sell] Wrong menu detected!");
                     PlayerUtils.closeScreen();
@@ -366,6 +368,7 @@ public class AutoSell implements IFeature {
                         if (mc.currentScreen == null) {
                             break;
                         }
+                        if (!InventoryUtils.isInventoryLoaded()) break;
                         if (InventoryUtils.getInventoryName() == null || !InventoryUtils.getInventoryName().contains("Bazaar")) {
                             break;
                         }
@@ -397,6 +400,7 @@ public class AutoSell implements IFeature {
                         break;
                     case SELL_INV_CONFIRM:
                         if (mc.currentScreen == null) return;
+                        if (!InventoryUtils.isInventoryLoaded()) break;
                         if (InventoryUtils.getInventoryName() == null || !InventoryUtils.getInventoryName().contains("Are you sure?")) {
                             break;
                         }
@@ -448,15 +452,15 @@ public class AutoSell implements IFeature {
                             break;
                         }
                         setNpcState(NPCState.OPEN_MENU);
+                        LogUtils.sendDebug("[Auto Sell] Opening Trades menu");
+                        mc.thePlayer.sendChatMessage("/trades");
+                        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                         break;
                     case OPEN_MENU:
                         if (mc.currentScreen == null) {
-                            LogUtils.sendDebug("[Auto Sell] Opening Trades menu");
-                            mc.thePlayer.sendChatMessage("/trades");
-                            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                            setNpcState(NPCState.SELL);
                             break;
                         }
+                        if (!InventoryUtils.isInventoryLoaded()) break;
                         if (InventoryUtils.getInventoryName() == null) {
                             break;
                         }
@@ -469,20 +473,15 @@ public class AutoSell implements IFeature {
                         LogUtils.sendDebug("[Auto Sell] Detected wrong menu, closing it");
                         PlayerUtils.closeScreen();
                         delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                        setNpcState(NPCState.OPEN_MENU);
+                        setNpcState(NPCState.NONE);
                         break;
                     case SELL:
                         if (mc.currentScreen == null) {
                             delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                             break;
                         }
-                        if (InventoryUtils.getInventoryName() != null && !InventoryUtils.getInventoryName().contains("Trades")) {
-                            LogUtils.sendDebug("[Auto Sell] Wrong menu detected!");
-                            PlayerUtils.closeScreen();
-                            delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-                            setNpcState(NPCState.OPEN_MENU);
-                            break;
-                        } else if (InventoryUtils.getInventoryName() == null) {
+                        if (!InventoryUtils.isInventoryLoaded()) break;
+                        if (InventoryUtils.getInventoryName() == null || !InventoryUtils.getInventoryName().contains("Trades")) {
                             break;
                         }
 
