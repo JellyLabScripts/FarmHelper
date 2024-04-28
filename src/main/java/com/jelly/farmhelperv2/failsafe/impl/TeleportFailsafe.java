@@ -100,8 +100,8 @@ public class TeleportFailsafe extends Failsafe {
             LogUtils.sendDebug("[Failsafe] Player is below Y = 0. Ignoring");
             return;
         }
-        LogUtils.sendDebug("tp: " + FlyPathFinderExecutor.getInstance().isTping() + " lastTpTime: " + (FlyPathFinderExecutor.getInstance().getLastTpTime() + 100 > System.currentTimeMillis()) + " isInCache: " + FlyPathFinderExecutor.getInstance().isPositionInCache(packetPlayerBlockPos));
-        if (FlyPathFinderExecutor.getInstance().isRunning() && (FlyPathFinderExecutor.getInstance().isTping() || FlyPathFinderExecutor.getInstance().getLastTpTime() + 100 > System.currentTimeMillis() || FlyPathFinderExecutor.getInstance().isPositionInCache(packetPlayerBlockPos))) {
+        LogUtils.sendDebug("tp: " + FlyPathFinderExecutor.getInstance().isTping() + " lastTpTime: " + FlyPathFinderExecutor.getInstance().hasJustTped() + " isInCache: " + FlyPathFinderExecutor.getInstance().isPositionInCache(packetPlayerBlockPos));
+        if (FlyPathFinderExecutor.getInstance().isRunning() && (FlyPathFinderExecutor.getInstance().isTping() || FlyPathFinderExecutor.getInstance().hasJustTped() || FlyPathFinderExecutor.getInstance().isPositionInCache(packetPlayerBlockPos))) {
             if (FlyPathFinderExecutor.getInstance().isTping()) {
                 LogUtils.sendDebug("[Failsafe] Teleport packet received while Fly pathfinder is teleporting. Ignoring");
                 return;

@@ -436,12 +436,6 @@ public class FlyPathFinderExecutor {
                 }
             }
 
-
-            if (aotvDely.isScheduled() && !tped && System.currentTimeMillis() - aotvDely.getEndTime() > 1_500) {
-                tped = true;
-                aotvDely.reset();
-            }
-
             if (FarmHelperConfig.useAoteVInPestsDestroyer && tped && useAOTV && aotvDely.passed() && mc.thePlayer.getDistance(next.xCoord, mc.thePlayer.getPositionVector().yCoord, next.zCoord) > 12 && !RotationHandler.getInstance().isRotating() && isFrontClean()) {
                 int aotv = InventoryUtils.getSlotIdOfItemInHotbar("Aspect of the Void", "Aspect of the End");
                 if (aotv != mc.thePlayer.inventory.currentItem) {
@@ -450,6 +444,7 @@ public class FlyPathFinderExecutor {
                 } else {
                     KeyBindUtils.rightClick();
                     tped = false;
+                    lastTpTime = System.currentTimeMillis();
                 }
             }
         }
@@ -516,10 +511,13 @@ public class FlyPathFinderExecutor {
                 if (isRunning()) {
                     aotvDely.schedule(150 + Math.random() * 100);
                     tped = true;
-                    lastTpTime = System.currentTimeMillis();
                 }
             }, 50, TimeUnit.MILLISECONDS);
         }
+    }
+
+    public boolean hasJustTped() {
+        return lastTpTime + 150 > System.currentTimeMillis();
     }
 
     private boolean isFrontClean() {
