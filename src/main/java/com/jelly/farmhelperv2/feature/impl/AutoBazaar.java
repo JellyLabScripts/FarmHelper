@@ -372,6 +372,7 @@ public class AutoBazaar implements IFeature {
                     System.out.println("Max spend limit: " + this.maxSpendLimit);
                     foundPrice = true;
                     if (this.maxSpendLimit > 0 && amount > this.maxSpendLimit) {
+                        LogUtils.sendError("[Auto Bazaar] Declining to buy due to exceeding the price limit. Item price: " + amount + ", limit: " + this.maxSpendLimit);
                         log("Attempting to spend more than allowed. Price: " + amount + ", limit: " + this.maxSpendLimit);
                         log("Disabling.");
                         this.wasManipulated = true;
