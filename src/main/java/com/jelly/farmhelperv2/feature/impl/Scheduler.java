@@ -113,7 +113,7 @@ public class Scheduler implements IFeature {
 
     public void resume() {
         LogUtils.sendDebug("[Scheduler] Resuming");
-        if (FarmHelperConfig.pauseSchedulerDuringJacobsContest && !GameStateHandler.getInstance().inJacobContest())
+        if (!FarmHelperConfig.pauseSchedulerDuringJacobsContest || !GameStateHandler.getInstance().inJacobContest())
             schedulerClock.resume();
     }
 

@@ -303,6 +303,8 @@ public abstract class AbstractMacro {
             restoredState = true;
             savedState = Optional.empty();
             GameStateHandler.getInstance().setUpdatedState(true);
+            float randomTime = FarmHelperConfig.getRandomTimeBetweenChangingRows();
+            GameStateHandler.getInstance().scheduleNotMoving((int) Math.max(randomTime, 150));
         }
         if (!closest90Deg.isPresent())
             setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
