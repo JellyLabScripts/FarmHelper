@@ -41,10 +41,10 @@ public class AutoUpdaterGUI extends GuiScreen {
     private static final int READ_TIMEOUT = 10000;
     public static boolean checkedForUpdates = false;
     public static boolean isOutdated = false;
-    private static boolean shownGui = false;
-    private static String latestVersion = "";
+    public static boolean shownGui = false;
+    public static String latestVersion = "";
     private static List<String> releaseMessage = new ArrayList<>();
-    private static List<String> previousReleasesMessage = new ArrayList<>();
+    private static final List<String> previousReleasesMessage = new ArrayList<>();
     private static List<String> splitReleaseMessage = new ArrayList<>();
     private static String downloadURL = null;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();

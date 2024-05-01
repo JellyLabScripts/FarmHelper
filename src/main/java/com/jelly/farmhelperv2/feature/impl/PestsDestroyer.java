@@ -438,7 +438,12 @@ public class PestsDestroyer implements IFeature {
             case WAIT_FOR_INFO:
                 break;
             case TELEPORT_TO_PLOT:
-                PlotUtils.Plot plot = getClosestPlot();
+                PlotUtils.Plot plot;
+                if (FarmHelperConfig.dontTeleportToPlots) {
+                    plot = PlotUtils.getPlotBasedOnNumber(4);
+                } else {
+                    plot = getClosestPlot();
+                }
                 if (plot == null) {
                     state = States.GO_BACK;
                     delayClock.schedule((long) (500 + Math.random() * 500));
@@ -459,42 +464,11 @@ public class PestsDestroyer implements IFeature {
                     state = States.IDLE;
                     break;
                 }
-                if (!mc.thePlayer.getPosition().equals(preTpBlockPos.get())) {
-                    Block northWest = BlockUtils.getRelativeBlock(-0.3f, 0, -0.3f);
-                    Block northWestTop = BlockUtils.getRelativeBlock(-0.3f, 1, -0.3f);
-
-                    Block northEast = BlockUtils.getRelativeBlock(0.3f, 0, -0.3f);
-                    Block northEastTop = BlockUtils.getRelativeBlock(0.3f, 1, -0.3f);
-
-                    Block southWest = BlockUtils.getRelativeBlock(-0.3f, 0, 0.3f);
-                    Block southWestTop = BlockUtils.getRelativeBlock(-0.3f, 1, 0.3f);
-
-                    Block southEast = BlockUtils.getRelativeBlock(0.3f, 0, 0.3f);
-                    Block southEastTop = BlockUtils.getRelativeBlock(0.3f, 1, 0.3f);
-
-                    if (!northWest.isCollidable() && !northWestTop.isCollidable()
-                            && !northEast.isCollidable() && !northEastTop.isCollidable()) {
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindLeft);
-                    } else if (!northWest.isCollidable() && !northWestTop.isCollidable()
-                            && !southWest.isCollidable() && !southWestTop.isCollidable()) {
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindBack);
-                    } else if (!northEast.isCollidable() && !northEastTop.isCollidable()
-                            && !southEast.isCollidable() && !southEastTop.isCollidable()) {
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindForward);
-                    } else if (!southWest.isCollidable() && !southWestTop.isCollidable()
-                            && !southEast.isCollidable() && !southEastTop.isCollidable()) {
-                        KeyBindUtils.holdThese(mc.gameSettings.keyBindRight);
-                    } else if (BlockUtils.hasCollision(BlockUtils.getRelativeBlockPos(0, 0, 0)) && !BlockUtils.hasCollision(BlockUtils.getRelativeBlockPos(0, 1, 0))) {
-                        if (mc.thePlayer.onGround) {
-                            mc.thePlayer.jump();
-                        } else {
-                            KeyBindUtils.holdThese(mc.gameSettings.keyBindJump);
-                            Multithreading.schedule(KeyBindUtils::stopMovement, (long) (80 + Math.random() * 50), TimeUnit.MILLISECONDS);
-                        }
-                    }
-                    state = States.CHECKING_PLOT;
-                    delayClock.schedule((long) (200 + Math.random() * 200));
+                if (mc.thePlayer.getPosition().equals(preTpBlockPos.get())) {
+                    break;
                 }
+                state = States.CHECKING_PLOT;
+                delayClock.schedule((long) (200 + Math.random() * 200));
                 break;
             case CHECKING_PLOT:
                 if (isInventoryOpenDelayed()) break;
@@ -537,7 +511,17 @@ public class PestsDestroyer implements IFeature {
                 double distance = Math.sqrt(mc.thePlayer.getDistanceSq(PlotUtils.getPlotCenter(closestPlot.number)));
 
                 this.closestPlot = Optional.of(closestPlot);
-                if (distance > 150 && !isPlotObstructed && !FarmHelperConfig.dontTeleportToPlots) {
+
+                if (FarmHelperConfig.dontTeleportToPlots) {
+                    if (PlayerUtils.isPlayerSuffocating() || !BlockUtils.canFlyHigher(3)) {
+                        state = States.TELEPORT_TO_PLOT;
+                    } else {
+                        state = States.FLY_TO_THE_CLOSEST_PLOT;
+                    }
+                    break;
+                }
+
+                if (distance > 150 && !isPlotObstructed) {
                     state = States.TELEPORT_TO_PLOT;
                 } else {
                     state = States.FLY_TO_THE_CLOSEST_PLOT;
@@ -896,12 +880,12 @@ public class PestsDestroyer implements IFeature {
                         if (distanceToPlot < 150 || FarmHelperConfig.dontTeleportToPlots) {
                             LogUtils.sendDebug("Going manually to another plot");
                             state = States.GET_CLOSEST_PLOT;
-                            delayClock.schedule(300 + (long) (Math.random() * 250));
+                            delayClock.schedule(100 + (long) (Math.random() * 150));
                             break;
                         } else {
                             LogUtils.sendDebug("Teleporting to plot");
                             state = States.TELEPORT_TO_PLOT;
-                            delayClock.schedule(600 + (long) (Math.random() * 500));
+                            delayClock.schedule(400 + (long) (Math.random() * 400));
                         }
                     } else {
                         state = States.GO_BACK;

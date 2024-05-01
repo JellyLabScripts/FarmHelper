@@ -13,6 +13,7 @@ import com.jelly.farmhelperv2.config.struct.Rewarp;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.feature.impl.*;
+import com.jelly.farmhelperv2.gui.AutoUpdaterGUI;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.hud.DebugHUD;
@@ -282,6 +283,16 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static boolean autoUpdaterDownloadBetaVersions = false;
+
+    @Button(
+            name = "Check for update", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+            description = "Checks for updates",
+            text = "Check for update"
+    )
+    Runnable _checkForUpdate = () -> {
+        FarmHelperConfig.checkForUpdate();
+    };
+
     @Switch(
             name = "Mute The Game", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "Mutes the game while farming"
@@ -391,7 +402,7 @@ public class FarmHelperConfig extends Config {
             name = "Auto alt-tab when failsafe triggered", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Automatically alt-tabs to the game when the dark times come"
     )
-    public static boolean autoAltTab = true;
+    public static boolean autoAltTab = false;
     @Switch(
             name = "Try to use jumping and flying in failsafes reactions", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "Tries to use jumping and flying in failsafes reactions"
@@ -1090,6 +1101,19 @@ public class FarmHelperConfig extends Config {
     public static boolean sprintWhileFlying = false;
 
     @Switch(
+            name = "Use AOTE/V in Pests Destroyer", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            description = "Uses AOTE/V in Pests Destroyer"
+    )
+    public static boolean useAoteVInPestsDestroyer = true;
+
+    @Slider(
+            name = "Failsafe cutoff after using AOTE/V", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            description = "The time in ms after which macro will count failsafes after using AOTE/V",
+            min = 0, max = 750
+    )
+    public static int failsafeCutoffAfterUsingAoteV = 100;
+
+    @Switch(
             name = "Don't teleport to plots", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Prevents the macro from teleporting to plots"
     )
@@ -1701,10 +1725,25 @@ public class FarmHelperConfig extends Config {
     public static float rotationTime = 500f;
     @Slider(
             name = "Additional random Rotation Time", category = DELAYS, subcategory = "Rotations",
-            description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
+            description = "The maximum random time added to the delay time it takes to rotate the player (in milliseconds)",
             min = 0f, max = 2000f
     )
     public static float rotationTimeRandomness = 300;
+    //</editor-fold>
+
+    //<editor-fold desc="Fly Pathexecutioner Rotation Time">
+    @Slider(
+            name = "Fly PathExecutioner Rotation Time", category = DELAYS, subcategory = "Fly PathExecutioner",
+            description = "The time it takes to rotate the player",
+            min = 200f, max = 2000f
+    )
+    public static float flyPathExecutionerRotationTime = 500f;
+    @Slider(
+            name = "Fly PathExecutioner Additional random Rotation Time", category = DELAYS, subcategory = "Fly PathExecutioner",
+            description = "The maximum random time added to the delay time it takes to rotate the player (in milliseconds)",
+            min = 0f, max = 2000f
+    )
+    public static float flyPathExecutionerRotationTimeRandomness = 300;
     //</editor-fold>
 
     //<editor-fold desc="Pests Destroyer Time">
@@ -1746,7 +1785,7 @@ public class FarmHelperConfig extends Config {
     public static float plotCleaningHelperRotationTime = 50;
     @Slider(
             name = "Additional random Plot Cleaning Helper Rotation Time", category = DELAYS, subcategory = "Plot Cleaning Helper",
-            description = "The maximum random time added to the delay time it takes to rotate the player (in seconds)",
+            description = "The maximum random time added to the delay time it takes to rotate the player (in milliseconds)",
             min = 0f, max = 500f
     )
 
@@ -1893,12 +1932,6 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     @Switch(
-            name = "Use AOTE/V in Pests Destroyer", category = EXPERIMENTAL, subcategory = "Pests Destroyer",
-            description = "Uses AOTE/V in Pests Destroyer"
-    )
-    public static boolean useAoteVInPestsDestroyer = true;
-
-    @Switch(
             name = "Count profit based on Cultivating enchant", category = EXPERIMENTAL, subcategory = "Profit Calculator",
             description = "Counts profit based on Cultivating enchant"
     )
@@ -1996,6 +2029,7 @@ public class FarmHelperConfig extends Config {
         this.addDependency("pestAdditionalGUIDelay", "enablePestsDestroyer");
         this.addDependency("sprintWhileFlying", "enablePestsDestroyer");
         this.addDependency("pausePestsDestroyerDuringJacobsContest", "enablePestsDestroyer");
+        this.addDependency("failsafeCutoffAfterUsingAoteV", "useAoteVInPestsDestroyer");
 
 
         this.hideIf("infoCookieBuffRequired", () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE);
@@ -2076,11 +2110,6 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(openGuiKeybind, this::openGui);
         registerKeyBind(toggleMacro, () -> MacroHandler.getInstance().toggleMacro());
         registerKeyBind(debugKeybind, () -> {
-            if (MacroHandler.getInstance().isCurrentMacroPaused()) {
-                MacroHandler.getInstance().resumeMacro();
-            } else {
-                MacroHandler.getInstance().pauseMacro();
-            }
         });
         registerKeyBind(freelookKeybind, () -> Freelook.getInstance().toggle());
         registerKeyBind(plotCleaningHelperKeybind, () -> PlotCleaningHelper.getInstance().toggle());
@@ -2175,6 +2204,10 @@ public class FarmHelperConfig extends Config {
         return (long) (rotationTime + (float) Math.random() * rotationTimeRandomness);
     }
 
+    public static long getRandomFlyPathExecutionerRotationTime() {
+        return (long) (flyPathExecutionerRotationTime + (float) Math.random() * flyPathExecutionerRotationTimeRandomness);
+    }
+
     public static long getRandomGUIMacroDelay() {
         return (long) (macroGuiDelay + (float) Math.random() * macroGuiDelayRandomness);
     }
@@ -2193,6 +2226,18 @@ public class FarmHelperConfig extends Config {
             json = nonProfileSpecificGson.toJson(this);
         }
         return json;
+    }
+
+    public static void checkForUpdate() {
+        AutoUpdaterGUI.checkedForUpdates = true;
+        AutoUpdaterGUI.shownGui = false;
+        AutoUpdaterGUI.getLatestVersion();
+        if (AutoUpdaterGUI.isOutdated) {
+            LogUtils.sendWarning("You are using an outdated version! The latest version is " + AutoUpdaterGUI.latestVersion + "!");
+            AutoUpdaterGUI.showGUI();
+        } else {
+            LogUtils.sendSuccess("You are using the latest version!");
+        }
     }
 
     public enum MacroEnum {

@@ -428,9 +428,10 @@ public class FlyPathFinderExecutor {
                 Vec3 lastElement = path.get(Math.max(0, path.size() - 1));
                 Rotation rot = RotationHandler.getInstance().getRotation(target.getTarget().get());
                 if (mc.thePlayer.getPositionVector().distanceTo(lastElement) > 2 && target.getTarget().isPresent() && RotationHandler.getInstance().shouldRotate(rot, 3)) {
+                    float distanceTo = RotationHandler.getInstance().distanceTo(rot);
                     RotationHandler.getInstance().easeTo(new RotationConfiguration(
                             rot,
-                            (long) (500 + Math.random() * 300),
+                            (long) (FarmHelperConfig.getRandomFlyPathExecutionerRotationTime() * (Math.max(1, distanceTo / 90))),
                             null
                     ));
                 }
@@ -507,9 +508,10 @@ public class FlyPathFinderExecutor {
         if (!isRunning()) return;
         if (event.packet instanceof S08PacketPlayerPosLook) {
             System.out.println("Tped");
+            lastTpTime = System.currentTimeMillis() - 50;
             Multithreading.schedule(() -> {
                 if (isRunning()) {
-                    aotvDely.schedule(150 + Math.random() * 100);
+                    aotvDely.schedule(100 + Math.random() * 60);
                     tped = true;
                 }
             }, 50, TimeUnit.MILLISECONDS);
@@ -517,7 +519,7 @@ public class FlyPathFinderExecutor {
     }
 
     public boolean hasJustTped() {
-        return lastTpTime + 150 > System.currentTimeMillis();
+        return lastTpTime + FarmHelperConfig.failsafeCutoffAfterUsingAoteV > System.currentTimeMillis();
     }
 
     private boolean isFrontClean() {

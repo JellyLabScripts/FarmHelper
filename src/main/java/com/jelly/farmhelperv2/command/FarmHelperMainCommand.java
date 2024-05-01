@@ -5,6 +5,7 @@ import cc.polyfrost.oneconfig.utils.commands.annotations.Description;
 import cc.polyfrost.oneconfig.utils.commands.annotations.Main;
 import cc.polyfrost.oneconfig.utils.commands.annotations.SubCommand;
 import com.jelly.farmhelperv2.FarmHelper;
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
 import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraft.client.Minecraft;
@@ -58,5 +59,10 @@ public class FarmHelperMainCommand {
     @SubCommand(aliases = {"sp"})
     public void stoppath() {
         FlyPathFinderExecutor.getInstance().stop();
+    }
+
+    @SubCommand(aliases = {"up"})
+    public void update() {
+        FarmHelperConfig.checkForUpdate();
     }
 }

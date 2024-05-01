@@ -194,6 +194,11 @@ public class RotationHandler {
         return new Rotation(yaw, pitch);
     }
 
+    public float distanceTo(Rotation to) {
+        Rotation neededChange = getNeededChange(to);
+        return Math.abs(neededChange.getYaw()) + Math.abs(neededChange.getPitch());
+    }
+
     public boolean shouldRotate(Rotation to) {
         return shouldRotate(to, 0.1f);
     }
@@ -266,17 +271,19 @@ public class RotationHandler {
             if (shouldRotate(targetRotation, 0.1f)) {
                 float needYaw = (targetRotation.getYaw() - currentYaw);
                 float needPitch = (targetRotation.getPitch() - currentPitch);
+                float distance = Math.abs(needYaw) + Math.abs(needPitch);
                 needYaw *= (float) (0.04f + Math.random() * 0.04f);
                 needPitch *= (float) (0.04f + Math.random() * 0.04f);
                 float scaledFps = 60f / Minecraft.getDebugFPS();
                 needYaw *= scaledFps;
                 needPitch *= scaledFps;
+                needYaw /= Math.max(distance / 80, 1);
                 mc.thePlayer.rotationYaw += needYaw;
-                if (mc.thePlayer.rotationPitch + needPitch > 63 && needPitch < 0) {
+                if (mc.thePlayer.rotationPitch + needPitch > 75 && needPitch < 0) {
                     mc.thePlayer.rotationPitch += needPitch;
-                } else if (mc.thePlayer.rotationPitch + needPitch < -63 && needPitch > 0) {
+                } else if (mc.thePlayer.rotationPitch + needPitch < -75 && needPitch > 0) {
                     mc.thePlayer.rotationPitch += needPitch;
-                } else if (mc.thePlayer.rotationPitch + needPitch > -63 && mc.thePlayer.rotationPitch + needPitch < 63) {
+                } else if (mc.thePlayer.rotationPitch + needPitch > -75 && mc.thePlayer.rotationPitch + needPitch < 75) {
                     mc.thePlayer.rotationPitch += needPitch;
                 }
             }

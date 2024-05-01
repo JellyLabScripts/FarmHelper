@@ -283,10 +283,7 @@ public abstract class AbstractMacro {
     public abstract void invokeState();
 
     public void onEnable() {
-        FarmHelperConfig.CropEnum crop = PlayerUtils.getFarmingCrop();
-        LogUtils.sendDebug("Crop: " + crop);
-        MacroHandler.getInstance().setCrop(crop);
-        PlayerUtils.getTool();
+
         GameStateHandler.getInstance().scheduleRewarp();
         if (FarmHelperConfig.customPitch) {
             setPitch(FarmHelperConfig.customPitchLevel);
@@ -294,18 +291,25 @@ public abstract class AbstractMacro {
         if (FarmHelperConfig.customYaw) {
             setYaw(FarmHelperConfig.customYawLevel);
         }
+        FarmHelperConfig.CropEnum crop;
         if (savedState.isPresent()) {
             LogUtils.sendDebug("Restoring state: " + savedState.get());
             changeState(savedState.get().getState());
             setYaw(savedState.get().getYaw());
             setPitch(savedState.get().getPitch());
             setClosest90Deg(savedState.get().getClosest90Deg());
+            crop = savedState.get().getCrop();
             restoredState = true;
             savedState = Optional.empty();
             GameStateHandler.getInstance().setUpdatedState(true);
             float randomTime = FarmHelperConfig.getRandomTimeBetweenChangingRows();
             GameStateHandler.getInstance().scheduleNotMoving((int) Math.max(randomTime, 150));
+        } else {
+            crop = PlayerUtils.getFarmingCrop();
         }
+        LogUtils.sendDebug("Crop: " + crop);
+        MacroHandler.getInstance().setCrop(crop);
+        PlayerUtils.getTool();
         if (!closest90Deg.isPresent())
             setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
         setEnabled(true);
@@ -332,7 +336,7 @@ public abstract class AbstractMacro {
     public void saveState() {
         if (!savedState.isPresent()) {
             LogUtils.sendDebug("Saving state: " + currentState);
-            savedState = Optional.of(new SavedState(currentState, getYaw(), getPitch(), closest90Deg.orElse(AngleUtils.getClosest())));
+            savedState = Optional.of(new SavedState(currentState, getYaw(), getPitch(), closest90Deg.orElse(AngleUtils.getClosest()), MacroHandler.getInstance().getCrop()));
         }
     }
 
@@ -416,12 +420,14 @@ public abstract class AbstractMacro {
         private float yaw;
         private float pitch;
         private Optional<Float> closest90Deg;
+        private FarmHelperConfig.CropEnum crop;
 
-        public SavedState(State state, float yaw, float pitch, float closest90Deg) {
+        public SavedState(State state, float yaw, float pitch, float closest90Deg, FarmHelperConfig.CropEnum crop) {
             this.state = state;
             this.yaw = yaw;
             this.pitch = pitch;
             this.closest90Deg = Optional.of(closest90Deg);
+            this.crop = crop;
         }
 
         @Override
@@ -431,6 +437,7 @@ public abstract class AbstractMacro {
                     ", yaw=" + yaw +
                     ", pitch=" + pitch +
                     ", closest90Deg=" + closest90Deg +
+                    ", crop=" + crop +
                     '}';
         }
     }
