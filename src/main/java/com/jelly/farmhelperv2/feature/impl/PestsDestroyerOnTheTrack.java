@@ -129,7 +129,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
 
         if (getPest(true).isPresent()) {
             if (!delayStart.isScheduled()) {
-                delayStart.schedule(900);
+                delayStart.schedule(FarmHelperConfig.pestsDestroyerOnTheTrackTimeForPestToStayInRange);
                 LogUtils.sendDebug("[" + getName() + "] Found pest, waiting for him to stay in range!");
             }
             if (delayStart.isScheduled() && delayStart.passed()) {

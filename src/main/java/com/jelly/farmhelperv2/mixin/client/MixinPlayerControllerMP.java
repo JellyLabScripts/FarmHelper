@@ -42,15 +42,18 @@ public class MixinPlayerControllerMP {
             ClickedBlockEvent event = new ClickedBlockEvent(loc, face, block);
             MinecraftForge.EVENT_BUS.post(event);
         }
-        if (!FarmHelperConfig.pinglessCactus) return;
         if (!(block instanceof BlockCactus)) return;
         ItemStack currentItem = this.mc.thePlayer.inventory.getCurrentItem();
         if (currentItem != null && currentItem.getDisplayName().contains("Cactus Knife") && block.equals(Blocks.cactus)) {
-            this.mc.theWorld.setBlockToAir(loc);
-            this.curBlockDamageMP = 0.0F;
-            this.stepSoundTickCounter = 0.0F;
-            ClickedBlockEvent event = new ClickedBlockEvent(loc, face, Blocks.cactus);
+            PlayerDestroyBlockEvent event = new PlayerDestroyBlockEvent(loc, face, block);
             MinecraftForge.EVENT_BUS.post(event);
+            if (FarmHelperConfig.pinglessCactus) {
+                this.mc.theWorld.setBlockToAir(loc);
+//                this.curBlockDamageMP = 0.0F;
+//                this.stepSoundTickCounter = 0.0F;
+                ClickedBlockEvent event2 = new ClickedBlockEvent(loc, face, Blocks.cactus);
+                MinecraftForge.EVENT_BUS.post(event2);
+            }
         }
     }
 
