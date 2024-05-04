@@ -8,6 +8,7 @@ import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.Vec3;
@@ -63,6 +64,7 @@ public class FarmHelperMainCommand {
 
     @SubCommand(aliases = {"up"})
     public void update() {
+        PlayerUtils.closeScreen();
         FarmHelperConfig.checkForUpdate();
     }
 }

@@ -280,7 +280,9 @@ public class PlayerUtils {
 
     public static boolean shouldWalkForwards() {
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return false;
-        if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.CACTUS || (FarmHelperConfig.getMacro() != FarmHelperConfig.MacroEnum.S_PUMPKIN_MELON_MELONGKINGDE && (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.PUMPKIN || MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.MELON)))
+        if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.CACTUS ||
+                (FarmHelperConfig.getMacro() != FarmHelperConfig.MacroEnum.S_PUMPKIN_MELON_MELONGKINGDE && (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.PUMPKIN || MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.MELON)) ||
+                (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.COCOA_BEANS && FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_COCOA_BEANS_LEFT_RIGHT))
             return false;
 
         float angle = AngleUtils.getClosest();
