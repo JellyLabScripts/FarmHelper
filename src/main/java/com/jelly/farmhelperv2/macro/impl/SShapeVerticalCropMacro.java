@@ -240,7 +240,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 new RotationConfiguration(
                         new Rotation(getYaw(), getPitch()),
                         FarmHelperConfig.getRandomRotationTime(), null
-                ).easeOutBack(!MacroHandler.getInstance().isResume() && FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_COCOA_BEANS_LEFT_RIGHT)
+                ).easeOutBack(!MacroHandler.getInstance().isResume() && FarmHelperConfig.getMacro() != FarmHelperConfig.MacroEnum.S_COCOA_BEANS_LEFT_RIGHT)
         );
     }
 
