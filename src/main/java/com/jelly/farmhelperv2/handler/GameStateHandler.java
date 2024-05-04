@@ -165,7 +165,7 @@ public class GameStateHandler {
                             break;
                         }
                     }
-                    if (foundLocation) break;
+                    if (foundLocation) continue;
                 }
             }
             if (!hasGuestsOnTabList) {
