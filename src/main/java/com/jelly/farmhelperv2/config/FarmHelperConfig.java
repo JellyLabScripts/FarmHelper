@@ -1167,6 +1167,14 @@ public class FarmHelperConfig extends Config {
     public static int pestsDestroyerOnTheTrackFOV = 360;
 
     @Slider(
+            name = "Time for the pest to stay in range to activate (ms)",
+            description = "The time for the pest to stay in range to activate the macro",
+            category = PESTS_DESTROYER, subcategory = "Pests Destroyer on the track",
+            min = 0, max = 2_000
+    )
+    public static int pestsDestroyerOnTheTrackTimeForPestToStayInRange = 750;
+
+    @Slider(
             name = "Stuck timer (ms)",
             description = "The time after which macro will count as being stuck",
             category = PESTS_DESTROYER, subcategory = "Pests Destroyer on the track",

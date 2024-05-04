@@ -16,7 +16,10 @@ import net.minecraft.util.*;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -388,8 +391,11 @@ public class BlockUtils {
         yaw = (float) wrapAngleTo180(yaw);
         List<BlockPos> crops;
         if (MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.CACTUS || MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.SUGAR_CANE) {
-            crops = Collections.singletonList(
-                    getRelativeBlockPos(xOffset, 0, 1, yaw)
+            crops = Arrays.asList(
+                    getRelativeBlockPos(xOffset, 1, 1, yaw),
+                    getRelativeBlockPos(xOffset, 1, 2, yaw),
+                    getRelativeBlockPos(xOffset * 2, 1, 1, yaw),
+                    getRelativeBlockPos(xOffset * 2, 1, 2, yaw)
             );
         } else if (FarmHelperConfig.getMacro() == FarmHelperConfig.MacroEnum.S_COCOA_BEANS_LEFT_RIGHT) {
             crops = Arrays.asList(
