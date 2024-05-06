@@ -25,6 +25,7 @@ import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.BlockPos;
 import net.minecraftforge.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 
@@ -1367,6 +1368,20 @@ public class FarmHelperConfig extends Config {
             description = "Start the Auto Pest Exchange regardless of the next Jacob's contests"
     )
     public static boolean autoPestExchangeIgnoreJacobsContest = false;
+    @DualOption(
+            name = "Travel method", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
+            description = "The travel method to use to get to the pest exchange desk",
+            left = "Fly",
+            right = "Walk"
+    )
+    public static boolean autoPestExchangeTravelMethod = false;
+    @Info(
+            text = "If you have any issues, try switching the travel method.",
+            type = InfoType.INFO,
+            category = AUTO_PEST_EXCHANGE,
+            subcategory = "Auto Pest Exchange",
+            size = 2
+    )
     @Slider(
             name = "Trigger before contest starts (in minutes)", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
             description = "The time before the contest starts to trigger the auto pest exchange",
@@ -2153,6 +2168,10 @@ public class FarmHelperConfig extends Config {
             return;
         }
         Rewarp newRewarp = new Rewarp(BlockUtils.getRelativeBlockPos(0, 0, 0));
+        if (newRewarp.getDistance(new BlockPos(PlayerUtils.getSpawnLocation())) < 2) {
+            LogUtils.sendError("Rewarp location is too close to the spawn location! You must put it AT THE END OF THE FARM!");
+            return;
+        }
         rewarpList.add(newRewarp);
         LogUtils.sendSuccess("Added rewarp: " + newRewarp);
         saveRewarpConfig();

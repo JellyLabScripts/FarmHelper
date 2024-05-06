@@ -332,6 +332,13 @@ public class MacroHandler {
             if (!message.contains(":") && GameStateHandler.getInstance().inGarden()) {
                 if (message.equals("Your spawn location has been set!")) {
                     PlayerUtils.setSpawnLocation();
+                    for (Rewarp rewarp : FarmHelperConfig.rewarpList) {
+                        if (mc.thePlayer.getDistance(rewarp.x, rewarp.y, rewarp.z) < 2) {
+                            LogUtils.sendWarning("Spawn location is close to the rewarp location! Removing it from the list...");
+                            FarmHelperConfig.rewarpList.remove(rewarp);
+                            break;
+                        }
+                    }
                 }
             }
         }

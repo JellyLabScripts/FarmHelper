@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.feature.impl;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
+import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
@@ -111,7 +112,7 @@ public class AutoPestExchange implements IFeature {
         KeyBindUtils.stopMovement();
         resetStatesAfterMacroDisabled();
         FlyPathFinderExecutor.getInstance().stop();
-//        BaritoneHandler.stopPathing();
+        BaritoneHandler.stopPathing();
         manuallyStarted = false;
         IFeature.super.stop();
     }
@@ -247,9 +248,12 @@ public class AutoPestExchange implements IFeature {
                     break;
                 }
                 if (isDeskPosSet()) {
-                    FlyPathFinderExecutor.getInstance().setSprinting(false);
-                    FlyPathFinderExecutor.getInstance().setDontRotate(true);
-                    FlyPathFinderExecutor.getInstance().findPath(new Vec3(deskPos()).addVector(0.5f, 0.1f, 0.5f), true, true);
+                    if (!FarmHelperConfig.autoPestExchangeTravelMethod) {
+                        FlyPathFinderExecutor.getInstance().setSprinting(false);
+                        FlyPathFinderExecutor.getInstance().setDontRotate(true);
+                        FlyPathFinderExecutor.getInstance().findPath(new Vec3(deskPos()).addVector(0.5f, 0.1f, 0.5f), true, true);
+                    } else
+                        BaritoneHandler.walkToBlockPos(deskPos());
                     newState = NewState.ROTATE_TO_PHILLIP;
                     break;
                 }
@@ -264,10 +268,13 @@ public class AutoPestExchange implements IFeature {
                 }
                 phillip = getPhillip();
                 if (phillip == null) {
-                    if (!FlyPathFinderExecutor.getInstance().isRunning()) {
+                    if (!FlyPathFinderExecutor.getInstance().isRunning() && !FarmHelperConfig.autoPestExchangeTravelMethod) {
                         FlyPathFinderExecutor.getInstance().setSprinting(false);
                         FlyPathFinderExecutor.getInstance().setDontRotate(true);
                         FlyPathFinderExecutor.getInstance().findPath(new Vec3(initialDeskPos).addVector(0.5f, 0.5f, 0.5f), true, true);
+                    }
+                    if (!BaritoneHandler.isPathing() && FarmHelperConfig.autoPestExchangeTravelMethod) {
+                        BaritoneHandler.isWalkingToGoalBlock(0.5);
                     }
                     LogUtils.sendDebug("[Auto Pest Exchange] Phillip not found! Looking for him.");
                     break;
@@ -279,6 +286,7 @@ public class AutoPestExchange implements IFeature {
                     break;
                 }
                 FlyPathFinderExecutor.getInstance().stop();
+                BaritoneHandler.stopPathing();
                 BlockPos closestPos = new BlockPos(closestVec);
                 FarmHelperConfig.pestExchangeDeskX = closestPos.getX();
                 FarmHelperConfig.pestExchangeDeskY = closestPos.getY();
@@ -300,7 +308,7 @@ public class AutoPestExchange implements IFeature {
                             )
                     );
                 }
-                if (FlyPathFinderExecutor.getInstance().isRunning()) {
+                if (FlyPathFinderExecutor.getInstance().isRunning() || BaritoneHandler.isWalkingToGoalBlock(0.5)) {
                     break;
                 }
                 newState = NewState.CLICK_PHILLIP;
