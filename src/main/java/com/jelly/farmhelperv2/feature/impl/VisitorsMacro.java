@@ -4,6 +4,7 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
+import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
@@ -172,7 +173,7 @@ public class VisitorsMacro implements IFeature {
         AutoBazaar.getInstance().stop();
         PlayerUtils.closeScreen();
         KeyBindUtils.stopMovement();
-//        BaritoneHandler.stopPathing();
+        BaritoneHandler.stopPathing();
         MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.getCheckOnSpawnClock().schedule(5_000));
         Multithreading.schedule(() -> {
             servedCustomers.clear();
@@ -671,10 +672,10 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-//                if (BaritoneHandler.isWalkingToGoalBlock()) {
-//                    return;
-//                }
-                if (FlyPathFinderExecutor.getInstance().isRunning()) {
+                if (FarmHelperConfig.visitorsExchangeTravelMethod && BaritoneHandler.isWalkingToGoalBlock()) {
+                    return;
+                }
+                if (!FarmHelperConfig.visitorsExchangeTravelMethod && FlyPathFinderExecutor.getInstance().isRunning()) {
                     if (!RotationHandler.getInstance().isRotating() && currentCharacter.isPresent()) {
                         RotationHandler.getInstance().easeTo(
                                 new RotationConfiguration(
@@ -695,10 +696,13 @@ public class VisitorsMacro implements IFeature {
                     Vec3 closestVec = PlayerUtils.getClosestVecAround(currentCharacter.get(), 1.25, 90, 45);
                     closestVec = noClosestVecFallback(closestVec);
                     if (closestVec == null) return;
-                    // BaritoneHandler.walkCloserToBlockPos(currentCharacter.get().getPosition(), 1);
-                    FlyPathFinderExecutor.getInstance().setSprinting(false);
-                    FlyPathFinderExecutor.getInstance().setDontRotate(true);
-                    FlyPathFinderExecutor.getInstance().findPath(closestVec.addVector(0, 1.8, 0), false, true);
+                    if (FarmHelperConfig.visitorsExchangeTravelMethod)
+                        BaritoneHandler.walkCloserToBlockPos(currentCharacter.get().getPosition(), 2);
+                    else {
+                        FlyPathFinderExecutor.getInstance().setSprinting(false);
+                        FlyPathFinderExecutor.getInstance().setDontRotate(true);
+                        FlyPathFinderExecutor.getInstance().findPath(closestVec.addVector(0, 1.8, 0), false, true);
+                    }
                 }
                 RotationHandler.getInstance().easeTo(
                         new RotationConfiguration(
@@ -716,7 +720,7 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                if (FlyPathFinderExecutor.getInstance().isPathing()) {
+                if (FlyPathFinderExecutor.getInstance().isPathing() || BaritoneHandler.isPathing()) {
                     return;
                 }
                 if (currentCharacter.isPresent() && mc.thePlayer.getDistanceToEntity(currentCharacter.get()) > 3) {

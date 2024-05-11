@@ -1003,6 +1003,22 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean visitorsMacroAfkInfiniteMode = false;
 
+    @DualOption(
+            name = "Travel method", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+            description = "The travel method to use to get to the pest exchange desk",
+            left = "Fly",
+            right = "Walk"
+    )
+    public static boolean visitorsExchangeTravelMethod = false;
+    @Info(
+            text = "If you have any issues, try switching the travel method.",
+            type = InfoType.INFO,
+            category = VISITORS_MACRO,
+            subcategory = "Visitors Macro",
+            size = 2
+    )
+    public static boolean visitorsExchangeTravelMethodInfo;
+
     @Button(
             name = "Start the macro manually", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "Triggers the visitors macro",
@@ -1382,6 +1398,7 @@ public class FarmHelperConfig extends Config {
             subcategory = "Auto Pest Exchange",
             size = 2
     )
+    public static boolean autoPestExchangeTravelMethodInfo;
     @Slider(
             name = "Trigger before contest starts (in minutes)", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
             description = "The time before the contest starts to trigger the auto pest exchange",
