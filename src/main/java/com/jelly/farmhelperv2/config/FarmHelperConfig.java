@@ -1346,15 +1346,15 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static boolean infoRemoteControl;
-    // for later, once we figure out why jackson crashes jda dependency
-//    @Info(
-//            text = "Your Farm Helper JDA Dependency is outdated! You must update it to use the remote control feature.",
-//            type = InfoType.ERROR,
-//            category = DISCORD_INTEGRATION,
-//            subcategory = "Remote Control",
-//            size = 2
-//    )
-//    public static boolean info2RemoteControl;
+
+    @Info(
+            text = "Your Farm Helper JDA Dependency is outdated! You must update it to use the remote control feature.",
+            type = InfoType.ERROR,
+            category = DISCORD_INTEGRATION,
+            subcategory = "Remote Control",
+            size = 2
+    )
+    public static boolean info2RemoteControl;
     //</editor-fold>
     //</editor-fold>
 
@@ -2078,14 +2078,14 @@ public class FarmHelperConfig extends Config {
         this.addDependency("sendStatusUpdates", "enableWebHook");
         this.addDependency("statusUpdateInterval", "enableWebHook");
         this.addDependency("webHookURL", "enableWebHook");
-        this.addDependency("enableRemoteControl", "Enable Remote Control", () -> Loader.isModLoaded("farmhelperjdadependency"));
-//        && FarmHelper.isJDAVersionCorrect);
+        this.addDependency("enableRemoteControl", "Enable Remote Control",
+                () -> Loader.isModLoaded("farmhelperjdadependency") && FarmHelper.isJDAVersionCorrect);
         this.addDependency("discordRemoteControlAddress", "enableRemoteControl");
         this.addDependency("remoteControlPort", "enableRemoteControl");
 
 
         this.hideIf("infoRemoteControl", () -> Loader.isModLoaded("farmhelperjdadependency"));
-//        this.hideIf("info2RemoteControl", () -> FarmHelper.isJDAVersionCorrect);
+        this.hideIf("info2RemoteControl", () -> FarmHelper.isJDAVersionCorrect);
         this.hideIf("failsafeSoundTimes", () -> true);
 
         this.addDependency("debugMode", "Streamer Mode", () -> !streamerMode);

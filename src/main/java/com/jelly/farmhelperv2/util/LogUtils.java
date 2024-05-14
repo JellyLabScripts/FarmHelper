@@ -18,11 +18,10 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 public class LogUtils {
-    private static final long logMsgTime = 1000;
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static String lastDebugMessage;
-    private static String lastWebhook;
     private static long statusMsgTime = -1;
+    private static int retries = 0;
 
     public synchronized static void sendLog(ChatComponentText chat) {
         if (mc.thePlayer != null && !FarmHelperConfig.streamerMode)
@@ -182,15 +181,27 @@ public class LogUtils {
         for (Tuple<String, String> field : fields) {
             embedObject.addField(field.getFirst(), field.getSecond(), false);
         }
+        retries = 0;
         webhook.addEmbed(embedObject);
+        sendWebhook(webhook);
+    }
+
+    private static void sendWebhook(DiscordWebhook webhook) {
         Multithreading.schedule(() -> {
             try {
                 webhook.execute();
             } catch (IOException e) {
-                LogUtils.sendError("[Webhook Log] Error: " + e.getMessage());
+                if (retries >= 3) {
+                    sendError("[Webhook Log] Error: " + e.getMessage());
+                    retries = 0;
+                    return;
+                }
+                retries++;
+                sendDebug("[Webhook Log] Retrying sending a webhook message...");
+                sendWebhook(webhook);
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }
-        }, 0, TimeUnit.MILLISECONDS);
+        }, (retries == 0 ? 0 : 1000), TimeUnit.MILLISECONDS);
     }
 }

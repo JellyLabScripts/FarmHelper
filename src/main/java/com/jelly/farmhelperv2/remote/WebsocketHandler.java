@@ -97,12 +97,11 @@ public class WebsocketHandler {
                 LogUtils.sendNotification("Farm Helper", "Farm Helper JDA Dependency is not installed, disabling remote control..");
             }
             return;
-//            else if (!FarmHelper.isJDAVersionCorrect) {
-//                FarmHelperConfig.enableRemoteControl = false;
-//                LogUtils.sendError("[Remote Control] Farm Helper JDA Dependency is outdated! Please update it and try again. Disabling remote control...");
-//                LogUtils.sendNotification("Farm Helper", "Farm Helper JDA Dependency is outdated! Please update it and try again. Disabling remote control...");
-//                return;
-//            }
+        } else if (!FarmHelper.isJDAVersionCorrect) {
+            FarmHelperConfig.enableRemoteControl = false;
+            LogUtils.sendError("[Remote Control] Farm Helper JDA Dependency is outdated! Please update it and try again. Disabling remote control...");
+            LogUtils.sendNotification("Farm Helper", "Farm Helper JDA Dependency is outdated! Please update it and try again. Disabling remote control...");
+            return;
         }
         if (!DiscordBotHandler.getInstance().isFinishedLoading()) return;
 
