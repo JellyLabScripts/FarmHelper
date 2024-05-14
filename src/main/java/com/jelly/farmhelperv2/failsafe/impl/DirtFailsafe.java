@@ -95,10 +95,12 @@ public class DirtFailsafe extends Failsafe {
         }
         switch (dirtCheckState) {
             case NONE:
+                if (blocksRemoved()) break;
                 dirtCheckState = DirtCheckState.WAIT_BEFORE_START;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 break;
             case WAIT_BEFORE_START:
+                if (blocksRemoved()) break;
                 MacroHandler.getInstance().pauseMacro();
                 maxReactions = (int) Math.round(3 + Math.random() * 3);
                 LogUtils.sendDebug("[Failsafe] Minimum reactions: " + maxReactions);
@@ -116,6 +118,7 @@ public class DirtFailsafe extends Failsafe {
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
                 break;
             case PLAY_RECORDING:
+                if (blocksRemoved()) break;
                 if (dirtOnLeft)
                     MovRecPlayer.getInstance().playRandomRecording("DIRT_CHECK_Left_Start_");
                 else
@@ -157,18 +160,7 @@ public class DirtFailsafe extends Failsafe {
                     break;
                 if (FailsafeManager.getInstance().swapItemDuringRecording && Math.random() > 0.6)
                     FailsafeManager.getInstance().swapItemDuringRecording = false;
-                dirtBlocks.removeIf(tuple -> {
-                    if (System.currentTimeMillis() - tuple.getSecond() > 120_000 || !mc.theWorld.getBlockState(tuple.getFirst()).getBlock().isCollidable() || BlockUtils.canWalkThrough(tuple.getFirst()) || mc.theWorld.getBlockState(tuple.getFirst()).getBlock().equals(Blocks.air) || CropUtils.isCrop(mc.theWorld.getBlockState(tuple.getFirst()).getBlock()) || mc.theWorld.getBlockState(tuple.getFirst()).getBlock().equals(Blocks.water) || mc.theWorld.getBlockState(tuple.getFirst()).getBlock().equals(Blocks.flowing_water)) {
-                        LogUtils.sendDebug("[Failsafe] Dirt block removed: " + tuple.getFirst());
-                        return true;
-                    }
-                    return false;
-                });
-                if (dirtBlocks.isEmpty()) {
-                    LogUtils.sendDebug("No dirt blocks left!");
-                    dirtCheckState = DirtCheckState.GO_BACK_START;
-                    break;
-                }
+                if (blocksRemoved()) break;
                 String tempRecordingName = "DIRT_CHECK_";
                 if (dirtOnLeft)
                     tempRecordingName += "Left_";
@@ -259,6 +251,29 @@ public class DirtFailsafe extends Failsafe {
             if (distance <= 1.5) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    private boolean blocksRemoved() {
+        dirtBlocks.removeIf(tuple -> {
+            if (System.currentTimeMillis() - tuple.getSecond() > 120_000 || !mc.theWorld.getBlockState(tuple.getFirst()).getBlock().isCollidable() || BlockUtils.canWalkThrough(tuple.getFirst()) || mc.theWorld.getBlockState(tuple.getFirst()).getBlock().equals(Blocks.air) || CropUtils.isCrop(mc.theWorld.getBlockState(tuple.getFirst()).getBlock()) || mc.theWorld.getBlockState(tuple.getFirst()).getBlock().equals(Blocks.water) || mc.theWorld.getBlockState(tuple.getFirst()).getBlock().equals(Blocks.flowing_water)) {
+                LogUtils.sendDebug("[Failsafe] Dirt block removed: " + tuple.getFirst());
+                return true;
+            }
+            return false;
+        });
+        if (dirtBlocks.isEmpty()) {
+            if (dirtCheckState == DirtCheckState.NONE || dirtCheckState == DirtCheckState.WAIT_BEFORE_START) {
+                FailsafeManager.getInstance().stopFailsafes();
+                LogUtils.sendWarning("[Failsafe] Dirt check failsafe was triggered but the admin removed the blocks immediately. §c§lDO NOT REACT§e TO THIS OR YOU WILL GET BANNED!");
+                if (FailsafeNotificationsPage.notifyOnDirtFailsafe)
+                    LogUtils.webhookLog("[Failsafe]\nDirt check failsafe was triggered but the admin removed the blocks immediately. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
+                return true;
+            }
+            LogUtils.sendDebug("No dirt blocks left!");
+            dirtCheckState = DirtCheckState.GO_BACK_START;
+            return true;
         }
         return false;
     }

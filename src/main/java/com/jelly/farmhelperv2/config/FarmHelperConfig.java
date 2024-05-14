@@ -2085,7 +2085,7 @@ public class FarmHelperConfig extends Config {
 
 
         this.hideIf("infoRemoteControl", () -> Loader.isModLoaded("farmhelperjdadependency"));
-        this.hideIf("info2RemoteControl", () -> FarmHelper.isJDAVersionCorrect);
+        this.hideIf("info2RemoteControl", () -> Loader.isModLoaded("farmhelperjdadependency") && FarmHelper.isJDAVersionCorrect);
         this.hideIf("failsafeSoundTimes", () -> true);
 
         this.addDependency("debugMode", "Streamer Mode", () -> !streamerMode);
