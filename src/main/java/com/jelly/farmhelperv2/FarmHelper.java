@@ -143,7 +143,8 @@ public class FarmHelper {
         Optional<ModContainer> modContainer = Loader.instance().getActiveModList().stream()
                 .filter(mod -> "farmhelperjdadependency".equals(mod.getModId()))
                 .findFirst();
-        isJDAVersionCorrect = modContainer.map(container -> container.getVersion().equals("1.0.3")).orElse(false);
+        System.out.println("JDA Version: " + modContainer.map(ModContainer::getVersion).orElse("null"));
+        isJDAVersionCorrect = modContainer.map(container -> container.getVersion().equals("1.0.4")).orElse(false);
         return isJDAVersionCorrect;
     }
 }
