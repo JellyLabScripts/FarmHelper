@@ -146,7 +146,7 @@ public class DiscordBotHandler extends ListenerAdapter {
             FarmHelperConfig.enableRemoteControl = false;
             return;
         }
-        else if (!FarmHelper.isJDAVersionCorrect) {
+        else if (!FarmHelper.isJDAVersionCorrect && FarmHelperConfig.enableRemoteControl) {
             FarmHelperConfig.enableRemoteControl = false;
             LogUtils.sendError("[Remote Control] Farm Helper JDA Dependency is outdated! Please update it and try again. Disabling remote control...");
             LogUtils.sendNotification("Farm Helper", "Farm Helper JDA Dependency is outdated! Please update it and try again. Disabling remote control...");
