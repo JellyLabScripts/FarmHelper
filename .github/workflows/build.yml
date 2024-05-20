@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Get Gradle version and check if it's pre release
         run: |
           VERSION=$(grep -Po '^version=.*' gradle.properties | cut -d= -f2)
@@ -29,7 +29,7 @@ jobs:
       - name: Get short commit sha
         id: short_sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         name: Setup Java
         with:
           distribution: temurin
@@ -38,13 +38,13 @@ jobs:
         name: Setup Gradle
       - name: Execute Gradle build
         run: ./gradlew build
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         name: Upload built mod JAR
         with:
           name: mod-jar
           path: build/libs/*.jar
       - name: Create release with files
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         id: create_release
         if: steps.get_version.outputs.shouldRelease == 'true'
         with:
