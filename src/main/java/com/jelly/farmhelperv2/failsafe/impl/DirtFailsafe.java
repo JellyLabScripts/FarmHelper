@@ -265,10 +265,12 @@ public class DirtFailsafe extends Failsafe {
         });
         if (dirtBlocks.isEmpty()) {
             if (dirtCheckState == DirtCheckState.NONE || dirtCheckState == DirtCheckState.WAIT_BEFORE_START) {
-                FailsafeManager.getInstance().stopFailsafes();
-                LogUtils.sendWarning("[Failsafe] Dirt check failsafe was triggered but the admin removed the blocks immediately. §c§lDO NOT REACT§e TO THIS OR YOU WILL GET BANNED!");
-                if (FailsafeNotificationsPage.notifyOnDirtFailsafe)
-                    LogUtils.webhookLog("[Failsafe]\nDirt check failsafe was triggered but the admin removed the blocks immediately. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
+                FailsafeManager.getInstance().emergencyQueue.remove(this);
+                if (FailsafeManager.getInstance().emergencyQueue.isEmpty()) {
+                    LogUtils.sendWarning("[Failsafe] Dirt check failsafe was triggered but the admin removed the blocks immediately. §c§lDO NOT REACT§e TO THIS OR YOU WILL GET BANNED!");
+                    if (FailsafeNotificationsPage.notifyOnDirtFailsafe)
+                        LogUtils.webhookLog("[Failsafe]\nDirt check failsafe was triggered but the admin removed the blocks immediately. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
+                }
                 return true;
             }
             LogUtils.sendDebug("No dirt blocks left!");

@@ -209,10 +209,12 @@ public class TeleportFailsafe extends Failsafe {
         if (totalDisplacement > FarmHelperConfig.teleportCheckSensitivity) {
             FailsafeManager.getInstance().possibleDetection(this);
         } else {
-            FailsafeManager.getInstance().stopFailsafes();
-            LogUtils.sendWarning("[Failsafe] Teleport check failsafe was triggered but the admin teleported you back. §c§lDO NOT REACT§e TO THIS OR YOU WILL GET BANNED!");
-            if (FailsafeNotificationsPage.notifyOnRotationFailsafe)
-                LogUtils.webhookLog("[Failsafe]\nTeleport check failsafe was triggered but the admin teleported you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
+            FailsafeManager.getInstance().emergencyQueue.remove(this);
+            if (FailsafeManager.getInstance().emergencyQueue.isEmpty()) {
+                LogUtils.sendWarning("[Failsafe] Teleport check failsafe was triggered but the admin teleported you back. §c§lDO NOT REACT§e TO THIS OR YOU WILL GET BANNED!");
+                if (FailsafeNotificationsPage.notifyOnRotationFailsafe)
+                    LogUtils.webhookLog("[Failsafe]\nTeleport check failsafe was triggered but the admin teleported you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
+            }
         }
         originalPosition = null;
     }

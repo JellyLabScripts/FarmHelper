@@ -128,10 +128,12 @@ public class RotationFailsafe extends Failsafe {
         if (shouldTriggerCheck(rotationBeforeReacting.getYaw(), rotationBeforeReacting.getPitch())) {
             FailsafeManager.getInstance().possibleDetection(this);
         } else {
-            FailsafeManager.getInstance().stopFailsafes();
-            LogUtils.sendWarning("[Failsafe] Rotation check failsafe was triggered but the admin rotated you back. §c§lDO NOT REACT§e TO THIS OR YOU WILL GET BANNED!");
-            if (FailsafeNotificationsPage.notifyOnRotationFailsafe)
-                LogUtils.webhookLog("[Failsafe]\nRotation check failsafe was triggered but the admin rotated you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
+            FailsafeManager.getInstance().emergencyQueue.remove(this);
+            if (FailsafeManager.getInstance().emergencyQueue.isEmpty()) {
+                LogUtils.sendWarning("[Failsafe] Rotation check failsafe was triggered but the admin rotated you back. §c§lDO NOT REACT§e TO THIS OR YOU WILL GET BANNED!");
+                if (FailsafeNotificationsPage.notifyOnRotationFailsafe)
+                    LogUtils.webhookLog("[Failsafe]\nRotation check failsafe was triggered but the admin rotated you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
+            }
         }
         rotationBeforeReacting = null;
     }
