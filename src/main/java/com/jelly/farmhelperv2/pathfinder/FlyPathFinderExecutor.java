@@ -424,7 +424,7 @@ public class FlyPathFinderExecutor {
                 target = new Target(this.target).additionalY(this.yModifier);
             }
 
-            if (!this.dontRotate && target.getTarget().isPresent()) {
+            if (!this.dontRotate && target.getTarget().isPresent() && !path.isEmpty()) {
                 Vec3 lastElement = path.get(Math.max(0, path.size() - 1));
                 Rotation rot = RotationHandler.getInstance().getRotation(target.getTarget().get());
                 if (mc.thePlayer.getPositionVector().distanceTo(lastElement) > 2 && target.getTarget().isPresent() && RotationHandler.getInstance().shouldRotate(rot, 3)) {
