@@ -1126,7 +1126,7 @@ public class FarmHelperConfig extends Config {
     @Slider(
             name = "Failsafe cutoff after using AOTE/V", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "The time in ms after which macro will count failsafes after using AOTE/V",
-            min = 0, max = 750
+            min = 0, max = 1500
     )
     public static int failsafeCutoffAfterUsingAoteV = 100;
 
