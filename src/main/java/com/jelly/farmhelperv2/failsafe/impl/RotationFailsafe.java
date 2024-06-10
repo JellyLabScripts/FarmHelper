@@ -139,8 +139,8 @@ public class RotationFailsafe extends Failsafe {
     }
 
     private boolean shouldTriggerCheck(double newYaw, double newPitch) {
-        double yawDiff = Math.abs(newYaw - mc.thePlayer.rotationYaw);
-        double pitchDiff = Math.abs(newPitch - mc.thePlayer.rotationPitch);
+        double yawDiff = Math.abs(newYaw - mc.thePlayer.rotationYaw) % 360;
+        double pitchDiff = Math.abs(newPitch - mc.thePlayer.rotationPitch) % 360;
         double yawThreshold = FarmHelperConfig.rotationCheckYawSensitivity;
         double pitchThreshold = FarmHelperConfig.rotationCheckPitchSensitivity;
         if (yawDiff >= yawThreshold || pitchDiff >= pitchThreshold) {

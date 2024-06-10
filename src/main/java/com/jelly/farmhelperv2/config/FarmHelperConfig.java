@@ -1900,11 +1900,6 @@ public class FarmHelperConfig extends Config {
             description = "Prints to chat what the bot is currently executing. Useful if you are having issues."
     )
     public static boolean debugMode = false;
-    @Switch(
-            name = "Show rotation debug messages", category = DEBUG, subcategory = "Debug",
-            description = "Shows rotation debug messages"
-    )
-    public static boolean showRotationDebugMessages = false;
 
 
     //</editor-fold>
@@ -2085,7 +2080,7 @@ public class FarmHelperConfig extends Config {
 
 
         this.hideIf("infoRemoteControl", () -> Loader.isModLoaded("farmhelperjdadependency"));
-        this.hideIf("info2RemoteControl", () -> Loader.isModLoaded("farmhelperjdadependency") && FarmHelper.isJDAVersionCorrect);
+        this.hideIf("info2RemoteControl", () -> !Loader.isModLoaded("farmhelperjdadependency") || (Loader.isModLoaded("farmhelperjdadependency") && FarmHelper.isJDAVersionCorrect));
         this.hideIf("failsafeSoundTimes", () -> true);
 
         this.addDependency("debugMode", "Streamer Mode", () -> !streamerMode);

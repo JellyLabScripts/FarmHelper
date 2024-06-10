@@ -53,11 +53,6 @@ public class LogUtils {
         lastDebugMessage = message;
     }
 
-    public static void sendDebugRotation(String message) {
-        if (FarmHelperConfig.showRotationDebugMessages)
-            sendDebug(message);
-    }
-
     public static void sendNotification(String title, String message, float duration) {
         if (!FarmHelperConfig.streamerMode)
             Notifications.INSTANCE.send(title, message, duration);
