@@ -198,16 +198,7 @@ public class MacroHandler {
         setMacroToggled(true);
         enableCurrentMacro();
         getCurrentMacro().ifPresent(cm -> cm.getCheckOnSpawnClock().reset());
-        if (FarmHelperConfig.sendAnalyticData) {
-            try {
-                BanInfoWS.getInstance().sendAnalyticsData(BanInfoWS.AnalyticsState.START_SESSION);
-            } catch (Exception e) {
-                LogUtils.sendDebug("Failed to send analytics data!");
-                e.printStackTrace();
-            } finally {
-                analyticsTimer.schedule();
-            }
-        }
+        analyticsTimer.schedule();
     }
 
     public void disableMacro() {
@@ -220,16 +211,9 @@ public class MacroHandler {
         });
 
         macroingTimer.pause();
-        analyticsTimer.pause();
 
-        if (FarmHelperConfig.sendAnalyticData) {
-            try {
-                BanInfoWS.getInstance().sendAnalyticsData(BanInfoWS.AnalyticsState.END_SESSION);
-            } catch (Exception e) {
-                LogUtils.sendDebug("Failed to send analytics data!");
-                e.printStackTrace();
-            }
-        }
+        BanInfoWS.getInstance().saveStats();
+        analyticsTimer.pause();
 
         setCrop(FarmHelperConfig.CropEnum.NONE);
         FeatureManager.getInstance().disableAll();

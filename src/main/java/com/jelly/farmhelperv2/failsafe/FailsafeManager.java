@@ -99,6 +99,10 @@ public class FailsafeManager {
     @Setter
     private boolean hadEmergency = false;
 
+    @Getter
+    @Setter
+    private String lastFailsafes = "";
+
     public FailsafeManager() {
         failsafes.addAll(
                 Arrays.asList(
@@ -120,6 +124,7 @@ public class FailsafeManager {
     }
 
     public void stopFailsafes() {
+        lastFailsafes = triggeredFailsafe.map(failsafe -> failsafe.getType().name().toLowerCase()).orElse("").replace("_", " ");
         triggeredFailsafe = Optional.empty();
         emergencyQueue.clear();
         sendingFailsafeInfo = false;

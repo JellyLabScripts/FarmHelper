@@ -1,10 +1,8 @@
 package com.jelly.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
@@ -26,6 +24,7 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.http.message.BasicHeader;
 import org.java_websocket.client.WebSocketClient;
@@ -33,15 +32,15 @@ import org.java_websocket.enums.ReadyState;
 import org.java_websocket.handshake.ServerHandshake;
 import org.spongepowered.asm.mixin.Unique;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
+import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class BanInfoWS implements IFeature {
@@ -78,6 +77,9 @@ public class BanInfoWS implements IFeature {
 
     @Getter
     private boolean receivedBanwaveInfo = false;
+
+    public static final File statsDirectory = new File(Minecraft.getMinecraft().mcDataDir, "farmhelper");
+    public static final String fileNamePrefix = "fh_stats_";
 
     public BanInfoWS() {
         try {
@@ -464,41 +466,82 @@ public class BanInfoWS implements IFeature {
         farmHelper.addProperty("crop", MacroHandler.getInstance().getCrop().name());
         farmHelper.addProperty("macroType", FarmHelperConfig.getMacro().name());
         farmHelper.addProperty("fastBreak", FarmHelperConfig.fastBreak);
+        farmHelper.addProperty("lastFailsafes", FailsafeManager.getInstance().getLastFailsafes());
+        farmHelper.addProperty("longestSessionLast7D", getLongestSessionLast7D());
         farmHelper.addProperty("autoCookie", FarmHelperConfig.autoCookie);
         farmHelper.addProperty("autoGodPot", FarmHelperConfig.autoGodPot);
         extraData.add("farmHelper", farmHelper);
         obj.add("extraData", extraData);
     }
 
-    public void sendAnalyticsData() {
-        sendAnalyticsData(AnalyticsState.INFO);
-    }
-
-    public void sendAnalyticsData(AnalyticsState state) {
-        MacroHandler.getInstance().getCurrentMacro().ifPresent(cm -> cm.getAnalyticsClock().schedule(300_000)); // 5 minutes
-        System.out.println("Sending analytics data...");
+    public void saveStats() {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("message", "analyticsData");
-        jsonObject.addProperty("mod", "farmHelper");
-        jsonObject.addProperty("username", Minecraft.getMinecraft().getSession().getUsername());
-        String INFO_FOR_SKIDDERS = "that's public uuid bozos, not a token to login";
-        String INFO_FOR_SKIDDERS2 = "that's public uuid bozos, not a token to login";
-        String INFO_FOR_SKIDDERS3 = "that's public uuid bozos, not a token to login";
         jsonObject.addProperty("id", Minecraft.getMinecraft().getSession().getPlayerID());
         jsonObject.addProperty("modVersion", FarmHelper.VERSION);
         jsonObject.addProperty("timeMacroing", MacroHandler.getInstance().getAnalyticsTimer().getElapsedTime());
-        jsonObject.addProperty("type", state.name());
-        JsonObject additionalInfo = new JsonObject();
-        additionalInfo.addProperty("cropType", MacroHandler.getInstance().getCrop().toString());
-        additionalInfo.addProperty("bps", ProfitCalculator.getInstance().getBPS());
-        additionalInfo.addProperty("profit", ProfitCalculator.getInstance().getRealProfitString());
-        additionalInfo.addProperty("profitPerHour", ProfitCalculator.getInstance().getProfitPerHourString());
-        additionalInfo.addProperty("macroingTime", MacroHandler.getInstance().getMacroingTimer().getElapsedTime());
-        additionalInfo.addProperty("fastBreak", FarmHelperConfig.fastBreak);
-        additionalInfo.addProperty("farmType", FarmHelperConfig.getMacro().name());
-        jsonObject.add("additionalInfo", additionalInfo);
+        jsonObject.addProperty("fastBreak", FarmHelperConfig.fastBreak);
+        jsonObject.addProperty("timestamp", System.currentTimeMillis());
+
+        JsonArray jsonArray = readJsonArrayFromFile();
+        jsonArray.add(jsonObject);
+        writeJsonArrayToFile(jsonArray);
+    }
+
+    public long getLongestSessionLast7D() {
+        long sevenDaysAgo = System.currentTimeMillis() - 604800000L; // 7 days in milliseconds
+        JsonArray jsonArray = readJsonArrayFromFile();
+        JsonArray updatedJsonArray = new JsonArray();
+        long longestSessionLength = 0L;
+
+        for (JsonElement element : jsonArray) {
+            JsonObject session = element.getAsJsonObject();
+            long sessionTimestamp = session.get("timestamp").getAsLong();
+            if (sessionTimestamp >= sevenDaysAgo) {
+                long sessionLength = session.get("timeMacroing").getAsLong();
+                if (sessionLength > longestSessionLength) {
+                    longestSessionLength = sessionLength;
+                }
+                updatedJsonArray.add(session);
+            }
+        }
+
+        writeJsonArrayToFile(updatedJsonArray); // Optimize by writing only if needed
+        return longestSessionLength;
+    }
+
+    private JsonArray readJsonArrayFromFile() {
+        String playerUUID = Minecraft.getMinecraft().getSession().getPlayerID().replace("-", "");
+        File statsFile = new File(statsDirectory, fileNamePrefix + playerUUID + ".dat");
+
+        if (statsFile.exists()) {
+            try (FileInputStream fis = new FileInputStream(statsFile);
+                 GZIPInputStream gzis = new GZIPInputStream(fis);
+                 InputStreamReader isr = new InputStreamReader(gzis, StandardCharsets.UTF_8)) {
+                JsonElement parsedElement = new JsonParser().parse(isr);
+                if (parsedElement.isJsonArray()) {
+                    return parsedElement.getAsJsonArray();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return new JsonArray(); // return an empty array if file doesn't exist or error occurs
+    }
+
+    private void writeJsonArrayToFile(JsonArray jsonArray) {
+        String playerUUID = Minecraft.getMinecraft().getSession().getPlayerID().replace("-", "");
+        File statsFile = new File(statsDirectory, fileNamePrefix + playerUUID + ".dat");
+
         try {
-            client.send(jsonObject.toString());
+            if (!statsDirectory.exists()) {
+                statsDirectory.mkdirs();
+            }
+            try (FileOutputStream fos = new FileOutputStream(statsFile);
+                 GZIPOutputStream gzos = new GZIPOutputStream(fos);
+                 OutputStreamWriter osw = new OutputStreamWriter(gzos, StandardCharsets.UTF_8)) {
+                osw.write(jsonArray.toString());
+                osw.flush();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -587,12 +630,21 @@ public class BanInfoWS implements IFeature {
                         receivedBanwaveInfo = true;
                         break;
                     }
-                    case "playerGotBanned": {
+                    case "playerGotBannedWithStats": {
                         String username = jsonObject.get("username").getAsString();
                         String days = jsonObject.get("days").getAsString();
                         String reason = jsonObject.get("reason").getAsString();
-                        LogUtils.sendWarning("Detected ban screen in " + username + "'s client for " + days + " days (reason: " + reason + ")");
-                        LogUtils.sendNotification("FarmHelper", "Detected ban screen in " + username + "'s client for " + days + " days");
+                        boolean macroEnabled = jsonObject.get("macroEnabled").getAsBoolean();
+                        boolean fastBreak = jsonObject.get("fastBreak").getAsBoolean();
+                        String crop = jsonObject.get("crop").getAsString();
+                        long longestSession7D = jsonObject.get("longestSession7D").getAsLong();
+                        String lastFailsafes = jsonObject.get("lastFailsafes").getAsString();
+                        LogUtils.sendWarning("User §c" + username + "§e got banned for " + days + " days"
+                                + (macroEnabled ? " while " + (fastBreak ? "§c§nfastbreaking§r§e " : "farming ") + crop + "." : ".")
+                                + "\nPossible reason: §c" + reason + "§e."
+                                + "\nLongest session in the last 7 days: §c" + LogUtils.formatTime(longestSession7D) + "§e."
+                                + (!lastFailsafes.isEmpty() ? "\nLast failsafes: §c" + lastFailsafes + "§e." : ""));
+                        // LogUtils.sendNotification("FarmHelper", "User " + username + " got banned for " + days + " days");
                         break;
                     }
                 }
@@ -614,9 +666,9 @@ public class BanInfoWS implements IFeature {
         };
     }
 
-    public enum AnalyticsState {
-        START_SESSION,
-        INFO,
-        END_SESSION,
+    private long cachedLongestSessionLength = 0L;
+
+    public void loadStatsOnInit() {
+        getLongestSessionLast7D();
     }
 }

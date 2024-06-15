@@ -31,7 +31,6 @@ public abstract class AbstractMacro {
     public static final Minecraft mc = Minecraft.getMinecraft();
     private final RotationHandler rotation = RotationHandler.getInstance();
     private final Clock rewarpDelay = new Clock();
-    private final Clock analyticsClock = new Clock();
     private final Clock delayBeforeBreakTime = new Clock();
     private final Clock breakTime = new Clock();
 
@@ -123,9 +122,6 @@ public abstract class AbstractMacro {
             return;
         }
         LogUtils.webhookStatus();
-        if (analyticsClock.passed() && FarmHelperConfig.sendAnalyticData) {
-            BanInfoWS.getInstance().sendAnalyticsData();
-        }
         if (!PlayerUtils.isRewarpLocationSet()) {
             LogUtils.sendError("Your rewarp position is not set!");
             MacroHandler.getInstance().disableMacro();
@@ -314,7 +310,6 @@ public abstract class AbstractMacro {
             setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
         setEnabled(true);
         setLayerY(mc.thePlayer.getPosition().getY());
-        analyticsClock.schedule(60_000);
         if (getCurrentState() == null)
             changeState(State.NONE);
     }
