@@ -101,7 +101,7 @@ public class FailsafeManager {
 
     @Getter
     @Setter
-    private String lastFailsafes = "";
+    private String banInfoWSLastFailsafe = "";
 
     public FailsafeManager() {
         failsafes.addAll(
@@ -124,7 +124,6 @@ public class FailsafeManager {
     }
 
     public void stopFailsafes() {
-        lastFailsafes = triggeredFailsafe.map(failsafe -> failsafe.getType().name().toLowerCase()).orElse("").replace("_", " ");
         triggeredFailsafe = Optional.empty();
         emergencyQueue.clear();
         sendingFailsafeInfo = false;
@@ -223,6 +222,7 @@ public class FailsafeManager {
                     stopFailsafes();
                     return;
                 }
+                banInfoWSLastFailsafe = tempFailsafe.getType().name().toLowerCase().replace("_", " ");
 
                 if (FarmHelperConfig.enableFailsafeSound && failsafe.shouldPlaySound()) {
                     AudioManager.getInstance().playSound();
@@ -269,6 +269,7 @@ public class FailsafeManager {
             stopFailsafes();
             return;
         }
+        banInfoWSLastFailsafe = triggeredFailsafe.get().getType().name().toLowerCase().replace("_", " ");
         emergencyQueue.clear();
         chooseEmergencyDelay.reset();
         hadEmergency = true;

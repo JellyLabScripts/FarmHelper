@@ -2,7 +2,6 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
 import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
@@ -24,16 +23,13 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.utils.IOUtils;
-import org.apache.http.message.BasicHeader;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.enums.ReadyState;
 import org.java_websocket.handshake.ServerHandshake;
 import org.spongepowered.asm.mixin.Unique;
 
 import java.io.*;
-import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -131,22 +127,6 @@ public class BanInfoWS implements IFeature {
         }
         IOUtils.closeQuietly(zos);
         return Base64.getEncoder().encodeToString(rstBao.toByteArray());
-    }
-
-    private static String compress(String json) throws IOException {
-        ByteArrayOutputStream rstBao = new ByteArrayOutputStream();
-        GZIPOutputStream zos = new GZIPOutputStream(rstBao);
-        zos.write(json.getBytes());
-        IOUtils.closeQuietly(zos);
-        return Base64.getEncoder().encodeToString(rstBao.toByteArray());
-    }
-
-    private List<BasicHeader> getHttpClientHeaders() {
-        List<BasicHeader> headers = new ArrayList<>();
-        headers.add(new BasicHeader("User-Agent", "Farm Helper"));
-        headers.add(new BasicHeader("Content-Type", "application/json"));
-        headers.add(new BasicHeader("Accept", "application/json"));
-        return headers;
     }
 
     @Override
@@ -466,12 +446,13 @@ public class BanInfoWS implements IFeature {
         farmHelper.addProperty("crop", MacroHandler.getInstance().getCrop().name());
         farmHelper.addProperty("macroType", FarmHelperConfig.getMacro().name());
         farmHelper.addProperty("fastBreak", FarmHelperConfig.fastBreak);
-        farmHelper.addProperty("lastFailsafes", FailsafeManager.getInstance().getLastFailsafes());
+        farmHelper.addProperty("lastFailsafes", FailsafeManager.getInstance().getBanInfoWSLastFailsafe());
         farmHelper.addProperty("longestSessionLast7D", getLongestSessionLast7D());
         farmHelper.addProperty("autoCookie", FarmHelperConfig.autoCookie);
         farmHelper.addProperty("autoGodPot", FarmHelperConfig.autoGodPot);
         extraData.add("farmHelper", farmHelper);
         obj.add("extraData", extraData);
+        System.out.println("lastFailsafe: " + FailsafeManager.getInstance().getBanInfoWSLastFailsafe());
     }
 
     public void saveStats() {
@@ -636,14 +617,14 @@ public class BanInfoWS implements IFeature {
                         String reason = jsonObject.get("reason").getAsString();
                         boolean macroEnabled = jsonObject.get("macroEnabled").getAsBoolean();
                         boolean fastBreak = jsonObject.get("fastBreak").getAsBoolean();
-                        String crop = jsonObject.get("crop").getAsString();
+                        String crop = jsonObject.get("crop").getAsString().toLowerCase().replace("_", " ");
                         long longestSession7D = jsonObject.get("longestSession7D").getAsLong();
-                        String lastFailsafes = jsonObject.get("lastFailsafes").getAsString();
+                        String lastFailsafe = jsonObject.get("lastFailsafe").getAsString();
                         LogUtils.sendWarning("User §c" + username + "§e got banned for " + days + " days"
                                 + (macroEnabled ? " while " + (fastBreak ? "§c§nfastbreaking§r§e " : "farming ") + crop + "." : ".")
                                 + "\n§ePossible reason: §c" + reason + "§e."
                                 + "\n§eLongest session in the last 7 days: §c" + LogUtils.formatTime(longestSession7D)
-                                + (!lastFailsafes.isEmpty() ? "\nLast failsafes: §c" + lastFailsafes : ""));
+                                + (!lastFailsafe.isEmpty() ? "\nLast failsafe: §c" + lastFailsafe : ""));
                         // LogUtils.sendNotification("FarmHelper", "User " + username + " got banned for " + days + " days");
                         break;
                     }
