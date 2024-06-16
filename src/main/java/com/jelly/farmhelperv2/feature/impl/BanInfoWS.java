@@ -278,7 +278,7 @@ public class BanInfoWS implements IFeature {
             String banId = StringUtils.stripControlCodes(multilineMessage.get(5)).replace("Ban ID: ", "").trim();
             BanInfoWS.getInstance().playerBanned(durationDays, reason, banId, wholeReason);
             LogUtils.webhookLog("[Banned]\\nBanned for " + durationDays + " days for " + reason, true);
-            if (!FarmHelperConfig.captureClipAfterFailsafe && !FarmHelperConfig.captureClipKeybind.getKeyBinds().isEmpty()) {
+            if (FarmHelperConfig.captureClipAfterFailsafe && !FarmHelperConfig.captureClipKeybind.getKeyBinds().isEmpty()) {
                 Multithreading.schedule(() -> {
                     FailsafeUtils.captureClip();
                     LogUtils.sendDebug("[Failsafe] Clip captured!");
@@ -641,9 +641,9 @@ public class BanInfoWS implements IFeature {
                         String lastFailsafes = jsonObject.get("lastFailsafes").getAsString();
                         LogUtils.sendWarning("User §c" + username + "§e got banned for " + days + " days"
                                 + (macroEnabled ? " while " + (fastBreak ? "§c§nfastbreaking§r§e " : "farming ") + crop + "." : ".")
-                                + "\nPossible reason: §c" + reason + "§e."
-                                + "\nLongest session in the last 7 days: §c" + LogUtils.formatTime(longestSession7D) + "§e."
-                                + (!lastFailsafes.isEmpty() ? "\nLast failsafes: §c" + lastFailsafes + "§e." : ""));
+                                + "\n§ePossible reason: §c" + reason + "§e."
+                                + "\n§eLongest session in the last 7 days: §c" + LogUtils.formatTime(longestSession7D)
+                                + (!lastFailsafes.isEmpty() ? "\nLast failsafes: §c" + lastFailsafes : ""));
                         // LogUtils.sendNotification("FarmHelper", "User " + username + " got banned for " + days + " days");
                         break;
                     }
