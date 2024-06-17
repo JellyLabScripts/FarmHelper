@@ -854,7 +854,7 @@ public class FarmHelperConfig extends Config {
             name = "Pet Name", placeholder = "Type your pet name here",
             category = JACOBS_CONTEST, subcategory = "Pet Swapper"
     )
-    public static String petSwapperName = null;
+    public static String petSwapperName = "";
     //</editor-fold>
 
     @Switch(
