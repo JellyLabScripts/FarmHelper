@@ -167,7 +167,7 @@ public class PlayerUtils {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
                 String name = mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName();
                 if (anyHoe) {
-                    if (name.contains("Hoe") || name.contains("Dicer") || name.contains("Chopper") || name.contains("Fungi") || name.contains("Knife")) {
+                    if (name.contains("Hoe") || name.contains("Dicer") || name.contains("Chopper") || name.contains("Fungi") || name.contains("Daedalus Axe") || name.contains("Knife")) {
                         return i - 36;
                     }
                     continue;
@@ -204,7 +204,7 @@ public class PlayerUtils {
                         }
                         continue;
                     case MUSHROOM:
-                        if (name.contains("Fungi")) {
+                        if (name.contains("Fungi") || name.contains("Daedalus Axe")) {
                             return i - 36;
                         }
                         continue;
