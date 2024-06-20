@@ -98,7 +98,7 @@ public class FarmHelper {
             LogUtils.sendNotification("FarmHelper", "Auto Ungrab Mouse feature doesn't work properly on Mac OS. It has been disabled automatically.", 15000);
             LogUtils.sendError("Auto Ungrab Mouse feature doesn't work properly on Mac OS. It has been disabled automatically.");
         }
-        if (FarmHelperConfig.configVersion != 3) {
+        if (FarmHelperConfig.configVersion < 3) {
             FarmHelperConfig.visitorsMacroMaxSpendLimit = 0.7f;
             LogUtils.sendNotification("FarmHelper", "'Max Spend Limit' in Visitors Macro settings has been set to 0.7 automatically, because of change of type. Make sure to update it to your preferences", 15000);
             LogUtils.sendWarning("'Max Spend Limit' in Visitors Macro settings has been set to 0.7 automatically, because of change of type. Make sure to update it to your preferences");
@@ -108,8 +108,11 @@ public class FarmHelper {
             LogUtils.sendNotification("FarmHelper", "You've got Oringo installed in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.", 15000);
             LogUtils.sendWarning("You've got §6§lOringo §cinstalled in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.");
         }
-        if (FarmHelperConfig.configVersion != 3)
-            FarmHelperConfig.configVersion = 3;
+        if (FarmHelperConfig.configVersion == 3 && FarmHelperConfig.macroType > 7) {
+            FarmHelperConfig.macroType += 1; // Added cocoa bean macro with trapdoors
+        }
+        if (FarmHelperConfig.configVersion != 4)
+            FarmHelperConfig.configVersion = 4;
         sentInfoAboutShittyClient = true;
     }
 
