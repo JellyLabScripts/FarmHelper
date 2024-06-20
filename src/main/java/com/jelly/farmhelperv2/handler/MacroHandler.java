@@ -100,6 +100,7 @@ public class MacroHandler {
             case S_SUGAR_CANE:
                 return Macros.S_SHAPE_SUGARCANE_MACRO.getMacro();
             case S_COCOA_BEANS:
+            case S_COCOA_BEANS_TRAPDOORS:
                 return Macros.S_SHAPE_COCOA_BEAN_MACRO.getMacro();
             case S_MUSHROOM:
                 return Macros.S_SHAPE_MUSHROOM_MACRO.getMacro();

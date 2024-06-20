@@ -92,6 +92,7 @@ public class FarmHelperConfig extends Config {
                     "S Shape - Cactus", // 5
                     "S Shape - Cactus SunTzu Black Cat", // 6
                     "S Shape - Cocoa Beans", // 7
+                    "S Shape - Cocoa Beans (With Trapdoors)", // 7
                     "S Shape - Cocoa Beans (Left/Right)", // 8
                     "S Shape - Mushroom (45°)", // 9
                     "S Shape - Mushroom (30° with rotations)", // 10
@@ -2288,6 +2289,7 @@ public class FarmHelperConfig extends Config {
         S_CACTUS,
         S_CACTUS_SUNTZU,
         S_COCOA_BEANS,
+        S_COCOA_BEANS_TRAPDOORS,
         S_COCOA_BEANS_LEFT_RIGHT,
         S_MUSHROOM,
         S_MUSHROOM_ROTATE,
