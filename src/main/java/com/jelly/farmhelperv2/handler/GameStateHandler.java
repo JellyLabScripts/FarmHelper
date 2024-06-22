@@ -44,6 +44,7 @@ public class GameStateHandler {
     @Getter
     private final Clock jacobContestLeftClock = new Clock();
     public final Pattern jacobsRemainingTimePattern = Pattern.compile("([0-9]|[1-2][0-9])m([0-9]|[1-5][0-9])s");
+    public final Pattern jacobsStartsInTimePattern = Pattern.compile("Starts In: ([1-3]?[0-9])?m ?([1-5]?[0-9])?s?");
     private final Pattern serverClosingPattern = Pattern.compile("Server closing: (?<minutes>\\d+):(?<seconds>\\d+) .*");
     private final Pattern pestsFromVacuumPattern = Pattern.compile("Vacuum Bag: (\\d+) Pest(s)?");
     @Getter
