@@ -167,12 +167,24 @@ public class AutoPestExchange implements IFeature {
             LogUtils.sendWarning("[Auto Pest Exchange] Pest Hunter bonus is active or unknown, skipping...");
             return false;
         }
-        if (!manual && GameStateHandler.getInstance().inJacobContest() && !FarmHelperConfig.autoPestExchangeIgnoreJacobsContest) {
+        if (!manual && !GameStateHandler.getInstance().inJacobContest() && !FarmHelperConfig.autoPestExchangeIgnoreJacobsContest) {
+            LogUtils.sendDebug("[Auto Pest Exchange] Checking when Jacob's contest starts...");
             for (String line : TablistUtils.getTabList()) {
-                Matcher matcher = GameStateHandler.getInstance().jacobsRemainingTimePattern.matcher(line);
-                if (matcher.find()) {
-                    String minutes = matcher.group(1);
-                    if (Integer.parseInt(minutes) > FarmHelperConfig.autoPestExchangeTriggerBeforeContestStarts) {
+                Matcher matcher = GameStateHandler.getInstance().jacobsStartsInTimePattern.matcher(line);
+                if (matcher.find() && matcher.groupCount() >= 1) {
+                    float minutes = 0f;
+                    if (line.endsWith("m")) {
+                        minutes = Integer.parseInt(matcher.group(1));
+                    } else if (line.endsWith("s")) {
+                        if (matcher.groupCount() >= 2) {
+                            minutes = Integer.parseInt(matcher.group(1));
+                            minutes += Integer.parseInt(matcher.group(2)) / 60f;
+                        } else {
+                            minutes = Integer.parseInt(matcher.group(1)) / 60f;
+                        }
+                    }
+                    LogUtils.sendDebug("[Auto Pest Exchange] Jacob's contest is starting in " + minutes + " minutes...");
+                    if (minutes > FarmHelperConfig.autoPestExchangeTriggerBeforeContestStarts) {
                         LogUtils.sendDebug("[Auto Pest Exchange] Jacob's contest is starting in " + minutes + " minutes, skipping...");
                         return false;
                     }
