@@ -35,6 +35,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.Display;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -82,32 +83,44 @@ public class FarmHelper {
         if (sentInfoAboutShittyClient) return;
 
         if (ReflectionUtils.hasPackageInstalled("feather")) {
-            LogUtils.sendNotification("FarmHelper", "You've got Feather Client installed! Be aware, you might have a lot of bugs because of this shitty client!", 15000);
+            LogUtils.sendNotification("Farm Helper", "You've got Feather Client installed! Be aware, you might have a lot of bugs because of this shitty client!", 15000);
             LogUtils.sendError("You've got §6§lFeather Client §cinstalled! Be aware, you might have a lot of bugs because of this shitty client!");
         }
         if (ReflectionUtils.hasPackageInstalled("cc.woverflow.hytils.HytilsReborn")) {
-            LogUtils.sendNotification("FarmHelper", "You've got Hytils installed in your mods folder! This will cause many issues with rewarping as it sends tons of commands every minute.", 15000);
+            LogUtils.sendNotification("Farm Helper", "You've got Hytils installed in your mods folder! This will cause many issues with rewarping as it sends tons of commands every minute.", 15000);
             LogUtils.sendError("You've got §6§lHytils §cinstalled in your mods folder! This will cause many issues with rewarping as it sends tons of commands every minute.");
         }
         if (ReflectionUtils.hasPackageInstalled("com.tterrag.blur")) {
-            LogUtils.sendNotification("FarmHelper", "You've got BlurMC installed in your mods folder! This will break AutoSell, Pests Destroyer and other features that need to work with inventories!", 15000);
+            LogUtils.sendNotification("Farm Helper", "You've got BlurMC installed in your mods folder! This will break AutoSell, Pests Destroyer and other features that need to work with inventories!", 15000);
             LogUtils.sendError("You've got §6§lBlurMC §cinstalled in your mods folder! This will break AutoSell, Pests Destroyer and other features that need to work with inventories!");
+        }
+        if (ReflectionUtils.hasPackageInstalled("at.hannibal2.skyhanni")) {
+            try {
+                Class<?> klazz = Class.forName("at.hannibal2.skyhanni.config.features.garden.pests.PestWaypointConfig");
+                Field field = klazz.getDeclaredField("hideParticles");
+                if (field.getBoolean(klazz)) {
+                    LogUtils.sendWarning("Enabling SkyHanni Pest Waypoint 'Hide Particles' option. This is required for Pests Destroyer to work properly.");
+                    field.setBoolean(klazz, false);
+                }
+            } catch (Exception ignored) {
+            }
         }
         if (Minecraft.isRunningOnMac && FarmHelperConfig.autoUngrabMouse) {
             FarmHelperConfig.autoUngrabMouse = false;
-            LogUtils.sendNotification("FarmHelper", "Auto Ungrab Mouse feature doesn't work properly on Mac OS. It has been disabled automatically.", 15000);
+            LogUtils.sendNotification("Farm Helper", "Auto Ungrab Mouse feature doesn't work properly on Mac OS. It has been disabled automatically.", 15000);
             LogUtils.sendError("Auto Ungrab Mouse feature doesn't work properly on Mac OS. It has been disabled automatically.");
         }
         if (FarmHelperConfig.configVersion < 3) {
             FarmHelperConfig.visitorsMacroMaxSpendLimit = 0.7f;
-            LogUtils.sendNotification("FarmHelper", "'Max Spend Limit' in Visitors Macro settings has been set to 0.7 automatically, because of change of type. Make sure to update it to your preferences", 15000);
+            LogUtils.sendNotification("Farm Helper", "'Max Spend Limit' in Visitors Macro settings has been set to 0.7 automatically, because of change of type. Make sure to update it to your preferences", 15000);
             LogUtils.sendWarning("'Max Spend Limit' in Visitors Macro settings has been set to 0.7 automatically, because of change of type. Make sure to update it to your preferences");
         }
         if (!FarmHelperConfig.flyPathfinderOringoCompatible && ReflectionUtils.hasModFile("oringo")) {
             FarmHelperConfig.flyPathfinderOringoCompatible = true;
-            LogUtils.sendNotification("FarmHelper", "You've got Oringo installed in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.", 15000);
+            LogUtils.sendNotification("Farm Helper", "You've got Oringo installed in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.", 15000);
             LogUtils.sendWarning("You've got §6§lOringo §cinstalled in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.");
         }
+
         if (FarmHelperConfig.configVersion == 3 && FarmHelperConfig.macroType > 7) {
             FarmHelperConfig.macroType += 1; // Added cocoa bean macro with trapdoors
         }

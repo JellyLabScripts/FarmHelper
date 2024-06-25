@@ -605,7 +605,7 @@ public class BanInfoWS implements IFeature {
                         if (!receivedBanwaveInfo) {
                             if (client.isOpen() && client.getReadyState() != ReadyState.NOT_YET_CONNECTED) {
                                 LogUtils.sendDebug("Connected to analytics websocket server");
-                                LogUtils.sendNotification("FarmHelper", "Connected to analytics websocket server");
+                                LogUtils.sendNotification("Farm Helper", "Connected to analytics websocket server");
                             }
                         }
                         receivedBanwaveInfo = true;
@@ -625,7 +625,7 @@ public class BanInfoWS implements IFeature {
                                 + "\n§ePossible reason: §c" + reason + "§e."
                                 + "\n§eLongest session in the last 7 days: §c" + LogUtils.formatTime(longestSession7D)
                                 + (!lastFailsafe.isEmpty() ? "\nLast failsafe: §c" + lastFailsafe : ""));
-                        // LogUtils.sendNotification("FarmHelper", "User " + username + " got banned for " + days + " days");
+                        // LogUtils.sendNotification("Farm Helper", "User " + username + " got banned for " + days + " days");
                         break;
                     }
                 }

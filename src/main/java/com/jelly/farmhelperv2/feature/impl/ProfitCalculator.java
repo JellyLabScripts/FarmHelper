@@ -419,14 +419,25 @@ public class ProfitCalculator implements IFeature {
     public void onReceivedChat(ClientChatReceivedEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
-        if (event.type != 0) return;
-
+        if (event.type != 0 || event.message == null) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
+
+        if (message.contains(":") || !message.contains("coins")) return;
+        if (((message.startsWith("[Bazaar] Claimed ") || message.startsWith("You collected ")) && message.contains("coins from selling")) || message.startsWith("[Bazaar] Sold ")) {
+            Matcher matcher = coinsPattern.matcher(message);
+            if (matcher.find()) {
+                String coinsFound = matcher.group(1);
+                try {
+                    double coins = Double.parseDouble(coinsFound.replace(",", ""));
+                    realProfit -= coins;
+                } catch (NumberFormatException e) {
+                    LogUtils.sendDebug("Failed to parse coins from message: " + e.getMessage());
+                }
+                LogUtils.sendWarning("Selling crops in bazaar or auction house may break the profit calculator! Pause the macro before taking any action!");
+            }
+        }
+
         if (message.contains("Sold")) return;
-        if (message.contains(":")) return;
-        if (message.contains("[Bazaar]")) return;
-        if (message.contains("[Auction]")) return;
-        if (message.contains("coins")) return;
 
         Optional<String> optional = rngToCountList.stream().filter(message::contains).findFirst();
         if (optional.isPresent()) {
@@ -468,6 +479,8 @@ public class ProfitCalculator implements IFeature {
     private void addRngDrop(String name) {
         rngDropToCount.stream().filter(drop -> drop.localizedName.equals(name)).forEach(drop -> drop.currentAmount += 1);
     }
+
+    Pattern coinsPattern = Pattern.compile("(\\d{1,3}(?:,\\d{3})*(?:\\.\\d+)?) coins");
 
     @SubscribeEvent
     public void onTickUpdateBazaarPrices(TickEvent.ClientTickEvent event) {

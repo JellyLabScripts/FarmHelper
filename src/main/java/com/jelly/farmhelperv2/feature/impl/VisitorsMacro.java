@@ -864,75 +864,101 @@ public class VisitorsMacro implements IFeature {
                 }
 
                 assert currentVisitor.isPresent();
-                switch (npcRarity) {
-                    case UNKNOWN:
-                        LogUtils.sendDebug("[Visitors Macro] The visitor is unknown rarity. Accepting offer...");
-                        break;
-                    case UNCOMMON:
-                        if (FarmHelperConfig.visitorsActionUncommon == 0) {
-                            LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Accepting...");
-                        } else if (FarmHelperConfig.visitorsActionUncommon == 1) {
-                            checkIfCurrentVisitorIsProfitable();
-                        } else if (FarmHelperConfig.visitorsActionUncommon == 3) {
-                            LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Ignoring...");
-                            ignoredNPCs.add(currentVisitor.get());
+                if (FarmHelperConfig.visitorsFilteringMethod) {
+                    if (FarmHelperConfig.nameFilter.isEmpty()) {
+                        LogUtils.sendError("[Visitors Macro] Name filter is empty. Switching to rarity filtering method...");
+                        FarmHelperConfig.visitorsFilteringMethod = false;
+                    } else {
+                        List<String> visitorsList = Arrays.asList(FarmHelperConfig.nameFilter.split("\\|"));
+                        if (visitorsList.stream().anyMatch(visitorName -> StringUtils.stripControlCodes(npcName.toLowerCase()).contains(visitorName.toLowerCase()))) {
+                            if (FarmHelperConfig.nameFilteringType) {
+                                LogUtils.sendDebug("[Visitors Macro] NPC name is on the whitelist filter. Accepting offer...");
+                            } else {
+                                LogUtils.sendDebug("[Visitors Macro] NPC name is on the blacklist filter. Rejecting...");
+                                rejectVisitor = true;
+                            }
                         } else {
-                            LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Rejecting...");
-                            rejectVisitor = true;
+                            if (FarmHelperConfig.nameFilteringType) {
+                                LogUtils.sendDebug("[Visitors Macro] NPC name is not on the whitelist filter. Rejecting...");
+                                rejectVisitor = true;
+                            } else {
+                                LogUtils.sendDebug("[Visitors Macro] NPC name is not on the blacklist filter. Accepting offer...");
+                            }
                         }
-                        break;
-                    case RARE:
-                        if (FarmHelperConfig.visitorsActionRare == 0) {
-                            LogUtils.sendDebug("[Visitors Macro] The visitor is rare rarity. Accepting...");
-                        } else if (FarmHelperConfig.visitorsActionRare == 1) {
-                            checkIfCurrentVisitorIsProfitable();
-                        } else if (FarmHelperConfig.visitorsActionRare == 3) {
-                            LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Ignoring...");
-                            ignoredNPCs.add(currentVisitor.get());
-                        } else {
-                            LogUtils.sendDebug("[Visitors Macro] The visitor is rare rarity. Rejecting...");
-                            rejectVisitor = true;
-                        }
-                        break;
-                    case LEGENDARY:
-                        if (FarmHelperConfig.visitorsActionLegendary == 0) {
-                            LogUtils.sendDebug("[Visitors Macro] The visitor is legendary rarity. Accepting...");
-                        } else if (FarmHelperConfig.visitorsActionLegendary == 1) {
-                            checkIfCurrentVisitorIsProfitable();
-                        } else if (FarmHelperConfig.visitorsActionLegendary == 3) {
-                            LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Ignoring...");
-                            ignoredNPCs.add(currentVisitor.get());
-                        } else {
-                            LogUtils.sendDebug("[Visitors Macro] The visitor is legendary rarity. Rejecting...");
-                            rejectVisitor = true;
-                        }
-                        break;
-                    case MYTHIC:
-                        if (FarmHelperConfig.visitorsActionMythic == 0) {
-                            LogUtils.sendDebug("[Visitors Macro] The visitor is mythic rarity. Accepting...");
-                        } else if (FarmHelperConfig.visitorsActionMythic == 1) {
-                            checkIfCurrentVisitorIsProfitable();
-                        } else if (FarmHelperConfig.visitorsActionMythic == 3) {
-                            LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Ignoring...");
-                            ignoredNPCs.add(currentVisitor.get());
-                        } else {
-                            LogUtils.sendDebug("[Visitors Macro] The visitor is mythic rarity. Rejecting...");
-                            rejectVisitor = true;
-                        }
-                        break;
-                    case SPECIAL:
-                        if (FarmHelperConfig.visitorsActionSpecial == 0) {
-                            LogUtils.sendDebug("[Visitors Macro] The visitor is special rarity. Accepting...");
-                        } else if (FarmHelperConfig.visitorsActionSpecial == 1) {
-                            checkIfCurrentVisitorIsProfitable();
-                        } else if (FarmHelperConfig.visitorsActionSpecial == 3) {
-                            LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Ignoring...");
-                            ignoredNPCs.add(currentVisitor.get());
-                        } else {
-                            LogUtils.sendDebug("[Visitors Macro] The visitor is special rarity. Rejecting...");
-                            rejectVisitor = true;
-                        }
-                        break;
+                    }
+                }
+
+                if (!FarmHelperConfig.visitorsFilteringMethod) {
+                    switch (npcRarity) {
+                        case UNKNOWN:
+                            LogUtils.sendDebug("[Visitors Macro] The visitor is unknown rarity. Accepting offer...");
+                            break;
+                        case UNCOMMON:
+                            if (FarmHelperConfig.visitorsActionUncommon == 0) {
+                                LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Accepting...");
+                            } else if (FarmHelperConfig.visitorsActionUncommon == 1) {
+                                checkIfCurrentVisitorIsProfitable();
+                            } else if (FarmHelperConfig.visitorsActionUncommon == 3) {
+                                LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Ignoring...");
+                                ignoredNPCs.add(currentVisitor.get());
+                            } else {
+                                LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Rejecting...");
+                                rejectVisitor = true;
+                            }
+                            break;
+                        case RARE:
+                            if (FarmHelperConfig.visitorsActionRare == 0) {
+                                LogUtils.sendDebug("[Visitors Macro] The visitor is rare rarity. Accepting...");
+                            } else if (FarmHelperConfig.visitorsActionRare == 1) {
+                                checkIfCurrentVisitorIsProfitable();
+                            } else if (FarmHelperConfig.visitorsActionRare == 3) {
+                                LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Ignoring...");
+                                ignoredNPCs.add(currentVisitor.get());
+                            } else {
+                                LogUtils.sendDebug("[Visitors Macro] The visitor is rare rarity. Rejecting...");
+                                rejectVisitor = true;
+                            }
+                            break;
+                        case LEGENDARY:
+                            if (FarmHelperConfig.visitorsActionLegendary == 0) {
+                                LogUtils.sendDebug("[Visitors Macro] The visitor is legendary rarity. Accepting...");
+                            } else if (FarmHelperConfig.visitorsActionLegendary == 1) {
+                                checkIfCurrentVisitorIsProfitable();
+                            } else if (FarmHelperConfig.visitorsActionLegendary == 3) {
+                                LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Ignoring...");
+                                ignoredNPCs.add(currentVisitor.get());
+                            } else {
+                                LogUtils.sendDebug("[Visitors Macro] The visitor is legendary rarity. Rejecting...");
+                                rejectVisitor = true;
+                            }
+                            break;
+                        case MYTHIC:
+                            if (FarmHelperConfig.visitorsActionMythic == 0) {
+                                LogUtils.sendDebug("[Visitors Macro] The visitor is mythic rarity. Accepting...");
+                            } else if (FarmHelperConfig.visitorsActionMythic == 1) {
+                                checkIfCurrentVisitorIsProfitable();
+                            } else if (FarmHelperConfig.visitorsActionMythic == 3) {
+                                LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Ignoring...");
+                                ignoredNPCs.add(currentVisitor.get());
+                            } else {
+                                LogUtils.sendDebug("[Visitors Macro] The visitor is mythic rarity. Rejecting...");
+                                rejectVisitor = true;
+                            }
+                            break;
+                        case SPECIAL:
+                            if (FarmHelperConfig.visitorsActionSpecial == 0) {
+                                LogUtils.sendDebug("[Visitors Macro] The visitor is special rarity. Accepting...");
+                            } else if (FarmHelperConfig.visitorsActionSpecial == 1) {
+                                checkIfCurrentVisitorIsProfitable();
+                            } else if (FarmHelperConfig.visitorsActionSpecial == 3) {
+                                LogUtils.sendDebug("[Visitors Macro] The visitor is uncommon rarity. Ignoring...");
+                                ignoredNPCs.add(currentVisitor.get());
+                            } else {
+                                LogUtils.sendDebug("[Visitors Macro] The visitor is special rarity. Rejecting...");
+                                rejectVisitor = true;
+                            }
+                            break;
+                    }
                 }
 
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());

@@ -160,7 +160,7 @@ public class FailsafeUtils {
     private void windows(String text, TrayIcon.MessageType type) {
         if (SystemTray.isSupported()) {
             try {
-                trayIcon.displayMessage("FarmHelper", text, type);
+                trayIcon.displayMessage("Farm Helper", text, type);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -181,7 +181,7 @@ public class FailsafeUtils {
 
     private void linux(String text) {
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command("notify-send", "-a", "FarmHelper", text);
+        processBuilder.command("notify-send", "-a", "Farm Helper", text);
         try {
             processBuilder.start();
         } catch (IOException e) {

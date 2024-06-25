@@ -784,19 +784,19 @@ public class FarmHelperConfig extends Config {
             name = "Enable Scheduler", category = SCHEDULER, subcategory = "Scheduler", size = OptionSize.DUAL,
             description = "Farms for X amount of minutes then takes a break for X amount of minutes"
     )
-    public static boolean enableScheduler = false;
+    public static boolean enableScheduler = true;
     @Slider(
             name = "Farming time (in minutes)", category = SCHEDULER, subcategory = "Scheduler",
             description = "How long to farm",
             min = 1, max = 300, step = 1
     )
-    public static int schedulerFarmingTime = 30;
+    public static int schedulerFarmingTime = 60;
     @Slider(
             name = "Farming time randomness (in minutes)", category = SCHEDULER, subcategory = "Scheduler",
             description = "How much randomness to add to the farming time",
             min = 0, max = 15, step = 1
     )
-    public static int schedulerFarmingTimeRandomness = 0;
+    public static int schedulerFarmingTimeRandomness = 5;
     @Slider(
             name = "Break time (in minutes)", category = SCHEDULER, subcategory = "Scheduler",
             description = "How long to take a break",
@@ -808,7 +808,7 @@ public class FarmHelperConfig extends Config {
             description = "How much randomness to add to the break time",
             min = 0, max = 15, step = 1
     )
-    public static int schedulerBreakTimeRandomness = 0;
+    public static int schedulerBreakTimeRandomness = 5;
     @Switch(
             name = "Pause the scheduler during Jacob's Contest", category = SCHEDULER, subcategory = "Scheduler",
             description = "Pauses and delays the scheduler during Jacob's Contest"
@@ -1035,6 +1035,30 @@ public class FarmHelperConfig extends Config {
     };
     //</editor-fold>
 
+    //<editor-fold desc="Filters">
+
+    @DualOption(
+            name = "Visitors Filtering Method", category = VISITORS_MACRO, subcategory = "Filters",
+            description = "",
+            left = "By Rarity", right = "By Name"
+    )
+    public static boolean visitorsFilteringMethod = false;
+
+    @DualOption(
+            name = "Name Filtering Type", category = VISITORS_MACRO, subcategory = "Filters",
+            description = "The name filtering method to use",
+            left = "Whitelist", right = "Blacklist"
+    )
+    public static boolean nameFilteringType = false;
+
+    @Text(
+            name = "Name Filter", category = VISITORS_MACRO, subcategory = "Filters",
+            description = "Visitor names to filter. Use | to split the messages.",
+            placeholder = "Visitor names to filter. Use | to split the messages.",
+            size = 2
+    )
+    public static String nameFilter = "Librarian|Maeve|Spaceman";
+
     //<editor-fold desc="Rarity">
     @Dropdown(
             name = "Uncommon", category = VISITORS_MACRO, subcategory = "Rarity",
@@ -1077,12 +1101,26 @@ public class FarmHelperConfig extends Config {
     //<editor-fold desc="PESTS DESTROYER">
     //<editor-fold desc="Infos">
     @Info(
+            text = "Make sure to disable SkyHanni Hide Particles, they're disabled by default!",
+            type = InfoType.WARNING,
+            category = PESTS_DESTROYER,
+            size = 2
+    )
+    public static boolean pestsDestroyerWarning1;
+    @Info(
             text = "Make sure to enable Hypixel's Particles (/pq low), low is the minimum to make it work",
             type = InfoType.WARNING,
             category = PESTS_DESTROYER,
             size = 2
     )
-    public static boolean pestsDestroyerWarning;
+    public static boolean pestsDestroyerWarning2;
+    @Info(
+            text = "Make sure to disable Oringo AutoSprint. Keep in mind Oringo breaks Farm Helper a lot.",
+            type = InfoType.WARNING,
+            category = PESTS_DESTROYER,
+            size = 2
+    )
+    public static boolean pestsDestroyerWarning3;
 
     @Info(
             text = "Pests Destroyer will trigger only at rewarp or spawn location after reaching the threshold!",
@@ -1132,7 +1170,7 @@ public class FarmHelperConfig extends Config {
     public static int failsafeCutoffAfterUsingAoteV = 100;
 
     @Switch(
-            name = "Don't teleport to plots", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            name = "Don't teleport to plots when the spawn is not obstructed", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Prevents the macro from teleporting to plots"
     )
     public static boolean dontTeleportToPlots = false;
@@ -2054,6 +2092,14 @@ public class FarmHelperConfig extends Config {
         this.addDependency("visitorsMacroAutosellBeforeServing", "visitorsMacro");
         this.addDependency("visitorsMacroMinMoney", "visitorsMacro");
         this.addDependency("visitorsMacroMaxSpendLimit", "visitorsMacro");
+
+        this.addDependency("visitorsActionUncommon", "Visitors Filtering Method", () -> !visitorsFilteringMethod);
+        this.addDependency("visitorsActionRare", "Visitors Filtering Method", () -> !visitorsFilteringMethod);
+        this.addDependency("visitorsActionLegendary", "Visitors Filtering Method", () -> !visitorsFilteringMethod);
+        this.addDependency("visitorsActionMythic", "Visitors Filtering Method", () -> !visitorsFilteringMethod);
+        this.addDependency("visitorsActionSpecial", "Visitors Filtering Method", () -> !visitorsFilteringMethod);
+        this.addDependency("nameFilteringType", "visitorsFilteringMethod");
+        this.addDependency("nameFilter", "visitorsFilteringMethod");
 
         this.addDependency("sendVisitorsMacroLogs", "visitorsMacro");
         this.addDependency("sendVisitorsMacroLogs", "enableWebHook");
