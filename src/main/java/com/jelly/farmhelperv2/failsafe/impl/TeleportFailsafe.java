@@ -156,6 +156,11 @@ public class TeleportFailsafe extends Failsafe {
             return;
         }
 
+        if (LagDetector.getInstance().isLagging() || LagDetector.getInstance().wasJustLagging()) {
+            LogUtils.sendDebug("[Failsafe] Lag detected! Ignoring");
+            return;
+        }
+
         rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
         double distance = currentPlayerPos.distanceTo(packetPlayerPos);
 

@@ -443,6 +443,12 @@ public class FarmHelperConfig extends Config {
     )
     public static float teleportCheckLagSensitivity = 0.5f;
     @Slider(
+            name = "Cancel failsafes for X milliseconds after the last lag", category = FAILSAFE, subcategory = "Failsafes",
+            description = "Cancels teleport and rotation failsafes that happened after the last lag",
+            min = 500, max = 10000, step = 100
+    )
+    public static int cancelFailsafeAfterMilliseconds = 1000;
+    @Slider(
             name = "Teleport/Rotation Check Time Window (in milliseconds)", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "The time window to check for teleports (in seconds)",
             min = 50, max = 4000, step = 50
@@ -1167,7 +1173,7 @@ public class FarmHelperConfig extends Config {
             description = "The time in ms after which macro will count failsafes after using AOTE/V",
             min = 0, max = 1500
     )
-    public static int failsafeCutoffAfterUsingAoteV = 100;
+    public static int failsafeCutoffAfterUsingAoteV = 800;
 
     @Switch(
             name = "Don't teleport to plots when the spawn is not obstructed", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
@@ -1997,13 +2003,11 @@ public class FarmHelperConfig extends Config {
     public static boolean disableFastBreakDuringJacobsContest = true;
     //</editor-fold>
 
-    //<editor-fold desc="Auto Switch">
     @Switch(
             name = "Automatically switch recognized crop", category = EXPERIMENTAL, subcategory = "Auto Switch",
             description = "Macro will be recognizing farming crop, which will lead to auto switching tool to the best one"
     )
     public static boolean autoSwitchTool = true;
-    //</editor-fold>
 
     @Switch(
             name = "Count profit based on Cultivating enchant", category = EXPERIMENTAL, subcategory = "Profit Calculator",
@@ -2023,7 +2027,7 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean showDebugLogsAboutPDOTT = false;
 
-    //</editor-fold>
+
     //</editor-fold>
 
     @Number(name = "Config Version", category = EXPERIMENTAL, subcategory = "Experimental", min = 0, max = 1337)

@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.util.helper.Clock;
@@ -116,7 +117,7 @@ public class LagDetector implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (lastReceivedPacketTime == -1) return;
         if (isLagging()) {
-            recentlyLagged.schedule(900);
+            recentlyLagged.schedule(FarmHelperConfig.cancelFailsafeAfterMilliseconds);
         }
         if (recentlyLagged.isScheduled() && recentlyLagged.passed()) {
             recentlyLagged.reset();
