@@ -7,6 +7,7 @@ import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.AntiStuck;
+import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -97,6 +98,10 @@ public class RotationFailsafe extends Failsafe {
                 return;
             }
             LogUtils.sendDebug("[Failsafe] Rotation packet received while Fly pathfinder is running. Ignoring");
+            return;
+        }
+        if (LagDetector.getInstance().isLagging() || LagDetector.getInstance().wasJustLagging()) {
+            LogUtils.sendDebug("[Failsafe] Lag detected! Ignoring");
             return;
         }
         if (yawDiff == 360 && pitchDiff == 0) // prevents false checks

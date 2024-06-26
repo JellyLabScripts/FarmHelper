@@ -1173,7 +1173,7 @@ public class FarmHelperConfig extends Config {
             description = "The time in ms after which macro will count failsafes after using AOTE/V",
             min = 0, max = 1500
     )
-    public static int failsafeCutoffAfterUsingAoteV = 800;
+    public static int failsafeCutoffAfterUsingAoteV = 500;
 
     @Switch(
             name = "Don't teleport to plots when the spawn is not obstructed", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
