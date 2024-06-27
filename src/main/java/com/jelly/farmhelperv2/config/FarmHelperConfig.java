@@ -96,7 +96,8 @@ public class FarmHelperConfig extends Config {
                     "S Shape - Cocoa Beans (Left/Right)", // 9
                     "S Shape - Mushroom (45°)", // 10
                     "S Shape - Mushroom (30° with rotations)", // 11
-                    "S Shape - Mushroom SDS" // 12
+                    "S Shape - Mushroom SDS", // 12
+                    "Circle - Crops (Wheat, Carrot, Potato, NW)" // 13
             }, size = 2
     )
     public static int macroType = 0;
@@ -2343,7 +2344,8 @@ public class FarmHelperConfig extends Config {
         S_COCOA_BEANS_LEFT_RIGHT,
         S_MUSHROOM,
         S_MUSHROOM_ROTATE,
-        S_MUSHROOM_SDS
+        S_MUSHROOM_SDS,
+        C_NORMAL_TYPE
     }
 
     @Getter
