@@ -117,7 +117,7 @@ public class LagDetector implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (lastReceivedPacketTime == -1) return;
         if (isLagging()) {
-            recentlyLagged.schedule(FarmHelperConfig.cancelFailsafeAfterMilliseconds);
+            recentlyLagged.schedule(900);
         }
         if (recentlyLagged.isScheduled() && recentlyLagged.passed()) {
             recentlyLagged.reset();

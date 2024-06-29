@@ -123,7 +123,7 @@ public class FarmHelper {
         if (FarmHelperConfig.failsafeCutoffAfterUsingAoteV == 100 && FarmHelperConfig.configVersion < 5) {
             FarmHelperConfig.failsafeCutoffAfterUsingAoteV = 500;
             LogUtils.sendNotification("Farm Helper", "Failsafe 'Cutoff After Using AOTE/V' has been set to 800 automatically to prevent false positives.", 15000);
-            LogUtils.sendWarning("Failsafe 'Cutoff After Using AOTE/V' has been set to 800 automatically to prevent false positives.");
+            LogUtils.sendWarning("Failsafe 'Cutoff After Using AOTE/V' has been set to 500 automatically to prevent false positives.");
         }
 
         if (FarmHelperConfig.configVersion == 3 && FarmHelperConfig.macroType > 7) {

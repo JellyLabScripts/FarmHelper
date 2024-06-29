@@ -443,12 +443,6 @@ public class FarmHelperConfig extends Config {
     )
     public static float teleportCheckLagSensitivity = 0.5f;
     @Slider(
-            name = "Cancel failsafes for X milliseconds after the last lag", category = FAILSAFE, subcategory = "Failsafes",
-            description = "Cancels teleport and rotation failsafes that happened after the last lag",
-            min = 500, max = 10000, step = 100
-    )
-    public static int cancelFailsafeAfterMilliseconds = 1000;
-    @Slider(
             name = "Teleport/Rotation Check Time Window (in milliseconds)", category = FAILSAFE, subcategory = "Miscellaneous",
             description = "The time window to check for teleports (in seconds)",
             min = 50, max = 4000, step = 50
