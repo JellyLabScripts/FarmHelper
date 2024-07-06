@@ -33,6 +33,7 @@ public class FeatureManager {
                 AutoRepellent.getInstance(),
                 AutoSell.getInstance(),
                 BanInfoWS.getInstance(),
+                BPSTracker.getInstance(),
                 DesyncChecker.getInstance(),
                 Freelook.getInstance(),
                 LagDetector.getInstance(),

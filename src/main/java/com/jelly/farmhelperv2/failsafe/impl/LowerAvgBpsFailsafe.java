@@ -5,6 +5,7 @@ import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
+import com.jelly.farmhelperv2.feature.impl.BPSTracker;
 import com.jelly.farmhelperv2.feature.impl.ProfitCalculator;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -57,7 +58,9 @@ public class LowerAvgBpsFailsafe extends Failsafe {
 
     @Override
     public void onTickDetection(TickEvent.ClientTickEvent event) {
-        if (MacroHandler.getInstance().isCurrentMacroPaused() || FeatureManager.getInstance().shouldPauseMacroExecution()) {
+        if (MacroHandler.getInstance().isCurrentMacroPaused()
+                || FeatureManager.getInstance().shouldPauseMacroExecution()
+                || !MacroHandler.getInstance().getMacro().checkForBPS()) {
             bpsQueue.clear();
             lastTimeCheckedBPS = System.currentTimeMillis();
             return;
@@ -66,7 +69,7 @@ public class LowerAvgBpsFailsafe extends Failsafe {
 
         if (System.currentTimeMillis() - lastTimeCheckedBPS < 1_000) return;
         lastTimeCheckedBPS = System.currentTimeMillis();
-        float bps = ProfitCalculator.getInstance().getBPSFloat();
+        float bps = BPSTracker.getInstance().getBPSFloat();
         bpsQueue.add(bps);
         if (!bpsQueue.isAtFullCapacity()) return;
         float averageBPS = getAverageBPS();

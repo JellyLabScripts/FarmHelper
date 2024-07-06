@@ -11,6 +11,7 @@ import cc.polyfrost.oneconfig.platform.Platform;
 import cc.polyfrost.oneconfig.renderer.NanoVGHelper;
 import cc.polyfrost.oneconfig.renderer.TextRenderer;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.feature.impl.BPSTracker;
 import com.jelly.farmhelperv2.feature.impl.ProfitCalculator;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -132,7 +133,7 @@ public class ProfitCalculatorHUD extends BasicHud {
 
         lines.add(new Tuple<>(ProfitCalculator.getInstance().getRealProfitString(), "/farmhelper/textures/gui/profit.png"));
         lines.add(new Tuple<>(ProfitCalculator.getInstance().getProfitPerHourString(), "/farmhelper/textures/gui/profithr.png"));
-        lines.add(new Tuple<>(ProfitCalculator.getInstance().getBPS(), "/farmhelper/textures/gui/bps.png"));
+        lines.add(new Tuple<>(BPSTracker.getInstance().getBPS(), "/farmhelper/textures/gui/bps.png"));
         lines.add(new Tuple<>(LogUtils.getRuntimeFormat(), "/farmhelper/textures/gui/runtime.png"));
         List<ProfitCalculator.BazaarItem> linesCopy = new ArrayList<>(ProfitCalculator.getInstance().cropsToCount);
         linesCopy.addAll(ProfitCalculator.getInstance().rngDropToCount);

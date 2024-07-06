@@ -4,7 +4,6 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
-import com.jelly.farmhelperv2.event.PlayerDestroyBlockEvent;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.event.UpdateScoreboardLineEvent;
 import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
@@ -16,11 +15,7 @@ import com.jelly.farmhelperv2.util.APIUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import lombok.Getter;
-import net.minecraft.block.BlockCrops;
-import net.minecraft.block.BlockNetherWart;
-import net.minecraft.block.BlockReed;
 import net.minecraft.client.Minecraft;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemHoe;
@@ -80,10 +75,6 @@ public class ProfitCalculator implements IFeature {
     public double realHourlyProfit = 0;
     @Getter
     private double bountifulProfit = 0;
-    public long blocksBroken = 0;
-    private final Queue<Long> bpsQueue = new LinkedList<>();
-    private final Clock bpsClock = new Clock();
-    private long bps = 0;
 
     public HashMap<String, APICrop> bazaarPrices = new HashMap<>();
     private boolean cantConnectToApi = false;
@@ -150,16 +141,6 @@ public class ProfitCalculator implements IFeature {
         return formatter.format(realHourlyProfit) + "/hr";
     }
 
-    public String getBPS() {
-        if (!MacroHandler.getInstance().getMacroingTimer().isScheduled()) return "0.0 BPS";
-        return oneDecimalDigitFormatter.format(getBPSFloat()) + " BPS";
-    }
-
-    public float getBPSFloat() {
-        if (!MacroHandler.getInstance().getMacroingTimer().isScheduled()) return 0;
-        return ((int) ((double) this.bps / this.bpsQueue.size() * 10.0D)) / 10.0F;
-    }
-
     @Override
     public String getName() {
         return "Profit Calculator";
@@ -196,8 +177,6 @@ public class ProfitCalculator implements IFeature {
 
     @Override
     public void resetStatesAfterMacroDisabled() {
-        blocksBroken = 0;
-        bpsClock.reset();
     }
 
     @Override
@@ -214,11 +193,6 @@ public class ProfitCalculator implements IFeature {
         realProfit = 0;
         realHourlyProfit = 0;
         bountifulProfit = 0;
-        ticksElapsed = 0;
-        blocksBroken = 0;
-        bpsQueue.clear();
-        bpsClock.reset();
-        bps = 0;
         previousCurrentPurse = 0;
         previousCultivating.clear();
         cropsToCount.forEach(crop -> crop.currentAmount = 0);
@@ -308,74 +282,6 @@ public class ProfitCalculator implements IFeature {
             if (value > 0)
                 bountifulProfit += value;
             previousCurrentPurse = GameStateHandler.getInstance().getCurrentPurse();
-        }
-    }
-
-    private int ticksElapsed = 0;
-
-    @SubscribeEvent
-    public void onTickCheckBPS(TickEvent.ClientTickEvent event) {
-        if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
-        if (event.phase != TickEvent.Phase.START) return;
-
-        if (++ticksElapsed == 20) {
-            ticksElapsed = 0;
-            bpsQueue.add(blocksBroken);
-            bps += blocksBroken;
-            if (bpsQueue.size() == 61) {
-                bps -= bpsQueue.poll();
-            }
-            blocksBroken = 0;
-        }
-    }
-
-    @SubscribeEvent
-    public void onBlockChange(PlayerDestroyBlockEvent event) {
-        if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (!GameStateHandler.getInstance().inGarden()) return;
-
-        switch (MacroHandler.getInstance().getCrop()) {
-            case NETHER_WART:
-            case CARROT:
-            case POTATO:
-            case WHEAT:
-                if (event.block instanceof BlockCrops ||
-                        event.block instanceof BlockNetherWart) {
-                    blocksBroken++;
-                }
-                break;
-            case SUGAR_CANE:
-                if (event.block instanceof BlockReed) {
-                    blocksBroken++;
-                }
-                break;
-            case MELON:
-                if (event.block.equals(Blocks.melon_block)) {
-                    blocksBroken++;
-                }
-                break;
-            case PUMPKIN:
-                if (event.block.equals(Blocks.pumpkin)) {
-                    blocksBroken++;
-                }
-                break;
-            case CACTUS:
-                if (event.block.equals(Blocks.cactus)) {
-                    blocksBroken++;
-                }
-                break;
-            case COCOA_BEANS:
-                if (event.block.equals(Blocks.cocoa)) {
-                    blocksBroken++;
-                }
-                break;
-            case MUSHROOM:
-                if (event.block.equals(Blocks.red_mushroom) ||
-                        event.block.equals(Blocks.brown_mushroom)) {
-                    blocksBroken++;
-                }
-                break;
         }
     }
 
