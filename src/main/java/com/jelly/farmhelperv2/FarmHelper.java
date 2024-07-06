@@ -36,6 +36,7 @@ import org.lwjgl.opengl.Display;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -96,13 +97,51 @@ public class FarmHelper {
         }
         if (ReflectionUtils.hasPackageInstalled("at.hannibal2.skyhanni")) {
             try {
-                Class<?> klazz = Class.forName("at.hannibal2.skyhanni.config.features.garden.pests.PestWaypointConfig");
-                Field field = klazz.getDeclaredField("hideParticles");
-                if (field.getBoolean(klazz)) {
+                // Get the ConfigManager instance
+                Class<?> skyHanniModClass = Class.forName("at.hannibal2.skyhanni.SkyHanniMod");
+                Field configManagerField = skyHanniModClass.getDeclaredField("configManager");
+                configManagerField.setAccessible(true);
+                Object configManager = configManagerField.get(null); // Assuming it's a static field
+
+                // Get the Features instance
+                Method getFeaturesMethod = configManager.getClass().getMethod("getFeatures");
+                Object featuresInstance = getFeaturesMethod.invoke(configManager);
+
+                // Get the garden field from Features
+                Class<?> featuresClass = Class.forName("at.hannibal2.skyhanni.config.Features");
+                Field gardenField = featuresClass.getDeclaredField("garden");
+                gardenField.setAccessible(true);
+
+                // Get the GardenConfig instance
+                Object gardenConfigInstance = gardenField.get(featuresInstance);
+
+                // Get the pests field from GardenConfig
+                Class<?> gardenConfigClass = Class.forName("at.hannibal2.skyhanni.config.features.garden.GardenConfig");
+                Field pestsField = gardenConfigClass.getDeclaredField("pests");
+                pestsField.setAccessible(true);
+
+                // Get the PestsConfig instance
+                Object pestsConfigInstance = pestsField.get(gardenConfigInstance);
+
+                // Get the pestWaypoint field from PestsConfig
+                Class<?> pestsConfigClass = Class.forName("at.hannibal2.skyhanni.config.features.garden.pests.PestsConfig");
+                Field pestWaypointField = pestsConfigClass.getDeclaredField("pestWaypoint");
+                pestWaypointField.setAccessible(true);
+
+                // Get the PestWaypointConfig instance
+                Object pestWaypointInstance = pestWaypointField.get(pestsConfigInstance);
+
+                // Now we can access the hideParticles field
+                Class<?> pestWaypointClass = Class.forName("at.hannibal2.skyhanni.config.features.garden.pests.PestWaypointConfig");
+                Field hideParticlesField = pestWaypointClass.getDeclaredField("hideParticles");
+                hideParticlesField.setAccessible(true);
+
+                if (hideParticlesField.getBoolean(pestWaypointInstance)) {
                     LogUtils.sendWarning("Disabling SkyHanni Pest Waypoint 'Hide Particles' option. This is required for Pests Destroyer to work properly.");
-                    field.setBoolean(klazz, false);
+                    hideParticlesField.setBoolean(pestWaypointInstance, false);
                 }
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         if (Minecraft.isRunningOnMac && FarmHelperConfig.autoUngrabMouse) {
@@ -122,7 +161,7 @@ public class FarmHelper {
         }
         if (FarmHelperConfig.failsafeCutoffAfterUsingAoteV == 100 && FarmHelperConfig.configVersion < 5) {
             FarmHelperConfig.failsafeCutoffAfterUsingAoteV = 500;
-            LogUtils.sendNotification("Farm Helper", "Failsafe 'Cutoff After Using AOTE/V' has been set to 800 automatically to prevent false positives.", 15000);
+            LogUtils.sendNotification("Farm Helper", "Failsafe 'Cutoff After Using AOTE/V' has been set to 500 automatically to prevent false positives.", 15000);
             LogUtils.sendWarning("Failsafe 'Cutoff After Using AOTE/V' has been set to 500 automatically to prevent false positives.");
         }
 
