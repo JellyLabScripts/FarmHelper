@@ -97,48 +97,15 @@ public class FarmHelper {
         }
         if (ReflectionUtils.hasPackageInstalled("at.hannibal2.skyhanni")) {
             try {
-                // Get the ConfigManager instance
                 Class<?> skyHanniModClass = Class.forName("at.hannibal2.skyhanni.SkyHanniMod");
-                Field configManagerField = skyHanniModClass.getDeclaredField("configManager");
-                configManagerField.setAccessible(true);
-                Object configManager = configManagerField.get(null); // Assuming it's a static field
+                Object skyHanniMod = skyHanniModClass.getField("INSTANCE").get(null);
 
-                // Get the Features instance
-                Method getFeaturesMethod = configManager.getClass().getMethod("getFeatures");
-                Object featuresInstance = getFeaturesMethod.invoke(configManager);
-
-                // Get the garden field from Features
-                Class<?> featuresClass = Class.forName("at.hannibal2.skyhanni.config.Features");
-                Field gardenField = featuresClass.getDeclaredField("garden");
-                gardenField.setAccessible(true);
-
-                // Get the GardenConfig instance
-                Object gardenConfigInstance = gardenField.get(featuresInstance);
-
-                // Get the pests field from GardenConfig
-                Class<?> gardenConfigClass = Class.forName("at.hannibal2.skyhanni.config.features.garden.GardenConfig");
-                Field pestsField = gardenConfigClass.getDeclaredField("pests");
-                pestsField.setAccessible(true);
-
-                // Get the PestsConfig instance
-                Object pestsConfigInstance = pestsField.get(gardenConfigInstance);
-
-                // Get the pestWaypoint field from PestsConfig
-                Class<?> pestsConfigClass = Class.forName("at.hannibal2.skyhanni.config.features.garden.pests.PestsConfig");
-                Field pestWaypointField = pestsConfigClass.getDeclaredField("pestWaypoint");
-                pestWaypointField.setAccessible(true);
-
-                // Get the PestWaypointConfig instance
-                Object pestWaypointInstance = pestWaypointField.get(pestsConfigInstance);
-
-                // Now we can access the hideParticles field
-                Class<?> pestWaypointClass = Class.forName("at.hannibal2.skyhanni.config.features.garden.pests.PestWaypointConfig");
-                Field hideParticlesField = pestWaypointClass.getDeclaredField("hideParticles");
-                hideParticlesField.setAccessible(true);
-
-                if (hideParticlesField.getBoolean(pestWaypointInstance)) {
+                boolean hideParticles = ReflectionUtils.getNestedBoolean(skyHanniMod,
+                        "configManager", "getFeatures()", "garden", "pests", "pestWaypoint", "hideParticles");
+                if (hideParticles) {
                     LogUtils.sendWarning("Disabling SkyHanni Pest Waypoint 'Hide Particles' option. This is required for Pests Destroyer to work properly.");
-                    hideParticlesField.setBoolean(pestWaypointInstance, false);
+                    ReflectionUtils.setNestedBoolean(skyHanniMod, false,
+                            "configManager", "getFeatures()", "garden", "pests", "pestWaypoint", "hideParticles");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
