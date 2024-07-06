@@ -193,7 +193,7 @@ public class AutoPestExchange implements IFeature {
                 }
             }
         }
-        if (!manual && FarmHelperConfig.autoPestExchangeOnlyStartRelevant) {
+        if (!manual && !FarmHelperConfig.autoPestExchangeIgnoreJacobsContest && FarmHelperConfig.autoPestExchangeOnlyStartRelevant) {
             if (!GameStateHandler.getInstance().getJacobsContestNextCrop().contains(MacroHandler.getInstance().getCrop())) {
                 LogUtils.sendDebug("[Auto Pest Exchange] The current crop (" + MacroHandler.getInstance().getCrop().getLocalizedName() +
                         ") is not relevant for the next Jacob's contest (" +
