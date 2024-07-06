@@ -1793,6 +1793,23 @@ public class FarmHelperConfig extends Config {
             min = 0, max = 2000
     )
     public static float randomTimeBetweenChangingRows = 200f;
+    @Switch(
+            name = "Custom row change delays during Jacob's Contest", category = DELAYS, subcategory = "Changing rows",
+            description = "Custom row change delays during Jacob's Contest"
+    )
+    public static boolean customRowChangeDelaysDuringJacob = true;
+    @Slider(
+            name = "Time between changing rows during Jacob's Contest", category = DELAYS, subcategory = "Changing rows",
+            description = "The minimum time to wait before changing rows (in milliseconds)",
+            min = 0, max = 2000
+    )
+    public static float timeBetweenChangingRowsDuringJacob = 400f;
+    @Slider(
+            name = "Additional random time between changing rows during Jacob's Contest", category = DELAYS, subcategory = "Changing rows",
+            description = "The maximum time to wait before changing rows (in milliseconds)",
+            min = 0, max = 2000
+    )
+    public static float randomTimeBetweenChangingRowsDuringJacob = 200f;
     //</editor-fold>
 
     //<editor-fold desc="Rotation Time">
@@ -1808,6 +1825,23 @@ public class FarmHelperConfig extends Config {
             min = 0f, max = 2000f
     )
     public static float rotationTimeRandomness = 300;
+    @Switch(
+            name = "Custom rotation delays during Jacob's Contest", category = DELAYS, subcategory = "Rotations",
+            description = "Custom rotation delays during Jacob's Contest"
+    )
+    public static boolean customRotationDelaysDuringJacob = true;
+    @Slider(
+            name = "Rotation Time during Jacob's Contest", category = DELAYS, subcategory = "Rotations",
+            description = "The time it takes to rotate the player",
+            min = 200f, max = 2000f
+    )
+    public static float rotationTimeDuringJacob = 500f;
+    @Slider(
+            name = "Additional random Rotation Time during Jacob's Contest", category = DELAYS, subcategory = "Rotations",
+            description = "The maximum random time added to the delay time it takes to rotate the player (in milliseconds)",
+            min = 0f, max = 2000f
+    )
+    public static float rotationTimeRandomnessDuringJacob = 300;
     //</editor-fold>
 
     //<editor-fold desc="Fly Pathexecutioner Rotation Time">
@@ -1884,7 +1918,6 @@ public class FarmHelperConfig extends Config {
             min = 0f, max = 2000f
     )
     public static float rewarpDelayRandomness = 350f;
-    //</editor-fold>
     //</editor-fold>
 
     //<editor-fold desc="HUD">
@@ -2277,6 +2310,8 @@ public class FarmHelperConfig extends Config {
     }
 
     public static long getRandomTimeBetweenChangingRows() {
+        if (customRowChangeDelaysDuringJacob && GameStateHandler.getInstance().inJacobContest())
+            return 0;
         return (long) (timeBetweenChangingRows + (float) Math.random() * randomTimeBetweenChangingRows);
     }
 
@@ -2285,6 +2320,8 @@ public class FarmHelperConfig extends Config {
     }
 
     public static long getRandomRotationTime() {
+        if (customRotationDelaysDuringJacob && GameStateHandler.getInstance().inJacobContest())
+            return 0;
         return (long) (rotationTime + (float) Math.random() * rotationTimeRandomness);
     }
 
