@@ -102,6 +102,8 @@ public class GameStateHandler {
     @Getter
     private Optional<FarmHelperConfig.CropEnum> jacobsContestCrop = Optional.empty();
     @Getter
+    private List<FarmHelperConfig.CropEnum> jacobsContestNextCrop = new ArrayList<>();
+    @Getter
     private int jacobsContestCropNumber = 0;
     @Getter
     private JacobMedal jacobMedal = JacobMedal.NONE;
@@ -152,6 +154,7 @@ public class GameStateHandler {
         boolean hasGuestsOnTabList = false;
         boolean foundPestHunterBonus = false;
         boolean foundLocation = false;
+        int nextJacobCropFound = -1;
 
         for (String cleanedLine : tabList) {
             if (cleanedLine.matches(areaPattern.pattern())) {
@@ -184,6 +187,15 @@ public class GameStateHandler {
                     pestHunterBonus = BuffState.NOT_ACTIVE;
                     foundPestHunterBonus = true;
                 }
+            }
+            if (nextJacobCropFound >= 0 && nextJacobCropFound < 3) { // Make sure only 3 crops are added and no irrelevant text are being scanned
+                FarmHelperConfig.CropEnum crop = convertCrop(cleanedLine);
+                if (crop != FarmHelperConfig.CropEnum.NONE && !jacobsContestNextCrop.contains(crop))
+                    jacobsContestNextCrop.add(crop);
+                nextJacobCropFound++;
+            }
+            if (cleanedLine.contains("Starts In")) {
+                nextJacobCropFound = 0;
             }
         }
         if (!foundPestHunterBonus) {
@@ -236,6 +248,31 @@ public class GameStateHandler {
         checkBuffsTabList(footer);
     }
 
+    private FarmHelperConfig.CropEnum convertCrop(String s) {
+        if (s.contains("Wheat")) {
+            return FarmHelperConfig.CropEnum.WHEAT;
+        } else if (s.contains("Carrot")) {
+            return FarmHelperConfig.CropEnum.CARROT;
+        } else if (s.contains("Potato")) {
+            return FarmHelperConfig.CropEnum.POTATO;
+        } else if (s.contains("Nether") || s.contains("Wart")) {
+            return FarmHelperConfig.CropEnum.NETHER_WART;
+        } else if (s.contains("Sugar") || s.contains("Cane")) {
+            return FarmHelperConfig.CropEnum.SUGAR_CANE;
+        } else if (s.contains("Mushroom")) {
+            return FarmHelperConfig.CropEnum.MUSHROOM;
+        } else if (s.contains("Melon")) {
+            return FarmHelperConfig.CropEnum.MELON;
+        } else if (s.contains("Pumpkin")) {
+            return FarmHelperConfig.CropEnum.PUMPKIN;
+        } else if (s.contains("Cocoa") || s.contains("Bean")) {
+            return FarmHelperConfig.CropEnum.COCOA_BEANS;
+        } else if (s.contains("Cactus")) {
+            return FarmHelperConfig.CropEnum.CACTUS;
+        }
+        return FarmHelperConfig.CropEnum.NONE;
+    }
+
     private void checkJacob(String cleanedLine) {
         if (cleanedLine.toLowerCase().contains("jacob's contest") && !isInJacobContest) {
             isInJacobContest = true;
@@ -257,27 +294,9 @@ public class GameStateHandler {
             if (!jacobContestLeftClock.isScheduled() || !jacobsContestCrop.isPresent()) {
                 Matcher matcher = jacobsRemainingTimePattern.matcher(cleanedLine);
                 if (matcher.find()) {
-                    if (cleanedLine.contains("Wheat")) {
-                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.WHEAT);
-                    } else if (cleanedLine.contains("Carrot")) {
-                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.CARROT);
-                    } else if (cleanedLine.contains("Potato")) {
-                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.POTATO);
-                    } else if (cleanedLine.contains("Nether") || cleanedLine.contains("Wart")) {
-                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.NETHER_WART);
-                    } else if (cleanedLine.contains("Sugar") || cleanedLine.contains("Cane")) {
-                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.SUGAR_CANE);
-                    } else if (cleanedLine.contains("Mushroom")) {
-                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.MUSHROOM);
-                    } else if (cleanedLine.contains("Melon")) {
-                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.MELON);
-                    } else if (cleanedLine.contains("Pumpkin")) {
-                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.PUMPKIN);
-                    } else if (cleanedLine.contains("Cocoa") || cleanedLine.contains("Bean")) {
-                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.COCOA_BEANS);
-                    } else if (cleanedLine.contains("Cactus")) {
-                        jacobsContestCrop = Optional.of(FarmHelperConfig.CropEnum.CACTUS);
-                    }
+                    FarmHelperConfig.CropEnum crop = convertCrop(cleanedLine);
+                    if (crop != FarmHelperConfig.CropEnum.NONE)
+                        jacobsContestCrop = Optional.of(crop);
 
                     String minutes = matcher.group(1);
                     String seconds = matcher.group(2);
@@ -296,6 +315,7 @@ public class GameStateHandler {
             } else if (cleanedLine.contains("DIAMOND with")) {
                 jacobMedal = JacobMedal.DIAMOND;
             }
+            jacobsContestNextCrop.clear();
         } else {
             jacobsContestCrop = Optional.empty();
             jacobsContestCropNumber = 0;

@@ -1423,6 +1423,11 @@ public class FarmHelperConfig extends Config {
             description = "Start the Auto Pest Exchange regardless of the next Jacob's contests"
     )
     public static boolean autoPestExchangeIgnoreJacobsContest = false;
+    @Switch(
+            name = "Only start on relevant Jacob's Contests", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
+            description = "Only start the Auto Pest Exchange if the next Jacob's contest contains the current crop you are farming"
+    )
+    public static boolean autoPestExchangeOnlyStartRelevant = false;
     @DualOption(
             name = "Travel method", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
             description = "The travel method to use to get to the pest exchange desk",
@@ -2163,6 +2168,7 @@ public class FarmHelperConfig extends Config {
         this.addDependency("autoPestExchangeTriggerBeforeContestStarts", "autoPestExchange");
         this.addDependency("autoPestExchangeMinPests", "autoPestExchange");
         this.addDependency("logAutoPestExchangeEvents", "autoPestExchange");
+        this.addDependency("autoPestExchangeOnlyStartRelevant", "autoPestExchange");
         this.addDependency("autoPestExchangeTriggerBeforeContestStarts",
                 "You can either wait until Jacob's Contest or run it regardless.", () -> !autoPestExchangeIgnoreJacobsContest);
         this.hideIf("pestExchangeDeskX", () -> true);
