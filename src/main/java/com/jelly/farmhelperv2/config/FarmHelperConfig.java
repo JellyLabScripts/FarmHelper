@@ -2311,7 +2311,7 @@ public class FarmHelperConfig extends Config {
 
     public static long getRandomTimeBetweenChangingRows() {
         if (customRowChangeDelaysDuringJacob && GameStateHandler.getInstance().inJacobContest())
-            return 0;
+            return (long) (timeBetweenChangingRowsDuringJacob + (float) Math.random() * randomTimeBetweenChangingRowsDuringJacob);
         return (long) (timeBetweenChangingRows + (float) Math.random() * randomTimeBetweenChangingRows);
     }
 
@@ -2321,7 +2321,7 @@ public class FarmHelperConfig extends Config {
 
     public static long getRandomRotationTime() {
         if (customRotationDelaysDuringJacob && GameStateHandler.getInstance().inJacobContest())
-            return 0;
+            return (long) (rotationTimeDuringJacob + (float) Math.random() * rotationTimeRandomnessDuringJacob);
         return (long) (rotationTime + (float) Math.random() * rotationTimeRandomness);
     }
 
