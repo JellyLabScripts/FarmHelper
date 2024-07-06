@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.feature.impl;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.PlayerDestroyBlockEvent;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
@@ -14,6 +15,7 @@ import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.jelly.farmhelperv2.util.APIUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import lombok.Getter;
 import net.minecraft.block.BlockCrops;
@@ -82,8 +84,7 @@ public class ProfitCalculator implements IFeature {
     private double bountifulProfit = 0;
     public long blocksBroken = 0;
     private final Queue<Long> bpsQueue = new LinkedList<>();
-    private final Clock bpsClock = new Clock();
-    private long bps = 0;
+    private long totalBlocksBroken = 0;
 
     public HashMap<String, APICrop> bazaarPrices = new HashMap<>();
     private boolean cantConnectToApi = false;
@@ -157,7 +158,8 @@ public class ProfitCalculator implements IFeature {
 
     public float getBPSFloat() {
         if (!MacroHandler.getInstance().getMacroingTimer().isScheduled()) return 0;
-        return ((int) ((double) this.bps / this.bpsQueue.size() * 10.0D)) / 10.0F;
+        LogUtils.sendDebug(this.bpsQueue.size() + " " + this.totalBlocksBroken);
+        return ((int) ((double) this.totalBlocksBroken / this.bpsQueue.size() * 10.0D)) / 10.0F;
     }
 
     @Override
@@ -185,6 +187,7 @@ public class ProfitCalculator implements IFeature {
         if (ProfitCalculatorHUD.resetStatsBetweenDisabling) {
             resetProfits();
         }
+        resetBPS();
         IFeature.super.start();
     }
 
@@ -197,7 +200,6 @@ public class ProfitCalculator implements IFeature {
     @Override
     public void resetStatesAfterMacroDisabled() {
         blocksBroken = 0;
-        bpsClock.reset();
     }
 
     @Override
@@ -210,19 +212,27 @@ public class ProfitCalculator implements IFeature {
         return false;
     }
 
-    public void resetProfits() {
+    @Override
+    public void resume() {
+        resetBPS();
+    }
+
+    private void resetProfits() {
+        ticksElapsed = 0;
         realProfit = 0;
         realHourlyProfit = 0;
         bountifulProfit = 0;
-        ticksElapsed = 0;
-        blocksBroken = 0;
-        bpsQueue.clear();
-        bpsClock.reset();
-        bps = 0;
         previousCurrentPurse = 0;
         previousCultivating.clear();
         cropsToCount.forEach(crop -> crop.currentAmount = 0);
         rngDropToCount.forEach(drop -> drop.currentAmount = 0);
+    }
+
+    private void resetBPS() {
+        ticksElapsed = 0;
+        blocksBroken = 0;
+        bpsQueue.clear();
+        totalBlocksBroken = 0;
         LowerAvgBpsFailsafe.getInstance().resetStates();
     }
 
@@ -319,12 +329,13 @@ public class ProfitCalculator implements IFeature {
         if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
         if (event.phase != TickEvent.Phase.START) return;
 
-        if (++ticksElapsed == 20) {
+        ticksElapsed ++;
+        if (ticksElapsed % 20 == 0 && !GameStateHandler.getInstance().notMovingHorizontally()) {
             ticksElapsed = 0;
             bpsQueue.add(blocksBroken);
-            bps += blocksBroken;
-            if (bpsQueue.size() == 61) {
-                bps -= bpsQueue.poll();
+            totalBlocksBroken += blocksBroken;
+            if (bpsQueue.size() == 2) { // average over 5 seconds
+                totalBlocksBroken -= bpsQueue.poll();
             }
             blocksBroken = 0;
         }

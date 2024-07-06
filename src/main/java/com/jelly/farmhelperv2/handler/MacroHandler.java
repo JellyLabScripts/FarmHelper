@@ -263,14 +263,19 @@ public class MacroHandler {
             analyticsTimer.resume();
             afterRewarpDelay.reset();
             Scheduler.getInstance().resume();
+            FeatureManager.getInstance().resume();
+
         });
     }
 
     public void enableCurrentMacro() {
         if (currentMacro.isPresent() && !currentMacro.get().isEnabledAndNoFeature() && !startingUp) {
             mc.thePlayer.closeScreen();
-            mc.inGameHasFocus = true;
-            mc.mouseHelper.grabMouseCursor();
+            // Fixed issue #180 for Mac users (mouse vanishing glitch)
+            if (!System.getProperty("os.name").contains("Mac")) {
+                mc.inGameHasFocus = true;
+                mc.mouseHelper.grabMouseCursor();
+            }
             startingUp = true;
             PlayerUtils.itemChangedByStaff = false;
             PlayerUtils.changeItemEveryClock.reset();

@@ -17,6 +17,8 @@ public interface IFeature {
         FeatureManager.getInstance().getPauseExecutionFeatures().add(this);
     }
 
+    default void resume() {}
+
     default void stop() {
         if (!shouldPauseMacroExecution()) return;
         FeatureManager.getInstance().getPauseExecutionFeatures().remove(this);

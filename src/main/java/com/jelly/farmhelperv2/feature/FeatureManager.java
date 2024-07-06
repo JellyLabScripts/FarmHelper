@@ -124,6 +124,16 @@ public class FeatureManager {
         });
     }
 
+    public void resume() {
+        features.forEach(feature -> {
+            if (feature.shouldStartAtMacroStart() && feature.isToggled()) {
+                feature.resume();
+                LogUtils.sendDebug("Enabled feature: " + feature.getName());
+            }
+        });
+
+    }
+
     public void disableCurrentlyRunning(IFeature sender) {
         features.forEach(feature -> {
             if (feature.isRunning() && feature != sender) {

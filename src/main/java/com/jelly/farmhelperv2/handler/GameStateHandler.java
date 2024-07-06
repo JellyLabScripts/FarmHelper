@@ -601,6 +601,13 @@ public class GameStateHandler {
         return !holdingKeybindIsWalkable() && (playerIsInFlowingWater(0) || playerIsInFlowingWater(1)) && mc.thePlayer.isInWater();
     }
 
+    public boolean notMovingHorizontally() {
+        if (dx < 0.01 && dz < 0.01 && mc.currentScreen == null) {
+            return true;
+        }
+        return !holdingKeybindIsWalkable() && (playerIsInFlowingWater(0) || playerIsInFlowingWater(1)) && mc.thePlayer.isInWater();
+    }
+
     private boolean dyIsRest() {
         return dy < 0.05 || dy <= 0.079 && dy >= 0.078; // weird calculation of motionY being -0.0784000015258789 while resting at block and 0.0 is while flying for some reason
     }
