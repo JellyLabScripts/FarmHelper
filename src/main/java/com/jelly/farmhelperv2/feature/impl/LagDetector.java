@@ -1,6 +1,5 @@
 package com.jelly.farmhelperv2.feature.impl;
 
-import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.util.helper.Clock;

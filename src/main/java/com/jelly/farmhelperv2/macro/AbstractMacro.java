@@ -5,7 +5,6 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
-import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
 import com.jelly.farmhelperv2.feature.impl.DesyncChecker;
 import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
