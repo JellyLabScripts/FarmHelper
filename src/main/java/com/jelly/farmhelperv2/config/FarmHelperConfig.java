@@ -1797,7 +1797,7 @@ public class FarmHelperConfig extends Config {
             name = "Custom row change delays during Jacob's Contest", category = DELAYS, subcategory = "Changing rows",
             description = "Custom row change delays during Jacob's Contest"
     )
-    public static boolean customRowChangeDelaysDuringJacob = true;
+    public static boolean customRowChangeDelaysDuringJacob = false;
     @Slider(
             name = "Time between changing rows during Jacob's Contest", category = DELAYS, subcategory = "Changing rows",
             description = "The minimum time to wait before changing rows (in milliseconds)",
@@ -1829,7 +1829,7 @@ public class FarmHelperConfig extends Config {
             name = "Custom rotation delays during Jacob's Contest", category = DELAYS, subcategory = "Rotations",
             description = "Custom rotation delays during Jacob's Contest"
     )
-    public static boolean customRotationDelaysDuringJacob = true;
+    public static boolean customRotationDelaysDuringJacob = false;
     @Slider(
             name = "Rotation Time during Jacob's Contest", category = DELAYS, subcategory = "Rotations",
             description = "The time it takes to rotate the player",
@@ -2193,6 +2193,7 @@ public class FarmHelperConfig extends Config {
 
         this.addDependency("pauseAutoPestExchangeDuringJacobsContest", "autoPestExchange");
         this.addDependency("autoPestExchangeIgnoreJacobsContest", "autoPestExchange");
+        this.hideIf("autoPestExchangeTriggerBeforeContestStarts", () -> true);
         this.addDependency("autoPestExchangeTriggerBeforeContestStarts", "autoPestExchange");
         this.addDependency("autoPestExchangeMinPests", "autoPestExchange");
         this.addDependency("logAutoPestExchangeEvents", "autoPestExchange");
@@ -2213,6 +2214,10 @@ public class FarmHelperConfig extends Config {
         this.addDependency("pestsDestroyerOnTheTrackFOV", "pestsDestroyerOnTheTrack");
         this.addDependency("dontKillPestsOnTrackDuringJacobsContest", "pestsDestroyerOnTheTrack");
 
+        this.addDependency("timeBetweenChangingRowsDuringJacob", "customRowChangeDelaysDuringJacob");
+        this.addDependency("randomTimeBetweenChangingRowsDuringJacob", "customRowChangeDelaysDuringJacob");
+        this.addDependency("rotationTimeDuringJacob", "customRotationDelaysDuringJacob");
+        this.addDependency("rotationTimeRandomnessDuringJacob", "customRotationDelaysDuringJacob");
 
         this.addDependency("leaveTime", "leaveTimer");
 
