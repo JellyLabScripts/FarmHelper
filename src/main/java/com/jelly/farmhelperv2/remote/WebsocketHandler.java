@@ -1,6 +1,5 @@
 package com.jelly.farmhelperv2.remote;
 
-import cc.polyfrost.oneconfig.utils.Notifications;
 import com.google.gson.JsonObject;
 import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;

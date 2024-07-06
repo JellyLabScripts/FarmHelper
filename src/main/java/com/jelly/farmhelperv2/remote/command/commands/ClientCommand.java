@@ -4,6 +4,7 @@ import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.remote.WebsocketHandler;
 import com.jelly.farmhelperv2.remote.struct.RemoteMessage;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.ReflectionUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.TickTask;
 import net.minecraft.client.Minecraft;
@@ -12,6 +13,8 @@ import net.minecraft.util.ScreenShotHelper;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
@@ -38,8 +41,8 @@ abstract public class ClientCommand {
 
     public static String getScreenshot() {
         AtomicReference<String> base64img = new AtomicReference<>(null);
-        disablePatcherShit();
-        disableEssentialsShit();
+        disablePatcherScrenshotManager();
+        disableEssentialScreenshotManager();
         TickTask.getInstance().setTask(() -> {
             String random = UUID.randomUUID().toString();
             ScreenShotHelper.saveScreenshot(mc.mcDataDir, random, mc.displayWidth, mc.displayHeight, mc.getFramebuffer());
@@ -65,7 +68,7 @@ abstract public class ClientCommand {
         return base64img.get();
     }
 
-    private static void disablePatcherShit() {
+    private static void disablePatcherScrenshotManager() {
         try {
             Class<?> klazz = Class.forName("club.sk1er.patcher.config.PatcherConfig");
             Field field = klazz.getDeclaredField("screenshotManager");
@@ -78,17 +81,39 @@ abstract public class ClientCommand {
         }
     }
 
-    private static void disableEssentialsShit() {
-        try {
-            Class<?> klazz = Class.forName("gg.essential.config.EssentialConfig");
-            Field field = klazz.getDeclaredField("essentialScreenshotsState");
-            field.setAccessible(true);
-            if (field.getBoolean(klazz)) {
+    private static void disableEssentialScreenshotManager() {
+        if (ReflectionUtils.hasPackageInstalled("gg.essential")) {
+            try {
+                // Get the EssentialConfig class
+                Class<?> essentialConfigClass = Class.forName("gg.essential.config.EssentialConfig");
+
+                // Get the INSTANCE field
+                Field instanceField = essentialConfigClass.getDeclaredField("INSTANCE");
+                instanceField.setAccessible(true);
+                Object configInstance = instanceField.get(null);
+
+                // Get the essentialScreenshots field
+                Field screenshotsField = essentialConfigClass.getDeclaredField("essentialScreenshots");
+                screenshotsField.setAccessible(true);
+
+                // Remove final modifier
+                Field modifiersField = Field.class.getDeclaredField("modifiers");
+                modifiersField.setAccessible(true);
+                modifiersField.setInt(screenshotsField, screenshotsField.getModifiers() & ~Modifier.FINAL);
+
+                // Set essentialScreenshots to false
+                screenshotsField.set(null, false);
+
+                // Call markDirty() method from Vigilant superclass to save the changes
+                Method markDirtyMethod = essentialConfigClass.getSuperclass().getDeclaredMethod("markDirty");
+                markDirtyMethod.setAccessible(true);
+                markDirtyMethod.invoke(configInstance);
+
                 LogUtils.sendWarning("Disabling Essential Mod's Screenshot Manager");
-                field.setBoolean(klazz, false);
+            } catch (Exception e) {
+                LogUtils.sendError("Failed to disable Essential Mod's Screenshot Manager. Please disable it manually.");
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            System.out.println("[Remote Control] Essentials not found." + e.getMessage());
         }
     }
 

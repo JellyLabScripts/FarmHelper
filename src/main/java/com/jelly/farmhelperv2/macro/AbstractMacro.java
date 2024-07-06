@@ -5,7 +5,6 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
-import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
 import com.jelly.farmhelperv2.feature.impl.DesyncChecker;
 import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -342,6 +341,10 @@ public abstract class AbstractMacro {
     }
 
     public abstract void actionAfterTeleport();
+
+    public boolean checkForBPS() {
+        return currentState != State.NONE && currentState != State.DROPPING && currentState != State.SWITCHING_SIDE && currentState != State.SWITCHING_LANE;
+    }
 
     public State calculateDirection() {
         if (BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air) && BlockUtils.getRelativeBlock(-1, -1, 0).equals(Blocks.air)) {

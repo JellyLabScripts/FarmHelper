@@ -1,7 +1,8 @@
 package com.jelly.farmhelperv2.util.helper;
 
-import java.awt.event.KeyEvent;
 import org.lwjgl.input.Keyboard;
+
+import java.awt.event.KeyEvent;
 
 public class KeyCodeConverter {
     // hopefully all of them are correct - yuro
