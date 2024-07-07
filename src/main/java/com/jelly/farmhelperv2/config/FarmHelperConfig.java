@@ -480,11 +480,11 @@ public class FarmHelperConfig extends Config {
     public static boolean averageBPSDropCheck = true;
 
     @Slider(
-            name = "Average BPS Drop %", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The minimum BPS drop to trigger failsafe",
-            min = 2, max = 50
+            name = "BPS drop threshold (seconds)", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "Keeps track of the duration for which the BPS has been dropping",
+            min = 2, max = 10
     )
-    public static int averageBPSDrop = 15;
+    public static int BPSDropThreshold = 5;
 
     @Button(
             name = "Test failsafe", category = FAILSAFE, subcategory = "Miscellaneous",
@@ -501,8 +501,8 @@ public class FarmHelperConfig extends Config {
         if (testFailsafeTypeSelected == 0) {
             FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected));
             return;
-        } else if (testFailsafeTypeSelected != 6)
-            LowerAvgBpsFailsafe.getInstance().clearQueue(); // Clear the queue to avoid false positives
+        } // else if (testFailsafeTypeSelected != 6)
+          // LowerAvgBpsFailsafe.getInstance().clearQueue(); // Clear the queue to avoid false positives
         FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected + 2));
     };
 
@@ -635,6 +635,7 @@ public class FarmHelperConfig extends Config {
                     "Metal Pipe", // 2
                     "AAAAAAAAAA", // 3
                     "Loud Buzz", // 4
+                    "Merry-Go-Round of Life", // 5
             }
     )
     public static int failsafeSoundSelected = 1;
@@ -1423,6 +1424,11 @@ public class FarmHelperConfig extends Config {
             description = "Start the Auto Pest Exchange regardless of the next Jacob's contests"
     )
     public static boolean autoPestExchangeIgnoreJacobsContest = false;
+    @Switch(
+            name = "Only start on relevant Jacob's Contests", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
+            description = "Only start the Auto Pest Exchange if the next Jacob's contest contains the current crop you are farming"
+    )
+    public static boolean autoPestExchangeOnlyStartRelevant = false;
     @DualOption(
             name = "Travel method", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
             description = "The travel method to use to get to the pest exchange desk",
@@ -1710,6 +1716,7 @@ public class FarmHelperConfig extends Config {
             name = "Type", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
             description = "Item to spray plot with",
             options = {
+                    "Fine Flour (+20 Farming Fortune)",
                     "Compost (Earthworm & Mosquito)",
                     "Honey Jar (Moth & Cricket)",
                     "Dung (Beetle & Fly)",
@@ -1721,6 +1728,7 @@ public class FarmHelperConfig extends Config {
 
     @Getter
     public enum SPRAYONATOR_ITEM {
+        FINE_FLOUR("Fine Flour"),
         COMPOST("Compost"),
         HONEY_JAR("Honey Jar"),
         DUNG("Dung"),

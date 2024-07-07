@@ -109,6 +109,13 @@ public class FailsafeNotificationsPage {
     public static boolean notifyOnGuestVisit = true;
 
     @Switch(
+            name = "Full Inventory Notifications",
+            description = "Whether or not to send a notification when your inventory is full.",
+            category = "Failsafe Notifications"
+    )
+    public static boolean notifyOnInventoryFull = true;
+
+    @Switch(
             name = "Rotation Check Sound Alert",
             description = "Whether or not to play a sound when the rotation check failsafe is triggered.",
             category = "Failsafe Sound Alerts"
@@ -184,6 +191,13 @@ public class FailsafeNotificationsPage {
             category = "Failsafe Sound Alerts"
     )
     public static boolean alertOnJacobFailsafe = false;
+
+    @Switch(
+            name = "Full Inventory Alert",
+            description = "Whether or not to play a sound when your inventory is full.",
+            category = "Failsafe Sound Alerts"
+    )
+    public static boolean alertOnFullInventory = false;
 
     @Switch(
             name = "Test Alert",
@@ -313,6 +327,13 @@ public class FailsafeNotificationsPage {
     public static boolean tagEveryoneOnGuestVisit = false;
 
     @Switch(
+            name = "Full Inventory Tag Everyone",
+            description = "Whether or not to tag everyone in the webhook message when your inventory is full.",
+            category = "Failsafe Tag Everyone"
+    )
+    public static boolean tagEveryoneOnFullInventory = false;
+
+    @Switch(
             name = "Rotation Check Auto Alt-tab",
             description = "Whether or not to automatically alt-tab when the rotation check failsafe is triggered.",
             category = "Failsafe Auto Alt-tab"
@@ -408,4 +429,11 @@ public class FailsafeNotificationsPage {
             category = "Failsafe Auto Alt-tab"
     )
     public static boolean autoAltTabOnGuestVisit = false;
+
+    @Switch(
+            name = "Full inventory Alt-tab",
+            description = "Whether or not to automatically alt-tab when your inventory is full.",
+            category = "Failsafe Auto Alt-tab"
+    )
+    public static boolean autoAltTabOnInventoryFull = false;
 }

@@ -40,10 +40,6 @@ public class ProfitCalculatorHUD extends BasicHud {
             text = "Reset Now",
             size = 2
     )
-    Runnable _resetProfitCalculator = () -> {
-        MacroHandler.getInstance().getMacroingTimer().reset();
-        ProfitCalculator.getInstance().resetProfits();
-    };
 
     private final float iconWidth = 12 * scale;
     private final float iconHeight = 12 * scale;

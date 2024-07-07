@@ -4,25 +4,25 @@ import com.jelly.farmhelperv2.event.PlayerDestroyBlockEvent;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
 import net.minecraft.block.BlockReed;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.Tuple;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.text.NumberFormat;
-import java.util.LinkedList;
-import java.util.Locale;
-import java.util.Queue;
+import java.util.*;
 
 public class BPSTracker implements IFeature {
     private static BPSTracker instance;
-    private final Queue<Long> bpsQueue = new LinkedList<>();
-    private final Clock bpsClock = new Clock();
-    private long bps = 0;
+    private final LinkedList<Tuple<Long, Long>> bpsQueue = new LinkedList<>();
     private long blocksBroken = 0;
+
+    private long totalBlocksBroken = 0;
     private final NumberFormat oneDecimalDigitFormatter = NumberFormat.getNumberInstance(Locale.US);
 
     private BPSTracker() {
@@ -36,21 +36,39 @@ public class BPSTracker implements IFeature {
         return instance;
     }
 
+    @Override
+    public void resume() {
+        bpsQueue.clear();
+        totalBlocksBroken = 0;
+    }
+
+    @Override
+    public void start() {
+        bpsQueue.clear();
+        totalBlocksBroken = 0;
+        IFeature.super.start();
+    }
+
     @SubscribeEvent
     public void onTickCheckBPS(TickEvent.ClientTickEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
         if (event.phase != TickEvent.Phase.START) return;
 
-        if (!bpsClock.isScheduled() || bpsClock.passed()) {
-            bpsClock.schedule(333);
-            bpsQueue.add(blocksBroken);
-            bps += blocksBroken;
-            if (bpsQueue.size() > 60) {
-                bps -= bpsQueue.poll();
-            }
-            blocksBroken = 0;
+        bpsQueue.add(new Tuple<>(blocksBroken, System.currentTimeMillis()));
+        blocksBroken = 0;
+
+        float elapsedTime = (bpsQueue.getLast().getSecond() - bpsQueue.getFirst().getSecond()) / 1000f;
+        while (elapsedTime > 10f) {
+            bpsQueue.pollFirst();
+            elapsedTime = (bpsQueue.getLast().getSecond() - bpsQueue.getFirst().getSecond()) / 1000f;
         }
+
+        totalBlocksBroken = 0;
+        for (Tuple<Long, Long> element : bpsQueue) {
+            totalBlocksBroken += element.getFirst();
+        }
+        totalBlocksBroken -= bpsQueue.getFirst().getFirst();
     }
 
     public String getBPS() {
@@ -60,7 +78,10 @@ public class BPSTracker implements IFeature {
 
     public float getBPSFloat() {
         if (!MacroHandler.getInstance().getMacroingTimer().isScheduled()) return 0;
-        return ((int) ((double) this.bps / this.bpsQueue.size() * 10.0D)) / 10.0F;
+        if (bpsQueue.isEmpty()) return 0;
+
+        float elapsedTime = (bpsQueue.getLast().getSecond() - bpsQueue.getFirst().getSecond()) / 1000f;
+        return ((int) ((double) this.totalBlocksBroken / elapsedTime * 10.0D)) / 10.0F;
     }
 
     @SubscribeEvent
@@ -129,12 +150,7 @@ public class BPSTracker implements IFeature {
 
     @Override
     public boolean shouldStartAtMacroStart() {
-        return false; // that one is always running, no need to start
-    }
-
-    @Override
-    public void start() {
-        IFeature.super.start();
+        return true;
     }
 
     @Override
@@ -145,8 +161,7 @@ public class BPSTracker implements IFeature {
     @Override
     public void resetStatesAfterMacroDisabled() {
         bpsQueue.clear();
-        bpsClock.reset();
-        bps = 0;
+        totalBlocksBroken = 0;
         blocksBroken = 0;
     }
 

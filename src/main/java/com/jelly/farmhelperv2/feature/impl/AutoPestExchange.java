@@ -12,6 +12,7 @@ import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import com.jelly.farmhelperv2.util.helper.Target;
+import joptsimple.internal.Strings;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -33,6 +34,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 public class AutoPestExchange implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
@@ -189,6 +191,15 @@ public class AutoPestExchange implements IFeature {
                         return false;
                     }
                 }
+            }
+        }
+        if (!manual && !FarmHelperConfig.autoPestExchangeIgnoreJacobsContest && FarmHelperConfig.autoPestExchangeOnlyStartRelevant) {
+            if (!GameStateHandler.getInstance().getJacobsContestNextCrop().contains(MacroHandler.getInstance().getCrop())) {
+                LogUtils.sendDebug("[Auto Pest Exchange] The current crop (" + MacroHandler.getInstance().getCrop().getLocalizedName() +
+                        ") is not relevant for the next Jacob's contest (" +
+                        Strings.join(GameStateHandler.getInstance().getJacobsContestNextCrop().stream().map(FarmHelperConfig.CropEnum::getLocalizedName).collect(Collectors.toList()), ", ") +
+                        "), skipping...");
+                return false;
             }
         }
         if (!manual && GameStateHandler.getInstance().getPestsFromVacuum() < FarmHelperConfig.autoPestExchangeMinPests) {
