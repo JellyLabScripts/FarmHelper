@@ -636,7 +636,6 @@ public class FarmHelperConfig extends Config {
                     "Metal Pipe", // 2
                     "AAAAAAAAAA", // 3
                     "Loud Buzz", // 4
-                    "Merry-Go-Round of Life", // 5
             }
     )
     public static int failsafeSoundSelected = 1;
