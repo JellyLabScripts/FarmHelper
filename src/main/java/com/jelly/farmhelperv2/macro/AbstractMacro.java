@@ -396,7 +396,8 @@ public abstract class AbstractMacro {
 
         A,
         D,
-        S
+        S,
+        W
     }
 
     public enum RewarpState {
