@@ -34,6 +34,15 @@ public class PlayerUtils {
         return true;
     }
 
+    public static boolean isInventoryFull(EntityPlayer player) {
+        for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
+            if (player.inventory.getStackInSlot(i) == null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static FarmHelperConfig.CropEnum getFarmingCrop() {
         Pair<Block, BlockPos> closestCrop = null;
         boolean foundCropUnderMouse = false;

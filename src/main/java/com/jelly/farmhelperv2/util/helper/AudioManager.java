@@ -78,6 +78,9 @@ public class AudioManager {
                         case 4:
                             inputStream = AudioSystem.getAudioInputStream(getClass().getResource("/farmhelper/sounds/loud_buzz.wav"));
                             break;
+                        case 5:
+                            inputStream = AudioSystem.getAudioInputStream(getClass().getResource("/farmhelper/sounds/joe_hisaishi.wav"));
+                            break;
                     }
                     if (inputStream == null) {
                         LogUtils.sendError("[Audio Manager] Failed to load sound file!");

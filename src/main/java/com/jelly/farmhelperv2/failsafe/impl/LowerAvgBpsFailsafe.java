@@ -11,6 +11,8 @@ import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
+import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.FifoQueue;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
@@ -18,6 +20,9 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 public class LowerAvgBpsFailsafe extends Failsafe {
     private static LowerAvgBpsFailsafe instance;
+    private float lastBPS;
+
+    private final Clock clock = new Clock();
 
     public static LowerAvgBpsFailsafe getInstance() {
         if (instance == null) {
@@ -60,25 +65,27 @@ public class LowerAvgBpsFailsafe extends Failsafe {
     public void onTickDetection(TickEvent.ClientTickEvent event) {
         if (MacroHandler.getInstance().isCurrentMacroPaused()
                 || FeatureManager.getInstance().shouldPauseMacroExecution()
-                || !MacroHandler.getInstance().getMacro().checkForBPS()) {
-            bpsQueue.clear();
-            lastTimeCheckedBPS = System.currentTimeMillis();
+                || !MacroHandler.getInstance().getMacro().checkForBPS()
+                || !FarmHelperConfig.averageBPSDropCheck
+                || event.phase != TickEvent.Phase.START) {
             return;
         }
-        if (!FarmHelperConfig.averageBPSDropCheck) return;
 
-        if (System.currentTimeMillis() - lastTimeCheckedBPS < 1_000) return;
-        lastTimeCheckedBPS = System.currentTimeMillis();
-        float bps = BPSTracker.getInstance().getBPSFloat();
-        bpsQueue.add(bps);
-        if (!bpsQueue.isAtFullCapacity()) return;
-        float averageBPS = getAverageBPS();
-        if (averageBPS > bps) {
-            float percentage = (averageBPS - bps) / averageBPS * 100;
-            if (percentage > FarmHelperConfig.averageBPSDrop) {
-                FailsafeManager.getInstance().possibleDetection(this);
-            }
+        if (BPSTracker.getInstance().getBPSFloat() - lastBPS < 0) {
+            if(!clock.isScheduled())
+                clock.schedule(FarmHelperConfig.BPSDropThreshold * 1000L);
+        } else if (BPSTracker.getInstance().getBPSFloat() - lastBPS > 0) {
+            clock.reset();
         }
+        lastBPS = BPSTracker.getInstance().getBPSFloat();
+
+        if (!clock.isScheduled())
+            return;
+
+        if (clock.passed()) {
+            FailsafeManager.getInstance().possibleDetection(this);
+        }
+
     }
 
     @Override
@@ -132,21 +139,10 @@ public class LowerAvgBpsFailsafe extends Failsafe {
 
     @Override
     public void resetStates() {
+        LogUtils.sendDebug("RESET");
+        clock.reset();
+        lastBPS = 0;
         lowerBPSState = LowerBPSState.NONE;
-        bpsQueue.clear();
-    }
-
-    public float getAverageBPS() {
-        float averageBPS = 0;
-        for (float bpsValue : bpsQueue) {
-            averageBPS += bpsValue;
-        }
-        averageBPS /= bpsQueue.size();
-        return averageBPS;
-    }
-
-    public void clearQueue() {
-        bpsQueue.clear();
     }
 
     enum LowerBPSState {
@@ -158,6 +154,4 @@ public class LowerAvgBpsFailsafe extends Failsafe {
 
     private LowerBPSState lowerBPSState = LowerBPSState.NONE;
     private final RotationHandler rotation = RotationHandler.getInstance();
-    private final FifoQueue<Float> bpsQueue = new FifoQueue<>(20);
-    private long lastTimeCheckedBPS = System.currentTimeMillis();
 }

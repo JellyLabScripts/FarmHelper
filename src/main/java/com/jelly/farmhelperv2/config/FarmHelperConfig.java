@@ -480,11 +480,11 @@ public class FarmHelperConfig extends Config {
     public static boolean averageBPSDropCheck = true;
 
     @Slider(
-            name = "Average BPS Drop %", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The minimum BPS drop to trigger failsafe",
-            min = 2, max = 50
+            name = "BPS drop threshold (seconds)", category = FAILSAFE, subcategory = "Miscellaneous",
+            description = "Keeps track of the duration for which the BPS has been dropping",
+            min = 2, max = 10
     )
-    public static int averageBPSDrop = 15;
+    public static int BPSDropThreshold = 5;
 
     @Button(
             name = "Test failsafe", category = FAILSAFE, subcategory = "Miscellaneous",
@@ -501,8 +501,8 @@ public class FarmHelperConfig extends Config {
         if (testFailsafeTypeSelected == 0) {
             FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected));
             return;
-        } else if (testFailsafeTypeSelected != 6)
-            LowerAvgBpsFailsafe.getInstance().clearQueue(); // Clear the queue to avoid false positives
+        } // else if (testFailsafeTypeSelected != 6)
+          // LowerAvgBpsFailsafe.getInstance().clearQueue(); // Clear the queue to avoid false positives
         FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected + 2));
     };
 
@@ -635,6 +635,7 @@ public class FarmHelperConfig extends Config {
                     "Metal Pipe", // 2
                     "AAAAAAAAAA", // 3
                     "Loud Buzz", // 4
+                    "Merry-Go-Round of Life", // 5
             }
     )
     public static int failsafeSoundSelected = 1;
