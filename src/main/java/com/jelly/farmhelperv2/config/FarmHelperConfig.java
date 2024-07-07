@@ -1048,7 +1048,7 @@ public class FarmHelperConfig extends Config {
     @DualOption(
             name = "Name Filtering Type", category = VISITORS_MACRO, subcategory = "Filters",
             description = "The name filtering method to use",
-            left = "Whitelist", right = "Blacklist"
+            left = "Blacklist", right = "Whitelist"
     )
     public static boolean nameFilteringType = false;
 
