@@ -1711,6 +1711,7 @@ public class FarmHelperConfig extends Config {
             name = "Type", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
             description = "Item to spray plot with",
             options = {
+                    "Fine Flour (+20 Farming Fortune)",
                     "Compost (Earthworm & Mosquito)",
                     "Honey Jar (Moth & Cricket)",
                     "Dung (Beetle & Fly)",
@@ -1722,6 +1723,7 @@ public class FarmHelperConfig extends Config {
 
     @Getter
     public enum SPRAYONATOR_ITEM {
+        FINE_FLOUR("Fine Flour"),
         COMPOST("Compost"),
         HONEY_JAR("Honey Jar"),
         DUNG("Dung"),
