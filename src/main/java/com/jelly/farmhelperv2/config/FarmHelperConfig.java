@@ -2193,12 +2193,11 @@ public class FarmHelperConfig extends Config {
 
         this.addDependency("pauseAutoPestExchangeDuringJacobsContest", "autoPestExchange");
         this.addDependency("autoPestExchangeIgnoreJacobsContest", "autoPestExchange");
-        this.hideIf("autoPestExchangeTriggerBeforeContestStarts", () -> true);
         this.addDependency("autoPestExchangeTriggerBeforeContestStarts", "autoPestExchange");
-        this.addDependency("autoPestExchangeMinPests", "autoPestExchange");
-        this.addDependency("logAutoPestExchangeEvents", "autoPestExchange");
         this.addDependency("autoPestExchangeTriggerBeforeContestStarts",
                 "You can either wait until Jacob's Contest or run it regardless.", () -> !autoPestExchangeIgnoreJacobsContest);
+        this.addDependency("autoPestExchangeMinPests", "autoPestExchange");
+        this.addDependency("logAutoPestExchangeEvents", "autoPestExchange");
         this.hideIf("pestExchangeDeskX", () -> true);
         this.hideIf("pestExchangeDeskY", () -> true);
         this.hideIf("pestExchangeDeskZ", () -> true);
