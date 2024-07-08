@@ -103,7 +103,7 @@ public class AutoSprayonator implements IFeature {
     }
 
     MacroHandler.getInstance().pauseMacro();
-    this.timer.schedule(500);
+    this.timer.schedule(FarmHelperConfig.autoSprayonatorAdditionalDelay);
     this.enabled = true;
   }
 
@@ -154,7 +154,7 @@ public class AutoSprayonator implements IFeature {
 
     final String message = event.message.getUnformattedText();
     if (message.startsWith("SPRAYONATOR!") || message.equals("This plot was sprayed with that item recently! Try again soon!")) {
-      this.swapState(State.END, 500);
+      this.swapState(State.END, FarmHelperConfig.autoSprayonatorAdditionalDelay);
       return;
     }
 
@@ -162,9 +162,9 @@ public class AutoSprayonator implements IFeature {
       if (!FarmHelperConfig.autoSprayonatorAutoBuyItem) {
         LogUtils.sendError("Don't have any spray item and not allowed to buy any. Pausing until restart.");
         this.pause = true;
-        this.swapState(State.END, 500);
+        this.swapState(State.END, FarmHelperConfig.autoSprayonatorAdditionalDelay);
       } else {
-        this.swapState(State.BUYING_MATERIAL, 500);
+        this.swapState(State.BUYING_MATERIAL, FarmHelperConfig.autoSprayonatorAdditionalDelay);
       }
     }
   }
@@ -186,7 +186,7 @@ public class AutoSprayonator implements IFeature {
           this.stop();
           break;
         }
-        this.swapState(State.SPRAYING, 250);
+        this.swapState(State.SPRAYING, FarmHelperConfig.autoSprayonatorAdditionalDelay);
         break;
       case SPRAYING:
         if (this.isTimerRunning()) {
@@ -221,7 +221,7 @@ public class AutoSprayonator implements IFeature {
           break;
         }
 
-        this.swapState(State.STARTING, 500);
+        this.swapState(State.STARTING, FarmHelperConfig.autoSprayonatorAdditionalDelay);
         break;
       case WAITING:
         if (!this.isTimerRunning()) {
