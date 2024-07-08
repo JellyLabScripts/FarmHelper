@@ -61,13 +61,15 @@ public class LowerAvgBpsFailsafe extends Failsafe {
 
     @Override
     public void onTickDetection(TickEvent.ClientTickEvent event) {
-        if (MacroHandler.getInstance().isCurrentMacroPaused()
-                || FeatureManager.getInstance().shouldPauseMacroExecution()
-                || !MacroHandler.getInstance().getMacro().checkForBPS()
-                || !FarmHelperConfig.averageBPSDropCheck
-                || event.phase != TickEvent.Phase.START) {
+        if (FeatureManager.getInstance().shouldPauseMacroExecution()
+                || BPSTracker.getInstance().dontCheckForBPS()
+                || !FarmHelperConfig.averageBPSDropCheck) {
+            if (clock.isScheduled())
+                clock.reset();
             return;
         }
+        if (event.phase != TickEvent.Phase.START)
+            return;
 
         if (BPSTracker.getInstance().getBPSFloat() - lastBPS < 0) {
             if (!clock.isScheduled())

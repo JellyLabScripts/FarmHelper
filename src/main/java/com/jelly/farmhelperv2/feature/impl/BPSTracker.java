@@ -9,6 +9,7 @@ import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
 import net.minecraft.block.BlockReed;
+import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.Tuple;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -132,7 +133,10 @@ public class BPSTracker implements IFeature {
     public boolean dontCheckForBPS() {
         return !MacroHandler.getInstance().getMacroingTimer().isScheduled()
                 || MacroHandler.getInstance().isCurrentMacroPaused()
-                || !MacroHandler.getInstance().getMacro().checkForBPS();
+                || !MacroHandler.getInstance().getMacro().checkForBPS()
+                || MacroHandler.getInstance().isTeleporting()
+                || MacroHandler.getInstance().isRewarpTeleport()
+                || MacroHandler.getInstance().isStartingUp();
     }
 
     public float getBPSFloat() {
