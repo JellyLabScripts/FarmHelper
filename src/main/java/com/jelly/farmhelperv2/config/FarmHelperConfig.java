@@ -11,7 +11,6 @@ import com.jelly.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
-import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.gui.AutoUpdaterGUI;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -1710,7 +1709,7 @@ public class FarmHelperConfig extends Config {
     @Switch(
             name = "Auto Sprayonator", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator"
     )
-    public static boolean autoSprayonatorEnable = false;
+    public static boolean autoSprayonator = false;
 
     @Dropdown(
             name = "Type", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
@@ -1722,39 +1721,9 @@ public class FarmHelperConfig extends Config {
                     "Dung (Beetle & Fly)",
                     "Plant Matter (Locust & Slug)",
                     "Tasty Cheese (Rat & Mite)"
-            }, size = 5
+            }
     )
-    public static int sprayonatorType;
-
-    @Getter
-    public enum SPRAYONATOR_ITEM {
-        FINE_FLOUR("Fine Flour"),
-        COMPOST("Compost"),
-        HONEY_JAR("Honey Jar"),
-        DUNG("Dung"),
-        PLANT_MATTER("Plant Matter"),
-        TASTY_CHEESE("Tasty Cheese"),
-        NONE("NONE");
-
-        final String itemName;
-
-        SPRAYONATOR_ITEM(final String item_name) {
-            this.itemName = item_name;
-        }
-    }
-
-    @Switch(
-            name = "Inventory Only", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator"
-    )
-    public static boolean sprayonatorItemInventoryOnly;
-
-    @Slider(
-            name = "Sprayonator Slot", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
-            min = 1, max = 8,
-            step = 1,
-            description = "Slot to move sprayonator to"
-    )
-    public static int autoSprayonatorSlot = 1;
+    public static int autoSprayonatorSprayMaterial = 0;
 
     @Slider(
             name = "Additional Delay", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
@@ -1775,16 +1744,6 @@ public class FarmHelperConfig extends Config {
             min = 1, max = 64
     )
     public static int autoSprayonatorAutoBuyAmount = 1;
-
-    @Button(
-            name = "Reset Plots", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
-            text = "Click Here",
-            description = "Resets the cached data for sprayonator"
-    )
-    Runnable _autoSprayonatorResetPlots = () -> {
-        AutoSprayonator.getInstance().resetPlots();
-    };
-
     //</editor-fold>
 
     //<editor-fold desc="DELAYS">

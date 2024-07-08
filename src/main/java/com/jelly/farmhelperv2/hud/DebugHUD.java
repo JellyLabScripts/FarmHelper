@@ -142,23 +142,6 @@ public class DebugHUD extends TextHud {
                     String.format("   Current Entity Target: %.2f %.2f %.2f", target.getPositionVector().xCoord, target.getPositionVector().yCoord, target.getPositionVector().zCoord))
             );
         }
-        if (AutoSprayonator.getInstance().isRunning()) {
-            lines.add("Auto Sprayonator");
-            lines.add("   Enable Delay: " + AutoSprayonator.getInstance().getEnableDelay().getRemainingTime());
-            lines.add("   State: " + AutoSprayonator.getInstance().getSprayState());
-            lines.add("   Item: " + AutoSprayonator.getInstance().getSprayItem());
-            lines.add("   Clock: " + AutoSprayonator.getInstance().getSprayonatorDelay().getRemainingTime());
-            lines.add("   Check Plot State: " + AutoSprayonator.getInstance().getCheckPlotState());
-            lines.add("   Skymart State: " + AutoSprayonator.getInstance().getSkymartPurchaseState());
-            lines.add("   Bazaar State: " + AutoSprayonator.getInstance().getBazaarPurchaseState());
-            lines.add("   GUI State: " + AutoSprayonator.getInstance().getCurrentGuiState());
-            AutoSprayonator.PlotData plotData = AutoSprayonator.getInstance().getSprayonatorPlotStates().get(GameStateHandler.getInstance().getCurrentPlot());
-            if (plotData != null) {
-                lines.add("   Plot Sprayed: " + plotData.isSprayed());
-                lines.add("   Plot Spray Clock: " + plotData.getSprayClock().getRemainingTime());
-                lines.add("   Plot Spray Item: " + plotData.getSprayItem());
-            }
-        }
         if (AutoPestExchange.getInstance().isRunning()) {
             lines.add("Auto Pest Hunter");
             lines.add("   State: " + AutoPestExchange.getInstance().getNewState());
