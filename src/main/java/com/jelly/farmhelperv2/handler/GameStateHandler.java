@@ -154,6 +154,7 @@ public class GameStateHandler {
         boolean hasGuestsOnTabList = false;
         boolean foundPestHunterBonus = false;
         boolean foundLocation = false;
+        boolean foundSpray = false;
         int nextJacobCropFound = -1;
 
         for (String cleanedLine : tabList) {
@@ -197,9 +198,16 @@ public class GameStateHandler {
             if (cleanedLine.contains("Starts In")) {
                 nextJacobCropFound = 0;
             }
+            if(cleanedLine.startsWith(" Spray: ")){
+                sprayonatorState = cleanedLine.endsWith("None") ? BuffState.NOT_ACTIVE : BuffState.ACTIVE;
+                foundSpray = true;
+            }
         }
         if (!foundPestHunterBonus) {
             pestHunterBonus = BuffState.UNKNOWN;
+        }
+        if(!foundSpray){
+            sprayonatorState = BuffState.UNKNOWN;
         }
         if (foundLocation) return;
 
@@ -475,7 +483,6 @@ public class GameStateHandler {
         boolean foundGodPotBuff = false;
         boolean foundCookieBuff = false;
         boolean foundPestRepellent = false;
-        boolean foundSpray = false;
         boolean loaded = false;
 
         for (String line : footerString) {
@@ -510,24 +517,18 @@ public class GameStateHandler {
                 }
                 break;
             }
-            if (line.contains("Spray") && !line.contains("None")) {
-                foundSpray = true;
-                break;
-            }
         }
 
         if (!loaded) {
             cookieBuffState = BuffState.UNKNOWN;
             godPotState = BuffState.UNKNOWN;
             pestRepellentState = BuffState.UNKNOWN;
-            sprayonatorState = BuffState.UNKNOWN;
             return;
         }
 
         cookieBuffState = foundCookieBuff ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
         godPotState = foundGodPotBuff ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
         pestRepellentState = foundPestRepellent ? BuffState.ACTIVE : (!AutoRepellent.repellentFailsafeClock.passed() ? BuffState.FAILSAFE : BuffState.NOT_ACTIVE);
-        sprayonatorState = foundSpray ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
     }
 
     public void onTickCheckSpeed() {
