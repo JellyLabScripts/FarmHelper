@@ -118,7 +118,7 @@ public class AutoSprayonator implements IFeature {
 
   @SubscribeEvent
   public void onTablistUpdate(UpdateTablistEvent event) {
-    if (!this.isToggled() || !MacroHandler.getInstance().isMacroToggled() || this.enabled || this.pause) {
+    if (!this.isToggled() || !MacroHandler.getInstance().isCurrentMacroEnabled() || this.enabled || this.pause) {
       return;
     }
     if (this.isTimerRunning()) {
