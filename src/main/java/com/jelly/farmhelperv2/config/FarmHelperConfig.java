@@ -1340,6 +1340,11 @@ public class FarmHelperConfig extends Config {
             description = "Pings everyone on Visitors Macro Logs"
     )
     public static boolean pingEveryoneOnVisitorsMacroLogs = false;
+    @Switch(
+            name = "Send Macro Enable/Disable Logs", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
+            description = "Sends messages when the macro has been enabled or disabled"
+    )
+    public static boolean sendMacroEnableDisableLogs = true;
     @Text(
             name = "WebHook URL", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
             description = "The URL to use for the webhook",
