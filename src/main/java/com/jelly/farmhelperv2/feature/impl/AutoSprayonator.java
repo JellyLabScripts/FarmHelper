@@ -82,7 +82,7 @@ public class AutoSprayonator implements IFeature {
     }
 
     if (!InventoryUtils.hasItemInHotbar("Sprayonator")) {
-      LogUtils.sendError("Cannot find sprayonator in hotbar. Pausing until restart");
+      LogUtils.sendError("Cannot find sprayonator in hotbar. Pausing until restart.");
       this.pause = true;
       return;
     }
