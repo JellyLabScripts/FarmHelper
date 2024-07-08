@@ -72,6 +72,10 @@ public class BPSTracker implements IFeature {
         if (!isResumingScheduled) {
             isResumingScheduled = true;
             Multithreading.schedule(() -> {
+                if (dontCheckForBPS()) {
+                    LogUtils.sendDebug("Canceled resuming BPS tracker");
+                    return;
+                }
                 LogUtils.sendDebug("Resuming BPS tracker");
                 long pauseDuration = System.currentTimeMillis() - pauseStartTime;
                 adjustQueueTimestamps(pauseDuration);
@@ -128,8 +132,7 @@ public class BPSTracker implements IFeature {
     public boolean dontCheckForBPS() {
         return !MacroHandler.getInstance().getMacroingTimer().isScheduled()
                 || MacroHandler.getInstance().isCurrentMacroPaused()
-                || !MacroHandler.getInstance().getMacro().checkForBPS()
-                || isPaused;
+                || !MacroHandler.getInstance().getMacro().checkForBPS();
     }
 
     public float getBPSFloat() {
@@ -147,7 +150,7 @@ public class BPSTracker implements IFeature {
     public void onBlockChange(PlayerDestroyBlockEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
-        if (dontCheckForBPS()) return;
+        if (dontCheckForBPS() || isPaused) return;
 
         switch (MacroHandler.getInstance().getCrop()) {
             case NETHER_WART:
