@@ -1,9 +1,7 @@
 package com.jelly.farmhelperv2.hud;
 
-import cc.polyfrost.oneconfig.config.annotations.Button;
 import cc.polyfrost.oneconfig.config.annotations.Color;
 import cc.polyfrost.oneconfig.config.annotations.Dropdown;
-import cc.polyfrost.oneconfig.config.annotations.Switch;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.BasicHud;
 import cc.polyfrost.oneconfig.libs.universal.UMatrixStack;
@@ -14,7 +12,6 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.impl.BPSTracker;
 import com.jelly.farmhelperv2.feature.impl.ProfitCalculator;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
-import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Tuple;
@@ -24,23 +21,6 @@ import java.util.Comparator;
 import java.util.List;
 
 public class ProfitCalculatorHUD extends BasicHud {
-    @Switch(
-            name = "Count RNG to $/Hr in Profit Calculator", category = "Miscellaneous",
-            description = "Count RNG to $/Hr"
-    )
-    public static boolean countRNGToProfitCalc = false;
-    @Switch(
-            name = "Reset stats between disabling",
-            category = "Miscellaneous"
-    )
-    public static boolean resetStatsBetweenDisabling = false;
-    @Button(
-            name = "Reset Profit Calculator",
-            category = "Miscellaneous",
-            text = "Reset Now",
-            size = 2
-    )
-
     private final float iconWidth = 12 * scale;
     private final float iconHeight = 12 * scale;
     protected transient ArrayList<Tuple<String, String>> lines = new ArrayList<>();

@@ -1,15 +1,14 @@
 package com.jelly.farmhelperv2.macro.impl;
 
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
-import com.jelly.farmhelperv2.feature.impl.AntiStuck;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.macro.AbstractMacro;
-import com.jelly.farmhelperv2.util.*;
+import com.jelly.farmhelperv2.util.AngleUtils;
+import com.jelly.farmhelperv2.util.KeyBindUtils;
+import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
-import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
 
 import java.util.Optional;
 

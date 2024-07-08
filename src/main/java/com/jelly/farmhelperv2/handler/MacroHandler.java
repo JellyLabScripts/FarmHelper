@@ -9,7 +9,6 @@ import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.WorldChangeFailsafe;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.*;
-import com.jelly.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.jelly.farmhelperv2.macro.AbstractMacro;
 import com.jelly.farmhelperv2.macro.impl.*;
 import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
@@ -185,7 +184,7 @@ public class MacroHandler {
 
         analyticsTimer.reset();
         Multithreading.schedule(() -> {
-            if (!macroingTimer.isScheduled() || ProfitCalculatorHUD.resetStatsBetweenDisabling) {
+            if (!macroingTimer.isScheduled() || FarmHelperConfig.resetStatsBetweenDisabling) {
                 macroingTimer.schedule();
                 macroingTimer.pause();
             }

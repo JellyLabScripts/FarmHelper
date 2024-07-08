@@ -1047,7 +1047,7 @@ public class FarmHelperConfig extends Config {
     @DualOption(
             name = "Name Filtering Type", category = VISITORS_MACRO, subcategory = "Filters",
             description = "The name filtering method to use",
-            left = "Whitelist", right = "Blacklist"
+            left = "Blacklist", right = "Whitelist"
     )
     public static boolean nameFilteringType = false;
 
@@ -1909,11 +1909,28 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean streamerModeInfo2;
     @HUD(
-            name = "Status HUD", category = HUD
+            name = "Status HUD - Visual Settings", category = HUD
     )
     public static StatusHUD statusHUD = new StatusHUD();
+
+    @Switch(
+            name = "Count RNG to $/Hr in Profit Calculator", category = HUD, subcategory = "Profit Calculator",
+            description = "Count RNG to $/Hr"
+    )
+    public static boolean countRNGToProfitCalc = false;
+    @Switch(
+            name = "Reset stats between disabling", category = HUD, subcategory = "Profit Calculator"
+    )
+    public static boolean resetStatsBetweenDisabling = false;
+    @Button(
+            name = "Reset Profit Calculator", category = HUD, subcategory = "Profit Calculator",
+            text = "Reset Now", size = 2
+    )
+    public void resetStats() {
+        ProfitCalculator.getInstance().resetProfits();
+    }
     @HUD(
-            name = "Profit Calculator HUD", category = HUD, subcategory = " "
+            name = "Profit Calculator HUD - Visual Settings", category = HUD, subcategory = " "
     )
     public static ProfitCalculatorHUD profitHUD = new ProfitCalculatorHUD();
     //</editor-fold>

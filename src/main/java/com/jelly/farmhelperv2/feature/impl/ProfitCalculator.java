@@ -10,7 +10,6 @@ import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
-import com.jelly.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.jelly.farmhelperv2.util.APIUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
@@ -163,9 +162,10 @@ public class ProfitCalculator implements IFeature {
 
     @Override
     public void start() {
-        if (ProfitCalculatorHUD.resetStatsBetweenDisabling) {
+        if (FarmHelperConfig.resetStatsBetweenDisabling) {
             resetProfits();
         }
+        previousCurrentPurse = GameStateHandler.getInstance().getCurrentPurse();
         IFeature.super.start();
     }
 
@@ -259,7 +259,7 @@ public class ProfitCalculator implements IFeature {
         realProfit = profit;
         realProfit += rngPrice;
 
-        if (ProfitCalculatorHUD.countRNGToProfitCalc) {
+        if (FarmHelperConfig.countRNGToProfitCalc) {
             realHourlyProfit = (realProfit / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f / 60 / 60));
         } else {
             realHourlyProfit = profit / (MacroHandler.getInstance().getMacroingTimer().getElapsedTime() / 1000f / 60 / 60);
