@@ -56,7 +56,7 @@ public class DebugHUD extends TextHud {
             lines.add("Rotating: " + macro.getRotation().isRotating());
         });
 //        lines.add("Current plot: " + GameStateHandler.getInstance().getCurrentPlot());
-        lines.add("Directions: ");
+        lines.add("Walkable directions: ");
         lines.add("   Forward: " + GameStateHandler.getInstance().isFrontWalkable());
         lines.add("   Backward: " + GameStateHandler.getInstance().isBackWalkable());
         lines.add("   Left: " + GameStateHandler.getInstance().isLeftWalkable());
