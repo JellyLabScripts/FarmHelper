@@ -70,8 +70,8 @@ public class GameStateHandler {
     private double dy;
     @Getter
     private String serverIP;
-    private long randomValueToWait = FarmHelperConfig.getRandomTimeBetweenChangingRows();
-    private long randomRewarpValueToWait = FarmHelperConfig.getRandomRewarpDelay();
+    private long randomValueToWait = -1;
+    private long randomRewarpValueToWait = -1;
     @Getter
     private BuffState cookieBuffState = BuffState.UNKNOWN;
     @Getter
@@ -602,6 +602,7 @@ public class GameStateHandler {
     }
 
     public boolean canRewarp() {
+        if (randomRewarpValueToWait == -1) randomRewarpValueToWait = FarmHelperConfig.getRandomRewarpDelay();
         return reWarpTimer.hasPassed(randomRewarpValueToWait);
     }
 
@@ -611,6 +612,7 @@ public class GameStateHandler {
     }
 
     public boolean hasPassedSinceStopped() {
+        if (randomValueToWait == -1) randomValueToWait = FarmHelperConfig.getRandomTimeBetweenChangingRows();
         return notMovingTimer.hasPassed(randomValueToWaitNextTime != -1 ? randomValueToWaitNextTime : randomValueToWait);
     }
 
