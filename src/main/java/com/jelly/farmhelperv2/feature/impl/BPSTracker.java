@@ -1,12 +1,15 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.event.PlayerDestroyBlockEvent;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
 import net.minecraft.block.BlockReed;
+import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.Tuple;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -15,6 +18,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public class BPSTracker implements IFeature {
     private static BPSTracker instance;
@@ -35,6 +39,7 @@ public class BPSTracker implements IFeature {
     }
 
     public boolean isPaused = false;
+    private boolean isResumingScheduled = false;
     private long pauseStartTime = 0;
     private float lastKnownBPS = 0;
 
@@ -58,11 +63,27 @@ public class BPSTracker implements IFeature {
 
     @Override
     public void resume() {
-        if (isPaused) {
-            long pauseDuration = System.currentTimeMillis() - pauseStartTime;
-            adjustQueueTimestamps(pauseDuration);
-            isPaused = false;
-            pauseStartTime = 0;
+        if (isPaused && !isResumingScheduled) {
+            resumeScheduled();
+            LogUtils.sendDebug("Scheduled resuming BPS tracker");
+        }
+    }
+
+    public void resumeScheduled() {
+        if (!isResumingScheduled) {
+            isResumingScheduled = true;
+            Multithreading.schedule(() -> {
+                if (dontCheckForBPS()) {
+                    LogUtils.sendDebug("Canceled resuming BPS tracker");
+                    return;
+                }
+                LogUtils.sendDebug("Resuming BPS tracker");
+                long pauseDuration = System.currentTimeMillis() - pauseStartTime;
+                adjustQueueTimestamps(pauseDuration);
+                isPaused = false;
+                pauseStartTime = 0;
+                isResumingScheduled = false;
+            }, 1000L, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -91,7 +112,7 @@ public class BPSTracker implements IFeature {
         if (bpsQueue.size() > 1) {
             float elapsedTime = (currentTime - bpsQueue.getFirst().getSecond()) / 1000f;
             while (elapsedTime > 10f && bpsQueue.size() > 1) {
-                Tuple<Long, Long> removed = bpsQueue.pollFirst();
+                bpsQueue.pollFirst();
                 elapsedTime = (currentTime - bpsQueue.getFirst().getSecond()) / 1000f;
             }
 
@@ -104,6 +125,8 @@ public class BPSTracker implements IFeature {
     }
 
     public String getBPS() {
+        if (isPaused)
+            return oneDecimalDigitFormatter.format(getBPSFloat()) + " BPS (Paused)";
         return oneDecimalDigitFormatter.format(getBPSFloat()) + " BPS";
     }
 
@@ -111,7 +134,9 @@ public class BPSTracker implements IFeature {
         return !MacroHandler.getInstance().getMacroingTimer().isScheduled()
                 || MacroHandler.getInstance().isCurrentMacroPaused()
                 || !MacroHandler.getInstance().getMacro().checkForBPS()
-                || isPaused;
+                || MacroHandler.getInstance().isTeleporting()
+                || MacroHandler.getInstance().isRewarpTeleport()
+                || MacroHandler.getInstance().isStartingUp();
     }
 
     public float getBPSFloat() {
@@ -129,7 +154,7 @@ public class BPSTracker implements IFeature {
     public void onBlockChange(PlayerDestroyBlockEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
-        if (dontCheckForBPS()) return;
+        if (dontCheckForBPS() || isPaused) return;
 
         switch (MacroHandler.getInstance().getCrop()) {
             case NETHER_WART:
@@ -207,6 +232,7 @@ public class BPSTracker implements IFeature {
         blocksBroken = 0;
         lastKnownBPS = 0;
         isPaused = false;
+        isResumingScheduled = false;
         pauseStartTime = 0;
     }
 

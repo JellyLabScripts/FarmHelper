@@ -122,7 +122,7 @@ public class FarmHelperConfig extends Config {
             name = "Don't fix micro rotations after warp", category = GENERAL, subcategory = "Rotation",
             description = "The macro doesn't do micro-rotations after rewarp if the current yaw and target yaw are the same", size = 2
     )
-    public static boolean dontFixAfterWarping = false;
+    public static boolean dontFixAfterWarping = true;
     @Switch(
             name = "Custom Pitch", category = GENERAL, subcategory = "Rotation",
             description = "Set pitch to custom level after starting the macro"
