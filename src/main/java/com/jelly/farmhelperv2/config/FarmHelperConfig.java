@@ -11,7 +11,6 @@ import com.jelly.farmhelperv2.config.page.CustomFailsafeMessagesPage;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
-import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.feature.impl.*;
 import com.jelly.farmhelperv2.gui.AutoUpdaterGUI;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -1950,11 +1949,28 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean streamerModeInfo2;
     @HUD(
-            name = "Status HUD", category = HUD
+            name = "Status HUD - Visual Settings", category = HUD
     )
     public static StatusHUD statusHUD = new StatusHUD();
+
+    @Switch(
+            name = "Count RNG to $/Hr in Profit Calculator", category = HUD, subcategory = "Profit Calculator",
+            description = "Count RNG to $/Hr"
+    )
+    public static boolean countRNGToProfitCalc = false;
+    @Switch(
+            name = "Reset stats between disabling", category = HUD, subcategory = "Profit Calculator"
+    )
+    public static boolean resetStatsBetweenDisabling = false;
+    @Button(
+            name = "Reset Profit Calculator", category = HUD, subcategory = "Profit Calculator",
+            text = "Reset Now", size = 2
+    )
+    public void resetStats() {
+        ProfitCalculator.getInstance().resetProfits();
+    }
     @HUD(
-            name = "Profit Calculator HUD", category = HUD, subcategory = " "
+            name = "Profit Calculator HUD - Visual Settings", category = HUD, subcategory = " "
     )
     public static ProfitCalculatorHUD profitHUD = new ProfitCalculatorHUD();
     //</editor-fold>

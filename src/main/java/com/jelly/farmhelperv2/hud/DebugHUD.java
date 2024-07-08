@@ -6,7 +6,6 @@ import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.failsafe.impl.GuestVisitFailsafe;
-import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.feature.impl.*;
@@ -164,6 +163,14 @@ public class DebugHUD extends TextHud {
             lines.add("   State: " + AutoPestExchange.getInstance().getNewState());
             lines.add("   Clock: " + AutoPestExchange.getInstance().getDelayClock().getRemainingTime());
             lines.add("   Stuck clock: " + AutoPestExchange.getInstance().getStuckClock().getRemainingTime());
+        }
+        if (BPSTracker.getInstance().isRunning()) {
+            lines.add("BPSTracker");
+            lines.add("   BPS: " + BPSTracker.getInstance().getBPS());
+            lines.add("   BPS Queue Size: " + BPSTracker.getInstance().bpsQueue.size());
+            lines.add("   Blocks Broken: " + BPSTracker.getInstance().blocksBroken);
+            lines.add("   Total Blocks Broken: " + BPSTracker.getInstance().totalBlocksBroken);
+            lines.add("   isPaused: " + BPSTracker.getInstance().isPaused);
         }
     }
 }

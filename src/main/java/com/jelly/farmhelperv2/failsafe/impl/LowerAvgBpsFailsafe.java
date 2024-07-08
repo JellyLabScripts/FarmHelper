@@ -6,14 +6,12 @@ import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.BPSTracker;
-import com.jelly.farmhelperv2.feature.impl.ProfitCalculator;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
-import com.jelly.farmhelperv2.util.helper.FifoQueue;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -72,7 +70,7 @@ public class LowerAvgBpsFailsafe extends Failsafe {
         }
 
         if (BPSTracker.getInstance().getBPSFloat() - lastBPS < 0) {
-            if(!clock.isScheduled())
+            if (!clock.isScheduled())
                 clock.schedule(FarmHelperConfig.BPSDropThreshold * 1000L);
         } else if (BPSTracker.getInstance().getBPSFloat() - lastBPS > 0) {
             clock.reset();
