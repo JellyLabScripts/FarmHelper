@@ -171,7 +171,7 @@ public class AutoSprayonator implements IFeature {
 
   @SubscribeEvent
   public void onTickSpray(ClientTickEvent event) {
-    if (!this.enabled || this.pause) {
+    if (!this.enabled) {
       return;
     }
 
