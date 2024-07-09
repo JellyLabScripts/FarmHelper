@@ -89,7 +89,6 @@ public class DebugHUD extends TextHud {
 //        if (LagDetector.getInstance().isLagging()) {
 //            lines.add("   Lagging for: " + LagDetector.getInstance().getLaggingTime());
 //        }
-        lines.add("Average BPS: " + BPSTracker.getInstance().getBPS());
         if (DesyncChecker.getInstance().isToggled()) {
             lines.add("Desync Checker");
             lines.add("   Clicked blocks: " + DesyncChecker.getInstance().getClickedBlocks().size());

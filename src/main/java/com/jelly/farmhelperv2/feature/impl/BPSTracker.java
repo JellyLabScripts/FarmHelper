@@ -5,7 +5,6 @@ import com.jelly.farmhelperv2.event.PlayerDestroyBlockEvent;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
-import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
 import net.minecraft.block.BlockReed;
@@ -39,7 +38,7 @@ public class BPSTracker implements IFeature {
 
     public boolean isPaused = false;
     private boolean isResumingScheduled = false;
-    private long pauseStartTime = 0;
+    private long pauseStartTime = 0; // used for BPS adjustment after the break
     private float lastKnownBPS = 0;
 
 
@@ -67,16 +66,16 @@ public class BPSTracker implements IFeature {
             Multithreading.schedule(() -> {
                 isResumingScheduled = false;
                 if (dontCheckForBPS()) {
-                    LogUtils.sendDebug("Canceled resuming BPS tracker");
+                    // LogUtils.sendDebug("Canceled resuming BPS tracker");
                     return;
                 }
-                LogUtils.sendDebug("Resuming BPS tracker");
+                // LogUtils.sendDebug("Resuming BPS tracker");
                 long pauseDuration = System.currentTimeMillis() - pauseStartTime;
                 adjustQueueTimestamps(pauseDuration);
                 isPaused = false;
                 pauseStartTime = 0;
             }, 1000L, TimeUnit.MILLISECONDS);
-            LogUtils.sendDebug("Scheduled resuming BPS tracker");
+            // LogUtils.sendDebug("Scheduled resuming BPS tracker");
         }
     }
 
@@ -139,7 +138,8 @@ public class BPSTracker implements IFeature {
         }
 
         float elapsedTime = (bpsQueue.getLast().getSecond() - bpsQueue.getFirst().getSecond()) / 1000f;
-        lastKnownBPS = ((int) ((double) this.totalBlocksBroken / elapsedTime * 10.0D)) / 10.0F;
+        lastKnownBPS = totalBlocksBroken == 0 ? 0.1f : ((int) ((double) this.totalBlocksBroken / elapsedTime * 10.0D)) / 10.0F;
+        // LogUtils.sendDebug("BPSTracker: Calculated BPS: " + lastKnownBPS + ", Total blocks: " + totalBlocksBroken + ", Elapsed time: " + elapsedTime);
         return lastKnownBPS;
     }
 
