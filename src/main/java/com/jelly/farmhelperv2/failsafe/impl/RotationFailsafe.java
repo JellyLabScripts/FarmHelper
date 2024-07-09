@@ -109,7 +109,7 @@ public class RotationFailsafe extends Failsafe {
         if (shouldTriggerCheck(packetYaw, packetPitch))
             if (rotationBeforeReacting == null)
                 rotationBeforeReacting = new Rotation((float) playerYaw, (float) playerPitch);
-        triggerCheck.schedule(FarmHelperConfig.teleportRotationCheckTimeWindow);
+        triggerCheck.schedule(FarmHelperConfig.detectionTimeWindow);
     }
 
     private static final Clock triggerCheck = new Clock();
@@ -146,8 +146,8 @@ public class RotationFailsafe extends Failsafe {
     private boolean shouldTriggerCheck(double newYaw, double newPitch) {
         double yawDiff = Math.abs(newYaw - mc.thePlayer.rotationYaw) % 360;
         double pitchDiff = Math.abs(newPitch - mc.thePlayer.rotationPitch) % 360;
-        double yawThreshold = FarmHelperConfig.rotationCheckYawSensitivity;
-        double pitchThreshold = FarmHelperConfig.rotationCheckPitchSensitivity;
+        double yawThreshold = FarmHelperConfig.pitchSensitivity;
+        double pitchThreshold = FarmHelperConfig.pitchSensitivity;
         if (yawDiff >= yawThreshold || pitchDiff >= pitchThreshold) {
             LogUtils.sendDebug("[Failsafe] Rotation detected! Yaw diff: " + yawDiff + ", Pitch diff: " + pitchDiff);
             return true;

@@ -57,7 +57,7 @@ public class GuestVisitFailsafe extends Failsafe {
     @Override
     public void onTickDetection(TickEvent.ClientTickEvent event) {
         tabListCheckDelay.schedule(5000L);
-        if (FarmHelperConfig.pauseWhenGuestArrives && wasGuestOnGarden && GameStateHandler.getInstance().isGuestOnGarden()) {
+        if (FarmHelperConfig.pauseOnGuestArrival && wasGuestOnGarden && GameStateHandler.getInstance().isGuestOnGarden()) {
             if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
                 LogUtils.sendFailsafeMessage("[Failsafe] Paused the macro because of guest visit!", false);
                 MacroHandler.getInstance().pauseMacro();
@@ -101,7 +101,7 @@ public class GuestVisitFailsafe extends Failsafe {
             wasGuestOnGarden = true;
             tabListCheckDelay.schedule(5000L);
             FailsafeManager.getInstance().possibleDetection(this);
-            if (!FarmHelperConfig.pauseWhenGuestArrives)
+            if (!FarmHelperConfig.pauseOnGuestArrival)
                 Multithreading.schedule(() -> {
                     if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()
                             && FailsafeManager.getInstance().triggeredFailsafe.get().getType() == FailsafeManager.EmergencyType.GUEST_VISIT) {

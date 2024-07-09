@@ -109,7 +109,7 @@ public class WorldChangeFailsafe extends Failsafe {
 
     @Override
     public void duringFailsafeTrigger() {
-        if (!FarmHelperConfig.autoTPOnWorldChange) {
+        if (!FarmHelperConfig.autoWarpOnWorldChange) {
             LogUtils.sendDebug("[Failsafe] Auto TP on world change is disabled! Disabling macro and disconnecting...");
             MacroHandler.getInstance().disableMacro();
             Multithreading.schedule(() -> {

@@ -19,6 +19,9 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 public class LowerAvgBpsFailsafe extends Failsafe {
     private static LowerAvgBpsFailsafe instance;
     private float lastBPS;
+    private long lastStableBpsTime = 0;
+    private static final float BPS_DROP_TOLERANCE = 1f;
+    private static final long STABLE_BPS_RESET_TIME = 5000L;
 
     private final Clock clock = new Clock();
 
@@ -63,29 +66,50 @@ public class LowerAvgBpsFailsafe extends Failsafe {
     public void onTickDetection(TickEvent.ClientTickEvent event) {
         if (FeatureManager.getInstance().shouldPauseMacroExecution()
                 || BPSTracker.getInstance().dontCheckForBPS()
-                || !FarmHelperConfig.averageBPSDropCheck) {
-            if (clock.isScheduled())
-                clock.reset();
+                || !FarmHelperConfig.enableBpsCheck) {
+            resetStates();
             return;
         }
         if (event.phase != TickEvent.Phase.START)
             return;
 
-        if (BPSTracker.getInstance().getBPSFloat() - lastBPS < 0) {
-            if (!clock.isScheduled())
-                clock.schedule(FarmHelperConfig.BPSDropThreshold * 1000L);
-        } else if (BPSTracker.getInstance().getBPSFloat() - lastBPS > 0) {
-            clock.reset();
+        float currentBPS = BPSTracker.getInstance().getBPSFloat();
+        float bpsDrop = lastBPS - currentBPS;
+
+        boolean shouldTrigger = false;
+
+        // Check for BPS below threshold
+        if (currentBPS < FarmHelperConfig.minBpsThreshold) {
+            shouldTrigger = true;
+            LogUtils.sendDebug("BPS below threshold. Current: " + currentBPS + ", Threshold: " + FarmHelperConfig.minBpsThreshold);
         }
-        lastBPS = BPSTracker.getInstance().getBPSFloat();
 
-        if (!clock.isScheduled())
-            return;
+        // Check for significant BPS drop
+        if (bpsDrop > BPS_DROP_TOLERANCE) {
+            shouldTrigger = true;
+            lastStableBpsTime = System.currentTimeMillis();
+            LogUtils.sendDebug("BPS drop detected. Current: " + currentBPS + ", Last: " + lastBPS);
+        } else if (bpsDrop < -BPS_DROP_TOLERANCE) {
+            resetStates();
+            LogUtils.sendDebug("BPS increased. Clock reset.");
+        } else {
+            // BPS is stable
+            if (System.currentTimeMillis() - lastStableBpsTime > STABLE_BPS_RESET_TIME) {
+                resetStates();
+                LogUtils.sendDebug("BPS stable for " + STABLE_BPS_RESET_TIME + "ms. Clock reset.");
+            }
+        }
 
-        if (clock.passed()) {
+        if (shouldTrigger && !clock.isScheduled()) {
+            clock.schedule(5000L);
+        }
+
+        lastBPS = currentBPS;
+
+        if (clock.isScheduled() && clock.passed()) {
+            LogUtils.sendDebug("Failsafe triggered. Current BPS: " + currentBPS);
             FailsafeManager.getInstance().possibleDetection(this);
         }
-
     }
 
     @Override
@@ -139,9 +163,10 @@ public class LowerAvgBpsFailsafe extends Failsafe {
 
     @Override
     public void resetStates() {
-        LogUtils.sendDebug("RESET");
+        LogUtils.sendDebug("Resetting LowerAvgBpsFailsafe states");
         clock.reset();
-        lastBPS = 0;
+        lastBPS = BPSTracker.getInstance().getBPSFloat();
+        lastStableBpsTime = System.currentTimeMillis();
         lowerBPSState = LowerBPSState.NONE;
     }
 

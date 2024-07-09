@@ -9,7 +9,6 @@ import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
 import net.minecraft.block.BlockReed;
-import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.Tuple;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -64,15 +63,9 @@ public class BPSTracker implements IFeature {
     @Override
     public void resume() {
         if (isPaused && !isResumingScheduled) {
-            resumeScheduled();
-            LogUtils.sendDebug("Scheduled resuming BPS tracker");
-        }
-    }
-
-    public void resumeScheduled() {
-        if (!isResumingScheduled) {
             isResumingScheduled = true;
             Multithreading.schedule(() -> {
+                isResumingScheduled = false;
                 if (dontCheckForBPS()) {
                     LogUtils.sendDebug("Canceled resuming BPS tracker");
                     return;
@@ -82,8 +75,8 @@ public class BPSTracker implements IFeature {
                 adjustQueueTimestamps(pauseDuration);
                 isPaused = false;
                 pauseStartTime = 0;
-                isResumingScheduled = false;
             }, 1000L, TimeUnit.MILLISECONDS);
+            LogUtils.sendDebug("Scheduled resuming BPS tracker");
         }
     }
 
@@ -100,9 +93,9 @@ public class BPSTracker implements IFeature {
         if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
         if (event.phase != TickEvent.Phase.START) return;
         if (MacroHandler.getInstance().getMacro().checkForBPS())
-            BPSTracker.getInstance().resume();
+            resume();
         else
-            BPSTracker.getInstance().pause();
+            pause();
         if (isPaused) return;
 
         long currentTime = System.currentTimeMillis();

@@ -394,103 +394,83 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     //<editor-fold desc="FAILSAFES">
-    //<editor-fold desc="Failsafe Misc">
-    @Switch(
-            name = "Pop-up Notification", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Enable pop-up notification"
-    )
-    public static boolean popUpNotification = true;
-    @Switch(
-            name = "Auto alt-tab when failsafe triggered", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Automatically alt-tabs to the game when the dark times come"
-    )
+
+    // General Settings
+    @Switch(name = "Pop-up Notifications", category = FAILSAFE, subcategory = "General",
+            description = "Enable on-screen failsafe notifications")
+    public static boolean popUpNotifications = true;
+
+    @Switch(name = "Auto Alt-Tab", category = FAILSAFE, subcategory = "General",
+            description = "Switch to game window when failsafe triggers")
     public static boolean autoAltTab = false;
-    @Switch(
-            name = "Try to use jumping and flying in failsafes reactions", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Tries to use jumping and flying in failsafes reactions"
-    )
-    public static boolean tryToUseJumpingAndFlying = true;
-    @Slider(
-            name = "Failsafe Stop Delay", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The delay to stop the macro after failsafe has been triggered (in milliseconds)",
-            min = 1_000, max = 7_500
-    )
-    public static int failsafeStopDelay = 2_000;
-    @Switch(
-            name = "Auto TP back on World Change", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Automatically warps back to the garden on server reboot, server update, etc"
-    )
-    public static boolean autoTPOnWorldChange = true;
-    @Switch(
-            name = "Auto Evacuate on World update", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Automatically evacuates the island on server reboot, server update, etc"
-    )
-    public static boolean autoEvacuateOnWorldUpdate = true;
-    @Switch(
-            name = "Auto reconnect on disconnect", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Automatically reconnects to the server when disconnected"
-    )
+
+    @Slider(name = "Failsafe Stop Delay", category = FAILSAFE, subcategory = "General",
+            description = "Delay before stopping macro after failsafe (ms)",
+            min = 1000, max = 7500)
+    public static int failsafeStopDelay = 2000;
+
+    // Automatic Actions
+    @Switch(name = "Auto Warp on World Change", category = FAILSAFE, subcategory = "Auto Actions",
+            description = "Warp to garden after server reboot or update")
+    public static boolean autoWarpOnWorldChange = true;
+
+    @Switch(name = "Auto Evacuate on Server Reboot", category = FAILSAFE, subcategory = "Auto Actions",
+            description = "Leave island during server reboot or update")
+    public static boolean autoEvacuateOnServerReboot = true;
+
+    @Switch(name = "Auto Reconnect", category = FAILSAFE, subcategory = "Auto Actions",
+            description = "Automatically reconnect after disconnect")
     public static boolean autoReconnect = true;
-    @Switch(
-            name = "Pause the macro when a guest arrives", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Pauses the macro when a guest arrives"
-    )
-    public static boolean pauseWhenGuestArrives = false;
-    @Slider(
-            name = "Teleport Check Lag Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
+
+    @Switch(name = "Pause on Guest Arrival", category = FAILSAFE, subcategory = "Auto Actions",
+            description = "Pause macro when a guest joins your island")
+    public static boolean pauseOnGuestArrival = false;
+
+    // Detection Sensitivity
+    @Slider(name = "Teleport Lag Tolerance", category = FAILSAFE, subcategory = "Detection",
             description = "Variation in distance between expected and actual positions when lagging",
-            min = 0, max = 2
-    )
-    public static float teleportCheckLagSensitivity = 0.5f;
-    @Slider(
-            name = "Teleport/Rotation Check Time Window (in milliseconds)", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The time window to check for teleports (in seconds)",
-            min = 50, max = 4000, step = 50
-    )
-    public static int teleportRotationCheckTimeWindow = 500;
-    @Slider(
-            name = "Rotation Check Pitch Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The sensitivity of the rotation check; the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives.",
-            min = 1, max = 30
-    )
-    public static float rotationCheckPitchSensitivity = 7;
-    @Slider(
-            name = "Rotation Check Yaw Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The sensitivity of the rotation check; the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives.",
-            min = 1, max = 30
-    )
-    public static float rotationCheckYawSensitivity = 5;
-    @Slider(
-            name = "Teleport Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The minimum distance between the previous and teleported position to trigger failsafe",
-            min = 0.5f, max = 20f
-    )
-    public static float teleportCheckSensitivity = 4;
-    @Slider(
-            name = "Knockback Check Vertical Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The minimum power of vertical knockback (motionY) to trigger failsafe",
-            min = 2000, max = 10000, step = 1000
-    )
-    public static float knockbackCheckVerticalSensitivity = 4000;
+            min = 0, max = 2)
+    public static float teleportLagTolerance = 0.5f;
 
-    @Switch(
-            name = "Average BPS Drop check", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Checks for average BPS drop"
-    )
-    public static boolean averageBPSDropCheck = true;
+    @Slider(name = "Detection Time Window", category = FAILSAFE, subcategory = "Detection",
+            description = "Time frame for teleport/rotation checks (ms)",
+            min = 50, max = 4000, step = 50)
+    public static int detectionTimeWindow = 500;
 
-    @Slider(
-            name = "BPS drop threshold (seconds)", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Keeps track of the duration for which the BPS has been dropping",
-            min = 2, max = 10
-    )
-    public static int BPSDropThreshold = 5;
+    @Slider(name = "Pitch Sensitivity", category = FAILSAFE, subcategory = "Detection",
+            description = "Pitch change sensitivity (lower = stricter)",
+            min = 1, max = 30)
+    public static float pitchSensitivity = 7;
 
-    @Button(
-            name = "Test failsafe", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Tests failsafe",
-            text = "Test failsafe"
-    )
+    @Slider(name = "Yaw Sensitivity", category = FAILSAFE, subcategory = "Detection",
+            description = "Yaw change sensitivity (lower = stricter)",
+            min = 1, max = 30)
+    public static float yawSensitivity = 5;
+
+    @Slider(name = "Teleport Distance Threshold", category = FAILSAFE, subcategory = "Detection",
+            description = "Minimum teleport distance to trigger failsafe (blocks)",
+            min = 0.5f, max = 20f)
+    public static float teleportDistanceThreshold = 4;
+
+    @Slider(name = "Vertical Knockback Threshold", category = FAILSAFE, subcategory = "Detection",
+            description = "Minimum vertical knockback to trigger failsafe",
+            min = 2000, max = 10000, step = 1000)
+    public static float verticalKnockbackThreshold = 4000;
+
+    // BPS Check
+    @Switch(name = "Enable BPS Check", category = FAILSAFE, subcategory = "BPS",
+            description = "Monitor for drops in blocks per second")
+    public static boolean enableBpsCheck = true;
+
+    @Slider(name = "Minimum BPS", category = FAILSAFE, subcategory = "BPS",
+            description = "Trigger failsafe if BPS falls below this value",
+            min = 5, max = 15)
+    public static float minBpsThreshold = 10f;
+
+    // Failsafe Testing
+    @Button(name = "Test Failsafe", category = FAILSAFE, subcategory = "Testing",
+            description = "Simulate a failsafe trigger",
+            text = "Run Test")
     Runnable _testFailsafe = () -> {
         if (!MacroHandler.getInstance().isMacroToggled()) {
             LogUtils.sendError("You need to start the macro first!");
@@ -498,34 +478,30 @@ public class FarmHelperConfig extends Config {
         }
         LogUtils.sendWarning("Testing failsafe...");
         PlayerUtils.closeScreen();
-        if (testFailsafeTypeSelected == 0) {
-            FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected));
+        if (testFailsafeType == 0) {
+            FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeType));
             return;
-        } // else if (testFailsafeTypeSelected != 6)
-          // LowerAvgBpsFailsafe.getInstance().clearQueue(); // Clear the queue to avoid false positives
-        FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected + 2));
+        }
+        FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeType + 2));
     };
 
-    @Dropdown(
-            name = "Test Failsafe Type", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The failsafe type to test",
+    @Dropdown(name = "Test Failsafe Type", category = FAILSAFE, subcategory = "Testing",
+            description = "Select failsafe scenario to test",
             options = {
                     "Banwave",
-//                    "Bedrock Cage Check",
-//                    "Dirt Check",
                     "Disconnect",
                     "Evacuate",
+                    "Full Inventory",
                     "Guest Visit",
-                    "Item Change Check",
+                    "Item Change",
                     "Jacob",
-                    "Knockback Check",
-                    "Lower Average Bps",
-                    "Rotation Check",
-                    "Teleport Check",
-                    "World Change Check"
-            }
-    )
-    public static int testFailsafeTypeSelected = 0;
+                    "Knockback",
+                    "Low BPS",
+                    "Rotation",
+                    "Teleport",
+                    "World Change"
+            })
+    public static int testFailsafeType = 0;
 
     //</editor-fold>
 
@@ -562,7 +538,7 @@ public class FarmHelperConfig extends Config {
     public static int captureClipDelay = 30;
 
     @Info(
-            text = "You need to use ShadowPlay (or any alternative with Replay Buffer) and configure it to capture clips!",
+            text = "You need to use either ShadowPlay, OBS, Medal.tv or any alternative with Replay Buffer, then configure it to capture clips!",
             type = InfoType.WARNING,
             category = FAILSAFE,
             subcategory = "Clip Capturing",
@@ -2188,7 +2164,7 @@ public class FarmHelperConfig extends Config {
 
         this.addDependency("pestRepellentType", "autoPestRepellent");
 
-        this.addDependency("averageBPSDrop", "averageBPSDropCheck");
+        this.addDependency("averageBPSDrop", "enableBpsCheck");
 
         this.addDependency("captureClipKeybind", "", () -> captureClipAfterFailsafe || captureClipAfterGettingBanned);
         this.addDependency("clipCapturingType", "", () -> captureClipAfterFailsafe || captureClipAfterGettingBanned);

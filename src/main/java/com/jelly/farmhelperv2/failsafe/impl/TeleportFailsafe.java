@@ -160,19 +160,19 @@ public class TeleportFailsafe extends Failsafe {
         double distance = currentPlayerPos.distanceTo(packetPlayerPos);
 
         LogUtils.sendDebug("[Failsafe] Teleport packet received! Distance: " + distance);
-        if (distance >= FarmHelperConfig.teleportCheckSensitivity || (MacroHandler.getInstance().getCurrentMacro().isPresent() && Math.abs(packet.getY()) - Math.abs(MacroHandler.getInstance().getCurrentMacro().get().getLayerY()) > 0.8)) {
+        if (distance >= FarmHelperConfig.teleportDistanceThreshold || (MacroHandler.getInstance().getCurrentMacro().isPresent() && Math.abs(packet.getY()) - Math.abs(MacroHandler.getInstance().getCurrentMacro().get().getLayerY()) > 0.8)) {
             LogUtils.sendDebug("[Failsafe] Teleport detected! Distance: " + distance);
             final double lastReceivedPacketDistance = currentPlayerPos.distanceTo(LagDetector.getInstance().getLastPacketPosition());
             // blocks per tick
             final double playerMovementSpeed = mc.thePlayer.getAttributeMap().getAttributeInstanceByName("generic.movementSpeed").getAttributeValue();
             final int ticksSinceLastPacket = (int) Math.ceil(LagDetector.getInstance().getTimeSinceLastTick() / 50D);
             final double estimatedMovement = playerMovementSpeed * ticksSinceLastPacket;
-            if (lastReceivedPacketDistance > 7.5D && Math.abs(lastReceivedPacketDistance - estimatedMovement) < FarmHelperConfig.teleportCheckLagSensitivity)
+            if (lastReceivedPacketDistance > 7.5D && Math.abs(lastReceivedPacketDistance - estimatedMovement) < FarmHelperConfig.teleportLagTolerance)
                 return;
             if (originalPosition == null) {
                 originalPosition = mc.thePlayer.getPositionVector();
             }
-            triggerCheck.schedule(FarmHelperConfig.teleportRotationCheckTimeWindow);
+            triggerCheck.schedule(FarmHelperConfig.detectionTimeWindow);
         }
     }
 
@@ -206,7 +206,7 @@ public class TeleportFailsafe extends Failsafe {
             return;
         }
         double totalDisplacement = currentPosition.distanceTo(originalPosition);
-        if (totalDisplacement > FarmHelperConfig.teleportCheckSensitivity) {
+        if (totalDisplacement > FarmHelperConfig.teleportDistanceThreshold) {
             FailsafeManager.getInstance().possibleDetection(this);
         } else {
             FailsafeManager.getInstance().emergencyQueue.remove(this);

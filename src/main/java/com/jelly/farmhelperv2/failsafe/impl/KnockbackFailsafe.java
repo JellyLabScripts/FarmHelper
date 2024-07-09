@@ -73,7 +73,7 @@ public class KnockbackFailsafe extends Failsafe {
         }
         if (((S12PacketEntityVelocity) event.packet).getEntityID() != mc.thePlayer.getEntityId())
             return;
-        if (((S12PacketEntityVelocity) event.packet).getMotionY() < FarmHelperConfig.knockbackCheckVerticalSensitivity)
+        if (((S12PacketEntityVelocity) event.packet).getMotionY() < FarmHelperConfig.verticalKnockbackThreshold)
             return;
 
         if (FlyPathFinderExecutor.getInstance().isRunning()) {
