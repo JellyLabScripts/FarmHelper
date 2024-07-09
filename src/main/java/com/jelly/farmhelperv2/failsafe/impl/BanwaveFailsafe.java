@@ -6,6 +6,7 @@ import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.feature.impl.AutoReconnect;
 import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -79,6 +80,11 @@ public class BanwaveFailsafe extends Failsafe {
                         e.printStackTrace();
                     }
                 }, 500, TimeUnit.MILLISECONDS);
+            } else {
+                if (!BanInfoWS.getInstance().isBanwave()) {
+                    LogUtils.sendFailsafeMessage("[Failsafe] Reconnecting because banwave ended", false);
+                    AutoReconnect.getInstance().start();
+                }
             }
         }
     }

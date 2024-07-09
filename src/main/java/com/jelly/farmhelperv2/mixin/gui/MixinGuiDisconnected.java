@@ -4,6 +4,8 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.AutoReconnect;
 import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
+import com.jelly.farmhelperv2.feature.impl.Scheduler;
+import com.jelly.farmhelperv2.feature.impl.Scheduler.SchedulerState;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
@@ -67,7 +69,7 @@ public class MixinGuiDisconnected {
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent() && FailsafeManager.getInstance().triggeredFailsafe.get().getType() == FailsafeManager.EmergencyType.JACOB && !FarmHelperConfig.jacobFailsafeAction) {
             if (GameStateHandler.getInstance().inJacobContest() || (GameStateHandler.getInstance().getJacobContestLeftClock().isScheduled() && !GameStateHandler.getInstance().getJacobContestLeftClock().passed())) {
                 multilineMessage = farmHelperV2$multilineMessageCopy;
-                multilineMessage.set(0, "Will reconnect after end of Jacob's contest!");
+                multilineMessage.set(0, "Will reconnect after Jacob's contest ends.");
                 multilineMessage.set(1, "Time left: " + LogUtils.formatTime(GameStateHandler.getInstance().getJacobContestLeftClock().getRemainingTime()));
             } else {
                 if (!AutoReconnect.getInstance().isRunning()) {
@@ -77,10 +79,16 @@ public class MixinGuiDisconnected {
             }
         }
 
-        if (MacroHandler.getInstance().isMacroToggled() && !AutoReconnect.getInstance().isRunning() && AutoReconnect.getInstance().isToggled()) {
-            AutoReconnect.getInstance().getReconnectDelay().schedule(FarmHelperConfig.delayBeforeReconnecting * 1_000L);
-            AutoReconnect.getInstance().start();
+        if(Scheduler.getInstance().isRunning() && Scheduler.getInstance().getSchedulerState() == SchedulerState.BREAK){
+            multilineMessage = farmHelperV2$multilineMessageCopy;
+            multilineMessage.set(0, Scheduler.getInstance().getStatusString());
+            multilineMessage.set(1, "Press ESC to Disable Macro or press Toggle Macro button to restart instantly.");
         }
+
+//        if (MacroHandler.getInstance().isMacroToggled() && !AutoReconnect.getInstance().isRunning() && AutoReconnect.getInstance().isToggled()) {
+//            AutoReconnect.getInstance().getReconnectDelay().schedule(FarmHelperConfig.delayBeforeReconnecting * 1_000L);
+//            AutoReconnect.getInstance().start();
+//        }
 
         if (AutoReconnect.getInstance().isRunning() && AutoReconnect.getInstance().getState() == AutoReconnect.State.CONNECTING) {
             multilineMessage = farmHelperV2$multilineMessageCopy;
