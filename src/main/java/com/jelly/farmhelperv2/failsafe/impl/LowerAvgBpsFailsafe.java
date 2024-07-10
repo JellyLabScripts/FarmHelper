@@ -68,7 +68,7 @@ public class LowerAvgBpsFailsafe extends Failsafe {
                 || currentBPS >= FarmHelperConfig.minBpsThreshold;
 
         if (shouldReset) {
-            if (clock.isScheduled() || lowerBPSState != LowerBPSState.NONE) {
+            if (clock.isScheduled() || lowerBPSState == LowerBPSState.WAIT_BEFORE_START) {
                 resetStates();
                 // LogUtils.sendDebug("LowerAvgBpsFailsafe: Reset states. Current BPS: " + currentBPS);
             }
@@ -76,7 +76,7 @@ public class LowerAvgBpsFailsafe extends Failsafe {
         }
 
         if (!clock.isScheduled()) {
-            clock.schedule(5000L);
+            clock.schedule(4500L + Math.random() * 1000L);
             // LogUtils.sendDebug("LowerAvgBpsFailsafe: BPS below threshold. Current: " + currentBPS + ", Threshold: " + FarmHelperConfig.minBpsThreshold);
         } else if (clock.passed()) {
             // LogUtils.sendDebug("LowerAvgBpsFailsafe: Failsafe triggered. Current BPS: " + currentBPS);
