@@ -156,6 +156,7 @@ public class GameStateHandler {
         boolean foundLocation = false;
         boolean foundSpray = false;
         int nextJacobCropFound = -1;
+        List<FarmHelperConfig.CropEnum> newJacobsContestNextCrop = new ArrayList<>();
 
         for (String cleanedLine : tabList) {
             if (cleanedLine.matches(areaPattern.pattern())) {
@@ -191,9 +192,12 @@ public class GameStateHandler {
             }
             if (nextJacobCropFound >= 0 && nextJacobCropFound < 3) { // Make sure only 3 crops are added and no irrelevant text are being scanned
                 FarmHelperConfig.CropEnum crop = convertCrop(cleanedLine);
-                if (crop != FarmHelperConfig.CropEnum.NONE && !jacobsContestNextCrop.contains(crop))
-                    jacobsContestNextCrop.add(crop);
+                if (crop != FarmHelperConfig.CropEnum.NONE && !newJacobsContestNextCrop.contains(crop))
+                    newJacobsContestNextCrop.add(crop);
                 nextJacobCropFound++;
+            }
+            if (nextJacobCropFound == 3) {
+                jacobsContestNextCrop = newJacobsContestNextCrop;
             }
             if (cleanedLine.contains("Starts In")) {
                 nextJacobCropFound = 0;
@@ -323,7 +327,6 @@ public class GameStateHandler {
             } else if (cleanedLine.contains("DIAMOND with")) {
                 jacobMedal = JacobMedal.DIAMOND;
             }
-            jacobsContestNextCrop.clear();
         } else {
             jacobsContestCrop = Optional.empty();
             jacobsContestCropNumber = 0;
