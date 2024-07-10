@@ -55,10 +55,11 @@ public class DisconnectFailsafe extends Failsafe {
     @Override
     public void onDisconnectDetection(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
 //        if (MacroHandler.getInstance().isTeleporting()) return;
-        if (BanInfoWS.getInstance().isBanwave() && FarmHelperConfig.enableLeavePauseOnBanwave && !FarmHelperConfig.banwaveAction)
+        if (BanInfoWS.getInstance().isBanwave() && FarmHelperConfig.enableLeavePauseOnBanwave && !FarmHelperConfig.banwaveAction) {
             return;
+        }
 
-        if(Scheduler.getInstance().isRunning() && Scheduler.getInstance().getSchedulerState() == SchedulerState.BREAK && FarmHelperConfig.schedulerDisconnectDuringBreak){
+        if (Scheduler.getInstance().isRunning() && Scheduler.getInstance().getSchedulerState() == SchedulerState.BREAK && FarmHelperConfig.schedulerDisconnectDuringBreak){
             return;
         }
 

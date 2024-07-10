@@ -124,7 +124,7 @@ public class JacobFailsafe extends Failsafe {
                         e.printStackTrace();
                     }
                 }, 500, TimeUnit.MILLISECONDS);
-            } else if (!GameStateHandler.getInstance().getJacobContestLeftClock().passed()) {
+            } else if (GameStateHandler.getInstance().getJacobContestLeftClock().passed()) {
                 LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because Jacob's Contest is over!", false);
                 AutoReconnect.getInstance().start();
             }
