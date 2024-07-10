@@ -5,7 +5,6 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
-import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.WorldChangeFailsafe;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.*;
