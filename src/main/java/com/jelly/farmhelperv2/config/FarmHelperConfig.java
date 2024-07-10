@@ -124,7 +124,7 @@ public class FarmHelperConfig extends Config {
             name = "Don't fix micro rotations after warp", category = GENERAL, subcategory = "Rotation",
             description = "The macro doesn't do micro-rotations after rewarp if the current yaw and target yaw are the same", size = 2
     )
-    public static boolean dontFixAfterWarping = true;
+    public static boolean dontFixAfterWarping = false;
     @Switch(
             name = "Custom Pitch", category = GENERAL, subcategory = "Rotation",
             description = "Set pitch to custom level after starting the macro"
@@ -1345,6 +1345,11 @@ public class FarmHelperConfig extends Config {
             description = "Pings everyone on Visitors Macro Logs"
     )
     public static boolean pingEveryoneOnVisitorsMacroLogs = false;
+    @Switch(
+            name = "Send Macro Enable/Disable Logs", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
+            description = "Sends messages when the macro has been enabled or disabled"
+    )
+    public static boolean sendMacroEnableDisableLogs = true;
     @Text(
             name = "WebHook URL", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
             description = "The URL to use for the webhook",

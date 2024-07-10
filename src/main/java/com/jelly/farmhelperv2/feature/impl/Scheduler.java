@@ -72,7 +72,6 @@ public class Scheduler implements IFeature {
     schedulerState = SchedulerState.FARMING;
     if (FarmHelperConfig.schedulerResetOnDisable || schedulerClock.passed()) {
       schedulerClock.schedule((long) (FarmHelperConfig.schedulerFarmingTime * 60_000f + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness * 60_000f)));
-      LogUtils.sendDebug("Scheduled for: " + schedulerClock.getRemainingTime() + ", " + this.getStatusString());
     } else {
       resume();
     }
@@ -134,7 +133,6 @@ public class Scheduler implements IFeature {
   public void farmingTime() {
     schedulerState = SchedulerState.FARMING;
     schedulerClock.schedule((long) (FarmHelperConfig.schedulerFarmingTime * 60_000f + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness * 60_000f)));
-    LogUtils.sendDebug("Scheduled for: " + schedulerClock.getRemainingTime() + ", " + this.getStatusString());
     if (FarmHelperConfig.schedulerDisconnectDuringBreak) {
       AutoReconnect.getInstance().start();
       pause();
@@ -150,8 +148,7 @@ public class Scheduler implements IFeature {
     KeyBindUtils.stopMovement();
     MacroHandler.getInstance().pauseMacro(true);
     schedulerState = SchedulerState.BREAK;
-    schedulerClock.schedule((long) (FarmHelperConfig.schedulerFarmingTime * 60_000f + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness * 60_000f)));
-    LogUtils.sendDebug("Scheduled for: " + schedulerClock.getRemainingTime() + ", " + this.getStatusString());
+    schedulerClock.schedule((long) ((FarmHelperConfig.schedulerBreakTime * 60_000f) + (Math.random() * FarmHelperConfig.schedulerBreakTimeRandomness * 60_000f)));
     
     if (FarmHelperConfig.schedulerDisconnectDuringBreak) {
       Multithreading.schedule(() -> {

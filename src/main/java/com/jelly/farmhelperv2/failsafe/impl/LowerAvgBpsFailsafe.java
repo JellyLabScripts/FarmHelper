@@ -10,7 +10,6 @@ import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
-import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
@@ -18,10 +17,6 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 public class LowerAvgBpsFailsafe extends Failsafe {
     private static LowerAvgBpsFailsafe instance;
-    private float lastBPS;
-    private long lastStableBpsTime = 0;
-    private static final float BPS_DROP_TOLERANCE = 1f;
-    private static final long STABLE_BPS_RESET_TIME = 5000L;
 
     private final Clock clock = new Clock();
 
@@ -64,50 +59,27 @@ public class LowerAvgBpsFailsafe extends Failsafe {
 
     @Override
     public void onTickDetection(TickEvent.ClientTickEvent event) {
-        if (FeatureManager.getInstance().shouldPauseMacroExecution()
-                || BPSTracker.getInstance().dontCheckForBPS()
-                || !FarmHelperConfig.enableBpsCheck) {
-            resetStates();
-            return;
-        }
-        if (event.phase != TickEvent.Phase.START)
-            return;
+        if (event.phase != TickEvent.Phase.START) return;
 
         float currentBPS = BPSTracker.getInstance().getBPSFloat();
-        float bpsDrop = lastBPS - currentBPS;
+        boolean shouldReset = FeatureManager.getInstance().shouldPauseMacroExecution()
+                || BPSTracker.getInstance().dontCheckForBPS()
+                || !FarmHelperConfig.enableBpsCheck
+                || currentBPS >= FarmHelperConfig.minBpsThreshold;
 
-        boolean shouldTrigger = false;
-
-        // Check for BPS below threshold
-        if (currentBPS < FarmHelperConfig.minBpsThreshold) {
-            shouldTrigger = true;
-            LogUtils.sendDebug("BPS below threshold. Current: " + currentBPS + ", Threshold: " + FarmHelperConfig.minBpsThreshold);
-        }
-
-        // Check for significant BPS drop
-        if (bpsDrop > BPS_DROP_TOLERANCE) {
-            shouldTrigger = true;
-            lastStableBpsTime = System.currentTimeMillis();
-            LogUtils.sendDebug("BPS drop detected. Current: " + currentBPS + ", Last: " + lastBPS);
-        } else if (bpsDrop < -BPS_DROP_TOLERANCE) {
-            resetStates();
-            LogUtils.sendDebug("BPS increased. Clock reset.");
-        } else {
-            // BPS is stable
-            if (System.currentTimeMillis() - lastStableBpsTime > STABLE_BPS_RESET_TIME) {
+        if (shouldReset) {
+            if (clock.isScheduled() || lowerBPSState != LowerBPSState.NONE) {
                 resetStates();
-                LogUtils.sendDebug("BPS stable for " + STABLE_BPS_RESET_TIME + "ms. Clock reset.");
+                // LogUtils.sendDebug("LowerAvgBpsFailsafe: Reset states. Current BPS: " + currentBPS);
             }
+            return;
         }
 
-        if (shouldTrigger && !clock.isScheduled()) {
+        if (!clock.isScheduled()) {
             clock.schedule(5000L);
-        }
-
-        lastBPS = currentBPS;
-
-        if (clock.isScheduled() && clock.passed()) {
-            LogUtils.sendDebug("Failsafe triggered. Current BPS: " + currentBPS);
+            // LogUtils.sendDebug("LowerAvgBpsFailsafe: BPS below threshold. Current: " + currentBPS + ", Threshold: " + FarmHelperConfig.minBpsThreshold);
+        } else if (clock.passed()) {
+            // LogUtils.sendDebug("LowerAvgBpsFailsafe: Failsafe triggered. Current BPS: " + currentBPS);
             FailsafeManager.getInstance().possibleDetection(this);
         }
     }
@@ -163,10 +135,7 @@ public class LowerAvgBpsFailsafe extends Failsafe {
 
     @Override
     public void resetStates() {
-        LogUtils.sendDebug("Resetting LowerAvgBpsFailsafe states");
         clock.reset();
-        lastBPS = BPSTracker.getInstance().getBPSFloat();
-        lastStableBpsTime = System.currentTimeMillis();
         lowerBPSState = LowerBPSState.NONE;
     }
 
