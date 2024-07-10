@@ -216,9 +216,10 @@ public class Scheduler implements IFeature {
 
     if (MacroHandler.getInstance().isMacroToggled()
         && !schedulerClock.isPaused() && schedulerClock.passed()
-        && !AutoReconnect.getInstance().isRunning()
-        && (!FarmHelperConfig.schedulerWaitUntilRewarp || PlayerUtils.isStandingOnRewarpLocation())) {
-      if (MacroHandler.getInstance().isCurrentMacroEnabled() && schedulerState == SchedulerState.FARMING) {
+        && !AutoReconnect.getInstance().isRunning()) {
+      if (MacroHandler.getInstance().isCurrentMacroEnabled()
+          && schedulerState == SchedulerState.FARMING
+          && (!FarmHelperConfig.schedulerWaitUntilRewarp || PlayerUtils.isStandingOnRewarpLocation())) {
         breakTime();
       } else if (schedulerState == SchedulerState.BREAK) {
         farmingTime();
