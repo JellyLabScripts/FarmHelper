@@ -5,6 +5,7 @@ import com.jelly.farmhelperv2.remote.command.discordCommands.DiscordCommand;
 import com.jelly.farmhelperv2.remote.command.discordCommands.Option;
 import com.jelly.farmhelperv2.remote.waiter.Waiter;
 import com.jelly.farmhelperv2.remote.waiter.WaiterHandler;
+import com.jelly.farmhelperv2.util.AvatarUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -51,7 +52,7 @@ public class Info extends DiscordCommand {
                     int random = (int) (Math.random() * 0xFFFFFF);
                     embedBuilder.setColor(random);
                     embedBuilder.setFooter("-> FarmHelper Remote Control", "https://cdn.discordapp.com/attachments/861700235890130986/1144673641951395982/icon.png");
-                    String avatar = "https://crafatar.com/avatars/" + action.args.get("uuid").getAsString();
+                    String avatar = AvatarUtils.getAvatarUrl(action.args.get("uuid").getAsString());
                     embedBuilder.setAuthor("Instance name -> " + username, avatar, avatar);
 
                     MessageEmbed embed = embedBuilder.build();
