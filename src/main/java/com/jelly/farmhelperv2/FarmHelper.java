@@ -164,12 +164,21 @@ public class FarmHelper {
             LogUtils.sendNotification("Farm Helper", "Failsafe 'Cutoff After Using AOTE/V' has been set to 500 automatically to prevent false positives.", 15000);
             LogUtils.sendWarning("Failsafe 'Cutoff After Using AOTE/V' has been set to 500 automatically to prevent false positives.");
         }
-
         if (FarmHelperConfig.configVersion == 3 && FarmHelperConfig.macroType > 7) {
             FarmHelperConfig.macroType += 1; // Added cocoa bean macro with trapdoors
         }
-        if (FarmHelperConfig.configVersion != 5)
-            FarmHelperConfig.configVersion = 5;
+        if (FarmHelperConfig.configVersion <= 5) {
+            //noinspection deprecation
+            if (FarmHelperConfig.visitorsFilteringMethod) {
+                FarmHelperConfig.filterVisitorsByName = true;
+                FarmHelperConfig.filterVisitorsByRarity = false;
+            } else {
+                FarmHelperConfig.filterVisitorsByRarity = true;
+                FarmHelperConfig.filterVisitorsByName = false;
+            }
+        }
+        if (FarmHelperConfig.configVersion != 6)
+            FarmHelperConfig.configVersion = 6;
         sentInfoAboutShittyClient = true;
     }
 
