@@ -124,11 +124,11 @@ public class LogUtils {
             webhook.setAvatarUrl("https://cdn.discordapp.com/attachments/1152966451406327858/1160577992876109884/icon.png");
             webhook.addEmbed(new DiscordWebhook.EmbedObject()
                     .setTitle("Farm Helper")
-                    .setAuthor("Instance name -> " + mc.getSession().getUsername(), "https://crafatar.com/avatars/" + mc.getSession().getPlayerID(), "https://crafatar.com/avatars/" + mc.getSession().getPlayerID())
+                    .setAuthor("Instance name -> " + mc.getSession().getUsername(), AvatarUtils.getAvatarUrl(mc.getSession().getPlayerID()), AvatarUtils.getAvatarUrl(mc.getSession().getPlayerID()))
                     .setDescription("## I'm still alive!")
                     .setColor(Color.decode(randomColor))
                     .setFooter("Farm Helper Webhook Status", "https://cdn.discordapp.com/attachments/861700235890130986/1144673641951395982/icon.png")
-                    .setThumbnail("https://crafatar.com/renders/body/" + mc.getSession().getPlayerID())
+                    .setThumbnail(AvatarUtils.getFullBodyUrl(mc.getSession().getPlayerID()))
                     .addField("Username", mc.getSession().getUsername(), true)
                     .addField("Runtime", getRuntimeFormat(), true)
                     .addField("Total Profit", ProfitCalculator.getInstance().getRealProfitString(), true)
@@ -168,10 +168,10 @@ public class LogUtils {
         }
         DiscordWebhook.EmbedObject embedObject = new DiscordWebhook.EmbedObject()
                 .setTitle("Farm Helper")
-                .setThumbnail("https://crafatar.com/renders/body/" + mc.getSession().getPlayerID())
+                .setThumbnail(AvatarUtils.getFullBodyUrl(mc.getSession().getPlayerID()))
                 .setDescription("### " + message)
                 .setColor(Color.decode(randomColor))
-                .setAuthor("Instance name -> " + mc.getSession().getUsername(), "https://crafatar.com/avatars/" + mc.getSession().getPlayerID(), "https://crafatar.com/avatars/" + mc.getSession().getPlayerID())
+                .setAuthor("Instance name -> " + mc.getSession().getUsername(), AvatarUtils.getAvatarUrl(mc.getSession().getPlayerID()), AvatarUtils.getAvatarUrl(mc.getSession().getPlayerID()))
                 .setFooter("Farm Helper Webhook Status", "https://cdn.discordapp.com/attachments/861700235890130986/1144673641951395982/icon.png");
         for (Tuple<String, String> field : fields) {
             embedObject.addField(field.getFirst(), field.getSecond(), false);
