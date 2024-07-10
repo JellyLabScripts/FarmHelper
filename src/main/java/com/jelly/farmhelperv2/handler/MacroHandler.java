@@ -240,12 +240,13 @@ public class MacroHandler {
             beforeTeleportationPos = Optional.empty();
             macroingTimer.pause();
             analyticsTimer.pause();
-            LowerAvgBpsFailsafe.getInstance().endOfFailsafeTrigger();
             if (scheduler && Freelook.getInstance().isRunning()) {
                 Freelook.getInstance().stop();
             }
             if (Scheduler.getInstance().isFarming())
                 Scheduler.getInstance().pause();
+            if (!BPSTracker.getInstance().isPaused)
+                BPSTracker.getInstance().pause();
         });
     }
 

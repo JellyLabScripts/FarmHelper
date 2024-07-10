@@ -2,12 +2,15 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.event.PlayerDestroyBlockEvent;
+import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.macro.AbstractMacro;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
 import net.minecraft.block.BlockReed;
+import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.Tuple;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -86,20 +89,31 @@ public class BPSTracker implements IFeature {
         IFeature.super.start();
     }
 
+    private boolean checkForBPS(AbstractMacro.State currentState) {
+        return currentState != AbstractMacro.State.NONE &&
+                currentState != AbstractMacro.State.DROPPING &&
+                currentState != AbstractMacro.State.SWITCHING_SIDE &&
+                currentState != AbstractMacro.State.SWITCHING_LANE &&
+                Minecraft.getMinecraft().currentScreen == null;
+    }
+
     @SubscribeEvent
     public void onTickCheckBPS(TickEvent.ClientTickEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
         if (event.phase != TickEvent.Phase.START) return;
-        if (MacroHandler.getInstance().getMacro().checkForBPS())
-            resume();
-        else
+        if (dontCheckForBPS())
             pause();
+        else
+            resume();
         if (isPaused) return;
 
         long currentTime = System.currentTimeMillis();
         bpsQueue.add(new Tuple<>(blocksBroken, currentTime));
         blocksBroken = 0;
+
+        while (!bpsQueue.isEmpty() && bpsQueue.getFirst() == null) {
+            bpsQueue.removeFirst();
+        }
 
         if (bpsQueue.size() > 1) {
             float elapsedTime = (currentTime - bpsQueue.getFirst().getSecond()) / 1000f;
@@ -125,10 +139,12 @@ public class BPSTracker implements IFeature {
     public boolean dontCheckForBPS() {
         return !MacroHandler.getInstance().getMacroingTimer().isScheduled()
                 || MacroHandler.getInstance().isCurrentMacroPaused()
-                || !MacroHandler.getInstance().getMacro().checkForBPS()
+                || !MacroHandler.getInstance().isCurrentMacroEnabled()
                 || MacroHandler.getInstance().isTeleporting()
                 || MacroHandler.getInstance().isRewarpTeleport()
-                || MacroHandler.getInstance().isStartingUp();
+                || MacroHandler.getInstance().isStartingUp()
+                || !checkForBPS(MacroHandler.getInstance().getMacro().getCurrentState())
+                || FeatureManager.getInstance().shouldPauseMacroExecution();
     }
 
     public float getBPSFloat() {
