@@ -864,23 +864,34 @@ public class VisitorsMacro implements IFeature {
                 }
 
                 assert currentVisitor.isPresent();
-                if (FarmHelperConfig.visitorsFilteringMethod) {
+                if (FarmHelperConfig.filterVisitorsByName) {
                     if (FarmHelperConfig.nameFilter.isEmpty()) {
                         LogUtils.sendError("[Visitors Macro] Name filter is empty. Switching to rarity filtering method...");
-                        FarmHelperConfig.visitorsFilteringMethod = false;
+                        FarmHelperConfig.filterVisitorsByName = false;
+                        FarmHelperConfig.filterVisitorsByRarity = true;
                     } else {
                         List<String> visitorsList = Arrays.asList(FarmHelperConfig.nameFilter.split("\\|"));
                         if (visitorsList.stream().anyMatch(visitorName -> StringUtils.stripControlCodes(npcName.toLowerCase()).contains(visitorName.toLowerCase()))) {
                             if (FarmHelperConfig.nameFilteringType) {
                                 LogUtils.sendDebug("[Visitors Macro] NPC name is on the whitelist filter. Accepting offer...");
                             } else {
-                                LogUtils.sendDebug("[Visitors Macro] NPC name is on the blacklist filter. Rejecting...");
-                                rejectVisitor = true;
+                                if (FarmHelperConfig.nameActionType) {
+                                    LogUtils.sendDebug("[Visitors Macro] NPC name is on the blacklist filter. Rejecting...");
+                                    rejectVisitor = true;
+                                } else {
+                                    LogUtils.sendDebug("[Visitors Macro] NPC name is on the blacklist filter. Ignoring...");
+                                    ignoredNPCs.add(currentVisitor.get());
+                                }
                             }
                         } else {
                             if (FarmHelperConfig.nameFilteringType) {
-                                LogUtils.sendDebug("[Visitors Macro] NPC name is not on the whitelist filter. Rejecting...");
-                                rejectVisitor = true;
+                                if (FarmHelperConfig.nameActionType) {
+                                    LogUtils.sendDebug("[Visitors Macro] NPC name is on the blacklist filter. Rejecting...");
+                                    rejectVisitor = true;
+                                } else {
+                                    LogUtils.sendDebug("[Visitors Macro] NPC name is on the blacklist filter. Ignoring...");
+                                    ignoredNPCs.add(currentVisitor.get());
+                                }
                             } else {
                                 LogUtils.sendDebug("[Visitors Macro] NPC name is not on the blacklist filter. Accepting offer...");
                             }
@@ -888,7 +899,7 @@ public class VisitorsMacro implements IFeature {
                     }
                 }
 
-                if (!FarmHelperConfig.visitorsFilteringMethod) {
+                if (FarmHelperConfig.filterVisitorsByRarity && !rejectVisitor && !ignoredNPCs.contains(currentVisitor.get())) {
                     switch (npcRarity) {
                         case UNKNOWN:
                             LogUtils.sendDebug("[Visitors Macro] The visitor is unknown rarity. Accepting offer...");

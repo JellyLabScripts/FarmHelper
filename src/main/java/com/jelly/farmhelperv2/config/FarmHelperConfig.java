@@ -1012,13 +1012,25 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     //<editor-fold desc="Filters">
-
     @DualOption(
             name = "Visitors Filtering Method", category = VISITORS_MACRO, subcategory = "Filters",
             description = "",
             left = "By Rarity", right = "By Name"
     )
+    @Deprecated // Just here to keep the old settings for automatic migration
     public static boolean visitorsFilteringMethod = false;
+
+    @Switch(
+            name = "Filter by Rarity", category = VISITORS_MACRO, subcategory = "Filters",
+            description = "Filters visitors by rarity"
+    )
+    public static boolean filterVisitorsByRarity = true;
+
+    @Switch(
+            name = "Filter by name", category = VISITORS_MACRO, subcategory = "Filters",
+            description = "Filters visitors by name"
+    )
+    public static boolean filterVisitorsByName = false;
 
     @DualOption(
             name = "Name Filtering Type", category = VISITORS_MACRO, subcategory = "Filters",
@@ -1026,6 +1038,13 @@ public class FarmHelperConfig extends Config {
             left = "Blacklist", right = "Whitelist"
     )
     public static boolean nameFilteringType = false;
+
+    @DualOption(
+            name = "Name Action Type", category = VISITORS_MACRO, subcategory = "Filters",
+            description = "The action to execute when a visitor's name does not match your set filter",
+            left = "Reject", right = "Ignore"
+    )
+    public static boolean nameActionType = true; // Default reject
 
     @Text(
             name = "Name Filter", category = VISITORS_MACRO, subcategory = "Filters",
@@ -2023,7 +2042,7 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     @Number(name = "Config Version", category = EXPERIMENTAL, subcategory = "Experimental", min = 0, max = 1337)
-    public static int configVersion = 3;
+    public static int configVersion = 6;
     @Switch(
             name = "Shown Welcome GUI", category = EXPERIMENTAL, subcategory = "Experimental"
     )
@@ -2088,14 +2107,16 @@ public class FarmHelperConfig extends Config {
         this.addDependency("visitorsMacroAutosellBeforeServing", "visitorsMacro");
         this.addDependency("visitorsMacroMinMoney", "visitorsMacro");
         this.addDependency("visitorsMacroMaxSpendLimit", "visitorsMacro");
+        this.hideIf("visitorsFilteringMethod", () -> true);
 
-        this.addDependency("visitorsActionUncommon", "Visitors Filtering Method", () -> !visitorsFilteringMethod);
-        this.addDependency("visitorsActionRare", "Visitors Filtering Method", () -> !visitorsFilteringMethod);
-        this.addDependency("visitorsActionLegendary", "Visitors Filtering Method", () -> !visitorsFilteringMethod);
-        this.addDependency("visitorsActionMythic", "Visitors Filtering Method", () -> !visitorsFilteringMethod);
-        this.addDependency("visitorsActionSpecial", "Visitors Filtering Method", () -> !visitorsFilteringMethod);
-        this.addDependency("nameFilteringType", "visitorsFilteringMethod");
-        this.addDependency("nameFilter", "visitorsFilteringMethod");
+        this.addDependency("visitorsActionUncommon", "filterVisitorsByRarity");
+        this.addDependency("visitorsActionRare", "filterVisitorsByRarity");
+        this.addDependency("visitorsActionLegendary", "filterVisitorsByRarity");
+        this.addDependency("visitorsActionMythic", "filterVisitorsByRarity");
+        this.addDependency("visitorsActionSpecial", "filterVisitorsByRarity");
+        this.addDependency("nameFilteringType", "filterVisitorsByName");
+        this.addDependency("nameFilter", "filterVisitorsByName");
+        this.addDependency("nameActionType", "filterVisitorsByName");
 
         this.addDependency("sendVisitorsMacroLogs", "visitorsMacro");
         this.addDependency("sendVisitorsMacroLogs", "enableWebHook");
