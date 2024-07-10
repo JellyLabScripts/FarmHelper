@@ -71,7 +71,8 @@ public class Scheduler implements IFeature {
   public void start() {
     schedulerState = SchedulerState.FARMING;
     if (FarmHelperConfig.schedulerResetOnDisable || schedulerClock.passed()) {
-      schedulerClock.schedule((long) (FarmHelperConfig.schedulerFarmingTime * 60_000f + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness * 60_000f)));
+      schedulerClock.schedule(
+          (long) (FarmHelperConfig.schedulerFarmingTime * 60_000f + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness * 60_000f)));
     } else {
       resume();
     }
@@ -132,7 +133,8 @@ public class Scheduler implements IFeature {
 
   public void farmingTime() {
     schedulerState = SchedulerState.FARMING;
-    schedulerClock.schedule((long) (FarmHelperConfig.schedulerFarmingTime * 60_000f + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness * 60_000f)));
+    schedulerClock.schedule(
+        (long) (FarmHelperConfig.schedulerFarmingTime * 60_000f + (Math.random() * FarmHelperConfig.schedulerFarmingTimeRandomness * 60_000f)));
     if (FarmHelperConfig.schedulerDisconnectDuringBreak) {
       AutoReconnect.getInstance().start();
       pause();
@@ -148,8 +150,12 @@ public class Scheduler implements IFeature {
     KeyBindUtils.stopMovement();
     MacroHandler.getInstance().pauseMacro(true);
     schedulerState = SchedulerState.BREAK;
-    schedulerClock.schedule((long) ((FarmHelperConfig.schedulerBreakTime * 60_000f) + (Math.random() * FarmHelperConfig.schedulerBreakTimeRandomness * 60_000f)));
-    
+    schedulerClock.schedule(
+        (long) ((FarmHelperConfig.schedulerBreakTime * 60_000f) + (Math.random() * FarmHelperConfig.schedulerBreakTimeRandomness * 60_000f)));
+    LogUtils.sendDebug(
+        "BreakTime: " + FarmHelperConfig.schedulerBreakTime + ", BreakTimeRandomness: " + FarmHelperConfig.schedulerBreakTimeRandomness + ", Left: "
+            + schedulerClock.getRemainingTime());
+
     if (FarmHelperConfig.schedulerDisconnectDuringBreak) {
       Multithreading.schedule(() -> {
         mc.getNetHandler().getNetworkManager()
@@ -208,8 +214,10 @@ public class Scheduler implements IFeature {
       return;
     }
 
-    if (MacroHandler.getInstance().isMacroToggled() && !schedulerClock.isPaused() && schedulerClock.passed() && !AutoReconnect.getInstance()
-        .isRunning()) {
+    if (MacroHandler.getInstance().isMacroToggled()
+        && !schedulerClock.isPaused() && schedulerClock.passed()
+        && !AutoReconnect.getInstance().isRunning()
+        && (!FarmHelperConfig.schedulerWaitUntilRewarp || PlayerUtils.isStandingOnRewarpLocation())) {
       if (MacroHandler.getInstance().isCurrentMacroEnabled() && schedulerState == SchedulerState.FARMING) {
         breakTime();
       } else if (schedulerState == SchedulerState.BREAK) {
