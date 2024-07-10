@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.hud;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.hud.TextHud;
 import com.google.common.collect.Lists;
+import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.AutoReconnect;
@@ -110,8 +111,7 @@ public class StatusHUD extends TextHud {
                     "§l§6Restarting after failsafe in " + LogUtils.formatTime(FailsafeManager.getInstance().getRestartMacroAfterFailsafeDelay().getRemainingTime()) + "§r"
             );
         } else if (!MacroHandler.getInstance().isMacroToggled()) {
-            return Lists.newArrayList(
-                    EnumChatFormatting.AQUA + "Idling"
+            return Lists.newArrayList((FarmHelperConfig.schedulerResetOnDisable ? "§bIdling" : Scheduler.getInstance().getStatusString())
             );
         } else if (Scheduler.getInstance().isRunning()) {
             return Lists.newArrayList(

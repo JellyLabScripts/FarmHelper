@@ -6,6 +6,8 @@ import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.AutoReconnect;
 import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
+import com.jelly.farmhelperv2.feature.impl.Scheduler;
+import com.jelly.farmhelperv2.feature.impl.Scheduler.SchedulerState;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent;
@@ -53,8 +55,13 @@ public class DisconnectFailsafe extends Failsafe {
     @Override
     public void onDisconnectDetection(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
 //        if (MacroHandler.getInstance().isTeleporting()) return;
-        if (BanInfoWS.getInstance().isBanwave() && FarmHelperConfig.enableLeavePauseOnBanwave && !FarmHelperConfig.banwaveAction)
+        if (BanInfoWS.getInstance().isBanwave() && FarmHelperConfig.enableLeavePauseOnBanwave && !FarmHelperConfig.banwaveAction) {
             return;
+        }
+
+        if (Scheduler.getInstance().isRunning() && Scheduler.getInstance().getSchedulerState() == SchedulerState.BREAK && FarmHelperConfig.schedulerDisconnectDuringBreak){
+            return;
+        }
 
         FailsafeManager.getInstance().possibleDetection(this);
     }

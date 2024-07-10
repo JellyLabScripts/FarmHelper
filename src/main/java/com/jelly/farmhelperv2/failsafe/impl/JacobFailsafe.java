@@ -5,6 +5,7 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.feature.impl.AutoReconnect;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
@@ -117,12 +118,15 @@ public class JacobFailsafe extends Failsafe {
                 MacroHandler.getInstance().pauseMacro();
                 Multithreading.schedule(() -> {
                     try {
-                        mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText("Will reconnect after end of Jacob's Contest!"));
+                        mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText("Will reconnect after end of Jacob's Contest! Restart if you dont see a timer"));
                         AudioManager.getInstance().resetSound();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }, 500, TimeUnit.MILLISECONDS);
+            } else if (GameStateHandler.getInstance().getJacobContestLeftClock().passed()) {
+                LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because Jacob's Contest is over!", false);
+                AutoReconnect.getInstance().start();
             }
         }
     }

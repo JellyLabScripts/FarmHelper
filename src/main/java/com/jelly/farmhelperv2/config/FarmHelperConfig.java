@@ -12,8 +12,10 @@ import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.*;
+import com.jelly.farmhelperv2.feature.impl.Proxy.ProxyType;
 import com.jelly.farmhelperv2.gui.AutoUpdaterGUI;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
+import com.jelly.farmhelperv2.handler.GameStateHandler.BuffState;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.hud.DebugHUD;
 import com.jelly.farmhelperv2.hud.ProfitCalculatorHUD;
@@ -67,7 +69,7 @@ public class FarmHelperConfig extends Config {
     public static String proxyAddress = "";
     public static String proxyUsername = "";
     public static String proxyPassword = "";
-    public static Proxy.ProxyType proxyType = Proxy.ProxyType.HTTP;
+    public static ProxyType proxyType = ProxyType.HTTP;
     //</editor-fold>
 
     //<editor-fold desc="GENERAL">
@@ -795,6 +797,33 @@ public class FarmHelperConfig extends Config {
             description = "Opens inventory on scheduler breaks"
     )
     public static boolean openInventoryOnSchedulerBreaks = true;
+    @Switch(
+        name = "Disconnect during break", category = SCHEDULER, subcategory = "Scheduler",
+        description = "Logs out of game and logs back in after break ends"
+    )
+    public static boolean schedulerDisconnectDuringBreak = false;
+    @Switch(
+        name = "Wait Until Rewarp Point for break", category = SCHEDULER, subcategory = "Scheduler",
+        description = "Waits until player is standing on rewarp point to take break"
+    )
+    public static boolean schedulerWaitUntilRewarp = false;
+    @Switch(
+        name = "Reset Scheduler on Macro Disabled", category = SCHEDULER, subcategory = "Scheduler",
+        description = "Resets Scheduler When macro is disabled"
+    )
+    public static boolean schedulerResetOnDisable = true;
+    @Button(
+        name = "Reset Scheduler", category = SCHEDULER, subcategory = "Scheduler",
+        text = "Reset Scheduler", description = "Resets Scheduler (Only works when macro is of)"
+    )
+    public Runnable schedulerReset = () -> {
+        if(!MacroHandler.getInstance().isMacroToggled()){
+            boolean old = FarmHelperConfig.schedulerResetOnDisable;
+            FarmHelperConfig.schedulerResetOnDisable = true;
+            Scheduler.getInstance().stop();
+            FarmHelperConfig.schedulerResetOnDisable = old;
+        }
+    };
     //</editor-fold>
 
     //<editor-fold desc="Leave timer">
@@ -2110,7 +2139,7 @@ public class FarmHelperConfig extends Config {
         this.addDependency("failsafeCutoffAfterUsingAoteV", "useAoteVInPestsDestroyer");
 
 
-        this.hideIf("infoCookieBuffRequired", () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE);
+        this.hideIf("infoCookieBuffRequired", () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().getCookieBuffState() == BuffState.NOT_ACTIVE);
 
         this.addDependency("sendLogs", "enableWebHook");
         this.addDependency("sendStatusUpdates", "enableWebHook");
