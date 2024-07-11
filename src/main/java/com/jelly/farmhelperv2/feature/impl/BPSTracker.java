@@ -2,11 +2,11 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.event.PlayerDestroyBlockEvent;
-import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.macro.AbstractMacro;
+import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
 import net.minecraft.block.BlockReed;
@@ -19,11 +19,12 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.Locale;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 
 public class BPSTracker implements IFeature {
     private static BPSTracker instance;
-    public final LinkedList<Tuple<Long, Long>> bpsQueue = new LinkedList<>();
+    public final ConcurrentLinkedDeque<Tuple<Long, Long>> bpsQueue = new ConcurrentLinkedDeque<>();
     public long blocksBroken = 0;
     public long totalBlocksBroken = 0;
     private final NumberFormat oneDecimalDigitFormatter = NumberFormat.getNumberInstance(Locale.US);
@@ -40,9 +41,9 @@ public class BPSTracker implements IFeature {
     }
 
     public boolean isPaused = false;
-    private boolean isResumingScheduled = false;
-    private long pauseStartTime = 0; // used for BPS adjustment after the break
-    private float lastKnownBPS = 0;
+    public boolean isResumingScheduled = false;
+    public long pauseStartTime = 0; // used for BPS adjustment after the break
+    public float lastKnownBPS = 0;
 
 
     public void pause() {
@@ -69,16 +70,17 @@ public class BPSTracker implements IFeature {
             Multithreading.schedule(() -> {
                 isResumingScheduled = false;
                 if (dontCheckForBPS()) {
-                    // LogUtils.sendDebug("Canceled resuming BPS tracker");
                     return;
                 }
-                // LogUtils.sendDebug("Resuming BPS tracker");
                 long pauseDuration = System.currentTimeMillis() - pauseStartTime;
-                adjustQueueTimestamps(pauseDuration);
+                if (pauseDuration < 0 || pauseDuration > 3600000) {
+                    LogUtils.sendDebug("BPSTracker: Invalid pause duration: " + pauseDuration + "ms. Ignoring.");
+                } else {
+                    adjustQueueTimestamps(pauseDuration);
+                }
                 isPaused = false;
                 pauseStartTime = 0;
             }, 1000L, TimeUnit.MILLISECONDS);
-            // LogUtils.sendDebug("Scheduled resuming BPS tracker");
         }
     }
 
@@ -97,10 +99,12 @@ public class BPSTracker implements IFeature {
                 Minecraft.getMinecraft().currentScreen == null;
     }
 
+    public float elapsedTime = 0;
+
     @SubscribeEvent
     public void onTickCheckBPS(TickEvent.ClientTickEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (event.phase != TickEvent.Phase.START) return;
+        if (event.phase != TickEvent.Phase.END) return;
         if (dontCheckForBPS())
             pause();
         else
@@ -116,7 +120,8 @@ public class BPSTracker implements IFeature {
         }
 
         if (bpsQueue.size() > 1) {
-            float elapsedTime = (currentTime - bpsQueue.getFirst().getSecond()) / 1000f;
+            // added small epsilon to prevent division by very small numbers and zero
+            elapsedTime = Math.max((bpsQueue.getLast().getSecond() - bpsQueue.getFirst().getSecond()) / 1000f, 0.001f);
             while (elapsedTime > 10f && bpsQueue.size() > 1) {
                 bpsQueue.pollFirst();
                 elapsedTime = (currentTime - bpsQueue.getFirst().getSecond()) / 1000f;
@@ -143,8 +148,7 @@ public class BPSTracker implements IFeature {
                 || MacroHandler.getInstance().isTeleporting()
                 || MacroHandler.getInstance().isRewarpTeleport()
                 || MacroHandler.getInstance().isStartingUp()
-                || !checkForBPS(MacroHandler.getInstance().getMacro().getCurrentState())
-                || FeatureManager.getInstance().shouldPauseMacroExecution();
+                || !checkForBPS(MacroHandler.getInstance().getMacro().getCurrentState());
     }
 
     public float getBPSFloat() {
@@ -154,8 +158,7 @@ public class BPSTracker implements IFeature {
         }
 
         float elapsedTime = (bpsQueue.getLast().getSecond() - bpsQueue.getFirst().getSecond()) / 1000f;
-        lastKnownBPS = totalBlocksBroken == 0 ? 0.1f : ((int) ((double) this.totalBlocksBroken / elapsedTime * 10.0D)) / 10.0F;
-        // LogUtils.sendDebug("BPSTracker: Calculated BPS: " + lastKnownBPS + ", Total blocks: " + totalBlocksBroken + ", Elapsed time: " + elapsedTime);
+        lastKnownBPS = totalBlocksBroken == 0 ? 0.1f : Math.max(((int) ((double) this.totalBlocksBroken / elapsedTime * 10.0D)) / 10.0F, 0.1f);
         return lastKnownBPS;
     }
 

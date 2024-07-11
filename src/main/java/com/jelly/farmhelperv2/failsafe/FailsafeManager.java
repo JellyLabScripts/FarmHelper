@@ -278,7 +278,6 @@ public class FailsafeManager {
         LogUtils.sendDebug("[Failsafe] Emergency chosen: " + StringUtils.stripControlCodes(triggeredFailsafe.get().getType().name()));
         FeatureManager.getInstance().disableCurrentlyRunning(Scheduler.getInstance());
         Scheduler.getInstance().pause();
-        BPSTracker.getInstance().pause();
         if (FarmHelperConfig.captureClipAfterFailsafe && !FarmHelperConfig.captureClipKeybind.getKeyBinds().isEmpty()) {
             if (FarmHelperConfig.clipCapturingType) {
                 FailsafeUtils.captureClip();

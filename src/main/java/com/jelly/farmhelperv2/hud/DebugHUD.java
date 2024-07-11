@@ -21,7 +21,7 @@ import java.util.List;
 
 public class DebugHUD extends TextHud {
     public DebugHUD() {
-        super(true, 1f, 10f, 1, true, true, 1, 5, 5, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
+        super(true, 1f, 10f, 0.5f, true, true, 1, 5, 5, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
     }
 
     @Override
@@ -149,10 +149,20 @@ public class DebugHUD extends TextHud {
         if (BPSTracker.getInstance().isRunning()) {
             lines.add("BPSTracker");
             lines.add("   BPS: " + BPSTracker.getInstance().getBPS());
-            lines.add("   BPS Queue Size: " + BPSTracker.getInstance().bpsQueue.size());
-            lines.add("   Blocks Broken: " + BPSTracker.getInstance().blocksBroken);
-            lines.add("   Total Blocks Broken: " + BPSTracker.getInstance().totalBlocksBroken);
-            lines.add("   isPaused: " + BPSTracker.getInstance().isPaused);
+            lines.add("   BPS queue size: " + BPSTracker.getInstance().bpsQueue.size());
+            lines.add("   Blocks broken: " + BPSTracker.getInstance().blocksBroken);
+            lines.add("   Total blocks broken: " + BPSTracker.getInstance().totalBlocksBroken);
+            lines.add("   Paused: " + BPSTracker.getInstance().isPaused);
+            lines.add("   isResumingScheduled: " + BPSTracker.getInstance().isResumingScheduled);
+            lines.add("   Pause start time: " + BPSTracker.getInstance().pauseStartTime);
+            lines.add("   Last known BPS: " + BPSTracker.getInstance().lastKnownBPS);
+            lines.add("   Elapsed time: " + BPSTracker.getInstance().elapsedTime);
+            if (!BPSTracker.getInstance().bpsQueue.isEmpty()
+                    && BPSTracker.getInstance().bpsQueue.getFirst() != null
+                    && BPSTracker.getInstance().bpsQueue.getLast() != null) {
+                lines.add("   First timestamp: " + BPSTracker.getInstance().bpsQueue.getFirst().getSecond());
+                lines.add("   Last timestamp: " + BPSTracker.getInstance().bpsQueue.getLast().getSecond());
+            }
         }
     }
 }

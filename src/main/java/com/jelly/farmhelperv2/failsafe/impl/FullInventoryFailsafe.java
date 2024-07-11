@@ -4,7 +4,9 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.AutoSell;
+import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -58,8 +60,14 @@ public class FullInventoryFailsafe extends Failsafe {
     }
     @Override
     public void onTickDetection(TickEvent.ClientTickEvent event) {
-        if(FailsafeManager.getInstance().isHadEmergency())
+        if (FailsafeManager.getInstance().isHadEmergency())
             return;
+        if (FeatureManager.getInstance().shouldPauseMacroExecution())
+            return;
+        if (LagDetector.getInstance().isLagging() || LagDetector.getInstance().wasJustLagging()) {
+            LogUtils.sendDebug("[Failsafe] Lag detected! Cancelling full inventory failsafe...");
+            return;
+        }
 
         if (PlayerUtils.isInventoryFull(mc.thePlayer)) {
             if (clock.isScheduled() && clock.passed())

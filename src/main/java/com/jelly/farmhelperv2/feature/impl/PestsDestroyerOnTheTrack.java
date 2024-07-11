@@ -7,6 +7,7 @@ import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
+import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
@@ -162,7 +163,16 @@ public class PestsDestroyerOnTheTrack implements IFeature {
         }
 
         ItemStack currentItem = mc.thePlayer.getHeldItem();
-        PestsDestroyer.getInstance().getVacuum(currentItem);
+        if (currentItem == null || !currentItem.getDisplayName().contains("Vacuum")) {
+            int vacuum = InventoryUtils.getSlotIdOfItemInHotbar("Vacuum");
+            if (vacuum == -1) {
+                LogUtils.sendError("[Pests Destroyer On The Track] Failed to find vacuum in hotbar!");
+                FarmHelperConfig.pestsDestroyerOnTheTrack = false;
+                stop();
+                return;
+            }
+            mc.thePlayer.inventory.currentItem = vacuum;
+        }
 
         Optional<Entity> entity = getPest(false);
         if (entity.isPresent()) {
