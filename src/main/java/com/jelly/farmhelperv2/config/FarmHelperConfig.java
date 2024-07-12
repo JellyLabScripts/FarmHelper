@@ -1009,13 +1009,6 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean visitorsMacroAfkInfiniteMode = false;
 
-    @DualOption(
-            name = "Travel method", category = VISITORS_MACRO, subcategory = "Visitors Macro",
-            description = "The travel method to use to get to the pest exchange desk",
-            left = "Fly",
-            right = "Walk"
-    )
-    public static boolean visitorsExchangeTravelMethod = false;
     @Info(
             text = "If you have any issues, try switching the travel method.",
             type = InfoType.INFO,
@@ -1024,6 +1017,13 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static boolean visitorsExchangeTravelMethodInfo;
+    @DualOption(
+            name = "Travel method", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+            description = "The travel method to use to get to the pest exchange desk",
+            left = "Fly",
+            right = "Walk"
+    )
+    public static boolean visitorsExchangeTravelMethod = false;
 
     @Button(
             name = "Start the macro manually", category = VISITORS_MACRO, subcategory = "Visitors Macro",
@@ -1038,45 +1038,41 @@ public class FarmHelperConfig extends Config {
         VisitorsMacro.getInstance().setManuallyStarted(true);
         VisitorsMacro.getInstance().start();
     };
-    //</editor-fold>
 
-    //<editor-fold desc="Filters">
     @DualOption(
-            name = "Visitors Filtering Method", category = VISITORS_MACRO, subcategory = "Filters",
+            name = "Visitors Filtering Method", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "",
             left = "By Rarity", right = "By Name"
     )
     @Deprecated // Just here to keep the old settings for automatic migration
     public static boolean visitorsFilteringMethod = false;
 
-    @Switch(
-            name = "Filter by Rarity", category = VISITORS_MACRO, subcategory = "Filters",
-            description = "Filters visitors by rarity"
-    )
-    public static boolean filterVisitorsByRarity = true;
+    //</editor-fold>
+
+    //<editor-fold desc="Name Filtering">
 
     @Switch(
-            name = "Filter by name", category = VISITORS_MACRO, subcategory = "Filters",
-            description = "Filters visitors by name"
+            name = "Filter by name", category = VISITORS_MACRO, subcategory = "Name Filtering",
+            description = "Filters visitors by name", size = 2
     )
     public static boolean filterVisitorsByName = false;
 
     @DualOption(
-            name = "Name Filtering Type", category = VISITORS_MACRO, subcategory = "Filters",
+            name = "Name Filtering Type", category = VISITORS_MACRO, subcategory = "Name Filtering",
             description = "The name filtering method to use",
             left = "Blacklist", right = "Whitelist"
     )
     public static boolean nameFilteringType = false;
 
     @DualOption(
-            name = "Name Action Type", category = VISITORS_MACRO, subcategory = "Filters",
+            name = "Name Action Type", category = VISITORS_MACRO, subcategory = "Name Filtering",
             description = "The action to execute when a visitor's name does not match your set filter",
             left = "Reject", right = "Ignore"
     )
-    public static boolean nameActionType = true; // Default reject
+    public static boolean nameActionType = true;
 
     @Text(
-            name = "Name Filter", category = VISITORS_MACRO, subcategory = "Filters",
+            name = "Name Filter", category = VISITORS_MACRO, subcategory = "Name Filtering",
             description = "Visitor names to filter. Use | to split the messages.",
             placeholder = "Visitor names to filter. Use | to split the messages.",
             size = 2
@@ -1084,36 +1080,51 @@ public class FarmHelperConfig extends Config {
     public static String nameFilter = "Librarian|Maeve|Spaceman";
 
     //<editor-fold desc="Rarity">
+    @Switch(
+            name = "Filter by rarity", category = VISITORS_MACRO, subcategory = "Rarity Filtering",
+            description = "Filters visitors by rarity"
+    )
+    public static boolean filterVisitorsByRarity = true;
+
+    @Info(
+            text = "If both filters are enabled, the macro will filter visitors by name first, then by rarity.",
+            type = InfoType.INFO,
+            category = VISITORS_MACRO,
+            subcategory = "Rarity Filtering",
+            size = 2
+    )
+    public static boolean nameFilterInfo;
+
     @Dropdown(
-            name = "Uncommon", category = VISITORS_MACRO, subcategory = "Rarity",
+            name = "Uncommon", category = VISITORS_MACRO, subcategory = "Rarity Filtering",
             description = "The action taken when an uncommon visitor arrives",
             options = {"Accept", "Accept if profitable only", "Decline", "Ignore"},
             size = 2
     )
     public static int visitorsActionUncommon = 0;
     @Dropdown(
-            name = "Rare", category = VISITORS_MACRO, subcategory = "Rarity",
+            name = "Rare", category = VISITORS_MACRO, subcategory = "Rarity Filtering",
             description = "The action taken when a rare visitor arrives",
             options = {"Accept", "Accept if profitable only", "Decline", "Ignore"},
             size = 2
     )
     public static int visitorsActionRare = 0;
     @Dropdown(
-            name = "Legendary", category = VISITORS_MACRO, subcategory = "Rarity",
+            name = "Legendary", category = VISITORS_MACRO, subcategory = "Rarity Filtering",
             description = "The action taken when a legendary visitor arrives",
             options = {"Accept", "Accept if profitable only", "Decline", "Ignore"},
             size = 2
     )
     public static int visitorsActionLegendary = 0;
     @Dropdown(
-            name = "Mythic", category = VISITORS_MACRO, subcategory = "Rarity",
+            name = "Mythic", category = VISITORS_MACRO, subcategory = "Rarity Filtering",
             description = "The action taken when a mythic visitor arrives",
             options = {"Accept", "Accept if profitable only", "Decline", "Ignore"},
             size = 2
     )
     public static int visitorsActionMythic = 0;
     @Dropdown(
-            name = "Special", category = VISITORS_MACRO, subcategory = "Rarity",
+            name = "Special", category = VISITORS_MACRO, subcategory = "Rarity Filtering",
             description = "The action taken when a special visitor arrives",
             options = {"Accept", "Accept if profitable only", "Decline", "Ignore"},
             size = 2
@@ -2144,8 +2155,10 @@ public class FarmHelperConfig extends Config {
         this.addDependency("visitorsActionMythic", "filterVisitorsByRarity");
         this.addDependency("visitorsActionSpecial", "filterVisitorsByRarity");
         this.addDependency("nameFilteringType", "filterVisitorsByName");
-        this.addDependency("nameFilter", "filterVisitorsByName");
         this.addDependency("nameActionType", "filterVisitorsByName");
+        this.addDependency("nameActionType", "You can't reject a whitelisted visitor!", () -> !nameFilteringType);
+        this.addDependency("nameFilter", "filterVisitorsByName");
+        this.hideIf("nameFilterInfo", () -> !filterVisitorsByName || !filterVisitorsByRarity);
 
         this.addDependency("sendVisitorsMacroLogs", "visitorsMacro");
         this.addDependency("sendVisitorsMacroLogs", "enableWebHook");

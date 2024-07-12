@@ -873,27 +873,27 @@ public class VisitorsMacro implements IFeature {
                         List<String> visitorsList = Arrays.asList(FarmHelperConfig.nameFilter.split("\\|"));
                         if (visitorsList.stream().anyMatch(visitorName -> StringUtils.stripControlCodes(npcName.toLowerCase()).contains(visitorName.toLowerCase()))) {
                             if (FarmHelperConfig.nameFilteringType) {
-                                LogUtils.sendDebug("[Visitors Macro] NPC name is on the whitelist filter. Accepting offer...");
+                                LogUtils.sendDebug("[Visitors Macro] NPC name is on the whitelist filter. Accepting offer/Filtering with rarity later...");
                             } else {
                                 if (FarmHelperConfig.nameActionType) {
-                                    LogUtils.sendDebug("[Visitors Macro] NPC name is on the blacklist filter. Rejecting...");
-                                    rejectVisitor = true;
-                                } else {
                                     LogUtils.sendDebug("[Visitors Macro] NPC name is on the blacklist filter. Ignoring...");
                                     ignoredNPCs.add(currentVisitor.get());
+                                } else {
+                                    LogUtils.sendDebug("[Visitors Macro] NPC name is on the blacklist filter. Rejecting...");
+                                    rejectVisitor = true;
                                 }
                             }
                         } else {
                             if (FarmHelperConfig.nameFilteringType) {
                                 if (FarmHelperConfig.nameActionType) {
-                                    LogUtils.sendDebug("[Visitors Macro] NPC name is on the blacklist filter. Rejecting...");
-                                    rejectVisitor = true;
-                                } else {
                                     LogUtils.sendDebug("[Visitors Macro] NPC name is on the blacklist filter. Ignoring...");
                                     ignoredNPCs.add(currentVisitor.get());
+                                } else {
+                                    LogUtils.sendDebug("[Visitors Macro] NPC name is on the blacklist filter. Rejecting...");
+                                    rejectVisitor = true;
                                 }
                             } else {
-                                LogUtils.sendDebug("[Visitors Macro] NPC name is not on the blacklist filter. Accepting offer...");
+                                LogUtils.sendDebug("[Visitors Macro] NPC name is not on the blacklist filter. Accepting offer/Filtering with rarity later...");
                             }
                         }
                     }
