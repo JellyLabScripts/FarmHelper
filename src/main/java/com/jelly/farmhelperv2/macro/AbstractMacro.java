@@ -135,6 +135,9 @@ public abstract class AbstractMacro {
                 return;
             }
             if (GameStateHandler.getInstance().canRewarp()) {
+                if (FarmHelperConfig.sendRewarpLogs) {
+                    LogUtils.webhookLog("Reached rewarp point, rewarping...");
+                }
                 MacroHandler.getInstance().triggerWarpGarden(false, true);
                 checkOnSpawnClock.schedule(5000);
             }

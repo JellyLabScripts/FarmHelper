@@ -1380,6 +1380,11 @@ public class FarmHelperConfig extends Config {
             description = "Sends messages when the macro has been enabled or disabled"
     )
     public static boolean sendMacroEnableDisableLogs = true;
+    @Switch(
+            name = "Send Rewarp Logs", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
+            description = "Sends a message when /warp garden has been invoked due to the player reaching the rewarp point (in other words, when a full set of rows have been farmed)."
+    )
+    public static boolean sendRewarpLogs = false;
     @Text(
             name = "WebHook URL", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
             description = "The URL to use for the webhook",
