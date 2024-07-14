@@ -1136,7 +1136,7 @@ public class FarmHelperConfig extends Config {
     //<editor-fold desc="PESTS DESTROYER">
     //<editor-fold desc="Infos">
     @Info(
-            text = "Make sure to disable SkyHanni Hide Particles, they're disabled by default!",
+            text = "Make sure to disable SkyHanni Hide Particles, it is enabled by default!",
             type = InfoType.WARNING,
             category = PESTS_DESTROYER,
             size = 2
@@ -1949,9 +1949,13 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean streamerModeInfo2;
     @HUD(
-            name = "Status HUD - Visual Settings", category = HUD
+            name = "Status HUD - Visual Settings", category = HUD, subcategory = "Status"
     )
     public static StatusHUD statusHUD = new StatusHUD();
+    @Switch(
+            name = "Show Status HUD outside the garden", category = HUD, subcategory = "Status"
+    )
+    public static boolean showStatusHudOutsideGarden = false;
 
     @Switch(
             name = "Count RNG to $/Hr in Profit Calculator", category = HUD, subcategory = "Profit Calculator",

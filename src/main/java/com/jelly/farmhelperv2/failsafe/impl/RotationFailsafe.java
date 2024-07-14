@@ -6,6 +6,7 @@ import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.AntiStuck;
 import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
@@ -206,6 +207,11 @@ public class RotationFailsafe extends Failsafe {
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 break;
             case ROTATE_TO_POS_BEFORE:
+                if (FeatureManager.getInstance().isAnyOtherFeatureEnabled()) {
+                    LogUtils.sendDebug("Ending failsafe earlier because another feature is enabled");
+                    rotationCheckState = RotationCheckState.END;
+                    break;
+                }
                 FailsafeManager.getInstance().rotation.easeTo(new RotationConfiguration(new Rotation((float) (rotationBeforeReacting.getYaw() + (Math.random() * 30 - 15)), (float) (Math.random() * 30 + 30)),
                         500, null));
                 rotationCheckState = RotationCheckState.LOOK_AROUND_2;
@@ -236,8 +242,6 @@ public class RotationFailsafe extends Failsafe {
                 FailsafeManager.getInstance().scheduleRandomDelay(randomContinueMessage.length() * 150L, 1000);
                 break;
             case SEND_MESSAGE_2:
-                if (MovRecPlayer.getInstance().isRunning())
-                    break;
                 LogUtils.sendDebug("[Failsafe] Chosen message: " + randomContinueMessage);
                 mc.thePlayer.sendChatMessage("/ac " + randomContinueMessage);
                 rotationCheckState = RotationCheckState.GO_BACK_START;
@@ -250,8 +254,16 @@ public class RotationFailsafe extends Failsafe {
                     rotationCheckState = RotationCheckState.ROTATE_TO_POS_BEFORE_2;
                     break;
                 }
-                BaritoneHandler.walkToBlockPos(positionBeforeReacting);
-                rotationCheckState = RotationCheckState.GO_BACK_END;
+                if (mc.thePlayer.getPosition().distanceSq(positionBeforeReacting) < 2) {
+                    rotationCheckState = RotationCheckState.ROTATE_TO_POS_BEFORE_2;
+                    break;
+                }
+                if (mc.thePlayer.getPosition().distanceSq(positionBeforeReacting) < 10) {
+                    BaritoneHandler.walkToBlockPos(positionBeforeReacting);
+                    rotationCheckState = RotationCheckState.GO_BACK_END;
+                } else {
+                    rotationCheckState = RotationCheckState.WARP_GARDEN;
+                }
                 break;
             case GO_BACK_END:
                 if (BaritoneHandler.hasFailed() || !BaritoneHandler.isWalkingToGoalBlock()) {
@@ -263,11 +275,20 @@ public class RotationFailsafe extends Failsafe {
                 FailsafeManager.getInstance().scheduleDelay(200);
                 break;
             case ROTATE_TO_POS_BEFORE_2:
+                if (MacroHandler.getInstance().isTeleporting()) break;
                 if (rotation.isRotating()) break;
                 FailsafeManager.getInstance().rotation.easeTo(new RotationConfiguration(new Rotation((float) (rotationBeforeReacting.getYaw() + (Math.random() * 30 - 15)), (float) (Math.random() * 30 + 30)),
                         500, null));
-                this.endOfFailsafeTrigger();
+                rotationCheckState = RotationCheckState.END;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
+                break;
+            case WARP_GARDEN:
+                MacroHandler.getInstance().triggerWarpGarden(true, false);
+                rotationCheckState = RotationCheckState.ROTATE_TO_POS_BEFORE_2;
+                FailsafeManager.getInstance().scheduleRandomDelay(3000, 1000);
+                break;
+            case END:
+                this.endOfFailsafeTrigger();
                 break;
         }
     }
@@ -309,5 +330,7 @@ public class RotationFailsafe extends Failsafe {
         ROTATE_TO_POS_BEFORE_2,
         GO_BACK_START,
         GO_BACK_END,
+        WARP_GARDEN,
+        END,
     }
 }

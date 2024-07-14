@@ -7,6 +7,7 @@ import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.AntiStuck;
 import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
@@ -277,6 +278,11 @@ public class TeleportFailsafe extends Failsafe {
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 break;
             case ROTATE_TO_POS_BEFORE:
+                if (FeatureManager.getInstance().isAnyOtherFeatureEnabled()) {
+                    LogUtils.sendDebug("Ending failsafe earlier because another feature is enabled");
+                    teleportCheckState = TeleportCheckState.END;
+                    break;
+                }
                 FailsafeManager.getInstance().rotation.easeTo(new RotationConfiguration(new Rotation((float) (rotationBeforeReacting.getYaw() + (Math.random() * 30 - 15)), (float) (Math.random() * 30 + 30)),
                         500, null));
                 teleportCheckState = TeleportCheckState.LOOK_AROUND_2;

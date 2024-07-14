@@ -91,6 +91,9 @@ public class StatusHUD extends TextHud {
         if (!super.shouldShow()) {
             return false;
         }
+        if (!FarmHelperConfig.showStatusHudOutsideGarden && !GameStateHandler.getInstance().inGarden()) {
+            return false;
+        }
         return !FarmHelperConfig.streamerMode;
     }
 
