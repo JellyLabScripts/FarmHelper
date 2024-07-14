@@ -47,6 +47,7 @@ public class AutoSell implements IFeature {
         return instance;
     }
 
+    @Getter
     private boolean enabled = false;
 
     @Getter

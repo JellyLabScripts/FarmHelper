@@ -48,7 +48,8 @@ public class WebsocketHandler {
                 new ScreenshotCommand(),
                 speedCommand,
                 new ToggleCommand(),
-                new DisconnectCommand()
+                new DisconnectCommand(),
+                new AutoSellCommand()
         ));
         MinecraftForge.EVENT_BUS.register(speedCommand);
         LogUtils.sendDebug("[Remote Control] Registered " + commands.size() + " commands.");
