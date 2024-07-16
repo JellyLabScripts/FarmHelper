@@ -39,6 +39,13 @@ public class FailsafeNotificationsPage {
     public static boolean notifyOnDirtFailsafe = true;
 
     @Switch(
+            name = "Cobweb Check Notifications",
+            description = "Whether or not to send a notification when the cobweb check failsafe is triggered.",
+            category = "Failsafe Notifications"
+    )
+    public static boolean notifyOnCobwebFailsafe = true;
+
+    @Switch(
             name = "Item Change Check Notifications",
             description = "Whether or not to send a notification when the item change check failsafe is triggered.",
             category = "Failsafe Notifications"
@@ -58,6 +65,13 @@ public class FailsafeNotificationsPage {
             category = "Failsafe Notifications"
     )
     public static boolean notifyOnBedrockCageFailsafe = true;
+
+    @Switch(
+            name = "Bad Effects Check Notifications",
+            description = "Whether or not to send a notification when the bad effects check failsafe is triggered.",
+            category = "Failsafe Notifications"
+    )
+    public static boolean notifyOnBadEffectsFailsafe = true;
 
     @Switch(
             name = "Evacuate Notifications",
@@ -144,6 +158,13 @@ public class FailsafeNotificationsPage {
     public static boolean alertOnDirtFailsafe = true;
 
     @Switch(
+            name = "Cobweb Check Sound Alert",
+            description = "Whether or not to play a sound when the cobweb check failsafe is triggered.",
+            category = "Failsafe Sound Alerts"
+    )
+    public static boolean alertOnCobwebFailsafe = true;
+
+    @Switch(
             name = "Item Change Check Sound Alert",
             description = "Whether or not to play a sound when the item change check failsafe is triggered.",
             category = "Failsafe Sound Alerts"
@@ -163,6 +184,13 @@ public class FailsafeNotificationsPage {
             category = "Failsafe Sound Alerts"
     )
     public static boolean alertOnBedrockCageFailsafe = true;
+
+    @Switch(
+            name = "Bad Effects Check Sound Alert",
+            description = "Whether or not to play a sound when the bad effects check failsafe is triggered.",
+            category = "Failsafe Sound Alerts"
+    )
+    public static boolean alertOnBadEffectsFailsafe = true;
 
     @Switch(
             name = "Evacuate Alert",
@@ -257,6 +285,13 @@ public class FailsafeNotificationsPage {
     public static boolean tagEveryoneOnDirtFailsafe = true;
 
     @Switch(
+            name = "Cobweb Check Tag Everyone",
+            description = "Whether or not to tag everyone in the webhook message when the cobweb check failsafe is triggered.",
+            category = "Failsafe Tag Everyone"
+    )
+    public static boolean tagEveryoneOnCobwebFailsafe = true;
+
+    @Switch(
             name = "Item Change Check Tag Everyone",
             description = "Whether or not to tag everyone in the webhook message when the item change check failsafe is triggered.",
             category = "Failsafe Tag Everyone"
@@ -276,6 +311,13 @@ public class FailsafeNotificationsPage {
             category = "Failsafe Tag Everyone"
     )
     public static boolean tagEveryoneOnBedrockCageFailsafe = true;
+
+    @Switch(
+            name = "Bad Effects Check Tag Everyone",
+            description = "Whether or not to tag everyone in the webhook message when the bad effects check failsafe is triggered.",
+            category = "Failsafe Tag Everyone"
+    )
+    public static boolean tagEveryoneOnBadEffectsFailsafe = true;
 
     @Switch(
             name = "Evacuate Tag Everyone",
@@ -362,6 +404,13 @@ public class FailsafeNotificationsPage {
     public static boolean autoAltTabOnDirtFailsafe = true;
 
     @Switch(
+            name = "Cobweb Check Auto Alt-tab",
+            description = "Whether or not to automatically alt-tab when the cobweb check failsafe is triggered.",
+            category = "Failsafe Auto Alt-tab"
+    )
+    public static boolean autoAltTabOnCobwebFailsafe = true;
+
+    @Switch(
             name = "Item Change Check Auto Alt-tab",
             description = "Whether or not to automatically alt-tab when the item change check failsafe is triggered.",
             category = "Failsafe Auto Alt-tab"
@@ -381,6 +430,13 @@ public class FailsafeNotificationsPage {
             category = "Failsafe Auto Alt-tab"
     )
     public static boolean autoAltTabOnBedrockCageFailsafe = true;
+
+    @Switch(
+            name = "Bad Effects Check Auto Alt-tab",
+            description = "Whether or not to automatically alt-tab when the bad effects check failsafe is triggered.",
+            category = "Failsafe Auto Alt-tab"
+    )
+    public static boolean autoAltTabOnBadEffectsFailsafe = true;
 
     @Switch(
             name = "Evacuate Auto Alt-tab",

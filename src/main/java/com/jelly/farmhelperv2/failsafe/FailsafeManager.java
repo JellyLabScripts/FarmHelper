@@ -107,8 +107,10 @@ public class FailsafeManager {
     public FailsafeManager() {
         failsafes.addAll(
                 Arrays.asList(
+                        BadEffectsFailsafe.getInstance(),
                         BanwaveFailsafe.getInstance(),
                         BedrockCageFailsafe.getInstance(),
+                        CobwebFailsafe.getInstance(),
                         DirtFailsafe.getInstance(),
                         DisconnectFailsafe.getInstance(),
                         EvacuateFailsafe.getInstance(),
@@ -425,6 +427,8 @@ public class FailsafeManager {
         TELEPORT_CHECK("You've got§l TELEPORTED§r§d by staff member!"),
         KNOCKBACK_CHECK("You've got§l KNOCKBACKED OUT OF THE FARM§r§d by staff member!"),
         DIRT_CHECK("You've got§l DIRT CHECKED§r§d by staff member!"),
+        COBWEB_CHECK("You've got§l COBWEB CHECKED§r§d by staff member!"),
+        BAD_EFFECTS_CHECK("You've got§l BAD EFFECTS APPLIED §r§d by staff member!"),
         FULL_INVENTORY("Your inventory is full. It might be a staff check or just an accident."),
         ITEM_CHANGE_CHECK("Your §lITEM HAS CHANGED§r§d!"),
         WORLD_CHANGE_CHECK("Your §lWORLD HAS CHANGED§r§d!"),

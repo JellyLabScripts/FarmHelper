@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.handler;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.*;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.failsafe.impl.CobwebFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.DirtFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.JacobFailsafe;
 import com.jelly.farmhelperv2.feature.impl.AutoRepellent;
@@ -548,6 +549,9 @@ public class GameStateHandler {
             if (hasPassedSinceStopped() && !PlayerUtils.isStandingOnRewarpLocation()) {
                 if (DirtFailsafe.getInstance().hasDirtBlocks() && DirtFailsafe.getInstance().isTouchingDirtBlock()) {
                     FailsafeManager.getInstance().possibleDetection(DirtFailsafe.getInstance());
+                } else if (!FailsafeManager.getInstance().firstCheckReturn()
+                        && (CobwebFailsafe.getInstance().isTouchingCobwebBlock() || CobwebFailsafe.getInstance().hasCobwebs())) {
+                    FailsafeManager.getInstance().possibleDetection(CobwebFailsafe.getInstance());
                 } else {
                     if (notMovingTimer.isScheduled()) {
                         randomValueToWaitNextTime = -1;
