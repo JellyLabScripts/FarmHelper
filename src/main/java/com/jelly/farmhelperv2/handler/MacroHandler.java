@@ -166,6 +166,10 @@ public class MacroHandler {
         }
     }
 
+    /**
+     * This method is used for enabling the entire macro (including all features)
+     * It should only be used when the entire macro is disabled
+     */
     public void enableMacro() {
         if (!GameStateHandler.getInstance().inGarden()) {
             LogUtils.sendError("You must be in the garden to start the macro!");
@@ -198,11 +202,14 @@ public class MacroHandler {
         FeatureManager.getInstance().enableAll();
 
         setMacroToggled(true);
-        enableCurrentMacro();
+        executeCurrentMacro();
         getCurrentMacro().ifPresent(cm -> cm.getCheckOnSpawnClock().reset());
         analyticsTimer.schedule();
     }
 
+    /**
+     * This method is used for disabling the entire macro (including all features)
+     */
     public void disableMacro() {
         setMacroToggled(false);
         LogUtils.sendSuccess("Macro disabled!");
@@ -223,10 +230,13 @@ public class MacroHandler {
         FailsafeManager.getInstance().resetAfterMacroDisable();
         if (UngrabMouse.getInstance().isToggled())
             UngrabMouse.getInstance().stop();
-        disableCurrentMacro();
+        stopActiveMacro();
         setCurrentMacro(Optional.empty());
     }
 
+    /**
+     * This method is used for temporarily pausing the macro and some features (E.g. Scheduler, failsafe)
+     */
     public void pauseMacro(boolean scheduler) {
         currentMacro.ifPresent(cm -> {
             KeyBindUtils.stopMovement();
@@ -236,7 +246,7 @@ public class MacroHandler {
             beforeTeleportationPos = Optional.empty();
             macroingTimer.pause();
             analyticsTimer.pause();
-            LowerAvgBpsFailsafe.getInstance().endOfFailsafeTrigger();
+            LowerAvgBpsFailsafe.getInstance().resetStates();
             if (scheduler && Freelook.getInstance().isRunning()) {
                 Freelook.getInstance().stop();
             }
@@ -252,6 +262,9 @@ public class MacroHandler {
     @Getter
     private boolean resume = false;
 
+    /**
+     * This method is used for resuming the macro after it is stopped (E.g. After failsafe)
+     */
     public void resumeMacro() {
         currentMacro.ifPresent(cm -> {
             if (!cm.isPaused()) return;
@@ -265,11 +278,14 @@ public class MacroHandler {
             afterRewarpDelay.reset();
             Scheduler.getInstance().resume();
             FeatureManager.getInstance().resume();
-
+            LowerAvgBpsFailsafe.getInstance().resetStates();
         });
     }
 
-    public void enableCurrentMacro() {
+    /**
+     * This method is used only for executing the farming macro (not the features)
+     */
+    public void executeCurrentMacro() {
         if (currentMacro.isPresent() && !currentMacro.get().isEnabledAndNoFeature() && !startingUp) {
             mc.thePlayer.closeScreen();
             // Fixed issue #180 for Mac users (mouse vanishing glitch)
@@ -288,7 +304,10 @@ public class MacroHandler {
         }
     }
 
-    public void disableCurrentMacro() {
+    /**
+     * This method is used only for stopping the active macro (not the features)
+     */
+    public void stopActiveMacro() {
         currentMacro.ifPresent(AbstractMacro::onDisable);
     }
 
