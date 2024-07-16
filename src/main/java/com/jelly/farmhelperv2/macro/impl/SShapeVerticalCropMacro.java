@@ -116,9 +116,10 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                 changeState(calculateDirection());
                 break;
             }
-            default:
+            default: {
                 LogUtils.sendDebug("This shouldn't happen, but it did...");
                 changeState(State.NONE);
+            }
         }
     }
 
@@ -205,8 +206,14 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                     changeState(State.NONE);
                 }
                 break;
-            case NONE:
+            case NONE: {
+                changeState(calculateDirection());
                 break;
+            }
+            default: {
+                LogUtils.sendDebug("This shouldn't happen, but it did...");
+                changeState(State.NONE);
+            }
         }
     }
 

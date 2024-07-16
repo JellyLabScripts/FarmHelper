@@ -149,6 +149,10 @@ public class SShapeMushroomRotateMacro extends AbstractMacro {
                         break;
                 }
                 break;
+            default: {
+                LogUtils.sendDebug("This shouldn't happen, but it did...");
+                changeState(State.NONE);
+            }
         }
     }
 

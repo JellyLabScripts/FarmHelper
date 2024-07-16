@@ -6,6 +6,7 @@ import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.event.BlockChangeEvent;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -68,7 +69,7 @@ public class DirtFailsafe extends Failsafe {
             LogUtils.sendDebug("[Failsafe] Block destroyed: " + event.pos);
             blocksDestroyedByPlayer.add(new Tuple<>(event.pos, System.currentTimeMillis()));
         }
-        blocksDestroyedByPlayer.removeIf(tuple -> System.currentTimeMillis() - tuple.getSecond() > 2000);
+        blocksDestroyedByPlayer.removeIf(tuple -> System.currentTimeMillis() - tuple.getSecond() > 10000);
         if ((event.old.getBlock().equals(Blocks.air) || CropUtils.isCrop(event.old.getBlock()) || event.old.getBlock().equals(Blocks.water) || event.old.getBlock().equals(Blocks.flowing_water)) &&
                 event.update.getBlock() != null && !event.update.getBlock().equals(Blocks.air) &&
                 !CropUtils.isCrop(event.update.getBlock()) && event.update.getBlock().isCollidable() &&
@@ -77,6 +78,10 @@ public class DirtFailsafe extends Failsafe {
                 event.update.getBlock().isFullCube()) { // If old block was air or crop and new block is not air, crop, trapdoor, water or flowing water
             if (blocksDestroyedByPlayer.stream().anyMatch(tuple -> tuple.getFirst().equals(event.pos))) {
                 LogUtils.sendDebug("[Failsafe] Block destroyed by player and resynced by hypixel: " + event.pos);
+                return;
+            }
+            if (LagDetector.getInstance().wasJustLagging()) {
+                LogUtils.sendDebug("[Failsafe] Lag detected, ignoring block change: " + event.pos);
                 return;
             }
             LogUtils.sendWarning("[Failsafe] Someone put a block on your garden! Block: " + event.update.getBlock() + " Pos: " + event.pos);
@@ -258,6 +263,10 @@ public class DirtFailsafe extends Failsafe {
     private boolean blocksRemoved() {
         dirtBlocks.removeIf(tuple -> {
             if (System.currentTimeMillis() - tuple.getSecond() > 120_000 || !mc.theWorld.getBlockState(tuple.getFirst()).getBlock().isCollidable() || BlockUtils.canWalkThrough(tuple.getFirst()) || mc.theWorld.getBlockState(tuple.getFirst()).getBlock().equals(Blocks.air) || CropUtils.isCrop(mc.theWorld.getBlockState(tuple.getFirst()).getBlock()) || mc.theWorld.getBlockState(tuple.getFirst()).getBlock().equals(Blocks.water) || mc.theWorld.getBlockState(tuple.getFirst()).getBlock().equals(Blocks.flowing_water)) {
+                if (blocksDestroyedByPlayer.stream().anyMatch(block -> block.getFirst().equals(tuple.getFirst()))) {
+                    LogUtils.sendDebug("[Failsafe] Dirt block removed by player: " + tuple.getFirst());
+                    return false;
+                }
                 LogUtils.sendDebug("[Failsafe] Dirt block removed: " + tuple.getFirst());
                 return true;
             }

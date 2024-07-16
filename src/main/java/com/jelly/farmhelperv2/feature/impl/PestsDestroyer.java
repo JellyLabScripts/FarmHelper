@@ -597,6 +597,25 @@ public class PestsDestroyer implements IFeature {
                     }
                 }
 
+                if (getLocationTries > 2) {
+                    PlotUtils.Plot currentPlot = getClosestPlot();
+
+                    if (!isNearPlotCenter()) {
+                        if (currentPlot != null) {
+                            BlockPos plotCenter2 = PlotUtils.getPlotCenter(currentPlot.number);
+                            FlyPathFinderExecutor.getInstance().setSprinting(FarmHelperConfig.sprintWhileFlying);
+                            FlyPathFinderExecutor.getInstance().setDontRotate(false);
+                            FlyPathFinderExecutor.getInstance().setUseAOTV(InventoryUtils.hasItemInHotbar("Aspect of the Void", "Aspect of the End"));
+                            FlyPathFinderExecutor.getInstance().findPath(new Vec3(plotCenter2.getX(), 80, plotCenter2.getZ()), true, true);
+                            LogUtils.sendDebug("[Pests Destroyer] Flying to plot center");
+                        } else {
+                            LogUtils.sendWarning("[Pests Destroyer] Couldn't find closest plot!");
+                            state = States.GO_BACK;
+                        }
+                        break;
+                    }
+                }
+
                 resetFireworkInfo();
                 lastFireworkTime = System.currentTimeMillis();
                 MovingObjectPosition mop = mc.objectMouseOver;
@@ -1345,6 +1364,13 @@ public class PestsDestroyer implements IFeature {
             return null;
         }
         return closestPlot;
+    }
+
+    private boolean isNearPlotCenter() {
+        if (!closestPlot.isPresent()) return false;
+        BlockPos plotCenter = PlotUtils.getPlotCenter(closestPlot.get().number);
+        double distance = mc.thePlayer.getDistance(plotCenter.getX(), mc.thePlayer.posY, plotCenter.getZ());
+        return distance < 15;
     }
 
     public enum States {

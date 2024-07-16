@@ -57,7 +57,7 @@ public class GuestVisitFailsafe extends Failsafe {
     @Override
     public void onTickDetection(TickEvent.ClientTickEvent event) {
         tabListCheckDelay.schedule(5000L);
-        if (FarmHelperConfig.pauseOnGuestArrival && wasGuestOnGarden && GameStateHandler.getInstance().isGuestOnGarden()) {
+        if (FarmHelperConfig.pauseOnGuestArrival && wasGuestInGarden && GameStateHandler.getInstance().isGuestInGarden()) {
             if (!MacroHandler.getInstance().isCurrentMacroPaused()) {
                 LogUtils.sendFailsafeMessage("[Failsafe] Paused the macro because of guest visit!", false);
                 MacroHandler.getInstance().pauseMacro();
@@ -68,9 +68,9 @@ public class GuestVisitFailsafe extends Failsafe {
     @Override
     public void duringFailsafeTrigger() {
         if (tabListCheckDelay.isScheduled() && !tabListCheckDelay.passed()) return;
-        if (!GameStateHandler.getInstance().isGuestOnGarden()
+        if (!GameStateHandler.getInstance().isGuestInGarden()
                 && GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.GARDEN
-                && wasGuestOnGarden
+                && wasGuestInGarden
         && MacroHandler.getInstance().isMacroToggled()
         && MacroHandler.getInstance().isCurrentMacroPaused()) {
             LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because guest visit is over!", false);
@@ -88,7 +88,7 @@ public class GuestVisitFailsafe extends Failsafe {
     @Override
     public void resetStates() {
         tabListCheckDelay.reset();
-        wasGuestOnGarden = false;
+        wasGuestInGarden = false;
         lastGuestName = "";
     }
 
@@ -96,9 +96,9 @@ public class GuestVisitFailsafe extends Failsafe {
     public void onChatDetection(ClientChatReceivedEvent event) {
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains(":")) return;
-        if (message.contains("is visiting Your Garden") && (!GameStateHandler.getInstance().isGuestOnGarden()) && !wasGuestOnGarden) {
+        if (message.contains("is visiting Your Garden") && (!GameStateHandler.getInstance().isGuestInGarden()) && !wasGuestInGarden) {
             lastGuestName = message.replace("[SkyBlock] ", "").replace(" is visiting Your Garden!", "");
-            wasGuestOnGarden = true;
+            wasGuestInGarden = true;
             tabListCheckDelay.schedule(5000L);
             FailsafeManager.getInstance().possibleDetection(this);
             if (!FarmHelperConfig.pauseOnGuestArrival)
@@ -112,6 +112,6 @@ public class GuestVisitFailsafe extends Failsafe {
     }
 
     private final Clock tabListCheckDelay = new Clock();
-    public boolean wasGuestOnGarden = false;
+    public boolean wasGuestInGarden = false;
     public String lastGuestName = "";
 }

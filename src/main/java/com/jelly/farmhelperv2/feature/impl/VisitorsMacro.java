@@ -662,6 +662,13 @@ public class VisitorsMacro implements IFeature {
                     return;
                 }
                 LogUtils.sendDebug("Position of visitor: " + result.entityCharacter.getPositionEyes(1));
+
+                currentRewards.clear();
+                profitNpc = false;
+                rejectVisitor = false;
+                haveItemsInSack = false;
+                LogUtils.sendDebug("Clearing states before serving a new visitor");
+
                 currentVisitor = Optional.of(result.nameArmorStand);
                 currentCharacter = Optional.of(result.entityCharacter);
                 setVisitorsState(VisitorsState.GET_CLOSE_TO_VISITOR);
@@ -1066,8 +1073,6 @@ public class VisitorsMacro implements IFeature {
                     LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro accepted visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
                 }
                 currentVisitor.ifPresent(servedCustomers::add);
-                currentRewards.clear();
-                profitNpc = false;
                 setVisitorsState(VisitorsState.SELECT_NEW_VISITOR);
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
@@ -1234,29 +1239,21 @@ public class VisitorsMacro implements IFeature {
     }
 
     private void rejectCurrentVisitor() {
-        if (rejectVisitor()) return;
-        assert currentVisitor.isPresent();
-        if (FarmHelperConfig.sendVisitorsMacroLogs)
-            LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro rejected visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
-        currentVisitor.ifPresent(servedCustomers::add);
-        currentRewards.clear();
-        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
-        setVisitorsState(VisitorsState.SELECT_NEW_VISITOR);
-        profitNpc = false;
-    }
-
-    private boolean rejectVisitor() {
-        if (!InventoryUtils.isInventoryLoaded()) return true;
+        if (!InventoryUtils.isInventoryLoaded()) return;
         LogUtils.sendDebug("[Visitors Macro] Rejecting the visitor");
         Slot rejectOfferSlot = InventoryUtils.getSlotOfItemInContainer("Refuse Offer");
         if (rejectOfferSlot == null || rejectOfferSlot.getStack() == null) {
             LogUtils.sendError("[Visitors Macro] Couldn't find the \"Reject Offer\" slot!");
             delayClock.schedule(getRandomDelay());
-            return true;
+            return;
         }
         InventoryUtils.clickContainerSlot(rejectOfferSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-        rejectVisitor = false;
-        return false;
+        assert currentVisitor.isPresent();
+        if (FarmHelperConfig.sendVisitorsMacroLogs)
+            LogUtils.webhookLog("[Visitors Macro]\\nVisitors Macro rejected visitor: " + StringUtils.stripControlCodes(currentVisitor.get().getCustomNameTag()), FarmHelperConfig.pingEveryoneOnVisitorsMacroLogs, currentRewards.toArray(new Tuple[0]));
+        currentVisitor.ifPresent(servedCustomers::add);
+        delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+        setVisitorsState(VisitorsState.SELECT_NEW_VISITOR);
     }
 
     private void onBuyState() {
