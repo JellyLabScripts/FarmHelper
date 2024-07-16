@@ -302,6 +302,9 @@ public class AutoUpdaterGUI extends GuiScreen {
             case 2:
                 drawUpdateCompletedMessage();
                 break;
+            case 3:
+                drawJavaErrorMessage();
+                break;
         }
 
         ScaledResolution res = new ScaledResolution(mc);
@@ -333,6 +336,14 @@ public class AutoUpdaterGUI extends GuiScreen {
         GL11.glScalef(scale, scale, 0.0F);
         this.drawCenteredString(mc.fontRendererObj, "Farm Helper has been updated!", (int) (this.width / 2f / scale),
                 (int) (30 / scale), Color.GREEN.getRGB());
+        GL11.glScalef(1.0F / scale, 1.0F / scale, 0.0F);
+    }
+
+    private void drawJavaErrorMessage() {
+        float scale = 2;
+        GL11.glScalef(scale, scale, 0.0F);
+        this.drawCenteredString(mc.fontRendererObj, "Error: Your Java is extremely outdated!", (int) (this.width / 2f / scale), (int) (20 / scale), Color.RED.darker().getRGB());
+        this.drawCenteredString(mc.fontRendererObj, "Please, update Java and try again.", (int) (this.width / 2f / scale), (int) (40 / scale), Color.RED.darker().getRGB());
         GL11.glScalef(1.0F / scale, 1.0F / scale, 0.0F);
     }
 
@@ -398,6 +409,10 @@ public class AutoUpdaterGUI extends GuiScreen {
                                 closeBtn.enabled = true;
                                 displayGUI = 2;
                             });
+                        } catch (javax.net.ssl.SSLHandshakeException e) {
+                            downloadBtn.enabled = false;
+                            closeBtn.enabled = true;
+                            displayGUI = 3;
                         } catch (IOException e) {
                             downloadBtn.enabled = true;
                             closeBtn.enabled = true;
@@ -407,10 +422,10 @@ public class AutoUpdaterGUI extends GuiScreen {
                     });
                     break;
                 case CLOSE_BUTTON_ID:
-                    if (displayGUI == 0)
-                        mc.displayGuiScreen(new GuiMainMenu());
                     if (displayGUI == 2)
                         deleteAndClose();
+                    else
+                        mc.displayGuiScreen(new GuiMainMenu());
                     break;
             }
         }

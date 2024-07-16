@@ -12,8 +12,10 @@ import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.impl.*;
+import com.jelly.farmhelperv2.feature.impl.Proxy.ProxyType;
 import com.jelly.farmhelperv2.gui.AutoUpdaterGUI;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
+import com.jelly.farmhelperv2.handler.GameStateHandler.BuffState;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.hud.DebugHUD;
 import com.jelly.farmhelperv2.hud.ProfitCalculatorHUD;
@@ -67,7 +69,7 @@ public class FarmHelperConfig extends Config {
     public static String proxyAddress = "";
     public static String proxyUsername = "";
     public static String proxyPassword = "";
-    public static Proxy.ProxyType proxyType = Proxy.ProxyType.HTTP;
+    public static ProxyType proxyType = ProxyType.HTTP;
     //</editor-fold>
 
     //<editor-fold desc="GENERAL">
@@ -394,103 +396,83 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     //<editor-fold desc="FAILSAFES">
-    //<editor-fold desc="Failsafe Misc">
-    @Switch(
-            name = "Pop-up Notification", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Enable pop-up notification"
-    )
-    public static boolean popUpNotification = true;
-    @Switch(
-            name = "Auto alt-tab when failsafe triggered", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Automatically alt-tabs to the game when the dark times come"
-    )
+
+    // General Settings
+    @Switch(name = "Pop-up Notifications", category = FAILSAFE, subcategory = "General",
+            description = "Enable on-screen failsafe notifications")
+    public static boolean popUpNotifications = true;
+
+    @Switch(name = "Auto Alt-Tab", category = FAILSAFE, subcategory = "General",
+            description = "Switch to game window when failsafe triggers")
     public static boolean autoAltTab = false;
-    @Switch(
-            name = "Try to use jumping and flying in failsafes reactions", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Tries to use jumping and flying in failsafes reactions"
-    )
-    public static boolean tryToUseJumpingAndFlying = true;
-    @Slider(
-            name = "Failsafe Stop Delay", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The delay to stop the macro after failsafe has been triggered (in milliseconds)",
-            min = 1_000, max = 7_500
-    )
-    public static int failsafeStopDelay = 2_000;
-    @Switch(
-            name = "Auto TP back on World Change", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Automatically warps back to the garden on server reboot, server update, etc"
-    )
-    public static boolean autoTPOnWorldChange = true;
-    @Switch(
-            name = "Auto Evacuate on World update", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Automatically evacuates the island on server reboot, server update, etc"
-    )
-    public static boolean autoEvacuateOnWorldUpdate = true;
-    @Switch(
-            name = "Auto reconnect on disconnect", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Automatically reconnects to the server when disconnected"
-    )
+
+    @Slider(name = "Failsafe Stop Delay", category = FAILSAFE, subcategory = "General",
+            description = "Delay before stopping macro after failsafe (ms)",
+            min = 1000, max = 7500)
+    public static int failsafeStopDelay = 2000;
+
+    // Automatic Actions
+    @Switch(name = "Auto Warp on World Change", category = FAILSAFE, subcategory = "Auto Actions",
+            description = "Warp to garden after server reboot or update")
+    public static boolean autoWarpOnWorldChange = true;
+
+    @Switch(name = "Auto Evacuate on Server Reboot", category = FAILSAFE, subcategory = "Auto Actions",
+            description = "Leave island during server reboot or update")
+    public static boolean autoEvacuateOnServerReboot = true;
+
+    @Switch(name = "Auto Reconnect", category = FAILSAFE, subcategory = "Auto Actions",
+            description = "Automatically reconnect after disconnect")
     public static boolean autoReconnect = true;
-    @Switch(
-            name = "Pause the macro when a guest arrives", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Pauses the macro when a guest arrives"
-    )
-    public static boolean pauseWhenGuestArrives = false;
-    @Slider(
-            name = "Teleport Check Lag Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
+
+    @Switch(name = "Pause on Guest Arrival", category = FAILSAFE, subcategory = "Auto Actions",
+            description = "Pause macro when a guest joins your island")
+    public static boolean pauseOnGuestArrival = false;
+
+    // Detection Sensitivity
+    @Slider(name = "Teleport Lag Tolerance", category = FAILSAFE, subcategory = "Detection",
             description = "Variation in distance between expected and actual positions when lagging",
-            min = 0, max = 2
-    )
-    public static float teleportCheckLagSensitivity = 0.5f;
-    @Slider(
-            name = "Teleport/Rotation Check Time Window (in milliseconds)", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The time window to check for teleports (in seconds)",
-            min = 50, max = 4000, step = 50
-    )
-    public static int teleportRotationCheckTimeWindow = 500;
-    @Slider(
-            name = "Rotation Check Pitch Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The sensitivity of the rotation check; the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives.",
-            min = 1, max = 30
-    )
-    public static float rotationCheckPitchSensitivity = 7;
-    @Slider(
-            name = "Rotation Check Yaw Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The sensitivity of the rotation check; the lower the sensitivity, the more accurate the check is, but it will also increase the chance of getting false positives.",
-            min = 1, max = 30
-    )
-    public static float rotationCheckYawSensitivity = 5;
-    @Slider(
-            name = "Teleport Check Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The minimum distance between the previous and teleported position to trigger failsafe",
-            min = 0.5f, max = 20f
-    )
-    public static float teleportCheckSensitivity = 4;
-    @Slider(
-            name = "Knockback Check Vertical Sensitivity", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The minimum power of vertical knockback (motionY) to trigger failsafe",
-            min = 2000, max = 10000, step = 1000
-    )
-    public static float knockbackCheckVerticalSensitivity = 4000;
+            min = 0, max = 2)
+    public static float teleportLagTolerance = 0.5f;
 
-    @Switch(
-            name = "Average BPS Drop check", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Checks for average BPS drop"
-    )
-    public static boolean averageBPSDropCheck = true;
+    @Slider(name = "Detection Time Window", category = FAILSAFE, subcategory = "Detection",
+            description = "Time frame for teleport/rotation checks (ms)",
+            min = 50, max = 4000, step = 50)
+    public static int detectionTimeWindow = 500;
 
-    @Slider(
-            name = "BPS drop threshold (seconds)", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Keeps track of the duration for which the BPS has been dropping",
-            min = 2, max = 10
-    )
-    public static int BPSDropThreshold = 5;
+    @Slider(name = "Pitch Sensitivity", category = FAILSAFE, subcategory = "Detection",
+            description = "Pitch change sensitivity (lower = stricter)",
+            min = 1, max = 30)
+    public static float pitchSensitivity = 7;
 
-    @Button(
-            name = "Test failsafe", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "Tests failsafe",
-            text = "Test failsafe"
-    )
+    @Slider(name = "Yaw Sensitivity", category = FAILSAFE, subcategory = "Detection",
+            description = "Yaw change sensitivity (lower = stricter)",
+            min = 1, max = 30)
+    public static float yawSensitivity = 5;
+
+    @Slider(name = "Teleport Distance Threshold", category = FAILSAFE, subcategory = "Detection",
+            description = "Minimum teleport distance to trigger failsafe (blocks)",
+            min = 0.5f, max = 20f)
+    public static float teleportDistanceThreshold = 4;
+
+    @Slider(name = "Vertical Knockback Threshold", category = FAILSAFE, subcategory = "Detection",
+            description = "Minimum vertical knockback to trigger failsafe",
+            min = 2000, max = 10000, step = 1000)
+    public static float verticalKnockbackThreshold = 4000;
+
+    // BPS Check
+    @Switch(name = "Enable BPS Check", category = FAILSAFE, subcategory = "BPS",
+            description = "Monitor for drops in blocks per second")
+    public static boolean enableBpsCheck = true;
+
+    @Slider(name = "Minimum BPS", category = FAILSAFE, subcategory = "BPS",
+            description = "Trigger failsafe if BPS falls below this value",
+            min = 5, max = 15)
+    public static float minBpsThreshold = 10f;
+
+    // Failsafe Testing
+    @Button(name = "Test Failsafe", category = FAILSAFE, subcategory = "Testing",
+            description = "Simulate a failsafe trigger",
+            text = "Run Test")
     Runnable _testFailsafe = () -> {
         if (!MacroHandler.getInstance().isMacroToggled()) {
             LogUtils.sendError("You need to start the macro first!");
@@ -498,34 +480,30 @@ public class FarmHelperConfig extends Config {
         }
         LogUtils.sendWarning("Testing failsafe...");
         PlayerUtils.closeScreen();
-        if (testFailsafeTypeSelected == 0) {
-            FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected));
+        if (testFailsafeType == 0) {
+            FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeType));
             return;
-        } // else if (testFailsafeTypeSelected != 6)
-          // LowerAvgBpsFailsafe.getInstance().clearQueue(); // Clear the queue to avoid false positives
-        FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeTypeSelected + 2));
+        }
+        FailsafeManager.getInstance().possibleDetection(FailsafeManager.getInstance().failsafes.get(testFailsafeType + 2));
     };
 
-    @Dropdown(
-            name = "Test Failsafe Type", category = FAILSAFE, subcategory = "Miscellaneous",
-            description = "The failsafe type to test",
+    @Dropdown(name = "Test Failsafe Type", category = FAILSAFE, subcategory = "Testing",
+            description = "Select failsafe scenario to test",
             options = {
                     "Banwave",
-//                    "Bedrock Cage Check",
-//                    "Dirt Check",
                     "Disconnect",
                     "Evacuate",
+                    "Full Inventory",
                     "Guest Visit",
-                    "Item Change Check",
+                    "Item Change",
                     "Jacob",
-                    "Knockback Check",
-                    "Lower Average Bps",
-                    "Rotation Check",
-                    "Teleport Check",
-                    "World Change Check"
-            }
-    )
-    public static int testFailsafeTypeSelected = 0;
+                    "Knockback",
+                    "Low BPS",
+                    "Rotation",
+                    "Teleport",
+                    "World Change"
+            })
+    public static int testFailsafeType = 0;
 
     //</editor-fold>
 
@@ -562,7 +540,7 @@ public class FarmHelperConfig extends Config {
     public static int captureClipDelay = 30;
 
     @Info(
-            text = "You need to use ShadowPlay (or any alternative with Replay Buffer) and configure it to capture clips!",
+            text = "You need to use either ShadowPlay, OBS, Medal.tv or any alternative with Replay Buffer, then configure it to capture clips!",
             type = InfoType.WARNING,
             category = FAILSAFE,
             subcategory = "Clip Capturing",
@@ -819,6 +797,33 @@ public class FarmHelperConfig extends Config {
             description = "Opens inventory on scheduler breaks"
     )
     public static boolean openInventoryOnSchedulerBreaks = true;
+    @Switch(
+        name = "Disconnect during break", category = SCHEDULER, subcategory = "Scheduler",
+        description = "Logs out of game and logs back in after break ends"
+    )
+    public static boolean schedulerDisconnectDuringBreak = false;
+    @Switch(
+        name = "Wait Until Rewarp Point for break", category = SCHEDULER, subcategory = "Scheduler",
+        description = "Waits until player is standing on rewarp point to take break"
+    )
+    public static boolean schedulerWaitUntilRewarp = false;
+    @Switch(
+        name = "Reset Scheduler on Macro Disabled", category = SCHEDULER, subcategory = "Scheduler",
+        description = "Resets Scheduler When macro is disabled"
+    )
+    public static boolean schedulerResetOnDisable = true;
+    @Button(
+        name = "Reset Scheduler", category = SCHEDULER, subcategory = "Scheduler",
+        text = "Reset Scheduler", description = "Resets Scheduler (Only works when macro is of)"
+    )
+    public Runnable schedulerReset = () -> {
+        if(!MacroHandler.getInstance().isMacroToggled()){
+            boolean old = FarmHelperConfig.schedulerResetOnDisable;
+            FarmHelperConfig.schedulerResetOnDisable = true;
+            Scheduler.getInstance().stop();
+            FarmHelperConfig.schedulerResetOnDisable = old;
+        }
+    };
     //</editor-fold>
 
     //<editor-fold desc="Leave timer">
@@ -1004,13 +1009,6 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean visitorsMacroAfkInfiniteMode = false;
 
-    @DualOption(
-            name = "Travel method", category = VISITORS_MACRO, subcategory = "Visitors Macro",
-            description = "The travel method to use to get to the pest exchange desk",
-            left = "Fly",
-            right = "Walk"
-    )
-    public static boolean visitorsExchangeTravelMethod = false;
     @Info(
             text = "If you have any issues, try switching the travel method.",
             type = InfoType.INFO,
@@ -1019,6 +1017,13 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static boolean visitorsExchangeTravelMethodInfo;
+    @DualOption(
+            name = "Travel method", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+            description = "The travel method to use to get to the pest exchange desk",
+            left = "Fly",
+            right = "Walk"
+    )
+    public static boolean visitorsExchangeTravelMethod = false;
 
     @Button(
             name = "Start the macro manually", category = VISITORS_MACRO, subcategory = "Visitors Macro",
@@ -1033,26 +1038,41 @@ public class FarmHelperConfig extends Config {
         VisitorsMacro.getInstance().setManuallyStarted(true);
         VisitorsMacro.getInstance().start();
     };
-    //</editor-fold>
-
-    //<editor-fold desc="Filters">
 
     @DualOption(
-            name = "Visitors Filtering Method", category = VISITORS_MACRO, subcategory = "Filters",
+            name = "Visitors Filtering Method", category = VISITORS_MACRO, subcategory = "Visitors Macro",
             description = "",
             left = "By Rarity", right = "By Name"
     )
+    @Deprecated // Just here to keep the old settings for automatic migration
     public static boolean visitorsFilteringMethod = false;
 
+    //</editor-fold>
+
+    //<editor-fold desc="Name Filtering">
+
+    @Switch(
+            name = "Filter by name", category = VISITORS_MACRO, subcategory = "Name Filtering",
+            description = "Filters visitors by name", size = 2
+    )
+    public static boolean filterVisitorsByName = false;
+
     @DualOption(
-            name = "Name Filtering Type", category = VISITORS_MACRO, subcategory = "Filters",
+            name = "Name Filtering Type", category = VISITORS_MACRO, subcategory = "Name Filtering",
             description = "The name filtering method to use",
             left = "Blacklist", right = "Whitelist"
     )
     public static boolean nameFilteringType = false;
 
+    @DualOption(
+            name = "Name Action Type", category = VISITORS_MACRO, subcategory = "Name Filtering",
+            description = "The action to execute when a visitor's name does not match your set filter",
+            left = "Reject", right = "Ignore"
+    )
+    public static boolean nameActionType = true;
+
     @Text(
-            name = "Name Filter", category = VISITORS_MACRO, subcategory = "Filters",
+            name = "Name Filter", category = VISITORS_MACRO, subcategory = "Name Filtering",
             description = "Visitor names to filter. Use | to split the messages.",
             placeholder = "Visitor names to filter. Use | to split the messages.",
             size = 2
@@ -1060,36 +1080,51 @@ public class FarmHelperConfig extends Config {
     public static String nameFilter = "Librarian|Maeve|Spaceman";
 
     //<editor-fold desc="Rarity">
+    @Switch(
+            name = "Filter by rarity", category = VISITORS_MACRO, subcategory = "Rarity Filtering",
+            description = "Filters visitors by rarity"
+    )
+    public static boolean filterVisitorsByRarity = true;
+
+    @Info(
+            text = "If both filters are enabled, the macro will filter visitors by name first, then by rarity.",
+            type = InfoType.INFO,
+            category = VISITORS_MACRO,
+            subcategory = "Rarity Filtering",
+            size = 2
+    )
+    public static boolean nameFilterInfo;
+
     @Dropdown(
-            name = "Uncommon", category = VISITORS_MACRO, subcategory = "Rarity",
+            name = "Uncommon", category = VISITORS_MACRO, subcategory = "Rarity Filtering",
             description = "The action taken when an uncommon visitor arrives",
             options = {"Accept", "Accept if profitable only", "Decline", "Ignore"},
             size = 2
     )
     public static int visitorsActionUncommon = 0;
     @Dropdown(
-            name = "Rare", category = VISITORS_MACRO, subcategory = "Rarity",
+            name = "Rare", category = VISITORS_MACRO, subcategory = "Rarity Filtering",
             description = "The action taken when a rare visitor arrives",
             options = {"Accept", "Accept if profitable only", "Decline", "Ignore"},
             size = 2
     )
     public static int visitorsActionRare = 0;
     @Dropdown(
-            name = "Legendary", category = VISITORS_MACRO, subcategory = "Rarity",
+            name = "Legendary", category = VISITORS_MACRO, subcategory = "Rarity Filtering",
             description = "The action taken when a legendary visitor arrives",
             options = {"Accept", "Accept if profitable only", "Decline", "Ignore"},
             size = 2
     )
     public static int visitorsActionLegendary = 0;
     @Dropdown(
-            name = "Mythic", category = VISITORS_MACRO, subcategory = "Rarity",
+            name = "Mythic", category = VISITORS_MACRO, subcategory = "Rarity Filtering",
             description = "The action taken when a mythic visitor arrives",
             options = {"Accept", "Accept if profitable only", "Decline", "Ignore"},
             size = 2
     )
     public static int visitorsActionMythic = 0;
     @Dropdown(
-            name = "Special", category = VISITORS_MACRO, subcategory = "Rarity",
+            name = "Special", category = VISITORS_MACRO, subcategory = "Rarity Filtering",
             description = "The action taken when a special visitor arrives",
             options = {"Accept", "Accept if profitable only", "Decline", "Ignore"},
             size = 2
@@ -1101,7 +1136,7 @@ public class FarmHelperConfig extends Config {
     //<editor-fold desc="PESTS DESTROYER">
     //<editor-fold desc="Infos">
     @Info(
-            text = "Make sure to disable SkyHanni Hide Particles, they're disabled by default!",
+            text = "Make sure to disable SkyHanni Hide Particles, it is enabled by default!",
             type = InfoType.WARNING,
             category = PESTS_DESTROYER,
             size = 2
@@ -1340,6 +1375,11 @@ public class FarmHelperConfig extends Config {
             description = "Pings everyone on Visitors Macro Logs"
     )
     public static boolean pingEveryoneOnVisitorsMacroLogs = false;
+    @Switch(
+            name = "Send Macro Enable/Disable Logs", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
+            description = "Sends messages when the macro has been enabled or disabled"
+    )
+    public static boolean sendMacroEnableDisableLogs = true;
     @Text(
             name = "WebHook URL", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
             description = "The URL to use for the webhook",
@@ -1709,7 +1749,7 @@ public class FarmHelperConfig extends Config {
     @Switch(
             name = "Auto Sprayonator", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator"
     )
-    public static boolean autoSprayonatorEnable = false;
+    public static boolean autoSprayonator = false;
 
     @Dropdown(
             name = "Type", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
@@ -1721,39 +1761,9 @@ public class FarmHelperConfig extends Config {
                     "Dung (Beetle & Fly)",
                     "Plant Matter (Locust & Slug)",
                     "Tasty Cheese (Rat & Mite)"
-            }, size = 5
+            }
     )
-    public static int sprayonatorType;
-
-    @Getter
-    public enum SPRAYONATOR_ITEM {
-        FINE_FLOUR("Fine Flour"),
-        COMPOST("Compost"),
-        HONEY_JAR("Honey Jar"),
-        DUNG("Dung"),
-        PLANT_MATTER("Plant Matter"),
-        TASTY_CHEESE("Tasty Cheese"),
-        NONE("NONE");
-
-        final String itemName;
-
-        SPRAYONATOR_ITEM(final String item_name) {
-            this.itemName = item_name;
-        }
-    }
-
-    @Switch(
-            name = "Inventory Only", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator"
-    )
-    public static boolean sprayonatorItemInventoryOnly;
-
-    @Slider(
-            name = "Sprayonator Slot", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
-            min = 1, max = 8,
-            step = 1,
-            description = "Slot to move sprayonator to"
-    )
-    public static int autoSprayonatorSlot = 1;
+    public static int autoSprayonatorSprayMaterial = 0;
 
     @Slider(
             name = "Additional Delay", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
@@ -1774,16 +1784,6 @@ public class FarmHelperConfig extends Config {
             min = 1, max = 64
     )
     public static int autoSprayonatorAutoBuyAmount = 1;
-
-    @Button(
-            name = "Reset Plots", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
-            text = "Click Here",
-            description = "Resets the cached data for sprayonator"
-    )
-    Runnable _autoSprayonatorResetPlots = () -> {
-        AutoSprayonator.getInstance().resetPlots();
-    };
-
     //</editor-fold>
 
     //<editor-fold desc="DELAYS">
@@ -1949,9 +1949,13 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean streamerModeInfo2;
     @HUD(
-            name = "Status HUD - Visual Settings", category = HUD
+            name = "Status HUD - Visual Settings", category = HUD, subcategory = "Status"
     )
     public static StatusHUD statusHUD = new StatusHUD();
+    @Switch(
+            name = "Show Status HUD outside the garden", category = HUD, subcategory = "Status"
+    )
+    public static boolean showStatusHudOutsideGarden = false;
 
     @Switch(
             name = "Count RNG to $/Hr in Profit Calculator", category = HUD, subcategory = "Profit Calculator",
@@ -2082,7 +2086,7 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     @Number(name = "Config Version", category = EXPERIMENTAL, subcategory = "Experimental", min = 0, max = 1337)
-    public static int configVersion = 3;
+    public static int configVersion = 6;
     @Switch(
             name = "Shown Welcome GUI", category = EXPERIMENTAL, subcategory = "Experimental"
     )
@@ -2147,14 +2151,18 @@ public class FarmHelperConfig extends Config {
         this.addDependency("visitorsMacroAutosellBeforeServing", "visitorsMacro");
         this.addDependency("visitorsMacroMinMoney", "visitorsMacro");
         this.addDependency("visitorsMacroMaxSpendLimit", "visitorsMacro");
+        this.hideIf("visitorsFilteringMethod", () -> true);
 
-        this.addDependency("visitorsActionUncommon", "Visitors Filtering Method", () -> !visitorsFilteringMethod);
-        this.addDependency("visitorsActionRare", "Visitors Filtering Method", () -> !visitorsFilteringMethod);
-        this.addDependency("visitorsActionLegendary", "Visitors Filtering Method", () -> !visitorsFilteringMethod);
-        this.addDependency("visitorsActionMythic", "Visitors Filtering Method", () -> !visitorsFilteringMethod);
-        this.addDependency("visitorsActionSpecial", "Visitors Filtering Method", () -> !visitorsFilteringMethod);
-        this.addDependency("nameFilteringType", "visitorsFilteringMethod");
-        this.addDependency("nameFilter", "visitorsFilteringMethod");
+        this.addDependency("visitorsActionUncommon", "filterVisitorsByRarity");
+        this.addDependency("visitorsActionRare", "filterVisitorsByRarity");
+        this.addDependency("visitorsActionLegendary", "filterVisitorsByRarity");
+        this.addDependency("visitorsActionMythic", "filterVisitorsByRarity");
+        this.addDependency("visitorsActionSpecial", "filterVisitorsByRarity");
+        this.addDependency("nameFilteringType", "filterVisitorsByName");
+        this.addDependency("nameActionType", "filterVisitorsByName");
+        this.addDependency("nameActionType", "You can't reject a whitelisted visitor!", () -> !nameFilteringType);
+        this.addDependency("nameFilter", "filterVisitorsByName");
+        this.hideIf("nameFilterInfo", () -> !filterVisitorsByName || !filterVisitorsByRarity);
 
         this.addDependency("sendVisitorsMacroLogs", "visitorsMacro");
         this.addDependency("sendVisitorsMacroLogs", "enableWebHook");
@@ -2169,7 +2177,7 @@ public class FarmHelperConfig extends Config {
         this.addDependency("failsafeCutoffAfterUsingAoteV", "useAoteVInPestsDestroyer");
 
 
-        this.hideIf("infoCookieBuffRequired", () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().getCookieBuffState() == GameStateHandler.BuffState.NOT_ACTIVE);
+        this.hideIf("infoCookieBuffRequired", () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().getCookieBuffState() == BuffState.NOT_ACTIVE);
 
         this.addDependency("sendLogs", "enableWebHook");
         this.addDependency("sendStatusUpdates", "enableWebHook");
@@ -2228,7 +2236,7 @@ public class FarmHelperConfig extends Config {
 
         this.addDependency("pestRepellentType", "autoPestRepellent");
 
-        this.addDependency("averageBPSDrop", "averageBPSDropCheck");
+        this.addDependency("averageBPSDrop", "enableBpsCheck");
 
         this.addDependency("captureClipKeybind", "", () -> captureClipAfterFailsafe || captureClipAfterGettingBanned);
         this.addDependency("clipCapturingType", "", () -> captureClipAfterFailsafe || captureClipAfterGettingBanned);

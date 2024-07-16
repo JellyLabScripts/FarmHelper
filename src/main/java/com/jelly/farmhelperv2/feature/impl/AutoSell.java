@@ -47,6 +47,7 @@ public class AutoSell implements IFeature {
         return instance;
     }
 
+    @Getter
     private boolean enabled = false;
 
     @Getter
@@ -594,6 +595,8 @@ public class AutoSell implements IFeature {
         if (name.contains("Sack")) return false;
         if (name.contains("Pouch")) return false;
         if (name.contains("Knife")) return false;
+        if (name.contains("Dicer")) return false;
+        if (name.contains("Chopper")) return false;
         if (shouldSellCustomItem(name)) return true;
         return crops.stream().anyMatch(crop -> StringUtils.stripControlCodes(name).startsWith(crop));
     }

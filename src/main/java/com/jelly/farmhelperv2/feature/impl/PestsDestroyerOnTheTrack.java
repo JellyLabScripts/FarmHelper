@@ -7,6 +7,7 @@ import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
+import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
@@ -76,8 +77,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();
         }
-        ItemStack currentItem = mc.thePlayer.getHeldItem();
-        PestsDestroyer.getInstance().getVacuum(currentItem);
+        if (getVacuum()) return;
         LogUtils.sendWarning("[" + getName() + "] Started!");
         stuckTimer.schedule(FarmHelperConfig.pestsDestroyerOnTheTrackStuckTimer);
         IFeature.super.start();
@@ -161,8 +161,7 @@ public class PestsDestroyerOnTheTrack implements IFeature {
             return;
         }
 
-        ItemStack currentItem = mc.thePlayer.getHeldItem();
-        PestsDestroyer.getInstance().getVacuum(currentItem);
+        if (getVacuum()) return;
 
         Optional<Entity> entity = getPest(false);
         if (entity.isPresent()) {
@@ -227,6 +226,21 @@ public class PestsDestroyerOnTheTrack implements IFeature {
         this.entities.clear();
         this.entities.addAll(temp);
         return opt;
+    }
+
+    private boolean getVacuum() {
+        ItemStack currentItem = mc.thePlayer.getHeldItem();
+        if (currentItem == null || !currentItem.getDisplayName().contains("Vacuum")) {
+            int vacuum = InventoryUtils.getSlotIdOfItemInHotbar("Vacuum");
+            if (vacuum == -1) {
+                LogUtils.sendError("[Pests Destroyer On The Track] Failed to find vacuum in hotbar!");
+                FarmHelperConfig.pestsDestroyerOnTheTrack = false;
+                stop();
+                return true;
+            }
+            mc.thePlayer.inventory.currentItem = vacuum;
+        }
+        return false;
     }
 
     @Getter

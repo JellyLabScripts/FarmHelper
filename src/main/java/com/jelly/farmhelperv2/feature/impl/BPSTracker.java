@@ -5,10 +5,12 @@ import com.jelly.farmhelperv2.event.PlayerDestroyBlockEvent;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.macro.AbstractMacro;
 import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.BlockNetherWart;
 import net.minecraft.block.BlockReed;
+import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.Tuple;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -17,11 +19,12 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.Locale;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 
 public class BPSTracker implements IFeature {
     private static BPSTracker instance;
-    public final LinkedList<Tuple<Long, Long>> bpsQueue = new LinkedList<>();
+    public final ConcurrentLinkedDeque<Tuple<Long, Long>> bpsQueue = new ConcurrentLinkedDeque<>();
     public long blocksBroken = 0;
     public long totalBlocksBroken = 0;
     private final NumberFormat oneDecimalDigitFormatter = NumberFormat.getNumberInstance(Locale.US);
@@ -38,9 +41,9 @@ public class BPSTracker implements IFeature {
     }
 
     public boolean isPaused = false;
-    private boolean isResumingScheduled = false;
-    private long pauseStartTime = 0;
-    private float lastKnownBPS = 0;
+    public boolean isResumingScheduled = false;
+    public long pauseStartTime = 0; // used for BPS adjustment after the break
+    public float lastKnownBPS = 0;
 
 
     public void pause() {
@@ -63,25 +66,20 @@ public class BPSTracker implements IFeature {
     @Override
     public void resume() {
         if (isPaused && !isResumingScheduled) {
-            resumeScheduled();
-            LogUtils.sendDebug("Scheduled resuming BPS tracker");
-        }
-    }
-
-    public void resumeScheduled() {
-        if (!isResumingScheduled) {
             isResumingScheduled = true;
             Multithreading.schedule(() -> {
+                isResumingScheduled = false;
                 if (dontCheckForBPS()) {
-                    LogUtils.sendDebug("Canceled resuming BPS tracker");
                     return;
                 }
-                LogUtils.sendDebug("Resuming BPS tracker");
                 long pauseDuration = System.currentTimeMillis() - pauseStartTime;
-                adjustQueueTimestamps(pauseDuration);
+                if (pauseDuration < 0 || pauseDuration > 3600000) {
+                    LogUtils.sendDebug("BPSTracker: Invalid pause duration: " + pauseDuration + "ms. Ignoring.");
+                } else {
+                    adjustQueueTimestamps(pauseDuration);
+                }
                 isPaused = false;
                 pauseStartTime = 0;
-                isResumingScheduled = false;
             }, 1000L, TimeUnit.MILLISECONDS);
         }
     }
@@ -93,23 +91,37 @@ public class BPSTracker implements IFeature {
         IFeature.super.start();
     }
 
+    private boolean checkForBPS(AbstractMacro.State currentState) {
+        return currentState != AbstractMacro.State.NONE &&
+                currentState != AbstractMacro.State.DROPPING &&
+                currentState != AbstractMacro.State.SWITCHING_SIDE &&
+                currentState != AbstractMacro.State.SWITCHING_LANE &&
+                Minecraft.getMinecraft().currentScreen == null;
+    }
+
+    public float elapsedTime = 0;
+
     @SubscribeEvent
     public void onTickCheckBPS(TickEvent.ClientTickEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (!MacroHandler.getInstance().isCurrentMacroEnabled()) return;
-        if (event.phase != TickEvent.Phase.START) return;
-        if (MacroHandler.getInstance().getMacro().checkForBPS())
-            BPSTracker.getInstance().resume();
+        if (event.phase != TickEvent.Phase.END) return;
+        if (dontCheckForBPS())
+            pause();
         else
-            BPSTracker.getInstance().pause();
+            resume();
         if (isPaused) return;
 
         long currentTime = System.currentTimeMillis();
         bpsQueue.add(new Tuple<>(blocksBroken, currentTime));
         blocksBroken = 0;
 
+        while (!bpsQueue.isEmpty() && bpsQueue.getFirst() == null) {
+            bpsQueue.removeFirst();
+        }
+
         if (bpsQueue.size() > 1) {
-            float elapsedTime = (currentTime - bpsQueue.getFirst().getSecond()) / 1000f;
+            // added small epsilon to prevent division by very small numbers and zero
+            elapsedTime = Math.max((bpsQueue.getLast().getSecond() - bpsQueue.getFirst().getSecond()) / 1000f, 0.001f);
             while (elapsedTime > 10f && bpsQueue.size() > 1) {
                 bpsQueue.pollFirst();
                 elapsedTime = (currentTime - bpsQueue.getFirst().getSecond()) / 1000f;
@@ -132,7 +144,11 @@ public class BPSTracker implements IFeature {
     public boolean dontCheckForBPS() {
         return !MacroHandler.getInstance().getMacroingTimer().isScheduled()
                 || MacroHandler.getInstance().isCurrentMacroPaused()
-                || !MacroHandler.getInstance().getMacro().checkForBPS();
+                || !MacroHandler.getInstance().isCurrentMacroEnabled()
+                || MacroHandler.getInstance().isTeleporting()
+                || MacroHandler.getInstance().isRewarpTeleport()
+                || MacroHandler.getInstance().isStartingUp()
+                || !checkForBPS(MacroHandler.getInstance().getMacro().getCurrentState());
     }
 
     public float getBPSFloat() {
@@ -142,7 +158,7 @@ public class BPSTracker implements IFeature {
         }
 
         float elapsedTime = (bpsQueue.getLast().getSecond() - bpsQueue.getFirst().getSecond()) / 1000f;
-        lastKnownBPS = ((int) ((double) this.totalBlocksBroken / elapsedTime * 10.0D)) / 10.0F;
+        lastKnownBPS = totalBlocksBroken == 0 ? 0.1f : Math.max(((int) ((double) this.totalBlocksBroken / elapsedTime * 10.0D)) / 10.0F, 0.1f);
         return lastKnownBPS;
     }
 

@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.handler;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.*;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.failsafe.impl.CobwebFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.DirtFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.JacobFailsafe;
 import com.jelly.farmhelperv2.feature.impl.AutoRepellent;
@@ -70,8 +71,8 @@ public class GameStateHandler {
     private double dy;
     @Getter
     private String serverIP;
-    private long randomValueToWait = FarmHelperConfig.getRandomTimeBetweenChangingRows();
-    private long randomRewarpValueToWait = FarmHelperConfig.getRandomRewarpDelay();
+    private long randomValueToWait = -1;
+    private long randomRewarpValueToWait = -1;
     @Getter
     private BuffState cookieBuffState = BuffState.UNKNOWN;
     @Getter
@@ -154,7 +155,9 @@ public class GameStateHandler {
         boolean hasGuestsOnTabList = false;
         boolean foundPestHunterBonus = false;
         boolean foundLocation = false;
+        boolean foundSpray = false;
         int nextJacobCropFound = -1;
+        List<FarmHelperConfig.CropEnum> newJacobsContestNextCrop = new ArrayList<>();
 
         for (String cleanedLine : tabList) {
             if (cleanedLine.matches(areaPattern.pattern())) {
@@ -190,16 +193,26 @@ public class GameStateHandler {
             }
             if (nextJacobCropFound >= 0 && nextJacobCropFound < 3) { // Make sure only 3 crops are added and no irrelevant text are being scanned
                 FarmHelperConfig.CropEnum crop = convertCrop(cleanedLine);
-                if (crop != FarmHelperConfig.CropEnum.NONE && !jacobsContestNextCrop.contains(crop))
-                    jacobsContestNextCrop.add(crop);
+                if (crop != FarmHelperConfig.CropEnum.NONE && !newJacobsContestNextCrop.contains(crop))
+                    newJacobsContestNextCrop.add(crop);
                 nextJacobCropFound++;
+            }
+            if (nextJacobCropFound == 3) {
+                jacobsContestNextCrop = newJacobsContestNextCrop;
             }
             if (cleanedLine.contains("Starts In")) {
                 nextJacobCropFound = 0;
             }
+            if(cleanedLine.startsWith(" Spray: ")){
+                sprayonatorState = cleanedLine.endsWith("None") ? BuffState.NOT_ACTIVE : BuffState.ACTIVE;
+                foundSpray = true;
+            }
         }
         if (!foundPestHunterBonus) {
             pestHunterBonus = BuffState.UNKNOWN;
+        }
+        if(!foundSpray){
+            sprayonatorState = BuffState.UNKNOWN;
         }
         if (foundLocation) return;
 
@@ -315,7 +328,6 @@ public class GameStateHandler {
             } else if (cleanedLine.contains("DIAMOND with")) {
                 jacobMedal = JacobMedal.DIAMOND;
             }
-            jacobsContestNextCrop.clear();
         } else {
             jacobsContestCrop = Optional.empty();
             jacobsContestCropNumber = 0;
@@ -475,7 +487,6 @@ public class GameStateHandler {
         boolean foundGodPotBuff = false;
         boolean foundCookieBuff = false;
         boolean foundPestRepellent = false;
-        boolean foundSpray = false;
         boolean loaded = false;
 
         for (String line : footerString) {
@@ -510,24 +521,18 @@ public class GameStateHandler {
                 }
                 break;
             }
-            if (line.contains("Spray") && !line.contains("None")) {
-                foundSpray = true;
-                break;
-            }
         }
 
         if (!loaded) {
             cookieBuffState = BuffState.UNKNOWN;
             godPotState = BuffState.UNKNOWN;
             pestRepellentState = BuffState.UNKNOWN;
-            sprayonatorState = BuffState.UNKNOWN;
             return;
         }
 
         cookieBuffState = foundCookieBuff ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
         godPotState = foundGodPotBuff ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
         pestRepellentState = foundPestRepellent ? BuffState.ACTIVE : (!AutoRepellent.repellentFailsafeClock.passed() ? BuffState.FAILSAFE : BuffState.NOT_ACTIVE);
-        sprayonatorState = foundSpray ? BuffState.ACTIVE : BuffState.NOT_ACTIVE;
     }
 
     public void onTickCheckSpeed() {
@@ -544,6 +549,9 @@ public class GameStateHandler {
             if (hasPassedSinceStopped() && !PlayerUtils.isStandingOnRewarpLocation()) {
                 if (DirtFailsafe.getInstance().hasDirtBlocks() && DirtFailsafe.getInstance().isTouchingDirtBlock()) {
                     FailsafeManager.getInstance().possibleDetection(DirtFailsafe.getInstance());
+                } else if (!FailsafeManager.getInstance().firstCheckReturn()
+                        && (CobwebFailsafe.getInstance().isTouchingCobwebBlock() || CobwebFailsafe.getInstance().hasCobwebs())) {
+                    FailsafeManager.getInstance().possibleDetection(CobwebFailsafe.getInstance());
                 } else {
                     if (notMovingTimer.isScheduled()) {
                         randomValueToWaitNextTime = -1;
@@ -602,6 +610,7 @@ public class GameStateHandler {
     }
 
     public boolean canRewarp() {
+        if (randomRewarpValueToWait == -1) randomRewarpValueToWait = FarmHelperConfig.getRandomRewarpDelay();
         return reWarpTimer.hasPassed(randomRewarpValueToWait);
     }
 
@@ -611,6 +620,7 @@ public class GameStateHandler {
     }
 
     public boolean hasPassedSinceStopped() {
+        if (randomValueToWait == -1) randomValueToWait = FarmHelperConfig.getRandomTimeBetweenChangingRows();
         return notMovingTimer.hasPassed(randomValueToWaitNextTime != -1 ? randomValueToWaitNextTime : randomValueToWait);
     }
 

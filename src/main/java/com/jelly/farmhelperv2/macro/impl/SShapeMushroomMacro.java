@@ -37,7 +37,9 @@ public class SShapeMushroomMacro extends AbstractMacro {
 
     @Override
     public void actionAfterTeleport() {
-        setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
+        if (!isPitchSet()) {
+            setPitch((float) (Math.random() * 2 - 1)); // -1 - 1
+        }
     }
 
     @Override

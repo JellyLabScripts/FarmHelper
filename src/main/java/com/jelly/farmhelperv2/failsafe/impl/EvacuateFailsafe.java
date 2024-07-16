@@ -54,7 +54,7 @@ public class EvacuateFailsafe extends Failsafe {
     @Override
     public void onTickDetection(TickEvent.ClientTickEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
-        if (!FarmHelperConfig.autoEvacuateOnWorldUpdate) return;
+        if (!FarmHelperConfig.autoEvacuateOnServerReboot) return;
         if (evacuateState != EvacuateState.NONE) return;
 
         GameStateHandler.getInstance().getServerClosingSeconds().ifPresent(seconds -> {

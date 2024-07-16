@@ -342,10 +342,6 @@ public abstract class AbstractMacro {
 
     public abstract void actionAfterTeleport();
 
-    public boolean checkForBPS() {
-        return currentState != State.NONE && currentState != State.DROPPING && currentState != State.SWITCHING_SIDE && currentState != State.SWITCHING_LANE && mc.currentScreen == null;
-    }
-
     public State calculateDirection() {
         if (BlockUtils.getRelativeBlock(-1, 0, 0).equals(Blocks.air) && BlockUtils.getRelativeBlock(-1, -1, 0).equals(Blocks.air)) {
             return State.RIGHT;

@@ -6,6 +6,7 @@ import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -73,7 +74,7 @@ public class KnockbackFailsafe extends Failsafe {
         }
         if (((S12PacketEntityVelocity) event.packet).getEntityID() != mc.thePlayer.getEntityId())
             return;
-        if (((S12PacketEntityVelocity) event.packet).getMotionY() < FarmHelperConfig.knockbackCheckVerticalSensitivity)
+        if (((S12PacketEntityVelocity) event.packet).getMotionY() < FarmHelperConfig.verticalKnockbackThreshold)
             return;
 
         if (FlyPathFinderExecutor.getInstance().isRunning()) {
@@ -152,6 +153,11 @@ public class KnockbackFailsafe extends Failsafe {
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 break;
             case ROTATE_TO_POS_BEFORE:
+                if (FeatureManager.getInstance().isAnyOtherFeatureEnabled()) {
+                    LogUtils.sendDebug("Ending failsafe earlier because another feature is enabled");
+                    knockbackCheckState = KnockbackCheckState.END;
+                    break;
+                }
                 FailsafeManager.getInstance().rotation.easeTo(new RotationConfiguration(new Rotation((float) (rotationBeforeReacting.getYaw() + (Math.random() * 30 - 15)), (float) (Math.random() * 30 + 30)),
                         500, null));
                 knockbackCheckState = KnockbackCheckState.LOOK_AROUND_2;

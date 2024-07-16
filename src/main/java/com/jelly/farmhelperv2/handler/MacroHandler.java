@@ -5,7 +5,6 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
-import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.WorldChangeFailsafe;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.*;
@@ -166,10 +165,6 @@ public class MacroHandler {
         }
     }
 
-    /**
-     * This method is used for enabling the entire macro (including all features)
-     * It should only be used when the entire macro is disabled
-     */
     public void enableMacro() {
         if (!GameStateHandler.getInstance().inGarden()) {
             LogUtils.sendError("You must be in the garden to start the macro!");
@@ -184,7 +179,9 @@ public class MacroHandler {
         LogUtils.sendDebug("Selected macro: " + LogUtils.capitalize(currentMacro.get().getClass().getSimpleName()));
         PlayerUtils.closeScreen();
         LogUtils.sendSuccess("Macro enabled!");
-        LogUtils.webhookLog("Macro enabled!");
+        if (FarmHelperConfig.sendMacroEnableDisableLogs) {
+            LogUtils.webhookLog("Macro enabled!");
+        }
 
         analyticsTimer.reset();
         Multithreading.schedule(() -> {
@@ -202,18 +199,17 @@ public class MacroHandler {
         FeatureManager.getInstance().enableAll();
 
         setMacroToggled(true);
-        executeCurrentMacro();
+        enableCurrentMacro();
         getCurrentMacro().ifPresent(cm -> cm.getCheckOnSpawnClock().reset());
         analyticsTimer.schedule();
     }
 
-    /**
-     * This method is used for disabling the entire macro (including all features)
-     */
     public void disableMacro() {
         setMacroToggled(false);
         LogUtils.sendSuccess("Macro disabled!");
-        LogUtils.webhookLog("Macro disabled!");
+        if (FarmHelperConfig.sendMacroEnableDisableLogs) {
+            LogUtils.webhookLog("Macro disabled!");
+        }
         currentMacro.ifPresent(m -> {
             m.setSavedState(Optional.empty());
             m.getRotation().reset();
@@ -230,13 +226,10 @@ public class MacroHandler {
         FailsafeManager.getInstance().resetAfterMacroDisable();
         if (UngrabMouse.getInstance().isToggled())
             UngrabMouse.getInstance().stop();
-        stopActiveMacro();
+        disableCurrentMacro();
         setCurrentMacro(Optional.empty());
     }
 
-    /**
-     * This method is used for temporarily pausing the macro and some features (E.g. Scheduler, failsafe)
-     */
     public void pauseMacro(boolean scheduler) {
         currentMacro.ifPresent(cm -> {
             KeyBindUtils.stopMovement();
@@ -246,12 +239,13 @@ public class MacroHandler {
             beforeTeleportationPos = Optional.empty();
             macroingTimer.pause();
             analyticsTimer.pause();
-            LowerAvgBpsFailsafe.getInstance().resetStates();
             if (scheduler && Freelook.getInstance().isRunning()) {
                 Freelook.getInstance().stop();
             }
             if (Scheduler.getInstance().isFarming())
                 Scheduler.getInstance().pause();
+            if (!BPSTracker.getInstance().isPaused)
+                BPSTracker.getInstance().pause();
         });
     }
 
@@ -262,9 +256,6 @@ public class MacroHandler {
     @Getter
     private boolean resume = false;
 
-    /**
-     * This method is used for resuming the macro after it is stopped (E.g. After failsafe)
-     */
     public void resumeMacro() {
         currentMacro.ifPresent(cm -> {
             if (!cm.isPaused()) return;
@@ -276,16 +267,12 @@ public class MacroHandler {
             macroingTimer.resume();
             analyticsTimer.resume();
             afterRewarpDelay.reset();
-            Scheduler.getInstance().resume();
+//            Scheduler.getInstance().resume(); - gets enabled in featuremanager
             FeatureManager.getInstance().resume();
-            LowerAvgBpsFailsafe.getInstance().resetStates();
         });
     }
 
-    /**
-     * This method is used only for executing the farming macro (not the features)
-     */
-    public void executeCurrentMacro() {
+    public void enableCurrentMacro() {
         if (currentMacro.isPresent() && !currentMacro.get().isEnabledAndNoFeature() && !startingUp) {
             mc.thePlayer.closeScreen();
             // Fixed issue #180 for Mac users (mouse vanishing glitch)
@@ -304,10 +291,7 @@ public class MacroHandler {
         }
     }
 
-    /**
-     * This method is used only for stopping the active macro (not the features)
-     */
-    public void stopActiveMacro() {
+    public void disableCurrentMacro() {
         currentMacro.ifPresent(AbstractMacro::onDisable);
     }
 

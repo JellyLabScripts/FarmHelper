@@ -21,7 +21,7 @@ import java.util.List;
 
 public class DebugHUD extends TextHud {
     public DebugHUD() {
-        super(true, 1f, 10f, 1, true, true, 1, 5, 5, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
+        super(true, 1f, 10f, 0.5f, true, true, 1, 5, 5, new OneColor(0, 0, 0, 150), false, 2, new OneColor(0, 0, 0, 127));
     }
 
     @Override
@@ -89,7 +89,6 @@ public class DebugHUD extends TextHud {
 //        if (LagDetector.getInstance().isLagging()) {
 //            lines.add("   Lagging for: " + LagDetector.getInstance().getLaggingTime());
 //        }
-        lines.add("Average BPS: " + BPSTracker.getInstance().getBPS());
         if (DesyncChecker.getInstance().isToggled()) {
             lines.add("Desync Checker");
             lines.add("   Clicked blocks: " + DesyncChecker.getInstance().getClickedBlocks().size());
@@ -141,23 +140,6 @@ public class DebugHUD extends TextHud {
                     String.format("   Current Entity Target: %.2f %.2f %.2f", target.getPositionVector().xCoord, target.getPositionVector().yCoord, target.getPositionVector().zCoord))
             );
         }
-        if (AutoSprayonator.getInstance().isRunning()) {
-            lines.add("Auto Sprayonator");
-            lines.add("   Enable Delay: " + AutoSprayonator.getInstance().getEnableDelay().getRemainingTime());
-            lines.add("   State: " + AutoSprayonator.getInstance().getSprayState());
-            lines.add("   Item: " + AutoSprayonator.getInstance().getSprayItem());
-            lines.add("   Clock: " + AutoSprayonator.getInstance().getSprayonatorDelay().getRemainingTime());
-            lines.add("   Check Plot State: " + AutoSprayonator.getInstance().getCheckPlotState());
-            lines.add("   Skymart State: " + AutoSprayonator.getInstance().getSkymartPurchaseState());
-            lines.add("   Bazaar State: " + AutoSprayonator.getInstance().getBazaarPurchaseState());
-            lines.add("   GUI State: " + AutoSprayonator.getInstance().getCurrentGuiState());
-            AutoSprayonator.PlotData plotData = AutoSprayonator.getInstance().getSprayonatorPlotStates().get(GameStateHandler.getInstance().getCurrentPlot());
-            if (plotData != null) {
-                lines.add("   Plot Sprayed: " + plotData.isSprayed());
-                lines.add("   Plot Spray Clock: " + plotData.getSprayClock().getRemainingTime());
-                lines.add("   Plot Spray Item: " + plotData.getSprayItem());
-            }
-        }
         if (AutoPestExchange.getInstance().isRunning()) {
             lines.add("Auto Pest Hunter");
             lines.add("   State: " + AutoPestExchange.getInstance().getNewState());
@@ -167,10 +149,20 @@ public class DebugHUD extends TextHud {
         if (BPSTracker.getInstance().isRunning()) {
             lines.add("BPSTracker");
             lines.add("   BPS: " + BPSTracker.getInstance().getBPS());
-            lines.add("   BPS Queue Size: " + BPSTracker.getInstance().bpsQueue.size());
-            lines.add("   Blocks Broken: " + BPSTracker.getInstance().blocksBroken);
-            lines.add("   Total Blocks Broken: " + BPSTracker.getInstance().totalBlocksBroken);
-            lines.add("   isPaused: " + BPSTracker.getInstance().isPaused);
+            lines.add("   BPS queue size: " + BPSTracker.getInstance().bpsQueue.size());
+            lines.add("   Blocks broken: " + BPSTracker.getInstance().blocksBroken);
+            lines.add("   Total blocks broken: " + BPSTracker.getInstance().totalBlocksBroken);
+            lines.add("   Paused: " + BPSTracker.getInstance().isPaused);
+            lines.add("   isResumingScheduled: " + BPSTracker.getInstance().isResumingScheduled);
+            lines.add("   Pause start time: " + BPSTracker.getInstance().pauseStartTime);
+            lines.add("   Last known BPS: " + BPSTracker.getInstance().lastKnownBPS);
+            lines.add("   Elapsed time: " + BPSTracker.getInstance().elapsedTime);
+            if (!BPSTracker.getInstance().bpsQueue.isEmpty()
+                    && BPSTracker.getInstance().bpsQueue.getFirst() != null
+                    && BPSTracker.getInstance().bpsQueue.getLast() != null) {
+                lines.add("   First timestamp: " + BPSTracker.getInstance().bpsQueue.getFirst().getSecond());
+                lines.add("   Last timestamp: " + BPSTracker.getInstance().bpsQueue.getLast().getSecond());
+            }
         }
     }
 }

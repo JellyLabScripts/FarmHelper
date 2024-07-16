@@ -48,7 +48,8 @@ public class WebsocketHandler {
                 new ScreenshotCommand(),
                 speedCommand,
                 new ToggleCommand(),
-                new DisconnectCommand()
+                new DisconnectCommand(),
+                new AutoSellCommand()
         ));
         MinecraftForge.EVENT_BUS.register(speedCommand);
         LogUtils.sendDebug("[Remote Control] Registered " + commands.size() + " commands.");
@@ -96,7 +97,7 @@ public class WebsocketHandler {
                 LogUtils.sendNotification("Farm Helper", "Farm Helper JDA Dependency is not installed, disabling remote control..");
             }
             return;
-        } else if (!FarmHelper.isJDAVersionCorrect) {
+        } else if (!FarmHelper.isJDAVersionCorrect && FarmHelperConfig.enableRemoteControl) {
             FarmHelperConfig.enableRemoteControl = false;
             LogUtils.sendError("[Remote Control] Farm Helper JDA Dependency is outdated! Please update it and try again. Disabling remote control...");
             LogUtils.sendNotification("Farm Helper", "Farm Helper JDA Dependency is outdated! Please update it and try again. Disabling remote control...");

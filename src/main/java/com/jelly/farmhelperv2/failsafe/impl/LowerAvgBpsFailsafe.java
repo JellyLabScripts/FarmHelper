@@ -10,7 +10,6 @@ import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
-import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
@@ -18,7 +17,6 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 public class LowerAvgBpsFailsafe extends Failsafe {
     private static LowerAvgBpsFailsafe instance;
-    private float lastBPS;
 
     private final Clock clock = new Clock();
 
@@ -61,29 +59,29 @@ public class LowerAvgBpsFailsafe extends Failsafe {
 
     @Override
     public void onTickDetection(TickEvent.ClientTickEvent event) {
-        if (MacroHandler.getInstance().isCurrentMacroPaused()
-                || FeatureManager.getInstance().shouldPauseMacroExecution()
-                || !MacroHandler.getInstance().getMacro().checkForBPS()
-                || !FarmHelperConfig.averageBPSDropCheck
-                || event.phase != TickEvent.Phase.START) {
+        if (event.phase != TickEvent.Phase.START) return;
+
+        float currentBPS = BPSTracker.getInstance().getBPSFloat();
+        boolean shouldReset = FeatureManager.getInstance().shouldPauseMacroExecution()
+                || BPSTracker.getInstance().dontCheckForBPS()
+                || !FarmHelperConfig.enableBpsCheck
+                || currentBPS >= FarmHelperConfig.minBpsThreshold;
+
+        if (shouldReset) {
+            if (clock.isScheduled() || lowerBPSState == LowerBPSState.WAIT_BEFORE_START) {
+                resetStates();
+                // LogUtils.sendDebug("LowerAvgBpsFailsafe: Reset states. Current BPS: " + currentBPS);
+            }
             return;
         }
 
-        if (BPSTracker.getInstance().getBPSFloat() - lastBPS < 0) {
-            if (!clock.isScheduled())
-                clock.schedule(FarmHelperConfig.BPSDropThreshold * 1000L);
-        } else if (BPSTracker.getInstance().getBPSFloat() - lastBPS > 0) {
-            clock.reset();
-        }
-        lastBPS = BPSTracker.getInstance().getBPSFloat();
-
-        if (!clock.isScheduled())
-            return;
-
-        if (clock.passed()) {
+        if (!clock.isScheduled()) {
+            clock.schedule(4500L + Math.random() * 1000L);
+            // LogUtils.sendDebug("LowerAvgBpsFailsafe: BPS below threshold. Current: " + currentBPS + ", Threshold: " + FarmHelperConfig.minBpsThreshold);
+        } else if (clock.passed()) {
+            // LogUtils.sendDebug("LowerAvgBpsFailsafe: Failsafe triggered. Current BPS: " + currentBPS);
             FailsafeManager.getInstance().possibleDetection(this);
         }
-
     }
 
     @Override
@@ -137,9 +135,7 @@ public class LowerAvgBpsFailsafe extends Failsafe {
 
     @Override
     public void resetStates() {
-        LogUtils.sendDebug("RESET");
         clock.reset();
-        lastBPS = 0;
         lowerBPSState = LowerBPSState.NONE;
     }
 

@@ -7,6 +7,7 @@ import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.AntiStuck;
 import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
@@ -160,19 +161,19 @@ public class TeleportFailsafe extends Failsafe {
         double distance = currentPlayerPos.distanceTo(packetPlayerPos);
 
         LogUtils.sendDebug("[Failsafe] Teleport packet received! Distance: " + distance);
-        if (distance >= FarmHelperConfig.teleportCheckSensitivity || (MacroHandler.getInstance().getCurrentMacro().isPresent() && Math.abs(packet.getY()) - Math.abs(MacroHandler.getInstance().getCurrentMacro().get().getLayerY()) > 0.8)) {
+        if (distance >= FarmHelperConfig.teleportDistanceThreshold || (MacroHandler.getInstance().getCurrentMacro().isPresent() && Math.abs(packet.getY()) - Math.abs(MacroHandler.getInstance().getCurrentMacro().get().getLayerY()) > 0.8)) {
             LogUtils.sendDebug("[Failsafe] Teleport detected! Distance: " + distance);
             final double lastReceivedPacketDistance = currentPlayerPos.distanceTo(LagDetector.getInstance().getLastPacketPosition());
             // blocks per tick
             final double playerMovementSpeed = mc.thePlayer.getAttributeMap().getAttributeInstanceByName("generic.movementSpeed").getAttributeValue();
             final int ticksSinceLastPacket = (int) Math.ceil(LagDetector.getInstance().getTimeSinceLastTick() / 50D);
             final double estimatedMovement = playerMovementSpeed * ticksSinceLastPacket;
-            if (lastReceivedPacketDistance > 7.5D && Math.abs(lastReceivedPacketDistance - estimatedMovement) < FarmHelperConfig.teleportCheckLagSensitivity)
+            if (lastReceivedPacketDistance > 7.5D && Math.abs(lastReceivedPacketDistance - estimatedMovement) < FarmHelperConfig.teleportLagTolerance)
                 return;
             if (originalPosition == null) {
                 originalPosition = mc.thePlayer.getPositionVector();
             }
-            triggerCheck.schedule(FarmHelperConfig.teleportRotationCheckTimeWindow);
+            triggerCheck.schedule(FarmHelperConfig.detectionTimeWindow);
         }
     }
 
@@ -206,7 +207,7 @@ public class TeleportFailsafe extends Failsafe {
             return;
         }
         double totalDisplacement = currentPosition.distanceTo(originalPosition);
-        if (totalDisplacement > FarmHelperConfig.teleportCheckSensitivity) {
+        if (totalDisplacement > FarmHelperConfig.teleportDistanceThreshold) {
             FailsafeManager.getInstance().possibleDetection(this);
         } else {
             FailsafeManager.getInstance().emergencyQueue.remove(this);
@@ -277,6 +278,11 @@ public class TeleportFailsafe extends Failsafe {
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 break;
             case ROTATE_TO_POS_BEFORE:
+                if (FeatureManager.getInstance().isAnyOtherFeatureEnabled()) {
+                    LogUtils.sendDebug("Ending failsafe earlier because another feature is enabled");
+                    teleportCheckState = TeleportCheckState.END;
+                    break;
+                }
                 FailsafeManager.getInstance().rotation.easeTo(new RotationConfiguration(new Rotation((float) (rotationBeforeReacting.getYaw() + (Math.random() * 30 - 15)), (float) (Math.random() * 30 + 30)),
                         500, null));
                 teleportCheckState = TeleportCheckState.LOOK_AROUND_2;

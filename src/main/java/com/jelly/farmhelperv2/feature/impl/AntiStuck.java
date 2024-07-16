@@ -2,6 +2,8 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.failsafe.impl.BadEffectsFailsafe;
+import com.jelly.farmhelperv2.failsafe.impl.CobwebFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.RotationFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.TeleportFailsafe;
 import com.jelly.farmhelperv2.feature.FeatureManager;
@@ -80,6 +82,9 @@ public class AntiStuck implements IFeature {
     @Override
     public void start() {
         if (enabled) return;
+        if (FailsafeManager.getInstance().getEmergencyQueue().contains(CobwebFailsafe.getInstance()) ||
+                FailsafeManager.getInstance().getEmergencyQueue().contains(BadEffectsFailsafe.getInstance()))
+            return;
         LogUtils.sendWarning("[Anti Stuck] Enabled");
         if (FailsafeManager.getInstance().getEmergencyQueue().contains(TeleportFailsafe.getInstance()) ||
                 FailsafeManager.getInstance().getEmergencyQueue().contains(RotationFailsafe.getInstance()))

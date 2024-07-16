@@ -6,6 +6,7 @@ import cc.polyfrost.oneconfig.utils.commands.annotations.Main;
 import cc.polyfrost.oneconfig.utils.commands.annotations.SubCommand;
 import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
@@ -66,5 +67,10 @@ public class FarmHelperMainCommand {
     public void update() {
         PlayerUtils.closeScreen();
         FarmHelperConfig.checkForUpdate();
+    }
+
+    @SubCommand
+    public void test(){
+        LogUtils.sendSuccess("SprayonatorState: " + GameStateHandler.getInstance().getSprayonatorState());
     }
 }
