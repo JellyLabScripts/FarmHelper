@@ -282,7 +282,7 @@ public class AutoBazaar implements IFeature {
                     if (customAmount != null && customAmount.getHasStack()) {
                         this.buyState = BuyState.OPEN_SIGN;
                         this.buyNowButtonSlot = -1;
-                        LogUtils.sendDebug("[Auto Bazaar] Buying custom amount");
+                        log("Buying custom amount");
                         return;
                     }
                 }
@@ -372,7 +372,7 @@ public class AutoBazaar implements IFeature {
                     System.out.println("Max spend limit: " + this.maxSpendLimit);
                     foundPrice = true;
                     if (this.maxSpendLimit > 0 && amount > this.maxSpendLimit) {
-                        LogUtils.sendError("[Auto Bazaar] Declining to buy due to exceeding the price limit. Item price: " + amount + ", limit: " + this.maxSpendLimit);
+                        LogUtils.sendError("[AutoBazaar] Declining to buy due to exceeding the price limit. Item price: " + amount + ", limit: " + this.maxSpendLimit);
                         log("Attempting to spend more than allowed. Price: " + amount + ", limit: " + this.maxSpendLimit);
                         log("Disabling.");
                         this.wasManipulated = true;
@@ -393,8 +393,32 @@ public class AutoBazaar implements IFeature {
                 this.timer.schedule(2000);
                 break;
             case BUY_VERIFY:
+                if (!InventoryUtils.isInventoryLoaded()) return;
+                if (this.openedChestGuiNameContains("Confirm") && !this.openedChestGuiNameContains("Instant Buy")) {
+                    log("Opened warning page");
+                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    this.buyState = BuyState.WARNING_PAGE;
+                    break;
+                }
                 if (this.hasTimerEnded()) {
                     this.disable("Could not buy item. Disabling");
+                }
+                // Verifying
+                break;
+            case WARNING_PAGE:
+                if (!InventoryUtils.isInventoryLoaded()) return;
+                if (this.openedChestGuiNameContains("Confirm") && !this.openedChestGuiNameContains("Instant Buy")) {
+                    if (InventoryUtils.getSlotIdOfItemInContainer("WARNING") != -1) {
+                        this.timer.schedule(1000);
+                    } else if (InventoryUtils.getSlotIdOfItemInContainer("Confirm") != -1) {
+                        this.buyState = BuyState.BUY_VERIFY;
+                        InventoryUtils.clickContainerSlot(InventoryUtils.getSlotIdOfItemInContainer("Confirm"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        this.timer.schedule(2000);
+                    }
+                    break;
+                }
+                if (this.hasTimerEnded()) {
+                    this.disable("Could not open confirm page.");
                 }
                 // Verifying
                 break;
@@ -561,7 +585,7 @@ public class AutoBazaar implements IFeature {
 
     // Insta Buy
     enum BuyState {
-        STARTING, OPEN_BZ, BZ_VERIFY, CLICK_ON_PRODUCT, PRODUCT_VERIFY, CLICK_BUY_INSTANTLY, BUY_INSTANTLY_VERIFY, OPEN_SIGN, OPEN_SIGN_VERIFY, EDIT_SIGN, CONFIRM_SIGN, VERIFY_CONFIRM_PAGE, CLICK_BUY, BUY_VERIFY, DISABLE
+        STARTING, OPEN_BZ, BZ_VERIFY, CLICK_ON_PRODUCT, PRODUCT_VERIFY, CLICK_BUY_INSTANTLY, BUY_INSTANTLY_VERIFY, OPEN_SIGN, OPEN_SIGN_VERIFY, EDIT_SIGN, CONFIRM_SIGN, VERIFY_CONFIRM_PAGE, CLICK_BUY, WARNING_PAGE, BUY_VERIFY, DISABLE
     }
 
     // Insta Sell

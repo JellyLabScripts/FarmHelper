@@ -231,9 +231,14 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
                 }
                 break;
             }
-            case NONE:
+            case NONE: {
                 changeState(calculateDirection());
                 break;
+            }
+            default: {
+                LogUtils.sendDebug("This shouldn't happen, but it did...");
+                changeState(State.NONE);
+            }
         }
     }
 

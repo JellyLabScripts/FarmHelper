@@ -54,7 +54,7 @@ public class GameStateHandler {
     private Location location = Location.TELEPORTING;
 
     private boolean isInJacobContest = false;
-    private boolean isGuestOnGarden = false;
+    private boolean isGuestInGarden = false;
     @Getter
     private boolean frontWalkable;
     @Getter
@@ -176,7 +176,7 @@ public class GameStateHandler {
                 }
             }
             if (!hasGuestsOnTabList) {
-                if (checkGuestOnGardenTabList(cleanedLine)) {
+                if (checkGuestInGardenTabList(cleanedLine)) {
                     hasGuestsOnTabList = true;
                 }
             }
@@ -458,13 +458,13 @@ public class GameStateHandler {
         }
     }
 
-    private boolean checkGuestOnGardenTabList(String cleanedLine) {
+    private boolean checkGuestInGardenTabList(String cleanedLine) {
         if (cleanedLine.contains("Guests (0)")) {
-            isGuestOnGarden = false;
+            isGuestInGarden = false;
             return true;
         }
         if (cleanedLine.contains("Guests ")) {
-            isGuestOnGarden = true;
+            isGuestInGarden = true;
             return true;
         }
         return false;
@@ -697,8 +697,8 @@ public class GameStateHandler {
         return isInJacobContest;
     }
 
-    public boolean isGuestOnGarden() {
-        return isGuestOnGarden;
+    public boolean isGuestInGarden() {
+        return isGuestInGarden;
     }
 
     public int getPestsFromVacuum() {

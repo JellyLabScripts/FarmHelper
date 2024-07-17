@@ -624,7 +624,7 @@ public class BanInfoWS implements IFeature {
                                 + (macroEnabled ? " while " + (fastBreak ? "§c§nfastbreaking§r§e " : "farming ") + crop + "." : ".")
                                 + "\n§ePossible reason: §c" + reason + "§e."
                                 + "\n§eLongest session in the last 7 days: §c" + LogUtils.formatTime(longestSession7D)
-                                + (!lastFailsafe.isEmpty() ? "\nLast failsafe: §c" + lastFailsafe : ""));
+                                + (!lastFailsafe.isEmpty() ? "\n§eLast failsafe: §c" + lastFailsafe : ""));
                         // LogUtils.sendNotification("Farm Helper", "User " + username + " got banned for " + days + " days");
                         break;
                     }
