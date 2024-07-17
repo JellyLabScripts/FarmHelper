@@ -119,11 +119,13 @@ public class TeleportFailsafe extends Failsafe {
             return;
         }
         Optional<Tuple<BlockPos, AbstractMacro.State>> lastWalkedPosition = Optional.empty();
-        for (int i = lastWalkedPositions.size() - 1; i >= 0; i--) {
-            Tuple<BlockPos, AbstractMacro.State> pos = lastWalkedPositions.toArray(new Tuple[0])[i];
-            if (pos.getFirst().equals(packetPlayerBlockPos)) {
-                lastWalkedPosition = Optional.of(pos);
-                break;
+        if(!lastWalkedPositions.isEmpty()) {
+            for (int i = lastWalkedPositions.size() - 1; i >= 0; i--) {
+                Tuple<BlockPos, AbstractMacro.State> pos = lastWalkedPositions.toArray(new Tuple[0])[i];
+                if (pos.getFirst().equals(packetPlayerBlockPos)) {
+                    lastWalkedPosition = Optional.of(pos);
+                    break;
+                }
             }
         }
         if (lastWalkedPosition.isPresent()) {
