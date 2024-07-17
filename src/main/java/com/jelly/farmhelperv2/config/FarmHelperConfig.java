@@ -1682,7 +1682,6 @@ public class FarmHelperConfig extends Config {
             min = 1, max = 100
     )
     public static int inventoryFullRatio = 65;
-
     @Button(
             name = "Sell Inventory Now", category = AUTO_SELL, subcategory = "Auto Sell",
             description = "Sells crops in your inventory",

@@ -728,6 +728,7 @@ public class VisitorsMacro implements IFeature {
                     break;
                 }
                 if (FlyPathFinderExecutor.getInstance().isPathing() || BaritoneHandler.isPathing()) {
+                    LogUtils.sendDebug("[Visitors Macro] Path finder still pathfinding");
                     return;
                 }
                 if (currentCharacter.isPresent() && mc.thePlayer.getDistanceToEntity(currentCharacter.get()) > 3) {
@@ -736,11 +737,11 @@ public class VisitorsMacro implements IFeature {
                     break;
                 }
                 assert currentVisitor.isPresent();
+                if (moveAwayIfPlayerTooClose()) return;
                 if (mc.objectMouseOver != null && mc.objectMouseOver.entityHit != null) {
                     Entity entity = mc.objectMouseOver.entityHit;
                     VisitorEntities result2 = getVisitorEntities(entity);
                     if (result2 == null) break;
-
                     if (result2.nameArmorStand.equals(currentVisitor.get()) || result2.entityCharacter.equals(currentCharacter.get()) || entity.equals(result2.entityClickStand)) {
                         LogUtils.sendDebug("[Visitors Macro] Looking at Visitor");
                         delayClock.schedule(250 + Math.random() * 200);
@@ -752,7 +753,6 @@ public class VisitorsMacro implements IFeature {
                     }
                     break;
                 }
-                if (moveAwayIfPlayerTooClose()) return;
                 if (RotationHandler.getInstance().isRotating()) break;
                 LogUtils.sendDebug("[Visitors Macro] Looking at nothing");
                 LogUtils.sendDebug("[Visitors Macro] Distance: " + mc.thePlayer.getDistanceToEntity(currentCharacter.get()));
@@ -1190,6 +1190,7 @@ public class VisitorsMacro implements IFeature {
     private boolean moveAwayIfPlayerTooClose() {
         try {
             assert currentCharacter.isPresent();
+            LogUtils.sendDebug("Distance: " + mc.thePlayer.getDistanceToEntity(currentCharacter.get()));
             if (mc.thePlayer.getDistanceToEntity(currentCharacter.get()) < 0.25) {
                 FlyPathFinderExecutor.getInstance().setSprinting(false);
                 FlyPathFinderExecutor.getInstance().setDontRotate(true);
@@ -1202,6 +1203,7 @@ public class VisitorsMacro implements IFeature {
                     return true;
                 }
                 if (GameStateHandler.getInstance().isBackWalkable()) {
+                    LogUtils.sendDebug("[Visitors Macro] Too close to character. Moving back!");
                     KeyBindUtils.holdThese(mc.gameSettings.keyBindBack, !mc.thePlayer.capabilities.isFlying && GameStateHandler.getInstance().getSpeed() > 250 && (mc.thePlayer.motionX > 0.1 || mc.thePlayer.motionZ > 0.1) ? mc.gameSettings.keyBindSneak : null);
                     Multithreading.schedule(KeyBindUtils::stopMovement, 50, TimeUnit.MILLISECONDS);
                     return true;

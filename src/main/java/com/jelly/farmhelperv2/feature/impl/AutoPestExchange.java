@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import baritone.Baritone;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
@@ -102,6 +103,7 @@ public class AutoPestExchange implements IFeature {
         }
         resetStatesAfterMacroDisabled();
         enabled = true;
+        stuckClock.reset();
         newState = NewState.NONE;
         LogUtils.sendWarning("[Auto Pest Exchange] Starting...");
         IFeature.super.start();

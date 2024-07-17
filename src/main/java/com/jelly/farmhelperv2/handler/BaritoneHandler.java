@@ -14,8 +14,18 @@ import net.minecraft.util.BlockPos;
 
 public class BaritoneHandler {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    @Getter
+
     public static boolean pathing = false;
+
+    public static boolean isPathing() {
+        if (pathing) {
+            return BaritoneEventListener.pathEvent != PathEvent.AT_GOAL
+                    && BaritoneEventListener.pathEvent != PathEvent.CALC_FAILED
+                    && BaritoneEventListener.pathEvent != PathEvent.NEXT_CALC_FAILED
+                    && BaritoneEventListener.pathEvent != PathEvent.CANCELED;
+        }
+        return false;
+    }
 
     public static boolean isWalkingToGoalBlock() {
         return isWalkingToGoalBlock(0.75);
