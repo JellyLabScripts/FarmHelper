@@ -871,6 +871,7 @@ public class VisitorsMacro implements IFeature {
                 }
 
                 assert currentVisitor.isPresent();
+                boolean acceptWhitelistedVisitor = false;
                 if (FarmHelperConfig.filterVisitorsByName) {
                     if (FarmHelperConfig.nameFilter.isEmpty()) {
                         LogUtils.sendError("[Visitors Macro] Name filter is empty. Switching to rarity filtering method...");
@@ -880,7 +881,8 @@ public class VisitorsMacro implements IFeature {
                         List<String> visitorsList = Arrays.asList(FarmHelperConfig.nameFilter.split("\\|"));
                         if (visitorsList.stream().anyMatch(visitorName -> StringUtils.stripControlCodes(npcName.toLowerCase()).contains(visitorName.toLowerCase()))) {
                             if (FarmHelperConfig.nameFilteringType) {
-                                LogUtils.sendDebug("[Visitors Macro] NPC name is on the whitelist filter. Accepting offer/Filtering with rarity later...");
+                                LogUtils.sendDebug("[Visitors Macro] NPC name is on the whitelist filter. Accepting offer...");
+                                acceptWhitelistedVisitor = true;
                             } else {
                                 if (FarmHelperConfig.nameActionType) {
                                     LogUtils.sendDebug("[Visitors Macro] NPC name is on the blacklist filter. Ignoring...");
@@ -906,7 +908,7 @@ public class VisitorsMacro implements IFeature {
                     }
                 }
 
-                if (FarmHelperConfig.filterVisitorsByRarity && !rejectVisitor && !ignoredNPCs.contains(currentVisitor.get())) {
+                if (FarmHelperConfig.filterVisitorsByRarity && !rejectVisitor && !ignoredNPCs.contains(currentVisitor.get()) && !acceptWhitelistedVisitor) {
                     switch (npcRarity) {
                         case UNKNOWN:
                             LogUtils.sendDebug("[Visitors Macro] The visitor is unknown rarity. Accepting offer...");
@@ -1078,7 +1080,7 @@ public class VisitorsMacro implements IFeature {
                 break;
             case END:
                 currentRewards.clear();
-                LogUtils.sendSuccess("[Visitors Macro] Spent §2" + ProfitCalculator.getInstance().getFormatter().format(spentMoney) + " on visitors");
+                LogUtils.sendSuccess("[Visitors Macro] Spent §2" + ProfitCalculator.getInstance().getFormatter().format(spentMoney) + "§a on visitors");
                 spentMoney = 0;
                 if (compactorsDisabled) {
                     setMainState(MainState.COMPACTORS);
@@ -1269,6 +1271,15 @@ public class VisitorsMacro implements IFeature {
                 if (InventoryUtils.getAmountOfItemInInventory(itemsToBuy.get(0).getLeft()) >= itemsToBuy.get(0).getRight()) {
                     LogUtils.sendDebug("[Visitors Macro] Already have " + itemsToBuy.get(0).getLeft() + ", skipping...");
                     itemsToBuy.remove(0);
+                    return;
+                }
+                if (!InventoryUtils.canFitItemInInventory(itemsToBuy.get(0).getLeft(), itemsToBuy.get(0).getRight())) {
+                    LogUtils.sendDebug("[Visitors Macro] Not enough space in inventory, skipping...");
+                    itemsToBuy.remove(0);
+                    if (FarmHelperConfig.fullInventoryAction)
+                        ignoredNPCs.add(currentVisitor.get());
+                    else
+                        rejectVisitor = true;
                     return;
                 }
                 setBuyState(BuyState.BUY_ITEMS);

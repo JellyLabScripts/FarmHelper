@@ -273,6 +273,7 @@ public class BanInfoWS implements IFeature {
     }
 
     public void playerBanned(int days, String reason, String banId, String fullReason) {
+        if (System.currentTimeMillis() - GameStateHandler.getInstance().getLastTimeInGarden() > 15_000L) return;
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("message", "gotBanned");
         jsonObject.addProperty("uuid", Minecraft.getMinecraft().getSession().getPlayerID());
@@ -300,7 +301,7 @@ public class BanInfoWS implements IFeature {
             String serverId = mojangAuthentication();
             jsonObject.addProperty("serverId", serverId);
         } catch (AuthenticationException e) {
-            Multithreading.schedule(() -> playerBanned(days, reason, banId, fullReason), 250, TimeUnit.MILLISECONDS);
+            Multithreading.schedule(() -> playerBanned(days, reason, banId, fullReason), 1337, TimeUnit.MILLISECONDS);
             return;
         }
 
@@ -646,8 +647,6 @@ public class BanInfoWS implements IFeature {
             }
         };
     }
-
-    private long cachedLongestSessionLength = 0L;
 
     public void loadStatsOnInit() {
         getLongestSessionLast7D();

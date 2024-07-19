@@ -142,7 +142,8 @@ public class WorldChangeFailsafe extends Failsafe {
                     LogUtils.sendDebug("[Failsafe] In lobby, sending /skyblock command...");
                     mc.thePlayer.sendChatMessage("/skyblock");
                     if (sendOnce) {
-                        FailsafeManager.getInstance().scheduleRandomDelay(60_000, 4000);
+                        FailsafeManager.getInstance().scheduleRandomDelay(30_000, 4000);
+                        LogUtils.sendWarning("[Failsafe] Couldn't warp to SkyBlock! Will try again in 30 seconds.");
                     } else {
                         FailsafeManager.getInstance().scheduleRandomDelay(4_500, 5000);
                         sendOnce = true;
@@ -150,8 +151,8 @@ public class WorldChangeFailsafe extends Failsafe {
                     return;
                 }
                 if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
-                    LogUtils.sendDebug("[Failsafe] In Limbo, sending /l command...");
-                    mc.thePlayer.sendChatMessage("/l");
+                    LogUtils.sendDebug("[Failsafe] In Limbo, sending /lobby command...");
+                    mc.thePlayer.sendChatMessage("/lobby");
                     sendOnce = false;
                     FailsafeManager.getInstance().scheduleRandomDelay(4500, 1000);
                     return;

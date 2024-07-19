@@ -10,6 +10,7 @@ import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
+import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
@@ -19,6 +20,7 @@ public class LowerAvgBpsFailsafe extends Failsafe {
     private static LowerAvgBpsFailsafe instance;
 
     private final Clock clock = new Clock();
+    private long lastTriggered = 0L;
 
     public static LowerAvgBpsFailsafe getInstance() {
         if (instance == null) {
@@ -79,7 +81,12 @@ public class LowerAvgBpsFailsafe extends Failsafe {
             clock.schedule(4500L + Math.random() * 1000L);
             // LogUtils.sendDebug("LowerAvgBpsFailsafe: BPS below threshold. Current: " + currentBPS + ", Threshold: " + FarmHelperConfig.minBpsThreshold);
         } else if (clock.passed()) {
+            if (System.currentTimeMillis() - lastTriggered < 20000L) {
+                resetStates();
+                return;
+            }
             // LogUtils.sendDebug("LowerAvgBpsFailsafe: Failsafe triggered. Current BPS: " + currentBPS);
+            lastTriggered = System.currentTimeMillis();
             FailsafeManager.getInstance().possibleDetection(this);
         }
     }
@@ -107,7 +114,7 @@ public class LowerAvgBpsFailsafe extends Failsafe {
                         MacroHandler.getInstance().triggerWarpGarden(true, false);
                         FailsafeManager.getInstance().scheduleRandomDelay(2500, 2000);
                     } else if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
-                        mc.thePlayer.sendChatMessage("/l");
+                        mc.thePlayer.sendChatMessage("/lobby");
                         FailsafeManager.getInstance().scheduleRandomDelay(2500, 2000);
                     } else {
                         mc.thePlayer.sendChatMessage("/skyblock");
@@ -125,12 +132,14 @@ public class LowerAvgBpsFailsafe extends Failsafe {
                                 , (long) randomTime, null));
                 FailsafeManager.getInstance().stopFailsafes();
                 FailsafeManager.getInstance().restartMacroAfterDelay();
+                this.endOfFailsafeTrigger();
                 break;
         }
     }
 
     @Override
     public void endOfFailsafeTrigger() {
+        lastTriggered = System.currentTimeMillis();
     }
 
     @Override
