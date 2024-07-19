@@ -52,6 +52,8 @@ public class GameStateHandler {
     private Location lastLocation = Location.TELEPORTING;
     @Getter
     private Location location = Location.TELEPORTING;
+    @Getter
+    private long lastTimeInGarden = -1;
 
     private boolean isInJacobContest = false;
     private boolean isGuestInGarden = false;
@@ -682,7 +684,10 @@ public class GameStateHandler {
     }
 
     public boolean inGarden() {
-        return location != Location.TELEPORTING && location == Location.GARDEN;
+        boolean isInGarden = location != Location.TELEPORTING && location == Location.GARDEN;
+        if (isInGarden)
+            lastTimeInGarden = System.currentTimeMillis();
+        return isInGarden;
     }
 
     public boolean inJacobContest() {

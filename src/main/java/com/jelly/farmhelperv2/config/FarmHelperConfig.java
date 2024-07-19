@@ -1048,6 +1048,13 @@ public class FarmHelperConfig extends Config {
     @Deprecated // Just here to keep the old settings for automatic migration
     public static boolean visitorsFilteringMethod = false;
 
+    @DualOption(
+            name = "Full Inventory Action", category = VISITORS_MACRO, subcategory = "Visitors Macro",
+            description = "The action to take when the items don't fit in your inventory",
+            left = "Reject", right = "Ignore"
+    )
+    public static boolean fullInventoryAction = true;
+
     //</editor-fold>
 
     //<editor-fold desc="Name Filtering">

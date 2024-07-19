@@ -256,6 +256,35 @@ public class InventoryUtils {
         return amount;
     }
 
+    public static boolean canFitItemInInventory(String item, int amount) {
+        int freeSpace = 0;
+        int currentAmount = getAmountOfItemInInventory(item);
+        boolean isStackable = isItemStackable(item);
+        int maxStackSize = isStackable ? 64 : 1;
+        for (Slot slot : mc.thePlayer.inventoryContainer.inventorySlots) {
+            if (!slot.getHasStack()) {
+                freeSpace += maxStackSize;
+            } else {
+                String itemName = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
+                if (itemName.equals(item))
+                    freeSpace += maxStackSize - slot.getStack().stackSize;
+            }
+            if (freeSpace + currentAmount >= amount)
+                return true;
+        }
+        return false;
+    }
+
+    private static boolean isItemStackable(String item) {
+        String[] nonStackableItems = {"Spawn Egg", "Cake", "Bucket", "Sword", "Pickaxe", "Axe", "Shovel", "Hoe", "Helmet", "Chestplate", "Leggings", "Boots"};
+        for (String nonStackable : nonStackableItems) {
+            if (item.contains(nonStackable)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static int getRancherBootSpeed() {
         final ItemStack stack = mc.thePlayer.inventoryContainer.getSlot(8).getStack();
         int speed = -1;
