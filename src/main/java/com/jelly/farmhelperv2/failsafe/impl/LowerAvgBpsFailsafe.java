@@ -81,7 +81,7 @@ public class LowerAvgBpsFailsafe extends Failsafe {
             clock.schedule(4500L + Math.random() * 1000L);
             // LogUtils.sendDebug("LowerAvgBpsFailsafe: BPS below threshold. Current: " + currentBPS + ", Threshold: " + FarmHelperConfig.minBpsThreshold);
         } else if (clock.passed()) {
-            if (System.currentTimeMillis() - lastTriggered < 20000L) {
+            if (System.currentTimeMillis() - lastTriggered < 60_000L) {
                 resetStates();
                 return;
             }
