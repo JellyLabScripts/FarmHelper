@@ -1973,13 +1973,13 @@ public class FarmHelperConfig extends Config {
             name = "Reset stats between disabling", category = HUD, subcategory = "Profit Calculator"
     )
     public static boolean resetStatsBetweenDisabling = false;
-    @Button(
-            name = "Reset Profit Calculator", category = HUD, subcategory = "Profit Calculator",
-            text = "Reset Now", size = 2
-    )
-    public void resetStats() {
-        ProfitCalculator.getInstance().resetProfits();
-    }
+//    @Button(
+//            name = "Reset Profit Calculator", category = HUD, subcategory = "Profit Calculator",
+//            text = "Reset Now", size = 2
+//    )
+//    public void resetStats() {
+//        ProfitCalculator.getInstance().resetProfits();
+//    }
     @HUD(
             name = "Profit Calculator HUD - Visual Settings", category = HUD, subcategory = " "
     )
