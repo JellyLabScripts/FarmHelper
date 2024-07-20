@@ -11,7 +11,9 @@ import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDirt;
+import net.minecraft.block.BlockReed;
 import net.minecraft.block.BlockTrapDoor;
+import net.minecraft.init.Blocks;
 
 import java.util.Optional;
 
@@ -124,6 +126,9 @@ public class SShapeSugarcaneMelonkingdeMacro extends AbstractMacro {
 
     @Override
     public State calculateDirection() {
+        if (mc.theWorld.getBlockState(BlockUtils.getRelativeBlockPos(-1, 1, 0, getYaw() - 45f)).getBlock() instanceof BlockReed) {
+            return State.A;
+        }
         return State.W;
     }
 
