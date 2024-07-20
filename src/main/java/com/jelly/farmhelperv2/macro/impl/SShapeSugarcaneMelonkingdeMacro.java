@@ -9,11 +9,9 @@ import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockDirt;
 import net.minecraft.block.BlockReed;
 import net.minecraft.block.BlockTrapDoor;
-import net.minecraft.init.Blocks;
 
 import java.util.Optional;
 
