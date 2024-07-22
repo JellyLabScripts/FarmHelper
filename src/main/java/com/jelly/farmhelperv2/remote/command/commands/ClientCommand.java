@@ -81,18 +81,46 @@ abstract public class ClientCommand {
         }
     }
 
+    // Why did they switch back to static methods again right after I finally fixed it?...
     private static void disableEssentialScreenshotManager() {
         if (ReflectionUtils.hasPackageInstalled("gg.essential")) {
             try {
-                // Get the EssentialConfig class
                 Class<?> essentialConfigClass = Class.forName("gg.essential.config.EssentialConfig");
 
-                // Get the INSTANCE field
+                Field screenshotsStateField = essentialConfigClass.getDeclaredField("essentialScreenshotsState");
+                screenshotsStateField.setAccessible(true);
+                Object essentialScreenshotsState = screenshotsStateField.get(null);
+
+                Method getMethod = essentialScreenshotsState.getClass().getMethod("get");
+                getMethod.setAccessible(true);
+
+                Boolean currentValue = (Boolean) getMethod.invoke(essentialScreenshotsState);
+                if (currentValue != null && !currentValue) {
+                    return;
+                }
+
+                Method setMethod = essentialScreenshotsState.getClass().getMethod("set", Object.class);
+                setMethod.setAccessible(true);
+                setMethod.invoke(essentialScreenshotsState, false);
+
+                LogUtils.sendWarning("Disabling Essential Mod's Screenshot Manager");
+            } catch (Exception e) {
+                LogUtils.sendError("Failed to disable Essential Mod's Screenshot Manager. Trying the other method...");
+                disableOldEssentialScreenshotManager();
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void disableOldEssentialScreenshotManager() {
+        if (ReflectionUtils.hasPackageInstalled("gg.essential")) {
+            try {
+                Class<?> essentialConfigClass = Class.forName("gg.essential.config.EssentialConfig");
+
                 Field instanceField = essentialConfigClass.getDeclaredField("INSTANCE");
                 instanceField.setAccessible(true);
                 Object configInstance = instanceField.get(null);
 
-                // Get the essentialScreenshots field
                 Field screenshotsField = essentialConfigClass.getDeclaredField("essentialScreenshots");
                 screenshotsField.setAccessible(true);
 
@@ -101,17 +129,14 @@ abstract public class ClientCommand {
                 modifiersField.setAccessible(true);
                 modifiersField.setInt(screenshotsField, screenshotsField.getModifiers() & ~Modifier.FINAL);
 
-                // Set essentialScreenshots to false
                 screenshotsField.set(null, false);
 
                 // Call markDirty() method from Vigilant superclass to save the changes
                 Method markDirtyMethod = essentialConfigClass.getSuperclass().getDeclaredMethod("markDirty");
                 markDirtyMethod.setAccessible(true);
                 markDirtyMethod.invoke(configInstance);
-
-                LogUtils.sendWarning("Disabling Essential Mod's Screenshot Manager");
             } catch (Exception e) {
-                LogUtils.sendError("Failed to disable Essential Mod's Screenshot Manager. Please disable it manually.");
+                LogUtils.sendError("Failed to disable Essential Mod's Screenshot Manager again. Please disable it manually.");
                 e.printStackTrace();
             }
         }

@@ -135,12 +135,11 @@ public class WorldChangeFailsafe extends Failsafe {
                 break;
             case END:
                 if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING
-                        || LagDetector.getInstance().isLagging()) {
+                        || LagDetector.getInstance().isLagging() || GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.UNKNOWN) {
                     FailsafeManager.getInstance().scheduleDelay(1000);
                     return;
                 }
-                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY
-                        || GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.UNKNOWN) {
+                if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY) {
                     LogUtils.sendDebug("[Failsafe] In lobby, sending /skyblock command...");
                     mc.thePlayer.sendChatMessage("/skyblock");
                     if (sendOnce) {

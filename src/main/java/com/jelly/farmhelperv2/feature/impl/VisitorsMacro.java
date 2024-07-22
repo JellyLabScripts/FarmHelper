@@ -1273,7 +1273,7 @@ public class VisitorsMacro implements IFeature {
                     itemsToBuy.remove(0);
                     return;
                 }
-                if (!InventoryUtils.canFitItemInInventory(itemsToBuy.get(0).getLeft(), itemsToBuy.get(0).getRight())) {
+                if (itemsToBuy.get(0).getLeft().toLowerCase().contains("cake") && !InventoryUtils.canFitCakesInInventory(itemsToBuy.get(0).getRight())) {
                     LogUtils.sendDebug("[Visitors Macro] Not enough space in inventory, skipping...");
                     itemsToBuy.remove(0);
                     if (FarmHelperConfig.fullInventoryAction)

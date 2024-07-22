@@ -256,11 +256,27 @@ public class InventoryUtils {
         return amount;
     }
 
+    public static boolean canFitCakesInInventory(int amount) {
+        int freeSpace = 0;
+        int currentAmount = getAmountOfItemInInventory("Enchanted Cake");
+        for (int i = 9; i <= 44; i++) {
+            Slot slot = mc.thePlayer.inventoryContainer.inventorySlots.get(i);
+            if (!slot.getHasStack()) {
+                freeSpace++;
+            }
+            if (freeSpace + currentAmount >= amount) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static boolean canFitItemInInventory(String item, int amount) {
         int freeSpace = 0;
         int currentAmount = getAmountOfItemInInventory(item);
-        int maxStackSize = item.toLowerCase().contains("cake") ? 1 : 64;
-        for (Slot slot : mc.thePlayer.inventoryContainer.inventorySlots) {
+        int maxStackSize = 64;
+        for (int i = 9; i <= 44; i++) {
+            Slot slot = mc.thePlayer.inventoryContainer.inventorySlots.get(i);
             if (!slot.getHasStack()) {
                 freeSpace += maxStackSize;
             } else {
