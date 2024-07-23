@@ -1,6 +1,5 @@
 package com.jelly.farmhelperv2.feature.impl;
 
-import baritone.Baritone;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
