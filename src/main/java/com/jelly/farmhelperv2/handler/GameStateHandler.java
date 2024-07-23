@@ -133,6 +133,7 @@ public class GameStateHandler {
     public void onWorldChange(WorldEvent.Unload event) {
         lastLocation = location;
         location = Location.TELEPORTING;
+        serverClosingSeconds = Optional.empty();
     }
 
     @SubscribeEvent
@@ -382,8 +383,6 @@ public class GameStateHandler {
             int minutes = Integer.parseInt(serverClosingMatcher.group("minutes"));
             int seconds = Integer.parseInt(serverClosingMatcher.group("seconds"));
             serverClosingSeconds = Optional.of(minutes * 60 + seconds);
-        } else {
-            serverClosingSeconds = Optional.empty();
         }
     }
 

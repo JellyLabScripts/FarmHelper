@@ -31,8 +31,10 @@ public class DebugHUD extends TextHud {
         lines.add("§lFarmHelper v" + FarmHelper.VERSION + " Debug HUD");
         lines.add("wasGuestInGarden: " + GuestVisitFailsafe.getInstance().wasGuestInGarden);
         lines.add("Jacob's Contest Collected: " + GameStateHandler.getInstance().getJacobsContestCropNumber());
+        if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent())
+            lines.add("Server closing in: " + GameStateHandler.getInstance().getServerClosingSeconds().get());
         if (MovRecPlayer.getInstance().isRunning()) {
-            lines.add("Yaw Difference: " + MovRecPlayer.getYawDifference());
+            lines.add("MovRec Yaw Difference: " + MovRecPlayer.getYawDifference());
         }
         lines.add("Bountiful: " + ProfitCalculator.getInstance().getBountifulProfit());
         lines.add("Purse: " + GameStateHandler.getInstance().getCurrentPurse());

@@ -283,8 +283,7 @@ public class FarmHelperConfig extends Config {
             name = "AutoUpdater Version Type", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "The version type to use",
             left = "Release",
-            right = "Pre-release",
-            size = 2
+            right = "Pre-release"
     )
     public static boolean autoUpdaterDownloadBetaVersions = false;
 
@@ -331,6 +330,12 @@ public class FarmHelperConfig extends Config {
             description = "Enables Picture-in-Picture mode, hold middle mouse while macroing to move the game window"
     )
     public static boolean pipMode = false;
+    @Slider(
+            name = "Anti Stuck Tries Until Rewarp", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+            description = "The number of tries until rewarp",
+            min = 3, max = 10
+    )
+    public static int antiStuckTriesUntilRewarp = 5;
     //</editor-fold>
 
     //<editor-fold desc="Performance Mod">
@@ -726,20 +731,6 @@ public class FarmHelperConfig extends Config {
             description = "Prevents the macro from leaving during Jacob's Contest even when banwave detected"
     )
     public static boolean banwaveDontLeaveDuringJacobsContest = true;
-    //</editor-fold>
-
-    //<editor-fold desc="Anti Stuck">
-    @Switch(
-            name = "Enable Anti Stuck", category = FAILSAFE, subcategory = "Anti Stuck",
-            description = "Prevents the macro from getting stuck in the same position"
-    )
-    public static boolean enableAntiStuck = true;
-    @Slider(
-            name = "Anti Stuck Tries Until Rewarp", category = FAILSAFE, subcategory = "Anti Stuck",
-            description = "The number of tries until rewarp",
-            min = 3, max = 10
-    )
-    public static int antiStuckTriesUntilRewarp = 5;
     //</editor-fold>
 
     //<editor-fold desc="Failsafe Messages">

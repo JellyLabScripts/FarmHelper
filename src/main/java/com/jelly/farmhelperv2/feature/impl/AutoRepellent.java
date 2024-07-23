@@ -183,6 +183,7 @@ public class AutoRepellent implements IFeature {
         if (!isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
+            LogUtils.sendError("Server closing, stopping Auto Repellent");
             stop();
             return;
         }
