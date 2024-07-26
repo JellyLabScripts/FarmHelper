@@ -389,8 +389,12 @@ public class AutoRepellent implements IFeature {
                 delay.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
             case CONFIRM_BUY:
                 if (guiName.equals("Confirm")) {
+                    Slot confirmSlot = InventoryUtils.getSlotOfItemInContainer("Confirm");
+                    if (confirmSlot == null) {
+                        break;
+                    }
                     state = State.CLOSE_GUI;
-                    InventoryUtils.clickContainerSlot(InventoryUtils.getSlotOfItemInContainer("Confirm").slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                    InventoryUtils.clickContainerSlot(confirmSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                     delay.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
