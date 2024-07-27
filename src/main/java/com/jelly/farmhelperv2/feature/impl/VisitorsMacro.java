@@ -343,6 +343,10 @@ public class VisitorsMacro implements IFeature {
                 stuckClock.reset();
                 return;
             }
+            if (AutoBazaar.getInstance().isRunning() && !AutoBazaar.getInstance().hasFailed()) {
+                stuckClock.reset();
+                return;
+            }
             LogUtils.sendError("[Visitors Macro] The player is stuck, restarting the macro...");
             stop();
             start();
