@@ -121,7 +121,7 @@ public class AntiStuck implements IFeature {
 
     @Override
     public boolean isToggled() {
-        return FarmHelperConfig.enableAntiStuck;
+        return true;
     }
 
     @Override

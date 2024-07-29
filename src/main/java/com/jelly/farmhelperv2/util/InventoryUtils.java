@@ -123,6 +123,24 @@ public class InventoryUtils {
         return null;
     }
 
+    public static Slot getSlotOfItemByHypixelIdInInventory(String hypixelId) {
+        for (Slot slot : mc.thePlayer.inventoryContainer.inventorySlots) {
+            if (slot.getHasStack()) {
+                NBTTagCompound tag = slot.getStack().getTagCompound();
+                if (tag != null && tag.hasKey("ExtraAttributes")) {
+                    NBTTagCompound extraAttributes = tag.getCompoundTag("ExtraAttributes");
+                    if (extraAttributes.hasKey("id")) {
+                        String id = extraAttributes.getString("id");
+                        if (id.equals(hypixelId)) {
+                            return slot;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     public static String getInventoryName() {
         try {
             if (mc.currentScreen instanceof GuiChest) {

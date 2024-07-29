@@ -99,9 +99,14 @@ public class WorldChangeFailsafe extends Failsafe {
 
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains(":")) return;
-        if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing") || message.contains("You cannot join SkyBlock from here!")) {
+        if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing")) {
             LogUtils.sendWarning("[Failsafe] Can't warp to the garden! Will try again in a moment.");
             FailsafeManager.getInstance().scheduleDelay(10000);
+        }
+        if (message.startsWith("You cannot join SkyBlock from here!")) {
+            LogUtils.sendDebug("[Failsafe] Can't warp to the SkyBlock! Executing /lobby command...");
+            mc.thePlayer.sendChatMessage("/lobby");
+            FailsafeManager.getInstance().scheduleDelay(2_000);
         }
     }
 

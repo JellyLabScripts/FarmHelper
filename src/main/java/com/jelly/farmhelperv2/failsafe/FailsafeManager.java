@@ -6,7 +6,6 @@ import com.jelly.farmhelperv2.event.BlockChangeEvent;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.impl.*;
 import com.jelly.farmhelperv2.feature.FeatureManager;
-import com.jelly.farmhelperv2.feature.impl.BPSTracker;
 import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
 import com.jelly.farmhelperv2.feature.impl.Scheduler;
 import com.jelly.farmhelperv2.handler.MacroHandler;

@@ -8,7 +8,6 @@ import baritone.api.pathing.goals.GoalNear;
 import baritone.api.process.PathingCommand;
 import baritone.api.process.PathingCommandType;
 import com.jelly.farmhelperv2.util.helper.BaritoneEventListener;
-import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 

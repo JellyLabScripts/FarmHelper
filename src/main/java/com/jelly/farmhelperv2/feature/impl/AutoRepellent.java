@@ -183,6 +183,7 @@ public class AutoRepellent implements IFeature {
         if (!isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
+            LogUtils.sendError("Server closing, stopping Auto Repellent");
             stop();
             return;
         }
@@ -388,8 +389,12 @@ public class AutoRepellent implements IFeature {
                 delay.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
             case CONFIRM_BUY:
                 if (guiName.equals("Confirm")) {
+                    Slot confirmSlot = InventoryUtils.getSlotOfItemInContainer("Confirm");
+                    if (confirmSlot == null) {
+                        break;
+                    }
                     state = State.CLOSE_GUI;
-                    InventoryUtils.clickContainerSlot(InventoryUtils.getSlotOfItemInContainer("Confirm").slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                    InventoryUtils.clickContainerSlot(confirmSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                     delay.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }

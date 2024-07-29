@@ -395,7 +395,7 @@ public class AutoBazaar implements IFeature {
             case BUY_VERIFY:
                 if (!InventoryUtils.isInventoryLoaded()) return;
                 if (this.openedChestGuiNameContains("Confirm") && !this.openedChestGuiNameContains("Instant Buy")) {
-                    log("Opened warning page");
+                    log("Opened warning page.");
                     this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     this.buyState = BuyState.WARNING_PAGE;
                     break;
@@ -414,6 +414,7 @@ public class AutoBazaar implements IFeature {
                         this.buyState = BuyState.BUY_VERIFY;
                         InventoryUtils.clickContainerSlot(InventoryUtils.getSlotIdOfItemInContainer("Confirm"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         this.timer.schedule(2000);
+                        log("Clicked confirm.");
                     }
                     break;
                 }

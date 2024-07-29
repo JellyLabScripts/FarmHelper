@@ -440,7 +440,10 @@ public class PestsDestroyer implements IFeature {
             case TELEPORT_TO_PLOT:
                 PlotUtils.Plot plot;
                 if (FarmHelperConfig.dontTeleportToPlots) {
-                    plot = PlotUtils.getPlotBasedOnNumber(4);
+                    delayClock.schedule(1_000 + Math.random() * 500);
+                    MacroHandler.getInstance().triggerWarpGarden(true, false);
+                    state = States.CHECKING_SPAWN;
+                    return;
                 } else {
                     plot = getClosestPlot();
                 }
@@ -515,6 +518,7 @@ public class PestsDestroyer implements IFeature {
                 if (FarmHelperConfig.dontTeleportToPlots) {
                     if (PlayerUtils.isPlayerSuffocating() || !BlockUtils.canFlyHigher(3)) {
                         state = States.TELEPORT_TO_PLOT;
+                        LogUtils.sendWarning("[Pests Destroyer] The player is suffocating and/or it can't fly higher. Forcing going back to spawnpoint.");
                     } else {
                         state = States.FLY_TO_THE_CLOSEST_PLOT;
                     }
