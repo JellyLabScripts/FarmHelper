@@ -260,6 +260,7 @@ public abstract class AbstractMacro {
     }
 
     public void onPacketReceived(ReceivePacketEvent event) {
+        /*
         if (!(event.packet instanceof S08PacketPlayerPosLook)) return;
         if (!MacroHandler.getInstance().isTeleporting()) return;
 
@@ -271,6 +272,7 @@ public abstract class AbstractMacro {
         if (diff > 5) {
             LogUtils.sendWarning("Your rotation hasn't been changed after rewarp! Disable any mod that blocks rotation packets or fix your /setspawn so look directly at the crops!");
         }
+        */
     }
 
     public abstract void updateState();
