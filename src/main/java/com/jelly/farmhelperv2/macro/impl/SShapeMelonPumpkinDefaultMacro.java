@@ -32,6 +32,7 @@ public class SShapeMelonPumpkinDefaultMacro extends AbstractMacro {
             setYaw(AngleUtils.getClosestDiagonal());
             setClosest90Deg(Optional.of(AngleUtils.getClosest(getYaw())));
         }
+        changeState(calculateDirection());
         float additionalRotation;
         switch (getCurrentState()) {
             case LEFT:

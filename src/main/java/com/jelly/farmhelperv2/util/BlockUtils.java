@@ -83,12 +83,7 @@ public class BlockUtils {
     }
 
     public static Block getRelativeBlock(float x, float y, float z) {
-        return mc.theWorld.getBlockState(
-                new BlockPos(
-                        mc.thePlayer.posX + getUnitX() * z + getUnitZ() * -1 * x,
-                        (mc.thePlayer.posY % 1 > 0.7 ? Math.ceil(mc.thePlayer.posY) : mc.thePlayer.posY) + y,
-                        mc.thePlayer.posZ + getUnitZ() * z + getUnitX() * x
-                )).getBlock();
+        return getBlock(getRelativeBlockPos(x, y, z));
     }
 
     public static BlockPos getRelativeBlockPos(float x, float y, float z) {
@@ -99,6 +94,23 @@ public class BlockUtils {
         );
     }
 
+    public static Block getRelativeBlock45Deg(float x, float y, float z, float yaw) {
+        return getBlock(getRelativeBlockPos45Deg(x, y, z, yaw));
+    }
+
+    public static BlockPos getRelativeBlockPos45Deg(float x, float y, float z, float yaw) {
+        float roundedYaw = AngleUtils.getClosest45(yaw);
+        double radians = Math.toRadians(roundedYaw);
+
+        double unitX = -Math.sin(radians);
+        double unitZ = Math.cos(radians);
+
+        return new BlockPos(
+                mc.thePlayer.posX + unitX * z - unitZ * x,
+                (mc.thePlayer.posY % 1 > 0.7 ? Math.ceil(mc.thePlayer.posY) : mc.thePlayer.posY) + y,
+                mc.thePlayer.posZ + unitZ * z + unitX * x
+        );
+    }
 
     public static Block getRelativeFullBlock(float x, float y, float z) {
         return mc.theWorld.getBlockState(
@@ -118,12 +130,7 @@ public class BlockUtils {
     }
 
     public static Block getRelativeBlock(float x, float y, float z, float yaw) {
-        return mc.theWorld.getBlockState(
-                new BlockPos(
-                        mc.thePlayer.posX + getUnitX(yaw) * z + getUnitZ(yaw) * -1 * x,
-                        (mc.thePlayer.posY % 1 > 0.7 ? Math.ceil(mc.thePlayer.posY) : mc.thePlayer.posY) + y,
-                        mc.thePlayer.posZ + getUnitZ(yaw) * z + getUnitX(yaw) * x
-                )).getBlock();
+        return getBlock(getRelativeBlockPos(x, y, z, yaw));
     }
 
     public static BlockPos getRelativeBlockPos(float x, float y, float z, float yaw) {
