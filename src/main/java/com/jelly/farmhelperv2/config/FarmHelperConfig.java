@@ -1337,6 +1337,10 @@ public class FarmHelperConfig extends Config {
             description = "Sends a notification if pests detection number has been exceeded"
     )
     public static boolean sendNotificationIfPestsDetectionNumberExceeded = true;
+    @Switch(name = "Send Webhook log when pest destroyer starts/stops", category = PESTS_DESTROYER, subcategory = "Logs",
+            description = "Sends a webhook log when pest destroyer starts/stops"
+    )
+    public static boolean sendWebhookLogWhenPestDestroyerStartsStops = true;
     //</editor-fold>
     //</editor-fold>
 
