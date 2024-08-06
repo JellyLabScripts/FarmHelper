@@ -422,22 +422,22 @@ public class FailsafeManager {
 
     public enum EmergencyType {
         NONE(""),
-        ROTATION_CHECK("You've got§l ROTATED§r§d by staff member!"),
-        TELEPORT_CHECK("You've got§l TELEPORTED§r§d by staff member!"),
-        KNOCKBACK_CHECK("You've got§l KNOCKBACKED OUT OF THE FARM§r§d by staff member!"),
-        DIRT_CHECK("You've got§l DIRT CHECKED§r§d by staff member!"),
-        COBWEB_CHECK("You've got§l COBWEB CHECKED§r§d by staff member!"),
-        BAD_EFFECTS_CHECK("You've got§l BAD EFFECTS APPLIED §r§d by staff member!"),
+        ROTATION_CHECK("You've been §lROTATED§r§d by a staff member!"),
+        TELEPORT_CHECK("You've been §lTELEPORTED§r§d by a staff member!"),
+        KNOCKBACK_CHECK("You've been §lKNOCKED OUT OF THE FARM§r§d by a staff member!"),
+        DIRT_CHECK("You've been §lDIRT CHECKED§r§d by a staff member!"),
+        COBWEB_CHECK("You've been §lCOBWEB CHECKED§r§d by a staff member!"),
+        BAD_EFFECTS_CHECK("You've had §lBAD EFFECTS APPLIED§r§d by a staff member!"),
         FULL_INVENTORY("Your inventory is full. It might be a staff check or just an accident."),
         ITEM_CHANGE_CHECK("Your §lITEM HAS CHANGED§r§d!"),
         WORLD_CHANGE_CHECK("Your §lWORLD HAS CHANGED§r§d!"),
-        BEDROCK_CAGE_CHECK("You've got§l BEDROCK CAGED§r§d by staff member!"),
+        BEDROCK_CAGE_CHECK("You've been §lBEDROCK CAGED§r§d by a staff member!"),
         EVACUATE("Server is restarting! Evacuate!"),
-        BANWAVE("Banwave has been detected!"),
-        DISCONNECT("You've been§l DISCONNECTED§r§d from the server!"),
+        BANWAVE("A banwave has been detected!"),
+        DISCONNECT("You've been §lDISCONNECTED§r§d from the server!"),
         LOWER_AVERAGE_BPS("Your BPS is lower than average!"),
         JACOB("You've extended the §lJACOB COUNTER§r§d!"),
-        GUEST_VISIT("You've got§l VISITED§r§d by "
+        GUEST_VISIT("You've been §lVISITED§r§d by "
                 + (!GuestVisitFailsafe.getInstance().lastGuestName.isEmpty() ? GuestVisitFailsafe.getInstance().lastGuestName : "a guest") + "!");
 
         final String label;
