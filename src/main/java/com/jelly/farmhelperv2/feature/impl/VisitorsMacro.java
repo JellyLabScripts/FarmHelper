@@ -42,7 +42,7 @@ import java.util.stream.Stream;
 
 public class VisitorsMacro implements IFeature {
     private static VisitorsMacro instance;
-    public final List<String> profitRewards = Arrays.asList("Dedication", "Cultivating", "Delicate", "Replenish", "Music Rune", "Green Bandana", "Overgrown Grass", "Space Helmet");
+    public final List<String> profitRewards = Arrays.asList("Dedication", "Cultivating", "Delicate", "Replenish", "Music Rune", "Green Bandana", "Overgrown Grass", "Space Helmet", "Copper Dye");
     private final Minecraft mc = Minecraft.getMinecraft();
     private final ArrayList<Integer> compactors = new ArrayList<>();
     private final ArrayList<Entity> servedCustomers = new ArrayList<>();
