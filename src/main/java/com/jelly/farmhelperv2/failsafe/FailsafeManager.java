@@ -375,6 +375,7 @@ public class FailsafeManager {
                 }
             }, (long) (1_500 + Math.random() * 1_000), TimeUnit.MILLISECONDS);
         } else {
+            LogUtils.sendWarning("[Failsafe] Restart after failsafe is disabled. Disabling the macro...");
             MacroHandler.getInstance().disableMacro();
         }
     }

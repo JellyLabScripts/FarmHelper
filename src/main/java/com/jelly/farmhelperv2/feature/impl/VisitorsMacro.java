@@ -1027,7 +1027,7 @@ public class VisitorsMacro implements IFeature {
                     delayClock.schedule(getRandomDelay());
                     break;
                 }
-                String inventoryName = InventoryUtils.getInventoryName();
+                String inventoryName = StringUtils.stripControlCodes(InventoryUtils.getInventoryName());
                 if (!(mc.currentScreen instanceof GuiChest)) {
                     LogUtils.sendError("[Visitors Macro] Not in the visitor's inventory, closing the screen...");
                     PlayerUtils.closeScreen();
@@ -1040,6 +1040,8 @@ public class VisitorsMacro implements IFeature {
                 }
                 if (currentVisitor.isPresent() && !currentVisitor.get().getCustomNameTag().contains(inventoryName)) {
                     PlayerUtils.closeScreen();
+                    LogUtils.sendDebug("[Visitors Macro] Closed the wrong visitor's inventory");
+                    currentRewards.clear();
                     setVisitorsState(VisitorsState.GET_CLOSE_TO_VISITOR);
                     delayClock.schedule(getRandomDelay());
                     break;

@@ -418,7 +418,7 @@ public class FarmHelperConfig extends Config {
 
     // Automatic Actions
     @Switch(name = "Auto Warp on World Change", category = FAILSAFE, subcategory = "Auto Actions",
-            description = "Warp to garden after server reboot or update")
+            description = "Warp to garden after server reboot or update, disconnects if disabled")
     public static boolean autoWarpOnWorldChange = true;
 
     @Switch(name = "Auto Evacuate on Server Reboot", category = FAILSAFE, subcategory = "Auto Actions",
@@ -738,7 +738,7 @@ public class FarmHelperConfig extends Config {
             name = "Send Chat Message During Failsafe", category = FAILSAFE, subcategory = "Failsafe Messages",
             description = "Sends a chat message when a failsafe has been triggered"
     )
-    public static boolean sendFailsafeMessage = true;
+    public static boolean sendFailsafeMessage = false;
     @Page(
             name = "Custom Failsafe Messages", category = FAILSAFE, subcategory = "Failsafe Messages", location = PageLocation.BOTTOM,
             description = "Click here to edit custom failsafe messages"

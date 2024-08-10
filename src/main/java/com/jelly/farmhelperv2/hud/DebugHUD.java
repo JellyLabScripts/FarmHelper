@@ -37,15 +37,11 @@ public class DebugHUD extends TextHud {
             lines.add("MovRec Yaw Difference: " + MovRecPlayer.getYawDifference());
         }
         lines.add("Bountiful: " + ProfitCalculator.getInstance().getBountifulProfit());
+        ItemStack heldItem = Minecraft.getMinecraft().thePlayer.getHeldItem();
+        lines.add("Cultivating: " + GameStateHandler.getInstance().getCurrentCultivating().getOrDefault(heldItem != null ? heldItem.getDisplayName() : "", 0L));
         lines.add("Purse: " + GameStateHandler.getInstance().getCurrentPurse());
         lines.add("Copper: " + GameStateHandler.getInstance().getCopper());
-        lines.add("PD OTT scheduled: " + PestsDestroyerOnTheTrack.getInstance().getDelayStart().isScheduled());
-        lines.add("PD OTT remaining: " + PestsDestroyerOnTheTrack.getInstance().getDelayStart().getRemainingTime());
-        lines.add("PD OTT stuck remaining: " + PestsDestroyerOnTheTrack.getInstance().getStuckTimer().getRemainingTime());
-        lines.add("PD OTT entities: ");
-        for (Tuple<Entity, Double> entity : PestsDestroyerOnTheTrack.getInstance().getEntities()) {
-            lines.add("   " + entity.getFirst().getPosition() + " Yaw diff: " + String.format("%.2f", entity.getSecond()));
-        }
+
         lines.add("Buffs:");
         lines.add("   God Pot: " + GameStateHandler.getInstance().getGodPotState());
         lines.add("   Cookie: " + GameStateHandler.getInstance().getCookieBuffState());
@@ -65,8 +61,6 @@ public class DebugHUD extends TextHud {
         lines.add("   Right: " + GameStateHandler.getInstance().isRightWalkable());
         lines.add("   Not moving: " + GameStateHandler.getInstance().notMoving());
         lines.add("   HasPassedSinceStopped: " + GameStateHandler.getInstance().hasPassedSinceStopped());
-        ItemStack heldItem = Minecraft.getMinecraft().thePlayer.getHeldItem();
-        lines.add("Cultivating: " + GameStateHandler.getInstance().getCurrentCultivating().getOrDefault(heldItem != null ? heldItem.getDisplayName() : "", 0L));
 //        if (Scheduler.getInstance().isToggled()) {
 //            lines.add("Scheduler: ");
 //            lines.add("  State: " + LogUtils.capitalize(Scheduler.getInstance().getSchedulerState().toString()));
@@ -91,10 +85,16 @@ public class DebugHUD extends TextHud {
 //        if (LagDetector.getInstance().isLagging()) {
 //            lines.add("   Lagging for: " + LagDetector.getInstance().getLaggingTime());
 //        }
-        if (DesyncChecker.getInstance().isToggled()) {
-            lines.add("Desync Checker");
-            lines.add("   Clicked blocks: " + DesyncChecker.getInstance().getClickedBlocks().size());
-            lines.add("   Desync: " + DesyncChecker.getInstance().isRunning());
+//        if (DesyncChecker.getInstance().isToggled()) {
+//            lines.add("Desync Checker");
+//            lines.add("   Clicked blocks: " + DesyncChecker.getInstance().getClickedBlocks().size());
+//            lines.add("   Desync: " + DesyncChecker.getInstance().isRunning());
+//        }
+        if (AutoRepellent.getInstance().isRunning()) {
+            lines.add("AutoRepellent");
+            lines.add("   State: " + AutoRepellent.getInstance().getState());
+            lines.add("   Clock: " + AutoRepellent.getInstance().getDelay().getRemainingTime());
+            lines.add("   Not enough copper: " + AutoRepellent.getInstance().isNotEnoughCopper());
         }
         if (AutoSell.getInstance().isRunning()) {
             lines.add("AutoSell");
@@ -141,6 +141,14 @@ public class DebugHUD extends TextHud {
             PestsDestroyer.getInstance().getCurrentEntityTarget().ifPresent(target -> lines.add(
                     String.format("   Current Entity Target: %.2f %.2f %.2f", target.getPositionVector().xCoord, target.getPositionVector().yCoord, target.getPositionVector().zCoord))
             );
+//            lines.add("PD OTT:");
+//            lines.add("   scheduled: " + PestsDestroyerOnTheTrack.getInstance().getDelayStart().isScheduled());
+//            lines.add("   remaining: " + PestsDestroyerOnTheTrack.getInstance().getDelayStart().getRemainingTime());
+//            lines.add("   stuck remaining: " + PestsDestroyerOnTheTrack.getInstance().getStuckTimer().getRemainingTime());
+//            lines.add("   entities: ");
+//            for (Tuple<Entity, Double> entity : PestsDestroyerOnTheTrack.getInstance().getEntities()) {
+//                lines.add("   " + entity.getFirst().getPosition() + " Yaw diff: " + String.format("%.2f", entity.getSecond()));
+//            }
         }
         if (AutoPestExchange.getInstance().isRunning()) {
             lines.add("Auto Pest Hunter");

@@ -134,7 +134,9 @@ public class AutoRepellent implements IFeature {
     private int hotbarSlot = -1;
 
     private boolean enabled = false;
+    @Getter
     private boolean notEnoughCopper = false;
+    @Getter
     private final Clock delay = new Clock();
 
     @SubscribeEvent
@@ -225,8 +227,10 @@ public class AutoRepellent implements IFeature {
                     break;
                 }
                 if (InventoryUtils.hasItemInHotbar(!FarmHelperConfig.pestRepellentType ? "Pest Repellent" : "Pest Repellent MAX")) {
+                    LogUtils.sendDebug("Repellent in hotbar, selecting repellent");
                     state = State.SELECT_REPELLENT;
                 } else {
+                    LogUtils.sendDebug("Repellent not in hotbar, moving to hotbar");
                     state = State.MOVE_REPELLENT_TO_HOTBAR;
                 }
                 delay.schedule(300 + (long) (Math.random() * 300));
@@ -239,38 +243,45 @@ public class AutoRepellent implements IFeature {
                             delay.schedule(300 + (long) (Math.random() * 300));
                             break;
                         }
-                        int cookieSlot = InventoryUtils.getSlotIdOfItemInInventory("Pest Repellent");
-                        if (cookieSlot == -1) {
+                        int repellentSlot = InventoryUtils.getSlotIdOfItemInInventory("Pest Repellent");
+                        if (repellentSlot == -1) {
                             LogUtils.sendError("Something went wrong while trying to get the slot of the Pest Repellent! Disabling Auto Repellent until manual check");
                             FarmHelperConfig.autoPestRepellent = false;
                             stop();
                             break;
                         }
-                        this.hotbarSlot = cookieSlot;
-                        InventoryUtils.clickSlot(cookieSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                        this.hotbarSlot = repellentSlot;
+                        LogUtils.sendDebug("Repellent slot: " + repellentSlot);
+                        InventoryUtils.clickSlot(repellentSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PUT;
                         delay.schedule(300 + (long) (Math.random() * 300));
                         break;
                     case SWAP_REPELLENT_TO_HOTBAR_PUT:
                         if (mc.currentScreen == null) {
+                            LogUtils.sendDebug("Waiting for nothing");
                             delay.schedule(300 + (long) (Math.random() * 300));
                             break;
                         }
                         Slot newSlot = InventoryUtils.getSlotOfId(43);
                         if (newSlot != null && newSlot.getHasStack()) {
+                            LogUtils.sendDebug("Slot 43 has item, swapping");
                             moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PUT_BACK;
                         } else {
+                            LogUtils.sendDebug("Slot 43 is empty, putting item back");
                             state = State.SELECT_REPELLENT;
                             moveRepellentState = MoveRepellentState.PUT_ITEM_BACK_PICKUP;
                         }
+                        LogUtils.sendDebug("Clicking slot 43");
                         InventoryUtils.clickSlot(43, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         delay.schedule(300 + (long) (Math.random() * 300));
                         break;
                     case SWAP_REPELLENT_TO_HOTBAR_PUT_BACK:
                         if (mc.currentScreen == null) {
+                            LogUtils.sendDebug("Waiting for nothing");
                             delay.schedule(300 + (long) (Math.random() * 300));
                             break;
                         }
+                        LogUtils.sendDebug("Clicking hotbarSlot " + hotbarSlot);
                         InventoryUtils.clickSlot(hotbarSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         moveRepellentState = MoveRepellentState.PUT_ITEM_BACK_PICKUP;
                         state = State.SELECT_REPELLENT;
@@ -282,15 +293,18 @@ public class AutoRepellent implements IFeature {
                             delay.schedule(300 + (long) (Math.random() * 300));
                             break;
                         }
+                        LogUtils.sendDebug("Clicking hotbarSlot " + hotbarSlot);
                         InventoryUtils.clickSlot(hotbarSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         moveRepellentState = MoveRepellentState.PUT_ITEM_BACK_PUT;
                         delay.schedule(300 + (long) (Math.random() * 300));
                         break;
                     case PUT_ITEM_BACK_PUT:
                         if (mc.currentScreen == null) {
+                            LogUtils.sendDebug("Waiting for nothing");
                             delay.schedule(300 + (long) (Math.random() * 300));
                             break;
                         }
+                        LogUtils.sendDebug("Clicking slot 43");
                         InventoryUtils.clickSlot(43, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                         delay.schedule(3_000);
                         Multithreading.schedule(this::stop, 1_500, TimeUnit.MILLISECONDS);
@@ -322,6 +336,7 @@ public class AutoRepellent implements IFeature {
                     break;
                 }
                 state = State.WAIT_FOR_REPELLENT;
+                LogUtils.sendDebug("Using repellent");
                 KeyBindUtils.rightClick();
                 delay.schedule(2_500 + (long) (Math.random() * 1_000));
                 break;

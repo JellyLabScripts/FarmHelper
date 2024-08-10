@@ -115,11 +115,11 @@ public class WorldChangeFailsafe extends Failsafe {
     @Override
     public void duringFailsafeTrigger() {
         if (!FarmHelperConfig.autoWarpOnWorldChange) {
-            LogUtils.sendDebug("[Failsafe] Auto TP on world change is disabled! Disabling macro and disconnecting...");
+            LogUtils.sendDebug("[Failsafe] Auto Warp on World Change is disabled! Disabling macro and disconnecting...");
             MacroHandler.getInstance().disableMacro();
             Multithreading.schedule(() -> {
                 try {
-                    mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText("Your world has been changed and you've got \"Auto TP On world is disabled\""));
+                    mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText("Your world has been changed and you have \"Auto Warp on World Change\" disabled!"));
                     AudioManager.getInstance().resetSound();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -127,6 +127,9 @@ public class WorldChangeFailsafe extends Failsafe {
             }, 1_500, TimeUnit.MILLISECONDS);
             return;
         }
+
+        if (mc.thePlayer == null || mc.theWorld == null)
+            return;
 
         switch (worldChangeState) {
             case NONE:
