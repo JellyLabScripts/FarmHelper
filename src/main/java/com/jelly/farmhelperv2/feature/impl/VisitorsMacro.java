@@ -865,7 +865,7 @@ public class VisitorsMacro implements IFeature {
 
                 Optional<Tuple<String, String>> profitableReward = currentRewards.stream().filter(item -> {
                     String name = StringUtils.stripControlCodes(item.getFirst());
-                    return profitRewards.stream().anyMatch(reward -> reward.toLowerCase().contains(name.toLowerCase()) || name.toLowerCase().contains(reward.toLowerCase()));
+                    return profitRewards.stream().anyMatch(reward -> reward.toLowerCase().contains(name.toLowerCase()));
                 }).findFirst();
 
                 profitNpc = profitableReward.isPresent();
