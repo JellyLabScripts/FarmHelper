@@ -113,7 +113,7 @@ public class FailsafeNotificationsPage {
             description = "Whether or not to send a notification when the average BPS is lower than the specified value.",
             category = "Failsafe Notifications"
     )
-    public static boolean notifyOnLowerAverageBPS = false;
+    public static boolean notifyOnLowerAverageBPS = true;
 
     @Switch(
             name = "Guest Visit Notifications",
@@ -239,7 +239,7 @@ public class FailsafeNotificationsPage {
             description = "Whether or not to play a sound when the average BPS is lower than the specified value.",
             category = "Failsafe Sound Alerts"
     )
-    public static boolean alertOnLowerAverageBPS = false;
+    public static boolean alertOnLowerAverageBPS = true;
 
     @Switch(
             name = "Guest Visit Alert",
@@ -359,7 +359,7 @@ public class FailsafeNotificationsPage {
             description = "Whether or not to tag everyone in the webhook message when the average BPS is lower than the specified value.",
             category = "Failsafe Tag Everyone"
     )
-    public static boolean tagEveryoneOnLowerAverageBPS = false;
+    public static boolean tagEveryoneOnLowerAverageBPS = true;
 
     @Switch(
             name = "Guest Visit Tag Everyone",
@@ -478,7 +478,7 @@ public class FailsafeNotificationsPage {
             description = "Whether or not to automatically alt-tab when the average BPS is lower than the specified value.",
             category = "Failsafe Auto Alt-tab"
     )
-    public static boolean autoAltTabOnLowerAverageBPS = false;
+    public static boolean autoAltTabOnLowerAverageBPS = true;
     @Switch(
             name = "Guest Visit Alt-tab",
             description = "Whether or not to automatically alt-tab when a guest visits your island.",

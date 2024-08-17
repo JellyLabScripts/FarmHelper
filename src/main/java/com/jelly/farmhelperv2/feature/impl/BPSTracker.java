@@ -1,6 +1,7 @@
 package com.jelly.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.PlayerDestroyBlockEvent;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -148,7 +149,8 @@ public class BPSTracker implements IFeature {
                 || MacroHandler.getInstance().isTeleporting()
                 || MacroHandler.getInstance().isRewarpTeleport()
                 || MacroHandler.getInstance().isStartingUp()
-                || !checkForBPS(MacroHandler.getInstance().getMacro().getCurrentState());
+                || !checkForBPS(MacroHandler.getInstance().getMacro().getCurrentState())
+                || MacroHandler.getInstance().getCrop() == FarmHelperConfig.CropEnum.NONE;
     }
 
     public float getBPSFloat() {

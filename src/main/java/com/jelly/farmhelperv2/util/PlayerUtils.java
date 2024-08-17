@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.*;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -110,7 +111,7 @@ public class PlayerUtils {
                 return FarmHelperConfig.CropEnum.CACTUS;
             }
         }
-        LogUtils.sendError("Can't detect crop type!");
+        LogUtils.sendError("Can't detect crop type! Lower average BPS failsafe will be disabled!");
         return FarmHelperConfig.CropEnum.NONE;
     }
 
@@ -174,67 +175,75 @@ public class PlayerUtils {
         if (crop == null) return withError ? -1 : 0;
         for (int i = 36; i < 44; i++) {
             if (mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null) {
-                String name = mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getDisplayName();
-                if (anyHoe) {
-                    if (name.contains("Hoe") || name.contains("Dicer") || name.contains("Chopper") || name.contains("Fungi") || name.contains("Daedalus Axe") || name.contains("Knife")) {
-                        return i - 36;
+                NBTTagCompound tag = mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getTagCompound();
+                if (tag != null && tag.hasKey("ExtraAttributes")) {
+                    NBTTagCompound extraAttributes = tag.getCompoundTag("ExtraAttributes");
+                    if (extraAttributes.hasKey("id")) {
+                        String name = extraAttributes.getString("id");
+                        if (name == null)
+                            continue;
+                        if (anyHoe) {
+                            if (name.contains("HOE") || name.contains("DICER") || name.contains("CHOPPER") || name.contains("FUNGI") || name.contains("DAEDALUS_AXE") || name.contains("KNIFE")) {
+                                return i - 36;
+                            }
+                            continue;
+                        }
+                        switch (crop) {
+                            case NETHER_WART:
+                                if (name.contains("HOE_WARTS_3") || name.contains("HOE_WARTS_2") || name.contains("HOE_WARTS")) {
+                                    return i - 36;
+                                }
+                                continue;
+                            case CARROT:
+                                if (name.contains("HOE_CARROT_3") || name.contains("HOE_CARROT_2") || name.contains("HOE_CARROT")) {
+                                    return i - 36;
+                                }
+                                continue;
+                            case WHEAT:
+                                if (name.contains("HOE_WHEAT_3") || name.contains("HOE_WHEAT_2") || name.contains("HOE_WHEAT")) {
+                                    return i - 36;
+                                }
+                                continue;
+                            case POTATO:
+                                if (name.contains("HOE_POTATO_3") || name.contains("HOE_POTATO_2") || name.contains("HOE_POTATO")) {
+                                    return i - 36;
+                                }
+                                continue;
+                            case SUGAR_CANE:
+                                if (name.contains("HOE_CANE_3") || name.contains("HOE_CANE_2") || name.contains("HOE_CANE")) {
+                                    return i - 36;
+                                }
+                                continue;
+                            case CACTUS:
+                                if (name.contains("CACTUS_KNIFE")) {
+                                    return i - 36;
+                                }
+                                continue;
+                            case MUSHROOM:
+                                if (name.contains("FUNGI_CUTTER") || name.contains("DAEDALUS_AXE")) {
+                                    return i - 36;
+                                }
+                                continue;
+                            case PUMPKIN_MELON_UNKNOWN:
+                                if (name.contains("_DICER")) {
+                                    return i - 36;
+                                }
+                                continue;
+                            case MELON:
+                                if (name.contains("MELON_DICER_3") || name.contains("MELON_DICER_2") || name.contains("MELON_DICER")) {
+                                    return i - 36;
+                                }
+                            case PUMPKIN:
+                                if (name.contains("PUMPKIN_DICER_3") || name.contains("PUMPKIN_DICER_2") || name.contains("PUMPKIN_DICER")) {
+                                    return i - 36;
+                                }
+                                continue;
+                            case COCOA_BEANS:
+                                if (name.contains("COCO_CHOPPER")) {
+                                    return i - 36;
+                                }
+                        }
                     }
-                    continue;
-                }
-                switch (crop) {
-                    case NETHER_WART:
-                        if (name.contains("Newton")) {
-                            return i - 36;
-                        }
-                        continue;
-                    case CARROT:
-                        if (name.contains("Gauss")) {
-                            return i - 36;
-                        }
-                        continue;
-                    case WHEAT:
-                        if (name.contains("Euclid")) {
-                            return i - 36;
-                        }
-                        continue;
-                    case POTATO:
-                        if (name.contains("Pythagorean")) {
-                            return i - 36;
-                        }
-                        continue;
-                    case SUGAR_CANE:
-                        if (name.contains("Turing")) {
-                            return i - 36;
-                        }
-                        continue;
-                    case CACTUS:
-                        if (name.contains("Knife")) {
-                            return i - 36;
-                        }
-                        continue;
-                    case MUSHROOM:
-                        if (name.contains("Fungi") || name.contains("Daedalus Axe")) {
-                            return i - 36;
-                        }
-                        continue;
-                    case PUMPKIN_MELON_UNKNOWN:
-                        if (name.contains("Dicer")) {
-                            return i - 36;
-                        }
-                        continue;
-                    case MELON:
-                        if (name.contains("Melon Dicer")) {
-                            return i - 36;
-                        }
-                    case PUMPKIN:
-                        if (name.contains("Pumpkin Dicer")) {
-                            return i - 36;
-                        }
-                        continue;
-                    case COCOA_BEANS:
-                        if (name.contains("Chopper")) {
-                            return i - 36;
-                        }
                 }
             }
         }

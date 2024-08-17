@@ -258,7 +258,8 @@ public class AutoRepellent implements IFeature {
                         break;
                     case SWAP_REPELLENT_TO_HOTBAR_PUT:
                         if (mc.currentScreen == null) {
-                            LogUtils.sendDebug("Waiting for nothing");
+                            LogUtils.sendDebug("Inventory is closed! Changing state to: SWAP_REPELLENT_TO_HOTBAR_PICKUP");
+                            moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PICKUP;
                             delay.schedule(300 + (long) (Math.random() * 300));
                             break;
                         }
@@ -277,7 +278,8 @@ public class AutoRepellent implements IFeature {
                         break;
                     case SWAP_REPELLENT_TO_HOTBAR_PUT_BACK:
                         if (mc.currentScreen == null) {
-                            LogUtils.sendDebug("Waiting for nothing");
+                            moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PICKUP;
+                            LogUtils.sendDebug("Inventory is closed! Changing state to: SWAP_REPELLENT_TO_HOTBAR_PICKUP");
                             delay.schedule(300 + (long) (Math.random() * 300));
                             break;
                         }
@@ -300,7 +302,8 @@ public class AutoRepellent implements IFeature {
                         break;
                     case PUT_ITEM_BACK_PUT:
                         if (mc.currentScreen == null) {
-                            LogUtils.sendDebug("Waiting for nothing");
+                            moveRepellentState = MoveRepellentState.PUT_ITEM_BACK_PICKUP;
+                            LogUtils.sendDebug("Inventory is closed! Changing state to: PUT_ITEM_BACK_PICKUP");
                             delay.schedule(300 + (long) (Math.random() * 300));
                             break;
                         }

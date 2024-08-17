@@ -113,7 +113,7 @@ public class FailsafeManager {
                         DirtFailsafe.getInstance(),
                         DisconnectFailsafe.getInstance(),
                         EvacuateFailsafe.getInstance(),
-                        FullInventoryFailsafe .getInstance(),
+                        FullInventoryFailsafe.getInstance(),
                         GuestVisitFailsafe.getInstance(),
                         ItemChangeFailsafe.getInstance(),
                         JacobFailsafe.getInstance(),
