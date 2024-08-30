@@ -250,7 +250,7 @@ public class AutoPestExchange implements IFeature {
                 }
                 positionBeforeTp = mc.thePlayer.getPosition();
                 newState = NewState.WAIT_FOR_TP;
-                mc.thePlayer.sendChatMessage("/tptoplot barn");
+                mc.thePlayer.sendChatMessage("/tptoplot " + (FarmHelperConfig.autoPestExchangeTpToPlot == 0 ? "barn" : FarmHelperConfig.autoPestExchangeTpToPlot));
                 delayClock.schedule((long) (600 + Math.random() * 500));
                 break;
             case WAIT_FOR_TP:
