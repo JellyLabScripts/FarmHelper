@@ -123,7 +123,7 @@ public class InventoryUtils {
         return null;
     }
 
-    public static int getSlotOfItemByHypixelIdInInventory(String hypixelId) {
+    public static int getSlotOfItemByHypixelIdInInventory(String hypixelId, boolean contains) {
         for (Slot slot : mc.thePlayer.inventoryContainer.inventorySlots) {
             if (slot.getHasStack()) {
                 NBTTagCompound tag = slot.getStack().getTagCompound();
@@ -131,8 +131,10 @@ public class InventoryUtils {
                     NBTTagCompound extraAttributes = tag.getCompoundTag("ExtraAttributes");
                     if (extraAttributes.hasKey("id")) {
                         String id = extraAttributes.getString("id");
-                        if (id.equals(hypixelId)) {
-                            return slot.getSlotIndex();
+                        if (contains && id.contains(hypixelId)) {
+                            return slot.slotNumber;
+                        } else if (id.equals(hypixelId)) {
+                            return slot.slotNumber;
                         }
                     }
                 }

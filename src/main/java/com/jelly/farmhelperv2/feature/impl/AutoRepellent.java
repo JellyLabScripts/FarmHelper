@@ -68,6 +68,7 @@ public class AutoRepellent implements IFeature {
         state = State.NONE;
         LogUtils.sendWarning("[Auto Repellent] Enabled!");
         delay.reset();
+        hotbarSlot = -1;
         MacroHandler.getInstance().pauseMacro();
         IFeature.super.start();
     }
@@ -243,7 +244,7 @@ public class AutoRepellent implements IFeature {
                             delay.schedule(300 + (long) (Math.random() * 300));
                             break;
                         }
-                        int repellentSlot = InventoryUtils.getSlotIdOfItemInInventory("Pest Repellent");
+                        int repellentSlot = InventoryUtils.getSlotOfItemByHypixelIdInInventory("PEST_REPELLENT", true);
                         if (repellentSlot == -1) {
                             LogUtils.sendError("Something went wrong while trying to get the slot of the Pest Repellent! Disabling Auto Repellent until manual check");
                             FarmHelperConfig.autoPestRepellent = false;

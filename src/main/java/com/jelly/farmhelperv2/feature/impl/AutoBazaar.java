@@ -176,7 +176,7 @@ public class AutoBazaar implements IFeature {
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         String boughtMessage = String.format("[Bazaar] Bought %dx %s for", this.buyAmount, this.itemToBuy);
 
-        if (message.startsWith(boughtMessage) && this.buyState == BuyState.BUY_VERIFY) {
+        if (message.startsWith(boughtMessage) && (this.buyState == BuyState.BUY_VERIFY || this.buyState == BuyState.WARNING_PAGE)) {
             this.buyState = BuyState.DISABLE;
             this.timer.schedule(500);
         }

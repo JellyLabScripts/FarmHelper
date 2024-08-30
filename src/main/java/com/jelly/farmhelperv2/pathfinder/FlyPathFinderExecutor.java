@@ -4,6 +4,7 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.google.common.collect.EvictingQueue;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
+import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.mixin.client.EntityPlayerAccessor;
 import com.jelly.farmhelperv2.mixin.pathfinder.PathfinderAccessor;
@@ -265,7 +266,7 @@ public class FlyPathFinderExecutor {
         path.clear();
         target = null;
         tped = true;
-        aotvDely.reset();
+        aotvDelay.reset();
         targetEntity = null;
         yModifier = 0;
         lastTpTime = 0;
@@ -315,7 +316,7 @@ public class FlyPathFinderExecutor {
     }
 
     private final Clock loweringRaisingDelay = new Clock();
-    private final Clock aotvDely = new Clock();
+    private final Clock aotvDelay = new Clock();
     private boolean tped = true;
 
     @SubscribeEvent
@@ -437,11 +438,11 @@ public class FlyPathFinderExecutor {
                 }
             }
 
-            if (FarmHelperConfig.useAoteVInPestsDestroyer && tped && useAOTV && aotvDely.passed() && mc.thePlayer.getDistance(next.xCoord, mc.thePlayer.getPositionVector().yCoord, next.zCoord) > 12 && !RotationHandler.getInstance().isRotating() && isFrontClean()) {
+            if (FarmHelperConfig.useAoteVInPestsDestroyer && tped && useAOTV && aotvDelay.passed() && mc.thePlayer.getDistance(next.xCoord, mc.thePlayer.getPositionVector().yCoord, next.zCoord) > 12 && !RotationHandler.getInstance().isRotating() && isFrontClean()) {
                 int aotv = InventoryUtils.getSlotIdOfItemInHotbar("Aspect of the Void", "Aspect of the End");
                 if (aotv != mc.thePlayer.inventory.currentItem) {
                     mc.thePlayer.inventory.currentItem = aotv;
-                    aotvDely.schedule(150);
+                    aotvDelay.schedule(150);
                 } else {
                     KeyBindUtils.rightClick();
                     tped = false;
@@ -511,7 +512,7 @@ public class FlyPathFinderExecutor {
             lastTpTime = System.currentTimeMillis() - 50;
             Multithreading.schedule(() -> {
                 if (isRunning()) {
-                    aotvDely.schedule(100 + Math.random() * 60);
+                    aotvDelay.schedule(100 + Math.random() * 60);
                     tped = true;
                 }
             }, 50, TimeUnit.MILLISECONDS);
@@ -519,7 +520,7 @@ public class FlyPathFinderExecutor {
     }
 
     public boolean hasJustTped() {
-        return lastTpTime + FarmHelperConfig.failsafeCutoffAfterUsingAoteV > System.currentTimeMillis();
+        return lastTpTime + LagDetector.getInstance().getLaggingTime() + 500 > System.currentTimeMillis();
     }
 
     private boolean isFrontClean() {

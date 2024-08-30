@@ -8,6 +8,7 @@ import com.jelly.farmhelperv2.remote.command.commands.Command;
 import com.jelly.farmhelperv2.remote.struct.RemoteMessage;
 import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
+import net.minecraft.client.gui.inventory.GuiInventory;
 
 import java.util.concurrent.TimeUnit;
 
@@ -54,11 +55,13 @@ public class ScreenshotCommand extends ClientCommand {
 
         Multithreading.schedule(() -> {
             try {
-                InventoryUtils.openInventory();
+                if (mc.currentScreen == null)
+                    InventoryUtils.openInventory();
                 Thread.sleep(1000);
                 String screenshot = getScreenshot();
                 Thread.sleep(1000);
-                PlayerUtils.closeScreen();
+                if (mc.currentScreen instanceof GuiInventory)
+                    PlayerUtils.closeScreen();
                 if (wasMacroing) {
                     MacroHandler.getInstance().resumeMacro();
                 }

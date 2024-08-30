@@ -4,6 +4,7 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.feature.impl.Scheduler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
@@ -114,7 +115,8 @@ public class EvacuateFailsafe extends Failsafe {
     public void endOfFailsafeTrigger() {
         FailsafeManager.getInstance().stopFailsafes();
         FailsafeManager.getInstance().setHadEmergency(false);
-        MacroHandler.getInstance().resumeMacro();
+        if (Scheduler.getInstance().isFarming())
+            MacroHandler.getInstance().resumeMacro();
     }
 
     @Override

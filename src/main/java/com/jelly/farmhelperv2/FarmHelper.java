@@ -159,11 +159,6 @@ public class FarmHelper {
             LogUtils.sendNotification("Farm Helper", "You've got Oringo installed in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.", 15000);
             LogUtils.sendWarning("You've got §6§lOringo §cinstalled in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.");
         }
-        if (FarmHelperConfig.failsafeCutoffAfterUsingAoteV == 100 && FarmHelperConfig.configVersion < 5) {
-            FarmHelperConfig.failsafeCutoffAfterUsingAoteV = 500;
-            LogUtils.sendNotification("Farm Helper", "Failsafe 'Cutoff After Using AOTE/V' has been set to 500 automatically to prevent false positives.", 15000);
-            LogUtils.sendWarning("Failsafe 'Cutoff After Using AOTE/V' has been set to 500 automatically to prevent false positives.");
-        }
         if (FarmHelperConfig.configVersion == 3 && FarmHelperConfig.macroType > 7) {
             FarmHelperConfig.macroType += 1; // Added cocoa bean macro with trapdoors
         }

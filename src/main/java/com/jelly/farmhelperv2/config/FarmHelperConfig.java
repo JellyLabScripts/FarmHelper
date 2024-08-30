@@ -1193,14 +1193,7 @@ public class FarmHelperConfig extends Config {
             name = "Use AOTE/V in Pests Destroyer", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Uses AOTE/V in Pests Destroyer"
     )
-    public static boolean useAoteVInPestsDestroyer = true;
-
-    @Slider(
-            name = "Failsafe cutoff after using AOTE/V", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
-            description = "The time in ms after which macro will count failsafes after using AOTE/V",
-            min = 0, max = 1500
-    )
-    public static int failsafeCutoffAfterUsingAoteV = 500;
+    public static boolean useAoteVInPestsDestroyer = false;
 
     @Switch(
             name = "Don't teleport to plots when the spawn is not obstructed", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
@@ -2175,7 +2168,6 @@ public class FarmHelperConfig extends Config {
         this.addDependency("pestAdditionalGUIDelay", "enablePestsDestroyer");
         this.addDependency("sprintWhileFlying", "enablePestsDestroyer");
         this.addDependency("pausePestsDestroyerDuringJacobsContest", "enablePestsDestroyer");
-        this.addDependency("failsafeCutoffAfterUsingAoteV", "useAoteVInPestsDestroyer");
 
 
         this.hideIf("infoCookieBuffRequired", () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().getCookieBuffState() == BuffState.NOT_ACTIVE);
