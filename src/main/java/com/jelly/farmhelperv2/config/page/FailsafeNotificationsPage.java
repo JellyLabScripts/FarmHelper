@@ -102,13 +102,6 @@ public class FailsafeNotificationsPage {
     public static boolean notifyOnJacobFailsafe = false;
 
     @Switch(
-            name = "Test Notifications",
-            description = "Whether or not to send a notification when the Test failsafe is triggered.",
-            category = "Failsafe Notifications"
-    )
-    public static boolean notifyOnTestFailsafe = true;
-
-    @Switch(
             name = "Lower Average BPS Notifications",
             description = "Whether or not to send a notification when the average BPS is lower than the specified value.",
             category = "Failsafe Notifications"
@@ -228,13 +221,6 @@ public class FailsafeNotificationsPage {
     public static boolean alertOnFullInventory = false;
 
     @Switch(
-            name = "Test Alert",
-            description = "Whether or not to play a sound when the Test failsafe is triggered.",
-            category = "Failsafe Sound Alerts"
-    )
-    public static boolean alertOnTestFailsafe = true;
-
-    @Switch(
             name = "Lower Average BPS Alert",
             description = "Whether or not to play a sound when the average BPS is lower than the specified value.",
             category = "Failsafe Sound Alerts"
@@ -348,13 +334,6 @@ public class FailsafeNotificationsPage {
     public static boolean tagEveryoneOnJacobFailsafe = false;
 
     @Switch(
-            name = "Test Tag Everyone",
-            description = "Whether or not to tag everyone in the webhook message when the Test failsafe is triggered.",
-            category = "Failsafe Tag Everyone"
-    )
-    public static boolean tagEveryoneOnTestFailsafe = true;
-
-    @Switch(
             name = "Lower Average BPS Tag Everyone",
             description = "Whether or not to tag everyone in the webhook message when the average BPS is lower than the specified value.",
             category = "Failsafe Tag Everyone"
@@ -465,13 +444,6 @@ public class FailsafeNotificationsPage {
             category = "Failsafe Auto Alt-tab"
     )
     public static boolean autoAltTabOnJacobFailsafe = false;
-
-    @Switch(
-            name = "Test Auto Alt-tab",
-            description = "Whether or not to automatically alt-tab when the Test failsafe is triggered.",
-            category = "Failsafe Auto Alt-tab"
-    )
-    public static boolean autoAltTabOnTestFailsafe = true;
 
     @Switch(
             name = "Lower Average BPS Alt-tab",
