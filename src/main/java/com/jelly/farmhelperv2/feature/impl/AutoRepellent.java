@@ -124,6 +124,7 @@ public class AutoRepellent implements IFeature {
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (RotationHandler.getInstance().isRotating()) return;
+        if (GameStateHandler.getInstance().notMoving()) return;
         if (FarmHelperConfig.pauseAutoPestRepellentDuringJacobsContest && GameStateHandler.getInstance().inJacobContest())
             return;
 
