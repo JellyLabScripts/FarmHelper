@@ -243,9 +243,9 @@ public class AutoRepellent implements IFeature {
                 delayClock.schedule(2_500 + (long) (Math.random() * 1_000));
                 break;
 
-            case OPEN_SKYMART: break;
-            case CLICK_REPELLENT: break;
-            case CONFIRM_BUY: break;
+            case OPEN_SKYMART:
+            case CLICK_REPELLENT:
+            case CONFIRM_BUY:
             case END: break;
 
             case WAIT_FOR_REPELLENT:
