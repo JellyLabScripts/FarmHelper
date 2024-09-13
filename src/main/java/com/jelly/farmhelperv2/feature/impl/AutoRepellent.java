@@ -32,6 +32,12 @@ public class AutoRepellent implements IFeature {
 
     public final static Clock repellentFailsafeClock = new Clock();
     private final Pattern repellentRegex = Pattern.compile("(\\d+m\\s)?(\\d+s)");
+    private int hotbarSlot = -1;
+    private boolean enabled = false;
+    @Getter
+    private boolean notEnoughCopper = false;
+    @Getter
+    private final Clock delayClock = new Clock();
 
     public static AutoRepellent getInstance() {
         if (instance == null) {
@@ -62,25 +68,26 @@ public class AutoRepellent implements IFeature {
 
     @Override
     public void start() {
-        if (enabled) return;
-        enabled = true;
-        notEnoughCopper = false;
+        if (isRunning()) return;
         state = State.NONE;
-        LogUtils.sendWarning("[Auto Repellent] Enabled!");
-        delay.reset();
+        moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PICKUP;
         hotbarSlot = -1;
+        notEnoughCopper = false;
+
+        delayClock.reset();
+        enabled = true;
         MacroHandler.getInstance().pauseMacro();
+        LogUtils.sendWarning("[Auto Repellent] Enabled!");
         IFeature.super.start();
     }
 
     @Override
     public void stop() {
-        if (enabled)
-            LogUtils.sendWarning("[Auto Repellent] Disabled! Resuming macro...");
-        PlayerUtils.closeScreen();
-        notEnoughCopper = false;
-        state = State.NONE;
+        if (!isRunning()) return;
         enabled = false;
+        LogUtils.sendWarning("[Auto Repellent] Disabled! Resuming macro...");
+        PlayerUtils.closeScreen();
+        resetStatesAfterMacroDisabled();
         Multithreading.schedule(() -> {
             MacroHandler.getInstance().resumeMacro();
             IFeature.super.stop();
@@ -89,11 +96,11 @@ public class AutoRepellent implements IFeature {
 
     @Override
     public void resetStatesAfterMacroDisabled() {
-        enabled = false;
-        notEnoughCopper = false;
         state = State.NONE;
-        if (mc.currentScreen != null)
-            PlayerUtils.closeScreen();
+        moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PICKUP;
+        hotbarSlot = -1;
+        notEnoughCopper = false;
+        delayClock.reset();
     }
 
     @Override
@@ -106,44 +113,10 @@ public class AutoRepellent implements IFeature {
         return false;
     }
 
-    enum State {
-        NONE,
-        OPEN_DESK,
-        OPEN_SKYMART,
-        CLICK_REPELLENT,
-        CONFIRM_BUY,
-        CLOSE_GUI,
-        MOVE_REPELLENT_TO_HOTBAR,
-        SELECT_REPELLENT,
-        USE_REPELLENT,
-        WAIT_FOR_REPELLENT,
-        END
-    }
-
-    @Getter
-    private State state = State.NONE;
-
-    enum MoveRepellentState {
-        SWAP_REPELLENT_TO_HOTBAR_PICKUP,
-        SWAP_REPELLENT_TO_HOTBAR_PUT,
-        SWAP_REPELLENT_TO_HOTBAR_PUT_BACK,
-        PUT_ITEM_BACK_PICKUP,
-        PUT_ITEM_BACK_PUT
-    }
-
-    private MoveRepellentState moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PICKUP;
-    private int hotbarSlot = -1;
-
-    private boolean enabled = false;
-    @Getter
-    private boolean notEnoughCopper = false;
-    @Getter
-    private final Clock delay = new Clock();
-
     @SubscribeEvent
     public void onTickShouldEnable(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (enabled) return;
+        if (isRunning()) return;
         if (!isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
@@ -151,6 +124,7 @@ public class AutoRepellent implements IFeature {
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (RotationHandler.getInstance().isRotating()) return;
+        if (GameStateHandler.getInstance().notMoving() && !PlayerUtils.isStandingOnSpawnPoint()) return;
         if (FarmHelperConfig.pauseAutoPestRepellentDuringJacobsContest && GameStateHandler.getInstance().inJacobContest())
             return;
 
@@ -162,7 +136,8 @@ public class AutoRepellent implements IFeature {
             notEnoughCopper = true;
             LogUtils.sendError("[Auto Repellent] Not enough copper to buy Repellent! Will activate when enough copper is available.");
             return;
-        } else if (notEnoughCopper) {
+        }
+        if (notEnoughCopper) {
             if (FarmHelperConfig.pestRepellentType && GameStateHandler.getInstance().getCopper() >= 40) {
                 notEnoughCopper = false;
             } else if (!FarmHelperConfig.pestRepellentType && GameStateHandler.getInstance().getCopper() >= 15) {
@@ -182,7 +157,7 @@ public class AutoRepellent implements IFeature {
     @SubscribeEvent
     public void onTickExecution(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
-        if (!enabled) return;
+        if (!isRunning()) return;
         if (!isToggled()) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
@@ -192,39 +167,37 @@ public class AutoRepellent implements IFeature {
         }
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
-
-        if (delay.isScheduled() && !delay.passed()) return;
+        if (delayClock.isScheduled() && !delayClock.passed()) return;
 
         switch (state) {
             case NONE:
-                KeyBindUtils.stopMovement();
                 if (mc.currentScreen != null) {
                     PlayerUtils.closeScreen();
-                    delay.schedule(300 + (long) (Math.random() * 300));
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
                 if (InventoryUtils.hasItemInInventory(!FarmHelperConfig.pestRepellentType ? "Pest Repellent" : "Pest Repellent MAX")) {
-                    state = State.CLOSE_GUI;
+                    state = State.FIND_REPELLENT_IN_INVENTORY;
                 } else {
                     state = State.OPEN_DESK;
                 }
-                delay.schedule(300 + (long) (Math.random() * 300));
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case OPEN_DESK:
                 if (mc.currentScreen != null) {
                     PlayerUtils.closeScreen();
-                    delay.schedule(300 + (long) (Math.random() * 300));
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
                 KeyBindUtils.stopMovement();
                 mc.thePlayer.sendChatMessage("/desk");
                 state = State.OPEN_SKYMART;
-                delay.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
-            case CLOSE_GUI:
+            case FIND_REPELLENT_IN_INVENTORY:
                 if (mc.currentScreen != null) {
                     PlayerUtils.closeScreen();
-                    delay.schedule(300 + (long) (Math.random() * 300));
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
                 if (InventoryUtils.hasItemInHotbar(!FarmHelperConfig.pestRepellentType ? "Pest Repellent" : "Pest Repellent MAX")) {
@@ -232,93 +205,17 @@ public class AutoRepellent implements IFeature {
                     state = State.SELECT_REPELLENT;
                 } else {
                     LogUtils.sendDebug("Repellent not in hotbar, moving to hotbar");
-                    state = State.MOVE_REPELLENT_TO_HOTBAR;
+                    state = State.MOVE_REPELLENT;
                 }
-                delay.schedule(300 + (long) (Math.random() * 300));
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
-            case MOVE_REPELLENT_TO_HOTBAR:
-                switch (moveRepellentState) {
-                    case SWAP_REPELLENT_TO_HOTBAR_PICKUP:
-                        if (mc.currentScreen == null) {
-                            InventoryUtils.openInventory();
-                            delay.schedule(300 + (long) (Math.random() * 300));
-                            break;
-                        }
-                        int repellentSlot = InventoryUtils.getSlotOfItemByHypixelIdInInventory("PEST_REPELLENT", true);
-                        if (repellentSlot == -1) {
-                            LogUtils.sendError("Something went wrong while trying to get the slot of the Pest Repellent! Disabling Auto Repellent until manual check");
-                            FarmHelperConfig.autoPestRepellent = false;
-                            stop();
-                            break;
-                        }
-                        this.hotbarSlot = repellentSlot;
-                        LogUtils.sendDebug("Repellent slot: " + repellentSlot);
-                        InventoryUtils.clickSlot(repellentSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                        moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PUT;
-                        delay.schedule(300 + (long) (Math.random() * 300));
-                        break;
-                    case SWAP_REPELLENT_TO_HOTBAR_PUT:
-                        if (mc.currentScreen == null) {
-                            LogUtils.sendDebug("Inventory is closed! Changing state to: SWAP_REPELLENT_TO_HOTBAR_PICKUP");
-                            moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PICKUP;
-                            delay.schedule(300 + (long) (Math.random() * 300));
-                            break;
-                        }
-                        Slot newSlot = InventoryUtils.getSlotOfId(43);
-                        if (newSlot != null && newSlot.getHasStack()) {
-                            LogUtils.sendDebug("Slot 43 has item, swapping");
-                            moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PUT_BACK;
-                        } else {
-                            LogUtils.sendDebug("Slot 43 is empty, putting item back");
-                            state = State.SELECT_REPELLENT;
-                            moveRepellentState = MoveRepellentState.PUT_ITEM_BACK_PICKUP;
-                        }
-                        LogUtils.sendDebug("Clicking slot 43");
-                        InventoryUtils.clickSlot(43, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                        delay.schedule(300 + (long) (Math.random() * 300));
-                        break;
-                    case SWAP_REPELLENT_TO_HOTBAR_PUT_BACK:
-                        if (mc.currentScreen == null) {
-                            moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PICKUP;
-                            LogUtils.sendDebug("Inventory is closed! Changing state to: SWAP_REPELLENT_TO_HOTBAR_PICKUP");
-                            delay.schedule(300 + (long) (Math.random() * 300));
-                            break;
-                        }
-                        LogUtils.sendDebug("Clicking hotbarSlot " + hotbarSlot);
-                        InventoryUtils.clickSlot(hotbarSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                        moveRepellentState = MoveRepellentState.PUT_ITEM_BACK_PICKUP;
-                        state = State.SELECT_REPELLENT;
-                        delay.schedule(300 + (long) (Math.random() * 300));
-                        break;
-                    case PUT_ITEM_BACK_PICKUP:
-                        if (mc.currentScreen == null) {
-                            InventoryUtils.openInventory();
-                            delay.schedule(300 + (long) (Math.random() * 300));
-                            break;
-                        }
-                        LogUtils.sendDebug("Clicking hotbarSlot " + hotbarSlot);
-                        InventoryUtils.clickSlot(hotbarSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                        moveRepellentState = MoveRepellentState.PUT_ITEM_BACK_PUT;
-                        delay.schedule(300 + (long) (Math.random() * 300));
-                        break;
-                    case PUT_ITEM_BACK_PUT:
-                        if (mc.currentScreen == null) {
-                            moveRepellentState = MoveRepellentState.PUT_ITEM_BACK_PICKUP;
-                            LogUtils.sendDebug("Inventory is closed! Changing state to: PUT_ITEM_BACK_PICKUP");
-                            delay.schedule(300 + (long) (Math.random() * 300));
-                            break;
-                        }
-                        LogUtils.sendDebug("Clicking slot 43");
-                        InventoryUtils.clickSlot(43, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                        delay.schedule(3_000);
-                        Multithreading.schedule(this::stop, 1_500, TimeUnit.MILLISECONDS);
-                        break;
-                }
+            case MOVE_REPELLENT:
+                onMoveRepellentState();
                 break;
             case SELECT_REPELLENT:
                 if (mc.currentScreen != null) {
                     PlayerUtils.closeScreen();
-                    delay.schedule(300 + (long) (Math.random() * 300));
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
                 int repellentSlot = InventoryUtils.getSlotIdOfItemInHotbar(!FarmHelperConfig.pestRepellentType ? "Pest Repellent" : "Pest Repellent MAX");
@@ -331,28 +228,117 @@ public class AutoRepellent implements IFeature {
                 }
                 mc.thePlayer.inventory.currentItem = repellentSlot;
                 state = State.USE_REPELLENT;
-                delay.schedule(300 + (long) (Math.random() * 300));
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
+
             case USE_REPELLENT:
                 if (mc.currentScreen != null) {
                     PlayerUtils.closeScreen();
-                    delay.schedule(300 + (long) (Math.random() * 300));
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                state = State.WAIT_FOR_REPELLENT;
                 LogUtils.sendDebug("Using repellent");
                 KeyBindUtils.rightClick();
-                delay.schedule(2_500 + (long) (Math.random() * 1_000));
+                state = State.WAIT_FOR_REPELLENT;
+                delayClock.schedule(2_500 + (long) (Math.random() * 1_000));
                 break;
+
             case OPEN_SKYMART:
             case CLICK_REPELLENT:
             case CONFIRM_BUY:
-            case END:
-                break;
+            case END: break;
+
             case WAIT_FOR_REPELLENT:
-                if (!delay.passed()) break;
+                if (GameStateHandler.getInstance().getPestRepellentState() == GameStateHandler.BuffState.ACTIVE) {
+                    state = State.MOVE_REPELLENT;
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
                 LogUtils.sendError("[Auto Repellent] Repellent hasn't been used. Trying to use again.");
                 state = State.USE_REPELLENT;
+                break;
+        }
+    }
+
+    private void onMoveRepellentState() {
+        switch (moveRepellentState) {
+            case SWAP_REPELLENT_TO_HOTBAR_PICKUP:
+                if (mc.currentScreen == null) {
+                    InventoryUtils.openInventory();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                int repellentSlot = InventoryUtils.getSlotIdOfItemInInventory(!FarmHelperConfig.pestRepellentType ? "Pest Repellent" : "Pest Repellent MAX");
+                if (repellentSlot == -1) {
+                    LogUtils.sendError("Something went wrong while trying to get the slot of the Pest Repellent! Disabling Auto Repellent until manual check");
+                    FarmHelperConfig.autoPestRepellent = false;
+                    stop();
+                    break;
+                }
+                hotbarSlot = repellentSlot;
+                LogUtils.sendDebug("Repellent slot: " + repellentSlot);
+                InventoryUtils.clickSlot(repellentSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PUT;
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
+            case SWAP_REPELLENT_TO_HOTBAR_PUT:
+                if (mc.currentScreen == null) {
+                    LogUtils.sendDebug("Inventory is closed! Changing state to: SWAP_REPELLENT_TO_HOTBAR_PICKUP");
+                    moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PICKUP;
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                Slot newSlot = InventoryUtils.getSlotOfId(43);
+                if (newSlot != null && newSlot.getHasStack()) {
+                    LogUtils.sendDebug("Slot 43 has item, swapping");
+                    moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PUT_BACK;
+                } else {
+                    LogUtils.sendDebug("Slot 43 is empty, skipping swapping item back");
+                    state = State.SELECT_REPELLENT;
+                    moveRepellentState = MoveRepellentState.END;
+                }
+                LogUtils.sendDebug("Clicking slot 43");
+                InventoryUtils.clickSlot(43, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
+            case SWAP_REPELLENT_TO_HOTBAR_PUT_BACK:
+                if (mc.currentScreen == null) {
+                    moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PICKUP;
+                    LogUtils.sendDebug("Inventory is closed! Changing state to: SWAP_REPELLENT_TO_HOTBAR_PICKUP");
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                LogUtils.sendDebug("Clicking hotbarSlot " + hotbarSlot);
+                InventoryUtils.clickSlot(hotbarSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                moveRepellentState = MoveRepellentState.PUT_ITEM_BACK_PICKUP;
+                state = State.SELECT_REPELLENT;
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
+            case PUT_ITEM_BACK_PICKUP:
+                if (mc.currentScreen == null) {
+                    InventoryUtils.openInventory();
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                LogUtils.sendDebug("Clicking hotbarSlot " + hotbarSlot);
+                InventoryUtils.clickSlot(hotbarSlot, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                moveRepellentState = MoveRepellentState.PUT_ITEM_BACK_PUT;
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
+            case PUT_ITEM_BACK_PUT:
+                if (mc.currentScreen == null) {
+                    moveRepellentState = MoveRepellentState.PUT_ITEM_BACK_PICKUP;
+                    LogUtils.sendDebug("Inventory is closed! Changing state to: PUT_ITEM_BACK_PICKUP");
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                }
+                LogUtils.sendDebug("Clicking slot 43");
+                InventoryUtils.clickSlot(43, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                moveRepellentState = MoveRepellentState.END;
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
+            case END:
+                Multithreading.schedule(this::stop, 1_500, TimeUnit.MILLISECONDS);
                 break;
         }
     }
@@ -362,7 +348,7 @@ public class AutoRepellent implements IFeature {
         if (!isRunning()) return;
         String guiName = InventoryUtils.getInventoryName();
         if (guiName == null) return;
-        if (delay.isScheduled() && !delay.passed()) return;
+        if (delayClock.isScheduled() && !delayClock.passed()) return;
 
         switch (state) {
             case OPEN_SKYMART:
@@ -382,21 +368,19 @@ public class AutoRepellent implements IFeature {
                 } else {
                     state = State.OPEN_DESK;
                     PlayerUtils.closeScreen();
-                    delay.schedule(300 + (long) (Math.random() * 300));
-                    break;
                 }
-                delay.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
             case CLICK_REPELLENT:
                 if (guiName.equals("Desk")) {
                     state = State.OPEN_SKYMART;
-                    delay.schedule(300 + (long) (Math.random() * 300));
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
                 if (!guiName.equals("SkyMart") && !guiName.equals("SkyMart Pests")) {
                     state = State.OPEN_DESK;
                     PlayerUtils.closeScreen();
-                    delay.schedule(300 + (long) (Math.random() * 300));
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
                 Slot repellentSlot = InventoryUtils.getSlotOfItemInContainer(!FarmHelperConfig.pestRepellentType ? "Pest Repellent" : "Pest Repellent MAX");
@@ -405,16 +389,16 @@ public class AutoRepellent implements IFeature {
                 }
                 state = State.CONFIRM_BUY;
                 InventoryUtils.clickContainerSlot(repellentSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                delay.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
             case CONFIRM_BUY:
                 if (guiName.equals("Confirm")) {
                     Slot confirmSlot = InventoryUtils.getSlotOfItemInContainer("Confirm");
                     if (confirmSlot == null) {
                         break;
                     }
-                    state = State.CLOSE_GUI;
+                    state = State.FIND_REPELLENT_IN_INVENTORY;
                     InventoryUtils.clickContainerSlot(confirmSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
-                    delay.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
                 break;
@@ -426,8 +410,8 @@ public class AutoRepellent implements IFeature {
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText()); // just to be sure lol
         if (isRunning() && state == State.CONFIRM_BUY) {
             if (message.startsWith("You bought Pest")) {
-                state = State.CLOSE_GUI;
-                delay.schedule(300 + (long) (Math.random() * 300));
+                state = State.FIND_REPELLENT_IN_INVENTORY;
+                delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
             }
         }
         if (message.startsWith("YUM! Pests will now spawn")) {
@@ -440,10 +424,9 @@ public class AutoRepellent implements IFeature {
                     LogUtils.sendWarning("[Auto Repellent] Successfully used Repellent! Resuming macro...");
                     stop();
                 } else {
-                    state = State.MOVE_REPELLENT_TO_HOTBAR;
-                    moveRepellentState = MoveRepellentState.PUT_ITEM_BACK_PICKUP;
+                    state = State.MOVE_REPELLENT;
                 }
-                delay.schedule(2_000);
+                delayClock.schedule(2_000);
             }
         } else if (message.startsWith("You already have this effect active!")) {
             Matcher matcher = repellentRegex.matcher(message);
@@ -477,4 +460,32 @@ public class AutoRepellent implements IFeature {
             }
         }
     }
+
+    enum State {
+        NONE,
+        OPEN_DESK,
+        OPEN_SKYMART,
+        CLICK_REPELLENT,
+        CONFIRM_BUY,
+        FIND_REPELLENT_IN_INVENTORY,
+        MOVE_REPELLENT,
+        SELECT_REPELLENT,
+        USE_REPELLENT,
+        WAIT_FOR_REPELLENT,
+        END
+    }
+
+    @Getter
+    private State state = State.NONE;
+
+    enum MoveRepellentState {
+        SWAP_REPELLENT_TO_HOTBAR_PICKUP,
+        SWAP_REPELLENT_TO_HOTBAR_PUT,
+        SWAP_REPELLENT_TO_HOTBAR_PUT_BACK,
+        PUT_ITEM_BACK_PICKUP,
+        PUT_ITEM_BACK_PUT,
+        END
+    }
+
+    private MoveRepellentState moveRepellentState = MoveRepellentState.SWAP_REPELLENT_TO_HOTBAR_PICKUP;
 }

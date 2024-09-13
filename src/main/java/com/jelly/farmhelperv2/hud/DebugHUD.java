@@ -93,7 +93,7 @@ public class DebugHUD extends TextHud {
         if (AutoRepellent.getInstance().isRunning()) {
             lines.add("AutoRepellent");
             lines.add("   State: " + AutoRepellent.getInstance().getState());
-            lines.add("   Clock: " + AutoRepellent.getInstance().getDelay().getRemainingTime());
+            lines.add("   Clock: " + AutoRepellent.getInstance().getDelayClock().getRemainingTime());
             lines.add("   Not enough copper: " + AutoRepellent.getInstance().isNotEnoughCopper());
         }
         if (AutoSell.getInstance().isRunning()) {
