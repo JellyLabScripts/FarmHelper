@@ -174,7 +174,7 @@ public class PlayerUtils {
     public static int getFarmingTool(FarmHelperConfig.CropEnum crop, boolean withError, boolean anyHoe) {
         if (crop == null) return withError ? -1 : 0;
         for (int i = 36; i < 44; i++) {
-            if (mc.thePlayer == null || mc.thePlayer.inventoryContainer.inventorySlots == null || mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() != null)
+            if (mc.thePlayer == null || mc.thePlayer.inventoryContainer.inventorySlots == null || mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack() == null)
                 continue;
             NBTTagCompound tag = mc.thePlayer.inventoryContainer.inventorySlots.get(i).getStack().getTagCompound();
             if (tag != null && tag.hasKey("ExtraAttributes")) {
