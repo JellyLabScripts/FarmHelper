@@ -88,7 +88,7 @@ dependencies {
 
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.2.1")
 
-    implementation("net.dv8tion:JDA:5.0.0-beta.24")
+    implementation("net.dv8tion:JDA:5.1.2")
 
     implementation("com.github.onixiya1337.baritone-fly:baritone-deobf:7cc4ce43d3")
     shadowImpl("com.github.onixiya1337.baritone-fly:baritone-api-forge:7cc4ce43d3") {
