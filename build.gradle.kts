@@ -90,8 +90,8 @@ dependencies {
 
     implementation("net.dv8tion:JDA:5.0.0-beta.24")
 
-    implementation("com.github.onixiya1337.baritone-fly:baritone-deobf:nirox-fly-SNAPSHOT")
-    shadowImpl("com.github.onixiya1337.baritone-fly:baritone-api-forge:nirox-fly-SNAPSHOT") {
+    implementation("com.github.onixiya1337.baritone-fly:baritone-deobf:7cc4ce43d3")
+    shadowImpl("com.github.onixiya1337.baritone-fly:baritone-api-forge:7cc4ce43d3") {
         exclude(module = "fastutil")
         exclude(module = "lwjgl")
         exclude(module = "SimpleTweaker")
