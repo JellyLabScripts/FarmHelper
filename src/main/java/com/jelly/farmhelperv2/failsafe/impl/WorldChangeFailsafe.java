@@ -64,11 +64,9 @@ public class WorldChangeFailsafe extends Failsafe {
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()
                 && FailsafeManager.getInstance().triggeredFailsafe.get().getType() == FailsafeManager.EmergencyType.WORLD_CHANGE_CHECK)
             return;
-
-        if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
-            FailsafeManager.getInstance().possibleDetection(this);
-            sendOnce = false;
-        }
+        if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LIMBO) return;
+        LogUtils.sendWarning("[Failsafe Debug] You've been kicked to limbo! #2");
+        FailsafeManager.getInstance().possibleDetection(this);
     }
 
     @Override
@@ -86,7 +84,7 @@ public class WorldChangeFailsafe extends Failsafe {
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains(":")) return;
         if (message.contains("You were spawned in Limbo.") || message.contains("/limbo") || message.startsWith("A kick occurred in your connection")) {
-            LogUtils.sendWarning("[Failsafe] Got kicked to Limbo!");
+            LogUtils.sendWarning("[Failsafe Debug] You've been kicked to limbo! #1");
             FailsafeManager.getInstance().possibleDetection(this);
         }
     }
@@ -100,17 +98,15 @@ public class WorldChangeFailsafe extends Failsafe {
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (message.contains(":")) return;
         if (message.contains("DYNAMIC") || message.contains("Something went wrong trying to send ") || message.contains("don't spam") || message.contains("A disconnect occurred ") || message.contains("An exception occurred ") || message.contains("Couldn't warp ") || message.contains("You are sending commands ") || message.contains("Cannot join ") || message.contains("There was a problem ") || message.contains("You cannot join ") || message.contains("You were kicked while ") || message.contains("You are already playing")) {
-            LogUtils.sendWarning("[Failsafe] Can't warp to the garden! Will try again in a moment.");
+            LogUtils.sendWarning("[Failsafe Debug] Can't warp to the garden! Will try again in a moment.");
             FailsafeManager.getInstance().scheduleDelay(10000);
         }
         if (message.startsWith("You cannot join SkyBlock from here!")) {
-            LogUtils.sendDebug("[Failsafe] Can't warp to the SkyBlock! Executing /lobby command...");
+            LogUtils.sendWarning("[Failsafe Debug] Can't warp to the SkyBlock! Executing /lobby command...");
             mc.thePlayer.sendChatMessage("/lobby");
-            FailsafeManager.getInstance().scheduleDelay(2_000);
+            FailsafeManager.getInstance().scheduleDelay(2000);
         }
     }
-
-    private boolean sendOnce = false;
 
     @Override
     public void duringFailsafeTrigger() {
@@ -121,15 +117,18 @@ public class WorldChangeFailsafe extends Failsafe {
                 try {
                     mc.getNetHandler().getNetworkManager().closeChannel(new ChatComponentText("Your world has been changed and you have \"Auto Warp on World Change\" disabled!"));
                     AudioManager.getInstance().resetSound();
+                    FailsafeManager.getInstance().stopFailsafes();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }, 1_500, TimeUnit.MILLISECONDS);
+            }, 1500, TimeUnit.MILLISECONDS);
             return;
         }
 
         if (mc.thePlayer == null || mc.theWorld == null)
             return;
+
+        LogUtils.sendLog(new ChatComponentText("§7Farm Helper » [Failsafe Debug] duringFailsafeTrigger()"));
 
         switch (worldChangeState) {
             case NONE:
@@ -139,40 +138,33 @@ public class WorldChangeFailsafe extends Failsafe {
                 break;
             case WAIT_BEFORE_START:
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 500);
-                worldChangeState = WorldChangeState.END;
+                worldChangeState = WorldChangeState.TAKE_ACTION;
                 break;
-            case END:
+            case TAKE_ACTION:
                 if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING
                         || LagDetector.getInstance().isLagging() || GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.UNKNOWN) {
                     FailsafeManager.getInstance().scheduleDelay(1000);
                     return;
                 }
                 if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LOBBY) {
-                    LogUtils.sendDebug("[Failsafe] In lobby, sending /skyblock command...");
+                    LogUtils.sendWarning("[Failsafe Debug] In lobby, sending /skyblock command...");
                     mc.thePlayer.sendChatMessage("/skyblock");
-                    if (sendOnce) {
-                        FailsafeManager.getInstance().scheduleRandomDelay(30_000, 4000);
-                        LogUtils.sendWarning("[Failsafe] Couldn't warp to SkyBlock! Will try again in 30 seconds.");
-                    } else {
-                        FailsafeManager.getInstance().scheduleRandomDelay(4_500, 5000);
-                        sendOnce = true;
-                    }
+                    FailsafeManager.getInstance().scheduleRandomDelay(4500, 5000);
                     return;
                 }
                 if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
-                    LogUtils.sendWarning("[Failsafe] In Limbo, sending /lobby command...");
+                    LogUtils.sendWarning("[Failsafe Debug] In limbo, sending /lobby command...");
                     mc.thePlayer.sendChatMessage("/lobby");
-                    sendOnce = false;
                     FailsafeManager.getInstance().scheduleRandomDelay(4500, 1000);
                     return;
                 }
                 if (GameStateHandler.getInstance().inGarden()) {
-                    LogUtils.sendDebug("[Failsafe] Came back to the garden. Farming...");
+                    LogUtils.sendSuccess("[Failsafe] Came back to the garden, farming...");
                     FailsafeManager.getInstance().stopFailsafes();
                     MacroHandler.getInstance().resumeMacro();
                     return;
                 } else {
-                    LogUtils.sendDebug("[Failsafe] Sending /warp garden command...");
+                    LogUtils.sendWarning("[Failsafe Debug] Sending /warp garden command...");
                     MacroHandler.getInstance().triggerWarpGarden(true, false);
                     FailsafeManager.getInstance().scheduleRandomDelay(8500, 1000);
                 }
@@ -182,8 +174,8 @@ public class WorldChangeFailsafe extends Failsafe {
 
     @Override
     public void endOfFailsafeTrigger() {
+        LogUtils.sendWarning("[Failsafe Debug] Resetting World Change Failsafe state...");
         worldChangeState = WorldChangeState.NONE;
-        sendOnce = false;
     }
 
     private WorldChangeState worldChangeState = WorldChangeState.NONE;
@@ -191,7 +183,6 @@ public class WorldChangeFailsafe extends Failsafe {
     enum WorldChangeState {
         NONE,
         WAIT_BEFORE_START,
-        LOOK_AROUND,
-        END
+        TAKE_ACTION
     }
 }
