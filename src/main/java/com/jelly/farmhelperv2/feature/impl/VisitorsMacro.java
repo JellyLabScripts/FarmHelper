@@ -1322,7 +1322,6 @@ public class VisitorsMacro implements IFeature {
                 break;
             case END:
                 setBuyState(BuyState.NONE);
-//                setVisitorsState(VisitorsState.ROTATE_TO_VISITOR_2);
                 setVisitorsState(VisitorsState.GET_CLOSE_TO_VISITOR);
                 break;
         }
@@ -1454,8 +1453,6 @@ public class VisitorsMacro implements IFeature {
         CHECK_VISITOR,
         CLOSE_VISITOR,
         BUY_STATE,
-        //        ROTATE_TO_VISITOR_2,
-//        OPEN_VISITOR_2,
         FINISH_VISITOR,
         END
     }
