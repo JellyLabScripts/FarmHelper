@@ -115,7 +115,7 @@ public class WorldChangeFailsafe extends Failsafe {
     @Override
     public void duringFailsafeTrigger() {
         if (!FarmHelperConfig.autoWarpOnWorldChange) {
-            LogUtils.sendDebug("[Failsafe] Auto Warp on World Change is disabled! Disabling macro and disconnecting...");
+            LogUtils.sendWarning("[Failsafe] Auto Warp on World Change is disabled! Disabling macro and disconnecting...");
             MacroHandler.getInstance().disableMacro();
             Multithreading.schedule(() -> {
                 try {
@@ -160,7 +160,7 @@ public class WorldChangeFailsafe extends Failsafe {
                     return;
                 }
                 if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.LIMBO) {
-                    LogUtils.sendDebug("[Failsafe] In Limbo, sending /lobby command...");
+                    LogUtils.sendWarning("[Failsafe] In Limbo, sending /lobby command...");
                     mc.thePlayer.sendChatMessage("/lobby");
                     sendOnce = false;
                     FailsafeManager.getInstance().scheduleRandomDelay(4500, 1000);

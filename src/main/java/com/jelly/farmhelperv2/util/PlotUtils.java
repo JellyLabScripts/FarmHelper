@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.util;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.jelly.farmhelperv2.FarmHelper;
 import lombok.Getter;
@@ -42,9 +43,8 @@ public class PlotUtils {
             e.printStackTrace();
         }
         JsonObject plotsJson = new JsonObject();
-        if (!plotsContent.isEmpty()) {
+        if (!plotsContent.isEmpty() && FarmHelper.gson.fromJson(plotsContent, JsonElement.class).isJsonObject())
             plotsJson = FarmHelper.gson.fromJson(plotsContent, JsonObject.class);
-        }
 
         PLOTS.get(21).addAll(getChunks(-15, -10, -15, -10)).setName(plotsJson.has("21") ? plotsJson.get("21").getAsString() : "").setNumber(21);
         PLOTS.get(13).addAll(getChunks(-9, -4, -15, -10)).setName(plotsJson.has("13") ? plotsJson.get("13").getAsString() : "").setNumber(13);
