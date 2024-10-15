@@ -203,9 +203,12 @@ public class AutoRepellent implements IFeature {
                 if (InventoryUtils.hasItemInHotbar(!FarmHelperConfig.pestRepellentType ? "Pest Repellent" : "Pest Repellent MAX")) {
                     LogUtils.sendDebug("Repellent in hotbar, selecting repellent");
                     state = State.SELECT_REPELLENT;
-                } else {
+                } else if (InventoryUtils.hasItemInInventory(!FarmHelperConfig.pestRepellentType ? "Pest Repellent" : "Pest Repellent MAX")){
                     LogUtils.sendDebug("Repellent not in hotbar, moving to hotbar");
                     state = State.MOVE_REPELLENT;
+                } else {
+                    LogUtils.sendDebug("Repellent not in inventory, buying");
+                    state = State.NONE;
                 }
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
@@ -383,7 +386,7 @@ public class AutoRepellent implements IFeature {
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 }
-                Slot repellentSlot = InventoryUtils.getSlotOfItemInContainer(!FarmHelperConfig.pestRepellentType ? "Pest Repellent" : "Pest Repellent MAX");
+                Slot repellentSlot = InventoryUtils.getSlotOfItemInContainer(!FarmHelperConfig.pestRepellentType || !InventoryUtils.hasItemInInventory("Pest Repellent") ? "Pest Repellent" : "Pest Repellent MAX");
                 if (repellentSlot == null) {
                     break;
                 }
