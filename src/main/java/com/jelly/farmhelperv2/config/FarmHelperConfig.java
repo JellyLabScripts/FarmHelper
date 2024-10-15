@@ -54,7 +54,7 @@ public class FarmHelperConfig extends Config {
     private transient static final String AUTO_PEST_EXCHANGE = "Auto Pest Exchange";
     private transient static final String AUTO_GOD_POT = "Auto God Pot";
     private transient static final String AUTO_SELL = "Auto Sell";
-    private transient static final String AUTO_REPELLANT = "Auto Repellant";
+    private transient static final String AUTO_REPELLENT = "Auto Repellent";
     private transient static final String AUTO_SPRAYONATOR = "Auto Sprayonator";
     private transient static final String DISCORD_INTEGRATION = "Discord Integration";
     private transient static final String DELAYS = "Delays";
@@ -1716,15 +1716,15 @@ public class FarmHelperConfig extends Config {
     public static String autoSellCustomItems = "";
     //</editor-fold>
 
-    //<editor-fold desc="Pest Repellant">
+    //<editor-fold desc="Pest Repellent">
     @Switch(
-            name = "Auto Pest Repellent", category = AUTO_REPELLANT, subcategory = "Pest Repellent",
+            name = "Auto Pest Repellent", category = AUTO_REPELLENT, subcategory = "Pest Repellent",
             description = "Automatically uses pest repellent when it's not active"
     )
     public static boolean autoPestRepellent = false;
 
     @DualOption(
-            name = "Pest Repellent Type", category = AUTO_REPELLANT, subcategory = "Pest Repellent",
+            name = "Pest Repellent Type", category = AUTO_REPELLENT, subcategory = "Pest Repellent",
             description = "The pest repellent type to use",
             left = "Pest Repellent",
             right = "Pest Repellent MAX"
@@ -1732,13 +1732,13 @@ public class FarmHelperConfig extends Config {
     public static boolean pestRepellentType = true;
 
     @Switch(
-            name = "Pause Auto Pest Repellent during Jacob's contest", category = AUTO_REPELLANT, subcategory = "Pest Repellent",
+            name = "Pause Auto Pest Repellent during Jacob's contest", category = AUTO_REPELLENT, subcategory = "Pest Repellent",
             description = "Pauses auto pest repellent during Jacob's contest"
     )
     public static boolean pauseAutoPestRepellentDuringJacobsContest = false;
 
     @Button(
-            name = "Reset Failsafe", category = AUTO_REPELLANT, subcategory = "Pest Repellent",
+            name = "Reset Failsafe", category = AUTO_REPELLENT, subcategory = "Pest Repellent",
             text = "Click Here",
             description = "Resets the failsafe timer for repellent"
     )
