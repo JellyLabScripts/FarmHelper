@@ -203,12 +203,9 @@ public class AutoRepellent implements IFeature {
                 if (InventoryUtils.hasItemInHotbar(!FarmHelperConfig.pestRepellentType ? "Pest Repellent" : "Pest Repellent MAX")) {
                     LogUtils.sendDebug("Repellent in hotbar, selecting repellent");
                     state = State.SELECT_REPELLENT;
-                } else if (InventoryUtils.hasItemInInventory(!FarmHelperConfig.pestRepellentType ? "Pest Repellent" : "Pest Repellent MAX")){
+                } else {
                     LogUtils.sendDebug("Repellent not in hotbar, moving to hotbar");
                     state = State.MOVE_REPELLENT;
-                } else {
-                    LogUtils.sendDebug("Repellent not in inventory, buying");
-                    state = State.NONE;
                 }
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
@@ -399,7 +396,6 @@ public class AutoRepellent implements IFeature {
                     if (confirmSlot == null) {
                         break;
                     }
-                    state = State.FIND_REPELLENT_IN_INVENTORY;
                     InventoryUtils.clickContainerSlot(confirmSlot.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                     delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
@@ -413,8 +409,13 @@ public class AutoRepellent implements IFeature {
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText()); // just to be sure lol
         if (isRunning() && state == State.CONFIRM_BUY) {
             if (message.startsWith("You bought Pest")) {
-                state = State.FIND_REPELLENT_IN_INVENTORY;
+                if(FarmHelperConfig.pestRepellentType && !message.contains("MAX")){
+                    state = State.CLICK_REPELLENT;
+                } else {
+                    state = State.FIND_REPELLENT_IN_INVENTORY;
+                }
                 delayClock.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                return;
             }
         }
         if (message.startsWith("YUM! Pests will now spawn")) {
