@@ -333,6 +333,11 @@ public class FarmHelperConfig extends Config {
             description = "Enables Picture-in-Picture mode, hold middle mouse while macroing to move the game window"
     )
     public static boolean pipMode = false;
+    @Switch(
+            name = "Anti Stuck Enabled (Disabled by default for now)", category = MISCELLANEOUS, subcategory = "Miscellaneous",
+            description = "Enables the anti stuck feature"
+    )
+    public static boolean tmpAntiStuckEnabled = false;
     @Slider(
             name = "Anti Stuck Tries Until Rewarp", category = MISCELLANEOUS, subcategory = "Miscellaneous",
             description = "The number of tries until rewarp",

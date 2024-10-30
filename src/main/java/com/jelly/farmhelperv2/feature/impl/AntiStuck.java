@@ -81,7 +81,7 @@ public class AntiStuck implements IFeature {
 
     @Override
     public void start() {
-        if (enabled) return;
+        if (enabled || !FarmHelperConfig.tmpAntiStuckEnabled) return;
         if (FailsafeManager.getInstance().getEmergencyQueue().contains(CobwebFailsafe.getInstance()) ||
                 FailsafeManager.getInstance().getEmergencyQueue().contains(BadEffectsFailsafe.getInstance()))
             return;
@@ -121,7 +121,7 @@ public class AntiStuck implements IFeature {
 
     @Override
     public boolean isToggled() {
-        return true;
+        return FarmHelperConfig.tmpAntiStuckEnabled;
     }
 
     @Override
@@ -210,7 +210,7 @@ public class AntiStuck implements IFeature {
             return;
         }
         if (mc.currentScreen != null) return;
-        if (!enabled) return;
+        if (!enabled || !FarmHelperConfig.tmpAntiStuckEnabled) return;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
 
         if (delayBetweenMovementsClock.isScheduled() && !delayBetweenMovementsClock.passed()) return;
