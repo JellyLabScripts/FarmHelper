@@ -5,7 +5,6 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
-import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.LogUtils;
@@ -66,31 +65,12 @@ public class WorldChangeFailsafe extends Failsafe {
             return;
         if (FailsafeManager.getInstance().emergencyQueue.contains(this)) return;
         if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LIMBO) return;
-        LogUtils.sendWarning("[Failsafe Debug] You've been kicked to limbo! #2");
+        LogUtils.sendWarning("[Failsafe Debug] You've been kicked to limbo!");
         FailsafeManager.getInstance().possibleDetection(this);
     }
 
     @Override
     public void onChatDetection(ClientChatReceivedEvent event) {
-        chatOne(event);
-        chatTwo(event);
-    }
-
-    public void chatOne(ClientChatReceivedEvent event) {
-        if (FailsafeManager.getInstance().firstCheckReturn()) return;
-        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()
-                && FailsafeManager.getInstance().triggeredFailsafe.get().getType() != FailsafeManager.EmergencyType.WORLD_CHANGE_CHECK)
-            return;
-
-        String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
-        if (message.contains(":")) return;
-        if (message.contains("You were spawned in Limbo.") || message.contains("/limbo") || message.startsWith("A kick occurred in your connection")) {
-            LogUtils.sendWarning("[Failsafe Debug] You've been kicked to limbo! #1");
-            FailsafeManager.getInstance().possibleDetection(this);
-        }
-    }
-
-    public void chatTwo(ClientChatReceivedEvent event) {
         if (event.type != 0) return;
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()
                 && FailsafeManager.getInstance().triggeredFailsafe.get().getType() != FailsafeManager.EmergencyType.WORLD_CHANGE_CHECK)
@@ -103,6 +83,8 @@ public class WorldChangeFailsafe extends Failsafe {
             FailsafeManager.getInstance().scheduleDelay(10000);
         }
         if (message.startsWith("You cannot join SkyBlock from here!")) {
+            if (worldChangeState != WorldChangeState.TAKE_ACTION)
+                worldChangeState = WorldChangeState.TAKE_ACTION;
             LogUtils.sendWarning("[Failsafe Debug] Can't warp to the SkyBlock! Executing /lobby command...");
             mc.thePlayer.sendChatMessage("/lobby");
             FailsafeManager.getInstance().scheduleDelay(2000);
@@ -128,8 +110,6 @@ public class WorldChangeFailsafe extends Failsafe {
 
         if (mc.thePlayer == null || mc.theWorld == null)
             return;
-
-        LogUtils.sendLog(new ChatComponentText("§7Farm Helper » [Failsafe Debug] duringFailsafeTrigger()"));
 
         switch (worldChangeState) {
             case NONE:

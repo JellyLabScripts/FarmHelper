@@ -18,7 +18,6 @@ import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
-import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 import java.util.Optional;

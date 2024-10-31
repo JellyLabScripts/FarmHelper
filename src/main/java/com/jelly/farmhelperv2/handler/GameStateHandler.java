@@ -24,6 +24,8 @@ import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
+import net.minecraft.util.StringUtils;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -140,6 +142,16 @@ public class GameStateHandler {
     public void onWorldLoad(WorldEvent.Load event) {
         if (mc.getCurrentServerData() != null && mc.getCurrentServerData().serverIP != null) {
             serverIP = mc.getCurrentServerData().serverIP;
+        }
+    }
+
+    @SubscribeEvent
+    public void onChatMessageReceived(ClientChatReceivedEvent event) {
+        if (event.message == null || event.type != 0) return;
+        String message = StringUtils.stripControlCodes(event.message.getUnformattedText()).trim();
+        if (message.equals("You were spawned in Limbo.") || message.equals("You are AFK. Move around to return from AFK.")) {
+            lastLocation = location;
+            location = Location.LIMBO;
         }
     }
 

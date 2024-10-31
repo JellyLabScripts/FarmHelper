@@ -157,6 +157,7 @@ public class VisitorsMacro implements IFeature {
         }
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();
+            MacroHandler.getInstance().getCurrentMacro().ifPresent(am -> am.setSavedState(Optional.empty()));
         }
         ignoredNPCs.clear();
         profitNpc = false;

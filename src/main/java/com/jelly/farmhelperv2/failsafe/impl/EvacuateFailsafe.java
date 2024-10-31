@@ -12,6 +12,8 @@ import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+import java.util.Optional;
+
 public class EvacuateFailsafe extends Failsafe {
     private static EvacuateFailsafe instance;
 
@@ -78,6 +80,7 @@ public class EvacuateFailsafe extends Failsafe {
         switch (evacuateState) {
             case NONE:
                 MacroHandler.getInstance().pauseMacro();
+                MacroHandler.getInstance().getCurrentMacro().ifPresent(am -> am.setSavedState(Optional.empty()));
                 evacuateState = EvacuateState.EVACUATE_FROM_ISLAND;
                 FailsafeManager.getInstance().scheduleRandomDelay(500, 1000);
                 break;
