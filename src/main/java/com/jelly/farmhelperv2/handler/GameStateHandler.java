@@ -149,7 +149,7 @@ public class GameStateHandler {
         List<String> tabList = new ArrayList<>(event.tablist);
 
         List<String> scoreboardLines = ScoreboardUtils.getScoreboardLines(true);
-        if (tabList.size() == 1 && PlayerUtils.isInventoryEmpty(mc.thePlayer)) {
+        if (PlayerUtils.isInventoryEmpty(mc.thePlayer) && scoreboardLines.isEmpty() && mc.thePlayer.experienceLevel == 0 && mc.thePlayer.dimension == 1) {
             lastLocation = location;
             location = Location.LIMBO;
             return;

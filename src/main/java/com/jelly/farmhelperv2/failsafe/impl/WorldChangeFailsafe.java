@@ -64,6 +64,7 @@ public class WorldChangeFailsafe extends Failsafe {
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()
                 && FailsafeManager.getInstance().triggeredFailsafe.get().getType() == FailsafeManager.EmergencyType.WORLD_CHANGE_CHECK)
             return;
+        if (FailsafeManager.getInstance().emergencyQueue.contains(this)) return;
         if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LIMBO) return;
         LogUtils.sendWarning("[Failsafe Debug] You've been kicked to limbo! #2");
         FailsafeManager.getInstance().possibleDetection(this);
@@ -142,7 +143,7 @@ public class WorldChangeFailsafe extends Failsafe {
                 break;
             case TAKE_ACTION:
                 if (GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.TELEPORTING
-                        || LagDetector.getInstance().isLagging() || GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.UNKNOWN) {
+                        || GameStateHandler.getInstance().getLocation() == GameStateHandler.Location.UNKNOWN) {
                     FailsafeManager.getInstance().scheduleDelay(1000);
                     return;
                 }
