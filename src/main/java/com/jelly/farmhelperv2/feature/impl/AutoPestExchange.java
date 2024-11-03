@@ -1,6 +1,7 @@
 package com.jelly.farmhelperv2.feature.impl;
 
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
@@ -158,6 +159,7 @@ public class AutoPestExchange implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return false;
         if (!MacroHandler.getInstance().isMacroToggled() && !manual) return false;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this, VisitorsMacro.getInstance())) return false;
+        if (!FailsafeManager.getInstance().getEmergencyQueue().isEmpty()) return false;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
             LogUtils.sendError("[Auto Pest Exchange] Server is closing in " + GameStateHandler.getInstance().getServerClosingSeconds().get() + " seconds!");
             return false;
@@ -216,6 +218,11 @@ public class AutoPestExchange implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isToggled()) return;
         if (event.phase != TickEvent.Phase.START) return;
+        if (!FailsafeManager.getInstance().getEmergencyQueue().isEmpty()) return;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
+            stop();
+            return;
+        }
         if (!GameStateHandler.getInstance().inGarden()) return;
 
         if (stuckClock.isScheduled() && stuckClock.passed()) {

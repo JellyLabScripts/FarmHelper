@@ -2,6 +2,7 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
@@ -221,6 +222,8 @@ public class VisitorsMacro implements IFeature {
             return;
         }
         if (MacroHandler.getInstance().isMacroToggled()) return;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return;
+        if (!FailsafeManager.getInstance().getEmergencyQueue().isEmpty()) return;
         if (!PlayerUtils.isInBarn()) return;
         if (isRunning()) return;
         if (!afkDelay.passed()) return;
@@ -237,6 +240,7 @@ public class VisitorsMacro implements IFeature {
         if (!GameStateHandler.getInstance().inGarden()) return false;
         if (mc.thePlayer == null || mc.theWorld == null) return false;
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled()) return false;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return false;
 
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
             LogUtils.sendError("[Visitors Macro] Server is closing in " + GameStateHandler.getInstance().getServerClosingSeconds().get() + " seconds!");
@@ -331,8 +335,13 @@ public class VisitorsMacro implements IFeature {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (delayClock.isScheduled() && !delayClock.passed()) return;
+        if (!FailsafeManager.getInstance().getEmergencyQueue().isEmpty()) return;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {
             LogUtils.sendError("[Visitors Macro] Server is closing in " + GameStateHandler.getInstance().getServerClosingSeconds().get() + " seconds!");
+            stop();
+            return;
+        }
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
             stop();
             return;
         }

@@ -5,6 +5,7 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.DrawScreenAfterEvent;
 import com.jelly.farmhelperv2.event.SpawnObjectEvent;
 import com.jelly.farmhelperv2.event.SpawnParticleEvent;
+import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -250,6 +251,8 @@ public class PestsDestroyer implements IFeature {
         if (isRunning()) return false;
         if (!GameStateHandler.getInstance().inGarden()) return false;
         if (!MacroHandler.getInstance().isMacroToggled() && !manually) return false;
+        if (!FailsafeManager.getInstance().getEmergencyQueue().isEmpty()) return false;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return false;
         if (enabled || preparing) return false;
         if (GameStateHandler.getInstance().getPestsCount() < FarmHelperConfig.startKillingPestsAt && !manually || (manually && GameStateHandler.getInstance().getPestsCount() == 0))
             return false;
@@ -292,6 +295,11 @@ public class PestsDestroyer implements IFeature {
         if (event.phase != TickEvent.Phase.START) return;
         if (!GameStateHandler.getInstance().inGarden() && escapeState == EscapeState.NONE) return;
         if (!enabled) return;
+        if (!FailsafeManager.getInstance().getEmergencyQueue().isEmpty()) return;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
+            stop();
+            return;
+        }
 
 
         if (stuckClock.isScheduled() && stuckClock.passed()) {

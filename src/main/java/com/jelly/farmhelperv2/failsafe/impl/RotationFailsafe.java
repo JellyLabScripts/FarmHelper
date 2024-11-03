@@ -133,6 +133,8 @@ public class RotationFailsafe extends Failsafe {
         }
         if (shouldTriggerCheck(rotationBeforeReacting.getYaw(), rotationBeforeReacting.getPitch())) {
             FailsafeManager.getInstance().possibleDetection(this);
+            if (RotationHandler.getInstance().isRotating())
+                RotationHandler.getInstance().reset();
         } else {
             FailsafeManager.getInstance().emergencyQueue.remove(this);
             if (FailsafeManager.getInstance().emergencyQueue.isEmpty()) {
