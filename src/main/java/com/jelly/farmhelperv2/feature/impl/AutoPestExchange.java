@@ -217,7 +217,7 @@ public class AutoPestExchange implements IFeature {
         if (!isRunning()) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isToggled()) return;
-        if (event.phase != TickEvent.Phase.START) return;
+        if (event.phase != TickEvent.Phase.END) return;
         if (!FailsafeManager.getInstance().getEmergencyQueue().isEmpty()) return;
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
             stop();

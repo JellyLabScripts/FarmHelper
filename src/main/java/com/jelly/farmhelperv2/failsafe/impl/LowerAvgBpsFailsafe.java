@@ -60,7 +60,7 @@ public class LowerAvgBpsFailsafe extends Failsafe {
 
     @Override
     public void onTickDetection(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) return;
+        if (event.phase != TickEvent.Phase.END) return;
 
         float currentBPS = BPSTracker.getInstance().getBPSFloat();
         boolean shouldReset = FeatureManager.getInstance().shouldPauseMacroExecution()

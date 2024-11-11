@@ -292,7 +292,7 @@ public class PestsDestroyer implements IFeature {
             }
         }
         if (!isToggled()) return;
-        if (event.phase != TickEvent.Phase.START) return;
+        if (event.phase != TickEvent.Phase.END) return;
         if (!GameStateHandler.getInstance().inGarden() && escapeState == EscapeState.NONE) return;
         if (!enabled) return;
         if (!FailsafeManager.getInstance().getEmergencyQueue().isEmpty()) return;

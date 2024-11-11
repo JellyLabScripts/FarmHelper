@@ -204,7 +204,7 @@ public class ProfitCalculator implements IFeature {
 
     @SubscribeEvent
     public void onTickUpdateProfit(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) return;
+        if (event.phase != TickEvent.Phase.END) return;
         if (mc.thePlayer == null) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (MacroHandler.getInstance().isCurrentMacroPaused()) return;
