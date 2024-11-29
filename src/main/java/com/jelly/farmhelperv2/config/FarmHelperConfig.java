@@ -51,6 +51,7 @@ public class FarmHelperConfig extends Config {
     private transient static final String JACOBS_CONTEST = "Jacob's Contest";
     private transient static final String VISITORS_MACRO = "Visitors Macro";
     private transient static final String PESTS_DESTROYER = "Pests Destroyer";
+    private transient static final String PEST_FARMER = "Pest Farmer";
     private transient static final String AUTO_PEST_EXCHANGE = "Auto Pest Exchange";
     private transient static final String AUTO_GOD_POT = "Auto God Pot";
     private transient static final String AUTO_SELL = "Auto Sell";
@@ -1290,7 +1291,32 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static OneKeyBind enablePestsDestroyerKeyBind = new OneKeyBind(Keyboard.KEY_NONE);
+    //</editor-fold>
 
+    //<editor-fold desc="Armor Swapper">
+    @Switch(
+        name = "Swap Armor Before Killing", category = PESTS_DESTROYER, subcategory = "Armor Swapper"
+    )
+    public static boolean pestSwapArmorBefore = false;
+
+    @Slider(
+        name = "Wardrobe Slot To Kill With", category = PESTS_DESTROYER, subcategory = "Armor Swapper",
+        description = "Wardrobe slot to use before turning on pest destroyer",
+        min = 1, max = 18
+    )
+    public static int pestArmorSlot0 = 1;
+
+    @Switch(
+        name = "Swap Armor After Killing", category = PESTS_DESTROYER, subcategory = "Armor Swapper"
+    )
+    public static boolean pestSwapArmorAfter = false;
+
+    @Slider(
+        name = "Wardrobe Slot To Farm With", category = PESTS_DESTROYER, subcategory = "Armor Swapper",
+        description = "Wardrobe slot to equip after turning off pest destroyer",
+        min = 1, max = 18
+    )
+    public static int pestArmorSlot1 = 1;
     //</editor-fold>
 
     //<editor-fold desc="Drawings">
@@ -1350,6 +1376,51 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
     //</editor-fold>
 
+    //<editor-fold desc="PEST FARMER">
+    @Header(
+        text = "Read the comments below this page before using pest farmer.",
+        category = PEST_FARMER, size = 2
+    )
+    public static boolean ignored1;
+
+    @Switch(
+        name = "Enable Pest Farming", category = PEST_FARMER,
+        description = "Enables Pest Farming"
+    )
+    public static boolean pestFarming = false;
+
+    @Slider(
+        name = "Farming Armor Slot", category = PEST_FARMER,
+        min = 1, max = 18
+    )
+    public static int pestFarmingSet0Slot = 1;
+
+    @Slider(
+        name = "Pest Chance Armor Slot", category = PEST_FARMER,
+        min = 1, max = 18
+    )
+    public static int pestFarmingSet1Slot = 1;
+
+    @Slider(
+        name = "Pest Spawn Timer (In seconds)", category = PEST_FARMER,
+        description = "The time it should wait after pests spawn to swap slots (should be your pest spawn time - 5/10 seconds)",
+        min = 30, max = 300
+    )
+    public static int pestFarmingWaitTime = 255;
+
+    @Info(
+        text = "Use this Auto-Pet Rule: 1. On Equip Farming Armor -> Farming Pet | 2. On Equip Pest Chance Armor -> Slug Pet | 3. On Enter Combat -> Hedgehog Pet",
+        type = InfoType.INFO, category = PEST_FARMER
+    )
+    public static boolean ignored2;
+    
+    @Info(
+        text = "Use Armor Swapper in Pest Destroyer. Swap to Farming Armor On Start Just in case Pest Farmer doesn't do that itself.",
+        type = InfoType.INFO, category = PEST_FARMER
+    )
+    public static boolean ignored3;
+
+    //</editor-fold>
     //<editor-fold desc="DISCORD INTEGRATION">
     //<editor-fold desc="Webhook Discord">
     @Switch(
@@ -2255,6 +2326,9 @@ public class FarmHelperConfig extends Config {
         this.addDependency("randomTimeBetweenChangingRowsDuringJacob", "customRowChangeDelaysDuringJacob");
         this.addDependency("rotationTimeDuringJacob", "customRotationDelaysDuringJacob");
         this.addDependency("rotationTimeRandomnessDuringJacob", "customRotationDelaysDuringJacob");
+
+        this.addDependency("pestArmorSlot0", "pestSwapArmorBefore");
+        this.addDependency("pestArmorSlot1", "pestSwapArmorAfter");
 
         this.addDependency("leaveTime", "leaveTimer");
 

@@ -382,14 +382,15 @@ public abstract class AbstractMacro {
 
     public enum State {
         // Add default values like NONE and DROPPING
+        // DO NOT REARRAGE, IT WILL BREAK PEST FARMER IF YOU DO - osama
         NONE,
         DROPPING,
+        SWITCHING_SIDE,
+        SWITCHING_LANE,
         LEFT,
         RIGHT,
         BACKWARD,
         FORWARD,
-        SWITCHING_SIDE,
-        SWITCHING_LANE,
 
         A,
         D,

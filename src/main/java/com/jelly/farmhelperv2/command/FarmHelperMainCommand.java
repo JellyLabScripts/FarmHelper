@@ -6,6 +6,7 @@ import cc.polyfrost.oneconfig.utils.commands.annotations.Main;
 import cc.polyfrost.oneconfig.utils.commands.annotations.SubCommand;
 import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.feature.impl.AutoWardrobe;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
 import com.jelly.farmhelperv2.util.LogUtils;
@@ -70,7 +71,8 @@ public class FarmHelperMainCommand {
     }
 
     @SubCommand
-    public void test(){
-        LogUtils.sendSuccess("SprayonatorState: " + GameStateHandler.getInstance().getSprayonatorState());
+    public void wd(int slot) {
+      AutoWardrobe.instance.swapTo(slot);
     }
+
 }

@@ -48,7 +48,9 @@ public class FeatureManager {
                 Scheduler.getInstance(),
                 UngrabMouse.getInstance(),
                 VisitorsMacro.getInstance(),
-                PiPMode.getInstance()
+                PiPMode.getInstance(),
+                AutoWardrobe.instance,
+                PestFarmer.instance// sue me
         );
         features.addAll(featuresList);
         return features;
