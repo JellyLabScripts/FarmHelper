@@ -1,12 +1,16 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -16,12 +20,12 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 public class PestFarmer implements IFeature {
 
   public static PestFarmer instance = new PestFarmer();
-  private final Minecraft mc = Minecraft.getMinecraft();
   private boolean enabled = false;
   private long pestSpawnTime = 0L;
-  private int swapTo = 1; // 0 = fermento, 1 = biohazard
+  private int swapTo = -1;
   private State state = State.SWAPPING;
   private boolean pestSpawned = false;
+  private boolean holdDae = false;
 
   @Override
   public String getName() {
@@ -47,6 +51,7 @@ public class PestFarmer implements IFeature {
   public void resetStatesAfterMacroDisabled() {
     state = State.SWAPPING;
     pestSpawned = false;
+    holdDae = false;
     swapTo = -1;
   }
 
@@ -82,6 +87,10 @@ public class PestFarmer implements IFeature {
     }
   }
 
+  public boolean holdDaedalus() {
+    return holdDae && FarmHelperConfig.pestFarming && FarmHelperConfig.pestFarmingHoldDaedalus && AutoWardrobe.activeSlot == FarmHelperConfig.pestFarmingSet1Slot && InventoryUtils.holdItem("Daedalus Axe");
+  }
+
   @SubscribeEvent
   public void onTick(ClientTickEvent event) {
     if (event.phase != Phase.START) {
@@ -108,12 +117,16 @@ public class PestFarmer implements IFeature {
 
     if (pestSpawned) {
       long timeDiff = System.currentTimeMillis() - pestSpawnTime;
-      if (timeDiff >= FarmHelperConfig.pestFarmingWaitTime * 1000L && swapTo != 1) {
-        swapTo = 1;
-        start();
+      if (timeDiff >= FarmHelperConfig.pestFarmingWaitTime * 1000L && AutoWardrobe.activeSlot != FarmHelperConfig.pestFarmingSet1Slot) {
+        LogUtils.sendDebug("Swapping to " + FarmHelperConfig.pestFarmingSet1Slot);
+        swapTo = FarmHelperConfig.pestFarmingSet1Slot;
         pestSpawned = false;
-      } else if(swapTo != 0) {
-        swapTo = 0;
+        holdDae = true;
+        start();
+      } else if (AutoWardrobe.activeSlot != FarmHelperConfig.pestFarmingSet0Slot) {
+        LogUtils.sendDebug("Swapping to " + FarmHelperConfig.pestFarmingSet0Slot);
+        swapTo = FarmHelperConfig.pestFarmingSet0Slot;
+        holdDae = false;
         start();
       }
     }
@@ -140,7 +153,7 @@ public class PestFarmer implements IFeature {
 
     switch (state) {
       case SWAPPING:
-        AutoWardrobe.instance.swapTo(swapTo == 0 ? FarmHelperConfig.pestFarmingSet0Slot : FarmHelperConfig.pestFarmingSet1Slot);
+        AutoWardrobe.instance.swapTo(swapTo);
         state = State.ENDING;
         break;
       case ENDING:

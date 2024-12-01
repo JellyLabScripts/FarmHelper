@@ -4,12 +4,14 @@ import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.impl.BanInfoWS;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
+import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
+import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.entity.Entity;
@@ -50,6 +52,8 @@ public class MixinMinecraft {
 
     @Shadow
     public EntityPlayerSP thePlayer;
+
+    @Shadow private ServerData currentServerData;
 
     @Inject(method = "sendClickBlockToController", at = @At("RETURN"))
     private void sendClickBlockToController(CallbackInfo ci) {
@@ -115,6 +119,7 @@ public class MixinMinecraft {
 
     @Redirect(method = "setIngameFocus", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/Display;isActive()Z"))
     public boolean isActive() {
+        System.out.println("Trying to set in game focus. Macro Toggled: " + MacroHandler.getInstance().isMacroToggled());
         if (MacroHandler.getInstance().isMacroToggled()) {
             return true;
         }

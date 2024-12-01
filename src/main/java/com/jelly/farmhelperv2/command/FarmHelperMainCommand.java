@@ -69,10 +69,4 @@ public class FarmHelperMainCommand {
         PlayerUtils.closeScreen();
         FarmHelperConfig.checkForUpdate();
     }
-
-    @SubCommand
-    public void wd(int slot) {
-      AutoWardrobe.instance.swapTo(slot);
-    }
-
 }

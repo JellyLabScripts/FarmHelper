@@ -1198,6 +1198,11 @@ public class FarmHelperConfig extends Config {
     public static int pestAdditionalGUIDelay = 0;
 
     @Switch(
+        name = "Force Enable Pest Destroyer at X Pests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer"
+    )
+    public static boolean pestForceEnable = false;
+
+    @Switch(
             name = "Sprint while flying", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Sprints while flying"
     )
@@ -1320,7 +1325,6 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     //<editor-fold desc="Drawings">
-
     @Switch(
             name = "Pests ESP", category = PESTS_DESTROYER, subcategory = "Drawings",
             description = "Draws a box around pests"
@@ -1389,6 +1393,12 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean pestFarming = false;
 
+    @Switch(
+        name = "Hold Daedalus Axe", category = PEST_FARMER,
+        description = "Farms with daedalus axe while waiting for pests to spawn"
+    )
+    public static boolean pestFarmingHoldDaedalus = false;
+
     @Slider(
         name = "Farming Armor Slot", category = PEST_FARMER,
         min = 1, max = 18
@@ -1409,16 +1419,40 @@ public class FarmHelperConfig extends Config {
     public static int pestFarmingWaitTime = 255;
 
     @Info(
-        text = "Use this Auto-Pet Rule: 1. On Equip Farming Armor -> Farming Pet | 2. On Equip Pest Chance Armor -> Slug Pet | 3. On Enter Combat -> Hedgehog Pet",
-        type = InfoType.INFO, category = PEST_FARMER
+        text = "It's supposed to swap armor before pest spawns, swap back after pest spawns and kill with Pest Destryoer/the other one.",
+        type = InfoType.INFO, category = PEST_FARMER, size = 2
+    )
+    public static boolean ignored0;
+    @Info(
+        text = "Use this Auto-Pet Rule:",
+        type = InfoType.INFO, category = PEST_FARMER, size = 2
     )
     public static boolean ignored2;
-    
     @Info(
-        text = "Use Armor Swapper in Pest Destroyer. Swap to Farming Armor On Start Just in case Pest Farmer doesn't do that itself.",
-        type = InfoType.INFO, category = PEST_FARMER
+        text = "    1. On Gain Crop Collection -> Farming Pet, Except if slug is Equipped",
+        type = InfoType.INFO, category = PEST_FARMER, size = 2
     )
     public static boolean ignored3;
+    @Info(
+        text = "    2. On Equip Farming Armor -> Farming Pet",
+        type = InfoType.INFO, category = PEST_FARMER, size = 2
+    )
+    public static boolean ignored4;
+    @Info(
+        text = "    3. On Equip Pest Chance Armor -> Slug Pet",
+        type = InfoType.INFO, category = PEST_FARMER, size = 2
+    )
+    public static boolean ignored5;
+    @Info(
+        text = "    4. On Enter Combat -> Hedgehog Pet",
+        type = InfoType.INFO, category = PEST_FARMER, size = 2
+    )
+    public static boolean ignored6;
+    @Info(
+        text = "Use Armor Swapper in Pest Destroyer. Swap to Farming Armor On Start Just in case Pest Farmer doesn't do that itself.",
+        type = InfoType.INFO, category = PEST_FARMER, size = 2
+    )
+    public static boolean ignored7;
 
     //</editor-fold>
     //<editor-fold desc="DISCORD INTEGRATION">

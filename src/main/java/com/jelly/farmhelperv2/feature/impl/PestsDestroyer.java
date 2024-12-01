@@ -497,7 +497,9 @@ public class PestsDestroyer implements IFeature {
           if (finishing) {
             currentSlot = FarmHelperConfig.pestArmorSlot1;
           }
-          AutoWardrobe.instance.swapTo(currentSlot);
+          if (AutoWardrobe.activeSlot != currentSlot) {
+            AutoWardrobe.instance.swapTo(currentSlot);
+          }
         }
         state = States.ARMOR_SWAP_VERIFY;
         break;

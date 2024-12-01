@@ -8,7 +8,6 @@ import com.jelly.farmhelperv2.util.InventoryUtils.ClickType;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
-import kotlinx.serialization.descriptors.PolymorphicKind.OPEN;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.inventory.ContainerChest;
@@ -21,7 +20,8 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
 public class AutoWardrobe implements IFeature {
 
   public static AutoWardrobe instance = new AutoWardrobe();
-  private static final Minecraft mc = Minecraft.getMinecraft();
+  public static int activeSlot = -1;
+  private final Minecraft mc = Minecraft.getMinecraft();
   private boolean enabled = false;
   private int swapTo = -1;
   private State state = State.STARTING;
@@ -49,7 +49,7 @@ public class AutoWardrobe implements IFeature {
 
   @Override
   public void resetStatesAfterMacroDisabled() {
-
+    activeSlot = -1;
   }
 
   @Override
@@ -122,7 +122,7 @@ public class AutoWardrobe implements IFeature {
       case WD_VERIFY:
         if (hasTimerEnded()) {
           LogUtils.sendError("Could not open wardrobe in under 2 seconds. Stopping");
-          setState(State.ENDING, 0);
+          setState(State.WAITING, 0);
           return;
         }
 
@@ -144,7 +144,7 @@ public class AutoWardrobe implements IFeature {
       case NAVIGATION_VERIFY:
         if (hasTimerEnded()) {
           LogUtils.sendError("Could not switch to next page in under 2 seconds. Stopping");
-          setState(State.ENDING, 0);
+          setState(State.WAITING, 0);
           return;
         }
 
@@ -165,13 +165,19 @@ public class AutoWardrobe implements IFeature {
             InventoryUtils.clickContainerSlot(35 + (swapTo - 1) % 9 + 1, ClickType.LEFT, ClickMode.PICKUP);
           }
         }
-        setState(State.ENDING, FarmHelperConfig.getRandomGUIMacroDelay());
+        activeSlot = swapTo;
+        setState(State.WAITING, FarmHelperConfig.getRandomGUIMacroDelay());
         break;
-      case ENDING:
+      case WAITING:
         if (isTimerRunning()) {
           return;
         }
         PlayerUtils.closeScreen();
+        setState(State.ENDING, FarmHelperConfig.getRandomGUIMacroDelay());
+        break;
+        // this is just here to give a bit extra pause before it stops
+      case ENDING:
+        if (isTimerRunning()) return;
         stop();
         break;
     }
@@ -195,6 +201,6 @@ public class AutoWardrobe implements IFeature {
 
 
   enum State {
-    STARTING, OPENING_WD, WD_VERIFY, NAVIGATING, NAVIGATION_VERIFY, CLICKING_SLOT, ENDING
+    STARTING, OPENING_WD, WD_VERIFY, NAVIGATING, NAVIGATION_VERIFY, CLICKING_SLOT, WAITING, ENDING
   }
 }
