@@ -53,8 +53,6 @@ public class MixinMinecraft {
     @Shadow
     public EntityPlayerSP thePlayer;
 
-    @Shadow private ServerData currentServerData;
-
     @Inject(method = "sendClickBlockToController", at = @At("RETURN"))
     private void sendClickBlockToController(CallbackInfo ci) {
         if (!FarmHelperConfig.fastBreak || !(MacroHandler.getInstance().getCurrentMacro().isPresent() && MacroHandler.getInstance().isMacroToggled())) {
