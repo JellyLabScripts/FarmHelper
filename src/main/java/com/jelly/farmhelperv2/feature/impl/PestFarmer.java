@@ -155,6 +155,7 @@ public class PestFarmer implements IFeature {
     @SubscribeEvent
     public void onTickSwap(ClientTickEvent event) {
         if (!enabled) return;
+        if (event.phase != Phase.START) return;
         switch (state) {
             case SWAPPING:
                 AutoWardrobe.getInstance().swapTo(swapTo);
@@ -196,6 +197,7 @@ public class PestFarmer implements IFeature {
     @SubscribeEvent
     public void onTickReturn(ClientTickEvent event) {
         if (returnState == ReturnState.SUSPEND) return;
+        if (event.phase != Phase.START) return;
         switch (returnState) {
             case FIND_ROD:
                 if (clock.passed()) {
