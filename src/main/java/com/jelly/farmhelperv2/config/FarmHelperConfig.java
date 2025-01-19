@@ -419,6 +419,10 @@ public class FarmHelperConfig extends Config {
             description = "Switch to game window when failsafe triggers")
     public static boolean autoAltTab = false;
 
+    @Switch(name = "Disable Fake Reactions", category = FAILSAFE, subcategory = "General",
+            description = "Disable the fake reaction movement after failsafe is triggered.")
+    public static boolean disableFakeMovement = false;
+
     @Slider(name = "Failsafe Stop Delay", category = FAILSAFE, subcategory = "General",
             description = "Delay before stopping macro after failsafe (ms)",
             min = 1000, max = 7500)
@@ -1190,6 +1194,13 @@ public class FarmHelperConfig extends Config {
     )
     public static int startKillingPestsAt = 3;
     @Slider(
+            name = "Pests Destroyer FOV",
+            description = "The field of view of the pests destroyer",
+            category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            min = 1, max = 360
+    )
+    public static int pestsDestroyerFOV = 140;
+    @Slider(
             name = "Additional GUI Delay (ms)", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Extra time to wait between clicks. By default it's 500-1000 ms.",
             min = 0, max = 5000
@@ -1290,6 +1301,63 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static OneKeyBind enablePestsDestroyerKeyBind = new OneKeyBind(Keyboard.KEY_NONE);
+
+    //</editor-fold>
+
+    //<editor-fold desc="PEST FARMER">
+    @Info(
+            text = "Use these Auto-Pet Rules:",
+            type = InfoType.WARNING, category = PESTS_DESTROYER, size = 2,
+            subcategory = "Pest Farming"
+    )
+    public static boolean ignored2;
+    @Info(
+            text = "    1. On Throw Fishing Rod -> Farming Pet",
+            type = InfoType.WARNING, category = PESTS_DESTROYER, size = 2,
+            subcategory = "Pest Farming"
+    )
+    public static boolean ignored3;
+    @Info(
+            text = "    2. On Equip Farming Armor -> Hedgehog Pet",
+            type = InfoType.WARNING, category = PESTS_DESTROYER, size = 2,
+            subcategory = "Pest Farming"
+    )
+    public static boolean ignored4;
+    @Info(
+            text = "    3. On Equip Pest Chance Armor -> Slug Pet",
+            type = InfoType.WARNING, category = PESTS_DESTROYER, size = 2,
+            subcategory = "Pest Farming"
+    )
+    public static boolean ignored5;
+
+    @Switch(
+            name = "Enable Pest Farming", category = PESTS_DESTROYER,
+            subcategory = "Pest Farming",
+            description = "Enables Pest Farming"
+    )
+    public static boolean pestFarming = false;
+
+    @Slider(
+            name = "Farming Armor Slot", category = PESTS_DESTROYER,
+            subcategory = "Pest Farming",
+            min = 1, max = 18
+    )
+    public static int pestFarmingSet0Slot = 1;
+
+    @Slider(
+            name = "Pest Chance Armor Slot", category = PESTS_DESTROYER,
+            subcategory = "Pest Farming",
+            min = 1, max = 18
+    )
+    public static int pestFarmingSet1Slot = 1;
+
+    @Slider(
+            name = "Pest Spawn Timer (In seconds)", category = PESTS_DESTROYER,
+            subcategory = "Pest Farming",
+            description = "The time it should wait after pests spawn to swap slots (should be your pest spawn time - 5/10 seconds)",
+            min = 30, max = 300
+    )
+    public static int pestFarmingWaitTime = 255;
 
     //</editor-fold>
 
@@ -1973,13 +2041,13 @@ public class FarmHelperConfig extends Config {
             name = "Reset stats between disabling", category = HUD, subcategory = "Profit Calculator"
     )
     public static boolean resetStatsBetweenDisabling = false;
-//    @Button(
-//            name = "Reset Profit Calculator", category = HUD, subcategory = "Profit Calculator",
-//            text = "Reset Now", size = 2
-//    )
-//    public void resetStats() {
-//        ProfitCalculator.getInstance().resetProfits();
-//    }
+    @Button(
+            name = "Reset Profit Calculator", category = HUD, subcategory = "Profit Calculator",
+            text = "Reset Now", size = 2
+    )
+    public void resetStats() {
+        ProfitCalculator.getInstance().resetProfits();
+    }
     @HUD(
             name = "Profit Calculator HUD - Visual Settings", category = HUD, subcategory = " "
     )

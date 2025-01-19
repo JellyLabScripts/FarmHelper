@@ -429,11 +429,7 @@ public class GameStateHandler {
                     currentPlotPestsCount = 0;
                 }
             } else if (cleanedLine.contains("Plot")) {
-                if (cleanedLine.contains("ൠ")) {
-                    currentPlotPestsCount = 1;
-                } else {
-                    currentPlotPestsCount = 0;
-                }
+                currentPlotPestsCount = 0;
             }
         }
         if (pestsCountTemp != pestsCount) {

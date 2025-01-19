@@ -11,6 +11,7 @@ import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.AntiStuck;
 import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
+import com.jelly.farmhelperv2.feature.impl.PestFarmer;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -102,6 +103,10 @@ public class TeleportFailsafe extends Failsafe {
             return;
         }
         LogUtils.sendDebug("tp: " + FlyPathFinderExecutor.getInstance().isTping() + " lastTpTime: " + FlyPathFinderExecutor.getInstance().hasJustTped() + " isInCache: " + FlyPathFinderExecutor.getInstance().isPositionInCache(packetPlayerBlockPos));
+        if (PestFarmer.getInstance().isTeleporting()) {
+            LogUtils.sendDebug("[Failsafe] Pest Farmer is teleporting back to plot. Ignoring");
+            return;
+        }
         if (FlyPathFinderExecutor.getInstance().isRunning() && (FlyPathFinderExecutor.getInstance().isTping() || FlyPathFinderExecutor.getInstance().hasJustTped() || FlyPathFinderExecutor.getInstance().isPositionInCache(packetPlayerBlockPos))) {
             if (FlyPathFinderExecutor.getInstance().isTping()) {
                 LogUtils.sendDebug("[Failsafe] Teleport packet received while Fly pathfinder is teleporting. Ignoring");

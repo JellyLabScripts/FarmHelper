@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.feature.impl;
 import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.DrawScreenAfterEvent;
+import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.event.SpawnObjectEvent;
 import com.jelly.farmhelperv2.event.SpawnParticleEvent;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
@@ -30,6 +31,7 @@ import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.play.server.S2APacketParticles;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -72,6 +74,7 @@ public class PestsDestroyer implements IFeature {
     private final Clock delayClock = new Clock();
     private final Clock delayBetweenBackTaps = new Clock();
     private final Clock delayBetweenFireworks = new Clock();
+    private long lastVacuumUse = 0L;
     @Getter
     private Optional<Entity> currentEntityTarget = Optional.empty();
     private boolean enabled = false;
@@ -136,6 +139,7 @@ public class PestsDestroyer implements IFeature {
 
     @Override
     public void start() {
+        PestFarmer.getInstance().setReturnVariables();
         if (enabled) return;
         gotRangeOfVacuum = false;
         isPlotObstructed = false;
@@ -408,10 +412,26 @@ public class PestsDestroyer implements IFeature {
                 ItemStack currentItem = mc.thePlayer.getHeldItem();
                 if (GameStateHandler.getInstance().getPestsCount() == 0) {
                     if (isInventoryOpen()) return;
-                    finishMacro();
+                    state = States.GO_BACK;
                     return;
                 }
                 if (getVacuum(currentItem)) return;
+                state = States.SWAP_ARMOR;
+                delayClock.schedule((long) (200 + Math.random() * 200));
+                break;
+            case SWAP_ARMOR:
+                if (FarmHelperConfig.pestFarming) {
+                    if (AutoWardrobe.activeSlot != FarmHelperConfig.pestFarmingSet0Slot) {
+                        AutoWardrobe.getInstance().swapTo(FarmHelperConfig.pestFarmingSet0Slot);
+                    }
+                }
+                state = States.ARMOR_SWAP_VERIFY;
+                break;
+            case ARMOR_SWAP_VERIFY:
+                if (AutoWardrobe.getInstance().isRunning()) {
+                    return;
+                }
+
                 if (needToUpdatePlots || PlotUtils.needToUpdatePlots()) {
                     state = States.OPEN_DESK;
                 } else {
@@ -421,7 +441,7 @@ public class PestsDestroyer implements IFeature {
                         state = States.TELEPORT_TO_PLOT;
                     }
                 }
-                delayClock.schedule((long) (200 + Math.random() * 200));
+
                 break;
             case OPEN_DESK:
                 if (isInventoryOpen()) break;
@@ -506,7 +526,7 @@ public class PestsDestroyer implements IFeature {
                     LogUtils.sendError("[Pests Destroyer] Your spawnpoint is obstructed! Make sure there is no block above your spawnpoint! Disabling Pests Destroyer!");
                     stop();
                     FarmHelperConfig.enablePestsDestroyer = false;
-                    finishMacro();
+                    state = States.GO_BACK;
                 } else {
                     state = States.GET_CLOSEST_PLOT;
                     LogUtils.sendDebug("[Pests Destroyer] Spawnpoint is not obstructed");
@@ -664,6 +684,7 @@ public class PestsDestroyer implements IFeature {
                     getLocationTries = 0;
                 }
                 KeyBindUtils.leftClick();
+                lastVacuumUse = System.currentTimeMillis();
                 getLocationTries++;
                 if (!stuckClock.isScheduled())
                     stuckClock.schedule(1_000 * 60 * FarmHelperConfig.pestsKillerStuckTime);
@@ -929,6 +950,12 @@ public class PestsDestroyer implements IFeature {
                 }
                 break;
             case GO_BACK:
+                if (FarmHelperConfig.pestFarming) {
+                    stop();
+                    PestFarmer.getInstance().returnBack();
+                    return;
+                }
+
                 finishMacro();
                 break;
         }
@@ -945,6 +972,29 @@ public class PestsDestroyer implements IFeature {
                 closestPest = entity;
             }
         }
+
+        if (closestPest != null) {
+            Vec3 entityPosition = new Vec3(closestPest.posX, closestPest.posY + closestPest.getEyeHeight(), closestPest.posZ);
+            Vec3 playerPosition = mc.thePlayer.getPositionEyes(1);
+
+            double xDiff = entityPosition.xCoord - playerPosition.xCoord;
+            double zDiff = entityPosition.zCoord - playerPosition.zCoord;
+
+            float yaw = (float) Math.toDegrees(Math.atan2(zDiff, xDiff)) - 90F;
+            float yawDiff = Math.abs(MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw) - MathHelper.wrapAngleTo180_float(yaw));
+
+            if (yawDiff > FarmHelperConfig.pestsDestroyerFOV / 2f) {
+                return null;
+            }
+
+            MovingObjectPosition movObj = mc.theWorld.rayTraceBlocks(playerPosition, entityPosition);
+            if (
+                movObj != null
+                &&  movObj.entityHit != closestPest && playerPosition.distanceTo(entityPosition) > 35
+                && (System.currentTimeMillis() - lastVacuumUse) > 3000
+            ) return null;
+        }
+
         return closestPest;
     }
 
@@ -955,7 +1005,7 @@ public class PestsDestroyer implements IFeature {
                 LogUtils.sendError("[Pests Destroyer] Failed to find vacuum in hotbar!");
                 state = States.GO_BACK;
                 FarmHelperConfig.enablePestsDestroyer = false;
-                finishMacro();
+                state = States.GO_BACK;
                 return true;
             }
             mc.thePlayer.inventory.currentItem = vacuum;
@@ -1027,7 +1077,7 @@ public class PestsDestroyer implements IFeature {
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText().trim());
         if (message.startsWith("You can't fast travel while in combat!") && enabled) {
             LogUtils.sendWarning("[Pests Destroyer] Can't fast travel while in combat, will try again to teleport.");
-            Multithreading.schedule(this::finishMacro, 1_000 + (long) (Math.random() * 1_000), TimeUnit.MILLISECONDS);
+            state = States.GO_BACK;
             return;
         }
         if (message.toLowerCase().startsWith("there are not any pests on your garden right now") && enabled && state != States.GO_BACK) {
@@ -1217,6 +1267,21 @@ public class PestsDestroyer implements IFeature {
     private Vec3 firstLocation = null;
     private Vec3 lastLocation = null;
 
+    @SubscribeEvent
+    public void onPacketReceive(ReceivePacketEvent event) {
+        if (!(event.packet instanceof S2APacketParticles)) return;
+        if (((S2APacketParticles) event.packet).getParticleType() != EnumParticleTypes.VILLAGER_ANGRY) return;
+
+        Vec3 location = calculateWaypoint();
+        if (location == null) return;
+
+        RotationHandler.getInstance().easeTo(new RotationConfiguration(
+                new Target(location),
+                2000L,
+                null
+        ).followTarget(false));
+    }
+
     @SubscribeEvent(receiveCanceled = true, priority = EventPriority.HIGHEST)
     public void onFirework(SpawnParticleEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
@@ -1391,6 +1456,8 @@ public class PestsDestroyer implements IFeature {
 
     public enum States {
         IDLE,
+        SWAP_ARMOR,
+        ARMOR_SWAP_VERIFY,
         OPEN_DESK,
         OPEN_PLOTS,
         WAIT_FOR_INFO,

@@ -179,6 +179,7 @@ public class MacroHandler {
         LogUtils.sendDebug("Selected macro: " + LogUtils.capitalize(currentMacro.get().getClass().getSimpleName()));
         PlayerUtils.closeScreen();
         LogUtils.sendSuccess("Macro enabled!");
+        if (PestFarmer.getInstance().getPestSpawnTime() == 0L) PestFarmer.getInstance().setPestSpawnTime(System.currentTimeMillis());
         if (FarmHelperConfig.sendMacroEnableDisableLogs) {
             LogUtils.webhookLog("Macro enabled!");
         }
@@ -194,8 +195,8 @@ public class MacroHandler {
         if (mc.currentScreen != null) {
             PlayerUtils.closeScreen();
         }
-        AudioManager.getInstance().setSoundBeforeChange(mc.gameSettings.getSoundLevel(SoundCategory.MASTER));
 
+        AudioManager.getInstance().setSoundBeforeChange(mc.gameSettings.getSoundLevel(SoundCategory.MASTER));
         FeatureManager.getInstance().enableAll();
 
         setMacroToggled(true);
@@ -206,6 +207,7 @@ public class MacroHandler {
 
     public void disableMacro() {
         setMacroToggled(false);
+        PestFarmer.getInstance().stop();
         LogUtils.sendSuccess("Macro disabled!");
         if (FarmHelperConfig.sendMacroEnableDisableLogs) {
             LogUtils.webhookLog("Macro disabled!");
