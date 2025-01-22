@@ -1351,14 +1351,6 @@ public class FarmHelperConfig extends Config {
     )
     public static int pestFarmingSet1Slot = 1;
 
-    @Slider(
-            name = "Pest Spawn Timer (In seconds)", category = PESTS_DESTROYER,
-            subcategory = "Pest Farming",
-            description = "The time it should wait after pests spawn to swap slots (should be your pest spawn time - 5/10 seconds)",
-            min = 30, max = 300
-    )
-    public static int pestFarmingWaitTime = 255;
-
     //</editor-fold>
 
     //<editor-fold desc="Drawings">
@@ -1830,7 +1822,6 @@ public class FarmHelperConfig extends Config {
             name = "Type", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
             description = "Item to spray plot with",
             options = {
-                    "Fine Flour (+20 Farming Fortune)",
                     "Compost (Earthworm & Mosquito)",
                     "Honey Jar (Moth & Cricket)",
                     "Dung (Beetle & Fly)",

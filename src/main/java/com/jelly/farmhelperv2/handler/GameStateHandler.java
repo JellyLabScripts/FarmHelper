@@ -7,6 +7,7 @@ import com.jelly.farmhelperv2.failsafe.impl.CobwebFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.DirtFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.JacobFailsafe;
 import com.jelly.farmhelperv2.feature.impl.AutoRepellent;
+import com.jelly.farmhelperv2.feature.impl.PestFarmer;
 import com.jelly.farmhelperv2.feature.impl.PestsDestroyer;
 import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Clock;
@@ -46,6 +47,7 @@ public class GameStateHandler {
     private final Timer reWarpTimer = new Timer();
     @Getter
     private final Clock jacobContestLeftClock = new Clock();
+    public final Pattern pestCooldownRegex = Pattern.compile("Cooldown: (?:(\\d{1,2})m ?)?(\\d{1,2})?s|Cooldown: READY");
     public final Pattern jacobsRemainingTimePattern = Pattern.compile("([0-9]|[1-2][0-9])m([0-9]|[1-5][0-9])s");
     public final Pattern jacobsStartsInTimePattern = Pattern.compile("Starts In: ([1-3]?[0-9])?m ?([1-5]?[0-9])?s?");
     private final Pattern serverClosingPattern = Pattern.compile("Server closing: (?<minutes>\\d+):(?<seconds>\\d+) .*");
@@ -169,9 +171,13 @@ public class GameStateHandler {
 
         boolean hasGuestsOnTabList = false;
         boolean foundPestHunterBonus = false;
+        boolean isCooldownOver = false;
         boolean foundLocation = false;
         boolean foundSpray = false;
         int nextJacobCropFound = -1;
+        int remaining = -1;
+        String minutes = "";
+        String seconds = "";
         List<FarmHelperConfig.CropEnum> newJacobsContestNextCrop = new ArrayList<>();
 
         for (String cleanedLine : tabList) {
@@ -188,6 +194,29 @@ public class GameStateHandler {
                         }
                     }
                     if (foundLocation) continue;
+                }
+            }
+            if (!isCooldownOver) {
+                Matcher matcher = pestCooldownRegex.matcher(cleanedLine);
+
+                if (matcher.find()) {
+                    if (matcher.group().contains("READY")) {
+                        isCooldownOver = true;
+                    } else {
+                        minutes = matcher.group(1);
+                        seconds = matcher.group(2);
+
+                        if (minutes != null) remaining += Integer.parseInt(minutes) * 60;
+                        if (seconds != null) remaining += Integer.parseInt(seconds);
+
+                        if (remaining < 7) {
+                            isCooldownOver = true;
+                        }
+                    }
+
+                    if (isCooldownOver != PestFarmer.getInstance().isCooldownOver()) {
+                        PestFarmer.getInstance().setCooldownOver(isCooldownOver);
+                    }
                 }
             }
             if (!hasGuestsOnTabList) {

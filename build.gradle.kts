@@ -35,6 +35,8 @@ loom {
             // If you don't want mixins, remove these lines
             property("mixin.debug", "true")
             property("asmhelper.verbose", "true")
+            property("devauth.enabled", "true")
+            property("devauth.account", "main")
             arg("--tweakClass", "cc.polyfrost.oneconfig.loader.stage0.LaunchWrapperTweaker")
             arg("-Dfml.coreMods.load", "com.jelly.farmhelperv2.transformer.FMLCore")
             arg("--tweakClass", "com.jelly.farmhelperv2.transformer.Tweaker")
@@ -89,6 +91,7 @@ dependencies {
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.2.1")
 
     implementation("net.dv8tion:JDA:5.0.0-beta.24")
+    shadowImpl("it.unimi.dsi:fastutil:8.2.1")
 
     implementation("com.github.onixiya1337.baritone-fly:baritone-deobf:nirox-fly-SNAPSHOT")
     shadowImpl("com.github.onixiya1337.baritone-fly:baritone-api-forge:nirox-fly-SNAPSHOT") {

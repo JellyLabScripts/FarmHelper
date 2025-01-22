@@ -179,7 +179,6 @@ public class MacroHandler {
         LogUtils.sendDebug("Selected macro: " + LogUtils.capitalize(currentMacro.get().getClass().getSimpleName()));
         PlayerUtils.closeScreen();
         LogUtils.sendSuccess("Macro enabled!");
-        if (PestFarmer.getInstance().getPestSpawnTime() == 0L) PestFarmer.getInstance().setPestSpawnTime(System.currentTimeMillis());
         if (FarmHelperConfig.sendMacroEnableDisableLogs) {
             LogUtils.webhookLog("Macro enabled!");
         }

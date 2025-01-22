@@ -28,6 +28,7 @@
     "client.MixinMinecraft",
     "client.MixinPlayerControllerMP",
     "client.MixinSoundManager",
+    "client.MixinChunkProviderClient",
     "gui.AccessorGuiEditSign",
     "gui.IGuiPlayerTabOverlayAccessor",
     "gui.MixinGuiContainer",

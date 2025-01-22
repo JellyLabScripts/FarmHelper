@@ -139,7 +139,8 @@ public class PestsDestroyer implements IFeature {
 
     @Override
     public void start() {
-        PestFarmer.getInstance().setReturnVariables();
+        if (MacroHandler.getInstance().isMacroToggled())
+            PestFarmer.getInstance().setReturnVariables();
         if (enabled) return;
         gotRangeOfVacuum = false;
         isPlotObstructed = false;
@@ -425,6 +426,7 @@ public class PestsDestroyer implements IFeature {
                         AutoWardrobe.getInstance().swapTo(FarmHelperConfig.pestFarmingSet0Slot);
                     }
                 }
+
                 state = States.ARMOR_SWAP_VERIFY;
                 break;
             case ARMOR_SWAP_VERIFY:
@@ -677,7 +679,9 @@ public class PestsDestroyer implements IFeature {
                     delayClock.schedule(300);
                     break;
                 }
+
                 state = States.WAIT_FOR_LOCATION;
+
                 if (getLocationTries > 4) {
                     LogUtils.sendWarning("[Pests Destroyer] Couldn't find any firework location. Trying to fix it by sending /pq low.");
                     mc.thePlayer.sendChatMessage("/pq low");
@@ -688,16 +692,23 @@ public class PestsDestroyer implements IFeature {
                 getLocationTries++;
                 if (!stuckClock.isScheduled())
                     stuckClock.schedule(1_000 * 60 * FarmHelperConfig.pestsKillerStuckTime);
-                delayClock.schedule(300);
                 break;
             case WAIT_FOR_LOCATION:
                 if (isInventoryOpenDelayed()) break;
 
-                if (RotationHandler.getInstance().isRotating()) return;
-
                 if (getClosestPest() != null) {
                     state = States.FIND_PEST;
                     break;
+                }
+
+                // TODO: FIX THIS DOGSHIT ROTATION
+                Vec3 location = calculateWaypoint();
+                if (location != null) {
+                    RotationHandler.getInstance().easeTo(new RotationConfiguration(
+                            new Target(location),
+                            2000L,
+                            null
+                    ).followTarget(false));
                 }
 
                 if (lastLocation != null && lastFireworkTime + 250 < System.currentTimeMillis()) {
@@ -1266,21 +1277,6 @@ public class PestsDestroyer implements IFeature {
     private final List<Vec3> locations = new ArrayList<>();
     private Vec3 firstLocation = null;
     private Vec3 lastLocation = null;
-
-    @SubscribeEvent
-    public void onPacketReceive(ReceivePacketEvent event) {
-        if (!(event.packet instanceof S2APacketParticles)) return;
-        if (((S2APacketParticles) event.packet).getParticleType() != EnumParticleTypes.VILLAGER_ANGRY) return;
-
-        Vec3 location = calculateWaypoint();
-        if (location == null) return;
-
-        RotationHandler.getInstance().easeTo(new RotationConfiguration(
-                new Target(location),
-                2000L,
-                null
-        ).followTarget(false));
-    }
 
     @SubscribeEvent(receiveCanceled = true, priority = EventPriority.HIGHEST)
     public void onFirework(SpawnParticleEvent event) {

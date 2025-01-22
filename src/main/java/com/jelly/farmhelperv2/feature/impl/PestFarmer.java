@@ -38,7 +38,8 @@ public class PestFarmer implements IFeature {
 
     @Getter
     @Setter
-    private long pestSpawnTime = 0L;
+    private boolean cooldownOver = false;
+    private long lastPestSpawn = 0L;
     private boolean rodSwap = false;
     private boolean enabled = false;
     private Clock clock = new Clock();
@@ -71,7 +72,7 @@ public class PestFarmer implements IFeature {
     @Override
     public void resetStatesAfterMacroDisabled() {
         state = State.SWAPPING;
-        pestSpawned = false;
+        returnState = ReturnState.SUSPEND;
         swapTo = -1;
     }
 
@@ -113,7 +114,7 @@ public class PestFarmer implements IFeature {
     @SubscribeEvent
     public void onTick(ClientTickEvent event) {
         if (event.phase != Phase.START) return;
-        if (!this.isToggled() || !MacroHandler.getInstance().isCurrentMacroEnabled() || MacroHandler.getInstance().getCurrentMacro().get().currentState.ordinal() < 4 || enabled)
+        if (!this.isToggled() || !MacroHandler.getInstance().isCurrentMacroEnabled() || MacroHandler.getInstance().isCurrentMacroPaused() || enabled || returnState != ReturnState.SUSPEND)
             return;
         if (!GameStateHandler.getInstance().inGarden()) return;
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) return;
@@ -122,16 +123,11 @@ public class PestFarmer implements IFeature {
         if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this)) return;
 
 
-        if ((System.currentTimeMillis() - pestSpawnTime) >= (FarmHelperConfig.pestFarmingWaitTime * 1000L) && GameStateHandler.getInstance().getPestsCount() < FarmHelperConfig.startKillingPestsAt) {
-            if (AutoWardrobe.activeSlot != FarmHelperConfig.pestFarmingSet1Slot) {
-                swapTo = FarmHelperConfig.pestFarmingSet1Slot;
-                start();
-            }
-
-            return;
-        }
-
-        if (pestSpawned && (System.currentTimeMillis() - pestSpawnTime) >= (2000) && AutoWardrobe.activeSlot != FarmHelperConfig.pestFarmingSet0Slot) {
+        if (cooldownOver && AutoWardrobe.activeSlot != FarmHelperConfig.pestFarmingSet1Slot) {
+            swapTo = FarmHelperConfig.pestFarmingSet1Slot;
+            rodSwap = false;
+            start();
+        } else if (pestSpawned && !cooldownOver && (System.currentTimeMillis() - lastPestSpawn) >= (2000) && AutoWardrobe.activeSlot != FarmHelperConfig.pestFarmingSet0Slot) {
             LogUtils.sendDebug("Swapping to " + FarmHelperConfig.pestFarmingSet0Slot);
             swapTo = FarmHelperConfig.pestFarmingSet0Slot;
             rodSwap = true;
@@ -142,11 +138,11 @@ public class PestFarmer implements IFeature {
 
     @SubscribeEvent
     public void onChat(ClientChatReceivedEvent event) {
-        if (event.type != 0) return;
+        if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.GARDEN) return;
         String message = event.message.getUnformattedText();
 
         if (message.startsWith("§6§lYUCK!") || message.startsWith("§6§lEWW!") || message.startsWith("§6§lGROSS!")) {
-            pestSpawnTime = System.currentTimeMillis();
+            lastPestSpawn = System.currentTimeMillis();
             pestSpawned = true;
             LogUtils.sendDebug("[PestFarmer] Pest Spawned.");
         }
@@ -164,9 +160,15 @@ public class PestFarmer implements IFeature {
                 break;
             case FIND_ROD:
                 if (!AutoWardrobe.getInstance().isRunning()) {
-                    InventoryUtils.holdItem("Rod");
-                    clock.schedule(500);
-                    state = State.THROW_ROD;
+                    if (InventoryUtils.holdItem("Rod")) {
+                        clock.schedule(500);
+                        state = State.THROW_ROD;
+                    } else {
+                        LogUtils.sendError("[Pest Farmer] Unable to find rod. Disabling");
+                        returnState = ReturnState.SUSPEND;
+                        MacroHandler.getInstance().disableMacro();
+                        return;
+                    }
                 }
                 break;
             case THROW_ROD:
@@ -206,8 +208,9 @@ public class PestFarmer implements IFeature {
                         returnState = ReturnState.THROW_ROD;
                     } else {
                         LogUtils.sendError("[Pest Farmer] Unable to find rod. Disabling");
-                        FeatureManager.getInstance().disableAll();
+                        returnState = ReturnState.SUSPEND;
                         MacroHandler.getInstance().disableMacro();
+                        return;
                     }
                 }
                 break;
@@ -232,14 +235,15 @@ public class PestFarmer implements IFeature {
             case FLY_TO_POSITION:
                 if (clock.passed()) {
                     teleporting = false;
+                    FlyPathFinderExecutor.getInstance().setSprinting(false);
                     FlyPathFinderExecutor.getInstance().setUseAOTV(FarmHelperConfig.useAoteVInPestsDestroyer && InventoryUtils.hasItemInHotbar("Aspect of the"));
-                    FlyPathFinderExecutor.getInstance().findPath(lastPosition, false, true);
+                    FlyPathFinderExecutor.getInstance().findPath(lastPosition, true, true);
                     clock.schedule(100);
                     returnState = ReturnState.SNEAK;
                 }
                 break;
             case SNEAK:
-                if (!FlyPathFinderExecutor.getInstance().isRunning()) {
+                if (!FlyPathFinderExecutor.getInstance().isRunning() && mc.thePlayer.motionX < 0.15 && mc.thePlayer.motionZ < 0.15) {
                     KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
                     clock.schedule(100);
                     returnState = ReturnState.ROTATE;
@@ -311,7 +315,7 @@ public class PestFarmer implements IFeature {
         ENDING
     }
 
-    enum ReturnState {
+    public enum ReturnState {
         FIND_ROD,
         THROW_ROD,
         TP_TO_PLOT,

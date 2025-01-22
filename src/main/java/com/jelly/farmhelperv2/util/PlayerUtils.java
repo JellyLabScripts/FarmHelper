@@ -26,6 +26,14 @@ public class PlayerUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public static boolean itemChangedByStaff = false;
 
+    public static BlockPos getBlockStandingOn() {
+        return new BlockPos(
+                mc.thePlayer.posX,
+                Math.ceil(mc.thePlayer.posY - 0.25) - 1,
+                mc.thePlayer.posZ
+        );
+    }
+
     public static boolean isInventoryEmpty(EntityPlayer player) {
         for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
             if (player.inventory.getStackInSlot(i) != null) {

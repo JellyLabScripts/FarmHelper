@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.entity.Entity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.StringUtils;
@@ -18,6 +19,7 @@ import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.List;
 
 public class RenderUtils {
 
@@ -32,6 +34,41 @@ public class RenderUtils {
         double d1 = Minecraft.getMinecraft().getRenderManager().viewerPosY;
         double d2 = Minecraft.getMinecraft().getRenderManager().viewerPosZ;
         drawBox(new AxisAlignedBB(x, y, z, x2, y2, z2).offset(-d0, -d1, -d2), color);
+    }
+
+    public static void drawLines(List<Vec3> poses, float thickness, float partialTicks, int color) {
+        Entity render = Minecraft.getMinecraft().getRenderViewEntity();
+        WorldRenderer worldRenderer = Tessellator.getInstance().getWorldRenderer();
+        double realX = render.lastTickPosX + (render.posX - render.lastTickPosX) * partialTicks;
+        double realY = render.lastTickPosY + (render.posY - render.lastTickPosY) * partialTicks;
+        double realZ = render.lastTickPosZ + (render.posZ - render.lastTickPosZ) * partialTicks;
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(-realX, -realY, -realZ);
+        GlStateManager.disableTexture2D();
+        GlStateManager.disableLighting();
+        GL11.glDisable(3553);
+        GlStateManager.enableBlend();
+        GlStateManager.disableAlpha();
+        GL11.glLineWidth(thickness);
+        GlStateManager.disableDepth();
+        GlStateManager.depthMask(false);
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+        worldRenderer.begin(3, DefaultVertexFormats.POSITION_COLOR);
+
+        for (Vec3 pos : poses) {
+            worldRenderer.pos(((int) pos.xCoord) + 0.5, ((int) pos.yCoord) + 0.5, ((int) pos.zCoord) + 0.5).color((color >> 16 & 0xFF) / 255.0f, (color >> 8 & 0xFF) / 255.0f, (color & 0xFF) / 255.0f, (color >> 24 & 0xFF) / 255.0f).endVertex();
+        }
+
+        Tessellator.getInstance().draw();
+        GlStateManager.translate(realX, realY, realZ);
+        GlStateManager.disableBlend();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableDepth();
+        GlStateManager.depthMask(true);
+        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+        GlStateManager.popMatrix();
     }
 
     public static void drawBox(AxisAlignedBB aabb, Color color) {
