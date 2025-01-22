@@ -13,6 +13,7 @@ import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
+import com.jelly.farmhelperv2.util.helper.Target;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -237,13 +238,32 @@ public class PestFarmer implements IFeature {
                     teleporting = false;
                     FlyPathFinderExecutor.getInstance().setSprinting(false);
                     FlyPathFinderExecutor.getInstance().setUseAOTV(FarmHelperConfig.useAoteVInPestsDestroyer && InventoryUtils.hasItemInHotbar("Aspect of the"));
-                    FlyPathFinderExecutor.getInstance().findPath(lastPosition, true, true);
+                    FlyPathFinderExecutor.getInstance().findPath(lastPosition.addVector(0, 4, 0), true, true);
                     clock.schedule(100);
+                    returnState = ReturnState.LOOK_AT_BLOCK;
+                }
+                break;
+            case LOOK_AT_BLOCK:
+                if (!FlyPathFinderExecutor.getInstance().isRunning() && mc.thePlayer.motionX < 0.15 && mc.thePlayer.motionZ < 0.15) {
+                    RotationHandler.getInstance().easeTo(new RotationConfiguration(
+                        new Target(lastPosition),
+                        FarmHelperConfig.getRandomRotationTime() / 2,
+                        null
+                    ));
+                    clock.schedule(100);
+                    returnState = ReturnState.RIGHT_CLICK;
+                }
+                break;
+            case RIGHT_CLICK:
+                if (!RotationHandler.getInstance().isRotating() && clock.passed()) {
+                    teleporting = true;
+                    KeyBindUtils.rightClick();
+                    clock.schedule(500);
                     returnState = ReturnState.SNEAK;
                 }
                 break;
             case SNEAK:
-                if (!FlyPathFinderExecutor.getInstance().isRunning() && mc.thePlayer.motionX < 0.15 && mc.thePlayer.motionZ < 0.15) {
+                if (clock.passed()) {
                     KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, true);
                     clock.schedule(100);
                     returnState = ReturnState.ROTATE;
@@ -293,12 +313,25 @@ public class PestFarmer implements IFeature {
 
     public void returnBack() {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (!InventoryUtils.hasItemInHotbar("Aspect of the")) {
+            LogUtils.sendError("No AOTV/AOTE found in hotbar.. Disabling.");
+            MacroHandler.getInstance().disableMacro();
+        }
+
         clock.schedule(500);
         returnState = ReturnState.FIND_ROD;
         MacroHandler.getInstance().pauseMacro();
     }
 
     public void setReturnVariables() {
+        if (!BlockUtils.canFlyHigher(5)) {
+            LogUtils.sendError("Obstructed place.. Disabling PestFarmer");
+            PestsDestroyer.getInstance().stop();
+            FarmHelperConfig.pestFarming = false;
+            MacroHandler.getInstance().resumeMacro();
+            return;
+        }
+
         lastPlot = PlotUtils.getPlotNumberBasedOnLocation().number;
         lastPosition = BlockUtils.getBlockPosCenter(new BlockPos(mc.thePlayer.getPositionVector()).add(0, 1, 0));
         direction = MacroHandler.getInstance().getCurrentMacro().get().currentState;
@@ -320,6 +353,8 @@ public class PestFarmer implements IFeature {
         THROW_ROD,
         TP_TO_PLOT,
         FLY_TO_POSITION,
+        LOOK_AT_BLOCK,
+        RIGHT_CLICK,
         ROTATE,
         SNEAK,
         HOLD_ITEM,
