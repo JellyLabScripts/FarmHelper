@@ -112,6 +112,15 @@ public class DebugHUD extends TextHud {
             lines.add("   Clock: " + VisitorsMacro.getInstance().getDelayClock().getRemainingTime());
             lines.add("   Stuck: " + VisitorsMacro.getInstance().getStuckClock().getRemainingTime());
         }
+        if (AutoComposter.getInstance().isRunning()) {
+            lines.add("Auto Composter");
+            lines.add("   State: " + AutoComposter.getInstance().getMainState());
+            lines.add("   Travel State: " + AutoComposter.getInstance().getTravelState());
+            lines.add("   Composter State: " + AutoComposter.getInstance().getComposterState());
+            lines.add("   Buy State: " + AutoComposter.getInstance().getBuyState());
+            lines.add("   Clock: " + AutoComposter.getInstance().getDelayClock().getRemainingTime());
+            lines.add("   Stuck: " + AutoComposter.getInstance().getStuckClock().getRemainingTime());
+        }
         if (AutoGodPot.getInstance().isRunning()) {
             lines.add("AutoGodPot");
             lines.add("   Mode: " + AutoGodPot.getInstance().getGodPotMode());

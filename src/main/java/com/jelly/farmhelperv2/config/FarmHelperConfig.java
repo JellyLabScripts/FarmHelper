@@ -56,6 +56,7 @@ public class FarmHelperConfig extends Config {
     private transient static final String AUTO_SELL = "Auto Sell";
     private transient static final String AUTO_REPELLENT = "Auto Repellent";
     private transient static final String AUTO_SPRAYONATOR = "Auto Sprayonator";
+    private transient static final String AUTO_COMPOSTER = "Auto Composter";
     private transient static final String DISCORD_INTEGRATION = "Discord Integration";
     private transient static final String DELAYS = "Delays";
     private transient static final String HUD = "HUD";
@@ -1791,6 +1792,152 @@ public class FarmHelperConfig extends Config {
             min = 1, max = 64
     )
     public static int autoSprayonatorAutoBuyAmount = 1;
+    //</editor-fold>
+
+    //<editor-fold desc="Auto Composter">
+    @Info(
+            text = "Once the Composter timer is low enough, the macro will go to the Composter and supply crops and fuel to create compost.",
+            type = InfoType.INFO,
+            category = AUTO_COMPOSTER,
+            subcategory = "Auto Composter",
+            size = 2
+    )
+    public static boolean autoComposterInfo1;
+
+    @Switch(
+            name = "Enable Auto Composter", category = AUTO_COMPOSTER, subcategory = "Auto Composter",
+            description = "Automatically fills the Composter"
+    )
+    public static boolean autoComposter = false;
+    @Switch(
+            name = "Pause the Auto Composter during Jacob's contests", category = AUTO_COMPOSTER, subcategory = "Auto Composter",
+            description = "Pauses the Auto Composter during Jacob's contests"
+    )
+    public static boolean pauseAutoComposterDuringJacobsContest = true;
+    @Slider(
+            name = "The minimum amount of coins to start Auto Composter (in thousands)", category = AUTO_COMPOSTER, subcategory = "Auto Composter",
+            description = "The minimum amount of coins you need to have in your purse to start the Auto Composter",
+            min = 500, max = 10_000
+    )
+    public static int autoComposterMinMoney = 2_000;
+    @Slider(
+            name = "Max Spend Limit (in Millions Per Purchase)", category = AUTO_COMPOSTER, subcategory = "Auto Composter",
+            min = 0.2f, max = 7.5f
+    )
+    public static float autoComposterMaxSpendLimit = 1.5f;
+    @Slider(
+            name = "Organic Matter Left to Start the Auto Composter", category = AUTO_COMPOSTER, subcategory = "Auto Composter",
+            min = 0, max = 540_000
+    )
+    public static int autoComposterOrganicMatterLeft = 30_000;
+    @Slider(
+            name = "Fuel Left to Start the Auto Composter", category = AUTO_COMPOSTER, subcategory = "Auto Composter",
+            min = 0, max = 850_000
+    )
+    public static int autoComposterFuelLeft = 15_000;
+    @Switch(
+            name = "Autosell before filling Composter", category = AUTO_COMPOSTER, subcategory = "Auto Composter",
+            description = "Automatically sells crops before filling the Composter"
+    )
+    public static boolean autoComposterAutosellBeforeFilling = false;
+    @DualOption(
+            name = "Travel method", category = AUTO_COMPOSTER, subcategory = "Auto Composter",
+            description = "The travel method to use to get to the Composter",
+            left = "Fly",
+            right = "Walk"
+    )
+    public static boolean autoComposterTravelMethod = false;
+    @Info(
+            text = "If you have any issues, try switching the travel method.",
+            type = InfoType.INFO,
+            category = AUTO_COMPOSTER,
+            subcategory = "Auto Composter",
+            size = 2
+    )
+    public static boolean autoComposterTravelMethodInfo;
+    @Switch(
+            name = "Send Webhook Log", category = AUTO_COMPOSTER, subcategory = "Auto Composter",
+            description = "Logs all events related to the Auto Composter"
+    )
+    public static boolean logAutoComposterEvents = true;
+    @Switch(
+            name = "Highlight composter location", category = AUTO_COMPOSTER, subcategory = "Auto Composter",
+            description = "Highlights the Composter location"
+    )
+    public static boolean highlightComposterLocation = true;
+    @Info(
+            text = "The Auto Composter will start automatically once you rewarp!",
+            type = InfoType.WARNING,
+            category = AUTO_COMPOSTER,
+            subcategory = "Auto Composter",
+            size = 2
+    )
+    public static boolean autoComposterInfo;
+
+    @Button(
+            name = "Trigger now Auto Composter", category = AUTO_COMPOSTER, subcategory = "Auto Composter",
+            description = "Triggers the auto Composter manually",
+            text = "Trigger now"
+    )
+    public static void triggerManuallyAutoComposter() {
+        AutoComposter.getInstance().setManuallyStarted(true);
+        AutoComposter.getInstance().start();
+    }
+
+    @Button(
+            name = "Set the Composter location", category = AUTO_COMPOSTER, subcategory = "Auto Composter",
+            description = "Sets the Composter location",
+            text = "Set composter"
+    )
+    public static Runnable setComposterLocation = () -> {
+        if (!PlayerUtils.isInBarn()) {
+            LogUtils.sendError("[Auto Composter] You need to be in the barn to set the Composter location!");
+            return;
+        }
+        composterX = mc.thePlayer.getPosition().getX();
+        composterY = mc.thePlayer.getPosition().getY();
+        composterZ = mc.thePlayer.getPosition().getZ();
+        LogUtils.sendSuccess("[Auto Composter] Set the Composter location to "
+                + FarmHelperConfig.composterX + ", "
+                + FarmHelperConfig.composterY + ", "
+                + FarmHelperConfig.composterZ);
+    };
+
+    @Button(
+            name = "Reset the Composter location", category = AUTO_COMPOSTER, subcategory = "Auto Composter",
+            description = "Resets the composter location",
+            text = "Reset Composter"
+    )
+    public static Runnable resetComposterLocation = () -> {
+        composterX = 0;
+        composterY = 0;
+        composterZ = 0;
+        LogUtils.sendSuccess("[Auto Composter] Reset the Composter location");
+    };
+
+    @Number(
+            name = "Composter X", category = AUTO_COMPOSTER, subcategory = "Auto Composter",
+            min = -300, max = 300
+    )
+    public static int composterX = 0;
+    @Number(
+            name = "Composter Y", category = AUTO_COMPOSTER, subcategory = "Auto Composter",
+            min = 50, max = 150
+    )
+    public static int composterY = 0;
+    @Number(
+            name = "Composter Z", category = AUTO_COMPOSTER, subcategory = "Auto Composter",
+            min = -300, max = 300
+    )
+    public static int composterZ = 0;
+    @Info(
+            text = "You don't have to set the Composter location, it will be set automatically. Check the guide for more info.",
+            type = InfoType.INFO,
+            category = AUTO_COMPOSTER,
+            subcategory = "Auto Composter",
+            size = 2
+    )
+    public static boolean autoComposterInfo2;
     //</editor-fold>
 
     //<editor-fold desc="DELAYS">
