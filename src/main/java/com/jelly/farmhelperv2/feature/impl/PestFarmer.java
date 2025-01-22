@@ -243,13 +243,27 @@ public class PestFarmer implements IFeature {
                     returnState = ReturnState.LOOK_AT_BLOCK;
                 }
                 break;
+            case EQUIP_AOTV:
+                if (!FlyPathFinderExecutor.getInstance().isRunning() && mc.thePlayer.motionX < 0.15 && mc.thePlayer.motionZ < 0.15) {
+                    if (InventoryUtils.holdItem("Aspect of the")) {
+                        clock.schedule(500);
+                        returnState = ReturnState.THROW_ROD;
+                    } else {
+                        LogUtils.sendError("[Pest Farmer] Unable to find AOTV/AOTE. Disabling");
+                        returnState = ReturnState.SUSPEND;
+                        MacroHandler.getInstance().disableMacro();
+                        return;
+                    }
+                }
+                break;
             case LOOK_AT_BLOCK:
                 if (!FlyPathFinderExecutor.getInstance().isRunning() && mc.thePlayer.motionX < 0.15 && mc.thePlayer.motionZ < 0.15) {
                     RotationHandler.getInstance().easeTo(new RotationConfiguration(
                         new Target(lastPosition),
-                        FarmHelperConfig.getRandomRotationTime() / 2,
+                        FarmHelperConfig.getRandomRotationTime(),
                         null
                     ));
+
                     clock.schedule(100);
                     returnState = ReturnState.RIGHT_CLICK;
                 }
@@ -353,6 +367,7 @@ public class PestFarmer implements IFeature {
         THROW_ROD,
         TP_TO_PLOT,
         FLY_TO_POSITION,
+        EQUIP_AOTV,
         LOOK_AT_BLOCK,
         RIGHT_CLICK,
         ROTATE,
