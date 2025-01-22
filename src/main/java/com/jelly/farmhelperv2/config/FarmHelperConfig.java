@@ -1708,6 +1708,12 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean enableAutoSell = false;
 
+    @Switch(
+            name = "Sell Slug to George", category = AUTO_SELL, subcategory = "Auto Sell",
+            description = "Sells slug pets to george"
+    )
+    public static boolean enableAutoSellGeorge = false;
+
     @DualOption(
             name = "Market type", category = AUTO_SELL, subcategory = "Auto Sell",
             description = "The market type to sell crops to",

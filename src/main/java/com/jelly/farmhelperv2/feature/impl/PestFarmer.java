@@ -240,14 +240,14 @@ public class PestFarmer implements IFeature {
                     FlyPathFinderExecutor.getInstance().setUseAOTV(FarmHelperConfig.useAoteVInPestsDestroyer && InventoryUtils.hasItemInHotbar("Aspect of the"));
                     FlyPathFinderExecutor.getInstance().findPath(lastPosition.addVector(0, 4, 0), true, true);
                     clock.schedule(100);
-                    returnState = ReturnState.LOOK_AT_BLOCK;
+                    returnState = ReturnState.EQUIP_AOTV;
                 }
                 break;
             case EQUIP_AOTV:
                 if (!FlyPathFinderExecutor.getInstance().isRunning() && mc.thePlayer.motionX < 0.15 && mc.thePlayer.motionZ < 0.15) {
                     if (InventoryUtils.holdItem("Aspect of the")) {
                         clock.schedule(500);
-                        returnState = ReturnState.THROW_ROD;
+                        returnState = ReturnState.LOOK_AT_BLOCK;
                     } else {
                         LogUtils.sendError("[Pest Farmer] Unable to find AOTV/AOTE. Disabling");
                         returnState = ReturnState.SUSPEND;

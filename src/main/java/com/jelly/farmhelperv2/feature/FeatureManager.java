@@ -50,7 +50,8 @@ public class FeatureManager {
                 VisitorsMacro.getInstance(),
                 PiPMode.getInstance(),
                 AutoWardrobe.getInstance(),
-                PestFarmer.getInstance()
+                PestFarmer.getInstance(),
+                AutoSlugSell.getInstance()
         );
         features.addAll(featuresList);
         return features;
