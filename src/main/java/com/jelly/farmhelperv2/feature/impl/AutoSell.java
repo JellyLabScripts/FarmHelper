@@ -129,7 +129,7 @@ public class AutoSell implements IFeature {
         inventoryFilledClock.reset();
         PlayerUtils.closeScreen();
         KeyBindUtils.stopMovement();
-        if (MacroHandler.getInstance().isMacroToggled() && !VisitorsMacro.getInstance().isRunning()) {
+        if (MacroHandler.getInstance().isMacroToggled() && !VisitorsMacro.getInstance().isRunning() && !AutoComposter.getInstance().isRunning()) {
             Multithreading.schedule(() -> MacroHandler.getInstance().resumeMacro(), 1000, TimeUnit.MILLISECONDS);
         }
         IFeature.super.stop();
@@ -223,7 +223,7 @@ public class AutoSell implements IFeature {
             stop();
             return;
         }
-        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this, VisitorsMacro.getInstance())) return;
+        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled(this, VisitorsMacro.getInstance(), AutoComposter.getInstance())) return;
 
 
         if (timeoutClock.isScheduled() && timeoutClock.passed()) {

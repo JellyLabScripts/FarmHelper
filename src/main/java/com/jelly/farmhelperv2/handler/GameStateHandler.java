@@ -50,6 +50,7 @@ public class GameStateHandler {
     public final Pattern jacobsStartsInTimePattern = Pattern.compile("Starts In: ([1-3]?[0-9])?m ?([1-5]?[0-9])?s?");
     private final Pattern serverClosingPattern = Pattern.compile("Server closing: (?<minutes>\\d+):(?<seconds>\\d+) .*");
     private final Pattern pestsFromVacuumPattern = Pattern.compile("Vacuum Bag: (\\d+) Pest(s)?");
+    private final Pattern composterResourceTablistPattern = Pattern.compile("\\s(Organic Matter|Fuel): (\\d{1,3}(\\.\\d{1,3})?)k");
     @Getter
     private Location lastLocation = Location.TELEPORTING;
     @Getter
@@ -89,6 +90,8 @@ public class GameStateHandler {
     @Getter
     private BuffState sprayonatorState = BuffState.UNKNOWN;
     @Getter
+    private BuffState composterState = BuffState.UNKNOWN;
+    @Getter
     private double currentPurse = 0;
     @Getter
     private double previousPurse = 0;
@@ -104,6 +107,10 @@ public class GameStateHandler {
     private int pestsCount = 0;
     @Getter
     private int currentPlotPestsCount = 0;
+    @Getter
+    private int organicMatterCount = Integer.MAX_VALUE;
+    @Getter
+    private int fuelCount = Integer.MAX_VALUE;
     @Getter
     private Optional<FarmHelperConfig.CropEnum> jacobsContestCrop = Optional.empty();
     @Getter
@@ -171,6 +178,9 @@ public class GameStateHandler {
         boolean foundPestHunterBonus = false;
         boolean foundLocation = false;
         boolean foundSpray = false;
+        boolean foundComposter = false;
+        boolean foundOrganicMatterCount = false;
+        boolean foundFuelCount = false;
         int nextJacobCropFound = -1;
         List<FarmHelperConfig.CropEnum> newJacobsContestNextCrop = new ArrayList<>();
 
@@ -222,12 +232,40 @@ public class GameStateHandler {
                 sprayonatorState = cleanedLine.endsWith("None") ? BuffState.NOT_ACTIVE : BuffState.ACTIVE;
                 foundSpray = true;
             }
+            if (cleanedLine.startsWith(" Time Left:")) {
+                composterState = cleanedLine.endsWith("INACTIVE") ? BuffState.NOT_ACTIVE : BuffState.ACTIVE;
+                foundComposter = true;
+            }
+            if (cleanedLine.matches(composterResourceTablistPattern.pattern())) {
+                Matcher matcher = composterResourceTablistPattern.matcher(cleanedLine);
+                if (matcher.find()) {
+                    String resource = matcher.group(1);
+                    String count = matcher.group(2);
+
+                    if (resource.equalsIgnoreCase("Organic Matter")) {
+                        organicMatterCount = (int) (Double.parseDouble(count) * 1_000);
+                        foundOrganicMatterCount = true;
+                    } else if (resource.equalsIgnoreCase("Fuel")) {
+                        fuelCount = (int) (Double.parseDouble(count) * 1_000);
+                        foundFuelCount = true;
+                    }
+                }
+            }
         }
         if (!foundPestHunterBonus) {
             pestHunterBonus = BuffState.UNKNOWN;
         }
         if(!foundSpray){
             sprayonatorState = BuffState.UNKNOWN;
+        }
+        if (!foundComposter) {
+            composterState = BuffState.UNKNOWN;
+        }
+        if (!foundOrganicMatterCount) {
+            organicMatterCount = Integer.MAX_VALUE;
+        }
+        if (!foundFuelCount) {
+            organicMatterCount = Integer.MAX_VALUE;
         }
         if (foundLocation) return;
 

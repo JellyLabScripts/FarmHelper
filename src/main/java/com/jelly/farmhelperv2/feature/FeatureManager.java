@@ -26,6 +26,7 @@ public class FeatureManager {
         List<IFeature> featuresList = Arrays.asList(
                 AutoBazaar.getInstance(),
                 AntiStuck.getInstance(),
+                AutoComposter.getInstance(),
                 AutoCookie.getInstance(),
                 AutoGodPot.getInstance(),
                 AutoReconnect.getInstance(),
@@ -111,6 +112,9 @@ public class FeatureManager {
             return true;
         }
         if (AutoPestExchange.getInstance().isRunning() && !AutoPestExchange.getInstance().shouldCheckForFailsafes()) {
+            return true;
+        }
+        if (AutoComposter.getInstance().isRunning() && !AutoComposter.getInstance().shouldCheckForFailsafes()) {
             return true;
         }
         return false;
