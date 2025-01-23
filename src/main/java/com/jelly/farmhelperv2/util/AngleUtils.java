@@ -149,6 +149,7 @@ public class AngleUtils {
         }
     }
 
+
 //    public static RotationUtils.Rotation getRotation(BlockPos block) {
 //        return getRotation(new Vec3(block.getX() + 0.5, block.getY() + 0.5, block.getZ() + 0.5));
 //    }
