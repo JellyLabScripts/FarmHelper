@@ -35,6 +35,8 @@ loom {
             // If you don't want mixins, remove these lines
             property("mixin.debug", "true")
             property("asmhelper.verbose", "true")
+            property("devauth.enabled", "true")
+            property("devauth.account", "main")
             arg("--tweakClass", "cc.polyfrost.oneconfig.loader.stage0.LaunchWrapperTweaker")
             arg("-Dfml.coreMods.load", "com.jelly.farmhelperv2.transformer.FMLCore")
             arg("--tweakClass", "com.jelly.farmhelperv2.transformer.Tweaker")

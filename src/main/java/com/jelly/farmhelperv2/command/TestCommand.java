@@ -2,6 +2,7 @@ package com.jelly.farmhelperv2.command;
 
 import cc.polyfrost.oneconfig.utils.commands.annotations.Command;
 import cc.polyfrost.oneconfig.utils.commands.annotations.SubCommand;
+import com.jelly.farmhelperv2.feature.impl.AutoSlugSell;
 import com.jelly.farmhelperv2.feature.impl.AutoWardrobe;
 import com.jelly.farmhelperv2.feature.impl.PestFarmer;
 import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
@@ -14,6 +15,11 @@ import net.minecraft.util.Vec3;
 public class TestCommand {
 
     public BlockPos position;
+
+    @SubCommand
+    public void ass() {
+        AutoSlugSell.getInstance().start();
+    }
 
     @SubCommand
     public void debug() {

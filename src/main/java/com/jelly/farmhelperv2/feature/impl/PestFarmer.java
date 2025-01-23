@@ -244,7 +244,7 @@ public class PestFarmer implements IFeature {
                 }
                 break;
             case EQUIP_AOTV:
-                if (!FlyPathFinderExecutor.getInstance().isRunning() && mc.thePlayer.motionX < 0.15 && mc.thePlayer.motionZ < 0.15) {
+                if (!FlyPathFinderExecutor.getInstance().isRunning() && mc.thePlayer.motionX + mc.thePlayer.motionZ == 0) {
                     if (InventoryUtils.holdItem("Aspect of the")) {
                         clock.schedule(500);
                         returnState = ReturnState.LOOK_AT_BLOCK;

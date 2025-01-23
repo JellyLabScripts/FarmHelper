@@ -514,7 +514,11 @@ public class MacroHandler {
     }
 
     public boolean canTriggerFeatureAfterWarp(boolean sendErrors) {
-        if (PestsDestroyer.getInstance().canEnableMacro()) {
+        if (AutoSlugSell.getInstance().canEnable()) {
+            AutoSlugSell.getInstance().start();
+            LogUtils.sendDebug("Activating Auto Slug Sell");
+            return true;
+        } else if (PestsDestroyer.getInstance().canEnableMacro()) {
             LogUtils.sendDebug("Activating Pests Destroyer");
             PestsDestroyer.getInstance().start();
             return true;
