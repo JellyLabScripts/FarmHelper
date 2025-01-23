@@ -228,7 +228,7 @@ public class GameStateHandler {
             if (cleanedLine.contains("Starts In")) {
                 nextJacobCropFound = 0;
             }
-            if(cleanedLine.startsWith(" Spray: ")){
+            if (cleanedLine.startsWith(" Spray: ")) {
                 sprayonatorState = cleanedLine.endsWith("None") ? BuffState.NOT_ACTIVE : BuffState.ACTIVE;
                 foundSpray = true;
             }
@@ -255,7 +255,7 @@ public class GameStateHandler {
         if (!foundPestHunterBonus) {
             pestHunterBonus = BuffState.UNKNOWN;
         }
-        if(!foundSpray){
+        if (!foundSpray) {
             sprayonatorState = BuffState.UNKNOWN;
         }
         if (!foundComposter) {
@@ -467,11 +467,7 @@ public class GameStateHandler {
                     currentPlotPestsCount = 0;
                 }
             } else if (cleanedLine.contains("Plot")) {
-                if (cleanedLine.contains("ൠ")) {
-                    currentPlotPestsCount = 1;
-                } else {
-                    currentPlotPestsCount = 0;
-                }
+                currentPlotPestsCount = 0;
             }
         }
         if (pestsCountTemp != pestsCount) {
