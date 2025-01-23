@@ -77,7 +77,6 @@ dependencies {
 
     compileOnly("cc.polyfrost:oneconfig-1.8.9-forge:0.2.1-alpha+")
     shadowImpl("cc.polyfrost:oneconfig-wrapper-launchwrapper:1.0.0-beta+")
-    shadowImpl("com.google.guava:guava:23.0")
 
     compileOnly("org.spongepowered:mixin:0.8.5")
     annotationProcessor("org.spongepowered:mixin:0.8.5")
@@ -151,17 +150,15 @@ tasks.shadowJar {
     destinationDirectory.set(layout.buildDirectory.dir("badjars"))
     archiveClassifier.set("all-dev")
     configurations = listOf(shadowImpl)
-
-    relocate("com.google.common", "$baseGroup.deps.google.common")
-
     doLast {
         configurations.forEach {
             println("Copying jars into mod: ${it.files}")
         }
     }
 
-    // Keep your helper function
+    // If you want to include other dependencies and shadow them, you can relocate them in here
     fun relocate(name: String) = relocate(name, "$baseGroup.deps.$name")
 }
 
 tasks.assemble.get().dependsOn(tasks.remapJar)
+
