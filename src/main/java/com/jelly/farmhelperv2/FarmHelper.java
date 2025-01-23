@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.jelly.farmhelperv2.command.FarmHelperMainCommand;
 import com.jelly.farmhelperv2.command.RewarpCommand;
+import com.jelly.farmhelperv2.command.TestCommand;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.MillisecondEvent;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
@@ -200,6 +201,7 @@ public class FarmHelper {
 
     private void initializeCommands() {
         ClientCommandHandler.instance.registerCommand(new RewarpCommand());
+        CommandManager.register(new TestCommand());
         CommandManager.register(new FarmHelperMainCommand());
     }
 

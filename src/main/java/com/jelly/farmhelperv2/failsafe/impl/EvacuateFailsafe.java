@@ -102,6 +102,7 @@ public class EvacuateFailsafe extends Failsafe {
                         MacroHandler.getInstance().triggerWarpGarden(true, false);
                         FailsafeManager.getInstance().scheduleRandomDelay(5500, 2000);
                     } else {
+                        if (mc.thePlayer == null) return;
                         mc.thePlayer.sendChatMessage("/skyblock");
                         FailsafeManager.getInstance().scheduleRandomDelay(60_000, 4000);
                     }

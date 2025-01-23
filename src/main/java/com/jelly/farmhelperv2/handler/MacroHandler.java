@@ -198,8 +198,8 @@ public class MacroHandler {
         if (mc.currentScreen != null) {
             PlayerUtils.closeScreen();
         }
-        AudioManager.getInstance().setSoundBeforeChange(mc.gameSettings.getSoundLevel(SoundCategory.MASTER));
 
+        AudioManager.getInstance().setSoundBeforeChange(mc.gameSettings.getSoundLevel(SoundCategory.MASTER));
         FeatureManager.getInstance().enableAll();
 
         setMacroToggled(true);
@@ -210,6 +210,7 @@ public class MacroHandler {
 
     public void disableMacro() {
         setMacroToggled(false);
+        PestFarmer.getInstance().stop();
         LogUtils.sendSuccess("Macro disabled!");
         if (FarmHelperConfig.sendMacroEnableDisableLogs) {
             LogUtils.webhookLog("Macro disabled!");
@@ -517,7 +518,11 @@ public class MacroHandler {
     }
 
     public boolean canTriggerFeatureAfterWarp(boolean sendErrors) {
-        if (PestsDestroyer.getInstance().canEnableMacro()) {
+        if (AutoSlugSell.getInstance().canEnable()) {
+            AutoSlugSell.getInstance().start();
+            LogUtils.sendDebug("Activating Auto Slug Sell");
+            return true;
+        } else if (PestsDestroyer.getInstance().canEnableMacro()) {
             LogUtils.sendDebug("Activating Pests Destroyer");
             PestsDestroyer.getInstance().start();
             return true;

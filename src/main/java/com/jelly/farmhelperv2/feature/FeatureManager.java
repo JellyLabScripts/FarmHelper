@@ -49,7 +49,10 @@ public class FeatureManager {
                 Scheduler.getInstance(),
                 UngrabMouse.getInstance(),
                 VisitorsMacro.getInstance(),
-                PiPMode.getInstance()
+                PiPMode.getInstance(),
+                AutoWardrobe.getInstance(),
+                PestFarmer.getInstance(),
+                AutoSlugSell.getInstance()
         );
         features.addAll(featuresList);
         return features;

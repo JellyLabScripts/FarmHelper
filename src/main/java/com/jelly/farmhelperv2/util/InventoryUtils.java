@@ -34,6 +34,14 @@ public class InventoryUtils {
         return getSlotIdOfItemInContainer(item, false);
     }
 
+    public static int getEmptySlotIdInContainer() {
+        for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
+            if (!slot.getHasStack()) return slot.slotNumber;
+        }
+
+        return -1;
+    }
+
     public static int getSlotIdOfItemInContainer(String item, boolean equals) {
         for (Slot slot : mc.thePlayer.openContainer.inventorySlots) {
             if (!slot.getHasStack()) continue;

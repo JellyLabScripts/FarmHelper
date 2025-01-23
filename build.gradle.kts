@@ -90,9 +90,10 @@ dependencies {
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.2.1")
 
     implementation("net.dv8tion:JDA:5.0.0-beta.24")
+    shadowImpl("it.unimi.dsi:fastutil:8.2.1")
 
-    implementation("com.github.onixiya1337.baritone-fly:baritone-deobf:7cc4ce43d3")
-    shadowImpl("com.github.onixiya1337.baritone-fly:baritone-api-forge:7cc4ce43d3") {
+    implementation("com.github.onixiya1337.baritone-fly:baritone-deobf:nirox-fly-SNAPSHOT")
+    shadowImpl("com.github.onixiya1337.baritone-fly:baritone-api-forge:nirox-fly-SNAPSHOT") {
         exclude(module = "fastutil")
         exclude(module = "lwjgl")
         exclude(module = "SimpleTweaker")

@@ -1,6 +1,7 @@
 package com.jelly.farmhelperv2.feature.impl;
 
 import com.jelly.farmhelperv2.FarmHelper;
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -184,6 +185,7 @@ public class MovRecPlayer implements IFeature {
 
     @Override
     public void start() {
+        if (FarmHelperConfig.disableFakeMovement) return;
         if (selectedRecording.isEmpty()) {
             LogUtils.sendError("[Movement Recorder] No recording selected!");
             if (FailsafeManager.getInstance().triggeredFailsafe.isPresent())

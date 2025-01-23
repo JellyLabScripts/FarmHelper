@@ -365,7 +365,9 @@ public class FlyPathFinderExecutor {
                 MovingObjectPosition traceAbove = mc.theWorld.rayTraceBlocks(current, above, false, true, false);
                 MovingObjectPosition traceBelow = mc.theWorld.rayTraceBlocks(current, below, false, true, false);
                 if (traceBelow == null || traceBelow.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
-                    keyBindings.add(mc.gameSettings.keyBindSneak);
+                    if (Math.sqrt(Math.pow(target.xCoord - mc.thePlayer.posX, 2) + Math.pow(target.zCoord - mc.thePlayer.posZ, 2)) < 6) {
+                        keyBindings.add(mc.gameSettings.keyBindSneak);
+                    }
                 } else if (traceAbove == null || traceAbove.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
                     keyBindings.add(mc.gameSettings.keyBindJump);
                 }
@@ -478,14 +480,18 @@ public class FlyPathFinderExecutor {
                 keyBindings.add(mc.gameSettings.keyBindJump);
                 loweringRaisingDelay.schedule(750);
             } else if (verticalDirection.equals(VerticalDirection.LOWER)) {
-                keyBindings.add(mc.gameSettings.keyBindSneak);
-                loweringRaisingDelay.schedule(750);
+                if (Math.sqrt(Math.pow(target.xCoord - mc.thePlayer.posX, 2) + Math.pow(target.zCoord - mc.thePlayer.posZ, 2)) < 6) {
+                    keyBindings.add(mc.gameSettings.keyBindSneak);
+                    loweringRaisingDelay.schedule(1500);
+                }
             } else if (loweringRaisingDelay.passed() && (getBlockUnder() instanceof BlockCactus || distanceY > 0.5) && (((EntityPlayerAccessor) mc.thePlayer).getFlyToggleTimer() == 0 || mc.gameSettings.keyBindJump.isKeyDown())) {
                 keyBindings.add(mc.gameSettings.keyBindJump);
             } else if (loweringRaisingDelay.passed() && distanceY < -0.5) {
                 Block blockUnder = getBlockUnder();
                 if (!mc.thePlayer.onGround && mc.thePlayer.capabilities.isFlying && !(blockUnder instanceof BlockCactus) && !(blockUnder instanceof BlockSoulSand)) {
-                    keyBindings.add(mc.gameSettings.keyBindSneak);
+                    if (Math.sqrt(Math.pow(target.xCoord - mc.thePlayer.posX, 2) + Math.pow(target.zCoord - mc.thePlayer.posZ, 2)) < 6) {
+                        keyBindings.add(mc.gameSettings.keyBindSneak);
+                    }
                 }
             }
         } else { // only walking
