@@ -1184,6 +1184,14 @@ public class FarmHelperConfig extends Config {
             description = "Destroys pests"
     )
     public static boolean enablePestsDestroyer = false;
+    
+    @Slider(
+            name = "Pests Destroyer FOV",
+            description = "The field of view of the pests destroyer",
+            category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
+            min = 1, max = 360
+    )
+    public static int pestsDestroyerFOV = 180;
     @Slider(
             name = "Start killing pests at X pests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "The amount of pests to start killing pests",
@@ -1658,6 +1666,12 @@ public class FarmHelperConfig extends Config {
     public static boolean autoSellMarketType = false;
 
     @Switch(
+            name = "Enable Auto Slug Sell", category = AUTO_SELL, subcategory = "Auto Sell",
+            description = "Enables auto slug sell"
+    )
+    public static boolean enableAutoSlugSell = false;
+
+    @Switch(
             name = "Sell Items In Sacks", category = AUTO_SELL, subcategory = "Auto Sell",
             description = "Sells items in your sacks and inventory"
     )
@@ -1763,7 +1777,6 @@ public class FarmHelperConfig extends Config {
             name = "Type", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
             description = "Item to spray plot with",
             options = {
-                    "Fine Flour (+20 Farming Fortune)",
                     "Compost (Earthworm & Mosquito)",
                     "Honey Jar (Moth & Cricket)",
                     "Dung (Beetle & Fly)",
