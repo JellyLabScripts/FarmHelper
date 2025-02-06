@@ -28,7 +28,7 @@ public class AutoSprayonator implements IFeature {
     return instance;
   }
 
-  private final String[] SPRAY_MATERIAL = {"Fine Flour", "Compost", "Honey Jar", "Dung", "Plant Matter", "Tasty Cheese"};
+  private final String[] SPRAY_MATERIAL = {"Compost", "Honey Jar", "Dung", "Plant Matter", "Tasty Cheese"};
   private final Minecraft mc = Minecraft.getMinecraft();
   private boolean enabled = false;
   private boolean pause = false;

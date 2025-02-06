@@ -123,6 +123,9 @@ public class MacroHandler {
         } else {
             if (FlyPathFinderExecutor.getInstance().isRunning())
                 FlyPathFinderExecutor.getInstance().stop();
+            if (AutoSlugSell.getInstance().isRunning()) {
+                AutoSlugSell.getInstance().stop();
+            }
             if (VisitorsMacro.getInstance().isRunning() || FarmHelperConfig.visitorsMacroAfkInfiniteMode) {
                 if (FarmHelperConfig.visitorsMacroAfkInfiniteMode) {
                     LogUtils.sendWarning("[Visitors Macro] Disabling AFK Mode!");
@@ -517,7 +520,11 @@ public class MacroHandler {
     }
 
     public boolean canTriggerFeatureAfterWarp(boolean sendErrors) {
-        if (PestsDestroyer.getInstance().canEnableMacro()) {
+        if (AutoSlugSell.getInstance().canEnable()) {
+            AutoSlugSell.getInstance().start();
+            LogUtils.sendDebug("Activating Auto Slug Sell");
+            return true;
+        } else if (PestsDestroyer.getInstance().canEnableMacro()) {
             LogUtils.sendDebug("Activating Pests Destroyer");
             PestsDestroyer.getInstance().start();
             return true;
