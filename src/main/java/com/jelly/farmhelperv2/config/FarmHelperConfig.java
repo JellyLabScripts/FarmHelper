@@ -1184,10 +1184,11 @@ public class FarmHelperConfig extends Config {
             description = "Destroys pests"
     )
     public static boolean enablePestsDestroyer = false;
+    
     @Slider(
-            name = "Pests Destroyer on the track FOV",
-            description = "The field of view of the pests destroyer on the track",
-            category = PESTS_DESTROYER, subcategory = "Pests Destroyer on the track",
+            name = "Pests Destroyer FOV",
+            description = "The field of view of the pests destroyer",
+            category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             min = 1, max = 360
     )
     public static int pestsDestroyerFOV = 180;
