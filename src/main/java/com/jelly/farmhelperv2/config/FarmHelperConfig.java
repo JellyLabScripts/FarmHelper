@@ -1295,7 +1295,16 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     //<editor-fold desc="Drawings">
-
+    @Color(
+            name = "Rewarp Color", category = GENERAL, subcategory = "Rewarp",
+            description = "The color of the rewarp box"
+    )
+    public static OneColor rewarpColor = new OneColor(0, 255, 217, 171);
+    @Color(
+            name = "Spawn Color", category = GENERAL, subcategory = "Spawn Position",
+            description = "The color of the spawn box"
+    )
+    public static OneColor spawnColor = new OneColor(0, 255, 217, 171);
     @Switch(
             name = "Pests ESP", category = PESTS_DESTROYER, subcategory = "Drawings",
             description = "Draws a box around pests"
