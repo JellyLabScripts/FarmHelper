@@ -1295,6 +1295,7 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
 
     //<editor-fold desc="Drawings">
+    
     @Color(
             name = "Rewarp Color", category = GENERAL, subcategory = "Rewarp",
             description = "The color of the rewarp box"
