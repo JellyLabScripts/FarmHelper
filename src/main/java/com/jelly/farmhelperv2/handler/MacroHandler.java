@@ -355,7 +355,7 @@ public class MacroHandler {
     public void onRenderWorldLast(RenderWorldLastEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (FarmHelperConfig.streamerMode) return;
-    
+
         if (FarmHelperConfig.highlightRewarp && FarmHelperConfig.rewarpList != null && GameStateHandler.getInstance().inGarden()) {
             for (Rewarp rewarp : FarmHelperConfig.rewarpList) {
                 double distance = mc.thePlayer.getDistance(rewarp.x, rewarp.y, rewarp.z);
@@ -365,17 +365,15 @@ public class MacroHandler {
                 }
             }
         }
-    
+
         if (FarmHelperConfig.drawSpawnLocation && PlayerUtils.isSpawnLocationSet() && GameStateHandler.getInstance().inGarden()) {
             BlockPos spawnLocation = new BlockPos(PlayerUtils.getSpawnLocation());
             double distance = mc.thePlayer.getDistance(spawnLocation.getX(), spawnLocation.getY(), spawnLocation.getZ());
-    
             Color spawnColor = FarmHelperConfig.spawnColor.toJavaColor();
             if (distance < 50) {
                 RenderUtils.drawBlockBox(spawnLocation, spawnColor);
             }
         }
-    
 
         if (!isMacroToggled()) {
             return;
