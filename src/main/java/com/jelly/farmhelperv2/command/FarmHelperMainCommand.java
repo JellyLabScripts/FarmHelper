@@ -16,6 +16,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.Vec3;
 
 import java.util.Optional;
+import java.util.Arrays;
+import java.lang.Float;
 
 @Command(value = "fh", aliases = {"farmhelper"}, description = "FarmHelper main command")
 public class FarmHelperMainCommand {
@@ -59,6 +61,21 @@ public class FarmHelperMainCommand {
         FlyPathFinderExecutor.getInstance().findPath(new Vec3(x, y, z), follow, smooth);
     }
 
+    @SubCommand(aliases = {"pf"})
+    public void pathfind(String x, String y, String z, String threshold,
+                         @Description(value = "Tell the pathfinder, to constantly follow and recalibrate path until arrive", autoCompletesTo = {"true", "false"}) boolean follow,
+                         @Description(value = "Tell the pathfinder, to smooth out the path", autoCompletesTo = {"true", "false"}) boolean smooth,
+                         @Description(value = "Tell to pathfinder, to sprint while flying") boolean sprint) {
+        try {
+            FlyPathFinderExecutor.getInstance().setStoppingPositionThreshold(Float.valueOf(threshold));
+            FlyPathFinderExecutor.getInstance().setSprinting(sprint);
+            FlyPathFinderExecutor.getInstance().findPath(new Vec3(Float.valueOf(x), Float.valueOf(y), Float.valueOf(z)), follow, smooth);
+        } catch (Exception e) {
+            LogUtils.sendError("Could not. KYS");
+            e.printStackTrace();
+        }
+    }
+
     @SubCommand(aliases = {"sp"})
     public void stoppath() {
         FlyPathFinderExecutor.getInstance().stop();
@@ -68,5 +85,15 @@ public class FarmHelperMainCommand {
     public void update() {
         PlayerUtils.closeScreen();
         FarmHelperConfig.checkForUpdate();
+    }
+
+    @SubCommand(aliases = {"stp"})
+    public void swapToPest() {
+        AutoWardrobe.instance.swapTo(FarmHelperConfig.pestFarmingSet0Slot, Arrays.asList(FarmHelperConfig.pestFarmingEq0.split("\\|")));
+    }
+
+    @SubCommand(aliases = {"stf"})
+    public void swapToFarm() {
+        AutoWardrobe.instance.swapTo(FarmHelperConfig.pestFarmingSet1Slot, Arrays.asList(FarmHelperConfig.pestFarmingEq1.split("\\|")));
     }
 }

@@ -16,6 +16,9 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
+import java.util.List;
+import java.util.ArrayList;
 
 public class AutoWardrobe implements IFeature {
 
@@ -24,6 +27,9 @@ public class AutoWardrobe implements IFeature {
     private final Minecraft mc = Minecraft.getMinecraft();
     private boolean enabled = false;
     private int swapTo = -1;
+    private int invStart = 54;
+    private int invEnd = 54;
+    private List<String> equipmentsToSwapTo = new ArrayList<>();
     private State state = State.STARTING;
     private Clock timer = new Clock();
 
@@ -49,7 +55,7 @@ public class AutoWardrobe implements IFeature {
 
     @Override
     public void resetStatesAfterMacroDisabled() {
-        activeSlot = -1;
+        // activeSlot = -1;
     }
 
     @Override
@@ -72,6 +78,16 @@ public class AutoWardrobe implements IFeature {
         LogUtils.sendSuccess("[AutoWardrobe] Starting. Swapping to slot " + slot);
     }
 
+    public void swapTo(int slot, List<String> equipments) {
+        if (slot< 1 || slot > 18) {
+            return;   
+        }
+        swapTo = slot;
+        equipmentsToSwapTo = new ArrayList(equipments);
+        enabled = true;
+        LogUtils.sendSuccess("[AutoWardrobe] Starting. Swapping to slot " + slot + ", and equipments: " + equipments);
+    }
+
     @Override
     public void stop() {
         if (!enabled) {
@@ -79,6 +95,9 @@ public class AutoWardrobe implements IFeature {
         }
         enabled = false;
         swapTo = -1;
+        invStart = 54;
+        invEnd = 54;
+        equipmentsToSwapTo.clear();
         state = State.STARTING;
         timer.reset();
 
@@ -103,7 +122,7 @@ public class AutoWardrobe implements IFeature {
 
     @SubscribeEvent
     public void onTick(ClientTickEvent event) {
-        if (!enabled) {
+        if (!enabled || mc.thePlayer == null || event.phase != Phase.START) {
             return;
         }
 
@@ -126,7 +145,7 @@ public class AutoWardrobe implements IFeature {
                     return;
                 }
 
-                if (inventoryName().startsWith("Wardrobe")) {
+                if (inventoryName().startsWith("Wardrobe") && InventoryUtils.isInventoryLoaded()) {
                     setState(State.NAVIGATING, FarmHelperConfig.getRandomGUIMacroDelay());
                 }
                 break;
@@ -168,20 +187,63 @@ public class AutoWardrobe implements IFeature {
                 activeSlot = swapTo;
                 setState(State.WAITING, FarmHelperConfig.getRandomGUIMacroDelay());
                 break;
+            // this is just here to give a bit extra pause before it stops
             case WAITING:
                 if (isTimerRunning()) {
                     return;
                 }
-                PlayerUtils.closeScreen();
-                setState(State.ENDING, FarmHelperConfig.getRandomGUIMacroDelay());
+                if (equipmentsToSwapTo.isEmpty()) {
+                    PlayerUtils.closeScreen();
+                    setState(State.ENDING, FarmHelperConfig.getRandomGUIMacroDelay());
+                } else {
+                    setState(State.OPENING_EQ, 0);
+                }
                 break;
-            // this is just here to give a bit extra pause before it stops
+            case OPENING_EQ:
+                if (isTimerRunning()) {
+                    return;
+                }
+                mc.thePlayer.sendChatMessage("/eq");
+                setState(State.EQ_VERIFY, 2000);
+                break;
+            case EQ_VERIFY:
+                if (hasTimerEnded()) {
+                    LogUtils.sendError("Could not open eq in under 2 seconds. Stopping");
+                    setState(State.WAITING, 0);
+                    return;
+                }
+
+                if (inventoryName().startsWith("Your Equipment") && InventoryUtils.isInventoryLoaded()) {
+                    setState(State.SWAPPING_EQUIPMENT, FarmHelperConfig.getRandomGUIMacroDelay());
+                    invStart = 54;
+                    invEnd = mc.thePlayer.openContainer.inventorySlots.size();
+                }
+                break;
+            case SWAPPING_EQUIPMENT:
+                if (isTimerRunning()) {
+                    return;
+                }
+
+                for (; invStart < invEnd; invStart++) {
+                    slot = mc.thePlayer.openContainer.getSlot(invStart);
+                    if (slot.getHasStack()) {
+                        ItemStack stack = slot.getStack();
+                        if (stack.hasDisplayName() && equipmentsToSwapTo.removeIf(it -> stack.getDisplayName().contains(it.trim()))) {
+                            InventoryUtils.clickContainerSlot(invStart, ClickType.LEFT, ClickMode.PICKUP);
+                            timer.schedule(FarmHelperConfig.pestFarmerEquipmentClickDelay);
+                            return;
+                        }
+                    }
+                }
+                equipmentsToSwapTo.clear();
+                setState(State.WAITING, FarmHelperConfig.getRandomGUIMacroDelay());
+                break;
             case ENDING:
               if (isTimerRunning()) {
                 return;
               }
-                stop();
-                break;
+              stop();
+              break;
         }
     }
 
@@ -203,6 +265,6 @@ public class AutoWardrobe implements IFeature {
 
 
     enum State {
-        STARTING, OPENING_WD, WD_VERIFY, NAVIGATING, NAVIGATION_VERIFY, CLICKING_SLOT, WAITING, ENDING
+        STARTING, OPENING_WD, WD_VERIFY, NAVIGATING, NAVIGATION_VERIFY, CLICKING_SLOT, WAITING, OPENING_EQ, EQ_VERIFY, SWAPPING_EQUIPMENT, ENDING
     }
 }

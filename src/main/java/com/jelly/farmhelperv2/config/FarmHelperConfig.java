@@ -212,6 +212,27 @@ public class FarmHelperConfig extends Config {
     )
     public static int spawnPosZ = 0;
 
+    @Number(
+            name = "Yaw", category = GENERAL, subcategory = "Spawn Position",
+            description = "The Yaw of the spawn",
+            min = -180.0f, max = 180.0f
+    )
+    public static float spawnYaw = 0;
+
+    @Number(
+            name = "Pitch", category = GENERAL, subcategory = "Spawn Position",
+            description = "The Pitch of the spawn",
+            min = -90.0f, max = 90.0f
+    )
+    public static float spawnPitch = 0;
+
+    @Number(
+            name = "Spawn Plot", category = GENERAL, subcategory = "Spawn Position",
+            description = "The Plot that the spawn is in",
+            min = 0, max = 24
+    )
+    public static int spawnPlot = 0;
+
     @Button(
             name = "Set SpawnPos", category = GENERAL, subcategory = "Spawn Position",
             description = "Sets the spawn position to your current position",
@@ -268,6 +289,12 @@ public class FarmHelperConfig extends Config {
             description = "Cancels failsafe and continues macroing", size = 2
     )
     public static OneKeyBind cancelFailsafeKeybind = new OneKeyBind(Keyboard.KEY_NONE);
+
+    @KeyBind(
+            name = "Tp To Infested Plot", category = MISCELLANEOUS, subcategory = "Keybinds",
+            description = "Teleport to a plot with pest for skyhanni haters :D", size = 2
+    )
+    public static OneKeyBind tpToInfestedPlot = new OneKeyBind(Keyboard.KEY_NONE);
     //</editor-fold>
 
     //<editor-fold desc="Plot Cleaning Helper">
@@ -1231,7 +1258,7 @@ public class FarmHelperConfig extends Config {
     @Switch(
             name = "Pause the Pests Destroyer during Jacob's contests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Pauses the Pests Destroyer during Jacob's contests",
-            size = 2
+            size = 1
     )
     public static boolean pausePestsDestroyerDuringJacobsContest = true;
 
@@ -1323,6 +1350,20 @@ public class FarmHelperConfig extends Config {
             min = 1, max = 18
     )
     public static int pestArmorSlot1 = 1;
+
+    @Switch(
+            name = "Swap Equipments", category = PESTS_DESTROYER, subcategory = "Armor Swapper",
+            description = "Swap Equipments or not"
+    )
+    public static boolean pestSwapEquipments = false;
+
+    @Text(
+        name = "Pest Swap Equipments", category = PESTS_DESTROYER, subcategory = "Armor Swapper", size=2,
+        description = "Separate Equipment Names With |", placeholder = "Pesthunter's Necklace|Pesthunter's Cloak|Pesthunter's Belt"
+    )
+    public static String pestSwapEq = "";
+
+
     //</editor-fold>
 
     //<editor-fold desc="Drawings">
@@ -1394,12 +1435,6 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean pestFarming = false;
 
-    @Switch(
-            name = "Hold Daedalus Axe", category = PEST_FARMER,
-            description = "Farms with daedalus axe while waiting for pests to spawn"
-    )
-    public static boolean pestFarmingHoldDaedalus = false;
-
     @Slider(
             name = "Farming Armor Slot", category = PEST_FARMER,
             min = 1, max = 18
@@ -1418,6 +1453,40 @@ public class FarmHelperConfig extends Config {
             min = 30, max = 300
     )
     public static int pestFarmingWaitTime = 255;
+
+    @Switch(
+        name = "Swap Equipments", category = PEST_FARMER
+    )
+    public static boolean pestFarmingSwapEq = false;
+
+    @Text(
+        name = "Farming Fortune Equipments", category = PEST_FARMER, size=2,
+        description = "Separate Equipment Names With |", placeholder = "Lotus Necklace|Lotus Cloak|Lotus Belt"
+    )
+    public static String pestFarmingEq0 = "";
+
+    @Text(
+        name = "Pest Chance Equipments", category = PEST_FARMER, size=2,
+        description = "Separate Equipment Names With |", placeholder = "Pesthunter's Necklace|Pesthunter's Cloak|Pesthunter's Belt"
+    )
+    public static String pestFarmingEq1 = "";
+
+    @Slider(
+        name = "Equipment Click Delay", category = PEST_FARMER,
+        min = 50, max = 2000, step = 10
+    )
+    public static int pestFarmerEquipmentClickDelay = 400;
+
+    @Switch(
+        name = "Start Pests Destroyer During Farming", category = PEST_FARMER
+    )
+    public static boolean pestFarmerKillPests = false;
+
+    @Slider(
+        name = "Pest Count to Start Killing At", category = PEST_FARMER,
+        min = 1, max = 8
+    )
+    public static int pestFarmerStartKillAt = 1;
 
     @Info(
             text = "It's supposed to swap armor before pest spawns, swap back after pest spawns and kill with Pest Destryoer/the other one.",
@@ -2361,7 +2430,13 @@ public class FarmHelperConfig extends Config {
         this.addDependency("rotationTimeRandomnessDuringJacob", "customRotationDelaysDuringJacob");
 
         this.addDependency("pestArmorSlot0", "pestSwapArmorBefore");
-        this.addDependency("pestArmorSlot1", "pestSwapArmorAfter");
+        this.addDependency("pestArmorSlot0", "pestSwapArmorBefore");
+        this.addDependency("pestFarmingEq0", "pestFarmingSwapEq");
+        this.addDependency("pestFarmingEq1", "pestFarmingSwapEq");
+        this.addDependency("pestFarmerEquipmentClickDelay", "pestFarmingSwapEq");
+        this.addDependency("pestFarmerStartKillAt", "pestFarmerKillPests");
+
+        this.addDependency("pestSwapEq", "pestSwapEquipments");
 
         this.addDependency("leaveTime", "leaveTimer");
 
@@ -2385,6 +2460,11 @@ public class FarmHelperConfig extends Config {
                 FailsafeManager.getInstance().stopFailsafes();
                 LogUtils.sendWarning("[Failsafe] Emergency has been cancelled!");
             }
+        });
+        registerKeyBind(tpToInfestedPlot, () -> {
+            List<Integer> infestedPlots = GameStateHandler.getInstance().getInfestedPlots();
+            if (infestedPlots.isEmpty()) return;
+            mc.thePlayer.sendChatMessage("/plottp " + infestedPlots.get(0));
         });
 //        registerKeyBind(debugKeybind2, () -> {
 //            MovingObjectPosition objectMouseOver = Minecraft.getMinecraft().objectMouseOver;

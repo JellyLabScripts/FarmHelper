@@ -103,8 +103,8 @@ public class FeatureManager {
         if (AutoReconnect.getInstance().isRunning() && !AutoReconnect.getInstance().shouldCheckForFailsafes()) {
             return true;
         }
-        if (PestsDestroyer.getInstance().isRunning()) {
-            if (!PestsDestroyer.getInstance().shouldCheckForFailsafes()) return true;
+        if (PestsDestroyer.getInstance().isRunning() && !PestsDestroyer.getInstance().shouldCheckForFailsafes()) {
+            return true;
         }
         if (PlotCleaningHelper.getInstance().isRunning() && !PlotCleaningHelper.getInstance().shouldCheckForFailsafes()) {
             return true;
@@ -113,6 +113,9 @@ public class FeatureManager {
             return true;
         }
         if (AutoPestExchange.getInstance().isRunning() && !AutoPestExchange.getInstance().shouldCheckForFailsafes()) {
+            return true;
+        }
+        if (PestFarmer.instance.isRunning() && !PestFarmer.instance.shouldCheckForFailsafes()) {
             return true;
         }
         return false;

@@ -7,7 +7,6 @@ import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.DesyncChecker;
 import com.jelly.farmhelperv2.feature.impl.LagDetector;
-import com.jelly.farmhelperv2.feature.impl.PestFarmer;
 import com.jelly.farmhelperv2.feature.impl.PestsDestroyer;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -163,7 +162,6 @@ public abstract class AbstractMacro {
             return;
         }
 
-
         if (getRotation().isRotating()) {
             if (!mc.gameSettings.keyBindSneak.isKeyDown())
                 KeyBindUtils.stopMovement();
@@ -235,9 +233,7 @@ public abstract class AbstractMacro {
             return;
         }
 
-        if (!PestFarmer.instance.holdDaedalus()) {
-            PlayerUtils.getTool();
-        }
+        PlayerUtils.getTool();
 
         // Update or invoke state, based on if player is moving or not
         if (GameStateHandler.getInstance().canChangeDirection()) {
