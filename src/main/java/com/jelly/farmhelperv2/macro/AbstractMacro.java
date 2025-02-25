@@ -147,13 +147,13 @@ public abstract class AbstractMacro {
             }
             checkOnSpawnClock.schedule(5000);
         }
+
         if (mc.thePlayer.getPosition().getY() < 0) {
             LogUtils.sendError("Build a wall between the rewarp point and the void to prevent falling out of the garden! Disabling the macro...");
             MacroHandler.getInstance().disableMacro();
             MacroHandler.getInstance().triggerWarpGarden(true, false);
             return;
         }
-
 
         if (getRotation().isRotating()) {
             if (!mc.gameSettings.keyBindSneak.isKeyDown())
@@ -382,14 +382,15 @@ public abstract class AbstractMacro {
 
     public enum State {
         // Add default values like NONE and DROPPING
+        // DO NOT REARRAGE, IT WILL BREAK PEST FARMER IF YOU DO - osama
         NONE,
         DROPPING,
+        SWITCHING_SIDE,
+        SWITCHING_LANE,
         LEFT,
         RIGHT,
         BACKWARD,
         FORWARD,
-        SWITCHING_SIDE,
-        SWITCHING_LANE,
 
         A,
         D,

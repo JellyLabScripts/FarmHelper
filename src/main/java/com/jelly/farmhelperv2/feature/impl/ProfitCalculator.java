@@ -70,6 +70,7 @@ public class ProfitCalculator implements IFeature {
     @Getter
     private final Clock updateBazaarClock = new Clock();
     private final Pattern regex = Pattern.compile("Dicer dropped (\\d+)x ([\\w\\s]+)!");
+    private final Pattern pestPattern = Pattern.compile("You received (\\d+)x Enchanted (.+?) for killing a (\\w+)!");
     public double realProfit = 0;
     public double realHourlyProfit = 0;
     @Getter
@@ -328,22 +329,25 @@ public class ProfitCalculator implements IFeature {
         if (event.type != 0 || event.message == null) return;
         String message = StringUtils.stripControlCodes(event.message.getUnformattedText());
 
-        if (message.contains(":") || !message.contains("coins")) return;
-        if (((message.startsWith("[Bazaar] Claimed ") || message.startsWith("You collected ")) && message.contains("coins from selling")) || message.startsWith("[Bazaar] Sold ")) {
-            Matcher matcher = coinsPattern.matcher(message);
-            if (matcher.find()) {
-                String coinsFound = matcher.group(1);
-                try {
-                    double coins = Double.parseDouble(coinsFound.replace(",", ""));
-                    realProfit -= coins;
-                } catch (NumberFormatException e) {
-                    LogUtils.sendDebug("Failed to parse coins from message: " + e.getMessage());
+        if (message.contains(":")) return;
+        if (message.contains("coins")) {
+            if (((message.startsWith("[Bazaar] Claimed ") || message.startsWith("You collected ")) && message.contains("coins from selling")) || message.startsWith("[Bazaar] Sold ")) {
+                Matcher matcher = coinsPattern.matcher(message);
+                if (matcher.find()) {
+                    String coinsFound = matcher.group(1);
+                    try {
+                        double coins = Double.parseDouble(coinsFound.replace(",", ""));
+                        realProfit -= coins;
+                    } catch (NumberFormatException e) {
+                        LogUtils.sendDebug("Failed to parse coins from message: " + e.getMessage());
+                    }
+                    LogUtils.sendWarning("Selling crops in bazaar or auction house may break the profit calculator! Pause the macro before taking any action!");
                 }
-                LogUtils.sendWarning("Selling crops in bazaar or auction house may break the profit calculator! Pause the macro before taking any action!");
             }
-        }
 
-        if (message.contains("Sold") || message.contains("[Auction]")) return;
+            // if (message.contains("Sold") || message.contains("[Auction]")) return;
+            return;
+        }
 
         Optional<String> optional = rngToCountList.stream().filter(message::contains).findFirst();
         if (optional.isPresent()) {
@@ -356,15 +360,12 @@ public class ProfitCalculator implements IFeature {
             String itemDropped;
             int amountDropped;
             Matcher matcher = regex.matcher(message);
-            if (matcher.find()) {
-                amountDropped = Integer.parseInt(matcher.group(1));
-                if (matcher.group(2).contains("Melon")) {
-                    itemDropped = "Melon";
-                } else if (matcher.group(2).contains("Pumpkin")) {
-                    itemDropped = "Pumpkin";
-                } else {
-                    return;
-                }
+            if (!matcher.find()) return;
+            amountDropped = Integer.parseInt(matcher.group(1));
+            if (matcher.group(2).contains("Melon")) {
+                itemDropped = "Melon";
+            } else if (matcher.group(2).contains("Pumpkin")) {
+                itemDropped = "Pumpkin";
             } else {
                 return;
             }
@@ -373,6 +374,14 @@ public class ProfitCalculator implements IFeature {
                 amountDropped *= 160;
             }
             addDroppedItem(itemDropped, amountDropped);
+        }
+
+        if (FarmHelperConfig.profitCalcCountPestDrop && message.matches("You received \\d+x Enchanted (\\w+\\s?)+!")) {
+            Matcher matcher = pestPattern.matcher(message);
+            if (matcher.find()) {
+                addDroppedItem(matcher.group(2), Integer.parseInt(matcher.group(1)) * 160);
+                LogUtils.sendDebug("Added " + matcher.group(2) + ", killed " + matcher.group(3));
+            }
         }
     }
 
