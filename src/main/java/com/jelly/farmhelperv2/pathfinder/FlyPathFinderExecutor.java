@@ -344,7 +344,7 @@ public class FlyPathFinderExecutor {
         }
 
         if (state == State.DECELERATING) {
-            if (mc.thePlayer.motionX == 0 && mc.thePlayer.motionZ == 0 && mc.thePlayer.motionY == (mc.thePlayer.onGround ? -0.0784000015258789 : 0)) {
+            if (Math.abs(mc.thePlayer.motionX) <= 0.05 && Math.abs(mc.thePlayer.motionZ) <= 0.05 && mc.thePlayer.motionY == (mc.thePlayer.onGround ? -0.0784000015258789 : 0)) {
                 stop();
             }
             return;

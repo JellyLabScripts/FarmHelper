@@ -7,7 +7,6 @@ import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.DesyncChecker;
 import com.jelly.farmhelperv2.feature.impl.LagDetector;
-import com.jelly.farmhelperv2.feature.impl.PestsDestroyer;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
@@ -147,12 +146,6 @@ public abstract class AbstractMacro {
                 return;
             }
             checkOnSpawnClock.schedule(5000);
-        }
-
-        if (FarmHelperConfig.pestForceEnable && PestsDestroyer.getInstance().canEnableMacro()) {
-            PestsDestroyer.getInstance().start();
-            LogUtils.sendDebug("Activating Pests Destroyer");
-            return;
         }
 
         if (mc.thePlayer.getPosition().getY() < 0) {

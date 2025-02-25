@@ -1977,6 +1977,12 @@ public class FarmHelperConfig extends Config {
             min = 1, max = 64
     )
     public static int autoSprayonatorAutoBuyAmount = 1;
+
+    @Slider(
+            name = "Time to wait after entering plot before starting", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
+            min = 0, max = 5000, step = 100
+    )
+    public static int autoSprayonatorStartDelay = 0;
     //</editor-fold>
 
     //<editor-fold desc="Auto Composter">
@@ -2305,6 +2311,10 @@ public class FarmHelperConfig extends Config {
             name = "Reset stats between disabling", category = HUD, subcategory = "Profit Calculator"
     )
     public static boolean resetStatsBetweenDisabling = false;
+    @Switch(
+            name = "Count Pest Drops to Profit Calculator", category = HUD, subcategory = "Profit Calculator"
+    )
+    public static boolean profitCalcCountPestDrop = false;
     //    @Button(
 //            name = "Reset Profit Calculator", category = HUD, subcategory = "Profit Calculator",
 //            text = "Reset Now", size = 2

@@ -158,7 +158,7 @@ public class VisitorsMacro implements IFeature {
         }
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();
-            MacroHandler.getInstance().getCurrentMacro().ifPresent(am -> am.setSavedState(Optional.empty()));
+            // MacroHandler.getInstance().getCurrentMacro().ifPresent(am -> am.setSavedState(Optional.empty()));
         }
         ignoredNPCs.clear();
         profitNpc = false;
@@ -239,10 +239,7 @@ public class VisitorsMacro implements IFeature {
         if (isRunning()) return false;
         if (!GameStateHandler.getInstance().inGarden()) return false;
         if (mc.thePlayer == null || mc.theWorld == null) return false;
-        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled()) {
-            LogUtils.sendWarning("here");
-            return false;
-        }
+        if (FeatureManager.getInstance().isAnyOtherFeatureEnabled()) return false;
         if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return false;
 
         if (GameStateHandler.getInstance().getServerClosingSeconds().isPresent()) {

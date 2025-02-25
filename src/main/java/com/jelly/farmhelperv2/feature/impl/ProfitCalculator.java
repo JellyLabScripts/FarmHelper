@@ -70,6 +70,7 @@ public class ProfitCalculator implements IFeature {
     @Getter
     private final Clock updateBazaarClock = new Clock();
     private final Pattern regex = Pattern.compile("Dicer dropped (\\d+)x ([\\w\\s]+)!");
+    private final Pattern pestPattern = Pattern.compile("You received (\\d+)x Enchanted (.+?) for killing a (\\w+)!");
     public double realProfit = 0;
     public double realHourlyProfit = 0;
     @Getter
@@ -373,6 +374,14 @@ public class ProfitCalculator implements IFeature {
                 amountDropped *= 160;
             }
             addDroppedItem(itemDropped, amountDropped);
+        }
+
+        // 
+        if (FarmHelperConfig.profitCalcCountPestDrop && message.matches("You received \\d+x Enchanted (\\w+\\s?)+!")) {
+            Matcher matcher = pestPattern.matcher(message);
+            if (matcher.find()) {
+                addDroppedItem(matcher.group(2), Integer.parseInt(matcher.group(1)));
+            }
         }
     }
 

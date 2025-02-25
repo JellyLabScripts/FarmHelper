@@ -145,7 +145,7 @@ public class AutoSprayonator implements IFeature {
     }
 
     if (!this.timer.isScheduled()) {
-      this.timer.schedule(5000);
+      this.timer.schedule(FarmHelperConfig.autoSprayonatorStartDelay);
     } else if (this.timer.passed()) {
       this.start();
     }

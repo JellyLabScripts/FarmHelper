@@ -7,6 +7,7 @@ import com.jelly.farmhelperv2.event.SpawnObjectEvent;
 import com.jelly.farmhelperv2.event.SpawnParticleEvent;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.IFeature;
+import com.jelly.farmhelperv2.feature.impl.PestFarmer;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
@@ -159,7 +160,7 @@ public class PestsDestroyer implements IFeature {
         lastKillTimestamp = 0;
         if (MacroHandler.getInstance().isMacroToggled()) {
             MacroHandler.getInstance().pauseMacro();
-            MacroHandler.getInstance().getCurrentMacro().ifPresent(am -> am.setSavedState(Optional.empty()));
+//            MacroHandler.getInstance().getCurrentMacro().ifPresent(am -> am.setSavedState(Optional.empty()));
             KeyBindUtils.stopMovement();
         }
         escapeState = EscapeState.NONE;
@@ -1189,7 +1190,8 @@ public class PestsDestroyer implements IFeature {
         if (FlyPathFinderExecutor.getInstance().isPathing()) {
             FlyPathFinderExecutor.getInstance().stop();
         }
-        if (MacroHandler.getInstance().isMacroToggled()) {
+        // bad macro design - loser
+        if (!PestFarmer.instance.isRunning() && MacroHandler.getInstance().isMacroToggled()) {
             stop();
             MacroHandler.getInstance().triggerWarpGarden(true, true, false);
             delayClock.schedule(2_000 + Math.random() * 500);
