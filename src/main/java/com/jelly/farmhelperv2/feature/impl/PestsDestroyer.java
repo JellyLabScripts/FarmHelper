@@ -162,6 +162,9 @@ public class PestsDestroyer implements IFeature {
             MacroHandler.getInstance().pauseMacro();
 //            MacroHandler.getInstance().getCurrentMacro().ifPresent(am -> am.setSavedState(Optional.empty()));
             KeyBindUtils.stopMovement();
+            if (FarmHelperConfig.profitCalcCountPestDrop) {
+                MacroHandler.getInstance().getMacroingTimer().resume();
+            }
         }
         escapeState = EscapeState.NONE;
         rotationState = RotationState.NONE;
@@ -1195,6 +1198,9 @@ public class PestsDestroyer implements IFeature {
             stop();
             MacroHandler.getInstance().triggerWarpGarden(true, true, false);
             delayClock.schedule(2_000 + Math.random() * 500);
+            if (FarmHelperConfig.profitCalcCountPestDrop) {
+                MacroHandler.getInstance().getMacroingTimer().pause();
+            }
         } else {
             stop();
         }
