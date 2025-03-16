@@ -4,6 +4,7 @@ import cc.polyfrost.oneconfig.utils.Multithreading;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.failsafe.impl.RotationFailsafe;
 import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.DesyncChecker;
 import com.jelly.farmhelperv2.feature.impl.LagDetector;
@@ -148,9 +149,9 @@ public abstract class AbstractMacro {
             checkOnSpawnClock.schedule(5000);
         }
         if (mc.thePlayer.getPosition().getY() < 0) {
-            LogUtils.sendError("Build a wall between the rewarp point and the void to prevent falling out of the garden! Disabling the macro...");
-            MacroHandler.getInstance().disableMacro();
+            LogUtils.sendError("Build a wall between the rewarp point and the void to prevent falling out of the garden! If it's there already, then you've been macro checked, good luck.");
             MacroHandler.getInstance().triggerWarpGarden(true, false);
+            FailsafeManager.getInstance().possibleDetection(RotationFailsafe.getInstance());
             return;
         }
 
