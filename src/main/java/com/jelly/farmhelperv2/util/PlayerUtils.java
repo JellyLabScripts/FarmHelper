@@ -379,7 +379,7 @@ public class PlayerUtils {
 
     public static void closeScreen() {
         if (mc.currentScreen != null && mc.thePlayer != null) {
-            mc.thePlayer.closeScreen();
+            mc.addScheduledTask(() -> { mc.thePlayer.closeScreen();});
         }
     }
 
