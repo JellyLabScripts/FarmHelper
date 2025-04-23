@@ -1502,6 +1502,13 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static boolean autoPestExchangeTravelMethodInfo;
+    @DualOption(
+            name = "Teleport to", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
+            description = "The plot to teleport to, to get to the pest exchange desk",
+            left = "Barn",
+            right = "Plot 2"
+    )
+    public static boolean autoPestExchangeTpDestiination = false;
     @Slider(
             name = "Trigger before contest starts (in minutes)", category = AUTO_PEST_EXCHANGE, subcategory = "Auto Pest Exchange",
             description = "The time before the contest starts to trigger the auto pest exchange",
