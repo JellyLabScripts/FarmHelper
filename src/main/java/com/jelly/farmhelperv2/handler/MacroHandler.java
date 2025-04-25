@@ -175,7 +175,7 @@ public class MacroHandler {
                         return;
                     }
                 } else {
-                    LogUtils.sendError("Rancher's Boot at custom farming speed.");
+                    LogUtils.sendDebug("Rancher's Boot at custom farming speed.");
                 }
             }
             this.enableMacro();
