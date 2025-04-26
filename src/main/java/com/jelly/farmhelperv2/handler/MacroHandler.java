@@ -321,6 +321,7 @@ public class MacroHandler {
             if (!cm.isEnabledAndNoFeature()) return;
             cm.onTick();
         });
+        UsageStatsTracker.getInstance().tick(!isCurrentMacroPaused());
     }
 
     @SubscribeEvent

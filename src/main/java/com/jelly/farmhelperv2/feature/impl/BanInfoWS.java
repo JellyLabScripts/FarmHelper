@@ -472,7 +472,6 @@ public class BanInfoWS implements IFeature {
     public long getLongestSessionLast7D() {
         long sevenDaysAgo = System.currentTimeMillis() - 604800000L; // 7 days in milliseconds
         JsonArray jsonArray = readJsonArrayFromFile();
-        JsonArray updatedJsonArray = new JsonArray();
         long longestSessionLength = 0L;
 
         for (JsonElement element : jsonArray) {
@@ -483,11 +482,9 @@ public class BanInfoWS implements IFeature {
                 if (sessionLength > longestSessionLength) {
                     longestSessionLength = sessionLength;
                 }
-                updatedJsonArray.add(session);
             }
         }
 
-        writeJsonArrayToFile(updatedJsonArray); // Optimize by writing only if needed
         return longestSessionLength;
     }
 

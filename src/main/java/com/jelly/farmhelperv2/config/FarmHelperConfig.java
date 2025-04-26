@@ -23,6 +23,7 @@ import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.hud.DebugHUD;
 import com.jelly.farmhelperv2.hud.ProfitCalculatorHUD;
 import com.jelly.farmhelperv2.hud.StatusHUD;
+import com.jelly.farmhelperv2.hud.UsageStatsHUD;
 import com.jelly.farmhelperv2.util.BlockUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
@@ -2148,6 +2149,49 @@ public class FarmHelperConfig extends Config {
             name = "Profit Calculator HUD - Visual Settings", category = HUD, subcategory = " "
     )
     public static ProfitCalculatorHUD profitHUD = new ProfitCalculatorHUD();
+    @Switch(
+            name      = "Show FH Usage Stats Title",
+            category  = HUD,
+            subcategory = "Usage Stats"
+    )
+    public static boolean showStatsTitle = true;
+    @Switch(
+            name      = "Show 24-hour total",
+            category  = HUD,
+            subcategory = "Usage Stats"
+    )
+    public static boolean showStats24H = true;
+    @Switch(
+            name       = "Show 7-day total",
+            category   = HUD,
+            subcategory = "Usage Stats"
+    )
+    public static boolean showStats7D = false;
+    @Switch(
+            name       = "Show 30-day total",
+            category   = HUD,
+            subcategory = "Usage Stats"
+    )
+    public static boolean showStats30D = false;
+    @Switch(
+            name      = "Show lifetime total",
+            category  = HUD,
+            subcategory = "Usage Stats"
+    )
+    public static boolean showStatsLifetime = true;
+    @Switch(
+            name      = "Colour-code 24-hour total",
+            description = "Green < 3.5 h, 3.5 h < Orange < 7 h, Red ≥ 7 h",
+            category  = HUD,
+            subcategory = "Usage Stats"
+    )
+    public static boolean colourCode24H = true;
+    @HUD(
+            name = "Usage Stats HUD - Visual Settings",
+            category = HUD,
+            subcategory = "Usage Stats"
+    )
+    public static UsageStatsHUD UsageStatsHUD = new UsageStatsHUD();
     //</editor-fold>
 
     //<editor-fold desc="DEBUG">
