@@ -49,6 +49,8 @@ public class FeatureManager {
                 Scheduler.getInstance(),
                 UngrabMouse.getInstance(),
                 VisitorsMacro.getInstance(),
+                VerifyFarmingEquipment.getInstance(),
+                LotusEquipListener.getInstance(),
                 PiPMode.getInstance()
         );
         features.addAll(featuresList);

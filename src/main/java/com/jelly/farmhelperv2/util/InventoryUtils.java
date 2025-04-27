@@ -30,6 +30,10 @@ public class InventoryUtils {
         return true;
     }
 
+    public static ItemStack[] getEquippedArmor() {
+        return mc.thePlayer.inventory.armorInventory;
+    }
+
     public static int getSlotIdOfItemInContainer(String item) {
         return getSlotIdOfItemInContainer(item, false);
     }
