@@ -5,6 +5,7 @@ import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
+import com.jelly.farmhelperv2.util.ScoreboardUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
@@ -17,12 +18,13 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
 public class VerifyFarmingEquipment implements IFeature {
-    private enum EquipState {NONE, SENT_COMMAND, WAITING_FOR_GUI, VERIFYING_EQUIPMENT, VERIFYING_ARMOUR, VERIFIED}
+    private enum EquipState {NONE, SENT_COMMAND, WAITING_FOR_GUI, VERIFYING_EQUIPMENT, VERIFYING_ARMOUR, VERIFYING_PET, VERIFIED}
     private enum FarmingArmour {Rabbit, Farm, Melon, Cropie, Squash, Fermento}
-//    private enum FarmingPet {Rabbit, Mooshroom, Elephant}
+    private enum FarmingPet {Rabbit, Mooshroom, Elephant}
     private static boolean equipmentOK = false;
     private boolean armourOK = false;
     private boolean hasRunBefore = false;
+    private boolean petOK = false;
 
     private static VerifyFarmingEquipment instance;
     private final Minecraft mc = Minecraft.getMinecraft();
@@ -37,6 +39,7 @@ public class VerifyFarmingEquipment implements IFeature {
     @Override
     public void start() {
         if (!armourOK && hasRunBefore) { checkArmourStealth(); }
+        if (!petOK && hasRunBefore) { checkPet(); }
         if (LotusEquipListener.hasEquippedLotus()) { equipmentOK = true; }
         if (hasRunBefore) {
             statusMessages();
@@ -107,6 +110,12 @@ public class VerifyFarmingEquipment implements IFeature {
                     }
                 }
                 LogUtils.sendDebug("Farming Armour Checked");
+                state = EquipState.VERIFYING_PET;
+            }
+            case VERIFYING_PET: {
+                LogUtils.sendDebug("Checking Current Pet");
+                checkPet();
+                LogUtils.sendDebug("Current Pet Checked");
                 state = EquipState.VERIFIED;
             }
             case VERIFIED: {
@@ -133,22 +142,32 @@ public class VerifyFarmingEquipment implements IFeature {
         }
     }
 
+    private void checkPet() {
+        // scan the tablist and check the pet against FarmingPet enum
+    }
+
     private void statusMessages() {
         if (equipmentOK) {
             LogUtils.sendSuccess("Farming Equipment Equipped!");
         } else {
-            LogUtils.sendError("No Farming Equipment is Equipped!");
+            LogUtils.sendWarning("No Farming Equipment is Equipped!");
         }
         if (armourOK) {
             LogUtils.sendSuccess("Farming Armour Equipped!");
         } else {
-            LogUtils.sendError("No Farming Armour is Equipped!");
+            LogUtils.sendWarning("No Farming Armour is Equipped!");
+        }
+        if (petOK) {
+            LogUtils.sendSuccess("Farming Pet Equipped!");
+        } else {
+            LogUtils.sendWarning("No Farming Pet is Equipped!");
         }
     }
 
     private void resetVariables() {
         equipmentOK = false;
         armourOK = false;
+        petOK = false;
         hasRunBefore = false;
     }
 
