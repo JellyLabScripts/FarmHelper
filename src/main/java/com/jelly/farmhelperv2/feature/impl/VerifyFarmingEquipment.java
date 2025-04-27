@@ -17,7 +17,6 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
 public class VerifyFarmingEquipment implements IFeature {
-
     private enum EquipState {NONE, SENT_COMMAND, WAITING_FOR_GUI, VERIFYING_EQUIPMENT, VERIFYING_ARMOUR, VERIFIED}
     private enum FarmingArmour {Rabbit, Farm, Melon, Cropie, Squash, Fermento}
 //    private enum FarmingPet {Rabbit, Mooshroom, Elephant}
@@ -54,9 +53,7 @@ public class VerifyFarmingEquipment implements IFeature {
     @Override
     public void stop() {
         state = EquipState.NONE;
-
         PlayerUtils.closeScreen();
-
         IFeature.super.stop();
     }
 
@@ -67,59 +64,57 @@ public class VerifyFarmingEquipment implements IFeature {
             state = EquipState.WAITING_FOR_GUI;
         }
 
-        if (state == EquipState.WAITING_FOR_GUI) {
-            LogUtils.sendDebug("Waiting for GUI");
-            if (mc.currentScreen instanceof GuiChest
-                    && InventoryUtils.isInventoryLoaded()
-                    && InventoryUtils.getInventoryName() != null
-                    && InventoryUtils.getInventoryName().contains("Equipment")) {
-                LogUtils.sendDebug("GUI Loaded");
-                state = EquipState.VERIFYING_EQUIPMENT;
-            }
-        }
-
-        if (state == EquipState.VERIFYING_EQUIPMENT) {
-            LogUtils.sendDebug("Checking Farming Equipment");
-            int[] equipmentSlotsToCheck = {10, 19, 28, 37};
-            for (int slotId : equipmentSlotsToCheck) {
-                Slot slot = InventoryUtils.getSlotOfIdInContainer(slotId);
-                if (slot != null && slot.getHasStack()) {
-                    String name = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
-                    if (name.contains("Lotus")) {
-                        LogUtils.sendDebug("Farming Equipment " + name + " found in slot id: " + slotId);
-                        equipmentOK = true;
-                    }
+        switch (state) {
+            case WAITING_FOR_GUI: {
+                LogUtils.sendDebug("Waiting for GUI");
+                if (mc.currentScreen instanceof GuiChest
+                        && InventoryUtils.isInventoryLoaded()
+                        && InventoryUtils.getInventoryName() != null
+                        && InventoryUtils.getInventoryName().contains("Equipment")) {
+                    LogUtils.sendDebug("GUI Loaded");
+                    state = EquipState.VERIFYING_EQUIPMENT;
                 }
             }
-            LogUtils.sendDebug("Farming Equipment Checked");
-            state = EquipState.VERIFYING_ARMOUR;
-        }
-
-        if (state == EquipState.VERIFYING_ARMOUR) {
-            LogUtils.sendDebug("Checking Farming Armour");
-            int[] armourSlotsToCheck = {11, 20, 29, 38};
-            for (int slotId : armourSlotsToCheck) {
-                Slot slot = InventoryUtils.getSlotOfIdInContainer(slotId);
-                if (slot != null && slot.getHasStack()) {
-                    String name = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
-                    for (FarmingArmour fa : FarmingArmour.values()) {
-                        if (name.contains(fa.name())) {
-                            LogUtils.sendDebug("Farming Armour " + fa.name() + " found in slot id: " + slotId);
-                            armourOK = true;
+            case VERIFYING_EQUIPMENT: {
+                LogUtils.sendDebug("Checking Farming Equipment");
+                int[] equipmentSlotsToCheck = {10, 19, 28, 37};
+                for (int slotId : equipmentSlotsToCheck) {
+                    Slot slot = InventoryUtils.getSlotOfIdInContainer(slotId);
+                    if (slot != null && slot.getHasStack()) {
+                        String name = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
+                        if (name.contains("Lotus")) {
+                            LogUtils.sendDebug("Farming Equipment " + name + " found in slot id: " + slotId);
+                            equipmentOK = true;
                         }
                     }
                 }
+                LogUtils.sendDebug("Farming Equipment Checked");
+                state = EquipState.VERIFYING_ARMOUR;
             }
-            LogUtils.sendDebug("Farming Armour Checked");
-            state = EquipState.VERIFIED;
-
-        }
-
-        if (state == EquipState.VERIFIED) {
-            LogUtils.sendDebug("Verified Farming Equipment");
-            statusMessages();
-            hasRunBefore = true;
-            stop();
+            case VERIFYING_ARMOUR: {
+                LogUtils.sendDebug("Checking Farming Armour");
+                int[] armourSlotsToCheck = {11, 20, 29, 38};
+                for (int slotId : armourSlotsToCheck) {
+                    Slot slot = InventoryUtils.getSlotOfIdInContainer(slotId);
+                    if (slot != null && slot.getHasStack()) {
+                        String name = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
+                        for (FarmingArmour fa : FarmingArmour.values()) {
+                            if (name.contains(fa.name())) {
+                                LogUtils.sendDebug("Farming Armour " + fa.name() + " found in slot id: " + slotId);
+                                armourOK = true;
+                            }
+                        }
+                    }
+                }
+                LogUtils.sendDebug("Farming Armour Checked");
+                state = EquipState.VERIFIED;
+            }
+            case VERIFIED: {
+                LogUtils.sendDebug("Verified Farming Equipment");
+                statusMessages();
+                hasRunBefore = true;
+                stop();
+            }
         }
     }
 
@@ -157,14 +152,6 @@ public class VerifyFarmingEquipment implements IFeature {
         hasRunBefore = false;
     }
 
-    @Override public String getName() { return "Equipment Scanner"; }
-    @Override public boolean isRunning() { return state != EquipState.NONE; }
-    @Override public boolean isToggled() { return true; }
-    @Override public boolean shouldPauseMacroExecution() { return true; }
-    @Override public boolean shouldStartAtMacroStart() { return true; }
-    @Override public void resetStatesAfterMacroDisabled() { stop(); }
-    @Override public boolean shouldCheckForFailsafes() { return true; }
-
     @SubscribeEvent
     public void onKeypress(InputEvent.KeyInputEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
@@ -188,6 +175,14 @@ public class VerifyFarmingEquipment implements IFeature {
             stop();
         }
     }
+
+    @Override public String getName() { return "Equipment Scanner"; }
+    @Override public boolean isRunning() { return state != EquipState.NONE; }
+    @Override public boolean isToggled() { return true; }
+    @Override public boolean shouldPauseMacroExecution() { return true; }
+    @Override public boolean shouldStartAtMacroStart() { return true; }
+    @Override public void resetStatesAfterMacroDisabled() { stop(); }
+    @Override public boolean shouldCheckForFailsafes() { return true; }
 }
 
 
