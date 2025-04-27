@@ -32,13 +32,13 @@ public class UsageStatsHUD extends TextHud {
             lines.add("24 hour:  " + colour + UsageStatsTracker.getInstance().getTodayString());
         }
         if (FarmHelperConfig.showStats7D) {
-            lines.add("7 day:    §a" + UsageStatsTracker.getInstance().get7dString());
+            lines.add("7 day:  §a" + UsageStatsTracker.getInstance().get7dString());
         }
         if (FarmHelperConfig.showStats30D) {
-            lines.add("30 day:   §a" + UsageStatsTracker.getInstance().get30dString());
+            lines.add("30 day: §a" + UsageStatsTracker.getInstance().get30dString());
         }
         if (FarmHelperConfig.showStatsLifetime) {
-            lines.add("lifetime:  §a" + UsageStatsTracker.getInstance().getTotalString());
+            lines.add("lifetime: §a" + UsageStatsTracker.getInstance().getTotalString());
         }
         if (!FarmHelperConfig.showStatsTitle &&!FarmHelperConfig.showStats24H && !FarmHelperConfig.showStats7D && !FarmHelperConfig.showStats30D && !FarmHelperConfig.showStatsLifetime) {
             lines.add("§cEnable usage stats in the HUD config menu");
