@@ -15,6 +15,7 @@ import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
 import com.jelly.farmhelperv2.util.RenderUtils;
+import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.helper.AudioManager;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import com.jelly.farmhelperv2.util.helper.Timer;
@@ -164,6 +165,18 @@ public class MacroHandler {
                 FailsafeManager.getInstance().getRestartMacroAfterFailsafeDelay().reset();
                 LogUtils.sendWarning("Farm manually and DO NOT restart the macro too soon! The staff might still be spectating you for a while!");
                 return;
+            }
+            if (FarmHelperConfig.customFarmingSpeed) {
+                if (InventoryUtils.getRancherBootSpeed() == -1) {
+                    LogUtils.sendError("You must have Rancher's Boots equipped for custom farming speed.");
+                }
+                else if (InventoryUtils.getRancherBootSpeed() != FarmHelperConfig.farmingSpeed) {
+                    if (RancherSpeedSetter.runIfNeeded(this::enableMacro)) {
+                        return;
+                    }
+                } else {
+                    LogUtils.sendDebug("Rancher's Boot at custom farming speed.");
+                }
             }
             this.enableMacro();
         }
