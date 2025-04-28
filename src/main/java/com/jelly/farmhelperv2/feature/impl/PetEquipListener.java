@@ -3,6 +3,7 @@ package com.jelly.farmhelperv2.feature.impl;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraft.util.StringUtils;
@@ -41,6 +42,7 @@ public class PetEquipListener implements IFeature {
 
     @Override
     public void start() {
+        if (!FarmHelperConfig.checkValidEquipment) return;
         if (running || hasEquippedPet) return;
 
         running = true;

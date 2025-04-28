@@ -1,5 +1,6 @@
 package com.jelly.farmhelperv2.feature.impl;
 
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.event.InventoryInputEvent;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.util.InventoryUtils;
@@ -37,6 +38,7 @@ public class VerifyFarmingEquipment implements IFeature {
 
     @Override
     public void start() {
+        if (!FarmHelperConfig.checkValidEquipment) return;
         if (!armourOK && hasRunBefore) { checkArmourStealth(); }
         if (PetEquipListener.hasEquippedPet()) { petOK = true; }
         if (LotusEquipListener.hasEquippedLotus()) { equipmentOK = true; }
@@ -151,19 +153,19 @@ public class VerifyFarmingEquipment implements IFeature {
     }
 
     private void statusMessages() {
-        if (equipmentOK) {
+        if (equipmentOK && FarmHelperConfig.warnIncorrectEquipment) {
             LogUtils.sendSuccess("Farming Equipment Equipped!");
-        } else {
+        } else if (!equipmentOK && FarmHelperConfig.warnIncorrectEquipment) {
             LogUtils.sendWarning("No Farming Equipment is Equipped!");
         }
-        if (armourOK) {
+        if (armourOK && FarmHelperConfig.warnIncorrectArmour) {
             LogUtils.sendSuccess("Farming Armour Equipped!");
-        } else {
+        } else if (!armourOK && FarmHelperConfig.warnIncorrectArmour) {
             LogUtils.sendWarning("No Farming Armour is Equipped!");
         }
-        if (petOK) {
+        if (petOK && FarmHelperConfig.warnIncorrectPet) {
             LogUtils.sendSuccess("Farming Pet Equipped!");
-        } else {
+        } else if (!petOK && FarmHelperConfig.warnIncorrectPet) {
             LogUtils.sendWarning("No Farming Pet is Equipped!");
         }
     }

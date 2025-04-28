@@ -114,17 +114,39 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean alwaysHoldW = false;
 
+    //<editor-fold desc="Farming Utilities">
     @Switch(
-            name = "Use Custom Farming Speed", category = GENERAL,
+            name = "Use Custom Farming Speed", category = GENERAL, subcategory = "Farming Utilities",
             description = "Enable auto ranchers boots speed changer when farming"
     )
     public static boolean customFarmingSpeed = false;
     @Number(
-            name = "Custom Farming Speed", category = GENERAL,
+            name = "Custom Farming Speed", category = GENERAL, subcategory = "Farming Utilities",
             description = "Set a Custom Farming Speed for Ranchers Boots",
             min = 1, max = 400
     )
     public static int farmingSpeed = 400;
+    @Switch(
+            name = "Validate Farming Setup", category = GENERAL, subcategory = "Farming Utilities",
+            description = "Enable checking farming equipment, armour and pet on initial start"
+    )
+    public static boolean checkValidEquipment = false;
+    @Switch(
+            name = "Warn on Incorrect Equipment", category = GENERAL, subcategory = "Farming Utilities",
+            description = "Sends a warning if not using Lotus Equipment"
+    )
+    public static boolean warnIncorrectEquipment = true;
+    @Switch(
+            name = "Warn on Incorrect Pet", category = GENERAL, subcategory = "Farming Utilities",
+            description = "Sends a warning if not using a Farming Pet: {Rabbit, Elephant, Mushroom Cow}"
+    )
+    public static boolean warnIncorrectPet = true;
+    @Switch(
+            name = "Warn on Incorrect Armour", category = GENERAL, subcategory = "Farming Utilities",
+            description = "Sends a warning if not using a Farming Armour Set"
+    )
+    public static boolean warnIncorrectArmour = true;
+    //</editor-fold>
 
     //<editor-fold desc="Rotation">
     @Switch(
@@ -2283,6 +2305,9 @@ public class FarmHelperConfig extends Config {
         this.addDependency("macroType", "Macro Type", () -> !MacroHandler.getInstance().isMacroToggled());
 
         this.addDependency("farmingSpeed", "customFarmingSpeed");
+        this.addDependency("warnIncorrectPet", "checkValidEquipment");
+        this.addDependency("warnIncorrectArmour", "checkValidEquipment");
+        this.addDependency("warnIncorrectEquipment", "checkValidEquipment");
 
         this.addDependency("customPitchLevel", "customPitch");
         this.addDependency("customYawLevel", "customYaw");
