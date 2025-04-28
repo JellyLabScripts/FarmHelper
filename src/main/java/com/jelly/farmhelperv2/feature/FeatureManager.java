@@ -51,6 +51,7 @@ public class FeatureManager {
                 VisitorsMacro.getInstance(),
                 VerifyFarmingEquipment.getInstance(),
                 LotusEquipListener.getInstance(),
+                PetEquipListener.getInstance(),
                 PiPMode.getInstance()
         );
         features.addAll(featuresList);

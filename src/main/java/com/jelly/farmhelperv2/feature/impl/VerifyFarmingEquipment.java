@@ -5,7 +5,6 @@ import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.PlayerUtils;
-import com.jelly.farmhelperv2.util.ScoreboardUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
@@ -19,8 +18,8 @@ import org.lwjgl.input.Keyboard;
 
 public class VerifyFarmingEquipment implements IFeature {
     private enum EquipState {NONE, SENT_COMMAND, WAITING_FOR_GUI, VERIFYING_EQUIPMENT, VERIFYING_ARMOUR, VERIFYING_PET, VERIFIED}
-    private enum FarmingArmour {Rabbit, Farm, Melon, Cropie, Squash, Fermento}
-    private enum FarmingPet {Rabbit, Mooshroom, Elephant}
+    private enum FarmingArmour {Rabbit, Farm, Melon, Cropie, Squash, Fermento, Rancher}
+    public enum FarmingPet {Rabbit, Mooshroom, Elephant}
     private static boolean equipmentOK = false;
     private boolean armourOK = false;
     private boolean hasRunBefore = false;
@@ -39,7 +38,7 @@ public class VerifyFarmingEquipment implements IFeature {
     @Override
     public void start() {
         if (!armourOK && hasRunBefore) { checkArmourStealth(); }
-        if (!petOK && hasRunBefore) { checkPet(); }
+        if (PetEquipListener.hasEquippedPet()) { petOK = true; }
         if (LotusEquipListener.hasEquippedLotus()) { equipmentOK = true; }
         if (hasRunBefore) {
             statusMessages();
@@ -114,7 +113,16 @@ public class VerifyFarmingEquipment implements IFeature {
             }
             case VERIFYING_PET: {
                 LogUtils.sendDebug("Checking Current Pet");
-                checkPet();
+                Slot slot = InventoryUtils.getSlotOfIdInContainer(47);
+                if (slot != null && slot.getHasStack()) {
+                    String name = StringUtils.stripControlCodes(slot.getStack().getDisplayName());
+                    for (FarmingPet fp : FarmingPet.values()) {
+                        if (name.contains(fp.name())) {
+                            LogUtils.sendDebug("Farming Pet " + fp.name() + " found in slot id: " + 47);
+                            petOK = true;
+                        }
+                    }
+                }
                 LogUtils.sendDebug("Current Pet Checked");
                 state = EquipState.VERIFIED;
             }
@@ -140,10 +148,6 @@ public class VerifyFarmingEquipment implements IFeature {
                 }
             }
         }
-    }
-
-    private void checkPet() {
-        // scan the tablist and check the pet against FarmingPet enum
     }
 
     private void statusMessages() {

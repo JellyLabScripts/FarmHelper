@@ -27,9 +27,7 @@ public class LotusEquipListener implements IFeature {
         return instance;
     }
 
-    public static boolean hasEquippedLotus() {
-        return hasEquippedLotusItem;
-    }
+    public static boolean hasEquippedLotus() { return hasEquippedLotusItem; }
 
     @Override public String getName() { return "Lotus Equip Listener"; }
     @Override public boolean isRunning() { return running; }
