@@ -35,7 +35,7 @@ public class UsageStatsHUD extends TextHud {
             lines.add("7 day:  §a" + UsageStatsTracker.getInstance().get7dString());
         }
         if (FarmHelperConfig.showStats30D) {
-            lines.add("30 day: §a" + UsageStatsTracker.getInstance().get30dString());
+            lines.add("30 day:  §a" + UsageStatsTracker.getInstance().get30dString());
         }
         if (FarmHelperConfig.showStatsLifetime) {
             lines.add("lifetime: §a" + UsageStatsTracker.getInstance().getTotalString());

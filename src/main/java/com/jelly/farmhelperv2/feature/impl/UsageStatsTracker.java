@@ -2,6 +2,7 @@ package com.jelly.farmhelperv2.feature.impl;
 
 import com.google.gson.*;
 import com.jelly.farmhelperv2.feature.IFeature;
+import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraft.client.Minecraft;
 
 import java.io.*;
@@ -109,7 +110,10 @@ public class UsageStatsTracker implements IFeature {
              InputStreamReader isr = new InputStreamReader(gzis, StandardCharsets.UTF_8)) {
             JsonElement el = new JsonParser().parse(isr);
             return el.isJsonArray() ? el.getAsJsonArray() : new JsonArray();
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            LogUtils.sendDebug("Error Reading Usage Stats Array");
+//            e.printStackTrace();
+        }
         return new JsonArray();
     }
 }
