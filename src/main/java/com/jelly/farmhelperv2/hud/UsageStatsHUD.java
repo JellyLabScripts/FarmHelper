@@ -11,7 +11,7 @@ import java.util.List;
 public class UsageStatsHUD extends TextHud {
 
     public UsageStatsHUD() {
-        super(false, 1f, 10f, 0.9f, true, true,
+        super(true, 1f, 10f, 0.9f, true, true,
                 4, 5, 5, new OneColor(0,0,0,150),
                 false, 2, new OneColor(0,0,0,127));
     }

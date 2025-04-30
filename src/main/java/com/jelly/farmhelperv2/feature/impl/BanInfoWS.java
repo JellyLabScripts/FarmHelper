@@ -470,8 +470,27 @@ public class BanInfoWS implements IFeature {
     }
 
     public long getLongestSessionLast7D() {
+        if (FarmHelperConfig.longTermUserStats) {
+            long sevenDaysAgo = System.currentTimeMillis() - 604800000L; // 7 days in milliseconds
+            JsonArray jsonArray = readJsonArrayFromFile();
+            long longestSessionLength = 0L;
+
+            for (JsonElement element : jsonArray) {
+                JsonObject session = element.getAsJsonObject();
+                long sessionTimestamp = session.get("timestamp").getAsLong();
+                if (sessionTimestamp >= sevenDaysAgo) {
+                    long sessionLength = session.get("timeMacroing").getAsLong();
+                    if (sessionLength > longestSessionLength) {
+                        longestSessionLength = sessionLength;
+                    }
+                }
+            }
+            return longestSessionLength;
+        }
+
         long sevenDaysAgo = System.currentTimeMillis() - 604800000L; // 7 days in milliseconds
         JsonArray jsonArray = readJsonArrayFromFile();
+        JsonArray updatedJsonArray = new JsonArray();
         long longestSessionLength = 0L;
 
         for (JsonElement element : jsonArray) {
@@ -482,10 +501,13 @@ public class BanInfoWS implements IFeature {
                 if (sessionLength > longestSessionLength) {
                     longestSessionLength = sessionLength;
                 }
+                updatedJsonArray.add(session);
             }
         }
-
+        // every time a user gets banned this function will run. it will delete entries in the json that are older than 7d
+        writeJsonArrayToFile(updatedJsonArray);
         return longestSessionLength;
+
     }
 
     private JsonArray readJsonArrayFromFile() {

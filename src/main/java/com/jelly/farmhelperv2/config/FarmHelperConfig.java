@@ -2163,11 +2163,12 @@ public class FarmHelperConfig extends Config {
     )
     public static ProfitCalculatorHUD profitHUD = new ProfitCalculatorHUD();
     @Switch(
-            name      = "Show FH Usage Stats Title",
+            name      = "Colour-code 24-hour total",
+            description = "Green < 3.5 h, 3.5 h < Orange < 7 h, Red ≥ 7 h",
             category  = HUD,
             subcategory = "Usage Stats"
     )
-    public static boolean showStatsTitle = true;
+    public static boolean colourCode24H = true;
     @Switch(
             name      = "Show 24-hour total",
             category  = HUD,
@@ -2181,6 +2182,20 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean showStats7D = false;
     @Switch(
+            name       = "Enable Long Term Data Storage",
+            category   = HUD,
+            subcategory = "Usage Stats"
+    )
+    public static boolean longTermUserStats = false;
+    @Info(
+            text = "Enabling long term storage of user stats could potentially lead to large files (< 1mb), which may cause lag, in time, on slow systems",
+            type = InfoType.WARNING,
+            category = HUD,
+            subcategory = "Usage Stats",
+            size = 2
+    )
+    public static boolean usageStatsInfo;
+    @Switch(
             name       = "Show 30-day total",
             category   = HUD,
             subcategory = "Usage Stats"
@@ -2193,12 +2208,11 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean showStatsLifetime = true;
     @Switch(
-            name      = "Colour-code 24-hour total",
-            description = "Green < 3.5 h, 3.5 h < Orange < 7 h, Red ≥ 7 h",
+            name      = "Show FH Usage Stats Title",
             category  = HUD,
             subcategory = "Usage Stats"
     )
-    public static boolean colourCode24H = true;
+    public static boolean showStatsTitle = false;
     @HUD(
             name = "Usage Stats HUD - Visual Settings",
             category = HUD,
@@ -2480,6 +2494,9 @@ public class FarmHelperConfig extends Config {
         this.addDependency("rotationTimeRandomnessDuringJacob", "customRotationDelaysDuringJacob");
 
         this.addDependency("leaveTime", "leaveTimer");
+
+        this.addDependency("showStats30D", "longTermUserStats");
+        this.addDependency("showStatsLifetime", "longTermUserStats");
 
         this.hideIf("shownWelcomeGUI", () -> true);
 
