@@ -49,6 +49,7 @@ public class FeatureManager {
                 Scheduler.getInstance(),
                 UngrabMouse.getInstance(),
                 VisitorsMacro.getInstance(),
+                UsageStatsTracker.getInstance(),
                 PiPMode.getInstance()
         );
         features.addAll(featuresList);
