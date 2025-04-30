@@ -52,6 +52,7 @@ public class FeatureManager {
                 VerifyFarmingEquipment.getInstance(),
                 LotusEquipListener.getInstance(),
                 PetEquipListener.getInstance(),
+                UsageStatsTracker.getInstance(),
                 PiPMode.getInstance()
         );
         features.addAll(featuresList);
