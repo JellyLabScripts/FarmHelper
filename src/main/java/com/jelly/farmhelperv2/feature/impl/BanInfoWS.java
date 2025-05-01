@@ -640,12 +640,14 @@ public class BanInfoWS implements IFeature {
                         String crop = jsonObject.get("crop").getAsString().toLowerCase().replace("_", " ");
                         long longestSession7D = jsonObject.get("longestSession7D").getAsLong();
                         String lastFailsafe = jsonObject.get("lastFailsafe").getAsString();
-                        LogUtils.sendWarning("User §c" + username + "§e got banned for " + days + " days"
+                        String warningMessage = ("User §c" + username + "§e got banned for " + days + " days"
                                 + (macroEnabled ? " while " + (fastBreak ? "§c§nfastbreaking§r§e " : "farming ") + crop + "." : ".")
                                 + "\n§ePossible reason: §c" + reason + "§e."
                                 + "\n§eLongest session in the last 7 days: §c" + LogUtils.formatTime(longestSession7D)
                                 + (!lastFailsafe.isEmpty() ? "\n§eLast failsafe: §c" + lastFailsafe : ""));
+                        LogUtils.sendWarning(warningMessage);
                         // LogUtils.sendNotification("Farm Helper", "User " + username + " got banned for " + days + " days");
+                        if (FarmHelperConfig.sendFHBanLogs && FarmHelperConfig.enableWebHook) LogUtils.webhookLog(warningMessage);
                         break;
                     }
                 }
