@@ -651,7 +651,7 @@ public class BanInfoWS implements IFeature {
                         if (FarmHelperConfig.sendFHBanLogs && FarmHelperConfig.enableWebHook) {
                             Pattern MC_COLOUR = Pattern.compile("§[0-9A-FK-ORa-fk-or]");
                             String cleanString = MC_COLOUR.matcher(warningMessage).replaceAll("").replace("\n", "\\n");
-                            LogUtils.webhookLog(cleanString);
+                            LogUtils.FHBanLogsWebhook(cleanString);
                         }
                         break;
                     }
