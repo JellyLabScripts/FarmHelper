@@ -36,6 +36,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -647,7 +648,11 @@ public class BanInfoWS implements IFeature {
                                 + (!lastFailsafe.isEmpty() ? "\n§eLast failsafe: §c" + lastFailsafe : ""));
                         LogUtils.sendWarning(warningMessage);
                         // LogUtils.sendNotification("Farm Helper", "User " + username + " got banned for " + days + " days");
-                        if (FarmHelperConfig.sendFHBanLogs && FarmHelperConfig.enableWebHook) LogUtils.webhookLog(warningMessage);
+                        if (FarmHelperConfig.sendFHBanLogs && FarmHelperConfig.enableWebHook) {
+                            Pattern MC_COLOUR = Pattern.compile("§[0-9A-FK-ORa-fk-or]");
+                            String cleanString = MC_COLOUR.matcher(warningMessage).replaceAll("").replace("\n", "\\n");
+                            LogUtils.webhookLog(cleanString);
+                        }
                         break;
                     }
                 }
