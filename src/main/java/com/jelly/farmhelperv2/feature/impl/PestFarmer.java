@@ -23,6 +23,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemFishingRod;
 
 import java.lang.Math;
 
@@ -204,7 +206,7 @@ public class PestFarmer implements IFeature {
             } else {
                 if (returnState.ordinal() == 1) setState(ReturnState.TP_TO_SPAWN_PLOT, 0);
                 else {
-		    setState(ReturnState.HOLD_ROD, FarmHelperConfig.getRandomGUIMacroDelay());
+					setState(ReturnState.HOLD_MOUSEMAT, FarmHelperConfig.getRandomGUIMacroDelay());
                     wasSpawnChanged = false;
                 }
             }
@@ -287,8 +289,28 @@ public class PestFarmer implements IFeature {
                         break;
                     }
 
-                    setState(State.ENDING, 0);
+                    setState(State.HOLD_ROD, FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
+		case HOLD_ROD:
+		    if (isTimerRunning()) return;
+		    if (FarmHelperConfig.pestFarmingCastRod) {
+		        for (int i = 0; i < 9; i++) {
+			    ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
+			    if (stack != null && stack.getItem() instanceof ItemFishingRod) {
+			        mc.thePlayer.inventory.currentItem = i;
+			        setState(State.CAST_ROD, FarmHelperConfig.getRandomGUIMacroDelay());
+			        return; 
+			    }
+		        }
+		    LogUtils.sendError("Could not find a fishing rod in hotbar");
+		    }
+	  	    setState(State.ENDING, 0);
+		    break;
+		case CAST_ROD:
+		    if (isTimerRunning()) return;
+		    KeyBindUtils.rightClick();
+	  	    setState(ReturnState.ENDING, 0);
+		    break;
                 case ENDING:
                     stop();
                     break;
@@ -474,25 +496,25 @@ public class PestFarmer implements IFeature {
                         break;
                     }
                     break;
-		case HOLD_ROD:
-		    if (isTimerRunning()) return;
-		    if (FarmHelperConfig.pestFarmingCastRod) {
-		        for (int i = 0; i < 9; i++) {
-			    ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
-			    if (stack != null && stack.getItem() instanceof ItemFishingRod) {
-			        mc.thePlayer.inventory.currentItem = i;
-			        setState(ReturnState.CAST_ROD, FarmHelperConfig.getRandomGUIMacroDelay());
-			        return; 
-			    }
-		        }
-		    }
-	  	    setState(ReturnState.ENDING, 0);
-		    break;
-		case CAST_ROD:
-		    if (isTimerRunning()) return;
-		    KeyBindUtils.rightClick();
-	  	    setState(ReturnState.ENDING, 0);
-		    break;
+				case HOLD_MOUSEMAT:
+                    if (isTimerRunning()) return;
+                    /*
+                    if (FarmHelperConfig.pestFarmingUseMousemat) {
+                        for (int i = 0; i < 9; i++) {
+                            ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
+                            if (stack != null && stack.hasDisplayName() && stack.getDisplayName.contains("Mousemat")) {
+                                List<String> lore = InventoryUtils.getItemLore(stack);
+                                int j = 0;
+                                for (String str: lore) {
+                                    if (str.contains(": ")) {
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    */
+                    setState(State.ENDING, 0);
+					break;
                 case ENDING:
                     KeyBindUtils.stopMovement();
                     stop();
@@ -545,6 +567,8 @@ public class PestFarmer implements IFeature {
         TOGGLING_PEST_DESTROYER,
         WAITING_FOR_PEST_DESTROYER,
         WAITING_FOR_WARP,
+	HOLD_ROD,
+	CAST_ROD,
         ENDING
     }
 
@@ -563,8 +587,9 @@ public class PestFarmer implements IFeature {
         SNEAKING_AND_ROTATING,
         SETTING_SPAWN,
         WAITING_FOR_SPAWN_2, // definitely could've improved but you dont see me care now do you
-	HOLD_ROD,
-	CAST_ROD,
+		HOLD_MOUSEMAT,
+		USE_MOUSEMAT,
+		WAITING_FOR_MOUSEMAT,
         ENDING
     }
 }
