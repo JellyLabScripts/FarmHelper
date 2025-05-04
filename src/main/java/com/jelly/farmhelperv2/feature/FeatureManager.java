@@ -50,6 +50,7 @@ public class FeatureManager {
                 UngrabMouse.getInstance(),
                 VisitorsMacro.getInstance(),
                 PiPMode.getInstance(),
+                UsageStatsTracker.getInstance(),
                 AutoWardrobe.instance,
                 PestFarmer.instance// sue me
         );

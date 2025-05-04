@@ -49,7 +49,7 @@ public class GameStateHandler {
     public final Pattern jacobsRemainingTimePattern = Pattern.compile("([0-9]|[1-2][0-9])m([0-9]|[1-5][0-9])s");
     public final Pattern jacobsStartsInTimePattern = Pattern.compile("Starts In: ([1-3]?[0-9])?m ?([1-5]?[0-9])?s?");
     private final Pattern serverClosingPattern = Pattern.compile("Server closing: (?<minutes>\\d+):(?<seconds>\\d+) .*");
-    private final Pattern pestsFromVacuumPattern = Pattern.compile("Vacuum Bag: (\\d+) Pest(s)?");
+    private final Pattern pestsFromVacuumPattern = Pattern.compile("Vacuum Bag: ([\\d,]+) Pest(s)?");
     private final Pattern composterResourceTablistPattern = Pattern.compile("\\s(Organic Matter|Fuel): (\\d{1,3}(\\.\\d{1,3})?)k");
     @Getter
     private Location lastLocation = Location.TELEPORTING;
@@ -770,7 +770,8 @@ public class GameStateHandler {
                 Matcher matcher = pestsFromVacuumPattern.matcher(line);
                 if (matcher.find()) {
                     try {
-                        return Integer.parseInt(matcher.group(1));
+                        String numberStr = matcher.group(1).replaceAll(",", "");
+                        return Integer.parseInt(numberStr);
                     } catch (Exception e) {
                         LogUtils.sendError("Failed to parse pests from vacuum bag!");
                         LogUtils.sendWarning("Report this to #bug-reports!");
