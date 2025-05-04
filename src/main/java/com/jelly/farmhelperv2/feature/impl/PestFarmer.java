@@ -476,7 +476,7 @@ public class PestFarmer implements IFeature {
                     break;
 		case HOLD_ROD:
 		    if (isTimerRunning()) return;
-		    if (FarmHelperConfig.pestFarmerCastRod) {
+		    if (FarmHelperConfig.pestFarmingCastRod) {
 		        for (int i = 0; i < 9; i++) {
 			    ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
 			    if (stack != null && stack.getItem() instanceof ItemFishingRod) {
