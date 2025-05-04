@@ -204,7 +204,7 @@ public class PestFarmer implements IFeature {
             } else {
                 if (returnState.ordinal() == 1) setState(ReturnState.TP_TO_SPAWN_PLOT, 0);
                 else {
-                    setState(ReturnState.ENDING, 0);
+		    setState(ReturnState.HOLD_ROD, FarmHelperConfig.getRandomGUIMacroDelay());
                     wasSpawnChanged = false;
                 }
             }
@@ -474,14 +474,32 @@ public class PestFarmer implements IFeature {
                         break;
                     }
                     break;
+		case HOLD_ROD:
+		    if (isTimerRunning()) return;
+		    if (FarmHelperConfig.pestFarmerCastRod) {
+		        for (int i = 0; i < 9; i++) {
+			    ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
+			    if (stack != null && stack.getItem() instanceof ItemFishingRod) {
+			        mc.thePlayer.inventory.currentItem = i;
+			        setState(ReturnState.CAST_ROD, FarmHelperConfig.getRandomGUIMacroDelay());
+			        return; 
+			    }
+		        }
+		    }
+	  	    setState(ReturnState.ENDING, 0);
+		    break;
+		case CAST_ROD:
+		    if (isTimerRunning()) return;
+		    KeyBindUtils.rightClick();
+	  	    setState(ReturnState.ENDING, 0);
+		    break;
                 case ENDING:
                     KeyBindUtils.stopMovement();
                     stop();
                     break;
-
                 }
             break;
-        }
+ 	    }
         }
     }
 
@@ -545,6 +563,8 @@ public class PestFarmer implements IFeature {
         SNEAKING_AND_ROTATING,
         SETTING_SPAWN,
         WAITING_FOR_SPAWN_2, // definitely could've improved but you dont see me care now do you
+	HOLD_ROD,
+	CAST_ROD,
         ENDING
     }
 }

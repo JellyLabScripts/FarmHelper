@@ -1480,6 +1480,11 @@ public class FarmHelperConfig extends Config {
     public static int pestFarmingWaitTime = 255;
 
     @Switch(
+        name = "Cast Rod After Warping", category = PEST_FARMER
+    )
+    public static boolean pestFarmingCastRod = false;
+
+    @Switch(
         name = "Swap Equipments", category = PEST_FARMER
     )
     public static boolean pestFarmingSwapEq = false;
