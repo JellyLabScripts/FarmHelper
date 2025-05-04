@@ -188,7 +188,7 @@ public class LogUtils {
         if (!FarmHelperConfig.sendFHBanLogs) return;
 
         DiscordWebhook webhook = new DiscordWebhook(FarmHelperConfig.webHookURL.replace(" ", "").replace("\n", "").trim());
-        webhook.setUsername("Jelly - Farm Helper [User Bans Log]");
+        webhook.setUsername("Jelly - User Bans Log");
         webhook.setAvatarUrl("https://cdn.discordapp.com/attachments/1152966451406327858/1160577992876109884/icon.png");
         String randomColor = String.format("#%06x", (int) (Math.random() * 0xFFFFFF));
         DiscordWebhook.EmbedObject embedObject = new DiscordWebhook.EmbedObject()
