@@ -51,6 +51,7 @@ public class FeatureManager {
                 VisitorsMacro.getInstance(),
                 PiPMode.getInstance(),
                 UsageStatsTracker.getInstance(),
+                UsageStatsTracker.getInstance(),
                 AutoWardrobe.instance,
                 PestFarmer.instance// sue me
         );
