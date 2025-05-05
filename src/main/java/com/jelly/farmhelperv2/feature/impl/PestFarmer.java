@@ -291,31 +291,31 @@ public class PestFarmer implements IFeature {
 
                     setState(State.HOLD_ROD, FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
-		case HOLD_ROD:
-		    if (isTimerRunning()) return;
-		    if (FarmHelperConfig.pestFarmingCastRod) {
-		        for (int i = 0; i < 9; i++) {
-			    ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
-			    if (stack != null && stack.getItem() instanceof ItemFishingRod) {
-			        mc.thePlayer.inventory.currentItem = i;
-			        setState(State.CAST_ROD, FarmHelperConfig.getRandomGUIMacroDelay());
-			        return; 
-			    }
-		        }
-		    LogUtils.sendError("Could not find a fishing rod in hotbar");
-		    }
-	  	    setState(State.ENDING, 0);
-		    break;
-		case CAST_ROD:
-		    if (isTimerRunning()) return;
-		    KeyBindUtils.rightClick();
-	  	    setState(ReturnState.ENDING, 0);
-		    break;
+                case HOLD_ROD:
+                    if (isTimerRunning()) return;
+                    if (FarmHelperConfig.pestFarmingCastRod) {
+                        for (int i = 0; i < 9; i++) {
+                            ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
+                            if (stack != null && stack.getItem() instanceof ItemFishingRod) {
+                                mc.thePlayer.inventory.currentItem = i;
+                                setState(State.CAST_ROD, FarmHelperConfig.getRandomGUIMacroDelay());
+                                return; 
+                            }
+                        }
+                        LogUtils.sendError("Could not find a fishing rod in hotbar");
+                    }
+                    setState(State.ENDING, 0);
+                    break;
+                case CAST_ROD:
+                    if (isTimerRunning()) return;
+                    KeyBindUtils.rightClick();
+                    setState(State.ENDING, 0);
+                    break;
                 case ENDING:
                     stop();
                     break;
-            }
-            break;
+                }
+                break;
         }
 
         case RETURN: {
