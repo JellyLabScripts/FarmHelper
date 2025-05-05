@@ -1480,11 +1480,6 @@ public class FarmHelperConfig extends Config {
     public static int pestFarmingWaitTime = 255;
 
     @Switch(
-        name = "Cast Rod After Warping", category = PEST_FARMER
-    )
-    public static boolean pestFarmingCastRod = false;
-
-    @Switch(
         name = "Swap Equipments", category = PEST_FARMER
     )
     public static boolean pestFarmingSwapEq = false;
@@ -1511,6 +1506,11 @@ public class FarmHelperConfig extends Config {
         name = "Start Pests Destroyer During Farming", category = PEST_FARMER
     )
     public static boolean pestFarmerKillPests = false;
+
+    @Switch(
+        name = "Cast Rod After Warping", category = PEST_FARMER
+    )
+    public static boolean pestFarmerCastRod = false;
 
     @Slider(
         name = "Pest Count to Start Killing At", category = PEST_FARMER,
@@ -2689,6 +2689,7 @@ public class FarmHelperConfig extends Config {
         this.addDependency("pestFarmerStartKillAt", "pestFarmerKillPests");
 
         this.addDependency("pestSwapEq", "pestSwapEquipments");
+        this.addDependency("pestFarmerCastRod", "pestFarmerKillPests");
 
         this.addDependency("leaveTime", "leaveTimer");
 

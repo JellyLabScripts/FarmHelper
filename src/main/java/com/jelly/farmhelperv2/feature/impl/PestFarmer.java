@@ -293,7 +293,7 @@ public class PestFarmer implements IFeature {
                     break;
                 case HOLD_ROD:
                     if (isTimerRunning()) return;
-                    if (FarmHelperConfig.pestFarmingCastRod) {
+                    if (FarmHelperConfig.pestFarmerCastRod) {
                         for (int i = 0; i < 9; i++) {
                             ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
                             if (stack != null && stack.getItem() instanceof ItemFishingRod) {
@@ -513,7 +513,7 @@ public class PestFarmer implements IFeature {
                         }
                     }
                     */
-                    setState(State.ENDING, 0);
+                    setState(ReturnState.ENDING, 0);
 					break;
                 case ENDING:
                     KeyBindUtils.stopMovement();
