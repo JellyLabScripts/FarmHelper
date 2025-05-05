@@ -45,7 +45,7 @@ public class SShapeVerticalCropMacro extends AbstractMacro {
                     }
                     changeState(State.SWITCHING_LANE);
                     setWalkingDirection();
-                } else if (FarmHelperConfig.getMacro() != FarmHelperConfig.MacroEnum.S_CACTUS && GameStateHandler.getInstance().isBackWalkable() && !FarmHelperConfig.alwaysHoldW) {
+                } else if (FarmHelperConfig.getMacro() != FarmHelperConfig.MacroEnum.S_CACTUS && FarmHelperConfig.getMacro() != FarmHelperConfig.MacroEnum.S_CACTUS_SUNTZU && GameStateHandler.getInstance().isBackWalkable() && !FarmHelperConfig.alwaysHoldW) {
                     if (stuckInMelonsOrPumpkins()) {
                         AntiStuck.getInstance().setDirectionBlockPos(BlockUtils.getRelativeBlockPos(0, 0, -1, getYaw()));
                         AntiStuck.getInstance().start();

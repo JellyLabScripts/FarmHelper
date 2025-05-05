@@ -87,6 +87,8 @@ public class FlyPathFinderExecutor {
     private boolean dontRotate = false;
     private final EvictingQueue<Position> lastPositions = EvictingQueue.create(100);
     private Position lastPosition;
+    @Setter
+    private float stoppingPositionThreshold = 0.75f;
 
 
     public void findPath(Vec3 pos, boolean follow, boolean smooth) {
@@ -132,9 +134,11 @@ public class FlyPathFinderExecutor {
                 if (smooth) {
                     finalRoute = smoothPath(finalRoute);
                 }
-                this.path.clear();
-                this.path.addAll(finalRoute.stream().map(vec3 -> vec3.addVector(0.5f, 0.15, 0.5)).collect(Collectors.toCollection(CopyOnWriteArrayList::new)));
-                state = State.PATHING;
+                if (!this.isDecelerating()) {
+                    this.path.clear();
+                    this.path.addAll(finalRoute.stream().map(vec3 -> vec3.addVector(0.5f, 0.15, 0.5)).collect(Collectors.toCollection(CopyOnWriteArrayList::new)));
+                    state = State.PATHING;
+                }
                 LogUtils.sendDebug("Path smoothing took " + (System.currentTimeMillis() - startTime) + "ms");
                 if (timeoutTask != null) {
                     timeoutTask.stop();
@@ -287,6 +291,7 @@ public class FlyPathFinderExecutor {
         stuckBreak.reset();
         stuckCheckDelay.reset();
         dontRotate = false;
+        stoppingPositionThreshold = 0.75f;
     }
 
     @SubscribeEvent
@@ -337,6 +342,14 @@ public class FlyPathFinderExecutor {
             KeyBindUtils.stopMovement(true);
             return;
         }
+
+        if (state == State.DECELERATING) {
+            if (Math.abs(mc.thePlayer.motionX) <= 0.05 && Math.abs(mc.thePlayer.motionZ) <= 0.05 && mc.thePlayer.motionY == (mc.thePlayer.onGround ? -0.0784000015258789 : 0)) {
+                stop();
+            }
+            return;
+        }
+
         if (stuckBreak.isScheduled() && !stuckBreak.passed()) return;
         Vec3 current = mc.thePlayer.getPositionVector();
         BlockPos currentPos = mc.thePlayer.getPosition();
@@ -392,7 +405,9 @@ public class FlyPathFinderExecutor {
             float distance = (float) mc.thePlayer.getPositionVector().distanceTo(targetPos);
             float distancePath = (float) mc.thePlayer.getPositionVector().distanceTo(lastElem);
             if (willArriveAtDestinationAfterStopping(lastElem) && entityVelocity < 0.15) {
-                stop();
+                state = State.DECELERATING;
+                KeyBindUtils.stopMovement(true);
+                // stop();
                 return;
             }
             if ((distance < 1 && entityVelocity > 0.15) || (distancePath < 0.5 && entityVelocity < 0.15)) {
@@ -400,7 +415,9 @@ public class FlyPathFinderExecutor {
                 return;
             }
         } else if (willArriveAtDestinationAfterStopping(lastElem) || mc.thePlayer.getDistance(lastElem.xCoord, lastElem.yCoord, lastElem.zCoord) < 0.3) {
-            stop();
+            state = State.DECELERATING;
+            KeyBindUtils.stopMovement(true);
+            // stop();
             return;
         }
         if (!mc.thePlayer.capabilities.allowFlying) {
@@ -535,7 +552,7 @@ public class FlyPathFinderExecutor {
     }
 
     private boolean willArriveAtDestinationAfterStopping(Vec3 targetPos) {
-        return predictStoppingPosition().distanceTo(targetPos) < 0.75;
+        return predictStoppingPosition().distanceTo(targetPos) < stoppingPositionThreshold;
     }
 
     private Vec3 predictStoppingPosition() {

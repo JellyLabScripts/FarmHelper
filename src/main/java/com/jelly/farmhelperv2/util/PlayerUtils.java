@@ -6,6 +6,8 @@ import com.jelly.farmhelperv2.config.struct.Rewarp;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.helper.Clock;
+import com.jelly.farmhelperv2.util.AngleUtils;
+import com.jelly.farmhelperv2.handler.GameStateHandler;
 import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -347,6 +349,9 @@ public class PlayerUtils {
         FarmHelperConfig.spawnPosX = pos.getX();
         FarmHelperConfig.spawnPosY = pos.getY();
         FarmHelperConfig.spawnPosZ = pos.getZ();
+        FarmHelperConfig.spawnYaw = AngleUtils.normalizeAngle(mc.thePlayer.rotationYaw);
+        FarmHelperConfig.spawnPitch = AngleUtils.normalizeAngle(mc.thePlayer.rotationPitch);
+        FarmHelperConfig.spawnPlot = GameStateHandler.getInstance().getCurrentPlot();
         FarmHelper.config.save();
     }
 

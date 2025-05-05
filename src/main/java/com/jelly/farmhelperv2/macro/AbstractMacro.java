@@ -6,6 +6,7 @@ import com.jelly.farmhelperv2.event.ReceivePacketEvent;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.failsafe.impl.RotationFailsafe;
 import com.jelly.farmhelperv2.feature.FeatureManager;
+import com.jelly.farmhelperv2.failsafe.impl.RotationFailsafe;
 import com.jelly.farmhelperv2.feature.impl.DesyncChecker;
 import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
@@ -148,13 +149,13 @@ public abstract class AbstractMacro {
             }
             checkOnSpawnClock.schedule(5000);
         }
+
         if (mc.thePlayer.getPosition().getY() < 0) {
             LogUtils.sendError("Build a wall between the rewarp point and the void to prevent falling out of the garden! If it's there already, then you've been macro checked, good luck.");
             MacroHandler.getInstance().triggerWarpGarden(true, false);
             FailsafeManager.getInstance().possibleDetection(RotationFailsafe.getInstance());
             return;
         }
-
 
         if (getRotation().isRotating()) {
             if (!mc.gameSettings.keyBindSneak.isKeyDown())
@@ -383,14 +384,15 @@ public abstract class AbstractMacro {
 
     public enum State {
         // Add default values like NONE and DROPPING
+        // DO NOT REARRAGE, IT WILL BREAK PEST FARMER IF YOU DO - osama
         NONE,
         DROPPING,
+        SWITCHING_SIDE,
+        SWITCHING_LANE,
         LEFT,
         RIGHT,
         BACKWARD,
         FORWARD,
-        SWITCHING_SIDE,
-        SWITCHING_LANE,
 
         A,
         D,

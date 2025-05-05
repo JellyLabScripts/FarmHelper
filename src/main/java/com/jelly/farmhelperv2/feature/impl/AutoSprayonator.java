@@ -140,10 +140,15 @@ public class AutoSprayonator implements IFeature {
       return;
     }
     if (GameStateHandler.getInstance().getSprayonatorState() != BuffState.NOT_ACTIVE) {
+      if (this.timer.isScheduled()) this.timer.reset();
       return;
     }
 
-    this.start();
+    if (!this.timer.isScheduled()) {
+      this.timer.schedule(FarmHelperConfig.autoSprayonatorStartDelay);
+    } else if (this.timer.passed()) {
+      this.start();
+    }
   }
 
   @SubscribeEvent
