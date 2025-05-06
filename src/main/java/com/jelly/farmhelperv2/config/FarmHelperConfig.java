@@ -1413,6 +1413,11 @@ public class FarmHelperConfig extends Config {
             description = "Sends messages when the macro has been enabled or disabled"
     )
     public static boolean sendMacroEnableDisableLogs = true;
+    @Switch(
+            name = "Send FH ban logs", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
+            description = "Sends message when a FH user gets banned (Like in game chat)"
+    )
+    public static boolean sendFHBanLogs = false;
     @Text(
             name = "WebHook URL", category = DISCORD_INTEGRATION, subcategory = "Discord Webhook",
             description = "The URL to use for the webhook",
