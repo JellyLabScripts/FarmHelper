@@ -101,7 +101,7 @@ public final class RancherSpeedSetter {
         if (callback != null) {
             Runnable run = callback;
             callback = null;
-            Minecraft.getMinecraft().addScheduledTask(run);
+            Multithreading.schedule(run, 0, TimeUnit.MILLISECONDS);
         }
     }
 }
