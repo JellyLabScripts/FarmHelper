@@ -101,7 +101,7 @@ public final class RancherSpeedSetter {
         if (callback != null) {
             Runnable run = callback;
             callback = null;
-            Multithreading.schedule(run, 1, TimeUnit.MILLISECONDS);
+            Multithreading.schedule(run, 0, TimeUnit.MILLISECONDS);
         }
     }
 }

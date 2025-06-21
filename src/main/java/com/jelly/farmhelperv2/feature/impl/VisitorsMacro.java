@@ -793,6 +793,7 @@ public class VisitorsMacro implements IFeature {
                 boolean isNpc = lore.size() == 4 && lore.get(3).contains("Offers Accepted: ");
                 haveItemsInSack = false;
                 itemsToBuy.clear();
+                currentRewards.clear();
                 String npcName = isNpc ? StringUtils.stripControlCodes(npcSlot.getStack().getDisplayName()) : "";
                 if (npcName.isEmpty()) {
                     LogUtils.sendError("[Visitors Macro] Opened wrong NPC.");
