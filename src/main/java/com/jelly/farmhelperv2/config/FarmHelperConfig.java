@@ -44,6 +44,7 @@ import java.util.List;
 // THIS IS RAT - CatalizCS
 @SuppressWarnings({"unused", "DefaultAnnotationParam"})
 public class FarmHelperConfig extends Config {
+
     private transient static final Minecraft mc = Minecraft.getMinecraft();
     private transient static final String GENERAL = "General";
     private transient static final String MISCELLANEOUS = "Miscellaneous";
@@ -52,6 +53,7 @@ public class FarmHelperConfig extends Config {
     private transient static final String JACOBS_CONTEST = "Jacob's Contest";
     private transient static final String VISITORS_MACRO = "Visitors Macro";
     private transient static final String PESTS_DESTROYER = "Pests Destroyer";
+    private transient static final String PEST_FARMER = "Pest Farmer";
     private transient static final String AUTO_PEST_EXCHANGE = "Auto Pest Exchange";
     private transient static final String AUTO_GOD_POT = "Auto God Pot";
     private transient static final String AUTO_SELL = "Auto Sell";
@@ -225,6 +227,27 @@ public class FarmHelperConfig extends Config {
     )
     public static int spawnPosZ = 0;
 
+    @Number(
+            name = "Yaw", category = GENERAL, subcategory = "Spawn Position",
+            description = "The Yaw of the spawn",
+            min = -180.0f, max = 180.0f
+    )
+    public static float spawnYaw = 0;
+
+    @Number(
+            name = "Pitch", category = GENERAL, subcategory = "Spawn Position",
+            description = "The Pitch of the spawn",
+            min = -90.0f, max = 90.0f
+    )
+    public static float spawnPitch = 0;
+
+    @Number(
+            name = "Spawn Plot", category = GENERAL, subcategory = "Spawn Position",
+            description = "The Plot that the spawn is in",
+            min = 0, max = 24
+    )
+    public static int spawnPlot = 0;
+
     @Button(
             name = "Set SpawnPos", category = GENERAL, subcategory = "Spawn Position",
             description = "Sets the spawn position to your current position",
@@ -281,6 +304,12 @@ public class FarmHelperConfig extends Config {
             description = "Cancels failsafe and continues macroing", size = 2
     )
     public static OneKeyBind cancelFailsafeKeybind = new OneKeyBind(Keyboard.KEY_NONE);
+
+    @KeyBind(
+            name = "Tp To Infested Plot", category = MISCELLANEOUS, subcategory = "Keybinds",
+            description = "Teleport to a plot with pest for skyhanni haters :D", size = 2
+    )
+    public static OneKeyBind tpToInfestedPlot = new OneKeyBind(Keyboard.KEY_NONE);
     //</editor-fold>
 
     //<editor-fold desc="Plot Cleaning Helper">
@@ -817,26 +846,26 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean openInventoryOnSchedulerBreaks = true;
     @Switch(
-        name = "Disconnect during break", category = SCHEDULER, subcategory = "Scheduler",
-        description = "Logs out of game and logs back in after break ends"
+            name = "Disconnect during break", category = SCHEDULER, subcategory = "Scheduler",
+            description = "Logs out of game and logs back in after break ends"
     )
     public static boolean schedulerDisconnectDuringBreak = false;
     @Switch(
-        name = "Wait Until Rewarp Point for break", category = SCHEDULER, subcategory = "Scheduler",
-        description = "Waits until player is standing on rewarp point to take break"
+            name = "Wait Until Rewarp Point for break", category = SCHEDULER, subcategory = "Scheduler",
+            description = "Waits until player is standing on rewarp point to take break"
     )
     public static boolean schedulerWaitUntilRewarp = false;
     @Switch(
-        name = "Reset Scheduler on Macro Disabled", category = SCHEDULER, subcategory = "Scheduler",
-        description = "Resets Scheduler When macro is disabled"
+            name = "Reset Scheduler on Macro Disabled", category = SCHEDULER, subcategory = "Scheduler",
+            description = "Resets Scheduler When macro is disabled"
     )
     public static boolean schedulerResetOnDisable = true;
     @Button(
-        name = "Reset Scheduler", category = SCHEDULER, subcategory = "Scheduler",
-        text = "Reset Scheduler", description = "Resets Scheduler (Only works when macro is of)"
+            name = "Reset Scheduler", category = SCHEDULER, subcategory = "Scheduler",
+            text = "Reset Scheduler", description = "Resets Scheduler (Only works when macro is of)"
     )
     public Runnable schedulerReset = () -> {
-        if(!MacroHandler.getInstance().isMacroToggled()){
+        if (!MacroHandler.getInstance().isMacroToggled()) {
             boolean old = FarmHelperConfig.schedulerResetOnDisable;
             FarmHelperConfig.schedulerResetOnDisable = true;
             Scheduler.getInstance().stop();
@@ -1212,6 +1241,11 @@ public class FarmHelperConfig extends Config {
     public static int pestAdditionalGUIDelay = 0;
 
     @Switch(
+            name = "Force Enable Pest Destroyer at X Pests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer"
+    )
+    public static boolean pestForceEnable = false;
+
+    @Switch(
             name = "Sprint while flying", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Sprints while flying"
     )
@@ -1239,7 +1273,7 @@ public class FarmHelperConfig extends Config {
     @Switch(
             name = "Pause the Pests Destroyer during Jacob's contests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Pauses the Pests Destroyer during Jacob's contests",
-            size = 2
+            size = 1
     )
     public static boolean pausePestsDestroyerDuringJacobsContest = true;
 
@@ -1305,11 +1339,49 @@ public class FarmHelperConfig extends Config {
             size = 2
     )
     public static OneKeyBind enablePestsDestroyerKeyBind = new OneKeyBind(Keyboard.KEY_NONE);
+    //</editor-fold>
+
+    //<editor-fold desc="Armor Swapper">
+    @Switch(
+            name = "Swap Armor Before Killing", category = PESTS_DESTROYER, subcategory = "Armor Swapper"
+    )
+    public static boolean pestSwapArmorBefore = false;
+
+    @Slider(
+            name = "Wardrobe Slot To Kill With", category = PESTS_DESTROYER, subcategory = "Armor Swapper",
+            description = "Wardrobe slot to use before turning on pest destroyer",
+            min = 1, max = 18
+    )
+    public static int pestArmorSlot0 = 1;
+
+    @Switch(
+            name = "Swap Armor After Killing", category = PESTS_DESTROYER, subcategory = "Armor Swapper"
+    )
+    public static boolean pestSwapArmorAfter = false;
+
+    @Slider(
+            name = "Wardrobe Slot To Farm With", category = PESTS_DESTROYER, subcategory = "Armor Swapper",
+            description = "Wardrobe slot to equip after turning off pest destroyer",
+            min = 1, max = 18
+    )
+    public static int pestArmorSlot1 = 1;
+
+    @Switch(
+            name = "Swap Equipments", category = PESTS_DESTROYER, subcategory = "Armor Swapper",
+            description = "Swap Equipments or not"
+    )
+    public static boolean pestSwapEquipments = false;
+
+    @Text(
+        name = "Pest Swap Equipments", category = PESTS_DESTROYER, subcategory = "Armor Swapper", size=2,
+        description = "Separate Equipment Names With |", placeholder = "Pesthunter's Necklace|Pesthunter's Cloak|Pesthunter's Belt"
+    )
+    public static String pestSwapEq = "";
+
 
     //</editor-fold>
 
     //<editor-fold desc="Drawings">
-    
     @Color(
             name = "Rewarp Color", category = GENERAL, subcategory = "Rewarp",
             description = "The color of the rewarp box"
@@ -1375,6 +1447,114 @@ public class FarmHelperConfig extends Config {
     //</editor-fold>
     //</editor-fold>
 
+    //<editor-fold desc="PEST FARMER">
+    @Header(
+            text = "Read the comments below this page before using pest farmer.",
+            category = PEST_FARMER, size = 2
+    )
+    public static boolean ignored1;
+
+    @Switch(
+            name = "Enable Pest Farming", category = PEST_FARMER,
+            description = "Enables Pest Farming"
+    )
+    public static boolean pestFarming = false;
+
+    @Slider(
+            name = "Farming Armor Slot", category = PEST_FARMER,
+            min = 1, max = 18
+    )
+    public static int pestFarmingSet0Slot = 1;
+
+    @Slider(
+            name = "Pest Chance Armor Slot", category = PEST_FARMER,
+            min = 1, max = 18
+    )
+    public static int pestFarmingSet1Slot = 1;
+
+    @Slider(
+            name = "Pest Spawn Timer (In seconds)", category = PEST_FARMER,
+            description = "The time it should wait after pests spawn to swap slots (should be your pest spawn time - 5/10 seconds)",
+            min = 30, max = 300
+    )
+    public static int pestFarmingWaitTime = 255;
+
+    @Switch(
+        name = "Swap Equipments", category = PEST_FARMER
+    )
+    public static boolean pestFarmingSwapEq = false;
+
+    @Text(
+        name = "Farming Fortune Equipments", category = PEST_FARMER, size=2,
+        description = "Separate Equipment Names With |", placeholder = "Lotus Necklace|Lotus Cloak|Lotus Belt"
+    )
+    public static String pestFarmingEq0 = "";
+
+    @Text(
+        name = "Pest Chance Equipments", category = PEST_FARMER, size=2,
+        description = "Separate Equipment Names With |", placeholder = "Pesthunter's Necklace|Pesthunter's Cloak|Pesthunter's Belt"
+    )
+    public static String pestFarmingEq1 = "";
+
+    @Slider(
+        name = "Equipment Click Delay", category = PEST_FARMER,
+        min = 50, max = 2000, step = 10
+    )
+    public static int pestFarmerEquipmentClickDelay = 400;
+
+    @Switch(
+        name = "Start Pests Destroyer During Farming", category = PEST_FARMER
+    )
+    public static boolean pestFarmerKillPests = false;
+
+    @Switch(
+        name = "Cast Rod After Warping", category = PEST_FARMER
+    )
+    public static boolean pestFarmerCastRod = false;
+
+    @Slider(
+        name = "Pest Count to Start Killing At", category = PEST_FARMER,
+        min = 1, max = 8
+    )
+    public static int pestFarmerStartKillAt = 1;
+
+    @Info(
+            text = "It's supposed to swap armor before pest spawns, swap back after pest spawns and kill with Pest Destryoer/the other one.",
+            type = InfoType.INFO, category = PEST_FARMER, size = 2
+    )
+    public static boolean ignored0;
+    @Info(
+            text = "Use this Auto-Pet Rule:",
+            type = InfoType.INFO, category = PEST_FARMER, size = 2
+    )
+    public static boolean ignored2;
+    @Info(
+            text = "    1. On Gain Crop Collection -> Farming Pet, Except if slug is Equipped",
+            type = InfoType.INFO, category = PEST_FARMER, size = 2
+    )
+    public static boolean ignored3;
+    @Info(
+            text = "    2. On Equip Farming Armor -> Farming Pet",
+            type = InfoType.INFO, category = PEST_FARMER, size = 2
+    )
+    public static boolean ignored4;
+    @Info(
+            text = "    3. On Equip Pest Chance Armor -> Slug Pet",
+            type = InfoType.INFO, category = PEST_FARMER, size = 2
+    )
+    public static boolean ignored5;
+    @Info(
+            text = "    4. On Enter Combat -> Hedgehog Pet",
+            type = InfoType.INFO, category = PEST_FARMER, size = 2
+    )
+    public static boolean ignored6;
+    @Info(
+            text = "Use Armor Swapper in Pest Destroyer. Swap to Farming Armor On Start Just in case Pest Farmer doesn't do that itself.",
+            type = InfoType.INFO, category = PEST_FARMER, size = 2
+    )
+    public static boolean ignored7;
+
+    //</editor-fold>
     //<editor-fold desc="DISCORD INTEGRATION">
     //<editor-fold desc="Webhook Discord">
     @Switch(
@@ -1828,6 +2008,12 @@ public class FarmHelperConfig extends Config {
             min = 1, max = 64
     )
     public static int autoSprayonatorAutoBuyAmount = 1;
+
+    @Slider(
+            name = "Time to wait after entering plot before starting", category = AUTO_SPRAYONATOR, subcategory = "Auto Sprayonator",
+            min = 0, max = 5000, step = 100
+    )
+    public static int autoSprayonatorStartDelay = 0;
     //</editor-fold>
 
     //<editor-fold desc="Auto Composter">
@@ -2156,7 +2342,11 @@ public class FarmHelperConfig extends Config {
             name = "Reset stats between disabling", category = HUD, subcategory = "Profit Calculator"
     )
     public static boolean resetStatsBetweenDisabling = false;
-//    @Button(
+    @Switch(
+            name = "Count Pest Drops to Profit Calculator", category = HUD, subcategory = "Profit Calculator"
+    )
+    public static boolean profitCalcCountPestDrop = false;
+    //    @Button(
 //            name = "Reset Profit Calculator", category = HUD, subcategory = "Profit Calculator",
 //            text = "Reset Now", size = 2
 //    )
@@ -2248,7 +2438,6 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean debugMode = false;
 
-
     //</editor-fold>
 
     //<editor-fold desc="Debug Hud">
@@ -2328,7 +2517,6 @@ public class FarmHelperConfig extends Config {
             description = "Shows debug logs about PD OTT"
     )
     public static boolean showDebugLogsAboutPDOTT = false;
-
 
     //</editor-fold>
 
@@ -2424,8 +2612,8 @@ public class FarmHelperConfig extends Config {
         this.addDependency("sprintWhileFlying", "enablePestsDestroyer");
         this.addDependency("pausePestsDestroyerDuringJacobsContest", "enablePestsDestroyer");
 
-
-        this.hideIf("infoCookieBuffRequired", () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().getCookieBuffState() == BuffState.NOT_ACTIVE);
+        this.hideIf("infoCookieBuffRequired",
+                () -> GameStateHandler.getInstance().inGarden() || GameStateHandler.getInstance().getCookieBuffState() == BuffState.NOT_ACTIVE);
 
         this.addDependency("sendLogs", "enableWebHook");
         this.addDependency("sendStatusUpdates", "enableWebHook");
@@ -2436,9 +2624,9 @@ public class FarmHelperConfig extends Config {
         this.addDependency("discordRemoteControlAddress", "enableRemoteControl");
         this.addDependency("remoteControlPort", "enableRemoteControl");
 
-
         this.hideIf("infoRemoteControl", () -> Loader.isModLoaded("farmhelperjdadependency"));
-        this.hideIf("info2RemoteControl", () -> !Loader.isModLoaded("farmhelperjdadependency") || (Loader.isModLoaded("farmhelperjdadependency") && FarmHelper.isJDAVersionCorrect));
+        this.hideIf("info2RemoteControl", () -> !Loader.isModLoaded("farmhelperjdadependency") || (Loader.isModLoaded("farmhelperjdadependency")
+                && FarmHelper.isJDAVersionCorrect));
         this.hideIf("failsafeSoundTimes", () -> true);
 
         this.addDependency("debugMode", "Streamer Mode", () -> !streamerMode);
@@ -2498,6 +2686,16 @@ public class FarmHelperConfig extends Config {
         this.addDependency("rotationTimeDuringJacob", "customRotationDelaysDuringJacob");
         this.addDependency("rotationTimeRandomnessDuringJacob", "customRotationDelaysDuringJacob");
 
+        this.addDependency("pestArmorSlot0", "pestSwapArmorBefore");
+        this.addDependency("pestArmorSlot0", "pestSwapArmorBefore");
+        this.addDependency("pestFarmingEq0", "pestFarmingSwapEq");
+        this.addDependency("pestFarmingEq1", "pestFarmingSwapEq");
+        this.addDependency("pestFarmerEquipmentClickDelay", "pestFarmingSwapEq");
+        this.addDependency("pestFarmerStartKillAt", "pestFarmerKillPests");
+
+        this.addDependency("pestSwapEq", "pestSwapEquipments");
+        this.addDependency("pestFarmerCastRod", "pestFarmerKillPests");
+
         this.addDependency("leaveTime", "leaveTimer");
 
         this.addDependency("showStats30D", "longTermUserStats");
@@ -2523,6 +2721,11 @@ public class FarmHelperConfig extends Config {
                 FailsafeManager.getInstance().stopFailsafes();
                 LogUtils.sendWarning("[Failsafe] Emergency has been cancelled!");
             }
+        });
+        registerKeyBind(tpToInfestedPlot, () -> {
+            List<Integer> infestedPlots = GameStateHandler.getInstance().getInfestedPlots();
+            if (infestedPlots.isEmpty()) return;
+            mc.thePlayer.sendChatMessage("/plottp " + infestedPlots.get(0));
         });
 //        registerKeyBind(debugKeybind2, () -> {
 //            MovingObjectPosition objectMouseOver = Minecraft.getMinecraft().objectMouseOver;
@@ -2583,8 +2786,9 @@ public class FarmHelperConfig extends Config {
 
     public static void saveRewarpConfig() {
         try {
-            if (!configRewarpFile.exists())
+            if (!configRewarpFile.exists()) {
                 Files.createFile(configRewarpFile.toPath());
+            }
 
             Files.write(configRewarpFile.toPath(), FarmHelper.gson.toJson(rewarpList).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
@@ -2597,8 +2801,9 @@ public class FarmHelperConfig extends Config {
     }
 
     public static long getRandomTimeBetweenChangingRows() {
-        if (customRowChangeDelaysDuringJacob && GameStateHandler.getInstance().inJacobContest())
+        if (customRowChangeDelaysDuringJacob && GameStateHandler.getInstance().inJacobContest()) {
             return (long) (timeBetweenChangingRowsDuringJacob + (float) Math.random() * randomTimeBetweenChangingRowsDuringJacob);
+        }
         return (long) (timeBetweenChangingRows + (float) Math.random() * randomTimeBetweenChangingRows);
     }
 
@@ -2607,8 +2812,9 @@ public class FarmHelperConfig extends Config {
     }
 
     public static long getRandomRotationTime() {
-        if (customRotationDelaysDuringJacob && GameStateHandler.getInstance().inJacobContest())
+        if (customRotationDelaysDuringJacob && GameStateHandler.getInstance().inJacobContest()) {
             return (long) (rotationTimeDuringJacob + (float) Math.random() * rotationTimeRandomnessDuringJacob);
+        }
         return (long) (rotationTime + (float) Math.random() * rotationTimeRandomness);
     }
 
