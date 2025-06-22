@@ -1241,11 +1241,6 @@ public class FarmHelperConfig extends Config {
     public static int pestAdditionalGUIDelay = 0;
 
     @Switch(
-            name = "Force Enable Pest Destroyer at X Pests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer"
-    )
-    public static boolean pestForceEnable = false;
-
-    @Switch(
             name = "Sprint while flying", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Sprints while flying"
     )
@@ -1449,7 +1444,7 @@ public class FarmHelperConfig extends Config {
 
     //<editor-fold desc="PEST FARMER">
     @Header(
-            text = "Read the comments below this page before using pest farmer.",
+            text = "Read the FarmHelper Guide to understand how to use this properly.",
             category = PEST_FARMER, size = 2
     )
     public static boolean ignored1;
@@ -1460,17 +1455,23 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean pestFarming = false;
 
-    @Slider(
-            name = "Farming Armor Slot", category = PEST_FARMER,
-            min = 1, max = 18
+    @Switch(
+            name = "Use Squeaky Mousemat To Set Angle", category = PEST_FARMER,
+            description = "Uses Squeaky Mousemat Ability to set Angle (Must be Preset)"
     )
-    public static int pestFarmingSet0Slot = 1;
+    public static boolean pestFarmingUseMousemat = false;
 
     @Slider(
-            name = "Pest Chance Armor Slot", category = PEST_FARMER,
+            name = "Fermento Armor Slot", category = PEST_FARMER,
             min = 1, max = 18
     )
-    public static int pestFarmingSet1Slot = 1;
+    public static int pestFarmingFermentoSlot = 1;
+
+    @Slider(
+            name = "Biohazard Armor Slot", category = PEST_FARMER,
+            min = 1, max = 18
+    )
+    public static int pestFarmingBiohazardSlot = 1;
 
     @Slider(
             name = "Pest Spawn Timer (In seconds)", category = PEST_FARMER,
@@ -1486,19 +1487,19 @@ public class FarmHelperConfig extends Config {
 
     @Text(
         name = "Farming Fortune Equipments", category = PEST_FARMER, size=2,
-        description = "Separate Equipment Names With |", placeholder = "Lotus Necklace|Lotus Cloak|Lotus Belt"
+        description = "Separate Equipment Names With |", placeholder = "Ex: Lotus Necklace|Lotus Cloak|Lotus Belt|Lotus Bracelet"
     )
     public static String pestFarmingEq0 = "";
 
     @Text(
         name = "Pest Chance Equipments", category = PEST_FARMER, size=2,
-        description = "Separate Equipment Names With |", placeholder = "Pesthunter's Necklace|Pesthunter's Cloak|Pesthunter's Belt"
+        description = "Separate Equipment Names With |", placeholder = "Ex: Pesthunter's Necklace|Pesthunter's Belt|Pesthunter's Gloves|Pest Vest"
     )
     public static String pestFarmingEq1 = "";
 
     @Slider(
         name = "Equipment Click Delay", category = PEST_FARMER,
-        min = 50, max = 2000, step = 10
+        min = 300, max = 2000, step = 10
     )
     public static int pestFarmerEquipmentClickDelay = 400;
 
@@ -1517,42 +1518,6 @@ public class FarmHelperConfig extends Config {
         min = 1, max = 8
     )
     public static int pestFarmerStartKillAt = 1;
-
-    @Info(
-            text = "It's supposed to swap armor before pest spawns, swap back after pest spawns and kill with Pest Destryoer/the other one.",
-            type = InfoType.INFO, category = PEST_FARMER, size = 2
-    )
-    public static boolean ignored0;
-    @Info(
-            text = "Use this Auto-Pet Rule:",
-            type = InfoType.INFO, category = PEST_FARMER, size = 2
-    )
-    public static boolean ignored2;
-    @Info(
-            text = "    1. On Gain Crop Collection -> Farming Pet, Except if slug is Equipped",
-            type = InfoType.INFO, category = PEST_FARMER, size = 2
-    )
-    public static boolean ignored3;
-    @Info(
-            text = "    2. On Equip Farming Armor -> Farming Pet",
-            type = InfoType.INFO, category = PEST_FARMER, size = 2
-    )
-    public static boolean ignored4;
-    @Info(
-            text = "    3. On Equip Pest Chance Armor -> Slug Pet",
-            type = InfoType.INFO, category = PEST_FARMER, size = 2
-    )
-    public static boolean ignored5;
-    @Info(
-            text = "    4. On Enter Combat -> Hedgehog Pet",
-            type = InfoType.INFO, category = PEST_FARMER, size = 2
-    )
-    public static boolean ignored6;
-    @Info(
-            text = "Use Armor Swapper in Pest Destroyer. Swap to Farming Armor On Start Just in case Pest Farmer doesn't do that itself.",
-            type = InfoType.INFO, category = PEST_FARMER, size = 2
-    )
-    public static boolean ignored7;
 
     //</editor-fold>
     //<editor-fold desc="DISCORD INTEGRATION">
