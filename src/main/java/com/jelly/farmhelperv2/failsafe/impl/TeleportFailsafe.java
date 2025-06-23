@@ -159,6 +159,19 @@ public class TeleportFailsafe extends Failsafe {
             return;
         }
 
+        // This macro check is so dumb. Legit players can also notice that half of their farm reappears out of nowhere and react to it.
+        // But keep trying to break it, Hypixel staff, this helps me patch and improve them. -yuro
+        double dx = packetPlayerPos.xCoord - currentPlayerPos.xCoord;
+        double dy = packetPlayerPos.yCoord - currentPlayerPos.yCoord;
+        double dz = packetPlayerPos.zCoord - currentPlayerPos.zCoord;
+        if (mc.thePlayer.motionX * dx + mc.thePlayer.motionZ * dz > 0 && currentPlayerPos.yCoord <= packetPlayerPos.yCoord && Math.abs(dy) < 1 && (Math.abs(dx) < 1 || Math.abs(dz) < 1)) {
+            LogUtils.sendDebug("[Failsafe] Teleportation in the same direction as movement. Ignoring.");
+            LogUtils.sendWarning("[Failsafe] Teleport check failsafe was triggered, but the admin teleported you in the same direction you were moving. §c§lDO NOT REACT§e TO THIS OR YOU WILL GET BANNED!");
+            if (FailsafeNotificationsPage.notifyOnRotationFailsafe)
+                LogUtils.webhookLog("[Failsafe]\nTeleport check failsafe was triggered, but the admin teleported you in the same direction you were moving. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
+            return;
+        }
+
         rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
         double distance = currentPlayerPos.distanceTo(packetPlayerPos);
 
@@ -214,9 +227,9 @@ public class TeleportFailsafe extends Failsafe {
         } else {
             FailsafeManager.getInstance().emergencyQueue.remove(this);
             if (FailsafeManager.getInstance().emergencyQueue.isEmpty()) {
-                LogUtils.sendWarning("[Failsafe] Teleport check failsafe was triggered but the admin teleported you back. §c§lDO NOT REACT§e TO THIS OR YOU WILL GET BANNED!");
+                LogUtils.sendWarning("[Failsafe] Teleport check failsafe was triggered, but the admin teleported you back. §c§lDO NOT REACT§e TO THIS OR YOU WILL GET BANNED!");
                 if (FailsafeNotificationsPage.notifyOnRotationFailsafe)
-                    LogUtils.webhookLog("[Failsafe]\nTeleport check failsafe was triggered but the admin teleported you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
+                    LogUtils.webhookLog("[Failsafe]\nTeleport check failsafe was triggered, but the admin teleported you back. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
             }
         }
         originalPosition = null;
