@@ -526,6 +526,69 @@ public class FarmHelperConfig extends Config {
             min = 5, max = 15)
     public static float minBpsThreshold = 10f;
 
+    // Custom Reactions
+    @Info(
+            text = "You need to place the .movement files in .minecraft/farmhelper/movrec",
+            type = InfoType.WARNING,
+            category = FAILSAFE,
+            subcategory = "Custom Reactions",
+            size = 2
+    )
+    public static boolean customReactionsWarning1;
+
+    @Info(
+            text = "It will fall back to the default recordings if the folder is missing or there are no files in it.",
+            type = InfoType.WARNING,
+            category = FAILSAFE,
+            subcategory = "Custom Reactions",
+            size = 2
+    )
+    public static boolean customReactionsWarning2;
+
+    @Info(
+            text = "You need to restart the game after changing the files.",
+            type = InfoType.WARNING,
+            category = FAILSAFE,
+            subcategory = "Custom Reactions",
+            size = 2
+    )
+    public static boolean customReactionsWarning3;
+
+    @Info(
+            text = "You need to provide files for each check.",
+            type = InfoType.WARNING,
+            category = FAILSAFE,
+            subcategory = "Custom Reactions",
+            size = 2
+    )
+    public static boolean customReactionsWarning4;
+
+    @Info(
+            text = "Default recordings at: https://github.com/JellyLabScripts/FarmHelper/tree/master/src/main/resources/farmhelper/movrec",
+            type = InfoType.WARNING,
+            category = FAILSAFE,
+            subcategory = "Custom Reactions",
+            size = 2
+    )
+    public static boolean customReactionsWarning5;
+
+    @Switch(name = "Enable Custom Reactions", category = FAILSAFE,
+            subcategory = "Custom Reactions",
+            description = "Enable custom failsafe reactions"
+    )
+    public static boolean enableCustomReactions = false;
+
+    /*
+        @Info(
+            text = "If you want to use your own WAV file, rename it to 'farmhelper_sound.wav' and put it in your Minecraft directory.",
+            type = InfoType.WARNING,
+            category = FAILSAFE,
+            subcategory = "Failsafe Trigger Sound",
+            size = 2
+    )
+    public static boolean customFailsafeSoundWarning;
+     */
+
     // Failsafe Testing
     @Button(name = "Test Failsafe", category = FAILSAFE, subcategory = "Testing",
             description = "Simulate a failsafe trigger",

@@ -1,6 +1,7 @@
 package com.jelly.farmhelperv2.feature.impl;
 
 import com.jelly.farmhelperv2.FarmHelper;
+import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.MacroHandler;
@@ -18,10 +19,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -63,9 +61,31 @@ public class MovRecPlayer implements IFeature {
     }
 
     public MovRecPlayer() {
-        List<String> resourceFiles;
+        List<String> resourceFiles = new ArrayList<>();
         try {
-            resourceFiles = getResourceFiles("/farmhelper/movrec");
+            if (FarmHelperConfig.enableCustomReactions) {
+                File userFolder = new File(Minecraft.getMinecraft().mcDataDir + "/farmhelper/movrec");
+                if (!userFolder.exists()) {
+                    userFolder.mkdirs();
+                    FailsafeUtils.getInstance().sendNotification("No user recordings found. Created folder at: " + userFolder.getAbsolutePath(), TrayIcon.MessageType.WARNING);
+                    LogUtils.sendWarning("No user recordings found. Created folder at: " + userFolder.getAbsolutePath());
+                }
+
+                for (File file : Objects.requireNonNull(userFolder.listFiles())) {
+                    if (file.isFile() && file.getName().endsWith(".movement")) {
+                        resourceFiles.add(file.getAbsolutePath());
+                    }
+                }
+
+                if (resourceFiles.isEmpty()) {
+                    FailsafeUtils.getInstance().sendNotification("No user recordings found. Falling back to default recordings.", TrayIcon.MessageType.WARNING);
+                    LogUtils.sendError("No user recordings found. Falling back to default recordings.");
+                    resourceFiles = getResourceFiles("/farmhelper/movrec");
+                    FarmHelperConfig.enableCustomReactions = false;
+                }
+            } else {
+                resourceFiles = getResourceFiles("/farmhelper/movrec");
+            }
             if (resourceFiles.isEmpty()) {
                 FailsafeUtils.getInstance().sendNotification("Resource folder not found! Report this to #bug-reports!", TrayIcon.MessageType.WARNING);
                 LogUtils.sendError("Resource folder not found! Report this to #bug-reports!");
@@ -78,7 +98,13 @@ public class MovRecPlayer implements IFeature {
                 if (file.contains("/build/classes/")) {
                     file = file.split("/build/classes/java/main")[1];
                 }
-                InputStream inputStream = FarmHelper.class.getResourceAsStream(file);
+                InputStream inputStream;
+
+                if (FarmHelperConfig.enableCustomReactions) {
+                    inputStream = new FileInputStream(file);
+                } else {
+                    inputStream = FarmHelper.class.getResourceAsStream(file);
+                }
 
                 if (inputStream != null) {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
