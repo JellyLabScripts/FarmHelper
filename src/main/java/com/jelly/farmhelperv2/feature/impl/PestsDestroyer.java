@@ -11,6 +11,7 @@ import com.jelly.farmhelperv2.feature.impl.PestFarmer;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
+import com.jelly.farmhelperv2.mixin.client.EntityPlayerAccessor;
 import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
 import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Clock;
@@ -501,7 +502,6 @@ public class PestsDestroyer implements IFeature {
                 }
                 state = States.SWAP_ARMOR;
                 delayClock.schedule((long) (200 + Math.random() * 200));
-                LogUtils.sendDebug("Delay 2");
                 break;
             case SWAP_ARMOR:
                 if (FarmHelperConfig.pestSwapArmorBefore) {
@@ -540,13 +540,11 @@ public class PestsDestroyer implements IFeature {
                 mc.thePlayer.sendChatMessage("/desk");
                 state = States.OPEN_PLOTS;
                 delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 500 + Math.random() * 500));
-                LogUtils.sendDebug("Delay 3");
                 break;
             case OPEN_PLOTS:
                 String chestName = InventoryUtils.getInventoryName();
                 if (mc.currentScreen == null) {
                     delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 300 + Math.random() * 300));
-                    LogUtils.sendDebug("Delay 4");
                     break;
                 }
                 if (!InventoryUtils.isInventoryLoaded()) {
@@ -562,7 +560,6 @@ public class PestsDestroyer implements IFeature {
                 state = States.WAIT_FOR_INFO;
                 InventoryUtils.clickContainerSlot(configurePlots.slotNumber, InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
                 delayClock.schedule((long) (FarmHelperConfig.pestAdditionalGUIDelay + 500 + Math.random() * 500));
-                LogUtils.sendDebug("Delay 5");
                 break;
             case WAIT_FOR_INFO:
                 break;
@@ -570,7 +567,6 @@ public class PestsDestroyer implements IFeature {
                 PlotUtils.Plot plot;
                 if (FarmHelperConfig.dontTeleportToPlots) {
                     delayClock.schedule(1_000 + Math.random() * 500);
-                    LogUtils.sendDebug("Delay 6");
                     MacroHandler.getInstance().triggerWarpGarden(true, false);
                     state = States.CHECKING_SPAWN;
                     return;
@@ -580,7 +576,6 @@ public class PestsDestroyer implements IFeature {
                 if (plot == null) {
                     state = States.GO_BACK;
                     delayClock.schedule((long) (500 + Math.random() * 500));
-                    LogUtils.sendDebug("Delay 7");
                     return;
                 }
                 if (GameStateHandler.getInstance().getCurrentPlot() == plot.number && BlockUtils.canFlyHigher(8)) {
@@ -593,7 +588,6 @@ public class PestsDestroyer implements IFeature {
                 state = States.WAIT_FOR_TP;
                 this.closestPlot = Optional.of(plot);
                 delayClock.schedule((long) (900 + Math.random() * 500));
-                LogUtils.sendDebug("Delay 8");
                 break;
             case WAIT_FOR_TP:
                 if (!preTpBlockPos.isPresent()) {
@@ -605,7 +599,6 @@ public class PestsDestroyer implements IFeature {
                 }
                 state = States.CHECKING_PLOT;
                 delayClock.schedule((long) (200 + Math.random() * 200));
-                LogUtils.sendDebug("Delay 9");
                 break;
             case CHECKING_PLOT:
                 if (isInventoryOpenDelayed()) {
@@ -623,7 +616,6 @@ public class PestsDestroyer implements IFeature {
                     }
                     LogUtils.sendWarning("[Pests Destroyer] The player is suffocating and/or it can't fly higher. Going back to spawnpoint.");
                     delayClock.schedule(1_000 + Math.random() * 500);
-                    LogUtils.sendDebug("Delay 10");
                     MacroHandler.getInstance().triggerWarpGarden(true, false);
                     isPlotObstructed = true;
                     state = States.CHECKING_SPAWN;
@@ -810,7 +802,6 @@ public class PestsDestroyer implements IFeature {
                             null
                     ).easeOutBack(true));
                     delayClock.schedule(300);
-                    LogUtils.sendDebug("Delay 11");
                     break;
                 }
                 state = States.WAIT_FOR_LOCATION;
@@ -825,7 +816,6 @@ public class PestsDestroyer implements IFeature {
                     stuckClock.schedule(1_000 * 60 * FarmHelperConfig.pestsKillerStuckTime);
                 }
                 delayClock.schedule(300);
-                    LogUtils.sendDebug("Delay 12");
                 break;
             case WAIT_FOR_LOCATION:
                 if (isInventoryOpenDelayed()) {
@@ -874,7 +864,6 @@ public class PestsDestroyer implements IFeature {
                     state = States.FIND_PEST;
                     delayBetweenFireworks.schedule(3_000);
                     delayClock.schedule(300);
-                    LogUtils.sendDebug("Delay 13");
                     break;
                 }
                 if (System.currentTimeMillis() - lastFireworkTime > 6_000) {
@@ -940,7 +929,6 @@ public class PestsDestroyer implements IFeature {
                     stuckClock.schedule(1_000 * 60 * FarmHelperConfig.pestsKillerStuckTime);
                 }
                 delayClock.schedule(300);
-                    LogUtils.sendDebug("Delay 14");
                 break;
             case KILL_PEST:
                 if (isInventoryOpenDelayed()) {
@@ -983,7 +971,6 @@ public class PestsDestroyer implements IFeature {
                     escapeState = EscapeState.GO_TO_HUB;
                     KeyBindUtils.stopMovement();
                     delayClock.schedule(300);
-                    LogUtils.sendDebug("Delay 15");
                     return;
                 }
 
@@ -1045,7 +1032,6 @@ public class PestsDestroyer implements IFeature {
                         flyPathfinderTries = 0;
                         KeyBindUtils.stopMovement();
                         delayClock.schedule(1_000 + Math.random() * 500);
-                        LogUtils.sendDebug("Delay 16");
                         MacroHandler.getInstance().triggerWarpGarden(true, false);
                         state = States.CHECKING_SPAWN;
                         return;
@@ -1077,7 +1063,6 @@ public class PestsDestroyer implements IFeature {
                 if (GameStateHandler.getInstance().getPestsCount() == 0) {
                     state = States.GO_BACK;
                     delayClock.schedule((long) (500 + Math.random() * 500));
-                    LogUtils.sendDebug("Delay 17");
                     break;
                 }
                 System.out.println("Curr plot pests: " + GameStateHandler.getInstance().getCurrentPlotPestsCount());
@@ -1089,7 +1074,6 @@ public class PestsDestroyer implements IFeature {
                     state = States.KILL_PEST;
                     currentEntityTarget = Optional.of(closestPest2);
                     delayClock.schedule(50 + (long) (Math.random() * 100));
-                    LogUtils.sendDebug("Delay 18");
                 } else {
                     PlotUtils.Plot plotOpt = getClosestPlot();
                     if (plotOpt != null) {
@@ -1099,18 +1083,15 @@ public class PestsDestroyer implements IFeature {
                             LogUtils.sendDebug("Going manually to another plot");
                             state = States.GET_CLOSEST_PLOT;
                             delayClock.schedule(100 + (long) (Math.random() * 150));
-                            LogUtils.sendDebug("Delay 19");
                             break;
                         } else {
                             LogUtils.sendDebug("Teleporting to plot");
                             state = States.TELEPORT_TO_PLOT;
                             delayClock.schedule(400 + (long) (Math.random() * 400));
-                            LogUtils.sendDebug("Delay 20");
                         }
                     } else {
                         state = States.GO_BACK;
                         delayClock.schedule(300 + (long) (Math.random() * 300));
-                        LogUtils.sendDebug("Delay 21");
                     }
                 }
                 break;
@@ -1636,9 +1617,23 @@ public class PestsDestroyer implements IFeature {
         }
     }
 
-    private final Clock flyDelay = new Clock();
-
     public void fly() {
+        if (!FarmHelperConfig.debugNewFly) {
+            fly2();
+            return;
+        }
+
+        if (mc.thePlayer.capabilities.isFlying) {
+            KeyBindUtils.holdThese(mc.gameSettings.keyBindJump);
+            return;
+        }
+
+        int flyToggleTimer = ((EntityPlayerAccessor) mc.thePlayer).getFlyToggleTimer();
+        KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindJump, flyToggleTimer == 0 || flyToggleTimer == 3);
+    }
+
+    private final Clock flyDelay = new Clock();
+    public void fly2() {
         if (mc.thePlayer.capabilities.isFlying) {
             KeyBindUtils.holdThese(mc.gameSettings.keyBindJump);
             return;

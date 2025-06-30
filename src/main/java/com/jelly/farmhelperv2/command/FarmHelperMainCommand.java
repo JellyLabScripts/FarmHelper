@@ -7,6 +7,7 @@ import cc.polyfrost.oneconfig.utils.commands.annotations.SubCommand;
 import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.feature.impl.AutoWardrobe;
+import com.jelly.farmhelperv2.feature.impl.PestFarmer;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.pathfinder.FlyPathFinderExecutor;
 import com.jelly.farmhelperv2.util.LogUtils;
@@ -87,13 +88,9 @@ public class FarmHelperMainCommand {
         FarmHelperConfig.checkForUpdate();
     }
 
-    @SubCommand(aliases = {"stp"})
-    public void swapToPest() {
-        AutoWardrobe.instance.swapTo(FarmHelperConfig.pestFarmingSet0Slot, Arrays.asList(FarmHelperConfig.pestFarmingEq0.split("\\|")));
-    }
-
-    @SubCommand(aliases = {"stf"})
-    public void swapToFarm() {
-        AutoWardrobe.instance.swapTo(FarmHelperConfig.pestFarmingSet1Slot, Arrays.asList(FarmHelperConfig.pestFarmingEq1.split("\\|")));
+    @SubCommand(aliases = {"msc"})
+    public void markSpawnChanged() {
+        PestFarmer.instance.wasSpawnChanged = true;
+        System.out.println("Changed: " + PestFarmer.instance.wasSpawnChanged);
     }
 }
