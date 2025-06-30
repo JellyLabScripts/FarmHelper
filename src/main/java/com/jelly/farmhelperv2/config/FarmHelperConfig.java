@@ -1481,6 +1481,12 @@ public class FarmHelperConfig extends Config {
     public static int pestFarmingWaitTime = 255;
 
     @Switch(
+        name = "Set Spawn After Armor Swap(Read Desc)", category = PEST_FARMER,
+        description = "Sets spawn after swapping armor. Sicne farmhelper does not have anything to farm shards, use this to kill manually while ensuring macro returns back to spawn automacially."
+    )
+    public static boolean pestFarmingSetSpawn = false;
+
+    @Switch(
         name = "Swap Equipments", category = PEST_FARMER
     )
     public static boolean pestFarmingSwapEq = false;
@@ -1509,7 +1515,7 @@ public class FarmHelperConfig extends Config {
     public static boolean pestFarmerKillPests = false;
 
     @Switch(
-        name = "Cast Rod After Warping", category = PEST_FARMER
+        name = "Cast Rod After Killing", category = PEST_FARMER
     )
     public static boolean pestFarmerCastRod = false;
 
@@ -2403,6 +2409,11 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean debugMode = false;
 
+    @Switch(
+        name = "New Fly", category = DEBUG
+    )
+    public static boolean debugNewFly = true;
+
     //</editor-fold>
 
     //<editor-fold desc="Debug Hud">
@@ -2690,7 +2701,17 @@ public class FarmHelperConfig extends Config {
         registerKeyBind(tpToInfestedPlot, () -> {
             List<Integer> infestedPlots = GameStateHandler.getInstance().getInfestedPlots();
             if (infestedPlots.isEmpty()) return;
-            mc.thePlayer.sendChatMessage("/plottp " + infestedPlots.get(0));
+
+            while (!infestedPlots.isEmpty()) {
+                int curr = infestedPlots.get(0);
+                if (curr == GameStateHandler.getInstance().getCurrentPlot()
+                    && GameStateHandler.getInstance().getPestsCount() == 0) {
+                    infestedPlots.remove(0);
+                    continue;
+                }
+                mc.thePlayer.sendChatMessage("/plottp " + curr);
+                break;
+            }
         });
 //        registerKeyBind(debugKeybind2, () -> {
 //            MovingObjectPosition objectMouseOver = Minecraft.getMinecraft().objectMouseOver;

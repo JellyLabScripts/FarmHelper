@@ -41,6 +41,7 @@ public class PestFarmer implements IFeature {
     private boolean kill = false;
     public boolean wasSpawnChanged = false;
     private Clock timer = new Clock();
+    private boolean rodCasted = false;
 
     // return
     private boolean isRewarpObstructed = false;
@@ -87,7 +88,7 @@ public class PestFarmer implements IFeature {
 
     @Override
     public boolean shouldCheckForFailsafes() {
-        return (mainState != MainState.RETURN || returnState.ordinal() > 9) && (state != State.WAITING_FOR_WARP);
+        return (mainState != MainState.RETURN || returnState.ordinal() > 9) && (state != State.WAITING_FOR_WARP || state != State.ENDING);
     }
 
     @Override
@@ -120,6 +121,7 @@ public class PestFarmer implements IFeature {
         flyAttempts = 0;
         mainAttempts = 0;
         requiredAng = new float[2];
+        rodCasted = false;
         if (failed) {
             MacroHandler.getInstance().disableMacro();
             LogUtils.sendError("Failed, disabling");
@@ -158,7 +160,7 @@ public class PestFarmer implements IFeature {
             return;
         }
 
-        if (wasSpawnChanged && FarmHelperConfig.pestFarmerKillPests && PlayerUtils.isStandingOnRewarpLocation()) {
+        if (wasSpawnChanged && PlayerUtils.isStandingOnRewarpLocation()) {
             mainState = MainState.RETURN;
             start();
             return;
@@ -207,7 +209,11 @@ public class PestFarmer implements IFeature {
             mc.thePlayer.addChatMessage(event.message);
             wasSpawnChanged = true;
             if (mainState == MainState.SWAP_N_START) {
-                setState(State.TOGGLING_PEST_DESTROYER, 0);
+                if (!FarmHelperConfig.pestFarmerKillPests && FarmHelperConfig.pestFarmingSetSpawn) {
+                    setState(State.ENDING, 0);
+                } else {
+                    setState(State.TOGGLING_PEST_DESTROYER, 0);
+                }
             } else {
                 if (returnState.ordinal() == 1) {
                     setState(ReturnState.TP_TO_SPAWN_PLOT, 0);
@@ -250,7 +256,7 @@ public class PestFarmer implements IFeature {
                     if (AutoWardrobe.instance.isRunning()) {
                         return;
                     }
-                    if (pestSpawned && FarmHelperConfig.pestFarmerKillPests && GameStateHandler.getInstance().getPestsCount() >= FarmHelperConfig.pestFarmerStartKillAt) {
+                    if (pestSpawned && ((FarmHelperConfig.pestFarmerKillPests && GameStateHandler.getInstance().getPestsCount() >= FarmHelperConfig.pestFarmerStartKillAt) || FarmHelperConfig.pestFarmingSetSpawn)) {
                         setState(State.SETTING_SPAWN, 0);
                     } else {
                         stop();
@@ -272,12 +278,32 @@ public class PestFarmer implements IFeature {
                         setState(State.WAITING_FOR_PEST_DESTROYER, 0);
                         break;
                     }
-                    LogUtils.sendError("Cannot enable PestsDestroyer");
+                    LogUtils.sendError("Cannot enable PestsDestroyer. Please turn it on from the PestsDestroyer tab.");
                     stop();
                     break;
                 case WAITING_FOR_PEST_DESTROYER:
-                    if (PestsDestroyer.getInstance().isRunning()) {
+                    if (PestsDestroyer.getInstance().isRunning() || this.isTimerRunning()) {
                         break;
+                    }
+
+                    ItemStack heldItem = mc.thePlayer.getHeldItem();
+                    if (FarmHelperConfig.pestFarmerCastRod && (heldItem == null || !(heldItem.getItem() instanceof ItemFishingRod))) {
+                        for (int i = 0; i < 9; i++) {
+                            ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
+                            if (stack != null && stack.getItem() instanceof ItemFishingRod) {
+                                mc.thePlayer.inventory.currentItem = i;
+                                this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                                return; 
+                            }
+                        }
+                        LogUtils.sendError("Could not find a fishing rod in hotbar");
+                    }
+
+                    if (!this.rodCasted) {
+                        KeyBindUtils.rightClick();
+                        this.timer.schedule(200);
+                        this.rodCasted = true;
+                        break; 
                     }
                     mc.thePlayer.sendChatMessage("/warp garden");
                     setState(State.WAITING_FOR_WARP, 5000);
@@ -295,27 +321,7 @@ public class PestFarmer implements IFeature {
                         break;
                     }
 
-                    setState(State.HOLD_ROD, FarmHelperConfig.getRandomGUIMacroDelay());
-                    break;
-                case HOLD_ROD:
-                    if (isTimerRunning()) return;
-                    if (FarmHelperConfig.pestFarmerCastRod) {
-                        for (int i = 0; i < 9; i++) {
-                            ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
-                            if (stack != null && stack.getItem() instanceof ItemFishingRod) {
-                                mc.thePlayer.inventory.currentItem = i;
-                                setState(State.CAST_ROD, FarmHelperConfig.getRandomGUIMacroDelay());
-                                return; 
-                            }
-                        }
-                        LogUtils.sendError("Could not find a fishing rod in hotbar");
-                    }
-                    setState(State.ENDING, 0);
-                    break;
-                case CAST_ROD:
-                    if (isTimerRunning()) return;
-                    KeyBindUtils.rightClick();
-                    setState(State.ENDING, 0);
+                    setState(State.ENDING, FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 case ENDING:
                     stop();
@@ -351,6 +357,9 @@ public class PestFarmer implements IFeature {
                         PestsDestroyer.getInstance().fly();
                         return;
                     }
+                    
+                    KeyBindUtils.stopMovement();
+                    if (mc.thePlayer.motionY != 0.0) return;
 
                     mc.thePlayer.sendChatMessage("/plottp " + FarmHelperConfig.spawnPlot);
                     setState(ReturnState.TP_VERIFY, 5000);
@@ -364,7 +373,7 @@ public class PestFarmer implements IFeature {
                         break;
                     }
 
-                    if (!mc.theWorld.isBlockLoaded(preTpBlockPos.get()) || preTpBlockPos.get().equals(mc.thePlayer.getPosition())) {
+                    if (preTpBlockPos.get().equals(mc.thePlayer.getPosition()) || !mc.theWorld.isBlockLoaded(mc.thePlayer.getPosition()) ) {
                         break;
                     }
 
@@ -385,7 +394,7 @@ public class PestFarmer implements IFeature {
                     }
 
                     KeyBindUtils.stopMovement();
-                    setState(ReturnState.FLY_TO_ABOVE_SPAWN, 250);
+                    setState(ReturnState.FLY_TO_ABOVE_SPAWN, FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 case ESCAPE_TP:
                     mc.thePlayer.sendChatMessage("/plottp barn");
@@ -450,7 +459,7 @@ public class PestFarmer implements IFeature {
                     }
 
                     flyAttempts++;
-                    FlyPathFinderExecutor.getInstance().setStoppingPositionThreshold(0.2f);
+                    FlyPathFinderExecutor.getInstance().setStoppingPositionThreshold(0.5f);
                     FlyPathFinderExecutor.getInstance().findPath(new Vec3(FarmHelperConfig.spawnPosX + 0.5f, FarmHelperConfig.spawnPosY + 0.15, FarmHelperConfig.spawnPosZ + 0.5f), true, true);
                     setState(ReturnState.WAITING_FOR_FLIGHT_AND_VERIFYING, 0);
                     break;
@@ -466,14 +475,13 @@ public class PestFarmer implements IFeature {
                     }
 
                     BlockPos pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
-                    if (pos.getX() == FarmHelperConfig.spawnPosX && pos.getY() == FarmHelperConfig.spawnPosY && pos.getZ() == FarmHelperConfig.spawnPosZ) {
+                    if (pos.getX() == FarmHelperConfig.spawnPosX && pos.getZ() == FarmHelperConfig.spawnPosZ) {
                         KeyBindUtils.setKeyBindState(mc.gameSettings.keyBindSneak, mc.thePlayer.capabilities.isFlying);
                         if (FarmHelperConfig.pestFarmingUseMousemat) {
                             setState(ReturnState.HOLD_AND_USE_MOUSEMAT, 100);
                         } else {
                             setState(ReturnState.SNEAKING_AND_ROTATING, 0);
                         }
-                        flyAttempts = 0;
                     } else {
                         setState(ReturnState.FLY_TO_ABOVE_SPAWN, 0);
                         mainAttempts++;
@@ -540,6 +548,13 @@ public class PestFarmer implements IFeature {
                     }
 
                     if (RotationHandler.getInstance().isRotating() || !mc.thePlayer.onGround) break;
+                    pos = BlockUtils.getRelativeBlockPos(0, 0, 0);
+                    if (!(pos.getX() == FarmHelperConfig.spawnPosX && pos.getY() == FarmHelperConfig.spawnPosY && pos.getZ() == FarmHelperConfig.spawnPosZ)) {
+                        LogUtils.sendError("Could not go to spawn block.");
+                        setState(ReturnState.FLY_TO_ABOVE_SPAWN, 0);
+                        mainAttempts++;
+                        break;
+                    }
                     mc.thePlayer.sendChatMessage("/setspawn");
                     setState(ReturnState.WAITING_FOR_SPAWN_2, 5000);
                     break;
@@ -607,8 +622,6 @@ public class PestFarmer implements IFeature {
         TOGGLING_PEST_DESTROYER,
         WAITING_FOR_PEST_DESTROYER,
         WAITING_FOR_WARP,
-        HOLD_ROD,
-        CAST_ROD,
         ENDING
     }
 

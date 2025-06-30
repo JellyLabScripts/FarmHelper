@@ -115,7 +115,7 @@ public class MixinMinecraft {
         }
     }
 
-    @Redirect(method = "setIngameFocus", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/Display;isActive()Z"))
+    @Redirect(method = "setIngameFocus", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/Display;isActive()Z", remap = false))
     public boolean isActive() {
         System.out.println("Trying to set in game focus. Macro Toggled: " + MacroHandler.getInstance().isMacroToggled());
         if (MacroHandler.getInstance().isMacroToggled()) {
