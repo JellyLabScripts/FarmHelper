@@ -317,13 +317,14 @@ public class PestFarmer implements IFeature {
                         break;
                     }
 
-                    if (preTpBlockPos.get().equals(mc.thePlayer.getPosition())) {
+                    if (preTpBlockPos.get().equals(mc.thePlayer.getPosition()) || !mc.theWorld.isBlockLoaded(mc.thePlayer.getPosition())) {
                         break;
                     }
 
                     setState(State.ENDING, FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 case ENDING:
+                    if (isTimerRunning()) return;
                     stop();
                     break;
                 }
@@ -373,7 +374,7 @@ public class PestFarmer implements IFeature {
                         break;
                     }
 
-                    if (preTpBlockPos.get().equals(mc.thePlayer.getPosition()) || !mc.theWorld.isBlockLoaded(mc.thePlayer.getPosition()) ) {
+                    if (preTpBlockPos.get().equals(mc.thePlayer.getPosition()) || !mc.theWorld.isBlockLoaded(mc.thePlayer.getPosition())) {
                         break;
                     }
 
