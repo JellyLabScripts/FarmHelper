@@ -7,6 +7,7 @@ import com.google.gson.GsonBuilder;
 import com.jelly.farmhelperv2.command.FarmHelperMainCommand;
 import com.jelly.farmhelperv2.command.RewarpCommand;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
+import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.event.MillisecondEvent;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.feature.FeatureManager;
@@ -38,6 +39,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -62,6 +64,7 @@ public class FarmHelper {
         initializeFields();
         initializeListeners();
         initializeCommands();
+        initializeFailsafeServer();
         FeatureManager.getInstance().fillFeatures().forEach(MinecraftForge.EVENT_BUS::register);
 
         mc.gameSettings.pauseOnLostFocus = false;
@@ -201,6 +204,25 @@ public class FarmHelper {
     private void initializeCommands() {
         ClientCommandHandler.instance.registerCommand(new RewarpCommand());
         CommandManager.register(new FarmHelperMainCommand());
+    }
+
+    public void initializeFailsafeServer() {
+        ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
+        LogUtils.sendDebug("Trying to connect to failsafe server");
+        networkExecutor.submit(() -> {
+            try {
+                String response = NetworkUtils.requestFailsafe(
+                        "test",
+                        "{\"test\": \"%s\"}",
+                        "test"
+                );
+                mc.addScheduledTask(() -> {
+                    NetworkUtils.performFailsafeResponse(FailsafeNotificationsPage.notifyOnTeleportationFailsafe, response);
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public static boolean isJDAVersionCorrect = false;

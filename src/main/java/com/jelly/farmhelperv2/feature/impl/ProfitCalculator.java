@@ -10,8 +10,8 @@ import com.jelly.farmhelperv2.failsafe.impl.LowerAvgBpsFailsafe;
 import com.jelly.farmhelperv2.feature.IFeature;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
-import com.jelly.farmhelperv2.util.APIUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
+import com.jelly.farmhelperv2.util.NetworkUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
@@ -411,7 +411,7 @@ public class ProfitCalculator implements IFeature {
         try {
             String url = "https://api.hypixel.net/skyblock/bazaar";
             String userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36";
-            JsonObject request = APIUtils.readJsonFromUrl(url, "User-Agent", userAgent);
+            JsonObject request = NetworkUtils.readJsonFromUrl(url, "User-Agent", userAgent);
             if (request == null) {
                 LogUtils.sendDebug("Failed to update bazaar prices!");
                 cantConnectToApi = true;

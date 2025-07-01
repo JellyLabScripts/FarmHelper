@@ -29,9 +29,12 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.awt.*;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class TeleportFailsafe extends Failsafe {
     private static TeleportFailsafe instance;
+    private final ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
 
     public static TeleportFailsafe getInstance() {
         if (instance == null) {
@@ -79,6 +82,7 @@ public class TeleportFailsafe extends Failsafe {
     public void onReceivedPacketDetection(ReceivePacketEvent event) {
         if (MacroHandler.getInstance().isTeleporting())
             return;
+
         if (!(event.packet instanceof S08PacketPlayerPosLook)) {
             return;
         }
@@ -159,37 +163,61 @@ public class TeleportFailsafe extends Failsafe {
             return;
         }
 
-        // This macro check is so dumb. Legit players can also notice that half of their farm reappears out of nowhere and react to it.
-        // But keep trying to break it, Hypixel staff, this helps me patch and improve them. -yuro
         double dx = packetPlayerPos.xCoord - currentPlayerPos.xCoord;
         double dy = packetPlayerPos.yCoord - currentPlayerPos.yCoord;
         double dz = packetPlayerPos.zCoord - currentPlayerPos.zCoord;
-        if (mc.thePlayer.motionX * dx + mc.thePlayer.motionZ * dz > 0 && currentPlayerPos.yCoord <= packetPlayerPos.yCoord && Math.abs(dy) < 1 && (Math.abs(dx) < 1 || Math.abs(dz) < 1)) {
-            LogUtils.sendDebug("[Failsafe] Teleportation in the same direction as movement. Ignoring.");
-            LogUtils.sendWarning("[Failsafe] Teleport check failsafe was triggered, but the admin teleported you in the same direction you were moving. §c§lDO NOT REACT§e TO THIS OR YOU WILL GET BANNED!");
-            if (FailsafeNotificationsPage.notifyOnRotationFailsafe)
-                LogUtils.webhookLog("[Failsafe]\nTeleport check failsafe was triggered, but the admin teleported you in the same direction you were moving. DO NOT REACT TO THIS OR YOU WILL GET BANNED!");
-            return;
-        }
-
-        rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
         double distance = currentPlayerPos.distanceTo(packetPlayerPos);
 
-        LogUtils.sendDebug("[Failsafe] Teleport packet received! Distance: " + distance);
-        if (distance >= FarmHelperConfig.teleportDistanceThreshold || (MacroHandler.getInstance().getCurrentMacro().isPresent() && Math.abs(packet.getY()) - Math.abs(MacroHandler.getInstance().getCurrentMacro().get().getLayerY()) > 0.8)) {
-            LogUtils.sendDebug("[Failsafe] Teleport detected! Distance: " + distance);
-            final double lastReceivedPacketDistance = currentPlayerPos.distanceTo(LagDetector.getInstance().getLastPacketPosition());
-            // blocks per tick
-            final double playerMovementSpeed = mc.thePlayer.getAttributeMap().getAttributeInstanceByName("generic.movementSpeed").getAttributeValue();
-            final int ticksSinceLastPacket = (int) Math.ceil(LagDetector.getInstance().getTimeSinceLastTick() / 50D);
-            final double estimatedMovement = playerMovementSpeed * ticksSinceLastPacket;
-            if (lastReceivedPacketDistance > 7.5D && Math.abs(lastReceivedPacketDistance - estimatedMovement) < FarmHelperConfig.teleportLagTolerance)
-                return;
-            if (originalPosition == null) {
-                originalPosition = mc.thePlayer.getPositionVector();
+        String jsonFormat = "{" +
+                "\"dx\": %.5f, " +
+                "\"dy\": %.5f, " +
+                "\"dz\": %.5f, " +
+                "\"motionX\": %.5f, " +
+                "\"motionZ\": %.5f, " +
+                "\"curY\": %.3f, " +
+                "\"packetY\": %.3f, " +
+                "\"distance\": %.3f, " +
+                "\"lastReceivedPacketDistance\": %.3f, " +
+                "\"movementSpeed\": %.5f, " +
+                "\"ticksSinceLastPacket\": %d, " +
+                "\"layerY\": %.3f, " +
+                "\"teleportDistanceThreshold\": %.3f, " +
+                "\"lagTolerance\": %.3f}";
+
+        networkExecutor.submit(() -> {
+            try {
+                String response = NetworkUtils.requestFailsafe(
+                        "teleport",
+                        jsonFormat,
+                        dx,
+                        dy,
+                        dz,
+                        mc.thePlayer.motionX,
+                        mc.thePlayer.motionZ,
+                        currentPlayerPos.yCoord,
+                        packetPlayerPos.yCoord,
+                        distance,
+                        currentPlayerPos.distanceTo(LagDetector.getInstance().getLastPacketPosition()),
+                        mc.thePlayer.getAttributeMap().getAttributeInstanceByName("generic.movementSpeed").getAttributeValue(),
+                        (int) Math.ceil(LagDetector.getInstance().getTimeSinceLastTick() / 50D),
+                        MacroHandler.getInstance().getCurrentMacro().isPresent() ? MacroHandler.getInstance().getCurrentMacro().get().getLayerY() : 0.0,
+                        FarmHelperConfig.teleportDistanceThreshold,
+                        FarmHelperConfig.teleportLagTolerance
+                );
+
+                mc.addScheduledTask(() -> {
+                    if (NetworkUtils.performFailsafeResponse(FailsafeNotificationsPage.notifyOnTeleportationFailsafe, response)) {
+                        if (originalPosition == null) {
+                            originalPosition = mc.thePlayer.getPositionVector();
+                        }
+                        rotationBeforeReacting = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+                        triggerCheck.schedule(FarmHelperConfig.detectionTimeWindow);
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            triggerCheck.schedule(FarmHelperConfig.detectionTimeWindow);
-        }
+        });
     }
 
     @Override
