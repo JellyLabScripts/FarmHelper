@@ -88,7 +88,7 @@ public class PestFarmer implements IFeature {
 
     @Override
     public boolean shouldCheckForFailsafes() {
-        return (mainState != MainState.RETURN || returnState.ordinal() > 9) && (state != State.WAITING_FOR_WARP || state != State.ENDING);
+        return (mainState != MainState.RETURN || returnState.ordinal() > 9) && (state.ordinal() < 7);
     }
 
     @Override
@@ -103,6 +103,7 @@ public class PestFarmer implements IFeature {
         MacroHandler.getInstance().pauseMacro();
         enabled = true;
         IFeature.super.start();
+        LogUtils.sendDebug("PestFarmer Starting");
     }
 
     @Override
@@ -131,6 +132,7 @@ public class PestFarmer implements IFeature {
         }
         failed = false;
         IFeature.super.stop();
+        LogUtils.sendDebug("PestFarmer Stopping");
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -321,10 +323,13 @@ public class PestFarmer implements IFeature {
                         break;
                     }
 
+                    LogUtils.sendDebug("WAITING_FOR_WARP Done");
                     setState(State.ENDING, FarmHelperConfig.getRandomGUIMacroDelay());
                     break;
                 case ENDING:
                     if (isTimerRunning()) return;
+
+                    LogUtils.sendDebug("Ending");
                     stop();
                     break;
                 }
