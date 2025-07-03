@@ -93,7 +93,7 @@ public class BanwaveFailsafe extends Failsafe {
     public void endOfFailsafeTrigger() {
         LogUtils.sendFailsafeMessage("[Failsafe] Resuming the macro because banwave is over!", false);
         FailsafeManager.getInstance().stopFailsafes();
-        FailsafeManager.getInstance().setHadEmergency(false);
+        FailsafeManager.getInstance().setHavingEmergency(false);
         MacroHandler.getInstance().resumeMacro();
     }
 
@@ -105,6 +105,6 @@ public class BanwaveFailsafe extends Failsafe {
         if (FarmHelperConfig.banwaveDontLeaveDuringJacobsContest && GameStateHandler.getInstance().inJacobContest())
             return;
         if (!MacroHandler.getInstance().getMacro().isEnabledAndNoFeature()) return;
-        FailsafeManager.getInstance().possibleDetection(this);
+        FailsafeManager.getInstance().addPossibleDetection(this);
     }
 }

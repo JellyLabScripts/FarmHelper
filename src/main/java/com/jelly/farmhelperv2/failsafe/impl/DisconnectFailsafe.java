@@ -63,7 +63,7 @@ public class DisconnectFailsafe extends Failsafe {
             return;
         }
 
-        FailsafeManager.getInstance().possibleDetection(this);
+        FailsafeManager.getInstance().addPossibleDetection(this);
     }
 
     @Override

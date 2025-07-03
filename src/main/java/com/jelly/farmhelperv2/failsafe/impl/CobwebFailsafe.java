@@ -12,6 +12,7 @@ import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
 import com.jelly.farmhelperv2.util.AngleUtils;
+import com.jelly.farmhelperv2.util.FailsafeUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
@@ -98,12 +99,12 @@ public class CobwebFailsafe extends Failsafe {
                         && GameStateHandler.getInstance().inJacobContest()
                         && Math.random() > CustomFailsafeMessagesPage.customJacobChance / 100.0) {
                     String[] customJacobMessages = CustomFailsafeMessagesPage.customJacobMessages.split("\\|");
-                    randomMessage = FailsafeManager.getRandomMessage(customJacobMessages);
+                    randomMessage = FailsafeUtils.getRandomMessage(customJacobMessages);
                 } else if (CustomFailsafeMessagesPage.customRotationMessages.isEmpty()) {
-                    randomMessage = FailsafeManager.getRandomMessage();
+                    randomMessage = FailsafeUtils.getRandomMessage();
                 } else {
                     String[] customMessages = CustomFailsafeMessagesPage.customRotationMessages.split("\\|");
-                    randomMessage = FailsafeManager.getRandomMessage(customMessages);
+                    randomMessage = FailsafeUtils.getRandomMessage(customMessages);
                 }
                 cobwebCheckState = CobwebCheckState.SEND_MESSAGE;
                 FailsafeManager.getInstance().scheduleRandomDelay(randomMessage.length() * 150L, 1000);
@@ -142,10 +143,10 @@ public class CobwebFailsafe extends Failsafe {
                     break;
                 }
                 if (CustomFailsafeMessagesPage.customContinueMessages.isEmpty()) {
-                    randomContinueMessage = FailsafeManager.getRandomContinueMessage();
+                    randomContinueMessage = FailsafeUtils.getRandomContinueMessage();
                 } else {
                     String[] customContinueMessages = CustomFailsafeMessagesPage.customContinueMessages.split("\\|");
-                    randomContinueMessage = FailsafeManager.getRandomMessage(customContinueMessages);
+                    randomContinueMessage = FailsafeUtils.getRandomMessage(customContinueMessages);
                 }
                 cobwebCheckState = CobwebCheckState.SEND_MESSAGE_2;
                 FailsafeManager.getInstance().scheduleRandomDelay(randomContinueMessage.length() * 150L, 1000);

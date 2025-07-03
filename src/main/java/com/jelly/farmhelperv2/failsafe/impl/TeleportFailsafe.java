@@ -251,7 +251,7 @@ public class TeleportFailsafe extends Failsafe {
         }
         double totalDisplacement = currentPosition.distanceTo(originalPosition);
         if (totalDisplacement > FarmHelperConfig.teleportDistanceThreshold) {
-            FailsafeManager.getInstance().possibleDetection(this);
+            FailsafeManager.getInstance().addPossibleDetection(this);
         } else {
             FailsafeManager.getInstance().emergencyQueue.remove(this);
             if (FailsafeManager.getInstance().emergencyQueue.isEmpty()) {
@@ -269,7 +269,7 @@ public class TeleportFailsafe extends Failsafe {
             PlayerUtils.closeScreen();
             // just in case something in the hand keeps opening the screen
             if (FailsafeManager.getInstance().swapItemDuringRecording && mc.thePlayer.inventory.currentItem > 1)
-                FailsafeManager.getInstance().selectNextItemSlot();
+                InventoryUtils.selectNextItemSlot();
             return;
         }
         switch (teleportCheckState) {
@@ -304,12 +304,12 @@ public class TeleportFailsafe extends Failsafe {
                         && GameStateHandler.getInstance().inJacobContest()
                         && Math.random() > CustomFailsafeMessagesPage.customJacobChance / 100.0) {
                     String[] customJacobMessages = CustomFailsafeMessagesPage.customJacobMessages.split("\\|");
-                    randomMessage = FailsafeManager.getRandomMessage(customJacobMessages);
+                    randomMessage = FailsafeUtils.getRandomMessage(customJacobMessages);
                 } else if (CustomFailsafeMessagesPage.customTeleportationMessages.isEmpty()) {
-                    randomMessage = FailsafeManager.getRandomMessage();
+                    randomMessage = FailsafeUtils.getRandomMessage();
                 } else {
                     String[] customMessages = CustomFailsafeMessagesPage.customTeleportationMessages.split("\\|");
-                    randomMessage = FailsafeManager.getRandomMessage(customMessages);
+                    randomMessage = FailsafeUtils.getRandomMessage(customMessages);
                 }
                 teleportCheckState = TeleportCheckState.SEND_MESSAGE;
                 FailsafeManager.getInstance().scheduleRandomDelay(2000, 3000);
@@ -362,10 +362,10 @@ public class TeleportFailsafe extends Failsafe {
                     break;
                 }
                 if (CustomFailsafeMessagesPage.customContinueMessages.isEmpty()) {
-                    randomContinueMessage = FailsafeManager.getRandomContinueMessage();
+                    randomContinueMessage = FailsafeUtils.getRandomContinueMessage();
                 } else {
                     String[] customContinueMessages = CustomFailsafeMessagesPage.customContinueMessages.split("\\|");
-                    randomContinueMessage = FailsafeManager.getRandomMessage(customContinueMessages);
+                    randomContinueMessage = FailsafeUtils.getRandomMessage(customContinueMessages);
                 }
                 teleportCheckState = TeleportCheckState.SEND_MESSAGE_2;
                 FailsafeManager.getInstance().scheduleRandomDelay(3500, 2500);

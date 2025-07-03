@@ -6,6 +6,7 @@ import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
 import com.jelly.farmhelperv2.event.BlockChangeEvent;
 import com.jelly.farmhelperv2.failsafe.Failsafe;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.LagDetector;
 import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.BaritoneHandler;
@@ -64,7 +65,11 @@ public class DirtFailsafe extends Failsafe {
 
     @Override
     public void onBlockChange(BlockChangeEvent event) {
-        if (FailsafeManager.getInstance().firstCheckReturn()) return;
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return;
+        if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
+
         if (event.update.getBlock().equals(Blocks.air) && !CropUtils.isCrop(event.old.getBlock())) {
             LogUtils.sendDebug("[Failsafe] Block destroyed: " + event.pos);
             blocksDestroyedByPlayer.add(new Tuple<>(event.pos, System.currentTimeMillis()));
@@ -95,7 +100,7 @@ public class DirtFailsafe extends Failsafe {
             PlayerUtils.closeScreen();
             // just in case something in the hand keeps opening the screen
             if (FailsafeManager.getInstance().swapItemDuringRecording && mc.thePlayer.inventory.currentItem > 1)
-                FailsafeManager.getInstance().selectNextItemSlot();
+                InventoryUtils.selectNextItemSlot();
             return;
         }
         switch (dirtCheckState) {
@@ -142,12 +147,12 @@ public class DirtFailsafe extends Failsafe {
                         && GameStateHandler.getInstance().inJacobContest()
                         && Math.random() > CustomFailsafeMessagesPage.customJacobChance / 100.0) {
                     String[] customJacobMessages = CustomFailsafeMessagesPage.customJacobMessages.split("\\|");
-                    randomMessage = FailsafeManager.getRandomMessage(customJacobMessages);
+                    randomMessage = FailsafeUtils.getRandomMessage(customJacobMessages);
                 } else if (CustomFailsafeMessagesPage.customDirtMessages.isEmpty()) {
-                    randomMessage = FailsafeManager.getRandomMessage();
+                    randomMessage = FailsafeUtils.getRandomMessage();
                 } else {
                     String[] customMessages = CustomFailsafeMessagesPage.customDirtMessages.split("\\|");
-                    randomMessage = FailsafeManager.getRandomMessage(customMessages);
+                    randomMessage = FailsafeUtils.getRandomMessage(customMessages);
                 }
                 dirtCheckState = DirtCheckState.SEND_MESSAGE;
                 FailsafeManager.getInstance().scheduleRandomDelay(randomMessage.length() * 150L, 1000);

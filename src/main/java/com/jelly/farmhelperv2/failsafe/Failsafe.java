@@ -46,7 +46,7 @@ public abstract class Failsafe {
     public abstract void endOfFailsafeTrigger();
 
     private void possibleDetectionOfCheck() {
-        FailsafeManager.getInstance().possibleDetection(this);
+        FailsafeManager.getInstance().addPossibleDetection(this);
     }
 
     public void resetStates() {

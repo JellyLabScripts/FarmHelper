@@ -62,7 +62,7 @@ public class EvacuateFailsafe extends Failsafe {
 
         GameStateHandler.getInstance().getServerClosingSeconds().ifPresent(seconds -> {
             if (seconds < 30) {
-                FailsafeManager.getInstance().possibleDetection(this);
+                FailsafeManager.getInstance().addPossibleDetection(this);
             }
         });
     }
@@ -71,7 +71,7 @@ public class EvacuateFailsafe extends Failsafe {
     public void onChatDetection(ClientChatReceivedEvent event) {
         String msg = StringUtils.stripControlCodes(event.message.getUnformattedText());
         if (msg.startsWith("You can't use this when the server is about to")) {
-            FailsafeManager.getInstance().possibleDetection(this);
+            FailsafeManager.getInstance().addPossibleDetection(this);
         }
     }
 
@@ -117,7 +117,7 @@ public class EvacuateFailsafe extends Failsafe {
     @Override
     public void endOfFailsafeTrigger() {
         FailsafeManager.getInstance().stopFailsafes();
-        FailsafeManager.getInstance().setHadEmergency(false);
+        FailsafeManager.getInstance().setHavingEmergency(false);
         if (Scheduler.getInstance().isFarming())
             MacroHandler.getInstance().resumeMacro();
     }

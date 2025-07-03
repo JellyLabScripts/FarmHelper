@@ -335,6 +335,16 @@ public class InventoryUtils {
         return lastSlot != null && lastSlot.getItem() != null;
     }
 
+    public static void selectNextItemSlot() {
+        int nextSlot = mc.thePlayer.inventory.currentItem + 1;
+        if (nextSlot > 7) {
+            nextSlot = 0;
+        }
+        if (mc.thePlayer.inventory.currentItem != nextSlot) {
+            mc.thePlayer.inventory.currentItem = nextSlot;
+        }
+    }
+
     public static enum ClickType {
         LEFT,
         RIGHT

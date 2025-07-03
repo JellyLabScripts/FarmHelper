@@ -96,7 +96,7 @@ public class JacobFailsafe extends Failsafe {
         }
 
         if (GameStateHandler.getInstance().getJacobsContestCropNumber() >= cropThreshold) {
-            FailsafeManager.getInstance().possibleDetection(this);
+            FailsafeManager.getInstance().addPossibleDetection(this);
         }
     }
 
@@ -134,7 +134,7 @@ public class JacobFailsafe extends Failsafe {
     @Override
     public void endOfFailsafeTrigger() {
         FailsafeManager.getInstance().stopFailsafes();
-        FailsafeManager.getInstance().setHadEmergency(false);
+        FailsafeManager.getInstance().setHavingEmergency(false);
         MacroHandler.getInstance().resumeMacro();
     }
 }

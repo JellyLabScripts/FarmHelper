@@ -66,7 +66,7 @@ public class WorldChangeFailsafe extends Failsafe {
         if (FailsafeManager.getInstance().emergencyQueue.contains(this)) return;
         if (GameStateHandler.getInstance().getLocation() != GameStateHandler.Location.LIMBO) return;
         LogUtils.sendWarning("[Failsafe Debug] You've been kicked to limbo!");
-        FailsafeManager.getInstance().possibleDetection(this);
+        FailsafeManager.getInstance().addPossibleDetection(this);
     }
 
     @Override

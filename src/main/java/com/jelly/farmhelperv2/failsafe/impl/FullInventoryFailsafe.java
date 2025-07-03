@@ -60,7 +60,7 @@ public class FullInventoryFailsafe extends Failsafe {
     }
     @Override
     public void onTickDetection(TickEvent.ClientTickEvent event) {
-        if (FailsafeManager.getInstance().isHadEmergency())
+        if (FailsafeManager.getInstance().isHavingEmergency())
             return;
         if (FeatureManager.getInstance().shouldPauseMacroExecution())
             return;
@@ -71,7 +71,7 @@ public class FullInventoryFailsafe extends Failsafe {
 
         if (PlayerUtils.isInventoryFull(mc.thePlayer)) {
             if (clock.isScheduled() && clock.passed())
-                FailsafeManager.getInstance().possibleDetection(this);
+                FailsafeManager.getInstance().addPossibleDetection(this);
             if (!clock.isScheduled())
                 clock.schedule(555);
 

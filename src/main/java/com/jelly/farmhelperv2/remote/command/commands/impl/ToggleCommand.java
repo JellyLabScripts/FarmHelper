@@ -66,8 +66,8 @@ public class ToggleCommand extends ClientCommand {
             }).start();
             return;
         } else {
-            if (FailsafeManager.getInstance().isHadEmergency()) {
-                FailsafeManager.getInstance().setHadEmergency(false);
+            if (FailsafeManager.getInstance().isHavingEmergency()) {
+                FailsafeManager.getInstance().setHavingEmergency(false);
                 FailsafeManager.getInstance().getRestartMacroAfterFailsafeDelay().reset();
             }
             MacroHandler.getInstance().toggleMacro();

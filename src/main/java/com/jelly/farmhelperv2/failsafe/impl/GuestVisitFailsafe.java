@@ -81,7 +81,7 @@ public class GuestVisitFailsafe extends Failsafe {
     @Override
     public void endOfFailsafeTrigger() {
         FailsafeManager.getInstance().stopFailsafes();
-        FailsafeManager.getInstance().setHadEmergency(false);
+        FailsafeManager.getInstance().setHavingEmergency(false);
         MacroHandler.getInstance().resumeMacro();
     }
 
@@ -100,7 +100,7 @@ public class GuestVisitFailsafe extends Failsafe {
             lastGuestName = message.replace("[SkyBlock] ", "").replace(" is visiting Your Garden!", "");
             wasGuestInGarden = true;
             tabListCheckDelay.schedule(5000L);
-            FailsafeManager.getInstance().possibleDetection(this);
+            FailsafeManager.getInstance().addPossibleDetection(this);
             if (!FarmHelperConfig.pauseOnGuestArrival)
                 Multithreading.schedule(() -> {
                     if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()

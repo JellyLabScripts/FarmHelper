@@ -86,7 +86,7 @@ public class LowerAvgBpsFailsafe extends Failsafe {
             }
             // LogUtils.sendDebug("LowerAvgBpsFailsafe: Failsafe triggered. Current BPS: " + currentBPS);
             lastTriggered = System.currentTimeMillis();
-            FailsafeManager.getInstance().possibleDetection(this);
+            FailsafeManager.getInstance().addPossibleDetection(this);
         }
     }
 

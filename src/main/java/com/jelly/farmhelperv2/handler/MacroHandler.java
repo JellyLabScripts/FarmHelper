@@ -157,11 +157,11 @@ public class MacroHandler {
                 }
                 return;
             }
-            if (FailsafeManager.getInstance().isHadEmergency()) {
+            if (FailsafeManager.getInstance().isHavingEmergency()) {
                 if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
                     FailsafeManager.getInstance().stopFailsafes();
                 }
-                FailsafeManager.getInstance().setHadEmergency(false);
+                FailsafeManager.getInstance().setHavingEmergency(false);
                 FailsafeManager.getInstance().getRestartMacroAfterFailsafeDelay().reset();
                 LogUtils.sendWarning("Farm manually and DO NOT restart the macro too soon! The staff might still be spectating you for a while!");
                 return;
@@ -325,7 +325,7 @@ public class MacroHandler {
 
         if (!GameStateHandler.getInstance().inGarden() && !this.isTeleporting()) {
             if (!FeatureManager.getInstance().shouldIgnoreFalseCheck() && !FailsafeManager.getInstance().triggeredFailsafe.isPresent()) {
-                FailsafeManager.getInstance().possibleDetection(WorldChangeFailsafe.getInstance());
+                FailsafeManager.getInstance().addPossibleDetection(WorldChangeFailsafe.getInstance());
             }
             return;
         }

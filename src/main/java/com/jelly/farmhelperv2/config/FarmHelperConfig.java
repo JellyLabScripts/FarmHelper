@@ -542,7 +542,7 @@ public class FarmHelperConfig extends Config {
             LogUtils.sendError("You can't test this failsafe because it requires specific conditions to trigger!");
             return;
         }
-        FailsafeManager.getInstance().possibleDetection(testingFailsafe);
+        FailsafeManager.getInstance().addPossibleDetection(testingFailsafe);
     };
 
     @Dropdown(name = "Test Failsafe Type", category = FAILSAFE, subcategory = "Testing",

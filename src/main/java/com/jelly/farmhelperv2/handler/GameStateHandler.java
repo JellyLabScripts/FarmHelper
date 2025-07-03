@@ -6,6 +6,7 @@ import com.jelly.farmhelperv2.failsafe.FailsafeManager;
 import com.jelly.farmhelperv2.failsafe.impl.CobwebFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.DirtFailsafe;
 import com.jelly.farmhelperv2.failsafe.impl.JacobFailsafe;
+import com.jelly.farmhelperv2.feature.FeatureManager;
 import com.jelly.farmhelperv2.feature.impl.AutoRepellent;
 import com.jelly.farmhelperv2.feature.impl.PestsDestroyer;
 import com.jelly.farmhelperv2.util.*;
@@ -587,6 +588,13 @@ public class GameStateHandler {
         this.speed = (int) (speed * 1_000);
     }
 
+    private boolean firstCheckReturn() {
+        if (mc.thePlayer == null || mc.theWorld == null) return true;
+        if (!MacroHandler.getInstance().isMacroToggled()) return true;
+        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return true;
+        return FeatureManager.getInstance().shouldIgnoreFalseCheck();
+    }
+
     public void onTickCheckMoving() {
         dx = Math.abs(mc.thePlayer.motionX);
         dy = Math.abs(mc.thePlayer.motionY);
@@ -595,10 +603,10 @@ public class GameStateHandler {
         if (notMoving() && mc.currentScreen == null) {
             if (hasPassedSinceStopped() && !PlayerUtils.isStandingOnRewarpLocation()) {
                 if (DirtFailsafe.getInstance().hasDirtBlocks() && DirtFailsafe.getInstance().isTouchingDirtBlock()) {
-                    FailsafeManager.getInstance().possibleDetection(DirtFailsafe.getInstance());
-                } else if (!FailsafeManager.getInstance().firstCheckReturn()
+                    FailsafeManager.getInstance().addPossibleDetection(DirtFailsafe.getInstance());
+                } else if (!firstCheckReturn()
                         && (CobwebFailsafe.getInstance().isTouchingCobwebBlock() || CobwebFailsafe.getInstance().hasCobwebs())) {
-                    FailsafeManager.getInstance().possibleDetection(CobwebFailsafe.getInstance());
+                    FailsafeManager.getInstance().addPossibleDetection(CobwebFailsafe.getInstance());
                 } else {
                     if (notMovingTimer.isScheduled()) {
                         randomValueToWaitNextTime = -1;

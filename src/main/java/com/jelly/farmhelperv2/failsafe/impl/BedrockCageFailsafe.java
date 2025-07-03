@@ -11,10 +11,7 @@ import com.jelly.farmhelperv2.feature.impl.MovRecPlayer;
 import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.handler.RotationHandler;
-import com.jelly.farmhelperv2.util.AngleUtils;
-import com.jelly.farmhelperv2.util.BlockUtils;
-import com.jelly.farmhelperv2.util.LogUtils;
-import com.jelly.farmhelperv2.util.PlayerUtils;
+import com.jelly.farmhelperv2.util.*;
 import com.jelly.farmhelperv2.util.helper.Rotation;
 import com.jelly.farmhelperv2.util.helper.RotationConfiguration;
 import net.minecraft.init.Blocks;
@@ -81,7 +78,7 @@ public class BedrockCageFailsafe extends Failsafe {
                         return;
                     }
                     if (BlockUtils.bedrockCount() > 3) {
-                        FailsafeManager.getInstance().possibleDetection(this);
+                        FailsafeManager.getInstance().addPossibleDetection(this);
                         return;
                     }
                     try {
@@ -125,7 +122,7 @@ public class BedrockCageFailsafe extends Failsafe {
             PlayerUtils.closeScreen();
             // just in case something in the hand keeps opening the screen
             if (FailsafeManager.getInstance().swapItemDuringRecording && mc.thePlayer.inventory.currentItem > 1)
-                FailsafeManager.getInstance().selectNextItemSlot();
+                InventoryUtils.selectNextItemSlot();
             return;
         }
         switch (bedrockCageCheckState) {
@@ -162,12 +159,12 @@ public class BedrockCageFailsafe extends Failsafe {
                         && GameStateHandler.getInstance().inJacobContest()
                         && Math.random() > CustomFailsafeMessagesPage.customJacobChance / 100.0) {
                     String[] customJacobMessages = CustomFailsafeMessagesPage.customJacobMessages.split("\\|");
-                    randomMessage = FailsafeManager.getRandomMessage(customJacobMessages);
+                    randomMessage = FailsafeUtils.getRandomMessage(customJacobMessages);
                 } else if (CustomFailsafeMessagesPage.customBedrockMessages.isEmpty()) {
-                    randomMessage = FailsafeManager.getRandomMessage();
+                    randomMessage = FailsafeUtils.getRandomMessage();
                 } else {
                     String[] customMessages = CustomFailsafeMessagesPage.customBedrockMessages.split("\\|");
-                    randomMessage = FailsafeManager.getRandomMessage(customMessages);
+                    randomMessage = FailsafeUtils.getRandomMessage(customMessages);
                 }
                 bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE_1;
                 FailsafeManager.getInstance().scheduleRandomDelay(randomMessage.length() * 150L, 1000);
@@ -204,10 +201,10 @@ public class BedrockCageFailsafe extends Failsafe {
                     break;
                 }
                 if (CustomFailsafeMessagesPage.customContinueMessages.isEmpty()) {
-                    randomContinueMessage = FailsafeManager.getRandomContinueMessage();
+                    randomContinueMessage = FailsafeUtils.getRandomContinueMessage();
                 } else {
                     String[] customContinueMessages = CustomFailsafeMessagesPage.customContinueMessages.split("\\|");
-                    randomContinueMessage = FailsafeManager.getRandomMessage(customContinueMessages);
+                    randomContinueMessage = FailsafeUtils.getRandomMessage(customContinueMessages);
                 }
                 bedrockCageCheckState = BedrockCageCheckState.SEND_MESSAGE_2;
                 FailsafeManager.getInstance().scheduleRandomDelay(randomContinueMessage.length() * 150L, 1000);

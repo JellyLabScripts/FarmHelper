@@ -64,7 +64,6 @@ public class FarmHelper {
         initializeFields();
         initializeListeners();
         initializeCommands();
-        initializeFailsafeServer();
         FeatureManager.getInstance().fillFeatures().forEach(MinecraftForge.EVENT_BUS::register);
 
         mc.gameSettings.pauseOnLostFocus = false;
@@ -204,25 +203,6 @@ public class FarmHelper {
     private void initializeCommands() {
         ClientCommandHandler.instance.registerCommand(new RewarpCommand());
         CommandManager.register(new FarmHelperMainCommand());
-    }
-
-    public void initializeFailsafeServer() {
-        ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
-        LogUtils.sendDebug("Trying to connect to failsafe server");
-        networkExecutor.submit(() -> {
-            try {
-                String response = NetworkUtils.requestFailsafe(
-                        "test",
-                        "{\"test\": \"%s\"}",
-                        "test"
-                );
-                mc.addScheduledTask(() -> {
-                    NetworkUtils.performFailsafeResponse(FailsafeNotificationsPage.notifyOnTeleportationFailsafe, response);
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
     }
 
     public static boolean isJDAVersionCorrect = false;

@@ -32,11 +32,28 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Below is the core logic of the FailsafeManager class
+ * <p>
+ * 1. When Failsafe instances (e.g., teleport failsafe) detect a possible emergency, it calls addPossibleDetection(),
+ *    where the emergency is added to {@code emergencyQueue}.
+ * <p>
+ * 2. A delay is set, {@code chooseEmergencyDelay}, for choosing the emergency with the highest priority
+ *   (in case there are multiple failsafes being triggered at the same time)
+ * <p>
+ * 3. Once an emergency is chosen, the failsafe is triggered (see {@code onTickChooseEmergency})
+ * <p>
+ * 4. The failsafe may call {@code restartMacroAfterDelay} after it has finished reacting
+ * <p>
+ * The macro may also schedule a delay into {@code onTickDelay} while reacting via {@code scheduleDelay} , which pauses onTick() events)
+ */
 public class FailsafeManager {
     private final Minecraft mc = Minecraft.getMinecraft();
     private static FailsafeManager instance;
+    public final RotationHandler rotation = RotationHandler.getInstance();
 
     public static FailsafeManager getInstance() {
         if (instance == null) {
@@ -45,63 +62,50 @@ public class FailsafeManager {
         return instance;
     }
 
+    /** List of failsafes registered at the constructor. */
     public final List<Failsafe> failsafes = new ArrayList<>();
-    public Optional<Failsafe> triggeredFailsafe = Optional.empty();
+
+    /** The queue of emergencies, added at possibleDetection()*/
     @Getter
     public final ArrayList<Failsafe> emergencyQueue = new ArrayList<>();
-    @Getter
-    public final Clock chooseEmergencyDelay = new Clock();
-    @Getter
-    private final Clock onTickDelay = new Clock();
-    @Getter
-    private final Clock restartMacroAfterFailsafeDelay = new Clock();
-    public final RotationHandler rotation = RotationHandler.getInstance();
-    private boolean sendingFailsafeInfo = false;
-    public boolean swapItemDuringRecording = false;
-    private static final String[] FAILSAFE_MESSAGES = new String[]{
-            "WHAT", "what?", "what", "what??", "what???", "wut?", "?", "what???",
-            "yo huh", "yo huh?", "yo?", "ehhhhh??", "eh", "yo", "ahmm", "ehh", "LOL what", "lol :skull:", "bro wtf was that?",
-            "lmao", "lmfao", "wtf is this", "wtf", "WTF", "wtf is this?", "wtf???", "tf", "tf?", "wth", "lmao what?", "????",
-            "??", "???????", "???", "UMMM???", "umm", "ummm???", "damn wth", "Damn", "damn wtf", "damn", "hmmm", "hm", "sus",
-            "hmm", "ok??", "ok?", "give me a rest", "again lol", "again??", "ok damn", "seriously?", "seriously????",
-            "seriously", "really?", "really", "are you kidding me?", "are you serious?", "are you fr???", "not again",
-            "give me a break", "youre kidding right?", "youre joking", "youre kidding me", "you must be joking", "seriously bro?",
-            "cmon now", "cmon", "this is too much", "stop messing with me", "um what's going on?", "yo huh? did something happen?",
-            "lol, what was that?", "ehhh what's happening here?", "bro, wtf was that move?", "wth just happened?", "again seriously?",
-            "ok seriously what's up?", "are you kidding me right now?", "give me a break, what's going on?", "seriously bro?",
-            "lmao, what was that move?", "damn wth just happened?", "ok, damn what's happening?", "you're joking right?",
-            "cmon now whats happening?", "wtf seriously?", "really, again?", "are you serious right now?",
-            "you must be joking, right?", "stop messing with me, seriously", "this is too much, come on!", "give me a rest",
-            "hmmm, what's going on?", "um, seriously, what's up?", "ok, seriously, what's the deal?", "lmao what's going on here?",
-            "damn, wtf is this?", "ok, seriously, really?", "what, again?", "wtf, what's happening?", "yo seriously what's up?",
-            "hmmm, what was that?", "seriously, bro, really?", "again? are you kidding me?", "give me a break",
-            "wtf is this???", "ok damn seriously?", "are you fr? what just happened?", "bro seriously what's wrong with you?",
-            "you're kidding me, right?", "cmon this is too much!", "really, again? why??", "are you joking??",
-            "um whats going on?", "ok seriously give me a rest", "what just happened lmao"};
-    private static final String[] FAILSAFE_CONTINUE_MESSAGES = new String[]{
-            "can i keep farming?", "lemme farm ok?", "leave me alone next time ok?", "leave me alone lol", "let me farm",
-            "nice one admin", "hello admin???", "hello admin", "bro let me farm", "bro let me farm ok?", "bro let me farm pls",
-            "dude leave me alone", "dude tf was that", "hey can i just do my thing?", "can i farm in peace please?",
-            "let me farm bro seriously", "admin can i keep farming?", "hey admin leave me alone this time alright?",
-            "admin seriously let me farm in peace", "admin bro let me farm okay?", "admin let me do my farming thing please",
-            "can i keep doing my thing admin?", "bro seriously let me farm in peace", "admin nice one but can i still farm?",
-            "hello admin can i keep farming?", "admin let me do my farm routine okay?", "admin seriously can i farm in peace?",
-            "can i continue farming?", "admin let me farm in peace please", "can i keep farming admin? pretty please?",
-            "admin seriously let me farm in peace ok?", "can i continue my farming admin?", "admin let me farm please and thank you",
-            "leave me alone this time alright?", "seriously let me farm in peace", "bro let me farm okay?",
-            "let me do my farming thing please", "can i keep doing my thing?", "nice one but can i still farm?",
-            "hello can i keep farming?", "let me do my farm routine okay?", "seriously can i farm in peace?", "let me farm in peace please",
-            "can i keep farming? pretty please?", "seriously let me farm in peace alright?", "can i continue my farming?",
-            "let me farm please and thank you", "let me farm and dont interrupt me please", "let me farm dude seriously",
-            "admin dude let me farm okay?", "dude seriously let me farm in peace", "dude let me farm okay?"};
 
+    /** Whether there is an active emergency*/
     @Getter
     @Setter
-    private boolean hadEmergency = false;
+    private boolean isHavingEmergency = false;
 
+    /** The delay of choosing the emergency with the highest priority*/
+    @Getter
+    public final Clock chooseEmergencyDelay = new Clock();
+
+    /** The failsafe that is being triggered (Optional.empty() when there is no failsafe) */
+    public Optional<Failsafe> triggeredFailsafe = Optional.empty();
+
+    /** The delay of executing the failsafe*/
+    @Getter
+    private final Clock onTickDelay = new Clock();
+
+    /** The delay of restarting the macro*/
+    @Getter
+    private final Clock restartMacroAfterFailsafeDelay = new Clock();
+
+    /** Whether the player is notified of the failsafe information. Resets when the macro is stopped*/
+    private boolean sentFailsafeInfo = false;
+
+    /** Whether the player is notified of the failsafe information. Resets when the macro is stopped*/
+    public boolean swapItemDuringRecording = false;
+
+
+    /** Information of the last failsafe (for WebSocket)*/
     @Getter
     @Setter
     private String banInfoWSLastFailsafe = "";
+
+    /** A request is sent to the server every 1 minute when the macro is toggled, ensuring proper response*/
+    private final Clock checkFailsafeServerClock = new Clock();
+
+    /** Whether the client can connect to the failsafe server. If not, the macro will be stopped*/
+    private volatile boolean connectionSuccessful = true;
 
     public FailsafeManager() {
         failsafes.addAll(
@@ -126,10 +130,11 @@ public class FailsafeManager {
         );
     }
 
+
     public void stopFailsafes() {
         triggeredFailsafe = Optional.empty();
         emergencyQueue.clear();
-        sendingFailsafeInfo = false;
+        sentFailsafeInfo = false;
         swapItemDuringRecording = false;
         chooseEmergencyDelay.reset();
         onTickDelay.reset();
@@ -139,8 +144,11 @@ public class FailsafeManager {
     public void resetAfterMacroDisable() {
         stopFailsafes();
         restartMacroAfterFailsafeDelay.reset();
+        checkFailsafeServerClock.reset();
+        connectionSuccessful = true;
     }
 
+    /** Calls when there a block in the world is being changed*/
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onBlockChange(BlockChangeEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
@@ -151,6 +159,7 @@ public class FailsafeManager {
         failsafes.forEach(failsafe -> failsafe.onBlockChange(event));
     }
 
+    /** Calls when there a packet is received*/
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onReceivedPacketDetection(ReceivePacketEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
@@ -166,6 +175,7 @@ public class FailsafeManager {
         failsafes.forEach(failsafe -> failsafe.onReceivedPacketDetection(event));
     }
 
+    /** Calls every tick when a failsafe is being triggered*/
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onTickDetection(TickEvent.ClientTickEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
@@ -176,6 +186,7 @@ public class FailsafeManager {
         failsafes.forEach(failsafe -> failsafe.onTickDetection(event));
     }
 
+    /** Calls when a chat message is received*/
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onChatDetection(ClientChatReceivedEvent event) {
         if (mc.thePlayer == null || mc.theWorld == null) return;
@@ -183,11 +194,11 @@ public class FailsafeManager {
         if (event.message == null) return;
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (triggeredFailsafe.isPresent()) return;
-//        if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
 
         failsafes.forEach(failsafe -> failsafe.onChatDetection(event));
     }
 
+    /** Calls when a world is unloaded*/
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWorldUnloadDetection(WorldEvent.Unload event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
@@ -197,66 +208,36 @@ public class FailsafeManager {
         failsafes.forEach(failsafe -> failsafe.onWorldUnloadDetection(event));
     }
 
+    /** Calls when the player is disconnected*/
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onDisconnectDetection(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         if (!MacroHandler.getInstance().isMacroToggled()) return;
         if (triggeredFailsafe.isPresent()) return;
-//        if (FeatureManager.getInstance().shouldIgnoreFalseCheck()) return;
-
         failsafes.forEach(failsafe -> failsafe.onDisconnectDetection(event));
     }
 
-    public void possibleDetection(Failsafe failsafe) {
+    /**
+     * Adds possible detection to emergencyQueue.
+     * Schedules a delay, and an emergency is chosen afterward.
+     * Send failsafe information if it hasn't done yet
+     * @param failsafe: the possible type of failsafe
+     */
+    public void addPossibleDetection(Failsafe failsafe) {
         if (emergencyQueue.contains(failsafe)) return;
 
         MacroHandler.getInstance().getCurrentMacro().ifPresent(AbstractMacro::saveState);
         emergencyQueue.add(failsafe);
+
         if (!chooseEmergencyDelay.isScheduled())
             chooseEmergencyDelay.schedule(FarmHelperConfig.failsafeStopDelay + (long) (Math.random() * 500));
+
         LogUtils.sendDebug("[Failsafe] Emergency added: " + failsafe.getType().name());
-        LogUtils.sendWarning("[Failsafe] Probability of emergency: " + LogUtils.capitalize(failsafe.getType().name()));
-        if (!sendingFailsafeInfo) {
-            sendingFailsafeInfo = true;
-            Multithreading.schedule(() -> {
-                Failsafe tempFailsafe = getHighestPriorityEmergency();
-                if (tempFailsafe.getType() == EmergencyType.NONE) {
-                    // Should never happen, but yeh...
-                    LogUtils.sendDebug("[Failsafe] No emergency chosen!");
-                    stopFailsafes();
-                    return;
-                }
-                banInfoWSLastFailsafe = tempFailsafe.getType().name().toLowerCase().replace("_", " ");
+        LogUtils.sendWarning("[Failsafe] Possible emergency: " + LogUtils.capitalize(failsafe.getType().name()));
 
-                if (FarmHelperConfig.enableFailsafeSound && failsafe.shouldPlaySound()) {
-                    AudioManager.getInstance().playSound();
-                }
-
-                if (FarmHelperConfig.autoAltTab && failsafe.shouldAltTab()) {
-                    FailsafeUtils.bringWindowToFront();
-                }
-                Multithreading.schedule(() -> {
-                    if (FarmHelperConfig.autoAltTab && failsafe.shouldAltTab() && !Display.isActive()) {
-                        FailsafeUtils.bringWindowToFrontUsingRobot();
-                        System.out.println("Bringing window to front using Robot because Winapi failed as usual.");
-                    }
-                }, 750, TimeUnit.MILLISECONDS);
-
-                LogUtils.sendFailsafeMessage(tempFailsafe.getType().label, failsafe.shouldTagEveryone());
-                BanInfoWS.getInstance().sendFailsafeInfo(tempFailsafe.getType());
-                if (failsafe.shouldSendNotification())
-                    FailsafeUtils.getInstance().sendNotification(StringUtils.stripControlCodes(tempFailsafe.getType().label), TrayIcon.MessageType.WARNING);
-            }, 800, TimeUnit.MILLISECONDS);
+        if (!sentFailsafeInfo) {
+            sentFailsafeInfo = true;
+            sendFailsafeInfo(failsafe);
         }
-    }
-
-    private Failsafe getHighestPriorityEmergency() {
-        Failsafe highestPriority = emergencyQueue.get(0);
-        for (Failsafe emergencyType : emergencyQueue) {
-            if (emergencyType.getPriority() < highestPriority.getPriority()) {
-                highestPriority = emergencyType;
-            }
-        }
-        return highestPriority;
     }
 
     @SubscribeEvent
@@ -265,29 +246,25 @@ public class FailsafeManager {
         if (triggeredFailsafe.isPresent()) return;
         if (!chooseEmergencyDelay.isScheduled()) return;
         if (!chooseEmergencyDelay.passed()) return;
+
         triggeredFailsafe = Optional.of(getHighestPriorityEmergency());
         if (triggeredFailsafe.get().getType() == EmergencyType.NONE) {
-            // Should never happen, but yeh...
-            LogUtils.sendDebug("[Failsafe] No emergency chosen!");
+            LogUtils.sendDebug("[Failsafe] No emergency chosen! This shouldn't happen, so please contact the developer");
             stopFailsafes();
             return;
         }
+
         banInfoWSLastFailsafe = triggeredFailsafe.get().getType().name().toLowerCase().replace("_", " ");
         emergencyQueue.clear();
         chooseEmergencyDelay.reset();
-        hadEmergency = true;
+        isHavingEmergency = true;
         LogUtils.sendDebug("[Failsafe] Emergency chosen: " + StringUtils.stripControlCodes(triggeredFailsafe.get().getType().name()));
+
         FeatureManager.getInstance().disableCurrentlyRunning(Scheduler.getInstance());
         Scheduler.getInstance().pause();
+
         if (FarmHelperConfig.captureClipAfterFailsafe && !FarmHelperConfig.captureClipKeybind.getKeyBinds().isEmpty()) {
-            if (FarmHelperConfig.clipCapturingType) {
-                FailsafeUtils.captureClip();
-                LogUtils.sendDebug("[Failsafe] Recording clip!");
-            }
-            Multithreading.schedule(() -> {
-                FailsafeUtils.captureClip();
-                LogUtils.sendDebug("[Failsafe] Clip captured!");
-            }, FarmHelperConfig.captureClipDelay, TimeUnit.SECONDS);
+            startCaptureClip();
         }
     }
 
@@ -300,6 +277,23 @@ public class FailsafeManager {
             return;
         }
         triggeredFailsafe.get().duringFailsafeTrigger();
+    }
+
+    @SubscribeEvent
+    public void onCheckFailsafeServer(TickEvent.ClientTickEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (!MacroHandler.getInstance().isMacroToggled()) return;
+
+        if (!connectionSuccessful) {
+            LogUtils.sendWarning("[Failsafe] Cannot connect to the server. Disabling the macro...");
+            MacroHandler.getInstance().disableMacro();
+        }
+
+        if (checkFailsafeServerClock.isScheduled() && !checkFailsafeServerClock.passed()) return;
+
+        checkFailsafeServerClock.schedule(60_000);
+        tryToConnectToFailsafeServer();
+
     }
 
     @SubscribeEvent
@@ -323,7 +317,7 @@ public class FailsafeManager {
                     MacroHandler.getInstance().resumeMacro();
                 } else
                     MacroHandler.getInstance().enableMacro();
-                FailsafeManager.getInstance().setHadEmergency(false);
+                FailsafeManager.getInstance().setHavingEmergency(false);
                 FailsafeManager.getInstance().getRestartMacroAfterFailsafeDelay().reset();
             }, FarmHelperConfig.alwaysTeleportToGarden ? 1_500 : 0, TimeUnit.MILLISECONDS);
         }
@@ -356,6 +350,7 @@ public class FailsafeManager {
         }
     }
 
+
     public void restartMacroAfterDelay() {
         if (FarmHelperConfig.enableRestartAfterFailSafe) {
             MacroHandler.getInstance().pauseMacro();
@@ -380,13 +375,6 @@ public class FailsafeManager {
         }
     }
 
-    public boolean firstCheckReturn() {
-        if (mc.thePlayer == null || mc.theWorld == null) return true;
-        if (!MacroHandler.getInstance().isMacroToggled()) return true;
-        if (FailsafeManager.getInstance().triggeredFailsafe.isPresent()) return true;
-        return FeatureManager.getInstance().shouldIgnoreFalseCheck();
-    }
-
     public void scheduleDelay(long delay) {
         onTickDelay.schedule(delay);
     }
@@ -395,30 +383,70 @@ public class FailsafeManager {
         onTickDelay.schedule(minDelay + Math.random() * maxAdditionalDelay);
     }
 
-    public static String getRandomMessage(String[] messages) {
-        if (messages.length > 1) {
-            return messages[(int) (Math.random() * (messages.length - 1))];
-        } else {
-            return messages[0];
+    private void startCaptureClip() {
+        if (FarmHelperConfig.clipCapturingType) {
+            FailsafeUtils.captureClip();
+            LogUtils.sendDebug("[Failsafe] Recording clip!");
         }
+        Multithreading.schedule(() -> {
+            FailsafeUtils.captureClip();
+            LogUtils.sendDebug("[Failsafe] Clip captured!");
+        }, FarmHelperConfig.captureClipDelay, TimeUnit.SECONDS);
     }
 
-    public static String getRandomMessage() {
-        return getRandomMessage(FAILSAFE_MESSAGES);
+    private void sendFailsafeInfo(Failsafe failsafe) {
+        Multithreading.schedule(() -> {
+            Failsafe tempFailsafe = getHighestPriorityEmergency();
+
+            if (tempFailsafe.getType() == EmergencyType.NONE) {
+                LogUtils.sendDebug("[Failsafe] No emergency chosen! This shouldn't happen, please contact the developer.");
+                stopFailsafes();
+                return;
+            }
+
+            banInfoWSLastFailsafe = tempFailsafe.getType().name().toLowerCase().replace("_", " ");
+
+            if (FarmHelperConfig.enableFailsafeSound && failsafe.shouldPlaySound()) {
+                AudioManager.getInstance().playSound();
+            }
+
+            if (FarmHelperConfig.autoAltTab && failsafe.shouldAltTab()) {
+                FailsafeUtils.bringWindowToFront();
+            }
+
+            Multithreading.schedule(() -> {
+                if (FarmHelperConfig.autoAltTab && failsafe.shouldAltTab() && !Display.isActive()) {
+                    FailsafeUtils.bringWindowToFrontUsingRobot();
+                    System.out.println("Bringing window to front using Robot because Winapi failed as usual.");
+                }
+            }, 750, TimeUnit.MILLISECONDS);
+
+            LogUtils.sendFailsafeMessage(tempFailsafe.getType().label, failsafe.shouldTagEveryone());
+            BanInfoWS.getInstance().sendFailsafeInfo(tempFailsafe.getType());
+            if (failsafe.shouldSendNotification())
+                FailsafeUtils.getInstance().sendNotification(
+                        StringUtils.stripControlCodes(tempFailsafe.getType().label),
+                        TrayIcon.MessageType.WARNING);
+
+        }, 800, TimeUnit.MILLISECONDS);
     }
 
-    public static String getRandomContinueMessage() {
-        return getRandomMessage(FAILSAFE_CONTINUE_MESSAGES);
+    private Failsafe getHighestPriorityEmergency() {
+        Failsafe highestPriority = emergencyQueue.get(0);
+        for (Failsafe emergencyType : emergencyQueue) {
+            if (emergencyType.getPriority() < highestPriority.getPriority()) {
+                highestPriority = emergencyType;
+            }
+        }
+        return highestPriority;
     }
 
-    public void selectNextItemSlot() {
-        int nextSlot = mc.thePlayer.inventory.currentItem + 1;
-        if (nextSlot > 7) {
-            nextSlot = 0;
-        }
-        if (mc.thePlayer.inventory.currentItem != nextSlot) {
-            mc.thePlayer.inventory.currentItem = nextSlot;
-        }
+    private void tryToConnectToFailsafeServer() {
+        LogUtils.sendDebug("[Failsafe] Trying to connect to failsafe server");
+        Executors.newSingleThreadExecutor().submit( () -> {
+            connectionSuccessful = NetworkUtils.checkFailsafeServer();
+            LogUtils.sendDebug("[Failsafe] Connection successful = " + connectionSuccessful);
+        });
     }
 
     public enum EmergencyType {

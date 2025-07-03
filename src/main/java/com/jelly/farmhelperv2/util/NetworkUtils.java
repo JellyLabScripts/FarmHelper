@@ -6,8 +6,12 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.google.gson.*;
+import com.jelly.farmhelperv2.config.page.FailsafeNotificationsPage;
+import net.minecraft.client.Minecraft;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -24,41 +28,34 @@ public class NetworkUtils {
      * @param jsonArgs     the arguments to populate the format string, corresponding to placeholders in jsonFormat
      * @return the response from the server (e.g., "trigger" or "ignore"), or {@code null} if the request fails
      */
-    public static String requestFailsafe(String failsafeType, String jsonFormat, Object... jsonArgs) {
-        try {
-            URL url = new URL("http://failsafejl.uk/check_failsafe/" + failsafeType);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setDoOutput(true);
+    public static String requestFailsafe(String failsafeType, String jsonFormat, Object... jsonArgs) throws Exception {
+        URL url = new URL("http://failsafejl.uk/check_failsafe/" + failsafeType);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setDoOutput(true);
 
-            // Prepare JSON payload
-            String payload = String.format(Locale.US, jsonFormat, jsonArgs);
+        String payload = String.format(Locale.US, jsonFormat, jsonArgs);
 
-            try (OutputStream os = connection.getOutputStream()) {
-                byte[] input = payload.getBytes("utf-8");
-                os.write(input, 0, input.length);
-            }
+        try (OutputStream os = connection.getOutputStream()) {
+            byte[] input = payload.getBytes("utf-8");
+            os.write(input, 0, input.length);
+        }
 
-            // Read response
-            int responseCode = connection.getResponseCode();
+        int responseCode = connection.getResponseCode();
 
-            if (responseCode == 200) {
-                try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
-                    StringBuilder response = new StringBuilder();
-                    String responseLine;
-                    while ((responseLine = br.readLine()) != null) {
-                        response.append(responseLine.trim());
-                    }
-
-                    return response.toString();
+        if (responseCode == 200) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
                 }
-            } else {
-                LogUtils.sendDebug("[Failsafe] Server error, response code: " + responseCode);
-                return null;
+
+                return response.toString();
             }
-        } catch (Exception e) {
-            LogUtils.sendDebug("[Failsafe] Failed to connect to failsafe server: " + e.getMessage());
+        } else {
+            LogUtils.sendDebug("[Failsafe] Server error, response code: " + responseCode);
             return null;
         }
     }
@@ -107,6 +104,25 @@ public class NetworkUtils {
             LogUtils.sendDebug("Error parsing failsafe response: " + e.getMessage());
         }
         return false;
+    }
+
+    /**
+     * IMPORTANT: call this function in an async thread
+     * @return whether the connection was successful
+     */
+    public static boolean checkFailsafeServer() {
+        LogUtils.sendDebug("Trying to connect to failsafe server");
+        try {
+            NetworkUtils.requestFailsafe(
+                    "test",
+                    "{\"test\": \"%s\"}",
+                    "test"
+            );
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public static JsonObject readJsonFromUrl(String urlToRead, String requestKey, String requestValue) throws Exception {
