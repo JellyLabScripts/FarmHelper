@@ -299,7 +299,10 @@ public class FailsafeManager {
         if (onTickDelay.isScheduled() && !onTickDelay.passed()) {
             return;
         }
-        triggeredFailsafe.get().duringFailsafeTrigger();
+
+        // No more reactions
+        if (!FarmHelperConfig.alertOnlyMode)
+            triggeredFailsafe.get().duringFailsafeTrigger();
     }
 
     @SubscribeEvent

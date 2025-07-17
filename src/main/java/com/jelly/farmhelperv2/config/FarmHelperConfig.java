@@ -459,6 +459,10 @@ public class FarmHelperConfig extends Config {
             description = "Enable on-screen failsafe notifications")
     public static boolean popUpNotifications = true;
 
+    @Switch(name = "Alert Only Mode", category = FAILSAFE, subcategory = "General",
+            description = "Macro will attempt to continue running, and only alert you so you can react. This is not safe.")
+    public static boolean alertOnlyMode = false;
+
     @Switch(name = "Auto Alt-Tab", category = FAILSAFE, subcategory = "General",
             description = "Switch to game window when failsafe triggers")
     public static boolean autoAltTab = false;
