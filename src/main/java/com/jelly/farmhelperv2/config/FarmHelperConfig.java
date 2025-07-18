@@ -1,8 +1,8 @@
 package com.jelly.farmhelperv2.config;
 
 import cc.polyfrost.oneconfig.config.Config;
-import cc.polyfrost.oneconfig.config.annotations.Number;
 import cc.polyfrost.oneconfig.config.annotations.*;
+import cc.polyfrost.oneconfig.config.annotations.Number;
 import cc.polyfrost.oneconfig.config.core.OneColor;
 import cc.polyfrost.oneconfig.config.core.OneKeyBind;
 import cc.polyfrost.oneconfig.config.data.*;
@@ -459,13 +459,17 @@ public class FarmHelperConfig extends Config {
             description = "Enable on-screen failsafe notifications")
     public static boolean popUpNotifications = true;
 
-    @Switch(name = "Alert Only Mode", category = FAILSAFE, subcategory = "General",
-            description = "Macro will attempt to continue running, and only alert you so you can react. This is not safe.")
-    public static boolean alertOnlyMode = false;
-
     @Switch(name = "Auto Alt-Tab", category = FAILSAFE, subcategory = "General",
             description = "Switch to game window when failsafe triggers")
     public static boolean autoAltTab = false;
+
+    @DualOption(
+            name = "Failsafe Action",
+            category = FAILSAFE, subcategory = "General",
+            description = "Decides what the macro should do upon macro check.",
+            left = "React", right = "Disable"
+    )
+    public static boolean alertAction = false;
 
     @Slider(name = "Failsafe Stop Delay", category = FAILSAFE, subcategory = "General",
             description = "Delay before stopping macro after failsafe (ms)",
