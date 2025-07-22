@@ -469,7 +469,7 @@ public class FarmHelperConfig extends Config {
             description = "Decides what the macro should do upon macro check.",
             left = "React", right = "Disable"
     )
-    public static boolean alertAction = false;
+    public static boolean failsafeAction = false;
 
     @Slider(name = "Failsafe Stop Delay", category = FAILSAFE, subcategory = "General",
             description = "Delay before stopping macro after failsafe (ms)",
