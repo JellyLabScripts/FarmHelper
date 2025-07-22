@@ -300,7 +300,7 @@ public class FailsafeManager {
             return;
         }
 
-        if (FarmHelperConfig.alertAction)
+        if (FarmHelperConfig.failsafeAction)
             triggeredFailsafe.get().duringFailsafeTrigger();
     }
 
