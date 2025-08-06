@@ -418,7 +418,7 @@ public class AutoRepellent implements IFeature {
                 return;
             }
         }
-        if (message.startsWith("YUM! Pests will now spawn")) {
+        if (message.startsWith("YUM! ൠ Pests will now spawn")) {
             repellentFailsafeClock.schedule(TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS) + 5_000);
             GameStateHandler.getInstance().setPestRepellentState(GameStateHandler.BuffState.ACTIVE);
             LogUtils.sendDebug("Repellent used!");
