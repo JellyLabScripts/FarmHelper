@@ -22,7 +22,7 @@ public class WelcomeGUI extends GuiScreen {
     static final int CLOSE_BUTTON_ID = 2;
     private static final Minecraft mc = Minecraft.getMinecraft();
     private final String[] welcomeMessage = {
-            "⚠ If you downloaded this mod from somewhere else than discord.gg/jellylab or GitHub ⚠",
+            "⚠ If you downloaded this mod from somewhere else than discord.gg/6mSHC2Xd9y or GitHub ⚠",
             "⚠ such as YouTube videos, MediaFire, etc. - immediately remove it! It's a virus! ⚠",
             "",
             "Before you use, you NEED to: ",
