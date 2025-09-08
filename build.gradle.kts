@@ -81,8 +81,8 @@ dependencies {
     compileOnly("org.spongepowered:mixin:0.8.5")
     annotationProcessor("org.spongepowered:mixin:0.8.5")
 
-    compileOnly("org.projectlombok:lombok:1.18.34")
-    annotationProcessor("org.projectlombok:lombok:1.18.34")
+    compileOnly("org.projectlombok:lombok:1.18.40")
+    annotationProcessor("org.projectlombok:lombok:1.18.40")
 
     shadowImpl("org.java-websocket:Java-WebSocket:1.5.7")
 
