@@ -465,7 +465,7 @@ public class AutoPestExchange implements IFeature {
     @SubscribeEvent(receiveCanceled = true)
     public void onChatMessageReceived(ClientChatReceivedEvent event) {
         if (enabled && event.type == 0 && event.message != null && newState == NewState.WAIT_FOR_VACUUM) {
-            if (event.message.getFormattedText().contains("§e[NPC] §6Phillip§f: Thanks for the §6Pests§f,"))
+            if (event.message.getFormattedText().contains("§e[NPC] §6Phillip§f: Thanks for the §2ൠ Pests§f,"))
                 LogUtils.sendSuccess("[Auto Pest Exchange] Successfully emptied the vacuum!");
             else {
                 if (event.message.getUnformattedText().startsWith("You've exchanged enough Pests recently! Try emptying your Vacuum Bag later!")) {

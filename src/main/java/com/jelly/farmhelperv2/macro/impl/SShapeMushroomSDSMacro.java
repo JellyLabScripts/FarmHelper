@@ -30,12 +30,10 @@ public class SShapeMushroomSDSMacro extends AbstractMacro {
 
         if (MacroHandler.getInstance().isTeleporting()) return;
         setRestoredState(false);
-        Rotation newRotation = new Rotation((float) (getClosest90Deg().orElse(AngleUtils.getClosest()) + -16 + (Math.random() * 1 - 0.5)), getPitch());
-        setYaw(newRotation.getYaw());
         if (FarmHelperConfig.dontFixAfterWarping && Math.abs(getYaw() - AngleUtils.get360RotationYaw()) < 0.1) return;
         getRotation().easeTo(
                 new RotationConfiguration(
-                        newRotation,
+                        new Rotation(getYaw(), getPitch()),
                         FarmHelperConfig.getRandomRotationTime(), null
                 ).easeOutBack(!MacroHandler.getInstance().isResume())
         );
