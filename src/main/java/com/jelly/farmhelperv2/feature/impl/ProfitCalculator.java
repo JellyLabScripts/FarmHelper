@@ -36,11 +36,10 @@ import java.util.regex.Pattern;
 public class ProfitCalculator implements IFeature {
     private static ProfitCalculator instance;
     public final List<BazaarItem> cropsToCount = new ArrayList<BazaarItem>() {{
-        final int HAY_ENCHANTED_TIER_1 = 144;
         final int ENCHANTED_TIER_1 = 160;
         final int ENCHANTED_TIER_2 = 25600;
 
-        add(new BazaarItem("Hay Bale", "ENCHANTED_HAY_BLOCK", HAY_ENCHANTED_TIER_1, 54).setImage());
+        add(new BazaarItem("Hay Bale", "ENCHANTED_HAY_BALE", ENCHANTED_TIER_2, 6).setImage());
         add(new BazaarItem("Seeds", "ENCHANTED_SEEDS", ENCHANTED_TIER_1, 3).setImage());
         add(new BazaarItem("Carrot", "ENCHANTED_CARROT", ENCHANTED_TIER_1, 3).setImage());
         add(new BazaarItem("Potato", "ENCHANTED_POTATO", ENCHANTED_TIER_1, 3).setImage());
