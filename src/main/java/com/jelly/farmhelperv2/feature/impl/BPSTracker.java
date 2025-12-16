@@ -9,6 +9,7 @@ import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.macro.AbstractMacro;
 import com.jelly.farmhelperv2.util.LogUtils;
 import net.minecraft.block.BlockCrops;
+import net.minecraft.block.BlockDoublePlant;
 import net.minecraft.block.BlockNetherWart;
 import net.minecraft.block.BlockReed;
 import net.minecraft.client.Minecraft;
@@ -181,6 +182,11 @@ public class BPSTracker implements IFeature {
                     blocksBroken++;
                 }
                 break;
+            case SUNFLOWER:
+            case ROSE:
+                if (event.block instanceof BlockDoublePlant) {
+                    blocksBroken++;
+                }
             case MELON:
                 if (event.block.equals(Blocks.melon_block)) {
                     blocksBroken++;
