@@ -183,6 +183,7 @@ public class BPSTracker implements IFeature {
                 }
                 break;
             case SUNFLOWER:
+            case MOONFLOWER:
             case ROSE:
                 if (event.block instanceof BlockDoublePlant) {
                     blocksBroken++;
