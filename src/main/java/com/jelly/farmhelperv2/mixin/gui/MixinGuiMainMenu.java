@@ -24,7 +24,7 @@ public class MixinGuiMainMenu {
             this.splashText = "Fix Farm Helper <3";
             return;
         }
-        if (!FarmHelperConfig.shownWelcomeGUI) {
+        if (!FarmHelperConfig.shownWelcomeGUI2) {
             WelcomeGUI.showGUI();
         }
         if (!AutoUpdaterGUI.checkedForUpdates) {

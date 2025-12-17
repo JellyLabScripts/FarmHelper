@@ -22,15 +22,15 @@ public class WelcomeGUI extends GuiScreen {
     static final int CLOSE_BUTTON_ID = 2;
     private static final Minecraft mc = Minecraft.getMinecraft();
     private final String[] welcomeMessage = {
-            "⚠ If you downloaded this mod from somewhere else than discord.gg/6mSHC2Xd9y or GitHub ⚠",
+            "⚠ Official JellyLab Discord server DOES NOT exist anymore! .gg/jellylab is a MALICIOUS server! ⚠",
+            "",
+            "⚠ If you downloaded this mod from somewhere else than github.com/JellyLabScripts/FarmHelper ⚠",
             "⚠ such as YouTube videos, MediaFire, etc. - immediately remove it! It's a virus! ⚠",
             "",
             "Before you use, you NEED to: ",
             "1. Read the guide first! (Click \"Read the guide\").",
             "2. Build the farm using schematics provided in our guide.",
-            "3. Join our Discord to get help and receive important information about the mod.",
-            "4. For research purposes, we will collect statistics about your macro. You can opt out in the config.",
-            "5. Type \"I understand\" in the box below and click \"Close\" to close this window.",
+            "3. Type \"I understand\" in the box below and click \"Close\" to close this window.",
     };
     private GuiButton openGuideBtn;
     private GuiButton closeBtn;
@@ -41,7 +41,7 @@ public class WelcomeGUI extends GuiScreen {
     }
 
     public static void showGUI() {
-        if (!FarmHelperConfig.shownWelcomeGUI) {
+        if (!FarmHelperConfig.shownWelcomeGUI2) {
             mc.displayGuiScreen(new WelcomeGUI());
         }
     }
@@ -126,7 +126,7 @@ public class WelcomeGUI extends GuiScreen {
                 }
             }
             if (button == closeBtn) {
-                FarmHelperConfig.shownWelcomeGUI = true;
+                FarmHelperConfig.shownWelcomeGUI2 = true;
                 mc.displayGuiScreen(new GuiMainMenu());
             }
         }

@@ -369,23 +369,19 @@ public class FlyPathFinderExecutor {
                 }
             }
             neededYaw = rotationToEscape;
-            if (FarmHelperConfig.flyPathfinderOringoCompatible) {
-                List<KeyBinding> keyBindings = new ArrayList<>(KeyBindUtils.getNeededKeyPresses(neededYaw));
-                keyBindings.add(mc.gameSettings.keyBindUseItem.isKeyDown() ? mc.gameSettings.keyBindUseItem : null);
-                keyBindings.add(mc.gameSettings.keyBindAttack.isKeyDown() ? mc.gameSettings.keyBindAttack : null);
-                Vec3 above = current.addVector(0, mc.thePlayer.height + 0.5f, 0);
-                Vec3 below = current.addVector(0, -0.5f, 0);
-                MovingObjectPosition traceAbove = mc.theWorld.rayTraceBlocks(current, above, false, true, false);
-                MovingObjectPosition traceBelow = mc.theWorld.rayTraceBlocks(current, below, false, true, false);
-                if (traceBelow == null || traceBelow.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
-                    keyBindings.add(mc.gameSettings.keyBindSneak);
-                } else if (traceAbove == null || traceAbove.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
-                    keyBindings.add(mc.gameSettings.keyBindJump);
-                }
-                KeyBindUtils.holdThese(keyBindings.toArray(new KeyBinding[0]));
-            } else {
-                KeyBindUtils.holdThese(mc.gameSettings.keyBindForward, mc.gameSettings.keyBindUseItem.isKeyDown() ? mc.gameSettings.keyBindUseItem : null, mc.gameSettings.keyBindAttack.isKeyDown() ? mc.gameSettings.keyBindAttack : null);
+            List<KeyBinding> keyBindings = new ArrayList<>(KeyBindUtils.getNeededKeyPresses(neededYaw));
+            keyBindings.add(mc.gameSettings.keyBindUseItem.isKeyDown() ? mc.gameSettings.keyBindUseItem : null);
+            keyBindings.add(mc.gameSettings.keyBindAttack.isKeyDown() ? mc.gameSettings.keyBindAttack : null);
+            Vec3 above = current.addVector(0, mc.thePlayer.height + 0.5f, 0);
+            Vec3 below = current.addVector(0, -0.5f, 0);
+            MovingObjectPosition traceAbove = mc.theWorld.rayTraceBlocks(current, above, false, true, false);
+            MovingObjectPosition traceBelow = mc.theWorld.rayTraceBlocks(current, below, false, true, false);
+            if (traceBelow == null || traceBelow.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
+                keyBindings.add(mc.gameSettings.keyBindSneak);
+            } else if (traceAbove == null || traceAbove.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
+                keyBindings.add(mc.gameSettings.keyBindJump);
             }
+            KeyBindUtils.holdThese(keyBindings.toArray(new KeyBinding[0]));
             Multithreading.schedule(() -> KeyBindUtils.stopMovement(true), 500, TimeUnit.MILLISECONDS);
             return;
         }
@@ -475,11 +471,7 @@ public class FlyPathFinderExecutor {
         neededYaw = rotation.getYaw();
         keyBindings.add(mc.gameSettings.keyBindUseItem.isKeyDown() ? mc.gameSettings.keyBindUseItem : null);
         keyBindings.add(mc.gameSettings.keyBindAttack.isKeyDown() ? mc.gameSettings.keyBindAttack : null);
-        if (FarmHelperConfig.flyPathfinderOringoCompatible) {
-            keyBindings.addAll(neededKeys);
-        } else {
-            keyBindings.add(mc.gameSettings.keyBindForward);
-        }
+        keyBindings.addAll(neededKeys);
 
         double distanceX = next.xCoord - mc.thePlayer.posX;
         double distanceY = next.yCoord - mc.thePlayer.posY;
@@ -559,7 +551,7 @@ public class FlyPathFinderExecutor {
         PlayerSimulation playerSimulation = new PlayerSimulation(mc.theWorld);
         playerSimulation.copy(mc.thePlayer);
         playerSimulation.isFlying = true;
-        playerSimulation.rotationYaw = neededYaw != Integer.MIN_VALUE && !FarmHelperConfig.flyPathfinderOringoCompatible ? neededYaw : mc.thePlayer.rotationYaw;
+        playerSimulation.rotationYaw = mc.thePlayer.rotationYaw;
         for (int i = 0; i < 30; i++) {
             playerSimulation.onLivingUpdate();
             if (Math.abs(playerSimulation.motionX) < 0.01D && Math.abs(playerSimulation.motionZ) < 0.01D) {

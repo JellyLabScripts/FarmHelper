@@ -11,7 +11,6 @@
     "block.MixinBlockNetherWart",
     "client.EntityPlayerAccessor",
     "client.MixinChunk",
-    "client.MixinEntity",
     "client.MixinMouse",
     "client.MixinScoreboard",
     "fml.MixinFMLHandshakeMessage",

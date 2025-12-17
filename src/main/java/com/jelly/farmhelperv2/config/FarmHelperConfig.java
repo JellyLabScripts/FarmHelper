@@ -1330,13 +1330,6 @@ public class FarmHelperConfig extends Config {
     public static boolean dontTeleportToPlots = false;
 
     @Switch(
-            name = "Fly Pathfinder Oringo Compatible",
-            description = "Makes the fly pathfinder compatible with Oringo, but worse, zzz...",
-            category = PESTS_DESTROYER, subcategory = "Pests Destroyer"
-    )
-    public static boolean flyPathfinderOringoCompatible = false;
-
-    @Switch(
             name = "Pause the Pests Destroyer during Jacob's contests", category = PESTS_DESTROYER, subcategory = "Pests Destroyer",
             description = "Pauses the Pests Destroyer during Jacob's contests",
             size = 1
@@ -2572,7 +2565,7 @@ public class FarmHelperConfig extends Config {
     @Switch(
             name = "Shown Welcome GUI", category = EXPERIMENTAL, subcategory = "Experimental"
     )
-    public static boolean shownWelcomeGUI = false;
+    public static boolean shownWelcomeGUI2 = false;
 
     public FarmHelperConfig() {
         super(new Mod("Farm Helper", ModType.HYPIXEL, "/farmhelper/icon-mod/icon.png"), "/farmhelper/config.json");

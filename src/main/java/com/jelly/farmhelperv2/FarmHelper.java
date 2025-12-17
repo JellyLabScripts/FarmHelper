@@ -154,11 +154,6 @@ public class FarmHelper {
             LogUtils.sendNotification("Farm Helper", "'Max Spend Limit' in Visitors Macro settings has been set to 0.7 automatically, because of change of type. Make sure to update it to your preferences", 15000);
             LogUtils.sendWarning("'Max Spend Limit' in Visitors Macro settings has been set to 0.7 automatically, because of change of type. Make sure to update it to your preferences");
         }
-        if (!FarmHelperConfig.flyPathfinderOringoCompatible && ReflectionUtils.hasModFile("oringo")) {
-            FarmHelperConfig.flyPathfinderOringoCompatible = true;
-            LogUtils.sendNotification("Farm Helper", "You've got Oringo installed in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.", 15000);
-            LogUtils.sendWarning("You've got §6§lOringo §cinstalled in your mods folder! FarmHelper will use Oringo compatibility mode for FlyPathfinder.");
-        }
         if (FarmHelperConfig.configVersion == 3 && FarmHelperConfig.macroType > 7) {
             FarmHelperConfig.macroType += 1; // Added cocoa bean macro with trapdoors
         }
