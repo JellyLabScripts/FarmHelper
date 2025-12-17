@@ -64,6 +64,15 @@ public class ScoreboardUtils {
         for (Score score : scores) {
             ScorePlayerTeam team = scoreboard.getPlayersTeam(score.getPlayerName());
             String playerName = ScorePlayerTeam.formatPlayerName(team, score.getPlayerName());
+
+            if (playerName.contains("☀")) {
+                scoreboardLines.add("Day");
+                cleanScoreboardLines.add("Day");
+            } else if (playerName.contains("☽")) {
+                scoreboardLines.add("Night");
+                cleanScoreboardLines.add("Night");
+            }
+
             scoreboardLines.add(playerName);
             cleanScoreboardLines.add(cleanSB(playerName));
         }

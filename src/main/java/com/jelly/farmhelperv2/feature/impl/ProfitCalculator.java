@@ -51,15 +51,19 @@ public class ProfitCalculator implements IFeature {
         add(new BazaarItem("Cactus Green", "ENCHANTED_CACTUS", ENCHANTED_TIER_2, 3).setImage());
         add(new BazaarItem("Red Mushroom", "ENCHANTED_RED_MUSHROOM", ENCHANTED_TIER_1, 10).setImage());
         add(new BazaarItem("Brown Mushroom", "ENCHANTED_BROWN_MUSHROOM", ENCHANTED_TIER_1, 10).setImage());
+        add(new BazaarItem("Moonflower", "ENCHANTED_MOONFLOWER", ENCHANTED_TIER_1, 4).setImage());
+        add(new BazaarItem("Sunflower", "ENCHANTED_SUNFLOWER", ENCHANTED_TIER_1, 4).setImage());
+        add(new BazaarItem("Rose", "ENCHANTED_WILD_ROSE", ENCHANTED_TIER_1, 4).setImage());
     }};
     public final List<BazaarItem> rngDropToCount = new ArrayList<BazaarItem>() {{
         add(new BazaarItem("Cropie", "CROPIE", 1, 25_000).setImage());
         add(new BazaarItem("Squash", "SQUASH", 1, 75_000).setImage());
         add(new BazaarItem("Fermento", "FERMENTO", 1, 250_000).setImage());
         add(new BazaarItem("Burrowing Spores", "BURROWING_SPORES", 1, 1).setImage());
+        add(new BazaarItem("Helianthus", "HELIANTHUS", 1, 275_000).setImage());
     }};
-    public final List<String> cropsToCountList = Arrays.asList("Hay Bale", "Seeds", "Carrot", "Potato", "Melon", "Pumpkin", "Sugar Cane", "Cocoa Beans", "Nether Wart", "Cactus Green", "Red Mushroom", "Brown Mushroom");
-    public final List<String> rngToCountList = Arrays.asList("Cropie", "Squash", "Fermento", "Burrowing Spores");
+    public final List<String> cropsToCountList = Arrays.asList("Hay Bale", "Seeds", "Carrot", "Potato", "Melon", "Pumpkin", "Sugar Cane", "Cocoa Beans", "Nether Wart", "Cactus Green", "Red Mushroom", "Brown Mushroom", "Moonflower", "Sunflower", "Rose");
+    public final List<String> rngToCountList = Arrays.asList("Cropie", "Squash", "Fermento", "Burrowing Spores", "Helianthus");
     private final Minecraft mc = Minecraft.getMinecraft();
     @Getter
     private final NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "US"));
@@ -127,6 +131,14 @@ public class ProfitCalculator implements IFeature {
                 return "fermento.png";
             case "Burrowing Spores":
                 return "burrowingspores.png";
+            case "Moonflower":
+                return "moonflower.png";
+            case "Sunflower":
+                return "sunflower.png";
+            case "Rose":
+                return "rose.png";
+            case "Helianthus":
+                return "helianthus.png";
             default:
                 throw new IllegalArgumentException("No image for " + name);
         }

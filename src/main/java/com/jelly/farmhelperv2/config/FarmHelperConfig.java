@@ -96,7 +96,7 @@ public class FarmHelperConfig extends Config {
                     "S Shape - Pumpkin/Melon", // 1
                     "S Shape - Pumpkin/Melon Melongkingde", // 2
                     "S Shape - Pumpkin/Melon Default Plot", // 3
-                    "S Shape - Sugar Cane", // 4
+                    "S Shape - Sugar Cane/Wild Roses/Sunflower", // 4
                     "S Shape - Cactus", // 5
                     "S Shape - Cactus SunTzu Black Cat", // 6
                     "S Shape - Cocoa Beans", // 7
@@ -2943,6 +2943,9 @@ public class FarmHelperConfig extends Config {
         COCOA_BEANS("Cocoa Beans"),
         MUSHROOM("Mushroom"),
         MUSHROOM_ROTATE("Mushroom"),
+        SUNFLOWER("Sunflower"),
+        MOONFLOWER("Moonflower"),
+        ROSE("Rose"),
         ;
 
         final String localizedName;

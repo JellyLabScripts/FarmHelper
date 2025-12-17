@@ -4,10 +4,9 @@ import com.jelly.farmhelperv2.FarmHelper;
 import com.jelly.farmhelperv2.config.FarmHelperConfig;
 import com.jelly.farmhelperv2.config.struct.Rewarp;
 import com.jelly.farmhelperv2.failsafe.FailsafeManager;
+import com.jelly.farmhelperv2.handler.GameStateHandler;
 import com.jelly.farmhelperv2.handler.MacroHandler;
 import com.jelly.farmhelperv2.util.helper.Clock;
-import com.jelly.farmhelperv2.util.AngleUtils;
-import com.jelly.farmhelperv2.handler.GameStateHandler;
 import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -54,7 +53,7 @@ public class PlayerUtils {
             if (mc.theWorld == null) return FarmHelperConfig.CropEnum.NONE;
             if (mc.theWorld.getBlockState(pos) == null) return FarmHelperConfig.CropEnum.NONE;
             Block block = mc.theWorld.getBlockState(pos).getBlock();
-            if (block instanceof BlockCrops || block instanceof BlockReed || block instanceof BlockCocoa || block instanceof BlockNetherWart || block instanceof BlockMelon || block instanceof BlockPumpkin || block instanceof BlockMushroom || block instanceof BlockCactus) {
+            if (block instanceof BlockCrops || block instanceof BlockReed || block instanceof BlockCocoa || block instanceof BlockNetherWart || block instanceof BlockMelon || block instanceof BlockPumpkin || block instanceof BlockMushroom || block instanceof BlockCactus || block instanceof BlockDoublePlant) {
                 closestCrop = Pair.of(block, pos);
                 foundCropUnderMouse = true;
             }
@@ -76,7 +75,7 @@ public class PlayerUtils {
                         }
                         BlockPos pos = BlockUtils.getRelativeBlockPos(x, y, z, yaw);
                         Block block = mc.theWorld.getBlockState(pos).getBlock();
-                        if (!(block instanceof BlockCrops || block instanceof BlockReed || block instanceof BlockCocoa || block instanceof BlockNetherWart || block instanceof BlockMelon || block instanceof BlockPumpkin || block instanceof BlockMushroom || block instanceof BlockCactus))
+                        if (!(block instanceof BlockCrops || block instanceof BlockReed || block instanceof BlockCocoa || block instanceof BlockNetherWart || block instanceof BlockMelon || block instanceof BlockPumpkin || block instanceof BlockMushroom || block instanceof BlockCactus || block instanceof BlockDoublePlant))
                             continue;
 
                         if (closestCrop == null || mc.thePlayer.getPositionVector().distanceTo(new Vec3(pos.getX() + 0.5f, pos.getY(), pos.getZ() + 0.5f)) < mc.thePlayer.getPositionVector().distanceTo(new Vec3(closestCrop.getRight().getX() + 0.5f, closestCrop.getRight().getY(), closestCrop.getRight().getZ() + 0.5f))) {
@@ -89,6 +88,7 @@ public class PlayerUtils {
 
         if (closestCrop != null) {
             Block left = closestCrop.getLeft();
+            BlockPos pos = closestCrop.getRight();
             if (left.equals(Blocks.wheat)) {
                 return FarmHelperConfig.CropEnum.WHEAT;
             } else if (left.equals(Blocks.carrots)) {
@@ -111,6 +111,23 @@ public class PlayerUtils {
                 return FarmHelperConfig.CropEnum.MUSHROOM;
             } else if (left.equals(Blocks.cactus)) {
                 return FarmHelperConfig.CropEnum.CACTUS;
+            } else if (left.equals(Blocks.double_plant)) {
+                BlockDoublePlant plantBlock = (BlockDoublePlant) left;
+                BlockDoublePlant.EnumPlantType variant = plantBlock.getVariant(mc.theWorld, pos);
+
+                if (variant == BlockDoublePlant.EnumPlantType.SUNFLOWER) {
+                    List<String> scoreboardLines = ScoreboardUtils.getScoreboardLines(true);
+
+                    boolean isDay = scoreboardLines.contains("Day");
+                    LogUtils.sendDebug("Is Day: " + (isDay ? "true" : "false"));
+                    if (isDay) {
+                        return FarmHelperConfig.CropEnum.SUNFLOWER;
+                    } else {
+                        return FarmHelperConfig.CropEnum.MOONFLOWER;
+                    }
+                } else if (variant == BlockDoublePlant.EnumPlantType.ROSE) {
+                    return FarmHelperConfig.CropEnum.ROSE;
+                }
             }
         }
         LogUtils.sendError("Can't detect crop type! Lower average BPS failsafe will be disabled!");
@@ -384,7 +401,9 @@ public class PlayerUtils {
 
     public static void closeScreen() {
         if (mc.currentScreen != null && mc.thePlayer != null) {
-            mc.addScheduledTask(() -> { mc.thePlayer.closeScreen();});
+            mc.addScheduledTask(() -> {
+                mc.thePlayer.closeScreen();
+            });
         }
     }
 
