@@ -8,9 +8,6 @@
   <a href="https://github.com/JellyLabScripts/FarmHelper/releases" target="_blank">
     <img alt="downloads" src="https://img.shields.io/github/downloads/JellyLabScripts/FarmHelper/total?color=purple" />
   </a>
-  <a href="https://discord.gg/6mSHC2Xd9y" target="_blank">
-    <img alt="discord" src="https://img.shields.io/discord/450878205294018560?color=orange&label=discord" />
-  </a>
 </p>
 
 <br />
@@ -21,9 +18,7 @@
 
 <h3 align="center">FarmHelper V2</h3>
   <p align="center">
-    <a href="https://discord.gg/6mSHC2Xd9y">Report Bug</a>
-    ·
-    <a href="https://discord.gg/6mSHC2Xd9y">Request Feature</a>
+    <a>There is no official Discord server. discord.gg/jellylab is A STOLEN, MALICIOUS server! DO NOT JOIN!</a>
   </p>
 </div>
 
