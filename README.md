@@ -18,7 +18,7 @@
 
 <h3 align="center">FarmHelper V2</h3>
   <p align="center">
-    <a>There is no official Discord server. discord.gg/jellylab is A STOLEN, MALICIOUS server! DO NOT JOIN!</a>
+    <h1>‼️There is no official Discord server. discord.gg/jellylab is A STOLEN, MALICIOUS server! DO NOT JOIN!‼️</h1>
   </p>
 </div>
 
