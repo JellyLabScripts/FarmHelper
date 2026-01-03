@@ -1525,6 +1525,13 @@ public class FarmHelperConfig extends Config {
     )
     public static boolean pestFarmingUseMousemat = false;
 
+    @Switch(
+        name = "Only Use The Farming Armor(Read Desc)", category = PEST_FARMER,
+        description = "To Use This, You Should Enable The 'Cast Rod' Option To Swap Pets With A Rod And Set Your Auto Pet Rules As Mentioned in Elite Farmers' Wiki Introduction To Pest Farming"
+    )
+    public static boolean pestFarmingSameSlot = false;
+
+
     @Slider(
             name = "Fermento Armor Slot", category = PEST_FARMER,
             min = 1, max = 18
@@ -1579,7 +1586,7 @@ public class FarmHelperConfig extends Config {
     public static boolean pestFarmerKillPests = false;
 
     @Switch(
-        name = "Cast Rod After Killing", category = PEST_FARMER
+        name = "Cast Rod", category = PEST_FARMER
     )
     public static boolean pestFarmerCastRod = false;
 

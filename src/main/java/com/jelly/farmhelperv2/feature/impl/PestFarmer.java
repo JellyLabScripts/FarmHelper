@@ -42,6 +42,8 @@ public class PestFarmer implements IFeature {
     public boolean wasSpawnChanged = false;
     private Clock timer = new Clock();
     private boolean rodCasted = false;
+    private boolean useLongerRodCastDelay = false;
+    private boolean shouldCastRodAfterSwap = false;
 
     // return
     private boolean isRewarpObstructed = false;
@@ -50,7 +52,7 @@ public class PestFarmer implements IFeature {
     private int mainAttempts = 0; // this isnt needed, like at all, but im adding this because fuck you thats why
     private boolean failed = false;
     private float[] requiredAng = new float[2];
-
+    private boolean has_run = false;
     @Override
     public String getName() {
         return "PestFarmer";
@@ -122,6 +124,7 @@ public class PestFarmer implements IFeature {
         mainAttempts = 0;
         requiredAng = new float[2];
         rodCasted = false;
+        useLongerRodCastDelay = false;
         if (failed) {
             MacroHandler.getInstance().disableMacro();
             LogUtils.sendError("Failed, disabling");
@@ -166,7 +169,7 @@ public class PestFarmer implements IFeature {
             return;
         }
 
-        if (pestSpawned) {
+        if (pestSpawned && !FarmHelperConfig.pestFarmingSameSlot) {
             long timeDiff = System.currentTimeMillis() - pestSpawnTime;
             if (timeDiff >= FarmHelperConfig.pestFarmingWaitTime * 1000L) {
                 pestSpawned = false;
@@ -188,6 +191,41 @@ public class PestFarmer implements IFeature {
                 mainState = MainState.SWAP_N_START;
                 start();
             }
+        } else if (pestSpawned && FarmHelperConfig.pestFarmingSameSlot) {
+            long timeDiff = System.currentTimeMillis() - pestSpawnTime;
+            if (timeDiff >= FarmHelperConfig.pestFarmingWaitTime * 1000L) {
+                pestSpawned = false;
+                // post-wait swap: only run once per spawn
+                    int targetSlot = AutoWardrobe.activeSlot;
+                    if (targetSlot < 1 || targetSlot > 18) {
+                        // fallback to configured fermento slot if activeSlot not yet known
+                        targetSlot = FarmHelperConfig.pestFarmingFermentoSlot;
+                    }
+                    swapTo = targetSlot;
+                    if (FarmHelperConfig.pestFarmingSwapEq) {
+                        equipments = Arrays.asList(FarmHelperConfig.pestFarmingEq1.split("\\|"));
+                    }
+                    useLongerRodCastDelay = true;
+                    shouldCastRodAfterSwap = true;
+                    LogUtils.sendDebug("[PestFarmer] Same-slot mode: updating equipments on slot " + swapTo);
+                    mainState = MainState.SWAP_N_START;
+                    start();
+            } else if (!has_run) { // this is the initial swap, happens after pests spawn
+                    int targetSlot = AutoWardrobe.activeSlot;
+                    if (targetSlot < 1 || targetSlot > 18) {
+                        // fallback to configured fermento slot if activeSlot not yet known
+                        targetSlot = FarmHelperConfig.pestFarmingFermentoSlot;
+                    }
+                    swapTo = targetSlot;
+                    if (FarmHelperConfig.pestFarmingSwapEq) {
+                        equipments = Arrays.asList(FarmHelperConfig.pestFarmingEq0.split("\\|"));
+                    }
+                    shouldCastRodAfterSwap = true;
+                    LogUtils.sendDebug("[PestFarmer] Same-slot mode: updating equipments on slot " + swapTo);
+                    mainState = MainState.SWAP_N_START;
+                    start();
+                    has_run = true;
+                }
         }
     }
 
@@ -200,6 +238,7 @@ public class PestFarmer implements IFeature {
         if (message.contains("§6§lYUCK!") || message.startsWith("§6§lEWW!") || message.startsWith("§6§lGROSS!")) {
             pestSpawnTime = System.currentTimeMillis();
             pestSpawned = true;
+            has_run = false;
             LogUtils.sendDebug("[PestFarmer] Pest Spawned.");
         }
 
@@ -256,6 +295,44 @@ public class PestFarmer implements IFeature {
                     if (AutoWardrobe.instance.isRunning()) {
                         return;
                     }
+                    if (shouldCastRodAfterSwap) {
+                        setState(State.CASTING_ROD, 0);
+                        shouldCastRodAfterSwap = false;
+                        return;
+                    }
+                    if (pestSpawned && ((FarmHelperConfig.pestFarmerKillPests && GameStateHandler.getInstance().getPestsCount() >= FarmHelperConfig.pestFarmerStartKillAt) || FarmHelperConfig.pestFarmingSetSpawn)) {
+                        setState(State.SETTING_SPAWN, 0);
+                    } else {
+                        stop();
+                    }
+                    break;
+                case CASTING_ROD:
+                    if (FarmHelperConfig.pestFarmerCastRod) {
+                        ItemStack heldItem = mc.thePlayer.getHeldItem();
+                        if (heldItem == null || !(heldItem.getItem() instanceof ItemFishingRod)) {
+                            for (int i = 0; i < 9; i++) {
+                                ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
+                                if (stack != null && stack.getItem() instanceof ItemFishingRod) {
+                                    mc.thePlayer.inventory.currentItem = i;
+                                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                                    return;
+                                }
+                            }
+                            LogUtils.sendError("Could not find a fishing rod in hotbar");
+                        }
+
+                        if (!this.rodCasted) {
+                            KeyBindUtils.rightClick();
+                            if (useLongerRodCastDelay) {
+                                this.timer.schedule(1000); 
+                                useLongerRodCastDelay = false; 
+                        } else {
+                            this.timer.schedule(200);
+                        }
+                            this.rodCasted = true;
+                            break;
+                        }
+                    }
                     if (pestSpawned && ((FarmHelperConfig.pestFarmerKillPests && GameStateHandler.getInstance().getPestsCount() >= FarmHelperConfig.pestFarmerStartKillAt) || FarmHelperConfig.pestFarmingSetSpawn)) {
                         setState(State.SETTING_SPAWN, 0);
                     } else {
@@ -273,6 +350,7 @@ public class PestFarmer implements IFeature {
                     }
                     break;
                 case TOGGLING_PEST_DESTROYER:
+                    rodCasted = false;
                     if (PestsDestroyer.getInstance().canEnableMacro(true)) {
                         PestsDestroyer.getInstance().start();
                         setState(State.WAITING_FOR_PEST_DESTROYER, 0);
@@ -617,6 +695,7 @@ public class PestFarmer implements IFeature {
     enum State {
         SWAPPING,
         WAITING_FOR_SWAP,
+        CASTING_ROD,
         ANALYZING, // :nerd:
         SETTING_SPAWN,
         WAITING_FOR_SPAWN,
