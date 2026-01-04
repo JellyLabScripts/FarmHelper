@@ -1596,6 +1596,29 @@ public class FarmHelperConfig extends Config {
     )
     public static int pestFarmerStartKillAt = 1;
 
+    @Switch(
+        name = "Enable Pest Pet Swapper", category = PEST_FARMER, subcategory = "Pet Swapper"
+    )
+    public static boolean pestPetSwapper = false;
+
+    @Text(
+        name = "Farming Pet", category = PEST_FARMER, subcategory = "Pet Swapper",
+        description = "Name of the pet to use for farming.", placeholder = "e.g. Slug"
+    )
+    public static String pestFarmingFarmingPet = "";
+
+    @Text(
+        name = "Pest Spawn Pet", category = PEST_FARMER, subcategory = "Pet Swapper",
+        description = "Name of the pet to use for increasing pest spawn chance.", placeholder = "e.g. Rat"
+    )
+    public static String pestFarmingPestSpawnPet = "";
+
+    @Text(
+        name = "Pest Killing Pet", category = PEST_FARMER, subcategory = "Pet Swapper",
+        description = "Name of the pet to use for killing pests.", placeholder = "e.g. Bal"
+    )
+    public static String pestFarmingPestKillingPet = "";
+
     //</editor-fold>
     //<editor-fold desc="DISCORD INTEGRATION">
     //<editor-fold desc="Webhook Discord">
