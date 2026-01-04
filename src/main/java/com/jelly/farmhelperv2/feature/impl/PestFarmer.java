@@ -23,6 +23,8 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemFishingRod;
+import net.minecraft.inventory.ContainerChest;
+import net.minecraft.util.StringUtils;
 
 import java.lang.Math;
 
@@ -36,12 +38,17 @@ public class PestFarmer implements IFeature {
     private List<String> equipments = new ArrayList();
     private MainState mainState = MainState.NONE;
     private State state = State.SWAPPING;
+    private PetSwapState petSwapState = PetSwapState.NONE;
     private ReturnState returnState = ReturnState.STARTING;
     private boolean pestSpawned = false;
     private boolean kill = false;
     public boolean wasSpawnChanged = false;
     private Clock timer = new Clock();
     private boolean rodCasted = false;
+    private boolean useLongerRodCastDelay = false;
+    private boolean shouldCastRodAfterSwap = false;
+    private boolean petSwapped = false;
+    private String targetPet = null;
 
     // return
     private boolean isRewarpObstructed = false;
@@ -50,7 +57,7 @@ public class PestFarmer implements IFeature {
     private int mainAttempts = 0; // this isnt needed, like at all, but im adding this because fuck you thats why
     private boolean failed = false;
     private float[] requiredAng = new float[2];
-
+    private boolean has_run = false;
     @Override
     public String getName() {
         return "PestFarmer";
@@ -76,9 +83,12 @@ public class PestFarmer implements IFeature {
         state = State.SWAPPING;
         mainState = MainState.NONE;
         returnState = ReturnState.STARTING;
+        petSwapState = PetSwapState.NONE;
         swapTo = -1;
         equipments.clear();
         enabled = false;
+        petSwapped = false;
+        targetPet = null;
     }
 
     @Override
@@ -122,6 +132,7 @@ public class PestFarmer implements IFeature {
         mainAttempts = 0;
         requiredAng = new float[2];
         rodCasted = false;
+        useLongerRodCastDelay = false;
         if (failed) {
             MacroHandler.getInstance().disableMacro();
             LogUtils.sendError("Failed, disabling");
@@ -130,6 +141,8 @@ public class PestFarmer implements IFeature {
             MacroHandler.getInstance().resumeMacro();
         }
         failed = false;
+        petSwapped = false;
+        targetPet = null;
         IFeature.super.stop();
     }
 
@@ -166,7 +179,7 @@ public class PestFarmer implements IFeature {
             return;
         }
 
-        if (pestSpawned) {
+        if (pestSpawned && !FarmHelperConfig.pestFarmingSameSlot) {
             long timeDiff = System.currentTimeMillis() - pestSpawnTime;
             if (timeDiff >= FarmHelperConfig.pestFarmingWaitTime * 1000L) {
                 pestSpawned = false;
@@ -188,6 +201,47 @@ public class PestFarmer implements IFeature {
                 mainState = MainState.SWAP_N_START;
                 start();
             }
+        } else if (pestSpawned && FarmHelperConfig.pestFarmingSameSlot) {
+            long timeDiff = System.currentTimeMillis() - pestSpawnTime;
+            if (timeDiff >= FarmHelperConfig.pestFarmingWaitTime * 1000L) {
+                pestSpawned = false;
+                // post-wait swap: only run once per spawn. the corresponding pet of this is the pest spawn pet
+                    int targetSlot = AutoWardrobe.activeSlot;
+                    if (targetSlot < 1 || targetSlot > 18) {
+                        // fallback to configured fermento slot if activeSlot not yet known
+                        targetSlot = FarmHelperConfig.pestFarmingFermentoSlot;
+                    }
+                    swapTo = targetSlot;
+                    if (FarmHelperConfig.pestFarmingSwapEq) {
+                        equipments = Arrays.asList(FarmHelperConfig.pestFarmingEq1.split("\\|"));
+                    }
+                    useLongerRodCastDelay = true;
+                    shouldCastRodAfterSwap = true;
+                    if (FarmHelperConfig.pestPetSwapper && !petSwapped) {
+                        targetPet = FarmHelperConfig.pestFarmingPestSpawnPet;
+                    }
+                    LogUtils.sendDebug("[PestFarmer] Same-slot mode: updating equipments");
+                    mainState = MainState.SWAP_N_START;
+                    start();
+            } else if (!has_run) { // this is the initial swap, happens right after pests spawn. Corresponding pet is the pest killing pet.
+                    int targetSlot = AutoWardrobe.activeSlot;
+                    if (targetSlot < 1 || targetSlot > 18) {
+                        // fallback to configured fermento slot if activeSlot not yet known
+                        targetSlot = FarmHelperConfig.pestFarmingFermentoSlot;
+                    }
+                    swapTo = targetSlot;
+                    if (FarmHelperConfig.pestFarmingSwapEq) {
+                        equipments = Arrays.asList(FarmHelperConfig.pestFarmingEq0.split("\\|"));
+                    }
+                    shouldCastRodAfterSwap = true;
+                    if (FarmHelperConfig.pestPetSwapper && !petSwapped) {
+                        targetPet = FarmHelperConfig.pestFarmingPestKillingPet;
+                    }
+                    LogUtils.sendDebug("[PestFarmer] Same-slot mode: updating equipments" );
+                    mainState = MainState.SWAP_N_START;
+                    start();
+                    has_run = true;
+                }
         }
     }
 
@@ -200,7 +254,24 @@ public class PestFarmer implements IFeature {
         if (message.contains("§6§lYUCK!") || message.startsWith("§6§lEWW!") || message.startsWith("§6§lGROSS!")) {
             pestSpawnTime = System.currentTimeMillis();
             pestSpawned = true;
+            has_run = false;
             LogUtils.sendDebug("[PestFarmer] Pest Spawned.");
+        }
+
+        if (enabled && mainState == MainState.SWAP_PET && petSwapState == PetSwapState.WAITING_FOR_SPAWN) {
+            String spawnMessage = "you summoned your " + targetPet.toLowerCase();
+            if (StringUtils.stripControlCodes(message).toLowerCase().contains(spawnMessage)) {
+                LogUtils.sendDebug("[PestFarmer] Pet spawned: " + targetPet);
+                petSwapped = true;
+                targetPet = null;
+                petSwapState = PetSwapState.NONE;
+                PlayerUtils.closeScreen();
+                if (pestSpawned && ((FarmHelperConfig.pestFarmerKillPests && GameStateHandler.getInstance().getPestsCount() >= FarmHelperConfig.pestFarmerStartKillAt) || FarmHelperConfig.pestFarmingSetSpawn)) {
+                    setState(State.SETTING_SPAWN, 0);
+                } else {
+                    stop();
+                }
+            }
         }
 
         if (!enabled || (state != State.WAITING_FOR_SPAWN && returnState != ReturnState.WAITING_FOR_SPAWN && returnState != ReturnState.WAITING_FOR_SPAWN_2)) return;
@@ -256,6 +327,49 @@ public class PestFarmer implements IFeature {
                     if (AutoWardrobe.instance.isRunning()) {
                         return;
                     }
+                    if (shouldCastRodAfterSwap) {
+                        setState(State.CASTING_ROD, 0);
+                        shouldCastRodAfterSwap = false;
+                        return;
+                    }
+                    if (targetPet != null && !targetPet.isEmpty()) {
+                        mainState = MainState.SWAP_PET;
+                        petSwapState = PetSwapState.OPENING_PETS_MENU;
+                        return;
+                    }
+                    if (pestSpawned && ((FarmHelperConfig.pestFarmerKillPests && GameStateHandler.getInstance().getPestsCount() >= FarmHelperConfig.pestFarmerStartKillAt) || FarmHelperConfig.pestFarmingSetSpawn)) {
+                        setState(State.SETTING_SPAWN, 0);
+                    } else {
+                        stop();
+                    }
+                    break;
+                case CASTING_ROD:
+                    if (FarmHelperConfig.pestFarmerCastRod) {
+                        ItemStack heldItem = mc.thePlayer.getHeldItem();
+                        if (heldItem == null || !(heldItem.getItem() instanceof ItemFishingRod)) {
+                            for (int i = 0; i < 9; i++) {
+                                ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
+                                if (stack != null && stack.getItem() instanceof ItemFishingRod) {
+                                    mc.thePlayer.inventory.currentItem = i;
+                                    this.timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                                    return;
+                                }
+                            }
+                            LogUtils.sendError("Could not find a fishing rod in hotbar");
+                        }
+
+                        if (!this.rodCasted) {
+                            KeyBindUtils.rightClick();
+                            if (useLongerRodCastDelay) {
+                                this.timer.schedule(1000); 
+                                useLongerRodCastDelay = false; 
+                        } else {
+                            this.timer.schedule(200);
+                        }
+                            this.rodCasted = true;
+                            break;
+                        }
+                    }
                     if (pestSpawned && ((FarmHelperConfig.pestFarmerKillPests && GameStateHandler.getInstance().getPestsCount() >= FarmHelperConfig.pestFarmerStartKillAt) || FarmHelperConfig.pestFarmingSetSpawn)) {
                         setState(State.SETTING_SPAWN, 0);
                     } else {
@@ -273,6 +387,7 @@ public class PestFarmer implements IFeature {
                     }
                     break;
                 case TOGGLING_PEST_DESTROYER:
+                    rodCasted = false;
                     if (PestsDestroyer.getInstance().canEnableMacro(true)) {
                         PestsDestroyer.getInstance().start();
                         setState(State.WAITING_FOR_PEST_DESTROYER, 0);
@@ -305,6 +420,13 @@ public class PestFarmer implements IFeature {
                         this.rodCasted = true;
                         break; 
                     }
+                    // we should set the farming pet here after casting i guess?
+                    if (FarmHelperConfig.pestPetSwapper && !petSwapped) {
+                        targetPet = FarmHelperConfig.pestFarmingFarmingPet;
+                        mainState = MainState.SWAP_PET;
+                        petSwapState = PetSwapState.OPENING_PETS_MENU;
+                        return;
+                    }
                     mc.thePlayer.sendChatMessage("/warp garden");
                     setState(State.WAITING_FOR_WARP, 5000);
                     preTpBlockPos = Optional.of(mc.thePlayer.getPosition());
@@ -329,6 +451,77 @@ public class PestFarmer implements IFeature {
                     break;
                 }
                 break;
+        }
+
+        case SWAP_PET: {
+            switch (petSwapState) {
+                case OPENING_PETS_MENU:
+                    if (mc.currentScreen != null) {
+                        PlayerUtils.closeScreen();
+                        return;
+                    }
+                    mc.thePlayer.sendChatMessage("/pets");
+                    petSwapState = PetSwapState.FINDING_PET;
+                    timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                    break;
+                case FINDING_PET:
+                    if (isTimerRunning()) return;
+                    if (!(mc.thePlayer.openContainer instanceof ContainerChest)) return;
+                    List<ItemStack> inventory = mc.thePlayer.openContainer.getInventory();
+                    for (ItemStack itemStack : inventory) {
+                        if (itemStack == null) continue;
+                        String petName = StringUtils.stripControlCodes(itemStack.getDisplayName());
+                        if (petName.contains("]")) {
+                            petName = petName.substring(petName.indexOf("]") + 2);
+                        }
+                        if (petName.toLowerCase().trim().contains(targetPet.toLowerCase())) {
+                            LogUtils.sendDebug("[PestFarmer] Found pet: " + petName);
+                            InventoryUtils.clickContainerSlot(InventoryUtils.getSlotIdOfItemInContainer(petName), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                            petSwapState = PetSwapState.WAITING_FOR_SPAWN;
+                            timer.schedule(5000);
+                            return;
+                        }
+                    }
+                    // check for next page
+                    for (ItemStack itemStack : inventory) {
+                        if (itemStack == null) continue;
+                        String itemName = StringUtils.stripControlCodes(itemStack.getDisplayName());
+                        if (itemName.toLowerCase().contains("next page")) {
+                            InventoryUtils.clickContainerSlot(InventoryUtils.getSlotIdOfItemInContainer("next page"), InventoryUtils.ClickType.LEFT, InventoryUtils.ClickMode.PICKUP);
+                            timer.schedule(FarmHelperConfig.getRandomGUIMacroDelay());
+                            return;
+                        }
+                    }
+                    LogUtils.sendError("[PestFarmer] Could not find the pet! Disabling pet swapper for this session.");
+                    petSwapped = true; // prevent further attempts
+                    targetPet = null;
+                    petSwapState = PetSwapState.NONE;
+                    PlayerUtils.closeScreen();
+                    // continue with the normal flow
+                    if (pestSpawned && ((FarmHelperConfig.pestFarmerKillPests && GameStateHandler.getInstance().getPestsCount() >= FarmHelperConfig.pestFarmerStartKillAt) || FarmHelperConfig.pestFarmingSetSpawn)) {
+                        setState(State.SETTING_SPAWN, 0);
+                    } else {
+                        stop();
+                    }
+                    break;
+                case WAITING_FOR_SPAWN:
+                    if (hasTimerEnded()) {
+                        LogUtils.sendError("[PestFarmer] Timed out waiting for pet spawn message. Disabling pet swapper for this session.");
+                        petSwapped = true; // prevent further attempts
+                        targetPet = null;
+                        petSwapState = PetSwapState.NONE;
+                        PlayerUtils.closeScreen();
+                        if (pestSpawned && ((FarmHelperConfig.pestFarmerKillPests && GameStateHandler.getInstance().getPestsCount() >= FarmHelperConfig.pestFarmerStartKillAt) || FarmHelperConfig.pestFarmingSetSpawn)) {
+                            setState(State.SETTING_SPAWN, 0);
+                        } else {
+                            stop();
+                        }
+                    }
+                    break;
+                case NONE:
+                    break;
+            }
+            break;
         }
 
         case RETURN: {
@@ -610,13 +803,22 @@ public class PestFarmer implements IFeature {
     enum MainState {
         NONE,
         SWAP_N_START,
+        SWAP_PET,
         RETURN
+    }
+
+    enum PetSwapState {
+        NONE,
+        OPENING_PETS_MENU,
+        FINDING_PET,
+        WAITING_FOR_SPAWN
     }
 
     // bleh, its only for the tracker basically
     enum State {
         SWAPPING,
         WAITING_FOR_SWAP,
+        CASTING_ROD,
         ANALYZING, // :nerd:
         SETTING_SPAWN,
         WAITING_FOR_SPAWN,

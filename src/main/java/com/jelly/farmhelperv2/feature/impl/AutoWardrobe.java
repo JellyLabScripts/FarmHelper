@@ -72,6 +72,10 @@ public class AutoWardrobe implements IFeature {
         if (slot < 1 || slot > 18) {
             return;
         }
+        if (FarmHelperConfig.pestFarmingSameSlot && activeSlot == FarmHelperConfig.pestFarmingFermentoSlot) {
+            LogUtils.sendDebug("[AutoWardrobe] Already wearing farming set, not swapping.");
+            return;
+        }
 
         swapTo = slot;
         enabled = true;
@@ -79,9 +83,22 @@ public class AutoWardrobe implements IFeature {
     }
 
     public void swapTo(int slot, List<String> equipments) {
-        if (slot< 1 || slot > 18) {
-            return;   
+        if (slot < 1 || slot > 18) {
+            return;
         }
+
+        if (FarmHelperConfig.pestFarmingSameSlot && activeSlot == FarmHelperConfig.pestFarmingFermentoSlot) {
+            LogUtils.sendDebug("[AutoWardrobe] Already wearing farming set, not swapping wardrobe.");
+            if (equipments != null && !equipments.isEmpty()) {
+                equipmentsToSwapTo = new ArrayList(equipments);
+                enabled = true;
+                // Skip wardrobe states
+                setState(State.OPENING_EQ, 0);
+                LogUtils.sendSuccess("[AutoWardrobe] Starting equipment swap: " + equipments);
+            }
+            return;
+        }
+
         swapTo = slot;
         equipmentsToSwapTo = new ArrayList(equipments);
         enabled = true;
