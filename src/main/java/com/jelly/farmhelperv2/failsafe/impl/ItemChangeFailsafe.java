@@ -13,6 +13,7 @@ import com.jelly.farmhelperv2.util.PlayerUtils;
 import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
 
 import java.util.concurrent.TimeUnit;
@@ -79,7 +80,9 @@ public class ItemChangeFailsafe extends Failsafe {
         if (slot == 36 + farmingToolSlot &&
                 farmingTool != null &&
                 !(farmingTool.getItem() instanceof ItemHoe) &&
-                !(farmingTool.getItem() instanceof ItemAxe)) {
+                !(farmingTool.getItem() instanceof ItemAxe) &&
+                !(farmingTool.getItem() instanceof ItemSword)
+        ) {
             LogUtils.sendDebug("[Failsafe] No farming tool in hand! Slot: " + slot);
             FailsafeManager.getInstance().possibleDetection(this);
         }
