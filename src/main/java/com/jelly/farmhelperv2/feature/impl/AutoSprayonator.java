@@ -12,6 +12,7 @@ import com.jelly.farmhelperv2.util.InventoryUtils;
 import com.jelly.farmhelperv2.util.KeyBindUtils;
 import com.jelly.farmhelperv2.util.LogUtils;
 import com.jelly.farmhelperv2.util.helper.Clock;
+import com.jelly.farmhelperv2.util.PlayerUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -201,7 +202,13 @@ public class AutoSprayonator implements IFeature {
         this.swapState(State.WAITING, 5000);
         break;
       case BUYING_MATERIAL:
-        if (this.isTimerRunning()) {
+        if (this.isTimerRunning()) {  
+          break;
+        }
+        if (PlayerUtils.isInventoryFull(mc.thePlayer)) {
+          LogUtils.sendError("AutoBazaar could not buy " + this.getSprayMaterial() + " because inventory is full. Pausing until restart");
+          this.pause = true;
+          this.stop();
           break;
         }
         AutoBazaar.getInstance().buy(this.getSprayMaterial(), FarmHelperConfig.autoSprayonatorAutoBuyAmount);
